@@ -139,13 +139,23 @@ input[type="text"]:focus
 	outline: none;
 }
 
+textarea {
+	width: 572px;
+	border: 2px solid;
+	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+	margin: 0px 0px 30px 0px;
+	padding: 10px;
+	background-color: #b0e2ff;
+}
+
 .result
 {
 	border: 2px solid;
-	border-radius: 25px;
 	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
 	margin: 0px 0px 30px 0px;
 	background-color: #98fb98;
+	padding: 10px;
+	overflow-x: auto;
 }
 
 .result > p
@@ -153,12 +163,12 @@ input[type="text"]:focus
 	text-align: center;
 	font-size: 18px;
 	font-weight: bold;
+	
 }
 
 .compiler
 {
 	border: 2px solid;
-	border-radius: 25px;
 	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
 	background-color: #eed2ee;
 	overflow: scroll;
@@ -173,7 +183,7 @@ input[type="text"]:focus
 .stdout
 {
 	border: 2px solid;
-	border-radius: 25px;
+	padding: 10px;
 	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
 	background-color: #d3d3d3;
 	overflow: scroll;

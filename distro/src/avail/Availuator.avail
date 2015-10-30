@@ -72,6 +72,18 @@ Grammatical restriction "`!_" is <{"`!_"}>;
 Method "Run_" is [f : []→⊤ | f();] : ⊤;
 
 /**
+ * Invoke the supplied {@type "function"} for its result.
+ *
+ * @method "Run_"
+ * @category "Availuator"
+ * @param "f" "[]→any"
+ *        An arbitrary arity-0 {@type "function"}.
+ * @return "any"
+ *         The value of applying the argument.
+ */
+Method "Run_" is [f : []→any | f()] : any;
+
+/**
  * Time the execution of the supplied {@type "function"}.
  *
  * @method "time_"

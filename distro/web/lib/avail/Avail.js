@@ -1,5 +1,5 @@
 /*
- * Types.avail
+ * Avail.js
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -121,6 +121,22 @@ function Avail (hostParam, portParam)
 		enumerable: false
 	});
 
+	Object.defineProperty(this, 'commandId',
+	{
+		value: 0,
+		configurable: true,
+		writable: true,
+		enumerable: false
+	});
+
+	Object.defineProperty(this, 'callbacks',
+	{
+		value: {},
+		configurable: true,
+		writable: true,
+		enumerable: false
+	});
+
 	Object.defineProperty(this, 'wsDebug',
 	{
 		value: false,
@@ -149,6 +165,10 @@ function Avail (hostParam, portParam)
 function AvailIO (parent, uuid)
 {
 	Avail.call(this, parent.host, parent.port);
+
+	// Remove unneeded properties.
+	delete this.commandId;
+	delete this.callbacks;
 
 	Object.defineProperty(this, 'parent',
 	{
@@ -208,7 +228,7 @@ Avail.prototype.connect = function ()
 		{
 			self.state = AvailState.open;
 			// Begin version negotiation with the server.
-			self.ws.send('version ' + self.protocolVersion);
+			self.version();
 			self.wsLog(
 				'Connected to ',
 				self.url,
@@ -343,6 +363,26 @@ Avail.prototype.failed = function (event)
 };
 
 /**
+ * Send a raw command to the Avail server. Increment the command id.
+ *
+ * @param {string} cmd -
+ *        The raw command.
+ */
+Avail.prototype.rawCommand = function (cmd)
+{
+	this.commandId++;
+	this.ws.send(cmd);
+};
+
+/**
+ * Send the protocol version request to the server.
+ */
+Avail.prototype.version = function ()
+{
+	this.rawCommand('version ' + this.protocolVersion);
+};
+
+/**
  * Load the specified module.
  *
  * @param {string} moduleName -
@@ -350,7 +390,26 @@ Avail.prototype.failed = function (event)
  */
 Avail.prototype.loadModule = function (moduleName)
 {
-	this.ws.send('load module ' + moduleName);
+	this.rawCommand('load module ' + moduleName);
+};
+
+/**
+ * Unload the specified module.
+ *
+ * @param {string} moduleName -
+ *        The fully-qualified name of the module to unload.
+ */
+Avail.prototype.unloadModule = function (moduleName)
+{
+	this.rawCommand('unload module ' + moduleName);
+};
+
+/**
+ * Unload all loaded modules.
+ */
+Avail.prototype.unloadAllModules = function ()
+{
+	this.rawCommand('unload all modules');
 };
 
 /**
@@ -359,9 +418,10 @@ Avail.prototype.loadModule = function (moduleName)
  * @param {string} command -
  *        An entry point command.
  */
-Avail.prototype.command = function (command)
+Avail.prototype.command = function (command, callback)
 {
-	this.ws.send('run ' + command);
+	this.rawCommand('run ' + command);
+	this.callbacks[this.commandId] = callback;
 };
 
 /**
@@ -450,6 +510,24 @@ Avail.prototype.dispatch = function (data)
 			}
 			return;
 		}
+		case 'unload module':
+		case 'unload all modules':
+		{
+			if ('upgrade' in data)
+			{
+				this.availLog(
+					data.command,
+					' upgrade requested (',
+					data.upgrade,
+					') => [#',
+					___avail_channel_id,
+					']');
+				var io = new AvailIO(this, data.upgrade);
+				this.upgrade(io, data);
+				io.connect();
+			}
+			return;
+		}
 		case 'run entry point':
 		{
 			if ('upgrade' in data)
@@ -467,7 +545,8 @@ Avail.prototype.dispatch = function (data)
 			}
 			else
 			{
-				this.commandCompleted(data);
+				this.callbacks[data.id](data);
+				delete this.callbacks[data.id];
 			}
 			return;
 		}
@@ -571,18 +650,6 @@ Avail.prototype.loadModuleEnded = function (data)
 };
 
 /**
- * This method is invoked when the Avail server reports that an entry point
- * command has completed.
- *
- * @param {object} data -
- *        The server's response.
- */
-Avail.prototype.commandCompleted = function (data)
-{
-	// Do nothing.
-};
-
-/**
  * Close the WebSocket connection to the Avail server and issue the specified
  * error message.
  *
@@ -605,6 +672,11 @@ Avail.prototype.reportError = function ()
 	console.log(
 		'[ERROR#' + this.id + '] '
 		+ Array.prototype.slice.call(arguments).join(''));
+};
+
+AvailIO.prototype.rawCommand = function (cmd)
+{
+	this.ws.send(cmd);
 };
 
 AvailIO.prototype.dispatch = function (data)

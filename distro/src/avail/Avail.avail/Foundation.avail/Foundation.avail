@@ -502,12 +502,14 @@ Extends
 	"Characters" =
 	(
 		"Arabic numeral",
+		"Avail message⁇metacharacter",
 		"capitalize_",
 		"uppercase_",
 		"lowercase_",
 		"titlecase_",
 		"_is a letter",
 		"_is an Arabic numeral",
+		"_is an Avail message⁇metacharacter",
 		"_is uppercase",
 		"_is lowercase",
 		"_is titlecase",
@@ -910,6 +912,8 @@ Extends
 	"Logic" =
 	(
 		"¬_",
+		"¬_=_",
+		"¬_≠_",
 		"_∧_",
 		"_∨_",
 		"_≠_",

@@ -52,6 +52,8 @@ Uses
 	"Variables"
 Names
 	"«_‡=»",
+	"¬_=_",
+	"¬_≠_",
 	"_⊕_",
 	"_`↑_",
 	"_↓_",
@@ -879,4 +881,46 @@ Semantic restriction "_=_" is
 			⊤
 		]
 	]
+];
+
+/**
+ * The negation method "¬_" is not precede the not equal method "_≠_", which is
+ * dealt with by a grammatical restriction.  However, this can lead to confusing
+ * diagnostics, since attempted grammatical restriction violations are never
+ * reported as compilation errors – they're simply rejected.
+ * 
+ * @macro "¬_≠_"
+ * @param "a" "expression phrase" An expression.
+ * @param "b" "expression phrase" An expression.
+ * @returns "⊥" Because it always rejects its invocations.
+ * @category "Logic"
+ */
+Public macro "¬_≠_" is 
+[
+	a : expression phrase,
+	b : expression phrase
+|
+	Reject parse, expected: 
+		"use of \"_=_\", instead of \"¬_≠_\""
+];
+
+/**
+ * The negation method "¬_" is not precede the equals method "_=_", which is
+ * dealt with by a grammatical restriction.  However, this can lead to confusing
+ * diagnostics, since attempted grammatical restriction violations are never
+ * reported as compilation errors – they're simply rejected.
+ * 
+ * @macro "¬_=_"
+ * @param "a" "expression phrase" An expression.
+ * @param "b" "expression phrase" An expression.
+ * @returns "⊥" Because it always rejects its invocations.
+ * @category "Logic"
+ */
+Public macro "¬_=_" is 
+[
+	a : expression phrase,
+	b : expression phrase
+|
+	Reject parse, expected: 
+		"use of \"_≠_\", instead of \"¬_=_\""
 ];

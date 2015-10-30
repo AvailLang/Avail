@@ -291,7 +291,7 @@ with <>;
  * diagnostics, since attempted grammatical restriction violations are never
  * reported as compilation errors – they're simply rejected.
  * 
- * @method "((_))"
+ * @macro "((_))"
  * @param "expr" "expression phrase" An expression.
  * @returns "⊥" Because it always rejects its invocations.
  * @category "Control Structures"
