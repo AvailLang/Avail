@@ -1,0 +1,708 @@
+/*
+ * Sudoku.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Sudoku"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail",
+	"Dimensional Analysis" = ("__", "µs")
+Extends
+	"Avail" = ("<«_‡,»>")
+Names
+	"___`|___`|___\
+	\|___`|___`|___\
+	\|___`|___`|___\
+	\|------+-------+------\
+	\|___`|___`|___\
+	\|___`|___`|___\
+	\|___`|___`|___\
+	\|------+-------+------\
+	\|___`|___`|___\
+	\|___`|___`|___\
+	\|___`|___`|___",
+	"_solved"
+Entries
+	"_solved",
+	"_timed solution",
+	"“_”(board)",
+	"Print board:_"
+Body
+
+/**
+ * The {@type "type"} of a cell value. This includes {@code 0}, which is not a
+ * valid {@type "Sudoku value"}. {@code 0} represents an empty cell.
+ *
+ * @type "[0..9]"
+ */
+Private method "cell value" is [[0..9]];
+
+/**
+ * The {@type "type"} of a Sudoku value.
+ *
+ * @type "[1..9]"
+ */
+Private method "Sudoku value" is [[1..9]];
+
+/**
+ * A {@type "board"} is a {@code 9x9} grid of {@type "cell value" Sudoku cells}.
+ * The upper left corner cell of the board is {@code (1,1)}, and the lower right
+ * corner cell is {@code (9,9}}.
+ *
+ * @type "<cell value…|81>"
+ */
+Private method "board" is [<cell value…|81>];
+
+/**
+ * The {@type "type"} of a Sudoku {@code x} coordinate.
+ *
+ * @type "[1..9]"
+ */
+Private method "x-coordinate" is [[1..9]];
+
+/**
+ * The {@type "type"} of a Sudoku {@code y} coordinate.
+ *
+ * @type "[1..9]"
+ */
+Private method "y-coordinate" is [[1..9]];
+
+/**
+ * The {@type "type"} of a Sudoku coordinate pair.
+ *
+ * @type "<x,y-coordinate…|2>"
+ */
+Private method "point" is [<x-coordinate, y-coordinate…|2>];
+
+Private stable method "_'s⁇x" is [xy : point | xy[1]];
+Private stable method "_'s⁇y" is [xy : point | xy[2]];
+
+/**
+ * An association between a {@type "board"} {@type "point" location} and the
+ * {@type "Sudoku value" moves} available at that location.
+ *
+ * @type "<point, {Sudoku value|}…|2>"
+ */
+Private method "plays" is [<point, {Sudoku value|}…|2>];
+
+Private stable method "_'s⁇location" is [p : plays | p[1]];
+Private stable method "_'s⁇moves" is [p : plays | p[2]];
+
+/**
+ * Construct and answer an {@type "point"}.
+ *
+ * @method "(_,_)"
+ * @param "x" "x-coordinate"
+ * @param "y" "y-coordinate"
+ * @returns "point"
+ */
+Private stable method "(_,_)" is [x : x-coordinate, y : y-coordinate | <x, y>];
+
+/**
+ * All valid points.
+ *
+ * @global "allPoints" "<point…|81>"
+ */
+allPoints ::= all values of [(trial# of 9, trial# of 9)];
+
+/**
+ * Compute the center of the region in which the specified {@type "point"}s
+ * lines.
+ *
+ * @method "_'s⁇region center"
+ * @param "xy" "point"
+ * @returns "point"
+ */
+Private stable method "_'s⁇region center" is
+[
+	xy : point
+|
+	offsets ::= concatenate 3 of <1, 0, -1>;
+	(
+		xy's x + offsets[xy's x] ?→ x-coordinate,
+		xy's y + offsets[xy's y] ?→ y-coordinate
+	)
+];
+
+/**
+ * A {@type "tuple"} of region centers.
+ *
+ * @global "centers" "<point…|9>"
+ */
+centers ::= all values of
+	[(trial element of <2,5,8>, trial element of <2,5,8>)];
+
+/**
+ * A {@type "map"} from region centers to region cells.
+ *
+ * @global "pointsInSameRegion" "{point→{point|9}|9}"
+ */
+pointsInSameRegion ::=
+	map each center of centers through
+	[
+		<
+			center,
+			all values of
+			[(
+				center's x + trial element of -1 to 1 ?→ x-coordinate,
+				center's y + trial element of -1 to 1 ?→ y-coordinate
+			)]→set
+		>
+	]→map;
+
+/**
+ * Answer the {@type "point"}s in the same region as the argument.
+ *
+ * @method "points in same region as_"
+ * @param "xy" "<point…|9>"
+ * @returns "{point|9}"
+ */
+Private stable method "points in same region as_" is
+[
+	xy : point
+|
+	pointsInSameRegion[xy's region center] - xy
+];
+
+/**
+ * A {@type "map"} from row numbers to row cells.
+ *
+ * @global "pointsInSameRaw"
+ *         "{point→{point|}|9}"
+ */
+pointsInSameRow ::=
+	map each x of 1 to 9 through
+		[<x, all values of [(trial# of 9, x)]→set>]→map;
+
+/**
+ * Answer the {@type "point" points} in the same region as the argument.
+ *
+ * @method "points in same row as_"
+ * @param "xy" "<point…|9>"
+ * @returns "{point|9}"
+ */
+Private stable method "points in same row as_" is
+[
+	xy : point
+|
+	pointsInSameRow[xy's y] - xy
+];
+
+/**
+ * A {@type "map"} from column numbers to column cells.
+ *
+ * @global "pointsInSameColumn"
+ *         "{point→{point|}|9}"
+ */
+pointsInSameColumn ::=
+	map each x of 1 to 9 through
+		[<x, all values of [(x, trial# of 9)]→set>]→map;
+
+/**
+ * Answer the {@type "point" points} in the same column as the argument.
+ *
+ * @method "points in same column as_"
+ * @param "xy" "<point…|9>"
+ * @returns "{point|9}"
+ */
+Private stable method "points in same column as_" is
+[
+	xy : point
+|
+	pointsInSameColumn[xy's x] - xy
+];
+
+/**
+ * A {@type "map"} from {@type "point"s} to points in conflict (i.e., points
+ * that must not have the same {@type "Sudoku value"} as the key).
+ *
+ * @global "pointsInConflict"
+ *         "{point→{point|}|9}"
+ */
+pointsInConflict ::=
+	map each xy of allPoints through
+	[
+		<
+			xy,
+			(points in same region as xy
+				∪ points in same row as xy
+				∪ points in same column as xy) → tuple
+		>
+	]→map;
+
+/**
+ * Answer the {@type "point"}s that conflict with the argument, i.e., that must
+ * not contain the same {@type "Sudoku value"} as the argument.
+ *
+ * @method "points in conflict with_"
+ * @param "xy" "point"
+ * @returns "{point|}"
+ */
+Private stable method "points in conflict with_" is
+[
+	xy : point
+|
+	pointsInConflict[xy]
+];
+
+/**
+ * Answer the {@type "cell value"} at the specified {@type "board"} {@type
+ * "point" coordinates}.
+ *
+ * @method "_@_"
+ * @param "b" "board"
+ * @param "xy" "point"
+ * @returns "cell value"
+ */
+Private stable method "_@_" is
+[
+	b : board,
+	xy : point
+|
+	b[xy's x + (xy's y - 1) × 9]
+];
+
+/**
+ * Answer a {@type "board"} that differs from {@param "b"} in that its {@param
+ * "xy"} cell contains the value {@param "v"}.
+ *
+ * @method "_@_→_"
+ * @param "b" "board"
+ * @param "xy" "point"
+ * @param "v" "Sudoku value"
+ * @returns "board"
+ */
+Private stable method "_@_→_" is
+[
+	b : board,
+	xy : point,
+	v : Sudoku value
+|
+	b[xy's x + (xy's y - 1) × 9] → v
+];
+
+/**
+ * Does the argument represent an empty cell?
+ *
+ * @macro "_is empty"
+ * @param "expr" "expression phrase ⇒ cell value"
+ * @returns "send phrase ⇒ boolean"
+ */
+Private macro "_is empty" is
+[
+	expr : expression phrase ⇒ cell value
+|
+	restricted send $"_=_" with «<expr, ‘`0`’>» : boolean
+];
+
+/**
+ * Is the {@type "board"} inconsistent? An inconsistent {@type "board"} contains
+ * multiple equal assigned values within any row, column, or region.
+ *
+ * @method "_is inconsistent"
+ * @param "b" "board"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "b"} is inconsistent, {@method "false"}
+ *          otherwise.
+ */
+Private stable method "_is inconsistent" is
+[
+	b : board
+|
+	$body : boolean;
+	For each x from 1 to 9 do
+	[
+		xs ::=
+			group map each y of 1 to 9 through [b @ (x, y)]
+			by [v : cell value | v] - 0;
+		If any v of xs' values satisfies [|v| ≠ 1] then [Exit body with true];
+		ys ::=
+			group map each y of 1 to 9 through [b @ (y, x)]
+			by [v : cell value | v] - 0;
+		If any v of ys' values satisfies [|v| ≠ 1] then [Exit body with true];
+	];
+	For each c of centers do
+	[
+		region ::= points in same region as c + c;
+		vs ::=
+			group map each xy of region through [b @ xy]
+			by [v : cell value | v] - 0;
+		If any v of vs' values satisfies [|v| ≠ 1] then [Exit body with true];
+	];
+	false
+];
+
+/**
+ * Is the {@type "board"} solved? A solved {@type "board"} has no empty cells
+ * and no inconsistencies.
+ *
+ * @method "_is solved"
+ * @param "b" "board"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "b"} is solved, {@method "false"}
+ *          otherwise.
+ */
+Private stable method "_is solved" is
+[
+	b : board
+|
+	each c of b satisfies [¬c is empty] ∧ ¬b is inconsistent
+];
+
+/**
+ * Answer the {@type "board"}'s available cells.
+ *
+ * @method "_'s⁇available cells"
+ * @param "b" "board"
+ * @returns "point*"
+ *          The {@type "locations"} of the available cells.
+ */
+Private stable method "_'s⁇available cells" is
+[
+	b : board
+|
+	select each xy from allPoints where [b@xy is empty]
+];
+
+/**
+ * Compute and answer the available moves at the specified location.
+ *
+ * @method "_'s⁇available moves@_"
+ * @param "b" "board"
+ * @param "xy" "point"
+ * @returns "plays"
+ *          The {@type "plays"} at {@param "xy"}.
+ */
+Private stable method "_'s⁇available moves@_" is
+[
+	b : board,
+	xy : point
+|
+	Assert: b @ xy is empty;
+	<
+		xy,
+		left fold <1 to 9→set> ++ points in conflict with xy through
+			[p : point, moves : {Sudoku value|} | moves - b @ p]
+	>
+];
+
+/**
+ * Compute and answer the complete set of available {@type "plays"} for the
+ * given board, sorted in descending order by moves available.
+ *
+ * @method "_'s⁇available plays"
+ * @param "b" "board"
+ * @returns "plays*"
+ */
+Private stable method "_'s⁇available plays" is
+[
+	b : board
+|
+	merge sort
+		map each xy of b's available cells through
+			[b's available moves @ xy]
+	with [i : plays, j : plays | |i's moves| < |j's moves|]
+];
+
+/**
+ * Compute and answer the set of optimal {@type "plays"} for the given board,
+ * sorted in descending order by moves available. If any particular {@type
+ * "plays" set of plays} is empty, it means that a contradiction was reached —
+ * the {@type "board"} is unsolvable, so {@method "Try again" try again}.
+ *
+ * @method "_'s⁇optimal plays"
+ * @param "b" "board"
+ * @returns "plays*"
+ */
+Private stable method "_'s⁇optimal plays" is
+[
+	b : board
+|
+	availablePlays ::= b's available plays;
+	/* If the available plays include logically necessary moves — i.e., cells
+	 * that can only accept one value — then it's sufficiently "optimal" for the
+	 * solver.
+	 */
+	if |availablePlays[1]'s moves| = 1 then [availablePlays]
+	else
+	[
+		originalPlaysMap ::= availablePlays→map;
+		newPlaysMap : {point→{Sudoku value|}|} := originalPlaysMap;
+		/* For each available cell xy, union all available plays within each of
+		 * its region, row, and column. If the asymmetric difference of xy and
+		 * any union contains multiple values, then each of these values is
+		 * logically mandated as the value of xy — this is a contradiction. If
+		 * the asymmetric difference contains a single element, then it is
+		 * logically mandated.
+		 */
+		For each xy → ps of originalPlaysMap do
+		[
+			/* If no moves are allowed for this cell, then backtrack. */
+			If ps is empty then [Try again];
+			region ::= select each p from points in same region as xy where
+				[p ∈ originalPlaysMap];
+			row ::= select each p from points in same row as xy where
+				[p ∈ originalPlaysMap];
+			column ::= select each p from points in same column as xy where
+				[p ∈ originalPlaysMap];
+			For each area of <region, row, column> do
+			[
+				sets ::= map each p of area through [originalPlaysMap[p]];
+				union ::= left fold <∅> ++ sets→tuple through
+					[s : {Sudoku value|}, u : {Sudoku value|} | u ∪ s];
+				diff ::= originalPlaysMap[xy] \ union;
+				If ¬diff is empty then
+				[
+					newPlaysMap := newPlaysMap + xy →
+						if |diff| = 1 then [diff]
+						else [Try again];
+				];
+			];
+		];
+		merge sort newPlaysMap's bindings with
+			[i : plays, j : plays | |i's moves| < |j's moves|]
+	]
+];
+
+"unsolvable board" is a new field atom;
+
+/**
+ * A {@type "no-solution exception"} is raised if the {@method "_solved" solver}
+ * determines that a {@type "board"} has no solution.
+ *
+ * @type "no-solution exception"
+ * @supertype "exception"
+ */
+Class "no-solution exception" extends exception
+	with field
+		unsolvable board : board;
+
+Private forward method "Solve_(_empty cells),reporting a solution with_" is
+	[board, integer, $[]→board]→⊥;
+
+/**
+ * Recurisvely solve the supplied {@type "board"}. Compute the {@method
+ * "_'s⁇optimal plays" optimal plays}. Play each logically mandated board, check
+ * for a solved board, then {@method "Restart_with_" restart} the body. When
+ * there are no forced moves, then recursively attempt the optional moves,
+ * {@method "Try again" backtracking} when inconsistencies are discovered.
+ *
+ * @method "Solve_,reporting a solution with_"
+ * @param "originalBoard" "board"
+ * @param "emptyCells" "integer"
+ * @param "reporter" "$[]→board"
+ * @returns "⊥"
+ */
+Private method "Solve_(_empty cells),reporting a solution with_" is
+[
+	originalBoard : board,
+	emptyCells : integer,
+	reporter : $[]→board
+|
+	$body;
+	availablePlays ::= originalBoard's optimal plays;
+	forcedPlays, optionalPlays ::=
+		split availablePlays before [p : plays | |p's moves| > 1];
+	Unless forcedPlays is empty then
+	[
+		boardAfterForcedPlays ::=
+			left fold <originalBoard> ++ forcedPlays through
+				[p : plays, b : board | b @ p's location → p's moves→tuple[1]];
+		newEmptyCells ::= emptyCells - |forcedPlays|;
+		/* It's possible that the board is inconsistent after playing all of the
+		 * forced moves. Here's an example of how this can happen:
+		 *
+		 * A region has two empty cells, diagonal to each other. The row and
+		 * column constraints leave only one value available for each cell, but
+		 * the value is the same.
+		 *
+		 * When this happens, we backtrack to look for another solution.
+		 */
+		If boardAfterForcedPlays is inconsistent then [Try again];
+		If newEmptyCells = 0 then
+		[
+			Assert: boardAfterForcedPlays is solved;
+			Exit reporter with boardAfterForcedPlays
+		];
+		Restart body with <boardAfterForcedPlays, newEmptyCells, reporter>
+	];
+	plays ::= trial element of availablePlays;
+	moves ::= plays's moves→tuple;
+	move ::= trial element of moves;
+	nextBoard ::= originalBoard @ plays' location → move;
+	Solve nextBoard (emptyCells - 1 empty cells),
+		reporting a solution with reporter
+] : ⊥;
+
+/**
+ * Solve the supplied {@type "board"}.
+ *
+ * @method "_solved"
+ * @param "b" "board"
+ * @returns "board"
+ *          The solved {@type "board"}.
+ * @raises "no-solution exception"
+ *         If {@param "b"} has no solution.
+ */
+Public method "_solved" is
+[
+	b : board
+|
+	if b is inconsistent then
+	[
+		Raise a no-solution exception with unsolvable board ::= b
+	]
+	else if b is solved then [b]
+	else
+	[
+		$body : board;
+		backtracking fence
+		[
+			guard
+			[
+				Solve b (|b's available cells| empty cells),
+					reporting a solution with body
+			]
+			intercept
+			[
+				e : no-checkpoint exception
+			|
+				Raise a no-solution exception with unsolvable board ::= b
+					caused by e
+			]
+		]
+	]
+] : board;
+
+/**
+ * Solve the supplied {@type "board"}.
+ *
+ * @method "_timed solution"
+ * @param "b" "board"
+ * @returns "board"
+ *          A {@type "tuple" 2-tuple} of the elapsed time and the solved {@type
+ *          "board"}, respectively.
+ * @raises "no-solution exception"
+ *         If {@param "b"} has no solution.
+ */
+Private method "_timed solution" is
+[
+	b : board
+|
+	startTime ::= high-precision timer value;
+	solved ::= b solved;
+	elapsed ::= high-precision timer value - startTime;
+	<(elapsed ÷ 1000) µs, solved>
+];
+
+/* Generate a method that accepts a prettily-formatted ASCII representation of
+ * the board. Regions are separated by pipes and hyphens, and pluses are
+ * intersections. Cells are numbers between 0 and 9, where 0 represents an empty
+ * cell, and are separated horizontally by a single space.
+ *
+ * Here's an example:
+ *
+ * 0 0 0 | 9 0 0 | 3 0 2
+ * 0 0 1 | 0 0 2 | 6 4 0
+ * 3 0 0 | 1 4 0 | 0 0 0
+ * ------+-------+------
+ * 9 8 0 | 0 0 7 | 0 5 0
+ * 5 6 4 | 0 0 0 | 9 7 8
+ * 0 7 0 | 5 0 0 | 0 6 3
+ * ------+-------+------
+ * 0 0 0 | 0 9 1 | 0 0 4
+ * 0 3 8 | 7 0 0 | 1 0 0
+ * 6 0 9 | 0 0 4 | 0 0 0
+ */
+[
+	name ::=
+		"___`|___`|___\
+		\|___`|___`|___\
+		\|___`|___`|___\
+		\|------+-------+------\
+		\|___`|___`|___\
+		\|___`|___`|___\
+		\|___`|___`|___\
+		\|------+-------+------\
+		\|___`|___`|___\
+		\|___`|___`|___\
+		\|___`|___`|___";
+	args ::= map each a of 1 to 81 through [arg «`"c" ++ “a”` : cell value»];
+	uses ::= map each a of args through [«↓a»];
+	builder ::= restricted send $"<«_‡,»>" with «<uses→list phrase>» : tuple;
+	body ::= «[args | <builder>] : board» → function;
+	Method name is body;
+]();
+
+/**
+ * Convert a {@type "board"} to a prettified {@type "string"}. The result has
+ * the same format as expected by the prettified reader.
+ *
+ * @method "“_”(board)"
+ * @param "b" "board"
+ * @returns "string"
+ */
+Private method "“_”(board)" is
+[
+	b : board
+|
+	pattern ::= "“①” “②” “③” | “④” “⑤” “⑥” | “⑦” “⑧” “⑨”\n";
+	horizontalSeparator ::= "------+-------+------\n";
+	concatenate
+		<
+			format pattern with unchecked (b[1..9]),
+			format pattern with unchecked (b[10..18]),
+			format pattern with unchecked (b[19..27]),
+			horizontalSeparator,
+			format pattern with unchecked (b[28..36]),
+			format pattern with unchecked (b[37..45]),
+			format pattern with unchecked (b[46..54]),
+			horizontalSeparator,
+			format pattern with unchecked (b[55..63]),
+			format pattern with unchecked (b[64..72]),
+			format pattern with unchecked (b[73..81])
+		>
+];
+
+/**
+ * Print a {@type "board"} prettily to standard output.
+ *
+ * @method "Print board:_"
+ * @param "b" "board"
+ * @returns "⊤"
+ */
+Private method "Print board:_" is
+[
+	b : board
+|
+	Print: “b” (board);
+];

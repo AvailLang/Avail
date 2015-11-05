@@ -53,6 +53,7 @@ Names
 	"Backtracking fence_",
 	"Try again",
 	"all values of_",
+	"backtracking fence_",
 	"first try",
 	"first«_»?value|values of_",
 	"trial element of_",
@@ -158,6 +159,64 @@ Public method "Backtracking fence_" is
 		];
 	];
 ] : ⊤;
+
+/**
+ * Establish a dynamic perimeter within which backtracking is permitted. Within
+ * the dynamic scope of {@param "action"}, checkpoints and {@method "Try again"}
+ * are permitted.
+ *
+ * @method "Backtracking fence_"
+ * @param "action" "[]→any"
+ *        A function within which checkpoints and {@method "Try again"} are
+ *        permitted.
+ * @returns "any"
+ *          The value produced by {@param "action"}.
+ * @category "Backtracking" "Control Structures"
+ */
+Public method "backtracking fence_" is
+[
+	action : []→any
+|
+	previousCheckpoint : any;
+	If checkpoint ∈ current fiber then
+	[
+		previousCheckpoint := current fiber[checkpoint];
+	];
+	firstTime : boolean := true;
+	guard
+	[
+		$fence : any;
+		if firstTime then
+		[
+			firstTime := false;
+			current fiber[checkpoint] := fence;
+			action()
+		]
+		else
+		[
+			Raise a no-checkpoint exception
+		]
+	]
+	ensure
+	[
+		If previousCheckpoint is assigned then
+		[
+			current fiber[checkpoint] := previousCheckpoint;
+			Clear previousCheckpoint;
+		]
+		else
+		[
+			Remove current fiber[checkpoint];
+		];
+	]
+] : any;
+
+Semantic restriction "backtracking fence_" is
+[
+	actionType : []→any's type
+|
+	actionType's return type
+];
 
 /**
  * Establish a checkpoint for subsequent backtracking. Must be invoked within
