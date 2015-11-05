@@ -139,7 +139,8 @@ input[type="text"]:focus
 	outline: none;
 }
 
-textarea {
+textarea
+{
 	width: 572px;
 	border: 2px solid;
 	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
@@ -163,7 +164,6 @@ textarea {
 	text-align: center;
 	font-size: 18px;
 	font-weight: bold;
-	
 }
 
 .compiler

@@ -172,8 +172,8 @@ function presentUI ()
 	div0.className = 'title';
 	var title = document.createElement('p');
 	title.innerHTML = 'Evaluate Avail';
-	div0.appendChild(title);	
-	
+	div0.appendChild(title);
+
 	var div1 = document.createElement('div');
 	var input = document.createElement('textarea');
 	div1.title = 'Press Shift+Enter to submit Avail for evaluation';
@@ -210,7 +210,7 @@ function presentUI ()
 				{
 					presentResult(data.content.result);
 				});
-		} 
+		}
 	});
 	$('body').keydown(function (event)
 	{
@@ -293,9 +293,11 @@ function presentResult (result)
 
 /**
  * Get the text highlighted by the user
- * @returns {String}
+ *
+ * @returns {string}
  */
-function getSelectionTextStartIndex() {
+function getSelectionTextStartIndex() 
+{
     var expression = $("#expression");
     var allText = expression.val();
     var start = expression.get(0).selectionStart;

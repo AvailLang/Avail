@@ -448,11 +448,12 @@ Private stable method "_'s⁇optimal plays" is
 	b : board
 |
 	availablePlays ::= b's available plays;
+	if |availablePlays[1]'s moves| = 0 then [Try again]
 	/* If the available plays include logically necessary moves — i.e., cells
 	 * that can only accept one value — then it's sufficiently "optimal" for the
 	 * solver.
 	 */
-	if |availablePlays[1]'s moves| = 1 then [availablePlays]
+	else if |availablePlays[1]'s moves| = 1 then [availablePlays]
 	else
 	[
 		originalPlaysMap ::= availablePlays→map;
@@ -466,8 +467,6 @@ Private stable method "_'s⁇optimal plays" is
 		 */
 		For each xy → ps of originalPlaysMap do
 		[
-			/* If no moves are allowed for this cell, then backtrack. */
-			If ps is empty then [Try again];
 			region ::= select each p from points in same region as xy where
 				[p ∈ originalPlaysMap];
 			row ::= select each p from points in same row as xy where
