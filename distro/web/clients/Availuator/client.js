@@ -172,8 +172,8 @@ function presentUI ()
 	div0.className = 'title';
 	var title = document.createElement('p');
 	title.innerHTML = 'Evaluate Avail';
-	div0.appendChild(title);	
-	
+	div0.appendChild(title);
+
 	var div1 = document.createElement('div');
 	var input = document.createElement('textarea');
 	div1.title = 'Press Shift+Enter to submit Avail for evaluation';
@@ -208,7 +208,7 @@ function presentUI ()
 				{
 					presentResult(data.content.result);
 				});
-		} 
+		}
 	});
 	$('body').keydown(function (event)
 	{
@@ -222,42 +222,42 @@ function presentUI ()
 			if (event.shiftKey && event.keyCode == 9)
 			{
 				event.preventDefault(); 
-			    
-			    var selectedText = getSelectionText().replace(/\n\t/g,"\n");
-			    var start = $("#expression").get(0).selectionStart;
-			    var end = $("#expression").get(0).selectionEnd;
 
-			    // set textarea value to: text before caret + tab + text 
-			    // after caret
-			    $("#expression").val($("#expression").val().substring(0, start)
-			        + selectedText
-			        + $("#expression").val().substring(end));
+				var selectedText = getSelectionText().replace(/\n\t/g,"\n");
+				var start = $("#expression").get(0).selectionStart;
+				var end = $("#expression").get(0).selectionEnd;
 
-			    // put caret at right position again
-			    $("#expression").get(0).selectionStart =
-			    	$("#expression").get(0).selectionEnd = start + 1;
-			} 
+				// set textarea value to: text before caret + tab + text 
+				// after caret
+				$("#expression").val($("#expression").val().substring(0, start)
+					+ selectedText
+					+ $("#expression").val().substring(end));
+
+				// put caret at right position again
+				$("#expression").get(0).selectionStart =
+					$("#expression").get(0).selectionEnd = start + 1;
+			}
 			else
 			{
 				if (event.keyCode == 9) 
-				{ 
-				    event.preventDefault(); 
-				    
-				    var selectedText = getSelectionText().replace(/\n/g,"\n\t");
-				    var start = $("#expression").get(0).selectionStart;
-				    var end = $("#expression").get(0).selectionEnd;
-	
-				    // set textarea value to: text before caret + tab + text 
-				    // after caret
-				    $("#expression").val($("#expression").val().substring(0, start)
-				    	+ "\t"
-				        + selectedText
-				        + $("#expression").val().substring(end));
-	
-				    // put caret at right position again
-				    $("#expression").get(0).selectionStart =
-				    	$("#expression").get(0).selectionEnd = start + 1;
-				 }
+				{
+					event.preventDefault(); 
+
+					var selectedText = getSelectionText().replace(/\n/g,"\n\t");
+					var start = $("#expression").get(0).selectionStart;
+					var end = $("#expression").get(0).selectionEnd;
+
+					// set textarea value to: text before caret + tab + text 
+					// after caret
+					$("#expression").val($("#expression").val().substring(0, start)
+						+ "\t"
+						+ selectedText
+						+ $("#expression").val().substring(end));
+
+					// put caret at right position again
+					$("#expression").get(0).selectionStart =
+						$("#expression").get(0).selectionEnd = start + 1;
+				}
 			}
 		}
 	});
@@ -277,16 +277,21 @@ function presentResult (result)
 
 /**
  * Get the text highlighted by the user
- * @returns {String}
+ *
+ * @returns {string}
  */
-function getSelectionText() {
-    var text = "";
-    if (window.getSelection) {
-        text = window.getSelection().toString();
-    } else if (document.selection && document.selection.type != "Control") {
-        text = document.selection.createRange().text;
-    }
-    return text;
+function getSelectionText()
+{
+	var text = "";
+	if (window.getSelection)
+	{
+		text = window.getSelection().toString();
+	}
+	else if (document.selection && document.selection.type != "Control")
+	{
+		text = document.selection.createRange().text;
+	}
+	return text;
 }
 
 /**
