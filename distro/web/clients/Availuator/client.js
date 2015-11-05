@@ -191,11 +191,13 @@ function presentUI ()
 	main.append(div0);
 	main.append(div1);
 	main.append(div2);
+	var expression = $("#expression");
+	
 	$("#expression-form").submit(function (event)
 	{
 		return false;
 	});
-	$("#expression").keypress(function (event)
+	expression.keypress(function (event)
 	{
 		// Submit on [Return].
 		if (event.shiftKey && event.keyCode == 13)
@@ -219,23 +221,35 @@ function presentUI ()
 		} 
 		else 
 		{
+			var allText = expression.val();
+		    var textSize = allText.length;
+		    var selectedTextStartIndex = getSelectionTextStartIndex();
+		    var end = expression.get(0).selectionEnd;
+		    var start = expression.get(0).selectionStart;
+		    var selectedText = 
+		    	allText.slice(selectedTextStartIndex,end);
+		    
 			if (event.shiftKey && event.keyCode == 9)
 			{
 				event.preventDefault(); 
 			    
-			    var selectedText = getSelectionText().replace(/\n\t/g,"\n");
-			    var start = $("#expression").get(0).selectionStart;
-			    var end = $("#expression").get(0).selectionEnd;
+				if (selectedTextStartIndex == 0 && 
+				    	selectedText.charAt(selectedTextStartIndex == "\t"))
+				{
+				    	selectedText = 
+				    		selectedText.replace(/\t/,"");
+				}
+			    selectedText = selectedText.replace(/\n\t/g,"\n");
 
 			    // set textarea value to: text before caret + tab + text 
 			    // after caret
-			    $("#expression").val($("#expression").val().substring(0, start)
-			        + selectedText
-			        + $("#expression").val().substring(end));
+			    expression.val(expression.val()
+			    	.substring(0, selectedTextStartIndex)
+			        	+ selectedText
+			        	+ expression.val().substring(end));
 
-			    // put caret at right position again
-			    $("#expression").get(0).selectionStart =
-			    	$("#expression").get(0).selectionEnd = start + 1;
+			    var newTextLength = expression.val().length;
+			    resetSelectedText(textSize, newTextLength, start, end, -1);
 			} 
 			else
 			{
@@ -243,20 +257,22 @@ function presentUI ()
 				{ 
 				    event.preventDefault(); 
 				    
-				    var selectedText = getSelectionText().replace(/\n/g,"\n\t");
-				    var start = $("#expression").get(0).selectionStart;
-				    var end = $("#expression").get(0).selectionEnd;
+				    if (selectedTextStartIndex == 0 && 
+				    	selectedText.charAt(selectedTextStartIndex != "\n"))
+				    {
+				    	selectedText = "\t" + selectedText;
+				    }
+				    
+				    selectedText = selectedText.replace(/\n/g,"\n\t");
 	
 				    // set textarea value to: text before caret + tab + text 
 				    // after caret
-				    $("#expression").val($("#expression").val().substring(0, start)
-				    	+ "\t"
-				        + selectedText
-				        + $("#expression").val().substring(end));
-	
-				    // put caret at right position again
-				    $("#expression").get(0).selectionStart =
-				    	$("#expression").get(0).selectionEnd = start + 1;
+				    expression.val(allText.substring(0, selectedTextStartIndex)
+				   		+ selectedText
+				   		+ expression.val().substring(end));
+				    
+				    var newTextLength = expression.val().length;
+				    resetSelectedText(textSize, newTextLength, start, end, 1);
 				 }
 			}
 		}
@@ -279,14 +295,27 @@ function presentResult (result)
  * Get the text highlighted by the user
  * @returns {String}
  */
-function getSelectionText() {
-    var text = "";
-    if (window.getSelection) {
-        text = window.getSelection().toString();
-    } else if (document.selection && document.selection.type != "Control") {
-        text = document.selection.createRange().text;
+function getSelectionTextStartIndex() {
+    var expression = $("#expression");
+    var allText = expression.val();
+    var start = expression.get(0).selectionStart;
+    var end = expression.get(0).selectionEnd;
+    var i = start;
+    while (i > 0 && allText.charAt(i) != "\n") 
+    {
+    	i--;
     }
-    return text;
+    return i;
+}
+
+function resetSelectedText(initialSize, newSize, start, end, shift) 
+{
+	 var carretOffset = initialSize - newSize;
+	 var expression = $("#expression");
+	 
+	 // put caret at right position again
+	 expression.get(0).selectionStart = start + shift;
+	 expression.get(0).selectionEnd = end - (carretOffset * shift);
 }
 
 /**
