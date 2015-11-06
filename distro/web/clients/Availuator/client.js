@@ -251,11 +251,12 @@ function presentUI ()
 			if (event.shiftKey && event.keyCode == 9)
 			{
 				event.preventDefault(); 
+				var start = expression.get(0).selectionStart;
+				var end = expression.get(0).selectionEnd;
 				var allText = expression.val();
 				var textSize = allText.length;
 				var startLineIndex = beginningOfCurrentLineIndex();
-				var end = expression.get(0).selectionEnd;
-				var start = expression.get(0).selectionStart;
+				var startText = expression.val().substring(0, start);
 				var selectedText = 
 			    	allText.slice(startLineIndex,end);
 
@@ -268,14 +269,13 @@ function presentUI ()
 				}
 				selectedText = selectedText.replace(/\n\t/g,"\n");
 
-			    expression.val(expression.val()
-			    	.substring(0, startLineIndex)
-			    		+ selectedText
-			    		+ expression.val().substring(end));
+			    expression.val(expression.val().substring(0, startLineIndex) 
+					+ selectedText 
+					+ expression.val().substring(end));
 
 			    var newTextLength = expression.val().length;
 			    var shift = 0;
-			    if (newTextLength != textSize) 
+			    if (newTextLength != textSize && startText.slice(-1) != "\n") 
 			    {
 			    	shift = -1;
 			    }
@@ -287,28 +287,55 @@ function presentUI ()
 				if (event.keyCode == 9) 
 				{ 
 					event.preventDefault();
-					var allText = expression.val();
-					var textSize = allText.length;
-					var startLineIndex = beginningOfCurrentLineIndex();
-					var end = expression.get(0).selectionEnd;
 					var start = expression.get(0).selectionStart;
-					var selectedText = 
-				    	allText.slice(startLineIndex,end);
-
-					if (startLineIndex == 0 && 
-						selectedText.charAt(startLineIndex) != "\n")
+					var end = expression.get(0).selectionEnd;
+					var allText = expression.val();
+					
+					//var start = expression.get(0).selectionStart;
+					
+					if (end > start)
 					{
-						selectedText = "\t" + selectedText;
+						var textSize = allText.length;
+						var startLineIndex = beginningOfCurrentLineIndex();
+						var selectedText = 
+					    	allText.slice(startLineIndex,end);
+	
+						if (startLineIndex == 0 && 
+							selectedText.charAt(startLineIndex) != "\n")
+						{
+							selectedText = "\t" + selectedText;
+						}
+						
+						if (selectedText.length > 1 
+							&& selectedText.slice(-1) == "\n")
+						{
+							selectedText = 
+								selectedText.slice(0, selectedText.length - 1);
+							selectedText = selectedText.replace(/\n/g,"\n\t");
+							selectedText = selectedText + "\n";
+						}
+						else
+						{
+							selectedText = selectedText.replace(/\n/g,"\n\t");
+						}
+	
+						expression.val(allText.substring(0, startLineIndex)
+							+ selectedText
+							+ expression.val().substring(end));
+	
+						var newTextLength = expression.val().length;
+						resetSelectedText(textSize, newTextLength, start, 
+							end, 1);
+					} 
+					else
+					{
+						expression.val(allText.substring(0, start)
+							+ "\t"
+							+ expression.val().substring(start));
+						
+						 expression.get(0).selectionStart = start + 1;
+						 expression.get(0).selectionEnd = start + 1;
 					}
-
-					selectedText = selectedText.replace(/\n/g,"\n\t");
-
-					expression.val(allText.substring(0, startLineIndex)
-						+ selectedText
-						+ expression.val().substring(end));
-
-					var newTextLength = expression.val().length;
-					resetSelectedText(textSize, newTextLength, start, end, 1);
 				}
 			}
 		}
