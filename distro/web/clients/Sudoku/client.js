@@ -36,6 +36,7 @@
 
 var targetModule = '/examples/Sudoku';
 var updateFrequency = 20;
+var timeout = 10000;
 var avail = null;
 
 /**
@@ -121,7 +122,7 @@ function connect ()
 				};
 				io.stderr = function (msg)
 				{
-					reportNoSolution();
+					reportNoSolution(msg);
 				};
 				return;
 			}
@@ -274,7 +275,12 @@ function presentUI ()
 				var v = $('#cell' + i).val();
 				command += v === '' ? '0' : v;
 			}
-			command += '> for web, updating every ' + updateFrequency + ' ms';
+			command +=
+				'> for web, updating every '
+				+ updateFrequency
+				+ ' ms, giving up after '
+				+ timeout
+				+ ' ms';
 			avail.command(
 				command,
 				function (data)
@@ -327,14 +333,29 @@ function updateBoard (board)
 
 /**
  * Report that there is no solution to the current puzzle.
+ *
+ * @param {string} msg -
+ *        The error message.
  */
-function reportNoSolution ()
+function reportNoSolution (msg)
 {
 	var main = $("#client-ui");
 	var div = document.createElement('div');
 	div.className = 'no-solution';
 	var p = document.createElement('p');
-	p.innerHTML = 'No Solution';
+	if (/no-solution exception/.test(msg))
+	{
+		p.innerHTML = 'No Solution';
+	}
+	else if (/too-long-to-solve exception/.test(msg))
+	{
+		p.innerHTML = 'Timed Out';
+	}
+	else
+	{
+		p.innerHTML = 'Unexpected Problem';
+		console.log(msg);
+	}
 	div.appendChild(p);
 	main.append(div);
 }
