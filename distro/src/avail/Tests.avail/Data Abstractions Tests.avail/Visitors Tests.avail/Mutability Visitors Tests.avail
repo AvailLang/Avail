@@ -161,13 +161,13 @@ Test "is mutable (phrase)" in mutability visitors test suite is
 	var : string;
 	Require: ¬body's function→block phrase is mutable;
 	Require: ¬arg «`"x"` : integer» is mutable;
-	Require: ¬«`"x"` ::= ‘`4`’» is mutable;
-	Require: ¬«`"x"` : whole number := ‘`4`’» is mutable;
-	Require: ¬«<‘`1`’, ‘`2`’, ‘`3`’>» is mutable;
+	Require: ¬«`"x"` ::= ‘4’» is mutable;
+	Require: ¬«`"x"` : whole number := ‘4’» is mutable;
+	Require: ¬«<‘1’, ‘2’, ‘3’>» is mutable;
 	Require: ¬«↓arg «`"x"` : integer»» is mutable;
-	Require: ¬««↓«`"x"` : whole number»» := ‘`0`’» is mutable;
+	Require: ¬««↓«`"x"` : whole number»» := ‘0’» is mutable;
 	Require: ¬«↑«↓«`"x"` : whole number»»» is mutable;
-	Require: ‘`↑var`’ is mutable;
+	Require: ‘↑var’ is mutable;
 ];
 
 Test "is mutable (set)" in mutability visitors test suite is

@@ -471,7 +471,7 @@ Private method "generate_field accessor for_:_(mutable=_)" is
 	args ::= <arg «`"x"` : objectType»>;
 	objectPhrase ::= «↓args[1]»;
 	getFieldSend ::= send $"_[_]"
-		with «<objectPhrase, ‘`fieldAtom`’>» : fieldType;
+		with «<objectPhrase, ‘fieldAtom’>» : fieldType;
 	resultType ::=
 		unless mutable then [fieldType]
 		else
@@ -508,7 +508,7 @@ Private method "generate_field accessor restriction for_:_(mutable=_)" is
 	args ::= <arg «`"x"` : objectType's type»>;
 	objectTypePhrase ::= «↓args[1]»;
 	getFieldTypeSend ::= send $"_[_]"
-		with «<objectTypePhrase, ‘`fieldAtom`’>» : fieldType's type;
+		with «<objectTypePhrase, ‘fieldAtom’>» : fieldType's type;
 	resultType ::=
 		unless mutable then [fieldType's type]
 		else
@@ -783,7 +783,7 @@ Private method "Generate and install_mutator for mutable_" is
 		args ::= <arg «`"x"` : objectType», arg «`"v"` : readType»>;
 		objectPhrase ::= «↓args[1]»;
 		getFieldSend ::= send $"_[_]"
-			with «<objectPhrase, ‘`fieldAtom`’>» : varType;
+			with «<objectPhrase, ‘fieldAtom’>» : varType;
 		putSend ::= send $"_`?=_" with «<getFieldSend, «↓args[2]»>» : ⊤;
 		newBlock ::= «[args | <putSend>] : ⊤»;
 		impl ::= newBlock→function;
@@ -902,7 +902,7 @@ Private method "Generate and install_reconstructor for_" is
 		[
 			ejectSend ::= send $"eject_" with «<«↑«↓mapDecl»»>» : field map;
 			addBindingSend ::= send $"_+_→_"
-				with «<ejectSend, ‘`fieldAtom`’, «↓args[index + 1]»>»
+				with «<ejectSend, ‘fieldAtom’, «↓args[index + 1]»>»
 				: field map;
 			««↓mapDecl» := addBindingSend»
 		];
@@ -917,12 +917,12 @@ Private method "Generate and install_reconstructor for_" is
 			varType ::= cast fieldType into [t : variable meta | t];
 			readType ::= cast varType's read type into [t : any meta | t];
 			mapAtSend ::= send $"_[_]"
-				with «<«↓mapDecl», ‘`fieldAtom`’>» : varType;
+				with «<«↓mapDecl», ‘fieldAtom’>» : varType;
 			getSend ::= send  $"↓_" with «<mapAtSend>» : readType;
 			decl ::= «`fieldAtom's name` : readType := getSend»;
 			ejectSend ::= send $"eject_" with «<«↑«↓mapDecl»»>» : field map;
 			addBindingSend ::= send $"_+_→_"
-				with «<ejectSend, ‘`fieldAtom`’, «↑«↓decl»»>»
+				with «<ejectSend, ‘fieldAtom’, «↑«↓decl»»>»
 				: field map;
 			assignment ::= ««↓mapDecl» := addBindingSend»;
 			cloning := eject cloning ++ <decl, assignment>;
@@ -966,7 +966,7 @@ is
 			ejectSend ::=
 				send $"eject_" with «<«↑«↓mapDecl»»>» : field type map;
 			addBindingSend ::= send $"_+_→_"
-				with «<ejectSend, ‘`fieldAtom`’, «↓args[index + 1]»>»
+				with «<ejectSend, ‘fieldAtom’, «↓args[index + 1]»>»
 				: field type map;
 			««↓mapDecl» := addBindingSend»
 		];

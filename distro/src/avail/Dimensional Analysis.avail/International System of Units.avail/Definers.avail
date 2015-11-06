@@ -108,7 +108,7 @@ Private method "SI scaling function for_" is
 	minuend ::= send $"_'s⁇scale factor" with «<metricSend>» : integer;
 	subtrahend ::= send $"_'s⁇scale factor" with «<«↓args[2]»>» : integer;
 	exponent ::= send $"_-_" with «<minuend, subtrahend>» : integer;
-	scaleFactor ::= send $"_^_" with «<‘`10`’, exponent>» : number;
+	scaleFactor ::= send $"_^_" with «<‘10’, exponent>» : number;
 	/* Construct the expression to obtain the scaled magnitude. */
 	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
 	scaled ::= send $"_×_" with «<extentSend, scaleFactor>» : number;
@@ -156,7 +156,8 @@ Public method "_(_)is an SI base unit" is
 			aUnit ::= a unitType with
 				unit map ::= def,
 				scale factor ::= prefix[3];
-			impl ::= «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»→function;
+			impl ::= «[ <> | <`aUnit` ("") → literal phrase> ]
+				: aUnit's type»→function;
 			Stable method longName is impl;
 			publicNames ::= current module's public names;
 			Unless longName ∈ publicNames then [Export longName as a new name;];
@@ -220,7 +221,8 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 			aUnit ::= a unitType with
 				unit map ::= def,
 				scale factor ::= baseScaleFactor + prefix[3];
-			impl ::= «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»→function;
+			impl ::= «[ <> | <`aUnit` ("")→literal phrase> ]
+				: aUnit's type»→function;
 			Stable method longName is impl;
 			publicNames ::= current module's public names;
 			Unless longName ∈ publicNames then [Export longName as a new name;];
@@ -279,13 +281,13 @@ Private method "function for scaling from_to_by_using_" is
 	/* Construct the expression to obtain the SI scaling factor. */
 	metricSend ::= send $"_'s⁇metric" with «<«↓args[1]»>» : SI unit;
 	exponent ::= send $"_'s⁇scale factor" with «<metricSend>» : integer;
-	siScaleFactor ::= send $"_^_" with «<‘`10`’, exponent>» : number;
+	siScaleFactor ::= send $"_^_" with «<‘10’, exponent>» : number;
 	/* Construct the expression to obtain the SI scaled magnitude. */
 	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
 	siScaled ::= send $"_×_" with «<extentSend, siScaleFactor>» : number;
 	/* Construct the expression to obtain the final scaled magnitude. */
 	scaled ::= restricted send scaleOperator
-		with «<siScaled, ‘`scaleFactor`’>»
+		with «<siScaled, ‘scaleFactor’>»
 		: number;
 	/* Construct the expression to obtain the resultant dimensioned quantity. */
 	juxtapositionSend ::= restricted send $"__"
@@ -333,11 +335,11 @@ Private method "function for scaling from_to_by_using_" is
 	/* Construct the expression to obtain the scaled magnitude. */
 	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
 	scaled ::= restricted send scaleOperator
-		with «<extentSend, ‘`scaleFactor`’>»
+		with «<extentSend, ‘scaleFactor’>»
 		: number;
 	/* Construct the expression to obtain the SI scaling factor. */
 	exponent ::= send $"_'s⁇scale factor" with «<«↓args[2]»>» : integer;
-	siScaleFactor ::= send $"_^_" with «<‘`10`’, exponent>» : number;
+	siScaleFactor ::= send $"_^_" with «<‘10’, exponent>» : number;
 	/* Construct the expression to obtain the final scaled magnitude. */
 	siScaled ::= send $"_÷_" with «<scaled, siScaleFactor>» : number;
 	/* Construct the expression to obtain the resultant dimensioned quantity. */

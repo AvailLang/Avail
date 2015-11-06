@@ -156,6 +156,7 @@ Uses
 		"_→double",
 		"_→float",
 		"_→list phrase",
+		"_→literal phrase",
 		"_→map",
 		"_→object",
 		"_→object type",
@@ -208,7 +209,6 @@ Uses
 		"termination requested",
 		"{_`|_}",
 		"{_→_`|_}",
-		"‘_’",
 		"∪_",
 		"∪_[_.._]",
 		"⎡_⎤",
@@ -2541,13 +2541,13 @@ Primitive "_→list phrase" is
  * Construct and answer a literal expression.
  *
  * @category "Primitives" "Phrases" "Constructors"
- * @method "‘_’"
+ * @method "_→literal phrase"
  * @param "aLiteralToken" "literal token"
  *        A literal token.
  * @returns "literal phrase⇒any"
  *    The requested literal expression.
  */
-Primitive "‘_’" is
+Primitive "_→literal phrase" is
 [
 	aLiteralToken : literal token
 |

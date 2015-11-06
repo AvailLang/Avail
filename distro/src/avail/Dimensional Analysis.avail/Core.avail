@@ -573,7 +573,8 @@ Public method "_has symbol_" is
 	symbol : nonempty string
 |
 	/* Generate a factory method. */
-	Method symbol is «[ <> | <‘`aUnit` ("")’> ] : aUnit's type»→function;
+	Method symbol is
+		«[ <> | <`aUnit` ("")→literal phrase> ] : aUnit's type»→function;
 	/* Set the preferred print representation. */
 	Unless aUnit ∈ symbolsByUnit then
 	[
@@ -2340,7 +2341,7 @@ Private method "function for scaling from_to_by_using_" is
 	/* Construct the expression to obtain the scaled magnitude. */
 	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
 	scaled ::= restricted send scaleOperator
-		with «<extentSend, ‘`scaleFactor`’>»
+		with «<extentSend, ‘scaleFactor’>»
 		: number;
 	/* Construct the expression to obtain the resultant dimensioned quantity. */
 	juxtapositionSend ::= restricted send $"__"

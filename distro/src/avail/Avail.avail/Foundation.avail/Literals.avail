@@ -349,7 +349,7 @@ Public macro "$…" is
 [
 	tokenPhrase : literal phrase ⇒ token
 |
-	‘`atom for tokenPhrase's token's lexeme`’
+	‘atom for tokenPhrase's token's lexeme’
 ] : literal phrase ⇒ atom;
 
 /**
@@ -371,7 +371,7 @@ Public macro "$…#" is
 [
 	tokenPhrase : literal phrase ⇒ (literal token ⇒ string)
 |
-	‘`atom for tokenPhrase's token's value's value`’
+	‘atom for tokenPhrase's token's value's value’
 ] : literal phrase ⇒ atom;
 
 /**
@@ -390,7 +390,7 @@ Public macro "¢…!" is
 [
 	tokenPhrase : literal phrase ⇒ token
 |
-	‘`tokenPhrase's token's lexeme[1]`’
+	‘tokenPhrase's token's lexeme[1]’
 ];
 
 /**
@@ -409,7 +409,7 @@ Public macro "¢…!" is
 [
 	tokenPhrase : literal phrase ⇒ (literal token ⇒ <<>, character…|1's type>)
 |
-	‘`tokenPhrase's token's value's value[1]`’
+	‘tokenPhrase's token's value's value[1]’
 ];
 
 /**
@@ -837,7 +837,7 @@ Macro "<«_‡,»>" is
 				<eject values, <literals[index]'s token's value>>;
 			true
 		];
-		‘`values`’
+		‘values’
 	]
 	else [exprs]
 ];
@@ -935,7 +935,7 @@ Macro "{«_‡,»}" is
 				<eject values, <literals[index]'s token's value>>;
 			true
 		];
-		‘`values→set`’
+		‘values→set’
 	]
 	else [restricted send $"{«_‡,»}" with «<exprs>» : set]
 ];
@@ -990,7 +990,7 @@ Macro "{«_→_‡,»}" is
 	else [literalizable := false;];
 	bindings ::= cast values
 		into [t : <<>, <<>, any… | 2's type>… | whole number> | t];
-	if literalizable then [‘`bindings→map`’]
+	if literalizable then [‘bindings→map’]
 	else [restricted send $"{«_→_‡,»}" with «<exprs>» : map]
 ];
 
@@ -1042,7 +1042,7 @@ Public macro "…#.…#«f»?" is
 		integer = integerToken,
 		fraction = fractionalToken,
 		exponent = `0`;
-	‘`if isFloat then [d→float] else [d]`’
+	‘if isFloat then [d→float] else [d]’
 ];
 
 /**
@@ -1118,7 +1118,7 @@ Public macro "…#.…#…" is
 		integer = integerToken,
 		fraction = fractionalToken,
 		exponent = syntheticExponentToken;
-	‘`if isFloat then [d→float] else [d]`’
+	‘if isFloat then [d→float] else [d]’
 ];
 
 /**
@@ -1155,7 +1155,7 @@ Public macro "…#.…#e|E«+|-»!…#«f»?" is
 		integer = integerToken,
 		fraction = fractionalToken,
 		exponent = syntheticExponentToken;
-	‘`if isFloat then [d→float] else [d]`’
+	‘if isFloat then [d→float] else [d]’
 ];
 
 /**
@@ -1165,4 +1165,4 @@ Public macro "…#.…#e|E«+|-»!…#«f»?" is
  * @category "Modules"
  * @returns "literal phrase⇒module"
  */
-Public macro "enclosing module" is [‘`current module`’];
+Public macro "enclosing module" is [‘current module’];

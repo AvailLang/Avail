@@ -263,7 +263,7 @@ Private method "stability body for_with«_‡,»" is
 			|
 				f ::= cast d's function into [f1 : […]→any | f1];
 				value ::= invoke f with argValues;
-				‘`value`’
+				‘value’
 			]
 		]
 		with
@@ -342,7 +342,7 @@ Public method "Method_is stable at_" is
 		restricted send stabilityBodyAtom
 		with
 			«<
-				‘`methodName`’,
+				‘methodName’,
 				argUses → list phrase
 			>»
 		: (expression phrase ⇒ any);

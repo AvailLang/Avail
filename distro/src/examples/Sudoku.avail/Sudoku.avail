@@ -325,7 +325,7 @@ Private macro "_is empty" is
 [
 	expr : expression phrase ⇒ cell value
 |
-	restricted send $"_=_" with «<expr, ‘`0`’>» : boolean
+	restricted send $"_=_" with «<expr, ‘0’>» : boolean
 ];
 
 /**

@@ -254,7 +254,7 @@ Macro "_++_" is
 	left : literal phrase ⇒ tuple,
 	right : literal phrase ⇒ tuple
 |
-	‘`concatenate <left's token's value, right's token's value>`’
+	‘concatenate <left's token's value, right's token's value>’
 ] : literal phrase ⇒ tuple;
 
 /**
@@ -308,7 +308,7 @@ Macro "_++_" is
 	left : expression phrase ⇒ <<>, any…|[0..0]>,
 	right : expression phrase ⇒ <<>, any…|[0..0]>
 |
-	‘`<>`’
+	‘<>’
 ] : literal phrase ⇒ (<>'s type);
 
 /**
@@ -352,8 +352,8 @@ Macro "_++_" is
 					upper ::= cast |args| - 1 into [t : whole number | t];
 					unfolded ::= cast args[1 .. upper] into
 						[t : <<>, expression phrase ⇒ tuple…|whole number> | t];
-					folded ::= ‘`concatenate
-						<lit's token's value, right's token's value>`’;
+					folded ::= ‘concatenate
+						<lit's token's value, right's token's value>’;
 					Exit body with
 						restricted send $"concatenate_"
 							with concatenate <unfolded, <folded>> → list phrase
@@ -405,8 +405,8 @@ Macro "_++_" is
 				[
 					lit : literal phrase ⇒ tuple
 				|
-					folded ::= ‘`concatenate
-						<left's token's value, lit's token's value>`’;
+					folded ::= ‘concatenate
+						<left's token's value, lit's token's value>’;
 					upper ::= |args|;
 					unfolded ::= cast args[2 .. upper] into
 						[t : <<>, expression phrase ⇒ tuple…|whole number> | t];
@@ -480,11 +480,11 @@ Macro "_++_" is
 								rightLit : literal phrase ⇒ tuple
 							|
 								<
-									‘`concatenate
+									‘concatenate
 									<
 										leftLit's token's value,
 										rightLit's token's value
-									>`’
+									>’
 								>
 							]
 							else [<>]
@@ -1349,11 +1349,11 @@ Macro "_↑++=_" is
 			[
 				lit : literal phrase ⇒ <<>, any…|[1..1]>
 			|
-				‘`lit's token's value[1]`’
+				‘lit's token's value[1]’
 			]
 			else
 			[
-				restricted send $"_[_]" with «<elemPhrase, ‘`1`’>» : any
+				restricted send $"_[_]" with «<elemPhrase, ‘1’>» : any
 			]
 		>» : tuple
 	>» : ⊤

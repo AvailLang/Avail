@@ -971,7 +971,7 @@ Public macro "For each…from_to_§do_" is
 	stepType ::= 1's type;
 	anAtom ::= $"From_to_by_do_";
 	blockType ::= [⊥]→(action's semantic type's return type);
-	
+
 	returnType ::= strengthen ⊤ for call of anAtom 
 		using <startType, endType, stepType, blockType>;
 
@@ -983,7 +983,7 @@ Public macro "For each…from_to_§do_" is
 		«<
 			start,
 			end,
-			‘`1`’,
+			‘1’,
 			«[
 				<cast declaration into [d : argument phrase | d]>
 			|
