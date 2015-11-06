@@ -35,9 +35,9 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Avail",
-	"Dimensional Analysis" = ("__", "_≥_", "µs", "ms")
+	"Dimensional Analysis" = ("__", "_≥_", "_'s⁇extent", "µs", "ms")
 Extends
-	"Avail" = ("<«_‡,»>"),
+	"Avail" = ("<«_‡,»>", "∞"),
 	"Dimensional Analysis" = ("__", "ms")
 Names
 	"___`|___`|___\
@@ -51,10 +51,10 @@ Names
 	\|___`|___`|___\
 	\|___`|___`|___\
 	\|___`|___`|___",
-	"solve_for web,updating every_",
+	"solve_for web,updating every_,giving up after_",
 	"_solved"
 Entries
-	"solve_for web,updating every_",
+	"solve_for web,updating every_,giving up after_",
 	"_solved",
 	"_timed solution",
 	"“_”(JSON board)",
@@ -493,13 +493,24 @@ Private stable method "_'s⁇optimal plays" is
 "unsolvable board" is a new field atom;
 
 /**
- * A {@type "no-solution exception"} is raised if the {@method "_solved" solver}
- * determines that a {@type "board"} has no solution.
+ * A {@type "no-solution exception"} is raised if the solver determines that a
+ * {@type "board"} has no solution.
  *
  * @type "no-solution exception"
  * @supertype "exception"
  */
-Class "no-solution exception" extends exception
+Explicit class "no-solution exception" extends exception
+	with field
+		unsolvable board : board;
+
+/**
+ * A {@type "too-long-to-solve exception"} is raised if the solver takes too
+ * long to find a solution.
+ *
+ * @type "too-long-to-solve exception"
+ * @supertype "exception"
+ */
+Explicit class "too-long-to-solve exception" extends exception
 	with field
 		unsolvable board : board;
 
@@ -533,6 +544,7 @@ is
 	reporter : $[]→board
 |
 	$body;
+	Honor a termination request;
 	updater(originalBoard);
 	availablePlays ::= originalBoard's optimal plays;
 	forcedPlays, optionalPlays ::=
@@ -581,6 +593,8 @@ is
  *          The solved {@type "board"}.
  * @raises "no-solution exception"
  *         If {@param "b"} has no solution.
+ * @raises "too-long-to-solve exception"
+ *         If the time limit for reaching a solution is exceeded.
  */
 Private method "solve_updating with_" is
 [
@@ -610,6 +624,12 @@ Private method "solve_updating with_" is
 				Raise a no-solution exception with unsolvable board ::= b
 					caused by e
 			]
+			intercept
+			[
+				e : termination-requested exception
+			|
+				Raise a too-long-to-solve exception with unsolvable board ::= b
+			]
 		]
 	]
 ];
@@ -628,19 +648,35 @@ Public method "_solved" is [b : board | solve b updating with [_ : board |]];
 
 /**
  * Solve the supplied {@type "board"}, writing a JSON update to standard output
- * every {@param "freq"} milliseconds.
+ * every {@param "freq"} milliseconds. Give up after {@param "timeout"}
+ * milliseconds.
  *
- * @method "solve_for web,updating every_"
+ * @method "solve_for web,updating every_,giving up after_"
  * @param "b" "board"
  * @param "freq" "natural number milliseconds"
+ * @param "timeout" "[1..∞] ms"
  * @returns "board"
+ * @raises "no-solution exception"
+ *         If {@param "b"} has no solution.
+ * @raises "too-long-to-solve exception"
+ *         If the time limit for reaching a solution is exceeded.
  */
-Public method "solve_for web,updating every_" is
+Public method "solve_for web,updating every_,giving up after_" is
 [
 	b : board,
-	freq : natural number ms
+	freq : natural number ms,
+	timeout : [1..∞] ms
 |
 	ref : whole number := high-precision timer value;
+	If timeout ≠ ∞ ms then
+	[
+		solverFiber ::= current fiber;
+		Fork
+		[
+			Sleep for timeout's extent milliseconds;
+			Request termination of solverFiber;
+		];
+	];
 	solve b updating with
 	[
 		newBoard : board

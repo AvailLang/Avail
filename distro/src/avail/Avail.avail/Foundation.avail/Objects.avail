@@ -805,11 +805,33 @@ Private method "reconstructor name for_" is
 [
 	fieldAtoms : atom+
 |
-	methodName : nonempty string :=
-		fieldAtoms[1]'s default accessor name ++ "::=_";
+	methodName : nonempty string := fieldAtoms[1]'s accessor name ++ "::=_";
 	For each fieldAtom of fieldAtoms' tail do
 	[
-		methodName := eject methodName ++ "," ++ fieldAtom's name ++ "::=_";
+		methodName :=
+			eject methodName ++ "," ++ fieldAtom's accessor name[5..] ++ "::=_";
+	];
+	methodName
+];
+
+/**
+ * Construct and answer the name of the object reconstructor method from the
+ * specified tuple of field atom names.
+ * 
+ * @method "reconstructor name for_"
+ * @param "fieldAtomNames" "nonempty string+"
+ *        The names of the fields migrated by the reconstructor.
+ * @returns "string"
+ *          The appropriate method name.
+ */
+Private method "reconstructor name for_" is
+[
+	fieldAtomNames : nonempty string+
+|
+	methodName : nonempty string := fieldAtomNames[1] ++ "::=_";
+	For each fieldAtomName of fieldAtomNames' tail do
+	[
+		methodName := eject methodName ++ "," ++ fieldAtomName[5..] ++ "::=_";
 	];
 	methodName
 ];
@@ -1401,6 +1423,7 @@ is
 	oldDefinitions ::= supertype→map;
 	newDefinitions : field type map := {};
 	allNamesTuple : tuple := <>;
+	namesByAtom : {atom→nonempty string|} := {};
 	For each index from 1 to relevant |optionalImmutable[1]| do
 	[
 		def ::= optionalImmutable[1][index];
@@ -1441,6 +1464,7 @@ is
 					++ accessorName
 					++ "\" to specify exactly one underscore"
 			];
+			namesByAtom := eject namesByAtom + fieldAtom → accessorName;
 			extantName ::= cast fieldAtom[accessor name] else [accessorName]
 				into [t : nonempty string | t];
 			If accessorName ≠ extantName then
@@ -1462,7 +1486,7 @@ is
 			];
 			If reconstructible then
 			[
-				reconstructorName ::= reconstructor name for <fieldAtom>;
+				reconstructorName ::= reconstructor name for <accessorName>;
 				If ¬reconstructorName ∈ publicNames then
 				[
 					Reject parse, expected:
@@ -1699,10 +1723,11 @@ is
 			];
 			fieldAtoms := eject fieldAtoms ++ <atomType's instance>;
 		];
-		nonemptyFieldAtoms ::= cast fieldAtoms into [ t : atom+ | t ];
-		reconstructorName ::= reconstructor name for nonemptyFieldAtoms;
 		If publicSpec then
 		[
+			nonemptyFieldAtoms ::= cast fieldAtoms into [ t : atom+ | t ];
+			reconstructorName ::= reconstructor name for
+				map each a of nonemptyFieldAtoms through [namesByAtom[a]];
 			If ¬public then
 			[
 				Reject parse, expected:
