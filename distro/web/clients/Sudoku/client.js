@@ -35,7 +35,7 @@
  */
 
 var targetModule = '/examples/Sudoku';
-var updateFrequency = 10;
+var updateFrequency = 20;
 var avail = null;
 
 /**
@@ -303,7 +303,7 @@ function presentUI ()
 function validateCell (event)
 {
 	var s = String.fromCharCode(event.keyCode);
-	if (!/[0-9]/.test(s))
+	if (!/[1-9]/.test(s))
 	{
 		event.preventDefault();
 	}
