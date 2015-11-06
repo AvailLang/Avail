@@ -35,9 +35,10 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Avail",
-	"Dimensional Analysis" = ("__", "µs")
+	"Dimensional Analysis" = ("__", "_≥_", "µs", "ms")
 Extends
-	"Avail" = ("<«_‡,»>")
+	"Avail" = ("<«_‡,»>"),
+	"Dimensional Analysis" = ("__", "ms")
 Names
 	"___`|___`|___\
 	\|___`|___`|___\
@@ -50,10 +51,13 @@ Names
 	\|___`|___`|___\
 	\|___`|___`|___\
 	\|___`|___`|___",
+	"solve_for web,updating every_",
 	"_solved"
 Entries
+	"solve_for web,updating every_",
 	"_solved",
 	"_timed solution",
+	"“_”(JSON board)",
 	"“_”(board)",
 	"Print board:_"
 Body
@@ -505,8 +509,9 @@ Class "no-solution exception" extends exception
 	with field
 		unsolvable board : board;
 
-Private forward method "Solve_(_empty cells),reporting a solution with_" is
-	[board, integer, $[]→board]→⊥;
+Private forward method
+		"Solve_(_empty cells),updating with_,reporting a solution with_"
+	is [board, integer, [board]→⊤, $[]→board]→⊥;
 
 /**
  * Recurisvely solve the supplied {@type "board"}. Compute the {@method
@@ -515,19 +520,26 @@ Private forward method "Solve_(_empty cells),reporting a solution with_" is
  * there are no forced moves, then recursively attempt the optional moves,
  * {@method "Try again" backtracking} when inconsistencies are discovered.
  *
- * @method "Solve_,reporting a solution with_"
+ * @method "Solve_(_empty cells),updating with_,reporting a solution with_"
  * @param "originalBoard" "board"
  * @param "emptyCells" "integer"
+ * @param "updater" "[board]→⊤"
+ *        A callback for reporting progress, applied to {@param
+ *        "originalBoard"}.
  * @param "reporter" "$[]→board"
  * @returns "⊥"
  */
-Private method "Solve_(_empty cells),reporting a solution with_" is
+Private method
+	"Solve_(_empty cells),updating with_,reporting a solution with_"
+is
 [
 	originalBoard : board,
 	emptyCells : integer,
+	updater : [board]→⊤,
 	reporter : $[]→board
 |
 	$body;
+	updater(originalBoard);
 	availablePlays ::= originalBoard's optimal plays;
 	forcedPlays, optionalPlays ::=
 		split availablePlays before [p : plays | |p's moves| > 1];
@@ -552,13 +564,15 @@ Private method "Solve_(_empty cells),reporting a solution with_" is
 			Assert: boardAfterForcedPlays is solved;
 			Exit reporter with boardAfterForcedPlays
 		];
-		Restart body with <boardAfterForcedPlays, newEmptyCells, reporter>
+		Restart body with
+			<boardAfterForcedPlays, newEmptyCells, updater, reporter>
 	];
 	plays ::= trial element of availablePlays;
 	moves ::= plays's moves→tuple;
 	move ::= trial element of moves;
 	nextBoard ::= originalBoard @ plays' location → move;
 	Solve nextBoard (emptyCells - 1 empty cells),
+		updating with updater,
 		reporting a solution with reporter
 ] : ⊥;
 
@@ -567,14 +581,17 @@ Private method "Solve_(_empty cells),reporting a solution with_" is
  *
  * @method "_solved"
  * @param "b" "board"
+ * @param "updater" "[board]→⊤"
+ *        A callback for reporting progress.
  * @returns "board"
  *          The solved {@type "board"}.
  * @raises "no-solution exception"
  *         If {@param "b"} has no solution.
  */
-Public method "_solved" is
+Private method "solve_updating with_" is
 [
-	b : board
+	b : board,
+	updater : [board]→⊤
 |
 	if b is inconsistent then
 	[
@@ -589,6 +606,7 @@ Public method "_solved" is
 			guard
 			[
 				Solve b (|b's available cells| empty cells),
+					updating with updater,
 					reporting a solution with body
 			]
 			intercept
@@ -600,7 +618,47 @@ Public method "_solved" is
 			]
 		]
 	]
-] : board;
+];
+
+/**
+ * Solve the supplied {@type "board"}.
+ *
+ * @method "_solved"
+ * @param "b" "board"
+ * @returns "board"
+ *          The solved {@type "board"}.
+ * @raises "no-solution exception"
+ *         If {@param "b"} has no solution.
+ */
+Public method "_solved" is [b : board | solve b updating with [_ : board |]];
+
+/**
+ * Solve the supplied {@type "board"}, writing a JSON update to standard output
+ * every {@param "freq"} milliseconds.
+ *
+ * @method "solve_for web,updating every_"
+ * @param "b" "board"
+ * @param "freq" "natural number milliseconds"
+ * @returns "board"
+ */
+Public method "solve_for web,updating every_" is
+[
+	b : board,
+	freq : natural number ms
+|
+	ref : whole number := high-precision timer value;
+	solve b updating with
+	[
+		newBoard : board
+	|
+		elapsed ::= high-precision timer value - ref;
+		If (elapsed ÷ 1000000) ms ≥ freq then
+		[
+			Print: newBoard→JSON;
+			ref := high-precision timer value;
+		];
+	]→JSON
+];
 
 /**
  * Solve the supplied {@type "board"}.
@@ -690,6 +748,20 @@ Private method "“_”(board)" is
 			format pattern with unchecked (b[64..72]),
 			format pattern with unchecked (b[73..81])
 		>
+];
+
+/**
+ * Convert a {@type "board"} to JSON.
+ *
+ * @method "“_”(JSON board)"
+ * @param "b" "board"
+ * @returns "string"
+ */
+Private method "“_”(JSON board)" is
+[
+	b : board
+|
+	b→JSON
 ];
 
 /**
