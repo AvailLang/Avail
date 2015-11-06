@@ -208,7 +208,7 @@ function presentUI ()
 
 	var div1 = document.createElement('div');
 	div1.className = 'sudoku';
-	div1.title = 'Press Shift+Enter to solve';
+	div1.title = 'Press Enter to solve, Shift+Backspace to reset';
 	var form = document.createElement('form');
 	form.id = 'sudoku-form';
 	var table = document.createElement('table');
@@ -253,8 +253,8 @@ function presentUI ()
 		{
 			avail.close();
 		}
-		// Submit on [Shift+Return].
-		else if (event.shiftKey && event.keyCode === 13)
+		// Submit on [Return].
+		else if (event.keyCode === 13)
 		{
 			event.preventDefault();
 			var command = 'solve <';

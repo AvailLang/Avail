@@ -345,21 +345,15 @@ Private stable method "_is inconsistent" is
 	$body : boolean;
 	For each x from 1 to 9 do
 	[
-		xs ::=
-			group map each y of 1 to 9 through [b @ (x, y)]
-			by [v : cell value | v] - 0;
+		xs ::= group 1 to 9 by [y : Sudoku value | b @ (x, y)] - 0;
 		If any v of xs' values satisfies [|v| ≠ 1] then [Exit body with true];
-		ys ::=
-			group map each y of 1 to 9 through [b @ (y, x)]
-			by [v : cell value | v] - 0;
+		ys ::= group 1 to 9 by [y : Sudoku value | b @ (y, x)] - 0;
 		If any v of ys' values satisfies [|v| ≠ 1] then [Exit body with true];
 	];
 	For each c of centers do
 	[
 		region ::= points in same region as c + c;
-		vs ::=
-			group map each xy of region through [b @ xy]
-			by [v : cell value | v] - 0;
+		vs ::= group region by [xy : point | b @ xy] - 0;
 		If any v of vs' values satisfies [|v| ≠ 1] then [Exit body with true];
 	];
 	false
