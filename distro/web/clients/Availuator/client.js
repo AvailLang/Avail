@@ -189,8 +189,30 @@ function presentUI ()
 	output.innerHTML = '&nbsp;';
 	div2.appendChild(output);
 	
+	var divFirst = document.createElement('div');
+	main.append(divFirst);
+	
 	var divB = document.createElement('div');
-	main.append(divB);
+	var divOpen = document.createElement('div');
+	divOpen.id='opendiv';
+	var openButton = document.createElement('button');
+	openButton.innerHTML = "Open Unicode Palette";
+	openButton.addEventListener("click", function() {
+		divOpen.parentNode.removeChild(divOpen);
+		divFirst.appendChild(divB);
+	});
+	
+	var closeButton = document.createElement('button');
+	closeButton.innerHTML = "Close Unicode Palette";
+	closeButton.addEventListener("click", function() {
+		divB.parentNode.removeChild(divB);
+		divFirst.appendChild(divOpen);
+	});
+	
+	
+	divOpen.appendChild(openButton);
+	
+	divFirst.appendChild(divOpen);
 	
 	main.append(div0);
 	main.append(div1);
@@ -286,6 +308,9 @@ function presentUI ()
 	o4.id = 'o4';
 	o4.innerHTML = "&#9315;";
 	divB.appendChild(o4);
+	
+	divB.appendChild(document.createElement('br'));
+	divB.appendChild(closeButton);
 	
 	o1.addEventListener("click", populateFromPallete);
 	o2.addEventListener("click", populateFromPallete);
