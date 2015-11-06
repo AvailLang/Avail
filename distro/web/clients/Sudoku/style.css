@@ -167,3 +167,18 @@ input:focus
 {
 	outline: none;
 }
+
+.no-solution
+{
+	margin: auto;
+}
+
+.no-solution > p
+{
+	text-align: center;
+	font-family: sans-serif;
+	font-size: 16px;
+	font-variant: small-caps;
+	font-weight: bold;
+	color: #aa0000;
+}

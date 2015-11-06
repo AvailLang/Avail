@@ -119,6 +119,10 @@ function connect ()
 				{
 					updateBoard(JSON.parse(msg));
 				};
+				io.stderr = function (msg)
+				{
+					reportNoSolution();
+				};
 				return;
 			}
 		}
@@ -152,8 +156,9 @@ function deactivateProgressBar ()
  */
 function clearUI ()
 {
-	$(".title").remove();
+	$('.title').remove();
 	$('.sudoku').remove();
+	$('.no-solution').remove();
 }
 
 /**
@@ -228,6 +233,7 @@ function presentUI ()
 			input.size = 2;
 			input.maxLength = 1;
 			input.autocomplete = 'off';
+			input.onkeypress = validateCell;
 			td.appendChild(input);
 			tr.appendChild(td);
 			cellNumber++;
@@ -257,6 +263,7 @@ function presentUI ()
 		else if (event.keyCode === 13)
 		{
 			event.preventDefault();
+			$('.no-solution').remove();
 			var command = 'solve <';
 			for (i = 1; i <= 81; i++)
 			{
@@ -279,12 +286,27 @@ function presentUI ()
 		else if (event.shiftKey && (event.keyCode === 8||event.keyCode === 46))
 		{
 			event.preventDefault();
+			$('.no-solution').remove();
 			for (i = 1; i <= 81; i++)
 			{
 				$('#cell' + i).val('');
 			}
 		}
 	});
+}
+
+/**
+ * Validate the specified keypress event.
+ *
+ * @param event
+ */
+function validateCell (event)
+{
+	var s = String.fromCharCode(event.keyCode);
+	if (!/[0-9]/.test(s))
+	{
+		event.preventDefault();
+	}
 }
 
 /**
@@ -301,6 +323,20 @@ function updateBoard (board)
 		var v = board[i - 1];
 		$('#cell' + i).val(v === 0 ? '' : v);
 	}
+}
+
+/**
+ * Report that there is no solution to the current puzzle.
+ */
+function reportNoSolution ()
+{
+	var main = $("#client-ui");
+	var div = document.createElement('div');
+	div.className = 'no-solution';
+	var p = document.createElement('p');
+	p.innerHTML = 'No Solution';
+	div.appendChild(p);
+	main.append(div);
 }
 
 /**
