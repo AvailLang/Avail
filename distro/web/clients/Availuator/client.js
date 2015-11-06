@@ -197,9 +197,9 @@ function presentUI ()
 	{
 		return false;
 	});
-	expression.keypress(function (event)
+	expression.keydown(function (event)
 	{
-		// Submit on [Return].
+		// Submit on [Shift + Return].
 		if (event.shiftKey && event.keyCode == 13)
 		{
 			event.preventDefault();
@@ -210,6 +210,33 @@ function presentUI ()
 				{
 					presentResult(data.content.result);
 				});
+		} 
+		else
+		{
+			if (event.keyCode == 13)
+			{
+				event.preventDefault();
+				var start = expression.get(0).selectionStart;
+				var startLineIndex = beginningOfCurrentLineIndex();
+				var allText = expression.val();
+				var textSize = allText.length;
+				var textToSearch = allText.slice(startLineIndex, start);
+				var tabs = "";
+				var index = 1;
+				var size = textToSearch.length;
+				while (index < size && textToSearch.charAt(index) == "\t") 
+				{
+					tabs = tabs + "\t";
+					index++;
+				}
+
+				expression.val(allText.slice(0,start) + "\n" + tabs 
+					+ allText.slice(start));
+				var newTextLength = expression.val().length;
+				var shift = newTextLength - textSize;
+				expression.get(0).selectionStart = start + shift;
+				expression.get(0).selectionEnd = start + shift;
+			}
 		}
 	});
 	$('body').keydown(function (event)
@@ -221,59 +248,68 @@ function presentUI ()
 		} 
 		else 
 		{
-			var allText = expression.val();
-		    var textSize = allText.length;
-		    var selectedTextStartIndex = getSelectionTextStartIndex();
-		    var end = expression.get(0).selectionEnd;
-		    var start = expression.get(0).selectionStart;
-		    var selectedText = 
-		    	allText.slice(selectedTextStartIndex,end);
-		    
 			if (event.shiftKey && event.keyCode == 9)
 			{
 				event.preventDefault(); 
-			    
-				if (selectedTextStartIndex == 0 && 
-				    	selectedText.charAt(selectedTextStartIndex == "\t"))
-				{
-				    	selectedText = 
-				    		selectedText.replace(/\t/,"");
-				}
-			    selectedText = selectedText.replace(/\n\t/g,"\n");
+				var allText = expression.val();
+				var textSize = allText.length;
+				var startLineIndex = beginningOfCurrentLineIndex();
+				var end = expression.get(0).selectionEnd;
+				var start = expression.get(0).selectionStart;
+				var selectedText = 
+			    	allText.slice(startLineIndex,end);
 
-			    // set textarea value to: text before caret + tab + text 
-			    // after caret
+
+				if (startLineIndex == 0 &&
+					selectedText.charAt(startLineIndex) == "\t")
+				{
+					selectedText = 
+						selectedText.replace(/\t/,"");
+				}
+				selectedText = selectedText.replace(/\n\t/g,"\n");
+
 			    expression.val(expression.val()
-			    	.substring(0, selectedTextStartIndex)
-			        	+ selectedText
-			        	+ expression.val().substring(end));
+			    	.substring(0, startLineIndex)
+			    		+ selectedText
+			    		+ expression.val().substring(end));
 
 			    var newTextLength = expression.val().length;
-			    resetSelectedText(textSize, newTextLength, start, end, -1);
-			} 
+			    var shift = 0;
+			    if (newTextLength != textSize) 
+			    {
+			    	shift = -1;
+			    }
+
+			    resetSelectedText(textSize, newTextLength, start, end, shift);
+			}
 			else
 			{
 				if (event.keyCode == 9) 
 				{ 
-				    event.preventDefault(); 
-				    
-				    if (selectedTextStartIndex == 0 && 
-				    	selectedText.charAt(selectedTextStartIndex != "\n"))
-				    {
-				    	selectedText = "\t" + selectedText;
-				    }
-				    
-				    selectedText = selectedText.replace(/\n/g,"\n\t");
-	
-				    // set textarea value to: text before caret + tab + text 
-				    // after caret
-				    expression.val(allText.substring(0, selectedTextStartIndex)
-				   		+ selectedText
-				   		+ expression.val().substring(end));
-				    
-				    var newTextLength = expression.val().length;
-				    resetSelectedText(textSize, newTextLength, start, end, 1);
-				 }
+					event.preventDefault();
+					var allText = expression.val();
+					var textSize = allText.length;
+					var startLineIndex = beginningOfCurrentLineIndex();
+					var end = expression.get(0).selectionEnd;
+					var start = expression.get(0).selectionStart;
+					var selectedText = 
+				    	allText.slice(startLineIndex,end);
+
+					if (startLineIndex == 0 && 
+						selectedText.charAt(startLineIndex) != "\n")
+					{
+						selectedText = "\t" + selectedText;
+					}
+
+					selectedText = selectedText.replace(/\n/g,"\n\t");
+
+					expression.val(allText.substring(0, startLineIndex)
+						+ selectedText
+						+ expression.val().substring(end));
+
+					var newTextLength = expression.val().length;
+					resetSelectedText(textSize, newTextLength, start, end, 1);
+				}
 			}
 		}
 	});
@@ -296,12 +332,11 @@ function presentResult (result)
  *
  * @returns {string}
  */
-function getSelectionTextStartIndex() 
+function beginningOfCurrentLineIndex() 
 {
     var expression = $("#expression");
     var allText = expression.val();
     var start = expression.get(0).selectionStart;
-    var end = expression.get(0).selectionEnd;
     var i = start;
     while (i > 0 && allText.charAt(i) != "\n") 
     {
@@ -317,7 +352,7 @@ function resetSelectedText(initialSize, newSize, start, end, shift)
 	 
 	 // put caret at right position again
 	 expression.get(0).selectionStart = start + shift;
-	 expression.get(0).selectionEnd = end - (carretOffset * shift);
+	 expression.get(0).selectionEnd = end - carretOffset;
 }
 
 /**
