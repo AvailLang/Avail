@@ -37,6 +37,7 @@ import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.MutableOrNull;
 
@@ -253,24 +254,6 @@ extends A_ChunkDependable
 	void methodAddBundle (A_Bundle bundle);
 
 	/**
-	 * Answer the {@linkplain TupleDescriptor tuple} of tuples of macro prefix
-	 * {@linkplain FunctionDescriptor functions} for this method.  These
-	 * functions allow parsing actions to be performed while parsing is still
-	 * occurring, typically to bring new variable and constant {@linkplain
-	 * DeclarationNodeDescriptor declarations} into scope.
-	 *
-	 * @return This method's macro prefix function lists.
-	 */
-	A_Tuple prefixFunctions ();
-
-	/**
-	 * Replace the method's tuple of macro prefix function tuples.
-	 *
-	 * @param functionTuples A tuple of tuples of functions.
-	 */
-	void prefixFunctions (A_Tuple functionTuples);
-
-	/**
 	 * Answer the tuple of {@linkplain MacroDefinitionDescriptor macro
 	 * definitions} for this method.  Their order is irrelevant, but fixed for
 	 * use by the {@link #macroTestingTree()}.
@@ -314,4 +297,31 @@ extends A_ChunkDependable
 	 * @return The {@link LookupTree} used for polymorphic macros.
 	 */
 	LookupTree macroTestingTree ();
+
+	/**
+	 * Answer the {@linkplain TupleDescriptor tuple} of tuples of macro prefix
+	 * {@linkplain FunctionDescriptor functions} for this method bundle.  These
+	 * functions allow parsing actions to be performed while parsing is still
+	 * occurring, typically to bring new variable and constant {@linkplain
+	 * DeclarationNodeDescriptor declarations} into scope.
+	 *
+	 * @return This method bundle's macro prefix function lists.
+	 */
+	A_Tuple prefixFunctions ();
+
+	/**
+	 * Replace the method bundle's tuple of macro prefix function tuples.
+	 *
+	 * @param functionTuples A tuple of tuples of functions.
+	 */
+	void prefixFunctions (A_Tuple functionTuples);
+
+	/**
+	 * Of this method's bundles, choose one that is visible in the current
+	 * module.  The current module is determined by the current {@A_Fiber
+	 * fiber}'s {@link AvailLoader}.  If none are visible, choose one at random.
+	 *
+	 * @return One of this method's {@link A_Bundle bundles}.
+	 */
+	A_Bundle chooseBundle ();
 }

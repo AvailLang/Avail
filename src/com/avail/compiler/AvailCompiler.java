@@ -64,10 +64,14 @@ import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
+import com.avail.interpreter.effects.LoadingEffect;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
@@ -164,7 +168,7 @@ public final class AvailCompiler
 	 *
 	 * @return A loader.
 	 */
-	private AvailLoader loader ()
+	@InnerAccess AvailLoader loader ()
 	{
 		final AvailLoader theLoader = loader;
 		assert theLoader != null;
@@ -1157,7 +1161,7 @@ public final class AvailCompiler
 			final AtomicBoolean hasRunEither = new AtomicBoolean(false);
 			compiler.evaluatePhraseThen(
 				expression,
-				position,
+				peekToken().lineNumber(),
 				false,
 				compiler.workUnitCompletion(
 					peekToken(), hasRunEither, continuation),
@@ -2607,6 +2611,8 @@ public final class AvailCompiler
 	 *
 	 * @param function
 	 *        A function.
+	 * @param lineNumber
+	 *        The line number at which this function occurs in the module.
 	 * @param args
 	 *        The arguments to the function.
 	 * @param clientParseData
@@ -2622,6 +2628,7 @@ public final class AvailCompiler
 	 */
 	protected void evaluateFunctionThen (
 		final A_Function function,
+		final int lineNumber,
 		final List<? extends A_BasicObject> args,
 		final A_Map clientParseData,
 		final boolean shouldSerialize,
@@ -2630,13 +2637,6 @@ public final class AvailCompiler
 	{
 		final A_RawFunction code = function.code();
 		assert code.numArgs() == args.size();
-		synchronized (this)
-		{
-			if (shouldSerialize)
-			{
-				serializer.serialize(function);
-			}
-		}
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader(),
@@ -2657,7 +2657,31 @@ public final class AvailCompiler
 			clientDataGlobalKey(), clientParseData, true);
 		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(textInterface);
-		fiber.resultContinuation(onSuccess);
+		if (shouldSerialize)
+		{
+			loader().startRecordingEffects();
+		}
+		final long before = System.nanoTime();
+		final Continuation1<AvailObject> adjustedSuccess =
+			shouldSerialize
+				? new Continuation1<AvailObject>()
+					{
+						@Override
+						public void value (
+							final @Nullable AvailObject successValue)
+						{
+							final long after = System.nanoTime();
+							Interpreter.current().recordTopStatementEvaluation(
+								after - before,
+								module,
+								lineNumber);
+							loader().stopRecordingEffects();
+							serializeAfterRunning(function);
+							onSuccess.value(successValue);
+						}
+					}
+				: onSuccess;
+		fiber.resultContinuation(adjustedSuccess);
 		fiber.failureContinuation(onFailure);
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
 	}
@@ -2814,6 +2838,7 @@ public final class AvailCompiler
 		evaluateFunctionThen(
 			FunctionDescriptor.createFunctionForPhrase(
 				expressionNode, module, lineNumber),
+			lineNumber,
 			Collections.<AvailObject>emptyList(),
 			MapDescriptor.empty(),
 			shouldSerialize,
@@ -2943,6 +2968,7 @@ public final class AvailCompiler
 					reportError(afterFail);
 					return;
 				}
+				loader().startRecordingEffects();
 				evaluatePhraseThen(
 					replacement.initializationExpression(),
 					replacement.token().lineNumber(),
@@ -2953,6 +2979,7 @@ public final class AvailCompiler
 						public void value (final @Nullable AvailObject val)
 						{
 							assert val != null;
+							loader().stopRecordingEffects();
 							final A_Type innerType =
 								AbstractEnumerationTypeDescriptor
 									.withInstance(val);
@@ -2990,11 +3017,14 @@ public final class AvailCompiler
 									assign,
 									module,
 									replacement.token().lineNumber());
-							synchronized (AvailCompiler.this)
-							{
-								serializer.serialize(function);
-							}
+							final boolean canSummarize =
+								loader().statementCanBeSummarized();
+							serializeAfterRunning(function);
 							var.setValue(val);
+							if (canSummarize)
+							{
+								var.valueWasStablyComputed(true);
+							}
 							onSuccess.value();
 						}
 					},
@@ -3066,6 +3096,61 @@ public final class AvailCompiler
 		}
 	}
 
+
+	/**
+	 * Serialize either the given function or something semantically equivalent.
+	 * The equivalent is expected to be faster, but can only be used if no
+	 * triggers had been tripped during execution of the function.  The triggers
+	 * include reading or writing shared variables, or executing certain
+	 * primitives.
+	 *
+	 * @param function The function that has already run.
+	 */
+	@InnerAccess synchronized void serializeAfterRunning (
+		final A_Function function)
+	{
+		if (loader().statementCanBeSummarized())
+		{
+			final List<LoadingEffect> effects = loader().recordedEffects();
+			if (!effects.isEmpty())
+			{
+				// Output summarized functions instead of what ran.
+				final L1InstructionWriter writer =
+					new L1InstructionWriter(
+						module,
+						function.code().startingLineNumber());
+				writer.argumentTypes();
+				writer.returnType(Types.TOP.o());
+				boolean first = true;
+				for (final LoadingEffect effect : effects)
+				{
+					if (first)
+					{
+						first = false;
+					}
+					else
+					{
+						writer.write(L1Operation.L1_doPop);
+					}
+					effect.writeEffectTo(writer);
+				}
+				final A_Function summaryFunction =
+					FunctionDescriptor.create(
+						writer.compiledCode(),
+						TupleDescriptor.empty());
+				serializer.serialize(summaryFunction);
+			}
+		}
+		else
+		{
+			// Can't summarize; write the original function.
+			if (AvailLoader.debugUnsummarizedStatements)
+			{
+				System.out.println(module + " -- " + function);
+			}
+			serializer.serialize(function);
+		}
+	}
 
 	/**
 	 * Report that the parser was expecting one of several keywords. The
@@ -5913,42 +5998,6 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * Serialize a function that will publish all atoms that are currently
-	 * public in the module.
-	 *
-	 * @param isPublic
-	 *        {@code true} if the atoms are public, {@code false} if they are
-	 *        private.
-	 */
-	@InnerAccess void serializePublicationFunction (final boolean isPublic)
-	{
-		// Output a function that publishes the initial public set of atoms.
-		final A_Map sourceNames =
-			isPublic ? module.importedNames() : module.privateNames();
-		A_Set names = SetDescriptor.empty();
-		for (final MapDescriptor.Entry entry : sourceNames.mapIterable())
-		{
-			names = names.setUnionCanDestroy(entry.value(), false);
-		}
-		final A_Phrase send = SendNodeDescriptor.from(
-			TupleDescriptor.empty(),
-			MethodDescriptor.vmPublishAtomsAtom().bundleOrNil(),
-			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.from(
-					LiteralNodeDescriptor.syntheticFrom(names),
-					LiteralNodeDescriptor.syntheticFrom(
-						AtomDescriptor.objectFromBoolean(isPublic)))),
-			TOP.o());
-		final A_Function function =
-			FunctionDescriptor.createFunctionForPhrase(send, module, 0);
-		function.makeImmutable();
-		synchronized (this)
-		{
-			serializer.serialize(function);
-		}
-	}
-
-	/**
 	 * Apply a {@link ExpectedToken#PRAGMA_CHECK check} pragma that was detected
 	 * during parse of the {@linkplain ModuleHeader module header}.
 	 *
@@ -7564,5 +7613,41 @@ public final class AvailCompiler
 				isShuttingDown = true;
 			}
 		});
+	}
+
+	/**
+	 * Serialize a function that will publish all atoms that are currently
+	 * public in the module.
+	 *
+	 * @param isPublic
+	 *        {@code true} if the atoms are public, {@code false} if they are
+	 *        private.
+	 */
+	@InnerAccess void serializePublicationFunction (final boolean isPublic)
+	{
+		// Output a function that publishes the initial public set of atoms.
+		final A_Map sourceNames =
+			isPublic ? module.importedNames() : module.privateNames();
+		A_Set names = SetDescriptor.empty();
+		for (final MapDescriptor.Entry entry : sourceNames.mapIterable())
+		{
+			names = names.setUnionCanDestroy(entry.value(), false);
+		}
+		final A_Phrase send = SendNodeDescriptor.from(
+			TupleDescriptor.empty(),
+			MethodDescriptor.vmPublishAtomsAtom().bundleOrNil(),
+			ListNodeDescriptor.newExpressions(
+				TupleDescriptor.from(
+					LiteralNodeDescriptor.syntheticFrom(names),
+					LiteralNodeDescriptor.syntheticFrom(
+						AtomDescriptor.objectFromBoolean(isPublic)))),
+			TOP.o());
+		final A_Function function =
+			FunctionDescriptor.createFunctionForPhrase(send, module, 0);
+		function.makeImmutable();
+		synchronized (this)
+		{
+			serializer.serialize(function);
+		}
 	}
 }

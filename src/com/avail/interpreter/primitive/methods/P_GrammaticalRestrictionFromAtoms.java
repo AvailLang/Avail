@@ -77,19 +77,13 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		final A_Tuple atomSetAsTuple = atomSet.asTuple();
-		for (final A_Atom atom : atomSetAsTuple)
+		try
 		{
-			try
-			{
-				loader.addGrammaticalRestrictions(
-					atom,
-					exclusionsTuple);
-			}
-			catch (final MalformedMessageException | SignatureException e)
-			{
-				return interpreter.primitiveFailure(e);
-			}
+			loader.addGrammaticalRestrictions(atomSet, exclusionsTuple);
+		}
+		catch (final MalformedMessageException | SignatureException e)
+		{
+			return interpreter.primitiveFailure(e);
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

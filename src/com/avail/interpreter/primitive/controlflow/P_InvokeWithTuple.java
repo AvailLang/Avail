@@ -69,11 +69,11 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_Function block = args.get(0);
+		final A_Function function = args.get(0);
 		final A_Tuple argTuple = args.get(1);
-		final A_Type blockType = block.kind();
+		final A_Type blockType = function.kind();
 		final int numArgs = argTuple.tupleSize();
-		if (block.code().numArgs() != numArgs)
+		if (function.code().numArgs() != numArgs)
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -91,7 +91,7 @@ extends Primitive
 			//  Transfer the argument into callArgs.
 			callArgs.add(anArg);
 		}
-		return interpreter.invokeFunction(block, callArgs, false);
+		return interpreter.invokeFunction(function, callArgs, false);
 	}
 
 	/**

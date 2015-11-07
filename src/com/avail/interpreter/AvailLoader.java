@@ -34,6 +34,8 @@ package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.exceptions.AvailErrorCode.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +45,12 @@ import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.*;
+import com.avail.interpreter.effects.LoadingEffect;
+import com.avail.interpreter.effects.LoadingEffectToAddDefinition;
+import com.avail.interpreter.effects.LoadingEffectToAddGrammaticalRestriction;
+import com.avail.interpreter.effects.LoadingEffectToAddPrefixFunction;
+import com.avail.interpreter.effects.LoadingEffectToAddSeal;
+import com.avail.interpreter.effects.LoadingEffectToAddSemanticRestriction;
 import com.avail.io.TextInterface;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
@@ -57,6 +65,12 @@ import com.avail.utility.evaluation.*;
  */
 public final class AvailLoader
 {
+	/**
+	 * Allow investigation of why a top-level expression is being excluded from
+	 * summarization.
+	 */
+	public static boolean debugUnsummarizedStatements = false;
+
 	/**
 	 * The {@link AvailRuntime} for the loader. Since a {@linkplain AvailLoader
 	 * loader} cannot migrate between two {@linkplain AvailRuntime runtimes}, it
@@ -116,6 +130,110 @@ public final class AvailLoader
 		final A_BundleTree tree = rootBundleTree;
 		assert tree != null;
 		return tree;
+	}
+
+	/**
+	 * A flag that is cleared before executing each top-level statement of a
+	 * module, and set whenever execution of the statement causes behavior that
+	 * can't simply be summarized by a sequence of {@link LoadingEffect}s.
+	 */
+	private volatile boolean statementCanBeSummarized = true;
+
+	/**
+	 * A flag that indicates whether we are attempting to determine whether an
+	 * expression can be summarized into a series of {@link LoadingEffect}s.
+	 */
+	private boolean determiningSummarizability = false;
+
+	/**
+	 * Replace the boolean that indicates whether the current statement can be
+	 * summarized into a sequence of {@link LoadingEffect}s.  It is set to true
+	 * before executing a top-level statement, and set to false if an activity
+	 * is performed that cannot be summarized.
+	 *
+	 * @param summarizable The new value of the flag.
+	 */
+	public void statementCanBeSummarized (final boolean summarizable)
+	{
+		if (determiningSummarizability)
+		{
+			if (debugUnsummarizedStatements
+				&& !summarizable
+				&& statementCanBeSummarized)
+			{
+				// Here's a good place for a breakpoint, to see why an
+				// expression couldn't be summarized.
+				final Throwable e = new Throwable().fillInStackTrace();
+				final StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				System.err.println("Disabled summary:\n" + sw.toString());
+			}
+			statementCanBeSummarized = summarizable;
+		}
+	}
+
+	/**
+	 * Answer whether the current statement can be summarized into a sequence of
+	 * {@link LoadingEffect}s.
+	 *
+	 * @return The current value of the flag.
+	 */
+	public boolean statementCanBeSummarized ()
+	{
+		return statementCanBeSummarized;
+	}
+
+	/**
+	 * The sequence of effects performed by the current top-level statement of
+	 * a module being compiled.
+	 */
+	private final List<LoadingEffect> effectsAddedByTopStatement =
+		new ArrayList<LoadingEffect>();
+
+	/**
+	 * Record a {@link LoadingEffect} to ensure it will be replayed when the
+	 * module currently being compiled is later loaded.
+	 *
+	 * @param anEffect The effect to record.
+	 */
+	public synchronized void recordEffect (final LoadingEffect anEffect)
+	{
+		if (determiningSummarizability)
+		{
+			effectsAddedByTopStatement.add(anEffect);
+		}
+	}
+
+	/**
+	 * Set a flag that indicates we are determining if the effects of running
+	 * a function can be summarized, and if so into what {@link LoadingEffect}s.
+	 */
+	public synchronized void startRecordingEffects ()
+	{
+		assert !determiningSummarizability;
+		determiningSummarizability = true;
+		statementCanBeSummarized = true;
+		effectsAddedByTopStatement.clear();
+	}
+
+	/**
+	 * Clear the flag that indicates whether we are determining if the effects
+	 * of running a function can be summarized into {@link LoadingEffect}s.
+	 */
+	public synchronized void stopRecordingEffects ()
+	{
+		assert determiningSummarizability;
+		determiningSummarizability = false;
+	}
+
+	/**
+	 * Answer the list of {@link LoadingEffect}s.
+	 *
+	 * @return Answer the recorded {@link LoadingEffect}s.
+	 */
+	public synchronized List<LoadingEffect> recordedEffects ()
+	{
+		return new ArrayList<>(effectsAddedByTopStatement);
 	}
 
 	/**
@@ -295,6 +413,7 @@ public final class AvailLoader
 			resolvedForwardWithName(forward, methodName);
 		}
 		method.methodAddDefinition(newMethodDefinition);
+		recordEffect(new LoadingEffectToAddDefinition(newMethodDefinition));
 		final A_Module theModule = module;
 		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
@@ -368,6 +487,7 @@ public final class AvailLoader
 			module,
 			bodySignature);
 		method.methodAddDefinition(newForward);
+		recordEffect(new LoadingEffectToAddDefinition(newForward));
 		final A_Module theModule = module;
 		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
@@ -462,6 +582,7 @@ public final class AvailLoader
 			resolvedForwardWithName(forward, methodName);
 		}
 		method.methodAddDefinition(newDefinition);
+		recordEffect(new LoadingEffectToAddDefinition(newDefinition));
 		final A_Module theModule = module;
 		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
@@ -535,6 +656,7 @@ public final class AvailLoader
 			// relationship with their result types, since they're static.
 		}
 		method.methodAddDefinition(macroDefinition);
+		recordEffect(new LoadingEffectToAddDefinition(macroDefinition));
 		final A_Module theModule = module;
 		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
@@ -570,6 +692,8 @@ public final class AvailLoader
 		runtime.addPrefixFunction(method, index, prefixFunction);
 		final A_Module theModule = module;
 		final A_BundleTree root = rootBundleTree();
+		recordEffect(new LoadingEffectToAddPrefixFunction(
+			method, index, prefixFunction));
 		theModule.lock(new Continuation0()
 		{
 			@Override
@@ -604,6 +728,7 @@ public final class AvailLoader
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		runtime.addSemanticRestriction(restriction);
+		recordEffect(new LoadingEffectToAddSemanticRestriction(restriction));
 		final A_Module theModule = module;
 		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
@@ -653,6 +778,7 @@ public final class AvailLoader
 		seal.makeShared();
 		runtime.addSeal(methodName, seal);
 		module.addSeal(methodName, seal);
+		recordEffect(new LoadingEffectToAddSeal(methodName, seal));
 	}
 
 	/**
@@ -663,8 +789,10 @@ public final class AvailLoader
 	 * operator makes * bind tighter than + and also groups multiple *'s
 	 * left-to-right.
 	 *
-	 * @param methodName
-	 *        An {@linkplain AtomDescriptor atom} that names a method.
+	 * @param parentAtoms
+	 *        A {@linkplain A_Set set} of {@linkplain AtomDescriptor atom}s that
+	 *        name the message bundles that are to have their arguments
+	 *        constrained.
 	 * @param illegalArgMsgs
 	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
 	 *        SetDescriptor sets} of {@linkplain AtomDescriptor atoms} that name
@@ -675,51 +803,57 @@ public final class AvailLoader
 	 *         If one of the specified names is inappropriate as a method name.
 	 */
 	public void addGrammaticalRestrictions (
-			final A_Atom methodName,
+			final A_Set parentAtoms,
 			final A_Tuple illegalArgMsgs)
 		throws MalformedMessageException, SignatureException
 	{
-		methodName.makeShared();
+		parentAtoms.makeShared();
 		illegalArgMsgs.makeShared();
-		final A_Bundle bundle = methodName.bundleOrCreate();
-		final MessageSplitter splitter = bundle.messageSplitter();
-		final int numArgs = splitter.numberOfUnderscores();
-		if (illegalArgMsgs.tupleSize() != numArgs)
+		for (final A_Atom parentAtom : parentAtoms)
 		{
-			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
-		}
-		final A_Module theModule = module;
-		final List<A_Set> bundleSets =
-			new ArrayList<>(illegalArgMsgs.tupleSize());
-		for (final A_Set atomsSet : illegalArgMsgs)
-		{
-			A_Set bundleSet = SetDescriptor.empty();
-			for (final A_Atom atom : atomsSet)
+			final A_Bundle bundle = parentAtom.bundleOrCreate();
+			final MessageSplitter splitter = bundle.messageSplitter();
+			final int numArgs = splitter.numberOfUnderscores();
+			if (illegalArgMsgs.tupleSize() != numArgs)
 			{
-				bundleSet = bundleSet.setWithElementCanDestroy(
-					atom.bundleOrCreate(),
-					true);
+				throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
-			bundleSets.add(bundleSet.makeShared());
-		}
-		final A_GrammaticalRestriction grammaticalRestriction =
-			GrammaticalRestrictionDescriptor.create(
-				TupleDescriptor.fromList(bundleSets),
-				bundle,
-				theModule);
-		final A_BundleTree root = rootBundleTree();
-		theModule.lock(new Continuation0()
-		{
-			@Override
-			public void value ()
+			final A_Module theModule = module;
+			final List<A_Set> bundleSets =
+				new ArrayList<>(illegalArgMsgs.tupleSize());
+			for (final A_Set atomsSet : illegalArgMsgs)
 			{
-				bundle.addGrammaticalRestriction(grammaticalRestriction);
-				root.addBundle(bundle);
-				theModule.addGrammaticalRestrictions(
-					methodName, illegalArgMsgs);
-				root.flushForNewOrChangedBundle(bundle);
+				A_Set bundleSet = SetDescriptor.empty();
+				for (final A_Atom atom : atomsSet)
+				{
+					bundleSet = bundleSet.setWithElementCanDestroy(
+						atom.bundleOrCreate(),
+						true);
+				}
+				bundleSets.add(bundleSet.makeShared());
 			}
-		});
+			final A_GrammaticalRestriction grammaticalRestriction =
+				GrammaticalRestrictionDescriptor.create(
+					TupleDescriptor.fromList(bundleSets),
+					bundle,
+					theModule);
+			final A_BundleTree root = rootBundleTree();
+			theModule.lock(new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					bundle.addGrammaticalRestriction(grammaticalRestriction);
+					root.addBundle(bundle);
+					theModule.addGrammaticalRestrictions(
+						parentAtom, illegalArgMsgs);
+					root.flushForNewOrChangedBundle(bundle);
+				}
+			});
+		}
+		recordEffect(
+			new LoadingEffectToAddGrammaticalRestriction(
+				parentAtoms, illegalArgMsgs));
 	}
 
 	/**

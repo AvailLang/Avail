@@ -41,6 +41,7 @@ import com.avail.annotations.*;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.json.JSONWriter;
 
@@ -216,8 +217,8 @@ extends Descriptor
 
 		/**
 		 * A {@linkplain TupleDescriptor tuple} of tuples containing a
-		 * {@linkplain A_Method method}, an {@linkplain IntegerDescriptor
-		 * index}, and a {@linkplain A_Function function}.
+		 * {@linkplain A_Bundle message bundle}, an {@linkplain
+		 * IntegerDescriptor index}, and a {@linkplain A_Function function}.
 		 */
 		PREFIX_FUNCTIONS,
 
@@ -926,6 +927,12 @@ extends Descriptor
 				true);
 			object.setSlot(ALL_ANCESTORS, union.makeShared());
 		}
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.MODULE;
 	}
 
 	@Override

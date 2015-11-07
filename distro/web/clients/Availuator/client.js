@@ -176,7 +176,8 @@ function presentUI ()
 
 	var div1 = document.createElement('div');
 	var input = document.createElement('textarea');
-	div1.title = 'Press Shift+Enter to submit Avail for evaluation';
+	div1.title = '● Press Shift+Enter to submit Avail for evaluation\n\n'
+		+ '● Press F1/F2︎ to navigate previously submitted expressions';
 	input.id = 'expression';
 	input.rows = 10;
 	input.placeholder = 'Evaluate me!';
@@ -188,38 +189,19 @@ function presentUI ()
 	output.id = 'output';
 	output.innerHTML = '&nbsp;';
 	div2.appendChild(output);
+
+	//Set up unicode palette
+	var divTop = document.createElement('div');
+	main.append(divTop);
 	
-	var divFirst = document.createElement('div');
-	main.append(divFirst);
-	
-	var divB = document.createElement('div');
+	var divClose = document.createElement ('div');
+	divClose.id = 'closediv';
+
 	var divOpen = document.createElement('div');
 	divOpen.id='opendiv';
-	var openButton = document.createElement('button');
-	openButton.innerHTML = "Open Unicode Palette";
-	openButton.addEventListener("click", function() {
-		divOpen.parentNode.removeChild(divOpen);
-		divFirst.appendChild(divB);
-	});
 	
-	var closeButton = document.createElement('button');
-	closeButton.innerHTML = "Close Unicode Palette";
-	closeButton.addEventListener("click", function() {
-		divB.parentNode.removeChild(divB);
-		divFirst.appendChild(divOpen);
-	});
-	
-	
-	divOpen.appendChild(openButton);
-	
-	divFirst.appendChild(divOpen);
-	
-	main.append(div0);
-	main.append(div1);
-	main.append(div2);
-	var expression = $("#expression");
-	
-	//TEST AREA FOR UNICODE 
+	var divPalette = document.createElement('div');
+	divPalette.id = 'palette';
 	
 	var populateFromPallete = function(content) {
 		var cursor = expression.get(0).selectionStart;
@@ -229,107 +211,45 @@ function presentUI ()
 		expression.get(0).selectionStart = cursor + 1;
 	}
 	
-	var smartLeft = document.createElement('button');
-	smartLeft.id = 'smartLeft';
-	smartLeft.innerHTML = "&#8216;";
-	divB.appendChild(smartLeft);
+	var unicodeSize = unicode.length;
+	var i = 0;
+	for (i = 0; i < unicodeSize; i++)
+	{
+		var unicodeChar = unicode[i][3];
+		var uniButton = document.createElement('button');
+		uniButton.className = 'unicodebutton';
+		uniButton.innerHTML = unicodeChar;
+		uniButton.addEventListener("click", populateFromPallete);
+		divPalette.appendChild(uniButton);
+	}
 	
-	var smartRight = document.createElement('button');
-	smartRight.id = 'smartLeft';
-	smartRight.innerHTML = "&#8217;";
-	divB.appendChild(smartRight);
+	var openButton = document.createElement('button');
+	openButton.innerHTML = "Open Unicode Palette";
+	openButton.addEventListener("click", function() {
+		divOpen.parentNode.removeChild(divOpen);
+		divTop.appendChild(divClose);
+	});
 	
-	var doubleSmartLeft = document.createElement('button');
-	doubleSmartLeft.id = 'smartLeft';
-	doubleSmartLeft.innerHTML = "&#8220;";
-	divB.appendChild(doubleSmartLeft);
+	var closeButton = document.createElement('button');
+	closeButton.innerHTML = "Close Unicode Palette";
+	closeButton.addEventListener("click", function() {
+		divClose.parentNode.removeChild(divClose);
+		divTop.appendChild(divOpen);
+	});
 	
-	var doubleSmartRight = document.createElement('button');
-	doubleSmartRight.id = 'smartLeft';
-	doubleSmartRight.innerHTML = "&#8221;";
-	divB.appendChild(doubleSmartRight);
+	divClose.appendChild(closeButton);
+	divClose.appendChild(divPalette);
+	divOpen.appendChild(openButton);
+	divTop.appendChild(divOpen);
 	
-	var and = document.createElement('button');
-	and.id = 'and';
-	and.innerHTML = "&#8743;";
-	divB.appendChild(and);
+	main.append(div0);
+	main.append(div1);
+	main.append(div2);
 	
-	var or = document.createElement('button');
-	or.id = 'or';
-	or.innerHTML = "&#8744;";
-	divB.appendChild(or);
+	var expression = $("#expression");
 	
-	var ne = document.createElement('button');
-	ne.id = 'ne';
-	ne.innerHTML = "&#8800;";
-	divB.appendChild(ne);
-	
-	var le = document.createElement('button');
-	le.id = 'le';
-	le.innerHTML = "&#8804;";
-	divB.appendChild(le);
-	
-	var ge = document.createElement('button');
-	ge.id = 'ge';
-	ge.innerHTML = "&#8805;";
-	divB.appendChild(ge);
-	
-	var ns = document.createElement('button');
-	ns.id = 'ns';
-	ns.innerHTML = "&#172;";
-	divB.appendChild(ns);
-	
-	var divide = document.createElement('button');
-	divide.id = 'divide';
-	divide.innerHTML = "&#247;";
-	divB.appendChild(divide);
-	
-	var multiply = document.createElement('button');
-	multiply.id = 'divide';
-	multiply.innerHTML = "&#215;";
-	divB.appendChild(multiply);
-	
-	var o1 = document.createElement('button');
-	o1.id = 'o2';
-	o1.innerHTML = "&#9312;";
-	divB.appendChild(o1);
-	
-	var o2 = document.createElement('button');
-	o2.id = 'o2';
-	o2.innerHTML = "&#9313;";
-	divB.appendChild(o2);
-	
-	var o3 = document.createElement('button');
-	o3.id = 'o3';
-	o3.innerHTML = "&#9314;";
-	divB.appendChild(o3);
-	
-	var o4 = document.createElement('button');
-	o4.id = 'o4';
-	o4.innerHTML = "&#9315;";
-	divB.appendChild(o4);
-	
-	divB.appendChild(document.createElement('br'));
-	divB.appendChild(closeButton);
-	
-	o1.addEventListener("click", populateFromPallete);
-	o2.addEventListener("click", populateFromPallete);
-	o3.addEventListener("click", populateFromPallete);
-	o4.addEventListener("click", populateFromPallete);
-	and.addEventListener("click", populateFromPallete);
-	or.addEventListener("click", populateFromPallete);
-	ne.addEventListener("click", populateFromPallete);
-	le.addEventListener("click", populateFromPallete);
-	ge.addEventListener("click", populateFromPallete);
-	ns.addEventListener("click", populateFromPallete);
-	multiply.addEventListener("click", populateFromPallete);
-	divide.addEventListener("click", populateFromPallete);
-	smartLeft.addEventListener("click", populateFromPallete);
-	smartRight.addEventListener("click", populateFromPallete);
-	doubleSmartLeft.addEventListener("click", populateFromPallete);
-	doubleSmartRight.addEventListener("click", populateFromPallete);
-	
-	//END TEST AREA
+	var historyStack = [];
+	var historyIndex = historyStack.length - 1;
 	
 	$("#expression-form").submit(function (event)
 	{
@@ -348,7 +268,26 @@ function presentUI ()
 				{
 					presentResult(data.content.result);
 				});
+			historyStack.push(expression.val());
+			historyIndex = historyStack.length - 1;
 		} 
+		else if (event.keyCode == 112 /*&& event.keyCode == 40*/)
+		{
+			event.preventDefault();
+			if (historyIndex > 0)
+			{
+				historyIndex--;
+				expression.val(historyStack[historyIndex]);
+			}
+		}
+		else if (event.keyCode == 113 /*&& event.keyCode == 38*/)
+		{
+			if (historyIndex > -1 && historyIndex < historyStack.length - 1)
+			{
+				historyIndex++;
+				expression.val(historyStack[historyIndex]);
+			}
+		}
 		else
 		{
 			if (event.keyCode == 13)

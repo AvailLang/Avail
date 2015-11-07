@@ -112,7 +112,7 @@ implements Comparable<AvailTask>, Runnable
 					// the throwable.
 					if (!fiber.executionState().indicatesTermination())
 					{
-						assert interpreter.fiber == fiber;
+						assert interpreter.fiberOrNull() == fiber;
 						interpreter.abortFiber();
 					}
 					else

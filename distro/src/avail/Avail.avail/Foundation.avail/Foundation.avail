@@ -591,8 +591,6 @@ Extends
 		"Repeat__times",
 		"Require:_accepts subscripts from_to_by_",
 		"Require:_'s⁇keeper is valid",
-		"Unless|unless_then_else_",
-		"Unless_then_",
 		"Unless|unless_then_«else unless_then_»«else_»?",
 		"Until_",
 		"Until_do_",
@@ -607,7 +605,9 @@ Extends
 	"Early Conditionals" =
 	(
 		"If_then_",
-		"If|if_then_else_"
+		"If|if_then_else_",
+		"Unless|unless_then_else_",
+		"Unless_then_"
 	),
 	"Early Literals" =
 	(

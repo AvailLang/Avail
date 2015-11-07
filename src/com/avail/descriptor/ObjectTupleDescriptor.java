@@ -462,7 +462,7 @@ extends TupleDescriptor
 	 */
 	public static AvailObject generateFrom (
 		final int size,
-		final Generator<A_BasicObject> generator)
+		final Generator<? extends A_BasicObject> generator)
 	{
 		final AvailObject result = createUninitialized(size);
 		for (int i = 1; i <= size; i++)

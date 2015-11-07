@@ -103,6 +103,7 @@ Names
 	/*  47 */ "macro definition",
 	/* 109 */ "macro function",
 	/*  39 */ "map",
+	/* 153 */ "map from string to atom",
 	/*  19 */ "map meta",
 	/*  40 */ "message bundle",
 	/*  41 */ "message bundle tree",
@@ -349,6 +350,7 @@ _scope_stack_key                        ::= special object 149;
 _expression_as_statement_phrase         ::= special object 150;
 _permutation_tuple                      ::= special object 151;
 _tuple_of_definition                    ::= special object 152;
+_map_from_string_to_atom                ::= special object 153;
 
 /**
  * The practical abstract root of the Avail type lattice. {@code "any"} is the
@@ -2651,5 +2653,17 @@ Primitive "permutation tuple" is
 Primitive "tuple of definition" is
 [
 	_tuple_of_definition
+];
+
+/**
+ * TODO: Special object description goes here.
+ *
+ * @category "Primitives" "Types"
+ * @type "{string→atom|}"
+ * @alias "map from string to atom"
+ */
+Primitive "map from string to atom" is
+[
+	_map_from_string_to_atom
 ];
 

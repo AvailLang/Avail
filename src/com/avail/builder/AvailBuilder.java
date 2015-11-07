@@ -2073,8 +2073,25 @@ public final class AvailBuilder
 								}
 							});
 						fiber.textInterface(textInterface);
-						fiber.resultContinuation(runNext.value());
 						fiber.failureContinuation(fail);
+						final long before = System.nanoTime();
+						fiber.resultContinuation(
+							new Continuation1<AvailObject>()
+							{
+								@Override
+								public void value (
+									@Nullable final AvailObject ignored2)
+								{
+									final long after = System.nanoTime();
+									Interpreter.current()
+										.recordTopStatementEvaluation(
+											after - before,
+											module,
+											finalFunction.code()
+												.startingLineNumber());
+									runNext.value().value(ignored2);
+								}
+							});
 						Interpreter.runOutermostFunction(
 							runtime,
 							fiber,

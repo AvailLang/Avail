@@ -52,7 +52,6 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.RegisterState;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**

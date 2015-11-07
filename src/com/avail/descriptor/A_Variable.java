@@ -218,4 +218,23 @@ extends A_ChunkDependable
 	 * @return The requested functions.
 	 */
 	A_Set validWriteReactorFunctions ();
+
+	/**
+	 * Answer whether this variable is both a write-once variable and
+	 * initialized from an expression which is stable – always produces the same
+	 * value (modulo loading of modules) and has no side-effects.
+	 *
+	 * @return Whether the variable was initialized from a stable computation.
+	 */
+	boolean valueWasStablyComputed ();
+
+	/**
+	 * Set whether this write-once variable was initialized from an expression
+	 * which is stable – always produces the same value (modulo loading of
+	 * modules) and has no side-effects.
+	 *
+	 * @param wasStablyComputed
+	 *        Whether the variable was initialized from a stable computation.
+	 */
+	void valueWasStablyComputed (final boolean wasStablyComputed);
 }

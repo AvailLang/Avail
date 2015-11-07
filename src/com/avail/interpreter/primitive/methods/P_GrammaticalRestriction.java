@@ -71,52 +71,49 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_Set stringSet = args.get(0);
-		final A_Tuple exclusionsTuple = args.get(1);
+		final A_Set parentStrings = args.get(0);
+		final A_Tuple excludedStringSets = args.get(1);
 		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		final A_Tuple stringSetAsTuple = stringSet.asTuple();
-		A_Tuple disallowed = exclusionsTuple;
-		for (int i = disallowed.tupleSize(); i >= 1; i--)
+		A_Tuple excludedAtomSets = excludedStringSets.makeShared();
+		for (int i = excludedStringSets.tupleSize(); i >= 1; i--)
 		{
-			A_Set setOfAtoms = SetDescriptor.empty();
-			for (final A_String string : exclusionsTuple.tupleAt(i))
+			A_Set atomSet = SetDescriptor.empty();
+			for (final A_String string : excludedStringSets.tupleAt(i))
 			{
 				try
 				{
-					setOfAtoms = setOfAtoms.setWithElementCanDestroy(
-						loader.lookupName(string),
-						true);
+					atomSet = atomSet.setWithElementCanDestroy(
+						loader.lookupName(string), true);
 				}
 				catch (final AmbiguousNameException e)
 				{
 					return interpreter.primitiveFailure(e);
 				}
 			}
-			disallowed = disallowed.tupleAtPuttingCanDestroy(
-				i,
-				setOfAtoms,
-				true);
+			excludedAtomSets = excludedAtomSets.tupleAtPuttingCanDestroy(
+				i, atomSet, true);
 		}
-		disallowed.makeImmutable();
-		for (final A_String string : stringSetAsTuple)
+		excludedAtomSets = excludedAtomSets.makeShared();
+		A_Set parentAtoms = SetDescriptor.empty();
+		try
 		{
-			try
+			for (final A_String string : parentStrings)
 			{
-				loader.addGrammaticalRestrictions(
-					loader.lookupName(string),
-					disallowed);
+				parentAtoms = parentAtoms.setWithElementCanDestroy(
+					loader.lookupName(string), true);
 			}
-			catch (
-				final MalformedMessageException
-					| SignatureException
-					| AmbiguousNameException e)
-			{
-				return interpreter.primitiveFailure(e);
-			}
+			loader.addGrammaticalRestrictions(parentAtoms, excludedAtomSets);
+		}
+		catch (
+			final MalformedMessageException
+				| SignatureException
+				| AmbiguousNameException e)
+		{
+			return interpreter.primitiveFailure(e);
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

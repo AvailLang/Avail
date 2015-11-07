@@ -48,14 +48,13 @@ import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
 import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.general.P_DeclareStringificationAtom;
-import com.avail.interpreter.primitive.methods.P_MethodDeclarationFromAtom;
-import com.avail.interpreter.primitive.methods.P_SimpleMacroDeclaration;
-import com.avail.interpreter.primitive.methods.P_SimpleMethodDeclaration;
+import com.avail.interpreter.primitive.methods.*;
 import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
 import com.avail.interpreter.primitive.variables.P_GetValue;
 import com.avail.optimizer.L2Translator;
@@ -1196,6 +1195,22 @@ extends Descriptor
 		return object.slot(OWNING_BUNDLES);
 	}
 
+	@Override
+	A_Bundle o_ChooseBundle (final AvailObject object)
+	{
+		final AvailLoader loader = Interpreter.current().availLoader();
+		final A_Set visibleModules = loader.module().allAncestors();
+		final A_Set bundles = object.slot(OWNING_BUNDLES);
+		for (final A_Bundle bundle : bundles)
+		{
+			if (visibleModules.hasElement(bundle.message().issuingModule()))
+			{
+				return bundle;
+			}
+		}
+		return bundles.iterator().next();
+	}
+
 	/**
 	 * Look up all method definitions that could match arguments with the
 	 * given types, or anything more specific.  This should return the
@@ -1325,8 +1340,7 @@ extends Descriptor
 			{
 				return false;
 			}
-			for (final A_Tuple nthPrefixFunctions
-				: object.slot(MACRO_PREFIX_FUNCTIONS))
+			for (final A_Tuple nthPrefixFunctions : object.prefixFunctions())
 			{
 				if (nthPrefixFunctions.tupleSize() > 0)
 				{
@@ -1561,8 +1575,7 @@ extends Descriptor
 	@Override
 	A_String o_MethodName (final AvailObject object)
 	{
-		return object.slot(
-			OWNING_BUNDLES).iterator().next().message().atomName();
+		return object.chooseBundle().message().atomName();
 	}
 
 	@Override @AvailMethod
@@ -1976,6 +1989,26 @@ extends Descriptor
 	}
 
 	/**
+	 * The (special) name of the VM-built method used to define a macro without
+	 * also defining prefix functions.
+	 */
+	private static final A_Atom vmJustMacroDefinerAtom =
+		createSpecialMethodAtom(
+			"vm macro_is_",
+			P_JustMacroDefinitionForAtom.instance);
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to define a macro without also defining prefix functions.
+	 *
+	 * @return The name of the bootstrap macro-defining method.
+	 */
+	public static A_Atom vmJustMacroDefinerAtom ()
+	{
+		return vmJustMacroDefinerAtom;
+	}
+
+	/**
 	 * The (special) name of the VM-built pre-bootstrap macro-defining method.
 	 */
 	private static final A_Atom vmMacroDefinerAtom = createSpecialMethodAtom(
@@ -1991,6 +2024,159 @@ extends Descriptor
 	public static A_Atom vmMacroDefinerAtom ()
 	{
 		return vmMacroDefinerAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built function that adds a prefix function.
+	 */
+	private static final A_Atom vmDeclarePrefixFunctionAtom =
+		createSpecialMethodAtom(
+			"vm declare prefix function_at_is_",
+			P_DeclarePrefixFunctionForAtom.instance);
+
+	/**
+	 * Answer the (special) name of the VM-built continuation caller atom.
+	 *
+	 * @return The name of the VM's continuation caller atom.
+	 */
+	public static A_Atom vmDeclarePrefixFunctionAtom ()
+	{
+		return vmDeclarePrefixFunctionAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built method used to load abstract
+	 * definitions.
+	 */
+	private static final A_Atom vmAbstractDefinerAtom = createSpecialMethodAtom(
+		"vm abstract_for_",
+		P_AbstractMethodDeclarationForAtom.instance);
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to load abstract definitions.
+	 *
+	 * @return The name of the abstract definer method.
+	 */
+	public static A_Atom vmAbstractDefinerAtom ()
+	{
+		return vmAbstractDefinerAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built method used to load forward
+	 * definitions.
+	 */
+	private static final A_Atom vmForwardDefinerAtom = createSpecialMethodAtom(
+		"vm forward_for_",
+		P_ForwardMethodDeclarationForAtom.instance);
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to load forward method definitions.
+	 *
+	 * @return The name of the forward definer method.
+	 */
+	public static A_Atom vmForwardDefinerAtom ()
+	{
+		return vmForwardDefinerAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built method used to define grammatical
+	 * restrictions.
+	 */
+	private static final A_Atom vmGrammaticalRestrictionsAtom =
+		createSpecialMethodAtom(
+			"vm grammatical restriction_is_",
+			P_GrammaticalRestrictionFromAtoms.instance);
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to define grammatical restrictions.
+	 *
+	 * @return The name of the grammatical restriction method.
+	 */
+	public static A_Atom vmGrammaticalRestrictionsAtom ()
+	{
+		return vmGrammaticalRestrictionsAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built method used to define semantic
+	 * restrictions.
+	 */
+	private static final A_Atom vmSemanticRestrictionAtom =
+		createSpecialMethodAtom(
+			"vm semantic restriction_is_",
+			P_AddSemanticRestrictionForAtom.instance);
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to declare semantic restrictions.
+	 *
+	 * @return The name of the method for adding semantic restrictions.
+	 */
+	public static A_Atom vmSemanticRestrictionAtom ()
+	{
+		return vmSemanticRestrictionAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built method used to define seal methods.
+	 */
+	private static final A_Atom vmSealAtom =
+		createSpecialMethodAtom(
+			"vm seal_at_",
+			P_SealMethodByAtom.instance);
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to seal methods.
+	 *
+	 * @return The name of the sealing method.
+	 */
+	public static A_Atom vmSealAtom ()
+	{
+		return vmSealAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built method used to define aliased atoms.
+	 */
+	private static final A_Atom vmAliasAtom =
+		createSpecialMethodAtom(
+			"vm alias new name_to_",
+			P_Alias.instance);
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to created aliased atoms.
+	 *
+	 * @return The name of the aliasing method.
+	 */
+	public static A_Atom vmAliasAtom ()
+	{
+		return vmAliasAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built method used to add atom properties.
+	 */
+	private static final A_Atom vmAddAtomPropertyAtom =
+		createSpecialMethodAtom(
+			"vm atom_at property_put_",
+			P_AtomSetProperty.instance);
+
+	/**
+	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
+	 * used to created add properties to atoms.
+	 *
+	 * @return The name of the method that adds atom properties.
+	 */
+	public static A_Atom vmAddAtomPropertyAtom ()
+	{
+		return vmAddAtomPropertyAtom;
 	}
 
 	/**

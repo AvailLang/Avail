@@ -1,5 +1,5 @@
 /**
- * P_NewNames.java
+ * LoadingEffectToAddSemanticRestriction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,52 +30,57 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.modules;
+package com.avail.interpreter.effects;
 
-import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_SemanticRestriction;
+import com.avail.descriptor.MethodDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.*;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1Operation;
 
 /**
- * <strong>Primitive:</strong> Answer the introduced public names of the
- * specified {@linkplain ModuleDescriptor module}.  This is a {@link A_Map map}
- * from {@link A_String string} to {@link A_Atom atom}.
+ * A {@code LoadingEffectToAddSemanticRestriction} summarizes the addition of a
+ * semantic restriction to a {@link A_Method method}.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_NewNames
-extends Primitive
+public class LoadingEffectToAddSemanticRestriction extends LoadingEffect
 {
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance =
-		new P_NewNames().init(
-			1, CanInline, CannotFail);
+	/** The semantic restriction to add. */
+	final A_SemanticRestriction semanticRestriction;
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	/**
+	 * Construct a new {@link LoadingEffectToAddSemanticRestriction}.
+	 *
+	 * @param semanticRestriction
+	 *        The semantic restriction to add.
+	 */
+	public LoadingEffectToAddSemanticRestriction (
+		final A_SemanticRestriction semanticRestriction)
 	{
-		assert args.size() == 1;
-		final A_Module module = args.get(0);
-		return interpreter.primitiveSuccess(module.newNames());
+		this.semanticRestriction = semanticRestriction;
 	}
 
 	@Override
-	protected A_Type privateBlockTypeRestriction ()
+	public void writeEffectTo (final L1InstructionWriter writer)
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MODULE.o()),
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.stringType(),
-				Types.ATOM.o()));
+		final A_Bundle bundle =
+			semanticRestriction.definitionMethod().chooseBundle();
+		// Push the (atom) name of the method to seal.
+		writer.write(
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(bundle.message()));
+		// Push the tuple of types.
+		writer.write(
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(semanticRestriction.function()));
+		// Call the semantic restriction defining method.
+		writer.write(
+			L1Operation.L1_doCall,
+			writer.addLiteral(
+				MethodDescriptor.vmSemanticRestrictionAtom().bundleOrNil()),
+			writer.addLiteral(Types.TOP.o()));
 	}
 }

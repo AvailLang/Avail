@@ -315,7 +315,9 @@ extends Descriptor
 	@AvailMethod @ThreadSafe
 	final SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		return SerializerOperation.ATOM;
+		return object.getAtomProperty(heritableKey).equalsNil()
+			? SerializerOperation.ATOM
+			: SerializerOperation.HERITABLE_ATOM;
 	}
 
 	@Override

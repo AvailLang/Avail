@@ -62,8 +62,7 @@ public final class P_ShortCircuitHelper extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		@SuppressWarnings("unused")
-		final A_Atom ignoredBool = args.get(0);
+//		final A_Atom ignoredBool = args.get(0);
 		final A_Function block = args.get(1);
 		assert block.code().numArgs() == 0;
 		return interpreter.invokeFunction(

@@ -94,6 +94,11 @@ extends Primitive
 		function.makeShared();
 		// Set the stringification function.
 		AvailRuntime.current().setStringificationFunction(function);
+		final AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

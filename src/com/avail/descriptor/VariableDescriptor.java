@@ -571,31 +571,25 @@ extends Descriptor
 	AvailObject o_MakeShared (final AvailObject object)
 	{
 		assert !isShared();
-		// Force the hash to be computed when sharing.  Otherwise we would have
-		// to use locks (or other fences) just to get the hash.
-		object.hash();
-		final A_Type kind = object.slot(KIND).makeShared();
-		final AvailObject value = object.slot(VALUE).makeShared();
-		// The value might refer recursively to the variable, so it is possible
-		// that the variable has just become shared.
-		if (!object.descriptor.isShared())
-		{
-			final AvailObject substitutionVariable =
-				VariableSharedDescriptor.create(
-					kind,
-					object.slot(HASH_OR_ZERO),
-					value);
-			object.becomeIndirectionTo(substitutionVariable);
-			object.makeShared();
-			return substitutionVariable;
-		}
-		return object;
+
+		return VariableSharedDescriptor.createSharedFrom(
+			object.slot(KIND), object.hash(), object.slot(VALUE), object);
 	}
 
 	@Override @AvailMethod
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.VARIABLE;
+	}
+
+	@Override @AvailMethod
+	boolean o_ValueWasStablyComputed (
+		final AvailObject object)
+	{
+		// The override in VariableSharedWriteOnceDescriptor answer a stored
+		// flag set during initialization, but other variables always answer
+		// false.
+		return false;
 	}
 
 	@Override

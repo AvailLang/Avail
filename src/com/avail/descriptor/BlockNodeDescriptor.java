@@ -163,7 +163,7 @@ extends ParseNodeDescriptor
 			statementsTuple.tupleAt(1).printOnAvoidingIndent(
 				tempBuilder,
 				recursionMap,
-				indent + 1);
+				indent);
 			if (tempBuilder.indexOf("\n") == -1
 				&& tempBuilder.length() < 100)
 			{
@@ -186,17 +186,15 @@ extends ParseNodeDescriptor
 			wroteAnything = true;
 			for (int argIndex = 1; argIndex <= argCount; argIndex++)
 			{
-				Strings.newlineTab(builder, indent + 1);
+				Strings.newlineTab(builder, indent);
 				argumentsTuple.tupleAt(argIndex).printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 2);
+					builder, recursionMap, indent);
 				if (argIndex < argCount)
 				{
 					builder.append(",");
 				}
 			}
-			Strings.newlineTab(builder, indent);
+			Strings.newlineTab(builder, indent - 1);
 			builder.append("|");
 		}
 		boolean skipFailureDeclaration = false;
@@ -206,16 +204,14 @@ extends ParseNodeDescriptor
 			&& !primitive.hasFlag(Flag.SpecialReturnGlobalValue))
 		{
 			wroteAnything = true;
-			Strings.newlineTab(builder, indent + 1);
+			Strings.newlineTab(builder, indent);
 			builder.append("Primitive ");
 			builder.append(primitive.name());
 			if (!primitive.hasFlag(Flag.CannotFail))
 			{
 				builder.append(" (");
 				statementsTuple.tupleAt(1).printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 2);
+					builder, recursionMap, indent);
 				builder.append(")");
 				skipFailureDeclaration = true;
 			}
@@ -233,11 +229,9 @@ extends ParseNodeDescriptor
 			else
 			{
 				wroteAnything = true;
-				Strings.newlineTab(builder, indent + 1);
+				Strings.newlineTab(builder, indent);
 				statement.printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 2);
+					builder, recursionMap, indent);
 				if (index < statementsSize || endsWithStatement)
 				{
 					builder.append(";");
@@ -246,7 +240,7 @@ extends ParseNodeDescriptor
 		}
 		if (wroteAnything)
 		{
-			Strings.newlineTab(builder, indent);
+			Strings.newlineTab(builder, indent - 1);
 		}
 		builder.append(']');
 		if (explicitResultType != null)

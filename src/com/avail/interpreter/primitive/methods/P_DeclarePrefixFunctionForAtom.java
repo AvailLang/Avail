@@ -1,5 +1,5 @@
 /**
- * P_MethodDeclarationFromAtom.java
+ * P_DeclarePrefixFunctionForAtom.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,12 +29,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,25 +42,29 @@ import java.util.List;
 import com.avail.*;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.SignatureException;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 import com.avail.utility.evaluation.*;
 
 /**
- * <strong>Primitive:</strong> Define a concrete method implementation.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * <strong>Primitive:</strong> Declare a prefix function.  The first argument is
+ * the atom indicating which message bundle is affected.  The second argument is
+ * the 1-based prefix function index, which refers to the order of occurrences
+ * of a {@linkplain StringDescriptor#sectionSign() section sign} (§) in the
+ * bundle's name.  The third argument is the actual function to invoke when a
+ * parse of a potential call site reaches a point corresponding to the section
+ * sign.
  */
-public final class P_MethodDeclarationFromAtom
+public final class P_DeclarePrefixFunctionForAtom
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_MethodDeclarationFromAtom().init(
-			2, Unknown);
+		new P_DeclarePrefixFunctionForAtom().init(
+			3, Unknown);
 
 	@Override
 	public Result attempt (
@@ -68,15 +72,52 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		final A_Atom atom = args.get(0);
-		final A_Function function = args.get(1);
+		final A_Number prefixFunctionInteger = args.get(1);
+		final A_Function prefixFunction = args.get(2);
+
 		final A_Fiber fiber = interpreter.fiber();
 		final AvailLoader loader = fiber.availLoader();
-		final A_Module module;
-		if (loader == null || (module = loader.module()).equalsNil())
+		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		final A_Bundle bundle;
+		try
+		{
+			bundle = atom.bundleOrCreate();
+		}
+		catch (final MalformedMessageException e)
+		{
+			return interpreter.primitiveFailure(e.numericCode());
+		}
+		final MessageSplitter splitter = bundle.messageSplitter();
+		final int numSectionCheckpoints = splitter.numberOfSectionCheckpoints();
+		final int prefixFunctionIndex;
+		if (!prefixFunctionInteger.isInt()
+			|| (prefixFunctionIndex = prefixFunctionInteger.extractInt()) < 1
+			|| prefixFunctionIndex > numSectionCheckpoints)
+		{
+			return interpreter.primitiveFailure(
+				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS);
+		}
+		final int numArgs = prefixFunction.code().numArgs();
+		final A_Type kind = prefixFunction.kind();
+		final A_Type argsKind = kind.argsTupleType();
+		for (int argIndex = 1; argIndex <= numArgs; argIndex++)
+		{
+			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
+				PARSE_NODE.mostGeneralType()))
+			{
+				return interpreter.primitiveFailure(
+					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE);
+			}
+		}
+		if (!kind.returnType().isTop())
+		{
+			return interpreter.primitiveFailure(
+				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP);
 		}
 		final A_Function failureFunction =
 			interpreter.primitiveFunctionBeingAttempted();
@@ -93,14 +134,13 @@ extends Primitive
 					{
 						try
 						{
-							loader.addMethodBody(
-								atom,
-								function,
-								atom.issuingModule().equals(module));
-							// Quote the string to make the method name.
-							function.code().setMethodName(
-								StringDescriptor.from(
-									atom.atomName().toString()));
+							prefixFunction.code().setMethodName(
+								StringDescriptor.format(
+									"Macro prefix #%d of %s",
+									prefixFunctionIndex,
+									atom.atomName()));
+							loader.addPrefixFunction(
+								atom, prefixFunctionIndex, prefixFunction);
 							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,
@@ -108,8 +148,7 @@ extends Primitive
 								skipReturnCheck);
 						}
 						catch (
-							final MalformedMessageException
-								| SignatureException e)
+							final MalformedMessageException e)
 						{
 							Interpreter.resumeFromFailedPrimitive(
 								AvailRuntime.current(),
@@ -129,7 +168,8 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ATOM.o(),
+				Types.ATOM.o(),
+				IntegerRangeTypeDescriptor.naturalNumbers(),
 				FunctionTypeDescriptor.mostGeneralType()),
 			TOP.o());
 	}
@@ -140,10 +180,12 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(Arrays.asList(
 					E_LOADING_IS_OVER.numericCode(),
-					E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED.numericCode(),
+					E_AMBIGUOUS_NAME.numericCode(),
+					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
 					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES.numericCode(),
-					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS.numericCode(),
-					E_METHOD_IS_SEALED.numericCode()))
+					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
+						.numericCode(),
+					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP.numericCode()))
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

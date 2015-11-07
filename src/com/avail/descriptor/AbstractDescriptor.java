@@ -6243,4 +6243,24 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Tuple o_Tokens (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Bundle o_ChooseBundle (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_ValueWasStablyComputed (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param wasStablyComputed
+	 */
+	abstract void o_ValueWasStablyComputed (
+		AvailObject object,
+		boolean wasStablyComputed);
 }

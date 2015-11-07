@@ -1,5 +1,5 @@
 /**
- * P_CreateFiberHeritableAtom.java
+ * P_ForwardMethodDeclarationForAtom.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,39 +29,35 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-package com.avail.interpreter.primitive.fibers;
+package com.avail.interpreter.primitive.methods;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME;
-import static com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Result.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import com.avail.*;
+import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.*;
 import com.avail.interpreter.*;
-import com.avail.interpreter.effects.LoadingEffectToAddAtomProperty;
-import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
 
 /**
- * <strong>Primitive:</strong> Create a new {@linkplain AtomDescriptor atom}
- * with the given name that represents a {@linkplain
- * AtomDescriptor#heritableKey() heritable} {@linkplain FiberDescriptor fiber}
- * variable.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * <strong>Primitive:</strong> Forward declare a method (for recursion
+ * or mutual recursion).
  */
-public final class P_CreateFiberHeritableAtom
+public final class P_ForwardMethodDeclarationForAtom
 extends Primitive
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_CreateFiberHeritableAtom().init(
-			1, CanInline);
+		new P_ForwardMethodDeclarationForAtom().init(
+			2, Unknown);
 
 	@Override
 	public Result attempt (
@@ -69,58 +65,52 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_String name = args.get(0);
-		final A_Module module = ModuleDescriptor.current();
-		final MutableOrNull<A_Atom> trueName =
-			new MutableOrNull<>();
-		final MutableOrNull<AvailErrorCode> errorCode =
-			new MutableOrNull<>();
-		if (!module.equalsNil())
+		assert args.size() == 2;
+		final A_Atom atom = args.get(0);
+		final A_Type blockSignature = args.get(1);
+		final A_Fiber fiber = interpreter.fiber();
+		final AvailLoader loader = fiber.availLoader();
+		if (loader == null)
 		{
-			module.lock(
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		final A_Function failureFunction =
+			interpreter.primitiveFunctionBeingAttempted();
+		final List<AvailObject> copiedArgs = new ArrayList<>(args);
+		assert failureFunction.code().primitiveNumber() == primitiveNumber;
+		interpreter.primitiveSuspend();
+		AvailRuntime.current().whenLevelOneSafeDo(
+			AvailTask.forUnboundFiber(
+				fiber,
 				new Continuation0()
 				{
 					@Override
 					public void value ()
 					{
-						final A_Set trueNames =
-							module.trueNamesForStringName(name);
-						if (trueNames.setSize() == 0)
+						try
 						{
-							final A_Atom newName = AtomDescriptor.create(
-								name, module);
-							newName.setAtomProperty(
-								AtomDescriptor.heritableKey(),
-								AtomDescriptor.trueObject());
-							module.addPrivateName(newName);
-							trueName.value = newName;
+							loader.addForwardStub(atom, blockSignature);
+							Interpreter.resumeFromSuccessfulPrimitive(
+								AvailRuntime.current(),
+								fiber,
+								NilDescriptor.nil(),
+								skipReturnCheck);
 						}
-						else if (trueNames.setSize() == 1)
+						catch (
+							final MalformedMessageException
+								| SignatureException e)
 						{
-							errorCode.value = E_ATOM_ALREADY_EXISTS;
-						}
-						else
-						{
-							errorCode.value = E_AMBIGUOUS_NAME;
+							Interpreter.resumeFromFailedPrimitive(
+								AvailRuntime.current(),
+								fiber,
+								e.numericCode(),
+								failureFunction,
+								copiedArgs,
+								skipReturnCheck);
 						}
 					}
-				});
-		}
-		else
-		{
-			final A_Atom newName =
-				AtomDescriptor.create(name, NilDescriptor.nil());
-			newName.setAtomProperty(
-				AtomDescriptor.heritableKey(),
-				AtomDescriptor.trueObject());
-			trueName.value = newName;
-		}
-		if (errorCode.value != null)
-		{
-			return interpreter.primitiveFailure(errorCode.value());
-		}
-		return interpreter.primitiveSuccess(trueName.value().makeShared());
+				}));
+		return FIBER_SUSPENDED;
 	}
 
 	@Override
@@ -128,8 +118,9 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringType()),
-			ATOM.o());
+				ATOM.o(),
+				FunctionTypeDescriptor.meta()),
+			TOP.o());
 	}
 
 	@Override
@@ -137,7 +128,10 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(Arrays.asList(
-				E_ATOM_ALREADY_EXISTS.numericCode(),
-				E_AMBIGUOUS_NAME.numericCode())));
+					E_LOADING_IS_OVER.numericCode(),
+					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES.numericCode(),
+					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS.numericCode(),
+					E_METHOD_IS_SEALED.numericCode()))
+				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

@@ -364,7 +364,7 @@ implements L1OperationDispatcher
 			if (debugL1)
 			{
 				Interpreter.log(
-					interpreter.fiber,
+					interpreter.fiber(),
 					Level.FINER,
 					"L1 Return (pc={0}, depth={1})",
 					pc,
@@ -380,7 +380,7 @@ implements L1OperationDispatcher
 		if (debugL1)
 		{
 			Interpreter.log(
-				interpreter.fiber,
+				interpreter.fiber(),
 				Level.FINER,
 				"{0} (pc={1}, depth={2})",
 				operation,
@@ -399,7 +399,7 @@ implements L1OperationDispatcher
 		if (debugL1)
 		{
 			Interpreter.log(
-				interpreter.fiber,
+				interpreter.fiber(),
 				Level.FINE,
 				"L1 call {0}",
 				bundle.message().atomName());
@@ -861,7 +861,7 @@ implements L1OperationDispatcher
 		if (debugL1)
 		{
 			Interpreter.log(
-				interpreter.fiber,
+				interpreter.fiber(),
 				Level.FINE,
 				"L1 supercall {0}",
 				bundle.message().atomName());

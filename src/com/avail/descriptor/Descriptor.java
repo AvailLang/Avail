@@ -4595,4 +4595,24 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	A_Bundle o_ChooseBundle (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ValueWasStablyComputed (
+		final AvailObject object,
+		final boolean wasStablyComputed)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_ValueWasStablyComputed (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

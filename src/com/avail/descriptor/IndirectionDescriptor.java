@@ -4760,4 +4760,24 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).tokens();
 	}
+
+	@Override
+	A_Bundle o_ChooseBundle (final AvailObject object)
+	{
+		return o_Traversed(object).chooseBundle();
+	}
+
+	@Override
+	boolean o_ValueWasStablyComputed (final AvailObject object)
+	{
+		return o_Traversed(object).valueWasStablyComputed();
+	}
+
+	@Override
+	void o_ValueWasStablyComputed (
+		final AvailObject object,
+		final boolean wasStablyComputed)
+	{
+		o_Traversed(object).valueWasStablyComputed(wasStablyComputed);
+	}
 }
