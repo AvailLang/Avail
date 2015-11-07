@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.effects.LoadingEffectToAddAtomProperty;
 
 /**
  * <strong>Primitive:</strong> Within the first {@linkplain
@@ -73,6 +74,13 @@ public final class P_AtomRemoveProperty extends Primitive
 			return interpreter.primitiveFailure(E_KEY_NOT_FOUND);
 		}
 		atom.setAtomProperty(propertyKey, NilDescriptor.nil());
+		final AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.recordEffect(
+				new LoadingEffectToAddAtomProperty(
+					atom, propertyKey, NilDescriptor.nil()));
+		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

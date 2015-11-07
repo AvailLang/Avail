@@ -38,7 +38,9 @@ Uses
 	"Very Early Definers"
 Names
 	"If_then_",
-	"If|if_then_else_"
+	"If|if_then_else_",
+	"Unless_then_",
+	"Unless|unless_then_else_"
 Body
 
 
@@ -80,7 +82,6 @@ Method "If_then_" is
 |
 	Primitive ShortCircuitHelper;
 ] : ⊤;
-
 
 /**
  * Declare the default two-branch conditional evaluation method.  This one runs
@@ -129,4 +130,95 @@ Method "If|if_then_else_" is
 	falseFunction : nullary procedure
 |
 	Primitive IfTrueThenElse;
+] : ⊤;
+
+
+/**
+ * Declare the one-branch negative conditional evaluation method that does
+ * nothing.  It will be overridden for a false first argument.
+ * 
+ * @method "Unless_then_"
+ * @param "predicate" "boolean"
+ *        The boolean that will be tested.
+ * @param "falseFunction" "nullary procedure"
+ *        What to execute if the predicate is false, which it isn't.
+ * @returns "⊤"
+ * @category "Conditionals"
+ */
+Method "Unless_then_" is
+[
+	predicate : boolean,
+	falseFunction : nullary procedure
+|
+	/* Do nothing. */
+] : ⊤;
+
+/**
+ * Define the one-branch negative conditional evaluation method for a false
+ * condition.
+ * 
+ * @method "Unless_then_"
+ * @param "predicate" "false's type"
+ *        The boolean, which in this case is false.
+ * @param "falseFunction" "nullary procedure"
+ *        What to execute if the predicate is false, which it is.
+ * @returns "⊤"
+ * @category "Conditionals"
+ */
+Method "Unless_then_" is
+[
+	predicate : false's type,
+	falseFunction : nullary procedure
+|
+	Primitive ShortCircuitHelper;
+] : ⊤;
+
+/**
+ * Declare the default two-branch negative conditional evaluation method.  This
+ * one runs the true function, so there must be an override for the false case.
+ * Note that the semantic restrictions are defined in a downstream module, so
+ * until that point, the conditional method will be top-valued and can only be
+ * used as a statement.
+ * 
+ * @method "Unless|unless_then_else_"
+ * @param "predicate" "boolean"
+ *        The boolean value, which is true for this method definition, assuming
+ *        the false case is handled in an override.
+ * @param "falseFunction" "nullary procedure"
+ *        What to invoke if the predicate is false, which it isn't.
+ * @param "trueFunction" "nullary procedure"
+ *        What to invoke if the predicate is true, which it is.
+ * @returns "⊤"
+ * @category "Conditionals"
+ */
+Method "Unless|unless_then_else_" is
+[
+	predicate : boolean,
+	falseFunction : nullary procedure,
+	trueFunction : nullary procedure
+|
+	Primitive IfFalseThenElse;  /* i.e., run the trueFunction */
+] : ⊤;
+
+/**
+ * Define the two-branch negative conditional evaluation method for a false
+ * condition.
+ * 
+ * @method "Unless|unless_then_else_"
+ * @param "predicate" "false's type"
+ *        The boolean value, which is false for this method definition.
+ * @param "falseFunction" "nullary procedure"
+ *        What to invoke if the predicate is false, which it is.
+ * @param "trueFunction" "nullary procedure"
+ *        What to invoke if the predicate is true, which it is not.
+ * @returns "⊤"
+ * @category "Conditionals"
+ */
+Method "Unless|unless_then_else_" is
+[
+	predicate : false's type,
+	falseFunction : nullary procedure,
+	trueFunction : nullary procedure
+|
+	Primitive IfTrueThenElse;  /* i.e., run the falseFunction */
 ] : ⊤;

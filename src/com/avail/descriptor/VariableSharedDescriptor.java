@@ -44,6 +44,8 @@ import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.json.JSONWriter;
 
@@ -142,6 +144,37 @@ extends VariableDescriptor
 			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO;
 	}
 
+	/**
+	 * Indicate in the current fiber's {@link Interpreter#availLoader()
+	 * availLoader} that a shared variable has just been modified.
+	 */
+	private static void recordWriteToSharedVariable ()
+	{
+		final AvailLoader loader = Interpreter.current().availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+	}
+
+	/**
+	 * Indicate in the current fiber's {@link Interpreter#availLoader()
+	 * availLoader} that a shared variable has just been read.
+	 *
+	 * @param object The shared variable that was read.
+	 */
+	private static void recordReadFromSharedVariable (
+		final AvailObject object)
+	{
+		final AvailLoader loader = Interpreter.current().availLoaderOrNull();
+		if (loader != null
+			&& !object.slot(VALUE).equalsNil()
+			&& !object.valueWasStablyComputed())
+		{
+			loader.statementCanBeSummarized(false);
+		}
+	}
+
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
@@ -151,6 +184,7 @@ extends VariableDescriptor
 	@Override @AvailMethod
 	AvailObject o_Value (final AvailObject object)
 	{
+		recordReadFromSharedVariable(object);
 		synchronized (object)
 		{
 			return super.o_Value(object);
@@ -161,6 +195,7 @@ extends VariableDescriptor
 	AvailObject o_GetValue (final AvailObject object)
 		throws VariableGetException
 	{
+		recordReadFromSharedVariable(object);
 		synchronized (object)
 		{
 			return super.o_GetValue(object);
@@ -170,6 +205,7 @@ extends VariableDescriptor
 	@Override @AvailMethod
 	boolean o_HasValue (final AvailObject object)
 	{
+		recordReadFromSharedVariable(object);
 		synchronized (object)
 		{
 			return super.o_HasValue(object);
@@ -184,6 +220,7 @@ extends VariableDescriptor
 		{
 			super.o_SetValue(object, newValue.traversed().makeShared());
 		}
+		recordWriteToSharedVariable();
 	}
 
 	@Override @AvailMethod
@@ -195,6 +232,7 @@ extends VariableDescriptor
 		{
 			super.o_SetValueNoCheck(object, newValue.traversed().makeShared());
 		}
+		recordWriteToSharedVariable();
 	}
 
 	@Override @AvailMethod
@@ -205,11 +243,18 @@ extends VariableDescriptor
 	{
 		// Because the separate read and write operations are performed within
 		// the critical section, atomicity is ensured.
-		synchronized (object)
+		try
 		{
-			return super.o_GetAndSetValue(
-				object,
-				newValue.traversed().makeShared());
+			synchronized (object)
+			{
+				return super.o_GetAndSetValue(
+					object,
+					newValue.traversed().makeShared());
+			}
+		}
+		finally
+		{
+			recordWriteToSharedVariable();
 		}
 	}
 
@@ -222,12 +267,19 @@ extends VariableDescriptor
 	{
 		// Because the separate read, compare, and write operations are all
 		// performed within the critical section, atomicity is ensured.
-		synchronized (object)
+		try
 		{
-			return super.o_CompareAndSwapValues(
-				object,
-				reference,
-				newValue.traversed().makeShared());
+			synchronized (object)
+			{
+				return super.o_CompareAndSwapValues(
+					object,
+					reference,
+					newValue.traversed().makeShared());
+			}
+		}
+		finally
+		{
+			recordWriteToSharedVariable();
 		}
 	}
 
@@ -239,11 +291,18 @@ extends VariableDescriptor
 	{
 		// Because the separate read and write operations are all performed
 		// within the critical section, atomicity is ensured.
-		synchronized (object)
+		try
 		{
-			return super.o_FetchAndAddValue(
-				object,
-				addend.traversed().makeShared());
+			synchronized (object)
+			{
+				return super.o_FetchAndAddValue(
+					object,
+					addend.traversed().makeShared());
+			}
+		}
+		finally
+		{
+			recordWriteToSharedVariable();
 		}
 	}
 
@@ -254,11 +313,12 @@ extends VariableDescriptor
 		{
 			super.o_ClearValue(object);
 		}
+		recordWriteToSharedVariable();
 	}
 
 	/**
-	 * Record the fact that the chunk indexed by aChunkIndex depends on
-	 * this object not changing.
+	 * Record the fact that the chunk indexed by aChunkIndex depends on this
+	 * object not changing.
 	 */
 	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
@@ -297,8 +357,7 @@ extends VariableDescriptor
 		final L2Chunk chunk)
 	{
 		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
-		final A_BasicObject pojo =
-			object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
+		final A_BasicObject pojo = object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
 		if (!pojo.equalsNil())
 		{
 			@SuppressWarnings("unchecked")
@@ -342,6 +401,7 @@ extends VariableDescriptor
 		final A_Atom key,
 		final VariableAccessReactor reactor)
 	{
+		recordReadFromSharedVariable(object);
 		synchronized (object)
 		{
 			return super.o_AddWriteReactor(object, key, reactor);
@@ -352,6 +412,7 @@ extends VariableDescriptor
 	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
 		throws AvailException
 	{
+		recordReadFromSharedVariable(object);
 		synchronized (object)
 		{
 			super.o_RemoveWriteReactor(object, key);
@@ -409,27 +470,58 @@ extends VariableDescriptor
 	 * Create a {@linkplain VariableSharedDescriptor variable}. This method
 	 * should only be used to "upgrade" a variable's representation.
 	 *
-	 * @param variableType
+	 * @param kind
 	 *        The {@linkplain VariableTypeDescriptor variable type}.
 	 * @param hash
 	 *        The hash of the variable.
 	 * @param value
 	 *        The contents of the variable.
+	 * @param oldVariable
+	 *        The variable being made shared.
 	 * @return
 	 */
-	static AvailObject create (
-		final A_Type variableType,
+	static AvailObject createSharedFrom (
+		final A_Type kind,
 		final int hash,
-		final AvailObject value)
+		final A_BasicObject value,
+		final AvailObject oldVariable)
 	{
-		final AvailObject result = mutableInitial.create();
-		result.setSlot(KIND, variableType);
-		result.setSlot(HASH_ALWAYS_SET, hash);
-		result.setSlot(VALUE, value);
-		result.setSlot(WRITE_REACTORS, NilDescriptor.nil());
-		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil());
-		result.descriptor = VariableSharedDescriptor.shared;
-		return result;
+		// Make the parts immutable (not shared), just so they won't be
+		// destroyed when the original variable becomes an indirection.
+		kind.makeImmutable();
+		value.makeImmutable();
+
+		// Create the new variable, but allow the slots to be made shared
+		// *after* its initialization.  The existence of a shared object
+		// temporarily having non-shared fields is not a violation of the
+		// invariant, since no other fibers can access the value until the
+		// entire makeShared activity has completed.
+		final AvailObject newVariable = mutableInitial.create();
+		newVariable.setSlot(KIND, kind);
+		newVariable.setSlot(HASH_ALWAYS_SET, hash);
+		newVariable.setSlot(VALUE, value);
+		newVariable.setSlot(WRITE_REACTORS, NilDescriptor.nil());
+		newVariable.setSlot(
+			DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil());
+
+		// Redirect the old to the new to allow cyclic structures.
+		assert !oldVariable.descriptor.isShared();
+		oldVariable.becomeIndirectionTo(newVariable);
+
+		// Make the parts shared.  This may recurse, but it will terminate when
+		// it sees this variable again.  Write back the shared versions for
+		// efficiency.
+		newVariable.setSlot(KIND, kind.makeShared());
+		newVariable.setSlot(VALUE, value.makeShared());
+
+		// Now switch the new variable to truly shared.
+		assert newVariable.descriptor == mutableInitial;
+		newVariable.descriptor = shared;
+
+		// For safety, make sure the indirection is also shared.
+		oldVariable.makeShared();
+
+		return newVariable;
 	}
 
 	/**

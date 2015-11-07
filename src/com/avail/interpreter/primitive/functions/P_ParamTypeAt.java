@@ -95,8 +95,8 @@ extends Primitive
 		// Inline the invocation of this P_ParamTypeAt primitive, specifically
 		// to use the L2_FUNCTION_PARAMETER_TYPE instruction if possible.
 
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0);
+//		final L2ObjectRegister functionTypeReg =
+//			instruction.readObjectRegisterAt(0);
 //		final L2ObjectRegister invokerFunctionReg =
 //			instruction.readObjectRegisterAt(1);
 		final L2RegisterVector invokerArgumentsVector =
@@ -107,7 +107,7 @@ extends Primitive
 		// (boxed) index.
 		final List<L2ObjectRegister> arguments =
 			invokerArgumentsVector.registers();
-		final L2ObjectRegister functionTypeReg = arguments.get(0);
+		final L2ObjectRegister actualFunctionTypeReg = arguments.get(0);
 		final L2ObjectRegister parameterIndexReg = arguments.get(1);
 
 		if (registerSet.hasConstantAt(parameterIndexReg))
@@ -117,8 +117,9 @@ extends Primitive
 			if (parameterIndexBoxed.isInt())
 			{
 				final int parameterIndex = parameterIndexBoxed.extractInt();
-				assert registerSet.hasTypeAt(functionTypeReg);
-				final A_Type functionMeta = registerSet.typeAt(functionTypeReg);
+				assert registerSet.hasTypeAt(actualFunctionTypeReg);
+				final A_Type functionMeta =
+					registerSet.typeAt(actualFunctionTypeReg);
 				final A_Type functionType = functionMeta.instance();
 				final A_Type argsType = functionType.argsTupleType();
 				final A_Type argsSizeRange = argsType.sizeRange();
@@ -129,7 +130,7 @@ extends Primitive
 							instruction);
 					naiveTranslator.addInstruction(
 						L2_FUNCTION_PARAMETER_TYPE.instance,
-						new L2ReadPointerOperand(functionTypeReg),
+						new L2ReadPointerOperand(actualFunctionTypeReg),
 						new L2ImmediateOperand(parameterIndex),
 						new L2WritePointerOperand(outputReg));
 					return true;

@@ -63,6 +63,7 @@ import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
@@ -1223,7 +1224,7 @@ public final class AvailRuntime
 	 * AvailRuntime runtime}.
 	 */
 	private static final AvailObject[] specialObjects =
-		new AvailObject[160];
+		new AvailObject[170];
 
 	/**
 	 * An unmodifiable {@link List} of the {@linkplain AvailRuntime runtime}'s
@@ -1551,30 +1552,47 @@ public final class AvailRuntime
 		specials[151] = TupleTypeDescriptor.oneOrMoreOf(
 			IntegerRangeTypeDescriptor.naturalNumbers());
 		specials[152] = TupleTypeDescriptor.zeroOrMoreOf(DEFINITION.o());
+		specials[153] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+			IntegerRangeTypeDescriptor.wholeNumbers(),
+			TupleTypeDescriptor.stringType(),
+			Types.ATOM.o());
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
 		assert specialAtomsList.isEmpty();
 		specialAtomsList.addAll(Arrays.asList(
-			AtomDescriptor.trueObject(),
-			AtomDescriptor.falseObject(),
-			PojoTypeDescriptor.selfAtom(),
-			ObjectTypeDescriptor.exceptionAtom(),
-			MethodDescriptor.vmCrashAtom(),
-			MethodDescriptor.vmFunctionApplyAtom(),
-			MethodDescriptor.vmMethodDefinerAtom(),
-			MethodDescriptor.vmMacroDefinerAtom(),
-			MethodDescriptor.vmPublishAtomsAtom(),
-			ObjectTypeDescriptor.stackDumpAtom(),
-			AtomDescriptor.fileKey(),
-			CompiledCodeDescriptor.methodNameKeyAtom(),
-			CompiledCodeDescriptor.lineNumberKeyAtom(),
-			AtomDescriptor.messageBundleKey(),
-			MethodDescriptor.vmDeclareStringifierAtom(),
+			AtomDescriptor.allTokensKey(),
 			AtomDescriptor.clientDataGlobalKey(),
 			AtomDescriptor.compilerScopeMapKey(),
 			AtomDescriptor.compilerScopeStackKey(),
-			AtomDescriptor.allTokensKey()));
+			AtomDescriptor.falseObject(),
+			AtomDescriptor.fileKey(),
+			AtomDescriptor.heritableKey(),
+			AtomDescriptor.messageBundleKey(),
+			AtomDescriptor.objectTypeNamePropertyKey(),
+			AtomDescriptor.serverSocketKey(),
+			AtomDescriptor.socketKey(),
+			AtomDescriptor.trueObject(),
+			CompiledCodeDescriptor.lineNumberKeyAtom(),
+			CompiledCodeDescriptor.methodNameKeyAtom(),
+			MethodDescriptor.vmAbstractDefinerAtom(),
+			MethodDescriptor.vmAddAtomPropertyAtom(),
+			MethodDescriptor.vmAliasAtom(),
+			MethodDescriptor.vmCrashAtom(),
+			MethodDescriptor.vmDeclarePrefixFunctionAtom(),
+			MethodDescriptor.vmDeclareStringifierAtom(),
+			MethodDescriptor.vmForwardDefinerAtom(),
+			MethodDescriptor.vmFunctionApplyAtom(),
+			MethodDescriptor.vmGrammaticalRestrictionsAtom(),
+			MethodDescriptor.vmJustMacroDefinerAtom(),
+			MethodDescriptor.vmMacroDefinerAtom(),
+			MethodDescriptor.vmMethodDefinerAtom(),
+			MethodDescriptor.vmPublishAtomsAtom(),
+			MethodDescriptor.vmSealAtom(),
+			MethodDescriptor.vmSemanticRestrictionAtom(),
+			ObjectTypeDescriptor.exceptionAtom(),
+			ObjectTypeDescriptor.stackDumpAtom(),
+			PojoTypeDescriptor.selfAtom()));
 
 		for (final A_Atom atom : specialAtomsList)
 		{
@@ -1895,7 +1913,7 @@ public final class AvailRuntime
 
 	/**
 	 * Remove a macro prefix function at the given prefix function index (also
-	 * called the section checkpoint index) in the given method.
+	 * called the section checkpoint index) within the given method.
 	 *
 	 * @param method The method from which to remove the prefix function.
 	 * @param index The index in which the prefix function should be found.

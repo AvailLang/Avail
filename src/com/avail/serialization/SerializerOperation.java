@@ -41,6 +41,8 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.MalformedMessageException;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.Generator;
@@ -861,6 +863,8 @@ public enum SerializerOperation
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
 		{
+			assert object.getAtomProperty(AtomDescriptor.heritableKey())
+				.equalsNil();
 			final A_Module module = object.issuingModule();
 			if (module.equalsNil())
 			{
@@ -882,10 +886,48 @@ public enum SerializerOperation
 	},
 
 	/**
+	 * An {@linkplain AtomDescriptor atom}.  Output the atom name and the name
+	 * of the module that issued it.  Look up the corresponding atom during
+	 * reconstruction, recreating it if it's not present and supposed to have
+	 * been issued by the current module.
+	 */
+	HERITABLE_ATOM(35,
+		OBJECT_REFERENCE.as("atom name"),
+		OBJECT_REFERENCE.as("module name"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			assert object.getAtomProperty(AtomDescriptor.heritableKey()).equals(
+				AtomDescriptor.trueObject());
+			final A_Module module = object.issuingModule();
+			if (module.equalsNil())
+			{
+				throw new RuntimeException("Atom has no issuing module");
+			}
+			return array(object.atomName(), module.moduleName());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final AvailObject atomName = subobjects[0];
+			final AvailObject moduleName = subobjects[1];
+			final A_Atom atom = lookupAtom(atomName, moduleName, deserializer);
+			atom.setAtomProperty(
+				AtomDescriptor.heritableKey(),
+				AtomDescriptor.trueObject());
+			return atom.makeShared();
+		}
+	},
+
+	/**
 	 * A {@linkplain CompiledCodeDescriptor compiled code object}.  Output any
 	 * information needed to reconstruct the compiled code object.
 	 */
-	COMPILED_CODE (35,
+	COMPILED_CODE (36,
 		COMPRESSED_SHORT.as("Total number of frame slots"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("Primitive name"),
 		OBJECT_REFERENCE.as("Function type"),
@@ -1007,7 +1049,7 @@ public enum SerializerOperation
 	 * A {@linkplain FunctionDescriptor function} with no outer (lexically
 	 * captured) variables.
 	 */
-	CLEAN_FUNCTION (36,
+	CLEAN_FUNCTION (37,
 		OBJECT_REFERENCE.as("Compiled code"))
 	{
 		@Override
@@ -1032,7 +1074,7 @@ public enum SerializerOperation
 	 * A {@linkplain FunctionDescriptor function} with one or more outer
 	 * (lexically captured) variables.
 	 */
-	GENERAL_FUNCTION (37,
+	GENERAL_FUNCTION (38,
 		OBJECT_REFERENCE.as("Compiled code"),
 		TUPLE_OF_OBJECTS.as("Outer values"))
 	{
@@ -1074,7 +1116,7 @@ public enum SerializerOperation
 	 * there is no mechanism for determining to which existing variable it might
 	 * be referring.  The variable is reconstructed in an unassigned state.
 	 */
-	VARIABLE (38,
+	VARIABLE (39,
 		OBJECT_REFERENCE.as("variable type"))
 	{
 		@Override
@@ -1105,8 +1147,12 @@ public enum SerializerOperation
 	 * which existing variable it might be referring.  The variable is
 	 * reconstructed in an unassigned state, and is expected to be initialized
 	 * exactly once at some future time.
+	 *
+	 * <p>This variant is for a write-once variable that is going to hold a
+	 * value computed by a stable process; i.e., instructions that will produce
+	 * an equivalent value upon subsequent module loading.</p>
 	 */
-	WRITE_ONCE_VARIABLE (39,
+	WRITE_ONCE_VARIABLE_STABLE (40,
 		OBJECT_REFERENCE.as("variable type"))
 	{
 		@Override
@@ -1121,8 +1167,51 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return VariableSharedWriteOnceDescriptor.forVariableType(
-				subobjects[0]);
+			final A_Variable var =
+				VariableSharedWriteOnceDescriptor.forVariableType(
+					subobjects[0]);
+			var.valueWasStablyComputed(true);
+			return var;
+		}
+
+		@Override
+		boolean isVariable ()
+		{
+			return true;
+		}
+	},
+
+	/**
+	 * A {@linkplain VariableSharedWriteOnceDescriptor write-once variable}.
+	 * Always reconstructed, since there is no mechanism for determining to
+	 * which existing variable it might be referring.  The variable is
+	 * reconstructed in an unassigned state, and is expected to be initialized
+	 * exactly once at some future time.
+	 *
+	 * <p>This variant is for a write-once variable that may be initialized to
+	 * a value computed by an unstable process; i.e., code that may query the
+	 * current time, interact with the user, read from files, etc.</p>
+	 */
+	WRITE_ONCE_VARIABLE_UNSTABLE (41,
+		OBJECT_REFERENCE.as("variable type"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.kind());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Variable var =
+				VariableSharedWriteOnceDescriptor.forVariableType(
+					subobjects[0]);
+			var.valueWasStablyComputed(false);
+			return var;
 		}
 
 		@Override
@@ -1135,7 +1224,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TokenDescriptor token}.
 	 */
-	TOKEN (40,
+	TOKEN (42,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
@@ -1183,7 +1272,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain LiteralTokenDescriptor literal token}.
 	 */
-	LITERAL_TOKEN (41,
+	LITERAL_TOKEN (43,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
@@ -1235,7 +1324,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TokenDescriptor token}.
 	 */
-	COMMENT_TOKEN (42,
+	COMMENT_TOKEN (44,
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("token string"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
@@ -1281,7 +1370,7 @@ public enum SerializerOperation
 	 * previously built value to be assigned to it at this point during
 	 * deserialization.
 	 */
-	ASSIGN_TO_VARIABLE (43,
+	ASSIGN_TO_VARIABLE (45,
 		OBJECT_REFERENCE.as("variable to assign"),
 		OBJECT_REFERENCE.as("value to assign"))
 	{
@@ -1308,7 +1397,7 @@ public enum SerializerOperation
 	/**
 	 * The representation of a continuation, which is just its level one state.
 	 */
-	CONTINUATION (44,
+	CONTINUATION (46,
 		OBJECT_REFERENCE.as("calling continuation"),
 		OBJECT_REFERENCE.as("continuation's function"),
 		TUPLE_OF_OBJECTS.as("continuation frame slots"),
@@ -1369,13 +1458,13 @@ public enum SerializerOperation
 	 * during serialization, chosen arbitrarily.  During deserialization, the
 	 * message bundle is looked up, and its method is extracted.
 	 */
-	METHOD (45, OBJECT_REFERENCE.as("arbitrary method bundle"))
+	METHOD (47, OBJECT_REFERENCE.as("arbitrary method bundle"))
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
 		{
 			assert object.isInstanceOf(Types.METHOD.o());
-			return array(object.bundles().iterator().next());
+			return array(object.chooseBundle());
 		}
 
 		@Override
@@ -1392,7 +1481,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MethodDefinitionDescriptor method
 	 * definition}, which should be reconstructed by looking it up.
 	 */
-	METHOD_DEFINITION (46,
+	METHOD_DEFINITION (48,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1432,7 +1521,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MacroDefinitionDescriptor macro
 	 * definition}, which should be reconstructed by looking it up.
 	 */
-	MACRO_DEFINITION (47,
+	MACRO_DEFINITION (49,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1472,7 +1561,7 @@ public enum SerializerOperation
 	 * A reference to an {@linkplain AbstractDefinitionDescriptor abstract
 	 * declaration}, which should be reconstructed by looking it up.
 	 */
-	ABSTRACT_DEFINITION (48,
+	ABSTRACT_DEFINITION (50,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1512,7 +1601,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain ForwardDefinitionDescriptor forward
 	 * declaration}, which should be reconstructed by looking it up.
 	 */
-	FORWARD_DEFINITION (49,
+	FORWARD_DEFINITION (51,
 		OBJECT_REFERENCE.as("method"),
 		OBJECT_REFERENCE.as("signature"))
 	{
@@ -1552,7 +1641,7 @@ public enum SerializerOperation
 	 * A reference to a {@linkplain MessageBundleDescriptor message bundle},
 	 * which should be reconstructed by looking it up.
 	 */
-	MESSAGE_BUNDLE (50,
+	MESSAGE_BUNDLE (52,
 		OBJECT_REFERENCE.as("message atom"))
 	{
 		@Override
@@ -1582,14 +1671,16 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
+	 * A reference to a module, possibly the one being constructed.
 	 */
-	RESERVED_51 (51)
+	MODULE (53,
+		OBJECT_REFERENCE.as("module name"))
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			return array(
+				object.moduleName());
 		}
 
 		@Override
@@ -1597,47 +1688,15 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
-		}
-	},
-
-	/**
-	 * Reserved for future use.
-	 */
-	RESERVED_52 (52)
-	{
-		@Override
-		A_BasicObject[] decompose (final AvailObject object)
-		{
-			throw new RuntimeException("Reserved serializer operation");
-		}
-
-		@Override
-		A_BasicObject compose (
-			final AvailObject[] subobjects,
-			final Deserializer deserializer)
-		{
-			throw new RuntimeException("Reserved serializer operation");
-		}
-	},
-
-	/**
-	 * Reserved for future use.
-	 */
-	RESERVED_53 (53)
-	{
-		@Override
-		A_BasicObject[] decompose (final AvailObject object)
-		{
-			throw new RuntimeException("Reserved serializer operation");
-		}
-
-		@Override
-		A_BasicObject compose (
-			final AvailObject[] subobjects,
-			final Deserializer deserializer)
-		{
-			throw new RuntimeException("Reserved serializer operation");
+			final A_String moduleName = subobjects[0];
+			final AvailLoader loader = Interpreter.current().availLoader();
+			final A_Module currentModule = loader.module();
+			if (currentModule.moduleName().equals(moduleName))
+			{
+				return currentModule;
+			}
+			final AvailRuntime runtime = Interpreter.current().runtime();
+			return runtime.moduleAt(moduleName);
 		}
 	},
 

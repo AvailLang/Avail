@@ -1740,7 +1740,7 @@ extends Descriptor
 	{
 		final @Nullable Interpreter interpreter = Interpreter.currentOrNull();
 		final @Nullable A_Fiber fiber = interpreter != null
-			? interpreter.fiber
+			? interpreter.fiberOrNull()
 			: null;
 		return fiber;
 	}

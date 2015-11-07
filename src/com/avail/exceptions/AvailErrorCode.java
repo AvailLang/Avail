@@ -408,7 +408,12 @@ public enum AvailErrorCode
 
 //	E_??? (62),
 
-//	E_??? (63),
+	/**
+	 * An attempt was made to add a prefix {@link A_Function function} to a
+	 * {@link A_Bundle message bundle}, but its index was not between 1 and the
+	 * number of section markers (§) in the bundle's name.
+	 */
+	E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS (63),
 
 	/**
 	 * The {@linkplain FiberDescriptor#current() current fiber} attempted to

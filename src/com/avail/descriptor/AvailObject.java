@@ -2933,13 +2933,7 @@ implements
 			return this;
 		}
 		final AvailObject shared = descriptor.o_MakeShared(this);
-		// Force a write barrier. Use a fresh object to avoid deadlocks -- or
-		// even contention.  Create the object right there to spoon-feed HotSpot
-		// a trivial lock elision opportunity.
-		synchronized (new Object())
-		{
-			return shared;
-		}
+		return shared;
 	}
 
 	/**
@@ -7079,5 +7073,23 @@ implements
 	public A_Tuple tokens ()
 	{
 		return descriptor.o_Tokens(this);
+	}
+
+	@Override
+	public A_Bundle chooseBundle ()
+	{
+		return descriptor.o_ChooseBundle(this);
+	}
+
+	@Override
+	public boolean valueWasStablyComputed ()
+	{
+		return descriptor.o_ValueWasStablyComputed(this);
+	}
+
+	@Override
+	public void valueWasStablyComputed (final boolean wasStablyComputed)
+	{
+		descriptor.o_ValueWasStablyComputed(this, wasStablyComputed);
 	}
 }

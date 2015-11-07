@@ -96,7 +96,6 @@ extends Descriptor
 		 * A compound field consisting of the hash value, computed at
 		 * construction time, and the {@link Primitive} number or zero.
 		 */
-		@HideFieldInDebugger
 		HASH_AND_PRIMITIVE,
 
 		/**
@@ -112,6 +111,7 @@ extends Descriptor
 		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
 		 * code object}. It is computed at construction time.
 		 */
+		@HideFieldInDebugger
 		static final BitField HASH = bitField(
 			HASH_AND_PRIMITIVE, 0, 32);
 

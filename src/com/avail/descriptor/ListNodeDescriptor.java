@@ -127,7 +127,7 @@ extends ParseNodeDescriptor
 			{
 				builder.append(", ");
 			}
-			builder.append(element);
+			element.printOnAvoidingIndent(builder, recursionMap, indent + 1);
 			first = false;
 		}
 		builder.append(")");

@@ -155,7 +155,7 @@ Test "macro for each of do" in tuple test suite is
 	b : natural number* := <>;
 	For each element of a do
 	[
-	 	If element is even then [b := b ++ <element>;];
+	 	If element is even then [b := eject b ++ <element>;];
 	];
 	Require: b = <2,4>;
 

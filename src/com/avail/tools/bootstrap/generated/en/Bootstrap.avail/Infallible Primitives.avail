@@ -2069,21 +2069,22 @@ Primitive "_'s⁇name" is
 ] : string;
 
 /**
- * Answer the public names introduced by the specified module.
+ * Answer the public names introduced by the specified module.  This is a map
+ * from string to atom.
  *
  * @category "Primitives" "Modules" "Queries"
  * @method "_'s⁇public names"
  * @param "aModule" "module"
  *        A module.
- * @returns "{string|}"
- *    A set containing the public names introduced by {@param "aModule"}.
+ * @returns "{string→atom|}"
+ *    A map containing the public names introduced by {@param "aModule"}.
  */
 Primitive "_'s⁇public names" is
 [
 	aModule : module
 |
 	Primitive NewNames;
-] : set of string;
+] : map from string to atom;
 
 /**
  * Is the first argument less than or equal to the second argument?

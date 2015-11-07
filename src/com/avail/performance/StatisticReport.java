@@ -56,10 +56,11 @@ import com.avail.utility.Pair;
  * </ul>
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public enum StatisticReport
 {
-	/** Level-Two Operations report */
+	/** Level-Two Operations report. */
 	L2_OPERATIONS
 	{
 		@Override
@@ -69,7 +70,7 @@ public enum StatisticReport
 		}
 	},
 
-	/** The Dynamic Lookups report */
+	/** The Dynamic Lookups report. */
 	DYNAMIC_LOOKUPS
 	{
 		@Override
@@ -79,7 +80,7 @@ public enum StatisticReport
 		}
 	},
 
-	/** The Primitives report */
+	/** The Primitives report. */
 	PRIMITIVES
 	{
 		@Override
@@ -89,13 +90,23 @@ public enum StatisticReport
 		}
 	},
 
-	/** The Primitive Return Type Checks report */
+	/** The Primitive Return Type Checks report. */
 	PRIMITIVE_RETURN_TYPE_CHECKS
 	{
 		@Override
 		public String keyword ()
 		{
 			return "PrimitiveReturnTypeChecks";
+		}
+	},
+
+	/** Report for outermost statements of modules that are loaded. */
+	TOP_LEVEL_STATEMENTS
+	{
+		@Override
+		public String keyword ()
+		{
+			return "TopLevelStatements";
 		}
 	},
 

@@ -116,6 +116,7 @@ Names
 	/*  34 */ "macro-argument-must-be-a-parse-node code",
 	/*  68 */ "macro-must-return-a-parse-node code",
 	/*  67 */ "macro-prefix-function-argument-must-be-a-parse-node code",
+	/*  63 */ "macro-prefix-function-index-out-of-bounds code",
 	/*  59 */ "macro-prefix-functions-must-return-top code",
 	/*  72 */ "method-is-sealed code",
 	/*  45 */ "method-name-is-not-canonical code",
@@ -444,6 +445,11 @@ Primitive "incorrect-type-for-numbered-choice code" is
 Primitive "macro-prefix-functions-must-return-top code" is
 [
 	59
+];
+
+Primitive "macro-prefix-function-index-out-of-bounds code" is
+[
+	63
 ];
 
 Primitive "untimely-parse-acceptance code" is

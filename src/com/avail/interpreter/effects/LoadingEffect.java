@@ -1,5 +1,5 @@
 /**
- * AbstractStacksTag.java
+ * LoadingEffect.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,48 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.stacks;
+package com.avail.interpreter.effects;
 
-import com.avail.utility.json.JSONWriter;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
 
 /**
- * An Avail comment @ tag
+ * A {@code LoadingEffect} is a summarized activity that took place during
+ * execution of a top-level statement during module compilation.  If certain
+ * criteria are met, what gets recorded for replay is not a zero-argument
+ * function containing that top-level statement, but instead is a summarized
+ * function that has an equivalent effect on the currently module, although it
+ * may be much more efficient.
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class AbstractStacksTag
+public abstract class LoadingEffect
 {
 	/**
-	 * Creating a shared super class to move all Tags.
+	 * Write to the {@link L1InstructionWriter} a statement capable of
+	 * reproducing this effect upon subsequent loading.  The generated code
+	 * should leave one (ignored) value on the stack.
+	 *
+	 * @param writer An {@link L1InstructionWriter}.
 	 */
-
-	/**
-	 * Create HTML content from implementation
-	 * @param htmlFileMap
-	 * 		The map of all HTML files in Stacks
-	 * @param hashID
-	 * 		The hash portion of the id for linking to this element on page.
-	 * @param errorLog The {@linkplain StacksErrorLog}
-	 * @param position The ordered position of the parameter in the method
-	 * 		signature.
-	 * @return the HTML tagged content
-	 */
-	public abstract String toHTML(final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position);
-
-	/**
-	 * Create JSON content from implementation
-	 * @param linkingFileMap
-	 * 		The map of all the files in Stacks
-	 * @param hashID
-	 * 		The hash portion of the id for linking to this element on page.
-	 * @param errorLog The {@linkplain StacksErrorLog}
-	 * @param position The ordered position of the parameter in the method
-	 * 		signature.
-	 * @param jsonWriter The {@linkplain JSONWriter writer} used to build the
-	 * 		document.
-	 */
-	public abstract void toJSON(final LinkingFileMap linkingFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position,
-		JSONWriter jsonWriter);
+	public abstract void writeEffectTo (final L1InstructionWriter writer);
 }

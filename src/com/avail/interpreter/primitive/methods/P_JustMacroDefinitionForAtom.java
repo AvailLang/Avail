@@ -1,5 +1,5 @@
 /**
- * P_MethodDeclarationFromAtom.java
+ * P_JustMacroDefinitionForAtom.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,35 +32,42 @@
 
 package com.avail.interpreter.primitive.methods;
 
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Result.*;
+import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import com.avail.*;
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation0;
 
 /**
- * <strong>Primitive:</strong> Define a concrete method implementation.
+ * <strong>Primitive:</strong> Macro definition.  The first argument is the
+ * is the macro name (an atom), and the second argument is the function to
+ * invoke for the complete macro.  It is constrained to answer a {@linkplain
+ * ParseNodeDescriptor parse node}.  Prefix functions must be added separately,
+ * or use {@link P_SimpleMacroDeclaration}.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Todd Smith &lt;todd@availlang.org&gt;
  */
-public final class P_MethodDeclarationFromAtom
+public final class P_JustMacroDefinitionForAtom
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_MethodDeclarationFromAtom().init(
-			2, Unknown);
+		new P_JustMacroDefinitionForAtom().init(
+			2, Unknown, Private);
 
 	@Override
 	public Result attempt (
@@ -71,12 +78,29 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Atom atom = args.get(0);
 		final A_Function function = args.get(1);
+
 		final A_Fiber fiber = interpreter.fiber();
 		final AvailLoader loader = fiber.availLoader();
-		final A_Module module;
-		if (loader == null || (module = loader.module()).equalsNil())
+		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		final int numArgs = function.code().numArgs();
+		final A_Type kind = function.kind();
+		final A_Type argsKind = kind.argsTupleType();
+		for (int argIndex = 1; argIndex <= numArgs; argIndex++)
+		{
+			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
+				PARSE_NODE.mostGeneralType()))
+			{
+				return interpreter.primitiveFailure(
+					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE);
+			}
+		}
+		if (!kind.returnType().isSubtypeOf(PARSE_NODE.mostGeneralType()))
+		{
+			return interpreter.primitiveFailure(
+				AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE);
 		}
 		final A_Function failureFunction =
 			interpreter.primitiveFunctionBeingAttempted();
@@ -93,14 +117,10 @@ extends Primitive
 					{
 						try
 						{
-							loader.addMethodBody(
-								atom,
-								function,
-								atom.issuingModule().equals(module));
-							// Quote the string to make the method name.
+							loader.addMacroBody(atom, function);
 							function.code().setMethodName(
-								StringDescriptor.from(
-									atom.atomName().toString()));
+								StringDescriptor.format(
+									"Macro body of %s", atom.atomName()));
 							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,
@@ -130,7 +150,8 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				ATOM.o(),
-				FunctionTypeDescriptor.mostGeneralType()),
+				FunctionTypeDescriptor.forReturnType(
+					PARSE_NODE.mostGeneralType())),
 			TOP.o());
 	}
 
@@ -140,10 +161,10 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(Arrays.asList(
 					E_LOADING_IS_OVER.numericCode(),
-					E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED.numericCode(),
+					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
 					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES.numericCode(),
-					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS.numericCode(),
-					E_METHOD_IS_SEALED.numericCode()))
+					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE.numericCode(),
+					E_MACRO_MUST_RETURN_A_PARSE_NODE.numericCode()))
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

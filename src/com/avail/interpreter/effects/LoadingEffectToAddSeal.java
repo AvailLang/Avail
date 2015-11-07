@@ -1,5 +1,5 @@
 /**
- * AbstractStacksTag.java
+ * LoadingEffectToAddSeal.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,48 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.stacks;
+package com.avail.interpreter.effects;
 
-import com.avail.utility.json.JSONWriter;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1Operation;
 
 /**
- * An Avail comment @ tag
+ * A {@code LoadingEffectToAddSeal} summarizes the addition of a seal to a
+ * {@link A_Method method}.
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class AbstractStacksTag
+public class LoadingEffectToAddSeal extends LoadingEffect
 {
-	/**
-	 * Creating a shared super class to move all Tags.
-	 */
+	/** The name of the method having a seal added. */
+	final A_Atom methodName;
+
+	/** The tuple of argument types at which to place the seal. */
+	final A_Tuple seal;
 
 	/**
-	 * Create HTML content from implementation
-	 * @param htmlFileMap
-	 * 		The map of all HTML files in Stacks
-	 * @param hashID
-	 * 		The hash portion of the id for linking to this element on page.
-	 * @param errorLog The {@linkplain StacksErrorLog}
-	 * @param position The ordered position of the parameter in the method
-	 * 		signature.
-	 * @return the HTML tagged content
+	 * Construct a new {@link LoadingEffectToAddSeal}.
+	 *
+	 * @param methodName The name of the method having a seal added.
+	 * @param seal The tuple of argument types at which to place a seal.
 	 */
-	public abstract String toHTML(final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position);
+	public LoadingEffectToAddSeal (final A_Atom methodName, final A_Tuple seal)
+	{
+		this.methodName = methodName;
+		this.seal = seal;
+	}
 
-	/**
-	 * Create JSON content from implementation
-	 * @param linkingFileMap
-	 * 		The map of all the files in Stacks
-	 * @param hashID
-	 * 		The hash portion of the id for linking to this element on page.
-	 * @param errorLog The {@linkplain StacksErrorLog}
-	 * @param position The ordered position of the parameter in the method
-	 * 		signature.
-	 * @param jsonWriter The {@linkplain JSONWriter writer} used to build the
-	 * 		document.
-	 */
-	public abstract void toJSON(final LinkingFileMap linkingFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position,
-		JSONWriter jsonWriter);
+	@Override
+	public void writeEffectTo (final L1InstructionWriter writer)
+	{
+		// Push the (atom) name of the method to seal.
+		writer.write(
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(methodName));
+		// Push the tuple of types.
+		writer.write(
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(seal));
+		// Call the sealing method.
+		writer.write(
+			L1Operation.L1_doCall,
+			writer.addLiteral(
+				MethodDescriptor.vmSealAtom().bundleOrNil()),
+			writer.addLiteral(Types.TOP.o()));
+	}
 }

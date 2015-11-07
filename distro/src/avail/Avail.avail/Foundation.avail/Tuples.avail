@@ -3115,7 +3115,7 @@ Semantic restriction "_[_.._]→_" is
 ];
 
 /**
- * Compute and answer that is the result of swapping the elements of {@param
+ * Compute an answer that is the result of swapping the elements of {@param
  * "aTuple"} at {@param "index1"} and {@param "index2"}.
  *
  * @method "_[_↔_]"

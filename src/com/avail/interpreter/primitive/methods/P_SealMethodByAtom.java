@@ -66,8 +66,8 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final AvailObject methodName = args.get(0);
-		final AvailObject sealSignature = args.get(1);
+		final A_Atom methodName = args.get(0);
+		final A_Tuple sealSignature = args.get(1);
 		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
 		{

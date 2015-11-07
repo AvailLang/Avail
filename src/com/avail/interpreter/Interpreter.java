@@ -173,36 +173,6 @@ import com.avail.utility.*;
  */
 public final class Interpreter
 {
-	/**
-	 * Answer the {@linkplain Interpreter Level Two interpreter} associated
-	 * with {@linkplain Thread#currentThread() this} {@linkplain Thread thread}.
-	 * If this thread is not an {@link AvailThread}, then fail.
-	 *
-	 * @return The current Level Two interpreter.
-	 */
-	public static Interpreter current ()
-	{
-		return ((AvailThread) Thread.currentThread()).interpreter;
-	}
-
-	/**
-	 * Answer the {@linkplain Interpreter Level Two interpreter} associated
-	 * with {@linkplain Thread#currentThread() this} {@linkplain Thread thread}.
-	 * If this thread is not an {@link AvailThread}, then answer {@code null}.
-	 *
-	 * @return The current Level Two interpreter, or {@code null} if the current
-	 *         thread is not an {@code AvailThread}.
-	 */
-	public static @Nullable Interpreter currentOrNull ()
-	{
-		final Thread current = Thread.currentThread();
-		if (current instanceof AvailThread)
-		{
-			return ((AvailThread) current).interpreter;
-		}
-		return null;
-	}
-
 	/** Whether to print detailed Level One debug information. */
 	public static boolean debugL1 = false;
 
@@ -294,6 +264,36 @@ public final class Interpreter
 					: "?????? ");
 			logger.log(level, builder.toString() + message, arguments);
 		}
+	}
+
+	/**
+	 * Answer the {@linkplain Interpreter Level Two interpreter} associated
+	 * with {@linkplain Thread#currentThread() this} {@linkplain Thread thread}.
+	 * If this thread is not an {@link AvailThread}, then fail.
+	 *
+	 * @return The current Level Two interpreter.
+	 */
+	public static Interpreter current ()
+	{
+		return ((AvailThread) Thread.currentThread()).interpreter;
+	}
+
+	/**
+	 * Answer the {@linkplain Interpreter Level Two interpreter} associated
+	 * with {@linkplain Thread#currentThread() this} {@linkplain Thread thread}.
+	 * If this thread is not an {@link AvailThread}, then answer {@code null}.
+	 *
+	 * @return The current Level Two interpreter, or {@code null} if the current
+	 *         thread is not an {@code AvailThread}.
+	 */
+	public static @Nullable Interpreter currentOrNull ()
+	{
+		final Thread current = Thread.currentThread();
+		if (current instanceof AvailThread)
+		{
+			return ((AvailThread) current).interpreter;
+		}
+		return null;
 	}
 
 	/**
@@ -450,9 +450,57 @@ public final class Interpreter
 	}
 
 	/**
+	 * The {@link AvailLoader} associated with the {@link A_Fiber fiber}
+	 * currently running on this interpreter.  This is {@code null} if there is
+	 * no fiber, or if it is not associated with an AvailLoader.
+	 *
+	 * <p>This field is a consistent cache of the AvailLoader found in the
+	 * fiber, which is authoritative.  Multiple fibers may share the same
+	 * AvailLoader.</p>
+	 */
+	private @Nullable AvailLoader availLoader;
+
+	/**
+	 * Answer the {@link AvailLoader} associated with the {@link A_Fiber fiber}
+	 * currently running on this interpreter.  This interpreter must be bound
+	 * to a fiber having an AvailLoader.
+	 *
+	 * @return The current fiber's {@link AvailLoader}.
+	 */
+	public AvailLoader availLoader ()
+	{
+		final AvailLoader loader = availLoader;
+		assert loader != null;
+		return loader;
+	}
+
+	/**
+	 * Answer the {@link AvailLoader} associated with the {@link A_Fiber fiber}
+	 * currently running on this interpreter.  Answer {@code null} if there is
+	 * no AvailLoader for the current fiber.
+	 *
+	 * @return The current fiber's {@link AvailLoader}.
+	 */
+	public @Nullable AvailLoader availLoaderOrNull ()
+	{
+		return availLoader;
+	}
+
+	/**
 	 * The {@link FiberDescriptor} being executed by this interpreter.
 	 */
-	public @Nullable A_Fiber fiber;
+	@InnerAccess @Nullable A_Fiber fiber;
+
+	/**
+	 * Answer the current {@link A_Fiber fiber} bound to this interpreter, or
+	 * {@code null} if there is none.
+	 *
+	 * @return The current fiber or null.
+	 */
+	public @Nullable A_Fiber fiberOrNull ()
+	{
+		return fiber;
+	}
 
 	/**
 	 * Return the current {@linkplain FiberDescriptor fiber}.
@@ -481,6 +529,7 @@ public final class Interpreter
 		fiber = newFiber;
 		if (newFiber != null)
 		{
+			availLoader = newFiber.availLoader();
 			final boolean readsBeforeWrites =
 				newFiber.traceFlag(TRACE_VARIABLE_READS_BEFORE_WRITES);
 			if (readsBeforeWrites)
@@ -496,6 +545,7 @@ public final class Interpreter
 		}
 		else
 		{
+			availLoader = null;
 			traceVariableReadsBeforeWrites = false;
 			traceVariableWrites = false;
 		}
@@ -1951,7 +2001,7 @@ public final class Interpreter
 					public ExecutionState value ()
 					{
 						final Interpreter interpreter = current();
-						assert aFiber == interpreter.fiber;
+						assert aFiber == interpreter.fiberOrNull();
 						assert aFiber.executionState() == RUNNING;
 						// Set up the interpreter.
 						continuation.value(interpreter);
@@ -2016,7 +2066,7 @@ public final class Interpreter
 				public void value (final @Nullable Interpreter interpreter)
 				{
 					assert interpreter != null;
-					assert aFiber == interpreter.fiber;
+					assert aFiber == interpreter.fiberOrNull();
 					assert aFiber.executionState() == RUNNING;
 					assert aFiber.continuation().equalsNil();
 					// Invoke the function. If it's a primitive and it
@@ -2066,7 +2116,7 @@ public final class Interpreter
 				public void value (final @Nullable Interpreter interpreter)
 				{
 					assert interpreter != null;
-					assert aFiber == interpreter.fiber;
+					assert aFiber == interpreter.fiberOrNull();
 					assert aFiber.executionState() == RUNNING;
 					assert !aFiber.continuation().equalsNil();
 					interpreter.prepareToResumeContinuation(
@@ -2111,7 +2161,7 @@ public final class Interpreter
 				public void value (final @Nullable Interpreter interpreter)
 				{
 					assert interpreter != null;
-					assert aFiber == interpreter.fiber;
+					assert aFiber == interpreter.fiberOrNull();
 					assert aFiber.executionState() == RUNNING;
 					assert !aFiber.continuation().equalsNil();
 					final A_Continuation updatedCaller =
@@ -2505,6 +2555,55 @@ public final class Interpreter
 			}
 		}
 		statistic.record(nanos, interpreterIndex);
+	}
+
+	/**
+	 * Top-level statement evaluation statistics, keyed by module and then line
+	 * number.
+	 */
+	private final static Map<A_Module, Map<Integer, Statistic>>
+		topStatementEvaluationStats = new WeakHashMap<>();
+
+	/**
+	 * Record the fact that a statement starting at the given line number in the
+	 * given module just took some number of nanoseconds to run.
+	 *
+	 * @param sample The number of nanoseconds.
+	 * @param module The module containing the top-level statement that ran.
+	 * @param lineNumber The line number of the statement that ran.
+	 */
+	public void recordTopStatementEvaluation (
+		final double sample,
+		final A_Module module,
+		final int lineNumber)
+	{
+		Statistic statistic;
+		synchronized (topStatementEvaluationStats)
+		{
+			final A_Module moduleTraversed = module.traversed();
+			Map<Integer, Statistic> submap =
+				topStatementEvaluationStats.get(moduleTraversed);
+			if (submap == null)
+			{
+				submap = new HashMap<>();
+				topStatementEvaluationStats.put(moduleTraversed, submap);
+			}
+			statistic = submap.get(lineNumber);
+			if (statistic == null)
+			{
+				final StringBuilder builder = new StringBuilder();
+				builder.append("[#");
+				builder.append(lineNumber);
+				builder.append("] of ");
+				builder.append(module.moduleName().asNativeString());
+				final String nameString = builder.toString();
+				statistic = new Statistic(
+					nameString,
+					StatisticReport.TOP_LEVEL_STATEMENTS);
+				submap.put(lineNumber, statistic);
+			}
+		}
+		statistic.record(sample, interpreterIndex);
 	}
 
 	/**

@@ -1,5 +1,5 @@
 /**
- * P_NewNames.java
+ * LoadingEffectToAddAlias.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,52 +30,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.modules;
+package com.avail.interpreter.effects;
 
-import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.MethodDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.*;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1Operation;
 
 /**
- * <strong>Primitive:</strong> Answer the introduced public names of the
- * specified {@linkplain ModuleDescriptor module}.  This is a {@link A_Map map}
- * from {@link A_String string} to {@link A_Atom atom}.
+ * A {@code LoadingEffectToAddAlias} summarizes the addition of an alias {@link
+ * A_Bundle bundle} to a {@link A_Method method}.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_NewNames
-extends Primitive
+public class LoadingEffectToAddAlias extends LoadingEffect
 {
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance =
-		new P_NewNames().init(
-			1, CanInline, CannotFail);
+	/** The name of an atom to define aliased to oldAtom. */
+	final A_String newString;
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	/** The existing atom that the new atom will alias. */
+	final A_Atom oldAtom;
+
+	/**
+	 * Construct a new {@link LoadingEffectToAddAlias}.
+	 *
+	 * @param newString The name of the atom to create.
+	 * @param oldAtom The existing atom to alias.
+	 */
+	public LoadingEffectToAddAlias (
+		final A_String newString,
+		final A_Atom oldAtom)
 	{
-		assert args.size() == 1;
-		final A_Module module = args.get(0);
-		return interpreter.primitiveSuccess(module.newNames());
+		this.newString = newString;
+		this.oldAtom = oldAtom;
 	}
 
 	@Override
-	protected A_Type privateBlockTypeRestriction ()
+	public void writeEffectTo (final L1InstructionWriter writer)
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MODULE.o()),
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.stringType(),
-				Types.ATOM.o()));
+		// Push the (string) name of the atom to create.
+		writer.write(
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(newString));
+		// Push the existing atom that the new atom will alias.
+		writer.write(
+			L1Operation.L1_doPushLiteral,
+			writer.addLiteral(oldAtom));
+		// Call the method that aliases an atom.
+		writer.write(
+			L1Operation.L1_doCall,
+			writer.addLiteral(
+				MethodDescriptor.vmAliasAtom().bundleOrNil()),
+			writer.addLiteral(Types.TOP.o()));
 	}
 }

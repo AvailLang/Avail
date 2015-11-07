@@ -181,7 +181,7 @@ public class MessageSplitter
 	 * ellipsis indicates only a <em>literal</em> token will be accepted.</li>
 	 * <li>The N<sup>th</sup> {@linkplain StringDescriptor#sectionSign() section
 	 * sign} (§) in a message name indicates where a macro's N<sup>th</sup>
-	 * {@linkplain AvailObject#prefixFunctions() prefix function} should be
+	 * {@linkplain A_Method#prefixFunctions() prefix function} should be
 	 * invoked with the current parse stack up to that point.</li>
 	 * <li>A {@linkplain StringDescriptor#backQuote() backquote} (`) can
 	 * precede any operator character, such as guillemets or double dagger, to
@@ -4200,7 +4200,7 @@ public class MessageSplitter
 	 * @param sectionNumber
 	 *            The {@link SectionCheckpoint}'s subscript if this is a check
 	 *            of a {@linkplain MacroDefinitionDescriptor macro}'s,
-	 *            {@linkplain AvailObject#prefixFunctions() prefix function},
+	 *            {@linkplain A_Method#prefixFunctions() prefix function},
 	 *            otherwise any value past the total {@link
 	 *            #numberOfSectionCheckpoints} for a method or macro body.
 	 * @throws SignatureException

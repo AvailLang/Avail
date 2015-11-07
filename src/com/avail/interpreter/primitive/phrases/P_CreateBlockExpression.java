@@ -82,6 +82,8 @@ extends Primitive
 		}
 		if (!ParseNodeTypeDescriptor.containsOnlyStatements(flat, resultType))
 		{
+			//TODO: Delete the next line.  Debugging only.
+			ParseNodeTypeDescriptor.containsOnlyStatements(flat, resultType);
 			return interpreter.primitiveFailure(
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS);
 		}

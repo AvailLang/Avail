@@ -1153,8 +1153,25 @@ is
 	 * is ever unloaded.
 	 */
 	subtype's name := className;
-	After the current module is unloaded, do [Unname className from subtype;];
-	Method className is new []→(subtype's type) applying [subtype];
+	/* Define local temps, since the unload function will be made shared, and
+	 * that causes any used outer variables to become shared as well, which
+	 * disables the quick-loader summarization mechanism when a shared
+	 * variable is subsequently read from further along in this method.
+	 */
+	classNameShared ::= className;
+	subtypeShared ::= subtype;
+	After the current module is unloaded,
+		do [Unname classNameShared from subtypeShared;];
+	classNameBlock ::=
+		«[
+			<>
+		|
+			<
+				‘`subtype`(className)’
+			>
+		] : subtype's type»;
+	classNameFunction ::= classNameBlock → function;
+	Method className is classNameFunction;
 	For each fieldTuple of immutable do
 	[
 		fieldAtom ::= fieldTuple[3];

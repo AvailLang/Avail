@@ -281,7 +281,7 @@ public class L1InstructionWriter
 		{
 			stream.write(13);
 			stream.write(operand - 58 >>> 4);
-			stream.write(operand - 59 & 15);
+			stream.write(operand - 58 & 15);
 		}
 		else if (operand < 65536)
 		{

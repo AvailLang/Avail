@@ -73,15 +73,13 @@ Names
 	"If|if_then_«else if_then_»«else_»?",
 	"Repeat_",
 	"Repeat__times",
-	"Unless_then_",
+	"Unless|unless_then_«else unless_then_»«else_»?",
 	"Until_",
 	"Until_do_",
 	"Until_do_alternate with_",
 	"While_",
 	"While_do_",
 	"While_do_alternate with_",
-	"Unless|unless_then_else_",
-	"Unless|unless_then_«else unless_then_»«else_»?",
 
 	/* Support methods for semantic restrictions, exported for use by other
 	 * library- and user-defined control structures.
@@ -1309,53 +1307,6 @@ Semantic restriction "If|if_then_«else if_then_»«else_»?" is
 			⊤
 		]
 	]
-];
-
-/**
- * Given a predicate value and a function, invoke the specified function only if
- * the predicate is {@method "false"}. This is the inverse of {@method 
- * "If_then_"}.
- * 
- * @method "Unless_then_"
- * @param "predicate" "boolean"
- *        A predicate value.
- * @param "action" "[]→⊤"
- *        The function to invoke if {@param "predicate"} is {@method "false"}.
- * @returns "⊤"
- * @category "Control Structures" "Conditionals"
- */
-Public method "Unless_then_" is
-[
-	predicate : boolean,
-	action : []→⊤
-|
-	If ¬predicate then action;
-] : ⊤;
-
-/**
- * Given a predicate value and two functions, invoke one of them and answer its
- * result.
- *
- * @method "Unless|unless_then_else_"
- * @param "predicate" "boolean"
- *        A predicate value.
- * @param "falseFunction" "[]→⊤"
- *        The function to invoke if {@param "predicate"} is {@method "false"}.
- * @param "trueFunction" "[]→⊤"
- *        The function to invoke if {@param "trueFunction"} is {@method "true"}.
- * @returns "⊤"
- *          If {@param "predicate"} is {@method "false"}, then the value 
- *          produced by invoking {@param "falseFunction"}; otherwise, the value 
- *          produced by invoking {@param "trueFunction"}.
- * @category "Control Structures" "Conditionals"
- */
-Public method "Unless|unless_then_else_" is
-[
-	predicate : boolean,
-	falseBlock : []→⊤,
-	trueBlock : []→⊤
-|
-	If ¬predicate then falseBlock else trueBlock;
 ];
 
 /**

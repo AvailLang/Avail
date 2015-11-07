@@ -41,6 +41,7 @@ import com.avail.annotations.*;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.VariableSetException;
+import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 
@@ -66,7 +67,7 @@ extends VariableSharedDescriptor
 		 * The low 32 bits are used for the hash, but the upper 32 can be used
 		 * by subclasses.
 		 */
-		@HideFieldInDebugger
+//		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		/**
@@ -74,6 +75,14 @@ extends VariableSharedDescriptor
 		 * making a variable shared.
 		 */
 		static final BitField HASH_ALWAYS_SET = bitField(HASH_AND_MORE, 0, 32);
+
+		/**
+		 * A flag indicating whether this variable was initialized to a value
+		 * that was produced by a pure computation, specifically the kind of
+		 * computation that does not disqualify {@link LoadingEffect}s from
+		 * being recorded in place of top level statements.
+		 */
+		static final BitField VALUE_IS_STABLE = bitField(HASH_AND_MORE, 32, 1);
 
 		static
 		{
@@ -142,7 +151,8 @@ extends VariableSharedDescriptor
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == VALUE
 			|| e == WRITE_REACTORS
-			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO;
+			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO
+			|| e == HASH_AND_MORE;  // only for VALUE_IS_STABLE flag.
 	}
 
 	@Override @AvailMethod
@@ -221,6 +231,21 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
+	void o_ValueWasStablyComputed (
+		final AvailObject object,
+		final boolean wasStablyComputed)
+	{
+		object.setSlot(VALUE_IS_STABLE, wasStablyComputed ? 1 : 0);
+	}
+
+	@Override @AvailMethod
+	boolean o_ValueWasStablyComputed (
+		final AvailObject object)
+	{
+		return object.slot(VALUE_IS_STABLE) != 0;
+	}
+
+	@Override @AvailMethod
 	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		// Do nothing; just answer the (shared, write-once) receiver.
@@ -237,18 +262,24 @@ extends VariableSharedDescriptor
 	@Override @AvailMethod
 	final SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		return SerializerOperation.WRITE_ONCE_VARIABLE;
+		if (object.slot(VALUE_IS_STABLE) != 0)
+		{
+			return SerializerOperation.WRITE_ONCE_VARIABLE_STABLE;
+		}
+		return SerializerOperation.WRITE_ONCE_VARIABLE_UNSTABLE;
 	}
 
 	/**
 	 * Create a {@linkplain VariableSharedWriteOnceDescriptor variable}. This
-	 * method should only be used to create module constants, and eventually
-	 * local constants.  It should <em>not</em> be used for converting existing
-	 * variables; that's what {@link VariableSharedDescriptor} is for.
+	 * method should only be used to create module constants, and maybe
+	 * eventually local constants.  It should <em>not</em> be used for
+	 * converting existing variables; that's what {@link
+	 * VariableSharedDescriptor} is for.
 	 *
 	 * @param variableType
 	 *        The {@linkplain VariableTypeDescriptor variable type}.
 	 * @return
+	 *         The new write-once shared variable.
 	 */
 	public static AvailObject forVariableType (
 		final A_Type variableType)

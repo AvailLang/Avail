@@ -95,7 +95,7 @@ extends DefinitionDescriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		object.slot(DEFINITION_METHOD).bundles().iterator().next().message()
+		object.slot(DEFINITION_METHOD).chooseBundle().message()
 			.printOnAvoidingIndent(
 				builder, recursionMap, indent);
 		builder.append(' ');
