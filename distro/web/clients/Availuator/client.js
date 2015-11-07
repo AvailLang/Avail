@@ -177,7 +177,8 @@ function presentUI ()
 	var div1 = document.createElement('div');
 	var input = document.createElement('textarea');
 	div1.title = '● Press Shift+Enter to submit Avail for evaluation\n\n'
-		+ '● Press F1/F2︎ to navigate previously submitted expressions';
+		+ '● Press Shift+F1/F2︎ to navigate previously submitted expressions\n\n'
+		+ '● Press Shift+F3︎ to navigate to line number';
 	input.id = 'expression';
 	input.rows = 10;
 	input.placeholder = 'Evaluate me!';
@@ -208,7 +209,8 @@ function presentUI ()
 		expression.val(expression.val().slice(0,cursor)
 			+ this.innerHTML 
 			+ expression.val().slice(cursor));
-		expression.get(0).selectionStart = cursor + 1;
+		placeCursor(expression, cursor + 1);
+		//expression.get(0).selectionStart = cursor + 1;
 	}
 	
 	var unicodeSize = unicode.length;
@@ -249,9 +251,6 @@ function presentUI ()
 	//Add line numbers to the input area
 	$('textarea').numberedtextarea();
 	var lineNumbers = $('.numberedtextarea-line-numbers');
-	lineNumbers[0].style.fontSize = '10pt';
-	lineNumbers[0].style.fontSizeFamily = 'monospace';
-	lineNumbers[0].style.color = '#0000FF';
 	
 	var expression = $("#expression");
 	
@@ -281,7 +280,7 @@ function presentUI ()
 			historyStack.push(expression.val());
 			historyIndex = historyStack.length - 1;
 		} 
-		else if (event.keyCode == 112 /*&& event.keyCode == 40*/)
+		else if (event.shiftKey && event.keyCode == 112)
 		{
 			event.preventDefault();
 			if (historyIndex > 0)
@@ -290,12 +289,37 @@ function presentUI ()
 				expression.val(historyStack[historyIndex]);
 			}
 		}
-		else if (event.keyCode == 113 /*&& event.keyCode == 38*/)
+		else if (event.shiftKey && event.keyCode == 113)
 		{
 			if (historyIndex > -1 && historyIndex < historyStack.length - 1)
 			{
 				historyIndex++;
 				expression.val(historyStack[historyIndex]);
+			}
+		}
+		else if (event.shiftKey && event.keyCode == 114)
+		{
+			var rowNumber = prompt("Enter row number to jump to");
+			if (rowNumber < 2)
+			{
+				placeCursor(expression, 0);
+			}
+			else
+			{
+				var text = expression.val();
+				var textSize = text.length;
+				var cursorIndex = 0;
+				var newLineCount = 0;
+				var finalPlacement = 0;
+				while (cursorIndex < textSize && newLineCount < rowNumber - 1)
+				{
+					if (text[cursorIndex] == '\n')
+					{
+						newLineCount++
+					}
+					cursorIndex++;
+				}
+				placeCursor(expression, cursorIndex);
 			}
 		}
 		else
@@ -321,8 +345,7 @@ function presentUI ()
 					+ allText.slice(start));
 				var newTextLength = expression.val().length;
 				var shift = newTextLength - textSize;
-				expression.get(0).selectionStart = start + shift;
-				expression.get(0).selectionEnd = start + shift;
+				placeCursor(expression, start + shift);
 			}
 		}
 	});
@@ -378,8 +401,6 @@ function presentUI ()
 					var end = expression.get(0).selectionEnd;
 					var allText = expression.val();
 					
-					//var start = expression.get(0).selectionStart;
-					
 					if (end > start)
 					{
 						var textSize = allText.length;
@@ -420,8 +441,7 @@ function presentUI ()
 							+ "\t"
 							+ expression.val().substring(start));
 						
-						 expression.get(0).selectionStart = start + 1;
-						 expression.get(0).selectionEnd = start + 1;
+						placeCursor(expression, start + 1);
 					}
 				}
 			}
@@ -459,6 +479,26 @@ function beginningOfCurrentLineIndex()
     return i;
 }
 
+/**
+ * Place cursor in the given textarea at the given index
+ * @param textArea
+ * @param index
+ */
+function placeCursor(textArea, index) 
+{
+	textArea.focus();
+	textArea.get(0).selectionStart = index;
+	textArea.get(0).selectionEnd = index;
+}
+
+/**
+ * Apply selection to text in textarea
+ * @param initialSize 
+ * @param newSize
+ * @param start
+ * @param end
+ * @param shift
+ */
 function resetSelectedText(initialSize, newSize, start, end, shift) 
 {
 	 var carretOffset = initialSize - newSize;
