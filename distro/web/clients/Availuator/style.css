@@ -194,3 +194,13 @@ textarea
 	font-family: monospace;
 	font-size: 10pt;
 }
+
+.unicodebutton
+{
+	font-size: 14px;
+}
+
+#palette
+{
+	border-style: groove;
+}
