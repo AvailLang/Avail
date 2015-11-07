@@ -1105,7 +1105,7 @@ Stable method "log_of_" is
  *          {@code "3.141592653589793"}.
  * @category "Mathematics" "Constants" "Numbers"
  */
-Macro "π" is [‘`3.141592653589793`("π")’];
+Macro "π" is [`3.141592653589793` ("π") → literal phrase];
 
 /**
  * Helper for strengthening the result type of bitshifts.

@@ -153,7 +153,7 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
 		];
 	send $"Method_is_" with
 	«<
-		‘`selector`’,
+		‘selector’,
 		«[
 			args ?→ argument phrase*
 		|
@@ -197,7 +197,7 @@ Public macro "`!Game class methodsFor:'wumping'`!…`|«…§»`|«_!»`!`!" is
 	selector ::= "self " ++ selectorPhrase's token' lexeme;
 	send $"Method_is_" with
 	«<
-		‘`selector`’,
+		‘selector’,
 		«[
 			select each decl from scope map's values where
 				[decl ∈ local variable phrase]
@@ -224,7 +224,7 @@ Public macro "`!Game class methodsFor:'wumping'`!…«_!»`!`!" is
 	selector ::= "self " ++ selectorPhrase's token' lexeme;
 	send $"Method_is_" with
 	«<
-		‘`selector`’,
+		‘selector’,
 		«[
 			map each lit of stmtsPhrase's expressions
 				?→ ((literal phrase ⇒ statement phrase)*) through

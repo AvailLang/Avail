@@ -189,11 +189,11 @@ Test "has identity (phrase)" in identity visitors test suite is
 	$body : ⊤;
 	Require: body's function→block phrase has identity;
 	Require: arg «`"x"` : integer» has identity;
-	Require: «`"x"` ::= ‘`4`’» has identity;
-	Require: «`"x"` : whole number := ‘`4`’» has identity;
-	Require: «<‘`1`’, ‘`2`’, ‘`3`’>» has identity;
+	Require: «`"x"` ::= ‘4’» has identity;
+	Require: «`"x"` : whole number := ‘4’» has identity;
+	Require: «<‘1’, ‘2’, ‘3’>» has identity;
 	Require: «↓arg «`"x"` : integer»» has identity;
-	Require: ««↓«`"x"` : whole number»» := ‘`0`’» has identity;
+	Require: ««↓«`"x"` : whole number»» := ‘0’» has identity;
 	Require: «↑«↓«`"x"` : whole number»»» has identity;
 ];
 

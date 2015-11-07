@@ -178,7 +178,7 @@ is
 
 	contextType's name := contextTypeName;
 	Method contextTypeName is
-		«[ <‘`contextType`’> ] : contextType's type»→function;
+		«[ <‘contextType’> ] : contextType's type»→function;
 	Export contextTypeName as a new name;
 
 	/*
@@ -188,7 +188,7 @@ is
 	openingSceneVar ::= new ↑sceneType;
 	openingSceneAtom ::= atom for openingSceneName;
 	Method openingSceneAtom is
-		«[ <> | <‘`openingSceneVar`’> ] : ↑sceneType»→function;
+		«[ <> | <‘openingSceneVar’> ] : ↑sceneType»→function;
 	Export openingSceneName as a new name;
 
 	/*
@@ -198,11 +198,11 @@ is
 	/* Declare the local variable that holds the field map. */
 	explicitAtom ::= atom for explicitAtomName;
 	contextMap ::= a context→map + explicitAtom→explicitAtom;
-	mapVar ::= «`"contextMap"` : field map := ‘`contextMap`’»;
+	mapVar ::= «`"contextMap"` : field map := ‘contextMap’»;
 
 	/* Arrange to set the opening scene. */
 	openingSceneDecl ::= «`"openingScene"` : sceneType
-		:= send $"↓_" with «<‘`openingSceneVar`’>» : sceneType»;
+		:= send $"↓_" with «<‘openingSceneVar’>» : sceneType»;
 	currentSceneVar ::= contextMap[$"current scene"];
 	currentSceneDecl ::=
 		«`"currentScene"` : abstract scene := «↓openingSceneDecl»»;
@@ -210,7 +210,7 @@ is
 		««↓mapVar» := send $"_+_→_" with
 			«<
 				send $"eject_" with «< «↑«↓mapVar»» >» : field map,
-				‘`$"current scene"`’,
+				‘$"current scene"’,
 				«↑«↓currentSceneDecl»»
 			>» : field map»;
 
@@ -222,7 +222,7 @@ is
 		««↓mapVar» := send $"_+_→_" with
 			«<
 				send $"eject_" with «< «↑«↓mapVar»» >» : field map,
-				‘`$"previous scene"`’,
+				‘$"previous scene"’,
 				«↑«↓previousSceneDecl»»
 			>» : field map»;
 
@@ -231,7 +231,7 @@ is
 	 */
 	instVars ::= map each initTriple, index in initializationTriples through
 		[
-			«`initTriple[1]'s name` : initTriple[2] := ‘`initTriple[3]`’»
+			«`initTriple[1]'s name` : initTriple[2] := ‘initTriple[3]’»
 		];
 
 	/* Generate the map construction expressions. */
@@ -239,7 +239,7 @@ is
 		[
 			ejectSend ::= send $"eject_" with «< «↑«↓mapVar»» >» : field map;
 			addBindingSend ::= send $"_+_→_"
-				with «< ejectSend, ‘`initTriple[1]`’, «↑«↓instVars[index]»» >»
+				with «< ejectSend, ‘initTriple[1]’, «↑«↓instVars[index]»» >»
 				: field map;
 			««↓mapVar» := addBindingSend»
 		];
@@ -288,7 +288,7 @@ Private method "get_'s⁇_field variable expression for_" is
 		«<
 			send $"the implied context" with «<>» : contextType
 		>» : field map,
-		‘`fieldAtom`’
+		‘fieldAtom’
 	>» : ↑stateType
 ] : send phrase⇒variable;
 
@@ -338,7 +338,7 @@ Private method "Install boolean accessors for_given_and_" is
 		positiveSetter ::= "Now " ++ positive;
 		positiveSetterBlock ::=
 			«[
-				<send $"_`?=_" with «< getVar, ‘`true`’ >» : ⊤>
+				<send $"_`?=_" with «< getVar, ‘true’ >» : ⊤>
 			] : ⊤»;
 		Method positiveSetter is positiveSetterBlock→function;
 		Export positiveSetter as a new name;
@@ -347,7 +347,7 @@ Private method "Install boolean accessors for_given_and_" is
 		negativeSetter ::= "Now " ++ negative;
 		negativeSetterBlock ::=
 			«[
-				<send $"_`?=_" with «< getVar, ‘`false`’ >» : ⊤>
+				<send $"_`?=_" with «< getVar, ‘false’ >» : ⊤>
 			] : ⊤»;
 		Method negativeSetter is negativeSetterBlock→function;
 		Export negativeSetter as a new name;
@@ -440,14 +440,14 @@ Private method "Install the scene vault for_" is
 	 * purpose.
 	 */
 	aMutex ::= a non-reentrant mutex;
-	sceneVaultLockBlock ::= «[ <> | <‘`aMutex`’> ] : non-reentrant mutex»;
+	sceneVaultLockBlock ::= «[ <> | <‘aMutex’> ] : non-reentrant mutex»;
 	Method sceneVaultLockName is sceneVaultLockBlock→function;
 	Export sceneVaultLockName as a new name;
 
 	/* Generate the scene vault as a method that answers the variable that
 	 * contains the map from scenes to their internal names.
 	 */
-	sceneVaultBlock ::= «[ <> | <‘`sceneVault`’>] : ↑sceneVaultType»;
+	sceneVaultBlock ::= «[ <> | <‘sceneVault’>] : ↑sceneVaultType»;
 	Method sceneVaultName is sceneVaultBlock→function;
 	Export sceneVaultName as a new name;
 ];
@@ -888,7 +888,7 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 		 * to be able to refer to the scene before its details have been
 		 * supplied.
 		 */
-		sceneVarBlock ::= «[ <> | <‘`sceneVar`’>] : ↑sceneType»;
+		sceneVarBlock ::= «[ <> | <‘sceneVar’>] : ↑sceneType»;
 		Method name is sceneVarBlock→function;
 		Export name as a new name;
 	];
@@ -991,7 +991,7 @@ Public method "Let_be a transition_" is
 |
 	contextType ::= dynamic game context type;
 	transitionType ::= scene transition for contextType;
-	transitionBlock ::= «[<> | <‘`transition`’>] : transitionType»;
+	transitionBlock ::= «[<> | <‘transition’>] : transitionType»;
 	Method name is transitionBlock→function;
 	Export name as a new name;
 ] : ⊤;
@@ -1085,7 +1085,7 @@ Private method "unary wrapper on_" is
 	«[
 		<arg «`"c"` : contextType»>
 	|
-		<send $"_(«_‡,»)" with «<‘`nullary`’, «<>»>» : returnType>
+		<send $"_(«_‡,»)" with «<‘nullary’, «<>»>» : returnType>
 	] : returnType»→function
 ];
 
@@ -1118,7 +1118,7 @@ Private method "target wrapper on_" is
 		<
 			send $"↓_" with
 			«<
-				send $"_(«_‡,»)" with «<‘`nullary`’, «<>»>» : ↑sceneType
+				send $"_(«_‡,»)" with «<‘nullary’, «<>»>» : ↑sceneType
 			>» : sceneType
 		>
 	] : sceneType»→function
@@ -1216,14 +1216,14 @@ Private method "Generate scene transition constructors" is
 				[
 					send $"unary wrapper on_" with
 					«<
-						if argType = ⊥ then [‘`[true]`’] else [argUse]
+						if argType = ⊥ then [‘[true]’] else [argUse]
 					>» : [⊥]→boolean
 				]
 				else if index = 3 then
 				[
 					send $"unary wrapper on_" with
 					«<
-						if argType = ⊥ then [‘`[]`’] else [argUse]
+						if argType = ⊥ then [‘[]’] else [argUse]
 					>» : [⊥]→⊤
 				]
 				else

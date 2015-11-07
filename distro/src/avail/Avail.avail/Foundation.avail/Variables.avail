@@ -666,7 +666,7 @@ Public macro "«…‡,»::=_;" is
 	|
 		nameToken ::= strongNameTokens[index];
 		at ::= restricted send $"_[_]"
-			with «<«↓tupleBinding», ‘`index`’>»
+			with «<«↓tupleBinding», ‘index’>»
 			: tupleType[index];
 		binding ::= «nameToken ::= at»;
 		bindings := concatenate <eject bindings, <binding>>;
@@ -752,7 +752,7 @@ Public macro "«…‡,»::=_;" is
 	|
 		nameToken ::= strongNameTokens[index];
 		at ::= restricted send $"_[_]"
-			with «<«↓tupleTypeBinding», ‘`index`’>»
+			with «<«↓tupleTypeBinding», ‘index’>»
 			: (tupleType[index]'s type);
 		binding ::= «nameToken ::= at»;
 		bindings := concatenate <eject bindings, <binding>>;

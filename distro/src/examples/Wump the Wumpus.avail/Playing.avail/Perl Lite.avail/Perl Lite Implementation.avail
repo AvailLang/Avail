@@ -277,7 +277,7 @@ Public macro "sub…{§«_!»}" is
 	defaultScalarDecl ::= scope map["_"];
 	send $"Method_is_" with
 	«<
-		‘`name`’,
+		‘name’,
 		«[
 			args
 		|

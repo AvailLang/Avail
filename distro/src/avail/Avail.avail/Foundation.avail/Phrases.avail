@@ -43,11 +43,10 @@ Uses
 	"Early Macro Support",
 	"Early Variables"
 Names
-	/*"Declare loop variable_as_",*/
 	"Evaluate|evaluate_",
 	"this token:…",
-	/*"Undeclare_",*/
 	"_compiled",
+	"‘_’",
 	"``_``",
 	"`«<«_‡,»>`»",
 	"`«[_`|_]:_`»",
@@ -110,14 +109,34 @@ Semantic restriction "``_``" is
  * Strengthen literal <em>node</em> building to covary with the type of object
  * inside the passed literal token.
  * 
- * @method "‘_’"
+ * @method "_→literal phrase"
  * @restricts "literal token's type"
  */
-Semantic restriction "‘_’" is
+Semantic restriction "_→literal phrase" is
 [
 	aLiteralToken : literal token's type
 |
 	literal phrase ⇒ (aLiteralToken's value type)
+];
+
+/**
+ * Answer a {@type "literal phrase"} for the specified value.
+ *
+ * @method "value" "any"
+ * @returns "literal phrase ⇒ any"
+ */
+Public method "‘_’" is
+[
+	value : any
+|
+	`value` (“value”)→literal phrase
+];
+
+Semantic restriction "‘_’" is
+[
+	valueType : any's type
+|
+	literal phrase ⇒ valueType
 ];
 
 /**

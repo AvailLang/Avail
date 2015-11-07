@@ -43,6 +43,7 @@ Names
 	"Private abstract method_is_",
 	"Private forward method_is_",
 	"Private method_is_",
+	"Private macro_is«_,»_",
 	"Public abstract method_is_",
 	"Public forward method_is_",
 	"Public method_is_",
@@ -721,9 +722,9 @@ Method "Grammatical restriction_is_" is
  * is named in the current module's "Names" section. This should not be used to
  * extend existing macros.
  * 
- * @method "Public macro_is_"
+ * @method "Public macro_i«_,»s_"
  * @param "macroName" "string"
- *        The atom that uniquely names the new method.
+ *        The name of the the new macro.
  * @param "prefixFunctions" "function*"
  *        The prefix functions associated with this macro.
  * @param "body" "macro function"
@@ -744,7 +745,7 @@ Method "Public macro_is«_,»_" is
 /**
  * Ensure that the new macro is introduced by the module's "Names" section.
  * 
- * @method "Public abstract method_is_"
+ * @method "Public macro_is«_,»_"
  * @restricts "string's type"
  * @restricts "function meta's type"
  */
@@ -755,5 +756,47 @@ Semantic restriction "Public macro_is«_,»_" is
 	bodyType : macro function's type
 |
 	Require: macroNameType is public;
+	⊤
+];
+
+/**
+ * Define a new private macro. The semantic restriction ensures that the method
+ * is not named in the current module's "Names" section. This should not be used
+ * to extend existing macros.
+ * 
+ * @method "Private macro_is«_,»_"
+ * @param "macroName" "string"
+ *        The name of the new macro.
+ * @param "prefixFunctions" "function*"
+ *        The prefix functions associated with this macro.
+ * @param "body" "macro function"
+ *        The original implementation of the macro.
+ * @returns "⊤"
+ * @category "Primitives" "Declarations" "Methods"
+ */
+Method "Private macro_is«_,»_" is
+[
+	macroName : string,
+	prefixFunctions : tuple of function,
+	body : macro function
+|
+	Primitive SimpleMacroDeclaration (failureCode : natural number);
+	Invoke early failure function with <failureCode>;
+] : ⊤;
+
+/**
+ * Ensure that the new macro is not introduced by the module's "Names" section.
+ * 
+ * @method "Private macro_is«_,»_"
+ * @restricts "string's type"
+ * @restricts "function meta's type"
+ */
+Semantic restriction "Private macro_is«_,»_" is
+[
+	macroNameType : string's type,
+	prefixFunctionsType : tuple of function's type,
+	bodyType : macro function's type
+|
+	Require: macroNameType is private;
 	⊤
 ];

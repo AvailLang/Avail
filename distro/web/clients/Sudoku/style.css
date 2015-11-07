@@ -107,90 +107,78 @@
 	font-weight: bold;
 }
 
-.source
+.sudoku
 {
-	border: 2px solid;
-	border-radius: 25px;
-	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
-	margin: 0px 0px 30px 0px;
-	padding: 0px 10px 0px 10px;
-	background-color: #b0e2ff;
+	margin: auto;
 }
 
-input[type="text"]
+table
+{
+	margin: auto;
+	padding: 0pt;
+	border-collapse:collapse;
+	background-color:#FFFFFF;
+	border-right: #666699 solid 2px;
+}
+
+td
+{
+	padding: 0pt;
+}
+
+.cell-tl, .cell-tm, .cell-ml, .cell-mm, .cell-bl, .cell-bm
+{
+	width: 24pt;
+	height: 25pt;
+	vertical-align: middle;
+	text-align:center;
+	font-size:18pt;
+	border-left: #DDDDEE solid 1px;
+	border-top: #DDDDEE solid 1px;
+}
+
+.cell-tl, .cell-ml, .cell-bl
+{
+	border-left: #666699 solid 2px;
+}
+
+ .cell-tl, .cell-tm
+{
+	border-top: #666699 solid 2px;
+}
+
+.cell-bl, .cell-bm
+{
+	border-bottom: #666699 solid 2px;
+}
+
+input
 {
 	display: block;
 	margin: auto;
-	padding: 10px 0px 10px 0px;
-	width: 80%;
 	text-align: center;
-	font-family: sans-serif;
-	font-size: 18px;
-	font-weight: bold;
 	appearance: none;
 	box-shadow: none;
 	border-radius: none;
 	border: none;
-	background-color: #b0e2ff;
 }
 
-input[type="text"]:focus
+input:focus
 {
 	outline: none;
 }
 
-textarea
+.no-solution
 {
-	width: 572px;
-	border: 2px solid;
-	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
-	margin: 0px 0px 30px 0px;
-	padding: 10px;
-	background-color: #b0e2ff;
+	margin: auto;
 }
 
-.result
-{
-	border: 2px solid;
-	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
-	margin: 0px 0px 30px 0px;
-	background-color: #98fb98;
-	padding: 10px;
-	overflow-x: auto;
-}
-
-.result > p
+.no-solution > p
 {
 	text-align: center;
-	font-size: 18px;
+	font-family: sans-serif;
+	font-size: 16px;
+	font-variant: small-caps;
 	font-weight: bold;
-}
-
-.compiler
-{
-	border: 2px solid;
-	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
-	background-color: #eed2ee;
-	overflow: scroll;
-}
-
-.compiler > pre
-{
-	font-family: monospace;
-	font-size: 10pt;
-}
-
-.stdout
-{
-	border: 2px solid;
-	padding: 10px;
-	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
-	background-color: #d3d3d3;
-	overflow: scroll;
-}
-
-.stdout > pre
-{
-	font-family: monospace;
-	font-size: 10pt;
+	color: #aa0000;
 }

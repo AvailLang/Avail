@@ -171,8 +171,8 @@ Public macro "IPv4…#.…#.…#.…#" is
 		Reject parse, expected:
 			"IPv4 address not to contain whitespace"
 	];
-	‘`an IPv4 address with octets ::=
-		map each o in <o1, o2, o3, o4> through [o's token's value's value]`’
+	‘an IPv4 address with octets ::=
+		map each o in <o1, o2, o3, o4> through [o's token's value's value]’
 ];
 
 /**
@@ -312,7 +312,7 @@ Public macro "IPv6««…#§»?«…§»?‡:»" is
 		Reject parse, expected:
 			"IPv6 address to comprise 16 octets"
 	];
-	‘`cast octets into [t : <byte…|16> | an IPv6 address with octets ::= t]`’
+	‘cast octets into [t : <byte…|16> | an IPv6 address with octets ::= t]’
 ];
 
 "address" is a new field atom;
@@ -421,9 +421,9 @@ Public macro "_:…#" is
 	addr : literal phrase ⇒ IPv4 address,
 	port : literal phrase ⇒ (literal token ⇒ [0..65535])
 |
-	‘`a socket address with
+	‘a socket address with
 		address ::= addr's token's value,
-		port ::= port's token's value's value`’
+		port ::= port's token's value's value’
 ];
 
 /**
@@ -441,7 +441,7 @@ Public macro "[_]:…#" is
 	addr : literal phrase ⇒ IPv6 address,
 	port : literal phrase ⇒ (literal token ⇒ [0..65535])
 |
-	‘`a socket address with
+	‘a socket address with
 		address ::= addr's token's value,
-		port ::= port's token's value's value`’
+		port ::= port's token's value's value’
 ];

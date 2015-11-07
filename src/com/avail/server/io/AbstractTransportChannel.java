@@ -36,7 +36,6 @@ import java.util.Deque;
 import java.util.LinkedList;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
-import com.avail.utility.IO;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
@@ -87,6 +86,12 @@ extends AvailServerChannel
 	protected final Deque<Message> sendQueue = new LinkedList<>();
 
 	/**
+	 * Should the {@linkplain AbstractTransportChannel channel} close after
+	 * emptying the {@linkplain #sendQueue message queue}?
+	 */
+	protected boolean closeAfterEmptyingSendQueue = false;
+
+	/**
 	 * A {@linkplain Deque queue} of {@linkplain Pair pairs} of {@linkplain
 	 * Message messages} and {@linkplain Continuation0 continuations}, as
 	 * supplied to calls of {@link #enqueueMessageThen(Message, Continuation0)
@@ -133,11 +138,9 @@ extends AvailServerChannel
 						final Message sentMessage = sendQueue.removeFirst();
 						if (sentMessage.closeAfterSending())
 						{
-							IO.close(AbstractTransportChannel.this);
+							adapter.sendClose(AbstractTransportChannel.this);
 							return;
 						}
-						nextMessage = sendQueue.peekFirst();
-						assert sendQueue.size() < maximumSendQueueDepth();
 						// Remove the oldest sender, but release the monitor
 						// before evaluating it.
 						pair = senders.pollFirst();
@@ -145,6 +148,8 @@ extends AvailServerChannel
 						{
 							sendQueue.addLast(pair.first());
 						}
+						nextMessage = sendQueue.peekFirst();
+						assert sendQueue.size() < maximumSendQueueDepth();
 					}
 					// Begin transmission of the next message.
 					if (nextMessage != null)
@@ -154,6 +159,13 @@ extends AvailServerChannel
 							nextMessage,
 							this,
 							fail);
+					}
+					// If a close is in progress, but awaiting the queue to
+					// empty, then finish the close.
+					else if (closeAfterEmptyingSendQueue)
+					{
+						adapter.sendClose(AbstractTransportChannel.this);
+						return;
 					}
 					// Proceed the paused client.
 					if (pair != null)
