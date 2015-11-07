@@ -176,7 +176,8 @@ function presentUI ()
 
 	var div1 = document.createElement('div');
 	var input = document.createElement('textarea');
-	div1.title = 'Press Shift+Enter to submit Avail for evaluation';
+	div1.title = '● Press Shift+Enter to submit Avail for evaluation\n\n'
+		+ '● Press F1/F2︎ to navigate previously submitted expressions';
 	input.id = 'expression';
 	input.rows = 10;
 	input.placeholder = 'Evaluate me!';
@@ -247,6 +248,9 @@ function presentUI ()
 	
 	var expression = $("#expression");
 	
+	var historyStack = [];
+	var historyIndex = historyStack.length - 1;
+	
 	$("#expression-form").submit(function (event)
 	{
 		return false;
@@ -264,7 +268,26 @@ function presentUI ()
 				{
 					presentResult(data.content.result);
 				});
+			historyStack.push(expression.val());
+			historyIndex = historyStack.length - 1;
 		} 
+		else if (event.keyCode == 112 /*&& event.keyCode == 40*/)
+		{
+			event.preventDefault();
+			if (historyIndex > 0)
+			{
+				historyIndex--;
+				expression.val(historyStack[historyIndex]);
+			}
+		}
+		else if (event.keyCode == 113 /*&& event.keyCode == 38*/)
+		{
+			if (historyIndex > -1 && historyIndex < historyStack.length - 1)
+			{
+				historyIndex++;
+				expression.val(historyStack[historyIndex]);
+			}
+		}
 		else
 		{
 			if (event.keyCode == 13)

@@ -143,18 +143,19 @@ textarea
 {
 	width: 572px;
 	border: 2px solid;
-	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+	/*box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);*/
 	margin: 0px 0px 30px 0px;
 	padding: 10px;
-	background-color: #b0e2ff;
+	color: white;
+	background-color: black;
 }
 
 .result
 {
 	border: 2px solid;
-	box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);
+	/*box-shadow: 6px 6px 5px rgba(0, 0, 0, 0.5);*/
 	margin: 0px 0px 30px 0px;
-	background-color: #98fb98;
+	background-color: /*#98fb98*/ grey;
 	padding: 10px;
 	overflow-x: auto;
 }
