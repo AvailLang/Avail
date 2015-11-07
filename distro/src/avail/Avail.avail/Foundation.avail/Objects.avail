@@ -1189,7 +1189,7 @@ is
 			<>
 		|
 			<
-				‘`subtype`(className)’
+				`subtype`(className) → literal phrase
 			>
 		] : subtype's type»;
 	classNameFunction ::= classNameBlock → function;
