@@ -246,6 +246,13 @@ function presentUI ()
 	main.append(div1);
 	main.append(div2);
 	
+	//Add line numbers to the input area
+	$('textarea').numberedtextarea();
+	var lineNumbers = $('.numberedtextarea-line-numbers');
+	lineNumbers[0].style.fontSize = '10pt';
+	lineNumbers[0].style.fontSizeFamily = 'monospace';
+	lineNumbers[0].style.color = '#0000FF';
+	
 	var expression = $("#expression");
 	
 	var historyStack = [];
