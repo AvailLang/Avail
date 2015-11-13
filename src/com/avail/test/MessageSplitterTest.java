@@ -199,9 +199,27 @@ public class MessageSplitterTest
 				PARSE_ARGUMENT.encoding(),
 				CHECK_ARGUMENT.encoding(2),
 				APPEND_ARGUMENT.encoding())),
+		/* Literals */
+		C("…#",
+			A("…", "#"),
+			A(
+				PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding(),
+				APPEND_ARGUMENT.encoding())),
+		C("…$",
+			A("…", "$"),
+			A(
+				PARSE_RAW_STRING_LITERAL_TOKEN.encoding(),
+				APPEND_ARGUMENT.encoding())),
 		/* Backquotes. */
 		C("`__",
 			A("`", "_", "_"),
+			A(
+				PARSE_PART.encoding(2),
+				PARSE_ARGUMENT.encoding(),
+				CHECK_ARGUMENT.encoding(1),
+				APPEND_ARGUMENT.encoding())),
+		C("`$_",
+			A("`", "$", "_"),
 			A(
 				PARSE_PART.encoding(2),
 				PARSE_ARGUMENT.encoding(),
