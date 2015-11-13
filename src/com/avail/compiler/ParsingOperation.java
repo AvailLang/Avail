@@ -153,13 +153,21 @@ public enum ParsingOperation
 	 * {@code 13} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
 	 *
-	 * <p>This is used by the {@link MessageSplitter.RawLiteralTokenArgument}
-	 * message expression, denoted by characters "…#" in the message name.</p>
+	 * <p>This is used by the {@link
+	 * MessageSplitter.RawStringLiteralTokenArgument} message expression,
+	 * denoted by characters "…$" in the message name.</p>
 	 */
-	PARSE_RAW_LITERAL_TOKEN(13),
+	PARSE_RAW_STRING_LITERAL_TOKEN(13),
 
-	/** Reserved for future parsing concepts. */
-	RESERVED_14(14),
+	/**
+	 * {@code 14} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
+	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
+	 *
+	 * <p>This is used by the {@link
+	 * MessageSplitter.RawWholeNumberLiteralTokenArgument} message expression,
+	 * denoted by characters "…#" in the message name.</p>
+	 */
+	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(14),
 
 	/** Reserved for future parsing concepts. */
 	RESERVED_15(15),

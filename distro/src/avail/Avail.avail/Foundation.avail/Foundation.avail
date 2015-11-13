@@ -68,7 +68,7 @@ Extends
 			\|[§\
 				\|««…:_†§‡,»`|»?\
 				\|«Primitive…«(…:_†)»?§;»?\
-				\|«$…«:_†»?;§»?\
+				\|«`$…«:_†»?;§»?\
 				\|«_!§»\
 				\|«_!»?\
 			\|]§\
@@ -236,8 +236,8 @@ Extends
 		"⊤",
 		"⊥",
 		"-∞",
-		"$_",
-		"$_@pc=_stack=_[_]caller=_",
+		"`$_",
+		"`$_@pc=_stack=_[_]caller=_",
 		"<_,_`…`|_>",
 		"[`…]→_",
 		"``_``(_)",
@@ -247,7 +247,7 @@ Extends
 		"`|_`|",
 		"`|`|_`|`|",
 		"`|message_'s⁇parameters`|",
-		"`«$_:_`»",
+		"`«`$_:_`»",
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
 		"`«supercast(_::_)`»",
@@ -422,6 +422,7 @@ Extends
 		"declaration-kind-does-not-support-assignment code",
 		"declaration-kind-does-not-support-reference code",
 		"directory-not-empty code",
+		"dollar-sign-must-follow-an-ellipsis code",
 		"double-question-mark-must-follow-a-token-or-simple-group code",
 		"exceeds-vm-limit code",
 		"exclamation-mark-must-follow-an-alternation-group code",
@@ -465,7 +466,7 @@ Extends
 		"not-an-enumeration code",
 		"not-open-for-read code",
 		"not-open-for-write code",
-		"octothorp-must-follow-a-simple-group code",
+		"octothorp-must-follow-a-simple-group-or-ellipsis code",
 		"operation-not-supported code",
 		"outer-type-literal-is-not-a-type code",
 		"partial-success code",
@@ -904,8 +905,8 @@ Extends
 		"<«_‡,»>",
 		"{«_‡,»}",
 		"{«_→_‡,»}",
-		"$…",
-		"$…#",
+		"`$…",
+		"`$…$",
 		"¢…!",
 		"…#.…#«f»?",
 		"…#.…#…",
@@ -958,7 +959,7 @@ Extends
 		"integrate_and_with_",
 		"integrate«_‡,and⁇»with_",
 		"map each…→…in|of_§through_",
-		"${…}«else_»"
+		"`${…}«else_»"
 	),
 	"Methods" =
 	(

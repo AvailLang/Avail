@@ -541,7 +541,7 @@ Primitive "variable meta" is
  *
  * @category "Primitives" "Types"
  * @type "continuation"
- * @alias "$[…]→⊥"
+ * @alias "`$[…]→⊥"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
 Primitive "continuation" is
@@ -554,7 +554,7 @@ Primitive "continuation" is
  *
  * @category "Primitives" "Types"
  * @type "continuation meta"
- * @alias "($[…]→⊥)'s type"
+ * @alias "(`$[…]→⊥)'s type"
  * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
@@ -1922,7 +1922,7 @@ Primitive "predicate function" is
  *
  * @category "Primitives" "Types"
  * @type "continuation variable"
- * @alias "↑$[…]→⊥"
+ * @alias "↑`$[…]→⊥"
  */
 Primitive "continuation variable" is
 [

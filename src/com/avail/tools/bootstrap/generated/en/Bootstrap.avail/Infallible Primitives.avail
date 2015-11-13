@@ -47,7 +47,6 @@ Uses
 	"Special Objects",
 	"Primitives" =
 	(
-		"$_",
 		"<_,_`…`|_>",
 		"Assert:_(_)",
 		"Breakpoint",
@@ -170,16 +169,17 @@ Uses
 		"_≤_",
 		"_⊆_",
 		"_⨉_^_",
+		"`$_",
 		"``_``(_)",
 		"`|_'s⁇local variables`|",
 		"`|_'s⁇outer variables`|",
 		"`|_'s⁇parameters`|",
 		"`|_`|",
 		"`|`|_`|`|",
-		"`«$_:_`»",
 		"`«_::=_`»",
 		"`«_:_:=_`»",
 		"`«_:_`»",
+		"`«`$_:_`»",
 		"`«module variable_(_)`»",
 		"`«↓_`»",
 		"`«↓_`»(_)",
@@ -449,13 +449,13 @@ Primitive "_'s⁇function type" is
  * function of the specified type.
  *
  * @category "Primitives" "Types" "Continuations" "Constructors"
- * @method "$_"
+ * @method "`$_"
  * @param "functionType" "function meta"
  *        A function type.
  * @returns "($[…]→⊥)'s type"
  *    The requested continuation type.
  */
-Primitive "$_" is
+Primitive "`$_" is
 [
 	functionType : function meta
 |
@@ -2505,7 +2505,7 @@ Primitive "`«_:_:=_`»" is
  * Construct and answer a label declaration.
  *
  * @category "Primitives" "Phrases" "Constructors"
- * @method "`«$_:_`»"
+ * @method "`«`$_:_`»"
  * @param "name" "token"
  *        The name of the new constant.
  * @param "declaredType" "continuation"
@@ -2513,7 +2513,7 @@ Primitive "`«_:_:=_`»" is
  * @returns "label phrase⇒⊤"
  *    The requested label declaration.
  */
-Primitive "`«$_:_`»" is
+Primitive "`«`$_:_`»" is
 [
 	name : token,
 	declaredType : continuation
