@@ -339,9 +339,9 @@ public enum AvailErrorCode
 
 	/**
 	 * An octothorp (#) may only occur after a guillemet group which has no
-	 * arguments.
+	 * arguments or an ellipsis (…).
 	 */
-	E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP (49),
+	E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS (49),
 
 	/**
 	 * A question mark (?) may only occur after a guillemet group which has no
@@ -393,7 +393,10 @@ public enum AvailErrorCode
 	 */
 	E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE (57),
 
-//	E_??? (58),
+	/**
+	 * A dollar sign ($) may only occur after an ellipsis (…).
+	 */
+	E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS (58),
 
 	/**
 	 * A macro prefix function is invoked when a potential macro site reaches

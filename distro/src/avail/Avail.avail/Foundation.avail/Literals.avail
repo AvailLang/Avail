@@ -54,8 +54,8 @@ Uses
 	"Phrases"
 Names
 	"{«_→_‡,»}",
-	"$…",
-	"$…#",
+	"`$…",
+	"`$…$",
 	"¢…!",
 	"…#.…#«f»?",
 	"…#.…#…",
@@ -337,7 +337,7 @@ Semantic restriction "⎡_⎤" is
  * looked up using in the current module's context. The name of the atom is
  * provided by the argument's lexeme.
  * 
- * @macro "$…"
+ * @macro "`$…"
  * @param "tokenPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the atom.
@@ -345,7 +345,7 @@ Semantic restriction "⎡_⎤" is
  *          The {@type "atom"} {@type "literal phrase" literal}.
  * @category "Atoms" "Constructors"
  */
-Public macro "$…" is
+Public macro "`$…" is
 [
 	tokenPhrase : literal phrase ⇒ token
 |
@@ -358,7 +358,7 @@ Public macro "$…" is
  * looked up in the current module's context. If the token is a string literal,
  * then use its value instead of its lexeme for the name of the atom.
  * 
- * @macro "$…#"
+ * @macro "`$…$"
  * @param "aToken"
  *        "literal phrase ⇒ (literal token ⇒ string)"
  *        A {@type "literal phrase"} holding a {@type "literal token"} whose
@@ -367,7 +367,7 @@ Public macro "$…" is
  *          The {@type "atom"} {@type "literal phrase" literal}.
  * @category "Atoms" "Constructors"
  */
-Public macro "$…#" is
+Public macro "`$…$" is
 [
 	tokenPhrase : literal phrase ⇒ (literal token ⇒ string)
 |

@@ -47,7 +47,7 @@ Extends
 		/* Statements. */
 		"_!;",
 		"_!;" → "_!",
-		"…" → "(Perl)$…",
+		"…" → "(Perl)`$…",
 
 		/* Array construction. */
 		"<«_‡,»>" → "(Perl)(«_‡,»)",
@@ -89,10 +89,10 @@ Names
 	"@…",
 
 	/* Argument declaration. */
-	"my(«$…§‡,»)=@`_;",
+	"my(«`$…§‡,»)=@`_;",
 
 	/* Local declarations. */
-	"my$…=_;",
+	"my`$…=_;",
 	"my@…=_;",
 
 	/* Subroutine declaration. */
@@ -102,8 +102,8 @@ Names
 	"sub⁇{§«_!»_!}",
 
 	/* I/O. */
-	"$game->{reader}=_",
-	"$game->{reporter}=_",
+	"`$game->{reader}=_",
+	"`$game->{reporter}=_",
 
 	/* Queries. */
 	"_->{is`_alive}",
@@ -147,11 +147,11 @@ Private method "args:=_" is
  * Declare the {@type "argument phrase" arguments} of the enclosing subroutine,
  * and bring them immediately into scope.
  *
- * @method "my(«$…§‡,»)=@`_;"
+ * @method "my(«`$…§‡,»)=@`_;"
  * @param "argsPhrase" "list phrase ⇒ (token+)"
  * @returns "sequence phrase"
  */
-Public macro "my(«$…§‡,»)=@`_;" is
+Public macro "my(«`$…§‡,»)=@`_;" is
 [
 	argsPhrase : list phrase ⇒ (token+)
 |
@@ -177,12 +177,12 @@ Public macro "my(«$…§‡,»)=@`_;" is
 /**
  * Define a local scalar variable.
  *
- * @method "my$…=_;"
+ * @method "my`$…=_;"
  * @param "localPhrase" "literal phrase ⇒ token"
  * @param "initPhrase" "expression phrase ⇒ any"
  * @returns "local variable phrase"
  */
-Public macro "my$…=_;" is
+Public macro "my`$…=_;" is
 [
 	localPhrase : literal phrase ⇒ token,
 	initPhrase : expression phrase ⇒ any
@@ -323,12 +323,12 @@ Public macro "sub⁇{§«_!»_!}" is
 /**
  * Set the {@param "function"} used to read commands from the player.
  *
- * @method "$game->{reader}=_"
+ * @method "`$game->{reader}=_"
  * @param "reader" "any"
  *        This must be a {@type "[]→string"}.
  * @returns "⊤"
  */
-Public method "$game->{reader}=_" is
+Public method "`$game->{reader}=_" is
 [
 	reader : any
 |
@@ -338,12 +338,12 @@ Public method "$game->{reader}=_" is
 /**
  * Set the {@param "function"} used to report information to the player.
  *
- * @method "$game->{reporter}=_"
+ * @method "`$game->{reporter}=_"
  * @param "reporter" "any"
  *        This must be a {@type "[string]→⊤"}.
  * @returns "⊤"
  */
-Public method "$game->{reporter}=_" is
+Public method "`$game->{reporter}=_" is
 [
 	reporter : any
 |

@@ -330,6 +330,20 @@ extends TupleDescriptor
 		return octothorp;
 	}
 
+	/** A tuple containing just the dollar sign character. */
+	private static final A_String dollarSign = from("$").makeShared();
+
+	/**
+	 * Returns an Avail {@linkplain StringDescriptor string} of size one,
+	 * consisting of just the dollar sign character ("$").
+	 *
+	 * @return A tuple containing just the dollar sign character.
+	 */
+	public static A_String dollarSign()
+	{
+		return dollarSign;
+	}
+
 	/** A tuple containing just the question mark character. */
 	private static final A_String questionMark = from("?").makeShared();
 

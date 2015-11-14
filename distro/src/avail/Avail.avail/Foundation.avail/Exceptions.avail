@@ -1961,7 +1961,7 @@ invalid method send function :=
  * to fail, we're not <em>quite</em> far enough along in exception support to be
  * able to log it sensibly.  See down a few lines for this phantom misparse.
  */
-Grammatical restriction "$_@pc=_stack=_[_]caller=_" is <∅, ∅, {"_[_]"}, ∅, ∅>;
+Grammatical restriction "`$_@pc=_stack=_[_]caller=_" is <∅, ∅, {"_[_]"}, ∅, ∅>;
 
 /* If the unhandled exception handler catches a termination-requested exception,
  * we want the fiber to exit cleanly, so use an uninitialized variable. This is

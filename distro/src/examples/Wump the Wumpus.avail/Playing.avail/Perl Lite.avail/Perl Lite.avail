@@ -36,7 +36,7 @@ Versions
 Extends
 	"Perl Lite Implementation" =
 	(
-		"(Perl)$…" → "$…",
+		"(Perl)`$…" → "`$…",
 		"(Perl)(«_‡,»)" → "(«_‡,»)",
 		…
 	)

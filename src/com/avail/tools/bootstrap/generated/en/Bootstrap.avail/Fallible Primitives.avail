@@ -48,7 +48,6 @@ Uses
 	"Special Objects",
 	"Primitives" =
 	(
-		"$_@pc=_stack=_[_]caller=_",
 		"Abstract method_is_",
 		"Accept parse",
 		"After the current module is unloaded,⁇do_",
@@ -101,6 +100,7 @@ Uses
 		"_→tuple",
 		"_∈_",
 		"_∈current fiber",
+		"`$_@pc=_stack=_[_]caller=_",
 		"`|message_'s⁇parameters`|",
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
@@ -376,7 +376,7 @@ Primitive "all atoms for_" is
  * are specified by the arguments.
  *
  * @category "Primitives" "Continuations" "Constructors"
- * @method "$_@pc=_stack=_[_]caller=_"
+ * @method "`$_@pc=_stack=_[_]caller=_"
  * @param "aFunction" "function"
  *        The new continuation's current function.
  * @param "programCounter" "natural number"
@@ -397,7 +397,7 @@ Primitive "all atoms for_" is
  *    The requested continuation.
  * @raises "cannot-create-continuation-for-infallible-primitive-function exception"
  */
-Primitive "$_@pc=_stack=_[_]caller=_" is
+Primitive "`$_@pc=_stack=_[_]caller=_" is
 [
 	aFunction : function,
 	programCounter : natural number,
@@ -1072,7 +1072,7 @@ Primitive "_«[_]»→_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1080,9 +1080,9 @@ Primitive "_«[_]»→_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
- * @raises "up-arrow-must-follow-argument exception"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1103,7 +1103,7 @@ Primitive "Abstract method_is_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1111,6 +1111,7 @@ Primitive "Abstract method_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		method-is-sealed code,
 		up-arrow-must-follow-argument code,
@@ -1145,7 +1146,7 @@ Primitive "Abstract method_is_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1153,9 +1154,9 @@ Primitive "Abstract method_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
- * @raises "up-arrow-must-follow-argument exception"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1175,7 +1176,7 @@ Primitive "Abstract method_is_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1183,6 +1184,7 @@ Primitive "Abstract method_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		method-is-sealed code,
 		up-arrow-must-follow-argument code,
@@ -1223,7 +1225,7 @@ Primitive "Abstract method_is_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1231,7 +1233,7 @@ Primitive "Abstract method_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "loading-is-over exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  */
 Primitive "Semantic restriction_is_" is
 [
@@ -1252,7 +1254,7 @@ Primitive "Semantic restriction_is_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1260,6 +1262,7 @@ Primitive "Semantic restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -1299,7 +1302,7 @@ Primitive "Semantic restriction_is_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1307,7 +1310,7 @@ Primitive "Semantic restriction_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "loading-is-over exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  */
 Primitive "Semantic restriction_is_" is
 [
@@ -1327,7 +1330,7 @@ Primitive "Semantic restriction_is_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1335,6 +1338,7 @@ Primitive "Semantic restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -1364,7 +1368,7 @@ Primitive "Semantic restriction_is_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1372,9 +1376,9 @@ Primitive "Semantic restriction_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "loading-is-over exception"
  * @raises "atom-already-exists exception"
- * @raises "up-arrow-must-follow-argument exception"
  */
 Primitive "Alias_to_" is
 [
@@ -1394,7 +1398,7 @@ Primitive "Alias_to_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1402,6 +1406,7 @@ Primitive "Alias_to_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		atom-already-exists code,
 		up-arrow-must-follow-argument code,
@@ -1499,7 +1504,7 @@ Primitive "method definition of_for_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1507,9 +1512,9 @@ Primitive "method definition of_for_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
- * @raises "up-arrow-must-follow-argument exception"
  */
 Primitive "Forward method_is_" is
 [
@@ -1530,7 +1535,7 @@ Primitive "Forward method_is_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1538,6 +1543,7 @@ Primitive "Forward method_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		method-is-sealed code,
 		up-arrow-must-follow-argument code,
@@ -1579,7 +1585,7 @@ Primitive "Forward method_is_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1587,7 +1593,7 @@ Primitive "Forward method_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "loading-is-over exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  */
 Primitive "Grammatical restriction_is_" is
 [
@@ -1607,7 +1613,7 @@ Primitive "Grammatical restriction_is_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1615,6 +1621,7 @@ Primitive "Grammatical restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -1655,7 +1662,7 @@ Primitive "Grammatical restriction_is_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1663,7 +1670,7 @@ Primitive "Grammatical restriction_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "loading-is-over exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  */
 Primitive "Grammatical restriction_is_" is
 [
@@ -1682,7 +1689,7 @@ Primitive "Grammatical restriction_is_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1690,6 +1697,7 @@ Primitive "Grammatical restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -1736,7 +1744,7 @@ Primitive "method for_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1760,7 +1768,7 @@ Primitive "message_contains groups" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1768,6 +1776,7 @@ Primitive "message_contains groups" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -1793,7 +1802,7 @@ Primitive "message_contains groups" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1817,7 +1826,7 @@ Primitive "`|message_'s⁇parameters`|" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1825,6 +1834,7 @@ Primitive "`|message_'s⁇parameters`|" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -1855,7 +1865,7 @@ Primitive "`|message_'s⁇parameters`|" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1863,7 +1873,7 @@ Primitive "`|message_'s⁇parameters`|" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "loading-is-over exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  */
 Primitive "Seal method_at_" is
 [
@@ -1883,7 +1893,7 @@ Primitive "Seal method_at_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1891,6 +1901,7 @@ Primitive "Seal method_at_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -1921,7 +1932,7 @@ Primitive "Seal method_at_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -1929,7 +1940,7 @@ Primitive "Seal method_at_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "loading-is-over exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  */
 Primitive "Seal method_at_" is
 [
@@ -1948,7 +1959,7 @@ Primitive "Seal method_at_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -1956,6 +1967,7 @@ Primitive "Seal method_at_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -2047,7 +2059,7 @@ Primitive "semantic restrictions for_given_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -2055,8 +2067,8 @@ Primitive "semantic restrictions for_given_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "macro-prefix-functions-must-return-top exception"
- * @raises "macro-prefix-function-argument-must-be-a-parse-node exception"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -2079,7 +2091,7 @@ Primitive "Macro_is«_,»_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -2087,6 +2099,7 @@ Primitive "Macro_is«_,»_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		macro-prefix-functions-must-return-top code,
 		macro-prefix-function-argument-must-be-a-parse-node code,
 		macro-must-return-a-parse-node code,
@@ -2136,7 +2149,7 @@ Primitive "Macro_is«_,»_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -2144,12 +2157,12 @@ Primitive "Macro_is«_,»_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "macro-prefix-functions-must-return-top exception"
  * @raises "macro-prefix-function-argument-must-be-a-parse-node exception"
  * @raises "macro-must-return-a-parse-node exception"
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
- * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -2171,7 +2184,7 @@ Primitive "Macro_is«_,»_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -2179,6 +2192,7 @@ Primitive "Macro_is«_,»_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		macro-prefix-functions-must-return-top code,
 		macro-prefix-function-argument-must-be-a-parse-node code,
 		macro-must-return-a-parse-node code,
@@ -2656,7 +2670,7 @@ Primitive "`«`↑_`»" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -2664,8 +2678,8 @@ Primitive "`«`↑_`»" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "up-arrow-must-follow-argument exception"
- * @raises "no-method-definition exception"
  */
 Primitive "restricted send_with_:_" is
 [
@@ -2685,7 +2699,7 @@ Primitive "restricted send_with_:_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -2693,6 +2707,7 @@ Primitive "restricted send_with_:_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		up-arrow-must-follow-argument code,
 		no-method-definition code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -2726,7 +2741,7 @@ Primitive "restricted send_with_:_" is
  * @raises "expected-operator-after-backquote exception"
  * @raises "incorrect-type-for-boolean-group exception"
  * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
  * @raises "question-mark-must-follow-a-simple-group exception"
  * @raises "case-insensitive-expression-canonization exception"
  * @raises "tilde-must-not-follow-argument exception"
@@ -2753,7 +2768,7 @@ Primitive "send_with_:_" is
 		expected-operator-after-backquote code,
 		incorrect-type-for-boolean-group code,
 		incorrect-type-for-counting-group code,
-		octothorp-must-follow-a-simple-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
 		question-mark-must-follow-a-simple-group code,
 		case-insensitive-expression-canonization code,
 		tilde-must-not-follow-argument code,
@@ -2761,6 +2776,7 @@ Primitive "send_with_:_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
+		dollar-sign-must-follow-an-ellipsis code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode

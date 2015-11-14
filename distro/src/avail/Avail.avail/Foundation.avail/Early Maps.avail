@@ -50,7 +50,7 @@ Uses
 	"Variables"
 Names
 	"environment map",
-	"${…}«else_»"
+	"`${…}«else_»"
 Body
 
 /**
@@ -318,7 +318,7 @@ Public method "environment map" is
 /**
  * Answer the value of the requested environment variable.
  *
- * @method "${…}«else_»"
+ * @method "`${…}«else_»"
  * @param "aToken" "token"
  *        The name of the environment variable.
  * @param "else" "[]→string"
@@ -327,7 +327,7 @@ Public method "environment map" is
  * @returns "string"
  * @category "Maps" "Queries"
  */
-Public method "${…}«else_»" is
+Public method "`${…}«else_»" is
 [
 	aToken : token,
 	else : ([]→string)?
@@ -340,7 +340,7 @@ Public method "${…}«else_»" is
 /**
  * Answer the value of the requested environment variable.
  *
- * @method "${…}"
+ * @method "`${…}"
  * @param "aLiteralToken" "literalToken"
  *        The name of the environment variable.
  * @param "else" "[]→string"
@@ -349,7 +349,7 @@ Public method "${…}«else_»" is
  * @returns "string"
  * @category "Maps" "Queries"
  */
-Public method "${…}«else_»" is
+Public method "`${…}«else_»" is
 [
 	aToken : literal token,
 	else : ([]→string)?
