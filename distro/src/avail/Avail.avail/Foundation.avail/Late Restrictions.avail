@@ -50,6 +50,14 @@ Grammatical restriction "_«[_]»→_" is <{"_[_]"},∅,∅>;
 /** 
  * Give n-ary update a higher precedence than subscript. 
  * 
+ * @method "_«[_]»(_.._)→_"
+ * @forbids "1" "_[_.._]→_"
+ */
+Grammatical restriction "_«[_]»(_.._)→_" is <{"_[_]","_«[_]»"},∅,∅,∅,∅>;
+
+/** 
+ * Give n-ary update a higher precedence than subscript. 
+ * 
  * @method "_[_]→_"
  * @forbids "1" "_[_]"
  */

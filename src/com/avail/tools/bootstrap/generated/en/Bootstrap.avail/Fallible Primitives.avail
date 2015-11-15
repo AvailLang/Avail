@@ -91,6 +91,7 @@ Uses
 		"_occurrences⁇of_",
 		"_parameterized by_",
 		"_to_by_",
+		"_«[_]»(_.._)→_",
 		"_«[_]»→_",
 		"_×_",
 		"_÷_",
@@ -1014,6 +1015,47 @@ Primitive "_[_]" is
 		key-not-found code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
+
+/**
+ * Replace the tuple value-range with new values in the map at the location
+ * indicated by the path tuple.  The replacement tuple can be
+ * different in size from the target range to replace.
+ *
+ * @category "Primitives" "Tuples" "Maps" "Transformers"
+ * @method "_«[_]»(_.._)→_"
+ * @param "aMap" "map"
+ *        The target map.
+ * @param "pathTuple" "nonempty tuple"
+ *        The tuple providing the path to follow to reach the location
+ *        to be updated.
+ * @param "replaceStartIndex" "natural number"
+ *        The start index of the range to replace.
+ * @param "replaceEndIndex" "whole number"
+ *        The end index of the range to replace.
+ * @param "newValues" "two or more tuple"
+ *        The replacement values.
+ * @returns "map"
+ *    a new map with the new values installed at the proposed locations.
+ * @raises "subscript-out-of-bounds exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "key-not-found exception"
+ * @raises "negative-size exception"
+ */
+Primitive "_«[_]»(_.._)→_" is
+[
+	aMap : map,
+	pathTuple : nonempty tuple,
+	replaceStartIndex : natural number,
+	replaceEndIndex : whole number,
+	newValues : two or more tuple
+|
+	Primitive MapReplaceRangeNAryKey (failureCode : {
+		subscript-out-of-bounds code,
+		incorrect-argument-type code,
+		key-not-found code,
+		negative-size code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : map;
 
 /**
  * Replace the value at the location indicated by the path tuple of the target
@@ -3449,6 +3491,47 @@ Primitive "_«[_]»→_" is
 		subscript-out-of-bounds code,
 		incorrect-argument-type code,
 		key-not-found code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : tuple;
+
+/**
+ * Replace the tuple value-range with new values in the tuple at the
+ * location indicated by the path tuple.  The replacement tuple can be
+ * different in size from the target range to replace.
+ *
+ * @category "Primitives" "Tuples" "Maps" "Transformers"
+ * @method "_«[_]»(_.._)→_"
+ * @param "aTuple" "tuple"
+ *        The target tuple.
+ * @param "pathTuple" "nonempty tuple"
+ *        The tuple providing the path to follow to reach the location
+ *        to be updated.
+ * @param "headEndIndex" "natural number"
+ *        The last index in the head of the target tuple to keep.
+ * @param "tailStartIndex" "whole number"
+ *        The first index of the tail of the target tuple to keep.
+ * @param "newValues" "two or more tuple"
+ *        The replacement values.
+ * @returns "tuple"
+ *    a new tuple with the new values installed at the proposed locations.
+ * @raises "subscript-out-of-bounds exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "key-not-found exception"
+ * @raises "negative-size exception"
+ */
+Primitive "_«[_]»(_.._)→_" is
+[
+	aTuple : tuple,
+	pathTuple : nonempty tuple,
+	headEndIndex : natural number,
+	tailStartIndex : whole number,
+	newValues : two or more tuple
+|
+	Primitive TupleReplaceRangeAtNary (failureCode : {
+		subscript-out-of-bounds code,
+		incorrect-argument-type code,
+		key-not-found code,
+		negative-size code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : tuple;
 
