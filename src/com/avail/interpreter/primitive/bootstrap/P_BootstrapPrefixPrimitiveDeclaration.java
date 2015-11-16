@@ -91,7 +91,7 @@ extends Primitive
 		if (prim == null)
 		{
 			throw new AvailRejectedParseException(
-				"a supported primitive name, not %d",
+				"a supported primitive name, not %s",
 				primName);
 		}
 
