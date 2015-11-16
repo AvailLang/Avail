@@ -288,24 +288,24 @@ Test "integrate maps" in map test suite is
 	b ::= {"foo"→9,"sharks are awesome!"→40};
 	c ::= integrate a and b with
 	[
-	 	m : {string→integer|},
-	 	k : string,
-	 	v : natural number
-	 |
-	 	chosenValue ::= if m[k] > v then [m[k]] else [v]; 
-	 	m + k → chosenValue
+		m : {string→integer|},
+		k : string,
+		v : natural number
+	|
+		chosenValue ::= if m[k] > v then [m[k]] else [v]; 
+		m + k → chosenValue
 	];
 	Require: {"foo"→9,"bar"→2,"frog"→3,"prince"→4,"sharks are awesome!"→40} = c;
 	d ::= {"laser"→9000,"foo"→9,"sharks are awesome!"→40};
 	e ::= {"mute"→0,"too"→11};
 	f : {string→integer|} := integrate a, b, d, and e with
 	[
-	 	m : {string→integer|},
-	 	k : string,
-	 	v : whole number
-	 |
-	 	chosenValue ::= if m[k] > v then [m[k]] else [v]; 
-	 	m + k → chosenValue
+		m : {string→integer|},
+		k : string,
+		v : whole number
+	|
+		chosenValue ::= if m[k] > v then [m[k]] else [v]; 
+		m + k → chosenValue
 	];
 	Require: {"laser"→9000,"foo"→9,"bar"→2,"frog"→3,"prince"→4,
 		"sharks are awesome!"→40,"mute"→0,"too"→11} = f;

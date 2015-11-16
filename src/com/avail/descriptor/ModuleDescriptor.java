@@ -947,7 +947,7 @@ extends Descriptor
 		object.slot(VERSIONS).writeTo(writer);
 		writer.write("entry points");
 		object.entryPoints().writeTo(writer);
-		writer.endArray();
+		writer.endObject();
 	}
 
 	/**

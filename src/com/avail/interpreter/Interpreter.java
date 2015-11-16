@@ -2053,7 +2053,9 @@ public final class Interpreter
 					return StringDescriptor.format(
 						"Outermost %s @ %s:%d",
 						code.methodName().asNativeString(),
-						code.module().moduleName().asNativeString(),
+						code.module().equalsNil()
+							? "«vm»"
+							: code.module().moduleName().asNativeString(),
 						code.startingLineNumber());
 				}
 			});

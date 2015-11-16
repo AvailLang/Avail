@@ -34,7 +34,6 @@ Module "Optional"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Common" = ("Data|data abstractions test suite"),
 	"Foundation",
 	"Unit Testing"
 Names
@@ -331,6 +330,7 @@ Semantic restriction "When|when_is present do_else_" is
 	else [presentBlock's return type ∪ elseBlock's return type]
 ];
 
+/*
 "optional test suite" is a new atom;
 New test suite optional test suite extends data abstractions test suite;
 
@@ -347,3 +347,4 @@ Test "optional (absent)" in optional test suite is
 	value ::= when opt is present do [t : 5's type | t] else ["no"];
 	Require: value = "no";
 ];
+*/
