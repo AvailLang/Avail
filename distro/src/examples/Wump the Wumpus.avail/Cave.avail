@@ -54,7 +54,8 @@ Names
 	"a cave",
 	"_'s⁇entrance room",
 	"_'s⁇network of rooms",
-	"_'s⁇pit rooms"
+	"_'s⁇pit rooms",
+	"_[_]"
 Body
 
 /**
@@ -387,7 +388,7 @@ Public method "a cave" is
  *        A {@type "room id" room identifier}.
  * @returns The requested {@type "room"}.
  */
-Method "_[_]" is
+Public method "_[_]" is
 [
 	aCave : cave,
 	id : room id

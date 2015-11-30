@@ -262,6 +262,8 @@ is
 	Export contextConstructorName as a new name;
 ];
 
+Private method "_[_](Tuple)" is [t : tuple, i : natural number | t[i]];
+
 /**
  * Construct and answer a {@type "phrase"} that produces the field variable
  * associated with {@method "the implied context"} and the specified field
@@ -282,7 +284,7 @@ Private method "get_'s⁇_field variable expression for_" is
 	stateType : any's type,
 	fieldAtom : atom
 |
-	send $"_[_]" with
+	send $"_[_](Tuple)" with
 	«<
 		send $"_→map" with
 		«<
