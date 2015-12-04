@@ -542,7 +542,7 @@ Private method "format variable for_" is
  *          bindings.
  * @category "Formatting" "Strings"
  */
-Public method "partially format_with«…::=_‡,»" is
+Public stable method "partially format_with«…::=_‡,»" is
 [
 	template : string,
 	bindings : <<token, any…|2>…|1..>
@@ -636,7 +636,7 @@ Semantic restriction "partially format_with«…::=_‡,»" is
  *          The result of formatting the template usings the specified bindings.
  * @category "Formatting" "Strings"
  */
-Public method "format_with«…!::=_‡,»" is
+Public stable method "format_with«…!::=_‡,»" is
 [
 	template : string,
 	bindings : <<token, any…|2>…|1..>
@@ -844,7 +844,7 @@ Semantic restriction "format_with unchecked_" is
  *          The result of formatting the template usings the specified bindings.
  * @category "Formatting" "Strings"
  */
-Public method "format_with«_‡,»" is
+Public stable method "format_with«_‡,»" is
 [
 	template : string,
 	vars : <any…|1..50>
