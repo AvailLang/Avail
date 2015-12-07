@@ -72,9 +72,14 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD);
 		}
+		final A_Method method = bundle.bundleMethod();
+		if (argTypes.tupleSize() != method.numArgs())
+		{
+			return interpreter.primitiveFailure(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
 		try
 		{
-			final A_Method method = bundle.bundleMethod();
 			final A_BasicObject definition =
 				method.lookupByTypesFromTuple(argTypes);
 			assert !definition.equalsNil();
@@ -102,8 +107,9 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.fromCollection(Arrays.asList(
+				E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
+				E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
 				E_NO_METHOD.numericCode(),
-				E_NO_METHOD_DEFINITION.numericCode(),
-				E_AMBIGUOUS_METHOD_DEFINITION.numericCode())));
+				E_NO_METHOD_DEFINITION.numericCode())));
 	}
 }

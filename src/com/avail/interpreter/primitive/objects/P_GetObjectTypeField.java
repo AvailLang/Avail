@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.objects;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD;
+import static com.avail.interpreter.Primitive.Fallibility.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -77,6 +78,61 @@ public final class P_GetObjectTypeField extends Primitive
 				ObjectTypeDescriptor.meta(),
 				ATOM.o()),
 			InstanceMetaDescriptor.anyMeta());
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type objectMeta = argumentTypes.get(0);
+		final A_Type fieldType = argumentTypes.get(1);
+
+		if (objectMeta.isBottom())
+		{
+			return BottomTypeDescriptor.bottom();
+		}
+		if (fieldType.isEnumeration())
+		{
+			final A_Type objectType = objectMeta.instance();
+			final A_Map fieldTypeMap = objectType.fieldTypeMap();
+			A_Type union = BottomTypeDescriptor.bottom();
+			for (final A_Atom possibleField : fieldType.instances())
+			{
+				if (!fieldTypeMap.hasKey(possibleField))
+				{
+					// Unknown field, so the field type could be any type.
+					return InstanceMetaDescriptor.anyMeta();
+				}
+				union = union.typeUnion(fieldTypeMap.mapAt(possibleField));
+			}
+			// Shift it up; a primitive invocation will return the field's type.
+			return InstanceMetaDescriptor.on(union);
+		}
+		return super.returnTypeGuaranteedByVM(argumentTypes);
+	}
+
+	@Override
+	public Fallibility fallibilityForArgumentTypes (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type objectMeta = argumentTypes.get(0);
+		final A_Type fieldType = argumentTypes.get(1);
+
+		if (fieldType.isEnumeration())
+		{
+			final A_Type objectType = objectMeta.instance();
+			final A_Map fieldTypeMap = objectType.fieldTypeMap();
+			for (final A_Atom possibleField : fieldType.instances())
+			{
+				if (!fieldTypeMap.hasKey(possibleField))
+				{
+					// Unknown field.
+					return CallSiteCanFail;
+				}
+			}
+			return CallSiteCannotFail;
+		}
+		return CallSiteCanFail;
 	}
 
 	@Override

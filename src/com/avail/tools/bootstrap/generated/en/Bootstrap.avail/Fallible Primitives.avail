@@ -1423,6 +1423,7 @@ Primitive "Alias_to_" is
  * @returns "boolean"
  *    `true` if {@param "methodName"} has a unique definition for the specified
  *    parameter types, `false` otherwise.
+ * @raises "incorrect-number-of-arguments exception"
  * @raises "no-method exception"
  * @raises "no-method-definition exception"
  * @raises "ambiguous-method-definition exception"
@@ -1433,6 +1434,7 @@ Primitive "_has definition for_" is
 	parameterTypes : tuple of any meta
 |
 	Primitive BundleHasDefinitionForArgumentTypes (failureCode : {
+		incorrect-number-of-arguments code,
 		no-method code,
 		no-method-definition code,
 		ambiguous-method-definition code}ᵀ);

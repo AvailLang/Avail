@@ -751,14 +751,13 @@ Private method "Generate and install_mutator for mutable_" is
 	objectType : object meta,
 	fieldAtom : atom
 |
-	objectMap ::= objectType→map;
 	methodName ::= fieldAtom's mutator name;
 	methodAtom ::= atom for methodName;
-	fieldType ::= objectMap[fieldAtom];
+	fieldType ::= objectType[fieldAtom];
 	defineMutator : boolean :=
 		if ¬method exists named methodAtom
-			∨ (methodAtom has definition for <objectType>
-				∧ method definition of methodAtom for <objectType>
+			∨ (methodAtom has definition for <objectType, ⊥>
+				∧ method definition of methodAtom for <objectType, ⊥>
 					∈ abstract definition)
 		then
 		[
