@@ -4020,7 +4020,8 @@ public final class AvailCompiler
 			}
 			case PARSE_ANY_RAW_TOKEN:
 			case PARSE_RAW_KEYWORD_TOKEN:
-			case PARSE_RAW_LITERAL_TOKEN:
+			case PARSE_RAW_STRING_LITERAL_TOKEN:
+			case PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN:
 			{
 				// Parse a raw token and continue.  In particular, push a
 				// literal node whose token is a synthetic literal token whose
@@ -4056,16 +4057,51 @@ public final class AvailCompiler
 					}
 					break;
 				}
-				if (op == PARSE_RAW_LITERAL_TOKEN
-					&& newToken.tokenType() != LITERAL)
+				else if (op == PARSE_RAW_STRING_LITERAL_TOKEN
+					&& (newToken.tokenType() != LITERAL
+						|| !newToken.literal().isInstanceOf(
+							TupleTypeDescriptor.stringType())))
 				{
 					if (consumedAnything)
 					{
-						start.expected(
-							"a literal token, not " + newToken.string());
+						if (newToken.tokenType() != LITERAL)
+						{
+							start.expected(
+								"a string literal token, not "
+									+ newToken.string());
+						}
+						else
+						{
+							start.expected(
+								"a string literal token, not "
+									+ newToken.literal());
+						}
 					}
 					break;
 				}
+				else if (op == PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN
+					&& (newToken.tokenType() != LITERAL
+						|| !newToken.literal().isInstanceOf(
+							IntegerRangeTypeDescriptor.wholeNumbers())))
+				{
+					if (consumedAnything)
+					{
+						if (newToken.tokenType() != LITERAL)
+						{
+							start.expected(
+								"a whole number literal token, not "
+									+ newToken.string());
+						}
+						else
+						{
+							start.expected(
+								"a whole number literal token, not "
+									+ newToken.literal());
+						}
+					}
+					break;
+				}
+
 				final ParserState afterToken = start.afterToken();
 				final A_Token syntheticToken = LiteralTokenDescriptor.create(
 					newToken.string(),
@@ -4091,7 +4127,6 @@ public final class AvailCompiler
 					continuation);
 				break;
 			}
-			case RESERVED_14:
 			case RESERVED_15:
 			{
 				AvailObject.error("Invalid parse instruction: " + op);

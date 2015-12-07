@@ -734,10 +734,13 @@ extends Descriptor
 		synchronized (object)
 		{
 			final AvailRuntime runtime = aLoader.runtime();
+			final A_Tuple unloadFunctions =
+				object.slot(UNLOAD_FUNCTIONS).tupleReverse();
+			object.setSlot(UNLOAD_FUNCTIONS, NilDescriptor.nil());
 			// Run unload functions, asynchronously but serially, in reverse
 			// order.
 			aLoader.runUnloadFunctions(
-				object.slot(UNLOAD_FUNCTIONS).tupleReverse(),
+				unloadFunctions,
 				new Continuation0()
 				{
 					@Override
@@ -793,7 +796,6 @@ extends Descriptor
 						afterRemoval.value();
 					}
 				});
-			object.setSlot(UNLOAD_FUNCTIONS, NilDescriptor.nil());
 		}
 	}
 
@@ -945,7 +947,7 @@ extends Descriptor
 		object.slot(VERSIONS).writeTo(writer);
 		writer.write("entry points");
 		object.entryPoints().writeTo(writer);
-		writer.endArray();
+		writer.endObject();
 	}
 
 	/**

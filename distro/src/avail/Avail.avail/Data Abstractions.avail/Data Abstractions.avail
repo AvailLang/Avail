@@ -37,8 +37,10 @@ Extends
 	"Converters",
 	"Graphs",
 	"Iterators",
+	/*"Patterns",*/
 	"Pseudorandom Number Generation",
 	"Sequences",
 	"Streams",
+	"Tries",
 	"Visitors"
 Body

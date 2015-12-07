@@ -74,7 +74,8 @@ public class MessageSplitter
 			E_UNBALANCED_GUILLEMETS.numericCode(),
 			E_METHOD_NAME_IS_NOT_CANONICAL.numericCode(),
 			E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS.numericCode(),
-			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP.numericCode(),
+			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS.numericCode(),
+			E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS.numericCode(),
 			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP.numericCode(),
 			E_TILDE_MUST_NOT_FOLLOW_ARGUMENT.numericCode(),
 			E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS.numericCode(),
@@ -965,23 +966,24 @@ public class MessageSplitter
 	}
 
 	/**
-	 * A {@linkplain RawLiteralTokenArgument} is an occurrence of {@linkplain
-	 * StringDescriptor#ellipsis() ellipsis} (…) in a message name, followed by
-	 * an {@linkplain StringDescriptor#octothorp() octothorp} (#). It indicates
-	 * where a raw literal token argument is expected. Like its superclass, the
-	 * {@link RawTokenArgument}, the token is capture after being placed in a
-	 * literal phrase, but in this case the token is restricted to be a {@link
-	 * TokenType#LITERAL} (currently positive integers, doubles, and strings).
+	 * A {@linkplain RawStringLiteralTokenArgument} is an occurrence of
+	 * {@linkplain StringDescriptor#ellipsis() ellipsis} (…) in a message name,
+	 * followed by a {@linkplain StringDescriptor#dollarSign() dollarSign} ($).
+	 * It indicates where a raw string literal token argument is expected. Like
+	 * its superclass, the {@link RawTokenArgument}, the token is captured after
+	 * being placed in a literal phrase, but in this case the token is
+	 * restricted to be a {@link TokenType#LITERAL} (currently positive
+	 * integers, doubles, and strings).
 	 */
-	final class RawLiteralTokenArgument
+	final class RawStringLiteralTokenArgument
 	extends RawTokenArgument
 	{
 		/**
-		 * Construct a new {@link MessageSplitter.RawLiteralTokenArgument}.
+		 * Construct a new {@link MessageSplitter.RawStringLiteralTokenArgument}.
 		 *
 		 * @param startTokenIndex The one-based token index of this argument.
 		 */
-		public RawLiteralTokenArgument (final int startTokenIndex)
+		public RawStringLiteralTokenArgument (final int startTokenIndex)
 		{
 			super(startTokenIndex);
 		}
@@ -992,7 +994,41 @@ public class MessageSplitter
 			final boolean caseInsensitive,
 			final int partialListsCount)
 		{
-			list.add(PARSE_RAW_LITERAL_TOKEN.encoding());
+			list.add(PARSE_RAW_STRING_LITERAL_TOKEN.encoding());
+		}
+	}
+
+	/**
+	 * A {@linkplain RawWholeNumberLiteralTokenArgument} is an occurrence of
+	 * {@linkplain StringDescriptor#ellipsis() ellipsis} (…) in a message name,
+	 * followed by an {@linkplain StringDescriptor#octothorp() octothorp} (#).
+	 * It indicates where a raw whole number literal token argument is expected.
+	 * Like its superclass, the {@link RawTokenArgument}, the token is captured
+	 * after being placed in a literal phrase, but in this case the token is
+	 * restricted to be a {@link TokenType#LITERAL} (currently positive
+	 * integers, doubles, and strings).
+	 */
+	final class RawWholeNumberLiteralTokenArgument
+	extends RawTokenArgument
+	{
+		/**
+		 * Construct a new {@link
+		 * MessageSplitter.RawStringLiteralTokenArgument}.
+		 *
+		 * @param startTokenIndex The one-based token index of this argument.
+		 */
+		public RawWholeNumberLiteralTokenArgument (final int startTokenIndex)
+		{
+			super(startTokenIndex);
+		}
+
+		@Override
+		void emitOn (
+			final List<Integer> list,
+			final boolean caseInsensitive,
+			final int partialListsCount)
+		{
+			list.add(PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding());
 		}
 	}
 
@@ -3783,7 +3819,13 @@ public class MessageSplitter
 				else if (nextToken != null && nextToken.equals(octothorp()))
 				{
 					sequence.addExpression(
-						new RawLiteralTokenArgument(ellipsisStart));
+						new RawWholeNumberLiteralTokenArgument(ellipsisStart));
+					messagePartPosition++;
+				}
+				else if (nextToken != null && nextToken.equals(dollarSign()))
+				{
+					sequence.addExpression(
+						new RawStringLiteralTokenArgument(ellipsisStart));
 					messagePartPosition++;
 				}
 				else
@@ -3795,8 +3837,15 @@ public class MessageSplitter
 			else if (token.equals(octothorp()))
 			{
 				throwMalformedMessageException(
-					E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP,
-					"An octothorp (#) may only follow a simple group («»)");
+					E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
+					"An octothorp (#) may only follow a simple group («») "
+					+ "or an ellipsis (…)");
+			}
+			else if (token.equals(dollarSign()))
+			{
+				throwMalformedMessageException(
+					E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
+					"A dollar sign ($) may only follow an ellipsis(…)");
 			}
 			else if (token.equals(questionMark()))
 			{
@@ -3888,9 +3937,9 @@ public class MessageSplitter
 						{
 							// Counting group may not contain arguments.
 							throwMalformedMessageException(
-								E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP,
+								E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
 								"An octothorp (#) may only follow a simple "
-								+ "group");
+								+ "group or an ellipsis (…)");
 						}
 						subexpression = new Counter(subgroup);
 						messagePartPosition++;
@@ -4303,7 +4352,8 @@ public class MessageSplitter
 					case PARSE_ARGUMENT_IN_MODULE_SCOPE:
 					case PARSE_ANY_RAW_TOKEN:
 					case PARSE_RAW_KEYWORD_TOKEN:
-					case PARSE_RAW_LITERAL_TOKEN:
+					case PARSE_RAW_STRING_LITERAL_TOKEN:
+					case PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN:
 					{
 						argCounter++;
 						break;
@@ -4404,6 +4454,7 @@ public class MessageSplitter
 			|| aCharacter == '…'
 			|| aCharacter == ' '
 			|| aCharacter == '/'
+			|| aCharacter == '$'
 			|| AvailScanner.isOperatorCharacter(aCharacter);
 	}
 

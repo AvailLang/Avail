@@ -1,0 +1,586 @@
+/*
+ * Tries.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Tries"
+Uses
+	"Foundation"
+Names
+	/* Types and accessors. */
+	"trie",
+		"_'s⁇key type",
+		"_'s⁇value type",
+
+	/* Type constructors. */
+	"trie of_→_",
+
+	/* Instance constructors. */
+	"an empty_",
+
+	/* Queries. */
+	"_∈_",
+	"_[_]",
+	"_[_]else_",
+	"_'s⁇keys",
+	"_'s⁇values",
+	"_'s⁇bindings",
+
+	/* Updaters. */
+	"_[_]:=_",
+	"Remove_[_]else_",
+	"Remove_[_]",
+	"Try removing_[_]",
+
+	/* Type helpers. */
+	"Require:_is valid key type of_",
+	"Require:_is valid value type of_"
+Body
+
+"key type" is a new field atom;
+"payload type" is a new field atom;
+"level" is a new field atom;
+"payload" is a new field atom;
+"next tries" is a new field atom;
+
+/**
+ * A {@type "trie"} is a mutable prefix tree.
+ *
+ * @type "trie"
+ * @supertype "object"
+ * @category "Data Abstractions" "Tries" "Types"
+ */
+Public class "trie" extends object
+	with fields
+		public key type : tuple's type,
+		public payload type : any's type ("_'s⁇value type"),
+		level : natural number
+	with mutable fields
+		referable next tries : any,
+		referable payload : any;
+
+/**
+ * Answer a {@type "trie"} type whose {@method "_'s⁇key type"} is {@param
+ * "keyType"} and whose {@method "_'s⁇value type"} is {@param "valueType"}.
+ *
+ * @method "trie of_→_"
+ * @category "Data Abstractions" "Tries" "Types" "Constructors"
+ * @param "keyType" "tuple's type"
+ * @param "valueType" "any's type"
+ * @returns "trie's type"
+ */
+Public method "trie of_→_" is
+[
+	keyType : tuple's type,
+	valueType : any's type
+|
+	extend trie with
+		key type : keyType's type,
+		payload type : valueType's type
+];
+
+Semantic restriction "trie of_→_" is
+[
+	keyMeta : tuple's type's type,
+	valueMeta : any's type's type
+|
+	(extend trie with
+		key type : (keyMeta's type's instance),
+		payload type : (valueMeta's type's instance))'s type
+];
+
+/**
+ * Construct a {@type "trie"} of the appropriate type and level.
+ *
+ * @method "a level__"
+ * @category "Data Abstractions" "Tries"
+ * @param "lvl" "natural number"
+ * @param "tType" "trie's type"
+ * @returns "trie"
+ */
+Private method "a level__" is
+[
+	lvl : natural number,
+	tType : trie's type
+|
+	a trie with
+		key type ::= tType's key type's instance,
+		payload type ::= tType's value type's instance,
+		level ::= lvl,
+		next tries := {}
+];
+
+Semantic restriction "a level__" is
+[
+	lvlType : natural number's type,
+	tType : trie's type's type
+|
+	extend tType's instance with level : lvlType
+];
+
+/**
+ * Construct an empty {@type "trie"} of the appropriate type.
+ *
+ * @method "an empty_"
+ * @category "Data Abstractions" "Tries" "Constructors"
+ * @param "tType" "trie's type"
+ * @returns "trie"
+ */
+Public method "an empty_" is
+[
+	tType : trie's type
+|
+	a level 1 tType
+];
+
+Semantic restriction "an empty_" is
+[
+	tType : trie's type's type
+|
+	tType's instance
+];
+
+Semantic restriction "_'s⁇next tries" is
+[
+	tType : trie's type
+|
+	keyType ::= tType's key type's instance;
+	min ::= ⎣tType's level⎦;
+	max ::= ⎡tType's level⎤ min (|keyType's leading types| + 1);
+	{∪ keyType[min..max] → tType|}
+];
+
+Semantic restriction "_'s⁇payload" is
+[
+	tType : trie's type
+|
+	tType's value type's instance
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless {@param
+ * "keyType"} is a subtype of the {@type "trie"} type's {@method
+ * "_'s⁇key type"}.
+ *
+ * @method "Require:_is valid key type of_"
+ * @category "Data Abstractions" "Tries"
+ * @param "keyType" "tuple's type"
+ * @param "tType" "trie's type"
+ * @returns "trie"
+ */
+Public method "Require:_is valid key type of_" is
+[
+	keyType : tuple's type,
+	tType : trie's type
+|
+	expectedKeyType ::= tType's key type's instance;
+	If ¬keyType ⊆ expectedKeyType then
+	[
+		Reject parse, expected:
+			format "key type to be ⊆ “①” (instead of “②”)"
+			with expectedKeyType, keyType
+	];
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless {@param
+ * "valueType"} is a subtype of the {@type "trie"} type's {@method
+ * "_'s⁇value type"}.
+ *
+ * @method "Require:_is valid value type of_"
+ * @category "Data Abstractions" "Tries"
+ * @param "valueType" "any's type"
+ * @param "tType" "trie's type"
+ * @returns "trie"
+ */
+Public method "Require:_is valid value type of_" is
+[
+	valueType : any's type,
+	tType : trie's type
+|
+	expectedPayloadType ::= tType's value type's instance;
+	If ¬valueType ⊆ expectedPayloadType then
+	[
+		Reject parse, expected:
+			format "value type to be ⊆ “①” (instead of “②”)"
+			with expectedPayloadType, valueType
+	];
+];
+
+/**
+ * Does {@param "key"} have an associated value in the {@type "trie"}?
+ *
+ * @method "_∈_"
+ * @category "Data Abstractions" "Tries" "Queries"
+ * @param "key" "tuple"
+ * @param "t" "trie"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "key"} denotes a value in {@param "t"},
+ *          {@method "false"} otherwise.
+ */
+Public method "_∈_" is
+[
+	key : tuple,
+	t : trie
+|
+	$body : boolean;
+	subtrie : trie := t;
+	For each keyPart of key do
+	[
+		subtrie := subtrie's next tries[keyPart] else [Exit body with false];
+	];
+	↑subtrie's payload is assigned
+] : boolean;
+
+Semantic restriction "_∈_" is
+[
+	keyType : tuple's type,
+	tType : trie's type
+|
+	Require: keyType is valid key type of tType;
+	⊤
+];
+
+/**
+ * Answer the value associated with {@param "key"} in the {@type "trie"}, or
+ * apply {@param "notFound"} if no association exists.
+ *
+ * @method "_[_]else_"
+ * @category "Data Abstractions" "Tries" "Queries"
+ * @param "t" "trie"
+ * @param "key" "tuple"
+ * @param "notFound" "[]→any"
+ *        The {@type "function"} to apply if {@param "key"} does not denote a
+ *        value in {@param "t"}.
+ * @returns "any"
+ *          The value associated with {@param "key"} in {@param "t"}, or the
+ *          result of applying {@param "notFound"} if no association exists.
+ */
+Public method "_[_]else_" is
+[
+	t : trie,
+	key : tuple,
+	notFound : []→any
+|
+	$body : any;
+	exit ::= [Exit body with notFound()];
+	subtrie : trie := t;
+	For each keyPart of key do
+	[
+		subtrie := subtrie's next tries[keyPart] else exit;
+	];
+	↓↑subtrie's payload else exit
+];
+
+Semantic restriction "_[_]else_" is
+[
+	tType : trie's type,
+	keyType : tuple's type,
+	notFoundType : []→any's type
+|
+	Require: keyType is valid key type of tType;
+	tType's value type's instance ∪ notFoundType's return type
+];
+
+/**
+ * Answer the value associated with {@param "key"} in the {@type "trie"}.
+ *
+ * @method "_[_]"
+ * @category "Data Abstractions" "Tries" "Queries"
+ * @param "t" "trie"
+ * @param "key" "tuple"
+ * @returns "any"
+ *          The value associated with {@param "key"} in {@param "t"}.
+ * @raises "key-not-found exception"
+ *         If {@param "key"} does not denote a value in {@param "t"}.
+ */
+Public method "_[_]" is
+[
+	t : trie,
+	key : tuple
+|
+	t[key] else [Raise a key-not-found exception]
+];
+
+Semantic restriction "_[_]" is
+[
+	tType : trie's type,
+	keyType : tuple's type
+|
+	Require: keyType is valid key type of tType;
+	tType's value type's instance
+];
+
+Forward method "_'s⁇keys(prefix=_)" is [trie, any*]→set;
+
+/**
+ * Answer the keys of the {@type "trie"}, in no particular order.
+ *
+ * @method "_'s⁇keys"
+ * @category "Data Abstractions" "Tries" "Queries"
+ * @param "t" "trie"
+ * @returns "set"
+ */
+Public method "_'s⁇keys" is
+[
+	t : trie
+|
+	t's keys (prefix=<>)
+];
+
+Semantic restriction "_'s⁇keys" is
+[
+	tType : trie's type
+|
+	{tType's key type's instance|}
+];
+
+Private method "_'s⁇keys(prefix=_)" is
+[
+	t : trie,
+	pre : tuple
+|
+	next ::= t's next tries;
+	sets ::= map each k→sub of next in parallel 3-way through
+		[sub's keys (prefix=pre ++ <k>)];
+	localSet ::= if ↑t's payload is assigned then [{pre}] else [∅];
+	left fold <localSet> ++ sets' values through [s : set, sum : set | s ∪ sum]
+] : set;
+
+/**
+ * Answer the keys of the {@type "trie"}, in no particular order.
+ *
+ * @method "_'s⁇values"
+ * @category "Data Abstractions" "Tries" "Queries"
+ * @param "t" "trie"
+ * @returns "tuple"
+ */
+Forward method "_'s⁇values" is [trie]→tuple;
+
+Public method "_'s⁇values" is
+[
+	t : trie
+|
+	next ::= t's next tries's values;
+	tuples ::= map each sub of next in parallel 3-way through [sub's values];
+	localTuple ::= <if ↑t's payload is assigned then [<t's payload>] else [<>]>;
+	concatenate (localTuple ++ tuples)
+];
+
+Semantic restriction "_'s⁇values" is
+[
+	tType : trie's type
+|
+	tType's value type's instance*
+];
+
+Forward method "_'s⁇bindings(prefix=_)" is [trie, tuple]→<tuple, any…|2>*;
+
+/**
+ * Answer the bindings of the {@type "trie"}, in no particular order.
+ *
+ * @method "_'s⁇bindings"
+ * @category "Data Abstractions" "Tries" "Queries"
+ * @param "t" "trie"
+ * @returns "tuple"
+ */
+Public method "_'s⁇bindings" is
+[
+	t : trie
+|
+	t's bindings (prefix=<>)
+];
+
+Semantic restriction "_'s⁇bindings" is
+[
+	tType : trie's type
+|
+	<tType's key type's instance, tType's value type's instance…|2>*
+];
+
+Private method "_'s⁇bindings(prefix=_)" is
+[
+	t : trie,
+	pre : tuple
+|
+	next ::= t's next tries' bindings;
+	tuples ::= map each b of next in parallel 3-way through
+		[b[2]'s bindings (prefix=pre ++ <b[1]>)];
+	localTuple ::=
+		<if ↑t's payload is assigned then [<<pre, t's payload>>] else [<>]>;
+	concatenate (localTuple ++ tuples)
+] : <any*, any…|2>*;
+
+/**
+ * Associate {@param "value"} with the key {@param "key"} in the {@type "trie"}.
+ *
+ * @method "_[_]:=_"
+ * @category "Data Abstractions" "Tries" "Mutators"
+ * @param "t" "trie"
+ * @param "key" "tuple"
+ * @param "value" "any"
+ * @returns "⊤"
+ */
+Public method "_[_]:=_" is
+[
+	t : trie,
+	key : tuple,
+	value : any
+|
+	subtrie : trie := t;
+	For each keyPart, lvl of key do
+	[
+		subtrie := subtrie's next tries[keyPart] else
+			[
+				newSubTree ::=
+					a level lvl trie of t's key type → t's value type;
+				subtrie's next tries :=
+					subtrie's next tries + keyPart → newSubTree;
+				newSubTree
+			];
+	];
+	subtrie's payload := value;
+];
+
+Semantic restriction "_[_]:=_" is
+[
+	tType : trie's type,
+	keyType : tuple's type,
+	valueType : any's type
+|
+	Require: keyType is valid key type of tType;
+	Require: valueType is valid value type of tType;
+	⊤
+];
+
+/**
+ * Remove an association from the {@type "trie"}, or apply {@param "notFound"}
+ * if no association exists.
+ *
+ * @method "Remove_[_]else_"
+ * @category "Data Abstractions" "Tries" "Mutators"
+ * @param "t" "trie"
+ * @param "key" "tuple"
+ * @param "notFound" "[]→⊤"
+ *        The {@type "function"} to apply if {@param "key"} does not denote a
+ *        value in {@param "t"}.
+ * @returns "⊤"
+ */
+Public method "Remove_[_]else_" is
+[
+	t : trie,
+	key : tuple,
+	notFound : []→⊤
+|
+	$body : ⊤;
+	exit ::= [notFound(); Exit body];
+	subtrie : trie := t;
+	path : trie* := <t>;
+	For each keyPart of key do
+	[
+		subtrie := subtrie's next tries[keyPart] else exit;
+		path ++= <subtrie>;
+	];
+	If ↑subtrie's payload is unassigned then exit;
+	Clear ↑subtrie's payload;
+	For each i from |key| to 2 by -1 do
+	[
+		If path[i]'s next tries is empty then
+		[
+			path[i-1]'s next tries := path[i-1]'s next tries - (key[i]);
+		]
+		else [Exit body];
+	];
+];
+
+Semantic restriction "Remove_[_]else_" is
+[
+	tType : trie's type,
+	keyType : tuple's type,
+	notFound : []→⊤'s type
+|
+	Require: keyType is valid key type of tType;
+	⊤
+];
+
+/**
+ * Remove an association from the {@type "trie"}.
+ *
+ * @method "Remove_[_]"
+ * @category "Data Abstractions" "Tries" "Mutators"
+ * @param "t" "trie"
+ * @param "key" "tuple"
+ * @returns "⊤"
+ * @raises "key-not-found exception"
+ *         If {@param "key"} does not denote a value in {@param "t"}.
+ */
+Public method "Remove_[_]" is
+[
+	t : trie,
+	key : tuple
+|
+	Remove t[key] else [Raise a key-not-found exception];
+];
+
+Semantic restriction "Remove_[_]" is
+[
+	tType : trie's type,
+	keyType : tuple's type
+|
+	Require: keyType is valid key type of tType;
+	⊤
+];
+
+/**
+ * Try to remove an association from the {@type "trie"}, ignoring the absence of
+ * {@param "key"}.
+ *
+ * @method "Try removing_[_]"
+ * @category "Data Abstractions" "Tries" "Mutators"
+ * @param "t" "trie"
+ * @param "key" "tuple"
+ * @returns "⊤"
+ */
+Public method "Try removing_[_]" is
+[
+	t : trie,
+	key : tuple
+|
+	Remove t[key] else [];
+];
+
+Semantic restriction "Try removing_[_]" is
+[
+	tType : trie's type,
+	keyType : any*'s type
+|
+	Require: keyType is valid key type of tType;
+	⊤
+];

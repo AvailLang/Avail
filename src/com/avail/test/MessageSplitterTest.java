@@ -199,9 +199,27 @@ public class MessageSplitterTest
 				PARSE_ARGUMENT.encoding(),
 				CHECK_ARGUMENT.encoding(2),
 				APPEND_ARGUMENT.encoding())),
+		/* Literals */
+		C("…#",
+			A("…", "#"),
+			A(
+				PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding(),
+				APPEND_ARGUMENT.encoding())),
+		C("…$",
+			A("…", "$"),
+			A(
+				PARSE_RAW_STRING_LITERAL_TOKEN.encoding(),
+				APPEND_ARGUMENT.encoding())),
 		/* Backquotes. */
 		C("`__",
 			A("`", "_", "_"),
+			A(
+				PARSE_PART.encoding(2),
+				PARSE_ARGUMENT.encoding(),
+				CHECK_ARGUMENT.encoding(1),
+				APPEND_ARGUMENT.encoding())),
+		C("`$_",
+			A("`", "$", "_"),
 			A(
 				PARSE_PART.encoding(2),
 				PARSE_ARGUMENT.encoding(),
@@ -914,13 +932,13 @@ public class MessageSplitterTest
 				PARSE_PART.encoding(4),
 				PUSH_INTEGER_LITERAL.encoding(2),
 				APPEND_ARGUMENT.encoding())),
-		C("[««…:_†§‡,»`|»?«Primitive…#«(…:_†)»?§;»?«$…«:_†»?;§»?«_!»«_!»?]«:_†»?«^«_†‡,»»?",
+		C("[««…:_†§‡,»`|»?«Primitive…#«(…:_†)»?§;»?«`$…«:_†»?;§»?«_!»«_!»?]«:_†»?«^«_†‡,»»?",
 			A("[",
 					"«", "«", "…", ":", "_", "†", "§", "‡", ",", "»",
 						"`", "|", "»", "?",
 					"«", "Primitive", "…", "#",
 						"«", "(", "…", ":", "_", "†", ")", "»", "?", "§", ";", "»", "?",
-					"«", "$", "…", "«", ":", "_", "†", "»", "?", ";", "§", "»", "?",
+					"«", "`", "$", "…", "«", ":", "_", "†", "»", "?", ";", "§", "»", "?",
 					"«", "_", "!", "»",
 					"«", "_", "!", "»", "?",
 				"]",
@@ -970,7 +988,7 @@ public class MessageSplitterTest
 				CHECK_AT_MOST.encoding(1),
 				NEW_LIST.encoding(),
 				PARSE_PART.encoding(17),  // = "Primitive"
-				PARSE_RAW_LITERAL_TOKEN.encoding(),
+				PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding(),
 				APPEND_ARGUMENT.encoding(),
 				SAVE_PARSE_POSITION.encoding(),
 				NEW_LIST.encoding(),
@@ -1011,14 +1029,14 @@ public class MessageSplitterTest
 				BRANCH.encoding(108),
 				CHECK_AT_MOST.encoding(1),
 				NEW_LIST.encoding(),
-				PARSE_PART.encoding(34),  // = "$"
+				PARSE_PART.encoding(35),  // = "$"
 				PARSE_RAW_KEYWORD_TOKEN.encoding(),
 				APPEND_ARGUMENT.encoding(),
 				SAVE_PARSE_POSITION.encoding(),
 				NEW_LIST.encoding(),
 				BRANCH.encoding(97),
 				CHECK_AT_MOST.encoding(1),
-				PARSE_PART.encoding(37),  // = ":"
+				PARSE_PART.encoding(38),  // = ":"
 				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),
 				CHECK_ARGUMENT.encoding(7),
 				CONVERT.encoding(EVALUATE_EXPRESSION.number()),
@@ -1029,7 +1047,7 @@ public class MessageSplitterTest
 				ENSURE_PARSE_PROGRESS.encoding(),
 				DISCARD_SAVED_PARSE_POSITION.encoding(),
 				APPEND_ARGUMENT.encoding(),
-				PARSE_PART.encoding(42),  // = ";"
+				PARSE_PART.encoding(43),  // = ";"
 				PREPARE_TO_RUN_PREFIX_FUNCTION.encoding(3),
 				RUN_PREFIX_FUNCTION.encoding(3),
 				BRANCH.encoding(106),
@@ -1068,13 +1086,13 @@ public class MessageSplitterTest
 				DISCARD_SAVED_PARSE_POSITION.encoding(),
 				APPEND_ARGUMENT.encoding(),
 			// close square bracket
-				PARSE_PART.encoding(55),  // = "]"
+				PARSE_PART.encoding(56),  // = "]"
 			// optional result type declaration
 				SAVE_PARSE_POSITION.encoding(),
 				NEW_LIST.encoding(),
 				BRANCH.encoding(149),
 				CHECK_AT_MOST.encoding(1),
-				PARSE_PART.encoding(57),  // = ":"
+				PARSE_PART.encoding(58),  // = ":"
 				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),
 				CHECK_ARGUMENT.encoding(10),
 				CONVERT.encoding(EVALUATE_EXPRESSION.number()),
@@ -1090,7 +1108,7 @@ public class MessageSplitterTest
 				NEW_LIST.encoding(),
 				BRANCH.encoding(174),
 				CHECK_AT_MOST.encoding(1),
-				PARSE_PART.encoding(63),  // = "^"
+				PARSE_PART.encoding(64),  // = "^"
 				SAVE_PARSE_POSITION.encoding(),
 				NEW_LIST.encoding(),
 				BRANCH.encoding(168),
@@ -1099,7 +1117,7 @@ public class MessageSplitterTest
 				CONVERT.encoding(EVALUATE_EXPRESSION.number()),
 				APPEND_ARGUMENT.encoding(),
 				BRANCH.encoding(167),
-				PARSE_PART.encoding(68),  // = ","
+				PARSE_PART.encoding(69),  // = ","
 				ENSURE_PARSE_PROGRESS.encoding(),
 				JUMP.encoding(159),
 				ENSURE_PARSE_PROGRESS.encoding(),

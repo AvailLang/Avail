@@ -1305,7 +1305,7 @@ arabicNumeralCharactersEnum ::= enumeration of "0123456789" → set;
  */
 Public method "Arabic numeral" is [arabicNumeralCharactersEnum];
 
-metacharactersEnum ::= enumeration of "_«»‡`…#?⁇!↑~|†§" → set;
+metacharactersEnum ::= enumeration of "_«»‡`…#$?⁇!↑~|†§" → set;
 
 /**
  * Answer the type of an Avail metacharacter.
