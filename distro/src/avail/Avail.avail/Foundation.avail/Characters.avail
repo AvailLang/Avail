@@ -54,9 +54,11 @@ Names
 	"Avail message⁇metacharacter",
 
 	/* Character type testing. */
+	"_is ASCII",
+	"_is a control character",
+	"_is a letter",
 	"_is an Arabic numeral",
 	"_is an Avail message⁇metacharacter",
-	"_is a letter",
 	"_is uppercase",
 	"_is lowercase",
 	"_is titlecase",
@@ -71,6 +73,16 @@ Body
 
 /* Mark some character-related operations as stable. */
 Method "_'s⁇code point" is stable at [character]→code point;
+
+/**
+ * Return true if the supplied character is ASCII, false otherwise.
+ *
+ * @method "_is ASCII"
+ * @param "c" "character"
+ * @returns "boolean"
+ * @category "Unicode"
+ */
+Public stable method "_is ASCII" is [c : character | c's code point < 128];
 
 arabicNumerals ::= (48 to 57)→set;
 
@@ -1329,3 +1341,27 @@ Public method "_is an Avail message⁇metacharacter" is
 |
 	c ∈ metacharactersEnum
 ];
+
+controlCharacters ::=
+{
+	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+	21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 127, 128, 129, 130, 131, 132,
+	133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147,
+	148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159
+};
+
+/**
+ * Return true if the supplied character is a control character according to the
+ * Unicode character description, false otherwise.
+ *
+ * @method "_is a control character"
+ * @param "c" "character"
+ * @returns "boolean"
+ * @category "Unicode"
+ */
+Public stable method "_is a control character" is
+[
+	c : character
+|
+	(c's code point) ∈ controlCharacters
+] : boolean;
