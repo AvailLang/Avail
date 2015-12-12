@@ -1,5 +1,5 @@
 /*
- * Convenient ASCII.avail
+ * Hypertext Styles.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,11 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Convenient ASCII"
-Versions
-	"1.0.0 DEV 2014-04-28"
+Module "Hypertext"
 Extends
-	"Convenient Avail",
-	"Convenient Dimensional Analysis",
-	"Hypertext"
+	"Roster",
+	"Types"
 Body

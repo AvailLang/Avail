@@ -1,0 +1,729 @@
+/*
+ * Definers.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Definers"
+Uses
+	"Avail",
+	"Types"
+Names
+	"Hypertext element_is void",
+	"Hypertext element_allows attributes_is void",
+	"Hypertext element_requires attributes_allows attributes_is void",
+	"Hypertext element_allows subelements_",
+	"Hypertext element_allows attributes_allows subelements_",
+	"Hypertext element_requires attributes_allows attributes_allows subelements_"
+Body
+
+/**
+ * This is a simplified {@type "hypertext element"} constructor. It is easier to
+ * generate calls to this method than the generic {@type "object"} constructor.
+ *
+ * @method "elem(_,_)"
+ * @param "tag" "nonempty string"
+ * @param "attributes" "<token, any…|>*"
+ * @param "subelements" "any*"
+ * @param "isVoid" "boolean"
+ * @returns "hypertext element"
+ */
+Private method "elem(_,_,_,_)" is
+[
+	tag : nonempty string,
+	attributes : <token, any…|>*,
+	subelements : any*,
+	isVoid : boolean
+|
+	a hypertext element with
+		hypertext tag ::= tag,
+		hypertext attributes ::=
+			map each a of attributes through [<a[1]'s lexeme, a[2]>]→map,
+		hypertext subelements ::= subelements,
+		hypertext void flag ::= isVoid
+];
+
+/**
+ * Reject the current parse unless the required attributes are statically known.
+ *
+ * @method "Require:required attributes_are statically known"
+ * @param "requiredAttributes" "{nonempty string|}'s type"
+ * @returns "⊤"
+ */
+Private method "Require:required attributes_are statically known" is
+[
+	requiredAttributes : {nonempty string|}'s type
+|
+	If |requiredAttributes| ≠ 1 then
+	[
+		Reject parse, expected: "required attributes to be statically known"
+	];
+];
+
+/**
+ * Reject the current parse unless the allowed attributes are statically known.
+ *
+ * @method "Require:allowed attributes_are statically known"
+ * @param "allowedAttributes" "{nonempty string|}'s type"
+ * @returns "⊤"
+ */
+Private method "Require:allowed attributes_are statically known" is
+[
+	allowedAttributes : {nonempty string|}'s type
+|
+	If |allowedAttributes| ≠ 1 then
+	[
+		Reject parse, expected: "allowed attributes to be statically known"
+	];
+];
+
+/**
+ * Reject the current parse unless the allowed subelements are statically known.
+ *
+ * @method "Require:allowed subelements_are statically known"
+ * @param "allowedSubelements" "{nonempty string|}'s type"
+ * @returns "⊤"
+ */
+Private method "Require:allowed subelements_are statically known" is
+[
+	allowedSubelements : {nonempty string|}'s type
+|
+	If |allowedSubelements| ≠ 1 then
+	[
+		Reject parse, expected: "allowed subelements to be statically known"
+	];
+];
+
+/**
+ * Reject the current parse unless each subelement is either a string or a
+ * {@type "hypertext element"}. Additionally, every {@type "hypertext element"}
+ * must be statically stronger than the generic type {@type
+ * "hypertext element"}.
+ *
+ * @method "Require:_are valid subelements"
+ * @param "subelements" "any*'s type"
+ * @returns "⊤"
+ */
+Private method "Require:_are valid subelements" is
+[
+	subelements : any*'s type
+|
+	From 1 to ⎣subelements⎦ do
+	[
+		i : natural number
+	|
+		sub ::= subelements[i];
+		Unless sub ⊆ string ∨ sub ⊆ hypertext element then
+		[
+			Reject parse, expected:
+				format
+					"all subelements to be either strings or hypertext \
+					\|elements (but “①” isn't either)"
+				with sub
+		];
+		If sub = hypertext element then
+		[
+			Reject parse, expected:
+				format
+					"subelement #“①” to be stronger than hypertext element"
+				with i
+		];
+	];
+];
+
+/**
+ * Reject the current parse unless each {@type "hypertext element" hypertext
+ * subelement} is an allowed {@type "hypertext element" element}.
+ *
+ * @method "Require:every hypertext element of_is one of_"
+ * @param "subelements" "any*'s type"
+ * @param "allowed" "{nonempty string|}"
+ * @returns "⊤"
+ */
+Private method "Require:every hypertext element of_is one of_" is
+[
+	subelements : any*'s type,
+	allowed : {nonempty string|}
+|
+	pairs : <natural number, hypertext element's type…|2>* := <>;
+	From 1 to ⎣subelements⎦ do
+	[
+		i : natural number
+	|
+		sub ::= subelements[i];
+		Cast sub into [elem : hypertext element's type | pairs ++= <<i, elem>>;]
+		else [/* Nothing. */];
+	];
+	For each pair of pairs do
+	[
+		i, elem ::= pair;
+		tags ::= map each x of elem's instances through [x's tag];
+		Assert: tags ≠ ∅;
+		If tags ∩ allowed ≠ tags then
+		[
+			Reject parse, expected:
+				format
+					"subelement #“①” to be allowed by its parent \
+					\|(but possible tag‘②’ ‘③’ ‘④’ not)"
+				with
+					i,
+					if |tags| > 1 then ["s"] else [""],
+					“tags \ allowed” (as simple list),
+					if |tags| > 1 then ["are"] else ["is"]
+		];
+	];
+];
+
+/**
+ * Reject the current parse unless each attribute is an allowed attribute.
+ *
+ * @method "Require:every hypertext element of_is one of_"
+ * @param "attributes" "<token, nonempty string…|2>*'s type"
+ * @param "allowed" "{nonempty string|}"
+ * @returns "⊤"
+ */
+Private method "Require:every attribute of_is one of_" is
+[
+	attributes : <token, nonempty string…|2>*'s type,
+	allowed : {nonempty string|}
+|
+	names : nonempty string* := <>;
+	From 1 to ⎣attributes⎦ do
+	[
+		i : natural number
+	|
+		names ++= <attributes[i][1]'s instance's lexeme>;
+	];
+	For each name of names do
+	[
+		If ¬name ∈ allowed then
+		[
+			Reject parse, expected:
+				format
+					"attribute “①” to be allowed by its parent"
+				with name
+		];
+	];
+];
+
+/**
+ * Reject the current parse unless each required attribute is present.
+ *
+ * @method "Require:_includes each attribute of_"
+ * @param "attributes" "<token, nonempty string…|2>*'s type"
+ * @param "required" "{nonempty string…|}"
+ * @returns "⊤"
+ */
+Private method "Require:_includes each attribute of_" is
+[
+	attributes : <token, nonempty string…|2>*'s type,
+	required : {nonempty string|}
+|
+	names : {nonempty string|} := ∅;
+	From 1 to ⎣attributes⎦ do
+	[
+		i : natural number
+	|
+		names := names + attributes[i][1]'s instance's lexeme;
+	];
+	diff ::= required \ names;
+	If diff ≠ ∅ then
+	[
+		Reject parse, expected:
+			format
+				"all required attributes to be provided \
+				\|(but these were missing: ‘①’)"
+			with “diff” (as simple list)
+	];
+];
+
+/**
+ * Reject the current parse unless the specified {@type "hypertext element tag"}
+ * is well-known and public.
+ *
+ * @method "Require:_formatted by_is public"
+ * @param "tagName" "nonempty string's type"
+ *        The tag type of the {@type "hypertext element"}.
+ * @param "formatter" "[nonempty string]→nonempty string"
+ * @returns "⊤"
+ */
+Private method "Require:_formatted by_is public" is
+[
+	tagName : nonempty string's type,
+	formatter : [nonempty string]→nonempty string
+|
+	If |tagName| ≠ 1 then
+	[
+		Reject parse, expected: "hypertext element's tag to be well-known"
+	];
+	methodName ::= formatter(tagName's instance);
+	Require: methodName's type is public;
+];
+
+/**
+ * Declare a {@type "hypertext element"}. This method is created:
+ *
+ * <pre>"&lt;" ++ tagName ++ "«…=_»/&gt;"</pre>
+ *
+ * A semantic restriction is created to ensure that only allowed subelements
+ * appear at a call site.
+ *
+ * @method "Hypertext element_is void"
+ * @param "tagName" "nonempty string"
+ *        The tag of the {@type "hypertext element"}, e.g., "img", "br", etc.
+ * @returns "⊤"
+ */
+Public method "Hypertext element_is void" is
+[
+	tagName : nonempty string
+|
+	methodName ::= format "<‘①’«…=_»/>" with tagName;
+	returnType ::=
+		extend hypertext element with hypertext tag : (tagName's type);
+	/* Generate the method. */
+	[
+		args ::= <arg «`"attributes"` : <token, string…|2>*»>;
+		new ::=
+			send $"elem(_,_,_,_)" with
+			«<
+				‘tagName’, «↓args[1]», ‘<>’, ‘true’
+			>» : returnType;
+		b ::= «[args | <new>] : returnType»;
+		Stable method methodName is b→function;
+	]();
+];
+
+Semantic restriction "Hypertext element_is void" is
+[
+	tagName : nonempty string's type
+|
+	Require: tagName formatted by
+		[s : nonempty string | format "<‘①’«…=_»/>" with s] is public;
+	⊤
+];
+
+/**
+ * Declare a {@type "hypertext element"}.
+ *
+ * If no attributes are allowed, then this method is created:
+ *
+ * <pre>"&lt;" ++ tagName ++ "&gt;«_»&lt;/" ++ tagName ++ "&gt;"</pre>
+ *
+ * Otherwise, this method is created instead:
+ *
+ * <pre>"&lt;" ++ tagName ++ "«…=_»&gt;«_»&lt;/" ++ tagName ++ "&gt;"</pre>
+ *
+ * A semantic restriction is created to ensure that only allowed subelements
+ * appear at a call site.
+ *
+ * @method "Hypertext element_allows attributes_is void"
+ * @param "tagName" "nonempty string"
+ *        The tag of the {@type "hypertext element"}, e.g., "br", "wbr", etc.
+ * @returns "⊤"
+ */
+Public method "Hypertext element_allows attributes_is void" is
+[
+	tagName : nonempty string,
+	allowedAttributes : {nonempty string|}
+|
+	attributeSpec ::= if allowedAttributes is empty then [""] else ["«…=_»"];
+	methodName ::= format "<‘①’‘②’/>" with tagName, attributeSpec;
+	returnType ::=
+		extend hypertext element with hypertext tag : (tagName's type);
+	/* Generate the method. */
+	[
+		args ::=
+			if allowedAttributes is empty
+				then [<>]
+				else [<arg «`"attributes"` : <token, string…|2>*»>];
+		new ::=
+			send $"elem(_,_,_,_)" with
+			«<
+				‘tagName’,
+				if allowedAttributes is empty then [‘<>’] else [«↓args[1]»],
+				‘<>’,
+				‘true’
+			>» : returnType;
+		b ::= «[args | <new>] : returnType»;
+		Stable method methodName is b→function;
+	]();
+	/* Generate the semantic restriction. */
+	If ¬allowedAttributes is empty then
+	[
+		args ::= <arg «`"attributes"` : <token, string…|2>*'s type»>;
+		reqAttrAllowed ::= send $"Require:every attribute of_is one of_"
+			with «<«↓args[1]», ‘allowedAttributes’>» : ⊤;
+		b ::= «[args | <reqAttrAllowed> ++ <‘⊤’>] : type»;
+		Semantic restriction methodName is b→function;
+	];
+];
+
+Semantic restriction "Hypertext element_allows attributes_is void" is
+[
+	tagName : nonempty string's type,
+	allowedAttributes : {nonempty string|}'s type
+|
+	Require: allowed attributes allowedAttributes are statically known;
+	a ::= if allowedAttributes's instance is empty then [""] else ["«…=_»"];
+	Require: tagName formatted by
+		[s : nonempty string | format "<‘①’‘②’/>" with s, a] is public;
+	⊤
+];
+
+/**
+ * Declare a {@type "hypertext element"}. This method is created:
+ *
+ * <pre>"&lt;" ++ tagName ++ "«…=_»/&gt;"</pre>
+ *
+ * A semantic restriction is created to ensure that only allowed subelements
+ * appear at a call site.
+ *
+ * @method "Hypertext element_requires attributes_allows attributes_is void"
+ * @param "tagName" "nonempty string"
+ *        The tag of the {@type "hypertext element"}, e.g., "img", etc.
+ * @param "requiredAttributes" "{nonempty string|1..}"
+ *        The attributes required.
+ * @param "allowedAttributes" "{nonempty string|}"
+ *        The attributes allowed.
+ * @returns "⊤"
+ */
+Public method
+	"Hypertext element_requires attributes_allows attributes_is void"
+is
+[
+	tagName : nonempty string,
+	requiredAttributes : {nonempty string|1..},
+	allowedAttributes : {nonempty string|}
+|
+	methodName ::= format "<‘①’«…=_»/>" with tagName;
+	returnType ::=
+		extend hypertext element with hypertext tag : (tagName's type);
+	/* Generate the method. */
+	[
+		args ::= <arg «`"attributes"` : <token, string…|2>+»>;
+		new ::=
+			send $"elem(_,_,_,_)" with
+			«<
+				‘tagName’,
+				«↓args[1]»,
+				‘<>’,
+				‘true’
+			>» : returnType;
+		b ::= «[args | <new>] : returnType»;
+		Stable method methodName is b→function;
+	]();
+	/* Generate the semantic restriction. */
+	[
+		args ::= <arg «`"attributes"` : <token, string…|2>+'s type»>;
+		reqAttrRequired ::= send $"Require:_includes each attribute of_"
+			with «<«↓args[1]», ‘requiredAttributes’>» : ⊤;
+		reqAttrAllowed ::= send $"Require:every attribute of_is one of_"
+			with «<«↓args[1]», ‘requiredAttributes ∪ allowedAttributes’>» : ⊤;
+		b ::= «[args | <reqAttrRequired, reqAttrAllowed> ++ <‘⊤’>] : type»;
+		Semantic restriction methodName is b→function;
+	]();
+];
+
+Semantic restriction
+	"Hypertext element_requires attributes_allows attributes_is void"
+is
+[
+	tagName : nonempty string's type,
+	requiredAttributes : {nonempty string|1..}'s type,
+	allowedAttributes : {nonempty string|}'s type
+|
+	Require: required attributes requiredAttributes are statically known;
+	Require: allowed attributes allowedAttributes are statically known;
+	Require: tagName formatted by
+		[s : nonempty string | format "<‘①’«…=_»/>" with s] is public;
+	⊤
+];
+
+/**
+ * Declare a {@type "hypertext element"}. This method is created:
+ *
+ * <pre>"&lt;" ++ tagName ++ "«…=_»&gt;«_»&lt;/" ++ tagName ++ "&gt;"</pre>
+ *
+ * A semantic restriction is created to ensure that only allowed subelements
+ * appear at a call site.
+ *
+ * @method "Hypertext element_allows subelements_"
+ * @param "tagName" "nonempty string"
+ *        The tag of the {@type "hypertext element"}, e.g., "p", "div", etc.
+ * @returns "⊤"
+ */
+Public method "Hypertext element_allows subelements_" is
+[
+	tagName : nonempty string,
+	allowedSubelements : {nonempty string|}
+|
+	methodName ::= format "<‘①’«…=_»>«_»</‘①’>" with tagName;
+	returnType ::=
+		extend hypertext element with hypertext tag : (tagName's type);
+	/* Generate the method. */
+	[
+		args ::=
+			<
+				arg «`"attributes"` : <token, string…|2>*»,
+				arg «`"subelements"` : any*»
+			>;
+		new ::=
+			send $"elem(_,_,_,_)" with
+			«<
+				‘tagName’,
+				«↓args[1]»,
+				«↓args[2]»,
+				‘false’
+			>» : returnType;
+		b ::= «[args | <new>] : returnType»;
+		Stable method methodName is b→function;
+	]();
+	/* Generate the semantic restriction. */
+	[
+		args ::=
+			<
+				arg «`"attributes"` : <token, string…|2>*'s type»,
+				arg «`"subelements"` : any*'s type»
+			>;
+		reqValid ::= send $"Require:_are valid subelements"
+			with «<«↓args[2]»>» : ⊤;
+		reqSubAllowed ::= send $"Require:every hypertext element of_is one of_"
+			with «<«↓args[2]», ‘allowedSubelements’>» : ⊤;
+		b ::=
+			«[
+				args
+			|
+				<reqValid, reqSubAllowed, ‘⊤’>
+			] : type»;
+		Semantic restriction methodName is b→function;
+	]();
+];
+
+Semantic restriction "Hypertext element_allows subelements_" is
+[
+	tagName : nonempty string's type,
+	allowedSubelements : {nonempty string|}'s type
+|
+	Require: allowed subelements allowedSubelements are statically known;
+	Require: tagName formatted by
+		[s : nonempty string | format "<‘①’«…=_»>«_»</‘①’>" with s] is public;
+	⊤
+];
+
+/**
+ * Declare a {@type "hypertext element"}.
+ *
+ * If no attributes are allowed, then this method is created:
+ *
+ * <pre>"&lt;" ++ tagName ++ "&gt;«_»&lt;/" ++ tagName ++ "&gt;"</pre>
+ *
+ * Otherwise, this method is created instead:
+ *
+ * <pre>"&lt;" ++ tagName ++ "«…=_»&gt;«_»&lt;/" ++ tagName ++ "&gt;"</pre>
+ *
+ * A semantic restriction is created to ensure that only allowed attributes and
+ * subelements appear at a call site.
+ *
+ * @method "Hypertext element_allows attributes_allows subelements_"
+ * @param "tagName" "nonempty string"
+ *        The tag of the {@type "hypertext element"}, e.g., "p", "div", etc.
+ * @param "allowedAttributes" "{nonempty string|}"
+ *        The attributes allowed.
+ * @param "allowedSubelements" "{nonempty string|}"
+ *        The {@type "hypertext element" hypertext subelements} allowed. Note
+ *        that text is always allowed.
+ * @returns "⊤"
+ */
+Public method "Hypertext element_allows attributes_allows subelements_" is
+[
+	tagName : nonempty string,
+	allowedAttributes : {nonempty string|},
+	allowedSubelements : {nonempty string|}
+|
+	attributeSpec ::= if allowedAttributes is empty then [""] else ["«…=_»"];
+	methodName ::= format "<‘①’‘②’>«_»</‘①’>" with tagName, attributeSpec;
+	returnType ::=
+		extend hypertext element with hypertext tag : (tagName's type);
+	/* Generate the method. */
+	[
+		args ::=
+			if allowedAttributes is empty
+				then [<>]
+				else [<arg «`"attributes"` : <token, string…|2>*»>]
+			++ <arg «`"subelements"` : any*»>;
+		new ::=
+			send $"elem(_,_,_,_)" with
+			«<
+				‘tagName’,
+				if allowedAttributes is empty then [‘<>’] else [«↓args[1]»],
+				«↓args[|args|]»,
+				‘false’
+			>» : returnType;
+		b ::= «[args | <new>] : returnType»;
+		Stable method methodName is b→function;
+	]();
+	/* Generate the semantic restriction. */
+	[
+		args ::=
+			if allowedAttributes is empty
+				then [<>]
+				else [<arg «`"attributes"` : <token, string…|2>*'s type»>]
+			++ <arg «`"subelements"` : any*'s type»>;
+		reqValid ::= send $"Require:_are valid subelements"
+			with «<«↓args[|args|]»>» : ⊤;
+		reqSubAllowed ::= send $"Require:every hypertext element of_is one of_"
+			with «<«↓args[|args|]», ‘allowedSubelements’>» : ⊤;
+		optReqAttrAllowed ::=
+			if ¬allowedAttributes is empty then
+			[
+				<send $"Require:every attribute of_is one of_"
+					with «<«↓args[1]», ‘allowedAttributes’>» : ⊤>
+			]
+			else [<>];
+		b ::=
+			«[
+				args
+			|
+				<reqValid, reqSubAllowed> ++ optReqAttrAllowed ++ <‘⊤’>
+			] : type»;
+		Semantic restriction methodName is b→function;
+	]();
+];
+
+Semantic restriction
+	"Hypertext element_allows attributes_allows subelements_"
+is
+[
+	tagName : nonempty string's type,
+	allowedAttributes : {nonempty string|}'s type,
+	allowedSubelements : {nonempty string|}'s type
+|
+	Require: allowed attributes allowedAttributes are statically known;
+	Require: allowed subelements allowedSubelements are statically known;
+	a ::= if allowedAttributes's instance is empty then [""] else ["«…=_»"];
+	Require:
+		tagName formatted by
+			[s : nonempty string | format "<‘①’‘②’>«_»</‘①’>" with s, a]
+		is public;
+	⊤
+];
+
+/**
+ * Declare a {@type "hypertext element"}. This method is created:
+ *
+ * <pre>"&lt;" ++ tagName ++ "«…=_»&gt;«_»&lt;/" ++ tagName ++ "&gt;"</pre>
+ *
+ * A semantic restriction is created to ensure that only allowed attributes and
+ * subelements appear at a call site.
+ *
+ * @method "Hypertext element_requires attributes_allows attributes_allows subelements_"
+ * @param "tagName" "nonempty string"
+ *        The tag of the {@type "hypertext element"}, e.g., "bdo", etc.
+ * @param "requiredAttributes" "{nonempty string|}"
+ *        The attributes required.
+ * @param "allowedAttributes" "{nonempty string|}"
+ *        The attributes allowed.
+ * @param "allowedSubelements" "{nonempty string|}"
+ *        The {@type "hypertext element" hypertext subelements} allowed. Note
+ *        that text is always allowed.
+ * @returns "⊤"
+ */
+Public method
+	"Hypertext element_requires attributes_allows attributes_allows subelements_"
+is
+[
+	tagName : nonempty string,
+	requiredAttributes : {nonempty string|1..},
+	allowedAttributes : {nonempty string|},
+	allowedSubelements : {nonempty string|}
+|
+	methodName ::= format "<‘①’«…=_»>«_»</‘①’>" with tagName;
+	returnType ::=
+		extend hypertext element with hypertext tag : (tagName's type);
+	/* Generate the method. */
+	[
+		args ::=
+			<
+				arg «`"attributes"` : <token, string…|2>+»,
+				arg «`"subelements"` : any*»
+			>;
+		new ::=
+			send $"elem(_,_,_,_)" with
+			«<
+				‘tagName’,
+				«↓args[1]»,
+				«↓args[|args|]»,
+				‘false’
+			>» : returnType;
+		b ::= «[args | <new>] : returnType»;
+		Stable method methodName is b→function;
+	]();
+	/* Generate the semantic restriction. */
+	[
+		args ::=
+			<
+				arg «`"attributes"` : <token, string…|2>+'s type»,
+				arg «`"subelements"` : any*'s type»
+			>;
+		reqAttrRequired ::= send $"Require:_includes each attribute of_"
+			with «<«↓args[1]», ‘requiredAttributes’>» : ⊤;
+		reqAttrAllowed ::= send $"Require:every attribute of_is one of_"
+			with «<«↓args[1]», ‘requiredAttributes ∪ allowedAttributes’>» : ⊤;
+		reqValid ::= send $"Require:_are valid subelements"
+			with «<«↓args[|args|]»>» : ⊤;
+		reqSubAllowed ::= send $"Require:every hypertext element of_is one of_"
+			with «<«↓args[|args|]», ‘allowedSubelements’>» : ⊤;
+		b ::=
+			«[
+				args
+			|
+				<reqAttrRequired, reqAttrAllowed, reqValid, reqSubAllowed, ‘⊤’>
+			] : type»;
+		Semantic restriction methodName is b→function;
+	]();
+];
+
+Semantic restriction
+	"Hypertext element_requires attributes_allows attributes_allows subelements_"
+is
+[
+	tagName : nonempty string's type,
+	requiredAttributes : {nonempty string|1..}'s type,
+	allowedAttributes : {nonempty string|}'s type,
+	allowedSubelements : {nonempty string|}'s type
+|
+	Require: required attributes requiredAttributes are statically known;
+	Require: allowed attributes allowedAttributes are statically known;
+	Require: allowed subelements allowedSubelements are statically known;
+	Require:
+		tagName formatted by
+			[s : nonempty string | format "<‘①’«…=_»>«_»</‘①’>" with s]
+		is public;
+	⊤
+];

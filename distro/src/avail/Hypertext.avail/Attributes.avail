@@ -1,5 +1,5 @@
 /*
- * Convenient ASCII.avail
+ * Attributes.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,11 +30,103 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Convenient ASCII"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Extends
-	"Convenient Avail",
-	"Convenient Dimensional Analysis",
-	"Hypertext"
+Module "Attributes"
+Uses
+	"Avail"
+Names
+	"core attributes",
+	"event handler attributes",
+	"global attributes"
 Body
+
+/**
+ * @macro "core attributes"
+ * @returns "{nonempty string|}"
+ */
+Public macro "core attributes" is
+[
+	‘{
+		"accesskey",
+		"class",
+		"contenteditable",
+		"dir",
+		"hidden",
+		"id",
+		"lang",
+		"spellcheck",
+		"style",
+		"tabindex",
+		"title",
+		"translate"
+	}’
+];
+
+/**
+ * @macro "event handler attributes"
+ * @returns "{nonempty string|}"
+ */
+Public macro "event handler attributes" is
+[
+	‘{
+		"onabort",
+		"onblur",
+		"oncancel",
+		"oncanplay",
+		"oncanplaythrough",
+		"onchange",
+		"onclick",
+		"oncuechange",
+		"ondblclick",
+		"ondurationchange",
+		"onemptied",
+		"onended",
+		"onerror",
+		"onfocus",
+		"oninput",
+		"oninvalid",
+		"onkeydown",
+		"onkeypress",
+		"onkeyup",
+		"onload",
+		"onloadeddata",
+		"onloadedmetadata",
+		"onloadstart",
+		"onmousedown",
+		"onmouseenter",
+		"onmouseleave",
+		"onmousemove",
+		"onmouseout",
+		"onmouseover",
+		"onmouseup",
+		"onmousewheel",
+		"onpause",
+		"onplay",
+		"onplaying",
+		"onprogress",
+		"onratechange",
+		"onreset",
+		"onresize",
+		"onscroll",
+		"onseeked",
+		"onseeking",
+		"onselect",
+		"onshow",
+		"onstalled",
+		"onsubmit",
+		"onsuspend",
+		"ontimeupdate",
+		"ontoggle",
+		"onvolumechange",
+		"onwaiting"
+	}’
+];
+
+/**
+ * @macro "global attributes"
+ * @returns "{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/dom.html#global-attributes"
+ */
+Public macro "global attributes" is
+[
+	‘core attributes ∪ event handler attributes’
+];

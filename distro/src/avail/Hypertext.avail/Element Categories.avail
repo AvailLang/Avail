@@ -1,0 +1,489 @@
+/*
+ * Element Categories.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR 		"SERVICES",
+LOSS OF USE, DATA, OR 		"PROFITS",
+OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Element Categories"
+Uses
+	"Avail"
+Names
+	"metadata content",
+	"flow content",
+	"sectioning content",
+	"heading content",
+	"phrasing content",
+	"embedded content",
+	"interactive content",
+	"sectioning root",
+	"form-associated elements",
+	"listed elements",
+	"submittable elements",
+	"resettable elements",
+	"labelable elements",
+	"reassociateable elements",
+	"palpable content",
+	"script-supporting elements"
+Body
+
+/**
+ * @macro "metadata content"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/dom.html#metadata-content-0"
+ */
+Public macro "metadata content" is
+[
+	‘{
+		"base",
+		"link",
+		"meta",
+		"noscript",
+		"script",
+		"style",
+		"template",
+		"title"
+	}’
+];
+
+/**
+ * @macro "flow content"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/dom.html#flow-content-1"
+ */
+Public macro "flow content" is
+[
+	‘{
+		"a",
+		"abbr",
+		"address",
+		"area",
+		"article",
+		"aside",
+		"audio",
+		"b",
+		"bdi",
+		"bdo",
+		"blockquote",
+		"br",
+		"button",
+		"canvas",
+		"cite",
+		"code",
+		"data",
+		"datalist",
+		"del",
+		"dfn",
+		"div",
+		"dl",
+		"em",
+		"embed",
+		"fieldset",
+		"figure",
+		"footer",
+		"form",
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6",
+		"header",
+		"hr",
+		"i",
+		"iframe",
+		"img",
+		"input",
+		"ins",
+		"kbd",
+		"keygen",
+		"label",
+		"main",
+		"map",
+		"mark",
+		"math",
+		"meter",
+		"nav",
+		"noscript",
+		"object",
+		"ol",
+		"output",
+		"p",
+		"pre",
+		"progress",
+		"q",
+		"ruby",
+		"s",
+		"samp",
+		"script",
+		"section",
+		"select",
+		"small",
+		"span",
+		"strong",
+		"sub",
+		"sup",
+		"svg",
+		"table",
+		"template",
+		"textarea",
+		"time",
+		"u",
+		"ul",
+		"var",
+		"video",
+		"wbr",
+		"text"
+	}’
+];
+
+/**
+ * @macro "sectioning content"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/dom.html#sectioning-content-0"
+ */
+Public macro "sectioning content" is
+[
+	‘{"article", "aside", "nav", "section"}’
+];
+
+/**
+ * @macro "heading content"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/dom.html#heading-content-0"
+ */
+Public macro "heading content" is
+[
+	‘{"h1", "h2", "h3", "h4", "h5", "h6"}’
+];
+
+/**
+ * @macro "phrasing content"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/dom.html#phrasing-content-1"
+ */
+Public macro "phrasing content" is
+[
+	‘{
+		"a",
+		"abbr",
+		"area",
+		"audio",
+		"b",
+		"bdi",
+		"bdo",
+		"br",
+		"button",
+		"canvas",
+		"cite",
+		"code",
+		"data",
+		"datalist",
+		"del",
+		"dfn",
+		"em",
+		"embed",
+		"i",
+		"iframe",
+		"img",
+		"input",
+		"ins",
+		"kbd",
+		"keygen",
+		"label",
+		"map",
+		"mark",
+		"math",
+		"meter",
+		"noscript",
+		"object",
+		"output",
+		"progress",
+		"q",
+		"ruby",
+		"s",
+		"samp",
+		"script",
+		"select",
+		"small",
+		"span",
+		"strong",
+		"sub",
+		"sup",
+		"svg",
+		"template",
+		"textarea",
+		"time",
+		"u",
+		"var",
+		"video",
+		"wbr",
+		"text"
+	}’
+];
+
+/**
+ * @macro "embedded content"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/dom.html#embedded-content-2"
+ */
+Public macro "embedded content" is
+[
+	‘{
+		"audio",
+		"canvas",
+		"embed",
+		"iframe",
+		"img",
+		"math",
+		"object",
+		"svg",
+		"video"
+	}’
+];
+
+/**
+ * @macro "interactive content"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/dom.html#interactive-content-0"
+ */
+Public macro "interactive content" is
+[
+	‘{
+		"a",
+		"audio",
+		"button",
+		"embed",
+		"iframe",
+		"img",
+		"input",
+		"keygen",
+		"label",
+		"object",
+		"select",
+		"textarea",
+		"video"
+	}’
+];
+
+/**
+ * @macro "sectioning root"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/sections.html#sectioning-root"
+ */
+Public macro "sectioning root" is
+[
+	‘{"blockquote", "body", "fieldset", "figure", "td"}’
+];
+
+/**
+ * @macro "form-associated elements"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/forms.html#form-associated-element"
+ */
+Public macro "form-associated elements" is
+[
+	‘{
+		"button",
+		"fieldset",
+		"input",
+		"keygen",
+		"label",
+		"object",
+		"output",
+		"select",
+		"textarea",
+		"img"
+	}’
+];
+
+/**
+ * @macro "listed elements"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/forms.html#category-listed"
+ */
+Public macro "listed elements" is
+[
+	‘{
+		"button",
+		"fieldset",
+		"input",
+		"keygen",
+		"object",
+		"output",
+		"select",
+		"textarea"
+	}’
+];
+
+/**
+ * @macro "submittable elements"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/forms.html#category-submit"
+ */
+Public macro "submittable elements" is
+[
+	‘{"button", "input", "keygen", "object", "select", "textarea"}’
+];
+
+/**
+ * @macro "resettable elements"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/forms.html#category-reset"
+ */
+Public macro "resettable elements" is
+[
+	‘{"input", "keygen", "output", "select", "textarea"}’
+];
+
+/**
+ * @macro "labelable elements"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/forms.html#category-label"
+ */
+Public macro "labelable elements" is
+[
+	‘{
+		"button",
+		"input",
+		"keygen",
+		"meter",
+		"output",
+		"progress",
+		"select",
+		"textarea"
+	}’
+];
+
+/**
+ * @macro "reassociateable elements"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/forms.html#category-form-attr"
+ */
+Public macro "reassociateable elements" is
+[
+	‘{
+		"button",
+		"fieldset",
+		"input",
+		"keygen",
+		"label",
+		"object",
+		"output",
+		"select",
+		"textarea"
+	}’
+];
+
+/**
+ * @macro "palpable content"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/dom.html#palpable-content-0"
+ */
+Public macro "palpable content" is
+[
+	‘{
+		"a",
+		"abbr",
+		"address",
+		"article",
+		"aside",
+		"b",
+		"bdi",
+		"bdo",
+		"blockquote",
+		"button",
+		"canvas",
+		"cite",
+		"code",
+		"data",
+		"dfn",
+		"div",
+		"em",
+		"embed",
+		"fieldset",
+		"figure",
+		"footer",
+		"form",
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6",
+		"header",
+		"i",
+		"iframe",
+		"img",
+		"ins",
+		"kbd",
+		"keygen",
+		"label",
+		"main",
+		"map",
+		"mark",
+		"math",
+		"meter",
+		"nav",
+		"object",
+		"output",
+		"p",
+		"pre",
+		"progress",
+		"q",
+		"ruby",
+		"s",
+		"samp",
+		"section",
+		"select",
+		"small",
+		"span",
+		"strong",
+		"sub",
+		"sup",
+		"svg",
+		"table",
+		"textarea",
+		"time",
+		"u",
+		"var",
+		"video"
+	}’
+];
+
+/**
+ * @macro "script-supporting elements"
+ * @returns "literal phrase⇒{nonempty string|}"
+ * @see "http://www.w3.org/TR/html5/dom.html#script-supporting-elements-0"
+ */
+Public macro "script-supporting elements" is
+[
+	‘{"script", "template"}’
+];

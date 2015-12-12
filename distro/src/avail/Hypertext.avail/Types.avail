@@ -1,0 +1,163 @@
+/*
+ * Types.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Types"
+Uses
+	"Avail"
+Names
+	/* Hypertext. */
+	"hypertext element",
+		"hypertext tag",
+		"hypertext attributes",
+		"hypertext subelements",
+		"hypertext void flag",
+	"_'s⁇tag",
+	"_'s⁇attributes",
+	"_'s⁇subelements",
+	"_is void",
+
+	/* Hypertext rendering. */
+	"_rendered",
+
+	/* Hypertext escaping. */
+	"_«fully»?escaped"
+Body
+
+Public "hypertext tag" is a new field atom;
+Public "hypertext attributes" is a new field atom;
+Public "hypertext subelements" is a new field atom;
+Public "hypertext void flag" is a new field atom;
+
+/**
+ * A {@type "hypertext element"} represents an HTML element.
+ *
+ * @type "hypertext element"
+ * @supertype "object"
+ * @field "hypertext tag" "nonempty string"
+ * @field "hypertext attributes" "{nonempty string→any|}"
+ * @field "hypertext subelements" "any*"
+ * @field "hypertext void flag" "boolean"
+ */
+Public class "hypertext element" extends object
+	with field
+		public hypertext tag : nonempty string ("_'s⁇tag"),
+		public hypertext attributes : {nonempty string→any|} ("_'s⁇attributes"),
+		public hypertext subelements : any* ("_'s⁇subelements"),
+		public hypertext void flag : boolean ("_is void");
+
+/**
+ * Answer a hypertext escaped variant of the argument.
+ *
+ * @method "_«fully»?escaped"
+ * @param "fullyEscaped" "boolean"
+ *        If {@method "true"}, then escape all non-ASCII characters; otherwise,
+ *        only escape ampersands, angle brackets, and control characters.
+ * @param "s" "string"
+ * @returns "string"
+ */
+Public stable method "_«fully»?escaped" is
+[
+	s : string,
+	fullyEscaped : boolean
+|
+	t : string := replace all occurrences of "&" in s with "&amp;";
+	t := replace all occurrences of "<" in t with "&lt;";
+	t := replace all occurrences of ">" in t with "&gt;";
+	[
+		t0 : string := "";
+		For each c of t do
+		[
+			If c is a control character ∨ (fullyEscaped ∧ ¬c is ASCII) then
+			[
+				hex ::= “c's code point → 4 bytes” (hex);
+				trimmed ::= drop x from hex while [x = ¢0];
+				t0 ++= "&#x" ++ trimmed ++ ";";
+			]
+			else
+			[
+				t0 ++= <c>;
+			];
+		];
+		t := t0;
+	]();
+	t
+];
+
+/**
+ * Recursively render the specified {@type "hypertext element"} as text.
+ *
+ * @param "elem" "hypertext element"
+ * @returns "nonempty string"
+ */
+Public forward method "_rendered" is [hypertext element]→nonempty string;
+
+Public method "_rendered" is
+[
+	elem : hypertext element
+|
+	s : nonempty string := "<" ++ elem's tag;
+	For each attr → value of elem's attributes do
+	[
+		s ++=
+			" "
+			++ attr
+			++ "="
+			++ “cast value into [v : string | v] else [“value”]”;
+	];
+	s ++= ">";
+	For each sub of elem's subelements do
+	[
+		s ++=
+			cast sub into
+			[e : hypertext element | e rendered],
+			[t : string | t escaped];
+	];
+	s ++ "</" ++ elem's tag ++ ">"
+] : nonempty string;
+
+Public method "_rendered" is
+[
+	elem : (extend hypertext element with hypertext void flag : true's type)
+|
+	s : nonempty string := "<" ++ elem's tag;
+	For each attr → value of elem's attributes do
+	[
+		s ++=
+			" "
+			++ attr
+			++ "="
+			++ “cast value into [v : string | v] else [“value”]”;
+	];
+	s ++ "/>"
+] : nonempty string;
+
+Method "“_”" is [elem : hypertext element | elem rendered];

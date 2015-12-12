@@ -1,0 +1,783 @@
+/*
+ * Roster.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Roster"
+Uses
+	"Attributes",
+	"Avail",
+	"Definers",
+	"Element Categories",
+	"Types"
+Names
+	/* Hypertext construction. */
+	"<a«…=_»>«_»</a>",
+	"<abbr«…=_»>«_»</abbr>",
+	"<address«…=_»>«_»</address>",
+	"<area«…=_»/>",
+	"<article«…=_»>«_»</article>",
+	"<aside«…=_»>«_»</aside>",
+	"<audio«…=_»>«_»</audio>",
+	"<b«…=_»>«_»</b>",
+	"<base«…=_»/>",
+	"<bdi«…=_»>«_»</bdi>",
+	"<bdo«…=_»>«_»</bdo>",
+	"<blockquote«…=_»>«_»</blockquote>",
+	"<body«…=_»>«_»</body>",
+	"<br«…=_»/>",
+	"<button«…=_»>«_»</button>",
+	"<canvas«…=_»>«_»</canvas>",
+	"<caption«…=_»>«_»</caption>",
+	"<cite«…=_»>«_»</cite>",
+	"<code«…=_»>«_»</code>",
+	"<col«…=_»/>",
+	"<colgroup«…=_»>«_»</colgroup>",
+	"<data«…=_»>«_»</data>",
+	"<datalist«…=_»>«_»</datalist>",
+	"<dd«…=_»>«_»</dd>",
+	"<div«…=_»>«_»</div>",
+	"<dl«…=_»>«_»</dl>",
+	"<dt«…=_»>«_»</dt>",
+	"<del«…=_»>«_»</del>",
+	"<dfn«…=_»>«_»</dfn>",
+	"<em«…=_»>«_»</em>",
+	"<embed«…=_»/>",
+	"<fieldset«…=_»>«_»</fieldset>",
+	"<figcaption«…=_»>«_»</figcaption>",
+	"<figure«…=_»>«_»</figure>",
+	"<footer«…=_»>«_»</footer>",
+	"<form«…=_»>«_»</form>",
+	"<h1«…=_»>«_»</h1>",
+	"<h2«…=_»>«_»</h2>",
+	"<h3«…=_»>«_»</h3>",
+	"<h4«…=_»>«_»</h4>",
+	"<h5«…=_»>«_»</h5>",
+	"<h6«…=_»>«_»</h6>",
+	"<head«…=_»>«_»</head>",
+	"<header«…=_»>«_»</header>",
+	"<hr«…=_»/>",
+	"<html«…=_»>«_»</html>",
+	"<i«…=_»>«_»</i>",
+	"<iframe«…=_»>«_»</iframe>",
+	"<img«…=_»/>",
+	"<input«…=_»/>",
+	"<ins«…=_»>«_»</ins>",
+	"<kbd«…=_»>«_»</kbd>",
+	"<keygen«…=_»/>",
+	"<label«…=_»>«_»</label>",
+	"<legend«…=_»>«_»</legend>",
+	"<li«…=_»>«_»</li>",
+	"<link«…=_»/>",
+	"<main«…=_»>«_»</main>",
+	"<map«…=_»>«_»</map>",
+	"<mark«…=_»>«_»</mark>",
+	"<meta«…=_»/>",
+	"<meter«…=_»>«_»</meter>",
+	"<nav«…=_»>«_»</nav>",
+	"<noscript«…=_»>«_»</noscript>",
+	"<object«…=_»>«_»</object>",
+	"<ol«…=_»>«_»</ol>",
+	"<optgroup«…=_»>«_»</optgroup>",
+	"<option«…=_»>«_»</option>",
+	"<output«…=_»>«_»</output>",
+	"<p«…=_»>«_»</p>",
+	"<param«…=_»/>",
+	"<pre«…=_»>«_»</pre>",
+	"<progress«…=_»>«_»</progress>",
+	"<q«…=_»>«_»</q>",
+	"<rb«…=_»>«_»</rb>",
+	"<rp«…=_»>«_»</rp>",
+	"<rt«…=_»>«_»</rt>",
+	"<rtc«…=_»>«_»</rtc>",
+	"<ruby«…=_»>«_»</ruby>",
+	"<s«…=_»>«_»</s>",
+	"<samp«…=_»>«_»</samp>",
+	"<script«…=_»>«_»</script>",
+	"<section«…=_»>«_»</section>",
+	"<select«…=_»>«_»</select>",
+	"<small«…=_»>«_»</small>",
+	"<source«…=_»/>",
+	"<span«…=_»>«_»</span>",
+	"<strong«…=_»>«_»</strong>",
+	"<style«…=_»>«_»</style>",
+	"<sub«…=_»>«_»</sub>",
+	"<sup«…=_»>«_»</sup>",
+	"<table«…=_»>«_»</table>",
+	"<tbody«…=_»>«_»</tbody>",
+	"<td«…=_»>«_»</td>",
+	"<template«…=_»>«_»</template>",
+	"<textarea«…=_»>«_»</textarea>",
+	"<tfoot«…=_»>«_»</tfoot>",
+	"<th«…=_»>«_»</th>",
+	"<thead«…=_»>«_»</thead>",
+	"<time«…=_»>«_»</time>",
+	"<title«…=_»>«_»</title>",
+	"<tr«…=_»>«_»</tr>",
+	"<track«…=_»/>",
+	"<u«…=_»>«_»</u>",
+	"<ul«…=_»>«_»</ul>",
+	"<var«…=_»>«_»</var>",
+	"<video«…=_»>«_»</video>",
+	"<wbr«…=_»/>"
+Body
+
+Hypertext element "a"
+	allows attributes
+		global attributes
+			∪ {"href", "target", "download", "rel", "hreflang", "type"}
+	allows subelements
+		(phrasing content ∪ flow content) \ interactive content;
+
+Hypertext element "abbr"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "address"
+	allows attributes global attributes
+	allows subelements
+		flow content
+		\ heading content
+		\ sectioning content
+		\ {"header", "footer", "address"};
+
+Hypertext element "area"
+	allows attributes
+		global attributes ∪
+		{
+			"alt",
+			"coords",
+			"shape",
+			"href",
+			"target",
+			"download",
+			"rel",
+			"hreflang",
+			"type"
+		}
+	is void;
+
+Hypertext element "article"
+	allows attributes global attributes
+	allows subelements flow content;
+
+Hypertext element "aside"
+	allows attributes global attributes
+	allows subelements flow content;
+
+Hypertext element "audio"
+	allows attributes
+		global attributes ∪
+		{
+			"src",
+			"crossorigin",
+			"preload",
+			"autoplay",
+			"mediagroup",
+			"loop",
+			"muted",
+			"controls"
+		}
+	allows subelements phrasing content ∪ flow content ∪ {"source"};
+
+Hypertext element "b"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "base"
+	allows attributes global attributes ∪ {"href", "target"}
+	is void;
+
+Hypertext element "bdi"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "bdo"
+	requires attributes {"dir"}
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "blockquote"
+	allows attributes global attributes ∪ {"cite"}
+	allows subelements flow content;
+
+Hypertext element "body"
+	allows attributes
+		global attributes ∪
+		{
+			"onafterprint",
+			"onbeforeprint",
+			"onbeforeunload",
+			"onhashchange",
+			"onmessage",
+			"onoffline",
+			"ononline",
+			"onpagehide",
+			"onpageshow",
+			"onpopstate",
+			"onstorage",
+			"onunload"
+		}
+	allows subelements flow content;
+
+Hypertext element "br"
+	allows attributes global attributes
+	is void;
+
+Hypertext element "button"
+	allows attributes
+		global attributes ∪
+		{
+			"autofocus",
+			"disabled",
+			"form",
+			"formaction",
+			"formenctype",
+			"formmethod",
+			"formnovalidate",
+			"formtarget",
+			"name",
+			"type",
+			"value"
+		}
+	allows subelements phrasing content \ interactive content;
+
+Hypertext element "canvas"
+	allows attributes global attributes ∪ {"width", "height"}
+	allows subelements flow content ∪ phrasing content;
+
+Hypertext element "caption"
+	allows attributes global attributes
+	allows subelements flow content \ {"table"};
+
+Hypertext element "cite"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "code"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "col"
+	allows attributes global attributes ∪ {"span"}
+	is void;
+
+Hypertext element "colgroup"
+	allows attributes global attributes ∪ {"span"}
+	allows subelements script-supporting elements ∪ {"col", "template"};
+
+Hypertext element "data"
+	requires attributes {"value"}
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "datalist"
+	allows attributes global attributes
+	allows subelements phrasing content ∪ {"option"};
+
+Hypertext element "dd"
+	allows attributes global attributes
+	allows subelements flow content;
+
+Hypertext element "del"
+	allows attributes global attributes ∪ {"cite", "datetime"}
+	allows subelements phrasing content;
+
+Hypertext element "dfn"
+	allows attributes global attributes
+	allows subelements phrasing content \ {"dfn"};
+
+Hypertext element "div"
+	allows attributes global attributes
+	allows subelements flow content;
+
+Hypertext element "dl"
+	allows attributes global attributes
+	allows subelements script-supporting elements ∪ {"dt", "dd"};
+
+Hypertext element "dt"
+	allows attributes global attributes
+	allows subelements
+		flow content
+		\ heading content
+		\ sectioning content
+		\ {"header", "footer"};
+
+Hypertext element "em"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "embed"
+	allows attributes global attributes ∪ {"src", "type", "height", "width"}
+	is void;
+
+Hypertext element "fieldset"
+	allows attributes global attributes ∪ {"disabled", "form", "name"}
+	allows subelements flow content ∪ {"legend"};
+
+Hypertext element "figcaption"
+	allows attributes global attributes
+	allows subelements flow content;
+
+Hypertext element "figure"
+	allows attributes global attributes
+	allows subelements flow content ∪ {"figcaption"};
+
+Hypertext element "footer"
+	allows attributes global attributes
+	allows subelements flow content \ {"header", "footer", "main"};
+
+Hypertext element "form"
+	allows attributes
+		global attributes ∪
+		{
+			"accept-charset",
+			"action",
+			"autocomplete",
+			"enctype",
+			"method",
+			"name",
+			"novalidate",
+			"target"
+		}
+	allows subelements flow content \ {"form"};
+
+Hypertext element "h1"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "h2"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "h3"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "h4"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "h5"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "h6"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "head"
+	allows attributes global attributes
+	allows subelements metadata content;
+
+Hypertext element "header"
+	allows attributes global attributes
+	allows subelements flow content \ {"header", "footer", "main"};
+
+Hypertext element "hr"
+	allows attributes global attributes
+	is void;
+
+Hypertext element "html"
+	allows attributes global attributes ∪ {"manifest"}
+	allows subelements {"head", "body"};
+
+Hypertext element "i"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "iframe"
+	allows attributes global attributes
+		∪ {"src", "srcdoc", "name", "sandbox", "width", "height"}
+	allows subelements ∅;
+
+Hypertext element "img"
+	requires attributes {"src", "alt"}
+	allows attributes global attributes
+		∪ {"crossorigin", "usemap", "ismap", "width", "height"}
+	is void;
+
+Hypertext element "input"
+	allows attributes
+		global attributes ∪
+		{
+			"accept",
+			"alt",
+			"autocomplete",
+			"autofocus",
+			"checked",
+			"dirname",
+			"disabled",
+			"form",
+			"formaction",
+			"formenctype",
+			"formmethod",
+			"formnovalidate",
+			"formtarget",
+			"height",
+			"list",
+			"max",
+			"maxlength",
+			"min",
+			"minlength",
+			"multiple",
+			"name",
+			"pattern",
+			"placeholder",
+			"readonly",
+			"required",
+			"size",
+			"src",
+			"step",
+			"type",
+			"value",
+			"width"
+		}
+	is void;
+
+Hypertext element "ins"
+	allows attributes global attributes ∪ {"cite", "datetime"}
+	allows subelements phrasing content;
+
+Hypertext element "kbd"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "keygen"
+	allows attributes global attributes
+		∪ {"autofocus", "challenge", "disabled", "form", "keytype", "name"}
+	is void;
+
+Hypertext element "label"
+	allows attributes global attributes ∪ {"form", "for"}
+	allows subelements phrasing content \ {"label"};
+
+Hypertext element "legend"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "li"
+	allows attributes global attributes ∪ {"value"}
+	allows subelements flow content;
+
+Hypertext element "link"
+	requires attributes {"href", "rel"}
+	allows attributes global attributes
+		∪ {"crossorigin", "media", "hreflang", "type", "sizes"}
+	is void;
+
+Hypertext element "main"
+	allows attributes global attributes
+	allows subelements flow content;
+
+Hypertext element "map"
+	requires attributes {"name"}
+	allows attributes global attributes
+	allows subelements {"area"} ∪ phrasing content ∪ flow content;
+
+Hypertext element "mark"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "meta"
+	allows attributes global attributes
+		∪ {"name", "http-equiv", "content", "charset"}
+	is void;
+
+Hypertext element "meter"
+	requires attributes {"value"}
+	allows attributes global attributes
+		∪ {"min", "max", "low", "high", "optimum"}
+	allows subelements phrasing content \ {"meter"};
+
+Hypertext element "noscript"
+	allows attributes global attributes
+	allows subelements
+		{"link", "meta", "style"}
+		∪ phrasing content
+		∪ flow content;
+
+Hypertext element "nav"
+	allows attributes global attributes
+	allows subelements flow content \ {"main"};
+
+Hypertext element "object"
+	allows attributes
+		global attributes ∪
+		{
+			"data",
+			"type",
+			"typemustmatch",
+			"height",
+			"width",
+			"usemap",
+			"name",
+			"form"
+		}
+	allows subelements {"param"} ∪ phrasing content ∪ flow content;
+
+Hypertext element "ol"
+	allows attributes global attributes ∪ {"reversed", "start", "type"}
+	allows subelements script-supporting elements ∪ {"li"};
+
+Hypertext element "optgroup"
+	allows attributes global attributes ∪ {"disabled", "label"}
+	allows subelements script-supporting elements ∪ {"option"};
+
+Hypertext element "option"
+	allows attributes global attributes
+		∪ {"disabled", "label", "selected", "value"}
+	allows subelements ∅;
+
+Hypertext element "output"
+	allows attributes global attributes ∪ {"for", "form", "name"}
+	allows subelements phrasing content;
+
+Hypertext element "p"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "param"
+	requires attributes {"name", "value"}
+	allows attributes global attributes
+	is void;
+
+Hypertext element "pre"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "progress"
+	allows attributes global attributes ∪ {"value", "max"}
+	allows subelements phrasing content \ {"progress"};
+
+Hypertext element "q"
+	allows attributes global attributes ∪ {"cite"}
+	allows subelements phrasing content;
+
+Hypertext element "rb"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "rp"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "rt"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "rtc"
+	allows attributes global attributes
+	allows subelements phrasing content ∪ {"rt"};
+
+Hypertext element "ruby"
+	allows attributes global attributes
+	allows subelements phrasing content ∪ {"rb", "rt", "rtc", "rp"};
+
+Hypertext element "s"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "samp"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "script"
+	allows attributes global attributes
+		∪ {"src", "type", "charset", "async", "defer", "crossorigin"}
+	allows subelements ∅;
+
+Hypertext element "section"
+	allows attributes global attributes
+	allows subelements flow content;
+
+Hypertext element "select"
+	allows attributes
+		global attributes ∪
+		{
+			"autofocus",
+			"disabled",
+			"form",
+			"multiple",
+			"name",
+			"required",
+			"size"
+		}
+	allows subelements script-supporting elements ∪ {"option", "optgroup"};
+
+Hypertext element "small"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "source"
+	requires attributes {"src"}
+	allows attributes global attributes ∪ {"type", "media"}
+	is void;
+
+Hypertext element "span"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "strong"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "style"
+	allows attributes global attributes ∪ {"media", "type"}
+	allows subelements ∅;
+
+Hypertext element "sub"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "sup"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "table"
+	allows attributes global attributes ∪ {"border", "sortable"}
+	allows subelements script-supporting elements
+		∪ {"caption", "colgroup", "thead", "tbody", "tfoot", "tr"};
+
+Hypertext element "tbody"
+	allows attributes global attributes
+	allows subelements script-supporting elements ∪ {"tr"};
+
+Hypertext element "td"
+	allows attributes global attributes ∪ {"colspan", "rowspan", "headers"}
+	allows subelements flow content;
+
+Hypertext element "template"
+	allows attributes global attributes
+	allows subelements
+		metadata content
+		∪ flow content
+		∪ script-supporting elements
+		∪ {"li"}
+		∪ {"dt", "dd"}
+		∪ {"figcaption"}
+		∪ {"rb", "rt", "rtc", "rp"}
+		∪ {"param"}
+		∪ {"source"}
+		∪ {"caption", "colgroup", "thead", "tbody", "tfoot", "tr"}
+		∪ {"col", "template"}
+		∪ {"tr"}
+		∪ {"th", "td"}
+		∪ {"legend"}
+		∪ {"option", "optgroup"};
+
+Hypertext element "textarea"
+	allows attributes
+		global attributes ∪
+		{
+			"autofocus",
+			"cols",
+			"dirname",
+			"disabled",
+			"form",
+			"maxlength",
+			"minlength",
+			"name",
+			"placeholder",
+			"readonly",
+			"required",
+			"rows",
+			"wrap"
+		}
+	allows subelements ∅;
+
+Hypertext element "tfoot"
+	allows attributes global attributes
+	allows subelements script-supporting elements ∪ {"tr"};
+
+Hypertext element "th"
+	allows attributes global attributes
+		∪ {"colspan", "rowspan", "headers", "scope", "abbr"}
+	allows subelements
+		flow content
+		\ heading content
+		\ sectioning content
+		\ {"header", "footer"};
+
+Hypertext element "thead"
+	allows attributes global attributes
+	allows subelements script-supporting elements ∪ {"tr"};
+
+Hypertext element "time"
+	allows attributes global attributes ∪ {"datetime"}
+	allows subelements phrasing content;
+
+Hypertext element "title"
+	allows attributes global attributes
+	allows subelements ∅;
+
+Hypertext element "tr"
+	allows attributes global attributes
+	allows subelements script-supporting elements ∪ {"th", "tr"};
+
+Hypertext element "track"
+	requires attributes {"src"}
+	allows attributes global attributes
+		∪ {"default", "kind", "label", "srclang"}
+	is void;
+
+Hypertext element "u"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "ul"
+	allows attributes global attributes
+	allows subelements script-supporting elements ∪ {"li"};
+
+Hypertext element "var"
+	allows attributes global attributes
+	allows subelements phrasing content;
+
+Hypertext element "video"
+	allows attributes
+		global attributes ∪
+		{
+			"src",
+			"crossorigin",
+			"poster",
+			"preload",
+			"autoplay",
+			"mediagroup",
+			"loop",
+			"muted",
+			"controls",
+			"width",
+			"height"
+		}
+	allows subelements flow content ∪ phrasing content ∪ {"source"};
+
+Hypertext element "wbr"
+	allows attributes global attributes
+	is void;
