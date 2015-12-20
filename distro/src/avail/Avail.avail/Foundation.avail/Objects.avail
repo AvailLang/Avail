@@ -1659,6 +1659,26 @@ is
 							\| section (because it is public)"
 				];
 				allNamesTuple := eject allNamesTuple ++ <referrerName>;
+			]
+			else
+			[
+				If def[7][1] ≠ ⊥ then
+				[
+					namesType ::= def[7][1];
+					For each nameIndex from 1 to relevant |namesType| do
+					[
+						nameTuple ::= namesType[nameIndex];
+						choice ::= nameTuple[1]'s instance;
+						If choice = 3 then
+						[
+							Reject parse, expected:
+								"referrer name to be omitted for non-referable \
+								\|field \""
+								++ fieldAtom's name
+								++ "\""
+						];
+					];
+				];
 			];
 			Unless readOnly then
 			[
