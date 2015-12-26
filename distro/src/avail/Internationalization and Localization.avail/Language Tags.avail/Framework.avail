@@ -48,6 +48,7 @@ Names
 	"_is valid language code",
 	"Require:_is valid language name",
 	"Require:_is valid language code",
+	"Require:_is well-formed language code",
 	"language_'s⁇code",
 	"language_'s⁇code else_",
 
@@ -63,6 +64,7 @@ Names
 	"_is valid script code",
 	"Require:_is valid script name",
 	"Require:_is valid script code",
+	"Require:_is well-formed script code",
 	"script_'s⁇code",
 	"script_'s⁇code else_",
 
@@ -78,6 +80,7 @@ Names
 	"_is valid region code",
 	"Require:_is valid region name",
 	"Require:_is valid region code",
+	"Require:_is well-formed region code",
 	"region_'s⁇code",
 	"region_'s⁇code else_",
 
@@ -94,6 +97,9 @@ Names
 	"a language tag…",
 	"a language tag…-…",
 	"a language tag…-…-…",
+	"an unchecked language tag…",
+	"an unchecked language tag…-…",
+	"an unchecked language tag…-…-…",
 	"_→language tag",
 
 	/* Exceptions. */
@@ -233,7 +239,7 @@ Public method "Require:_is valid language name" is
 	[
 		Cast nm into
 		[
-			wf : nonempty string
+			wf : language name
 		|
 			If ¬wf is valid language name then
 			[
@@ -287,6 +293,34 @@ Public method "Require:_is valid language code" is
 		Reject parse, expected:
 			format "a registered language code (not: “①”)"
 			with “bad” (as disjunctive list)
+	];
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} if {@param
+ * "codeType"} is an enumeration type and its instances are not well-formed.
+ *
+ * @method "Require:_is well-formed language code"
+ * @param "codeType" "string's type"
+ * @returns "⊤"
+ */
+Public method "Require:_is well-formed language code" is
+[
+	codeType : string's type
+|
+	If |codeType| ≠ ∞ then
+	[
+		bad : {string|} := ∅;
+		For each c of codeType's instances do
+		[
+			Cast c into [wf : language code |] else [bad := bad + c;];
+		];
+		If ¬bad is empty then
+		[
+			Reject parse, expected:
+				format "a well-formed language code (not: “①”)"
+				with “bad” (as disjunctive list)
+		];
 	];
 ];
 
@@ -463,7 +497,7 @@ Public method "Require:_is valid script name" is
 	[
 		Cast nm into
 		[
-			wf : nonempty string
+			wf : script name
 		|
 			If ¬wf is valid script name then
 			[
@@ -517,6 +551,34 @@ Public method "Require:_is valid script code" is
 		Reject parse, expected:
 			format "a registered script code (not: “①”)"
 			with “bad” (as disjunctive list)
+	];
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} if {@param
+ * "codeType"} is an enumeration type and its instances are not well-formed.
+ *
+ * @method "Require:_is well-formed script code"
+ * @param "codeType" "string's type"
+ * @returns "⊤"
+ */
+Public method "Require:_is well-formed script code" is
+[
+	codeType : string's type
+|
+	If |codeType| ≠ ∞ then
+	[
+		bad : {string|} := ∅;
+		For each c of codeType's instances do
+		[
+			Cast c into [wf : script code |] else [bad := bad + c;];
+		];
+		If ¬bad is empty then
+		[
+			Reject parse, expected:
+				format "a well-formed script code (not: “①”)"
+				with “bad” (as disjunctive list)
+		];
 	];
 ];
 
@@ -692,7 +754,7 @@ Public method "Require:_is valid region name" is
 	[
 		Cast nm into
 		[
-			wf : nonempty string
+			wf : region name
 		|
 			If ¬wf is valid region name then
 			[
@@ -746,6 +808,34 @@ Public method "Require:_is valid region code" is
 		Reject parse, expected:
 			format "a registered region code (not: “①”)"
 			with “bad” (as disjunctive list)
+	];
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} if {@param
+ * "codeType"} is an enumeration type and its instances are not well-formed.
+ *
+ * @method "Require:_is well-formed region code"
+ * @param "codeType" "string's type"
+ * @returns "⊤"
+ */
+Public method "Require:_is well-formed region code" is
+[
+	codeType : string's type
+|
+	If |codeType| ≠ ∞ then
+	[
+		bad : {string|} := ∅;
+		For each c of codeType's instances do
+		[
+			Cast c into [wf : region code |] else [bad := bad + c;];
+		];
+		If ¬bad is empty then
+		[
+			Reject parse, expected:
+				format "a well-formed region code (not: “①”)"
+				with “bad” (as disjunctive list)
+		];
 	];
 ];
 
@@ -976,7 +1066,7 @@ Semantic restriction "a language tag…" is
  * {@method "Reject parse,expected:_" Reject the current parse} unless {@param
  * "codeType"} is an enumeration type and its instances are all
  * {@method "Script_has code_" registered} {@type "script code" script code}s or
- * {@method "Region_has code_" registered} {@type "region codes"}.
+ * {@method "Region_has code_" registered} {@type "region code"}s.
  *
  * @method "Require:_is valid script or region code"
  * @param "codeType" "string's type"
@@ -1129,6 +1219,182 @@ Semantic restriction "a language tag…-…-…" is
 	Require: languageToken's lexeme's type is valid language code;
 	Require: scriptToken's lexeme's type is valid script code;
 	Require: regionToken's lexeme's type is valid region code;
+	⊤
+];
+
+/**
+ * Construct a {@type "language tag"} given a {@type "language code"}.
+ *
+ * @method "an unchecked language tag…"
+ * @param "languageToken" "token"
+ *        A {@type "token"} whose lexeme is a well-formed {@type
+ *        "language code"}.
+ * @returns "language tag"
+ */
+Public stable method "an unchecked language tag…" is
+[
+	languageToken : token
+|
+	a language tag with
+		language subtag ::= languageToken's lexeme ?→ language code,
+		script subtag ::= "",
+		region subtag ::= ""
+];
+
+Semantic restriction "an unchecked language tag…" is
+[
+	languageTokenType : token's type
+|
+	languageToken ::= languageTokenType's instance;
+	Require: languageToken's lexeme's type is well-formed language code;
+	⊤
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} if {@param
+ * "codeType"} is an enumeration type and its instances are not all
+ * well-formed {@type "script code" script code}s or well-formed {@type
+ * "region code"}s.
+ *
+ * @method "Require:_is well-formed script or region code"
+ * @param "codeType" "string's type"
+ * @returns "⊤"
+ */
+Private method "Require:_is well-formed script or region code" is
+[
+	codeType : string's type
+|
+	If |codeType| ≠ ∞ then
+	[
+		codes ::= codeType's instances;
+		mode : [0..2] := 0;
+		bad : {string|} := ∅;
+		For each c of codes do
+		[
+			Cast c into
+			[
+				wf : script code
+			|
+				If mode = 2 then
+				[
+					Reject parse, expected:
+						format
+							"all codes to be region codes (but “①” is a script \
+							\|code)"
+						with wf
+				];
+				mode := 1;
+			],
+			[
+				wf : region code
+			|
+				If mode = 1 then
+				[
+					Reject parse, expected:
+						format
+							"all codes to be script codes (but “①” is a region \
+							\|code)"
+						with wf
+				];
+				mode := 2;
+			]
+			else [bad := bad + c;];
+		];
+		If ¬bad is empty then
+		[
+			Reject parse, expected:
+				format "a well-formed ‘②’ code (not: “①”)" with
+					“bad” (as disjunctive list),
+					if mode = 1 then ["script"] else ["region"]
+		];
+	];
+];
+
+/**
+ * Construct a {@type "language tag"} given a {@type "language code"} and a
+ * {@type "script code"} or {@type "region code"}.
+ *
+ * @method "an unchecked language tag…-…"
+ * @param "languageToken" "token"
+ *        A {@type "token"} whose lexeme is a well-formed {@type
+ *        "language code"}.
+ * @param "otherToken" "token"
+ *        A {@type "token"} whose lexeme is either a well-formed {@type
+ *        "script code"} or a well-formed {@type "region code"}.
+ * @returns "language tag"
+ */
+Public stable method "an unchecked language tag…-…" is
+[
+	languageToken : token,
+	otherToken : token
+|
+	cast otherToken's lexeme into
+	[
+		scriptCode : script code
+	|
+		a language tag with
+			language subtag ::= languageToken's lexeme ?→ language code,
+			script subtag ::= scriptCode,
+			region subtag ::= ""
+	]
+	else
+	[
+		a language tag with
+			language subtag ::= languageToken's lexeme ?→ language code,
+			script subtag ::= "",
+			region subtag ::= otherToken's lexeme ?→ region code
+	]
+];
+
+Semantic restriction "an unchecked language tag…-…" is
+[
+	languageTokenType : token's type,
+	otherTokenType : token's type
+|
+	languageToken ::= languageTokenType's instance;
+	otherToken ::= otherTokenType's instance;
+	Require: otherToken's lexeme's type is well-formed script or region code;
+	⊤
+];
+
+/**
+ * Construct a {@type "language tag"} given a {@type "language code"}, a {@type
+ * "script code"}, and a {@type "region code"}.
+ *
+ * @method "an unchecked language tag…-…"
+ * @param "languageToken" "token"
+ *        A {@type "token"} whose lexeme is a well-formed {@type
+ *        "language code"}.
+ * @param "scriptToken" "token"
+ *        A {@type "token"} whose lexeme is a well-formed {@type "script code"}.
+ * @param "regionToken" "token"
+ *        A {@type "token"} whose lexeme is a well-formed {@type "region code"}.
+ * @returns "language tag"
+ */
+Public stable method "an unchecked language tag…-…-…" is
+[
+	languageToken : token,
+	scriptToken : token,
+	regionToken : token
+|
+	a language tag with
+		language subtag ::= languageToken's lexeme ?→ language code,
+		script subtag ::= scriptToken's lexeme ?→ script code,
+		region subtag ::= regionToken's lexeme ?→ region code
+];
+
+Semantic restriction "an unchecked language tag…-…-…" is
+[
+	languageTokenType : token's type,
+	scriptTokenType : token's type,
+	regionTokenType : token's type
+|
+	languageToken ::= languageTokenType's instance;
+	scriptToken ::= scriptTokenType's instance;
+	regionToken ::= regionTokenType's instance;
+	Require: languageToken's lexeme's type is well-formed language code;
+	Require: scriptToken's lexeme's type is well-formed script code;
+	Require: regionToken's lexeme's type is well-formed region code;
 	⊤
 ];
 
