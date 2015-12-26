@@ -1,0 +1,291 @@
+/*
+ * Regions.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Regions"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail" = ("_!;"),
+	"Framework"
+Body
+
+Region "Afghanistan" has code "AF";
+Region "Albania" has code "AL";
+Region "Algeria" has code "DZ";
+Region "American Samoa" has code "AS";
+Region "Andorra" has code "AD";
+Region "Angola" has code "AO";
+Region "Anguilla" has code "AI";
+Region "Antarctica" has code "AQ";
+Region "Antigua and Barbuda" has code "AG";
+Region "Argentina" has code "AR";
+Region "Armenia" has code "AM";
+Region "Aruba" has code "AW";
+Region "Australia" has code "AU";
+Region "Austria" has code "AT";
+Region "Azerbaijan" has code "AZ";
+Region "Bahamas" has code "BS";
+Region "Bahrain" has code "BH";
+Region "Bangladesh" has code "BD";
+Region "Barbados" has code "BB";
+Region "Belarus" has code "BY";
+Region "Belgium" has code "BE";
+Region "Belize" has code "BZ";
+Region "Benin" has code "BJ";
+Region "Bermuda" has code "BM";
+Region "Bhutan" has code "BT";
+Region "Bolivia" has code "BO";
+Region "Bonaire, Sint Eustatius and Saba" has code "BQ";
+Region "Bosnia and Herzegovina" has code "BA";
+Region "Botswana" has code "BW";
+Region "Bouvet Island" has code "BV";
+Region "Brazil" has code "BR";
+Region "British Indian Ocean Territory" has code "IO";
+Region "British Virgin Islands" has code "VG";
+Region "Brunei Darussalam" has code "BN";
+Region "Bulgaria" has code "BG";
+Region "Burkina Faso" has code "BF";
+Region "Burundi" has code "BI";
+Region "Cabo Verde" has code "CV";
+Region "Cambodia" has code "KH";
+Region "Cameroon" has code "CM";
+Region "Canada" has code "CA";
+Region "Cayman Islands" has code "KY";
+Region "Central African Republic" has code "CF";
+Region "Chad" has code "TD";
+Region "Chile" has code "CL";
+Region "China" has code "CN";
+Region "Christmas Island" has code "CX";
+Region "Cocos Islands" has code "CC";
+Region "Colombia" has code "CO";
+Region "Comoros" has code "KM";
+Region "Congo" has code "CD";
+Region "Congo" has code "CG";
+Region "Cook Islands" has code "CK";
+Region "Costa Rica" has code "CR";
+Region "Croatia" has code "HR";
+Region "Cuba" has code "CU";
+Region "Curaçao" has code "CW";
+Region "Cyprus" has code "CY";
+Region "Czech Republic" has code "CZ";
+Region "Côte d'Ivoire" has code "CI";
+Region "Denmark" has code "DK";
+Region "Djibouti" has code "DJ";
+Region "Dominica" has code "DM";
+Region "Dominican Republic" has code "DO";
+Region "Ecuador" has code "EC";
+Region "Egypt" has code "EG";
+Region "El Salvador" has code "SV";
+Region "Equatorial Guinea" has code "GQ";
+Region "Eritrea" has code "ER";
+Region "Estonia" has code "EE";
+Region "Ethiopia" has code "ET";
+Region "Falkland Islands" has code "FK";
+Region "Faroe Islands" has code "FO";
+Region "Fiji" has code "FJ";
+Region "Finland" has code "FI";
+Region "France" has code "FR";
+Region "French Guiana" has code "GF";
+Region "French Polynesia" has code "PF";
+Region "French Southern Territories" has code "TF";
+Region "Gabon" has code "GA";
+Region "Gambia" has code "GM";
+Region "Georgia" has code "GE";
+Region "Germany" has code "DE";
+Region "Ghana" has code "GH";
+Region "Gibraltar" has code "GI";
+Region "Greece" has code "GR";
+Region "Greenland" has code "GL";
+Region "Grenada" has code "GD";
+Region "Guadeloupe" has code "GP";
+Region "Guam" has code "GU";
+Region "Guatemala" has code "GT";
+Region "Guernsey" has code "GG";
+Region "Guinea" has code "GN";
+Region "Guinea-Bissau" has code "GW";
+Region "Guyana" has code "GY";
+Region "Haiti" has code "HT";
+Region "Heard Island and McDonald Islands" has code "HM";
+Region "Holy See" has code "VA";
+Region "Honduras" has code "HN";
+Region "Hong Kong" has code "HK";
+Region "Hungary" has code "HU";
+Region "Iceland" has code "IS";
+Region "India" has code "IN";
+Region "Indonesia" has code "ID";
+Region "Iran" has code "IR";
+Region "Iraq" has code "IQ";
+Region "Ireland" has code "IE";
+Region "Isle of Man" has code "IM";
+Region "Israel" has code "IL";
+Region "Italy" has code "IT";
+Region "Jamaica" has code "JM";
+Region "Japan" has code "JP";
+Region "Jersey" has code "JE";
+Region "Jordan" has code "JO";
+Region "Kazakhstan" has code "KZ";
+Region "Keeling Islands" has code "CC";
+Region "Kenya" has code "KE";
+Region "Kiribati" has code "KI";
+Region "Kuwait" has code "KW";
+Region "Kyrgyzstan" has code "KG";
+Region "Lao People's Democratic Republic" has code "LA";
+Region "Latvia" has code "LV";
+Region "Lebanon" has code "LB";
+Region "Lesotho" has code "LS";
+Region "Liberia" has code "LR";
+Region "Libya" has code "LY";
+Region "Liechtenstein" has code "LI";
+Region "Lithuania" has code "LT";
+Region "Luxembourg" has code "LU";
+Region "Macao" has code "MO";
+Region "Macedonia" has code "MK";
+Region "Madagascar" has code "MG";
+Region "Malawi" has code "MW";
+Region "Malaysia" has code "MY";
+Region "Maldives" has code "MV";
+Region "Mali" has code "ML";
+Region "Malta" has code "MT";
+Region "Malvinas" has code "FK";
+Region "Marshall Islands" has code "MH";
+Region "Martinique" has code "MQ";
+Region "Mauritania" has code "MR";
+Region "Mauritius" has code "MU";
+Region "Mayotte" has code "YT";
+Region "Mexico" has code "MX";
+Region "Micronesia" has code "FM";
+Region "Moldova" has code "MD";
+Region "Monaco" has code "MC";
+Region "Mongolia" has code "MN";
+Region "Montenegro" has code "ME";
+Region "Montserrat" has code "MS";
+Region "Morocco" has code "MA";
+Region "Mozambique" has code "MZ";
+Region "Myanmar" has code "MM";
+Region "Namibia" has code "NA";
+Region "Nauru" has code "NR";
+Region "Nepal" has code "NP";
+Region "Netherlands" has code "NL";
+Region "New Caledonia" has code "NC";
+Region "New Zealand" has code "NZ";
+Region "Nicaragua" has code "NI";
+Region "Niger" has code "NE";
+Region "Nigeria" has code "NG";
+Region "Niue" has code "NU";
+Region "Norfolk Island" has code "NF";
+Region "North Korea" has code "KP";
+Region "Northern Mariana Islands" has code "MP";
+Region "Norway" has code "NO";
+Region "Oman" has code "OM";
+Region "Pakistan" has code "PK";
+Region "Palau" has code "PW";
+Region "Palestine, State of" has code "PS";
+Region "Panama" has code "PA";
+Region "Papua New Guinea" has code "PG";
+Region "Paraguay" has code "PY";
+Region "Peru" has code "PE";
+Region "Philippines" has code "PH";
+Region "Pitcairn" has code "PN";
+Region "Poland" has code "PL";
+Region "Portugal" has code "PT";
+Region "Puerto Rico" has code "PR";
+Region "Qatar" has code "QA";
+Region "Romania" has code "RO";
+Region "Russian Federation" has code "RU";
+Region "Rwanda" has code "RW";
+Region "Réunion" has code "RE";
+Region "Saint Barthélemy" has code "BL";
+Region "Saint Helena, Ascension and Tristan da Cunha" has code "SH";
+Region "Saint Kitts and Nevis" has code "KN";
+Region "Saint Lucia" has code "LC";
+Region "Saint Martin" has code "MF";
+Region "Saint Pierre and Miquelon" has code "PM";
+Region "Saint Vincent and the Grenadines" has code "VC";
+Region "Samoa" has code "WS";
+Region "San Marino" has code "SM";
+Region "Sao Tome and Principe" has code "ST";
+Region "Saudi Arabia" has code "SA";
+Region "Senegal" has code "SN";
+Region "Serbia" has code "RS";
+Region "Seychelles" has code "SC";
+Region "Sierra Leone" has code "SL";
+Region "Singapore" has code "SG";
+Region "Sint Maarten" has code "SX";
+Region "Slovakia" has code "SK";
+Region "Slovenia" has code "SI";
+Region "Solomon Islands" has code "SB";
+Region "Somalia" has code "SO";
+Region "South Africa" has code "ZA";
+Region "South Georgia and the South Sandwich Islands" has code "GS";
+Region "South Korea" has code "KR";
+Region "South Sudan" has code "SS";
+Region "Spain" has code "ES";
+Region "Sri Lanka" has code "LK";
+Region "Sudan" has code "SD";
+Region "Suriname" has code "SR";
+Region "Svalbard and Jan Mayen" has code "SJ";
+Region "Swaziland" has code "SZ";
+Region "Sweden" has code "SE";
+Region "Switzerland" has code "CH";
+Region "Syrian Arab Republic" has code "SY";
+Region "Taiwan, Province of China" has code "TW";
+Region "Tajikistan" has code "TJ";
+Region "Tanzania, United Republic of" has code "TZ";
+Region "Thailand" has code "TH";
+Region "Timor-Leste" has code "TL";
+Region "Togo" has code "TG";
+Region "Tokelau" has code "TK";
+Region "Tonga" has code "TO";
+Region "Trinidad and Tobago" has code "TT";
+Region "Tunisia" has code "TN";
+Region "Turkey" has code "TR";
+Region "Turkmenistan" has code "TM";
+Region "Turks and Caicos Islands" has code "TC";
+Region "Tuvalu" has code "TV";
+Region "Uganda" has code "UG";
+Region "Ukraine" has code "UA";
+Region "United Arab Emirates" has code "AE";
+Region "United Kingdom of Great Britain and Northern Ireland" has code "GB";
+Region "United States Minor Outlying Islands" has code "UM";
+Region "United States of America" has code "US";
+Region "United States Virgin Islands" has code "VI";
+Region "Uruguay" has code "UY";
+Region "Uzbekistan" has code "UZ";
+Region "Vanuatu" has code "VU";
+Region "Venezuela" has code "VE";
+Region "Viet Nam" has code "VN";
+Region "Wallis and Futuna" has code "WF";
+Region "Western Sahara" has code "EH";
+Region "Yemen" has code "YE";
+Region "Zambia" has code "ZM";
+Region "Zimbabwe" has code "ZW";
+Region "Åland Islands" has code "AX";

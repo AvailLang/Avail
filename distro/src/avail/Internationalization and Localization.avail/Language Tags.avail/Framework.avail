@@ -1,0 +1,1190 @@
+/*
+ * Framework.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Framework"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail"
+Names
+	/* Language types. */
+	"language name",
+	"language code",
+
+	/* Define a language. */
+	"Language_has code_",
+
+	/* Language queries. */
+	"_is valid language name",
+	"_is valid language code",
+	"Require:_is valid language name",
+	"Require:_is valid language code",
+	"language_'s⁇code",
+	"language_'s⁇code else_",
+
+	/* Script types. */
+	"script name",
+	"script code",
+
+	/* Define a script. */
+	"Script_has code_",
+
+	/* Script queries. */
+	"_is valid script name",
+	"_is valid script code",
+	"Require:_is valid script name",
+	"Require:_is valid script code",
+	"script_'s⁇code",
+	"script_'s⁇code else_",
+
+	/* Region types. */
+	"region name",
+	"region code",
+
+	/* Define a region. */
+	"Region_has code_",
+
+	/* Region queries. */
+	"_is valid region name",
+	"_is valid region code",
+	"Require:_is valid region name",
+	"Require:_is valid region code",
+	"region_'s⁇code",
+	"region_'s⁇code else_",
+
+	/* Language tags. */
+	"language tag",
+		"language subtag",
+			"_'s⁇language subtag",
+		"script subtag",
+			"_'s⁇script subtag",
+			"_'s⁇script subtag else_",
+		"region subtag",
+			"_'s⁇region subtag",
+			"_'s⁇region subtag else_",
+	"a language tag…",
+	"a language tag…-…",
+	"a language tag…-…-…",
+	"_→language tag",
+
+	/* Exceptions. */
+	"no-script-subtag exception",
+	"no-region-subtag exception"
+Body
+
+/**
+ * The {@type "non-reentrant mutex" lock} that synchronizes access to the
+ * module's shared language structures.
+ *
+ * @global "languageLock" "non-reentrant mutex"
+ */
+languageLock : non-reentrant mutex :=
+	a non-reentrant mutex named "language lock";
+
+/**
+ * Answer the {@type "type"} of a language name, as specified by ISO 639-1.
+ *
+ * @type "language name"
+ * @supertype "nonempty string"
+ * @see "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
+ *      List of ISO 639-1 codes
+ */
+Public macro "language name" is [‘nonempty string’];
+
+/**
+ * Answer the {@type "type"} of a language code, as specified by ISO 639-1.
+ *
+ * @type "language code"
+ * @supertype "<character…|2>"
+ * @see "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
+ *      List of ISO 639-1 codes
+ */
+Public macro "language code" is [‘<enumeration of ¢a to ¢z → set…|2>’];
+
+/**
+ * A {@type "map"} from {@type "language name"} to {@type "language code"}
+ * that includes every declared association.
+ *
+ * @global "languageMap" "{language name→language code|}"
+ */
+languageMap : {language name → language code|} := {};
+
+/**
+ * A {@type "set"} of every declared {@type "language code"}.
+ *
+ * @global "languageCodes" "{language code|}"
+ */
+languageCodes : {language code|} := ∅;
+
+/**
+ * Establish that language {@param "name"} has the ISO 639-1 language code
+ * {@param "code"}. This adjusts what {@method "_is valid language name"} and
+ * {@method "_is valid language code"} are willing to certify as legitimate.
+ *
+ * @method "Language_has code_"
+ * @param "name" "language name"
+ * @param "code" "language code"
+ * @returns "⊤"
+ */
+Public method "Language_has code_" is
+[
+	name : language name,
+	code : language code
+|
+	Lock languageLock for
+	[
+		languageMap := languageMap + name → code;
+		languageCodes := languageCodes + code;
+	];
+	After the current module is unloaded, do
+	[
+		Lock languageLock for
+		[
+			languageMap := languageMap - name;
+			languageCodes := languageCodes - code;
+		];
+	];
+];
+
+/**
+ * Does {@param "name"} represent a registered language?
+ *
+ * @method "_is valid language name"
+ * @param "name" "language name"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "name"} represents a registered
+ *          language, {@method "false"} otherwise.
+ */
+Public method "_is valid language name" is
+[
+	name : language name
+|
+	name ∈ languageMap
+];
+
+/**
+ * Does {@param "name"} represent a registered language code (as specified by
+ * ISO 639-1)?
+ *
+ * @method "_is valid language name"
+ * @param "name" "language name"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "name"} represents a registered
+ *          language, {@method "false"} otherwise.
+ * @see "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
+ *      List of ISO 639-1 codes
+ */
+Public method "_is valid language code" is
+[
+	code : language code
+|
+	code ∈ languageCodes
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless {@param
+ * "nameType"} is an enumeration type and its instances are all {@method
+ * "Language_has code_" registered}.
+ *
+ * @method "Require:_is valid language name"
+ * @param "nameType" "string's type"
+ * @returns "⊤"
+ */
+Public method "Require:_is valid language name" is
+[
+	nameType : string's type
+|
+	If |nameType| = ∞ then
+	[
+		Reject parse, expected: "language name to be statically known"
+	];
+	names ::= nameType's instances;
+	bad : {string|} := ∅;
+	For each nm of names do
+	[
+		Cast nm into
+		[
+			wf : nonempty string
+		|
+			If ¬wf is valid language name then
+			[
+				bad := bad + wf;
+			];
+		]
+		else [bad := bad + nm;];
+	];
+	If ¬bad is empty then
+	[
+		Reject parse, expected:
+			format "a registered language name (not: “①”)"
+			with “bad” (as disjunctive list)
+	];
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless {@param
+ * "codeType"} is an enumeration type and its instances are all {@method
+ * "Language_has code_" registered}.
+ *
+ * @method "Require:_is valid language code"
+ * @param "codeType" "string's type"
+ * @returns "⊤"
+ */
+Public method "Require:_is valid language code" is
+[
+	codeType : string's type
+|
+	If |codeType| = ∞ then
+	[
+		Reject parse, expected: "language code to be statically known"
+	];
+	codes ::= codeType's instances;
+	bad : {string|} := ∅;
+	For each c of codes do
+	[
+		Cast c into
+		[
+			wf : language code
+		|
+			If ¬wf is valid language code then
+			[
+				bad := bad + wf;
+			];
+		]
+		else [bad := bad + c;];
+	];
+	If ¬bad is empty then
+	[
+		Reject parse, expected:
+			format "a registered language code (not: “①”)"
+			with “bad” (as disjunctive list)
+	];
+];
+
+/**
+ * Answer the {@type "language code"} associated with the language named
+ * {@param "name"}.
+ *
+ * @method "language_'s⁇code"
+ * @param "name" "language name"
+ * @returns "language code"
+ * @raises "key-not-found exception"
+ *         If there is no language registered under the name {@param "name"}.
+ */
+Public method "language_'s⁇code" is
+[
+	name : language name
+|
+	languageMap[name]
+];
+
+/**
+ * Answer the {@type "language code"} associated with the language named
+ * {@param "name"}, or apply {@param "else"} if {@param "name"} is unregistered.
+ *
+ * @method "language_'s⁇code"
+ * @param "name" "language name"
+ * @param "else" "[]→any"
+ *        The {@type "function"} to apply if {@param "name"} is unregistered.
+ * @returns "language code"
+ */
+Public method "language_'s⁇code else_" is
+[
+	name : language name,
+	else : []→any
+|
+	languageMap[name] else else
+];
+
+Semantic restriction "language_'s⁇code else_" is
+[
+	nameType : language name's type,
+	elseType : ([]→any)'s type
+|
+	language code ∪ elseType's return type
+];
+
+/**
+ * The {@type "non-reentrant mutex" lock} that synchronizes access to the
+ * module's shared script structures.
+ *
+ * @global "scriptLock" "non-reentrant mutex"
+ */
+scriptLock : non-reentrant mutex :=
+	a non-reentrant mutex named "script lock";
+
+/**
+ * Answer the {@type "type"} of a script name, as specified by ISO 15924.
+ *
+ * @type "script name"
+ * @supertype "nonempty string"
+ * @see "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924
+ */
+Public macro "script name" is [‘nonempty string’];
+
+/**
+ * Answer the {@type "type"} of a script code, as specified by ISO 15924.
+ *
+ * @type "script code"
+ * @supertype "<character…|2>"
+ * @see "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924
+ */
+Public macro "script code" is
+	[‘<enumeration of ¢A to ¢Z → set, enumeration of ¢a to ¢z → set…|4>’];
+
+/**
+ * A {@type "map"} from {@type "script name"} to {@type "script code"} that
+ * includes every declared association.
+ *
+ * @global "scriptMap" "{script name→script code|}"
+ */
+scriptMap : {script name → script code|} := {};
+
+/**
+ * A {@type "set"} of every declared {@type "script code"}.
+ *
+ * @global "scriptCodes" "{script code|}"
+ */
+scriptCodes : {script code|} := ∅;
+
+/**
+ * Establish that script {@param "name"} has the ISO 15924 script code
+ * {@param "code"}. This adjusts what {@method "_is valid script name"} and
+ * {@method "_is valid script code"} are willing to certify as legitimate.
+ *
+ * @method "Script_has code_"
+ * @param "name" "script name"
+ * @param "code" "script code"
+ * @returns "⊤"
+ */
+Public method "Script_has code_" is
+[
+	name : script name,
+	code : script code
+|
+	Lock scriptLock for
+	[
+		scriptMap := scriptMap + name → code;
+		scriptCodes := scriptCodes + code;
+	];
+	After the current module is unloaded, do
+	[
+		Lock scriptLock for
+		[
+			scriptMap := scriptMap - name;
+			scriptCodes := scriptCodes - code;
+		];
+	];
+];
+
+/**
+ * Does {@param "name"} represent a registered script?
+ *
+ * @method "_is valid script name"
+ * @param "name" "script name"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "name"} represents a registered
+ *          script, {@method "false"} otherwise.
+ */
+Public method "_is valid script name" is
+[
+	name : script name
+|
+	name ∈ scriptMap
+];
+
+/**
+ * Does {@param "name"} represent a registered script code (as specified by
+ * ISO 15924)?
+ *
+ * @method "_is valid script name"
+ * @param "name" "script name"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "name"} represents a registered
+ *          script, {@method "false"} otherwise.
+ * @see "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924
+ */
+Public method "_is valid script code" is
+[
+	code : script code
+|
+	code ∈ scriptCodes
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless {@param
+ * "nameType"} is an enumeration type and its instances are all {@method
+ * "Script_has code_" registered}.
+ *
+ * @method "Require:_is valid script name"
+ * @param "nameType" "string's type"
+ * @returns "⊤"
+ */
+Public method "Require:_is valid script name" is
+[
+	nameType : string's type
+|
+	If |nameType| = ∞ then
+	[
+		Reject parse, expected: "script name to be statically known"
+	];
+	names ::= nameType's instances;
+	bad : {string|} := ∅;
+	For each nm of names do
+	[
+		Cast nm into
+		[
+			wf : nonempty string
+		|
+			If ¬wf is valid script name then
+			[
+				bad := bad + wf;
+			];
+		]
+		else [bad := bad + nm;];
+	];
+	If ¬bad is empty then
+	[
+		Reject parse, expected:
+			format "a registered script name (not: “①”)"
+			with “bad” (as disjunctive list)
+	];
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless {@param
+ * "codeType"} is an enumeration type and its instances are all {@method
+ * "Script_has code_" registered}.
+ *
+ * @method "Require:_is valid script code"
+ * @param "codeType" "string's type"
+ * @returns "⊤"
+ */
+Public method "Require:_is valid script code" is
+[
+	codeType : string's type
+|
+	If |codeType| = ∞ then
+	[
+		Reject parse, expected: "script code to be statically known"
+	];
+	codes ::= codeType's instances;
+	bad : {string|} := ∅;
+	For each c of codes do
+	[
+		Cast c into
+		[
+			wf : script code
+		|
+			If ¬wf is valid script code then
+			[
+				bad := bad + wf;
+			];
+		]
+		else [bad := bad + c;];
+	];
+	If ¬bad is empty then
+	[
+		Reject parse, expected:
+			format "a registered script code (not: “①”)"
+			with “bad” (as disjunctive list)
+	];
+];
+
+/**
+ * Answer the {@type "script code"} associated with the script named {@param
+ * "name"}.
+ *
+ * @method "script_'s⁇code"
+ * @param "name" "script name"
+ * @returns "script code"
+ * @raises "key-not-found exception"
+ *         If there is no script registered under the name {@param "name"}.
+ */
+Public method "script_'s⁇code" is
+[
+	name : script name
+|
+	scriptMap[name]
+];
+
+/**
+ * Answer the {@type "script code"} associated with the script named {@param
+ * "name"}, or apply {@param "else"} if {@param "name"} is unregistered.
+ *
+ * @method "script_'s⁇code"
+ * @param "name" "script name"
+ * @param "else" "[]→any"
+ *        The {@type "function"} to apply if {@param "name"} is unregistered.
+ * @returns "script code"
+ */
+Public method "script_'s⁇code else_" is
+[
+	name : script name,
+	else : []→any
+|
+	scriptMap[name] else else
+];
+
+Semantic restriction "script_'s⁇code else_" is
+[
+	nameType : script name's type,
+	elseType : ([]→any)'s type
+|
+	script code ∪ elseType's return type
+];
+
+/**
+ * The {@type "non-reentrant mutex" lock} that synchronizes access to the
+ * module's shared region structures.
+ *
+ * @global "regionLock" "non-reentrant mutex"
+ */
+regionLock : non-reentrant mutex :=
+	a non-reentrant mutex named "region lock";
+
+/**
+ * Answer the {@type "type"} of a region name, as specified by ISO 3166-1.
+ *
+ * @type "region name"
+ * @supertype "nonempty string"
+ * @see "https://en.wikipedia.org/wiki/ISO_3166-1" ISO 3166-1
+ */
+Public macro "region name" is [‘nonempty string’];
+
+/**
+ * Answer the {@type "type"} of a region code, as specified by ISO 3166-1.
+ *
+ * @type "region code"
+ * @supertype "<character…|2>"
+ * @see "https://en.wikipedia.org/wiki/ISO_3166-1" ISO 3166-1
+ */
+Public macro "region code" is [‘<enumeration of ¢A to ¢Z → set…|2>’];
+
+/**
+ * A {@type "map"} from {@type "region name"} to {@type "region code"} that
+ * includes every declared association.
+ *
+ * @global "regionMap" "{region name→region code|}"
+ */
+regionMap : {region name → region code|} := {};
+
+/**
+ * A {@type "set"} of every declared {@type "region code"}.
+ *
+ * @global "regionCodes" "{region code|}"
+ */
+regionCodes : {region code|} := ∅;
+
+/**
+ * Establish that region {@param "name"} has the ISO 3166-1 region code
+ * {@param "code"}. This adjusts what {@method "_is valid region name"} and
+ * {@method "_is valid region code"} are willing to certify as legitimate.
+ *
+ * @method "Region_has code_"
+ * @param "name" "region name"
+ * @param "code" "region code"
+ * @returns "⊤"
+ */
+Public method "Region_has code_" is
+[
+	name : region name,
+	code : region code
+|
+	Lock regionLock for
+	[
+		regionMap := regionMap + name → code;
+		regionCodes := regionCodes + code;
+	];
+	After the current module is unloaded, do
+	[
+		Lock regionLock for
+		[
+			regionMap := regionMap - name;
+			regionCodes := regionCodes - code;
+		];
+	];
+];
+
+/**
+ * Does {@param "name"} represent a registered region?
+ *
+ * @method "_is valid region name"
+ * @param "name" "region name"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "name"} represents a registered
+ *          region, {@method "false"} otherwise.
+ */
+Public method "_is valid region name" is
+[
+	name : region name
+|
+	name ∈ regionMap
+];
+
+/**
+ * Does {@param "name"} represent a registered region code (as specified by
+ * ISO 3166-1)?
+ *
+ * @method "_is valid region name"
+ * @param "name" "region name"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "name"} represents a registered
+ *          region, {@method "false"} otherwise.
+ * @see "https://en.wikipedia.org/wiki/ISO_3166-1" ISO 3166-1
+ */
+Public method "_is valid region code" is
+[
+	code : region code
+|
+	code ∈ regionCodes
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless {@param
+ * "nameType"} is an enumeration type and its instances are all {@method
+ * "Region_has code_" registered}.
+ *
+ * @method "Require:_is valid region name"
+ * @param "nameType" "string's type"
+ * @returns "⊤"
+ */
+Public method "Require:_is valid region name" is
+[
+	nameType : string's type
+|
+	If |nameType| = ∞ then
+	[
+		Reject parse, expected: "region name to be statically known"
+	];
+	names ::= nameType's instances;
+	bad : {string|} := ∅;
+	For each nm of names do
+	[
+		Cast nm into
+		[
+			wf : nonempty string
+		|
+			If ¬wf is valid region name then
+			[
+				bad := bad + wf;
+			];
+		]
+		else [bad := bad + nm;];
+	];
+	If ¬bad is empty then
+	[
+		Reject parse, expected:
+			format "a registered region name (not: “①”)"
+			with “bad” (as disjunctive list)
+	];
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless {@param
+ * "codeType"} is an enumeration type and its instances are all {@method
+ * "Region_has code_" registered}.
+ *
+ * @method "Require:_is valid region code"
+ * @param "codeType" "string's type"
+ * @returns "⊤"
+ */
+Public method "Require:_is valid region code" is
+[
+	codeType : string's type
+|
+	If |codeType| = ∞ then
+	[
+		Reject parse, expected: "region code to be statically known"
+	];
+	codes ::= codeType's instances;
+	bad : {string|} := ∅;
+	For each c of codes do
+	[
+		Cast c into
+		[
+			wf : region code
+		|
+			If ¬wf is valid region code then
+			[
+				bad := bad + wf;
+			];
+		]
+		else [bad := bad + c;];
+	];
+	If ¬bad is empty then
+	[
+		Reject parse, expected:
+			format "a registered region code (not: “①”)"
+			with “bad” (as disjunctive list)
+	];
+];
+
+/**
+ * Answer the {@type "region code"} associated with the region named {@param
+ * "name"}.
+ *
+ * @method "region_'s⁇code"
+ * @param "name" "region name"
+ * @returns "region code"
+ * @raises "key-not-found exception"
+ *         If there is no region registered under the name {@param "name"}.
+ */
+Public method "region_'s⁇code" is
+[
+	name : region name
+|
+	regionMap[name]
+];
+
+/**
+ * Answer the {@type "region code"} associated with the region named {@param
+ * "name"}, or apply {@param "else"} if {@param "name"} is unregistered.
+ *
+ * @method "region_'s⁇code"
+ * @param "name" "region name"
+ * @param "else" "[]→any"
+ *        The {@type "function"} to apply if {@param "name"} is unregistered.
+ * @returns "region code"
+ */
+Public method "region_'s⁇code else_" is
+[
+	name : region name,
+	else : []→any
+|
+	regionMap[name] else else
+];
+
+Semantic restriction "region_'s⁇code else_" is
+[
+	nameType : region name's type,
+	elseType : ([]→any)'s type
+|
+	region code ∪ elseType's return type
+];
+
+Public "language subtag" is a new field atom;
+Public "script subtag" is a new field atom;
+Public "region subtag" is a new field atom;
+
+/**
+ * A {@type "language tag"} represents a language tag, as specified by {@see
+ * "http://tools.ietf.org/html/rfc5646" RFC 5646 — Tags for Identifying
+ * Languages}.
+ *
+ * @type "language tag"
+ * @supertype "object"
+ * @field "language subtag" "language code"
+ * @field "script subtag" "script code"
+ * @field "region subtag" "region code"
+ */
+Public class "language tag" extends object
+	with fields
+		public language subtag : language code,
+		script subtag : <
+				enumeration of ¢A to ¢Z → set,
+				enumeration of ¢a to ¢z → set… | 0..4>
+			("private_'s⁇script subtag"),
+		region subtag : <enumeration of ¢A to ¢Z → set…|0..2>
+			("private_'s⁇region subtag");
+
+Public explicit class "no-script-subtag exception" extends exception;
+Public explicit class "no-region-subtag exception" extends exception;
+
+/**
+ * Answer the specified {@type "language tag"}'s {@type "script code" script
+ * subtag}.
+ *
+ * @method "_'s⁇script subtag"
+ * @param "tag" "language tag"
+ * @returns "script code"
+ * @raises "no-script-subtag exception"
+ *         If {@param "tag"} does not include the requested subtag.
+ */
+Public method "_'s⁇script subtag" is
+[
+	tag : language tag
+|
+	subtag ::= private tag's script subtag;
+	If subtag = "" then [Raise a no-script-subtag exception];
+	subtag
+];
+
+Semantic restriction "_'s⁇script subtag" is
+[
+	tagType : language tag's type
+|
+	script code
+];
+
+Semantic restriction "_'s⁇script subtag" is
+[
+	tagType : (extend language tag with script subtag : (""'s type))'s type
+|
+	Reject parse, expected:
+		"script subtag not to be requested of this language tag"
+];
+
+/**
+ * Answer the specified {@type "language tag"}'s {@type "script code" script
+ * subtag}, or apply {@param "else"} if {@param "tag"} has no script subtag.
+ *
+ * @method "_'s⁇script subtag"
+ * @param "tag" "language tag"
+ * @param "else" "[]→any"
+ *        The {@type "function"} to apply if {@param "tag"} has no script
+ *        subtag.
+ * @returns "script code"
+ */
+Public method "_'s⁇script subtag else_" is
+[
+	tag : language tag,
+	else : []→any
+|
+	subtag ::= private tag's script subtag;
+	if subtag ≠ "" then [subtag] else else
+];
+
+Semantic restriction "_'s⁇script subtag else_" is
+[
+	tagType : language tag's type,
+	else : ([]→any)'s type
+|
+	script code ∪ else's return type
+];
+
+/**
+ * Answer the specified {@type "language tag"}'s {@type "region code" region
+ * subtag}.
+ *
+ * @method "_'s⁇region subtag"
+ * @param "tag" "language tag"
+ * @returns "script code"
+ * @raises "no-region-subtag exception"
+ *         If {@param "tag"} does not include the requested subtag.
+ */
+Public method "_'s⁇region subtag" is
+[
+	tag : language tag
+|
+	subtag ::= private tag's region subtag;
+	If subtag = "" then [Raise a no-region-subtag exception];
+	subtag
+];
+
+Semantic restriction "_'s⁇region subtag" is
+[
+	tagType : language tag's type
+|
+	region code
+];
+
+Semantic restriction "_'s⁇region subtag" is
+[
+	tagType : (extend language tag with region subtag : (""'s type))'s type
+|
+	Reject parse, expected:
+		"region subtag not to be requested of this language tag"
+];
+
+/**
+ * Answer the specified {@type "language tag"}'s {@type "region code" region
+ * subtag}, or apply {@param "else"} if {@param "tag"} has no region subtag.
+ *
+ * @method "_'s⁇region subtag"
+ * @param "tag" "language tag"
+ * @param "else" "[]→any"
+ *        The {@type "function"} to apply if {@param "tag"} has no region
+ *        subtag.
+ * @returns "region code"
+ */
+Public method "_'s⁇region subtag else_" is
+[
+	tag : language tag,
+	else : []→any
+|
+	subtag ::= private tag's region subtag;
+	if subtag ≠ "" then [subtag] else else
+];
+
+Semantic restriction "_'s⁇region subtag else_" is
+[
+	tagType : language tag's type,
+	else : ([]→any)'s type
+|
+	region code ∪ else's return type
+];
+
+/**
+ * Construct a {@type "language tag"} given a {@type "language code"}.
+ *
+ * @method "a language tag…"
+ * @param "languageToken" "token"
+ *        A {@type "token"} whose lexeme is a {@method "Language_has code_"
+ *        registered} {@type "language code"}.
+ * @returns "language tag"
+ */
+Public stable method "a language tag…" is
+[
+	languageToken : token
+|
+	a language tag with
+		language subtag ::= languageToken's lexeme ?→ language code,
+		script subtag ::= "",
+		region subtag ::= ""
+];
+
+Semantic restriction "a language tag…" is
+[
+	languageTokenType : token's type
+|
+	languageToken ::= languageTokenType's instance;
+	Require: languageToken's lexeme's type is valid language code;
+	⊤
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless {@param
+ * "codeType"} is an enumeration type and its instances are all
+ * {@method "Script_has code_" registered} {@type "script code" script code}s or
+ * {@method "Region_has code_" registered} {@type "region codes"}.
+ *
+ * @method "Require:_is valid script or region code"
+ * @param "codeType" "string's type"
+ * @returns "⊤"
+ */
+Private method "Require:_is valid script or region code" is
+[
+	codeType : string's type
+|
+	If |codeType| = ∞ then
+	[
+		Reject parse, expected: "script or region code to be statically known"
+	];
+	codes ::= codeType's instances;
+	mode : [0..2] := 0;
+	bad : {string|} := ∅;
+	For each c of codes do
+	[
+		Cast c into
+		[
+			wf : script code
+		|
+			If mode = 2 then
+			[
+				Reject parse, expected:
+					format
+						"all codes to be region codes (but “①” is a script \
+						\|code)"
+					with wf
+			];
+			mode := 1;
+			If ¬wf is valid script code then
+			[
+				bad := bad + wf;
+			];
+		],
+		[
+			wf : region code
+		|
+			If mode = 1 then
+			[
+				Reject parse, expected:
+					format
+						"all codes to be script codes (but “①” is a region \
+						\|code)"
+					with wf
+			];
+			mode := 2;
+			If ¬wf is valid region code then
+			[
+				bad := bad + wf;
+			];
+		]
+		else [bad := bad + c;];
+	];
+	If ¬bad is empty then
+	[
+		Reject parse, expected:
+			format "a registered ‘②’ code (not: “①”)" with
+				“bad” (as disjunctive list),
+				if mode = 1 then ["script"] else ["region"]
+	];
+];
+
+/**
+ * Construct a {@type "language tag"} given a {@type "language code"} and a
+ * {@type "script code"} or {@type "region code"}.
+ *
+ * @method "a language tag…-…"
+ * @param "languageToken" "token"
+ *        A {@type "token"} whose lexeme is a {@method "Language_has code_"
+ *        registered} {@type "language code"}.
+ * @param "otherToken" "token"
+ *        A {@type "token"} whose lexeme is either a {@method "Script_has code_"
+ *        registered} {@type "script code"} or a {@method "Region_has code_"
+ *        registered} {@type "region code"}.
+ * @returns "language tag"
+ */
+Public stable method "a language tag…-…" is
+[
+	languageToken : token,
+	otherToken : token
+|
+	cast otherToken's lexeme into
+	[
+		scriptCode : script code
+	|
+		a language tag with
+			language subtag ::= languageToken's lexeme ?→ language code,
+			script subtag ::= scriptCode,
+			region subtag ::= ""
+	]
+	else
+	[
+		a language tag with
+			language subtag ::= languageToken's lexeme ?→ language code,
+			script subtag ::= "",
+			region subtag ::= otherToken's lexeme ?→ region code
+	]
+];
+
+Semantic restriction "a language tag…-…" is
+[
+	languageTokenType : token's type,
+	otherTokenType : token's type
+|
+	languageToken ::= languageTokenType's instance;
+	otherToken ::= otherTokenType's instance;
+	Require: otherToken's lexeme's type is valid script or region code;
+	⊤
+];
+
+/**
+ * Construct a {@type "language tag"} given a {@type "language code"}, a {@type
+ * "script code"}, and a {@type "region code"}.
+ *
+ * @method "a language tag…-…"
+ * @param "languageToken" "token"
+ *        A {@type "token"} whose lexeme is a {@method "Language_has code_"
+ *        registered} {@type "language code"}.
+ * @param "scriptToken" "token"
+ *        A {@type "token"} whose lexeme is a {@method "Script_has code_"
+ *        registered} {@type "script code"}.
+ * @param "regionToken" "token"
+ *        A {@type "token"} whose lexeme is a {@method "Region_has code_"
+ *        registered} {@type "region code"}.
+ * @returns "language tag"
+ */
+Public stable method "a language tag…-…-…" is
+[
+	languageToken : token,
+	scriptToken : token,
+	regionToken : token
+|
+	a language tag with
+		language subtag ::= languageToken's lexeme ?→ language code,
+		script subtag ::= scriptToken's lexeme ?→ script code,
+		region subtag ::= regionToken's lexeme ?→ region code
+];
+
+Semantic restriction "a language tag…-…-…" is
+[
+	languageTokenType : token's type,
+	scriptTokenType : token's type,
+	regionTokenType : token's type
+|
+	languageToken ::= languageTokenType's instance;
+	scriptToken ::= scriptTokenType's instance;
+	regionToken ::= regionTokenType's instance;
+	Require: languageToken's lexeme's type is valid language code;
+	Require: scriptToken's lexeme's type is valid script code;
+	Require: regionToken's lexeme's type is valid region code;
+	⊤
+];
+
+/**
+ * Convert {@param "tagSpec"} into a {@type "language tag"}.
+ *
+ * @method "_→language tag"
+ * @param "tagSpec" "string"
+ *        A textual rendition of a {@type "language tag"} that conforms to
+ *        {@see "http://tools.ietf.org/html/rfc5646#section-2.1.1" RFC 5646,
+ *        Section 2.1}.
+ * @returns "language tag"
+ * @raises "invalid-argument exception"
+ *         If {@param "tagSpec"} does not satisfy the production requirements
+ *         of {@see "http://tools.ietf.org/html/rfc5646#section-2.1.1" RFC 5646,
+ *         Section 2.1}.
+ * @see "http://tools.ietf.org/html/rfc5646#section-2.1.1" RFC 5646, Section 2.1
+ */
+Public stable method "_→language tag" is
+[
+	tagSpec : string
+|
+	parts ::= take at most ∞ from a reader over tagSpec delimited by "-";
+	languageCode ::= parts[1] ?→ language code;
+	scriptCode : <
+		enumeration of ¢A to ¢Z → set,
+		enumeration of ¢a to ¢z → set… | 0..4> := "";
+	regionCode : <enumeration of ¢A to ¢Z → set…|0..2> := "";
+	If |parts| ≥ 2 then
+	[
+		Cast parts[2] into
+			[c : script code | scriptCode := c;],
+			[c : region code | regionCode := c;]
+		else [Raise an invalid-argument exception];
+	];
+	If |parts| ≥ 3 then
+	[
+		Cast parts[3] into
+			[c : region code | regionCode := c;]
+		else [Raise an invalid-argument exception];
+	];
+	a language tag with
+		language subtag ::= languageCode,
+		script subtag ::= scriptCode,
+		region subtag ::= regionCode
+];
+
+Method "“_”" is
+[
+	tag : language tag
+|
+	tag's language subtag
+		++ if private tag's script subtag = ""
+			then [""]
+			else ["-" ++ tag's script subtag]
+		++ if private tag's region subtag = ""
+			then [""]
+			else ["-" ++ tag's region subtag]
+];

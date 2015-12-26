@@ -1,0 +1,251 @@
+/*
+ * Languages.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Languages"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail" = ("_!;"),
+	"Framework"
+Body
+
+Language "Abkhaz" has code "ab";
+Language "Afar" has code "aa";
+Language "Afrikaans" has code "af";
+Language "Akan" has code "ak";
+Language "Albanian" has code "sq";
+Language "Amharic" has code "am";
+Language "Arabic" has code "ar";
+Language "Aragonese" has code "an";
+Language "Armenian" has code "hy";
+Language "Assamese" has code "as";
+Language "Avaric" has code "av";
+Language "Avestan" has code "ae";
+Language "Aymara" has code "ay";
+Language "Azerbaijani" has code "az";
+Language "Bambara" has code "bm";
+Language "Bangla" has code "bn";
+Language "Bashkir" has code "ba";
+Language "Basque" has code "eu";
+Language "Belarusian" has code "be";
+Language "Bengali" has code "bn";
+Language "Bihari" has code "bh";
+Language "Bislama" has code "bi";
+Language "Bosnian" has code "bs";
+Language "Breton" has code "br";
+Language "Bulgarian" has code "bg";
+Language "Burmese" has code "my";
+Language "Catalan" has code "ca";
+Language "Central" has code "bo";
+Language "Chamorro" has code "ch";
+Language "Chechen" has code "ce";
+Language "Chewa" has code "ny";
+Language "Chichewa" has code "ny";
+Language "Chinese" has code "zh";
+Language "Chuang" has code "za";
+Language "Church Slavonic" has code "cu";
+Language "Chuvash" has code "cv";
+Language "Cornish" has code "kw";
+Language "Corsican" has code "co";
+Language "Cree" has code "cr";
+Language "Croatian" has code "hr";
+Language "Czech" has code "cs";
+Language "Danish" has code "da";
+Language "Dhivehi" has code "dv";
+Language "Divehi" has code "dv";
+Language "Dutch" has code "nl";
+Language "Dzongkha" has code "dz";
+Language "English" has code "en";
+Language "Esperanto" has code "eo";
+Language "Estonian" has code "et";
+Language "Ewe" has code "ee";
+Language "Faroese" has code "fo";
+Language "Fijian" has code "fj";
+Language "Finnish" has code "fi";
+Language "French" has code "fr";
+Language "Fula" has code "ff";
+Language "Fulah" has code "ff";
+Language "Gaelic" has code "gd";
+Language "Galician" has code "gl";
+Language "Ganda" has code "lg";
+Language "Georgian" has code "ka";
+Language "German" has code "de";
+Language "Gikuyu" has code "ki";
+Language "Greek" has code "el";
+Language "Greenlandic" has code "kl";
+Language "Guaraní" has code "gn";
+Language "Gujarati" has code "gu";
+Language "Haitian Creole" has code "ht";
+Language "Haitian" has code "ht";
+Language "Hausa" has code "ha";
+Language "Hebrew" has code "he";
+Language "Herero" has code "hz";
+Language "Hindi" has code "hi";
+Language "Hiri Motu" has code "ho";
+Language "Hungarian" has code "hu";
+Language "Icelandic" has code "is";
+Language "Ido" has code "io";
+Language "Igbo" has code "ig";
+Language "Indonesian" has code "id";
+Language "Interlingua" has code "ia";
+Language "Interlingue" has code "ie";
+Language "Inuktitut" has code "iu";
+Language "Inupiaq" has code "ik";
+Language "Irish" has code "ga";
+Language "Italian" has code "it";
+Language "Japanese" has code "ja";
+Language "Javanese" has code "jv";
+Language "Kalaallisut" has code "kl";
+Language "Kannada" has code "kn";
+Language "Kanuri" has code "kr";
+Language "Kashmiri" has code "ks";
+Language "Kazakh" has code "kk";
+Language "Khmer" has code "km";
+Language "Kikuyu" has code "ki";
+Language "Kinyarwanda" has code "rw";
+Language "Kirundi" has code "rn";
+Language "Komi" has code "kv";
+Language "Kongo" has code "kg";
+Language "Korean" has code "ko";
+Language "Kuanyama" has code "kj";
+Language "Kurdish" has code "ku";
+Language "Kwanyama" has code "kj";
+Language "Kyrgyz" has code "ky";
+Language "Lao" has code "lo";
+Language "Latin" has code "la";
+Language "Latvian" has code "lv";
+Language "Letzeburgesch" has code "lb";
+Language "Limburgan" has code "li";
+Language "Limburger" has code "li";
+Language "Limburgish" has code "li";
+Language "Lingala" has code "ln";
+Language "Lithuanian" has code "lt";
+Language "Luba-Katanga" has code "lu";
+Language "Luxembourgish" has code "lb";
+Language "Macedonian" has code "mk";
+Language "Malagasy" has code "mg";
+Language "Malay" has code "ms";
+Language "Malayalam" has code "ml";
+Language "Maldivian" has code "dv";
+Language "Maltese" has code "mt";
+Language "Manx" has code "gv";
+Language "Marathi" has code "mr";
+Language "Marshallese" has code "mh";
+Language "Mongolian" has code "mn";
+Language "Māori" has code "mi";
+Language "Nauru" has code "na";
+Language "Navaho" has code "nv";
+Language "Navajo" has code "nv";
+Language "Ndonga" has code "ng";
+Language "Nepali" has code "ne";
+Language "Northern Ndebele" has code "nd";
+Language "Northern Sami" has code "se";
+Language "Norwegian Bokmål" has code "nb";
+Language "Norwegian Nynorsk" has code "nn";
+Language "Norwegian" has code "no";
+Language "Nuosu" has code "ii";
+Language "Nyanja" has code "ny";
+Language "Occitan" has code "oc";
+Language "Ojibwa" has code "oj";
+Language "Ojibwe" has code "oj";
+Language "Old Bulgarian" has code "cu";
+Language "Old Church Slavonic" has code "cu";
+Language "Oriya" has code "or";
+Language "Oromo" has code "om";
+Language "Ossetian" has code "os";
+Language "Ossetic" has code "os";
+Language "Panjabi" has code "pa";
+Language "Pashto" has code "ps";
+Language "Persian" has code "fa";
+Language "Polish" has code "pl";
+Language "Portuguese" has code "pt";
+Language "Pulaar" has code "ff";
+Language "Pular" has code "ff";
+Language "Punjabi" has code "pa";
+Language "Pushto" has code "ps";
+Language "Pāli" has code "pi";
+Language "Quechua" has code "qu";
+Language "Romanian" has code "ro";
+Language "Romansh" has code "rm";
+Language "Russian" has code "ru";
+Language "Samoan" has code "sm";
+Language "Sango" has code "sg";
+Language "Sanskrit" has code "sa";
+Language "Sardinian" has code "sc";
+Language "Scottish Gaelic" has code "gd";
+Language "Serbian" has code "sr";
+Language "Shona" has code "sn";
+Language "Sindhi" has code "sd";
+Language "Sinhala" has code "si";
+Language "Sinhalese" has code "si";
+Language "Slovak" has code "sk";
+Language "Slovene" has code "sl";
+Language "Somali" has code "so";
+Language "Southern Ndebele" has code "nr";
+Language "Southern Sotho" has code "st";
+Language "Spanish" has code "es";
+Language "Sundanese" has code "su";
+Language "Swahili" has code "sw";
+Language "Swati" has code "ss";
+Language "Swedish" has code "sv";
+Language "Tagalog" has code "tl";
+Language "Tahitian" has code "ty";
+Language "Tajik" has code "tg";
+Language "Tamil" has code "ta";
+Language "Tatar" has code "tt";
+Language "Telugu" has code "te";
+Language "Thai" has code "th";
+Language "Tibetan Standard" has code "bo";
+Language "Tibetan" has code "bo";
+Language "Tigrinya" has code "ti";
+Language "Tonga" has code "to";
+Language "Tsonga" has code "ts";
+Language "Tswana" has code "tn";
+Language "Turkish" has code "tr";
+Language "Turkmen" has code "tk";
+Language "Twi" has code "tw";
+Language "Ukrainian" has code "uk";
+Language "Urdu" has code "ur";
+Language "Uyghur" has code "ug";
+Language "Uzbek" has code "uz";
+Language "Venda" has code "ve";
+Language "Vietnamese" has code "vi";
+Language "Volapük" has code "vo";
+Language "Walloon" has code "wa";
+Language "Welsh" has code "cy";
+Language "Western Frisian" has code "fy";
+Language "Wolof" has code "wo";
+Language "Xhosa" has code "xh";
+Language "Yiddish" has code "yi";
+Language "Yoruba" has code "yo";
+Language "Zhuang" has code "za";
+Language "Zulu" has code "zu";

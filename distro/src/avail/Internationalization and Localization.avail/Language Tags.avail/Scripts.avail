@@ -1,0 +1,269 @@
+/*
+ * Scripts.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Scripts"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail" = ("_!;"),
+	"Framework"
+Body
+
+Script "'Na-'Khi ²Ggŏ-¹baw" has code "Nkgb";
+Script "Adlam" has code "Adlm";
+Script "Afaka" has code "Afak";
+Script "Ahom" has code "Ahom";
+Script "Alibata" has code "Tglg";
+Script "Anatolian Hieroglyphs" has code "Hluw";
+Script "Ancient North Arabian" has code "Narb";
+Script "Arabic" has code "Arab";
+Script "Armenian" has code "Armn";
+Script "Asomtavruli" has code "Geok";
+Script "Avestan" has code "Avst";
+Script "Balinese" has code "Bali";
+Script "Bamum" has code "Bamu";
+Script "Bassa Vah" has code "Bass";
+Script "Batak" has code "Batk";
+Script "Baybayin" has code "Tglg";
+Script "Bengali" has code "Beng";
+Script "Berber" has code "Tfng";
+Script "Bhaiksuki" has code "Bhks";
+Script "Blissymbols" has code "Blis";
+Script "Book Pahlavi" has code "Phlv";
+Script "Bopomofo" has code "Bopo";
+Script "Brahmi" has code "Brah";
+Script "Braille" has code "Brai";
+Script "Buginese" has code "Bugi";
+Script "Buhid" has code "Buhd";
+Script "Burmese" has code "Mymr";
+Script "Carian" has code "Cari";
+Script "Caucasian Albanian" has code "Aghb";
+Script "Chakma" has code "Cakm";
+Script "Cham" has code "Cham";
+Script "Cherokee" has code "Cher";
+Script "Cirth" has code "Cirt";
+Script "Coptic" has code "Copt";
+Script "Cuneiform" has code "Xsux";
+Script "Cypriot" has code "Cprt";
+Script "Cyrillic" has code "Cyrl";
+Script "Deseret" has code "Dsrt";
+Script "Devanagari" has code "Deva";
+Script "Duployan shorthand" has code "Dupl";
+Script "Duployan stenography" has code "Dupl";
+Script "Early Cyrillic" has code "Cyrs";
+Script "Eastern Syriac" has code "Syrn";
+Script "Egyptian demotic" has code "Egyd";
+Script "Egyptian hieratic" has code "Egyh";
+Script "Egyptian hieroglyphs" has code "Egyp";
+Script "Elbasan" has code "Elba";
+Script "Emoji Symbols" has code "Zsye";
+Script "Estrangelo Syriac" has code "Syre";
+Script "Ethiopic" has code "Ethi";
+Script "Etruscan" has code "Ital";
+Script "Fraktur Latin" has code "Latf";
+Script "Fraser" has code "Lisu";
+Script "Gaelic Latin" has code "Latg";
+Script "Georgian" has code "Geor";
+Script "Geʻez" has code "Ethi";
+Script "Glagolitic" has code "Glag";
+Script "Gothic" has code "Goth";
+Script "Grantha" has code "Gran";
+Script "Greek" has code "Grek";
+Script "Gujarati" has code "Gujr";
+Script "Gurmukhi" has code "Guru";
+Script "Han" has code "Hani";
+Script "Hangeul" has code "Hang";
+Script "Hangul" has code "Hang";
+Script "Hangŭl" has code "Hang";
+Script "Hanja" has code "Hani";
+Script "Hanunoo" has code "Hano";
+Script "Hanunóo" has code "Hano";
+Script "Hanzi" has code "Hani";
+Script "Harappan" has code "Inds";
+Script "Hatran" has code "Hatr";
+Script "Hebrew" has code "Hebr";
+Script "Hiragana" has code "Hira";
+Script "Hittite Hieroglyphs" has code "Hluw";
+Script "Hungarian Runic" has code "Hung";
+Script "Imperial Aramaic" has code "Armi";
+Script "Indus" has code "Inds";
+Script "Inscriptional Pahlavi" has code "Phli";
+Script "Inscriptional Parthian" has code "Prti";
+Script "Japanese syllabaries" has code "Hrkt";
+Script "Japanese" has code "Jpan";
+Script "Javanese" has code "Java";
+Script "Jurchen" has code "Jurc";
+Script "Kaganga" has code "Rjng";
+Script "Kaithi" has code "Kthi";
+Script "Kanji" has code "Hani";
+Script "Kannada" has code "Knda";
+Script "Katakana" has code "Kana";
+Script "Kayah Li" has code "Kali";
+Script "Kharoshthi" has code "Khar";
+Script "Khitan large script" has code "Kitl";
+Script "Khitan small script" has code "Kits";
+Script "Khmer" has code "Khmr";
+Script "Khojki" has code "Khoj";
+Script "Khudawadi" has code "Sind";
+Script "Khutsuri" has code "Geok";
+Script "KLI pIqaD" has code "Piqd";
+Script "Klingon" has code "Piqd";
+Script "Korean" has code "Kore";
+Script "Kpelle" has code "Kpel";
+Script "Lanna" has code "Lana";
+Script "Lao" has code "Laoo";
+Script "Latin" has code "Latn";
+Script "Leke" has code "Leke";
+Script "Lepcha" has code "Lepc";
+Script "Limbu" has code "Limb";
+Script "Linear A" has code "Lina";
+Script "Linear B" has code "Linb";
+Script "Lisu" has code "Lisu";
+Script "Loma" has code "Loma";
+Script "Luwian Hieroglyphs" has code "Hluw";
+Script "Lycian" has code "Lyci";
+Script "Lydian" has code "Lydi";
+Script "Mahajani" has code "Mahj";
+Script "Malayalam" has code "Mlym";
+Script "Mandaean" has code "Mand";
+Script "Mandaic" has code "Mand";
+Script "Manichaean" has code "Mani";
+Script "Marchen" has code "Marc";
+Script "Mathematical notation" has code "Zmth";
+Script "Mayan hieroglyphs" has code "Maya";
+Script "Meetei" has code "Mtei";
+Script "Meitei Mayek" has code "Mtei";
+Script "Meithei" has code "Mtei";
+Script "Mende Kikakui" has code "Mend";
+Script "Meroitic Cursive" has code "Merc";
+Script "Meroitic Hieroglyphs" has code "Mero";
+Script "Miao" has code "Plrd";
+Script "Mkhedruli" has code "Geor";
+Script "Modi" has code "Modi";
+Script "Mongolian" has code "Mong";
+Script "Moon code" has code "Moon";
+Script "Moon script" has code "Moon";
+Script "Moon type" has code "Moon";
+Script "Moon" has code "Moon";
+Script "Moḍī" has code "Modi";
+Script "Mro" has code "Mroo";
+Script "Mru" has code "Mroo";
+Script "Multani" has code "Mult";
+Script "Myanmar" has code "Mymr";
+Script "Nabataean" has code "Nbat";
+Script "Nagari" has code "Deva";
+Script "Nakhi Geba" has code "Nkgb";
+Script "Nastaliq" has code "Aran";
+Script "Naxi Geba" has code "Nkgb";
+Script "New Tai Lue" has code "Talu";
+Script "Newa" has code "Newa";
+Script "Newari" has code "Newa";
+Script "Nuskhuri" has code "Geok";
+Script "Nüshu" has code "Nshu";
+Script "N’Ko" has code "Nkoo";
+Script "Ogham" has code "Ogam";
+Script "Ol Cemet’" has code "Olck";
+Script "Ol Chiki" has code "Olck";
+Script "Ol" has code "Olck";
+Script "Old Hungarian" has code "Hung";
+Script "Old Italic" has code "Ital";
+Script "Old North Arabian" has code "Narb";
+Script "Old Permic" has code "Perm";
+Script "Old Persian" has code "Xpeo";
+Script "Old South Arabian" has code "Sarb";
+Script "Old Turkic" has code "Orkh";
+Script "Oriya" has code "Orya";
+Script "Orkhon Runic" has code "Orkh";
+Script "Osage" has code "Osge";
+Script "Oscan" has code "Ital";
+Script "Osmanya" has code "Osma";
+Script "Pahawh Hmong" has code "Hmng";
+Script "Palmyrene" has code "Palm";
+Script "Pau Cin Hau" has code "Pauc";
+Script "Phags-pa" has code "Phag";
+Script "Phoenician" has code "Phnx";
+Script "Pollard" has code "Plrd";
+Script "Psalter Pahlavi" has code "Phlp";
+Script "Redjang" has code "Rjng";
+Script "Rejang" has code "Rjng";
+Script "Rongorongo" has code "Roro";
+Script "Runic" has code "Runr";
+Script "Róng" has code "Lepc";
+Script "Samaritan" has code "Samr";
+Script "Santali" has code "Olck";
+Script "Sarati" has code "Sara";
+Script "Saurashtra" has code "Saur";
+Script "Sharada" has code "Shrd";
+Script "Shavian" has code "Shaw";
+Script "Shaw" has code "Shaw";
+Script "Siddham" has code "Sidd";
+Script "Siddhamātṛkā" has code "Sidd";
+Script "Siddhaṃ" has code "Sidd";
+Script "SignWriting" has code "Sgnw";
+Script "Simplified Han" has code "Hans";
+Script "Sindhi" has code "Sind";
+Script "Sinhala" has code "Sinh";
+Script "Sora Sompeng" has code "Sora";
+Script "Sumero-Akkadian" has code "Xsux";
+Script "Sundanese" has code "Sund";
+Script "Syloti Nagri" has code "Sylo";
+Script "Symbols" has code "Zsym";
+Script "Syriac" has code "Syrc";
+Script "Tagalog" has code "Tglg";
+Script "Tagbanwa" has code "Tagb";
+Script "Tai Ahom" has code "Ahom";
+Script "Tai Le" has code "Tale";
+Script "Tai Tham" has code "Lana";
+Script "Tai Viet" has code "Tavt";
+Script "Takri" has code "Takr";
+Script "Tamil" has code "Taml";
+Script "Tangut" has code "Tang";
+Script "Telugu" has code "Telu";
+Script "Tengwar" has code "Teng";
+Script "Thaana" has code "Thaa";
+Script "Thai" has code "Thai";
+Script "Tibetan" has code "Tibt";
+Script "Tifinagh" has code "Tfng";
+Script "Tirhuta" has code "Tirh";
+Script "Traditional Han" has code "Hant";
+Script "Ugaritic" has code "Ugar";
+Script "Unified Canadian Aboriginal Syllabics" has code "Cans";
+Script "Vai" has code "Vaii";
+Script "Varang Kshiti" has code "Wara";
+Script "Visible Speech" has code "Visp";
+Script "Warang Citi" has code "Wara";
+Script "Western Syriac" has code "Syrj";
+Script "Woleai" has code "Wole";
+Script "Yi" has code "Yiii";
+Script "Śāradā" has code "Shrd";
+Script "Ṭākrī" has code "Takr";
+Script "Ṭāṅkrī" has code "Takr";
