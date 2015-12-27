@@ -63,6 +63,7 @@ Names
 	"drop from_until_",
 	"drop from_while_",
 	"drop…from_§until_",
+	"drop…from_§where_",
 	"drop…from_§while_",
 	"drop_from_",
 	"first index of_in_",
@@ -87,8 +88,10 @@ Names
 	"split_before_",
 	"stripe_at_",
 	"take from_until_",
+	"take from_where_",
 	"take from_while_",
 	"take…from_§until_",
+	"take…from_§where_",
 	"take…from_§while_",
 	"take_from_",
 	"tuple body function(_,_)",
@@ -2766,6 +2769,8 @@ Public method "take from_until_" is
  */
 Semantic restriction "take from_until_" is take-until semantic restriction;
 
+Alias "take from_where_" to "filter_by_";
+
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
  * element that answers {@method "false"} to {@param "predicate"}.
@@ -2877,6 +2882,8 @@ Public macro "take…from_§while_" is a tuple iteration prefix function,
 Public macro "take…from_§until_" is a tuple iteration prefix function,
 	tuple body function($"take from_until_", tuple);
 
+Alias "take…from_§where_" to "select each…from_§where_";
+
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the 
  * element that answers {@method "false"} to {@param "predicateBlock"}.
@@ -2918,6 +2925,8 @@ Public macro "drop…from_§while_" is a tuple iteration prefix function,
  */
 Public macro "drop…from_§until_" is a tuple iteration prefix function,
 	tuple body function($"drop from_until_", tuple);
+
+Alias "drop…from_§where_" to "reject each…from_§where_";
 
 /**
  * Answer a tuple containing every element of {@param "aTuple"} except for the 

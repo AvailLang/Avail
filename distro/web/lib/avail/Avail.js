@@ -292,12 +292,15 @@ Avail.prototype.connect = function ()
 		{
 			// The state should be 'open' (because the state of the WebSocket
 			// should be 'open' or 'closing').
-			self.state = AvailState.error;
 			self.wsLog(
 				'Error on ',
 				self.url,
 				' => ',
 				JSON.stringify(event));
+			if (self.state !== AvailState.virgin)
+			{
+				self.state = AvailState.error;
+			}
 		};
 	})(this);
 	this.ws.onmessage = (function (self)
