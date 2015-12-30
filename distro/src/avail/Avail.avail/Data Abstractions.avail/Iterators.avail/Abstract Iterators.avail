@@ -571,12 +571,13 @@ Semantic restriction "take«at most»?_from_" is
 	readerType : reader's type
 |
 	Assert: |laxity| = 1;
-	If ¬laxity's instance ∧ ∞ ∈ count then
+	isLax ::= laxity's instance;
+	If ¬isLax ∧ ∞ ∈ count then
 	[
 		Reject parse, expected:
 			"'at most' clause to be specified when count may be ∞"
 	];
-	min ::= if laxity's instance then [0] else [⎣count⎦ ?→ whole number];
+	min ::= if isLax then [0] else [⎣count⎦ ?→ whole number];
 	<readerType's element type's instance… | min..⎡count⎤>
 ];
 
