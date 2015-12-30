@@ -163,7 +163,7 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
 				?→ ((literal phrase ⇒ statement phrase)*) through
 					[lit's token's value]
 		] : ⊤»
-	>» : ⊤ → statement
+	>» : ⊤ → statement phrase
 ];
 
 /**
@@ -205,7 +205,7 @@ Public macro "`!Game class methodsFor:'wumping'`!…`|«…§»`|«_!»`!`!" is
 				?→ ((literal phrase ⇒ statement phrase)*) through
 					[lit's token's value]
 		] : ⊤»
-	>» : ⊤ → statement
+	>» : ⊤ → statement phrase
 ];
 
 /**
@@ -230,7 +230,7 @@ Public macro "`!Game class methodsFor:'wumping'`!…«_!»`!`!" is
 				?→ ((literal phrase ⇒ statement phrase)*) through
 					[lit's token's value]
 		] : ⊤»
-	>» : ⊤ → statement
+	>» : ⊤ → statement phrase
 ];
 
 /**

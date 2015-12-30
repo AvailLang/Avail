@@ -160,7 +160,7 @@ Uses
 		"_→object",
 		"_→object type",
 		"_→set",
-		"_→statement",
+		"_→statement phrase",
 		"_→tuple",
 		"_⇒_",
 		"_∈_",
@@ -2465,13 +2465,13 @@ Primitive "arg`«_:_`»" is
  * {@type "expression as statement phrase⇒⊤"}.
  *
  * @category "Primitives"
- * @method "_→statement"
+ * @method "_→statement phrase"
  * @param "expr" "expression phrase"
  *        An {@type "expression phrase"}.
  * @returns "expression as statement phrase⇒⊤"
  *    The wrapping {@type "expression as statement phrase⇒⊤"}.
  */
-Primitive "_→statement" is
+Primitive "_→statement phrase" is
 [
 	expr : expression phrase
 |

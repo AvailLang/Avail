@@ -101,6 +101,7 @@ Names
 	"an unchecked language tag…-…",
 	"an unchecked language tag…-…-…",
 	"_→language tag",
+	"_'s⁇parts",
 
 	/* Exceptions. */
 	"no-script-subtag exception",
@@ -1453,4 +1454,26 @@ Method "“_”" is
 		++ if private tag's region subtag = ""
 			then [""]
 			else ["-" ++ tag's region subtag]
+];
+
+/**
+ * Answer the subtags of the specified {@type "language tag"}. The parts are
+ * densely packed, omitting components for corresponding missing subtags.
+ *
+ * @method "_'s⁇parts"
+ * @param "tag" "language tag"
+ * @returns "string+"
+ */
+Public method "_'s⁇parts" is
+[
+	tag : language tag
+|
+	take at most ∞ from a reader over “tag” delimited by "-"
+];
+
+Semantic restriction "_'s⁇parts" is
+[
+	tagType : language tag's type
+|
+	string+
 ];

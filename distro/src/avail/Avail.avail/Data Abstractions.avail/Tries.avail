@@ -49,9 +49,12 @@ Names
 	"_∈_",
 	"_[_]",
 	"_[_]else_",
+	"_[_]'s⁇subtrie",
+	"_[_]'s⁇subtrie else_",
 	"_'s⁇keys",
 	"_'s⁇values",
 	"_'s⁇bindings",
+	"_is empty",
 
 	/* Updaters. */
 	"_[_]:=_",
@@ -66,7 +69,6 @@ Body
 
 "key type" is a new field atom;
 "payload type" is a new field atom;
-"level" is a new field atom;
 "payload" is a new field atom;
 "next tries" is a new field atom;
 
@@ -80,8 +82,7 @@ Body
 Public class "trie" extends object
 	with fields
 		public key type : tuple's type,
-		public payload type : any's type ("_'s⁇value type"),
-		level : natural number
+		public payload type : any's type ("_'s⁇value type")
 	with mutable fields
 		referable next tries : any,
 		referable payload : any;
@@ -130,19 +131,15 @@ Private method "a level__" is
 	lvl : natural number,
 	tType : trie's type
 |
+	keyType ::=  tType's key type's instance;
+	leadingTypes ::= keyType[lvl..|keyType's leading types| max (lvl-1)];
+	defaultType ::= keyType's default type;
+	min ::= (⎣keyType⎦ - lvl) max 0;
+	max ::= (⎡keyType⎤ - lvl + 1) max 0;
 	a trie with
-		key type ::= tType's key type's instance,
+		key type ::= <leadingTypes, defaultType…| [min..max)>,
 		payload type ::= tType's value type's instance,
-		level ::= lvl,
 		next tries := {}
-];
-
-Semantic restriction "a level__" is
-[
-	lvlType : natural number's type,
-	tType : trie's type's type
-|
-	extend tType's instance with level : lvlType
 ];
 
 /**
@@ -172,9 +169,7 @@ Semantic restriction "_'s⁇next tries" is
 	tType : trie's type
 |
 	keyType ::= tType's key type's instance;
-	min ::= ⎣tType's level⎦;
-	max ::= ⎡tType's level⎤ min (|keyType's leading types| + 1);
-	{∪ keyType[min..max] → tType|}
+	{∪ keyType[2..⎡keyType⎤] → tType|}
 ];
 
 Semantic restriction "_'s⁇payload" is
@@ -338,6 +333,92 @@ Semantic restriction "_[_]" is
 	tType's value type's instance
 ];
 
+/**
+ * Answer the {@type "trie" subtrie} associated with {@param "key"} in the
+ * {@type "trie"}, or apply {@param "notFound"} if no association exists.
+ *
+ * @method "_[_]'s⁇subtrie else_"
+ * @category "Data Abstractions" "Tries" "Queries"
+ * @param "t" "trie"
+ * @param "key" "tuple"
+ * @param "notFound" "[]→any"
+ *        The {@type "function"} to apply if {@param "key"} does not denote a
+ *        {@type "trie" subtrie} in {@param "t"}.
+ * @returns "trie"
+ *          The {@type "trie" subtrie} associated with {@param "key"} in {@param
+ *          "t"}, or the result of applying {@param "notFound"} if no
+ *          association exists.
+ */
+Public method "_[_]'s⁇subtrie else_" is
+[
+	t : trie,
+	key : tuple,
+	notFound : []→any
+|
+	$body : any;
+	exit ::= [Exit body with notFound()];
+	subtrie : trie := t;
+	For each keyPart of key do
+	[
+		subtrie := subtrie's next tries[keyPart] else exit;
+	];
+	subtrie
+];
+
+Semantic restriction "_[_]'s⁇subtrie else_" is
+[
+	tType : trie's type,
+	keyType : tuple's type,
+	notFoundType : []→any's type
+|
+	Require: keyType is valid key type of tType;
+	tKeyType ::= tType's key type's instance;
+	firstIndexType ::= (⎣keyType⎦ + 1)'s type;
+	lastIndexType ::= ||tKeyType||;
+	subKeyType ::= tuple type of tKeyType[firstIndexType..lastIndexType];
+	(extend trie with
+		key type : subKeyType's type,
+		payload type : tType's value type)
+	∪ notFoundType's return type
+];
+
+/**
+ * Answer the {@type "trie" subtrie} associated with {@param "key"} in the
+ * {@type "trie"}.
+ *
+ * @method "_[_]'s⁇subtrie"
+ * @category "Data Abstractions" "Tries" "Queries"
+ * @param "t" "trie"
+ * @param "key" "tuple"
+ * @returns "trie"
+ *          The {@type "trie" subtrie} associated with {@param "key"} in {@param
+ *          "t"}.
+ * @raises "key-not-found exception"
+ *         If {@param "key"} does not denote a value in {@param "t"}.
+ */
+Public method "_[_]'s⁇subtrie" is
+[
+	t : trie,
+	key : tuple
+|
+	t[key]'s subtrie else [Raise a key-not-found exception]
+];
+
+Semantic restriction "_[_]'s⁇subtrie" is
+[
+	tType : trie's type,
+	keyType : tuple's type
+|
+	Require: keyType is valid key type of tType;
+	tKeyType ::= tType's key type's instance;
+	firstIndexType ::= (⎣keyType⎦ + 1)'s type;
+	lastIndexType ::= ||tKeyType||;
+	subKeyType ::= tuple type of tKeyType[firstIndexType..lastIndexType];
+	extend trie with
+		key type : subKeyType's type,
+		payload type : tType's value type
+];
+
 Forward method "_'s⁇keys(prefix=_)" is [trie, any*]→set;
 
 /**
@@ -439,6 +520,21 @@ Private method "_'s⁇bindings(prefix=_)" is
 ] : <any*, any…|2>*;
 
 /**
+ * Is the specified {@type "trie"} empty?
+ *
+ * @method "_is empty"
+ * @param "t" "trie"
+ * @returns {@method "true"} if {@param "t"} contains no bindings, {@method
+ *          "false"} otherwise.
+ */
+Public method "_is empty" is
+[
+	t : trie
+|
+	t's next tries is empty
+];
+
+/**
  * Associate {@param "value"} with the key {@param "key"} in the {@type "trie"}.
  *
  * @method "_[_]:=_"
@@ -460,7 +556,7 @@ Public method "_[_]:=_" is
 		subtrie := subtrie's next tries[keyPart] else
 			[
 				newSubTree ::=
-					a level lvl trie of t's key type → t's value type;
+					a level lvl+1 trie of t's key type → t's value type;
 				subtrie's next tries :=
 					subtrie's next tries + keyPart → newSubTree;
 				newSubTree

@@ -1,0 +1,478 @@
+/*
+ * Bundles.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Bundles"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail",
+	"Defaults",
+	"Keys",
+	"Language Tags"
+Names
+	"localization|l10n bundle",
+		"_'s⁇name",
+		"_'s⁇tag",
+	"«Public»?Localization|localization bundle_§has key|keys«_§«:_†»«(_)»?‡,»;",
+	"Localization of_for_§has bindings«_::=_§‡,»;",
+	"the localization|l10n bundle_for_",
+	"the default localization|l10n bundle_"
+Body
+
+"bundle name" is a new field atom;
+"bundle tag" is a new field atom;
+
+/**
+ * A {@type "localization|l10n bundle" localization bundle} comprises a
+ * collection of localized resources associated with a particular
+ * {@type "language tag"}.
+ *
+ * @type "localization|l10n bundle"
+ * @supertype "object"
+ * @field "bundle tag" "language tag"
+ *        The {@type "language tag"} of the {@type "localization|l10n bundle"
+ *        localization bundle}.
+ */
+Public class "localization|l10n bundle" extends object
+	with field
+		public bundle name : nonempty string ("_'s⁇name"),
+		public bundle tag : language tag ("_'s⁇tag");
+
+/**
+ * Define a {@type "localization|l10n bundle" localization bundle}. A {@type
+ * "method"} named by {@param "bundleName"} is generated that answers the newly
+ * defined {@type "localization|l10n bundle" localization bundle} subtype.
+ *
+ * @macro "«Public»?Localization|localization bundle_§has key|keys«_§«:_†»«(_)»?‡,»;"
+ * @param "isPublic" "literal phrase ⇒ boolean"
+ *        If lexically supplied, then the {@type "localization|l10n bundle"
+ *        localization bundle} and its fields must all be exported via the
+ *        {@type "current module"}'s "Names" section.
+ * @param "bundleName" "literal phrase ⇒ nonempty string"
+ *        The name of the {@type "localization|l10n bundle" localization
+ *        bundle}.
+ * @param "defs" "list phrase ⇒ (<any, any's type?…|2>+)"
+ *        The localization key definitions, as a {@type "list phrase" list} of
+ *        lexical {@type "list phrase" pairs} of keys and optional {@type
+ *        "any's type" value types}, respectively. A key may be supplied either
+ *        as an existing {@type "localization|l10n key" localization key} or as
+ *        a {@type "nonempty string"}. In the latter case, the {@type
+ *        "nonempty string"} will be used automatically to declare a new
+ *        localization key via {@method "«Public»?_is a new localization key"}
+ *        prior to inclusion in the {@type "localization|l10n bundle"
+ *        localization bundle}. If a value type is not provided, then the type
+ *        {@type "string"} is inferred.
+ * @returns "sequence phrase"
+ */
+Public macro
+	"«Public»?Localization|localization bundle_§has key|keys«_§«:_†»«(_)»?‡,»;"
+is
+[
+	isPublic : literal phrase ⇒ boolean,
+	bundleName : literal phrase ⇒ nonempty string
+|
+	If evaluate isPublic then [Require: evaluate bundleName's type is public;];
+],
+[
+	isPublic : literal phrase ⇒ boolean,
+	bundleName : literal phrase ⇒ nonempty string,
+	defs : list phrase ⇒ (<any, any's type?, nonempty string?…|1..3>+)
+|
+	exprs ::= defs' expressions;
+	def ::= exprs' last;
+	keyType ::= def's semantic type[1];
+	If ¬keyType ⊆ localization key ∧ ¬keyType ⊆ nonempty string then
+	[
+		Reject parse, expected:
+			format
+				"all bundle keys to be localization keys or nonempty strings \
+				\|(but key #“①” isn't)"
+			with |exprs|
+	];
+	If |keyType| ≠ 1 then
+	[
+		Reject parse, expected:
+			format
+				"all bundle keys to be statically known (but key #“①” isn't)"
+			with |exprs|
+	];
+	Cast keyType's instance
+	into [a : atom | Require: a is localization key;]
+	else [/* Nothing. */];
+	If isPublic's semantic type's instance then
+	[
+		t ::= evaluate def;
+		accessorName ::= t[3][1] else
+			[
+				cast t[1] into
+					[k : localization key | k's name],
+					[s : nonempty string | s]
+			];
+		Require: accessorName's type is public;
+	];
+],
+[
+	isPublic : literal phrase ⇒ boolean,
+	bundleName : literal phrase ⇒ nonempty string,
+	defs : list phrase ⇒ (<any, any's type?, nonempty string?…|3>+)
+|
+	keyDecls : statement phrase* := <>;
+	distinctKeys : set := ∅;
+	nameDef ::=
+		«<
+			‘false’,                      /* public */
+			‘false’,                      /* reconstructible */
+			‘bundle name’,                /* field name */
+			‘evaluate bundleName's type’, /* field type */
+			«<‘"_'s⁇name"’>»              /* accessor name */
+		>»;
+	realDefs ::= map each def of defs' expressions through
+		[
+			key, optValueType, optName ::= evaluate def;
+			distinctKeys := distinctKeys + key;
+			valueType ::= optValueType[1] else [string];
+			name ::= if |optName|=1 then [«<‘optName[1]’>»] else [«<>»];
+			«<
+				‘false’,     /* public */
+				‘false’,     /* reconstructible */
+				‘cast key into
+					[k : localization key | k],
+					[
+						s : nonempty string
+					|
+						keyDecls ++= <
+							send $"«Public»?_is a new localization key"
+							with «<‘false’, ‘s’>» : ⊤ → statement phrase
+						>;
+						atom for s
+					]’,      /* field name */
+				‘valueType’, /* field value */
+				name         /* accessor name */
+			>»
+		];
+	If |realDefs| ≠ |distinctKeys| then
+	[
+		Reject parse, expected:
+			"localization bundle not to include duplicate keys"
+	];
+	allDefs ::= realDefs ++ <nameDef> → list phrase;
+	classDef ::=
+		send
+			$"«Public»?«Explicit|explicit»?\
+			\|Class|class_extends_\
+			\|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+			\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
+				\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
+			\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
+		with
+		«<
+			‘false’,               /* public */
+			‘false’,               /* explicit */
+			bundleName,            /* class name */
+			‘localization bundle’, /* supertype */
+			«<allDefs>»,           /* immutable fields */
+			«<>»,                  /* mutable fields */
+			«<>»                   /* reconstructors */
+		>» : ⊤ → statement phrase;
+	seq «keyDecls ++ <classDef>»
+];
+
+Private macro "bundle trie" is [‘trie of string*→localization bundle’];
+Private macro "bundle map" is [‘{localization bundle's type→bundle trie|}’];
+
+/**
+ * The {@type "map"} from {@type "localization|l10n bundle"} {@type "type"}s to
+ * bundle {@type "trie"}s.
+ *
+ * @global "bundleMap" "bundle map"
+ */
+bundleMap : bundle map := {};
+
+/**
+ * The {@type "non-reentrant mutex" lock} that synchronizes access to the
+ * {@global "bundleMap" bundle map}.
+ *
+ * @global "bundleMapLock" "non-reentrant mutex"
+ */
+bundleMapLock : non-reentrant mutex :=
+	a non-reentrant mutex named "bundle map lock";
+
+/**
+ * Install the specified {@type "localization|l10n bundle" localization bundle}
+ * under the specified {@type "localization|l10n bundle" localization bundle}
+ * and {@type "language tag"}.
+ *
+ * @method "Install_for_,_"
+ * @param "aBundle" "localization bundle"
+ * @param "bundleType" "localization bundle's type"
+ * @param "languageTag" "language tag"
+ * @returns "⊤"
+ */
+Private method "Install_for_,_" is
+[
+	aBundle : localization bundle,
+	bundleType : localization bundle's type,
+	languageTag : language tag
+|
+	parts ::= languageTag's parts;
+
+	Lock bundleMapLock for
+	[
+		t ::= bundleMap[bundleType] else
+			[
+				x ::= an empty bundle trie;
+				bundleMap := bundleMap + bundleType → x;
+				x
+			];
+		t[parts] := aBundle;
+	];
+	After the current module is unloaded, do
+	[
+		Lock bundleMapLock for
+		[
+			t ::= bundleMap[bundleType];
+			Remove t[parts];
+			If t is empty then [bundleMap := bundleMap - bundleType;];
+		];
+	];
+];
+
+Explicit class "bad-localization-definition exception" extends exception;
+
+Public forward method "the localization|l10n bundle_for_" is
+	[localization bundle's type, language tag]→localization bundle;
+
+/**
+ * Define a {@type "localization|l10n bundle" localization bundle} that is
+ * localized for a specific {@type "language tag"}. The resultant {@type
+ * "localization|l10n bundle" localization bundle} can be obtained via {@method
+ * "the localization|l10n bundle_for_"}.
+ *
+ * The most general {@type "language tag" localizations} of a {@type
+ * "localization|l10n bundle" localization bundle} must provide type-appropriate
+ * bindings for each declared {@type "localization|l10n key" localization key}.
+ * More specific {@type "language tag" localizations} automatically inherit
+ * missing bindings from the nearest more general {@type "language tag"
+ * localization}. More general {@type "language tag" localizations} must appear
+ * lexically before more specific {@type "language tag" localizations}.
+ *
+ * @macro "Localization of_for_§has bindings«_::=_§‡,»;"
+ * @param "bundleType" "expression phrase ⇒ (localization bundle's type)"
+ *        A {@type "localization|l10n bundle" localization bundle} {@type
+ *        "type"} previously declared with {@method
+ *        "«Public»?Localization|localization bundle_§has key|keys«_§«:_†»«(_)»?‡,»;"}.
+ * @param "languageTag" "expression phrase ⇒ language tag"
+ *        The {@type "language tag"} for this particular localization of the
+ *        {@type "localization|l10n bundle" localization bundle}.
+ * @param "bindings" "list phrase ⇒ <localization key, any…|2>+"
+ *        The {@type "list phrase" list} of bindings from {@type
+ *        "localization|l10n key" localization key} to localized value. Any keys
+ *        that are missing will have inherit their bindings from the {@type
+ *        "localization|l10n bundle" localization bundle} for the nearest more
+ *        general {@type "language tag"}, e.g., <code>en-US</code> will
+ *        inherit from <code>en</code>.
+ * @returns "statement phrase"
+ */
+Public macro "Localization of_for_§has bindings«_::=_§‡,»;" is
+[
+	bundleType : expression phrase ⇒ (localization bundle's type),
+	languageTag : expression phrase ⇒ language tag
+|
+	$body : ⊤;
+	bT ::= evaluate bundleType;
+	name ::= bT's name's instance;
+	tag ::= evaluate languageTag;
+	parts ::= tag's parts;
+	/* This is a little weird, but we want to produce the duplicate flag and the
+	 * pre-existing keys within the same transaction.
+	 */
+	dup, pre ::=
+		guard
+		[
+			lock bundleMapLock for
+			[
+				If ¬bT ∈ bundleMap then
+					[Raise a bad-localization-definition exception];
+				b ::= bundleMap[bT][parts]'s subtrie else
+					[Raise a bad-localization-definition exception];
+				<tag ∈ bundleMap, b's keys>
+			]
+		]
+		intercept [e : bad-localization-definition exception | Exit body];
+	If dup then
+	[
+		Reject parse, expected:
+			format
+				"each localization of “①” to be unique (but a localization \
+				\|already exists for the supplied language tag “②”)"
+			with name, tag
+	];
+	Assert: ¬pre is empty;
+	s ::= “tag”;
+	bad ::= map each t of pre through [“<s> ++ t” (as list partitioned by "-")];
+	Reject parse, expected:
+		format
+			"localization of “①” for language tag “②” to precede \
+			\|specializations (but these are already defined: ‘③’)"
+		with
+			name,
+			tag,
+			“merge sort bad→tuple” (as conjunctive list)
+],
+[
+	bundleType : expression phrase ⇒ (localization bundle's type),
+	languageTag : expression phrase ⇒ language tag,
+	bindings : list phrase ⇒ <localization key, any…|2>+
+|
+	exprs ::= bindings' expressions;
+	lastBinding ::= exprs' last ?→ list phrase;
+	pair ::= lastBinding's expressions;
+	keyType ::= pair[1]'s semantic type;
+	If |keyType| ≠ 1 then
+	[
+		Reject parse, expected:
+			format
+				"all bundle keys to be statically known (but key #“①” isn't)"
+			with |exprs|
+	];
+	Require: keyType is localization key;
+	key ::= keyType's instance;
+	fieldType ::= evaluate bundleType→map[key];
+	If ¬pair[2]'s semantic type ⊆ fieldType then
+	[
+		Reject parse, expected:
+			format
+				"localized value for localization key “①” to conform to “②” \
+				\|(but “③” does not)"
+			with key's name, fieldType, pair[2]'s semantic type
+	];
+],
+[
+	bundleType : expression phrase ⇒ (localization bundle's type),
+	languageTag : expression phrase ⇒ language tag,
+	bindings : list phrase ⇒ <localization key, any…|2>+
+|
+	bT ::= evaluate bundleType;
+	tag ::= evaluate languageTag;
+	parts ::= tag's parts;
+	parents ::=
+		lock bundleMapLock for
+		[
+			$unlock : bundle trie*;
+			t ::= bundleMap[bT] else [Exit unlock with <>];
+			parents : localization bundle* := <>;
+			For each i from 1 to |parts| do
+			[
+				k ::= parts[1..i];
+				parents ++= if k ∈ t then [<t[k]>] else [<>];
+			];
+			parents
+		];
+	/* Build the field map for the new bundle. Inherit absent bindings from the
+	 * default bundle and then parents, i.e., copy missing bindings for
+	 * "en-Latn-US" from "en" and "en-Latn". Don't copy down the name or the tag
+	 * though.
+	 */
+	fieldMap : {atom→any|} :=
+		try [the localization bundle bT for default language → map]
+		else [{}];
+	resolver ::= [m : field map, k : atom, v : any | m + k → v];
+	For each p of parents do
+	[
+		fieldMap := integrate fieldMap and p→map with resolver;
+	];
+	fieldMap := integrate fieldMap and evaluate bindings→map with resolver;
+	fieldMap := fieldMap - bundle tag;
+	allFieldKeys ::= bT→map's keys - bundle tag - bundle name;
+	diff ::= allFieldKeys \ fieldMap's keys;
+	If ¬diff is empty then
+	[
+		names ::= map each f of diff through [f's name];
+		Reject parse, expected:
+			format
+				"all localization keys to receive values through specification \
+				\|or inheritance (but these are missing: ‘①’)"
+			with “merge sort names→tuple” (as simple list)
+	];
+	triples ::=
+		<«<‘bundle tag’, ‘true’, ‘tag’>»>
+			++ map each binding of fieldMap's bindings through
+				[«<‘binding[1]’, ‘true’, ‘binding[2]’>»];
+	send $"Install_for_,_" with
+	«<
+		send $"a|an_«with«_«:»?:=_‡,»»"
+			with «<‘bT’, «<triples→list phrase>»>» : bT,
+		‘bT’,
+		‘tag’
+	>» : ⊤ → statement phrase
+];
+
+/**
+ * Answer the specified {@type "language tag" localization} of the supplied
+ * {@type "localization|l10n bundle" localization bundle}.
+ *
+ * @method "the localization|l10n bundle_for_"
+ * @param "bundleType" "localization bundle's type"
+ * @param "languageTag" "language tag"
+ * @returns "localization|l10n bundle"
+ */
+Public method "the localization|l10n bundle_for_" is
+[
+	bundleType : localization bundle's type,
+	languageTag : language tag
+|
+	lock bundleMapLock for [bundleMap[bundleType][languageTag's parts]]
+];
+
+Semantic restriction "the localization|l10n bundle_for_" is
+[
+	bundleType : localization bundle's type's type,
+	languageTag : language tag's type
+|
+	bundleType's instance
+];
+
+/**
+ * Answer the {@method "default language" default} {@type "language tag"
+ * localization} of the supplied {@type "localization|l10n bundle" localization
+ * bundle}.
+ *
+ * @method "the default localization|l10n bundle_"
+ * @param "bundleType" "localization bundle's type"
+ * @returns "localization|l10n bundle"
+ */
+Public macro "the default localization|l10n bundle_" is
+[
+	bundleType : expression phrase ⇒ (localization bundle's type)
+|
+	‘the localization bundle evaluate bundleType for default language’
+];

@@ -379,7 +379,7 @@ Extends
 		"_→object",
 		"_→object type",
 		"_→set",
-		"_→statement",
+		"_→statement phrase",
 		"_→tuple",
 		"_⇒_",
 		"_∈current fiber",
@@ -1102,6 +1102,7 @@ Extends
 	"Tuples" =
 	(
 		"Require:_accepts_«(check indices)»?",
+		"Require:_[_.._]is ever valid",
 		"SHA-_digest of_",
 		"UUID",
 		"a UUID",
@@ -1143,6 +1144,7 @@ Extends
 		"take…from_§until_",
 		"take…from_§while_",
 		"take_from_",
+		"tuple type of_[_.._]",
 		"zip_",
 		"∑_",
 		"∏_",

@@ -65,7 +65,6 @@ Names
 	"_↑++=_",
 	"_++=_",
 
-	/* Exported for use by Tuples. */
 	"Require:_[_.._]is ever valid",
 	"tuple type of_[_.._]"
 Body

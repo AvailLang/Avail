@@ -1801,7 +1801,7 @@ is
  *        only to support the case that {@code "objectType = object"}), but
  *        usually contains a single tuple of field assignments. A field
  *        assignment is a 3-tuple that consists of 1) an atom that uniquely
- *        identifies the field, 2) a boolean that is {@method "true"} if the
+ *        identifies the field, 2) a boolean that is {@method "false"} if the
  *        field is mutable and a variable should be created and initialized, and
  *        3) the field value.
  * @returns "object"

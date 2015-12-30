@@ -1,5 +1,5 @@
 /*
- * Internationalization and Localization.avail
+ * Defaults.avail
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,10 +30,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Internationalization and Localization"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Extends
-	"Language Tags",
-	"Localization"
+Module "Defaults"
+Uses
+	"Avail",
+	"Language Tags"
+Names
+	/* Default language tag. */
+	"default language",
+	"default language:=_"
 Body
+
+/**
+* Answer the default natural language code for user-visible text. The initial
+* value is <code>en</code>.
+*
+* @method "default language"
+* @returns "nonempty string"
+*          A valid language code, per {@see
+*          "http://tools.ietf.org/html/rfc5646" RCF 5646 — Tags for Identifying
+*          Languages}.
+* @see "http://tools.ietf.org/html/rfc5646" RCF 5646
+*      — Tags for Identifying Languages
+*/
+
+/**
+* Set the default natural language for user-visible text. The initial default
+* is {@method "a language tag…" en}.
+*
+* @method "default language:=_"
+* @param "lang" "nonempty string"
+*        The replacement language code. This should be a valid language code,
+*        per {@see "http://tools.ietf.org/html/rfc5646" RCF 5646 — Tags for
+*        Identifying Languages}.
+* @returns "⊤"
+* @see "http://tools.ietf.org/html/rfc5646" RCF 5646
+*      — Tags for Identifying Languages
+*/
+[
+	var : language tag := a language tag en;
+	Public variable ↑var is "default language";
+]();

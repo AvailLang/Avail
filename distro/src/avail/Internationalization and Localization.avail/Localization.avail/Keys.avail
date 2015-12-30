@@ -1,0 +1,135 @@
+/*
+ * Keys.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Keys"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail"
+Names
+	/* Types. */
+	"localization|l10n key",
+
+	/* Definition. */
+	"«Public»?_is a new localization key",
+
+	/* Queries. */
+	"_is localization key",
+
+	/* Semantic restriction helpers. */
+	"Require:_is localization key"
+Body
+
+"private localization key" is a new atom;
+
+/**
+ * A {@type "localization|l10n key" localization key} is an {@type "atom"} that
+ * includes a localization value type. A value associated with a {@type
+ * "localization|l10n key" localization key} in a {@type
+ * "localization|l10n bundle" localization bundle} must conform to this type.
+ *
+ * @type "localization|l10n key"
+ * @supertype "atom"
+ */
+Public macro "localization|l10n key" is [‘atom’];
+
+/**
+ * Define a new {@type "localization|l10n key" localization key} for use with
+ * {@macro "«Public»?Localization|localization bundle_§has key|keys«_§«:_†»«(_)»?‡,»;"}
+ * and {@macro "Localization bundle_for_§has bindings«_::=_»;"}.
+ *
+ * @method "«Public»?_is a new localization key"
+ * @param "isPublic" "boolean"
+ *        {@method "true"} if the keyword <code>Public</code> occurs lexically,
+ *        {@method "false"} otherwise.
+ * @param "name" "nonempty string"
+ *        The name of the generated method, and the textual name of the created
+ *        {@type "localization|l10n key" localization key}.
+ * @returns "⊤"
+ */
+Public method "«Public»?_is a new localization key" is
+[
+	isPublic : boolean,
+	name : nonempty string
+|
+	name is a new field atom;
+	a ::= atom for name;
+	a[private localization key] := private localization key;
+];
+
+Semantic restriction "«Public»?_is a new localization key" is
+[
+	isPublic : boolean's type,
+	name : nonempty string's type
+|
+	If isPublic's instance ∧ |name| = 1 then [Require: name is public;];
+	⊤
+];
+
+/**
+ * Is the specified {@type "atom"} a {@type "localization key"}?
+ *
+ * @method "_is localization key"
+ * @param "a" "atom"
+ * @returns "boolean"
+ */
+Public method "_is localization key" is
+[
+	a : atom
+|
+	private localization key ∈ a
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} unless the
+ * specified {@type "atom"} {@type "type"} is an instance type and its instance
+ * is a {@type "localization key"}.
+ *
+ * @method "Require:_is localization key"
+ * @param "atomType" "atom's type"
+ * @returns "⊤"
+ */
+Public method "Require:_is localization key" is
+[
+	atomType : atom's type
+|
+	If |atomType| ≠ 1 then
+	[
+		Reject parse, expected:
+			"atom used as localization key to be statically known"
+	];
+	a ::= atomType's instance;
+	If ¬private localization key ∈ a then
+	[
+		Reject parse, expected: "a localization key, not an arbitrary atom"
+	];
+];

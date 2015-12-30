@@ -317,11 +317,11 @@ Private stable method "_@_→_" is
 /**
  * Does the argument represent an empty cell?
  *
- * @macro "_is empty"
+ * @macro "_is vacant"
  * @param "expr" "expression phrase ⇒ cell value"
  * @returns "send phrase ⇒ boolean"
  */
-Private macro "_is empty" is
+Private macro "_is vacant" is
 [
 	expr : expression phrase ⇒ cell value
 |
@@ -373,7 +373,7 @@ Private stable method "_is solved" is
 [
 	b : board
 |
-	each c of b satisfies [¬c is empty] ∧ ¬b is inconsistent
+	each c of b satisfies [¬c is vacant] ∧ ¬b is inconsistent
 ];
 
 /**
@@ -388,7 +388,7 @@ Private stable method "_'s⁇available cells" is
 [
 	b : board
 |
-	select each xy from allPoints where [b@xy is empty]
+	select each xy from allPoints where [b@xy is vacant]
 ];
 
 /**
@@ -405,7 +405,7 @@ Private stable method "_'s⁇available moves@_" is
 	b : board,
 	xy : point
 |
-	Assert: b @ xy is empty;
+	Assert: b @ xy is vacant;
 	<
 		xy,
 		left fold <1 to 9→set> ++ points in conflict with xy through

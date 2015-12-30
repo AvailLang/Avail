@@ -286,7 +286,7 @@ Public macro "sub…{§«_!»}" is
 				?→ ((literal phrase ⇒ phrase)*) through
 					[lit's token's value]
 		] : ⊤»
-	>» : ⊤ → statement
+	>» : ⊤ → statement phrase
 ];
 
 /**
@@ -454,5 +454,5 @@ Public macro "_!for_" is
 				exprPhrase's token's value
 			>
 		] : ⊤»
-	>» : ⊤ → statement
+	>» : ⊤ → statement phrase
 ];
