@@ -273,7 +273,7 @@ extends Descriptor
 		{
 			synchronized (object)
 			{
-				return lowerCaseStringFrom(object.slot(STRING));
+				return lowerCaseStringFrom(object);
 			}
 		}
 		return lowerCaseStringFrom(object);
