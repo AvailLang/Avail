@@ -44,7 +44,7 @@ Body
 * Answer the default natural language code for user-visible text. The initial
 * value is <code>en</code>.
 *
-* @method "default language"
+* @macro "default language"
 * @returns "nonempty string"
 *          A valid language code, per {@see
 *          "http://tools.ietf.org/html/rfc5646" RCF 5646 — Tags for Identifying
@@ -68,5 +68,6 @@ Body
 */
 [
 	var : language tag := a language tag en;
-	Public variable ↑var is "default language";
+	Public macro "default language" is [‘var’];
+	Public method "default language:=_" is [t : language tag | var := t;];
 ]();
