@@ -42,8 +42,8 @@ Names
 	/* Instigating visitation. */
 	"Visit_upon_deconstructed by_(breadth first=_)",
 
-	/* Aliases for instigation visitation. */
-	/*"Visit_upon_deconstructed by_«,breadth first»?",*/
+	/* Aliases for instigating visitation. */
+	"Visit_upon_deconstructed by_«,breadth first»?",
 
 	/* Customizing visitation. */
 	"Before visiting_upon_",
