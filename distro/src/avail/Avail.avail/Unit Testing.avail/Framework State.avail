@@ -69,7 +69,7 @@ _rootSuite : root unit test suite := a root unit test suite with
 	test fixture setup ::= <>,
 	test fixture tear down ::= <>,
 	unit tests ::= <>;
-Public variable ↑_rootSuite is "root suite";
+Public variable _rootSuite is "root suite";
 
 /**
  * The declared unit test suites, keyed by atom, guarded by the {@method
@@ -78,7 +78,7 @@ Public variable ↑_rootSuite is "root suite";
  * @global "suitesByAtom" "{atom→unit test suite|}"
  */
 _suitesByAtom : {atom→unit test suite|} := {};
-Public variable ↑_suitesByAtom is "suites by atom";
+Public variable _suitesByAtom is "suites by atom";
 
 /**
  * The unit tests, organized by test identifier, guarded by the {@method
@@ -87,7 +87,7 @@ Public variable ↑_suitesByAtom is "suites by atom";
  * @global "testsByAtom" "{atom→unit test|}"
  */
 _testsByAtom : {atom→unit test|} := {};
-Public variable ↑_testsByAtom is "tests by atom";
+Public variable _testsByAtom is "tests by atom";
 
 /**
  * The set of all modules that have created {@type "unit test suites"} and/or
@@ -96,7 +96,7 @@ Public variable ↑_testsByAtom is "tests by atom";
  * @global "modules" "{module|}"
  */
 _modules : {module|} := ∅;
-Public variable ↑_modules is "modules";
+Public variable _modules is "modules";
 
 After the current module is unloaded, do
 [

@@ -54,7 +54,7 @@ Body
  * @global "reporter" "[string]→⊤"
  */
 _reporter : [string]→⊤ := [s : string | Print: s;];
-Public variable ↑_reporter is "Wump the Wumpus reporter";
+Public variable _reporter is "Wump the Wumpus reporter";
 
 /**
  * Report {@param "text"} to the player.
@@ -72,7 +72,7 @@ Public method "Report:_" is [text : string | _reporter(text);] : ⊤;
  * @global "reader" "[]→string"
  */
 _reader : []→string := [next line from standard input];
-Public variable ↑_reader is "Wump the Wumpus reader";
+Public variable _reader is "Wump the Wumpus reader";
 
 /**
  * Read a command from the player.

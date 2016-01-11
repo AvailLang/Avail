@@ -51,7 +51,9 @@ Names
 	"Public stable abstract method_is_",
 	"Public stable forward method_is_",
 	"Public stable method_is_",
+	"Public read-only variable_↑is_",
 	"Public read-only variable_is_",
+	"Public variable_↑is_",
 	"Public variable_is_",
 	"Stable abstract method_is_",
 	"Stable forward method_is_",
@@ -1052,6 +1054,8 @@ Semantic restriction "Public variable_is_" is
 	⊤
 ];
 
+Alias "Public variable_↑is_" to atom for "Public variable_is_";
+
 /**
  * Define a new public variable. Automatically generate an accessor. The
  * semantic restriction ensures that these methods are named in the current
@@ -1091,3 +1095,6 @@ Semantic restriction "Public read-only variable_is_" is
 	Require: nameType is public;
 	⊤
 ];
+
+Alias "Public read-only variable_↑is_" to
+	atom for "Public read-only variable_is_";
