@@ -266,7 +266,7 @@ Private method "Require:_includes each attribute of_" is
 ];
 
 /**
- * Reject the current parse unless the specified {@type "hypertext element tag"}
+ * Reject the current parse unless the specified {@type "hypertext element"} tag
  * is well-known and public.
  *
  * @method "Require:_formatted by_is public"
@@ -289,6 +289,46 @@ Private method "Require:_formatted by_is public" is
 ];
 
 /**
+ * Generate a {@method "method"} to answer the {@type "object's type" object
+ * type} for the specified hypertext tag.
+ *
+ * @method "Generate class accessor for_"
+ * @param "tagName" "nonempty string"
+ *        The tag of the {@type "hypertext element"}, e.g., "img", "br", etc.
+ * @returns "⊤"
+ */
+Private method "Generate class accessor for_" is
+[
+	tagName : nonempty string
+|
+	className ::= "hypertext " ++ tagName ++ "~element";
+	class ::= extend hypertext element with hypertext tag : (tagName's type);
+	Stable method className is [class];
+	Semantic restriction className is [class's type];
+];
+
+/**
+ * Reject the current parse unless the specified {@type "hypertext element"} tag
+ * is well-known and its associated {@type "object's type" subtype} of {@type
+ * "hypertext element"} is public.
+ *
+ * @method "Require:class accessor for_is public"
+ * @param "tagName" "nonempty string's type"
+ * @returns "⊤"
+ */
+Private method "Require:class accessor for_is public" is
+[
+	tagName : nonempty string's type
+|
+	If |tagName| ≠ 1 then
+	[
+		Reject parse, expected: "hypertext element's tag to be well-known"
+	];
+	className ::= "hypertext " ++ tagName's instance ++ "~element";
+	Require: className's type is public;
+];
+
+/**
  * Declare a {@type "hypertext element"}. This method is created:
  *
  * <pre>"&lt;" ++ tagName ++ "«…=_»/&gt;"</pre>
@@ -305,6 +345,7 @@ Public method "Hypertext element_is void" is
 [
 	tagName : nonempty string
 |
+	Generate class accessor for tagName;
 	methodName ::= format "<‘①’«…=_»/>" with tagName;
 	returnType ::=
 		extend hypertext element with hypertext tag : (tagName's type);
@@ -354,6 +395,7 @@ Public method "Hypertext element_allows attributes_is void" is
 	tagName : nonempty string,
 	allowedAttributes : {nonempty string|}
 |
+	Generate class accessor for tagName;
 	attributeSpec ::= if allowedAttributes is empty then [""] else ["«…=_»"];
 	methodName ::= format "<‘①’‘②’/>" with tagName, attributeSpec;
 	returnType ::=
@@ -423,6 +465,7 @@ is
 	requiredAttributes : {nonempty string|1..},
 	allowedAttributes : {nonempty string|}
 |
+	Generate class accessor for tagName;
 	methodName ::= format "<‘①’«…=_»/>" with tagName;
 	returnType ::=
 		extend hypertext element with hypertext tag : (tagName's type);
@@ -485,6 +528,7 @@ Public method "Hypertext element_allows subelements_" is
 	tagName : nonempty string,
 	allowedSubelements : {nonempty string|}
 |
+	Generate class accessor for tagName;
 	methodName ::= format "<‘①’«…=_»>«_»</‘①’>" with tagName;
 	returnType ::=
 		extend hypertext element with hypertext tag : (tagName's type);
@@ -568,6 +612,7 @@ Public method "Hypertext element_allows attributes_allows subelements_" is
 	allowedAttributes : {nonempty string|},
 	allowedSubelements : {nonempty string|}
 |
+	Generate class accessor for tagName;
 	attributeSpec ::= if allowedAttributes is empty then [""] else ["«…=_»"];
 	methodName ::= format "<‘①’‘②’>«_»</‘①’>" with tagName, attributeSpec;
 	returnType ::=
@@ -665,6 +710,7 @@ is
 	allowedAttributes : {nonempty string|},
 	allowedSubelements : {nonempty string|}
 |
+	Generate class accessor for tagName;
 	methodName ::= format "<‘①’«…=_»>«_»</‘①’>" with tagName;
 	returnType ::=
 		extend hypertext element with hypertext tag : (tagName's type);
