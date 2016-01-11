@@ -86,7 +86,11 @@ Names
 	"trim_",
 
 	/* Code points. */
-	"_→code points"
+	"_→code points",
+
+	/* Avail message metacharacter rejection. */
+	"_contains Avail message⁇metacharacters",
+	"Require:_contains no Avail message⁇metacharacters"
 Body
 
 /* These are the circled numbers. */
@@ -1921,4 +1925,72 @@ Semantic restriction "_→code points" is
 	s : string's type
 |
 	<<>, code point… | ||s||>
+];
+
+/**
+ * Does the specified {@type "string"} contains any {@type
+ * "Avail message⁇metacharacter" Avail message metacharacters}?
+ *
+ * @method "_contains Avail message⁇metacharacters"
+ * @param "s" "string"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "s"} contains any {@type
+ *          "Avail message⁇metacharacter" Avail message metacharacters},
+ *          {@method "false"} otherwise.
+ * @category "Tuples" "Strings" "Queries"
+ */
+Public method "_contains Avail message⁇metacharacters" is
+[
+	s : string
+|
+	any c of s satisfies [c is an Avail metacharacter]
+];
+
+/**
+ * Reject the current parse if the specified {@type "string"} {@method
+ * "_contains Avail message⁇metacharacters" contains} any {@type
+ * "Avail message⁇metacharacter" Avail message metacharacters}.
+ *
+ * @method "Require:_contains no Avail message⁇metacharacters"
+ * @param "s" "string"
+ * @returns "⊤"
+ * @category "Tuples" "Strings"
+ */
+Public method "Require:_contains no Avail message⁇metacharacters" is
+[
+	s : string
+|
+	metachars ::= select each c from s where [c is an Avail metacharacter];
+	If ¬metachars is empty then
+	[
+		Reject parse, expected:
+			format
+				"string “①” not to contain Avail message metacharacters, but \
+				\|the following included characters are Avail message \
+				\|metacharacters: ‘②’"
+			with s, “metachars” (as simple list)
+	];
+];
+
+/**
+ * Reject the current parse unless the specified {@type "string"} is statically
+ * known and {@method "_contains Avail message⁇metacharacters" contains} no
+ * {@type "Avail message⁇metacharacter" Avail message metacharacters}.
+ *
+ * @method "Require:_contains no Avail message⁇metacharacters"
+ * @param "s" "string"
+ * @returns "⊤"
+ * @category "Tuples" "Strings"
+ */
+Public method "Require:_contains no Avail message⁇metacharacters" is
+[
+	sT : string's type
+|
+	If |sT| ≠ 1 then
+	[
+		Reject parse, expected:
+			"string that forbids Avail message metacharacters to be \
+			\|statically known"
+	];
+	Require: sT's instance contains no Avail metacharacters;
 ];

@@ -1033,6 +1033,7 @@ Extends
 	),
 	"Strings" =
 	(
+		"Require:_contains no Avail message⁇metacharacters",
 		"format_with unchecked_",
 		"format_with_",
 		"format_with«…!::=_‡,»",
@@ -1044,6 +1045,7 @@ Extends
 		"(The)“_”«else_»",
 		"(a`|an)“_”«else_»",
 		"(the)“_”«else_»",
+		"_contains Avail message⁇metacharacters",
 		"_(base_)",
 		"_→code points",
 		"_→string",
