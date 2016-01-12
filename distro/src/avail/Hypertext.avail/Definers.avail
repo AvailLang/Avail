@@ -185,7 +185,7 @@ Private method "Require:every hypertext element of_is one of_" is
 	For each pair of pairs do
 	[
 		i, elem ::= pair;
-		tags ::= map each x of elem's instances through [x's tag];
+		tags ::= elem's tag's instances;
 		Assert: tags ≠ ∅;
 		If tags ∩ allowed ≠ tags then
 		[
