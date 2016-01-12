@@ -221,6 +221,26 @@ Method "-_" is
 ];
 
 /**
+ * Answer the {@type "number" numeric} {@type "type"} produced by negating the
+ * given {@type "number" numeric} {@type "type"}.
+ *
+ * @method "-_"
+ * @param "a" "number's type"
+ * @returns "number's type"
+ */
+Method "-_" is
+[
+	a : number's type
+|
+	if a ⊆ extended integer then [extended integer]
+	else
+	[
+		if a ⊆ double then [double]
+		else [if a ⊆ float then [float] else [number]]
+	]
+];
+
+/**
  * Compute and answer the strongest possible type of the argument. In
  * particular, an instance type will result in a precise answer that has the
  * same force as a literal.
@@ -228,33 +248,7 @@ Method "-_" is
  * @method "-_"
  * @restricts "number's type"
  */
-Semantic restriction "-_" is
-[
-	a : number's type
-|
-	if a ⊆ extended integer then
-	[
-	 	extended integer
-	]
-	else
-	[
-		if a ⊆ double then
-		[
-			double
-		]
-		else
-		[
-			if a ⊆ float then
-			[
-				float
-			]
-			else
-			[
-				number
-			]
-		]
-	]
-];
+Semantic restriction "-_" is [a : number's type | -a];
 
 /**
  * Compute and answer the floor of the argument.
@@ -522,7 +516,7 @@ Public method "-_" is
 [
 	a : extended integer's type
 |
-	a × -1's type
+	a × (-1)'s type
 ];
 
 /**
