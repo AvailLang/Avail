@@ -44,6 +44,7 @@ Names
 	"Language_has code_",
 
 	/* Language queries. */
+	"registered languages",
 	"_is valid language name",
 	"_is valid language code",
 	"Require:_is valid language name",
@@ -60,6 +61,7 @@ Names
 	"Script_has code_",
 
 	/* Script queries. */
+	"registered scripts",
 	"_is valid script name",
 	"_is valid script code",
 	"Require:_is valid script name",
@@ -76,6 +78,7 @@ Names
 	"Region_has code_",
 
 	/* Region queries. */
+	"registered regions",
 	"_is valid region name",
 	"_is valid region code",
 	"Require:_is valid region name",
@@ -180,6 +183,17 @@ Public method "Language_has code_" is
 			languageCodes := languageCodes - code;
 		];
 	];
+];
+
+/**
+ * Answer all registered {@type "language name"}s.
+ *
+ * @method "registered languages"
+ * @returns "{language name|}"
+ */
+Public method "registered languages" is
+[
+	lock languageLock for [languageMap's keys]
 ];
 
 /**
@@ -442,6 +456,17 @@ Public method "Script_has code_" is
 ];
 
 /**
+ * Answer all registered {@type "script name"}s.
+ *
+ * @method "registered scripts"
+ * @returns "{script name|}"
+ */
+Public method "registered scripts" is
+[
+	lock scriptLock for [scriptMap's keys]
+];
+
+/**
  * Does {@param "name"} represent a registered script?
  *
  * @method "_is valid script name"
@@ -696,6 +721,17 @@ Public method "Region_has code_" is
 			regionCodes := regionCodes - code;
 		];
 	];
+];
+
+/**
+ * Answer all registered {@type "region name"}s.
+ *
+ * @method "registered regions"
+ * @returns "{region name|}"
+ */
+Public method "registered regions" is
+[
+	lock regionLock for [regionMap's keys]
 ];
 
 /**
