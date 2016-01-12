@@ -953,9 +953,8 @@ Method "_is infinite" is
 ] : false's type;
 
 /**
- * Construct and answer a function that affects type promotions for the various
- * numeric types. This function is intended for use by semantic restrictions
- * of binary arithmetic operators.
+ * Construct and answer a function that effects type promotions for the various
+ * numeric types.
  *
  * @method "type promotion function for_"
  * @param "operator" "function accepting <number, number> and returning number"
@@ -963,7 +962,7 @@ Method "_is infinite" is
  *        answers the result.
  * @returns "[number's type, number's type]→number's type"
  *          A function that handles type promotions for the given operator.
- * @category "Types"
+ * @category "Mathematics" "Numbers" "Types"
  */
 Public method "type promotion function for_" is
 [
@@ -1028,11 +1027,16 @@ cannotDivideTwoInfinitiesMessage ::=
 	"either numerator or denominator to be finite";
 
 /**
+ * Answer the {@type "number" numeric} {@type "type"} produced by adding two
+ * {@type "number" numeric} {@type "type"}s.
+ *
  * @method "_+_"
- * @restricts "number"
- * @restricts "number"
+ * @param "a" "number's type"
+ * @param "b" "number's type"
+ * @returns "number's type"
+ * @category "Mathematics" "Numbers" "Types"
  */
-Semantic restriction "_+_" is type promotion function for
+Method "_+_" is type promotion function for
 [
 	a : number,
 	b : number
@@ -1045,11 +1049,23 @@ Semantic restriction "_+_" is type promotion function for
 ];
 
 /**
- * @method "_-_"
+ * @method "_+_"
  * @restricts "number"
  * @restricts "number"
  */
-Semantic restriction "_-_" is type promotion function for
+Semantic restriction "_+_" is [a : number's type, b : number's type | a + b];
+
+/**
+ * Answer the {@type "number" numeric} {@type "type"} produced by subtracting
+ * two {@type "number" numeric} {@type "type"}s.
+ *
+ * @method "_-_"
+ * @param "a" "number's type"
+ * @param "b" "number's type"
+ * @returns "number's type"
+ * @category "Mathematics" "Numbers" "Types"
+ */
+Method "_-_" is type promotion function for
 [
 	a : number,
 	b : number
@@ -1062,11 +1078,23 @@ Semantic restriction "_-_" is type promotion function for
 ];
 
 /**
- * @method "_×_"
+ * @method "_-_"
  * @restricts "number"
  * @restricts "number"
  */
-Semantic restriction "_×_" is type promotion function for
+Semantic restriction "_-_" is [a : number's type, b : number's type | a - b];
+
+/**
+ * Answer the {@type "number" numeric} {@type "type"} produced by multiplying
+ * two {@type "number" numeric} {@type "type"}s.
+ *
+ * @method "_×_"
+ * @param "a" "number's type"
+ * @param "b" "number's type"
+ * @returns "number's type"
+ * @category "Mathematics" "Numbers" "Types"
+ */
+Method "_×_" is type promotion function for
 [
 	a : number,
 	b : number
@@ -1080,11 +1108,23 @@ Semantic restriction "_×_" is type promotion function for
 ];
 
 /**
- * @method "_÷_"
+ * @method "_×_"
  * @restricts "number"
  * @restricts "number"
  */
-Semantic restriction "_÷_" is type promotion function for
+Semantic restriction "_×_" is [a : number's type, b : number's type | a × b];
+
+/**
+ * Answer the {@type "number" numeric} {@type "type"} produced by dividing two
+ * {@type "number" numeric} {@type "type"}s.
+ *
+ * @method "_÷_"
+ * @param "a" "number's type"
+ * @param "b" "number's type"
+ * @returns "number's type"
+ * @category "Mathematics" "Numbers" "Types"
+ */
+Method "_÷_" is type promotion function for
 [
 	a : number,
 	b : number
@@ -1100,6 +1140,13 @@ Semantic restriction "_÷_" is type promotion function for
 	];
 	a ÷ b
 ];
+
+/**
+ * @method "_÷_"
+ * @restricts "number"
+ * @restricts "number"
+ */
+Semantic restriction "_÷_" is [a : number's type, b : number's type | a ÷ b];
 
 /**
  * Convert the argument to an extended integer by truncating, i.e., discarding

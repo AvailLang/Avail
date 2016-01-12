@@ -169,7 +169,17 @@ cannotDivideByZeroMessage ::= "denominator not to be 0";
 cannotDivideTwoInfinitiesMessage ::=
 	"either numerator or denominator to be finite";
 
-Semantic restriction "_mod_" is type promotion function for
+/**
+ * Answer the {@type "number" numeric} {@type "type"} produced by the modulus of
+ * {@type "number" numeric} {@type "type"}s.
+ *
+ * @method "_mod_"
+ * @param "a" "number's type"
+ * @param "b" "number's type"
+ * @returns "number's type"
+ * @category "Mathematics" "Numbers" "Types"
+ */
+Method "_mod_" is type promotion function for
 [
 	a : number,
 	b : number
@@ -185,6 +195,9 @@ Semantic restriction "_mod_" is type promotion function for
 	];
 	a mod b
 ];
+
+Semantic restriction "_mod_" is
+	[a : number's type, b : number's type | a mod b];
 
 negativeOne ::= 0 - 1;
 
