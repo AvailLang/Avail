@@ -48,9 +48,11 @@ Names
 	"_is void",
 
 	/* Hypertext rendering. */
-	"_rendered",
+	"_rendered",                  /* synonym for "“_”" */
+	"“_”(cdata)",
+	"“_”(«fully»?escaped cdata)",
 
-	/* Hypertext escaping. */
+	/* Character data (CDATA) escaping. */
 	"_«fully»?escaped"
 Body
 
@@ -81,8 +83,9 @@ Public class "hypertext element" extends object
  *
  * @method "_«fully»?escaped"
  * @param "fullyEscaped" "boolean"
- *        If {@method "true"}, then escape all non-ASCII characters; otherwise,
- *        only escape ampersands, angle brackets, and control characters.
+ *        If {@method "true"}, then entity encode all non-ASCII characters;
+ *        otherwise, only escape ampersands, angle brackets, and control
+ *        characters.
  * @param "s" "string"
  * @returns "string"
  */
@@ -115,7 +118,7 @@ Public stable method "_«fully»?escaped" is
 ];
 
 /**
- * Recursively render the specified {@type "hypertext element"} as text.
+ * Recursively render the specified {@type "hypertext element"} as hypertext.
  *
  * @param "elem" "hypertext element"
  * @returns "nonempty string"
@@ -163,3 +166,141 @@ Public method "_rendered" is
 ] : nonempty string;
 
 Method "“_”" is [elem : hypertext element | elem rendered];
+
+"escape cdata" is a new field atom;
+"fully escape cdata" is a new field atom;
+"cdata accumulator" is a new field atom;
+
+/**
+ * A {@type "hypertext cdata visitor"} accumulates all character data (CDATA)
+ * recursively from a {@type "hypertext element"}.
+ *
+ * @type "hypertext cdata visitor"
+ * @supertype "visitor"
+ * @field "escape cdata" "boolean"
+ *        If {@method "true"}, then escape CDATA prior to accumulation;
+ *        otherwise, accumulate the original unescaped CDATA.
+ * @field "fully escape cdata" "boolean"
+ *        If {@method "true"}, then fully escape CDATA prior to accumulation;
+ *        if {@field "escape cdata"} is {@method "true"}, then escape CDATA
+ *        prior to accumulation; otherwise, accumulate the original unescaped
+ *        CDATA.
+ * @field "cdata accumulator" "string"
+ *        The accumulator for CDATA.
+ */
+Class "hypertext cdata visitor" extends visitor
+	with field
+		escape cdata : boolean ("_should escape cdata"),
+		fully escape cdata : boolean ("_should fully escape cdata")
+	with mutable field
+		referable cdata accumulator : string (
+			accessor "_'s⁇cdata",
+			mutator "_'s⁇cdata:=_",
+			referrer "`↑_'s⁇cdata");
+
+Method "After visiting_upon_" is
+[
+	v : hypertext cdata visitor,
+	elem : hypertext element
+|
+	/* No adjustment of the accumulator is necessary. */
+];
+
+Method "After visiting_upon_" is
+[
+	v : hypertext cdata visitor,
+	cdata : string
+|
+	↑v's cdata ++= cdata;
+];
+
+Method "After visiting_upon_" is
+[
+	v : (extend hypertext cdata visitor with escape cdata : true's type),
+	cdata : string
+|
+	↑v's cdata ++= cdata escaped;
+];
+
+Method "After visiting_upon_" is
+[
+	v : (extend hypertext cdata visitor with
+			escape cdata : true's type,
+			fully escape cdata : true's type),
+	cdata : string
+|
+	↑v's cdata ++= cdata fully escaped;
+];
+
+/**
+ * Answer the subelements of the specified {@type "hypertext element"}.
+ *
+ * @method "_'s⁇subelements for cdata visitation"
+ * @param "elem" "any"
+ *        A {@type "hypertext element"} or {@type "string" character data}.
+ * @returns "tuple"
+ */
+Private abstract method "_'s⁇subelements for cdata visitation" is [any]→tuple;
+
+Private method "_'s⁇subelements for cdata visitation" is
+[
+	elem : hypertext element
+|
+	elem's subelements
+];
+
+Private method "_'s⁇subelements for cdata visitation" is
+[
+	cdata : string
+|
+	<>
+];
+
+/**
+ * Recursively render the specified {@type "hypertext element"} as character
+ * data (CDATA) only, stripping away hypertext tags and structure.
+ *
+ * @method "“_”(cdata)"
+ * @param "elem" "hypertext element"
+ * @returns "string"
+ */
+Public method "“_”(cdata)" is
+[
+	elem : hypertext element
+|
+	v ::= a hypertext cdata visitor with
+		escape cdata ::= false,
+		fully escape cdata ::= false,
+		cdata accumulator := "";
+	Visit v
+		upon elem
+		deconstructed by [sub : any | sub's subelements for cdata visitation];
+	v's cdata
+];
+
+/**
+ * Recursively render the specified {@type "hypertext element"} as escaped
+ * character data (CDATA) only, stripping away hypertext tags and structure.
+ *
+ * @method "“_”(«fully»?escaped cdata)"
+ * @param "elem" "hypertext element"
+ * @param "fullyEscaped" "boolean"
+ *        If {@method "true"}, then entity encode all non-ASCII characters;
+ *        otherwise, only escape ampersands, angle brackets, and control
+ *        characters.
+ * @returns "string"
+ */
+Public method "“_”(«fully»?escaped cdata)" is
+[
+	elem : hypertext element,
+	fullyEscaped : boolean
+|
+	v ::= a hypertext cdata visitor with
+		escape cdata ::= true,
+		fully escape cdata ::= fullyEscaped,
+		cdata accumulator := "";
+	Visit v
+		upon elem
+		deconstructed by [sub : any | sub's subelements for cdata visitation];
+	v's cdata
+];
