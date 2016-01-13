@@ -1359,3 +1359,16 @@ Macro "_↑++=_" is
 ];
 
 Alias "_++=_" to "_↑++=_";
+
+/**
+ * @method "_reversed"
+ * @restricts "tuple meta"
+ */
+Semantic restriction "_reversed" is
+[
+	tType : tuple meta
+|
+	<<>, ∪ tType[1..⎡tType⎤]… | ||tType||>
+];
+
+Method "_reversed" is stable at function accepting <tuple> and returning tuple;
