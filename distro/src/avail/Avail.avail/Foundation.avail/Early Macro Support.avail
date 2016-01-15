@@ -156,6 +156,20 @@ Semantic restriction "_strengthened to tuple of tuple" is
 	<<>, tuple… | whole number>
 ];
 
+Method "_strengthened to whole number" is
+[
+	value : any
+|
+	value
+];
+
+Semantic restriction "_strengthened to whole number" is
+[
+	value : any's type
+|
+	whole number
+];
+
 /**
  * Push the current scope map onto the scope stack. This is available only to
  * macro definitions and their prefix functions.
@@ -192,7 +206,8 @@ Method "Push scope" is
 Method "Pop scope" is
 [
 	oldStack ::= parse map[scope stack key] strengthened to tuple;
-	newStack ::= oldStack[1..|oldStack|];
+	limit ::= |oldStack| - 1 strengthened to whole number;
+	newStack ::= oldStack[1..limit];
 	parseMap ::= parse map + scope stack key → newStack;
 	current fiber[parse map key] := parseMap;
 ];
