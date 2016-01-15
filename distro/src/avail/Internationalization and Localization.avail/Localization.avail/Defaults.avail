@@ -41,31 +41,26 @@ Names
 Body
 
 /**
-* Answer the default natural language code for user-visible text. The initial
-* value is <code>en</code>.
-*
-* @macro "default language"
-* @returns "nonempty string"
-*          A valid language code, per {@see
-*          "http://tools.ietf.org/html/rfc5646" RCF 5646 — Tags for Identifying
-*          Languages}.
-* @see "http://tools.ietf.org/html/rfc5646" RCF 5646
-*      — Tags for Identifying Languages
-*/
+ * Answer the default natural language code for user-visible text. The initial
+ * value is {@method "a language tag…" en}.
+ *
+ * @macro "default language"
+ * @returns "language tag"
+ * @see "http://tools.ietf.org/html/rfc5646" RCF 5646
+ *      — Tags for Identifying Languages
+ */
 
 /**
-* Set the default natural language for user-visible text. The initial default
-* is {@method "a language tag…" en}.
-*
-* @method "default language:=_"
-* @param "lang" "nonempty string"
-*        The replacement language code. This should be a valid language code,
-*        per {@see "http://tools.ietf.org/html/rfc5646" RCF 5646 — Tags for
-*        Identifying Languages}.
-* @returns "⊤"
-* @see "http://tools.ietf.org/html/rfc5646" RCF 5646
-*      — Tags for Identifying Languages
-*/
+ * Set the default natural language for user-visible text. The initial default
+ * is {@method "a language tag…" en}.
+ *
+ * @method "default language:=_"
+ * @param "lang" "language tag"
+ *        The replacement {@type "language tag"}.
+ * @returns "⊤"
+ * @see "http://tools.ietf.org/html/rfc5646" RCF 5646
+ *      — Tags for Identifying Languages
+ */
 [
 	var : language tag := a language tag en;
 	Public macro "default language" is [‘var’];
