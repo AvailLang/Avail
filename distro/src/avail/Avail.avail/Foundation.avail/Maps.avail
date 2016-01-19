@@ -57,6 +57,7 @@ Names
 	"any…→…in|of_§satisfies_",
 	"counts for_",
 	"count of…→…from|in|of_§where_",
+	"duplication map for_",
 	"each…→…in|of_§satisfies_",
 	"reject each…→…from_§where_",
 	"select each…→…from_§where_",
@@ -776,7 +777,7 @@ Macro "any…→…in|of_§satisfies_" is a map iteration prefix function,
 	body function($"any of_satisfies_", boolean);
 
 /**
- * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
+ * Compute and answer whether all of the elements of {@param "aMap"} satisfies
  * the specified function. Do not examine more elements than necessary.
  * 
  * @macro "each…→…in|of_§satisfies_"
@@ -789,7 +790,7 @@ Macro "any…→…in|of_§satisfies_" is a map iteration prefix function,
  *        whose value is the name of the loop variable representing the value of
  *        the map.
  * @param "aMap" "expression phrase ⇒ map"
- *        An {@type "expression phrase"} that yields the tuple to iterate over
+ *        An {@type "expression phrase"} that yields the map to iterate over
  * @param "predicateBlock" "block phrase ⇒ []→boolean"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        predicate function.
@@ -1230,4 +1231,37 @@ Semantic restriction "integrate«_‡,and⁇»with_" is
 	];
 
 	{newKeyType → newValueType |}
+];
+
+
+/**
+ * Answer the {@type "map" duplication map} for the specified {@type "tuple"}.
+ * This is a {@type "map"} from {@type "any" values} to the number of times that
+ * they appear in {@param "t"}.
+ *
+ * @method "duplication map for_"
+ * @param "t" "tuple"
+ * @returns "{any→natural number|}"
+ * @category "Tuples" "Maps"
+ */
+Method "duplication map for_" is
+[
+	t : tuple
+|
+	map each k→v of
+		select each _→conflicts from
+			group each x of t by [x]
+		where [|conflicts| > 1]
+	through [|v|]
+];
+
+/**
+ * @method "duplication map for_"
+ * @restricts "tuple's type"
+ */
+Semantic restriction "duplication map for_" is
+[
+	tType : tuple meta
+|
+	{∪ tType[1..|tType's leading types|+1] → [2..∞) |}
 ];
