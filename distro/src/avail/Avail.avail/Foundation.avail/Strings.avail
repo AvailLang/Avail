@@ -1823,8 +1823,8 @@ Public stable method "trim_" is
 [
 	s : string
 |
-	start ::= 1 max first index of s where [c : character | ¬c is whitespace];
-	end ::= last index of s where [c: character | ¬c is whitespace];
+	start ::= 1 max first index of c in s where [¬c is whitespace];
+	end ::= last index of c in s where [¬c is whitespace];
 	s[start..end]
 ] : string;
 
