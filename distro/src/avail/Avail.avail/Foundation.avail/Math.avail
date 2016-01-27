@@ -61,7 +61,8 @@ Names
 	"-_",
 	"π",
 	"«_‡«=|≤|<»!»",
-	"«_‡«=|≥|>»!»"
+	"«_‡«=|≥|>»!»",
+	"comparison chain semantic restriction function"
 Body
 
 Stable forward method "_mod_" is [number, number]→number;
@@ -913,7 +914,7 @@ predicates ::=
  * 
  * @method "«_‡«=|≤|<»!»"
  * @param "args" "<<number, [1..3]…|1..2>…|3..∞>"
- *        A tuple whose elements are a sequence of 2-tuples following by an
+ *        A tuple whose elements are a sequence of 2-tuples followed by an
  *        ending 1-tuple. The first element of these 1,2-tuples is a number.
  *        If present, the second element will be an integer in the range {@code
  *        "[1..3]"} to indicate {@code "="}, {@code "≤"}, or {@code "<"},
@@ -961,7 +962,7 @@ Public stable method "«_‡«=|≤|<»!»" is
  * @returns "[<<any, [1..1]…|1..2>…|3..∞>'s type]→⊤"
  * 
  */
-Private method "comparison chain semantic restriction function" is
+Public method "comparison chain semantic restriction function" is
 [
 	[
 		args : <<any, [1..1]…|1..2>…|3..∞>'s type
@@ -984,15 +985,11 @@ Semantic restriction "«_‡«=|≤|<»!»" is
  * 
  * @method "«_‡«=|≥|>»!»"
  * @param "args" "<<number, [1..3]…|1..2>…|3..∞>"
- *        A tuple whose elements are a sequence of 4-tuples following by an
- *        ending 1-tuple. The first element of these 1,4-tuples is a number.
- *        If present, the second element will be a boolean that indicates that
- *        this number should be checked for equality with the next number. If
- *        present, the third element will be a boolean that indicates that this
- *        number should be compared against the next number to see if it is
- *        greater than or equal. If present, the fourth element will be a boolean
- *        that indicates this this number should be compared against the next
- *        number to see if it is strictly greater.
+ *        A tuple whose elements are a sequence of 2-tuples followed by an
+ *        ending 1-tuple. The first element of these 1,2-tuples is a number.
+ *        If present, the second element will be an integer in the range {@code
+ *        "[1..3]"} to indicate {@code "="}, {@code "≥"}, or {@code ">"},
+ *        respectively, as the comparison to be checked with the next number.
  * @returns "boolean"
  *          {@method "true"} if the entire chain of comparisons is true,
  *          {@method "false"} otherwise.

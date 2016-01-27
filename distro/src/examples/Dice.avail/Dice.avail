@@ -37,7 +37,6 @@ Uses
 	"Avail"
 Extends
 	"Avail",
-	"Avail Restrictions",
 	"Dice Restrictions",
 	"Die",
 	"Dimensioned Dice",
@@ -46,6 +45,16 @@ Extends
 Entries
 	"`!_"
 Body
+
+[
+	ops ::=
+		{
+			Foundation $"_+_", Foundation $"_-_",
+			Foundation $"_×_", Foundation $"_÷_",
+			Foundation $"-_"
+		};
+	Grammatical restriction $"_d|D_" is <ops, ops>;
+]();
 
 /**
  * A simple Avail {@type "dice⁇expression" dice expression} evaluator

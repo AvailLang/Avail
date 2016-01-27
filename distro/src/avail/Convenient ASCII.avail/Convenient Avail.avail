@@ -46,12 +46,14 @@ Body
 
 /* Establish grammatical rules. */
 [
-	sum           ::= {"_+_", "_-_"};
-	asciiProduct  ::= {"_*_", "_/_"};
-	product       ::= {"_×_", "_÷_", "_mod_"} ∪ asciiProduct;
+	sum           ::= {Foundation $"_+_", Foundation $"_-_"};
+	asciiProduct  ::= {$"_*_", $"_/_"};
+	product       ::=
+		{Foundation $"_×_", Foundation $"_÷_", Foundation $"_mod_"}
+			∪ asciiProduct;
 	sumAndProduct ::= sum ∪ product;
-	negation      ::= {"-_"};
-	power         ::= {"_^_"};
+	negation      ::= {$"-_"};
+	power         ::= {$"_^_"};
 
 	Grammatical restriction product is <sum, sumAndProduct>;
 	Grammatical restriction negation is <asciiProduct>;

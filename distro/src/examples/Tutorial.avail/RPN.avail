@@ -33,19 +33,23 @@
 Module "RPN"
 Uses
 	"Avail"
-Extends
-	"Avail" =
-	(
-		"_+_" → "__+",
-		"_-_" → "__-",
-		"_×_" → "__×",
-		"_×_" → "__*",
-		"_÷_" → "__÷",
-		"_÷_" → "__/"
-	)
+Names
+	"__+",
+	"__-",
+	"__×",
+	"__*",
+	"__÷",
+	"__/"
 Entries
 	"RPN_"
 Body
+
+Alias "__+" to Foundation $"_+_";
+Alias "__-" to Foundation $"_-_";
+Alias "__×" to Foundation $"_×_";
+Alias "__*" to Foundation $"_×_";
+Alias "__÷" to Foundation $"_÷_";
+Alias "__/" to Foundation $"_÷_";
 
 Method "RPN_" is
 [

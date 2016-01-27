@@ -1001,4 +1001,48 @@ public final class AvailLoader
 		}
 		return atom.value();
 	}
+
+	/**
+	 * Look up the given {@linkplain TupleDescriptor string} in the current
+	 * {@linkplain ModuleDescriptor module}'s namespace. Answer every
+	 * {@linkplain AtomDescriptor true name} associated with the string. Never
+	 * create a true name.
+	 *
+	 * @param stringName
+	 *        An Avail {@linkplain TupleDescriptor string}.
+	 * @return Every {@linkplain AtomDescriptor true name} associated with the
+	 *         name.
+	 */
+	public final A_Set lookupAtomsForName (final A_String stringName)
+	{
+		assert stringName.isString();
+		final MutableOrNull<A_Set> who = new MutableOrNull<>();
+		final A_Module theModule = module;
+		theModule.lock(
+			new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					final A_Set newNames =
+						theModule.newNames().hasKey(stringName)
+						? SetDescriptor.empty().setWithElementCanDestroy(
+							theModule.newNames().mapAt(stringName),
+							true)
+						: SetDescriptor.empty();
+					final A_Set publics =
+						theModule.importedNames().hasKey(stringName)
+						? theModule.importedNames().mapAt(stringName)
+						: SetDescriptor.empty();
+					final A_Set privates =
+						theModule.privateNames().hasKey(stringName)
+						? theModule.privateNames().mapAt(stringName)
+						: SetDescriptor.empty();
+					who.value = newNames
+						.setUnionCanDestroy(publics, true)
+						.setUnionCanDestroy(privates, true);
+				}
+			});
+		return who.value();
+	}
 }

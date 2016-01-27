@@ -33,6 +33,8 @@
 Module "Foundation"
 Versions
 	"1.0.0 DEV 2014-04-28"
+Uses
+	"Late Atoms" = ("Brand all visible atoms as hailing from Foundation")
 Extends
 	"Assertions" =
 	(
@@ -41,12 +43,6 @@ Extends
 		"Shouldn't happen",
 		"Shouldn't happen(_)",
 		"assertion-failed exception"
-	),
-	"Atoms" =
-	(
-		"«Public»?_is a new⁇heritable«fiber-local»⁇atom",
-		"«Public»?_is a|an new⁇field⁇atom",
-		"_[_]else_"
 	),
 	"Backtracking" =
 	(
@@ -125,6 +121,7 @@ Extends
 		"assignment phrase",
 		"atom",
 		"atom for_",
+		"all atoms for_",
 		"block phrase",
 		"boolean",
 		"byte",
@@ -138,6 +135,7 @@ Extends
 		"current fiber[_]:=_",
 		"current module",
 		"current module's exported names",
+		"current module's visible names",
 		"declaration phrase",
 		"definition",
 		"double",
@@ -832,6 +830,18 @@ Extends
 		"_(_,`…)",
 		"_(`…,_)"
 	),
+	"Late Atoms" =
+	(
+		"«Public»?_is a new⁇heritable«fiber-local»⁇atom",
+		"«Public»?_is a|an new⁇field⁇atom",
+		"all atoms for_where_",
+		"atom for_where_",
+		"_hails from Foundation",
+		"Foundation atom for_",
+		"Foundation`$…",
+		"Foundation`$…$",
+		"_[_]else_"
+	),
 	"Late Definers" =
 	(
 		"Method_is stable at_",
@@ -899,7 +909,8 @@ Extends
 		"«_‡max»",
 		"«_‡min»",
 		"«_‡«=|≤|<»!»",
-		"«_‡«=|≥|>»!»"
+		"«_‡«=|≥|>»!»",
+		"comparison chain semantic restriction function"
 	),
 	"Late Restrictions" =
 	(
@@ -1228,6 +1239,8 @@ Extends
 		"«…‡,»::=_;"
 	)
 Body
+
+Brand all visible atoms as hailing from Foundation;
 
 [
 	/* Forbid overriding of the exports… */

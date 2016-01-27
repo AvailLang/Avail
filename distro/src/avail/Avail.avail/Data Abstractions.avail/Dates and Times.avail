@@ -1,0 +1,1540 @@
+/*
+ * Dates and Times.avail
+ * Copyright © 1993-2016, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Dates and Times"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Foundation"
+Names
+	/* Types. */
+	"timestamp",
+		"_'s⁇year",
+		"_'s⁇month",
+		"_'s⁇day in month",
+		"_'s⁇day of week",
+		"_'s⁇hour",
+		"_'s⁇minute",
+		"_'s⁇second",
+		"_'s⁇millisecond",
+		"_'s⁇Epoch milliseconds",
+		"_'s⁇Epoch milliseconds::=_",
+		"_-_",
+		"_<_",
+		"_≤_",
+		"_≥_",
+		"_>_",
+		"«_‡«=|≤|<»!»",
+		"«_‡«=|≥|>»!»",
+		"“_”(ISO…#)",
+	"exploded timestamp",
+	"month",
+		"_'s⁇ordinal",
+		"_'s⁇previous month",
+		"_'s⁇next month",
+		"`|_'s⁇days in common year`|",
+		"`|_'s⁇days in leap year`|",
+		"`|_'s⁇days in_`|",
+		"_+_",
+		/*"_-_",*/
+	"day of week",
+		/*"_'s⁇ordinal",*/
+		"_'s⁇previous day of week",
+		"_'s⁇next day of week",
+		/*"_+_",*/
+		/*"_-_",*/
+
+	/* Months. */
+	"months",
+		"January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December",
+
+	/* Days of week. */
+	"days of week",
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday",
+		"Sunday",
+
+	/* Timestamp construction. */
+	"now",
+	"timestamp_/_/_«_:_:_«._»»««+|-»!_:_»",
+	"timestamp__,_«_:_:_«._»»««+|-»!_:_»",
+
+	/* Timestamp deconstruction. */
+	"_exploded",
+	"_'s⁇components",
+
+	/* Timestamp queries. */
+	"_is common year",
+	"_is leap year",
+
+	/* Compile-time validation. */
+	"Require:_is valid day of_/_",
+
+	/* Run-time validation. */
+	"Check:_is valid day of_/_",
+
+	/* Exceptions. */
+	"no-such-day-in-month exception"
+Body
+
+"Epoch milliseconds" is a new field atom;
+
+/**
+ * A {@type "timestamp"} denotes a moment in time as millisecond offset from the
+ * Unix Epoch, Thursday January 1, 1970 AD. The referenced {@type "method"}s
+ * implement a proleptic Gregorian calendar.
+ *
+ * Note that the calendrical algorithms internally assume that March 1 is the
+ * first day of every year. This puts leap day, February 29, at the end of a
+ * year.
+ *
+ * @type "timestamp"
+ * @supertype "object"
+ * @field "Epoch milliseconds" "integer"
+ *        Positive values represent moments since the Unix Epoch, and negative
+ *        values represent moments prior to the Unix Epoch.
+ * @see "http://howardhinnant.github.io/date_algorithms.html"
+ *      chrono-Compatible Low-Level Date Algorithms
+ * @see {@method "now"}
+ * @category "Timestamps" "Types"
+ */
+Public explicit class "timestamp" extends object
+	with fields
+		public reconstructible Epoch milliseconds : integer;
+
+/**
+ * Answer a {@type "timestamp"} for the current time.
+ *
+ * @method "now"
+ * @returns "timestamp"
+ * @category "Timestamps" "Constructors"
+ */
+Public method "now" is
+[
+	a timestamp with Epoch milliseconds ::= milliseconds since the Epoch
+];
+
+/**
+ * Answer the {@type "timestamp"} obtained by adding the specified number of
+ * milliseconds to the supplied {@type "timestamp"}.
+ *
+ * @method "_+_"
+ * @param "augend" "timestamp"
+ * @param "addend" "integer"
+ *        The number of milliseconds to add.
+ * @returns "timestamp"
+ * @category "Timestamps" "Math"
+ */
+Public stable method "_+_" is
+[
+	augend : timestamp,
+	addend : integer
+|
+	a timestamp with Epoch milliseconds ::= augend's Epoch milliseconds + addend
+];
+
+/**
+ * Answer the {@type "timestamp"} obtained by subtracting the specified number
+ * of milliseconds from the supplied {@type "timestamp"}.
+ *
+ * @method "_-_"
+ * @param "minuend" "timestamp"
+ * @param "subtrahend" "integer"
+ *        The number of milliseconds to subtract.
+ * @returns "timestamp"
+ * @category "Timestamps" "Math"
+ */
+Public stable method "_-_" is
+[
+	minuend : timestamp,
+	subtrahend : integer
+|
+	a timestamp with Epoch milliseconds ::=
+		minuend's Epoch milliseconds - subtrahend
+];
+
+/**
+ * Answer the difference, in milliseconds, between the specified {@type
+ * "timestamp"}s.
+ *
+ * @method "_-_"
+ * @param "minuend" "timestamp"
+ * @param "subtrahend" "timestamp"
+ * @returns "integer"
+ *          The difference between {@param "minuend"} and {@param "subtrahend"},
+ *          in milliseconds.
+ * @category "Timestamps" "Math"
+ */
+Public stable method "_-_" is
+[
+	minuend : timestamp,
+	subtrahend : timestamp
+|
+	minuend's Epoch milliseconds - subtrahend's Epoch milliseconds
+];
+
+/**
+ * Does {@param "a"} represent a time strictly earlier than {@param "b"}?
+ *
+ * @method "_<_"
+ * @param "a" "timestamp"
+ * @param "b" "timestamp"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"} represents a time strictly earlier
+ *          than {@param "b"}, or {@method "false"} otherwise.
+ * @category "Timestamps" "Relations"
+ */
+Public stable method "_<_" is
+[
+	a : timestamp,
+	b : timestamp
+|
+	a's Epoch milliseconds < b's Epoch milliseconds
+];
+
+/**
+ * Does {@param "a"} represent a time earlier than or the same as {@param "b"}?
+ *
+ * @method "_≤_"
+ * @param "a" "timestamp"
+ * @param "b" "timestamp"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"} represents a time earlier than
+ *          or the same as {@param "b"}, or {@method "false"} otherwise.
+ * @category "Timestamps" "Relations"
+ */
+Public stable method "_≤_" is
+[
+	a : timestamp,
+	b : timestamp
+|
+	a's Epoch milliseconds ≤ b's Epoch milliseconds
+];
+
+/**
+ * Does {@param "a"} represent a time later than or the same as {@param "b"}?
+ *
+ * @method "_≥_"
+ * @param "a" "timestamp"
+ * @param "b" "timestamp"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"} represents a time later than or the
+ *          same as {@param "b"}, or {@method "false"} otherwise.
+ * @category "Timestamps" "Relations"
+ */
+Public stable method "_≥_" is
+[
+	a : timestamp,
+	b : timestamp
+|
+	a's Epoch milliseconds ≥ b's Epoch milliseconds
+];
+
+/**
+ * Does {@param "a"} represent a time strictly later than {@param "b"}?
+ *
+ * @method "_>_"
+ * @param "a" "timestamp"
+ * @param "b" "timestamp"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "a"} represents a time strictly later
+ *          than {@param "b"}, or {@method "false"} otherwise.
+ * @category "Timestamps" "Relations"
+ */
+Public stable method "_>_" is
+[
+	a : timestamp,
+	b : timestamp
+|
+	a's Epoch milliseconds > b's Epoch milliseconds
+];
+
+/* This table of functions is used by the chained inequality operations. */
+predicates ::=
+<
+	[a : timestamp, b : timestamp | a < b],
+	[a : timestamp, b : timestamp | a ≤ b],
+	[a : timestamp, b : timestamp | a = b],
+	[a : timestamp, b : timestamp | a ≥ b],
+	[a : timestamp, b : timestamp | a > b]
+>;
+
+/**
+ * Compute and answer the {@type "boolean"} value of the sequence of equals,
+ * less than or equal, and less than operators.
+ * 
+ * @method "«_‡«=|≤|<»!»"
+ * @param "args" "<<timestamp, [1..3]…|1..2>…|3..∞>"
+ *        A {@type "tuple"} whose elements are a sequence of 2-{@type "tuple"}s
+ *        followed by an ending 1-{@type "tuple"}. The first element of these
+ *        1,2-tuples is a {@type "timestamp"}. If present, the second element
+ *        will be an integer in the range {@code "[1..3]"} to indicate {@code
+ *        "="}, {@code "≤"}, or {@code "<"}, respectively, as the comparison to
+ *        be checked with the next {@type "timestamp"}.
+ * @returns "boolean"
+ *          {@method "true"} if the entire chain of comparisons is true,
+ *          {@method "false"} otherwise.
+ * @category "Timestamps" "Relations"
+ */
+Public stable method "«_‡«=|≤|<»!»" is
+[
+	args : <<timestamp, [1..3]…|1..2>…|3..∞>
+|
+	$body : boolean;
+	For each index from 1 to |args| - 1 do
+	[
+		arg ::= args[index];
+		predicate ::= predicates[4 - arg[2]];
+		If ¬predicate(arg[1], args[index + 1][1]) then [Exit body with false];
+	];
+	true
+];
+
+/**
+ * @method "«_‡«=|≤|<»!»"
+ * @restricts "<<any, [1..1]…|1..2>…|3..∞>'s type"
+ */
+Semantic restriction "«_‡«=|≤|<»!»" is
+	comparison chain semantic restriction function;
+
+/**
+ * Compute and answer the {@type "boolean"} value of the sequence of equals,
+ * greater than or equal, and greater than operators.
+ * 
+ * @method "«_‡«=|≥|>»!»"
+ * @param "args" "<<timestamp, [1..3]…|1..2>…|3..∞>"
+ *        A {@type "tuple"} whose elements are a sequence of 2-{@type "tuple"}s
+ *        followed by an ending 1-{@type "tuple"}. The first element of these
+ *        1,2-tuples is a {@type "timestamp"}. If present, the second element
+ *        will be an integer in the range {@code "[1..3]"} to indicate {@code
+ *        "="}, {@code "≥"}, or {@code ">"}, respectively, as the comparison to
+ *        be checked with the next {@type "timestamp"}.
+ * @returns "boolean"
+ *          {@method "true"} if the entire chain of comparisons is true,
+ *          {@method "false"} otherwise.
+ * @category "Timestamps" "Relations"
+ */
+Public stable method "«_‡«=|≥|>»!»" is
+[
+	args : <<timestamp, [1..3]…|1..2>…|3..∞>
+|
+	$body : boolean;
+	For each index from 1 to |args| - 1 do
+	[
+		arg ::= args[index];
+		predicate ::= predicates[2 + arg[2]];
+		If ¬predicate(arg[1], args[index + 1][1]) then [Exit body with false];
+	];
+	true
+];
+
+/**
+ * @method "«_‡«=|≥|>»!»"
+ * @restricts "<<any, [1..1]…|1..2>…|3..∞>'s type"
+ */
+Semantic restriction "«_‡«=|≥|>»!»" is
+	comparison chain semantic restriction function;
+
+/* Disallow mixing and recursive parsing of comparison operations. */
+[
+	binary ::= {"_=_", "_≤_", "_<_", "_≥_", "_>_"};
+	chains ::= {"«_‡=»", "«_‡«=|≤|<»!»", "«_‡«=|≥|>»!»"};
+	restrictions ::= binary ∪ chains;
+	Grammatical restriction chains is <restrictions>;
+	Grammatical restriction binary is <restrictions, restrictions>;
+]();
+
+"month ordinal" is a new atom;
+"month days" is a new atom;
+
+/**
+ * Answer the twelve Gregorian {@type "month"}s, in order.
+ *
+ * @method "months"
+ * @returns "<month…|12>"
+ * @category "Timestamps" "Constants" "Months"
+ */
+[
+	months : atom* := <>;
+	For each pair, ordinal of
+	<
+		<"January", 31>,
+		<"February", 28>,
+		<"March", 31>,
+		<"April", 30>,
+		<"May", 31>,
+		<"June", 30>,
+		<"July", 31>,
+		<"August", 31>,
+		<"September", 30>,
+		<"October", 31>,
+		<"November", 30>,
+		<"December", 31>
+	>
+	do
+	[
+		name, days ::= pair;
+		Require: name's type is public;
+		name is a new atom;
+		trueName ::= atom for name;
+		trueName[month ordinal] := ordinal;
+		trueName[month days] := days;
+		months ++= <trueName>;
+	];
+	Public stable method "months" is [months];
+]();
+
+/**
+ * {@type "month"} represents the twelve Gregorian months. The twelve months
+ * are:
+ *
+ * <ol>
+ * <li>January</li>
+ * <li>February</li>
+ * <li>March</li>
+ * <li>April</li>
+ * <li>May</li>
+ * <li>June</li>
+ * <li>July</li>
+ * <li>August</li>
+ * <li>September</li>
+ * <li>October</li>
+ * <li>November</li>
+ * <li>December</li>
+ * </ol>
+ *
+ * @type "month"
+ * @supertype "atom"
+ * @category "Timestamps" "Types" "Months"
+ */
+Public stable method "month" is [enumeration of months→set];
+
+Method "“_”" is [m : month | m's name];
+
+/**
+ * Answer the one-based ordinal of the specified {@type "month"}.
+ *
+ * @method "_'s⁇ordinal"
+ * @param "m" "month"
+ * @returns "[1..12]"
+ * @category "Queries" "Timestamps" "Months"
+ */
+Public stable method "_'s⁇ordinal" is [m : month | m[month ordinal]];
+
+/**
+ * Strengthen the result type.
+ *
+ * @method "_'s⁇ordinal"
+ * @restricts "month's type"
+ */
+Semantic restriction "_'s⁇ordinal" is [mType : month's type | [1..12]];
+
+/**
+ * Answer the specified {@type "month"}'s predecessor.
+ *
+ * @method "_'s⁇previous month"
+ * @param "m" "month"
+ * @returns "month"
+ * @category "Queries" "Timestamps" "Months"
+ */
+Public stable method "_'s⁇previous month" is
+[
+	m : month
+|
+	months[m's ordinal - 1] else [December]
+];
+
+/**
+ * Answer the specified {@type "month"}'s successor.
+ *
+ * @method "_'s⁇next month"
+ * @param "m" "month"
+ * @returns "month"
+ * @category "Queries" "Timestamps" "Months"
+
+ */
+Public stable method "_'s⁇next month" is
+[
+	m : month
+|
+	months[m's ordinal + 1] else [January]
+];
+
+/**
+ * Answer the number of days in the specified {@type "month"} during a common
+ * year.
+ *
+ * @method "`|_'s⁇days in common year`|"
+ * @param "m" "month"
+ * @returns "[1..31]"
+ * @category "Queries" "Timestamps" "Months"
+ * @category "Queries" "Timestamps" "Months"
+
+ */
+Public stable method "`|_'s⁇days in common year`|" is
+[
+	m : month
+|
+	m[month days]
+];
+
+/**
+ * Strengthen the result type.
+ *
+ * @method "`|_'s⁇days in common year`|"
+ * @restricts "month's type"
+ */
+Semantic restriction "`|_'s⁇days in common year`|" is
+[
+	mType : month's type
+|
+	[1..31]
+];
+
+/**
+ * Answer the number of days in the specified {@type "month"} during a leap
+ * year.
+ *
+ * @method "`|_'s⁇days in leap year`|"
+ * @param "m" "month"
+ * @returns "[1..31]"
+ * @category "Queries" "Timestamps" "Months"
+
+ */
+Public stable method "`|_'s⁇days in leap year`|" is [m : month | m[month days]];
+Public stable method "`|_'s⁇days in leap year`|" is [m : February's type | 29];
+
+/**
+ * Strengthen the result type.
+ *
+ * @method "`|_'s⁇days in leap year`|"
+ * @restricts "month's type"
+ */
+Semantic restriction "`|_'s⁇days in leap year`|" is
+[
+	mType : month's type
+|
+	[1..31]
+];
+
+/**
+ * Is the specified year a leap year?
+ *
+ * @method "_is leap year"
+ * @param "y" "integer"
+ *        The year.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "y"} is a leap year, {@method "false"}
+ *          otherwise.
+ * @see "http://howardhinnant.github.io/date_algorithms.html#is_leap"
+ *      is_leap
+ * @category "Queries" "Timestamps" "Years"
+ */
+Public stable method "_is leap year" is
+[
+	y : integer
+|
+	y mod 4 = 0 ∧ (y mod 100 ≠ 0 ∨ y mod 400 = 0)
+];
+
+/**
+ * Is the specified year a common year, i.e., not a leap year?
+ *
+ * @method "_is common year"
+ * @param "y" "integer"
+ *        The year.
+ * @returns "boolean"
+ *          {@method "true"} if {@param "y"} is a common year, {@method "false"}
+ *          otherwise.
+ * @category "Queries" "Timestamps" "Years"
+ */
+Public stable method "_is common year" is [y : integer | ¬y is leap year];
+
+/**
+ * Answer the number of days in the specified {@type "month"} during the given
+ * year.
+ *
+ * @method "`|_'s⁇days in_`|"
+ * @param "m" "month"
+ * @param "y" "integer"
+ * @returns "[1..31]"
+ * @see "http://howardhinnant.github.io/date_algorithms.html#last_day_of_month"
+ *      last_day_of_month
+ * @category "Queries" "Timestamps" "Months"
+ */
+Public stable method "`|_'s⁇days in_`|" is
+[
+	m : month,
+	y : integer
+|
+	if m's ordinal ≠ 2 ∨ ¬y is leap year then [|m's days in common year|]
+	else [29]
+] : [1..31];
+
+/**
+ * Answer the {@type "month"} that is ahead of {@param "augend"} by the count
+ * of months specified by {@param "addend"}.
+ *
+ * @method "_+_"
+ * @param "augend" "month"
+ * @param "addend" "integer"
+ * @returns "month"
+ * @category "Timestamps" "Months" "Math"
+ */
+Public stable method "_+_" is
+[
+	augend : month,
+	addend : integer
+|
+	months[(augend's ordinal + addend) mod 12] else [December]
+];
+
+/**
+ * Answer the {@type "month"} that is behind {@param "minuend"} by the count
+ * of months specified by {@param "subtrahend"}.
+ *
+ * @method "_-_"
+ * @param "minuend" "month"
+ * @param "subtrahend" "integer"
+ * @returns "month"
+ * @category "Timestamps" "Months" "Math"
+ */
+Public stable method "_-_" is
+[
+	minuend : month,
+	subtrahend : integer
+|
+	months[(minuend's ordinal - subtrahend) mod 12] else [December]
+];
+
+/**
+ * Answer the number of months interleaving {@param "minuend"} and the previous
+ * occurrence of {@param "subtrahend"}.
+ *
+ * @method "_-_"
+ * @param "minuend" "month"
+ * @param "subtrahend" "month"
+ * @returns "[0..11]"
+ * @category "Timestamps" "Months" "Math"
+ */
+Public stable method "_-_" is
+[
+	minuend : month,
+	subtrahend : month
+|
+	diff ::= minuend's ordinal - subtrahend's ordinal;
+	if diff ≥ 0 then [diff] else [12 + diff]
+];
+
+/**
+ * Strengthen the result type.
+ *
+ * @method "_-_"
+ * @restricts "month's type"
+ * @restricts "month's type"
+ */
+Semantic restriction "_-_" is
+[
+	minuendType : month's type,
+	subtrahendType : month's type
+|
+	[0..11]
+];
+
+"week day ordinal" is a new atom;
+
+/**
+ * Answer the seven common days of the week.
+ *
+ * @method "days of week"
+ * @returns "<day of week…|7>"
+ * @category "Timestamps" "Constants" "Days of the Week"
+ */
+[
+	days : atom* := <>;
+	For each name, ordinal of
+	<
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday",
+		"Sunday"
+	>
+	do
+	[
+		Require: name's type is public;
+		name is a new atom;
+		trueName ::= atom for name;
+		trueName[week day ordinal] := ordinal;
+		days ++= <trueName>;
+	];
+	Public stable method "days of week" is [days];
+]();
+
+/**
+ * {@type "day of week"} represents the seven common days of the week. The
+ * days of the week are:
+ *
+ * <ol>
+ * <li>Monday</li>
+ * <li>Tuesday</li>
+ * <li>Wednesday</li>
+ * <li>Thursday</li>
+ * <li>Friday</li>
+ * <li>Saturday</li>
+ * <li>Sunday</li>
+ * </ol>
+ *
+ * @type "day of week"
+ * @supertype "atom"
+ * @category "Timestamps" "Types" "Days of the Week"
+ */
+Public stable method "day of week" is [enumeration of days of week→set];
+
+Method "“_”" is [dow : day of week | dow's name];
+
+/**
+ * Answer the one-based ordinal of the specified {@type "day of week"}.
+ *
+ * @method "_'s⁇ordinal"
+ * @param "dow" "day of week"
+ * @returns "[1..7]"
+ * @category "Queries" "Timestamps" "Days of the Week"
+ */
+Public stable method "_'s⁇ordinal" is
+	[dow : day of week | dow[week day ordinal]];
+
+/**
+ * Strengthen the result type.
+ *
+ * @method "_'s⁇ordinal"
+ * @restricts "day of week's type"
+ */
+Semantic restriction "_'s⁇ordinal" is [dowType : day of week's type | [1..7]];
+
+/**
+ * Answer the specified {@type "day of week"}'s predecessor.
+ *
+ * @method "_'s⁇previous day of week"
+ * @param "dow" "day of week"
+ * @returns "day of week"
+ */
+Public stable method "_'s⁇previous day of week" is
+[
+	dow : day of week
+|
+	days of week[dow's ordinal - 1] else [Saturday]
+];
+
+/**
+ * Answer the specified {@type "week"}'s successor.
+ *
+ * @method "_'s⁇next day of week"
+ * @param "dow" "day of week"
+ * @returns "day of week"
+ */
+Public stable method "_'s⁇next day of week" is
+[
+	dow : day of week
+|
+	days of week[dow's ordinal + 1] else [Sunday]
+];
+
+/**
+ * Answer the {@type "day of week"} that is ahead of {@param "augend"} by the
+ * count of days specified by {@param "addend"}.
+ *
+ * @method "_+_"
+ * @param "augend" "day of week"
+ * @param "addend" "integer"
+ * @returns "day of week"
+ * @category "Timestamps" "Days of the Week" "Math"
+ */
+Public stable method "_+_" is
+[
+	augend : day of week,
+	addend : integer
+|
+	days of week[(augend's ordinal + addend) mod 7] else [Sunday]
+];
+
+/**
+ * Answer the {@type "day of week"} that is behind {@param "minuend"} by the
+ * count of days specified by {@param "subtrahend"}.
+ *
+ * @method "_-_"
+ * @param "minuend" "day of week"
+ * @param "subtrahend" "integer"
+ * @returns "day of week"
+ * @category "Timestamps" "Days of the Week" "Math"
+ */
+Public stable method "_-_" is
+[
+	minuend : day of week,
+	subtrahend : integer
+|
+	days of week[(minuend's ordinal - subtrahend) mod 7] else [Sunday]
+];
+
+/**
+ * Answer the number of days interleaving {@param "minuend"} and the previous
+ * occurrence of {@param "subtrahend"}.
+ *
+ * @method "_-_"
+ * @param "minuend" "day of week"
+ * @param "subtrahend" "day of week"
+ * @returns "[0..11]"
+ * @category "Timestamps" "Days of the Week" "Math"
+ */
+Public stable method "_-_" is
+[
+	minuend : day of week,
+	subtrahend : day of week
+|
+	diff ::= minuend's ordinal - subtrahend's ordinal;
+	if diff ≥ 0 then [diff] else [7 + diff]
+];
+
+/**
+ * Strengthen the result type.
+ *
+ * @method "_-_"
+ * @restricts "day of week's type"
+ * @restricts "day of week's type"
+ */
+Semantic restriction "_-_" is
+[
+	minuendType : day of week's type,
+	subtrahendType : day of week's type
+|
+	[0..6]
+];
+
+/**
+ * Answer the "era" for the specified value.
+ *
+ * @method "private_'s⁇_-unit era"
+ * @param "v" "integer"
+ * @param "era" "whole number"
+ *        The count of units in an era.
+ * @returns "integer"
+ * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil
+ */
+Private stable method "private_'s⁇_-unit era" is
+[
+	v : integer,
+	era : whole number
+|
+	/* Division truncates, so -400 ÷ 400 = -1, which is desired. */
+	v ÷ era
+];
+
+/**
+ * Answer the specified value's position within an era.
+ *
+ * @method "private_'s⁇unit of_-unit era"
+ * @param "v" "integer"
+ * @param "era" "whole number"
+ *        The count of units in an era.
+ * @returns "integer"
+ * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil
+ */
+Private stable method "private_'s⁇unit of_-unit era" is
+[
+	v : integer,
+	era : whole number
+|
+	v - (private v's era-unit era) × era
+];
+
+/**
+ * @method "private_'s⁇unit of_-unit era"
+ * @restricts "integer's type"
+ * @restricts "whole number's type"
+ */
+Semantic restriction "private_'s⁇unit of_-unit era" is
+[
+	vType : integer's type,
+	eraType : whole number's type
+|
+	[0..⎡eraType⎤)
+];
+
+/**
+ * Answer the day of the year given a month and a day within the month. The
+ * answer is given relative to March 1, so this answer should not reach client
+ * code!
+ *
+ * @method "construction_and_'s⁇day of year"
+ * @param "m" "[1..12]"
+ * @param "dom" "[1..31]"
+ * @returns "[0..365]"
+ *          The day of year, where {@code 0} is March 1 and {@code 365} is
+ *          February 29.
+ * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil
+ */
+Private stable method "construction_and_'s⁇day of year" is
+[
+	m : [1..12],
+	dom : [1..31]
+|
+	(153 × ((m+9) mod 12) + 2) ÷ 5 + dom-1
+];
+
+/**
+ * Strengthen the result. {@code 0} represents March 1, and {@code 365}
+ * represents February 29.
+ *
+ * @method "construction_and_'s⁇day of year"
+ * @restricts "[1..12]'s type"
+ * @restricts "[1..31]'s type"
+ */
+Semantic restriction "construction_and_'s⁇day of year" is
+[
+	mType : [1..12]'s type,
+	dType : [1..31]'s type
+|
+	[0..365]
+];
+
+/**
+ * Answer the day of the era given the day of the year and the year of the era.
+ *
+ * @method "private_and_'s⁇day of era"
+ * @param "doy" "[0..365]"
+ * @param "yoe" "[0..399]"
+ * @returns "[0..146096]"
+ * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil
+ */
+Private stable method "private_and_'s⁇day of era" is
+[
+	doy : [0..365],
+	yoe : [0..399]
+|
+	yoe×365 + yoe÷4 - yoe÷100 + doy
+];
+
+/**
+ * Strengthen the result.
+ *
+ * @method "private_and_'s⁇day of era"
+ * @restricts "[0..365]'s type"
+ * @restricts "integer's type"
+ */
+Semantic restriction "private_and_'s⁇day of era" is
+[
+	doyType : [0..365]'s type,
+	yoeType : integer's type
+|
+	[0..146096]
+];
+
+/**
+ * A {@type "no-such-day-in-month exception"} is raised when an attempt is made
+ * to construct a {@type "timestamp"} from an invalid combination of month and
+ * day in month.
+ *
+ * @type "no-such-day-in-month exception"
+ * @supertype "bad-argument exception"
+ * @supertype "descriptive exception"
+ */
+Public class "no-such-day-in-month exception"
+	extends descriptive bad-argument exception;
+
+/**
+ * {@method "Raise_" Raise} a {@type "no-such-day-in-month exception"} unless
+ * the specified date is valid.
+ *
+ * @method "Check:_is valid day of_/_"
+ * @param "dom" "[1..31]"
+ *        The day within the month specified by {@param "mOrd"}.
+ * @param "y" "integer"
+ *        The year.
+ * @param "mOrd" "[1..12]"
+ *        The {@method "_'s⁇ordinal" ordinal} of the {@type "month"}.
+ * @returns "⊤"
+ * @category "Timestamps"
+ */
+Public method "Check:_is valid day of_/_" is
+[
+	dom : [1..31],
+	y : integer,
+	mOrd : [1..12]
+|
+	m ::= months[mOrd];
+	days ::=
+		if y is common year then [|m's days in common year|]
+		else [|m's days in leap year|];
+	If dom > days then
+	[
+		Raise a no-such-day-in-month exception with error message ::=
+			format
+				"day #“③” is not valid for ‘②’ “①”"
+			with y, m's name, dom
+	];
+];
+
+/**
+ * {@method "Reject parse,expected:_" Reject the current parse} if the specified
+ * date is statically invalid.
+ *
+ * @method "Require:_is valid day of_/_"
+ * @param "domType" "[1..31]'s type"
+ * @param "yType" "integer's type"
+ * @param "mOrd" "[1..12]'s type"
+ * @returns "⊤"
+ * @category "Timestamps"
+ */
+Public method "Require:_is valid day of_/_" is
+[
+	domType : [1..31]'s type,
+	yType : integer's type,
+	mOrdType : [1..12]'s type
+|
+	If {|domType|, |yType|, |mOrdType|} = {1} then
+	[
+		dom ::= domType's instance;
+		y ::= yType's instance;
+		mOrd ::= mOrdType's instance;
+			m ::= months[mOrd];
+		days ::=
+			if y is common year then [|m's days in common year|]
+			else [|m's days in leap year|];
+		If dom > days then
+		[
+			Reject parse, expected:
+				format
+					"a valid combination of year/month/day (but day #“③” is \
+					\|not valid for ‘②’ “①”)"
+				with y, m's name, dom
+		];
+	];
+];
+
+/**
+ * Answer a {@type "timestamp"} from the information supplied, ignoring leap
+ * seconds.
+ *
+ * @method "timestamp_/_/_«_:_:_«._»»««+|-»!_:_»"
+ * @param "y" "integer"
+ *        The year.
+ * @param "mOrd" "[1..12]"
+ *        The {@method "_'s⁇ordinal" ordinal} of the {@type "month"}.
+ * @param "dom" "[1..31]"
+ *        The day within the month specified by {@param "mOrd"}.
+ * @param "time" "<[0..23], [0..59], [0..59], [0..999]?…|4>?"
+ *        (Optional) The hours, minutes, seconds, and optional milliseconds,
+ *        respectively. All omitted values default to {@code 0}.
+ * @param "off" "<[1..2], [0..23], [0..59]…|3>"
+ *        (Optional) The offset from UTC.
+ * @returns "timestamp"
+ * @category "Timestamps" "Constructors"
+ * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil
+ */
+Public stable method "timestamp_/_/_«_:_:_«._»»««+|-»!_:_»" is
+[
+	y : integer,
+	mOrd : [1..12],
+	dom : [1..31],
+	time : <[0..23], [0..59], [0..59], [0..999]?…|4>?,
+	off : <[1..2], [0..23], [0..59]…|3>?
+|
+	Check: dom is valid day of y/mOrd;
+	yAdj ::= if mOrd ≤ 2 then [y-1] else [y];
+	era ::= private yAdj's 400-unit era;
+	yoe ::= private yAdj's unit of 400-unit era;
+	doy ::= construction mOrd and dom's day of year;
+	doe ::= private doy and yoe's day of era;
+	days ::= era × 146097 + doe - 719468;
+	hr, min, sec, omsec ::= time[1] else [<0, 0, 0, <0>>];
+	msec ::= omsec[1] else [0];
+	sign, hrOff, minOff ::= off[1] else [<1, 0, 0>];
+	utcOff ::= (hrOff × 3600000 + minOff × 60000) × <-1, 1>[sign];
+	a timestamp with Epoch milliseconds ::=
+		(days×86400000 + hr×3600000 + min×60000 + utcOff + sec×1000 + msec)
+];
+
+/**
+ * Check the timestamp for validity, as much as possible.
+ *
+ * @method "timestamp_/_/_«_:_:_«._»»««+|-»!_:_»"
+ * @restricts "integer's type"
+ * @restricts "[1..12]'s type"
+ * @restricts "[1..31]'s type"
+ * @restricts "<[0..23], [0..59], [0..59], [0..999]?…|4>?'s type"
+ * @restricts "<[1..2], [0..23], [0..59]…|3>?'s type"
+ */
+Semantic restriction "timestamp_/_/_«_:_:_«._»»««+|-»!_:_»" is
+[
+	yType : integer's type,
+	mOrdType : [1..12]'s type,
+	domType : [1..31]'s type,
+	timeType : <[0..23], [0..59], [0..59], [0..999]?…|4>?'s type,
+	offType : <[1..2], [0..23], [0..59]…|3>?'s type
+|
+	Require: domType is valid day of yType/mOrdType;
+	⊤
+];
+
+Alias "private timestamp_____" to $"timestamp_/_/_«_:_:_«._»»««+|-»!_:_»";
+
+/**
+ * Answer a {@type "timestamp"} from the information supplied, ignoring leap
+ * seconds.
+ *
+ * @method "timestamp__,_«_:_:_«._»»««+|-»!_:_»"
+ * @param "m" "month"
+ *        The {@type "month"}.
+ * @param "dom" "[1..31]"
+ *        The day within the month specified by {@param "mOrd"}.
+ * @param "y" "integer"
+ *        The year.
+ * @param "time" "<[0..23], [0..59], [0..59], [0..999]?…|4>?"
+ *        (Optional) The hours, minutes, seconds, and optional milliseconds,
+ *        respectively. All omitted values default to {@code 0}.
+ * @param "off" "<[1..2], [0..23], [0..59]…|3>"
+ *        (Optional) The offset from UTC.
+ * @returns "timestamp"
+ * @category "Timestamps" "Constructors"
+ * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil
+ */
+Public method "timestamp__,_«_:_:_«._»»««+|-»!_:_»" is
+[
+	m : month,
+	dom : [1..31],
+	y : integer,
+	time : <[0..23], [0..59], [0..59], [0..999]?…|4>?,
+	off : <[1..2], [0..23], [0..59]…|3>?
+|
+	private timestamp y m's ordinal dom time off
+];
+
+/**
+ * Check the timestamp for validity, as much as possible.
+ *
+ * @method "timestamp__,_«_:_:_«._»»««+|-»!_:_»"
+ * @restricts "month's type"
+ * @restricts "[1..31]'s type"
+ * @restricts "integer's type"
+ * @restricts "<[0..23], [0..59], [0..59], [0..999]?…|4>?'s type"
+ * @restricts "<[1..2], [0..23], [0..59]…|3>?'s type"
+ */
+Semantic restriction "timestamp__,_«_:_:_«._»»««+|-»!_:_»" is
+[
+	mType : month's type,
+	domType : [1..31]'s type,
+	yType : integer's type,
+	timeType : <[0..23], [0..59], [0..59], [0..999]?…|4>?'s type,
+	offType : <[1..2], [0..23], [0..59]…|3>?'s type
+|
+	If |mType| = 1 then
+	[
+		mOrdType ::= mType's instance's ordinal's type;
+		Require: domType is valid day of yType/mOrdType;
+	];
+	⊤
+];
+
+/* Disambiguate the UTC offset hour — don't allow unary negation there. */
+Grammatical restriction "timestamp_/_/_«_:_:_«._»»««+|-»!_:_»" is
+	<∅, ∅, ∅, ∅, ∅, ∅, ∅, {"-_"}, ∅>;
+
+/**
+ * Answer the year of the era given the day of the era.
+ *
+ * @method "private_'s⁇year of era"
+ * @param "doe" "[0..146096]"
+ * @returns "[0..399]"
+ * @see "http://howardhinnant.github.io/date_algorithms.html#civil_from_days"
+ *      civil_from_days
+ */
+Private stable method "private_'s⁇year of era" is
+[
+	doe : [0..146096]
+|
+	(doe - doe÷1460 + doe÷36524 - doe÷146096) ÷ 365
+];
+
+/**
+ * Strengthen the result.
+ *
+ * @method "private_'s⁇year of era"
+ * @restricts "[0..146096]'s type"
+ */
+Semantic restriction "private_'s⁇year of era" is
+[
+	doeType : [0..146096]'s type
+|
+	[0..399]
+];
+
+/**
+ * Answer the day of the year given a day of era and a year of era. The answer
+ * is given relative to March 1, so this answer should not reach client code!
+ *
+ * @method "explosion_and_'s⁇day of year"
+ * @param "doe" "[0..146096]"
+ * @param "yoe" "[0..399]"
+ * @returns "[0..365]"
+ *          The day of year, where {@code 0} is March 1 and {@code 365} is
+ *          February 29.
+ * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      civil_from_days
+ */
+Private stable method "explosion_and_'s⁇day of year" is
+[
+	doe : [0..146096],
+	yoe : [0..399]
+|
+	doe - (365×yoe + yoe÷4 - yoe÷100)
+];
+
+/**
+ * Strengthen the result type.
+ *
+ * @method "explosion_and_'s⁇day of year"
+ * @restricts "[0..146096]'s type"
+ * @restricts "[0..399]'s type"
+ */
+Semantic restriction "explosion_and_'s⁇day of year" is
+[
+	doeType : [0..146096]'s type,
+	yoeType : [0..399]'s type
+|
+	[0..365]
+];
+
+/**
+ * Answer the zero-based month ordinal of the specified day of year. Note that
+ * March is treated as the first month, so this answer should not reach client
+ * code!
+ *
+ * @method "private_'s⁇zero-based month ordinal"
+ * @param "doy" "[0..365]"
+ * @returns "[0..11]"
+ *          The month ordinal, where {@code 0} is March.
+ */
+Private stable method "private_'s⁇zero-based month ordinal" is
+[
+	doy : [0..365]
+|
+	(5×doy + 2) ÷ 153
+] : [0..11];
+
+/**
+ * Answer the day of the month for the day of year and the zero-based month
+ * ordinal.
+ *
+ * @method "private_and_'s⁇day of month"
+ * @param "doy" "[0..365]"
+ * @param "mp" "[0..11]"
+ *          The month ordinal, where {@code 0} is March.
+ * @returns "[1..31]"
+ */
+Private stable method "private_and_'s⁇day of month" is
+[
+	doy : [0..365],
+	mp : [0..11]
+|
+	doy - (153×mp + 2)÷5 + 1
+];
+
+/**
+ * Strengthen the result type.
+ *
+ * @method "private_and_'s⁇day of month"
+ * @restricts "[0..365]'s type"
+ * @restricts "[0..11]'s type"
+ */
+Semantic restriction "private_and_'s⁇day of month" is
+[
+	doyType : [0..365]'s type,
+	mpType : [0..11]'s type
+|
+	[1..31]
+];
+
+/**
+ * Answer the one-based {@type "month"} {@method "_'s⁇ordinal" ordinal} for the
+ * given zero-based month ordinal.
+ *
+ * @method "private_'s⁇month ordinal"
+ * @param "mp" "[0..11]"
+ *          The zero-based month ordinal, where {@code 0} is March.
+ * @returns "[1..12]"
+ *          The one-based month ordinal, where {@code 1} is January.
+ */
+Private stable method "private_'s⁇month ordinal" is
+[
+	mp : [0..11]
+|
+	(mp - 10) mod 12 + 1
+];
+
+/**
+ * Strengthen the result type.
+ *
+ * @method "private_'s⁇month ordinal"
+ * @restricts "[0..11]'s type"
+ */
+Semantic restriction "private_'s⁇month ordinal" is
+[
+	mpType : [0..11]'s type
+|
+	[1..12]
+];
+
+"exploded years" is a new field atom;
+"exploded months" is a new field atom;
+"exploded days" is a new field atom;
+"exploded day of week" is a new field atom;
+"exploded hours" is a new field atom;
+"exploded minutes" is a new field atom;
+"exploded seconds" is a new field atom;
+"exploded milliseconds" is a new field atom;
+
+/**
+ * {@method "_exploded"} produces an {@type "exploded timestamp"} that
+ * aggregates information about a {@type "timestamp"}'s decomposition.
+ *
+ * @type "exploded timestamp"
+ * @supertype "object"
+ * @field "exploded years" "integer"
+ * @field "exploded months" "month"
+ * @field "exploded days" "[1..31]"
+ * @field "exploded day of week" "day of week"
+ * @field "exploded hours" "[0..23]"
+ * @field "exploded minutes" "[0..59]"
+ * @field "exploded seconds" "[0..59]"
+ * @field "exploded milliseconds" "[0..999]"
+ */
+Public class "exploded timestamp" extends timestamp
+	with fields
+		public exploded years : integer ("_'s⁇year"),
+		public exploded months : month ("_'s⁇month"),
+		public exploded days : [1..31] ("_'s⁇day in month"),
+		public exploded day of week : day of week ("_'s⁇day of week"),
+		public exploded hours : [0..23] ("_'s⁇hour"),
+		public exploded minutes : [0..59] ("_'s⁇minute"),
+		public exploded seconds : [0..59] ("_'s⁇second"),
+		public exploded milliseconds : [0..999] ("_'s⁇millisecond");
+
+/**
+ * Answer an {@type "exploded timestamp"} for the specified {@type "timestamp"}.
+ * The {@type "exploded timestamp"} can be efficiently interrogated about the
+ * various aspects of the {@type "timestamp"}'s decomposition.
+ *
+ * @method "_exploded"
+ * @param "ts" "timestamp"
+ * @returns "exploded timestamp"
+ * @see "http://howardhinnant.github.io/date_algorithms.html#civil_from_days"
+ *      civil_from_days
+ * @see "http://howardhinnant.github.io/date_algorithms.html#weekday_from_days"
+ *      weekday_from_days
+ */
+Public stable method "_exploded" is
+[
+	ts : timestamp
+|
+	days ::= ts' Epoch milliseconds ÷ 86400000;
+	daysAdj ::= days + 719468;
+	era ::= private daysAdj's 146097-unit era;
+	doe ::= private daysAdj's unit of 146097-unit era;
+	yoe ::= private doe's year of era;
+	yAdj ::= yoe + era × 400;
+	doy ::= explosion doe and yoe's day of year;
+	mp ::= private doy's zero-based month ordinal;
+	d ::= private doy and mp's day of month;
+	mOrd ::= private mp's month ordinal;
+	y ::= if mOrd ≤ 2 then [yAdj+1] else [yAdj];
+	time : integer := ts' Epoch milliseconds mod 86400000;
+	hr ::= time ÷ 3600000;
+	time := time - hr × 3600000;
+	min ::= time ÷ 60000;
+	time := time - min × 60000;
+	sec ::= time ÷ 1000;
+	time := time - sec × 1000;
+	msec ::= time;
+	an exploded timestamp with
+		Epoch milliseconds ::= ts' Epoch milliseconds,
+		exploded years ::= y,
+		exploded months ::= months[mOrd],
+		exploded days ::= d,
+		exploded day of week ::= days of week[(days + 3) mod 7 + 1],
+		exploded hours ::= hr ?→ [0..23],
+		exploded minutes ::= min ?→ [0..59],
+		exploded seconds ::= sec ?→ [0..59],
+		exploded milliseconds ::= msec ?→ [0..999]
+];
+
+Public stable method "_exploded" is [ts : exploded timestamp | ts];
+
+Public stable method "_'s⁇year" is [ts : timestamp | ts exploded's year];
+Public stable method "_'s⁇month" is [ts : timestamp | ts exploded's month];
+Public stable method "_'s⁇day in month" is
+	[ts : timestamp | ts exploded's day in month];
+Public stable method "_'s⁇day of week" is
+	[ts : timestamp | ts exploded's day of week];
+Public stable method "_'s⁇hour" is [ts : timestamp | ts exploded's hour];
+Public stable method "_'s⁇minute" is [ts : timestamp | ts exploded's minute];
+Public stable method "_'s⁇second" is [ts : timestamp | ts exploded's second];
+Public stable method "_'s⁇millisecond" is
+	[ts : timestamp | ts exploded's millisecond];
+
+/**
+ * Explode the specified {@type "timestamp"} into a {@type "tuple"}. The
+ * elements of the {@type "tuple"} are:
+ *
+ * <ol>
+ * <li>{@method "_'s⁇year" year}</li>
+ * <li>{@method "_'s⁇month" month}</li>
+ * <li>{@method "_'s⁇day in month" day in month}</li>
+ * <li>{@method "_'s⁇day of week" day of week}</li>
+ * <li>{@method "_'s⁇hour" hour}</li>
+ * <li>{@method "_'s⁇minute" minute}</li>
+ * <li>{@method "_'s⁇second" second}</li>
+ * <li>{@method "_'s⁇millisecond" millisecond}</li>
+ * </ol>
+ *
+ * @method "_'s⁇components"
+ * @param "ts" "timestamp"
+ * @returns
+ *   "<integer, month, [1..31], day of week, [0..23], [0..59], [0..59], [0..999]…|8>"
+ */
+Public stable method "_'s⁇components" is
+[
+	ts : timestamp
+|
+	expl ::= ts exploded;
+	<
+		expl's year,
+		expl's month,
+		expl's day in month,
+		expl's day of week,
+		expl's hour,
+		expl's minute,
+		expl's second,
+		expl's millisecond
+	>
+];
+
+/**
+ * Is the year of the specified {@type "timestamp"} a leap year?
+ *
+ * @method "_is leap year"
+ * @param "ts" "timestamp"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "ts"}' {@method "_'s⁇year" year} is a
+ *          leap year, {@method "false"} otherwise.
+ */
+Public stable method "_is leap year" is
+	[ts : timestamp | ts' year is leap year];
+
+/**
+ * Is the year of the specified {@type "timestamp"} a common year, i.e., not a
+ * leap year?
+ *
+ * @method "_is common year"
+ * @param "ts" "timestamp"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "ts"}' {@method "_'s⁇year" year} is a
+ *          common year, {@method "false"} otherwise.
+ */
+Public stable method "_is common year" is
+	[ts : timestamp | ts' year is common year];
+
+Method "“_”" is
+[
+	ts : timestamp
+|
+	expl ::= ts exploded;
+	format
+		"“①” “②” “③”, “④” “⑤”:“⑥”:“⑦”.“⑧” UTC"
+	with
+		expl's day of week,
+		expl's month,
+		expl's day in month,
+		expl's year,
+		expl's hour,
+		expl's minute,
+		expl's second,
+		expl's millisecond
+];
+
+/**
+ * Render the {@type "timestamp"} in accordance with ISO 8601.
+ *
+ * @method "“_”(ISO…#)"
+ * @param "ts" "timestamp"
+ * @param "_" "literal token ⇒ (8601's type)"
+ * @returns "nonempty string"
+ */
+Public stable method "“_”(ISO…#)" is
+[
+	ts : timestamp,
+	_ : literal token ⇒ (8601's type)
+|
+	expl ::= ts exploded;
+	pad ::= [n : number | s ::= “n”; if |s| = 1 then ["0"] else [""] ++ s];
+	format
+		"“①”-‘②’-‘③’T‘④’:‘⑤’:‘⑥’Z"
+	with
+		expl's year,
+		pad(expl's month's ordinal),
+		pad(expl's day in month),
+		pad(expl's hour),
+		pad(expl's minute),
+		pad(expl's second)
+] : nonempty string;

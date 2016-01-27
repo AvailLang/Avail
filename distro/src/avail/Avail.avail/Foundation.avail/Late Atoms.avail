@@ -1,0 +1,224 @@
+/*
+ * Late Atoms.avail
+ * Copyright © 1993-2016, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Late Atoms"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Extends
+	"Atoms"
+Uses
+	"Bootstrap",
+	"Control Structures",
+	"Definers",
+	"Early Conditionals",
+	"Enumeration Support",
+	"Exceptions",
+	"Literals",
+	"Logic",
+	"Macro Support",
+	"Math",
+	"Objects",
+	"Phrases",
+	"Sets",
+	"Types"
+Names
+	"all atoms for_where_",
+	"atom for_where_",
+	"_hails from Foundation",
+	"Foundation atom for_",
+	"Foundation`$…",
+	"Foundation`$…$",
+
+	/* This is for use by the representative only! */
+	"Brand all visible atoms as hailing from Foundation"
+Body
+
+/**
+ * Answer every {@type "atom"} referenced by the specified name in the {@method
+ * "current module" module currently undergoing compilation} that passes the
+ * supplied filter {@type "function"}.
+ *
+ * @category "Atoms" "Queries"
+ * @method "all atoms for_where_"
+ * @param "name" "string"
+ *        The name by which the desired {@type "atom"}s are known locally.
+ * @param "filter" "[atom]→boolean"
+ *        The {@type "function"} to apply to each referenced {@type "atom"}.
+ * @returns "{atom|}"
+ *          A {@type "set"} containing every {@type "atom"} that answers
+ *          {@method "true"} when the filter {@type "function"} is applied.
+ */
+Public method "all atoms for_where_" is
+[
+	name : string,
+	filter : [atom]→boolean
+|
+	filter all atoms for name by filter
+];
+
+/**
+ * Answer the {@type "atom"} referenced by the specified name in the {@method
+ * "current module" module currently undergoing compilation} that passes the
+ * supplied filter {@type "function"}.
+ *
+ * @category "Atoms" "Queries"
+ * @method "atom for_where_"
+ * @param "name" "string"
+ *        The name by which the desired {@type "atom"} is known locally.
+ * @param "filter" "[atom]→boolean"
+ *        The {@type "function"} to apply to each {@type "atom"} referenced by
+ *        {@param "name"}. Only one such {@type "atom"} should answer {@method
+ *        "true"} during filtration.
+ * @returns "atom"
+ *          The desired {@type "atom"}.
+ * @raises "ambiguous-name exception"
+ *         If there was not a singular {@type "atom"} that satisfied {@param
+ *         "filter"}.
+ */
+Public method "atom for_where_" is
+[
+	name : string,
+	filter : [atom]→boolean
+|
+	trueNames ::= filter all atoms for name by filter;
+	if |trueNames| = 1 then [trueNames→tuple[1]]
+	else [Raise an ambiguous-name exception]
+];
+
+"Foundation tag" is a new atom;
+
+/**
+ * Does the specified {@type "atom"} hail from the {@code "Foundation"} package?
+ *
+ * @category "Atoms" "Queries"
+ * @method "_hails from Foundation"
+ * @param "a" "atom"
+ * @returns "boolean"
+ *          {@method "true"} if the {@type "atom"} originates somewhere within
+ *          the {@code "Foundation"} package, {@method "false"} otherwise.
+ */
+Public method "_hails from Foundation" is [a : atom | Foundation tag ∈ a];
+
+/**
+ * Mark the specified {@type "atom"} as hailing from the {@code "Foundation"}
+ * package. This should not leak outside of that same package, let other {@type
+ * "atom"}s forge their origin!
+ *
+ * @method "Brand_as hailing from Foundation"
+ * @param "a" "atom"
+ * @returns "⊤"
+ */
+Private method "Brand_as hailing from Foundation" is
+	[a : atom | a[Foundation tag] := Foundation tag;];
+
+/**
+ * Mark all {@method "current module's visible atoms" atoms visible within the
+ * module undergoing compilation} as hailing from the {@code "Foundation"}
+ * package. This should not leak outside of that same package, let other {@type
+ * "atom"}s forge their origin!
+ *
+ * @method "Brand all visible atoms as hailing from Foundation"
+ * @returns "⊤"
+ */
+Public method "Brand all visible atoms as hailing from Foundation" is
+[
+	For each a of current module's visible names do
+		[Brand a as hailing from Foundation;];
+];
+
+/**
+ * Answer the {@type "atom"} referenced by the specified name in the {@method
+ * "current module" module currently undergoing compilation} that {@method
+ * "_hails from Foundation" hails} from {@code "Foundation"}.
+ *
+ * @category "Atoms" "Queries"
+ * @method "Foundation atom for_"
+ * @param "name" "string"
+ *        The name by which the desired {@type "atom"} is known locally.
+ * @returns "atom"
+ *          The desired {@type "atom"}.
+ * @raises "ambiguous-name exception"
+ *         If there was not a singular {@type "atom"} that {@method
+ *         "_hails from Foundation" hails} from {@code "Foundation"}.
+ */
+Public method "Foundation atom for_" is
+[
+	name : string
+|
+	atom for name where [a : atom | a hails from Foundation]
+];
+
+/**
+ * Construct an {@type "atom"} {@type "literal phrase" literal} from a string
+ * literal token. The atom is obtained via {@method "atom for_where_"}, i.e., it is
+ * looked up in the current module's context, and the filter ensures that the
+ * result {@method "_hails from Foundation"}. The name of the atom is
+ * provided by the argument's lexeme.
+ * 
+ * @macro "Foundation`$…"
+ * @param "aToken"
+ *        "literal phrase ⇒ (literal token ⇒ string)"
+ *        A {@type "literal phrase"} holding a {@type "literal token"} whose
+ *        value is the name of the atom.
+ * @returns "literal phrase ⇒ atom"
+ *          The {@type "atom"} {@type "literal phrase" literal}.
+ * @category "Atoms" "Constructors"
+ */
+Public macro "Foundation`$…" is
+[
+	tokenPhrase : literal phrase ⇒ token
+|
+	‘Foundation atom for tokenPhrase's token's lexeme’
+];
+
+/**
+ * Construct an {@type "atom"} {@type "literal phrase" literal} from a string
+ * literal token. The atom is obtained via {@method "atom for_where_"}, i.e., it is
+ * looked up in the current module's context, and the filter ensures that the
+ * result {@method "_hails from Foundation"}. If the token is a string literal,
+ * then use its value instead of its lexeme for the name of the atom.
+ * 
+ * @macro "Foundation`$…$"
+ * @param "aToken"
+ *        "literal phrase ⇒ (literal token ⇒ string)"
+ *        A {@type "literal phrase"} holding a {@type "literal token"} whose
+ *        value is the name of the atom.
+ * @returns "literal phrase ⇒ atom"
+ *          The {@type "atom"} {@type "literal phrase" literal}.
+ * @category "Atoms" "Constructors"
+ */
+Public macro "Foundation`$…$" is
+[
+	tokenPhrase : literal phrase ⇒ (literal token ⇒ string)
+|
+	‘Foundation atom for tokenPhrase's token's value's value’
+];

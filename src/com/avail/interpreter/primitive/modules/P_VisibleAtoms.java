@@ -1,6 +1,6 @@
 /**
- * P_LookupAtomsForName.java
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * P_VisibleAtoms.java
+ * Copyright © 1993-2016, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.atoms;
+package com.avail.interpreter.primitive.modules;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -40,22 +40,20 @@ import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive:</strong> Look up every {@linkplain A_Atom true name}
- * bound to the specified {@linkplain A_String name} in the {@linkplain
- * A_Module module} currently being {@linkplain AvailLoader loaded}. Never
- * create a true name.
+ * <strong>Primitive</strong>: Answer every {@linkplain A_Atom true name}
+ * visible in the {@linkplain A_Module module} currently being {@linkplain
+ * AvailLoader loaded}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class P_LookupAtomsForName
+public final class P_VisibleAtoms
 extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_LookupAtomsForName().init(
-			1, CanInline);
+		new P_VisibleAtoms().init(0, CanInline);
 
 	@Override
 	public Result attempt (
@@ -63,23 +61,20 @@ extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_String name = args.get(0);
-		final A_Fiber currentFiber = interpreter.fiber();
-		final AvailLoader loader = currentFiber.availLoader();
-		if (loader == null)
+		assert args.size() == 0;
+		if (interpreter.availLoaderOrNull() == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		return interpreter.primitiveSuccess(loader.lookupAtomsForName(name));
+		return interpreter.primitiveSuccess(
+			interpreter.module().visibleNames());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.stringType()),
+			TupleDescriptor.empty(),
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				ATOM.o()));

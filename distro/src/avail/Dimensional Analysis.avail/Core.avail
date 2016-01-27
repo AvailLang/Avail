@@ -34,17 +34,7 @@ Module "Core"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Avail" =
-	(
-		"_+_" → "_+_(Avail)",
-		"_-_" → "_-_(Avail)",
-		"_×_" → "_×_(Avail)",
-		"_÷_" → "_÷_(Avail)",
-		"_mod_" → "_mod_(Avail)",
-		"_^_" → "_^_(Avail)",
-		…
-	),
-	"Feature Renames"
+	"Avail"
 Names
 	/* Types. */
 	"base unit",
@@ -138,6 +128,13 @@ Names
 	"names by unit",
 	"symbols by unit"
 Body
+
+Alias "_+_(Avail)" to Foundation $"_+_";
+Alias "_-_(Avail)" to Foundation $"_-_";
+Alias "_×_(Avail)" to Foundation $"_×_";
+Alias "_÷_(Avail)" to Foundation $"_÷_";
+Alias "_mod_(Avail)" to Foundation $"_mod_";
+Alias "_^_(Avail)" to Foundation $"_^_";
 
 Public method "unit map" is [$"unit map"];
 Public method "extent" is [$extent];
@@ -1715,7 +1712,10 @@ Semantic restriction "⎡_⎤" is
 	 * expression.
 	 */
 	availArith ::=
-		{plus atom, minus atom, times atom, divide atom};
+		{
+			Foundation $"_+_", Foundation $"_-_",
+			Foundation $"_×_", Foundation $"_÷_"
+		};
 	Grammatical restriction jux is <sum ∪ product, ∅>;
 	Grammatical restriction $"__" is <availArith, ∅>;
 ]();
@@ -1999,13 +1999,13 @@ Semantic restriction "«_‡«=|≥|>»!»" is
 	binary ::=
 		{
 			$"_=_", $"_≤_", $"_<_", $"_≥_", $"_>_",
-			less-than atom, less-than-equal atom,
-			greater-than atom, greater-than-equal atom
+			Foundation $"_<_", Foundation $"_≤_",
+			Foundation $"_>_", Foundation $"_≥_"
 		};
 	chains ::=
 		{
 			$"«_‡=»", $"«_‡«=|≤|<»!»", $"«_‡«=|≥|>»!»",
-			chained less-than atom, chained greater-than atom
+			Foundation $"«_‡«=|≤|<»!»", Foundation $"«_‡«=|≥|>»!»"
 		};
 	restrictions ::= binary ∪ chains;
 	Grammatical restriction chains is <restrictions>;

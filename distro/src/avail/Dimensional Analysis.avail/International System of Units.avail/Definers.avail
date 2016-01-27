@@ -107,7 +107,7 @@ Private method "SI scaling function for_" is
 	metricSend ::= send $"_'s⁇metric" with «<«↓args[1]»>» : SI unit;
 	minuend ::= send $"_'s⁇scale factor" with «<metricSend>» : integer;
 	subtrahend ::= send $"_'s⁇scale factor" with «<«↓args[2]»>» : integer;
-	exponent ::= send $"_-_" with «<minuend, subtrahend>» : integer;
+	exponent ::= send Foundation $"_-_" with «<minuend, subtrahend>» : integer;
 	scaleFactor ::= send $"_^_" with «<‘10’, exponent>» : number;
 	/* Construct the expression to obtain the scaled magnitude. */
 	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
