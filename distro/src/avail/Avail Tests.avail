@@ -50,6 +50,7 @@ Extends
 		"converters test suite",
 		"counting reader test suite",
 		"Data|data abstractions test suite",
+		"dates and times test suite",
 		"delimited reader test suite",
 		"exception test suite",
 		"file access rights test suite",

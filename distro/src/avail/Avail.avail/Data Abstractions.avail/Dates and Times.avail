@@ -47,7 +47,6 @@ Names
 		"_'s⁇second",
 		"_'s⁇millisecond",
 		"_'s⁇Epoch milliseconds",
-		"_'s⁇Epoch milliseconds::=_",
 		"_-_",
 		"_<_",
 		"_≤_",
@@ -144,7 +143,7 @@ Body
  */
 Public explicit class "timestamp" extends object
 	with fields
-		public reconstructible Epoch milliseconds : integer;
+		public Epoch milliseconds : integer;
 
 /**
  * Answer a {@type "timestamp"} for the current time.
@@ -698,13 +697,13 @@ Semantic restriction "_-_" is
 	days : atom* := <>;
 	For each name, ordinal of
 	<
+		"Sunday",
 		"Monday",
 		"Tuesday",
 		"Wednesday",
 		"Thursday",
 		"Friday",
-		"Saturday",
-		"Sunday"
+		"Saturday"
 	>
 	do
 	[
