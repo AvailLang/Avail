@@ -79,7 +79,6 @@ Names
 	/*  14 */ "continuation-expected-stronger-type code",
 	/*  36 */ "declaration-kind-does-not-support-assignment code",
 	/*  37 */ "declaration-kind-does-not-support-reference code",
-	/*  65 */ "declaration-type-must-not-be-top-or-bottom code",
 	/*  97 */ "deserialization-failed code",
 	/* 202 */ "directory-not-empty code",
 	/*  58 */ "dollar-sign-must-follow-an-ellipsis code",
@@ -112,7 +111,6 @@ Names
 	/*  33 */ "invalid-special-object-number code",
 	/*  21 */ "key-not-found code",
 	/*  70 */ "loading-is-over code",
-	/*  66 */ "local-declaration-shadows-another code",
 	/*  28 */ "local-type-literal-is-not-a-type code",
 	/*  34 */ "macro-argument-must-be-a-parse-node code",
 	/*  68 */ "macro-must-return-a-parse-node code",
@@ -123,6 +121,7 @@ Names
 	/*  45 */ "method-name-is-not-canonical code",
 	/*  13 */ "method-return-type-not-as-forward-declared code",
 	/*  22 */ "negative-size code",
+	/* 150 */ "no-external-process code",
 	/* 200 */ "no-file code",
 	/*  82 */ "no-handler-frame code",
 	/*  19 */ "no-method code",
@@ -463,16 +462,6 @@ Primitive "untimely-parse-acceptance code" is
 	64
 ];
 
-Primitive "declaration-type-must-not-be-top-or-bottom code" is
-[
-	65
-];
-
-Primitive "local-declaration-shadows-another code" is
-[
-	66
-];
-
 Primitive "macro-prefix-function-argument-must-be-a-parse-node code" is
 [
 	67
@@ -671,6 +660,11 @@ Primitive "supercast-expression-must-not-also-be-a-supercast code" is
 Primitive "supercast-must-be-strict-supertype-of-expression-type code" is
 [
 	108
+];
+
+Primitive "no-external-process code" is
+[
+	150
 ];
 
 Primitive "no-file code" is

@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.methods;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +64,7 @@ extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_DeclarePrefixFunctionForAtom().init(
-			3, Unknown);
+			3, Private, Unknown);
 
 	@Override
 	public Result attempt (
@@ -185,7 +185,8 @@ extends Primitive
 					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES.numericCode(),
 					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
 						.numericCode(),
-					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP.numericCode()))
+					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP.numericCode(),
+					E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS.numericCode()))
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

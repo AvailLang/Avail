@@ -131,7 +131,7 @@ extends Primitive
 				public A_String value ()
 				{
 					return StringDescriptor.format(
-						"Asynchronous create directory (prim 450), %s",
+						"Asynchronous create directory, %s",
 						path);
 				}
 			});

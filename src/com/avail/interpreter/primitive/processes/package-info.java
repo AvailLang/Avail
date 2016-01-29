@@ -1,6 +1,6 @@
-/*
- * IO.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+/**
+ * package-info.java
+ * Copyright © 1993-2016, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,5 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "IO"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Uses
-	"Foundation"
-Extends
-	"Common",
-	"Exceptions",
-	"External Processes",
-	"Files",
-	"Network",
-	"Standard Input"
-Body
-
-[
-	/* Forbid overriding of the exports… */
-	forbiddenOverrides ::= current module's exported names;
-	/* …but certain exports are allowed for overriding, or need to be dealt with
-	 * specially.
-	 */
-	specialOverrides ::= ∅;
-	/* Seal the asymmetric difference at every existing definition. */
-	Seal methods forbiddenOverrides \ specialOverrides at existing definitions;
-]();
+@com.avail.annotations.NotNullByDefault
+package com.avail.interpreter.primitive.processes;

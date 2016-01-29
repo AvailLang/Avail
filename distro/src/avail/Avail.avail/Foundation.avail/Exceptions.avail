@@ -1428,6 +1428,8 @@ System exception "supercast-expression-must-not-also-be-a-supercast" (107)
 	extends bad-phrase exception;
 System exception "supercast-must-be-strict-supertype-of-expression-type" (108)
 	extends bad-phrase exception;
+System exception "no-external-process" (150)
+	extends I/O exception;
 System exception "no-file" (200)
 	extends I/O exception;
 System exception "file-exists" (201)

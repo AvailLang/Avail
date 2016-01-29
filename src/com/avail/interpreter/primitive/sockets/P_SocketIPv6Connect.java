@@ -131,7 +131,7 @@ extends Primitive
 				{
 					// TODO Auto-generated method stub
 					return StringDescriptor.format(
-						"Socket IPv6 connect (prim 562), %s:%d",
+						"Socket IPv6 connect, %s:%d",
 						addressTuple.toString(),
 						port.extractInt());
 				}

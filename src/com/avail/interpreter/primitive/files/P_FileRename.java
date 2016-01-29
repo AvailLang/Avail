@@ -111,7 +111,7 @@ extends Primitive
 				public A_String value ()
 				{
 					return StringDescriptor.format(
-						"Asynchronous file rename (prim 174), %s → %s",
+						"Asynchronous file rename, %s → %s",
 						sourcePath,
 						destinationPath);
 				}

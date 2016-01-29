@@ -118,7 +118,7 @@ extends Primitive
 				public A_String value ()
 				{
 					return StringDescriptor.format(
-						"Socket write (prim 566), %s",
+						"Socket write, %s",
 						handle.atomName());
 				}
 			});

@@ -107,7 +107,7 @@ extends Primitive
 				{
 					final A_RawFunction code = function.code();
 					return StringDescriptor.format(
-						"Fork orphan (prim 615), %s, %s:%d",
+						"Fork orphan, %s, %s:%d",
 						code.methodName(),
 						code.module().moduleName(),
 						code.startingLineNumber());

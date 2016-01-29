@@ -425,19 +425,14 @@ public enum AvailErrorCode
 	 */
 	E_UNTIMELY_PARSE_ACCEPTANCE (64),
 
-	/**
-	 * A {@link DeclarationNodeDescriptor declaration} is of type {@linkplain
-	 * TopTypeDescriptor top} or {@linkplain BottomTypeDescriptor bottom}, which
-	 * is not allowed.
-	 */
-	E_DECLARATION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM (65),
+//	E_??? (65),
 
 	/**
 	 * A {@LINK DeclarationNodeDescriptor declaration} has the same name as
 	 * another declaration in the current scope or an enclosing scope.  This is
 	 * not allowed.
 	 */
-	E_LOCAL_DECLARATION_SHADOWS_ANOTHER (66),
+//	E_??? (66),
 
 	/**
 	 * A {@linkplain MacroDefinitionDescriptor macro}'s {@linkplain
@@ -708,6 +703,11 @@ public enum AvailErrorCode
 	 * value of type top or bottom.
 	 */
 	E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE (108),
+
+	/**
+	 * An external {@linkplain Process process} could not be launched.
+	 */
+	E_NO_EXTERNAL_PROCESS (150),
 
 //	E_??? (109),
 

@@ -230,7 +230,7 @@ extends Primitive
 				public A_String value ()
 				{
 					return StringDescriptor.format(
-						"Asynchronous file read (prim 164), %s",
+						"Asynchronous file read, %s",
 						handle.filename);
 				}
 			});

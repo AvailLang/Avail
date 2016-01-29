@@ -112,7 +112,7 @@ extends Primitive
 				public A_String value ()
 				{
 					return StringDescriptor.format(
-						"Asynchronous truncate (prim 176), %s",
+						"Asynchronous truncate, %s",
 						handle.filename);
 				}
 			});

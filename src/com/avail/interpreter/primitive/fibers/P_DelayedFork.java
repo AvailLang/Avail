@@ -108,7 +108,7 @@ extends Primitive
 				{
 					final A_RawFunction code = function.code();
 					return StringDescriptor.format(
-						"Delayed fork (prim 623), %s, %s:%d",
+						"Delayed fork, %s, %s:%d",
 						code.methodName(),
 						code.module().moduleName(),
 						code.startingLineNumber());

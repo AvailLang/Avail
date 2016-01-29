@@ -83,13 +83,13 @@ extends Primitive
 			{
 				textInterface.inputChannel().read(
 					buffer,
-					null,
-					new CompletionHandler<Integer, Void>()
+					fiber,
+					new CompletionHandler<Integer, A_Fiber>()
 					{
 						@Override
 						public void completed (
 							final @Nullable Integer result,
-							final @Nullable Void attachment)
+							final @Nullable A_Fiber unused)
 						{
 							Interpreter.resumeFromSuccessfulPrimitive(
 								runtime,
@@ -102,7 +102,7 @@ extends Primitive
 						@Override
 						public void failed (
 							final @Nullable Throwable exc,
-							final @Nullable Void attachment)
+							final @Nullable A_Fiber unused)
 						{
 							Interpreter.resumeFromFailedPrimitive(
 								runtime,

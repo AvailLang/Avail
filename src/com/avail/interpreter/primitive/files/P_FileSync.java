@@ -114,7 +114,7 @@ extends Primitive
 				public A_String value ()
 				{
 					return StringDescriptor.format(
-						"Asynchronous file sync (prim 169), %s",
+						"Asynchronous file sync, %s",
 						handle.filename);
 				}
 			});

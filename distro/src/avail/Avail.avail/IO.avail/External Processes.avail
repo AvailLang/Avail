@@ -1,0 +1,323 @@
+/*
+ * External Processes.avail
+ * Copyright © 1993-2016, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "External Processes"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Files",
+	"Foundation"
+Names
+	/* Executing a detached process. */
+	"Execute_«with arguments⁇_»?\
+		\|«with working directory_»?\
+		\|«with environment_»?\
+		\|«reading standard input from_»?\
+		\|«writing standard output to_»?\
+		\|«writing standard error to_»?",
+
+	/* Executing an attached process. */
+	"a fiber executing_«with arguments⁇_»\
+		\|«with working directory_»?\
+		\|«with environment_»?\
+		\|on success doing_\
+		\|on failure doing_\
+		\|«forked at priority_»?"
+Body
+
+/**
+ * Execute a detached external process. Communication with this process is not
+ * possible.
+ *
+ * @method
+ *    "Execute detached external process with arguments_\
+ *    \|working directory_\
+ *    \|standard input_\
+ *    \|standard output_\
+ *    \|standard error_\
+ *    \|environment_"
+ * @param "args" "string+"
+ *        The arguments to the external process. The first argument must name
+ *        the executable itself.
+ * @param "dir" "string?"
+ *        (Optional) The working directory for the external process. If not
+ *        supplied, then launch the external process using the virtual machine's
+ *        own working directory.
+ * @param "in" "string?"
+ *        (Optional) The file which contains the external process's standard
+ *        input. If not supplied, then do not redirect the external process's
+ *        standard input.
+ * @param "out" "string?"
+ *        (Optional) The file to which the external process's standard output
+ *        should be written. If not supplied, then do not redirect the external
+ *        process's standard output.
+ * @param "err" "string?"
+ *        (Optional) The file to which the external process's standard error
+ *        should be written. If not supplied, then do not redirect the external
+ *        process's standard error.
+ * @param "env" "{string→string|}?"
+ *        (Optional) The replacement environment map. If not supplied, then
+ *        launch the external process using the virtual machine's own
+ *        environment.
+ * @returns "⊤"
+ * @raises "permission-denied code"
+ *         If the virtual machine forbade the launch for any reason.
+ * @raises "no-external-process code"
+ *         If the process could not be launched for some reason.
+ * @category "Processes"
+ */
+Private method
+	"Execute detached external process with arguments_\
+	\|working directory_\
+	\|standard input_\
+	\|standard output_\
+	\|standard error_\
+	\|environment_"
+is
+[
+	args : string+,
+	dir : string?,
+	in : string?,
+	out : string?,
+	err : string?,
+	env : {string→string|}?
+|
+	Primitive ExecuteDetachedExternalProcess (
+		code : {permission-denied code, no-external-process code}ᵀ);
+	Raise an exception for code
+] : ⊤;
+
+/**
+ * Execute a detached external process. Communication with this process is not
+ * possible.
+ *
+ * @method
+ *    "Execute_«with arguments⁇_»?\
+ *    \|«with working directory_»?\
+ *    \|«with environment_»?\
+ *    \|«reading standard input from_»?\
+ *    \|«writing standard output to_»?\
+ *    \|«writing standard error to_»?"
+ * @param "cmd" "string"
+ *        A command visible to the underlying operating system. Resolution of
+ *        this argument to an executable is platform-specific.
+ * @param "args" "string*?"
+ *        (Optional) The arguments to the external process.
+ * @param "dir" "string?"
+ *        (Optional) The working directory for the external process. If not
+ *        supplied, then launch the external process using the virtual machine's
+ *        own working directory.
+ * @param "env" "{string→string|}?"
+ *        (Optional) The replacement environment map. If not supplied, then
+ *        launch the external process using the virtual machine's own
+ *        environment.
+ * @param "in" "string?"
+ *        (Optional) The file which contains the external process's standard
+ *        input. If not supplied, then do not redirect the external process's
+ *        standard input.
+ * @param "out" "string?"
+ *        (Optional) The file to which the external process's standard output
+ *        should be written. If not supplied, then do not redirect the external
+ *        process's standard output.
+ * @param "err" "string?"
+ *        (Optional) The file to which the external process's standard error
+ *        should be written. If not supplied, then do not redirect the external
+ *        process's standard error.
+ * @returns "⊤"
+ * @raises "permission-denied code"
+ *         If the virtual machine forbade the launch for any reason.
+ * @raises "no-external-process code"
+ *         If the process could not be launched for some reason.
+ * @category "Processes"
+ */
+Public method
+	"Execute_«with arguments⁇_»?\
+	\|«with working directory_»?\
+	\|«with environment_»?\
+	\|«reading standard input from_»?\
+	\|«writing standard output to_»?\
+	\|«writing standard error to_»?"
+is
+[
+	cmd : string,
+	args : string*?,
+	dir : file name?,
+	env : {string→string|}?,
+	in : file name?,
+	out : file name?,
+	err : file name?
+|
+	Execute detached external process with
+		arguments <cmd> ++ args[1] else [<>]
+		working directory if |dir| = 1 then [<dir[1]'s name>] else [<>]
+		standard input if |in| = 1 then [<in[1]'s name>] else [<>]
+		standard output if |out| = 1 then [<out[1]'s name>] else [<>]
+		standard error if |err| = 1 then [<err[1]'s name>] else [<>]
+		environment env;
+];
+
+/**
+ * Execute an external process. This process is attached to the resultant {@type
+ * "fiber"}: the {@type "fiber"}'s {@method "Print:_" standard output} and
+ * {@method "Error:_" standard error} go to the external process's standard
+ * input, and {@method "next character" standard input} comes from the external
+ * process's standard output.
+ *
+ * @method
+ *    "a fiber attached to an external process with arguments_\
+ *    \|working directory_\
+ *    \|environment_\
+ *    \|on success doing_\
+ *    \|on failure doing_\
+ *    \|forked at priority_"
+ * @param "args" "string+"
+ *        The arguments to the external process. The first argument must name
+ *        the executable itself.
+ * @param "dir" "string?"
+ *        (Optional) The working directory for the external process. If not
+ *        supplied, then launch the external process using the virtual machine's
+ *        own working directory.
+ * @param "env" "{string→string|}?"
+ *        (Optional) The replacement environment map. If not supplied, then
+ *        launch the external process using the virtual machine's own
+ *        environment.
+ * @param "ok" "[]→⊤"
+ *        The {@type "function"} to apply in the event that the process launches
+ *        successfully. Its {@method "Print:_" standard output}, {@method
+ *        "Error:_" standard error}, and {@method "next character" standard
+ *        input} are wired to the external process.
+ * @param "fail" "[{permission-denied code, no-external-process code}ᵀ]→⊤"
+ *        The {@type "function"} to apply in the event that the process does not
+ *        launch. Its {@method "Print:_" standard output}, {@method
+ *        "Error:_" standard error}, and {@method "next character" standard
+ *        input} are the same as the {@method "current fiber"}'s.
+ * @param "priority" "byte?"
+ *        The priority of the resultant {@type "fiber"}.
+ * @returns "fiber"
+ * @raises "permission-denied code"
+ *         If the virtual machine forbade the launch for any reason.
+ * @raises "no-external-process code"
+ *         If the process could not be launched for some reason.
+ * @category "Processes"
+ */
+Private method
+	"a fiber attached to an external process with arguments_\
+	\|working directory_\
+	\|environment_\
+	\|on success doing_\
+	\|on failure doing_\
+	\|forked at priority_"
+is
+[
+	args : string+,
+	dir : string?,
+	env : {string→string|}?,
+	ok : []→⊤,
+	fail : [{permission-denied code, no-external-process code}ᵀ]→⊤,
+	priority : byte
+|
+	Primitive ExecuteAttachedExternalProcess (
+		code : {permission-denied code, no-external-process code}ᵀ);
+	Raise an exception for code
+] : fiber;
+
+/**
+ * Execute an external process. This process is attached to the resultant {@type
+ * "fiber"}: the {@type "fiber"}'s {@method "Print:_" standard output} and
+ * {@method "Error:_" standard error} go to the external process's standard
+ * input, and {@method "next character" standard input} comes from the external
+ * process's standard output.
+ *
+ * @method
+ *    "a fiber executing_«with arguments⁇_»\
+ *    \|«with working directory_»?\
+ *    \|«with environment_»?\
+ *    \|on success doing_\
+ *    \|on failure doing_\
+ *    \|«forked at priority_»?"
+ * @param "cmd" "string"
+ *        A command visible to the underlying operating system. Resolution of
+ *        this argument to an executable is platform-specific.
+ * @param "args" "string*?"
+ *        (Optional) The arguments to the external process.
+ * @param "dir" "string?"
+ *        (Optional) The working directory for the external process. If not
+ *        supplied, then launch the external process using the virtual machine's
+ *        own working directory.
+ * @param "env" "{string→string|}?"
+ *        (Optional) The replacement environment map. If not supplied, then
+ *        launch the external process using the virtual machine's own
+ *        environment.
+ * @param "ok" "[]→⊤"
+ *        The {@type "function"} to apply in the event that the process launches
+ *        successfully. Its {@method "Print:_" standard output}, {@method
+ *        "Error:_" standard error}, and {@method "next character" standard
+ *        input} are wired to the external process.
+ * @param "fail" "[{permission-denied code, no-external-process code}ᵀ]→⊤"
+ *        The {@type "function"} to apply in the event that the process does not
+ *        launch. Its {@method "Print:_" standard output}, {@method
+ *        "Error:_" standard error}, and {@method "next character" standard
+ *        input} are the same as the {@method "current fiber"}'s.
+ * @param "priority" "byte?"
+ *        The priority of the resultant {@type "fiber"}.
+ * @returns "fiber"
+ * @raises "permission-denied code"
+ *         If the virtual machine forbade the launch for any reason.
+ * @raises "no-external-process code"
+ *         If the process could not be launched for some reason.
+ * @category "Processes"
+ */
+Public method
+	"a fiber executing_«with arguments⁇_»\
+	\|«with working directory_»?\
+	\|«with environment_»?\
+	\|on success doing_\
+	\|on failure doing_\
+	\|«forked at priority_»?"
+is
+[
+	cmd : string,
+	args : string*?,
+	dir : file name?,
+	env : {string→string|}?,
+	ok : []→⊤,
+	fail : [{permission-denied code, no-external-process code}ᵀ]→⊤,
+	priority : byte?
+|
+	a fiber attached to an external process
+		with arguments <cmd> ++ args[1] else [<>]
+		working directory if |dir| = 1 then [<dir[1]'s name>] else [<>]
+		environment env
+		on success doing ok
+		on failure doing fail
+		forked at priority priority[1] else [current fiber's priority]
+] : fiber;

@@ -116,7 +116,7 @@ extends Primitive
 				{
 					final A_RawFunction code = function.code();
 					return StringDescriptor.format(
-						"Delayed fork orphan (prim 622), %s, %s:%d",
+						"Delayed fork orphan, %s, %s:%d",
 						code.methodName(),
 						code.module().moduleName(),
 						code.startingLineNumber());

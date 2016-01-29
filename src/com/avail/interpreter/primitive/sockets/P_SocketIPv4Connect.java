@@ -130,7 +130,7 @@ extends Primitive
 				public A_String value ()
 				{
 					return StringDescriptor.format(
-						"Socket IPv4 connect (prim 561), %s:%d",
+						"Socket IPv4 connect, %s:%d",
 						addressTuple.toString(),
 						port.extractInt());
 				}

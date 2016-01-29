@@ -1,5 +1,5 @@
 /**
- * ConsoleInputChannel.java
+ * ProcessInputChannel.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -42,30 +42,35 @@ import java.nio.channels.CompletionHandler;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
+import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
+import com.avail.descriptor.A_Fiber;
+import com.avail.utility.evaluation.Continuation0;
 
 /**
- * A {@code ConsoleInputChannel} provides a faux {@linkplain
- * TextInputChannel asynchronous interface} to a synchronous {@linkplain
- * InputStream input stream}. The reader must supply {@linkplain
- * StandardCharsets#UTF_8 UTF-8} encoded characters.
+ * A {@code ProcessInputChannel} provides a faux {@linkplain
+ * TextInputChannel asynchronous interface} to a synchronous {@linkplain Process
+ * process} {@linkplain InputStream input stream}. The reader must supply
+ * {@linkplain StandardCharsets#UTF_8 UTF-8} encoded characters.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class ConsoleInputChannel
+public final class ProcessInputChannel
 implements TextInputChannel
 {
 	/** The wrapped {@linkplain Reader reader}. */
-	private final Reader in;
+	@InnerAccess final Reader in;
 
 	/**
-	 * Construct a new {@link ConsoleInputChannel} that wraps the specified
+	 * Construct a new {@link ProcessInputChannel} that wraps the specified
 	 * {@linkplain InputStream stream}.
 	 *
 	 * @param stream
 	 *        An input stream. This should generally be {@link System#in}.
 	 */
-	public ConsoleInputChannel (final InputStream stream)
+	public ProcessInputChannel (final InputStream stream)
 	{
 		final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
 		decoder.onMalformedInput(CodingErrorAction.REPLACE);
@@ -87,21 +92,32 @@ implements TextInputChannel
 		final @Nullable A attachment,
 		final CompletionHandler<Integer, A> handler)
 	{
-		final int charsRead;
-		try
-		{
-			charsRead = in.read(buffer);
-			if (charsRead == -1)
+		final AvailRuntime runtime = AvailRuntime.current();
+		final A_Fiber fiber = (A_Fiber) attachment;
+		runtime.executeFileTask(AvailTask.forUnboundFiber(
+			fiber,
+			new Continuation0()
 			{
-				throw new IOException("end of stream");
-			}
-		}
-		catch (final IOException e)
-		{
-			handler.failed(e, attachment);
-			return;
-		}
-		handler.completed(charsRead, attachment);
+				@Override
+				public void value ()
+				{
+					final int charsRead;
+					try
+					{
+						charsRead = in.read(buffer);
+						if (charsRead == -1)
+						{
+							throw new IOException("end of stream");
+						}
+					}
+					catch (final IOException e)
+					{
+						handler.failed(e, attachment);
+						return;
+					}
+					handler.completed(charsRead, attachment);
+				}
+			}));
 	}
 
 	@Override

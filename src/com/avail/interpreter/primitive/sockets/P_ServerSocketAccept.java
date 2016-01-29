@@ -104,7 +104,7 @@ extends Primitive
 				public A_String value ()
 				{
 					return StringDescriptor.format(
-						"Server socket accept (prim 554), name=%s",
+						"Server socket accept, name=%s",
 						name);
 				}
 			});
