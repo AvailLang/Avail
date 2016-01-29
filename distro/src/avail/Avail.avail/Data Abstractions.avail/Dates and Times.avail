@@ -698,13 +698,13 @@ Semantic restriction "_-_" is
 	days : atom* := <>;
 	For each name, ordinal of
 	<
+		"Sunday",
 		"Monday",
 		"Tuesday",
 		"Wednesday",
 		"Thursday",
 		"Friday",
-		"Saturday",
-		"Sunday"
+		"Saturday"
 	>
 	do
 	[

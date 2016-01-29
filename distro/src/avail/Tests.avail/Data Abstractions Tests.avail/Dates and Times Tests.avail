@@ -1,0 +1,213 @@
+/*
+ * Dates and Times Tests.avail
+ * Copyright © 1993-2016, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Dates and Times Tests"
+Versions
+	"1.0.0 DEV 2014-04-28"
+
+Uses
+	"Common"
+Names
+	"dates and times test suite"
+Body
+
+"dates and times test suite" is a new atom;
+New test suite dates and times test suite extends data abstractions test suite;
+
+Test "now and then" in dates and times test suite is
+[
+ 	then : timestamp := now;
+ 	Sleep for 1 millisecond;
+ 	Require: then < now;
+];
+
+Test "timestamp creation" in dates and times test suite is
+[
+	Require: timestamp March 29, 1985 = timestamp March 29, 1985 0:0:0.0;
+	Require: timestamp 1985/3/29 = timestamp March 29, 1985 0:0:0.0;
+	Require: timestamp 1985/3/29 23:23:23.55 = 
+		timestamp March 29, 1985 23:23:23.55;
+
+];
+
+Test "timestamp arithmetic" in dates and times test suite is
+[
+ 	/* Denominations of Milliseconds */
+ 	oneMillisecond ::= 1;
+ 	oneSecond ::= 1000; 
+ 	oneMinute ::= 60000;
+ 	oneHour ::= 3600000;
+ 	oneDay ::= 86400000;
+ 	oneWeek ::= 604800000;
+ 	
+ 	/* Base test timestamp*/
+	tsBase ::= timestamp January 24, 2016 13:25:58.903;
+	
+	/* Forward in time */
+	tsForwardMillisecond ::= timestamp January 24, 2016 13:25:58.904;
+	tsForwardSecond ::= timestamp January 24, 2016 13:25:59.903;
+	tsForwardMinute ::= timestamp January 24, 2016 13:26:58.903;
+	tsForwardHour ::= timestamp January 24, 2016 14:25:58.903;
+	tsForwardDay ::= timestamp January 25, 2016 13:25:58.903;
+	tsForwardWeek ::= timestamp January 31, 2016 13:25:58.903;
+	
+	/* Back in time*/
+	tsBackMillisecond ::= timestamp January 24, 2016 13:25:58.902;
+	tsBackSecond ::= timestamp January 24, 2016 13:25:57.903;
+	tsBackMinute ::= timestamp January 24, 2016 13:24:58.903;
+	tsBackHour ::= timestamp January 24, 2016 12:25:58.903;
+	tsBackDay ::= timestamp January 23, 2016 13:25:58.903;
+	tsBackWeek ::= timestamp January 17, 2016 13:25:58.903;
+	
+	/* With leap implications */
+	tsFeb292016 ::= timestamp February 29, 2016 13:25:58.903;
+	tsMar012016 ::= timestamp March 1, 2016 13:25:58.903;
+	tsFeb292012 ::= timestamp February 29, 2012 13:25:58.903;
+	tsFeb282012 ::= timestamp February 28, 2012 13:25:58.903;
+	
+	/* Forward */
+	Require: tsBase + oneMillisecond = tsForwardMillisecond;
+	Require: tsBase + oneSecond = tsForwardSecond;
+	Require: tsBase + oneMinute = tsForwardMinute;
+	Require: tsBase + oneHour = tsForwardHour;
+	Require: tsBase + oneDay = tsForwardDay;
+	Require: tsBase + oneWeek = tsForwardWeek;
+	
+	/* Back */
+	Require: tsBase - oneMillisecond = tsBackMillisecond;
+	Require: tsBase - oneSecond = tsBackSecond;
+	Require: tsBase - oneMinute = tsBackMinute;
+	Require: tsBase - oneHour = tsBackHour;
+	Require: tsBase - oneDay = tsBackDay;
+	Require: tsBase - oneWeek = tsBackWeek;
+	
+	/* Leap */
+	Require: tsBase + oneDay × 36 = tsFeb292016;
+	Require: tsBase + oneDay × 37 = tsMar012016;
+	Require: tsBase - oneDay × 1425 = tsFeb292012;
+	Require: tsBase - oneDay × 1426 = tsFeb282012;
+];
+
+Test "timestamp leap year" in dates and times test suite is
+[
+	leapYearsStarting1983 ::= <false, true, false, false, false, true, false, 
+		false, false, true, false, false, false, true, false, false, false, 
+		true, false, false, false, true, false, false, false, true, false, 
+		false, false, true, false, false, false, true, false>;
+	
+	Require: map each year of 1983 to 2017 through [year is leap year] = 
+		leapYearsStarting1983;
+	
+	Require: map each year of 1983 to 2017 through [year is common year] = 
+		map each bool of leapYearsStarting1983 through [¬bool];
+		
+	Require: map each year of 1983 to 2017 through [|February's days in year|]
+	    = map each bool of leapYearsStarting1983 through 
+	    [if bool then [29] else [28]];
+
+];
+
+Test "timestamp months" in dates and times test suite is
+[
+ 	Require: January's ordinal = 1 ∧ February's ordinal = 2 
+ 		∧ March's ordinal = 3 ∧ April's ordinal = 4 ∧ May's ordinal = 5
+ 		∧ June's ordinal = 6 ∧ July's ordinal = 7 ∧ August's ordinal = 8
+ 		∧ September's ordinal = 9 ∧ October's ordinal = 10
+ 		∧ November's ordinal = 11 ∧ December's ordinal = 12;
+
+	Require: months = <January, February, March, April, May, June, July, August, 
+		September, October, November, December>;
+ 	
+	Require: January's previous month = December
+		∧ December's next month = January;
+		
+	Require: March + 15 = June;
+	Require: March - 14 = January;
+	
+	Require: map each month of months through [|month's days in common year|] 
+		= <31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31>;
+		
+	Require: map each month of months through [|month's days in leap year|] 
+		= <31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31>;
+		
+	Require: [Check: 31 is valid day of 2017/2;] 
+		raises no-such-day-in-month exception;
+];
+		
+Test "timestamp days of week" in dates and times test suite is
+[
+ 	Require: Sunday's ordinal = 1 ∧ Monday's ordinal = 2 
+ 		∧ Tuesday's ordinal = 3 ∧ Wednesday's ordinal = 4 
+ 		∧ Thursday's ordinal = 5 ∧ Friday's ordinal = 6 
+ 		∧ Saturday's ordinal = 7;
+
+	Require: days of week = <Sunday, Monday, Tuesday, Wednesday, Thursday, 
+		Friday, Saturday>;
+
+	Require: Sunday's previous day of week = Saturday
+		∧ Saturday's next day of week = Sunday;
+
+	Require: Monday + 15 = Tuesday;
+	Require: Wednesday - 10 = Sunday;
+	
+	Require: map each month of months through [|month's days in common year|] 
+		= <31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31>;
+		
+	Require: map each month of months through [|month's days in leap year|] 
+		= <31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31>;
+];
+		
+Test "timestamp fields" in dates and times test suite is
+[
+ 	theOneTrueDate ::= timestamp March 29, 1979 11:25:42.13;
+ 	
+ 	Require: theOneTrueDate's year = 1979;
+ 	Require: theOneTrueDate's month = March;
+ 	Require: theOneTrueDate's day in month = 29;
+ 	Require: theOneTrueDate's day of week = Wednesday;
+ 	Require: theOneTrueDate's hour = 11;
+ 	Require: theOneTrueDate's minute = 25;
+ 	Require: theOneTrueDate's second = 42;
+ 	Require: theOneTrueDate's millisecond = 13;
+ 	Require: theOneTrueDate's Epoch milliseconds = 291554742013;
+];
+
+Test "timestamp comparison" in dates and times test suite is
+[
+ 	Require: timestamp March 29, 1979 11:25:42.13 < now;
+	Require: timestamp March 29, 1979 11:25:42.13 ≤ now;
+	Require: now > timestamp March 29, 1979 11:25:42.13;
+	Require: now ≥ timestamp March 29, 1979 11:25:42.13;
+	Require: timestamp March 29, 1979 11:25:42.13 < now < now + 50;
+	Require: now - 50 < now ≤ now;
+	Require: now + 1000 > now + 300 ≥ now;
+];

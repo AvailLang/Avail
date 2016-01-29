@@ -39,6 +39,7 @@ Extends
 		"converters test suite",
 		"UTF8 converters test suite"
 	),
+	"Dates and Times Tests",
 	"Iterators Tests",
 	"Pseudorandom Number Generation Tests" = (
 		"Mersenne Twister test suite",
