@@ -43,11 +43,9 @@ Body
 "dates and times test suite" is a new atom;
 New test suite dates and times test suite extends data abstractions test suite;
 
-Test "now and then" in dates and times test suite is
+Test "time marches on (now)" in dates and times test suite is
 [
- 	then : timestamp := now;
- 	Sleep for 1 millisecond;
- 	Require: then < now;
+ 	Require: now < [Sleep for 2 milliseconds; now]();
 ];
 
 Test "timestamp creation" in dates and times test suite is
@@ -115,6 +113,11 @@ Test "timestamp arithmetic" in dates and times test suite is
 	Require: tsBase + oneDay × 37 = tsMar012016;
 	Require: tsBase - oneDay × 1425 = tsFeb292012;
 	Require: tsBase - oneDay × 1426 = tsFeb282012;
+	
+	/* Big Year */
+	tsAlongTimeAway ::= timestamp May 5, 4519850233267232 17:40:57.435;
+	tsJan012016 ::= (timestamp January 1, 2016);
+	Require: tsJan012016 + 142632696858339235455657435 = tsAlongTimeAway;
 ];
 
 Test "timestamp leap year" in dates and times test suite is
