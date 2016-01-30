@@ -35,7 +35,8 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Files",
-	"Foundation"
+	"Foundation",
+	"Standard Input"
 Names
 	/* Executing a detached process. */
 	"Execute_«with arguments⁇_»?\
@@ -51,7 +52,12 @@ Names
 		\|«with environment_»?\
 		\|on success doing_\
 		\|on failure doing_\
-		\|«forked at priority_»?"
+		\|«forked at priority_»?",
+
+	/* Obtaining the standard output of an external process. */
+	"standard⁇output from executing_«with arguments⁇_»\
+		\|«with working directory_»?\
+		\|«with environment_»?"
 Body
 
 /**
@@ -321,3 +327,199 @@ is
 		on failure doing fail
 		forked at priority priority[1] else [current fiber's priority]
 ] : fiber;
+
+Alias
+	"private execute_arguments_directory_environment_success_failure_priority_"
+to
+	$"a fiber executing_«with arguments⁇_»\
+	\|«with working directory_»?\
+	\|«with environment_»?\
+	\|on success doing_\
+	\|on failure doing_\
+	\|«forked at priority_»?";
+
+/**
+ * Execute an external process. This process is attached to the resultant {@type
+ * "fiber"}: the {@type "fiber"}'s {@method "Print:_" standard output} and
+ * {@method "Error:_" standard error} go to the external process's standard
+ * input, and {@method "next character" standard input} comes from the external
+ * process's standard output.
+ *
+ * @method
+ *    "a fiber executing_«with arguments⁇_»\
+ *    \|«with working directory_»?\
+ *    \|«with environment_»?\
+ *    \|on success doing_\
+ *    \|on failure doing_\
+ *    \|«forked at priority_»?"
+ * @param "cmd" "string"
+ *        A command visible to the underlying operating system. Resolution of
+ *        this argument to an executable is platform-specific.
+ * @param "args" "string*?"
+ *        (Optional) The arguments to the external process.
+ * @param "dir" "string?"
+ *        (Optional) The working directory for the external process. If not
+ *        supplied, then launch the external process using the virtual machine's
+ *        own working directory.
+ * @param "env" "{string→string|}?"
+ *        (Optional) The replacement environment map. If not supplied, then
+ *        launch the external process using the virtual machine's own
+ *        environment.
+ * @param "ok" "[[[]→⊤]→⊤]→⊤"
+ *        The {@type "function"} to apply in the event that the process launches
+ *        successfully. Its {@method "Print:_" standard output}, {@method
+ *        "Error:_" standard error}, and {@method "next character" standard
+ *        input} are wired to the external process. The argument is a {@type
+ *        "function"} which accepts tasks — also expressed as {@type
+ *        "function"}s — that are executed in an environment whose
+ *        {@method "Print:_" standard output}, {@method "Error:_" standard
+ *        error}, and {@method "next character" standard input} are wired to the
+ *        same channels as the {@method "current fiber" original fiber}'s.
+ * @param "fail" "[{permission-denied code, no-external-process code}ᵀ]→⊤"
+ *        The {@type "function"} to apply in the event that the process does not
+ *        launch. Its {@method "Print:_" standard output}, {@method
+ *        "Error:_" standard error}, and {@method "next character" standard
+ *        input} are the same as the {@method "current fiber"}'s.
+ * @param "priority" "byte?"
+ *        The priority of the resultant {@type "fiber"}.
+ * @returns "fiber"
+ * @raises "permission-denied code"
+ *         If the virtual machine forbade the launch for any reason.
+ * @raises "no-external-process code"
+ *         If the process could not be launched for some reason.
+ * @category "Processes"
+ */
+Public method
+	"a fiber executing_«with arguments⁇_»\
+	\|«with working directory_»?\
+	\|«with environment_»?\
+	\|on success doing_\
+	\|on failure doing_\
+	\|«forked at priority_»?"
+is
+[
+	cmd : string,
+	args : string*?,
+	dir : file name?,
+	env : {string→string|}?,
+	ok : [[[]→⊤]→⊤]→⊤,
+	fail : [{permission-denied code, no-external-process code}ᵀ]→⊤,
+	priority : byte?
+|
+	queue : ([]→⊤)* := <>;
+	m ::= a monitor named cmd ++ " synchronizer";
+	notEmpty ::= a condition of m such that [¬queue is empty];
+	/* This fiber executes tasks on behalf of the tethered fiber. Its standard
+	 * I/O channels are the same as the current fiber's, so tasks queued by the
+	 * tethered fiber will have access to these channels. The monitor locking
+	 * mechanism automatically honors termination requests, so we don't need to
+	 * introduce special logic here.
+	 */
+	processor ::=
+		fork
+		[
+			Repeat
+			[
+				f ::= 
+					lock m for
+					[
+						Await notEmpty;
+						f ::= queue[|queue| max 1];
+						queue := queue[1..(|queue|-1) max 0];
+						f
+					];
+				f();
+			]
+		];
+	/* The tethered fiber's standard I/O channels are connected to the external
+	 * process. It can call the supplied function to queue an action to run on
+	 * the processor fiber; this action will then have access to the current
+	 * fiber's I/O channels.
+	 */
+	private execute cmd
+		arguments args
+		directory dir
+		environment env
+		success
+		[
+			ok(
+				[
+					f : []→⊤
+				|
+					Lock m for
+					[
+						queue ++= <f>;
+						Signal notEmpty;
+					];
+				]);
+			Request termination of processor;
+			Join processor;
+		]
+		failure fail
+		priority priority
+];
+
+/**
+ * Answer the standard output produced by execution of an external process.
+ *
+ * @method
+ *  "standard⁇output from executing_«with arguments⁇_»\
+ *  \|«with working directory_»?\
+ *  \|«with environment_»?"
+ * @param "cmd" "string"
+ *        A command visible to the underlying operating system. Resolution of
+ *        this argument to an executable is platform-specific.
+ * @param "args" "string*?"
+ *        (Optional) The arguments to the external process.
+ * @param "dir" "string?"
+ *        (Optional) The working directory for the external process. If not
+ *        supplied, then launch the external process using the virtual machine's
+ *        own working directory.
+ * @param "env" "{string→string|}?"
+ *        (Optional) The replacement environment map. If not supplied, then
+ *        launch the external process using the virtual machine's own
+ *        environment.
+ * @returns "string"
+ *          The complete standard output produced by execution of an external
+ *          process.
+ * @raises "permission-denied code"
+ *         If the virtual machine forbade the launch for any reason.
+ * @raises "no-external-process code"
+ *         If the process could not be launched for some reason.
+ * @category "Processes"
+ */
+Public method
+	"standard⁇output from executing_«with arguments⁇_»\
+	\|«with working directory_»?\
+	\|«with environment_»?"
+is
+[
+	cmd : string,
+	args : string*?,
+	dir : file name?,
+	env : {string→string|}?
+|
+	out : string := "";
+	killer : exception;
+	tethered ::=
+		private execute cmd
+		arguments args
+		directory dir
+		environment env
+		success
+		[
+			Guard [Repeat [c ::= next character; out ++= <c>;]]
+			intercept [e : I/O exception | /* Expected. */]
+			intercept [e : exception | killer := e;];
+		]
+		failure
+		[
+			code : {permission-denied code, no-external-process code}ᵀ
+		|
+			killer := an exception for code;
+		]
+		priority <>;
+	Join tethered;
+	If killer is assigned then [Raise killer];
+	out
+];
