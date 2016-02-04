@@ -1795,7 +1795,8 @@ Method "“_”" is
 [
 	anObjectType : object's type
 |
-	“anObjectType's names” (as list partitioned by " ∩ ")
+	“anObjectType's names” else [primitive description of anObjectType]
+		(as list partitioned by " ∩ ")
 ] : string;
 
 /**
@@ -1806,11 +1807,12 @@ Method "“_”" is
  * @returns "string"
  * @category "Objects" "Stringification"
  */
-Stable method "“_”" is
+Method "“_”" is
 [
 	anObject : object
 |
-	(a|an) ““anObject's type's names” (as list partitioned by " ∩ ")”
+	(a|an) ““anObject's type's names” else [primitive description of anObject]
+		(as list partitioned by " ∩ ")”
 ] : string;
 
 /**
