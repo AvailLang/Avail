@@ -90,7 +90,10 @@ Names
 
 	/* Avail message metacharacter rejection. */
 	"_contains Avail message⁇metacharacters",
-	"Require:_contains no Avail message⁇metacharacters"
+	"Require:_contains no Avail message⁇metacharacters",
+
+	/* Avail message metacharacter escaping. */
+	"_with Avail message⁇metacharacters escaped"
 Body
 
 /* These are the circled numbers. */
@@ -1993,4 +1996,27 @@ Public method "Require:_contains no Avail message⁇metacharacters" is
 			\|statically known"
 	];
 	Require: sT's instance contains no Avail metacharacters;
+];
+
+/**
+ * Answer a variant of the specified {@type "string"} whose {@type
+ * "Avail message⁇metacharacter" Avail message metacharacters} are properly
+ * escaped with grave accents.
+ *
+ * @method "_with Avail message⁇metacharacters escaped"
+ * @param "s" "string"
+ * @returns "string"
+ * @category "Strings" "Escaping"
+ */
+Public method "_with Avail message⁇metacharacters escaped" is
+[
+	s : string
+|
+	t : string := "";
+	For each c of s do
+	[
+		If c is an Avail metacharacter then [t ++= "`";];
+		t ++= <c>;
+	];
+	t
 ];

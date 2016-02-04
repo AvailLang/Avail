@@ -1060,6 +1060,7 @@ Extends
 		"(a`|an)“_”«else_»",
 		"(the)“_”«else_»",
 		"_contains Avail message⁇metacharacters",
+		"_with Avail message⁇metacharacters escaped",
 		"_(base_)",
 		"_→code points",
 		"_→string",
