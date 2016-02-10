@@ -1026,9 +1026,10 @@ Public method "Public variable_is_" is
 	decl ::= «module variable var (this token: SomeModuleVariable)»;
 	readerBlock ::= «[<>| <«↓decl»>] : readType»;
 	Method accessorName is readerBlock → function;
+	arg ::= arg «`"value"` : writeType»;
+	writerBlock ::= «[<arg> | <««↓decl» := «↓arg»» → statement phrase>]: ⊤»;
 	Method cast concatenate <accessorName, ":=_"> into [t : string | t] is
-		new function accepting <writeType> and returning ⊤
-		applying [t : any | var ?= t;];
+		writerBlock → function;
 ] : ⊤;
 
 /**
