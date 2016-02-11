@@ -390,7 +390,7 @@ Public method "Prefer_for printing_in a dimensioned quantity" is
 	[
 		baseUnit : base unit
 	|
-		unitAtom := baseUnit's unit map's keys→tuple[1];
+		unitAtom := only baseUnit's unit map's keys;
 		oldSymbol := unitAtom[preferred symbol] else [bogus];
 		Lock stateLock for [unitAtom[preferred symbol] := symbol;];
 	]
@@ -471,7 +471,7 @@ Public method "unit map“_”" is
 	else if unitMap ∈ {atom→1's type|1} then
 	[
 		/* This is an unnamed base unit. Answer its atom's preferred symbol. */
-		unitAtom ::= unitMap's keys→tuple[1];
+		unitAtom ::= only unitMap's keys;
 		“unitAtom” (unit atom)
 	]
 	else

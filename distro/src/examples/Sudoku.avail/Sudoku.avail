@@ -553,7 +553,7 @@ is
 	[
 		boardAfterForcedPlays ::=
 			left fold <originalBoard> ++ forcedPlays through
-				[p : plays, b : board | b @ p's location → p's moves→tuple[1]];
+				[p : plays, b : board | b @ p's location → only p's moves];
 		newEmptyCells ::= emptyCells - |forcedPlays|;
 		/* It's possible that the board is inconsistent after playing all of the
 		 * forced moves. Here's an example of how this can happen:

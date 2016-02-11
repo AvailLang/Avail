@@ -1437,3 +1437,27 @@ Grammatical restriction {"_∋_", "_⊂_", "_⊇_", "_⊃_", "_∉_", "_∌_", "
  * @method "_⊅_"
  * @forbids "1" "¬_"
  */
+
+/**
+ * Answer the only element of the supplied {@type "set"}.
+ *
+ * @method "only_"
+ * @param "s" "set"
+ * @returns "any"
+ * @category "Sets" "Queries"
+ */
+Stable method "only_" is
+[
+	s : set
+|
+	t ::= s→tuple;
+	Assert: |t|=1 ("set is not a singleton");
+	t[1]
+];
+
+Semantic restriction "only_" is
+[
+	sType : set meta
+|
+	sType's element type
+];

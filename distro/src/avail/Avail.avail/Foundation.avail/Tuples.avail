@@ -4764,3 +4764,26 @@ Semantic restriction "_padded with_to a multiple of_" is
 	max ::= 0 max (⎡tupleType⎤ + ⎡baseType⎤ - 1);
 	<unionType…|min..max>
 ];
+
+/**
+ * Answer the only element of the supplied {@type "tuple"}.
+ *
+ * @method "only_"
+ * @param "t" "tuple"
+ * @returns "any"
+ * @category "Tuples" "Queries"
+ */
+Stable method "only_" is
+[
+	t : tuple
+|
+	Assert: |t|=1 ("tuple is not a singleton");
+	t[1]
+];
+
+Semantic restriction "only_" is
+[
+	tType : tuple meta
+|
+	tType[1]
+];

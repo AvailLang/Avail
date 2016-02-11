@@ -49,6 +49,7 @@ Uses
 	"Objects",
 	"Phrases",
 	"Sets",
+	"Tuples",
 	"Types"
 Names
 	"all atoms for_where_",
@@ -110,7 +111,7 @@ Public method "atom for_where_" is
 	filter : [atom]→boolean
 |
 	trueNames ::= filter all atoms for name by filter;
-	if |trueNames| = 1 then [trueNames→tuple[1]]
+	if |trueNames| = 1 then [only trueNames]
 	else [Raise an ambiguous-name exception]
 ];
 
