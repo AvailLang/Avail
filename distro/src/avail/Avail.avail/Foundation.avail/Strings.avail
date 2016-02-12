@@ -1169,9 +1169,9 @@ Method "“_”" is
 		while index ≤ |aTuple|
 		alternate with [s := eject s ++ ", ";];
 		s := eject s ++ ">";
-		cast s into [t : <character…|2..> | t]
+		s
 	]
-] : <character…|2..>;
+] : string;
 
 /**
  * Answer a textual rendition of {@param "aTuple"} as a comma-separated list
@@ -1223,7 +1223,7 @@ Method "“_”" is
 |
 	if aSet is empty then ["∅"]
 	else ["{" ++ “aSet→tuple” (as simple list) ++ "}"]
-] : nonempty string;
+] : string;
 
 /**
  * Answer a textual rendition of {@param "aSet"} as a comma-separated list
@@ -1272,8 +1272,8 @@ Method "“_”" is
 	]
 	alternate with [s := eject s ++ ", ";];
 	s := eject s ++ "}";
-	cast s into [t : <character…|2..> | t]
-] : <character…|2..>;
+	s
+] : string;
 
 /**
  * Answer a textual rendition of {@param "aTuple"} as a list. Use the serial

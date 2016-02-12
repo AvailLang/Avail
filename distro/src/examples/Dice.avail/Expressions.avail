@@ -135,7 +135,8 @@ Method "“_”" is
 	Do
 	[
 		aDie ::= bindings[i][1];
-		rolls ::= “bindings[i][2] ?→ <extended integer…|1..>”;
+		rolls ::= “bindings[i][2] ?→ <extended integer…|1..>”
+			?→ nonempty string;
 		s ++= “aDie” ++ ": " ++ rolls[2..|rolls|-1];
 		i++;
 	]
