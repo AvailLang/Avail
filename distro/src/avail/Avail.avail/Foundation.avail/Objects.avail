@@ -906,7 +906,7 @@ Private method "Generate and install_reconstructor for_" is
 			««↓mapDecl» := addBindingSend»
 		];
 	/* Emit code to clone any mutable fields that are not explicitly being
-	 * shared.
+	 * shared. Take care not to read any unassigned mutable fields.
 	 */
 	cloning : phrase* := <>;
 	For each fieldAtom → fieldType of objectType→map do
@@ -917,14 +917,18 @@ Private method "Generate and install_reconstructor for_" is
 			readType ::= cast varType's read type into [t : any meta | t];
 			mapAtSend ::= send $"_[_]"
 				with «<«↓mapDecl», ‘fieldAtom’>» : varType;
+			decl ::= «`fieldAtom's name` : readType»;
+			assignedSend ::= send $"_is assigned" with «<mapAtSend>» : boolean;
 			getSend ::= send  $"↓_" with «<mapAtSend>» : readType;
-			decl ::= «`fieldAtom's name` : readType := getSend»;
+			fieldAssign ::= ««↓decl» := getSend»;
+			ifBlock ::= «[<fieldAssign>] : ⊤»;
+			ifSend ::= send $"If_then_" with «<assignedSend, ifBlock>» : ⊤;
 			ejectSend ::= send $"eject_" with «<«↑«↓mapDecl»»>» : field map;
 			addBindingSend ::= send $"_+_→_"
 				with «<ejectSend, ‘fieldAtom’, «↑«↓decl»»>»
 				: field map;
-			assignment ::= ««↓mapDecl» := addBindingSend»;
-			cloning := eject cloning ++ <decl, assignment>;
+			mapAssign ::= ««↓mapDecl» := addBindingSend»;
+			cloning := eject cloning ++ <decl, ifSend, mapAssign>;
 		];
 	];
 	/* Convert the map back to an object. */
