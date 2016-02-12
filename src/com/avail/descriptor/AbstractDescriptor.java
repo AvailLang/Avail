@@ -6263,4 +6263,10 @@ public abstract class AbstractDescriptor
 	abstract void o_ValueWasStablyComputed (
 		AvailObject object,
 		boolean wasStablyComputed);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract long o_UniqueId (AvailObject object);
 }

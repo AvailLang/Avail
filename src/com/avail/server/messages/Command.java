@@ -38,10 +38,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import com.avail.AvailRuntime;
 import com.avail.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;
+import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.server.AvailServer;
@@ -287,7 +289,13 @@ public enum Command
 			}
 			return new RunEntryPointCommandMessage(tokens[1]);
 		}
-	};
+	},
+
+	/**
+	 * View all {@linkplain A_Fiber fibers} associated with the {@linkplain
+	 * AvailServer server}'s {@linkplain AvailRuntime runtime}.
+	 */
+	ALL_FIBERS;
 
 	/** An array of all {@link Command} enumeration values. */
 	private static Command[] all = values();

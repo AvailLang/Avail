@@ -98,6 +98,9 @@ extends CommandMessage
 				server.requestUpgradesForUnloadAllModulesThen(
 					channel, this, continuation);
 				break;
+			case ALL_FIBERS:
+				server.allFibersThen(channel, this, continuation);
+				break;
 			case VERSION:
 			case UPGRADE:
 			case LOAD_MODULE:
