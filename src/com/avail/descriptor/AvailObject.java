@@ -7092,4 +7092,13 @@ implements
 	{
 		descriptor.o_ValueWasStablyComputed(this, wasStablyComputed);
 	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public long uniqueId ()
+	{
+		return descriptor.o_UniqueId(this);
+	}
 }

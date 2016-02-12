@@ -4780,4 +4780,10 @@ extends AbstractDescriptor
 	{
 		o_Traversed(object).valueWasStablyComputed(wasStablyComputed);
 	}
+
+	@Override
+	long o_UniqueId (final AvailObject object)
+	{
+		return o_Traversed(object).uniqueId();
+	}
 }

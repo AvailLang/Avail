@@ -329,4 +329,11 @@ extends A_BasicObject
 	 *        A text interface.
 	 */
 	void textInterface (TextInterface textInterface);
+
+	/**
+	 * Answer the unique identifier of this {@linkplain A_Fiber fiber}.
+	 *
+	 * @return The unique identifier.
+	 */
+	long uniqueId ();
 }

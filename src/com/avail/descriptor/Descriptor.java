@@ -4615,4 +4615,14 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	long o_UniqueId (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

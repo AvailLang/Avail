@@ -38,6 +38,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static java.nio.file.attribute.PosixFilePermission.*;
 import java.io.*;
+import java.lang.ref.PhantomReference;
+import java.lang.ref.ReferenceQueue;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.AsynchronousServerSocketChannel;
@@ -1179,6 +1181,111 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * A {@code FiberReference} retains the {@linkplain A_Fiber#uniqueId()
+	 * unique id} of a {@linkplain A_Fiber fiber}, even after the fiber has been
+	 * reclaimed by the garbage collector.
+	 */
+	public static final class FiberReference
+	extends PhantomReference<A_Fiber>
+	{
+		/**
+		 * The {@linkplain A_Fiber fiber}'s {@linkplain A_Fiber#uniqueId()
+		 * unique id}.
+		 */
+		final long id;
+
+		/**
+		 * Construct a new {@link FiberReference}.
+		 *
+		 * @param fiber
+		 *        A {@linkplain A_Fiber fiber}.
+		 * @param queue
+		 *        The {@linkplain ReferenceQueue reference queue}.
+		 */
+		FiberReference (
+			final A_Fiber fiber,
+			final ReferenceQueue<A_Fiber> queue)
+		{
+			super(fiber, queue);
+			this.id = fiber.uniqueId();
+		}
+	}
+
+	/**
+	 * All {@linkplain A_Fiber fibers} that have not yet {@link
+	 * ExecutionState#RETIRED retired} and been reclaimed by garbage collection,
+	 * indexed by {@linkplain A_Fiber#uniqueId() unique id}.
+	 */
+	@InnerAccess final Map<Long, FiberReference> allFibers = new HashMap<>();
+
+	/**
+	 * The {@linkplain ReferenceQueue reference queue} for defunct {@linkplain
+	 * A_Fiber fibers}.
+	 */
+	@InnerAccess final ReferenceQueue<A_Fiber> fiberQueue =
+		new ReferenceQueue<>();
+
+	/**
+	 * Add the specified {@linkplain A_Fiber fiber} to this {@linkplain
+	 * AvailRuntime runtime}.
+	 *
+	 * @param fiber
+	 *        A fiber.
+	 */
+	public void registerFiber (final A_Fiber fiber)
+	{
+		synchronized (allFibers)
+		{
+			allFibers.put(
+				fiber.uniqueId(),
+				new FiberReference(fiber, fiberQueue));
+		}
+	}
+
+	/**
+	 * Answer an {@linkplain Collections#unmodifiableSet(Set) unmodifiable} view
+	 * of the {@linkplain Set set} of all {@linkplain A_Fiber fibers} that have
+	 * not yet {@linkplain ExecutionState#RETIRED retired} and been reclaimed by
+	 * garbage collection.
+	 *
+	 * @return All fibers belonging to this {@linkplain AvailRuntime runtime}.
+	 */
+	public HashMap<Long, FiberReference> allFibers ()
+	{
+		synchronized (allFibers)
+		{
+			return new HashMap<>(allFibers);
+		}
+	}
+
+	/**
+	 * The reaper {@linkplain Thread thread} that cleans up {@link #allFibers}.
+	 */
+	private final Thread fiberReaper = new Thread(new Runnable()
+	{
+		@Override
+		public void run ()
+		{
+			while (true)
+			{
+				try
+				{
+					final FiberReference ref =
+						(FiberReference) fiberQueue.remove();
+					synchronized (allFibers)
+					{
+						allFibers.remove(ref.id);
+					}
+				}
+				catch (final InterruptedException e)
+				{
+					// Ignore the interrupt.
+				}
+			}
+		}
+	});
+
+	/**
 	 * Construct a new {@link AvailRuntime}.
 	 *
 	 * @param moduleNameResolver
@@ -1195,6 +1302,7 @@ public final class AvailRuntime
 	{
 		this.moduleNameResolver = moduleNameResolver;
 		this.classLoader = classLoader;
+		fiberReaper.start();
 	}
 
 	/**

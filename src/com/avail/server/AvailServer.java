@@ -52,6 +52,7 @@ import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.FiberReference;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
@@ -65,9 +66,11 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AvailCompiler.ParserState;
+import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.persistence.IndexedFileException;
 import com.avail.persistence.IndexedRepositoryManager;
@@ -1802,6 +1805,55 @@ public final class AvailServer
 					IO.close(ioChannel);
 				}
 			});
+	}
+
+	/**
+	 * Report all {@linkplain A_Fiber fibers} that have not yet {@linkplain
+	 * ExecutionState#RETIRED retired} and been reclaimed by garbage collection.
+	 *
+	 * @param channel
+	 *        The {@linkplain AvailServerChannel channel} on which the
+	 *        {@linkplain CommandMessage response} should be sent.
+	 * @param command
+	 *        A {@link Command#ALL_FIBERS ALL_FIBERS} command message.
+	 * @param continuation
+	 *        What to do when sufficient processing has occurred (and the
+	 *        {@linkplain AvailServer server} wishes to begin receiving messages
+	 *        again).
+	 */
+	public void allFibersThen (
+		final AvailServerChannel channel,
+		final SimpleCommandMessage command,
+		final Continuation0 continuation)
+	{
+		assert command.command() == Command.ALL_FIBERS;
+		final Map<Long, FiberReference> allFibers = runtime.allFibers();
+		final Message message = newSuccessMessage(
+			command,
+			new Continuation1<JSONWriter>()
+			{
+				@Override
+				public void value (final @Nullable JSONWriter writer)
+				{
+					assert writer != null;
+					writer.startArray();
+					for (final FiberReference ref : allFibers.values())
+					{
+						final A_Fiber fiber = ref.get();
+						if (fiber != null)
+						{
+							writer.startObject();
+							writer.write("id");
+							writer.write(fiber.uniqueId());
+							writer.write("name");
+							writer.write(fiber.fiberName());
+							writer.endObject();
+						}
+					}
+					writer.endArray();
+				}
+			});
+		channel.enqueueMessageThen(message, continuation);
 	}
 
 	// TODO: Write a real main method.
