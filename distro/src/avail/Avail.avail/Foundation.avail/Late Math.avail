@@ -675,6 +675,14 @@ Public stable method "an integer from_" is
 	value
 ] : integer;
 
+Semantic restriction "an integer from_" is
+[
+	bytesType : byte+'s type
+|
+	bits ::= ⎡bytesType⎤ × 8 - 1;
+	[-2^bits .. 2^bits)
+];
+
 /**
  * Compose an {@type "integer"} from the specified {@type "tuple"} of {@type
  * "byte"}s.
@@ -694,6 +702,14 @@ Public stable method "an unsigned integer from_" is
 	For each b of bytes do [value := (eject value << 8) + b;];
 	value
 ] : whole number;
+
+Semantic restriction "an unsigned integer from_" is
+[
+	bytesType : byte+'s type
+|
+	bits ::= ⎡bytesType⎤ × 8;
+	[0 .. 2^bits)
+];
 
 /**
  * Answer a {@type "double"} from the following components.
@@ -746,4 +762,3 @@ Public stable method "_(decimal)" is
 		fraction=fractionalPart[2..] ?→ Arabic numeral*,
 		exponent=0
 ] : double;
-
