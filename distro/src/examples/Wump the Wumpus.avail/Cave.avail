@@ -188,7 +188,7 @@ Method "“_”" is
 		 * through type intersection, so the name set must contain but a single
 		 * element.
 		 */
-		name ::= aRoom's type's names→tuple[1],
+		name ::= any aRoom's type's names,
 		id ::= aRoom's room#,
 		/* "“_”«else_»(as simple list)" composes a textual
 		 * representation of the set that does not include curly braces.

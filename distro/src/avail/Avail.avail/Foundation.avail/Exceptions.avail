@@ -49,6 +49,7 @@ Uses
 	"Math",
 	"Objects",
 	"Phrases",
+	"Sets",
 	"Strings",
 	"Tuples",
 	"Types",
@@ -2001,7 +2002,7 @@ noUnhandledExceptionHandler :=
 		]
 		intercept [e : loading-is-over exception |];
 		msg := eject msg ++ "Unhandled exception: ";
-		msg := eject msg ++ unhandled's type's names→tuple[1];
+		msg := eject msg ++ any unhandled's type's names;
 		msg := eject msg ++ "\n\nCausal trace follows:\n";
 		msg := eject msg
 			++ “unhandled” (frames [1..∞) of stack summary, cascaded)

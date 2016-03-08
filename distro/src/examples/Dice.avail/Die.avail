@@ -617,7 +617,7 @@ Method "«using_,»roll_" is
 			newRolls : <extended integer…|> := rolls;
 			Until intersection is empty do
 			[
-				doomed ::= intersection→tuple[1];
+				doomed ::= any intersection;
 				newRolls := eject newRolls - doomed;
 				details :=
 					if newRolls is empty then [eject details - aDie]
