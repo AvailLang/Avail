@@ -63,6 +63,7 @@ Names
 	"_⊄_",
 	"_⊅_",
 	"any_",
+	"any_else_",
 	"set body function(_,_)",
 	"a set iteration prefix function"
 Body
@@ -1467,6 +1468,44 @@ Semantic restriction "any_" is
 	sType : set meta
 |
 	sType's element type
+];
+
+/**
+ * Answer an arbitrary element of the supplied {@type "set"}. If the {@type
+ * "set"} is empty, then answer the result of applying the specified {@type
+ * "function"}.
+ *
+ * @method "any_"
+ * @param "s" "set"
+ * @param "f" "[]→any"
+ *        The {@type "function"} to apply if {@param "s"} is empty.
+ * @returns "any"
+ *          An arbitrary element of {@param "s"}, or the result of applying
+ *          {@type "function"} if {@param "s"} is empty.
+ * @category "Sets" "Queries"
+ */
+Public method "any_else_" is
+[
+	s : set,
+	f : []→any
+|
+	t ::= s→tuple;
+	if t ≠ <> then [t[1]] else f
+];
+
+/**
+ * @method "any_else_"
+ * @restricts "set meta"
+ * @restricts "[]→any's type"
+ */
+Semantic restriction "any_else_" is
+[
+	sType : set meta,
+	fType : []→any's type
+|
+	if ⎣sType⎦ > 0 then [sType's element type]
+	else if ⎡sType⎤ = 0 then [fType's return type]
+	else [sType's element type ∪ fType's return type]
 ];
 
 /**
