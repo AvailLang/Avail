@@ -1222,7 +1222,23 @@ Method "“_”" is
 	aSet : set
 |
 	if aSet is empty then ["∅"]
-	else ["{" ++ “aSet→tuple” (as simple list) ++ "}"]
+	else
+	[
+		Assert: ¬aSet is empty;
+		aTuple ::= aSet→tuple;
+		s : string := "{";
+		index : natural number := 1;
+		Do
+		[
+			elem ::= aTuple[index];
+			s := eject s ++ “elem”;
+			index++;
+		]
+		while index ≤ |aTuple|
+		alternate with [s := eject s ++ ", ";];
+		s := eject s ++ "}";
+		s
+	]
 ] : string;
 
 /**
