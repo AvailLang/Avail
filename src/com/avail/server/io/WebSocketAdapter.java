@@ -208,6 +208,57 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	}
 
 	/**
+	 * An {@code HttpRequestMethod} represents one of the accepted HTTP request
+	 * methods.
+	 *
+	 * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3">
+	 *      Method Definitions</a>
+	 */
+	private static enum HttpRequestMethod
+	{
+		/**
+		 * Request the metadata and content of a particular resource. Must be
+		 * free of side effects.
+		 */
+		GET,
+
+		/**
+		 * Request the metadata of a particular resource. Must be free of side
+		 * effects.
+		 */
+		HEAD;
+
+		/**
+		 * A {@linkplain Map map} from HTTP request method names to {@linkplain
+		 * HttpRequestMethod HTTP request methods}.
+		 */
+		private static final Map<String, HttpRequestMethod> methodsByName =
+			new HashMap<>();
+
+		static
+		{
+			for (final HttpRequestMethod method : values())
+			{
+				methodsByName.put(method.name().toLowerCase(), method);
+			}
+		}
+
+		/**
+		 * Answer the {@linkplain HttpRequestMethod request method} with the
+		 * specified name.
+		 *
+		 * @param name
+		 *        The request method name.
+		 * @return The named request method, or {@code null} if no such request
+		 *         method exists.
+		 */
+		static final @Nullable HttpRequestMethod named (final String name)
+		{
+			return methodsByName.get(name.toLowerCase());
+		}
+	}
+
+	/**
 	 * {@code HttpStatusCode} represents various HTTP status codes. The
 	 * enumeration comprises only those status codes used by the WebSocket
 	 * implementation; it is not intended to be comprehensive.
@@ -252,309 +303,37 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	}
 
 	/**
-	 * A {@code ClientHandshake} represents a WebSocket client handshake.
+	 * A {@code ClientRequest} represents an arbitrary client handshake.
 	 */
-	private static final class ClientHandshake
+	private static class ClientRequest
 	{
+		/** The {@linkplain HttpRequestMethod request method}. */
+		final HttpRequestMethod method;
+
 		/** The request URI. */
-		final String requestURI;
+		final String uri;
 
-		/** The WebSocket key. */
-		final byte[] key;
-
-		/** The requested protocols. */
-		@SuppressWarnings("unused")
-		final List<String> protocols;
-
-		/** The requested extensions. */
-		@SuppressWarnings("unused")
-		final List<String> extensions;
+		/** The HTTP headers. */
+		final Map<String, String> headers;
 
 		/**
-		 * Construct a new {@link ClientHandshake}.
+		 * Construct a new {@link ClientRequest}.
 		 *
-		 * @param requestURI
+		 * @param method
+		 *        The {@linkplain HttpRequestMethod request method}.
+		 * @param uri
 		 *        The request URI.
-		 * @param key
-		 *        The WebSocket key.
-		 * @param protocols
-		 *        The requested protocols.
-		 * @param extensions
-		 *        The requested extensions.
+		 * @param headers
+		 *        The parsed headers.
 		 */
-		private ClientHandshake (
-			final String requestURI,
-			final byte[] key,
-			final List<String> protocols,
-			final List<String> extensions)
+		ClientRequest (
+			final HttpRequestMethod method,
+			final String uri,
+			final Map<String, String> headers)
 		{
-			this.requestURI = requestURI;
-			this.key = key;
-			this.protocols = protocols;
-			this.extensions = extensions;
-		}
-
-		/**
-		 * Read a {@linkplain ClientHandshake client handshake} from the
-		 * specified {@linkplain WebSocketChannel channel}.
-		 *
-		 * @param channel
-		 *        A channel.
-		 * @param adapter
-		 *        A {@linkplain WebSocketAdapter adapter}.
-		 * @param continuation
-		 *        A {@linkplain Continuation1 continuation} that processes a
-		 *        valid client handshake.
-		 */
-		static void receiveThen (
-			final WebSocketChannel channel,
-			final WebSocketAdapter adapter,
-			final Continuation1<ClientHandshake> continuation)
-		{
-			final ByteArrayOutputStream bytes = new ByteArrayOutputStream(1024);
-			final ByteBuffer buffer = ByteBuffer.allocate(1024);
-			final MutableOrNull<HttpHeaderState> state =
-				new MutableOrNull<>(HttpHeaderState.START);
-			final AsynchronousSocketChannel transport = channel.transport();
-			transport.read(
-				buffer,
-				null,
-				new CompletionHandler<Integer, Void>()
-				{
-					@Override
-					public void completed (
-						final @Nullable Integer bytesRead,
-						final @Nullable Void unused)
-					{
-						if (remoteEndClosed(transport, bytesRead))
-						{
-							return;
-						}
-						buffer.flip();
-						while (
-							buffer.hasRemaining()
-							&& !state.value().isAcceptState())
-						{
-							state.value = state.value().nextState(buffer.get());
-						}
-						if (buffer.hasRemaining())
-						{
-							badHandshake(
-								channel,
-								HttpStatusCode.BAD_REQUEST,
-								"Data Following Headers");
-						}
-						else
-						{
-							buffer.rewind();
-							try
-							{
-								bytes.write(buffer.array());
-							}
-							catch (final IOException e)
-							{
-								assert false : "This never happens";
-							}
-							if (!state.value().isAcceptState())
-							{
-								buffer.clear();
-								transport.read(buffer, unused, this);
-							}
-							else
-							{
-								final ClientHandshake handshake =
-									parseHttpHeaders(
-										channel,
-										adapter,
-										new String(
-											bytes.toByteArray(),
-											StandardCharsets.US_ASCII));
-								if (handshake != null)
-								{
-									continuation.value(handshake);
-								}
-							}
-						}
-					}
-
-					@Override
-					public void failed (
-						final @Nullable Throwable e,
-						final @Nullable Void unused)
-					{
-						logger.log(
-							Level.WARNING,
-							"failed while attempting to read client handshake",
-							e);
-						IO.close(channel);
-					}
-				});
-		}
-
-		/**
-		 * Answer a {@linkplain ClientHandshake client handshake} based on the
-		 * specified HTTP headers. If the headers do not describe a valid
-		 * WebSocket client handshake, then {@linkplain
-		 * #badHandshake(WebSocketChannel, HttpStatusCode, String)
-		 * fail the connection} and answer {@code null}.
-		 *
-		 * @param channel
-		 *        A {@linkplain WebSocketChannel channel}.
-		 * @param adapter
-		 *        A {@linkplain WebSocketAdapter adapter}.
-		 * @param headersText
-		 *        The HTTP headers, as a single string. The individual headers
-		 *        are separated by carriage return + line feed.
-		 * @return A client handshake, or {@code null} if the specified headers
-		 *         do not constitute a valid WebSocket client handshake.
-		 */
-		@InnerAccess static @Nullable ClientHandshake parseHttpHeaders (
-			final WebSocketChannel channel,
-			final WebSocketAdapter adapter,
-			final String headersText)
-		{
-			final String[] headers = headersText.split("(?:\r\n)+");
-			// Deal with the Request-Line specially.
-			final String requestLine = headers[0];
-			final String[] requestParts = requestLine.split(" +");
-			if (requestParts.length != 3)
-			{
-				badHandshake(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Invalid Request-Line");
-				return null;
-			}
-			if (!requestParts[0].equalsIgnoreCase("get"))
-			{
-				badHandshake(
-					channel,
-					HttpStatusCode.METHOD_NOT_ALLOWED,
-					"Method Not Allowed");
-				return null;
-			}
-			if (!requestParts[2].equalsIgnoreCase("HTTP/1.1"))
-			{
-				badHandshake(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Invalid HTTP Version");
-				return null;
-			}
-			// Parse the remaining lines into a map.
-			final Map<String, String> map = new HashMap<>();
-			for (int i = 1; i < headers.length - 1; i++)
-			{
-				final String[] pair = headers[i].split(":", 2);
-				map.put(pair[0].trim().toLowerCase(), pair[1].trim());
-			}
-			// Validate the request.
-			final String host = map.get("host");
-			if (host != null)
-			{
-				final String[] hostParts = host.split(":", 2);
-				if (!adapter.serverAuthority.equalsIgnoreCase(hostParts[0]))
-				{
-					badHandshake(
-						channel,
-						HttpStatusCode.BAD_REQUEST,
-						String.format(
-							"Invalid Server Authority (%s != %s)",
-							adapter.serverAuthority,
-							hostParts[0]));
-					return null;
-				}
-				if (hostParts.length == 2
-					&& adapter.adapterAddress.getPort()
-						!= Integer.parseInt(hostParts[1]))
-				{
-					badHandshake(
-						channel,
-						HttpStatusCode.BAD_REQUEST,
-						"Invalid Port Number");
-					return null;
-				}
-			}
-			else
-			{
-				badHandshake(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Host Not Specified");
-				return null;
-			}
-			if (!"websocket".equalsIgnoreCase(map.get("upgrade")))
-			{
-				badHandshake(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Invalid Upgrade Header");
-				return null;
-			}
-			final String connection = map.get("connection");
-			if (connection != null)
-			{
-				final String[] tokens = connection.split(" *, *");
-				boolean includesUpgrade = false;
-				for (final String token : tokens)
-				{
-					if ("upgrade".equalsIgnoreCase(token))
-					{
-						includesUpgrade = true;
-					}
-				}
-				if (!includesUpgrade)
-				{
-					badHandshake(
-						channel,
-						HttpStatusCode.BAD_REQUEST,
-						"Invalid Connection Header");
-					return null;
-				}
-			}
-			else
-			{
-				badHandshake(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Missing Connection Header");
-				return null;
-			}
-			if (!"13".equals(map.get("sec-websocket-version")))
-			{
-				badVersion(
-					channel,
-					Integer.parseInt(map.get("sec-websocket-version")));
-				return null;
-			}
-			if (!map.containsKey("sec-websocket-key"))
-			{
-				badHandshake(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Missing WebSocket Key");
-				return null;
-			}
-			final byte[] key = DatatypeConverter.parseBase64Binary(
-				map.get("sec-websocket-key"));
-			if (key.length != 16)
-			{
-				badHandshake(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Invalid WebSocket Key");
-				return null;
-			}
-			final List<String> protocols = Arrays.asList(
-				map.containsKey("sec-websocket-protocol")
-				? map.get("sec-websocket-protocol").split(" *, *")
-				: new String[0]);
-			final List<String> extensions = Arrays.asList(
-				map.containsKey("sec-websocket-extensions")
-				? map.get("sec-websocket-extensions").split(" *, *")
-				: new String[0]);
-			return new ClientHandshake(
-				requestParts[1], key, protocols, extensions);
+			this.method = method;
+			this.uri = uri;
+			this.headers = Collections.unmodifiableMap(headers);
 		}
 
 		/**
@@ -570,7 +349,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 * @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">
 		 *      Status Code Definitions</a>
 		 */
-		@InnerAccess static void badHandshake (
+		@InnerAccess static void badRequest (
 			final WebSocketChannel channel,
 			final HttpStatusCode statusCode,
 			final String reason)
@@ -579,7 +358,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			final Formatter formatter = new Formatter();
 			formatter.format(
 				"HTTP/1.1 %03d %s\r\n\r\n"
-				+ "<html><head><title>Bad Handshake</title></head>"
+				+ "<html><head><title>Bad Request</title></head>"
 				+ "<body><strong>%2$s</strong></body></html>",
 				statusCode.statusCode(),
 				reason);
@@ -618,6 +397,333 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						IO.close(channel);
 					}
 				});
+		}
+
+		/**
+		 * Answer the parsed {@linkplain ClientRequest request}. If the headers
+		 * do not describe a valid request, then {@linkplain
+		 * #badRequest(WebSocketChannel, HttpStatusCode, String) fail the
+		 * connection} and answer {@code null}.
+		 *
+		 * @param channel
+		 *        A {@linkplain WebSocketChannel channel}.
+		 * @param adapter
+		 *        A {@linkplain WebSocketAdapter adapter}.
+		 * @param headersText
+		 *        The HTTP headers, as a single string. The individual headers
+		 *        are separated by carriage return + line feed.
+		 * @return The parsed headers, or {@code null} if the specified headers
+		 *         do not constitute a valid request.
+		 */
+		@InnerAccess static @Nullable ClientRequest readRequest (
+			final WebSocketChannel channel,
+			final WebSocketAdapter adapter,
+			final String headersText)
+		{
+			final String[] headers = headersText.split("(?:\r\n)+");
+			// Deal with the Request-Line specially.
+			final String requestLine = headers[0];
+			final String[] requestParts = requestLine.split(" +");
+			if (requestParts.length != 3)
+			{
+				badRequest(
+					channel,
+					HttpStatusCode.BAD_REQUEST,
+					"Invalid Request-Line");
+				return null;
+			}
+			final HttpRequestMethod method =
+				HttpRequestMethod.named(requestParts[0]);
+			if (method == null)
+			{
+				badRequest(
+					channel,
+					HttpStatusCode.METHOD_NOT_ALLOWED,
+					"Method Not Allowed");
+				return null;
+			}
+			if (!requestParts[2].equalsIgnoreCase("HTTP/1.1"))
+			{
+				badRequest(
+					channel,
+					HttpStatusCode.BAD_REQUEST,
+					"Invalid HTTP Version");
+				return null;
+			}
+			// Parse the remaining lines into a map.
+			final Map<String, String> map = new HashMap<>();
+			for (int i = 1; i < headers.length - 1; i++)
+			{
+				final String[] pair = headers[i].split(":", 2);
+				map.put(pair[0].trim().toLowerCase(), pair[1].trim());
+			}
+			// Validate the request.
+			final String host = map.get("host");
+			if (host != null)
+			{
+				final String[] hostParts = host.split(":", 2);
+				if (!adapter.serverAuthority.equalsIgnoreCase(hostParts[0]))
+				{
+					badRequest(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						String.format(
+							"Invalid Server Authority (%s != %s)",
+							adapter.serverAuthority,
+							hostParts[0]));
+					return null;
+				}
+				if (hostParts.length == 2
+					&& adapter.adapterAddress.getPort()
+						!= Integer.parseInt(hostParts[1]))
+				{
+					badRequest(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Invalid Port Number");
+					return null;
+				}
+			}
+			else
+			{
+				badRequest(
+					channel,
+					HttpStatusCode.BAD_REQUEST,
+					"Host Not Specified");
+				return null;
+			}
+			return new ClientRequest(method, requestParts[1], map);
+		}
+
+		/**
+		 * Read a {@linkplain ClientRequest client request} from the specified
+		 * {@linkplain WebSocketChannel channel}.
+		 *
+		 * @param channel
+		 *        A channel.
+		 * @param adapter
+		 *        A {@linkplain WebSocketAdapter adapter}.
+		 * @param continuation
+		 *        A {@linkplain Continuation1 continuation} that processes a
+		 *        valid request.
+		 */
+		static void receiveThen (
+			final WebSocketChannel channel,
+			final WebSocketAdapter adapter,
+			final Continuation1<ClientRequest> continuation)
+		{
+			final ByteArrayOutputStream bytes = new ByteArrayOutputStream(1024);
+			final ByteBuffer buffer = ByteBuffer.allocate(1024);
+			final MutableOrNull<HttpHeaderState> state =
+				new MutableOrNull<>(HttpHeaderState.START);
+			final AsynchronousSocketChannel transport = channel.transport();
+			transport.read(
+				buffer,
+				null,
+				new CompletionHandler<Integer, Void>()
+				{
+					@Override
+					public void completed (
+						final @Nullable Integer bytesRead,
+						final @Nullable Void unused)
+					{
+						if (remoteEndClosed(transport, bytesRead))
+						{
+							return;
+						}
+						buffer.flip();
+						while (
+							buffer.hasRemaining()
+							&& !state.value().isAcceptState())
+						{
+							state.value = state.value().nextState(buffer.get());
+						}
+						if (buffer.hasRemaining())
+						{
+							badRequest(
+								channel,
+								HttpStatusCode.BAD_REQUEST,
+								"Data Following Headers");
+						}
+						else
+						{
+							buffer.rewind();
+							try
+							{
+								bytes.write(buffer.array());
+							}
+							catch (final IOException e)
+							{
+								assert false : "This never happens";
+							}
+							if (!state.value().isAcceptState())
+							{
+								buffer.clear();
+								transport.read(buffer, unused, this);
+							}
+							else
+							{
+								final ClientRequest request =
+									readRequest(
+										channel,
+										adapter,
+										new String(
+											bytes.toByteArray(),
+											StandardCharsets.US_ASCII));
+								if (request != null)
+								{
+									continuation.value(request);
+								}
+							}
+						}
+					}
+
+					@Override
+					public void failed (
+						final @Nullable Throwable e,
+						final @Nullable Void unused)
+					{
+						logger.log(
+							Level.WARNING,
+							"failed while attempting to read client handshake",
+							e);
+						IO.close(channel);
+					}
+				});
+		}
+	}
+
+	/**
+	 * A {@code ClientHandshake} represents a WebSocket client handshake.
+	 */
+	private static final class ClientHandshake
+	extends ClientRequest
+	{
+		/** The WebSocket key. */
+		final byte[] key;
+
+		/** The requested protocols. */
+		@SuppressWarnings("unused")
+		final List<String> protocols;
+
+		/** The requested extensions. */
+		@SuppressWarnings("unused")
+		final List<String> extensions;
+
+		/**
+		 * Construct a new {@link ClientHandshake}.
+		 *
+		 * @param request
+		 *        The {@linkplain ClientRequest request}.
+		 * @param key
+		 *        The WebSocket key.
+		 * @param protocols
+		 *        The requested protocols.
+		 * @param extensions
+		 *        The requested extensions.
+		 */
+		private ClientHandshake (
+			final ClientRequest request,
+			final byte[] key,
+			final List<String> protocols,
+			final List<String> extensions)
+		{
+			super(request.method, request.uri, request.headers);
+			this.key = key;
+			this.protocols = protocols;
+			this.extensions = extensions;
+		}
+
+		/**
+		 * Answer a {@linkplain ClientHandshake client handshake} based on the
+		 * specified {@linkplain ClientRequest request}. If the headers do not
+		 * describe a valid  WebSocket client handshake, then {@linkplain
+		 * #badRequest(WebSocketChannel, HttpStatusCode, String) fail the
+		 * connection} and answer {@code null}.
+		 *
+		 * @param channel
+		 *        A {@linkplain WebSocketChannel channel}.
+		 * @param request
+		 *        The request.
+		 * @return A client handshake, or {@code null} if the specified headers
+		 *         do not constitute a valid WebSocket client handshake.
+		 */
+		@InnerAccess static @Nullable ClientHandshake readClientHandshake (
+			final WebSocketChannel channel,
+			final ClientRequest request)
+		{
+			final Map<String, String> map = request.headers;
+			if (!"websocket".equalsIgnoreCase(map.get("upgrade")))
+			{
+				badRequest(
+					channel,
+					HttpStatusCode.BAD_REQUEST,
+					"Invalid Upgrade Header");
+				return null;
+			}
+			final String connection = map.get("connection");
+			if (connection != null)
+			{
+				final String[] tokens = connection.split(" *, *");
+				boolean includesUpgrade = false;
+				for (final String token : tokens)
+				{
+					if ("upgrade".equalsIgnoreCase(token))
+					{
+						includesUpgrade = true;
+					}
+				}
+				if (!includesUpgrade)
+				{
+					badRequest(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Invalid Connection Header");
+					return null;
+				}
+			}
+			else
+			{
+				badRequest(
+					channel,
+					HttpStatusCode.BAD_REQUEST,
+					"Missing Connection Header");
+				return null;
+			}
+			if (!"13".equals(map.get("sec-websocket-version")))
+			{
+				badVersion(
+					channel,
+					Integer.parseInt(map.get("sec-websocket-version")));
+				return null;
+			}
+			if (!map.containsKey("sec-websocket-key"))
+			{
+				badRequest(
+					channel,
+					HttpStatusCode.BAD_REQUEST,
+					"Missing WebSocket Key");
+				return null;
+			}
+			final byte[] key = DatatypeConverter.parseBase64Binary(
+				map.get("sec-websocket-key"));
+			if (key.length != 16)
+			{
+				badRequest(
+					channel,
+					HttpStatusCode.BAD_REQUEST,
+					"Invalid WebSocket Key");
+				return null;
+			}
+			final List<String> protocols = Arrays.asList(
+				map.containsKey("sec-websocket-protocol")
+				? map.get("sec-websocket-protocol").split(" *, *")
+				: new String[0]);
+			final List<String> extensions = Arrays.asList(
+				map.containsKey("sec-websocket-extensions")
+				? map.get("sec-websocket-extensions").split(" *, *")
+				: new String[0]);
+			return new ClientHandshake(request, key, protocols, extensions);
 		}
 
 		/**
@@ -852,45 +958,18 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					serverChannel.accept(unused, this);
 					final WebSocketChannel channel =
 						new WebSocketChannel(WebSocketAdapter.this, transport);
-					// Process the client handshake, then send the server
-					// handshake.
-					ClientHandshake.receiveThen(
+					// Process the client request.
+					ClientRequest.receiveThen(
 						channel,
 						WebSocketAdapter.this,
-						new Continuation1<ClientHandshake>()
+						new Continuation1<ClientRequest>()
 						{
 							@Override
 							public void value (
-								final @Nullable ClientHandshake handshake)
+								final @Nullable ClientRequest request)
 							{
-								assert handshake != null;
-								if (!handshake.requestURI.equalsIgnoreCase(
-									"/avail"))
-								{
-									ClientHandshake.badHandshake(
-										channel,
-										HttpStatusCode.NOT_FOUND,
-										"Not Found");
-								}
-								else
-								{
-									final ServerHandshake serverHandshake =
-										new ServerHandshake(
-											handshake.key,
-											Collections.<String>emptyList(),
-											Collections.<String>emptyList());
-									serverHandshake.sendThen(
-										transport,
-										new Continuation0()
-										{
-											@Override
-											public void value ()
-											{
-												channel.handshakeSucceeded();
-												readMessage(channel);
-											}
-										});
-								}
+								assert request != null;
+								processRequest(request, channel);
 							}
 						});
 				}
@@ -913,6 +992,76 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					}
 				}
 			});
+	}
+
+	/**
+	 * Process the specified {@linkplain ClientRequest request}.
+	 * @param request
+	 *        The request.
+	 * @param channel
+	 *        The {@linkplain WebSocketChannel channel} along which the request
+	 *        arrived.
+	 */
+	@InnerAccess void processRequest (
+		final ClientRequest request,
+		final WebSocketChannel channel)
+	{
+		assert request != null;
+		// Process a GET request.
+		if (request.method == HttpRequestMethod.GET)
+		{
+			// Process a WebSocket request.
+			if (request.headers.containsKey("upgrade"))
+			{
+				final ClientHandshake handshake =
+					ClientHandshake.readClientHandshake(channel, request);
+				if (handshake != null)
+				{
+					if (!handshake.uri.equals("/avail"))
+					{
+						ClientRequest.badRequest(
+							channel,
+							HttpStatusCode.NOT_FOUND,
+							"Not Found");
+					}
+					else
+					{
+						final List<String> empty =
+							Collections.<String>emptyList();
+						final ServerHandshake serverHandshake =
+							new ServerHandshake(handshake.key, empty, empty);
+						serverHandshake.sendThen(
+							channel.transport(),
+							new Continuation0()
+							{
+								@Override
+								public void value ()
+								{
+									channel.handshakeSucceeded();
+									readMessage(channel);
+								}
+							});
+					}
+				}
+			}
+			// Process an ordinary GET request.
+			else
+			{
+				// Process a request for a file within the document root.
+				if (request.uri.startsWith("/doc")
+					&& server.configuration().shouldServeDocuments())
+				{
+					// TODO
+				}
+				else
+				{
+					ClientRequest.badRequest(
+						channel,
+						HttpStatusCode.NOT_FOUND,
+						"Not Found");
+				}
+			}
+		}
 	}
 
 	/**

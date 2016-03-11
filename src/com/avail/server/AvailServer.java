@@ -32,15 +32,10 @@
 
 package com.avail.server;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringReader;
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -61,7 +56,7 @@ import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;
-import com.avail.builder.RenamesFileParser;
+import com.avail.builder.RenamesFileParserException;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
@@ -75,6 +70,9 @@ import com.avail.interpreter.Interpreter;
 import com.avail.persistence.IndexedFileException;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
+import com.avail.server.configuration.AvailServerConfiguration;
+import com.avail.server.configuration.CommandLineConfigurator;
+import com.avail.server.configuration.EnvironmentConfigurator;
 import com.avail.server.io.AvailServerChannel;
 import com.avail.server.io.ServerInputChannel;
 import com.avail.server.io.WebSocketAdapter;
@@ -83,6 +81,7 @@ import com.avail.server.messages.*;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
+import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation2;
@@ -107,6 +106,19 @@ public final class AvailServer
 	public static final Set<Integer> supportedProtocolVersions =
 		Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
 			protocolVersion)));
+
+	/** The {@linkplain AvailServerConfiguration configuration}. */
+	@InnerAccess final AvailServerConfiguration configuration;
+
+	/**
+	 * Answer the {@linkplain AvailServerConfiguration configuration}.
+	 *
+	 * @return The configuration.
+	 */
+	public AvailServerConfiguration configuration ()
+	{
+		return configuration;
+	}
 
 	/**
 	 * The {@linkplain AvailRuntime Avail runtime} managed by this {@linkplain
@@ -146,11 +158,16 @@ public final class AvailServer
 	 * Construct a new {@link AvailServer} that manages the given {@linkplain
 	 * AvailRuntime Avail runtime}.
 	 *
+	 * @param configuration
+	 *        An {@linkplain AvailServerConfiguration configuration}.
 	 * @param runtime
 	 *        An Avail runtime.
 	 */
-	public AvailServer (final AvailRuntime runtime)
+	public AvailServer (
+		final AvailServerConfiguration configuration,
+		final AvailRuntime runtime)
 	{
+		this.configuration = configuration;
 		this.runtime = runtime;
 		this.builder = new AvailBuilder(runtime);
 	}
@@ -1856,37 +1873,77 @@ public final class AvailServer
 		channel.enqueueMessageThen(message, continuation);
 	}
 
-	// TODO: Write a real main method.
-	@SuppressWarnings("javadoc")
-	public static void main (final String[] args) throws Exception
+	/**
+	 * Obtain the {@linkplain AvailServerConfiguration configuration} of the
+	 * {@linkplain AvailServer Avail server}.
+	 *
+	 * @param args
+	 *        The command-line arguments.
+	 * @return A viable configuration.
+	 * @throws ConfigurationException
+	 *         If configuration fails for any reason.
+	 */
+	private static AvailServerConfiguration configure (final String[] args)
+		throws ConfigurationException
 	{
-		final ModuleRoots roots = new ModuleRoots(
-			System.getProperty("availRoots", ""));
-		final String renames = System.getProperty("availRenames");
-		final Reader reader;
-		if (renames == null)
+		final AvailServerConfiguration configuration =
+			new AvailServerConfiguration();
+		final EnvironmentConfigurator environmentConfigurator =
+			new EnvironmentConfigurator(configuration);
+		environmentConfigurator.updateConfiguration();
+		final CommandLineConfigurator commandLineConfigurator =
+			new CommandLineConfigurator(configuration, args, System.out);
+		commandLineConfigurator.updateConfiguration();
+		return configuration;
+	}
+
+	/**
+	 * The entry point for command-line invocation of the {@linkplain
+	 * AvailServer Avail server}.
+	 *
+	 * @param args
+	 *        The command-line arguments.
+	 */
+	public static void main (final String[] args)
+	{
+		final AvailServerConfiguration configuration;
+		final ModuleNameResolver resolver;
+		try
 		{
-			reader = new StringReader("");
+			configuration = configure(args);
+			resolver = configuration.moduleNameResolver();
 		}
-		else
+		catch (
+			final ConfigurationException
+			| FileNotFoundException
+			| RenamesFileParserException e)
 		{
-			final File renamesFile = new File(renames);
-			reader = new BufferedReader(new InputStreamReader(
-				new FileInputStream(renamesFile), StandardCharsets.UTF_8));
+			System.err.println(e.getMessage());
+			return;
 		}
-		final RenamesFileParser renameParser = new RenamesFileParser(
-			reader, roots);
-		final ModuleNameResolver resolver = renameParser.parse();
 		final AvailRuntime runtime = new AvailRuntime(resolver);
-		final AvailServer server = new AvailServer(runtime);
-		@SuppressWarnings({
-			"unused", "resource"
-		})
-		final WebSocketAdapter adapter = new WebSocketAdapter(
-			server,
-			new InetSocketAddress(
-				args.length > 1 ? Integer.parseInt(args[1]) : 40000),
-			args.length > 0 ? args[0] : "localhost");
-		new Semaphore(0).acquire();
+		final AvailServer server = new AvailServer(configuration, runtime);
+		try
+		{
+			@SuppressWarnings({"unused", "resource"})
+			final WebSocketAdapter adapter = new WebSocketAdapter(
+				server,
+				new InetSocketAddress(configuration.serverPort()),
+				configuration.serverAuthority());
+			// Prevent the Avail server from exiting.
+			new Semaphore(0).acquire();
+		}
+		catch (
+			final NumberFormatException
+			| IOException
+			| InterruptedException e)
+		{
+			e.printStackTrace();
+			return;
+		}
+		finally
+		{
+			runtime.destroy();
+		}
 	}
 }
