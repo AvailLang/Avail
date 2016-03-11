@@ -67,26 +67,6 @@ public class StacksSeeTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final LinkingFileMap linkingFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("<div class=\"category-list\"><em>See:</em> ");
-		if (thingToSee.lexeme().startsWith("{", 0))
-		{
-			return stringBuilder
-				.append(thingToSee.toHTML(linkingFileMap, hashID, errorLog))
-				.toString();
-		}
-		stringBuilder.append("<a class=\"stacks i-code\" href=\"")
-			.append(thingToSee.toHTML(linkingFileMap, hashID, errorLog))
-			.append("\">")
-			.append(thingToSee.toHTML(linkingFileMap, hashID, errorLog))
-			.append("</a></div>");
-		return stringBuilder.toString();
-	}
-
-	@Override
 	public void toJSON (
 		final LinkingFileMap linkingFileMap,
 		final int hashID,

@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
@@ -99,28 +98,6 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		final ImplementationGroup implementationGroup)
 	{
 		implementationGroup.global(this);
-	}
-
-	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final String nameOfGroup, final StacksErrorLog errorLog)
-	{
-		final StringBuilder stringBuilder = new StringBuilder()
-		.append(signature().toHTML(nameOfGroup, false));
-
-		if (categories.size() > 0)
-		{
-			stringBuilder.append(categories.get(0).toHTML(htmlFileMap, hashID,
-				errorLog, 1));
-		}
-
-		stringBuilder.append(tabs(1) + "<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
-				+ ">")
-			.append(description.toHTML(htmlFileMap, hashID, errorLog))
-			.append("</div>\n");
-
-		return stringBuilder.toString();
 	}
 
 	@Override

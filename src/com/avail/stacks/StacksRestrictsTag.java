@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -83,49 +82,6 @@ public class StacksRestrictsTag extends AbstractStacksTag
 	public StacksDescription description ()
 	{
 		return description;
-	}
-
-	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		final StringBuilder paramTypeBuilder = new StringBuilder();
-		if (htmlFileMap.internalLinks().containsKey(paramMetaType.lexeme()))
-		{
-			paramTypeBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
-				.append(htmlFileMap.internalLinks().get(paramMetaType.lexeme()))
-				.append("')\" href=\"")
-				.append(htmlFileMap.internalLinks().get(paramMetaType.lexeme()))
-				.append("\">")
-				.append(paramMetaType.toHTML(htmlFileMap, hashID, errorLog))
-				.append("</a>");
-		}
-		else
-		{
-			paramTypeBuilder
-				.append(paramMetaType.toHTML(htmlFileMap, hashID, errorLog));
-		}
-
-		final StringBuilder stringBuilder = new StringBuilder()
-		.append(tabs(4) + "<tr "
-			+ HTMLBuilder.tagClass(HTMLClass.classMethodParameters)
-			+ ">\n")
-		.append("<td id=\"")
-			.append(paramMetaType.lexeme()).append(hashID).append("\" ")
-			.append(HTMLBuilder
-				.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-			+ ">")
-		.append(paramTypeBuilder)
-		.append("</td>\n")
-		.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-				+ ">\n")
-		.append(tabs(6) + description.toHTML(htmlFileMap, hashID, errorLog))
-		.append("\n" + tabs(5) + "</td>\n")
-		.append(tabs(4) + "</tr>\n");
-
-		return stringBuilder.toString();
 	}
 
 	@Override

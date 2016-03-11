@@ -37,6 +37,7 @@ Uses
 	"Common",
 	"Foundation",
 	"Iterators",
+	"Rational Number",
 	"Streams"
 Names
 	/* Types. */
@@ -49,7 +50,7 @@ Names
 	"_'s⁇next binding of_",
 	"_'s⁇next shuffling of_"
 Body
-
+"bit count" is a new field atom;
 /**
  * A pseudorandom number generator employs a deterministic process to produce a
  * sequence of numbers with properties similar to those possessed by a truly
@@ -101,26 +102,130 @@ Public method "_'s⁇next«value in»⁇_" is
 	rng : pRNG,
 	range : integer's type
 |
+	printme ::= false;
 	If range = ⊥ ∨ ⎡range⎤ = ∞ then
 	[
 		Raise an incorrect-argument-type exception
-	];
-	/* TODO: [TLS] This algorithm does not uniformly distribute yet.
-	 * Fix this!
+	]; 
+	
+	/* The following algorithm is used to uniformally map values from the range
+	 * onto pRNG's element type.  The algorithm
 	 */
-	delta ::= ⎣range⎦;
-	limit ::= ⎡range⎤;
-	modulus ::= |limit - delta| + 1;
-	quotient : [0..∞] := |limit|;
-	result : whole number := 1;
-	While
+	rangeSize : natural number := cast ⎡range⎤ - ⎣range⎦ + 1
+		into [n : natural number | n];
+	
+	rngSize ::= cast ⎡rng's element type⎤ -  ⎣rng's element type⎦ + 1
+		into [n : natural number | n];
+	
+	bitCount : whole number:= cast ((log 2 of rngSize)→extended integer)
+		into [w: whole number | w];
+
+	/* Calculate the number of values from pRNG are required to ensure that
+	 * no boundary condition will ever result in more than two values 
+	 * being in contention.  
+	 * m represents the number of times to inflate the bit range.  If 
+	 * rng's range represents n bits, then the range required to accomplish
+	 * the task is (2^n)^m.  We will need to acquire m numbers from rng to
+	 * construct our final value through bit shifting.
+	 */
+	/*m : natural number := 1;
+	While (rangeSize ÷ ((rngSize^m) ÷ 2)) > 0 do [m:=m + 1;];*/
+	m ::= cast ⎡⎡(log 2 of rangeSize)⎤ ÷ bitCount⎤→extended integer
+		into [n : natural number | n];
+	
+	/* Calculate the potential maximum random value that can occur as a result 
+	 * of the values obtained from the pRNG.
+	 * The new adjusted rng to map the range on will be
+	 * [0..maxRandomValue]
+	 */
+	maxRandomValue : whole number := rngSize^m - 1;
+If printme then
+[Print: format "desired random range size: “①”\n" with rangeSize;
+Print: format "rng range size: “①”\n" with rngSize;
+Print: format "rng base bit count: “①”\n" with bitCount;
+Print: format "required bit count for max 2 possibilities at boundary: “①”\n" with m × bitCount;
+Print: format "maximum possible random value: “①”\n" with maxRandomValue;
+];
+	
+	/* Acquire all necessary values from rng */
+	generatedNumbers : <whole number…|> := <>;
+	For each i from 1 to m do 
 	[
-		result := eject result × rng's current element;
-		quotient := eject quotient ÷ ⎡rng's element type⎤;
-		Advance rng;
-		quotient > 0
+	 	generatedNumbers := generatedNumbers ++ <rng's current element>;
+If printme then [Print: format "roll “②”: “①”\n" with rng's current element, i;];
+	 	Advance rng;
 	];
-	cast result mod modulus + delta into [t : integer | t]
+	/* Obtain the total random number value */
+	randomValue : whole number := generatedNumbers[1];
+	For each i from 2 to |generatedNumbers| do
+	[
+	 	randomValue := eject randomValue + 
+	 		(generatedNumbers[i] << (bitCount  × (i - 1)));
+	];
+	
+	/* Calculate the multiplier that indicates where on the newly adjusted
+	 * rng that a boundary condition exists.  This value is a rational number
+	 * @see "rational number" in Rational Number.avail*/
+	boundaryMultiple ::= maxRandomValue ÷ rangeSize (r);
+
+	/*Determine if a boundary condition is reached.  A boundary condition is
+	 * known to have been reached if the following conditions are met:
+	 *
+	 * 		1. (((result + 1) ÷ boundaryMultiple)'s whole number part 
+	 * 			-  (result ÷ boundaryMultiple)'s whole number part) > 0
+	 * 
+	 * 		2. (result ÷ boundaryMultiple)'s fraction > 0
+	 */
+	resultRangeValue ::= randomValue ÷ boundaryMultiple;
+	incrementedResultRangeValue ::= (randomValue + 1) ÷ boundaryMultiple;
+	wholeNumberDiff ::= incrementedResultRangeValue's whole number part 
+		- resultRangeValue's whole number part;
+If printme then 
+[Print: format "total roll: “①”\n" with randomValue;
+Print: format "boundary every: “①”\n\n" with boundaryMultiple;
+Print: "\n";
+Print: format "A: total roll ÷ boundary multiple = “①”\n" with resultRangeValue;
+Print: format "B: (total roll + 1) ÷ boundary multiple = “①”\n" with incrementedResultRangeValue;
+Print: "\n";
+Print: format "whole number difference (B-A): “①”\n" with wholeNumberDiff;
+Print: format "B's fraction is nonzero: “①”\n" with resultRangeValue's fraction is nonzero;
+];
+	baseResult : integer := if wholeNumberDiff > 0 
+		∧ resultRangeValue's fraction is nonzero then
+	[
+	 	/*TODO Write function to continuously roll till resolved*/
+	 	resolutionReached : boolean := false;
+	 	weightedProbability : fraction :=  resultRangeValue's fraction;
+	 	outcome : integer := -1;
+If printme then [Print: "\nAdditional roll required\n";];	 	
+	 	Do
+	 	[
+	 	 	newBoundary ::= rngSize × weightedProbability;
+	 	 	newResult ::= rng's current element;
+If printme then [ 
+Print: format "new boundary condition every: “①”\n" with newBoundary;
+Print: format "new roll: “①”\n" with newResult;];	 	 	
+	 	 	If newResult < newBoundary's whole number part then
+	 	 	[
+	 	 	 	outcome := resultRangeValue's whole number part;
+	 	 	 	resolutionReached := true;
+If printme then [Print: "Lower value wins!\n";];
+	 	 	] else if newResult > newBoundary's whole number part then
+	 	 	[
+	 	 	 	outcome := incrementedResultRangeValue's whole number part;
+	 	 	 	resolutionReached := true;
+If printme then [Print: "Higher value wins!\n";];
+	 	 	] else [weightedProbability := newBoundary's fraction; Print: "Reroll\n";];
+	 	]
+	 	until resolutionReached;
+	 	outcome
+	] else [If printme then [Print: "\nNo additional roll required\n";]; resultRangeValue's whole number part];
+ 
+	/* Adjust the base result to match*/
+If printme then [
+Print: format "Bottom of random range adjustment: “①”\n" with ⎣range⎦;
+Print: "Final result: ";];
+	cast baseResult + ⎣range⎦ into [i : integer | i]
 ] : integer;
 
 Semantic restriction "_'s⁇next«value in»⁇_" is

@@ -84,13 +84,6 @@ public class StacksGlobalTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		return globalName.toHTML(htmlFileMap, hashID, errorLog);
-	}
-
-	@Override
 	public void toJSON (
 		final LinkingFileMap linkingFileMap,
 		final int hashID,

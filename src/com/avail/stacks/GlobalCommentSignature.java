@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -65,25 +64,6 @@ public class GlobalCommentSignature extends CommentSignature
 	{
 		return String.format("%s -> %s", name(),
 			globalType);
-	}
-
-	@Override
-	public String toHTML (final String nameOfGroup, final boolean sticky)
-	{
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append("<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classSignatureHeading)
-				+ ">")
-			.append(globalType.replace("<", "&lt;"))
-			.append("</div>\n");
-
-		stringBuilder.append(tabs(2) + "<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-				+ "><em>Source</em>: ")
-			.append(module())
-			.append("</div>\n");
-
-		return stringBuilder.toString();
 	}
 
 	@Override

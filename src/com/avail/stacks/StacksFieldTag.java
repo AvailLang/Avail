@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -99,38 +98,6 @@ public class StacksFieldTag extends AbstractStacksTag
 	public QuotedStacksToken fieldName ()
 	{
 		return fieldName;
-	}
-
-	@Override
-	public String toHTML(final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append(tabs(4) + "<tr "
-				+ HTMLBuilder.tagClass(HTMLClass.classMethodParameters)
-				+ ">\n")
-			.append(tabs(5) + "<td id=\"")
-			.append(fieldName.lexeme()).append(hashID).append("\" ")
-			.append(HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-				+ ">")
-			.append(fieldName.lexeme())
-			.append("</td>\n")
-			.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-				+ ">")
-			.append(fieldType.toHTML(htmlFileMap, hashID, errorLog))
-			.append("</td>\n")
-			.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
-				+ ">\n")
-			.append(tabs(6) + fieldDescription.toHTML(htmlFileMap, hashID,
-				errorLog))
-			.append("\n" + tabs(5) + "</td>\n")
-			.append(tabs(4) + "</tr>\n");
-		return stringBuilder.toString();
 	}
 
 	@Override

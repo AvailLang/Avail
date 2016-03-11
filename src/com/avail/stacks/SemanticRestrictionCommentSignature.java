@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import java.util.ArrayList;
 import com.avail.utility.json.JSONWriter;
 
@@ -73,49 +72,6 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 	{
 		return String.format("%s -> %s", name(),
 			orderedInputTypes.toString());
-	}
-
-	@Override
-	public String toHTML (final String nameOfGroup, final boolean sticky)
-	{
-		final StringBuilder stringBuilder = new StringBuilder()
-		.append(tabs(2) + "<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classSignatureHeading)
-				+ ">");
-
-		final int listSize = orderedInputTypes.size();
-
-		if (listSize > 0)
-		{
-			for (int i = 0; i < listSize - 1; i++)
-			{
-				stringBuilder.append(orderedInputTypes.get(i)
-					.replace("<", "&lt;")).append(", ");
-			}
-			stringBuilder.append(orderedInputTypes.get(listSize - 1)
-					.replace("<", "&lt;"))
-				.append("</div>\n");
-		}
-
-		if (!name().equals(nameOfGroup))
-		{
-			stringBuilder.append(tabs(2) + "<div "
-					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-					+ "><em>Source</em>: ")
-				.append(module()).append(": <strong>")
-				.append(name().replace("<", "&lt;"))
-				.append("</strong></div>\n");
-		}
-		else
-		{
-			stringBuilder.append(tabs(2) + "<div "
-					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-					+ "><em>Source</em>: ")
-				.append(module())
-				.append("</div>\n");
-		}
-
-		return stringBuilder.toString();
 	}
 
 	@Override

@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import com.avail.descriptor.A_String;
@@ -132,51 +131,6 @@ public class GrammaticalRestrictionCommentImplementation extends
 					implementation.forbids.get(arity));
 			}
 		}
-	}
-
-	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final String nameOfGroup, final StacksErrorLog errorLog)
-	{
-		final StringBuilder stringBuilder = new StringBuilder();
-
-		stringBuilder
-			.append(tabs(1) + "<h4 "
-					+ HTMLBuilder
-						.tagClass(HTMLClass.classMethodSectionHeader)
-					+ ">Grammatical "
-			+ "restrictions:</h4>\n")
-			.append(tabs(1) + "<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classMethodSectionContent)
-				+ ">\n")
-            .append(tabs(2) + "<table "
-            	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
-            	+ ">\n")
-            .append(tabs(3) + "<thead>\n")
-            .append(tabs(4) + "<tr>\n")
-            .append(tabs(5) + "<th style=\"white-space:nowrap\" "
-            	+ HTMLBuilder.tagClass(
-            		HTMLClass.classStacks, HTMLClass.classGColLabelNarrow)
-            	+ " scope=\"col\">Argument Position</th>\n")
-            .append(tabs(5) + "<th "
-            	+ HTMLBuilder.tagClass(
-            		HTMLClass.classStacks, HTMLClass.classGColLabelWide)
-            	+ " scope=\"col\">Prohibited Expression</th>\n")
-            .append(tabs(4) + "</tr>\n")
-            .append(tabs(3) + "</thead>\n")
-            .append(tabs(3) + "<tbody>\n")
-            .append(tabs(4) + "<tr>\n");
-
-		for (final int arity : forbids.navigableKeySet())
-		{
-			stringBuilder.append(forbids.get(arity).toHTML(htmlFileMap, hashID,
-				errorLog, 1));
-		}
-
-		stringBuilder.append(tabs(3) + "</tbody>\n")
-		.append(tabs(2) + "</table>\n")
-		.append(tabs(1) + "</div>\n");
-		return stringBuilder.toString();
 	}
 
 	@Override

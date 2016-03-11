@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -99,61 +98,6 @@ public class StacksParameterTag extends AbstractStacksTag
 	public QuotedStacksToken paramName ()
 	{
 		return paramName;
-	}
-
-	@Override
-	public String toHTML(final LinkingFileMap linkingFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		final StringBuilder paramTypeBuilder = new StringBuilder();
-		if (linkingFileMap.internalLinks().containsKey(paramType.lexeme()))
-		{
-			paramTypeBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
-				.append(linkingFileMap.internalLinks().get(paramType.lexeme()))
-				.append("')\" href=\"")
-				.append(linkingFileMap.internalLinks().get(paramType.lexeme()))
-				.append("\">")
-				.append(paramType.toHTML(linkingFileMap, hashID, errorLog))
-				.append("</a>");
-		}
-		else
-		{
-			paramTypeBuilder.append(paramType
-				.toHTML(linkingFileMap, hashID, errorLog));
-		}
-
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append(tabs(4) + "<tr "
-				+ HTMLBuilder.tagClass(HTMLClass.classMethodParameters)
-				+ ">\n")
-			.append(tabs(5) + "<td ")
-			.append(HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-				+ ">")
-			.append(position)
-			.append("</td>\n")
-			.append(tabs(5) + "<td id=\"")
-			.append(paramName.lexeme()).append(hashID).append("\" ")
-			.append(HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-				+ ">")
-			.append(paramName.toHTML(linkingFileMap, hashID, errorLog))
-			.append("</td>\n")
-			.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-				+ ">")
-			.append(paramTypeBuilder)
-			.append("</td>\n")
-			.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
-				+ ">\n")
-			.append(tabs(6) + paramDescription.toHTML(linkingFileMap, hashID,
-				errorLog))
-			.append("\n"+ tabs(5) + "</td>\n")
-			.append(tabs(4) + "</tr>\n");
-		return stringBuilder.toString();
 	}
 
 	@Override

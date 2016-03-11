@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -84,52 +83,6 @@ public class CommentSignature
 	{
 		this.name = name;
 		this.module = module;
-	}
-
-	/**
-	 * Create the HTML representation of the signature.
-	 * @param nameOfGroup
-	 * 		The name of the implementation as it is to be displayed.
-	 * @param sticky TODO
-	 * @return
-	 */
-	public String toHTML (final String nameOfGroup, final boolean sticky)
-	{
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append(tabs(2) + "<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-				+">")
-			.append(module).append(": <strong>")
-			.append(name.replace("<", "&lt;")).append("</strong></div>\n");
-
-		final StringBuilder stickyString = new StringBuilder().append("");
-		if (sticky)
-		{
-			stickyString.append(" <em>(Documentation only; not exported for "
-				+ "use)</em>");
-		}
-
-		if (!name().equals(nameOfGroup))
-		{
-			stringBuilder.append(tabs(2) + "<div "
-					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-					+ "><em>Source</em>: ")
-				.append(module()).append(": <strong>").append(name())
-				.append("</strong>")
-				.append(stickyString.toString())
-				.append("</div>\n");
-		}
-		else
-		{
-			stringBuilder.append(tabs(2) + "<div "
-					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-					+ "><em>Source</em>: ")
-				.append(module())
-				.append(stickyString.toString())
-				.append("</div>\n");
-		}
-
-		return stringBuilder.toString();
 	}
 
 	/**

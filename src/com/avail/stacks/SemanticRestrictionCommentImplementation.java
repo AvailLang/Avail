@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
@@ -116,76 +115,6 @@ public class SemanticRestrictionCommentImplementation extends
 		final ImplementationGroup implementationGroup)
 	{
 		implementationGroup.addSemanticRestriction(this);
-	}
-
-	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final String nameOfGroup, final StacksErrorLog errorLog)
-	{
-		final int paramCount = restricts.size();
-		final int colSpan = 1;
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append(signature().toHTML(nameOfGroup, false));
-
-		stringBuilder.append(tabs(2) + "<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
-				+ ">\n")
-			.append(tabs(3) + description.toHTML(htmlFileMap, hashID, errorLog))
-			.append("\n" + tabs(2) + "</div>\n")
-			.append(tabs(2) + "<table "
-            	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
-            	+ ">\n")
-			.append(tabs(3) + "<thead>\n")
-			.append(tabs(4) + "<tr>\n")
-			.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(HTMLClass.classTransparent)
-				+ " scope=\"col\"></th>\n");
-
-		stringBuilder
-			.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(
-					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
-				+ " scope=\"col\">Type</th>\n")
-			.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(
-					HTMLClass.classStacks, HTMLClass.classIColLabelWide)
-				+ " scope=\"col\">Description</th>\n")
-			.append(tabs(4) + "</tr>\n")
-			.append(tabs(3) + "</thead>\n")
-			.append(tabs(3) + "<tbody>\n");
-
-		if (paramCount > 0)
-		{
-			stringBuilder
-				.append(tabs(4) + "<tr>\n")
-				.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(
-					HTMLClass.classStacks, HTMLClass.classIRowLabel)
-				+ " rowspan=\"")
-			.append(paramCount + 1).append("\">Parameter Types</th>\n")
-			.append(tabs(4) + "</tr>\n");
-		}
-
-		for (final StacksRestrictsTag restrictsTag : restricts)
-		{
-			stringBuilder.append(restrictsTag.toHTML(htmlFileMap, hashID,
-				errorLog, 1));
-		}
-
-		if (!returnsContent.isEmpty())
-		{
-			stringBuilder.append(tabs(4) + "<tr>\n")
-			.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(
-					HTMLClass.classStacks, HTMLClass.classIRowLabel)
-				+ "colspan=\"")
-				.append(colSpan).append("\">Returns</th>\n")
-				.append(returnsContent.get(0).toHTML(htmlFileMap, hashID,
-					errorLog, 1));
-		}
-
-		return stringBuilder.append(tabs(3) + "</tbody>\n")
-			.append(tabs(2) + "</table>\n").toString();
 	}
 
 	@Override

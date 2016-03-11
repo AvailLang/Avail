@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -82,45 +81,6 @@ public class StacksReturnTag extends AbstractStacksTag
 	public QuotedStacksToken returnType ()
 	{
 		return returnType;
-	}
-
-	@Override
-	public String toHTML(final LinkingFileMap linkingFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		final StringBuilder returnTypeBuilder = new StringBuilder();
-		if (linkingFileMap.internalLinks().containsKey(returnType.lexeme()))
-		{
-			returnTypeBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
-				.append(linkingFileMap.internalLinks().get(returnType.lexeme()))
-				.append("')\" href=\"")
-				.append(linkingFileMap.internalLinks().get(returnType.lexeme()))
-				.append("\">")
-				.append(returnType.toHTML(linkingFileMap, hashID, errorLog))
-				.append("</a>");
-		}
-		else
-		{
-			returnTypeBuilder
-				.append(returnType.toHTML(linkingFileMap, hashID, errorLog));
-		}
-
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-				+ ">")
-			.append(returnTypeBuilder)
-			.append("</td>\n")
-			.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
-				+ ">\n")
-			.append(tabs(6) + returnDescription.toHTML(linkingFileMap, hashID,
-				errorLog))
-			.append("\n" + tabs(5) + "</td>\n")
-			.append(tabs(4) + "</tr>\n");
-		return stringBuilder.toString();
 	}
 
 	@Override

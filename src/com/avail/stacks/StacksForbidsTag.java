@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import java.util.ArrayList;
 import com.avail.utility.json.JSONWriter;
 
@@ -92,71 +91,6 @@ public class StacksForbidsTag extends AbstractStacksTag
 	public void mergeForbidsTag(final StacksForbidsTag tag)
 	{
 		forbidMethods.addAll(tag.forbidMethods());
-	}
-
-	@Override
-	public String toHTML (final LinkingFileMap linkingFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		final int rowSize = forbidMethods.size();
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
-				+ " rowspan=\"")
-			.append(rowSize).append("\">Argument ")
-			.append(arityIndex.toHTML(linkingFileMap, hashID, errorLog))
-			.append("</td>\n")
-			.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
-				+ ">")
-			.append(toHTMLLink(linkingFileMap,forbidMethods.get(0).lexeme))
-			.append("</td>\n")
-			.append(tabs(4) + "</tr>\n");
-
-		if (rowSize > 1)
-		{
-			for (int i = 1; i < rowSize; i++)
-			{
-				stringBuilder
-					.append(tabs(4) + "<tr>\n")
-					.append(tabs(5) + "<td "
-						+ HTMLBuilder
-							.tagClass(
-								HTMLClass.classStacks, HTMLClass.classGCode)
-						+ ">")
-					.append(toHTMLLink(linkingFileMap,forbidMethods.get(i).lexeme))
-					.append("</td>\n")
-					.append(tabs(4) + "</tr>\n");
-			}
-		}
-		return stringBuilder.toString();
-	}
-
-	/**
-	 * Create appropriate link for method if available
-	 * @param linkingFileMap A map for all HTML files ins Stacks
-	 * @param method The method being processed
-	 * @return The string link or string name.
-	 */
-	private String toHTMLLink (final LinkingFileMap linkingFileMap,
-		final String method)
-	{
-
-		if (linkingFileMap.internalLinks().containsKey(method))
-		{
-			final StringBuilder returnTypeBuilder = new StringBuilder();
-			return returnTypeBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
-				.append(linkingFileMap.internalLinks().get(method))
-				.append("')\" href=\"")
-				.append(linkingFileMap.internalLinks().get(method))
-				.append("\">")
-				.append(method.replace("<", "&lt;"))
-				.append("</a>").toString();
-		}
-
-			return method;
 	}
 
 	@Override

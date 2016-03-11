@@ -42,24 +42,6 @@ import com.avail.utility.json.JSONWriter;
 public abstract class AbstractStacksTag
 {
 	/**
-	 * Creating a shared super class to move all Tags.
-	 */
-
-	/**
-	 * Create HTML content from implementation
-	 * @param htmlFileMap
-	 * 		The map of all HTML files in Stacks
-	 * @param hashID
-	 * 		The hash portion of the id for linking to this element on page.
-	 * @param errorLog The {@linkplain StacksErrorLog}
-	 * @param position The ordered position of the parameter in the method
-	 * 		signature.
-	 * @return the HTML tagged content
-	 */
-	public abstract String toHTML(final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, int position);
-
-	/**
 	 * Create JSON content from implementation
 	 * @param linkingFileMap
 	 * 		The map of all the files in Stacks

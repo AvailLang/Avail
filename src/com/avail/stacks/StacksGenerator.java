@@ -32,6 +32,7 @@
 
 package com.avail.stacks;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -399,7 +400,7 @@ public class StacksGenerator
 			try
 			{
 				final String decodedTemplate =
-					HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
+					StacksGenerator.getOuterTemplate(templateFilePath);
 				String newFileContent = decodedTemplate;
 				for (final Pair<CharSequence,CharSequence> pair :
 					replacementPairs)
@@ -421,5 +422,33 @@ public class StacksGenerator
 		{
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Obtain a template file and return a string of that template.
+	 *
+	 * @param templateFilePath
+	 *        The template file to obtain.
+	 * @return The string contents of that file.
+	 * @throws IOException
+	 *         If the template file could not be opened.
+	 */
+	public static String getOuterTemplate (final Path templateFilePath)
+		throws IOException
+	{
+		final FileInputStream templateFile =
+			new FileInputStream(templateFilePath.toString());
+		final FileChannel channel =
+			templateFile.getChannel();
+
+		final ByteBuffer buf =
+			ByteBuffer.allocate((int) channel.size());
+
+		channel.read(buf);
+
+		IO.close(channel);
+		IO.close(templateFile);
+
+		return new String(buf.array(), "UTF-8");
 	}
 }

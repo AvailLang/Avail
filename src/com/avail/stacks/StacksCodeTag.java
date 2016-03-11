@@ -72,14 +72,6 @@ public class StacksCodeTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final LinkingFileMap linkingFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		//DO NOTHING
-		return "";
-	}
-
-	@Override
 	public void toJSON (
 		final LinkingFileMap linkingFileMap,
 		final int hashID,
@@ -89,5 +81,4 @@ public class StacksCodeTag extends AbstractStacksTag
 	{
 		//DO NOTHING
 	}
-
 }

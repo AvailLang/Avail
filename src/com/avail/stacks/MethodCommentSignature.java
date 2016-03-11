@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import java.util.ArrayList;
 
 /**
@@ -81,57 +80,5 @@ public class MethodCommentSignature extends CommentSignature
 	{
 		return String.format("%s -> %s : %s", name(),
 			orderedInputTypes.toString(),returnType);
-	}
-
-	@Override
-	public String toHTML (final String nameOfGroup, final boolean sticky)
-	{
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append(tabs(2) + "<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classSignatureHeading)
-				+ ">");
-
-		final int listSize = orderedInputTypes.size();
-
-		final StringBuilder stickyString = new StringBuilder().append("");
-		if (sticky)
-		{
-			stickyString.append(" <em>(Documentation only; not exported for "
-				+ "use)</em>");
-		}
-
-		if (listSize > 0)
-		{
-			for (int i = 0; i < listSize - 1; i++)
-			{
-				stringBuilder.append(orderedInputTypes.get(i)
-					.replace("<", "&lt;")).append(", ");
-			}
-			stringBuilder.append(orderedInputTypes.get(listSize - 1)
-					.replace("<", "&lt;"))
-				.append("</div>\n");
-		}
-
-		if (!name().equals(nameOfGroup))
-		{
-			stringBuilder.append(tabs(2) + "<div "
-					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-					+ "><em>Source</em>: ")
-				.append(module()).append(": <strong>")
-				.append(name().replace("<", "&lt;"))
-				.append("</strong>")
-				.append(stickyString.toString())
-				.append("</div>\n");
-		}
-		else
-		{
-			stringBuilder.append(tabs(2) + "<div "
-					+ HTMLBuilder.tagClass(HTMLClass.classModuleLocation)
-					+ "><em>Source</em>: ")
-				.append(module())
-				.append(stickyString.toString())
-				.append("</div>\n");
-		}
-		return stringBuilder.toString();
 	}
 }

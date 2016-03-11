@@ -47,25 +47,25 @@ public class HTMLClass
 	/**
 	 * css class main-wrapper
 	 */
-	public static String classMainWrapper = "main-wrapper";
+	public static final String classMainWrapper = "main-wrapper";
 
 	     /*** Main Content ***/
 
 	/**
 	 * css class stacks-wrapper
 	 */
-	public static String classStacksWrapper ="stacks-wrapper";
+	public static final String classStacksWrapper ="stacks-wrapper";
 
 	/**
 	 * css class content
 	 */
-	public static String classContent = "content";
+	public static final String classContent = "content";
 
 
 	/**
 	 * css class main-frame
 	 */
-	public static String classMainFrame = ".main-frame";
+	public static final String classMainFrame = ".main-frame";
 
 	/************************** Content structure *************************/
 
@@ -76,112 +76,112 @@ public class HTMLClass
 	/**
 	 * css class h2.method-heading
 	 */
-	public static String classMethodHeading = "method-heading";
+	public static final String classMethodHeading = "method-heading";
 
 	/**
 	 * css class method-body-indent
 	 */
-	public static String classMethodBodyIndent = "method-body-indent";
+	public static final String classMethodBodyIndent = "method-body-indent";
 
 
 	/**
 	 * css class method-section-header
 	 */
-	public static String classMethodSectionHeader = "method-section-header";
+	public static final String classMethodSectionHeader = "method-section-header";
 
 
 	/**
 	 * css class method-section-content
 	 */
-	public static String classMethodSectionContent = "method-section-content";
+	public static final String classMethodSectionContent = "method-section-content";
 
 	/**
 	 * css class signature-heading
 	 */
-	public static String classSignatureHeading = "signature-heading";
+	public static final String classSignatureHeading = "signature-heading";
 
 	/**
 	 * css class module-location
 	 */
-	public static String classModuleLocation = "module-location";
+	public static final String classModuleLocation = "module-location";
 
 	/**
 	 * css class category-list
 	 */
-	public static String classCategoryList = "category-list";
+	public static final String classCategoryList = "category-list";
 
 	/**
 	 * css class signature-description
 	 */
-	public static String classSignatureDescription = "signature-description";
+	public static final String classSignatureDescription = "signature-description";
 
 	/* Method implementation and restriction table styling */
 
 	/**
 	 * css class stacks
 	 */
-	public static String classStacks = "stacks";
+	public static final String classStacks = "stacks";
 
 	/**
 	 * css class transparent
 	 */
-	public static String classTransparent = "transparent";
+	public static final String classTransparent = "transparent";
 
 	/**
 	 * css class th.g-col-label-narrow
 	 */
-	public static String classGColLabelNarrow = "g-col-label-narrow";
+	public static final String classGColLabelNarrow = "g-col-label-narrow";
 
 
 	/**
 	 * css class th.g-col-label-wide
 	 */
-	public static String classGColLabelWide = "g-col-label-wide";
+	public static final String classGColLabelWide = "g-col-label-wide";
 
 	/**
 	 * css class th.i-col-label-narrow
 	 */
-	public static String classIColLabelNarrow = "i-col-label-narrow";
+	public static final String classIColLabelNarrow = "i-col-label-narrow";
 
 
 	/**
 	 * css class th.i-col-label-wide
 	 */
-	public static String classIColLabelWide = "i-col-label-wide";
+	public static final String classIColLabelWide = "i-col-label-wide";
 
 	/**
 	 * css class th.i-row-label
 	 */
-	public static String classIRowLabel = "i-row-label";
+	public static final String classIRowLabel = "i-row-label";
 
 	/**
 	 * css class methodParameters
 	 */
-	public static String classMethodParameters = "methodParameters";
+	public static final String classMethodParameters = "methodParameters";
 
 	/** Table data cells **/
 
 	/**
 	 * css class td.g-code
 	 */
-	public static String classGCode= "g-code";
+	public static final String classGCode= "g-code";
 	/**
 	 * css class i-code
 	 */
-	public static String classICode= "i-code";
+	public static final String classICode= "i-code";
 
 	/**
 	 * css class td.i-desc
 	 */
-	public static String classIDesc = "i-desc";
+	public static final String classIDesc = "i-desc";
 
 	/**
 	 * css class td.s-desc
 	 */
-	public static String classSDesc = "s-desc";
+	public static final String classSDesc = "s-desc";
 
 	/**
 	 * css class pane-heading-link
 	 */
-	public static String classPaneHeadingLink = "pane-heading-link";
+	public static final String classPaneHeadingLink = "pane-heading-link";
 }

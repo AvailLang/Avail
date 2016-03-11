@@ -173,18 +173,6 @@ public abstract class AbstractCommentImplementation
 		A_String name, StacksImportModule importModule);
 
 	/**
-	 * Create HTML content from implementation
-	 * @param linkingFileMap
-	 * 		The map of file linkage
-	 * @param nameOfGroup
-	 * 		The name of the implementation as it is to be displayed
-	 * @param errorLog The {@linkplain StacksErrorLog}
-	 * @return the HTML tagged content
-	 */
-	public abstract String toHTML(final LinkingFileMap linkingFileMap,
-		final String nameOfGroup, final StacksErrorLog errorLog);
-
-	/**
 	 * Create JSON content from implementation
 	 * @param linkingFileMap
 	 * 		The map of file linkage

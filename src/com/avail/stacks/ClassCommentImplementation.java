@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
@@ -113,108 +112,6 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		final ImplementationGroup implementationGroup)
 	{
 		implementationGroup.classImplemenataion(this);
-	}
-
-	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final String nameOfGroup, final StacksErrorLog errorLog)
-	{
-		final int fieldCount = fields.size();
-		final StringBuilder stringBuilder = new StringBuilder();
-
-		stringBuilder.append(signature().toHTML(nameOfGroup, isSticky()));
-
-		if (categories.size() > 0)
-		{
-			stringBuilder.append(categories.get(0).toHTML(htmlFileMap,
-				hashID, errorLog, 1));
-		}
-
-		final int listSize = supertypes.size();
-		if (listSize > 0)
-		{
-			stringBuilder
-				.append(tabs(1) + "<div "
-					+ HTMLBuilder
-						.tagClass(HTMLClass.classMethodSectionContent)
-					+ ">\n")
-				.append(tabs(2) + "<div "
-					+ HTMLBuilder.tagClass(HTMLClass.classSignatureHeading)
-					+ ">\n")
-				.append(tabs(3) + "Supertypes: ");
-
-			//Right now there is no link information for supertypes
-			for (int i = 0; i < listSize - 1; i++)
-			{
-				stringBuilder
-					.append(supertypes.get(i).toHTML(htmlFileMap,
-						hashID, errorLog, 1))
-					.append(", ");
-			}
-			stringBuilder
-				.append(supertypes.get(listSize - 1).toHTML(htmlFileMap,
-					hashID, errorLog, 1))
-				.append("\n" + tabs(2) + "</div>\n");
-		}
-		if (sees.size() > 0)
-		{
-			for (final StacksSeeTag see : sees)
-			{
-				stringBuilder.append(
-					see.toHTML(htmlFileMap, fieldCount, errorLog, 1));
-
-			}
-		}
-
-		stringBuilder.append(tabs(2) + "<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
-				+">\n")
-			.append(tabs(3) + description.toHTML(htmlFileMap, hashID, errorLog))
-			.append("\n" + tabs(2) + "</div>\n");
-		if (fieldCount > 0)
-		{
-
-			stringBuilder
-				.append(tabs(2) + "<table "
-            	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
-            	+ ">\n")
-				.append(tabs(3) + "<thead>\n")
-				.append(tabs(4) + "<tr>\n")
-				.append(tabs(5) + "<th class=\"Transparent\" "
-					+ " scope=\"col\"></th>\n")
-				.append(tabs(5) + "<th "
-					+ HTMLBuilder.tagClass(HTMLClass.classStacks,
-						HTMLClass.classIColLabelNarrow)
-					+ " scope=\"col\">Name</th>\n")
-				.append(tabs(5) + "<th "
-					+ HTMLBuilder.tagClass(HTMLClass.classStacks,
-						HTMLClass.classIColLabelNarrow)
-					+ " scope=\"col\">Type</th>\n"
-					+ tabs(5) + "<th "
-					+ HTMLBuilder.tagClass(HTMLClass.classStacks,
-						HTMLClass.classIColLabelWide)
-					+ " scope=\"col\">Description</th>\n"
-					+ tabs(4) + "</tr>\n"
-					+ tabs(3) + "</thead>\n"
-					+ tabs(3) + "<tbody>\n"
-					+ tabs(4) + "<tr>\n"
-					+ tabs(5) + "<th "
-					+ HTMLBuilder.tagClass(HTMLClass.classStacks,
-						HTMLClass.classIRowLabel)
-					+ " rowspan=\"")
-				.append(fieldCount + 1).append("\">Fields</th>\n"
-					+ tabs(4) + "</tr>\n");
-
-			for (final StacksFieldTag fieldTag : fields)
-			{
-				stringBuilder.append(fieldTag.toHTML(htmlFileMap,
-					hashID, errorLog, 1));
-			}
-			stringBuilder.append(tabs(3) + "</tbody>\n")
-				.append(tabs(2) + "</table>\n");
-		}
-
-		return stringBuilder.append(tabs(1) + "</div>\n").toString();
 	}
 
 	@Override

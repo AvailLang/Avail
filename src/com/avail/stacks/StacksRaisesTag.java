@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -82,48 +81,6 @@ public class StacksRaisesTag extends AbstractStacksTag
 	public QuotedStacksToken exceptionName ()
 	{
 		return exceptionName;
-	}
-
-	@Override
-	public String toHTML (final LinkingFileMap linkingFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		final StringBuilder exceptionBuilder = new StringBuilder();
-		if (linkingFileMap.internalLinks().containsKey(exceptionName.lexeme()))
-		{
-			exceptionBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
-				.append(linkingFileMap.internalLinks().get(exceptionName.lexeme()))
-				.append("')\" href=\"")
-				.append(linkingFileMap.internalLinks().get(exceptionName.lexeme()))
-				.append("\">")
-				.append(exceptionName.toHTML(linkingFileMap, hashID, errorLog))
-				.append("</a>");
-		}
-		else
-		{
-			exceptionBuilder
-				.append(exceptionName.toHTML(linkingFileMap, hashID, errorLog));
-		}
-
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append(tabs(4) + "<tr "
-				+ HTMLBuilder.tagClass(HTMLClass.classMethodParameters)
-				+ ">\n")
-			.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classICode)
-				+ ">")
-			.append(exceptionBuilder)
-			.append("</td>\n")
-			.append(tabs(5) + "<td "
-				+ HTMLBuilder
-					.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
-				+ ">\n")
-			.append(tabs(6) + exceptionDescription.toHTML(linkingFileMap, hashID,
-				errorLog))
-			.append("\n" + tabs(5) + "</td>\n")
-			.append(tabs(4) + "</tr>\n");
-		return stringBuilder.toString();
 	}
 
 	@Override

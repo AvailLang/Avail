@@ -101,33 +101,6 @@ public class StacksLinkTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final LinkingFileMap linkingFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("<a href=\"")
-			.append(link.toHTML(linkingFileMap, hashID, errorLog)).append("\">");
-
-		if (displayLinkTokens.isEmpty())
-		{
-			stringBuilder.append(link.toHTML(linkingFileMap, hashID, errorLog));
-		}
-		else
-		{
-			final int linkTokenSize = displayLinkTokens.size();
-			for (int i = 0; i < linkTokenSize - 1; i++)
-			{
-				stringBuilder.append(displayLinkTokens.get(i)
-					.toHTML(linkingFileMap, hashID, errorLog)).append(" ");
-			}
-			stringBuilder.append(displayLinkTokens.get(linkTokenSize - 1)
-				.toHTML(linkingFileMap, hashID, errorLog));
-		}
-
-		return stringBuilder.append("</a>").toString();
-	}
-
-	@Override
 	public void toJSON (
 		final LinkingFileMap linkingFileMap,
 		final int hashID,

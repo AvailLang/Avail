@@ -153,6 +153,7 @@ public class LinkingFileMap
 			new HashMap<String,ArrayList<Pair<String,String>>>();
 		aliasesToFileLink = new HashMap<String,HashSet<String>>();
 		namedFileLinks = new HashMap<String,String>();
+		internalLinks = new HashMap<String,String>();
 	}
 
 	/**
@@ -378,6 +379,9 @@ public class LinkingFileMap
 
 	/**
 	 * Create category description html table
+	 *
+	 * TODO Get rid of this
+	 *
 	 * @return
 	 * 		html table text
 	 */
@@ -385,23 +389,22 @@ public class LinkingFileMap
 	{
 		final StringBuilder stringBuilder = new StringBuilder()
 		.append(tabs(1) + "<h4 "
-			+ HTMLBuilder
-				.tagClass(HTMLClass.classMethodSectionHeader)
+			+ tagClass(HTMLClass.classMethodSectionHeader)
 			+ ">Stacks Categories</h4>\n")
 		.append(tabs(1) + "<div "
-			+ HTMLBuilder.tagClass(HTMLClass.classMethodSectionContent)
+			+ tagClass(HTMLClass.classMethodSectionContent)
 			+ ">\n")
 	    .append(tabs(2) + "<table "
-	    	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
+	    	+ tagClass(HTMLClass.classStacks)
 	    	+ ">\n")
 	    .append(tabs(3) + "<thead>\n")
 	    .append(tabs(4) + "<tr>\n")
 	    .append(tabs(5) + "<th style=\"white-space:nowrap\" "
-	    	+ HTMLBuilder.tagClass(
+	    	+ tagClass(
 	    		HTMLClass.classStacks, HTMLClass.classGColLabelNarrow)
 	    	+ " scope=\"col\">Category</th>\n")
 	    .append(tabs(5) + "<th "
-	    	+ HTMLBuilder.tagClass(
+	    	+ tagClass(
 	    		HTMLClass.classStacks, HTMLClass.classGColLabelWide)
 	    	+ " scope=\"col\">Description</th>\n")
 	    .append(tabs(4) + "</tr>\n")
@@ -418,14 +421,12 @@ public class LinkingFileMap
 			stringBuilder
 				.append(tabs(4)).append("<tr>\n")
 				.append(tabs(5) + "<td "
-					+ HTMLBuilder
-						.tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
+					+ tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
 					+ ">")
 				.append(category)
 				.append("</td>\n")
 				.append(tabs(5) + "<td "
-					+ HTMLBuilder
-						.tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
+					+ tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
 					+ ">")
 				.append(categoryToDescription.get(category).toHTML(this, 0,
 					null))
@@ -437,7 +438,27 @@ public class LinkingFileMap
 			.append(tabs(2) + "</table>\n")
 			.append(tabs(1) + "</div>\n");
 		return stringBuilder.toString();
+	}
 
+	/**
+	 * Add a class statement with the listed classes.
+	 * @param classes
+	 * 		The classes to add to the tag
+	 * @return
+	 */
+	public String tagClass(final String ... classes)
+	{
+		final StringBuilder stringBuilder = new StringBuilder()
+			.append("class=\"");
+		final int argumentCount = classes.length;
+		for (int i = 0;  i < argumentCount - 1; i++)
+		{
+			stringBuilder.append(classes[i]).append(" ");
+		}
+		return stringBuilder
+			.append(classes[argumentCount - 1])
+			.append("\"")
+			.toString();
 	}
 
 	/**

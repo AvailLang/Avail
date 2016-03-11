@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -52,10 +51,10 @@ import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.ModuleImport;
 import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
-import com.avail.descriptor.A_String;
 import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.Pair;
@@ -1317,70 +1316,70 @@ public class StacksCommentsModule
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	public void writeMethodsToHTMLFiles(
-			final Path outputPath,
-			final StacksSynchronizer synchronizer,
-			final AvailRuntime runtime,
-			final LinkingFileMap htmlFileMap,
-			final Path templateFilePath,
-			final Path implementationProperties,
-			final StacksErrorLog errorLog)
-		throws IOException
-	{
-		final StringBuilder newLogEntry = new StringBuilder()
-			.append("<h3>Internal Link Errors</h3>\n")
-			.append("<ol>\n");
-
-		final ByteBuffer errorBuffer = ByteBuffer.wrap(
-			newLogEntry.toString().getBytes(StandardCharsets.UTF_8));
-		errorLog.addLogEntry(errorBuffer,0);
-
-		final String htmlTemplate =
-			HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
-
-		final String [] htmlSplitTemplate = htmlTemplate
-			.split("IMPLEMENTATION-GROUP");
-
-		for (final A_String implementationName :
-			finalImplementationsGroupMap.keySet())
-		{
-			final HashMap<String, ImplementationGroup> tempImplementationMap =
-				finalImplementationsGroupMap.get(implementationName);
-
-			for (final String modulePath : tempImplementationMap.keySet())
-			{
-				final ImplementationGroup implementation =
-					tempImplementationMap.get(modulePath);
-
-				implementation.toHTML(outputPath,htmlSplitTemplate[0],
-					htmlSplitTemplate[1], synchronizer, runtime, htmlFileMap,
-					implementationProperties, 3,
-					implementationName.asNativeString(), errorLog);
-			}
-		}
-
-		/*for (final HashMap<String, ImplementationGroup> implementationGroups :
-			stickyNamesImplementations.values())
-		{
-			for (final String groupPath :
-				implementationGroups.keySet())
-			{
-				implementationGroups.get(groupPath).toHTML(
-					outputPath,htmlSplitTemplate[0],
-					htmlSplitTemplate[1], synchronizer, runtime, htmlFileMap,
-					implementationProperties, 3,
-					implementationGroups.get(groupPath).name().asNativeString(),
-					errorLog);
-			}
-		}*/
-
-		final StringBuilder closeLogEntry = new StringBuilder()
-			.append("</ol>\n");
-
-		final ByteBuffer closeErrorBuffer = ByteBuffer.wrap(
-			closeLogEntry.toString().getBytes(StandardCharsets.UTF_8));
-		errorLog.addLogEntry(closeErrorBuffer,0);
-	}
+//	public void writeMethodsToHTMLFiles(
+//			final Path outputPath,
+//			final StacksSynchronizer synchronizer,
+//			final AvailRuntime runtime,
+//			final LinkingFileMap htmlFileMap,
+//			final Path templateFilePath,
+//			final Path implementationProperties,
+//			final StacksErrorLog errorLog)
+//		throws IOException
+//	{
+//		final StringBuilder newLogEntry = new StringBuilder()
+//			.append("<h3>Internal Link Errors</h3>\n")
+//			.append("<ol>\n");
+//
+//		final ByteBuffer errorBuffer = ByteBuffer.wrap(
+//			newLogEntry.toString().getBytes(StandardCharsets.UTF_8));
+//		errorLog.addLogEntry(errorBuffer,0);
+//
+//		final String htmlTemplate =
+//			HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
+//
+//		final String [] htmlSplitTemplate = htmlTemplate
+//			.split("IMPLEMENTATION-GROUP");
+//
+//		for (final A_String implementationName :
+//			finalImplementationsGroupMap.keySet())
+//		{
+//			final HashMap<String, ImplementationGroup> tempImplementationMap =
+//				finalImplementationsGroupMap.get(implementationName);
+//
+//			for (final String modulePath : tempImplementationMap.keySet())
+//			{
+//				final ImplementationGroup implementation =
+//					tempImplementationMap.get(modulePath);
+//
+//				implementation.toHTML(outputPath,htmlSplitTemplate[0],
+//					htmlSplitTemplate[1], synchronizer, runtime, htmlFileMap,
+//					implementationProperties, 3,
+//					implementationName.asNativeString(), errorLog);
+//			}
+//		}
+//
+//		/*for (final HashMap<String, ImplementationGroup> implementationGroups :
+//			stickyNamesImplementations.values())
+//		{
+//			for (final String groupPath :
+//				implementationGroups.keySet())
+//			{
+//				implementationGroups.get(groupPath).toHTML(
+//					outputPath,htmlSplitTemplate[0],
+//					htmlSplitTemplate[1], synchronizer, runtime, htmlFileMap,
+//					implementationProperties, 3,
+//					implementationGroups.get(groupPath).name().asNativeString(),
+//					errorLog);
+//			}
+//		}*/
+//
+//		final StringBuilder closeLogEntry = new StringBuilder()
+//			.append("</ol>\n");
+//
+//		final ByteBuffer closeErrorBuffer = ByteBuffer.wrap(
+//			closeLogEntry.toString().getBytes(StandardCharsets.UTF_8));
+//		errorLog.addLogEntry(closeErrorBuffer,0);
+//	}
 
 	/**
 	 * Write all the methods and extends methods to file.
@@ -1443,167 +1442,6 @@ public class StacksCommentsModule
 		final ByteBuffer closeErrorBuffer = ByteBuffer.wrap(
 			closeLogEntry.toString().getBytes(StandardCharsets.UTF_8));
 		errorLog.addLogEntry(closeErrorBuffer,0);
-	}
-
-	/**
-	 * Write all the methods and extends methods to file.
-	 *
-	 * @param outputPath
-	 *        The {@linkplain Path path} to the output {@linkplain
-	 *        BasicFileAttributes#isDirectory() directory} for documentation and
-	 *        data files.
-	 * @param synchronizer
-	 *        The {@linkplain StacksSynchronizer} used to control the creation
-	 *        of Stacks documentation
-	 * @param templateFilePath
-	 *        The path of the template file used to wrap the generated HTML.
-	 * @param implementationProperties
-	 *        The file path location of the HTML properties used to generate
-	 *        the bulk of the inner html of the implementations.
-	 * @param runtime
-	 *        An {@linkplain AvailRuntime runtime}.
-	 * @param ambiguousMethodFileMap
-	 *        The map of ambiguous names requiring ambiguous files.
-	 * @param topLevelLinkFolderPath
-	 *        The folder that the Avail documentation sits in above the
-	 *        providedDocumentPath.
-	 * @param htmlFileMap
-	 *        A map for all HTML files ins Stacks
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
-	 */
-	private void writeAmbiguousMethodsHTMLFiles (
-			final Path outputPath,
-			final StacksSynchronizer synchronizer,
-			final Path templateFilePath,
-			final Path implementationProperties,
-			final AvailRuntime runtime,
-			final HashMap<A_String, HashMap<String, ImplementationGroup>>
-				ambiguousMethodFileMap,
-			final String topLevelLinkFolderPath,
-			final LinkingFileMap htmlFileMap)
-		throws IOException
-	{
-		final HashMap<String,String> internalLinks =
-			new HashMap<String,String>();
-
-		final Path outputFolder = outputPath
-			.resolve("library-documentation/_Ambiguities");
-
-		final String linkLocation = topLevelLinkFolderPath + "/_Ambiguities";
-
-		final String htmlTemplate =
-			HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
-
-		final String [] htmlSplitTemplate = htmlTemplate
-			.split("IMPLEMENTATION-GROUP");
-
-		//Get aliases from ambiguous implementations
-		for (final A_String key :
-			ambiguousMethodFileMap.keySet())
-		{
-			final HashMap<String, ImplementationGroup> tempImplementationMap =
-				ambiguousMethodFileMap.get(key);
-
-			for (final String modulePath : tempImplementationMap.keySet())
-			{
-				final ImplementationGroup group =
-					tempImplementationMap.get(modulePath);
-
-				if (group.isPopulated())
-				{
-					for (final String alias : group.aliases())
-					{
-						internalLinks.put(alias, linkLocation
-							+ group.filepath().relativeFilePath());
-					}
-				}
-			}
-		}
-
-		for (final A_String key :
-			ambiguousMethodFileMap.keySet())
-		{
-			final HashMap<String, ImplementationGroup> tempImplementationMap =
-				ambiguousMethodFileMap.get(key);
-
-			final StringBuilder stringBuilder = new StringBuilder()
-			.append(htmlSplitTemplate[0])
-			.append(tabs(1) + "<h2 "
-				+ HTMLBuilder.tagClass(HTMLClass.classMethodHeading) + ">")
-			.append(key.asNativeString())
-			.append("</h2>\n")
-			.append("<div>Link could refer to the following module-defined "
-				+ "implementations:</div>\n")
-			.append("<ol>");
-
-			final HashSet<String> ambiguousLinks = new HashSet<String>();
-			final HashSet<String> ambiguousNoLinks = new HashSet<String>();
-
-			if (htmlFileMap.aliasesToFileLink()
-				.containsKey(key.asNativeString()))
-			{
-				for (final String link : htmlFileMap.aliasesToFileLink()
-					.get(key.asNativeString()))
-				{
-					ambiguousLinks.add(link);
-				}
-			}
-
-			//Create ambiguous link list
-			for (final String modulePath : tempImplementationMap.keySet())
-			{
-				final ImplementationGroup group =
-					tempImplementationMap.get(modulePath);
-
-				if (group.isPopulated())
-				{
-					ambiguousLinks.add(topLevelLinkFolderPath
-						+ group.filepath().relativeFilePath());
-				}
-				else
-				{
-					ambiguousNoLinks.add(group.filepath().pathName());
-				}
-			}
-
-			final int trim = topLevelLinkFolderPath.length();
-
-			for (final String link : ambiguousLinks)
-			{
-				stringBuilder.append("<li>")
-				.append("<a href=\"")
-				.append(link)
-				.append("\">")
-				.append(link.subSequence(trim, link.lastIndexOf("/")))
-				.append("</a>")
-				.append("</li>\n");
-			}
-
-			for (final String noLink : ambiguousNoLinks)
-			{
-				stringBuilder.append("<li>")
-					.append(noLink)
-					.append("</li>\n");
-			}
-
-			stringBuilder.append("</ol>");
-
-			final String fileName = String.valueOf(key.hash()
-				& 0xFFFFFFFFL) + ".html";
-
-			internalLinks.put(key.asNativeString(),
-				linkLocation + "/"  + fileName);
-
-			final StacksOutputFile htmlFile = new StacksOutputFile(
-				outputFolder, synchronizer, fileName,
-				runtime, key.asNativeString());
-
-			htmlFile
-				.write(stringBuilder.append(htmlSplitTemplate[1]).toString());
-		}
-
-		htmlFileMap.internalLinks(internalLinks);
 	}
 
 	/**
@@ -1753,137 +1591,6 @@ public class StacksCommentsModule
 		}
 
 			linkingFileMap.internalLinks(internalLinks);
-	}
-
-	/**
-	 * Write all the methods and extends methods to file.
-	 *
-	 * @param outputPath
-	 *        The {@linkplain Path path} to the output {@linkplain
-	 *        BasicFileAttributes#isDirectory() directory} for documentation and
-	 *        data files.
-	 * @param templateFilePath
-	 *        The path of the template file used to wrap the generated HTML
-	 * @param implementationProperties
-	 *        The file path location of the HTML properties used to generate
-	 *        the bulk of the inner html of the implementations.
-	 * @param runtime
-	 *        An {@linkplain AvailRuntime runtime}.
-	 * @param ambiguousMethodFileMap
-	 *        The map of ambiguous names requiring ambiguous files.
-	 * @param topLevelLinkFolderPath
-	 *        The folder that the Avail documentation sits in above the
-	 *        providedDocumentPath.
-	 * @param htmlFileMap
-	 *        A map for all HTML files ins Stacks
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
-	 */
-	private void writeAmbiguousAliasHTMLFiles (
-			final Path outputPath,
-			final Path templateFilePath,
-			final Path implementationProperties,
-			final AvailRuntime runtime,
-			final HashMap<A_String, HashMap<String, ImplementationGroup>>
-				ambiguousMethodFileMap,
-			final String topLevelLinkFolderPath,
-			final LinkingFileMap htmlFileMap)
-		throws IOException
-	{
-
-		final HashMap<String,String> internalLinks =
-			new HashMap<String,String>();
-
-		final Path outputFolder = outputPath
-			.resolve("library-documentation/_Ambiguities");
-
-		final String htmlTemplate =
-			HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
-
-		final String [] htmlSplitTemplate = htmlTemplate
-			.split("IMPLEMENTATION-GROUP");
-
-		final HashMap<String,HashSet<String>> tempAmbiguousAliasMap =
-			new HashMap<String,HashSet<String>>();
-
-		for (final String key : htmlFileMap.namedFileLinks().keySet())
-		{
-			if (!htmlFileMap.aliasesToFileLink().containsKey(key))
-			{
-				internalLinks.put(key, htmlFileMap.namedFileLinks().get(key));
-			}
-			else
-			{
-				tempAmbiguousAliasMap.put(key,
-					htmlFileMap.aliasesToFileLink().get(key));
-
-				tempAmbiguousAliasMap.get(key)
-					.add(htmlFileMap.namedFileLinks().get(key));
-
-				if (tempAmbiguousAliasMap.get(key).size() == 1)
-				{
-					internalLinks.put(key,
-						htmlFileMap.namedFileLinks().get(key));
-					tempAmbiguousAliasMap.remove(key);
-				}
-			}
-		}
-
-		final int additionalAmbiguityFileCount = tempAmbiguousAliasMap.size();
-
-		if (additionalAmbiguityFileCount > 0)
-		{
-			final StacksSynchronizer ambiguousAliasSynchronizer =
-				new StacksSynchronizer(additionalAmbiguityFileCount);
-
-			for (final String ambiguousAliasKey : tempAmbiguousAliasMap.keySet())
-			{
-				final HashSet<String> ambiguousLinks =
-					tempAmbiguousAliasMap.get(ambiguousAliasKey);
-
-				final StringBuilder stringBuilder = new StringBuilder()
-				.append(htmlSplitTemplate[0])
-				.append(tabs(1) + "<h2 "
-					+ HTMLBuilder.tagClass(HTMLClass.classMethodHeading) + ">")
-				.append(ambiguousAliasKey)
-				.append("</h2>\n")
-				.append("<div>Link could refer to the following module-defined "
-					+ "implementation files:</div>\n")
-				.append("<ol>");
-
-				//Create ambiguous link list
-				for (final String ambiguousLink : ambiguousLinks)
-				{
-					stringBuilder.append("<li>")
-						.append("<a href=\"")
-						.append(ambiguousLink)
-						.append("\">")
-						.append(ambiguousLink)
-						.append("</a>")
-						.append("</li>\n");
-				}
-
-				stringBuilder.append("</ol>");
-
-				final String fileName = String.valueOf(
-					StringDescriptor.from(ambiguousAliasKey).hash()
-						& 0xFFFFFFFFL) + ".html";
-
-				internalLinks.put(ambiguousAliasKey,
-					topLevelLinkFolderPath + "/_Ambiguities/" + fileName);
-
-				final StacksOutputFile htmlFile = new StacksOutputFile(
-					outputFolder, ambiguousAliasSynchronizer, fileName,
-					runtime, ambiguousAliasKey);
-
-				htmlFile
-					.write(stringBuilder.append(htmlSplitTemplate[1]).toString());
-			}
-
-			ambiguousAliasSynchronizer.waitForWorkUnitsToComplete();
-		}
-
-		htmlFileMap.internalLinks().putAll(internalLinks);
 	}
 
 	/**

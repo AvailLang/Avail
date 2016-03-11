@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import java.util.HashSet;
 import java.util.List;
 import com.avail.utility.json.JSONWriter;
@@ -67,34 +66,6 @@ public class StacksCategoryTag extends AbstractStacksTag
 	public List<QuotedStacksToken> categories ()
 	{
 		return categories;
-	}
-
-	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		final int listSize = categories.size();
-
-		if (listSize > 0)
-		{
-			stringBuilder
-				.append(tabs(2))
-				.append("<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classCategoryList)
-				+ "><em>Categories:</em> ");
-			for (int i = 0; i < listSize - 1; i++)
-			{
-				stringBuilder.append(categories.get(i)
-					.toHTML(htmlFileMap, hashID, errorLog)).append(", ");
-			}
-			stringBuilder
-				.append(categories.get(listSize - 1)
-					.toHTML(htmlFileMap, hashID, errorLog));
-			stringBuilder.append("</div>\n");
-		}
-
-		return stringBuilder.toString();
 	}
 
 	/**

@@ -32,7 +32,6 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
@@ -131,123 +130,6 @@ public class MethodCommentImplementation extends AbstractCommentImplementation
 		final ImplementationGroup implementationGroup)
 	{
 		implementationGroup.addMethod(this);
-	}
-
-	@Override
-	public String toHTML (final LinkingFileMap linkingFileMap,
-		final String nameOfGroup, final StacksErrorLog errorLog)
-	{
-		final int paramCount = parameters.size();
-		final int exceptionCount = exceptions.size();
-		int colSpan = 1;
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append(signature().toHTML(nameOfGroup, isSticky()));
-
-		if (categories.size() > 0)
-		{
-			stringBuilder.append(categories.get(0).toHTML(linkingFileMap,
-				hashID, errorLog, 1));
-		}
-
-		if (aliases.size() > 0)
-		{
-			stringBuilder.append(aliases.get(0).toHTML(linkingFileMap,
-				hashID, errorLog, 1));
-		}
-		if (sees.size() > 0)
-		{
-			for (final StacksSeeTag see : sees)
-			{
-				stringBuilder.append(
-					see.toHTML(linkingFileMap, exceptionCount, errorLog, 1));
-			}
-		}
-
-		stringBuilder.append(tabs(2) + "<div "
-				+ HTMLBuilder.tagClass(HTMLClass.classSignatureDescription)
-				+ ">\n")
-			.append(tabs(3) + description.toHTML(linkingFileMap, hashID, errorLog))
-			.append("\n" + tabs(2) + "</div>\n")
-			.append(tabs(2) + "<table "
-            	+ HTMLBuilder.tagClass(HTMLClass.classStacks)
-            	+ ">\n")
-			.append(tabs(3) + "<thead>\n")
-			.append(tabs(4) + "<tr>\n")
-			.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(HTMLClass.classTransparent)
-				+ " scope=\"col\"></th>\n");
-		if (paramCount > 0)
-		{
-			stringBuilder.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(
-					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
-				+ " scope=\"col\">Position</th>\n");
-			stringBuilder.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(
-					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
-				+ " scope=\"col\">Name</th>\n");
-			colSpan = 3;
-		}
-
-		stringBuilder
-			.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(
-					HTMLClass.classStacks, HTMLClass.classIColLabelNarrow)
-				+ " scope=\"col\">Type</th>\n")
-			.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(
-					HTMLClass.classStacks, HTMLClass.classIColLabelWide)
-				+ " scope=\"col\">Description</th>\n")
-			.append(tabs(4) + "</tr>\n")
-			.append(tabs(3) + "</thead>\n")
-			.append(tabs(3) + "<tbody>\n");
-
-		if (paramCount > 0)
-		{
-			stringBuilder.append(tabs(4) + "<tr>\n")
-				.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(
-					HTMLClass.classStacks, HTMLClass.classIRowLabel)
-				+ " rowspan=\"")
-			.append(paramCount + 1).append("\">Parameters</th>\n")
-			.append(tabs(4) + "</tr>\n");
-		}
-
-		//The ordered position of the parameter in the method signature.
-		int position = 1;
-		for (final StacksParameterTag paramTag : parameters)
-		{
-			stringBuilder.append(paramTag.toHTML(linkingFileMap,
-				hashID, errorLog, position++));
-		}
-
-		stringBuilder.append(tabs(4) + "<tr>\n")
-			.append(tabs(5) + "<th "
-				+ HTMLBuilder.tagClass(
-					HTMLClass.classStacks, HTMLClass.classIRowLabel)
-				+ " colspan=\"")
-			.append(colSpan).append("\">Returns</th>\n")
-			.append(returnsContent.toHTML(linkingFileMap,
-				hashID, errorLog, 1));
-
-		if (exceptionCount > 0)
-		{
-			stringBuilder.append(tabs(5) + "<th "
-					+ HTMLBuilder.tagClass(
-						HTMLClass.classStacks, HTMLClass.classIRowLabel)
-					+ " colspan=\"")
-				.append(colSpan).append("\" rowspan=\"")
-				.append(exceptionCount+1).append("\">Raises</th>\n");
-
-			for (final StacksRaisesTag exception : exceptions)
-			{
-				stringBuilder.append(exception.toHTML(linkingFileMap,
-					hashID, errorLog, 1));
-			}
-		}
-
-		return stringBuilder.append(tabs(3) + "</tbody>\n")
-			.append(tabs(2) + "</table>\n").toString();
 	}
 
 	@Override

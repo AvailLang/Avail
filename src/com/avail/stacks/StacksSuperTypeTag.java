@@ -69,26 +69,6 @@ public class StacksSuperTypeTag extends AbstractStacksTag
 	}
 
 	@Override
-	public String toHTML (final LinkingFileMap htmlFileMap,
-		final int hashID, final StacksErrorLog errorLog, final int position)
-	{
-		if (htmlFileMap.internalLinks().containsKey(superType.lexeme()))
-		{
-			final StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.append("<a ng-click=\"myParent().changeLinkValue('")
-				.append(htmlFileMap.internalLinks().get(superType.lexeme()))
-				.append("')\" href=\"")
-				.append(htmlFileMap.internalLinks().get(superType.lexeme()))
-				.append("\">")
-				.append(superType.toHTML(htmlFileMap, hashID, errorLog))
-				.append("</a>");
-			return stringBuilder.toString();
-		}
-
-		return superType.toHTML(htmlFileMap, hashID, errorLog);
-	}
-
-	@Override
 	public void toJSON (
 		final LinkingFileMap linkingFileMap,
 		final int hashID,
