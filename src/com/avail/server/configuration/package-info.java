@@ -1,6 +1,6 @@
-/*
- * Data Abstractions.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+/**
+ * package-info.java
+ * Copyright © 1993-2016, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,17 +30,5 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Data Abstractions"
-Versions
-	"1.0.0 DEV 2014-04-28"
-Extends
-	"Converters",
-	"Dates and Times",
-	"Graphs",
-	"Iterators",
-	"Pseudorandom Number Generation",
-	"Sequences",
-	"Streams",
-	"Tries",
-	"Visitors"
-Body
+@com.avail.annotations.NotNullByDefault
+package com.avail.server.configuration;
