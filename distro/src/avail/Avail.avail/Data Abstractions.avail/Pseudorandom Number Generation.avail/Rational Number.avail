@@ -1,0 +1,195 @@
+/*
+ * Rational Number.avail
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Rational Number"
+Versions
+	"1.0.0 DEV 2014-04-28"
+Uses
+	"Foundation"
+Names
+	/*Class*/
+	"fraction",
+	"rational number",
+
+	/*Math*/
+	"_÷_(r)",
+
+	/*Utility*/
+	"_is a mixed fraction",
+	"_is nonzero",
+	"_'s⁇fraction",
+	"_'s⁇whole number part"
+	
+Body
+/* Rational number for Mark's continuous border sampling equal distribution.
+ * In order to preserve precision, the representation rational's will be
+ * mixed fractions. */
+"numerator" is a new field atom;
+"denominator" is a new field atom;
+"whole number part" is a new field atom;
+
+/* For the purpose of the equal distribution of the mapping, negative numbers
+ * are not necessary */
+Explicit class "fraction" extends object
+	with immutable fields
+		numerator : whole number,
+		denominator : natural number;
+
+Method "“_”" is
+[
+	f : fraction
+|
+	format "“①”/“②”" with f's numerator, f's denominator
+]:string;
+
+Public explicit class "rational number" extends fraction
+	with immutable fields
+		whole number part : whole number;
+
+Method "“_”" is
+[
+	r : rational number
+|
+	format "“①” “②”/“③”" with 
+		r's whole number part,r's numerator, r's denominator 
+]:string;
+
+Explicit class "improper fraction" extends fraction;
+
+/* Acquire the fractional component of the rational number */
+Public method "_'s⁇fraction" is
+[
+ 	rational : rational number
+|
+	a fraction with
+		numerator ::= rational's numerator,
+		denominator ::= rational's denominator
+]:fraction;
+
+Public method "_is a mixed fraction" is
+[
+ 	rational : rational number
+|
+	rational's numerator ≠ 0
+]:boolean;
+
+Private method "_→improper fraction" is
+[
+ 	rational : rational number
+| 
+	an improper fraction with
+		numerator ::= rational's whole number part × rational's denominator 
+			+ rational's numerator,
+		denominator ::= rational's denominator
+]:improper fraction;
+
+Private method "invert_" is
+[
+ 	im : improper fraction
+|
+	a fraction with
+		numerator ::= im's denominator,
+		denominator ::= cast im's numerator into [n : natural number | n]
+]:fraction;
+
+/* Make the result of integer division a rational number*/
+Public method "_÷_(r)" is
+[
+ 	dividend : whole number,
+ 	divisor : natural number
+|
+	quotient ::= dividend ÷ divisor;
+	remainder ::= dividend mod divisor;
+	a rational number with
+		whole number part ::= quotient,
+		numerator ::= remainder,
+		denominator ::= divisor
+]: rational number; 
+
+Method "_×_" is
+[
+	multiplicand : whole number,
+	multiplier : fraction
+|
+	num ::= multiplicand × multiplier's numerator;
+	a rational number with
+		whole number part ::= num ÷ multiplier's denominator,
+		numerator ::= num mod multiplier's denominator,
+		denominator ::= multiplier's denominator
+]: rational number;
+
+Method "_×_" is
+[
+	multiplicand : fraction,
+	multiplier : whole number
+|
+	multiplier × multiplicand
+]: rational number;
+
+Method "_×_" is
+[
+	multiplicand : rational number,
+	multiplier : whole number 
+|
+	multiplicand→improper fraction × multiplier
+]: rational number;
+
+Method "_÷_" is
+[
+ 	dividend : whole number,
+ 	divisor : rational number
+|
+	dividend × invert divisor →improper fraction
+]: rational number;
+
+/* For the purpose of this module, the probability distribution only spans
+ * a two-element outcome.  Because this is the case, we will always subtract
+ * a know weighted probability from one outcome to determine the weighted 
+ * probability of the second outcome. */
+Method "_-_" is
+[
+ 	minuend : 1's type,
+ 	subtrahend : fraction
+|
+	num ::= subtrahend's denominator - subtrahend's numerator;
+		
+	a fraction with
+		numerator ::= cast num into [w : whole number | w],
+		denominator ::= subtrahend's denominator
+]:fraction;
+
+Method "_is nonzero" is
+[
+ 	f : fraction
+|
+	f's numerator > 0
+]:boolean;
