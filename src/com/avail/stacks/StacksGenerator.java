@@ -139,7 +139,8 @@ public class StacksGenerator
 		}
 		this.outputPath = outputPath;
 		this.linkPrefix =
-			"/about-avail/documentation/stacks/library-documentation/index.html#/method";
+			//"/about-avail/documentation/stacks/library-documentation/index.html#/method";
+			"index.html#/method";
 		this.linkingFileMap = new LinkingFileMap();
 		this.resolver = resolver;
 
