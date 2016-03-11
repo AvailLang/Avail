@@ -44,7 +44,7 @@ public class StacksReturnTag extends AbstractStacksTag
 	/**
 	 * The type of the return
 	 */
-	final private QuotedStacksToken returnType;
+	final private RegionStacksToken returnType;
 
 	/**
 	 * The description of the return.
@@ -60,7 +60,7 @@ public class StacksReturnTag extends AbstractStacksTag
 	 *
 	 */
 	public StacksReturnTag (
-		final QuotedStacksToken returnType,
+		final RegionStacksToken returnType,
 		final StacksDescription returnDescription)
 	{
 		this.returnType = returnType;
@@ -78,7 +78,7 @@ public class StacksReturnTag extends AbstractStacksTag
 	/**
 	 * @return the returnType
 	 */
-	public QuotedStacksToken returnType ()
+	public RegionStacksToken returnType ()
 	{
 		return returnType;
 	}

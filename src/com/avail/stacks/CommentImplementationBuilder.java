@@ -701,10 +701,10 @@ public class CommentImplementationBuilder
 			throw new StacksCommentBuilderException(errorMessage, this);
 		}
 
-		final QuotedStacksToken tempName;
+		final RegionStacksToken tempName;
 		try
 		{
-			tempName =(QuotedStacksToken) tagContentTokens.get(0);
+			tempName =(RegionStacksToken) tagContentTokens.get(0);
 		}
 		catch (final ClassCastException e)
 		{

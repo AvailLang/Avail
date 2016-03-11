@@ -102,7 +102,7 @@ Public explicit class "die" extends dice expression;
  * @method "_'s⁇faces"
  * @param "aDie" "die"
  *        A {@type "die"}.
- * @returns The argument's faces.
+ * @returns "<extended integer…|1..>" The argument's faces.
  */
 Public abstract method "_'s⁇faces" is [die]→<extended integer…|1..>;
 
@@ -150,7 +150,7 @@ Method "“_”" is
  * Intregrate the specified {@type "dice expression⁇outcome" dice outcomes}. The
  * answer's {@method "_'s⁇detailed outcome" detail map} contains all die rolls.
  * The answer's {@method "_'s⁇result" result} is obtained by applying {@param
- * "merger"} to the {@method "_'s⁇result results} of the arguments {@param
+ * "merger"} to the {@method "_'s⁇result" results} of the arguments {@param
  * "arg1"} and {@param "arg2"}.
  *
  * @category "Dice" "Transformers"

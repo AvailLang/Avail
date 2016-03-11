@@ -51,7 +51,7 @@ Body
  *
  * @method "prettify_"
  * @param "aString" "string"
- * @return "string"
+ * @returns "string"
  */
 Private method "prettify_" is
 [

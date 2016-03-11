@@ -125,8 +125,8 @@ languageLock : non-reentrant mutex :=
  *
  * @type "language name"
  * @supertype "nonempty string"
- * @see "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
- *      List of ISO 639-1 codes
+ * @see {@link "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
+ *      List of ISO 639-1 codes}
  */
 Public macro "language name" is [‘nonempty string’];
 
@@ -135,8 +135,8 @@ Public macro "language name" is [‘nonempty string’];
  *
  * @type "language code"
  * @supertype "<character…|2>"
- * @see "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
- *      List of ISO 639-1 codes
+ * @see {@link "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
+ *      List of ISO 639-1 codes}
  */
 Public macro "language code" is [‘<enumeration of ¢a to ¢z → set…|2>’];
 
@@ -221,8 +221,8 @@ Public method "_is valid language name" is
  * @returns "boolean"
  *          {@method "true"} if {@param "name"} represents a registered
  *          language, {@method "false"} otherwise.
- * @see "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
- *      List of ISO 639-1 codes
+ * @see {@link "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
+ *      List of ISO 639-1 codes}
  */
 Public method "_is valid language code" is
 [
@@ -396,7 +396,7 @@ scriptLock : non-reentrant mutex :=
  *
  * @type "script name"
  * @supertype "nonempty string"
- * @see "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924
+ * @see {@link "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924}
  */
 Public macro "script name" is [‘nonempty string’];
 
@@ -405,7 +405,7 @@ Public macro "script name" is [‘nonempty string’];
  *
  * @type "script code"
  * @supertype "<character…|2>"
- * @see "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924
+ * @see {@link "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924}
  */
 Public macro "script code" is
 	[‘<enumeration of ¢A to ¢Z → set, enumeration of ¢a to ¢z → set…|4>’];
@@ -491,7 +491,7 @@ Public method "_is valid script name" is
  * @returns "boolean"
  *          {@method "true"} if {@param "name"} represents a registered
  *          script, {@method "false"} otherwise.
- * @see "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924
+ * @see {@link "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924}
  */
 Public method "_is valid script code" is
 [
@@ -665,7 +665,7 @@ regionLock : non-reentrant mutex :=
  *
  * @type "region name"
  * @supertype "nonempty string"
- * @see "https://en.wikipedia.org/wiki/ISO_3166-1" ISO 3166-1
+ * @see {@link "https://en.wikipedia.org/wiki/ISO_3166-1" ISO 3166-1}
  */
 Public macro "region name" is [‘nonempty string’];
 
@@ -674,7 +674,7 @@ Public macro "region name" is [‘nonempty string’];
  *
  * @type "region code"
  * @supertype "<character…|2>"
- * @see "https://en.wikipedia.org/wiki/ISO_3166-1" ISO 3166-1
+ * @see {@link "https://en.wikipedia.org/wiki/ISO_3166-1" ISO 3166-1}
  */
 Public macro "region code" is [‘<enumeration of ¢A to ¢Z → set…|2>’];
 
@@ -759,7 +759,7 @@ Public method "_is valid region name" is
  * @returns "boolean"
  *          {@method "true"} if {@param "name"} represents a registered
  *          region, {@method "false"} otherwise.
- * @see "https://en.wikipedia.org/wiki/ISO_3166-1" ISO 3166-1
+ * @see {@link "https://en.wikipedia.org/wiki/ISO_3166-1" ISO 3166-1}
  */
 Public method "_is valid region code" is
 [
@@ -1448,7 +1448,7 @@ Semantic restriction "an unchecked language tag…-…-…" is
  *         If {@param "tagSpec"} does not satisfy the production requirements
  *         of {@see "http://tools.ietf.org/html/rfc5646#section-2.1.1" RFC 5646,
  *         Section 2.1}.
- * @see "http://tools.ietf.org/html/rfc5646#section-2.1.1" RFC 5646, Section 2.1
+ * @see {@link "http://tools.ietf.org/html/rfc5646#section-2.1.1" RFC 5646, Section 2.1}
  */
 Public stable method "_→language tag" is
 [

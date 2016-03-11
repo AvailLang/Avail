@@ -383,6 +383,7 @@ Private method "_'s⁇Perl truthiness" is
  * @param "justArrived" "boolean"
  *        {@method "true"} if the {@type "agent"} is just entering the {@type
  *        "room"}, {@method "false"} otherwise.
+ * @returns "⊤"
  */
 Public method "look`_around(_)" is
 [
@@ -417,6 +418,7 @@ Public method "take`_turn(_)" is
  * @param "action" "[]→⊤"
  *        The body of code that should use {@param "game"} as the reference
  *        game.
+ * @returns "⊤"
  */
 Public method "_->be`_implied`_during(_)" is
 [

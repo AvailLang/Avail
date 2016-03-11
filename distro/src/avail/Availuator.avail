@@ -78,7 +78,7 @@ Method "Run_" is [f : []→⊤ | f();] : ⊤;
  * @category "Availuator"
  * @param "f" "[]→any"
  *        An arbitrary arity-0 {@type "function"}.
- * @return "any"
+ * @returns "any"
  *         The value of applying the argument.
  */
 Method "Run_" is [f : []→any | f()] : any;
@@ -90,7 +90,7 @@ Method "Run_" is [f : []→any | f()] : any;
  * @category "Availuator"
  * @param "f" "[]→⊤"
  *        An arbitrary arity-0 {@type "function"}.
- * @return "whole number µs"
+ * @returns "whole number µs"
  *         The elapsed time, in microseconds.
  */
 Method "time_" is
@@ -110,7 +110,7 @@ Method "time_" is
  * @category "Availuator"
  * @param "f" "[]→any"
  *        An arbitrary value-producing arity-0 {@type "function"}.
- * @return "<whole number µs, any…|2>"
+ * @returns "<whole number µs, any…|2>"
  *         A 2-tuple. The first element is the elapsed time in microseconds. The
  *         second element is the function's result.
  */

@@ -169,7 +169,7 @@ Private method "Stop Lincolnshire Poacher" is
  *
  * @method "Identify agent:_"
  * @param "agentId" "<byte…|5>"
- * @return "⊤"
+ * @returns "⊤"
  */
 Private method "Identify agent:_" is
 [
@@ -189,7 +189,7 @@ Private method "Identify agent:_" is
  *
  * @method "Show code block:_"
  * @param "codeBlock" "<byte…|5>"
- * @return "⊤"
+ * @returns "⊤"
  */
 Private method "Show code block:_" is
 [
@@ -205,7 +205,7 @@ Private method "Show code block:_" is
  * to standard output as hyphen-separated quintets.
  *
  * @method "Eavesdrop"
- * @return "⊤"
+ * @returns "⊤"
  */
 Method "Eavesdrop" is
 [

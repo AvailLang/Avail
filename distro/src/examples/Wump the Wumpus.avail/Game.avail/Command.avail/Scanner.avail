@@ -65,7 +65,7 @@ Public explicit class "runaway-string exception" extends exception;
  * @method "tokenize_"
  * @param "s" "string"
  *        The {@type "string"} to tokenize.
- * @return "<nonempty string…|>"
+ * @returns "<nonempty string…|>"
  *         A tuple of tokens.
  * @raises "runaway-string exception"
  *         If {@param "s"} includes an unterminated quoted string.

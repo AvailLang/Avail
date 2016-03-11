@@ -120,6 +120,7 @@ Public stable method "_«fully»?escaped" is
 /**
  * Recursively render the specified {@type "hypertext element"} as hypertext.
  *
+ * @method "_rendered"
  * @param "elem" "hypertext element"
  * @returns "nonempty string"
  */

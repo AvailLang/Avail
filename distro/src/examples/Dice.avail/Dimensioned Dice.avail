@@ -55,7 +55,7 @@ Body
 
 /**
  * A {@type "dimensioned dice expression⁇" dimensioned dice expression} combines
- * a {@type "dice expression⁇" dice expression"} and a {@type "unit"}.
+ * a {@type "dice expression⁇" "dice expression"} and a {@type "unit"}.
  *
  * @category "Dice" "Dimensional Analysis"
  * @type "dimensioned dice expression⁇"

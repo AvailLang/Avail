@@ -274,7 +274,7 @@ Method "“_”" is
  * each being a standard die with {@param "n"} faces.
  *
  * @category "Dice" "Constructors"
- * @method "_d|D_" is
+ * @method "_d|D_"
  * @param "count" "whole number"
  *        The number of dice.
  * @param "n" "natural number"

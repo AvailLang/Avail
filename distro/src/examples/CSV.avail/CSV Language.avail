@@ -80,6 +80,7 @@ Explicit class "invalid-CSV-record exception" extends descriptive exception;
  * @method "Validate_"
  * @param "record" "string+"
  *        A CSV record that includes at least one column.
+ * @returns "⊤"
  * @raises "invalid-CSV-record exception"
  */
 Private method "Validate_" is
@@ -110,6 +111,7 @@ Private method "Validate_" is
  * @method "«_‡,»"
  * @param "record" "string+"
  *        A {@type "tuple"} of {@type "string"}s.
+ * @returns "⊤"
  */
 Public method "«_‡,»" is
 [
@@ -164,6 +166,7 @@ Semantic restriction "«_‡,»" is
  * a new CSV data module.
  *
  * @method "Reset CSV processor"
+ * @returns "⊤"
  */
 Public method "Reset CSV processor" is
 [
@@ -226,7 +229,7 @@ Private method "column metrics for_" is
  *        The size of the field after padding. This is the minimum possible
  *        field size for the result. The result might be longer if the size of
  *        {@param "s"} is greater than {@param "fieldSize"}.
- * @return A potentially padded field.
+ * @returns "string" A potentially padded field.
  */
 Private method "_padded to_character|characters" is
 [
@@ -259,6 +262,7 @@ Semantic restriction "_padded to_character|characters" is
  * @param "showHeader" "boolean"
  *        If {@method "true"}, then display the header and a separator row.
  *        If {@method "false"}, then only display the data records.
+ * @returns "⊤"
  */
 Public method "Display CSV(as a table«with headers»?)" is
 [

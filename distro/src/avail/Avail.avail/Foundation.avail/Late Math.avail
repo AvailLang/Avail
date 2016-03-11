@@ -714,6 +714,7 @@ Semantic restriction "an unsigned integer from_" is
 /**
  * Answer a {@type "double"} from the following components.
  *
+ * @method "a double from integer=_,fraction=_,exponent=_"
  * @param "integerPart" "Arbaic numeral*"
  * @param "fractionalPart" "Arabic numeral*"
  * @param "exponent" "integer"

@@ -46,8 +46,8 @@ Body
  *
  * @macro "default language"
  * @returns "language tag"
- * @see "http://tools.ietf.org/html/rfc5646" RCF 5646
- *      — Tags for Identifying Languages
+ * @see {@link "http://tools.ietf.org/html/rfc5646" RCF 5646
+ *      — Tags for Identifying Languages}
  */
 
 /**
@@ -58,8 +58,8 @@ Body
  * @param "lang" "language tag"
  *        The replacement {@type "language tag"}.
  * @returns "⊤"
- * @see "http://tools.ietf.org/html/rfc5646" RCF 5646
- *      — Tags for Identifying Languages
+ * @see {@link "http://tools.ietf.org/html/rfc5646" RCF 5646
+ *      — Tags for Identifying Languages}
  */
 [
 	var : language tag := a language tag en;

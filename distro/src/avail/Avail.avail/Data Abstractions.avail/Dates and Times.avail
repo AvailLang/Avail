@@ -136,8 +136,8 @@ Body
  * @field "Epoch milliseconds" "integer"
  *        Positive values represent moments since the Unix Epoch, and negative
  *        values represent moments prior to the Unix Epoch.
- * @see "http://howardhinnant.github.io/date_algorithms.html"
- *      chrono-Compatible Low-Level Date Algorithms
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html"
+ *      chrono-Compatible Low-Level Date Algorithms}
  * @see {@method "now"}
  * @category "Timestamps" "Types"
  */
@@ -494,7 +494,6 @@ Public stable method "_'s⁇previous month" is
  * @param "m" "month"
  * @returns "month"
  * @category "Queries" "Timestamps" "Months"
-
  */
 Public stable method "_'s⁇next month" is
 [
@@ -512,7 +511,6 @@ Public stable method "_'s⁇next month" is
  * @returns "[1..31]"
  * @category "Queries" "Timestamps" "Months"
  * @category "Queries" "Timestamps" "Months"
-
  */
 Public stable method "`|_'s⁇days in common year`|" is
 [
@@ -542,7 +540,6 @@ Semantic restriction "`|_'s⁇days in common year`|" is
  * @param "m" "month"
  * @returns "[1..31]"
  * @category "Queries" "Timestamps" "Months"
-
  */
 Public stable method "`|_'s⁇days in leap year`|" is [m : month | m[month days]];
 Public stable method "`|_'s⁇days in leap year`|" is [m : February's type | 29];
@@ -569,8 +566,8 @@ Semantic restriction "`|_'s⁇days in leap year`|" is
  * @returns "boolean"
  *          {@method "true"} if {@param "y"} is a leap year, {@method "false"}
  *          otherwise.
- * @see "http://howardhinnant.github.io/date_algorithms.html#is_leap"
- *      is_leap
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#is_leap"
+ *      is_leap}
  * @category "Queries" "Timestamps" "Years"
  */
 Public stable method "_is leap year" is
@@ -601,8 +598,8 @@ Public stable method "_is common year" is [y : integer | ¬y is leap year];
  * @param "m" "month"
  * @param "y" "integer"
  * @returns "[1..31]"
- * @see "http://howardhinnant.github.io/date_algorithms.html#last_day_of_month"
- *      last_day_of_month
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#last_day_of_month"
+ *      last_day_of_month}
  * @category "Queries" "Timestamps" "Months"
  */
 Public stable method "`|_'s⁇days in_`|" is
@@ -863,8 +860,8 @@ Semantic restriction "_-_" is
  * @param "era" "whole number"
  *        The count of units in an era.
  * @returns "integer"
- * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
- *      days_from_civil
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil}
  */
 Private stable method "private_'s⁇_-unit era" is
 [
@@ -883,8 +880,8 @@ Private stable method "private_'s⁇_-unit era" is
  * @param "era" "whole number"
  *        The count of units in an era.
  * @returns "integer"
- * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
- *      days_from_civil
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil}
  */
 Private stable method "private_'s⁇unit of_-unit era" is
 [
@@ -918,8 +915,8 @@ Semantic restriction "private_'s⁇unit of_-unit era" is
  * @returns "[0..365]"
  *          The day of year, where {@code 0} is March 1 and {@code 365} is
  *          February 29.
- * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
- *      days_from_civil
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil}
  */
 Private stable method "construction_and_'s⁇day of year" is
 [
@@ -952,8 +949,8 @@ Semantic restriction "construction_and_'s⁇day of year" is
  * @param "doy" "[0..365]"
  * @param "yoe" "[0..399]"
  * @returns "[0..146096]"
- * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
- *      days_from_civil
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil}
  */
 Private stable method "private_and_'s⁇day of era" is
 [
@@ -1078,8 +1075,8 @@ Public method "Require:_is valid day of_/_" is
  *        (Optional) The offset from UTC.
  * @returns "timestamp"
  * @category "Timestamps" "Constructors"
- * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
- *      days_from_civil
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil}
  */
 Public stable method "timestamp_/_/_«_:_:_«._»»««+|-»!_:_»" is
 [
@@ -1146,8 +1143,8 @@ Alias "private timestamp_____" to $"timestamp_/_/_«_:_:_«._»»««+|-»!_:_»
  *        (Optional) The offset from UTC.
  * @returns "timestamp"
  * @category "Timestamps" "Constructors"
- * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
- *      days_from_civil
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      days_from_civil}
  */
 Public method "timestamp__,_«_:_:_«._»»««+|-»!_:_»" is
 [
@@ -1196,8 +1193,8 @@ Grammatical restriction "timestamp_/_/_«_:_:_«._»»««+|-»!_:_»" is
  * @method "private_'s⁇year of era"
  * @param "doe" "[0..146096]"
  * @returns "[0..399]"
- * @see "http://howardhinnant.github.io/date_algorithms.html#civil_from_days"
- *      civil_from_days
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#civil_from_days"
+ *      civil_from_days}
  */
 Private stable method "private_'s⁇year of era" is
 [
@@ -1229,8 +1226,8 @@ Semantic restriction "private_'s⁇year of era" is
  * @returns "[0..365]"
  *          The day of year, where {@code 0} is March 1 and {@code 365} is
  *          February 29.
- * @see "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
- *      civil_from_days
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#days_from_civil"
+ *      civil_from_days}
  */
 Private stable method "explosion_and_'s⁇day of year" is
 [
@@ -1378,10 +1375,10 @@ Public class "exploded timestamp" extends timestamp
  * @method "_exploded"
  * @param "ts" "timestamp"
  * @returns "exploded timestamp"
- * @see "http://howardhinnant.github.io/date_algorithms.html#civil_from_days"
- *      civil_from_days
- * @see "http://howardhinnant.github.io/date_algorithms.html#weekday_from_days"
- *      weekday_from_days
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#civil_from_days"
+ *      civil_from_days}
+ * @see {@link "http://howardhinnant.github.io/date_algorithms.html#weekday_from_days"
+ *      weekday_from_days}
  */
 Public stable method "_exploded" is
 [

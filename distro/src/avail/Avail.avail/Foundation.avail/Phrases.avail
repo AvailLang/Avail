@@ -122,7 +122,8 @@ Semantic restriction "_→literal phrase" is
 /**
  * Answer a {@type "literal phrase"} for the specified value.
  *
- * @method "value" "any"
+ * @method "‘_’"
+ * @param "value" "any"
  * @returns "literal phrase ⇒ any"
  */
 Public method "‘_’" is
