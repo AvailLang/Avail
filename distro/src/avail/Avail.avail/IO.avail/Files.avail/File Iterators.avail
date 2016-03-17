@@ -51,11 +51,11 @@ Uses
 		-"Write_to_",
 		…
 	),
-	"Data Abstractions",
+	"Data Abstractions" = (-"_'s⁇element type", …),
 	"File Access Rights",
 	"File Names",
 	"File Open Options",
-	"Foundation",
+	"Foundation" = (-"_'s⁇element type", …),
 	"Primitives"
 Names
 	/* Types. */

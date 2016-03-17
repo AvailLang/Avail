@@ -38,7 +38,7 @@ Uses
 	"Concatenation Readers",
 	"Exhausted Readers",
 	"Filtered Readers",
-	"Foundation",
+	"Foundation" = (-"_'s⁇element type", …),
 	"Mapped Readers",
 	"Sizable Positionable Iterators",
 	"Unit Testing",

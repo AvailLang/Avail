@@ -53,7 +53,7 @@ Extends
 		"«_‡zip»"
 	)
 Uses
-	"Foundation"
+	"Foundation" = (-"_'s⁇element type", …)
 Names
 	"Advance_",
 	"Drop from_until_",

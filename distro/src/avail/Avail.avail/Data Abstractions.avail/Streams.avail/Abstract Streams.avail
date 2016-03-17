@@ -58,7 +58,7 @@ Extends
 		"«_‡zip»"
 	)
 Uses
-	"Foundation"
+	"Foundation" = (-"_'s⁇element type", …)
 Names
 	"an empty stream",
 	"decorated stream|streams",

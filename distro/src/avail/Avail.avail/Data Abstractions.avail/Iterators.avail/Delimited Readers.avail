@@ -37,7 +37,7 @@ Uses
 	"Abstract Iterators",
 	"Collection Readers" = ("a reader over_"),
 	"Decorated Readers",
-	"Foundation",
+	"Foundation" = (-"_'s⁇element type", …),
 	"Unit Testing"
 Names
 	"delimited a reader test suite",

@@ -48,7 +48,7 @@ Extends
 	)
 Uses
 	"Abstract Iterators",
-	"Foundation"
+	"Foundation" = (-"_'s⁇element type", …)
 Names
 	"zipped reader"
 Body

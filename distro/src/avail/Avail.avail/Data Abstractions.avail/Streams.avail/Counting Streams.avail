@@ -35,7 +35,7 @@ Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
 	"Abstract Streams",
-	"Foundation"
+	"Foundation" = (-"_'s⁇element type", …)
 Names
 	"a counting stream from_to_",
 	"a counting stream from_to_by_"
