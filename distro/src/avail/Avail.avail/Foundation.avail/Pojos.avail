@@ -68,6 +68,17 @@ Names
 Body
 
 /**
+ * @method "_'s⁇element type"
+ * @restricts "pojo array meta"
+ */
+Semantic restriction "_'s⁇element type" is
+[
+	arrayMeta : pojo array meta's type
+|
+	arrayMeta's instance's element type's type
+];
+
+/**
  * @method "_[_]"
  * @restricts "any's type's type"
  * @restricts "whole number's type's type"

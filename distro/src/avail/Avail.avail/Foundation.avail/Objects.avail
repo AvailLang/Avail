@@ -413,6 +413,15 @@ Semantic restriction "extend_with«_:_‡,»" is
 	((supertype→tuple ++ newDefinitions' bindings)→object type)'s type
 ];
 
+/**
+ * Bind {@method "_'s⁇type"} more tightly than ad hoc {@type "object meta"
+ * object type} extension.
+ *
+ * @method "_'s⁇type"
+ * @forbids 1 "extend_with«_:_‡,»"
+ */
+Grammatical restriction "_'s⁇type" is <{"extend_with«_:_‡,»"}>;
+
 "accessor name" is a new atom;
 
 /**
