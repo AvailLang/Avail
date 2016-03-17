@@ -75,10 +75,10 @@ public final class P_BootstrapSuperCastMacro extends Primitive
 				type);
 		}
 		final A_Type expressionType = expressionNode.expressionType();
-		if (!expressionType.isSubtypeOf(type) || expressionType.equals(type))
+		if (!expressionType.isSubtypeOf(type))
 		{
 			throw new AvailRejectedParseException(
-				"supercast type (%s) to be a (strict) supertype of the "
+				"supercast type (%s) to be a supertype of the "
 					+ "expression's type (%s)",
 				type,
 				expressionType);
