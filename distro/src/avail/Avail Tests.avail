@@ -84,6 +84,12 @@ Extends
 		"Dimensional|dimensional analysis test suite",
 		"SI test suite"
 	)
+Names
+	/* Running test suites; this allows subsequent modules to redeclare these
+	 * entries, but with their own test suites visible.
+	 */
+	"Run all tests in_",
+	"Run all tests in_repeatedly"
 Entries
 	/* Debugging tests interactively. */
 	"Debug tests",
@@ -140,7 +146,7 @@ Private method "Run all tests" is
  *        The unit test suite identifier.
  * @returns "⊤"
  */
-Private method "Run all tests in_" is
+Public method "Run all tests in_" is
 [
 	suiteID : atom
 |
@@ -170,7 +176,7 @@ Private method "Run all tests repeatedly" is
  * @method "Run all tests in_repeatedly"
  * @returns "⊤"
  */
-Private method "Run all tests in_repeatedly" is
+Public method "Run all tests in_repeatedly" is
 [
 	suiteID : atom
 |
