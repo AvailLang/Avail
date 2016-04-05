@@ -266,13 +266,14 @@ Private method "Debug tests" is
 				[
 					Guard
 					[
-						Print: “report on currentEntry[1]”;
+						Print: test suite-oriented “report on currentEntry[1]”;
 					]
 					intercept
 					[
 						e : no-such-test exception
 					|
-						Print: “report on all tests in currentEntry[1]”;
+						Print: test suite-oriented
+							“report on all tests in currentEntry[1]”;
 					];
 				];
 			] count times;
