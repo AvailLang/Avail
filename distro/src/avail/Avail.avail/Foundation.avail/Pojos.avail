@@ -67,6 +67,8 @@ Names
 	"static method_._«parameterized by»⁇_"
 Body
 
+Method "_[_]" is stable at [any's type, whole number's type]→pojo array meta;
+
 /**
  * @method "_'s⁇element type"
  * @restricts "pojo array meta"
@@ -102,7 +104,7 @@ Semantic restriction "_[_]" is
  * @returns "any [whole number]'s type"
  *    The requested pojo array type.
  */
-Public method "_[]" is
+Public stable method "_[]" is
 [
 	elementType : any's type
 |
