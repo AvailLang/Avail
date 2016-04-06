@@ -120,22 +120,6 @@ final class Resources
 	}
 
 	/**
-	 * Answer the key for the purely alphabetic name of the special object given
-	 * by {@code index}.
-	 *
-	 * @param index
-	 *        The special object index.
-	 * @return A key that may be used to access a purely alphabetic Avail name
-	 *         of the special object in the appropriate {@linkplain
-	 *         ResourceBundle resource bundle}. This name should be suitable for
-	 *         use as a variable name in a module.
-	 */
-	public static String specialObjectAlphabeticKey (final int index)
-	{
-		return specialObjectKey(index) + "_alphabetic";
-	}
-
-	/**
 	 * Answer the key for the specified special object's comment.
 	 *
 	 * @param index
@@ -279,8 +263,10 @@ final class Resources
 		representativeModuleName,
 		bootstrapDefiningMethod,
 		bootstrapSpecialObject,
+		bootstrapDefineSpecialObjectMacro,
 		bootstrapMacroNames,
 		bootstrapMacros,
+		definingSpecialObjectUse,
 		definingMethodUse,
 		specialObjectUse,
 		parameterPrefix,

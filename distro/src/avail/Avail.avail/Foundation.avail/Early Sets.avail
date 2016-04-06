@@ -45,6 +45,11 @@ Uses
 	"Types"
 Body
 
+Method "{_`|_.._}" is stable at [any meta, whole number, [0..∞]]→set meta;
+Method "{_`|_..}" is stable at [any meta, whole number]→set meta;
+Method "{_`|.._}" is stable at [any meta, [0..∞]]→set meta;
+Method "{_`|}" is stable at [any meta]→set meta;
+
 /**
  * @method "_'s⁇element|member type"
  * @restricts "set meta's type"

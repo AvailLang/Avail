@@ -268,7 +268,7 @@ Semantic restriction "_→tuple" is
  * @type "Java long"
  * @category "Types" "POJO" "Numbers" "Integers"
  */
-Public method "Java long" is [[-2^63..2^63)];
+Public stable method "Java long" is [[-2^63..2^63)];
 
 /**
  * Answer the {@type "extended integer" numeric type} that conforms to
@@ -277,7 +277,7 @@ Public method "Java long" is [[-2^63..2^63)];
  * @type "Java int"
  * @category "Types" "POJO" "Numbers" "Integers"
  */
-Public method "Java int" is [[-2^31..2^31)];
+Public stable method "Java int" is [[-2^31..2^31)];
 
 /**
  * Answer the {@type "extended integer" numeric type} that conforms to
@@ -286,7 +286,7 @@ Public method "Java int" is [[-2^31..2^31)];
  * @type "Java short"
  * @category "Types" "POJO" "Numbers" "Integers"
  */
-Public method "Java short" is [[-2^15..2^15)];
+Public stable method "Java short" is [[-2^15..2^15)];
 
 /**
  * Answer the {@type "extended integer" numeric type} that conforms to
@@ -295,7 +295,7 @@ Public method "Java short" is [[-2^15..2^15)];
  * @type "Java byte"
  * @category "Types" "POJO" "Numbers" "Integers"
  */
-Public method "Java byte" is [[-2^7..2^7)];
+Public stable method "Java byte" is [[-2^7..2^7)];
 
 /**
  * Answer the {@type "extended integer" numeric type} that conforms to
@@ -304,7 +304,7 @@ Public method "Java byte" is [[-2^7..2^7)];
  * @type "Java short"
  * @category "Types" "POJO" "Numbers" "Integers"
  */
-Public method "Java char" is [[0..2^16)];
+Public stable method "Java char" is [[0..2^16)];
 
 /**
  * Construct and answer a fully parameterized pojo type.

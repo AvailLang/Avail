@@ -130,9 +130,9 @@ Method "private instance of meta_" is
  */
 Semantic restriction "private instance of meta_" is
 [
- 	m : type's type's type
+	m : type's type's type
 |
- 	type
+	type
 ];
 
 /**

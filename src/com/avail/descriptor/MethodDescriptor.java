@@ -56,6 +56,8 @@ import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.general.P_DeclareStringificationAtom;
 import com.avail.interpreter.primitive.methods.*;
 import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
+import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression;
+import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken;
 import com.avail.interpreter.primitive.variables.P_GetValue;
 import com.avail.optimizer.L2Translator;
 import com.avail.serialization.SerializerOperation;
@@ -2285,5 +2287,41 @@ extends Descriptor
 	public static A_Atom vmResumeContinuationAtom ()
 	{
 		return vmResumeContinuationAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built literal token creation atom.
+	 */
+	private static final A_Atom vmCreateLiteralTokenAtom =
+		createSpecialMethodAtom(
+			"vm create literal token_,_",
+			P_CreateLiteralToken.instance);
+
+	/**
+	 * Answer the (special) name of the VM-built literal token creation atom.
+	 *
+	 * @return The name of the VM's literal token creation atom.
+	 */
+	public static A_Atom vmCreateLiteralTokenAtom ()
+	{
+		return vmCreateLiteralTokenAtom;
+	}
+
+	/**
+	 * The (special) name of the VM-built literal phrase creation atom.
+	 */
+	private static final A_Atom vmCreateLiteralExpressionAtom =
+		createSpecialMethodAtom(
+			"vm create literal phrase_",
+			P_CreateLiteralExpression.instance);
+
+	/**
+	 * Answer the (special) name of the VM-built literal phrase creation atom.
+	 *
+	 * @return The name of the VM's literal phrase creation atom.
+	 */
+	public static A_Atom vmCreateLiteralExpressionAtom ()
+	{
+		return vmCreateLiteralExpressionAtom;
 	}
 }

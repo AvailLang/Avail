@@ -91,21 +91,6 @@ extends PropertiesFileGenerator
 					writer.print(escape(specialObjectName));
 				}
 				writer.println();
-				// Write the name of the module constant that will store the
-				// special object.
-				final String alphabeticKey = specialObjectAlphabeticKey(i);
-				if (properties.containsKey(alphabeticKey))
-				{
-					keys.add(alphabeticKey);
-					writer.print(alphabeticKey);
-					writer.print('=');
-					final String alphabetic =
-						properties.getProperty(alphabeticKey);
-					if (!alphabetic.isEmpty())
-					{
-						writer.println(escape(alphabetic));
-					}
-				}
 				// Write the preferred alias that Stacks should indicate.
 				final String typeKey = specialObjectTypeKey(i);
 				keys.add(typeKey);

@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.bootstrap;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.E_NO_SPECIAL_OBJECT;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -50,8 +50,7 @@ public final class P_SpecialObject extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_SpecialObject().init(
-			1, Bootstrap, Private, CanInline, CanFold);
+		new P_SpecialObject().init(1, Unknown, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -60,13 +59,13 @@ public final class P_SpecialObject extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Number ordinal = args.get(0);
+		final A_Phrase ordinalLiteral = args.get(0);
+		final A_Number ordinal = ordinalLiteral.token().literal();
 		if (!ordinal.isInt())
 		{
 			return interpreter.primitiveFailure(E_NO_SPECIAL_OBJECT);
 		}
 		final int i = ordinal.extractInt();
-
 		final AvailObject result;
 		try
 		{
@@ -77,7 +76,8 @@ public final class P_SpecialObject extends Primitive
 			return interpreter.primitiveFailure(
 				E_NO_SPECIAL_OBJECT);
 		}
-		return interpreter.primitiveSuccess(result);
+		return interpreter.primitiveSuccess(
+			LiteralNodeDescriptor.syntheticFrom(result));
 	}
 
 	@Override
@@ -85,8 +85,9 @@ public final class P_SpecialObject extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			ANY.o());
+				LITERAL_NODE.create(
+					IntegerRangeTypeDescriptor.naturalNumbers())),
+			LITERAL_NODE.mostGeneralType());
 	}
 
 	@Override

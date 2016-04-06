@@ -49,6 +49,12 @@ Names
 	"_(«_‡,»)"
 Body
 
+Method "function accepting_and returning_"
+	is stable at [tuple of any meta, type]→function meta;
+Method "[«_‡,»]→_" is stable at [tuple of any meta, type]→function meta;
+Method "_'s⁇parameters'type" is stable at [function meta]→tuple meta;
+Method "_'s⁇return type" is stable at [function meta]→type;
+
 /**
  * @method "_'s⁇parameters'type"
  * @restricts "function meta's type"

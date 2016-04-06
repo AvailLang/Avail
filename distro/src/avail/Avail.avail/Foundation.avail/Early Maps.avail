@@ -53,6 +53,12 @@ Names
 	"`${…}«else_»"
 Body
 
+Method "{_→_`|_.._}" is stable at
+	[any meta, any meta, whole number, [0..∞]]→map meta;
+Method "{_→_`|_..}" is stable at [any meta, any meta, whole number]→map meta;
+Method "{_→_`|.._}" is stable at [any meta, any meta, [0..∞]]→map meta;
+Method "{_→_`|}" is stable at [any meta, any meta]→map meta;
+
 /**
  * If the exact map is known, then answer the enumeration of its keys.
  * Otherwise, just answer the key type.

@@ -88,32 +88,39 @@ Names
 	"Require:_'s⁇keeper is valid"
 Body
 
+Method "<«_‡,»`…`|_.._>" is stable at
+	[<any meta…|1..>, whole number, [0..∞]]→tuple meta;
+Method "<«_‡,»`…`|_..>" is stable at [<any meta…|1..>, whole number]→tuple meta;
+Method "<«_‡,»`…`|.._>" is stable at [<any meta…|1..>, [0..∞]]→tuple meta;
+Method "<«_‡,»`…`|_>" is stable at [<any meta…|1..>, whole number]→tuple meta;
+Method "<«_‡,»`…`|>" is stable at [<any meta…|1..>]→tuple meta;
+Method "_*" is stable at [any meta]→tuple meta;
+Method "_+" is stable at [any meta]→tuple meta;
+Method "_`?" is stable at [any meta]→tuple meta;
+
 /*
  * Helper methods for building macro, "If|if_then_«else if_then_»«else_»?"
  */
 Private method "block from_" is
 [
- 	sendPhrase : send phrase ⇒ ⊤
+	sendPhrase : send phrase ⇒ ⊤
 |
 	returnType ::= sendPhrase's return type;
 	cast «[<sendPhrase>]:returnType» into [b: block phrase ⇒ []→⊤| b]
-]:expression phrase ⇒ []→⊤;
+] : expression phrase ⇒ []→⊤;
 
 Private method "basic send phrase_conditional_then_else_" is
 [
 	anAtom : atom,
- 	predicatePhrase : expression phrase ⇒ boolean,
- 	thenBlock : expression phrase ⇒ []→⊤,
+	predicatePhrase : expression phrase ⇒ boolean,
+	thenBlock : expression phrase ⇒ []→⊤,
 	elseBlock : expression phrase ⇒ []→⊤
-|	
+|
 	elseBlockReturnType ::= elseBlock's semantic type;
 	thenBlockReturnType ::= thenBlock's semantic type;
-	
 	boolType ::= predicatePhrase's semantic type;
-
 	returnType ::= strengthen ⊤ for call of anAtom 
 		using <boolType, thenBlockReturnType, elseBlockReturnType>;
-
 	restricted send anAtom with
 		«<predicatePhrase, thenBlock, elseBlock>» : returnType
 ] : send phrase ⇒ ⊤;
@@ -124,12 +131,12 @@ Private method "basic send phrase_conditional_then_else_" is
  */
 Private abstract method "for_nest_in_" is 
 [
- 	atom, expression phrase ⇒ []→⊤, <list phrase ⇒ <boolean, []→⊤…|2>…|1..>
+	atom, expression phrase ⇒ []→⊤, <list phrase ⇒ <boolean, []→⊤…|2>…|1..>
 ]→(expression phrase ⇒ []→⊤);
 
 Method "for_nest_in_" is
 [
- 	anAtom : atom,
+	anAtom : atom,
 	elseBlock : expression phrase ⇒ []→⊤,
 	elseConditionalPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|1>
 |
@@ -138,7 +145,7 @@ Method "for_nest_in_" is
 	thenBlock ::= elseConditionalPair[2];
 	block from basic send phrase anAtom conditional predicate then 
 		thenBlock else elseBlock
-]:expression phrase ⇒ []→⊤;
+] : expression phrase ⇒ []→⊤;
 
 Method "for_nest_in_" is
 [
@@ -151,7 +158,7 @@ Method "for_nest_in_" is
 	newElseBlock ::= for anAtom nest elseBlock in 
 		<elseConditionalPairTuple[size]>;
 	for anAtom nest newElseBlock in elseConditionalPairTuple[1..end]
-]:expression phrase ⇒ []→⊤;
+] : expression phrase ⇒ []→⊤;
 
 /**
  * Multiply branching conditional statement/expression. Execute the first
@@ -189,13 +196,11 @@ Public macro "If|if_then_«else if_then_»«else_»?" is
 		else [cast «[<>]:⊤» into [b : expression phrase ⇒ []→⊤ | b]];
 	elseIfPairTuple ::= cast elseIfPairTuplePhrase's expressions into
 		[l : <list phrase⇒<boolean, []→⊤…|2>…|1..∞> | l];
-	
 	anAtom ::= $"If|if_then_else_";
 	finalElseBlock ::= for anAtom nest elseBlock in elseIfPairTuple;
-
 	basic send phrase anAtom conditional firstPredicate then firstThenBlock 
 		else finalElseBlock
-]: send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤;
 
 /**
  * Exit the continuation. Execution proceeds as though the continuation had just

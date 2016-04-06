@@ -1178,6 +1178,34 @@ Semantic restriction "[`…]→_" is
 ];
 
 /**
+ * Answer the semantic restriction {@type "function"} for the function type
+ * constructors.
+ *
+ * @method "function type construction semantic restriction"
+ * @returns "[tuple of any meta's type, type's type]→type"
+ */
+Private method "function type construction semantic restriction" is
+[
+	[
+		argTypes : tuple of any meta's type,
+		returnType : type's type
+	|
+		bottoms : <⊥'s type…|> := <>;
+		From 1 to ⎣argTypes⎦ do
+		[
+			index : natural number
+		|
+			bottoms := eject bottoms ++ <⊥>;
+			true
+		];
+		return ::= if |returnType| = 1
+			then [returnType's instance]
+			else [⊤];
+		(function accepting bottoms and returning return)'s type
+	]
+];
+
+/**
  * Function type construction can at least statically ensure the correct number
  * of arguments and the return type.
  * 
@@ -1187,23 +1215,7 @@ Semantic restriction "[`…]→_" is
  * @category "Functions" "Types"
  */
 Semantic restriction "[«_‡,»]→_" is
-[
-	argTypes : tuple of any meta's type,
-	returnType : type's type
-|
-	bottoms : <⊥'s type…|> := <>;
-	From 1 to ⎣argTypes⎦ do
-	[
-		index : natural number
-	|
-		bottoms := eject bottoms ++ <⊥>;
-		true
-	];
-	return ::= if |returnType| = 1
-		then [returnType's instance]
-		else [⊤];
-	(function accepting bottoms and returning return)'s type
-];
+	function type construction semantic restriction;
 
 /**
  * Produce a {@type "string"} representation of the specified integer range type

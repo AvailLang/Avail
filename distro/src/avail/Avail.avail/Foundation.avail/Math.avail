@@ -65,6 +65,15 @@ Names
 	"comparison chain semantic restriction function"
 Body
 
+Method "[_.._]" is stable at
+	[extended integer, extended integer]→extended integer meta;
+Method "[_.._)" is stable at
+	[extended integer, extended integer]→extended integer meta;
+Method "(_.._]" is stable at
+	[extended integer, extended integer]→extended integer meta;
+Method "(_.._)" is stable at
+	[extended integer, extended integer]→extended integer meta;
+
 Stable forward method "_mod_" is [number, number]→number;
 Public stable forward method "-_" is [number]→number;
 

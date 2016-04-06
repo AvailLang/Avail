@@ -46,6 +46,7 @@ Uses
 Names
 	"Primitive_is_",
 	"special object_",
+	"Special object_is_;",
 	"\
 		\|[§\
 			\|««…:_†§‡,»`|»?\
@@ -66,7 +67,8 @@ Names
 Pragma
 	"check=version=1.0.0 DEV 2014-04-28",
 	"method=SimpleMethodDeclaration=Primitive_is_",
-	"method=SpecialObject=special object_",
+	"macro=SpecialObject=special object_",
+	"macro=BootstrapDefineSpecialObjectMacro=Special object_is_;",
 	"macro=\
 		\|BootstrapPrefixStartOfBlock,\
 		\|BootstrapPrefixBlockArgument,\

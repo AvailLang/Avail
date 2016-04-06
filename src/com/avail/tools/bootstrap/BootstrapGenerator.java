@@ -231,6 +231,7 @@ public final class BootstrapGenerator
 			vmVersionString(versions),
 			preamble.getString(bootstrapDefiningMethod.name()),
 			preamble.getString(bootstrapSpecialObject.name()),
+			preamble.getString(bootstrapDefineSpecialObjectMacro.name()),
 			preamble.getString(bootstrapMacroNames.name()),
 			preamble.getString(bootstrapMacros.name())));
 	}
@@ -330,39 +331,6 @@ public final class BootstrapGenerator
 	 */
 	private void generateSpecialObjectModuleBody (final PrintWriter writer)
 	{
-		// Find the length of the longest name.
-		int length = 0;
-		for (final String name : specialObjectsByName.keySet())
-		{
-			length = Math.max(length, name.length() + 1);
-		}
-
-		// Emit the module constants that capture the special objects.
-		for (int i = 0; i < specialObjects.size(); i++)
-		{
-			if (specialObjects.get(i) != null)
-			{
-				final String key =
-					specialObjectBundle.containsKey(
-						specialObjectAlphabeticKey(i))
-					? specialObjectAlphabeticKey(i)
-					: specialObjectKey(i);
-				final String constantName =
-					"_" + specialObjectBundle.getString(key).replace(' ', '_');
-				final int pad = length - constantName.length();
-				final String format = pad > 0
-					? "%s%" + pad + "s ::= %s;\n"
-					: "%s%s ::= %s;\n";
-				writer.printf(
-					format,
-					constantName,
-					"",
-					MessageFormat.format(
-						preamble.getString(specialObjectUse.name()), i));
-			}
-		}
-		writer.println();
-
 		// Emit the special object methods.
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
@@ -377,7 +345,6 @@ public final class BootstrapGenerator
 				}
 				final String methodName =
 					specialObjectBundle.getString(nonalphaKey);
-				final String alphaKey = specialObjectAlphabeticKey(i);
 				final String typeKey = specialObjectTypeKey(i);
 				final String commentKey = specialObjectCommentKey(i);
 				if (specialObjectBundle.containsKey(commentKey))
@@ -392,16 +359,14 @@ public final class BootstrapGenerator
 					writer.print(MessageFormat.format(
 						commentTemplate, methodName, type));
 				}
-				final String key =
-					specialObjectBundle.containsKey(alphaKey)
-					? alphaKey
-					: nonalphaKey;
-				final String constantName =
-					"_" + specialObjectBundle.getString(key).replace(' ', '_');
+				final String use =
+					MessageFormat.format(
+						preamble.getString(specialObjectUse.name()), i);
 				writer.println(MessageFormat.format(
-					preamble.getString(definingMethodUse.name()),
+					preamble.getString(definingSpecialObjectUse.name()),
 					stringify(methodName),
-					String.format("%n[%n\t%s%n];%n", constantName)));
+					use));
+				writer.println();
 			}
 		}
 	}
