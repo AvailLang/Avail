@@ -239,6 +239,25 @@ public class Graph<Vertex>
 	}
 
 	/**
+	 * Add a collection of vertices to the graph.  If a vertex is already
+	 * present in the graph, then ignore it and continue.  The vertices
+	 * initially have no edges within this graph.
+	 *
+	 * @param vertices The vertices to add to the graph.
+	 */
+	public void includeVertices (final Collection<Vertex> vertices)
+	{
+		for (final Vertex vertex : vertices)
+		{
+			if (!outEdges.containsKey(vertex))
+			{
+				outEdges.put(vertex, new HashSet<Vertex>());
+				inEdges.put(vertex, new HashSet<Vertex>());
+			}
+		}
+	}
+
+	/**
 	 * Remove a vertex from the graph, removing any connected edges.  Fail if
 	 * the vertex is not present in the graph.
 	 *
