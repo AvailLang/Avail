@@ -33,6 +33,7 @@
 package com.avail.utility;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.avail.annotations.InnerAccess;
@@ -711,11 +712,10 @@ public class Graph<Vertex>
 		}
 
 		/**
-		 * Perform a traversal of the graph in such an order that a vertex can
-		 * only be processed after its predecessors have all completed.  Block
-		 * until all vertices have been processed.
+		 * Compute the {@link Map} that tracks how many predecessors of each
+		 * vertex have not yet been completed.
 		 */
-		@InnerAccess synchronized void execute ()
+		private void computePredecessorCountdowns ()
 		{
 			assert predecessorCountdowns.isEmpty();
 			assert stack.isEmpty();
@@ -736,7 +736,39 @@ public class Graph<Vertex>
 					predecessorCountdowns.put(vertex, predecessorsSize);
 				}
 			}
-			exhaustStack();
+		}
+
+		/**
+		 * Perform a traversal of the graph in such an order that a vertex can
+		 * only be processed after its predecessors have all completed.
+		 *
+		 * @param done
+		 *        The {@link Continuation0 continuation} to invoke when
+		 *        traversal of the graph is complete.
+		 */
+		@InnerAccess synchronized void execute (final Continuation0 done)
+		{
+			computePredecessorCountdowns();
+			exhaustStack(done);
+		}
+
+		/**
+		 * Perform a traversal of the graph in such an order that a vertex can
+		 * only be processed after its predecessors have all completed.  Block
+		 * until all vertices have been processed.
+		 */
+		@InnerAccess synchronized void execute ()
+		{
+			final Semaphore semaphore = new Semaphore(0);
+			execute(new Continuation0()
+			{
+				@Override
+				public void value ()
+				{
+					semaphore.release();
+				}
+			});
+			semaphore.acquireUninterruptibly();
 		}
 
 		/**
@@ -745,8 +777,12 @@ public class Graph<Vertex>
 		 * while working correctly regardless of whether the {@link
 		 * #visitAction} invokes its completion action in the same {@link
 		 * Thread} or in another.
+		 *
+		 * @param done
+		 *        The {@link Continuation0} to invoke when the stack is
+		 *        exhausted <em>and</em> every vertex has been visited.
 		 */
-		private void exhaustStack ()
+		private void exhaustStack (final Continuation0 done)
 		{
 			assert Thread.holdsLock(this);
 			while (!predecessorCountdowns.isEmpty())
@@ -812,6 +848,7 @@ public class Graph<Vertex>
 					}
 				}
 			}
+			done.value();
 		}
 	}
 
