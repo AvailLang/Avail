@@ -686,8 +686,8 @@ public class Graph<Vertex>
 	 *
 	 * <p>The receiver must not be {@link #isCyclic() cyclic}.</p>
 	 *
-	 * @param visitAction What to do for each vertex.
 	 * @param scheduleAction How to schedule a visitation.
+	 * @param visitAction What to do for each vertex.
 	 * @param doneAction What to do when traversal completes.
 	 */
 	public void parallelVisit (
