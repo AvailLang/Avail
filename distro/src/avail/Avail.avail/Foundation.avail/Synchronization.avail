@@ -166,7 +166,7 @@ Semantic restriction "atomically compare_↑to_and,⁇if equal,⁇store_" is
 Public method "Atomically update_↑using_" is
 [
 	var : variable,
-	f : [any]→any
+	f : [⊥]→any
 |
 	Until
 	[
@@ -181,7 +181,7 @@ Alias "Atomically update_using_" to "Atomically update_↑using_";
 Semantic restriction "Atomically update_↑using_" is
 [
 	var : variable's type,
-	f : [any]→any's type
+	f : [⊥]→any's type
 |
 	If ¬var's read type ⊆ f[1] then
 	[
