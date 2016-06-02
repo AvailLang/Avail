@@ -234,7 +234,7 @@ POSSIBILITY OF SUCH DAMAGE.
 				generate-error-code-names,
 				generate-special-object-names,
 				generate-primitive-names"
-			description="Generate ErrorCodeNames_*.properties."/>
+			description="Generate *.properties."/>
 
 	<!--
 		Run the code generator that produces the Avail bootstrap library from
