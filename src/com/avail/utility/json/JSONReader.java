@@ -470,13 +470,13 @@ implements Closeable
 	 */
 	private JSONObject readObject () throws IOException, MalformedJSONException
 	{
-		final Map<String, JSONData> map = new HashMap<>();
 		peekFor('{', null);
 		skipWhitespace();
 		if (peekFor('}', null))
 		{
 			return JSONObject.empty();
 		}
+		final Map<String, JSONData> map = new HashMap<>();
 		do
 		{
 			final String key = readString();

@@ -19,5 +19,6 @@
       </library>
     </orderEntry>
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="annotations-java8" level="project" />
   </component>
 </module>
