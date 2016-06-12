@@ -33,6 +33,8 @@
 package com.avail.stacks;
 
 import java.util.HashMap;
+import java.util.Map;
+
 import com.avail.descriptor.A_String;
 
 /**
@@ -208,38 +210,47 @@ public class StacksExtendsModule extends StacksImportModule
 		final StacksFilename newFileName,
 		final boolean deleteOriginal)
 	{
-		ImplementationGroup group = new ImplementationGroup(newName,
-			newlyDefinedModule.moduleName(),newFileName, false);
-		for (final ImplementationGroup aGroup :
-			extendsMethodLeafNameToModuleName().get(key).values())
-		{
-			group =
-				new ImplementationGroup(aGroup,newFileName,
-					newlyDefinedModule.moduleName(), newName);
-		}
-		if (newlyDefinedModule.extendsMethodLeafNameToModuleName()
-			.containsKey(newName))
-		{
-			newlyDefinedModule.namedPublicCommentImplementations().put(newName,
-				group);
-			newlyDefinedModule.extendsMethodLeafNameToModuleName().get(newName)
-				.put(newlyDefinedModule.moduleName(), group);
-		}
-		else
-		{
-			final HashMap<String, ImplementationGroup> newMap =
-				new HashMap<String, ImplementationGroup>();
+		Map<String, ImplementationGroup> groupMap =
+			extendsMethodLeafNameToModuleName().getOrDefault(key, null);
 
-			newMap.put(newlyDefinedModule.moduleName(), group);
-
-			newlyDefinedModule.extendsMethodLeafNameToModuleName().put(newName,
-				newMap);
-		}
-		if (deleteOriginal)
+		if (groupMap != (null))
 		{
-			extendsMethodLeafNameToModuleName().remove(key);
-		}
 
+			ImplementationGroup group = new ImplementationGroup(newName,
+				newlyDefinedModule.moduleName(), newFileName, false);
+
+			for (final ImplementationGroup aGroup : groupMap.values())
+			{
+				group =
+					new ImplementationGroup(aGroup, newFileName,
+						newlyDefinedModule.moduleName(), newName);
+			}
+			if (newlyDefinedModule.extendsMethodLeafNameToModuleName()
+				.containsKey(newName))
+			{
+				newlyDefinedModule.namedPublicCommentImplementations().put(
+					newName,
+					group);
+				newlyDefinedModule
+					.extendsMethodLeafNameToModuleName()
+					.get(newName)
+					.put(newlyDefinedModule.moduleName(), group);
+			} else
+			{
+				final HashMap<String, ImplementationGroup> newMap =
+					new HashMap<String, ImplementationGroup>();
+
+				newMap.put(newlyDefinedModule.moduleName(), group);
+
+				newlyDefinedModule.extendsMethodLeafNameToModuleName().put(
+					newName,
+					newMap);
+			}
+			if (deleteOriginal)
+			{
+				extendsMethodLeafNameToModuleName().remove(key);
+			}
+		}
 	}
 
 	/**
