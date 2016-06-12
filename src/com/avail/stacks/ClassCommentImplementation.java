@@ -184,4 +184,10 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		}
 		jsonWriter.endArray();
 	}
+
+	@Override
+	public String toString ()
+	{
+		return signature().toString();
+	}
 }

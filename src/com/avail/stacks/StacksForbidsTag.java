@@ -118,5 +118,17 @@ public class StacksForbidsTag extends AbstractStacksTag
 		jsonWriter.endArray();
 		jsonWriter.endObject();
 	}
+
+	@Override
+	public String toString ()
+	{
+		final StringBuilder sb = new StringBuilder("Forbids: ");
+		for (int i = 0; i < forbidMethods.size() - 1; i++)
+		{
+			sb.append(forbidMethods.get(i).lexeme()).append(", ");
+		}
+		sb.append(forbidMethods.get(forbidMethods.size() - 1).lexeme());
+		return sb.toString();
+	}
 }
 

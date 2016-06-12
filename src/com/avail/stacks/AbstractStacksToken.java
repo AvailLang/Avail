@@ -187,4 +187,18 @@ public abstract class AbstractStacksToken
 	{
 		return lexeme();
 	}
+
+	@Override
+	public String toString ()
+	{
+		return new StringBuilder()
+			.append('〖')
+			.append(lexeme())
+			.append("〗 (class: ")
+			.append(this.getClass().getSimpleName())
+			.append(")")
+			.toString();
+	}
+
+
 }

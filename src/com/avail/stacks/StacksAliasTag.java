@@ -84,4 +84,16 @@ public class StacksAliasTag extends AbstractStacksTag
 		jsonWriter.endArray();
 
 	}
+
+	@Override
+	public String toString ()
+	{
+		final StringBuilder sb = new StringBuilder("Categories: ");
+		for (int i = 0; i < aliases.size() - 1; i++)
+		{
+			sb.append(aliases.get(i).lexeme()).append(", ");
+		}
+		sb.append(aliases.get(aliases.size() - 1).lexeme());
+		return sb.toString();
+	}
 }

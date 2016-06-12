@@ -155,14 +155,6 @@ public class StacksScanner extends AbstractStacksScanner
 	private final int commentStartLine;
 
 	/**
-	 * @return the commentEndsStandardly
-	 */
-	public boolean commentEndsStandardly ()
-	{
-		return commentEndsStandardly;
-	}
-
-	/**
 	 * @return the commentStartLine
 	 */
 	public int commentStartLine ()
@@ -225,7 +217,7 @@ public class StacksScanner extends AbstractStacksScanner
 	@InnerAccess @Override
 	boolean atEnd ()
 	{
-		if (commentEndsStandardly())
+		if (commentEndsStandardly)
 		{
 			return position() == tokenString().length() - 2;
 		}

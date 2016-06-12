@@ -116,4 +116,10 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 	{
 		//DO NOTHING AS GLOBALS AREN'T WRITEN TO DOCUMENTATION
 	}
+
+	@Override
+	public String toString ()
+	{
+		return signature().toString();
+	}
 }

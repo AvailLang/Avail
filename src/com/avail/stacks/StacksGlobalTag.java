@@ -91,7 +91,12 @@ public class StacksGlobalTag extends AbstractStacksTag
 		final int position,
 		final JSONWriter jsonWriter)
 	{
-		// TODO Is not called, do nothing.
+		// Is not called, do nothing.
 	}
 
+	@Override
+	public String toString ()
+	{
+		return "Global: " + globalName;
+	}
 }

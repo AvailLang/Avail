@@ -129,4 +129,10 @@ public class StacksFieldTag extends AbstractStacksTag
 			jsonWriter.endArray();
 		jsonWriter.endObject();
 	}
+
+	@Override
+	public String toString ()
+	{
+		return "Field: " + fieldName + " (" + fieldType + ")";
+	}
 }

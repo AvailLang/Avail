@@ -747,7 +747,7 @@ public class AvailScanner
 				}
 				else
 				{
-					final boolean capture = scanner.peekFor('*');
+					final boolean capture = scanner.peekFor('*') && (scanner.peek() != '*');
 					final int startLine = scanner.lineNumber;
 					int depth = 1;
 					while (true)

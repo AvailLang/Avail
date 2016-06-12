@@ -156,5 +156,11 @@ public class GrammaticalRestrictionCommentImplementation extends
 		}
 		jsonWriter.endArray();
 	}
+
+	@Override
+	public String toString ()
+	{
+		return signature().toString();
+	}
 }
 

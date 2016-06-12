@@ -81,4 +81,10 @@ public class StacksCodeTag extends AbstractStacksTag
 	{
 		//DO NOTHING
 	}
+
+	@Override
+	public String toString ()
+	{
+		return this.getClass().getSimpleName();
+	}
 }

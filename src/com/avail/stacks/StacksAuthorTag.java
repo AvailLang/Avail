@@ -77,4 +77,10 @@ public class StacksAuthorTag extends AbstractStacksTag
 	{
 		//do nothing
 	}
+
+	@Override
+	public String toString ()
+	{
+		return "Author: " + author;
+	}
 }

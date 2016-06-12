@@ -155,4 +155,10 @@ public class StacksLinkTag extends AbstractStacksTag
 			//.append('\\')
 			.append("</a>").toString();
 	}
+
+	@Override
+	public String toString ()
+	{
+		return "Link: " + link.toString();
+	}
 }

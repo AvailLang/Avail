@@ -113,4 +113,10 @@ public class CommentSignature
 			jsonWriter.write(module());
 		}
 	}
+
+	@Override
+	public String toString ()
+	{
+		return "Module: " + module + "\nName: " + name;
+	}
 }

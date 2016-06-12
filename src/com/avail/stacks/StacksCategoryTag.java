@@ -98,4 +98,16 @@ public class StacksCategoryTag extends AbstractStacksTag
 		}
 		jsonWriter.endArray();
 	}
+
+	@Override
+	public String toString ()
+	{
+		final StringBuilder sb = new StringBuilder("Categories: ");
+		for (int i = 0; i < categories.size() - 1; i++)
+		{
+			sb.append(categories.get(i).lexeme()).append(", ");
+		}
+		sb.append(categories.get(categories.size() - 1).lexeme());
+		return sb.toString();
+	}
 }
