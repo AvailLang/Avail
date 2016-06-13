@@ -174,6 +174,14 @@ extends AbstractTypeDescriptor
 		return computeIntersectionWith(object, aLiteralTokenType);
 	}
 
+	@Override
+	A_Type o_TypeIntersectionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		return computeIntersectionWith(object, aListNodeType);
+	}
+
 	@Override @AvailMethod
 	final A_Type o_TypeIntersectionOfMapType (
 		final AvailObject object,
@@ -302,6 +310,14 @@ extends AbstractTypeDescriptor
 		final A_Type anIntegerRangeType)
 	{
 		return computeUnionWith(object, anIntegerRangeType);
+	}
+
+	@Override @AvailMethod
+	final A_Type o_TypeUnionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		return computeUnionWith(object, aListNodeType);
 	}
 
 	@Override @AvailMethod
@@ -545,6 +561,14 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
+	boolean o_IsSupertypeOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		return false;
+	}
+
+	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
@@ -634,10 +658,6 @@ extends AbstractTypeDescriptor
 
 	@Override @AvailMethod
 	abstract A_Type o_KeyType (
-		final AvailObject object);
-
-	@Override @AvailMethod
-	abstract AvailObject o_Name (
 		final AvailObject object);
 
 	@Override @AvailMethod

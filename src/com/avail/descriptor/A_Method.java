@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import java.util.List;
-import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
@@ -183,14 +182,6 @@ extends A_ChunkDependable
 	int numArgs ();
 
 	/**
-	 * Answer the {@linkplain LookupTree testing tree}, computing it first if
-	 * necessary.
-	 *
-	 * @return The testing tree.
-	 */
-	LookupTree testingTree ();
-
-	/**
 	 * Add a {@linkplain A_SemanticRestriction semantic restriction} to
 	 * this {@linkplain A_Method method}. Behaves idempotently.
 	 *
@@ -256,7 +247,7 @@ extends A_ChunkDependable
 	/**
 	 * Answer the tuple of {@linkplain MacroDefinitionDescriptor macro
 	 * definitions} for this method.  Their order is irrelevant, but fixed for
-	 * use by the {@link #macroTestingTree()}.
+	 * use by the macro testing tree.
 	 *
 	 * @return A tuple of {@link A_Definition macro definitions}.
 	 */
@@ -264,7 +255,7 @@ extends A_ChunkDependable
 
 	/**
 	 * Look up the macro definition to invoke, given an array of argument
-	 * phrases.  Use the {@link #macroTestingTree()} to find the macro
+	 * phrases.  Use the method's macro testing tree to find the macro
 	 * definition to invoke.  Answer nil if a lookup error occurs, in which case
 	 * the errorCode will be set to either {@link
 	 * AvailErrorCode#E_NO_METHOD_DEFINITION} or {@link
@@ -286,17 +277,6 @@ extends A_ChunkDependable
 	A_Definition lookupMacroByPhraseTuple (
 		A_Tuple argumentPhraseTuple,
 		MutableOrNull<AvailErrorCode> errorCode);
-
-	/**
-	 * Answer a {@link LookupTree} with which one can determine which
-	 * {@linkplain MacroDefinitionDescriptor macro definition} should be used
-	 * for a tuple of argument {@linkplain ParseNodeDescriptor phrases}.  This
-	 * tree is only used if all macro definitions are visible (expected to be
-	 * the overwhelming majority of cases), otherwise another technique is used.
-	 *
-	 * @return The {@link LookupTree} used for polymorphic macros.
-	 */
-	LookupTree macroTestingTree ();
 
 	/**
 	 * Answer the {@linkplain TupleDescriptor tuple} of tuples of macro prefix

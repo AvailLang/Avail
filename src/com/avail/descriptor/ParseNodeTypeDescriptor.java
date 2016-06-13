@@ -41,6 +41,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -50,7 +51,7 @@ import com.avail.utility.json.JSONWriter;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class ParseNodeTypeDescriptor
+public class ParseNodeTypeDescriptor
 extends TypeDescriptor
 {
 	/**
@@ -88,64 +89,7 @@ extends TypeDescriptor
 		/**
 		 * The type of value that this expression would produce.
 		 */
-		EXPRESSION_TYPE,
-
-		/**
-		 * The tuple of covariant phrase parameterizations.  See each individual
-		 * {@link ParseNodeKind} for a description of how each slot of the tuple
-		 * is to be interpreted.
-		 */
-		COVARIANT_PHRASE_PARAMETERIZATIONS
-	}
-
-	public final static class CovariantPhraseParameterization
-	{
-		/**
-		 * The name to print when describing this parameterization of some
-		 * phrase type.
-		 */
-		final String name;
-
-		/**
-		 * The most general type this parameterization can have.
-		 *
-		 * <p>If a phrase type has this type for this parameterization, the
-		 * parameterization won't be shown at all in the print representation
-		 * of the type.
-		 */
-		final A_Type mostGeneralType;
-
-		/**
-		 * The one-based index of this parameterization within
-		 */
-		@InnerAccess
-		int index = -1;
-
-		CovariantPhraseParameterization (
-			final String name,
-			final A_Type mostGeneralType)
-		{
-			this.name = name;
-			this.mostGeneralType = mostGeneralType;
-		}
-	}
-
-	final static CovariantPhraseParameterization co(
-		final String name,
-		final A_Type mostGeneralType)
-	{
-		return new CovariantPhraseParameterization(name, mostGeneralType);
-	}
-
-	final static CovariantPhraseParameterization[] parameterizations(
-		final CovariantPhraseParameterization... parameterizations)
-	{
-		for (int i = 0; i < parameterizations.length; i++)
-		{
-			assert parameterizations[i].index == -1;
-			parameterizations[i].index = i + 1;
-		}
-		return parameterizations;
+		EXPRESSION_TYPE;
 	}
 
 	/**
@@ -155,74 +99,24 @@ extends TypeDescriptor
 	implements IntegerEnumSlotDescriptionEnum
 	{
 		/** The root parse node kind. */
-		PARSE_NODE("phrase type", null)
-		{
-			@Override
-			CovariantPhraseParameterization[] privateParameterizations ()
-			{
-				return parameterizations();
-			}
-		},
+		PARSE_NODE("phrase type", null),
 
 		/** The kind of a parse marker. */
-		MARKER_NODE("marker phrase type", PARSE_NODE)
-		{
-			@Override
-			CovariantPhraseParameterization[] privateParameterizations ()
-			{
-				return parameterizations(
-					co("value", InstanceMetaDescriptor.anyMeta()));
-			}
-		},
+		MARKER_NODE("marker phrase type", PARSE_NODE),
 
 		/** The abstract parent kind of all expression nodes. */
-		EXPRESSION_NODE("expression phrase type", PARSE_NODE)
-		{
-			@Override
-			CovariantPhraseParameterization[] privateParameterizations ()
-			{
-				return parameterizations();
-			}
-		},
+		EXPRESSION_NODE("expression phrase type", PARSE_NODE),
 
 		/**
 		 * The kind of an {@linkplain AssignmentNodeDescriptor assignment node}.
 		 */
-		ASSIGNMENT_NODE("assignment phrase type", EXPRESSION_NODE)
-		{
-			@Override
-			CovariantPhraseParameterization[] privateParameterizations ()
-			{
-				return parameterizations(
-					co("expression", EXPRESSION_NODE.mostGeneralType()),
-					co("declaration", DECLARATION_NODE.mostGeneralType()));
-			}
-		},
+		ASSIGNMENT_NODE("assignment phrase type", EXPRESSION_NODE),
 
 		/** The kind of a {@linkplain BlockNodeDescriptor block node}. */
 		BLOCK_NODE("block phrase type", EXPRESSION_NODE)
 		{
 			@Override
-			CovariantPhraseParameterization[] privateParameterizations ()
-			{
-				return parameterizations(
-					co("arguments", TupleTypeDescriptor.oneOrMoreOf(
-						ARGUMENT_NODE.mostGeneralType())),
-					co("primitive", IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.zero(),
-						IntegerDescriptor.fromInt(65535))),
-					co("failure",
-						PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType()),
-					co("label", LABEL_NODE.mostGeneralType()),
-					co("statements", SEQUENCE_NODE.mostGeneralType()),
-					co("exceptions",
-						SetTypeDescriptor.setTypeForSizesContentType(
-							IntegerRangeTypeDescriptor.wholeNumbers(),
-							ObjectTypeDescriptor.exceptionType())));
-			}
-
-			@Override
-			A_Type mostGeneralInnerType ()
+			A_Type mostGeneralYieldType ()
 			{
 				return FunctionTypeDescriptor.mostGeneralType();
 			}
@@ -232,14 +126,7 @@ extends TypeDescriptor
 		LITERAL_NODE("literal node type", EXPRESSION_NODE)
 		{
 			@Override
-			CovariantPhraseParameterization[] privateParameterizations ()
-			{
-				return parameterizations(
-					co("token", TOKEN.o()));
-			}
-
-			@Override
-			A_Type mostGeneralInnerType ()
+			A_Type mostGeneralYieldType ()
 			{
 				return Types.ANY.o();
 			}
@@ -251,14 +138,7 @@ extends TypeDescriptor
 		REFERENCE_NODE("variable reference phrase type", EXPRESSION_NODE)
 		{
 			@Override
-			CovariantPhraseParameterization[] privateParameterizations ()
-			{
-				return parameterizations(
-					co("declaration", DECLARATION_NODE.mostGeneralType()));
-			}
-
-			@Override
-			A_Type mostGeneralInnerType ()
+			A_Type mostGeneralYieldType ()
 			{
 				return VariableTypeDescriptor.mostGeneralType();
 			}
@@ -270,15 +150,7 @@ extends TypeDescriptor
 		SUPER_CAST_NODE("super cast phrase", EXPRESSION_NODE)
 		{
 			@Override
-			CovariantPhraseParameterization[] privateParameterizations ()
-			{
-				return parameterizations(
-					co("expression", EXPRESSION_NODE.create(ANY.o())),
-					co("lookup type", InstanceMetaDescriptor.anyMeta()));
-			}
-
-			@Override
-			A_Type mostGeneralInnerType ()
+			A_Type mostGeneralYieldType ()
 			{
 				return Types.ANY.o();
 			}
@@ -291,9 +163,31 @@ extends TypeDescriptor
 		LIST_NODE("list phrase type", EXPRESSION_NODE)
 		{
 			@Override
-			A_Type mostGeneralInnerType ()
+			A_Type mostGeneralYieldType ()
 			{
 				return TupleTypeDescriptor.mostGeneralType();
+			}
+
+			@Override
+			public final A_Type createNoCheck (
+				final A_Type yieldType)
+			{
+				final ParseNodeKind listNodeKind = this;
+				final A_Type subexpressionsTupleType =
+					TupleTypeDescriptor.mappingElementTypes(
+						yieldType,
+						new Transformer1<A_Type, A_Type>()
+						{
+							@Override
+							public @Nullable A_Type value (
+								final @Nullable A_Type argYieldType)
+							{
+								assert argYieldType != null;
+								return PARSE_NODE.create(argYieldType);
+							}
+						});
+				return ListNodeTypeDescriptor.createListNodeTypeNoCheck(
+					listNodeKind, yieldType, subexpressionsTupleType);
 			}
 		},
 
@@ -303,9 +197,31 @@ extends TypeDescriptor
 		PERMUTED_LIST_NODE("permuted list phrase type", LIST_NODE)
 		{
 			@Override
-			A_Type mostGeneralInnerType ()
+			A_Type mostGeneralYieldType ()
 			{
 				return TupleTypeDescriptor.mostGeneralType();
+			}
+
+			@Override
+			public final A_Type createNoCheck (
+				final A_Type yieldType)
+			{
+				final ParseNodeKind listNodeKind = this;
+				final A_Type subexpressionsTupleType =
+					TupleTypeDescriptor.mappingElementTypes(
+						yieldType,
+						new Transformer1<A_Type, A_Type>()
+						{
+							@Override
+							public @Nullable A_Type value (
+								final @Nullable A_Type argYieldType)
+							{
+								assert argYieldType != null;
+								return PARSE_NODE.create(argYieldType);
+							}
+						});
+				return ListNodeTypeDescriptor.createListNodeTypeNoCheck(
+					listNodeKind, yieldType, subexpressionsTupleType);
 			}
 		},
 
@@ -316,7 +232,7 @@ extends TypeDescriptor
 		VARIABLE_USE_NODE("variable use phrase type", EXPRESSION_NODE)
 		{
 			@Override
-			A_Type mostGeneralInnerType ()
+			A_Type mostGeneralYieldType ()
 			{
 				return Types.ANY.o();
 			}
@@ -388,22 +304,11 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * The enumeration values are responsible for providing an array of
-		 * {@link CovariantPhraseParameterization}s that indicate how this kind
-		 * of type is to be parameterized.
-		 *
-		 * @return An array of {@link CovariantPhraseParameterization}s.
-		 */
-//		abstract CovariantPhraseParameterization[] privateParameterizations ();
-		//TODO Remove debug
-		CovariantPhraseParameterization[] privateParameterizations () {return null;}
-
-		/**
 		 * The most general inner type for this kind of parse node.
 		 *
 		 * @return The most general inner type for this kind of parse node.
 		 */
-		A_Type mostGeneralInnerType ()
+		A_Type mostGeneralYieldType ()
 		{
 			return Types.TOP.o();
 		}
@@ -413,19 +318,8 @@ extends TypeDescriptor
 		 */
 		final int depth;
 
-		/**
-		 * The most general type for this kind of parse node.
-		 */
-		private final A_Type mostGeneralType =
-			create(mostGeneralInnerType()).makeShared();
-
 		/** The JSON name of this type. */
 		final String jsonName;
-
-		/**
-		 * The covariant parameterizations of this phrase type.
-		 */
-		@Nullable CovariantPhraseParameterization[] parameterizations;
 
 		/**
 		 * Construct a new {@link ParseNodeKind}.
@@ -433,7 +327,7 @@ extends TypeDescriptor
 		 * @param jsonName
 		 *        The JSON name of this type.
 		 * @param parentKind
-		 *        The kind of parse node of which this is the type.
+		 *        The kind of parse node for which this is a subkind.
 		 */
 		ParseNodeKind (
 			final String jsonName,
@@ -449,30 +343,47 @@ extends TypeDescriptor
 			{
 				depth = parentKind.depth + 1;
 			}
+			mostGeneralType = createNoCheck(mostGeneralYieldType());
 		}
 
 		/**
 		 * Create a {@linkplain ParseNodeTypeDescriptor parse node type} given
-		 * the expression type (the type of object produced by the expression).
+		 * the yield type (the type of object produced by the expression).
 		 *
-		 * @param expressionType
+		 * @param yieldType
 		 *        The type of object that will be produced by an expression
 		 *        which is of the type being constructed.
 		 * @return The new parse node type, whose kind is the receiver.
 		 */
-		public final A_Type create (final A_Type expressionType)
+		public A_Type create (
+			final A_Type yieldType)
 		{
-			A_Type boundedExpressionType = expressionType;
+			assert yieldType.isSubtypeOf(mostGeneralYieldType());
+			return createNoCheck(yieldType);
+		}
+
+		/**
+		 * Create a {@linkplain ParseNodeTypeDescriptor parse node type} given
+		 * the yield type (the type of object produced by the expression).
+		 *
+		 * @param yieldType
+		 *        The type of object that will be produced by an expression
+		 *        which is of the type being constructed.
+		 * @return The new parse node type, whose kind is the receiver.
+		 */
+		public A_Type createNoCheck (
+			final A_Type yieldType)
+		{
 			final AvailObject type = mutable.create();
-			boundedExpressionType = expressionType.typeIntersection(
-				mostGeneralInnerType());
-			boundedExpressionType.makeImmutable();
-			type.setSlot(EXPRESSION_TYPE, boundedExpressionType);
+			type.setSlot(EXPRESSION_TYPE, yieldType.makeImmutable());
 			type.setSlot(KIND, ordinal());
-			type.setSlot(
-				COVARIANT_PHRASE_PARAMETERIZATIONS, NilDescriptor.nil());
 			return type;
 		}
+
+		/**
+		 * The most general type for this kind of parse node.
+		 */
+		private final A_Type mostGeneralType;
 
 		/**
 		 * Answer a {@linkplain ParseNodeTypeDescriptor parse node type} whose
@@ -490,16 +401,17 @@ extends TypeDescriptor
 
 		/**
 		 * Answer the {@link ParseNodeKind} that is the nearest common ancestor
-		 * to both the receiver and the argument.
+		 * to both the receiver and the argument.  Compute it rather than look
+		 * it up, since this is used to populate the lookup table.
 		 *
-		 * @param another The other {@link ParseNodeKind}.
+		 * @param other The other {@link ParseNodeKind}.
 		 * @return The nearest common ancestor (a {@link ParseNodeKind}).
 		 */
-		public final ParseNodeKind commonAncestorWith (
-			final ParseNodeKind another)
+		private final ParseNodeKind computeCommonAncestorWith (
+			final ParseNodeKind other)
 		{
 			ParseNodeKind a = this;
-			ParseNodeKind b = another;
+			ParseNodeKind b = other;
 			while (a != b)
 			{
 				final int diff = b.depth - a.depth;
@@ -517,6 +429,35 @@ extends TypeDescriptor
 			return a;
 		}
 
+		/**
+		 * Answer the {@link ParseNodeKind} that is the nearest common ancestor
+		 * to both the receiver and the argument.  Only use this after static
+		 * initialization has completed.
+		 *
+		 * @param other The other {@link ParseNodeKind}.
+		 * @return The nearest common ancestor (a {@link ParseNodeKind}).
+		 */
+		public final ParseNodeKind commonAncestorWith (
+			final ParseNodeKind other)
+		{
+			return commonAncestors[ordinal() * all.length + other.ordinal()];
+		}
+
+		/**
+		 * Answer the {@link ParseNodeKind} that is the nearest common
+		 * descendant to both the receiver and the argument.  Only use this
+		 * after static initialization has completed.
+		 *
+		 * @param other The other {@link ParseNodeKind}.
+		 * @return The nearest common descendant (a {@link ParseNodeKind}), or
+		 *         {@code null} if there are no common descendants.
+		 */
+		public final @Nullable ParseNodeKind commonDescendantWith (
+			final ParseNodeKind other)
+		{
+			return commonDescendants[ordinal() * all.length + other.ordinal()];
+		}
+
 		/** An array of all {@link ParseNodeKind} enumeration values. */
 		private static final ParseNodeKind[] all = values();
 
@@ -532,24 +473,58 @@ extends TypeDescriptor
 		}
 
 		/**
-		 * An array where index (t1 * #values) + t2 indicates whether t1 is a
-		 * subkind of t2.
+		 * An array where the value at [(t1 * #values) + t2] indicates the
+		 * nearest common ancestor of the kinds with ordinals t1 and t2.  Note
+		 * that this matrix is symmetric about its diagonal (i.e., it equals its
+		 * transpose).
 		 */
-		private static final boolean[] compatibility =
-			new boolean [all.length * all.length];
+		private static final ParseNodeKind[] commonAncestors =
+			new ParseNodeKind [all.length * all.length];
 
 		static
 		{
-			// Populate the entire compatibility matrix.
+			// Populate the entire commonAncestors matrix.
 			for (final ParseNodeKind kind1 : all)
 			{
 				for (final ParseNodeKind kind2 : all)
 				{
 					final int index = kind1.ordinal() * all.length
 						+ kind2.ordinal();
-					final boolean compatible =
-						kind1.commonAncestorWith(kind2) == kind2;
-					compatibility[index] = compatible;
+					commonAncestors[index] =
+						kind1.computeCommonAncestorWith(kind2);
+				}
+			}
+		}
+
+		/**
+		 * An array where the value at [(t1 * #values) + t2] indicates the
+		 * nearest common descendant of the kinds with ordinals t1 and t2, or
+		 * {@code null} if the kinds have no common descendant.  Note that this
+		 * matrix is symmetric about its diagonal (i.e., it equals its
+		 * transpose).
+		 */
+		private static final ParseNodeKind[] commonDescendants =
+			new ParseNodeKind [all.length * all.length];
+
+		static
+		{
+			// Populate the entire commonDescendants matrix.
+			for (final ParseNodeKind kind1 : all)
+			{
+				for (final ParseNodeKind kind2 : all)
+				{
+					// The kinds form a tree, so either kind1 is an ancestor of
+					// kind2, kind2 is an ancestor of kind1, or they have no
+					// common descent.
+					final int index = kind1.ordinal() * all.length
+						+ kind2.ordinal();
+					final ParseNodeKind ancestor = commonAncestors[index];
+					commonDescendants[index] =
+						ancestor == kind1
+							? kind2
+							: ancestor == kind2
+								? kind1
+								: null;
 				}
 			}
 		}
@@ -565,8 +540,16 @@ extends TypeDescriptor
 		{
 			final int index =
 				ordinal() * all.length + purportedParent.ordinal();
-			return compatibility[index];
+			return commonAncestors[index] == purportedParent;
 		}
+	}
+
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
+	{
+		// Only the hash part may change (be set lazily), not the kind.
+		return e == HASH_AND_KIND;
 	}
 
 	/**
@@ -616,13 +599,19 @@ extends TypeDescriptor
 
 	/**
 	 * {@linkplain ParseNodeTypeDescriptor parse nodes} must implement {@link
-	* AbstractDescriptor#o_Hash(AvailObject) hash}.
+	 * AbstractDescriptor#o_Hash(AvailObject) hash}.
 	 */
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.slot(EXPRESSION_TYPE).hash()
-			^ (object.slot(KIND) * multiplier);
+		int hash = object.slot(HASH_OR_ZERO);
+		if (hash == 0)
+		{
+			hash = object.slot(EXPRESSION_TYPE).hash()
+				^ (object.slot(KIND) * multiplier);
+			object.setSlot(HASH_OR_ZERO, hash);
+		}
+		return hash;
 	}
 
 	@Override @AvailMethod
@@ -631,19 +620,28 @@ extends TypeDescriptor
 		return aType.isSupertypeOfParseNodeType(object);
 	}
 
-	@Override @AvailMethod
+	@Override
+	@AvailMethod
+	boolean o_IsSupertypeOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		return LIST_NODE.isSubkindOf(object.parseNodeKind())
+			&& aListNodeType.expressionType().isSubtypeOf(
+				object.expressionType());
+	}
+
+	@Override
+	@AvailMethod
 	boolean o_IsSupertypeOfParseNodeType (
 		final AvailObject object,
 		final A_Type aParseNodeType)
 	{
 		final ParseNodeKind myKind = object.parseNodeKind();
 		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
-		if (otherKind.isSubkindOf(myKind))
-		{
-			return aParseNodeType.expressionType().isSubtypeOf(
-				object.slot(EXPRESSION_TYPE));
-		}
-		return false;
+		return otherKind.isSubkindOf(myKind)
+			&& aParseNodeType.expressionType().isSubtypeOf(
+				object.expressionType());
 	}
 
 	/**
@@ -665,7 +663,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final ParseNodeKind expectedParseNodeKind)
 	{
-		return object.parseNodeKindIsUnder(expectedParseNodeKind);
+		return object.parseNodeKind().isSubkindOf(expectedParseNodeKind);
 	}
 
 	@Override
@@ -682,37 +680,45 @@ extends TypeDescriptor
 		return another.typeIntersectionOfParseNodeType(object);
 	}
 
+	@Override
+	A_Type o_TypeIntersectionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		// Intersection of two list node types.
+		final @Nullable ParseNodeKind intersectionKind =
+			object.parseNodeKind().commonDescendantWith(
+				aListNodeType.parseNodeKind());
+		if (intersectionKind == null)
+		{
+			return BottomTypeDescriptor.bottom();
+		}
+		assert intersectionKind.isSubkindOf(LIST_NODE);
+		return ListNodeTypeDescriptor.createListNodeType(
+			intersectionKind,
+			object.expressionType().typeIntersection(
+				aListNodeType.expressionType()),
+			aListNodeType.subexpressionsTupleType());
+	}
+
 	@Override @AvailMethod
 	A_Type o_TypeIntersectionOfParseNodeType (
 		final AvailObject object,
 		final A_Type aParseNodeType)
 	{
-		final ParseNodeKind myKind = object.parseNodeKind();
-		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
-		final A_Type myExpressionType = object.slot(EXPRESSION_TYPE);
-		final A_Type otherExpressionType = aParseNodeType.expressionType();
-		if (myKind.isSubkindOf(otherKind)
-			&& myExpressionType.isSubtypeOf(otherExpressionType))
+		final @Nullable ParseNodeKind intersectionKind =
+			object.parseNodeKind().commonDescendantWith(
+				aParseNodeType.parseNodeKind());
+		if (intersectionKind == null)
 		{
-			return object;
+			return BottomTypeDescriptor.bottom();
 		}
-		if (otherKind.isSubkindOf(myKind)
-			&& otherExpressionType.isSubtypeOf(myExpressionType))
-		{
-			return aParseNodeType;
-		}
-		final ParseNodeKind ancestorKind = myKind.commonAncestorWith(otherKind);
-		if (ancestorKind == myKind || ancestorKind == otherKind)
-		{
-			// One kind is the ancestor of the other.  We can work with that.
-			final A_Type innerIntersection =
-				myExpressionType.typeIntersection(otherExpressionType);
-			return (ancestorKind == myKind ? otherKind : myKind).create(
-				innerIntersection);
-		}
-		// There may be a common ancestor, but it isn't one of the supplied
-		// kinds.  Since the kinds form a tree, the intersection is impossible.
-		return BottomTypeDescriptor.bottom();
+		assert !intersectionKind.isSubkindOf(LIST_NODE);
+		// It should be safe to assume the mostGeneralType() of a subkind is
+		// always a subtype of the mostGeneralType() of a superkind.
+		return intersectionKind.createNoCheck(
+			object.slot(EXPRESSION_TYPE).typeIntersection(
+				aParseNodeType.expressionType()));
 	}
 
 	@Override @AvailMethod
@@ -723,28 +729,34 @@ extends TypeDescriptor
 		return another.typeUnionOfParseNodeType(object);
 	}
 
+	@Override
+	A_Type o_TypeUnionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		// Union of a non-list parse node type and a list node type is a
+		// non-list parse node type.
+		final ParseNodeKind objectKind = object.parseNodeKind();
+		final ParseNodeKind otherKind = aListNodeType.parseNodeKind();
+		assert otherKind.isSubkindOf(LIST_NODE);
+		final ParseNodeKind unionKind = objectKind.commonAncestorWith(
+			otherKind);
+		assert !unionKind.isSubkindOf(LIST_NODE);
+		return unionKind.create(
+			object.expressionType().typeUnion(aListNodeType.expressionType()));
+	}
+
 	@Override @AvailMethod
 	A_Type o_TypeUnionOfParseNodeType (
 		final AvailObject object,
 		final A_Type aParseNodeType)
 	{
-		final ParseNodeKind myKind = object.parseNodeKind();
-		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
-		final A_Type myExpressionType = object.slot(EXPRESSION_TYPE);
-		final A_Type otherExpressionType = aParseNodeType.expressionType();
-		if (myKind.isSubkindOf(otherKind)
-			&& myExpressionType.isSubtypeOf(otherExpressionType))
-		{
-			return aParseNodeType;
-		}
-		if (otherKind.isSubkindOf(myKind)
-			&& otherExpressionType.isSubtypeOf(myExpressionType))
-		{
-			return object;
-		}
-		final ParseNodeKind ancestorKind = myKind.commonAncestorWith(otherKind);
-		return ancestorKind.create(
-			myExpressionType.typeUnion(otherExpressionType));
+		final ParseNodeKind unionKind =
+			object.parseNodeKind().commonAncestorWith(
+				aParseNodeType.parseNodeKind());
+		return unionKind.createNoCheck(
+			object.slot(EXPRESSION_TYPE).typeUnion(
+				aParseNodeType.expressionType()));
 	}
 
 	@Override
@@ -782,21 +794,6 @@ extends TypeDescriptor
 			builder,
 			recursionMap,
 			indent + 1);
-	}
-
-	/**
-	 * Answer a list node type for the given sequence of types.  That's
-	 * the type of a list node which when evaluated will produce values
-	 * of those corresponding types.
-	 *
-	 * @param types
-	 *        The types of values produced by such a list node's
-	 *        corresponding expressions.
-	 * @return A list node type.
-	 */
-	public static A_Type list (final A_Type... types)
-	{
-		return LIST_NODE.create(TupleTypeDescriptor.forTypes(types));
 	}
 
 	/**
@@ -857,8 +854,30 @@ extends TypeDescriptor
 		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
+	/**
+	 * Re-export the three-argument constructor for subclasses to access.
+	 *
+	 * @param mutability
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
+	 */
+	protected ParseNodeTypeDescriptor (
+		final Mutability mutability,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
+	{
+		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+	}
+
 	/** The mutable {@link ParseNodeTypeDescriptor}. */
-	static final ParseNodeTypeDescriptor mutable =
+	@InnerAccess static final ParseNodeTypeDescriptor mutable =
 		new ParseNodeTypeDescriptor(Mutability.MUTABLE);
 
 	@Override

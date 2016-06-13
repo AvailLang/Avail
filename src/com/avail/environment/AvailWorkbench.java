@@ -784,6 +784,10 @@ extends JFrame
 	/** The {@linkplain CleanAction clean action}. */
 	@InnerAccess final CleanAction cleanAction = new CleanAction(this);
 
+	/** The {@linkplain CreateProgramAction create program action}. */
+	@InnerAccess final CreateProgramAction createProgramAction =
+		new CreateProgramAction(this);
+
 	/**
 	 * The {@linkplain GenerateDocumentationAction generate documentation
 	 * action}.
@@ -871,6 +875,10 @@ extends JFrame
 		graphAction.setEnabled(!busy && selectedModule() != null);
 		insertEntryPointAction.setEnabled(
 			!busy && selectedEntryPoint() != null);
+		createProgramAction.setEnabled(
+			!busy && selectedEntryPoint() != null
+				&& availBuilder.getLoadedModule(selectedEntryPointModule())
+					!= null);
 		buildEntryPointModuleAction.setEnabled(
 			!busy && selectedEntryPointModule() != null);
 		inputLabel.setText(isRunning
@@ -1758,6 +1766,8 @@ extends JFrame
 		entryPointsPopup.add(new JMenuItem(buildEntryPointModuleAction));
 		entryPointsPopup.addSeparator();
 		entryPointsPopup.add(new JMenuItem(insertEntryPointAction));
+		entryPointsPopup.addSeparator();
+		entryPointsPopup.add(new JMenuItem(createProgramAction));
 		entryPointsPopup.addSeparator();
 		entryPointsPopup.add(new JMenuItem(refreshAction));
 

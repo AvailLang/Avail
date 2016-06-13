@@ -50,7 +50,6 @@ import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -1218,9 +1217,15 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param bundle
 	 */
-	abstract void o_AddBundle (
+	abstract void o_AddBundle (AvailObject object, A_Bundle bundle);
+
+	/**
+	 * @param object
+	 * @param plan
+	 */
+	abstract void o_AddDefinitionParsingPlan (
 		AvailObject object,
-		A_Bundle bundle);
+		A_DefinitionParsingPlan plan);
 
 	/**
 	 * @param object
@@ -2550,33 +2555,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param aType
-	 * @return
-	 */
-	abstract A_Type o_TypeIntersectionOfFiberType (
-		AvailObject object,
-		A_Type aType);
-
-	/**
-	 * @param object
-	 * @param aFunctionType
-	 * @return
-	 */
-	abstract A_Type o_TypeIntersectionOfFunctionType (
-		AvailObject object,
-		A_Type aFunctionType);
-
-	/**
-	 * @param object
-	 * @param aVariableType
-	 * @return
-	 */
-	abstract A_Type o_TypeIntersectionOfVariableType (
-		AvailObject object,
-		A_Type aVariableType);
-
-	/**
-	 * @param object
 	 * @param aContinuationType
 	 * @return
 	 */
@@ -2595,12 +2573,39 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param aType
+	 * @return
+	 */
+	abstract A_Type o_TypeIntersectionOfFiberType (
+		AvailObject object,
+		A_Type aType);
+
+	/**
+	 * @param object
+	 * @param aFunctionType
+	 * @return
+	 */
+	abstract A_Type o_TypeIntersectionOfFunctionType (
+		AvailObject object,
+		A_Type aFunctionType);
+
+	/**
+	 * @param object
 	 * @param anIntegerRangeType
 	 * @return
 	 */
 	abstract A_Type o_TypeIntersectionOfIntegerRangeType (
 		AvailObject object,
 		A_Type anIntegerRangeType);
+
+	/**
+	 * @param object
+	 * @param aListNodeType
+	 * @return
+	 */
+	abstract A_Type o_TypeIntersectionOfListNodeType (
+		AvailObject object,
+		A_Type aListNodeType);
 
 	/**
 	 * @param object
@@ -2655,6 +2660,15 @@ public abstract class AbstractDescriptor
 	abstract A_Type o_TypeIntersectionOfTupleType (
 		AvailObject object,
 		A_Type aTupleType);
+
+	/**
+	 * @param object
+	 * @param aVariableType
+	 * @return
+	 */
+	abstract A_Type o_TypeIntersectionOfVariableType (
+		AvailObject object,
+		A_Type aVariableType);
 
 	/**
 	 * @param object
@@ -2716,6 +2730,15 @@ public abstract class AbstractDescriptor
 	abstract A_Type o_TypeUnionOfIntegerRangeType (
 		AvailObject object,
 		A_Type anIntegerRangeType);
+
+	/**
+	 * @param object
+	 * @param aListNodeType
+	 * @return
+	 */
+	abstract A_Type o_TypeUnionOfListNodeType (
+		AvailObject object,
+		A_Type aListNodeType);
 
 	/**
 	 * @param object
@@ -2923,8 +2946,12 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param module
+	 * @param sampleArgsStack
 	 */
-	abstract void o_Expand (AvailObject object, A_Module module);
+	abstract void o_Expand (
+		AvailObject object,
+		A_Module module,
+		List<A_Phrase> sampleArgsStack);
 
 	/**
 	 * @param object
@@ -3154,12 +3181,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract AvailObject o_Name (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract A_String o_AtomName (AvailObject object);
 
 	/**
@@ -3309,12 +3330,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_String o_String (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract LookupTree o_TestingTree (AvailObject object);
 
 	/**
 	 * @param object
@@ -4348,6 +4363,12 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract int o_LineNumber (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Map o_AllParsingPlans (AvailObject object);
 
 	/**
 	 * @param object
@@ -6174,12 +6195,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
-	 */
-	abstract LookupTree o_MacroTestingTree (AvailObject object);
-
-	/**
-	 * @param object
 	 * @param index
 	 * @return
 	 */
@@ -6268,5 +6283,69 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract long o_UniqueId (AvailObject object);
+	abstract A_Definition o_Definition (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Tuple o_TypesToCheck (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param pc
+	 * @return
+	 */
+	abstract String o_NameHighlightingPc (AvailObject object, int pc);
+
+	/**
+	 * @param object
+	 * @param otherSet
+	 * @return
+	 */
+	abstract boolean o_SetIntersects (AvailObject object, A_Set otherSet);
+
+	/**
+	 * @param object
+	 * @param plan
+	 */
+	abstract void o_RemoveDefinitionParsingPlan (
+		AvailObject object,
+		A_DefinitionParsingPlan plan);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_DefinitionParsingPlans (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param aListNodeType
+	 * @return
+	 */
+	abstract boolean o_EqualsListNodeType (
+		AvailObject object,
+		A_Type aListNodeType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Type o_SubexpressionsTupleType (AvailObject object);
+
+	/**
+	 * @param object
+	 * @param aListNodeType
+	 * @return
+	 */
+	abstract boolean o_IsSupertypeOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract long o_UniqueId (final AvailObject object);
 }

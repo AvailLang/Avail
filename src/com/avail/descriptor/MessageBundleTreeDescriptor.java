@@ -388,7 +388,10 @@ extends Descriptor
 	 * Expand the bundle tree if there's anything unclassified in it.
 	 */
 	@Override @AvailMethod
-	void o_Expand (final AvailObject object, final A_Module module)
+	void o_Expand (
+		final AvailObject object,
+		final A_Module module,
+		final List<A_Phrase> sampleArgsStack)
 	{
 		synchronized (object)
 		{

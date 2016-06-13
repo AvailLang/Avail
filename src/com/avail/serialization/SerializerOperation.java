@@ -2419,7 +2419,7 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * A {@linkplain ParseNodeTypeDescriptor parse node type}.
+	 * A {@linkplain ParseNodeTypeDescriptor parse phrase type}.
 	 */
 	PARSE_NODE_TYPE (77,
 		BYTE.as("kind"),
@@ -2447,10 +2447,42 @@ public enum SerializerOperation
 	},
 
 	/**
+	 * A {@linkplain ListNodeTypeDescriptor list phrase type}.
+	 */
+	LIST_NODE_TYPE (78,
+		BYTE.as("list phrase kind"),
+		OBJECT_REFERENCE.as("expression type"),
+		OBJECT_REFERENCE.as("subexpressions tuple type"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array (
+				IntegerDescriptor.fromInt(object.parseNodeKind().ordinal()),
+				object.expressionType(),
+				object.subexpressionsTupleType());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final int parseNodeKindOrdinal = subobjects[0].extractInt();
+			final AvailObject expressionType = subobjects[1];
+			final AvailObject subexpressionsTupleType = subobjects[2];
+			final ParseNodeKind parseNodeKind =
+				ParseNodeKind.all()[parseNodeKindOrdinal];
+			return ListNodeTypeDescriptor.createListNodeType(
+				parseNodeKind, expressionType, subexpressionsTupleType);
+		}
+	},
+
+	/**
 	 * A {@linkplain VariableTypeDescriptor variable type} for which the read
 	 * type and write type are equal.
 	 */
-	SIMPLE_VARIABLE_TYPE (78,
+	SIMPLE_VARIABLE_TYPE (79,
 		OBJECT_REFERENCE.as("content type"))
 	{
 		@Override
@@ -2475,7 +2507,7 @@ public enum SerializerOperation
 	 * A {@linkplain ReadWriteVariableTypeDescriptor variable type} for which
 	 * the read type and write type are (actually) unequal.
 	 */
-	READ_WRITE_VARIABLE_TYPE (79,
+	READ_WRITE_VARIABLE_TYPE (80,
 		OBJECT_REFERENCE.as("read type"),
 		OBJECT_REFERENCE.as("write type"))
 	{
@@ -2505,7 +2537,7 @@ public enum SerializerOperation
 	 * The {@linkplain BottomTypeDescriptor bottom type}, more specific than all
 	 * other types.
 	 */
-	BOTTOM_TYPE (80)
+	BOTTOM_TYPE (81)
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)

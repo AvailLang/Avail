@@ -45,7 +45,6 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
@@ -373,11 +372,23 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddBundle (
-		final AvailObject object,
-		final A_Bundle bundle)
+	void o_AddBundle (final AvailObject object, final A_Bundle bundle)
 	{
 		o_Traversed(object).addBundle(bundle);
+	}
+
+	@Override
+	A_Map o_AllBundles (final AvailObject object)
+	{
+		return o_Traversed(object).allBundles();
+	}
+
+	@Override
+	void o_AddDefinitionParsingPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan)
+	{
+		o_Traversed(object).addDefinitionParsingPlan(plan);
 	}
 
 	@Override
@@ -1201,6 +1212,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_IsSupertypeOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		return o_Traversed(object).isSupertypeOfListNodeType(aListNodeType);
+	}
+
+	@Override
 	boolean o_IsSupertypeOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
@@ -1737,6 +1756,24 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_TypeIntersectionOfCompiledCodeType (
+		final AvailObject object,
+		final A_Type aCompiledCodeType)
+	{
+		return o_Traversed(object).typeIntersectionOfCompiledCodeType(
+			aCompiledCodeType);
+	}
+
+	@Override
+	A_Type o_TypeIntersectionOfContinuationType (
+		final AvailObject object,
+		final A_Type aContinuationType)
+	{
+		return o_Traversed(object).typeIntersectionOfContinuationType(
+			aContinuationType);
+	}
+
+	@Override
 	A_Type o_TypeIntersectionOfFiberType (
 		final AvailObject object,
 		final A_Type aFiberType)
@@ -1755,39 +1792,21 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeIntersectionOfVariableType (
-		final AvailObject object,
-		final A_Type aVariableType)
-	{
-		return o_Traversed(object).typeIntersectionOfVariableType(
-			aVariableType);
-	}
-
-	@Override
-	A_Type o_TypeIntersectionOfContinuationType (
-		final AvailObject object,
-		final A_Type aContinuationType)
-	{
-		return o_Traversed(object).typeIntersectionOfContinuationType(
-			aContinuationType);
-	}
-
-	@Override
-	A_Type o_TypeIntersectionOfCompiledCodeType (
-		final AvailObject object,
-		final A_Type aCompiledCodeType)
-	{
-		return o_Traversed(object).typeIntersectionOfCompiledCodeType(
-			aCompiledCodeType);
-	}
-
-	@Override
 	A_Type o_TypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type anIntegerRangeType)
 	{
 		return o_Traversed(object).typeIntersectionOfIntegerRangeType(
 			anIntegerRangeType);
+	}
+
+	@Override
+	A_Type o_TypeIntersectionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		return o_Traversed(object).typeIntersectionOfListNodeType(
+			aListNodeType);
 	}
 
 	@Override
@@ -1837,6 +1856,15 @@ extends AbstractDescriptor
 		final A_Type aTupleType)
 	{
 		return o_Traversed(object).typeIntersectionOfTupleType(aTupleType);
+	}
+
+	@Override
+	A_Type o_TypeIntersectionOfVariableType (
+		final AvailObject object,
+		final A_Type aVariableType)
+	{
+		return o_Traversed(object).typeIntersectionOfVariableType(
+			aVariableType);
 	}
 
 	@Override
@@ -2109,9 +2137,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Expand (final AvailObject object, final A_Module module)
+	void o_Expand (
+		final AvailObject object,
+		final A_Module module,
+		final List<A_Phrase> sampleArgsStack)
 	{
-		o_Traversed(object).expand(module);
+		o_Traversed(object).expand(module, sampleArgsStack);
 	}
 
 	@Override
@@ -2457,12 +2488,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Name (final AvailObject object)
-	{
-		return o_Traversed(object).name();
-	}
-
-	@Override
 	A_Map o_ImportedNames (final AvailObject object)
 	{
 		return o_Traversed(object).importedNames();
@@ -2598,12 +2623,6 @@ extends AbstractDescriptor
 	A_String o_String (final AvailObject object)
 	{
 		return o_Traversed(object).string();
-	}
-
-	@Override
-	LookupTree o_TestingTree (final AvailObject object)
-	{
-		return o_Traversed(object).testingTree();
 	}
 
 	@Override
@@ -2940,9 +2959,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Map o_AllBundles (final AvailObject object)
+	A_Map o_AllParsingPlans (final AvailObject object)
 	{
-		return o_Traversed(object).allBundles();
+		return o_Traversed(object).allParsingPlans();
 	}
 
 	@Override
@@ -4692,12 +4711,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	LookupTree o_MacroTestingTree(final AvailObject object)
-	{
-		return o_Traversed(object).macroTestingTree();
-	}
-
-	@Override
 	A_Phrase o_ExpressionAt (final AvailObject object, final int index)
 	{
 		return o_Traversed(object).expressionAt(index);
@@ -4785,5 +4798,65 @@ extends AbstractDescriptor
 	long o_UniqueId (final AvailObject object)
 	{
 		return o_Traversed(object).uniqueId();
+	}
+
+	@Override
+	A_Definition o_Definition (final AvailObject object)
+	{
+		return o_Traversed(object).definition();
+	}
+
+	@Override
+	A_Tuple o_TypesToCheck (final AvailObject object)
+	{
+		return o_Traversed(object).typesToCheck();
+	}
+
+	@Override
+	String o_NameHighlightingPc (final AvailObject object, final int pc)
+	{
+		return o_Traversed(object).nameHighlightingPc(pc);
+	}
+
+	@Override
+	boolean o_SetIntersects (final AvailObject object, final A_Set otherSet)
+	{
+		return o_Traversed(object).setIntersects(otherSet);
+	}
+
+	@Override
+	void o_RemoveDefinitionParsingPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan)
+	{
+		o_Traversed(object).removeDefinitionParsingPlan(plan);
+	}
+
+	@Override
+	A_Set o_DefinitionParsingPlans (final AvailObject object)
+	{
+		return o_Traversed(object).definitionParsingPlans();
+	}
+
+	@Override
+	boolean o_EqualsListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		return o_Traversed(object).equalsListNodeType(aListNodeType);
+	}
+
+	@Override
+	A_Type o_SubexpressionsTupleType (final AvailObject object)
+	{
+		return o_Traversed(object).subexpressionsTupleType();
+	}
+
+	@Override
+	A_Type o_TypeUnionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		return o_Traversed(object).typeUnionOfListNodeType(aListNodeType);
 	}
 }

@@ -46,7 +46,6 @@ import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
-import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -88,6 +87,7 @@ implements
 		A_Character,
 		A_Continuation,
 		A_Definition,
+		A_DefinitionParsingPlan,
 		A_Fiber,
 		A_Function,
 		A_GrammaticalRestriction,
@@ -681,6 +681,18 @@ implements
 		descriptor.o_ModuleAddDefinition(
 			this,
 			definition);
+	}
+
+	/**
+	 * @param plan
+	 */
+	@Override
+	public void addDefinitionParsingPlan (
+		final A_DefinitionParsingPlan plan)
+	{
+		descriptor.o_AddDefinitionParsingPlan(
+			this,
+			plan);
 	}
 
 	/**
@@ -1991,9 +2003,11 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public void expand (final A_Module module)
+	public void expand (
+		final A_Module module,
+		final List<A_Phrase> sampleArgsStack)
 	{
-		descriptor.o_Expand(this, module);
+		descriptor.o_Expand(this, module, sampleArgsStack);
 	}
 
 	/**
@@ -2624,6 +2638,18 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
+	public boolean isSupertypeOfListNodeType (
+		final A_Type aListNodeType)
+	{
+		return descriptor.o_IsSupertypeOfListNodeType(
+			this,
+			aListNodeType);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
 	public boolean isSupertypeOfLiteralTokenType (
 		final A_Type aLiteralTokenType)
 	{
@@ -3161,15 +3187,6 @@ implements
 			this,
 			anInteger,
 			canDestroy);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public AvailObject name ()
-	{
-		return descriptor.o_Name(this);
 	}
 
 	/**
@@ -3882,15 +3899,6 @@ implements
 	}
 
 	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public LookupTree testingTree ()
-	{
-		return descriptor.o_TestingTree(this);
-	}
-
-	/**
 	 * Multiply the receiver and the argument {@code aNumber} and answer the
 	 * {@linkplain AvailObject result}.
 	 *
@@ -4080,6 +4088,31 @@ implements
 	}
 
 	/**
+	 * @param aCompiledCodeType
+	 * @return
+	 */
+	@Override
+	public A_Type typeIntersectionOfCompiledCodeType (
+		final A_Type aCompiledCodeType)
+	{
+		return descriptor.o_TypeIntersectionOfCompiledCodeType(
+			this,
+			aCompiledCodeType);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
+	public A_Type typeIntersectionOfContinuationType (
+		final A_Type aContinuationType)
+	{
+		return descriptor.o_TypeIntersectionOfContinuationType(
+			this,
+			aContinuationType);
+	}
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	@Override
@@ -4104,46 +4137,24 @@ implements
 	}
 
 	/**
-	 * @param aCompiledCodeType
-	 * @return
-	 */
-	@Override
-	public A_Type typeIntersectionOfCompiledCodeType (
-		final A_Type aCompiledCodeType)
-	{
-		return descriptor.o_TypeIntersectionOfCompiledCodeType(
-			this,
-			aCompiledCodeType);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public A_Type typeIntersectionOfVariableType (
-		final A_Type aVariableType)
-	{
-		return descriptor.o_TypeIntersectionOfVariableType(this, aVariableType);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public A_Type typeIntersectionOfContinuationType (
-		final A_Type aContinuationType)
-	{
-		return descriptor.o_TypeIntersectionOfContinuationType(this, aContinuationType);
-	}
-
-	/**
 	 * Dispatch to the descriptor.
 	 */
 	@Override
 	public A_Type typeIntersectionOfIntegerRangeType (
 		final A_Type anIntegerRangeType)
 	{
-		return descriptor.o_TypeIntersectionOfIntegerRangeType(this, anIntegerRangeType);
+		return descriptor.o_TypeIntersectionOfIntegerRangeType(
+			this,
+			anIntegerRangeType);
+	}
+
+	@Override
+	public A_Type typeIntersectionOfListNodeType (
+		final A_Type aListNodeType)
+	{
+		return descriptor.o_TypeIntersectionOfListNodeType(
+			this,
+			aListNodeType);
 	}
 
 	/**
@@ -4208,6 +4219,16 @@ implements
 		final A_Type aTupleType)
 	{
 		return descriptor.o_TypeIntersectionOfTupleType(this, aTupleType);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
+	public A_Type typeIntersectionOfVariableType (
+		final A_Type aVariableType)
+	{
+		return descriptor.o_TypeIntersectionOfVariableType(this, aVariableType);
 	}
 
 	/**
@@ -4279,6 +4300,15 @@ implements
 		final A_Type anIntegerRangeType)
 	{
 		return descriptor.o_TypeUnionOfIntegerRangeType(this, anIntegerRangeType);
+	}
+
+	@Override
+	public A_Type typeUnionOfListNodeType (
+		final A_Type aListNodeType)
+	{
+		return descriptor.o_TypeUnionOfListNodeType(
+			this,
+			aListNodeType);
 	}
 
 	/**
@@ -4767,6 +4797,14 @@ implements
 		return descriptor.o_LineNumber(this);
 	}
 
+	/**
+	 * @return
+	 */
+	@Override
+	public A_Map allParsingPlans ()
+	{
+		return descriptor.o_AllParsingPlans(this);
+	}
 
 	/**
 	 * @return
@@ -4776,7 +4814,6 @@ implements
 	{
 		return descriptor.o_AllBundles(this);
 	}
-
 
 	/**
 	 * @return
@@ -7010,12 +7047,6 @@ implements
 	}
 
 	@Override
-	public LookupTree macroTestingTree ()
-	{
-		return descriptor.o_MacroTestingTree(this);
-	}
-
-	@Override
 	public A_Phrase expressionAt (final int index)
 	{
 		return descriptor.o_ExpressionAt(this, index);
@@ -7100,5 +7131,53 @@ implements
 	public long uniqueId ()
 	{
 		return descriptor.o_UniqueId(this);
+	}
+
+	@Override
+	public A_Definition definition ()
+	{
+		return descriptor.o_Definition(this);
+	}
+
+	@Override
+	public A_Tuple typesToCheck ()
+	{
+		return descriptor.o_TypesToCheck(this);
+	}
+
+	@Override
+	public String nameHighlightingPc (final int pc)
+	{
+		return descriptor.o_NameHighlightingPc(this, pc);
+	}
+
+	@Override
+	public boolean setIntersects (final A_Set otherSet)
+	{
+		return descriptor.o_SetIntersects(this, otherSet);
+	}
+
+	@Override
+	public void removeDefinitionParsingPlan (final A_DefinitionParsingPlan plan)
+	{
+		descriptor.o_RemoveDefinitionParsingPlan(this, plan);
+	}
+
+	@Override
+	public A_Set definitionParsingPlans ()
+	{
+		return descriptor.o_DefinitionParsingPlans(this);
+	}
+
+	@Override
+	public boolean equalsListNodeType (final A_Type aListNodeType)
+	{
+		return descriptor.o_EqualsListNodeType(this, aListNodeType);
+	}
+
+	@Override
+	public A_Type subexpressionsTupleType ()
+	{
+		return descriptor.o_SubexpressionsTupleType(this);
 	}
 }

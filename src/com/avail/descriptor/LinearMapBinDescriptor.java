@@ -89,8 +89,6 @@ extends MapBinDescriptor
 			assert MapBinDescriptor.IntegerSlots.VALUES_HASH_OR_ZERO
 				.isSamePlaceAs(VALUES_HASH_OR_ZERO);
 		}
-
-
 	}
 
 	/**

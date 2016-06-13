@@ -64,6 +64,7 @@ import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
@@ -97,7 +98,7 @@ public final class AvailCompiler
 	 *
 	 * <p>That will teach you.</p>
 	 */
-	final static String errorIndicatorSymbol =
+	public final static String errorIndicatorSymbol =
 		System.getProperty("os.name").startsWith("Windows")
 			? "↪"
 			: "⤷";
@@ -475,6 +476,10 @@ public final class AvailCompiler
 			// the argument parse, not the successor instruction that was
 			// captured.
 			final int pc = bundleTree.parsingPc() - 1;
+//			// Reduce to the the plans' unique bundles.
+//			final A_Map bundlesMap = bundleTree.allParsingPlans();
+//			final List<A_Bundle> bundles =
+//				TupleDescriptor.toList(bundlesMap.keysAsSet().asTuple());
 			final List<A_Bundle> bundles = TupleDescriptor.toList(
 				bundleTree.allBundles().valuesAsTuple());
 			Collections.<A_Bundle>sort(
@@ -501,6 +506,10 @@ public final class AvailCompiler
 				{
 					builder.append(", ");
 				}
+//				final A_Set plans = bundlesMap.mapAt(bundle);
+//				// Pick an active plan arbitrarily for this bundle.
+//				final A_DefinitionParsingPlan plan = plans.iterator().next();
+//				builder.append(plan.nameHighlightingPc(pc));
 				final MessageSplitter splitter = bundle.messageSplitter();
 				builder.append(splitter.nameHighlightingPc(pc));
 				first = false;
@@ -3199,9 +3208,66 @@ public final class AvailCompiler
 				final List<String> sorted = new ArrayList<>(
 					incomplete.mapSize());
 				final boolean detail = incomplete.mapSize() < 10;
-				for (final MapDescriptor.Entry entry
-					: incomplete.mapIterable())
+				final int pc = bundleTree.parsingPc();
+				for (final MapDescriptor.Entry entry : incomplete.mapIterable())
 				{
+//					final A_String availString = entry.key();
+//					if (!availString.equals(excludedString))
+//					{
+//						final String string = availString.asNativeString();
+//						if (detail)
+//						{
+//							// Collect and deduplicate bundles, keeping one
+//							// representative definition parsing plan for each.
+//							final Set<A_Bundle> bundleSet =
+//								new HashSet<A_Bundle>();
+//							final List<A_DefinitionParsingPlan>
+//								representativePlans = new ArrayList<>();
+//							for (final MapDescriptor.Entry successorBundleEntry
+//								: entry.value().allParsingPlans().mapIterable())
+//							{
+//								final A_Bundle bundle =
+//									successorBundleEntry.key();
+//								final A_Set plans =
+//									successorBundleEntry.value();
+//								if (!bundleSet.contains(bundle))
+//								{
+//									bundleSet.add(bundle);
+//									representativePlans.add(
+//										plans.iterator().next());
+//								}
+//							}
+//							final StringBuilder buffer = new StringBuilder();
+//							buffer.append(string);
+//							buffer.append("  (");
+//							boolean first = true;
+//							for (final A_DefinitionParsingPlan plan
+//								: representativePlans)
+//							{
+//								if (!first)
+//								{
+//									buffer.append(", ");
+//								}
+//								final A_Bundle bundle = plan.bundle();
+//								buffer.append(plan.nameHighlightingPc(pc));
+//								buffer.append(" from ");
+//								final A_Module issuer =
+//									bundle.message().issuingModule();
+//								final String issuerName =
+//									issuer.moduleName().asNativeString();
+//								final String shortIssuer = issuerName.substring(
+//									issuerName.lastIndexOf('/') + 1);
+//								buffer.append(shortIssuer);
+//								first = false;
+//							}
+//							buffer.append(")");
+//							sorted.add(buffer.toString());
+//						}
+//						else
+//						{
+//							sorted.add(string);
+//						}
+//					}
 					final String string = entry.key().asNativeString();
 					if (detail)
 					{
@@ -3209,7 +3275,6 @@ public final class AvailCompiler
 						buffer.append(string);
 						buffer.append("  (");
 						boolean first = true;
-						final int pc = bundleTree.parsingPc();
 						for (final MapDescriptor.Entry successorBundleEntry
 							: entry.value().allBundles().mapIterable())
 						{
@@ -3492,7 +3557,7 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final Con<A_Phrase> continuation)
 	{
-		bundleTree.expand(module);
+		bundleTree.expand(module, argsSoFar);
 		final A_Map complete = bundleTree.lazyComplete();
 		final A_Map incomplete = bundleTree.lazyIncomplete();
 		final A_Map caseInsensitive =
@@ -3637,6 +3702,9 @@ public final class AvailCompiler
 						== ParsingOperation.CHECK_ARGUMENT;
 					return;
 				}
+				// The argument name was not in the prefilter map, so fall
+				// through to allow normal action processing.  Note that in this
+				// case the only possible action is the check argument instruction
 			}
 		}
 		if (anyActions)
@@ -4305,11 +4373,11 @@ public final class AvailCompiler
 				 * just run.  Pass it to the indicated prefix function, which
 				 * will communicate parser state changes via fiber globals.
 				 *
-				 * We are always operating on a single bundle here (and in the
-				 * successor message bundle tree), because the message bundle
-				 * tree's o_Expand(AvailObject) detected the previous
-				 * instruction, always a PREPARE_TO_RUN_PREFIX_FUNCTION, and
-				 * put each bundle into a new tree.
+				 * We are always operating on a single definition parse plan
+				 * here, because the message bundle tree's o_Expand(AvailObject)
+				 * detected the previous instruction, always a
+				 * PREPARE_TO_RUN_PREFIX_FUNCTION, and put each plan into a new
+				 * tree.
 				 *
 				 * Attempt each Nth prefix function of the sole bundle, since
 				 * each one must be explored to determine if it contributes to
@@ -4318,6 +4386,22 @@ public final class AvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				final A_BundleTree successorTree = successorTrees.tupleAt(1);
 				// Look inside the only successor to find the only bundle.
+//				@Nullable A_Bundle bundle = null;
+//				for (final MapDescriptor.Entry bundleEntry
+//					: successorTree.allParsingPlans().mapIterable())
+//				{
+//					final A_Bundle eachBundle = bundleEntry.key();
+//					if (bundle == null)
+//					{
+//						bundle = eachBundle;
+//					}
+//					else
+//					{
+//						// Sanity check.
+//						assert bundle.equals(eachBundle);
+//					}
+//				}
+//				assert bundle != null;
 				final A_Map bundlesMap = successorTree.allBundles();
 				assert bundlesMap.mapSize() == 1;
 				final A_Bundle bundle = bundlesMap.mapIterable().next().value();
@@ -4413,6 +4497,31 @@ public final class AvailCompiler
 						marksSoFar,
 						continuation);
 				}
+				break;
+			}
+			case TYPE_CHECK_ARGUMENT:
+			{
+				// TypeCheckArgument.  An actual argument has just been parsed
+				// and checked against grammatical restrictions.  Now filter it
+				// further by the type restrictions that apply to the new
+				// argument in each potential message bundle.  This may narrow
+				// the message bundle into synthetic bundles that hold subsets
+				// of still-applicable definitions.  Use a lazy type-dispatching
+				// tree to find the exact subset of bundles (and definitions)
+				// that are still applicable.
+				// See MessageBundleTree#o_Expand(AvailObject, A_Module) for
+				// details about how the dispatch tree is assembled.
+				assert successorTrees.tupleSize() == 1;
+				assert firstArgOrNull == null;
+				eventuallyParseRestOfSendNode(
+					start,
+					successorTrees.tupleAt(1),
+					null,
+					initialTokenPosition,
+					consumedAnything,
+					argsSoFar,
+					marksSoFar,
+					continuation);
 				break;
 			}
 		}
@@ -5067,6 +5176,27 @@ public final class AvailCompiler
 			public void describeThen (
 				final Continuation1<String> continuation)
 			{
+//				final A_Set bundles =
+//					successorTree.allParsingPlans().keysAsSet();
+//				final StringBuilder builder = new StringBuilder();
+//				if (bundles.setSize() > 1)
+//				{
+//					builder.append("a variable use for one of:\n\t");
+//				}
+//				else
+//				{
+//					builder.append("a variable use for: ");
+//				}
+//				boolean first = true;
+//				for (final A_Bundle bundle : bundles)
+//				{
+//					if (!first)
+//					{
+//						builder.append(", ");
+//					}
+//					builder.append(bundle.message().atomName());
+//					first = false;
+//				}
 				final A_Map bundles = successorTree.allBundles();
 				final StringBuilder builder = new StringBuilder();
 				builder.append("a variable use, for one of:");
@@ -5852,10 +5982,7 @@ public final class AvailCompiler
 				final A_Set activeVersions = AvailRuntime.activeVersions();
 				// If the intersection of the sets is empty, then the module and
 				// the virtual machine are incompatible.
-				final A_Set intersection =
-					requiredVersions.setIntersectionCanDestroy(
-						activeVersions, false);
-				if (intersection.setSize() == 0)
+				if (!requiredVersions.setIntersects(activeVersions))
 				{
 					handleProblem(new Problem(
 						moduleName(),
@@ -5991,8 +6118,17 @@ public final class AvailCompiler
 	{
 		assert primitiveNames.length > 0;
 		final A_String availName = StringDescriptor.from(macroName);
+		final AvailObject token1 = LiteralTokenDescriptor.create(
+			StringDescriptor.from(availName.toString()),
+			TupleDescriptor.empty(),
+			TupleDescriptor.empty(),
+			0,
+			0,
+			-1,
+			TokenType.SYNTHETIC_LITERAL,
+			availName);
 		final A_Phrase nameLiteral =
-			LiteralNodeDescriptor.syntheticFrom(availName);
+			LiteralNodeDescriptor.fromToken(token1);
 		final List<A_Phrase> functionLiterals = new ArrayList<>();
 		try
 		{

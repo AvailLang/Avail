@@ -395,6 +395,13 @@ extends A_BasicObject
 	A_Type typeIntersection (A_Type another);
 
 	/**
+	 * @param aCompiledCodeType
+	 * @return
+	 */
+	A_Type typeIntersectionOfCompiledCodeType (
+		A_Type aCompiledCodeType);
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	A_Type typeIntersectionOfFiberType (
@@ -407,11 +414,10 @@ extends A_BasicObject
 		A_Type aFunctionType);
 
 	/**
-	 * @param aCompiledCodeType
-	 * @return
+	 * Dispatch to the descriptor.
 	 */
-	A_Type typeIntersectionOfCompiledCodeType (
-		A_Type aCompiledCodeType);
+	A_Type typeIntersectionOfListNodeType (
+		A_Type aListNodeType);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -507,6 +513,12 @@ extends A_BasicObject
 	 */
 	A_Type typeUnionOfIntegerRangeType (
 		A_Type anIntegerRangeType);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Type typeUnionOfListNodeType (
+		A_Type aListNodeType);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -625,14 +637,6 @@ extends A_BasicObject
 	A_Type literalType ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 *
-	 * TODO[MvG] - Break this accidental polymorphism for better clarity of
-	 * intention.
-	 */
-	AvailObject name ();
-
-	/**
 	 * @param anInt
 	 * @return
 	 */
@@ -650,4 +654,18 @@ extends A_BasicObject
 	 */
 	boolean parseNodeKindIsUnder (
 		ParseNodeKind expectedParseNodeKind);
+
+	/**
+	 * Answer the type of the subexpressions tuple that instances (list phrases)
+	 * of me (a list phrase type) must have.
+	 *
+	 * @return A tuple type of phrases.
+	 */
+	A_Type subexpressionsTupleType ();
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	boolean isSupertypeOfListNodeType (A_Type aListNodeType);
 }

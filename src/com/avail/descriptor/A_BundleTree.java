@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import java.util.List;
+
 /**
  * {@code A_BundleTree} is an interface that specifies the {@linkplain
  * MessageBundleTreeDescriptor message-bundle-tree}-specific operations that an
@@ -48,6 +50,44 @@ extends A_BasicObject
 	 * @return
 	 */
 	A_Map allBundles ();
+
+	/**
+	 * @param plan
+	 */
+	void addDefinitionParsingPlan (A_DefinitionParsingPlan plan);
+
+	/**
+	 * @return
+	 */
+	A_Map allParsingPlans ();
+
+	/**
+	 * Expand the bundle tree if there's anything currently unclassified in it.
+	 * By postponing this until necessary, construction of the parsing rules for
+	 * the grammar is postponed until actually necessary.
+	 *
+	 * @param module
+	 *        The current module in which this bundle tree is being used to
+	 *        parse.
+	 * @param sampleArgsStack
+	 *        A list of {@link A_Phrase phrases} from the parser's argument
+	 *        stack at the moment this bundle tree is being expanded.  The
+	 *        actual phrases aren't important, but the <em>sizes</em> of the
+	 *        {@link ListNodeDescriptor list phrases} can be used to extract the
+	 *        criterion types by which {@link A_DefinitionParsingPlan plans} are
+	 *        organized into a decision tree for type-checking arguments (at
+	 *        this position in the bundle tree).
+	 */
+	void expand (A_Module module, List<A_Phrase> sampleArgsStack);
+
+	/**
+	 * The specified bundle has been added or modified in this bundle tree.
+	 * Adjust the bundle tree as needed.
+	 *
+	 * @param bundle The {@link MessageBundleDescriptor bundle} that has been
+	 *               added or modified in this bundle tree.
+	 */
+	void flushForNewOrChangedBundle (A_Bundle bundle);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -90,25 +130,6 @@ extends A_BasicObject
 	boolean removeBundleNamed (A_Atom message);
 
 	/**
-	 * Expand the bundle tree if there's anything currently unclassified in it.
-	 * By postponing this until necessary, construction of the parsing rules for
-	 * the grammar is postponed until actually necessary.
-	 *
-	 * @param module The current module in which this bundle tree is being used
-	 *               to parse.
-	 */
-	void expand (A_Module module);
-
-	/**
-	 * The specified bundle has been added or modified in this bundle tree.
-	 * Adjust the bundle tree as needed.
-	 *
-	 * @param bundle The {@link MessageBundleDescriptor bundle} that has been
-	 *               added or modified in this bundle tree.
-	 */
-	void flushForNewOrChangedBundle (A_Bundle bundle);
-
-	/**
 	 * Answer the program counter that this bundle tree represents.  All bundles
 	 * still reachable here are at the same position in their state machines,
 	 * and all instructions already executed for these bundles are identical
@@ -117,4 +138,12 @@ extends A_BasicObject
 	 * @return The index into the bundle tree's bundles' parsing instructions.
 	 */
 	int parsingPc ();
+
+	/**
+	 * Remove information about this {@link A_DefinitionParsingPlan definition
+	 * parsing plan} from this bundle tree.
+	 *
+	 * @param plan The parsing plan to exclude.
+	 */
+	void removeDefinitionParsingPlan (A_DefinitionParsingPlan plan);
 }

@@ -39,6 +39,7 @@ import java.util.IdentityHashMap;
 import com.avail.annotations.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -726,6 +727,48 @@ extends TypeDescriptor
 			IntegerRangeTypeDescriptor.singleInt(types.length),
 			TupleDescriptor.from(types),
 			BottomTypeDescriptor.bottom());
+	}
+
+	/**
+	 * Transform a {@link TupleTypeDescriptor tuple type} into another tuple
+	 * type by {@linkplain Transformer1 transforming} each of the element types.
+	 * Assume the transformation is stable.  The resulting tuple type should
+	 * have the same size range as the input tuple type, except if normalization
+	 * produces {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 *
+	 * @param aTupleType
+	 *        A tuple type whose element types should be transformed.
+	 * @param elementTransformer
+	 *        A transformation to perform on each element type, to produce the
+	 *        corresponding element types of the resulting tuple type.
+	 * @return A tuple type resulting from applying the transformation to each
+	 *         element type of the supplied tuple type.
+	 */
+	public static A_Type mappingElementTypes (
+		final A_Type aTupleType,
+		final Transformer1<A_Type, A_Type> elementTransformer)
+	{
+		final A_Type sizeRange = aTupleType.sizeRange();
+		final A_Tuple typeTuple = aTupleType.typeTuple();
+		final A_Type defaultType = aTupleType.defaultType();
+		final int limit = typeTuple.tupleSize();
+		final A_Tuple transformedTypeTuple = ObjectTupleDescriptor.generateFrom(
+			limit,
+			new Generator<A_Type>()
+			{
+				int index = 1;
+
+				@Override
+				public A_Type value ()
+				{
+					return elementTransformer.valueNotNull(
+						typeTuple.tupleAt(index++));
+				}
+			});
+		final A_Type transformedDefaultType = elementTransformer.value(
+			defaultType);
+		return tupleTypeForSizesTypesDefaultType(
+			sizeRange, transformedTypeTuple, transformedDefaultType);
 	}
 
 	/**

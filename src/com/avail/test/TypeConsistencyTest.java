@@ -43,6 +43,7 @@ import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
+import com.avail.utility.evaluation.Transformer1;
 
 
 /**
@@ -1001,7 +1002,32 @@ public class TypeConsistencyTest
 						innerNode == null
 							? BottomTypeDescriptor.bottom()
 							: innerNode.t;
-					final A_Type newType = parseNodeKind.create(innerType);
+					final A_Type newType;
+					if (parseNodeKind.isSubkindOf(ParseNodeKind.LIST_NODE))
+					{
+						final A_Type subexpressionsTupleType =
+							TupleTypeDescriptor.mappingElementTypes(
+								innerType,
+								new Transformer1<A_Type, A_Type>()
+								{
+									@Override
+									public @Nullable A_Type value (
+										final @Nullable A_Type elementType)
+									{
+										assert elementType != null;
+										return ParseNodeKind.PARSE_NODE.create(
+											elementType);
+									}
+								});
+						newType = ListNodeTypeDescriptor.createListNodeType(
+							parseNodeKind,
+							innerType,
+							subexpressionsTupleType);
+					}
+					else
+					{
+						newType = parseNodeKind.create(innerType);
+					}
 					assert newType.expressionType().equals(innerType)
 						: "parse node kind was not parameterized as expected";
 					return newType;

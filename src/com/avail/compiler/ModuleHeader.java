@@ -307,10 +307,7 @@ public class ModuleHeader
 			if (reqVersions.setSize() > 0)
 			{
 				final A_Set modVersions = mod.versions();
-				final A_Set intersection =
-					modVersions.setIntersectionCanDestroy(
-						reqVersions, false);
-				if (intersection.setSize() == 0)
+				if (!modVersions.setIntersects(reqVersions))
 				{
 					return
 						"version compatibility; module \"" + ref.localName()

@@ -2528,7 +2528,7 @@ Primitive "`«`$_:_`»" is
  * @method "_→list phrase"
  * @param "aTuple" "tuple of expressions yielding any"
  *        A tuple of expressions.
- * @returns "list phrase⇒tuple"
+ * @returns "list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
  *    The requested list.
  */
 Primitive "_→list phrase" is
@@ -2665,7 +2665,7 @@ Primitive "_⇒_" is
  *        The permutation imposed by the resultant {@type
  *        "permuted list phrase"}. This is a {@type "tuple"} of target indices,
  *        index by source index.
- * @returns "permuted list phrase⇒tuple"
+ * @returns "permuted list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
  *    The requested {@type "permuted list phrase"}.
  */
 Primitive "_permuted by_" is
@@ -2922,7 +2922,7 @@ Primitive "_'s⁇semantic type" is
  * @method "_'s⁇list"
  * @param "permuted" "permuted list phrase"
  *        A {@type "permuted list phrase"}.
- * @returns "list phrase⇒tuple"
+ * @returns "list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
  *    The {@type "list phrase"} permuted by {@param "permuted"}.
  */
 Primitive "_'s⁇list" is
@@ -2975,7 +2975,7 @@ Primitive "`«↓_`»" is
  * @method "_'s⁇arguments"
  * @param "aSend" "send phrase"
  *        A message send.
- * @returns "list phrase⇒tuple"
+ * @returns "list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
  *    The requested list of argument expressions.
  */
 Primitive "_'s⁇arguments" is

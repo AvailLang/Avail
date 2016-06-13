@@ -181,6 +181,11 @@ extends Descriptor
 		final A_Type anIntegerRangeType);
 
 	@Override @AvailMethod
+	abstract boolean o_IsSupertypeOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType);
+
+	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType);
@@ -264,10 +269,6 @@ extends Descriptor
 		final AvailObject object);
 
 	@Override @AvailMethod
-	abstract AvailObject o_Name (
-		final AvailObject object);
-
-	@Override @AvailMethod
 	abstract A_BasicObject o_Parent (
 		final AvailObject object);
 
@@ -318,6 +319,11 @@ extends Descriptor
 	abstract A_Type o_TypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type anIntegerRangeType);
+
+	@Override @AvailMethod
+	abstract A_Type o_TypeIntersectionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType);
 
 	@Override @AvailMethod
 	abstract A_Type o_TypeIntersectionOfLiteralTokenType (
@@ -398,9 +404,14 @@ extends Descriptor
 		final A_Type anIntegerRangeType);
 
 	@Override @AvailMethod
+	abstract A_Type o_TypeUnionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType);
+
+	@Override @AvailMethod
 	abstract A_Type o_TypeUnionOfLiteralTokenType (
-		AvailObject object,
-		A_Type aLiteralTokenType);
+		final AvailObject object,
+		final A_Type aLiteralTokenType);
 
 	@Override @AvailMethod
 	abstract A_Type o_TypeUnionOfMapType (

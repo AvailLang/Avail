@@ -48,6 +48,16 @@ public interface A_Bundle
 extends A_BasicObject
 {
 	/**
+	 * Add a {@link DefinitionParsingPlanDescriptor definition parsing plan} to
+	 * this bundle, to bring it into agreement with the method's definitions and
+	 * macro definitions.
+	 *
+	 * @param plan
+	 *            The definition parsing plan to add.
+	 */
+	void addDefinitionParsingPlan (A_DefinitionParsingPlan plan);
+
+	/**
 	 * Add a {@linkplain GrammaticalRestrictionDescriptor grammatical
 	 * restriction} to the receiver.
 	 *
@@ -64,6 +74,14 @@ extends A_BasicObject
 	 * @return This bundle's method.
 	 */
 	A_Method bundleMethod ();
+
+	/**
+	 * Answer this bundle's {@link SetDescriptor set} of
+	 * {@link DefinitionParsingPlanDescriptor definition parsing plans}.
+	 *
+	 * @return The set of definition parsing plans.
+	 */
+	A_Set definitionParsingPlans ();
 
 	/**
 	 * Answer the set of {@linkplain GrammaticalRestrictionDescriptor

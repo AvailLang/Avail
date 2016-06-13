@@ -44,7 +44,6 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.MethodDescriptor.LookupTree;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -230,6 +229,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	void o_AddDefinitionParsingPlan (
+		final AvailObject object, final A_DefinitionParsingPlan plan)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	void o_AddImportedName (final AvailObject object, final A_Atom trueName)
 	{
 		throw unsupportedOperationException();
@@ -288,6 +294,12 @@ extends AbstractDescriptor
 
 	@Override
 	A_Map o_AllBundles (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Map o_AllParsingPlans (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1316,30 +1328,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeIntersectionOfFiberType (
-		final AvailObject object,
-		final A_Type aFiberType)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Type o_TypeIntersectionOfFunctionType (
-		final AvailObject object,
-		final A_Type aFunctionType)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Type o_TypeIntersectionOfVariableType (
-		final AvailObject object,
-		final A_Type aVariableType)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Type o_TypeIntersectionOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)
@@ -1356,6 +1344,22 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_TypeIntersectionOfFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Type o_TypeIntersectionOfFunctionType (
+		final AvailObject object,
+		final A_Type aFunctionType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	A_Type o_TypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type anIntegerRangeType)
@@ -1367,6 +1371,14 @@ extends AbstractDescriptor
 	A_Type o_TypeIntersectionOfMapType (
 		final AvailObject object,
 		final A_Type aMapType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Type o_TypeIntersectionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1407,6 +1419,14 @@ extends AbstractDescriptor
 	A_Type o_TypeIntersectionOfTupleType (
 		final AvailObject object,
 		final A_Type aTupleType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Type o_TypeIntersectionOfVariableType (
+		final AvailObject object,
+		final A_Type aVariableType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1633,7 +1653,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_Expand (final AvailObject object, final A_Module module)
+	void o_Expand (
+		final AvailObject object,
+		final A_Module module,
+		final List<A_Phrase> sampleArgsStack)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1862,12 +1885,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_Name (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Map o_ImportedNames (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2007,12 +2024,6 @@ extends AbstractDescriptor
 
 	@Override
 	A_String o_String (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	LookupTree o_TestingTree (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4529,12 +4540,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	LookupTree o_MacroTestingTree (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	A_Phrase o_ExpressionAt (final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();
@@ -4616,12 +4621,76 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	/**
-	 * @param object
-	 * @return
-	 */
 	@Override
 	long o_UniqueId (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Definition o_Definition (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Tuple o_TypesToCheck (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	String o_NameHighlightingPc (final AvailObject object, final int pc)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_SetIntersects (final AvailObject object, final A_Set otherSet)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_RemoveDefinitionParsingPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_DefinitionParsingPlans (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_EqualsListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		return false;
+	}
+
+	@Override
+	A_Type o_SubexpressionsTupleType (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsSupertypeOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Type o_TypeUnionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
 	{
 		throw unsupportedOperationException();
 	}

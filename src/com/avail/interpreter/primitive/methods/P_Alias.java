@@ -113,6 +113,11 @@ extends Primitive
 			@Override
 			public void value ()
 			{
+//				for (final A_DefinitionParsingPlan plan
+//					: newBundle.definitionParsingPlans())
+//				{
+//					root.addDefinitionParsingPlan(plan);
+//				}
 				root.addBundle(newBundle);
 				root.flushForNewOrChangedBundle(newBundle);
 			}

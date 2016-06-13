@@ -1297,8 +1297,8 @@ public class L2Translator
 			// information about the known types of arguments that may be too
 			// weak for our purposes.  It's still correct, but it may produce
 			// extra tests that this site's argTypes would eliminate.
-			final LookupTree tree =
-				LookupTree.createRoot(method, allPossible, argTypes);
+			final LookupTree tree = LookupTree.createRoot(
+				nArgs, allPossible, argTypes);
 			final Mutable<Integer> branchLabelCounter = new Mutable<Integer>(1);
 			tree.<InternalNodeMemento>traverseEntireTree(
 				// preInternalNode

@@ -41,7 +41,6 @@ import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.interpreter.effects.LoadingEffectToAddAtomProperty;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
 

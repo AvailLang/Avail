@@ -1261,29 +1261,31 @@ public final class AvailRuntime
 	/**
 	 * The reaper {@linkplain Thread thread} that cleans up {@link #allFibers}.
 	 */
-	private final Thread fiberReaper = new Thread(new Runnable()
-	{
-		@Override
-		public void run ()
+	private final Thread fiberReaper = new Thread(
+		new Runnable()
 		{
-			while (true)
+			@Override
+			public void run ()
 			{
-				try
+				while (true)
 				{
-					final FiberReference ref =
-						(FiberReference) fiberQueue.remove();
-					synchronized (allFibers)
+					try
 					{
-						allFibers.remove(ref.id);
+						final FiberReference ref =
+							(FiberReference) fiberQueue.remove();
+						synchronized (allFibers)
+						{
+							allFibers.remove(ref.id);
+						}
+					}
+					catch (final InterruptedException e)
+					{
+						// Ignore the interrupt.
 					}
 				}
-				catch (final InterruptedException e)
-				{
-					// Ignore the interrupt.
-				}
 			}
-		}
-	});
+		},
+		"Fiber Reaper");
 
 	/**
 	 * Construct a new {@link AvailRuntime}.

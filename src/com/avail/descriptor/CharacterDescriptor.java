@@ -119,7 +119,7 @@ extends Descriptor
 	 */
 	static int computeHashOfCharacterWithCodePoint (final int codePoint)
 	{
-		return IntegerDescriptor.computeHashOfInt(codePoint ^ 0x068E9947);
+		return IntegerDescriptor.computeHashOfInt(codePoint ^ 0xD68E9947);
 	}
 
 	/**

@@ -125,8 +125,8 @@ extends Descriptor
 		 * determine what it is called in various modules (based on the module
 		 * scope of the bundles' {@linkplain AtomDescriptor atomic names}).
 		 *
-		 * TODO [MvG] - This should be a weak set, and the members should first
-		 * be forced to be traversed (across indirections) and Shared.
+		 * TODO [MvG] - Maybe this should be a weak set, and the members should
+		 * first be forced to be traversed (across indirections) and Shared.
 		 */
 		OWNING_BUNDLES,
 
@@ -262,23 +262,22 @@ extends Descriptor
 		 * DefinitionDescriptor definitions} of a {@link MethodDescriptor
 		 * method}.
 		 *
-		 * @param method
-		 *            The method containing the provided definitions.
+		 * @param numArgs
+		 *        The number of top-level arguments expected by the definitions.
 		 * @param allDefinitions
-		 *            The list of definitions.
+		 *        The list of definitions.
 		 * @param knownArgumentTypes
-		 *            The initial knowledge about the argument types.
+		 *        The initial knowledge about the argument types.
 		 * @return A LookupTree, potentially lazy, suitable for dispatching.
 		 */
 		public static LookupTree createRoot (
-			final A_Method method,
+			final int numArgs,
 			final List<A_Definition> allDefinitions,
 			final List<A_Type> knownArgumentTypes)
 		{
 			final List<A_Definition> prequalified = new ArrayList<>(1);
 			final List<A_Definition> undecided =
 				new ArrayList<>(allDefinitions.size());
-			final int numArgs = method.numArgs();
 			for (final A_Definition definition : allDefinitions)
 			{
 				final A_Type argsTupleType =
@@ -832,9 +831,9 @@ extends Descriptor
 					undecidedIfTrue,
 					undecidedIfFalse);
 			}
-			ifCheckHolds = LookupTree.createTree(
+			ifCheckHolds = createTree(
 				positiveIfTrue, undecidedIfTrue, newPositiveKnownTypes);
-			ifCheckFails = LookupTree.createTree(
+			ifCheckFails = createTree(
 				positiveDefinitions, undecidedIfFalse, knownArgumentTypes);
 			assert undecidedIfFalse.size() < undecidedDefinitions.size();
 			// This is a volatile write, so all previous writes had to precede
@@ -1096,7 +1095,6 @@ extends Descriptor
 			|| e == PRIVATE_TESTING_TREE
 			|| e == SEMANTIC_RESTRICTIONS_SET
 			|| e == SEALED_ARGUMENTS_TYPES_TUPLE
-			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO
 			|| e == MACRO_DEFINITIONS_TUPLE
 			|| e == MACRO_TESTING_TREE
 			|| e == MACRO_PREFIX_FUNCTIONS;
@@ -1146,18 +1144,7 @@ extends Descriptor
 			final A_BasicObject pojo =
 				object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
 			final Set<L2Chunk> chunkSet;
-			if (pojo.equalsNil())
-			{
-				chunkSet = Collections.newSetFromMap(
-					new WeakHashMap<L2Chunk, Boolean>());
-				object.setSlot(
-					DEPENDENT_CHUNKS_WEAK_SET_POJO,
-					RawPojoDescriptor.identityWrap(chunkSet).makeShared());
-			}
-			else
-			{
-				chunkSet = (Set<L2Chunk>) pojo.javaObjectNotNull();
-			}
+			chunkSet = (Set<L2Chunk>) pojo.javaObjectNotNull();
 			chunkSet.add(chunk);
 		}
 	}
@@ -1373,7 +1360,9 @@ extends Descriptor
 			TupleDescriptor.toList(argumentTypeTuple);
 		synchronized (object)
 		{
-			LookupTree tree = object.testingTree();
+			LookupTree tree =
+				(LookupTree)
+					object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 			List<A_Definition> solutions;
 			while ((solutions = tree.solutionOrNull()) == null)
 			{
@@ -1400,7 +1389,9 @@ extends Descriptor
 		final List<? extends A_BasicObject> argumentList,
 		final MutableOrNull<AvailErrorCode> errorCode)
 	{
-		LookupTree tree = object.testingTree();
+		LookupTree tree =
+			(LookupTree)
+				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		List<A_Definition> solutions;
 		while ((solutions = tree.solutionOrNull()) == null)
 		{
@@ -1423,8 +1414,9 @@ extends Descriptor
 
 	/**
 	 * Look up the macro definition to invoke, given an array of argument
-	 * phrases.  Use the macroTestingTree to find the macro definition to invoke
-	 * (answer nil if a lookup error occurs).
+	 * phrases.  Use the {@linkplain ObjectSlots#MACRO_TESTING_TREE macro
+	 * testing tree} to find the macro definition to invoke (answer nil if a
+	 * lookup error occurs).
 	 *
 	 * <p>Note that this testing tree approach is only applicable if all of the
 	 * macro definitions are visible (defined in the current module or an
@@ -1437,7 +1429,8 @@ extends Descriptor
 		final A_Tuple argumentPhraseTuple,
 		final MutableOrNull<AvailErrorCode> errorCode)
 	{
-		LookupTree tree = object.macroTestingTree();
+		LookupTree tree =
+			(LookupTree) object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
 		List<A_Definition> solutions;
 		while ((solutions = tree.solutionOrNull()) == null)
 		{
@@ -1466,42 +1459,6 @@ extends Descriptor
 		{
 			return object.slot(MACRO_DEFINITIONS_TUPLE);
 		}
-	}
-
-	/**
-	 * Answer the cached macroTestingTree. If there's a nil in that slot,
-	 * compute and cache the testing tree based on the macroDefinitionsTuple.
-	 * The tree should be a {@linkplain RawPojoDescriptor raw pojo} holding a
-	 * {@link LookupTree}.
-	 */
-	@Override @AvailMethod
-	LookupTree o_MacroTestingTree (final AvailObject object)
-	{
-		A_BasicObject result = object.slot(MACRO_TESTING_TREE);
-		if (result.equalsNil())
-		{
-			synchronized (object)
-			{
-				AvailRuntime.readBarrier();
-				result = object.slot(MACRO_TESTING_TREE);
-				if (result.equalsNil())
-				{
-					final List<A_Type> initialTypes =
-						Collections.<A_Type>nCopies(object.numArgs(), ANY.o());
-					final A_Tuple allDefinitions =
-						object.slot(MACRO_DEFINITIONS_TUPLE);
-					final LookupTree tree = LookupTree.createRoot(
-						object,
-						TupleDescriptor.<A_Definition>toList(allDefinitions),
-						initialTypes);
-					result = RawPojoDescriptor.identityWrap(tree).makeShared();
-					// Assure all writes are committed before setting the tree.
-					AvailRuntime.writeBarrier();
-					object.setSlot(MACRO_TESTING_TREE, result);
-				}
-			}
-		}
-		return (LookupTree) result.javaObject();
 	}
 
 	@Override @AvailMethod
@@ -1648,15 +1605,10 @@ extends Descriptor
 		final L2Chunk chunk)
 	{
 		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
-		final A_BasicObject pojo =
-			object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
-		if (!pojo.equalsNil())
-		{
-			@SuppressWarnings("unchecked")
-			final Set<L2Chunk> chunkSet =
-				(Set<L2Chunk>) pojo.javaObjectNotNull();
-			chunkSet.remove(chunk);
-		}
+		final A_BasicObject pojo = object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
+		@SuppressWarnings("unchecked")
+		final Set<L2Chunk> chunkSet = (Set<L2Chunk>) pojo.javaObjectNotNull();
+		chunkSet.remove(chunk);
 	}
 
 	@Override @AvailMethod
@@ -1710,42 +1662,6 @@ extends Descriptor
 		return SerializerOperation.METHOD;
 	}
 
-	/**
-	 * Answer the cached privateTestingTree. If there's a nil in that slot,
-	 * compute and cache the testing tree based on the definitionsTuple.
-	 * The tree should be a {@linkplain RawPojoDescriptor raw pojo} holding a
-	 * {@link LookupTree}.
-	 */
-	@Override @AvailMethod
-	LookupTree o_TestingTree (final AvailObject object)
-	{
-		A_BasicObject result = object.slot(PRIVATE_TESTING_TREE);
-		if (result.equalsNil())
-		{
-			synchronized (object)
-			{
-				AvailRuntime.readBarrier();
-				result = object.slot(PRIVATE_TESTING_TREE);
-				if (result.equalsNil())
-				{
-					final List<A_Type> initialTypes =
-						Collections.<A_Type>nCopies(object.numArgs(), ANY.o());
-					final A_Tuple allDefinitions =
-						object.slot(DEFINITIONS_TUPLE);
-					final LookupTree tree = LookupTree.createRoot(
-						object,
-						TupleDescriptor.<A_Definition>toList(allDefinitions),
-						initialTypes);
-					result = RawPojoDescriptor.identityWrap(tree).makeShared();
-					// Assure all writes are committed before setting the tree.
-					AvailRuntime.writeBarrier();
-					object.setSlot(PRIVATE_TESTING_TREE, result);
-				}
-			}
-		}
-		return (LookupTree) result.javaObject();
-	}
-
 	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
@@ -1789,9 +1705,9 @@ extends Descriptor
 	 * parsing of many possible message sends in aggregate.
 	 *
 	 * <p>A method is always {@linkplain Mutability#SHARED shared}, but its
-	 * tuple of owning bundles, its tuple of definitions, its cached
-	 * privateTestingTree, and its set of dependents chunk indices can all be
-	 * updated (while holding a lock).</p>
+	 * set of owning bundles, its tuple of definitions, its cached
+	 * privateTestingTree, its macro testing tree, and its set of dependents
+	 * chunk indices can all be updated (while holding a lock).</p>
 	 *
 	 * @param numArgs
 	 *        The number of arguments that this method expects.
@@ -1809,18 +1725,61 @@ extends Descriptor
 		result.setSlot(NUM_ARGS, numArgs);
 		result.setSlot(OWNING_BUNDLES, SetDescriptor.empty());
 		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.empty());
-		result.setSlot(PRIVATE_TESTING_TREE, NilDescriptor.nil());
 		result.setSlot(SEMANTIC_RESTRICTIONS_SET, SetDescriptor.empty());
 		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.empty());
-		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil());
 		result.setSlot(MACRO_DEFINITIONS_TUPLE, TupleDescriptor.empty());
-		result.setSlot(MACRO_TESTING_TREE, NilDescriptor.nil());
+		final Set<L2Chunk> chunkSet = Collections.newSetFromMap(
+			new WeakHashMap<L2Chunk, Boolean>());
+		result.setSlot(
+			DEPENDENT_CHUNKS_WEAK_SET_POJO,
+			RawPojoDescriptor.identityWrap(chunkSet).makeShared());
+		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
+		final LookupTree definitionsTree = LookupTree.createRoot(
+			numArgs, Collections.<A_Definition>emptyList(), initialTypes);
+		result.setSlot(
+			PRIVATE_TESTING_TREE,
+			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
+		final LookupTree macrosTree = LookupTree.createRoot(
+			numArgs, Collections.<A_Definition>emptyList(), initialTypes);
+		result.setSlot(
+			MACRO_TESTING_TREE,
+			RawPojoDescriptor.identityWrap(macrosTree).makeShared());
 		result.setSlot(
 			MACRO_PREFIX_FUNCTIONS,
 			RepeatedElementTupleDescriptor.createRepeatedElementTuple(
 				numSections, TupleDescriptor.empty()));
 		result.makeShared();
 		return result;
+	}
+
+	/** The number of lists to cache of N occurrences of the type any. */
+	static final int sizeOfListsOfAny = 10;
+
+	/** A list of lists of increasing size consisting only of the type any. */
+	static final List<List<A_Type>> listsOfAny;
+
+	static
+	{
+		listsOfAny = new ArrayList<>(sizeOfListsOfAny);
+		for (int i = 0; i < sizeOfListsOfAny; i++)
+		{
+			listsOfAny.add(Collections.<A_Type>nCopies(i, ANY.o()));
+		}
+	}
+
+	/**
+	 * Return a list of n copies of the type any.  N is required to be ≥ 0.
+	 *
+	 * @param n The number of elements in the desired list, all the type any.
+	 * @return The list.  Do not modify it, as it may be cached and reused.
+	 */
+	private static final List<A_Type> nCopiesOfAny (final int n)
+	{
+		if (n < sizeOfListsOfAny)
+		{
+			return listsOfAny.get(n);
+		}
+		return Collections.<A_Type>nCopies(n, ANY.o());
 	}
 
 	/**
@@ -1837,23 +1796,36 @@ extends Descriptor
 		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
 		// Invalidate any affected level two chunks.
 		final A_BasicObject pojo = object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
-		if (!pojo.equalsNil())
+		// Copy the set of chunks to avoid modification during iteration.
+		@SuppressWarnings("unchecked")
+		final Set<L2Chunk> originalSet =
+			(Set<L2Chunk>) pojo.javaObjectNotNull();
+		for (final L2Chunk chunk : new ArrayList<>(originalSet))
 		{
-			// Copy the set of chunks to avoid modification during iteration.
-			@SuppressWarnings("unchecked")
-			final Set<L2Chunk> originalSet =
-				(Set<L2Chunk>) pojo.javaObjectNotNull();
-			final Set<L2Chunk> chunksToInvalidate = new HashSet<>(originalSet);
-			for (final L2Chunk chunk : chunksToInvalidate)
-			{
-				chunk.invalidate();
-			}
-			// The chunk invalidations should have removed all dependencies.
-			assert originalSet.isEmpty();
+			chunk.invalidate();
 		}
-		// Clear the privateTestingTree cache.
-		object.setSlot(PRIVATE_TESTING_TREE, NilDescriptor.nil());
-		object.setSlot(MACRO_TESTING_TREE, NilDescriptor.nil());
+		// The chunk invalidations should have removed all dependencies.
+		assert originalSet.isEmpty();
+
+		// Rebuild the roots of the lookup trees.
+		final int numArgs = object.slot(NUM_ARGS);
+		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
+		final LookupTree definitionsTree = LookupTree.createRoot(
+			numArgs,
+			TupleDescriptor.<A_Definition>toList(
+				object.slot(DEFINITIONS_TUPLE)),
+			initialTypes);
+		object.setSlot(
+			PRIVATE_TESTING_TREE,
+			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
+		final LookupTree macrosTree = LookupTree.createRoot(
+			numArgs,
+			TupleDescriptor.<A_Definition>toList(
+				object.slot(MACRO_DEFINITIONS_TUPLE)),
+			initialTypes);
+		object.setSlot(
+			MACRO_TESTING_TREE,
+			RawPojoDescriptor.identityWrap(macrosTree).makeShared());
 	}
 
 	/**

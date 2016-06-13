@@ -124,7 +124,18 @@ extends Descriptor
 		 * method name by the {@link MessageSplitter}, which has a description
 		 * of the complete instruction set.
 		 */
-		PARSING_INSTRUCTIONS;
+		PARSING_INSTRUCTIONS,
+
+		/**
+		 * The {@link SetDescriptor set} of {@link
+		 * DefinitionParsingPlanDescriptor definition parsing plans} that are
+		 * defined for this bundle.  This should agree in size with all other
+		 * renames of the same bundle (i.e., bundles attached to the same
+		 * {@link MethodDescriptor method} as this), and with the method's own
+		 * tuple of {@link DefinitionDescriptor definitions} and {@link
+		 * MacroDefinitionDescriptor macro definitions}.
+		 */
+		DEFINITION_PARSING_PLANS;
 	}
 
 	/**
@@ -142,7 +153,8 @@ extends Descriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == METHOD
-			|| e == GRAMMATICAL_RESTRICTIONS;
+			|| e == GRAMMATICAL_RESTRICTIONS
+			|| e == DEFINITION_PARSING_PLANS;
 	}
 
 	@Override @AvailMethod
@@ -164,9 +176,33 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_AddDefinitionParsingPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				addDefinitionParsingPlan(object, plan);
+			}
+		}
+		else
+		{
+			addDefinitionParsingPlan(object, plan);
+		}
+	}
+
+	@Override @AvailMethod
 	A_Method o_BundleMethod (final AvailObject object)
 	{
 		return object.mutableSlot(METHOD);
+	}
+
+	@Override
+	A_Set o_DefinitionParsingPlans (final AvailObject object)
+	{
+		return object.slot(DEFINITION_PARSING_PLANS);
 	}
 
 	/**
@@ -284,6 +320,24 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_RemoveDefinitionParsingPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan)
+	{
+		if (isShared())
+		{
+			synchronized (object)
+			{
+				removeDefinitionParsingPlan(object, plan);
+			}
+		}
+		else
+		{
+			removeDefinitionParsingPlan(object, plan);
+		}
+	}
+
+	@Override @AvailMethod
 	void o_RemoveGrammaticalRestriction (
 		final AvailObject object,
 		final A_GrammaticalRestriction obsoleteRestriction)
@@ -320,20 +374,54 @@ extends Descriptor
 	}
 
 	/**
+	 * Add a {@link DefinitionParsingPlanDescriptor definition parsing plan} to
+	 * this bundle.  This is performed to make the bundle agree with the
+	 * method's definitions and macro definitions.
+	 *
+	 * @param object The affected message bundle.
+	 * @param plan A definition parsing plan.
+	 */
+	private void addDefinitionParsingPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan)
+	{
+		A_Set plans = object.slot(DEFINITION_PARSING_PLANS);
+		plans = plans.setWithElementCanDestroy(plan, true);
+		object.setSlot(DEFINITION_PARSING_PLANS, plans.makeShared());
+	}
+
+	/**
+	 * Remove a {@link DefinitionParsingPlanDescriptor definition parsing plan}
+	 * from this bundle.  This is performed to make the bundle agree with the
+	 * method's definitions and macro definitions.
+	 *
+	 * @param object The affected message bundle.
+	 * @param plan A definition parsing plan.
+	 */
+	private void removeDefinitionParsingPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan)
+	{
+		A_Set plans = object.mutableSlot(DEFINITION_PARSING_PLANS);
+		assert plans.hasElement(plan);
+		plans = plans.setWithoutElementCanDestroy(plan, true);
+		object.setMutableSlot(DEFINITION_PARSING_PLANS, plans.makeShared());
+	}
+
+	/**
 	 * Add a grammatical restriction to the specified {@linkplain
 	 * MessageBundleDescriptor message bundle}.
 	 *
 	 * @param object The affected message bundle.
 	 * @param grammaticalRestriction A grammatical restriction.
 	 */
-	private void addGrammaticalRestriction  (
+	private void addGrammaticalRestriction (
 		final AvailObject object,
 		final A_GrammaticalRestriction grammaticalRestriction)
 	{
 		A_Set restrictions = object.slot(GRAMMATICAL_RESTRICTIONS);
 		restrictions = restrictions.setWithElementCanDestroy(
-			grammaticalRestriction,
-			true);
+			grammaticalRestriction, true);
 		object.setSlot(GRAMMATICAL_RESTRICTIONS, restrictions.makeShared());
 	}
 
@@ -353,8 +441,7 @@ extends Descriptor
 			obsoleteRestriction,
 			true);
 		object.setMutableSlot(
-			GRAMMATICAL_RESTRICTIONS,
-			restrictions.makeShared());
+			GRAMMATICAL_RESTRICTIONS, restrictions.makeShared());
 	}
 
 	@Override
@@ -399,9 +486,19 @@ extends Descriptor
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_PARTS, splitter.messageParts());
+		result.setSlot(PARSING_INSTRUCTIONS, splitter.instructionsTuple());
 		result.setSlot(MESSAGE_SPLITTER_POJO, splitterPojo);
 		result.setSlot(GRAMMATICAL_RESTRICTIONS, SetDescriptor.empty());
-		result.setSlot(PARSING_INSTRUCTIONS, splitter.instructionsTuple());
+		final A_Set plans = SetDescriptor.empty();
+//TODO[MvG] - Finish type-filtering compiler changes
+//		for (final A_Definition definition : method.definitionsTuple())
+//		{
+//			final A_DefinitionParsingPlan plan =
+//				DefinitionParsingPlanDescriptor.createPlan(
+//					result, definition);
+//			plans = plans.setWithElementCanDestroy(plan, true);
+//		}
+		result.setSlot(DEFINITION_PARSING_PLANS, plans);
 		result.makeShared();
 		method.methodAddBundle(result);
 		return result;

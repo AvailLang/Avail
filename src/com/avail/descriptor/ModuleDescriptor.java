@@ -901,6 +901,11 @@ extends Descriptor
 				final A_Bundle bundle = visibleName.bundleOrNil();
 				if (!bundle.equalsNil())
 				{
+//					for (final A_DefinitionParsingPlan plan
+//						: bundle.definitionParsingPlans())
+//					{
+//						filteredBundleTree.addDefinitionParsingPlan(plan);
+//					}
 					filteredBundleTree.addBundle(bundle);
 				}
 			}

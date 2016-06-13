@@ -69,7 +69,7 @@ extends RawPojoDescriptor
 					// They're equal.  If at least one of the participants is
 					// not shared, then there is no danger that we could form an
 					// indirection cycle, since that would involve two fibers
-					/// changing both objects into indirections, which is
+					// changing both objects into indirections, which is
 					// impossible if one is shared.  And no other thread can
 					// transition these objects to shared, so reading the
 					// mutability is stable.  Therefore *no lock* is needed.

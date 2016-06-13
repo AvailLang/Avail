@@ -195,7 +195,7 @@ extends AbstractEnumerationTypeDescriptor
 	A_Type o_DefaultType (final AvailObject object)
 	{
 		// Since I'm a degenerate tuple type, I must answer ⊥.
-		return BottomTypeDescriptor.bottom();
+		return object;
 	}
 
 	/**
@@ -413,7 +413,7 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		// Answer what type my keys are. Since I'm a degenerate map type,
 		// answer ⊥.
-		return BottomTypeDescriptor.bottom();
+		return object;
 	}
 
 	@Override @AvailMethod
@@ -430,12 +430,6 @@ extends AbstractEnumerationTypeDescriptor
 		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 		// range.
 		return false;
-	}
-
-	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
-	{
-		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod
@@ -470,7 +464,14 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		// Answer what sizes my instances can be. Since I'm a degenerate
 		// map type, answer ⊥, a degenerate integer type.
-		return BottomTypeDescriptor.bottom();
+		return object;
+	}
+
+	@Override
+	A_Type o_SubexpressionsTupleType (final AvailObject object)
+	{
+		// See ListNodeDescriptor.
+		return object;
 	}
 
 	@Override @AvailMethod
@@ -479,7 +480,7 @@ extends AbstractEnumerationTypeDescriptor
 		// Answer what type the given index would have in an object instance of
 		// me. Answer ⊥ if the index is out of bounds, which is always because
 		// I'm a degenerate tuple type.
-		return BottomTypeDescriptor.bottom();
+		return object;
 	}
 
 	@Override @AvailMethod
@@ -498,7 +499,7 @@ extends AbstractEnumerationTypeDescriptor
 		// Answer the union of the types the given indices would have in an
 		// object instance of me. Answer ⊥ if the index is out of bounds, which
 		// is always because I'm a degenerate tuple type.
-		return BottomTypeDescriptor.bottom();
+		return object;
 	}
 
 	@Override @AvailMethod
@@ -523,7 +524,7 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		// Answer what type my values are. Since I'm a degenerate map type,
 		// answer ⊥.
-		return BottomTypeDescriptor.bottom();
+		return object;
 	}
 
 	@Override @AvailMethod

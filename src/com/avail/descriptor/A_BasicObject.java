@@ -1134,4 +1134,13 @@ extends JSONFriendly
 	 * @param writer
 	 */
 	void writeSummaryTo (JSONWriter writer);
+
+	/**
+	 * Answer whether this value equals the given {@linkplain
+	 * ListNodeTypeDescriptor list phrose type}.
+	 *
+	 * @param listNodeType The list phrase type to compare against.
+	 * @return Whether the receiver equals the given list phrase type.
+	 */
+	boolean equalsListNodeType (A_Type listNodeType);
 }

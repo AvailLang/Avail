@@ -365,6 +365,24 @@ public enum ParsingOperation
 		{
 			return operand(instruction);
 		}
+	},
+
+	/**
+	 * {@code 16*N+12} - Use the type of the argument just parsed to select
+	 * among successor message bundle trees.  Those message bundle trees are
+	 * filtered by the allowable leaf argument type.  This test is
+	 * <em>precise</em>, and requires repeated groups to be unrolled for the
+	 * tuple type specific to that argument slot of that definition, or at least
+	 * until the {@link A_Type#defaultType()} of the tuple type has been
+	 * reached.
+	 */
+	TYPE_CHECK_ARGUMENT(12)
+	{
+		@Override
+		public int typeCheckArgumentIndex (final int instruction)
+		{
+			return operand(instruction);
+		}
 	};
 
 	/**
@@ -560,6 +578,15 @@ public enum ParsingOperation
 	 * @return The index of the permutation.
 	 */
 	public int permutationIndex (final int instruction)
+	{
+		throw new RuntimeException("Parsing instruction is inappropriate");
+	}
+
+	/**
+	 * @param instruction
+	 * @return
+	 */
+	public int typeCheckArgumentIndex (final int instruction)
 	{
 		throw new RuntimeException("Parsing instruction is inappropriate");
 	}

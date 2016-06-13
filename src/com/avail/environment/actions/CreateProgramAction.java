@@ -1,5 +1,5 @@
 /**
- * P_IncompleteMessages.java
+ * CreateProgramAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,52 +29,58 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.methods;
 
-import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.environment.actions;
+
+import java.awt.event.*;
+import com.avail.annotations.*;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.environment.AvailWorkbench;
+import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 
 /**
- * <strong>Primitive:</strong> Answer a collection of all visible
- * {@linkplain MessageBundleDescriptor messages} inside the current
- * {@linkplain MessageBundleTreeDescriptor tree} that expect more parts than
- * those already encountered. Answer it as a {@linkplain MapDescriptor map}
- * from string to message bundle tree.
+ * A {@code CreateProgramAction} produces a program file that can be executed
+ * separately from the workbench environment.
  */
-public final class P_IncompleteMessages extends Primitive
+@SuppressWarnings("serial")
+public final class CreateProgramAction
+extends AbstractWorkbenchAction
 {
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	public final static Primitive instance =
-		new P_IncompleteMessages().init(
-			1, CanInline, CannotFail);
-
 	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		assert args.size() == 1;
-		final A_BundleTree bundleTree = args.get(0);
-		bundleTree.expand(interpreter.module());
-		return interpreter.primitiveSuccess(
-			bundleTree.lazyIncomplete().makeImmutable());
+		assert workbench.backgroundTask == null;
+
+		final String selectedEntryPoint = workbench.selectedEntryPoint();
+		if (selectedEntryPoint == null)
+		{
+			return;
+		}
+
+		final ResolvedModuleName moduleName =
+			workbench.selectedEntryPointModule();
+		if (moduleName == null)
+		{
+			return;
+		}
+		if (workbench.availBuilder.getLoadedModule(moduleName) == null)
+		{
+			return;
+		}
+		System.out.println("Here's where it would prompt for the file"); // TODO
 	}
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
+	/**
+	 * Construct a new {@link CreateProgramAction}.
+	 *
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
+	 */
+	public CreateProgramAction (final AvailWorkbench workbench)
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MESSAGE_BUNDLE_TREE.o()),
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.stringType(),
-				MESSAGE_BUNDLE_TREE.o()));
+		super(workbench, "Create Program File…");
+		putValue(
+			SHORT_DESCRIPTION,
+			"Create a .program file to invoke this entry point.");
 	}
 }

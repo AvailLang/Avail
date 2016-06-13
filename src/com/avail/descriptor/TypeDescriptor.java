@@ -142,8 +142,7 @@ extends AbstractTypeDescriptor
 		FLOAT(NUMBER),
 
 		/**
-		 * All {@linkplain MethodDescriptor methods} are
-		 * of this kind.
+		 * All {@linkplain MethodDescriptor methods} are of this kind.
 		 */
 		METHOD(NONTYPE),
 
@@ -152,6 +151,13 @@ extends AbstractTypeDescriptor
 		 * bundles}, which are used during parsing of Avail code.
 		 */
 		MESSAGE_BUNDLE(NONTYPE),
+
+		/**
+		 * This is the kind of all {@linkplain DefinitionParsingPlanDescriptor
+		 * definition parsing plans}, which are used during parsing of Avail
+		 * code.
+		 */
+		DEFINITION_PARSING_PLAN(NONTYPE),
 
 		/**
 		 * This is the kind of all {@linkplain MessageBundleTreeDescriptor
@@ -228,7 +234,7 @@ extends AbstractTypeDescriptor
 		RAW_POJO(NONTYPE);
 
 		/** A value at least as large as this enumeration's membership. */
-		private static final int enumCount = 19;
+		private static final int enumCount = 20;
 
 		/**
 		 * The {@link Types} object representing this type's supertype.
@@ -640,6 +646,16 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
+	boolean o_IsSupertypeOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		// By default, nothing is a supertype of a list node type unless it
+		// states otherwise.
+		return false;
+	}
+
+	@Override
 	boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
@@ -773,13 +789,6 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (
-		final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override @AvailMethod
 	A_BasicObject o_Parent (
 		final AvailObject object)
 	{
@@ -860,6 +869,14 @@ extends AbstractTypeDescriptor
 	A_Type o_TypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type anIntegerRangeType)
+	{
+		return BottomTypeDescriptor.bottom();
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeIntersectionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
@@ -983,6 +1000,14 @@ extends AbstractTypeDescriptor
 		final A_Type anIntegerRangeType)
 	{
 		return object.typeUnion(NUMBER.o());
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeUnionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		return object.typeUnion(NONTYPE.o());
 	}
 
 	@Override @AvailMethod

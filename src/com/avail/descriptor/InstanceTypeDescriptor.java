@@ -592,12 +592,6 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
-	{
-		return getSuperkind(object).name();
-	}
-
-	@Override @AvailMethod
 	A_BasicObject o_Parent (final AvailObject object)
 	{
 		throw unsupportedOperationException();

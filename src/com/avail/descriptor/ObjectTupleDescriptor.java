@@ -36,6 +36,8 @@ import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import com.avail.annotations.*;
 import com.avail.utility.Generator;
 
@@ -371,6 +373,75 @@ extends TupleDescriptor
 		return false;
 	}
 
+	/**
+	 * A simple {@link Iterator} over an object-tuple's elements.
+	 */
+	private static final class ObjectTupleIterator
+	implements Iterator<AvailObject>
+	{
+		/**
+		 * The tuple over which to iterate.
+		 */
+		private final AvailObject tuple;
+
+		/**
+		 * The size of the tuple.
+		 */
+		private final int size;
+
+		/**
+		 * The index of the next {@linkplain AvailObject element}.
+		 */
+		int index = 1;
+
+		/**
+		 * Construct a new {@link ObjectTupleIterator} on the given {@linkplain
+		 * TupleDescriptor tuple}, which must be have an {@linkplain
+		 * ObjectTupleDescriptor} as its descriptor.
+		 *
+		 * @param tuple The tuple to iterate over.
+		 */
+		@InnerAccess ObjectTupleIterator (final AvailObject tuple)
+		{
+			this.tuple = tuple;
+			this.size = tuple.tupleSize();
+		}
+
+		@Override
+		public boolean hasNext ()
+		{
+			return index <= size;
+		}
+
+		@Override
+		public AvailObject next ()
+		{
+			if (index > size)
+			{
+				throw new NoSuchElementException();
+			}
+
+			// It's safe to access the slot directly.  If the tuple is mutable
+			// or immutable, no other thread can be changing it (and the caller
+			// shouldn't while iterating), and if the tuple is shared, its
+			// descriptor cannot be changed.
+			return tuple.slot(TUPLE_AT_, index++);
+		}
+
+		@Override
+		public void remove ()
+		{
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	@Override
+	public Iterator<AvailObject> o_Iterator (final AvailObject object)
+	{
+		object.makeImmutable();
+		return new ObjectTupleIterator(object);
+	}
+
 	@Override @AvailMethod
 	AvailObject o_TupleAt (final AvailObject object, final int subscript)
 	{
@@ -388,16 +459,23 @@ extends TupleDescriptor
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
 		assert index >= 1 && index <= object.tupleSize();
-		if (!canDestroy || !isMutable())
+		final AvailObject result;
+		if (canDestroy && isMutable())
 		{
-			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
+			result = object;
 		}
-		object.setSlot(TUPLE_AT_, index, newValueObject);
-		object.setSlot(HASH_OR_ZERO, 0);
-		return object;
+		else
+		{
+			result = newLike(mutable, object, 0, 0);
+			if (isMutable())
+			{
+				result.setSlot(TUPLE_AT_, index, NilDescriptor.nil());
+				result.makeSubobjectsImmutable();
+			}
+		}
+		result.setSlot(TUPLE_AT_, index, newValueObject);
+		result.setSlot(HASH_OR_ZERO, 0);
+		return result;
 	}
 
 	@Override @AvailMethod

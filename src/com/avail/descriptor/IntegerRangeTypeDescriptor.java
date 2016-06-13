@@ -480,7 +480,7 @@ extends TypeDescriptor
 	{
 		final int flagsHash =
 			lowerInclusive
-				? (upperInclusive ? 0x1503045E : 0x053A6C17)
+				? (upperInclusive ? 0x1503045E : 0x753A6C17)
 				: upperInclusive ? 0x1DB2D751 : 0x1130427D;
 		return lowerBoundHash * 29 ^ flagsHash ^ upperBoundHash;
 	}
@@ -579,6 +579,17 @@ extends TypeDescriptor
 			// Unusual cases such as [INF..INF) give preference to exclusion
 			// over inclusion.
 			return BottomTypeDescriptor.bottom();
+		}
+		if (low.isInt() && high.isInt())
+		{
+			assert lowInc && highInc;
+			final int lowInt = low.extractInt();
+			final int highInt = high.extractInt();
+			if (0 <= lowInt && lowInt < smallRangeLimit
+				&& 0 <= highInt && highInt < smallRangeLimit)
+			{
+				return smallRanges[highInt][lowInt];
+			}
 		}
 		final IntegerRangeTypeDescriptor descriptor =
 			lookupDescriptor(true, lowInc, highInc);
@@ -708,6 +719,40 @@ extends TypeDescriptor
 	AbstractDescriptor shared ()
 	{
 		return lookupDescriptor(false, lowerInclusive, upperInclusive);
+	}
+
+	/** One past the maximum lower or upper bound of a pre-built range. */
+	static final int smallRangeLimit = 10;
+
+	/**
+	 * An array of arrays of small inclusive-inclusive ranges.  The first index
+	 * is the upper bound, and must be in [0..smallRangeLimit-1].  The second
+	 * index is the lower bound, and must be in the range [0..upper bound].
+	 * This scheme allows both indices to start at zero and not include any
+	 * degenerate elements.
+	 *
+	 * <p>Use of these pre-built ranges is not mandatory, but is generally
+	 * recommended for performance.  The {@link #create()} operation uses them
+	 * whenever possible.</p>
+	 */
+	private static final A_Type smallRanges[][] = new A_Type[smallRangeLimit][];
+
+	static
+	{
+		for (int upper = 0; upper < smallRangeLimit; upper++)
+		{
+			final A_Type byLower[] = new A_Type[upper + 1];
+			for (int lower = 0; lower <= upper; lower++)
+			{
+				final IntegerRangeTypeDescriptor descriptor =
+					lookupDescriptor(true, true, true);
+				final AvailObject result = descriptor.create();
+				result.setSlot(LOWER_BOUND, IntegerDescriptor.fromInt(lower));
+				result.setSlot(UPPER_BOUND, IntegerDescriptor.fromInt(upper));
+				byLower[lower] = result.makeShared();
+			}
+			smallRanges[upper] = byLower;
+		}
 	}
 
 	/** The range [0..1]. */

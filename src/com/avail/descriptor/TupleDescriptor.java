@@ -1061,7 +1061,7 @@ extends Descriptor
 	private static final class TupleIterator implements Iterator<AvailObject>
 	{
 		/**
-		 * The tuple over which to iterator.
+		 * The tuple over which to iterate.
 		 */
 		private final AvailObject tuple;
 
@@ -1253,7 +1253,7 @@ extends Descriptor
 	 * immutable first, nor is the new tuple.
 	 *
 	 * @param elements
-	 *        The array of AvailObjects from which to construct a tuple.
+	 *        The array of Avail values from which to construct a tuple.
 	 * @return The new mutable tuple.
 	 */
 	public static A_Tuple from (

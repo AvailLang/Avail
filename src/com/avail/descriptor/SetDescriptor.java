@@ -216,6 +216,23 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_HasElement (
+		final AvailObject object,
+		final A_BasicObject elementObject)
+	{
+		return rootBin(object).binHasElementWithHash(
+			elementObject, elementObject.hash());
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		// A set's hash is a simple function of its rootBin's binHash, which is
+		// always the sum of its elements' hashes.
+		return rootBin(object).binHash() ^ 0xCD9EFC6;
+	}
+
+	@Override @AvailMethod
 	boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
@@ -251,37 +268,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		// A set's hash is a simple function of its rootBin's binHash, which is
-		// always the sum of its elements' hashes.
-		return rootBin(object).binHash() ^ 0xCD9EFC6;
-	}
-
-	@Override @AvailMethod
 	boolean o_IsSet (final AvailObject object)
 	{
 		return true;
-	}
-
-	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
-	{
-		final int size = object.setSize();
-		final AvailObject sizeRange = InstanceTypeDescriptor.on(
-			IntegerDescriptor.fromInt(size));
-		return SetTypeDescriptor.setTypeForSizesContentType(
-			sizeRange,
-			AbstractEnumerationTypeDescriptor.withInstances(object));
-	}
-
-	@Override @AvailMethod
-	boolean o_HasElement (
-		final AvailObject object,
-		final A_BasicObject elementObject)
-	{
-		return rootBin(object).binHasElementWithHash(
-			elementObject, elementObject.hash());
 	}
 
 	@Override @AvailMethod
@@ -293,6 +282,17 @@ extends Descriptor
 			return false;
 		}
 		return rootBin(object).isBinSubsetOf(another);
+	}
+
+	@Override @AvailMethod
+	A_Type o_Kind (final AvailObject object)
+	{
+		final int size = object.setSize();
+		final AvailObject sizeRange = InstanceTypeDescriptor.on(
+			IntegerDescriptor.fromInt(size));
+		return SetTypeDescriptor.setTypeForSizesContentType(
+			sizeRange,
+			AbstractEnumerationTypeDescriptor.withInstances(object));
 	}
 
 	/**
@@ -342,6 +342,33 @@ extends Descriptor
 			}
 		}
 		return result;
+	}
+
+	@Override
+	boolean o_SetIntersects (
+		final AvailObject object,
+		final A_Set otherSet)
+	{
+		A_Set smaller;
+		A_Set larger;
+		if (object.setSize() <= otherSet.setSize())
+		{
+			smaller = object;
+			larger = otherSet.traversed();
+		}
+		else
+		{
+			larger = object;
+			smaller = otherSet.traversed();
+		}
+		for (final AvailObject element : smaller)
+		{
+			if (larger.hasElement(element))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override @AvailMethod
@@ -517,19 +544,17 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Tuple o_AsTuple (final AvailObject object)
 	{
-		final A_Tuple result = ObjectTupleDescriptor.generateFrom(
+		final Iterator<AvailObject> iterator = object.iterator();
+		return ObjectTupleDescriptor.generateFrom(
 			object.setSize(),
 			new Generator<A_BasicObject>()
 			{
-				private final Iterator<AvailObject> iterator = object.iterator();
-
 				@Override
 				public A_BasicObject value ()
 				{
 					return iterator.next().makeImmutable();
 				}
 			});
-		return result;
 	}
 
 	@Override @AvailMethod

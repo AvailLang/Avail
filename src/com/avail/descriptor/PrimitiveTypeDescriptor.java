@@ -169,12 +169,6 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Name (final AvailObject object)
-	{
-		return object.slot(NAME);
-	}
-
-	@Override @AvailMethod
 	A_BasicObject o_Parent (final AvailObject object)
 	{
 		return object.slot(PARENT);
@@ -211,6 +205,14 @@ extends TypeDescriptor
 	{
 		// This primitive type is a supertype of aFunctionType if and only if
 		// this primitive type is a supertype of NONTYPE.
+		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
+	}
+
+	@Override @AvailMethod
+	boolean o_IsSupertypeOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
 		return object.isSupertypeOfPrimitiveTypeEnum(NONTYPE);
 	}
 
@@ -379,6 +381,7 @@ extends TypeDescriptor
 						return Float.TYPE;
 					case ABSTRACT_DEFINITION:
 					case ATOM:
+					case DEFINITION_PARSING_PLAN:
 					case FORWARD_DEFINITION:
 					case MACRO_DEFINITION:
 					case MESSAGE_BUNDLE:
@@ -414,6 +417,18 @@ extends TypeDescriptor
 		final A_Type another)
 	{
 		return another.typeIntersectionOfPrimitiveTypeEnum(extractEnum(object));
+	}
+
+	@Override @AvailMethod
+	A_Type o_TypeIntersectionOfListNodeType (
+		final AvailObject object,
+		final A_Type aListNodeType)
+	{
+		if (NONTYPE.superTests[extractOrdinal(object)])
+		{
+			return aListNodeType;
+		}
+		return BottomTypeDescriptor.bottom();
 	}
 
 	@Override @AvailMethod

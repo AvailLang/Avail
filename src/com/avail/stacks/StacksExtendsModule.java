@@ -210,8 +210,8 @@ public class StacksExtendsModule extends StacksImportModule
 		final StacksFilename newFileName,
 		final boolean deleteOriginal)
 	{
-		Map<String, ImplementationGroup> groupMap =
-			extendsMethodLeafNameToModuleName().getOrDefault(key, null);
+		final Map<String, ImplementationGroup> groupMap =
+			extendsMethodLeafNameToModuleName().get(key);
 
 		if (groupMap != (null))
 		{

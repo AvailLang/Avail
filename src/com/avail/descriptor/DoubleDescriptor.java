@@ -506,7 +506,7 @@ extends AbstractNumberDescriptor
 		final long bits = object.slot(LONG_BITS);
 		final int low = (int)(bits >> 32);
 		final int high = (int)bits;
-		return (low ^ 0x29F2EAB8) * multiplier - (high ^ 0x07C453FD);
+		return (low ^ 0x29F2EAB8) * multiplier - (high ^ 0x47C453FD);
 	}
 
 	@Override @AvailMethod
