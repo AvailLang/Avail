@@ -40,7 +40,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -225,49 +224,23 @@ public class StacksGenerator
 			e.printStackTrace();
 		}
 
-		//Identify the location of the templates.
-		final Path templatePackageName = Paths.get(
-			"src/"
-			+ StacksGenerator.class.getPackage().getName().replace('.', '/')
-			+ "/configuration");
-
-		final Path implementationWrapperTemplate =
-			templatePackageName.resolve("implementation wrapper.html.template");
-
-		final Path implementationProperties =
-			templatePackageName.resolve("implementation html.properties");
-
 		final int fileToOutPutCount =
 			outerMost.calculateFinalImplementationGroupsMap(linkingFileMap,
-				outputPath, implementationWrapperTemplate,
-				implementationProperties, runtime,
+				outputPath, runtime,
 				"/about-avail/documentation/stacks"
 					+ "/library-documentation");
-
-		createJSFiles(templatePackageName);
-
-		//Create the main HTML landing page
-		createMainHTML(templatePackageName);
 
 		if (fileToOutPutCount > 0)
 		{
 			final StacksSynchronizer synchronizer =
 				new StacksSynchronizer(fileToOutPutCount);
 
-		//THIS IS WHERE WE SWITCH OUT JSON AND HTML FILES
-		//HTML
-		/*	moduleToComments
-				.get(outermostModule.qualifiedName())
-					.writeMethodsToHTMLFiles(providedDocumentPath,synchronizer,
-						runtime,linkingFileMap,implementationWrapperTemplate,
-						implementationProperties, errorLog);
-		*/
-		//JSON
+		//JSON files
 			moduleToComments
 			.get(outermostModule.qualifiedName())
 				.writeMethodsToJSONFiles(providedDocumentPath,
 					synchronizer, runtime, linkingFileMap,
-					implementationProperties, errorLog);
+					errorLog);
 
 
 			synchronizer.waitForWorkUnitsToComplete();
@@ -291,88 +264,6 @@ public class StacksGenerator
 	{
 		moduleToComments.clear();
 		linkingFileMap.clear();
-	}
-
-	/**
-	 * Create all necessary JS files.
-	 * @param templatePackageName
-	 * 		The path of the package where all the templates reside
-	 */
-	private void createJSFiles(final Path templatePackageName)
-	{
-		final Path stacksAppFilePath =
-			providedDocumentPath.resolve("stacksApp.js");
-
-		final Path stacksAppTemplatePath =
-			templatePackageName.resolve("stacksApp.js.template");
-
-		final ArrayList<Pair<CharSequence,CharSequence>> swapPairs =
-			new ArrayList<Pair<CharSequence,CharSequence>>();
-
-		swapPairs.add(new Pair<CharSequence,CharSequence>(
-			"{[{CATEGORY-CONTENT}]}",
-			linkingFileMap.categoryMethodsToJson()));
-
-		createFileFromTemplate(stacksAppTemplatePath,stacksAppFilePath,
-			swapPairs);
-	}
-
-	/**
-	 * Create the main HTML landing page for Stacks.
-	 * @param templatePackageName
-	 * 		The path of the package where all the templates reside
-	 */
-	private void createMainHTML(final Path templatePackageName)
-	{
-		final Path stacksTemplate =
-			templatePackageName.resolve("stacks.html.template");
-
-		final Path stacksHTML =
-			providedDocumentPath.resolve("index.html");
-
-		try
-		{
-			IO.close(FileChannel.open(stacksHTML,
-				EnumSet.of(StandardOpenOption.CREATE,
-					StandardOpenOption.WRITE,
-					StandardOpenOption.TRUNCATE_EXISTING)));
-
-		}
-		catch (final IOException e1)
-		{
-
-			e1.printStackTrace();
-		}
-
-		//Copy stacks.html.template to target destination
-		try
-		{
-			Files.copy(
-				stacksTemplate,
-				stacksHTML,
-				StandardCopyOption.REPLACE_EXISTING);
-		}
-		catch (final IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		//Create new landing-detail.html from template
-		final Path landingPath =
-			providedDocumentPath.resolve("landing-detail.html");
-
-		final Path landingTemplatePath =
-			templatePackageName.resolve("landing-detail.html.template");
-
-		final ArrayList<Pair<CharSequence,CharSequence>> swapPairs =
-			new ArrayList<Pair<CharSequence,CharSequence>>();
-
-		swapPairs.add(new Pair<CharSequence,CharSequence>(
-			"{[{GENERATED-CONTENT}]}",
-			linkingFileMap.categoryDescriptionTable()));
-
-		createFileFromTemplate(landingTemplatePath, landingPath,swapPairs);
 	}
 
 	/**

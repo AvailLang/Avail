@@ -1108,11 +1108,6 @@ public class StacksCommentsModule
 	 *        A map for all html files in stacks
 	 * @param outputPath
 	 *        The path where the files will end up.
-	 * @param implementationProperties
-	 *        Properties file that defines HTML/style properties for the
-	 *        ambiguous files.
-	 * @param implementationWrapperTemplate
-	 *        The path of the template used to generate the ambiguous files.
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param topLevelLinkFolderPath
@@ -1125,8 +1120,6 @@ public class StacksCommentsModule
 	public int calculateFinalImplementationGroupsMap(
 			final LinkingFileMap linkingFileMap,
 			final Path outputPath,
-			final Path implementationWrapperTemplate,
-			final Path implementationProperties,
 			final AvailRuntime runtime,
 			final String topLevelLinkFolderPath)
 		throws IOException
@@ -1395,9 +1388,6 @@ public class StacksCommentsModule
 	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param linkingFileMap
 	 *        A map for all htmlFiles in stacks.
-	 * @param implementationProperties
-	 *        The file path location of the HTML properties used to generate
-	 *        the bulk of the inner html of the implementations.
 	 * @param errorLog
 	 *        The file for outputting all errors.
 	 * @throws IOException
@@ -1408,7 +1398,6 @@ public class StacksCommentsModule
 			final StacksSynchronizer synchronizer,
 			final AvailRuntime runtime,
 			final LinkingFileMap linkingFileMap,
-			final Path implementationProperties,
 			final StacksErrorLog errorLog)
 		throws IOException
 	{
