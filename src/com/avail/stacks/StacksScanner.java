@@ -651,8 +651,7 @@ public class StacksScanner extends AbstractStacksScanner
 		},
 
 		/**
-		 * Process a Bracket Token to determine if it is a {@link
-		 * KeywordStacksToken}
+		 * Process a token to determine if it starts a section
 		 */
 		KEYWORD_START ()
 		{
@@ -677,8 +676,7 @@ public class StacksScanner extends AbstractStacksScanner
 		},
 
 		/**
-		 * Process a Bracket Token to determine if it is a {@link
-		 * KeywordStacksToken}
+		 * Process a newline
 		 */
 		NEWLINE ()
 		{

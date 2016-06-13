@@ -258,6 +258,24 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		},
 
 		/**
+		 * The method keyword indicates the name of the method implementation.
+		 */
+		MODULE("@module")
+		{
+			@Override
+			KeywordStacksToken createToken(
+				final int lineNumber,
+				final int postion,
+				final int startOfTokenLinePostion,
+				final String moduleName)
+			{
+				return SectionKeywordStacksToken.create(
+					lexeme, lineNumber, postion,
+					startOfTokenLinePostion, moduleName);
+			}
+		},
+
+		/**
 		 * The parameter keyword indicates an input for the method
 		 * implementation.
 		 */

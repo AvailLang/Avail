@@ -190,6 +190,22 @@ public class StacksParser
 		},
 
 		/**
+		 * The method keyword indicates the name of the method implementation.
+		 */
+		MODULE("@module")
+		{
+			@Override
+			void addTokensToBuilder (
+				final CommentImplementationBuilder builder,
+				 final ArrayList<AbstractStacksToken> tagContentTokens,
+				 final LinkingFileMap htmlFileMap)
+					 throws ClassCastException, StacksCommentBuilderException
+			{
+				builder.addStacksModuleTag(tagContentTokens);
+			}
+		},
+
+		/**
 		 * The parameter keyword indicates an input for the method
 		 * implementation.
 		 */

@@ -397,6 +397,11 @@ public class CommentImplementationBuilder
 	private final ArrayList<StacksMethodTag> methods;
 
 	/**
+	 * The method keyword indicates the name of the method implementation.
+	 */
+	private final ArrayList<StacksModuleTag> modules;
+
+	/**
 	 * @param tagContentTokens
 	 * 		The tokens held by the tag
 	 * @throws ClassCastException
@@ -429,6 +434,31 @@ public class CommentImplementationBuilder
 			final String errorMessage = String.format("\n<li><strong>%s"
 				+ "</strong><em> Line #: %d</em>: Malformed @method tag section; "
 				+ "has wrong # of @method components.</li>",
+				moduleLeafName,
+				commentStartLine());
+			throw new StacksCommentBuilderException(errorMessage, this);
+		}
+	}
+
+	/**
+	 * @param tagContentTokens
+	 * 		The tokens held by the tag
+	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
+	 */
+	public void addStacksModuleTag(
+		 final ArrayList<AbstractStacksToken> tagContentTokens)
+			 throws ClassCastException, StacksCommentBuilderException
+	{
+		if (tagContentTokens.size() == 0)
+		{
+			modules.add(new StacksModuleTag ());
+		}
+		else
+		{
+			final String errorMessage = String.format("\n<li><strong>%s"
+				+ "</strong><em> Line #: %d</em>: Malformed @module tag section; "
+				+ "expected no tokens to follow @module tag.</li>",
 				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
@@ -925,6 +955,7 @@ public class CommentImplementationBuilder
 		this.forbids = new TreeMap<Integer,StacksForbidsTag>();
 		this.globalVariables = new ArrayList<StacksGlobalTag>(0);
 		this.methods = new ArrayList<StacksMethodTag>(0);
+		this.modules = new ArrayList<StacksModuleTag>(0);
 		this.macros = new ArrayList<StacksMacroTag>(0);
 		this.parameters = new ArrayList<StacksParameterTag>(0);
 		this.raises = new ArrayList<StacksRaisesTag>(0);
@@ -988,7 +1019,8 @@ public class CommentImplementationBuilder
 		throws StacksCommentBuilderException
 	{
 
-		if (!types.isEmpty() && methods.isEmpty() && globalVariables.isEmpty())
+		if (!types.isEmpty() && methods.isEmpty() && globalVariables.isEmpty()
+			&& modules.isEmpty())
 		{
 			if (types.size() == 1)
 			{
@@ -1016,7 +1048,7 @@ public class CommentImplementationBuilder
 		}
 
 		if (types.isEmpty() && (!methods.isEmpty() || !macros.isEmpty())
-			&& globalVariables.isEmpty())
+			&& globalVariables.isEmpty() && modules.isEmpty())
 		{
 			if (macros.isEmpty())
 			{
@@ -1202,7 +1234,8 @@ public class CommentImplementationBuilder
 			}
 		}
 
-		if (types.isEmpty() && methods.isEmpty() && !globalVariables.isEmpty())
+		if (types.isEmpty() && methods.isEmpty() && !globalVariables.isEmpty()
+			&& modules.isEmpty())
 		{
 			if (globalVariables.size() == 1)
 			{
@@ -1222,6 +1255,15 @@ public class CommentImplementationBuilder
 				moduleLeafName,
 				commentStartLine());
 			throw new StacksCommentBuilderException(errorMessage, this);
+		}
+		if (types.isEmpty() && methods.isEmpty() && globalVariables.isEmpty()
+			&& !modules.isEmpty())
+		{
+			final CommentSignature signature =
+				new CommentSignature(moduleLeafName, moduleName);
+
+			return new ModuleCommentImplementation(signature, commentStartLine,
+				authors, sees, description, false);
 		}
 		if (types.isEmpty() && methods.isEmpty() && globalVariables.isEmpty()
 			&& authors.isEmpty() && fields.isEmpty() && forbids.isEmpty()
