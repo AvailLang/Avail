@@ -88,6 +88,16 @@ implements Iterable<JSONData>
 	}
 
 	/**
+	 * Answer the length of the {@linkplain JSONArray receiver}.
+	 *
+	 * @return The length of the receiver.
+	 */
+	public int size ()
+	{
+		return array.length;
+	}
+
+	/**
 	 * Get a {@link JSONData} at the requested subscript.
 	 *
 	 * @param index
