@@ -73,32 +73,4 @@ public class StacksCommentBuilderException extends Exception
 		super(message);
 		this.failedBuilder = failedBuilder;
 	}
-
-	/**
-	 * Construct a new {@link StacksCommentBuilderException}.
-	 *
-	 * @param cause
-	 * 		The original problem to be treated as a builder problem.
-	 * @param moduleName
-	 * 		The name of the module that failed lexical scanning.
-	 * @param lineNumber
-	 * 		The line number of the comment
-	 */
-	public StacksCommentBuilderException (final Throwable cause,
-		final String moduleName, final int lineNumber
-		)
-	{
-		super(cause);
-		try
-		{
-			CommentImplementationBuilder.createBuilder(moduleName, lineNumber);
-			assert false : "Should have thrown exception";
-			// And throw in case assertions are off.  Keeps Java compiler happy.
-			throw new RuntimeException("Should have thrown exception");
-		}
-		catch (final StacksCommentBuilderException contrivedException)
-		{
-			this.failedBuilder = contrivedException.failedBuilder;
-		}
-	}
 }

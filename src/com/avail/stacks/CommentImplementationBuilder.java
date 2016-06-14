@@ -45,7 +45,7 @@ public class CommentImplementationBuilder
 	/**
 	 * The available {@linkplain LinkingFileMap}
 	 */
-	private LinkingFileMap linkingFileMap;
+	private final LinkingFileMap linkingFileMap;
 
 	/**
 	 * The alias keyword provides alias to which the method/macro is referred
@@ -56,21 +56,18 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * 		The tokens held by the tag
-	 * @param htmlFileMap
-	 * 		A map containing HTML file links in stacks
-	 * 		A map containing HTML file links in stacks
+	 * @param fileMap
+	 * 		A map containing the file links in stacks
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksAliasTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens,
-		 final LinkingFileMap htmlFileMap)
+		 final LinkingFileMap fileMap)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final ArrayList<QuotedStacksToken> tempTokens =
 			new ArrayList<QuotedStacksToken>();
-
-		linkingFileMap = htmlFileMap;
 
 		for (final AbstractStacksToken token : tagContentTokens)
 		{
@@ -105,11 +102,11 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * 		The tokens held by the tag
-	 * @throws ClassCastException
+	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksAuthorTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
-			 throws ClassCastException
+			 throws StacksCommentBuilderException
 	{
 		authors.add(new StacksAuthorTag (tagContentTokens));
 	}
@@ -124,20 +121,18 @@ public class CommentImplementationBuilder
 	/**
 	 * @param tagContentTokens
 	 * 		The tokens held by the tag
-	 * @param htmlFileMap
-	 * 		A map containing HTML file links in stacks
+	 * @param fileMap
+	 * 		A map containing the file links in stacks
 	 * @throws ClassCastException
 	 * @throws StacksCommentBuilderException
 	 */
 	public void addStacksCategoryTag(
 		 final ArrayList<AbstractStacksToken> tagContentTokens,
-		 final LinkingFileMap htmlFileMap)
+		 final LinkingFileMap fileMap)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final ArrayList<QuotedStacksToken> tempTokens =
 			new ArrayList<QuotedStacksToken>();
-
-		linkingFileMap = htmlFileMap;
 
 		for (final AbstractStacksToken token : tagContentTokens)
 		{
@@ -940,10 +935,11 @@ public class CommentImplementationBuilder
 	 * 		The name of the module the comment is in.
 	 * @param commentStartLine
 	 * 		The start line in the module of the comment being built
+	 * @param linkingFileMap
 	 *
 	 */
 	private CommentImplementationBuilder (final String moduleName,
-		final int commentStartLine)
+		final int commentStartLine, final LinkingFileMap linkingFileMap)
 	{
 		this.moduleLeafName = moduleName
 			.substring( moduleName.lastIndexOf("/") + 1);
@@ -973,6 +969,7 @@ public class CommentImplementationBuilder
 			.add(QuotedStacksToken.create("Unclassified", 0, 0, 0, moduleName));
 
 		this.categories.add(new StacksCategoryTag (tempTokens));
+		this.linkingFileMap = linkingFileMap;
 	}
 
 	/**
@@ -981,16 +978,19 @@ public class CommentImplementationBuilder
 	 * 		The name of the module the comment is in.
 	 * @param commentStartLine
 	 * 		The start line in the module of the comment being built
+	 * @param linkingFileMap
 	 * @return
 	 * 		A {@link CommentImplementationBuilder}
 	 * @throws StacksCommentBuilderException
 	 */
 	public static CommentImplementationBuilder createBuilder (
 		final String moduleName,
-		final int commentStartLine)
+		final int commentStartLine,
+		final LinkingFileMap linkingFileMap)
 			throws StacksCommentBuilderException
 	{
-		return new CommentImplementationBuilder (moduleName, commentStartLine);
+		return new CommentImplementationBuilder (moduleName,
+			commentStartLine, linkingFileMap);
 	}
 
 	/**
@@ -1262,8 +1262,13 @@ public class CommentImplementationBuilder
 			final CommentSignature signature =
 				new CommentSignature(moduleLeafName, moduleName);
 
-			return new ModuleCommentImplementation(signature, commentStartLine,
-				authors, sees, description, false);
+			final ModuleCommentImplementation moduleComment =
+				new ModuleCommentImplementation(signature, commentStartLine,
+					authors, sees, description, false);
+
+			linkingFileMap.addModuleComment(moduleComment);
+
+			return null;
 		}
 		if (types.isEmpty() && methods.isEmpty() && globalVariables.isEmpty()
 			&& authors.isEmpty() && fields.isEmpty() && forbids.isEmpty()

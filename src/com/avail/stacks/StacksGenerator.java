@@ -103,7 +103,7 @@ public class StacksGenerator
 	StacksErrorLog errorLog;
 
 	/**
-	 * The {@linkplain LinkingFileMap} is a map for all html files in
+	 * The {@linkplain LinkingFileMap} is a map for all files in
 	 * stacks
 	 */
 	private final LinkingFileMap linkingFileMap;
@@ -137,9 +137,7 @@ public class StacksGenerator
 				outputPath + " exists and is not a directory");
 		}
 		this.outputPath = outputPath;
-		this.linkPrefix =
-			//"/about-avail/documentation/stacks/library-documentation/index.html#/method";
-			"index.html#/method";
+		this.linkPrefix = "index.html#/method";
 		this.linkingFileMap = new LinkingFileMap();
 		this.resolver = resolver;
 
@@ -250,6 +248,10 @@ public class StacksGenerator
 			providedDocumentPath.resolve("internalLink.json"));
 		linkingFileMap.writeCategoryLinksToJSON(
 			providedDocumentPath.resolve("categories.json"));
+		linkingFileMap.writeCategoryDescriptionToJSON(
+			providedDocumentPath.resolve("categoriesDescriptions.json"));
+		linkingFileMap.writeModuleCommentsToJSON(
+			providedDocumentPath.resolve("moduleDescriptions.json"));
 		IO.close(errorLog.file());
 
 		clear();

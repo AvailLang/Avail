@@ -160,20 +160,6 @@ public abstract class AbstractStacksToken
 	}
 
 	/**
-	 * Create HTML content of the token
-	 * @param linkingfileMap
-	 * 		The map of all files in Stacks
-	 * @param hashID The ID for this implementation
-	 * @param errorLog The {@linkplain StacksErrorLog}
-	 * @return the HTML tagged content
-	 */
-	public String toHTML(final LinkingFileMap linkingfileMap, final int hashID,
-		final StacksErrorLog errorLog)
-	{
-		return lexeme();
-	}
-
-	/**
 	 * Create JSON form of token
 	 * @param linkingFileMap The map of all files in Stacks
 	 * @param hashID The ID for this implementation

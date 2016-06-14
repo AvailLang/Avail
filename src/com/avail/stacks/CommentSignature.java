@@ -86,7 +86,7 @@ public class CommentSignature
 	}
 
 	/**
-	 * Create the HTML representation of the signature.
+	 * Create the JSON representation of the signature.
 	 * @param nameOfGroup
 	 * 		The name of the implementation as it is to be displayed.
 	 * @param sticky whether or no the method is private and should be

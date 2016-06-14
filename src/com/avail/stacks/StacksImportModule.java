@@ -251,7 +251,7 @@ public abstract class StacksImportModule
 				hashedName = hashedName & 0xFFFFFFFFL;
 
 				final String qualifiedName = moduleName + "/"
-					+ String.valueOf(hashedName) + ".html";
+					+ String.valueOf(hashedName) + ".json";
 				newMap.put(qualifiedName,
 					new Pair<String,ImplementationGroup> (
 						name.asNativeString(), implementationGroups.get(name)));

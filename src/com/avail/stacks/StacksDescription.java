@@ -61,47 +61,6 @@ public class StacksDescription
 	}
 
 	/**
-	 * Create HTML content from the description.
-	 * @param linkingFileMap
-	 * 		A map for all files in Stacks
-	 * @param hashID The ID for this implementation
-	 * @param errorLog The {@linkplain StacksErrorLog}
-	 * @return
-	 */
-	public String toHTML (final LinkingFileMap linkingFileMap,
-		final int hashID, final StacksErrorLog errorLog)
-	{
-		final StringBuilder stringBuilder = new StringBuilder();
-		final int listSize = descriptionTokens.size();
-		if (listSize > 0)
-		{
-			for (int i = 0; i < listSize - 1; i++)
-			{
-				stringBuilder
-					.append(descriptionTokens.get(i).toHTML(linkingFileMap,
-						hashID, errorLog));
-
-				switch (descriptionTokens.get(i + 1).lexeme()) {
-					case ".":
-					case ",":
-					case ":":
-					case "?":
-					case ";":
-					case "!":
-						break;
-					default:
-						stringBuilder.append(" ");
-				}
-
-			}
-			stringBuilder
-				.append(descriptionTokens.get(listSize - 1)
-					.toHTML(linkingFileMap, hashID, errorLog));
-		}
-		return stringBuilder.toString();
-	}
-
-	/**
 	 * Create JSON content from the description
 	 * @param linkingFileMap
 	 * 		A map for all files in Stacks

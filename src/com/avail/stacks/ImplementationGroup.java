@@ -349,8 +349,8 @@ public class ImplementationGroup
 	 * @param name The name of the implementation
 	 * @param namingModule The name of the module where the implementation was
 	 * 		first named and exported from.
-	 * @param filename The name of the html file that will represent this group.
-	 * @param isPrivate TODO
+	 * @param filename The name of the file that will represent this group.
+	 * @param isPrivate indicates whether or not this is a public methd
 	 */
 	public ImplementationGroup (final A_String name,
 		final String namingModule, final StacksFilename filename,
@@ -376,7 +376,7 @@ public class ImplementationGroup
 	 *
 	 * @param group The {@link ImplementationGroup} to copy.
 	 * @param fileName A pair with the fileName and path first and just the
-	 * 		name of the html file that will represent this group second.
+	 * 		name of the file that will represent this group second.
 	 * @param namingModule The name of the module where the implementation was
 	 * 		first named and exported from.
 	 * @param name The name of the implementation

@@ -159,6 +159,6 @@ public class StacksLinkTag extends AbstractStacksTag
 	@Override
 	public String toString ()
 	{
-		return "Link: " + link.toString();
+		return "Link: " + link.lexeme();
 	}
 }

@@ -174,7 +174,7 @@ public class StacksCommentsModule
 	}
 
 	/**
-	 * A map keyed by exported method names to the html file path-name.
+	 * A map keyed by exported method names to the file path-name.
 	 */
 	private final HashMap<A_String, StacksFilename>
 		inScopeMethodsToFileNames;
@@ -364,7 +364,6 @@ public class StacksCommentsModule
 		this.moduleName = header.moduleName.qualifiedName();
 		this.linkPrefix = linkPrefix;
 
-		//Change to html to write HTML files
 		this.fileExtensionName = "json";
 
 		this.usesModuleToImplementedNamesToImplementation =
@@ -433,22 +432,6 @@ public class StacksCommentsModule
 
 		buildModuleImportMaps(
 			header,resolver, moduleToComments);
-
-/*		for (final Entry<A_String, ImplementationGroup> entry :
-			privateCommentImplementations.entrySet())
-		{
-			if (entry.getValue().hasStickyComment())
-			{
-				HashMap<String, ImplementationGroup> mapList =
-					stickyNamesImplementations.get(entry.getKey());
-				if (mapList == null)
-				{
-					mapList = new HashMap<String, ImplementationGroup>(0);
-				}
-				mapList.put(entry.getKey(), entry);
-				stickyNamesImplementations.put(entry.getKey(), mapList);
-			}
-		}*/
 
 		populateExtendsFromUsesExtends();
 
@@ -1105,7 +1088,7 @@ public class StacksCommentsModule
 	 * by this module and populate finalImplementationsGroupMap.
 	 *
 	 * @param linkingFileMap
-	 *        A map for all html files in stacks
+	 *        A map for all files in stacks
 	 * @param outputPath
 	 *        The path where the files will end up.
 	 * @param runtime
@@ -1297,97 +1280,8 @@ public class StacksCommentsModule
 	 *        of Stacks documentation
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime runtime}.
-	 * @param htmlFileMap
-	 *        A map for all htmlFiles in stacks.
-	 * @param templateFilePath
-	 *        The path of the template file used to wrap the generated HTML.
-	 * @param implementationProperties
-	 *        The file path location of the HTML properties used to generate
-	 *        the bulk of the inner html of the implementations.
-	 * @param errorLog
-	 *        The file for outputting all errors.
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
-	 */
-//	public void writeMethodsToHTMLFiles(
-//			final Path outputPath,
-//			final StacksSynchronizer synchronizer,
-//			final AvailRuntime runtime,
-//			final LinkingFileMap htmlFileMap,
-//			final Path templateFilePath,
-//			final Path implementationProperties,
-//			final StacksErrorLog errorLog)
-//		throws IOException
-//	{
-//		final StringBuilder newLogEntry = new StringBuilder()
-//			.append("<h3>Internal Link Errors</h3>\n")
-//			.append("<ol>\n");
-//
-//		final ByteBuffer errorBuffer = ByteBuffer.wrap(
-//			newLogEntry.toString().getBytes(StandardCharsets.UTF_8));
-//		errorLog.addLogEntry(errorBuffer,0);
-//
-//		final String htmlTemplate =
-//			HTMLBuilder.getOuterHTMLTemplate(templateFilePath);
-//
-//		final String [] htmlSplitTemplate = htmlTemplate
-//			.split("IMPLEMENTATION-GROUP");
-//
-//		for (final A_String implementationName :
-//			finalImplementationsGroupMap.keySet())
-//		{
-//			final HashMap<String, ImplementationGroup> tempImplementationMap =
-//				finalImplementationsGroupMap.get(implementationName);
-//
-//			for (final String modulePath : tempImplementationMap.keySet())
-//			{
-//				final ImplementationGroup implementation =
-//					tempImplementationMap.get(modulePath);
-//
-//				implementation.toHTML(outputPath,htmlSplitTemplate[0],
-//					htmlSplitTemplate[1], synchronizer, runtime, htmlFileMap,
-//					implementationProperties, 3,
-//					implementationName.asNativeString(), errorLog);
-//			}
-//		}
-//
-//		/*for (final HashMap<String, ImplementationGroup> implementationGroups :
-//			stickyNamesImplementations.values())
-//		{
-//			for (final String groupPath :
-//				implementationGroups.keySet())
-//			{
-//				implementationGroups.get(groupPath).toHTML(
-//					outputPath,htmlSplitTemplate[0],
-//					htmlSplitTemplate[1], synchronizer, runtime, htmlFileMap,
-//					implementationProperties, 3,
-//					implementationGroups.get(groupPath).name().asNativeString(),
-//					errorLog);
-//			}
-//		}*/
-//
-//		final StringBuilder closeLogEntry = new StringBuilder()
-//			.append("</ol>\n");
-//
-//		final ByteBuffer closeErrorBuffer = ByteBuffer.wrap(
-//			closeLogEntry.toString().getBytes(StandardCharsets.UTF_8));
-//		errorLog.addLogEntry(closeErrorBuffer,0);
-//	}
-
-	/**
-	 * Write all the methods and extends methods to file.
-	 *
-	 * @param outputPath
-	 *        The {@linkplain Path path} to the output {@linkplain
-	 *        BasicFileAttributes#isDirectory() directory} for documentation and
-	 *        data files.
-	 * @param synchronizer
-	 *        The {@linkplain StacksSynchronizer} used to control the creation
-	 *        of Stacks documentation
-	 * @param runtime
-	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param linkingFileMap
-	 *        A map for all htmlFiles in stacks.
+	 *        A map for all files in stacks.
 	 * @param errorLog
 	 *        The file for outputting all errors.
 	 * @throws IOException

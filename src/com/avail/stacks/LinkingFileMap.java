@@ -32,7 +32,7 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.*;
+import static com.avail.utility.Strings.tabs;
 import static java.nio.file.StandardOpenOption.*;
 import java.io.IOException;
 import java.io.Writer;
@@ -41,10 +41,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import com.avail.utility.Pair;
 import com.avail.utility.json.JSONWriter;
 
@@ -59,6 +59,11 @@ public class LinkingFileMap
 	 * The map containing categories.  Keyed by name to description.
 	 */
 	private final HashMap<String,StacksDescription> categoryToDescription;
+
+	/**
+	 * The list of {@linkplain ModuleCommentImplementation}s for this compilation
+	 */
+	private final HashSet<ModuleCommentImplementation> moduleComments;
 
 	/**
 	 * The map containing categories.  Keyed by name to description.
@@ -154,6 +159,7 @@ public class LinkingFileMap
 		aliasesToFileLink = new HashMap<String,HashSet<String>>();
 		namedFileLinks = new HashMap<String,String>();
 		internalLinks = new HashMap<String,String>();
+		moduleComments = new HashSet<ModuleCommentImplementation>();
 	}
 
 	/**
@@ -378,90 +384,6 @@ public class LinkingFileMap
 	}
 
 	/**
-	 * Create category description html table
-	 *
-	 * TODO Get rid of this
-	 *
-	 * @return
-	 * 		html table text
-	 */
-	public String categoryDescriptionTable()
-	{
-		final StringBuilder stringBuilder = new StringBuilder()
-		.append(tabs(1) + "<h4 "
-			+ tagClass(HTMLClass.classMethodSectionHeader)
-			+ ">Stacks Categories</h4>\n")
-		.append(tabs(1) + "<div "
-			+ tagClass(HTMLClass.classMethodSectionContent)
-			+ ">\n")
-	    .append(tabs(2) + "<table "
-	    	+ tagClass(HTMLClass.classStacks)
-	    	+ ">\n")
-	    .append(tabs(3) + "<thead>\n")
-	    .append(tabs(4) + "<tr>\n")
-	    .append(tabs(5) + "<th style=\"white-space:nowrap\" "
-	    	+ tagClass(
-	    		HTMLClass.classStacks, HTMLClass.classGColLabelNarrow)
-	    	+ " scope=\"col\">Category</th>\n")
-	    .append(tabs(5) + "<th "
-	    	+ tagClass(
-	    		HTMLClass.classStacks, HTMLClass.classGColLabelWide)
-	    	+ " scope=\"col\">Description</th>\n")
-	    .append(tabs(4) + "</tr>\n")
-	    .append(tabs(3) + "</thead>\n")
-	    .append(tabs(3) + "<tbody>\n");
-
-		final ArrayList<String> sortedKeys = new ArrayList<String>();
-		sortedKeys.addAll(categoryToDescription.keySet());
-
-		Collections.sort(sortedKeys);
-
-		for (final String category : sortedKeys)
-		{
-			stringBuilder
-				.append(tabs(4)).append("<tr>\n")
-				.append(tabs(5) + "<td "
-					+ tagClass(HTMLClass.classStacks, HTMLClass.classGCode)
-					+ ">")
-				.append(category)
-				.append("</td>\n")
-				.append(tabs(5) + "<td "
-					+ tagClass(HTMLClass.classStacks, HTMLClass.classIDesc)
-					+ ">")
-				.append(categoryToDescription.get(category).toHTML(this, 0,
-					null))
-				.append("</td>\n")
-				.append(tabs(4) + "</tr>\n");
-		}
-
-		stringBuilder.append(tabs(3) + "</tbody>\n")
-			.append(tabs(2) + "</table>\n")
-			.append(tabs(1) + "</div>\n");
-		return stringBuilder.toString();
-	}
-
-	/**
-	 * Add a class statement with the listed classes.
-	 * @param classes
-	 * 		The classes to add to the tag
-	 * @return
-	 */
-	public String tagClass(final String ... classes)
-	{
-		final StringBuilder stringBuilder = new StringBuilder()
-			.append("class=\"");
-		final int argumentCount = classes.length;
-		for (int i = 0;  i < argumentCount - 1; i++)
-		{
-			stringBuilder.append(classes[i]).append(" ");
-		}
-		return stringBuilder
-			.append(classes[argumentCount - 1])
-			.append("\"")
-			.toString();
-	}
-
-	/**
 	 * Clear the field maps.
 	 */
 	public void clear()
@@ -498,6 +420,106 @@ public class LinkingFileMap
 			}
 			jsonWriter.endObject();
 
+			jsonWriter.close();
+		}
+		catch (final IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	/**
+	 * @return the moduleComments
+	 */
+	public HashSet<ModuleCommentImplementation> moduleComments ()
+	{
+		return moduleComments;
+	}
+
+	/**
+	 *
+	 * @param comment the {@linkplain ModuleCommentImplementation} to add
+	 */
+	public void addModuleComment (final ModuleCommentImplementation comment)
+	{
+		moduleComments.add(comment);
+	}
+
+	/**
+	 * A method that writes all the category comments discovered during parsing
+	 * @param path
+	 */
+	public void writeCategoryDescriptionToJSON (final Path path)
+	{
+		final StandardOpenOption[] options = new StandardOpenOption[]
+			{CREATE, TRUNCATE_EXISTING, WRITE};
+		Writer writer;
+		try
+		{
+			writer = Files.newBufferedWriter(
+				path,
+				StandardCharsets.UTF_8,
+				options);
+
+			final JSONWriter jsonWriter = new JSONWriter(writer);
+
+			jsonWriter.startObject();
+			jsonWriter.write("categories");
+			jsonWriter.startArray();
+
+			for (final Entry<String, StacksDescription> entry
+				: categoryToDescription.entrySet())
+			{
+				jsonWriter.startObject();
+				jsonWriter.write("category");
+				jsonWriter.write(entry.getKey());
+				jsonWriter.write("description");
+				entry.getValue().toJSON(this, 0, null, jsonWriter);
+				jsonWriter.endObject();
+			}
+			jsonWriter.endArray();
+			jsonWriter.endObject();
+			jsonWriter.close();
+		}
+		catch (final IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * A method that writes all the module comments discovered during parsing
+	 * to a file
+	 * @param path
+	 */
+	public void writeModuleCommentsToJSON (final Path path)
+	{
+		final StandardOpenOption[] options = new StandardOpenOption[]
+			{CREATE, TRUNCATE_EXISTING, WRITE};
+		Writer writer;
+		try
+		{
+			writer = Files.newBufferedWriter(
+				path,
+				StandardCharsets.UTF_8,
+				options);
+
+			final JSONWriter jsonWriter = new JSONWriter(writer);
+
+			jsonWriter.startObject();
+			jsonWriter.write("modules");
+			jsonWriter.startArray();
+
+			for (final ModuleCommentImplementation comment
+				: moduleComments)
+			{
+				comment.toJSON(this, "", null, jsonWriter);
+			}
+			jsonWriter.endArray();
+			jsonWriter.endObject();
 			jsonWriter.close();
 		}
 		catch (final IOException e)

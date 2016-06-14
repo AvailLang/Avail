@@ -32,7 +32,7 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
+import java.util.List;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -45,7 +45,7 @@ public class StacksAuthorTag extends AbstractStacksTag
 	/**
 	 * Excess tokens of unknown purpose
 	 */
-	final private ArrayList<AbstractStacksToken> author;
+	final private List<AbstractStacksToken> author;
 
 	/**
 	 * Construct a new {@link StacksAuthorTag}.
@@ -54,7 +54,7 @@ public class StacksAuthorTag extends AbstractStacksTag
 	 * 		The author of the method/type
 	 */
 	public StacksAuthorTag (
-		final ArrayList<AbstractStacksToken> author)
+		final List<AbstractStacksToken> author)
 	{
 		this.author = author;
 	}
@@ -62,7 +62,7 @@ public class StacksAuthorTag extends AbstractStacksTag
 	/**
 	 * @return the author
 	 */
-	public ArrayList<AbstractStacksToken> author ()
+	public List<AbstractStacksToken> author ()
 	{
 		return author;
 	}
@@ -75,7 +75,14 @@ public class StacksAuthorTag extends AbstractStacksTag
 		final int position,
 		final JSONWriter jsonWriter)
 	{
-		//do nothing
+		final StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < author.size() - 1; i++)
+		{
+			sb.append(author.get(i).lexeme())
+				.append(" ");
+		}
+		sb.append(author.get(author.size()-1).lexeme());
+		jsonWriter.write(sb.toString());
 	}
 
 	@Override

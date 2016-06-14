@@ -74,22 +74,7 @@ public class StacksSeeTag extends AbstractStacksTag
 		final int position,
 		final JSONWriter jsonWriter)
 	{
-		/*TODO FIX ME, NO HTML RAA */
-		if (thingToSee.lexeme().startsWith("{", 0))
-		{
-			thingToSee.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
-
-		}
-		else
-		{
-			final StringBuilder stringBuilder = new StringBuilder();
-			stringBuilder.append("<a class=\"stacks i-code\" href=\"")
-				.append(thingToSee.toHTML(linkingFileMap, hashID, errorLog))
-				.append("\">")
-				.append(thingToSee.toHTML(linkingFileMap, hashID, errorLog))
-				.append("</a></div>");
-			jsonWriter.write(stringBuilder.toString());
-		}
+		thingToSee.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
 	}
 
 	/**

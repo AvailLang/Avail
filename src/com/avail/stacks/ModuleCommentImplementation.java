@@ -95,7 +95,28 @@ public class ModuleCommentImplementation extends AbstractCommentImplementation
 		final StacksErrorLog errorLog,
 		final JSONWriter jsonWriter)
 	{
-		// Do not use
+		jsonWriter.startObject();
+		jsonWriter.write("module");
+		jsonWriter.write(signature().module());
+		jsonWriter.write("description");
+		description.toJSON(linkingFileMap, 0, errorLog, jsonWriter);
+		jsonWriter.write("sees");
+		jsonWriter.startArray();
+		for (final StacksSeeTag see : sees)
+		{
+			jsonWriter.write(see.thingToSee().toJSON(linkingFileMap, 0,
+				errorLog, jsonWriter));
+		}
+		jsonWriter.endArray();
+		jsonWriter.write("authors");
+		jsonWriter.startArray();
+		for (final StacksAuthorTag author : authors)
+		{
+			author.toJSON(linkingFileMap, 0, errorLog, commentStartLine,
+				jsonWriter);
+		}
+		jsonWriter.endArray();
+		jsonWriter.endObject();
 	}
 
 	@Override
