@@ -53,9 +53,53 @@ extends JSONData
 	 * @param value
 	 *        The {@link BigDecimal} that encodes the value.
 	 */
-	JSONNumber (final BigDecimal value)
+	public JSONNumber (final BigDecimal value)
 	{
 		this.value = value;
+	}
+
+	/**
+	 * Construct a new {@link JSONNumber}.
+	 *
+	 * @param value
+	 *        The {@code long} that encodes the value.
+	 */
+	public JSONNumber (final long value)
+	{
+		this.value = new BigDecimal(value);
+	}
+
+	/**
+	 * Construct a new {@link JSONNumber}.
+	 *
+	 * @param value
+	 *        The {@code int} that encodes the value.
+	 */
+	public JSONNumber (final int value)
+	{
+		this.value = new BigDecimal(value);
+	}
+
+	/**
+	 * Construct a new {@link JSONNumber}.
+	 *
+	 * @param value
+	 *        The {@code double} that encodes the value.
+	 */
+	public JSONNumber (final double value)
+	{
+		this.value = new BigDecimal(value);
+	}
+
+	/**
+	 * Construct a new {@link JSONNumber}.
+	 *
+	 * @param value
+	 *        The {@code float} that encodes the value.
+	 */
+	public JSONNumber (final float value)
+	{
+		this.value = new BigDecimal(value);
 	}
 
 	@Override

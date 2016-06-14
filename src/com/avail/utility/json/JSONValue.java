@@ -50,7 +50,7 @@ extends JSONData
 	 * @param value
 	 *        The value.
 	 */
-	JSONValue (final boolean value)
+	public JSONValue (final boolean value)
 	{
 		this.value = value;
 	}
@@ -61,7 +61,7 @@ extends JSONData
 	 * @param value
 	 *        The value.
 	 */
-	JSONValue (final String value)
+	public JSONValue (final String value)
 	{
 		this.value = value;
 	}
