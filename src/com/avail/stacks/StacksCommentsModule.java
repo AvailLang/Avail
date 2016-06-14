@@ -1256,7 +1256,7 @@ public class StacksCommentsModule
 				new StacksSynchronizer(ambiguousFileCount);
 
 			writeAmbiguousMethodsJSONFiles(outputPath,synchronizer,
-				runtime, ambiguousMethodFileMap, topLevelLinkFolderPath,
+				runtime, ambiguousMethodFileMap,
 				linkingFileMap);
 
 			synchronizer.waitForWorkUnitsToComplete();
@@ -1341,29 +1341,25 @@ public class StacksCommentsModule
 	 *        An {@linkplain AvailRuntime runtime}.
 	 * @param ambiguousMethodFileMap
 	 *        The map of ambiguous names requiring ambiguous files.
-	 * @param topLevelLinkFolderPath
-	 *        The folder that the Avail documentation sits in above the
-	 *        providedDocumentPath.
 	 * @param linkingFileMap
 	 *        A map for all files in Stacks
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private void writeAmbiguousMethodsJSONFiles (
-			final Path outputPath,
-			final StacksSynchronizer synchronizer,
-			final AvailRuntime runtime,
-			final HashMap<A_String, HashMap<String, ImplementationGroup>>
-				ambiguousMethodFileMap,
-			final String topLevelLinkFolderPath,
-			final LinkingFileMap linkingFileMap)
+		final Path outputPath,
+		final StacksSynchronizer synchronizer,
+		final AvailRuntime runtime,
+		final HashMap<A_String, HashMap<String, ImplementationGroup>>
+			ambiguousMethodFileMap,
+		final LinkingFileMap linkingFileMap)
 		throws IOException
 	{
 		final HashMap<String,String> internalLinks =
 			new HashMap<String,String>();
 
 		final Path outputFolder = outputPath
-			.resolve("library-documentation/_Ambiguities");
+			.resolve("_Ambiguities");
 
 		final String linkLocation = linkPrefix + "/_Ambiguities";
 

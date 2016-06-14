@@ -36,6 +36,11 @@ Versions
 Body
 
 /**
+ * This module defines all the categories used in Avail.
+ *
+ * @module
+ */
+/**
  * Assertions are sincere, executable comments that document a program
  * precondition, postcondition, invariant, or other behavioral assumption.
  *

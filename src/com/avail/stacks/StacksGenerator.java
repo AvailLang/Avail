@@ -56,6 +56,7 @@ import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.IO;
 import com.avail.utility.Pair;
+import java.nio.file.Files;
 
 /**
  * An Avail documentation generator.  It takes tokenized method/class comments
@@ -75,6 +76,8 @@ public class StacksGenerator
 	 * The path for documentation storage as provided by the user.
 	 */
 	Path providedDocumentPath;
+
+	Path jsonPath;
 
 	/**
 	 * An optional prefix to the stacks file link location in the website
@@ -140,12 +143,12 @@ public class StacksGenerator
 		this.linkPrefix = "index.html#/method";
 		this.linkingFileMap = new LinkingFileMap();
 		this.resolver = resolver;
-
+		this.jsonPath = outputPath.resolve("json");
 		this.logPath = outputPath.resolve("logs");
 		this.errorLog = new StacksErrorLog(logPath);
 
 
-		this.providedDocumentPath = outputPath.resolve("library-documentation");
+		this.providedDocumentPath = outputPath;;
 
 		this.moduleToComments =
 			new HashMap<String,StacksCommentsModule>(50);
@@ -215,6 +218,7 @@ public class StacksGenerator
 		{
 			Files.createDirectories(outputPath);
 			Files.createDirectories(providedDocumentPath);
+			Files.createDirectories(jsonPath);
 		}
 		catch (final IOException e)
 		{
@@ -224,9 +228,7 @@ public class StacksGenerator
 
 		final int fileToOutPutCount =
 			outerMost.calculateFinalImplementationGroupsMap(linkingFileMap,
-				outputPath, runtime,
-				"/about-avail/documentation/stacks"
-					+ "/library-documentation");
+				outputPath, runtime, "/library-documentations");
 
 		if (fileToOutPutCount > 0)
 		{
@@ -245,13 +247,13 @@ public class StacksGenerator
 		}
 
 		linkingFileMap.writeInternalLinksToJSON(
-			providedDocumentPath.resolve("internalLink.json"));
+			jsonPath.resolve("internalLink.json"));
 		linkingFileMap.writeCategoryLinksToJSON(
-			providedDocumentPath.resolve("categories.json"));
+			jsonPath.resolve("categories.json"));
 		linkingFileMap.writeCategoryDescriptionToJSON(
-			providedDocumentPath.resolve("categoriesDescriptions.json"));
+			jsonPath.resolve("categoriesDescriptions.json"));
 		linkingFileMap.writeModuleCommentsToJSON(
-			providedDocumentPath.resolve("moduleDescriptions.json"));
+			jsonPath.resolve("moduleDescriptions.json"));
 		IO.close(errorLog.file());
 
 		clear();
