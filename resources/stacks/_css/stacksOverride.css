@@ -1,0 +1,61 @@
+/*body {overflow-y:hidden;}*/
+#SidePane
+{
+
+	height:100%;
+	width:20%;
+	
+	float: left;
+}
+
+#CategoriesPane
+{
+	position: relative;
+	height:50% !important;
+	width:100%;
+}
+
+#MethodsPane
+{
+	position: relative;
+	height:50% !important;
+	width:100%;
+}
+
+#MainPane
+{
+	height:100%;
+	width: 80%;
+	
+	float: right;
+	/*overflow: hidden;*/
+}
+.menu-show-setup, .menu-hide-setup 
+{
+	  transition:all 0.5s ease-out;
+	  overflow:hidden
+}
+	
+.menu-show-setup 
+{
+	  max-height:0;
+}
+.menu-show-setup.menu-show-start 
+{
+	  max-height:200px;
+}
+	
+.menu-hide-setup 
+{
+	max-height:200px;
+}
+.menu-hide-setup.menu-hide-start 
+{
+	  max-height:0;
+}
+
+/* this doesn't work?
+.main-frame
+{ 
+	overflow-y: scroll;
+}*/
