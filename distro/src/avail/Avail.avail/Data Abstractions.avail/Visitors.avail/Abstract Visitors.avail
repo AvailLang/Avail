@@ -59,6 +59,7 @@ Body
  * @type "visitor"
  * @supertype "object"
  * @see {@method "Visit_upon_deconstructed by_(breadth first=_)"}
+ * @category "Visitors"
  */
 Public explicit class "visitor" extends object;
 
@@ -93,6 +94,7 @@ Public explicit class "visitor" extends object;
  *        breadth-first order, {@method "false"} to traverse {@param "value"}'s
  *        components in depth-first order.
  * @returns "⊤"
+ * @category "Visitors"
  */
 Public abstract method "Visit_upon_deconstructed by_(breadth first=_)" is
 	[visitor, any, [⊥]→tuple, boolean]→⊤;
@@ -115,6 +117,7 @@ Alias
  *          The value to be visited, which may be a substitute for {@param
  *          "value"}. The generic implementation simply returns {@param
  *          "value"}.
+ * @category "Visitors"
  */
 Public method "Before visiting_upon_" is
 [
@@ -135,6 +138,7 @@ Public method "Before visiting_upon_" is
  * @param "value" "any"
  *        The {@type "any" value}.
  * @returns "⊤"
+ * @category "Visitors"
  */
 Public method "After visiting_upon_" is [aVisitor : visitor, value : any |];
 
@@ -144,5 +148,6 @@ Public method "After visiting_upon_" is [aVisitor : visitor, value : any |];
  *
  * @method "do not visit"
  * @returns "atom"
+ * @category "Visitors"
  */
 Public "do not visit" is a new atom;

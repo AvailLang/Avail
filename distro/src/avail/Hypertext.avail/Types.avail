@@ -65,6 +65,7 @@ Public "hypertext void flag" is a new field atom;
  * A {@type "hypertext element"} represents an HTML element.
  *
  * @type "hypertext element"
+ * @category "Hypertext"
  * @supertype "object"
  * @field "hypertext tag" "nonempty string"
  * @field "hypertext attributes" "{nonempty string→any|}"
@@ -82,6 +83,7 @@ Public class "hypertext element" extends object
  * Answer a hypertext escaped variant of the argument.
  *
  * @method "_«fully»?escaped"
+ * @category "Hypertext"
  * @param "fullyEscaped" "boolean"
  *        If {@method "true"}, then entity encode all non-ASCII characters;
  *        otherwise, only escape ampersands, angle brackets, and control
@@ -121,6 +123,7 @@ Public stable method "_«fully»?escaped" is
  * Recursively render the specified {@type "hypertext element"} as hypertext.
  *
  * @method "_rendered"
+ * @category "Hypertext"
  * @param "elem" "hypertext element"
  * @returns "nonempty string"
  */
@@ -177,6 +180,7 @@ Method "“_”" is [elem : hypertext element | elem rendered];
  * recursively from a {@type "hypertext element"}.
  *
  * @type "hypertext cdata visitor"
+ * @category "Hypertext"
  * @supertype "visitor"
  * @field "escape cdata" "boolean"
  *        If {@method "true"}, then escape CDATA prior to accumulation;
@@ -237,6 +241,7 @@ Method "After visiting_upon_" is
  * Answer the subelements of the specified {@type "hypertext element"}.
  *
  * @method "_'s⁇subelements for cdata visitation"
+ * @category "Hypertext"
  * @param "elem" "any"
  *        A {@type "hypertext element"} or {@type "string" character data}.
  * @returns "tuple"
@@ -262,6 +267,7 @@ Private method "_'s⁇subelements for cdata visitation" is
  * data (CDATA) only, stripping away hypertext tags and structure.
  *
  * @method "“_”(cdata)"
+ * @category "Hypertext"
  * @param "elem" "hypertext element"
  * @returns "string"
  */
@@ -284,6 +290,7 @@ Public method "“_”(cdata)" is
  * character data (CDATA) only, stripping away hypertext tags and structure.
  *
  * @method "“_”(«fully»?escaped cdata)"
+ * @category "Hypertext"
  * @param "elem" "hypertext element"
  * @param "fullyEscaped" "boolean"
  *        If {@method "true"}, then entity encode all non-ASCII characters;

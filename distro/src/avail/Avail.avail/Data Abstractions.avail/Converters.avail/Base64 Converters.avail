@@ -77,6 +77,7 @@ base64Char ::= enumeration of (base64Alphabet ++ <padCharacter>)→set;
  *
  * @method "Base64 character"
  * @returns "character's type"
+ * @category "Base64"
  */
 Public method "Base64 character" is [base64Char];
 
@@ -85,6 +86,7 @@ Public method "Base64 character" is [base64Char];
  *
  * @method "Base64 string"
  * @returns "<Base64 character…|>"
+ * @category "Base64"
  */
 Public method "Base64 string" is [<Base64 character…|>];
 

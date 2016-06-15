@@ -1314,6 +1314,7 @@ arabicNumeralCharactersEnum ::= enumeration of "0123456789" → set;
  * Answer the type of an Arabic numeral.
  *
  * @type "Arabic numeral"
+ * @category "Characters"
  */
 Public method "Arabic numeral" is [arabicNumeralCharactersEnum];
 
@@ -1323,6 +1324,7 @@ metacharactersEnum ::= enumeration of "_«»‡`…#$?⁇!↑~|†§" → set;
  * Answer the type of an Avail metacharacter.
  *
  * @type "Avail message⁇metacharacter"
+ * @category "Characters"
  */
 Public method "Avail message⁇metacharacter" is [metacharactersEnum];
 
@@ -1334,6 +1336,7 @@ Public method "Avail message⁇metacharacter" is [metacharactersEnum];
  * @returns "boolean"
  *          {@method "true"} if {@param "c"} is an Avail metacharacter, {@method
  *          "false"} otherwise.
+ * @category "Characters"
  */
 Public method "_is an Avail message⁇metacharacter" is
 [
@@ -1357,7 +1360,7 @@ controlCharacters ::=
  * @method "_is a control character"
  * @param "c" "character"
  * @returns "boolean"
- * @category "Unicode"
+ * @category "Characters"
  */
 Public stable method "_is a control character" is
 [

@@ -425,6 +425,7 @@ Public stable method "L1 operation" is [enumeration of nybbleOperations→set];
  *
  * @type "L1 operand"
  * @alias "[0..2147483647]"
+ * @category "Function Implementations"
  */
 Public stable method "L1 operand" is [[0..2147483647]];
 

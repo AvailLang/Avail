@@ -51,5 +51,6 @@ Body
  * @supertype "anti-identity revisitor"
  * @field "visited values" "set"
  *        The values that have already been visited.
+ * @category "Visitors"
  */
 Public explicit class "phrase visitor" extends anti-identity revisitor;

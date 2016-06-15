@@ -48,6 +48,7 @@ Body
  *        The value to deconstruct.
  * @returns "tuple"
  *          The subcomponents.
+ * @category "Visitors"
  */
 Public method "_'s⁇subcomponents" is [value : any | <>] : tuple;
 

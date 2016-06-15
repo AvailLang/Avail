@@ -42,7 +42,7 @@ Body
  */
 /**
  * Assertions are sincere, executable comments that document a program
- * precondition, postcondition, invariant, or other behavioral assumption.
+ * precondition, post-condition, invariant, or other behavioral assumption.
  *
  * @category "Assertions"
  */

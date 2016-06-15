@@ -526,6 +526,7 @@ Private method "_'s⁇bindings(prefix=_)" is
  * @param "t" "trie"
  * @returns {@method "true"} if {@param "t"} contains no bindings, {@method
  *          "false"} otherwise.
+ * @category "Data Abstractions" "Tries"
  */
 Public method "_is empty" is
 [

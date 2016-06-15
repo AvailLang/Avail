@@ -760,6 +760,7 @@ Semantic restriction "_'s⁇ordinal" is [dowType : day of week's type | [1..7]];
  * @method "_'s⁇previous day of week"
  * @param "dow" "day of week"
  * @returns "day of week"
+ * @category "Days of the Week"
  */
 Public stable method "_'s⁇previous day of week" is
 [
@@ -774,6 +775,7 @@ Public stable method "_'s⁇previous day of week" is
  * @method "_'s⁇next day of week"
  * @param "dow" "day of week"
  * @returns "day of week"
+ * @category "Days of the Week"
  */
 Public stable method "_'s⁇next day of week" is
 [
@@ -983,6 +985,7 @@ Semantic restriction "private_and_'s⁇day of era" is
  * @type "no-such-day-in-month exception"
  * @supertype "bad-argument exception"
  * @supertype "descriptive exception"
+ * @category "Exceptions"
  */
 Public class "no-such-day-in-month exception"
 	extends descriptive bad-argument exception;
@@ -1355,6 +1358,7 @@ Semantic restriction "private_'s⁇month ordinal" is
  * @field "exploded minutes" "[0..59]"
  * @field "exploded seconds" "[0..59]"
  * @field "exploded milliseconds" "[0..999]"
+ * @category "Timestamps"
  */
 Public class "exploded timestamp" extends timestamp
 	with fields
@@ -1375,6 +1379,7 @@ Public class "exploded timestamp" extends timestamp
  * @method "_exploded"
  * @param "ts" "timestamp"
  * @returns "exploded timestamp"
+ * @category "Timestamps"
  * @see {@link "http://howardhinnant.github.io/date_algorithms.html#civil_from_days"
  *      civil_from_days}
  * @see {@link "http://howardhinnant.github.io/date_algorithms.html#weekday_from_days"
@@ -1448,6 +1453,7 @@ Public stable method "_'s⁇millisecond" is
  * @param "ts" "timestamp"
  * @returns
  *   "<integer, month, [1..31], day of week, [0..23], [0..59], [0..59], [0..999]…|8>"
+ * @category "Timestamps"
  */
 Public stable method "_'s⁇components" is
 [
@@ -1474,6 +1480,7 @@ Public stable method "_'s⁇components" is
  * @returns "boolean"
  *          {@method "true"} if {@param "ts"}' {@method "_'s⁇year" year} is a
  *          leap year, {@method "false"} otherwise.
+ * @category "Timestamps"
  */
 Public stable method "_is leap year" is
 	[ts : timestamp | ts' year is leap year];
@@ -1487,6 +1494,7 @@ Public stable method "_is leap year" is
  * @returns "boolean"
  *          {@method "true"} if {@param "ts"}' {@method "_'s⁇year" year} is a
  *          common year, {@method "false"} otherwise.
+ * @category "Timestamps" "Stringification"
  */
 Public stable method "_is common year" is
 	[ts : timestamp | ts' year is common year];
@@ -1516,6 +1524,7 @@ Method "“_”" is
  * @param "ts" "timestamp"
  * @param "_" "literal token ⇒ (8601's type)"
  * @returns "nonempty string"
+ * @category "Timestamps"
  */
 Public stable method "“_”(ISO…#)" is
 [

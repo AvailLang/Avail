@@ -226,6 +226,7 @@ Private method "_'s⁇visitable components" is
  * @returns "boolean"
  *          {@method "true"} if {@param "value"} has identity, {@method "false"}
  *          otherwise.
+ * @category "Visitors"
  */
 Public stable method "_has identity" is
 [
@@ -251,6 +252,7 @@ Public "visited values" is a new field atom;
  * @supertype "visitor"
  * @field "visited values" "set"
  *        The values that have already been visited.
+ * @category "Visitors"
  */
 Public explicit class "anti-identity revisitor" extends visitor
 	with mutable field

@@ -37,3 +37,15 @@ Extends
 	"Roster",
 	"Types"
 Body
+
+/**
+ * This module extends all the support for creating HTML5 compliant HTML.
+ * @module
+ * @see {@link "https://www.w3.org/TR/html5/" W3 HTML5}
+ */
+
+ /**
+  * This category provides methods for building
+  * {@link "https://www.w3.org/TR/html5/" HTML5} markup.
+  * @category "Hypertext"
+  */

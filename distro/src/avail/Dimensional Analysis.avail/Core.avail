@@ -1390,6 +1390,7 @@ Semantic restriction "_÷_" is
  *        The divisor.
  * @returns "dimensioned quantity"
  *          The remainder.
+ * @category "Dimensional Analysis"
  */
 Public stable method "_mod_" is
 [
@@ -1607,6 +1608,7 @@ Semantic restriction "-_" is
  *        A {@type "dimensioned quantity"}.
  * @returns "dimensioned quantity"
  *          The absolute value of {@param "x"}.
+ * @category "Dimensional Analysis"
  */
 Public stable method "`|_`|" is
 [
@@ -1887,6 +1889,7 @@ predicates ::=
  *          {@method "false"} otherwise.
  * @raises "incompatible-quantities exception"
  *         If the arguments are incompatible.
+ * @category "Dimensional Analysis"
  */
 Public method "«_‡«=|≤|<»!»" is
 [
@@ -1931,6 +1934,7 @@ Public method "«_‡«=|≤|<»!»" is
  *          {@method "false"} otherwise.
  * @raises "incompatible-quantities exception"
  *         If the arguments are incompatible.
+ * @category "Dimensional Analysis"
  */
 Public method "«_‡«=|≥|>»!»" is
 [

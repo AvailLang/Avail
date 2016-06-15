@@ -33,8 +33,18 @@
 Module "Scratch"
 Versions
 	"1.0.0 DEV 2014-04-28"
+Names
+"all state variables"
 Body
 /**
  * foo
  * @module
  */
+
+ /**
+  * Answer the {@type "set"} of all {@type "state variable"}s.
+  *
+  * @method "all state variables"
+  * @returns "{state variable|}"
+  * @category "Hammurabi State"
+  */

@@ -619,6 +619,7 @@ Semantic restriction "↓_else_" is
  *        destructured. This phrase is evaluated only once (not once per
  *        binding).
  * @returns "sequence phrase"
+ * @category "Variables"
  */
 Public macro "«…‡,»::=_;" is
 [

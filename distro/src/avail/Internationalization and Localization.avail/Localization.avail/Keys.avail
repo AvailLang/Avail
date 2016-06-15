@@ -58,6 +58,7 @@ Body
  * "localization|l10n bundle" localization bundle} must conform to this type.
  *
  * @type "localization|l10n key"
+ * @category "Localization"
  * @supertype "atom"
  */
 Public macro "localization|l10n key" is [‘atom’];
@@ -68,6 +69,7 @@ Public macro "localization|l10n key" is [‘atom’];
  * and {@macro "Localization bundle_for_§has bindings«_::=_»;"}.
  *
  * @method "«Public»?_is a new localization key"
+ * @category "Localization"
  * @param "isPublic" "boolean"
  *        {@method "true"} if the keyword <code>Public</code> occurs lexically,
  *        {@method "false"} otherwise.
@@ -99,6 +101,7 @@ Semantic restriction "«Public»?_is a new localization key" is
  * Is the specified {@type "atom"} a {@type "localization key"}?
  *
  * @method "_is localization key"
+ * @category "Localization"
  * @param "a" "atom"
  * @returns "boolean"
  */
@@ -115,6 +118,7 @@ Public method "_is localization key" is
  * is a {@type "localization key"}.
  *
  * @method "Require:_is localization key"
+ * @category "Localization"
  * @param "atomType" "atom's type"
  * @returns "⊤"
  */
