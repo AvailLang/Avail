@@ -244,6 +244,7 @@ Private method "_'s⁇visitable components" is
  * @returns "boolean"
  *          {@method "true"} if the value is mutable, {@method "false"}
  *          otherwise.
+ * @category "Visitors"
  */
 Public stable method "_is mutable" is
 [
@@ -276,6 +277,7 @@ Public stable method "_is mutable" is
  * @returns "boolean"
  *          {@method "true"} if the value is immutable, {@method "false"}
  *          otherwise.
+ * @category "Visitors"
  */
 Public stable method "_is immutable" is
 [
@@ -293,6 +295,7 @@ Public stable method "_is immutable" is
  * @supertype "visitor"
  * @field "visited values" "set"
  *        The values that have already been visited.
+ * @category "Visitors"
  */
 Public explicit class "anti-mutability revisitor" extends visitor
 	with mutable field

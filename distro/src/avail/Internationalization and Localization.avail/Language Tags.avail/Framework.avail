@@ -124,6 +124,7 @@ languageLock : non-reentrant mutex :=
  * Answer the {@type "type"} of a language name, as specified by ISO 639-1.
  *
  * @type "language name"
+ * @category "Localization"
  * @supertype "nonempty string"
  * @see {@link "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
  *      List of ISO 639-1 codes}
@@ -134,6 +135,7 @@ Public macro "language name" is [‘nonempty string’];
  * Answer the {@type "type"} of a language code, as specified by ISO 639-1.
  *
  * @type "language code"
+ * @category "Localization"
  * @supertype "<character…|2>"
  * @see {@link "https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes"
  *      List of ISO 639-1 codes}
@@ -161,6 +163,7 @@ languageCodes : {language code|} := ∅;
  * {@method "_is valid language code"} are willing to certify as legitimate.
  *
  * @method "Language_has code_"
+ * @category "Localization"
  * @param "name" "language name"
  * @param "code" "language code"
  * @returns "⊤"
@@ -189,6 +192,7 @@ Public method "Language_has code_" is
  * Answer all registered {@type "language name"}s.
  *
  * @method "registered languages"
+ * @category "Localization"
  * @returns "{language name|}"
  */
 Public method "registered languages" is
@@ -200,6 +204,7 @@ Public method "registered languages" is
  * Does {@param "name"} represent a registered language?
  *
  * @method "_is valid language name"
+ * @category "Localization"
  * @param "name" "language name"
  * @returns "boolean"
  *          {@method "true"} if {@param "name"} represents a registered
@@ -217,6 +222,7 @@ Public method "_is valid language name" is
  * ISO 639-1)?
  *
  * @method "_is valid language name"
+ * @category "Localization"
  * @param "name" "language name"
  * @returns "boolean"
  *          {@method "true"} if {@param "name"} represents a registered
@@ -237,6 +243,7 @@ Public method "_is valid language code" is
  * "Language_has code_" registered}.
  *
  * @method "Require:_is valid language name"
+ * @category "Localization"
  * @param "nameType" "string's type"
  * @returns "⊤"
  */
@@ -277,6 +284,7 @@ Public method "Require:_is valid language name" is
  * "Language_has code_" registered}.
  *
  * @method "Require:_is valid language code"
+ * @category "Localization"
  * @param "codeType" "string's type"
  * @returns "⊤"
  */
@@ -316,6 +324,7 @@ Public method "Require:_is valid language code" is
  * "codeType"} is an enumeration type and its instances are not well-formed.
  *
  * @method "Require:_is well-formed language code"
+ * @category "Localization"
  * @param "codeType" "string's type"
  * @returns "⊤"
  */
@@ -344,6 +353,7 @@ Public method "Require:_is well-formed language code" is
  * {@param "name"}.
  *
  * @method "language_'s⁇code"
+ * @category "Localization"
  * @param "name" "language name"
  * @returns "language code"
  * @raises "key-not-found exception"
@@ -361,6 +371,7 @@ Public method "language_'s⁇code" is
  * {@param "name"}, or apply {@param "else"} if {@param "name"} is unregistered.
  *
  * @method "language_'s⁇code"
+ * @category "Localization"
  * @param "name" "language name"
  * @param "else" "[]→any"
  *        The {@type "function"} to apply if {@param "name"} is unregistered.
@@ -395,6 +406,7 @@ scriptLock : non-reentrant mutex :=
  * Answer the {@type "type"} of a script name, as specified by ISO 15924.
  *
  * @type "script name"
+ * @category "Localization"
  * @supertype "nonempty string"
  * @see {@link "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924}
  */
@@ -404,6 +416,7 @@ Public macro "script name" is [‘nonempty string’];
  * Answer the {@type "type"} of a script code, as specified by ISO 15924.
  *
  * @type "script code"
+ * @category "Localization"
  * @supertype "<character…|2>"
  * @see {@link "https://en.wikipedia.org/wiki/ISO_15924" ISO 15924}
  */
@@ -431,6 +444,7 @@ scriptCodes : {script code|} := ∅;
  * {@method "_is valid script code"} are willing to certify as legitimate.
  *
  * @method "Script_has code_"
+ * @category "Localization"
  * @param "name" "script name"
  * @param "code" "script code"
  * @returns "⊤"
@@ -459,6 +473,7 @@ Public method "Script_has code_" is
  * Answer all registered {@type "script name"}s.
  *
  * @method "registered scripts"
+ * @category "Localization"
  * @returns "{script name|}"
  */
 Public method "registered scripts" is
@@ -470,6 +485,7 @@ Public method "registered scripts" is
  * Does {@param "name"} represent a registered script?
  *
  * @method "_is valid script name"
+ * @category "Localization"
  * @param "name" "script name"
  * @returns "boolean"
  *          {@method "true"} if {@param "name"} represents a registered
@@ -487,6 +503,7 @@ Public method "_is valid script name" is
  * ISO 15924)?
  *
  * @method "_is valid script name"
+ * @category "Localization"
  * @param "name" "script name"
  * @returns "boolean"
  *          {@method "true"} if {@param "name"} represents a registered
@@ -506,6 +523,7 @@ Public method "_is valid script code" is
  * "Script_has code_" registered}.
  *
  * @method "Require:_is valid script name"
+ * @category "Localization"
  * @param "nameType" "string's type"
  * @returns "⊤"
  */
@@ -546,6 +564,7 @@ Public method "Require:_is valid script name" is
  * "Script_has code_" registered}.
  *
  * @method "Require:_is valid script code"
+ * @category "Localization"
  * @param "codeType" "string's type"
  * @returns "⊤"
  */
@@ -585,6 +604,7 @@ Public method "Require:_is valid script code" is
  * "codeType"} is an enumeration type and its instances are not well-formed.
  *
  * @method "Require:_is well-formed script code"
+ * @category "Localization"
  * @param "codeType" "string's type"
  * @returns "⊤"
  */
@@ -613,6 +633,7 @@ Public method "Require:_is well-formed script code" is
  * "name"}.
  *
  * @method "script_'s⁇code"
+ * @category "Localization"
  * @param "name" "script name"
  * @returns "script code"
  * @raises "key-not-found exception"
@@ -630,6 +651,7 @@ Public method "script_'s⁇code" is
  * "name"}, or apply {@param "else"} if {@param "name"} is unregistered.
  *
  * @method "script_'s⁇code"
+ * @category "Localization"
  * @param "name" "script name"
  * @param "else" "[]→any"
  *        The {@type "function"} to apply if {@param "name"} is unregistered.
@@ -664,6 +686,7 @@ regionLock : non-reentrant mutex :=
  * Answer the {@type "type"} of a region name, as specified by ISO 3166-1.
  *
  * @type "region name"
+ * @category "Localization"
  * @supertype "nonempty string"
  * @see {@link "https://en.wikipedia.org/wiki/ISO_3166-1" ISO 3166-1}
  */
@@ -699,6 +722,7 @@ regionCodes : {region code|} := ∅;
  * {@method "_is valid region code"} are willing to certify as legitimate.
  *
  * @method "Region_has code_"
+ * @category "Localization"
  * @param "name" "region name"
  * @param "code" "region code"
  * @returns "⊤"
@@ -727,6 +751,7 @@ Public method "Region_has code_" is
  * Answer all registered {@type "region name"}s.
  *
  * @method "registered regions"
+ * @category "Localization"
  * @returns "{region name|}"
  */
 Public method "registered regions" is
@@ -738,6 +763,7 @@ Public method "registered regions" is
  * Does {@param "name"} represent a registered region?
  *
  * @method "_is valid region name"
+ * @category "Localization"
  * @param "name" "region name"
  * @returns "boolean"
  *          {@method "true"} if {@param "name"} represents a registered
@@ -755,6 +781,7 @@ Public method "_is valid region name" is
  * ISO 3166-1)?
  *
  * @method "_is valid region name"
+ * @category "Localization"
  * @param "name" "region name"
  * @returns "boolean"
  *          {@method "true"} if {@param "name"} represents a registered
@@ -774,6 +801,7 @@ Public method "_is valid region code" is
  * "Region_has code_" registered}.
  *
  * @method "Require:_is valid region name"
+ * @category "Localization"
  * @param "nameType" "string's type"
  * @returns "⊤"
  */
@@ -814,6 +842,7 @@ Public method "Require:_is valid region name" is
  * "Region_has code_" registered}.
  *
  * @method "Require:_is valid region code"
+ * @category "Localization"
  * @param "codeType" "string's type"
  * @returns "⊤"
  */
@@ -853,6 +882,7 @@ Public method "Require:_is valid region code" is
  * "codeType"} is an enumeration type and its instances are not well-formed.
  *
  * @method "Require:_is well-formed region code"
+ * @category "Localization"
  * @param "codeType" "string's type"
  * @returns "⊤"
  */
@@ -881,6 +911,7 @@ Public method "Require:_is well-formed region code" is
  * "name"}.
  *
  * @method "region_'s⁇code"
+ * @category "Localization"
  * @param "name" "region name"
  * @returns "region code"
  * @raises "key-not-found exception"
@@ -898,6 +929,7 @@ Public method "region_'s⁇code" is
  * "name"}, or apply {@param "else"} if {@param "name"} is unregistered.
  *
  * @method "region_'s⁇code"
+ * @category "Localization"
  * @param "name" "region name"
  * @param "else" "[]→any"
  *        The {@type "function"} to apply if {@param "name"} is unregistered.
@@ -929,6 +961,7 @@ Public "region subtag" is a new field atom;
  * Languages}.
  *
  * @type "language tag"
+ * @category "Localization"
  * @supertype "object"
  * @field "language subtag" "language code"
  * @field "script subtag" "script code"
@@ -952,6 +985,7 @@ Public explicit class "no-region-subtag exception" extends exception;
  * subtag}.
  *
  * @method "_'s⁇script subtag"
+ * @category "Localization"
  * @param "tag" "language tag"
  * @returns "script code"
  * @raises "no-script-subtag exception"
@@ -986,6 +1020,7 @@ Semantic restriction "_'s⁇script subtag" is
  * subtag}, or apply {@param "else"} if {@param "tag"} has no script subtag.
  *
  * @method "_'s⁇script subtag"
+ * @category "Localization"
  * @param "tag" "language tag"
  * @param "else" "[]→any"
  *        The {@type "function"} to apply if {@param "tag"} has no script
@@ -1014,6 +1049,7 @@ Semantic restriction "_'s⁇script subtag else_" is
  * subtag}.
  *
  * @method "_'s⁇region subtag"
+ * @category "Localization"
  * @param "tag" "language tag"
  * @returns "script code"
  * @raises "no-region-subtag exception"
@@ -1048,6 +1084,7 @@ Semantic restriction "_'s⁇region subtag" is
  * subtag}, or apply {@param "else"} if {@param "tag"} has no region subtag.
  *
  * @method "_'s⁇region subtag"
+ * @category "Localization"
  * @param "tag" "language tag"
  * @param "else" "[]→any"
  *        The {@type "function"} to apply if {@param "tag"} has no region
@@ -1075,6 +1112,7 @@ Semantic restriction "_'s⁇region subtag else_" is
  * Construct a {@type "language tag"} given a {@type "language code"}.
  *
  * @method "a language tag…"
+ * @category "Localization"
  * @param "languageToken" "token"
  *        A {@type "token"} whose lexeme is a {@method "Language_has code_"
  *        registered} {@type "language code"}.
@@ -1106,6 +1144,7 @@ Semantic restriction "a language tag…" is
  * {@method "Region_has code_" registered} {@type "region code"}s.
  *
  * @method "Require:_is valid script or region code"
+ * @category "Localization"
  * @param "codeType" "string's type"
  * @returns "⊤"
  */
@@ -1173,6 +1212,7 @@ Private method "Require:_is valid script or region code" is
  * {@type "script code"} or {@type "region code"}.
  *
  * @method "a language tag…-…"
+ * @category "Localization"
  * @param "languageToken" "token"
  *        A {@type "token"} whose lexeme is a {@method "Language_has code_"
  *        registered} {@type "language code"}.
@@ -1221,6 +1261,7 @@ Semantic restriction "a language tag…-…" is
  * "script code"}, and a {@type "region code"}.
  *
  * @method "a language tag…-…"
+ * @category "Localization"
  * @param "languageToken" "token"
  *        A {@type "token"} whose lexeme is a {@method "Language_has code_"
  *        registered} {@type "language code"}.
@@ -1263,6 +1304,7 @@ Semantic restriction "a language tag…-…-…" is
  * Construct a {@type "language tag"} given a {@type "language code"}.
  *
  * @method "an unchecked language tag…"
+ * @category "Localization"
  * @param "languageToken" "token"
  *        A {@type "token"} whose lexeme is a well-formed {@type
  *        "language code"}.
@@ -1294,6 +1336,7 @@ Semantic restriction "an unchecked language tag…" is
  * "region code"}s.
  *
  * @method "Require:_is well-formed script or region code"
+ * @category "Localization"
  * @param "codeType" "string's type"
  * @returns "⊤"
  */
@@ -1352,6 +1395,7 @@ Private method "Require:_is well-formed script or region code" is
  * {@type "script code"} or {@type "region code"}.
  *
  * @method "an unchecked language tag…-…"
+ * @category "Localization"
  * @param "languageToken" "token"
  *        A {@type "token"} whose lexeme is a well-formed {@type
  *        "language code"}.
@@ -1399,6 +1443,7 @@ Semantic restriction "an unchecked language tag…-…" is
  * "script code"}, and a {@type "region code"}.
  *
  * @method "an unchecked language tag…-…"
+ * @category "Localization"
  * @param "languageToken" "token"
  *        A {@type "token"} whose lexeme is a well-formed {@type
  *        "language code"}.
@@ -1439,6 +1484,7 @@ Semantic restriction "an unchecked language tag…-…-…" is
  * Convert {@param "tagSpec"} into a {@type "language tag"}.
  *
  * @method "_→language tag"
+ * @category "Localization"
  * @param "tagSpec" "string"
  *        A textual rendition of a {@type "language tag"} that conforms to
  *        {@see "http://tools.ietf.org/html/rfc5646#section-2.1.1" RFC 5646,
@@ -1497,6 +1543,7 @@ Method "“_”" is
  * densely packed, omitting components for corresponding missing subtags.
  *
  * @method "_'s⁇parts"
+ * @category "Localization"
  * @param "tag" "language tag"
  * @returns "string+"
  */

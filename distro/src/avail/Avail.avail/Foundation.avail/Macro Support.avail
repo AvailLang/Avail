@@ -65,6 +65,7 @@ Body
  * @returns "boolean"
  *         {@method "true"} if {@param "tokens"} have internal whitespace,
  *         {@method "false"} otherwise.
+ * @category "Macros"
  */
 Public method "_has|have internal whitespace" is
 [
@@ -125,6 +126,7 @@ noWhitespace ::= atom for "Require:macro send has no internal whitespace_";
  *        The message to report as the parse rejection. It is only evaluated
  *        if the parse is rejected.
  * @returns "send phrase ⇒ string"
+ * @category "Macros"
  */
 Public macro "Require:macro send has no internal whitespace(_)" is
 [

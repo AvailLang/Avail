@@ -54,6 +54,7 @@ Body
  *
  * @type "malformed-encoding exception"
  * @supertype "exception"
+ * @category "Exceptions"
  */
 Public explicit class "malformed-encoding exception" extends exception;
 

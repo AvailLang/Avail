@@ -37,3 +37,9 @@ Extends
 	"Language Tags",
 	"Localization"
 Body
+/**
+ * All methods involved in the process of adapting a product or content to a
+ * specific locale or market
+ *
+ * @category "Localization"
+ */

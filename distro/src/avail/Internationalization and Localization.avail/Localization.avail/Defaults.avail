@@ -45,6 +45,7 @@ Body
  * value is {@method "a language tag…" en}.
  *
  * @macro "default language"
+ * @category "Localization"
  * @returns "language tag"
  * @see {@link "http://tools.ietf.org/html/rfc5646" RCF 5646
  *      — Tags for Identifying Languages}
@@ -55,6 +56,7 @@ Body
  * is {@method "a language tag…" en}.
  *
  * @method "default language:=_"
+ * @category "Localization"
  * @param "lang" "language tag"
  *        The replacement {@type "language tag"}.
  * @returns "⊤"

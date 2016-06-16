@@ -125,6 +125,7 @@ Semantic restriction "_→literal phrase" is
  * @method "‘_’"
  * @param "value" "any"
  * @returns "literal phrase ⇒ any"
+ * @category "Phrases"
  */
 Public method "‘_’" is
 [

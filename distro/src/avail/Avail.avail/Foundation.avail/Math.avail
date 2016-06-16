@@ -969,7 +969,7 @@ Public stable method "«_‡«=|≤|<»!»" is
  * @method "comparison chain semantic restriction function"
  * @param "args" "<<any, [1..1]…|1..2>…|3..∞>'s type"
  * @returns "[<<any, [1..1]…|1..2>…|3..∞>'s type]→⊤"
- * 
+ * @category "Semantic Restrictions"
  */
 Public method "comparison chain semantic restriction function" is
 [

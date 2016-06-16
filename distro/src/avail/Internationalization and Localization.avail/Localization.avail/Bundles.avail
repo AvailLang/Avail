@@ -57,6 +57,7 @@ Body
  * {@type "language tag"}.
  *
  * @type "localization|l10n bundle"
+ * @category "Localization"
  * @supertype "object"
  * @field "bundle tag" "language tag"
  *        The {@type "language tag"} of the {@type "localization|l10n bundle"
@@ -73,7 +74,8 @@ Public class "localization|l10n bundle" extends object
  * defined {@type "localization|l10n bundle" localization bundle} subtype.
  *
  * @macro "«Public»?Localization|localization bundle_§has key|keys«_§«:_†»«(_)»?‡,»;"
- * @param "isPublic" "literal phrase ⇒ boolean"
+ * @category "Localization"
+ *@param "isPublic" "literal phrase ⇒ boolean"
  *        If lexically supplied, then the {@type "localization|l10n bundle"
  *        localization bundle} and its fields must all be exported via the
  *        {@type "current module"}'s "Names" section.
@@ -232,6 +234,7 @@ bundleMapLock : non-reentrant mutex :=
  * and {@type "language tag"}.
  *
  * @method "Install_for_,_"
+ * @category "Localization"
  * @param "aBundle" "localization bundle"
  * @param "bundleType" "localization bundle's type"
  * @param "languageTag" "language tag"
@@ -286,6 +289,7 @@ Public forward method "the localization|l10n bundle_for_" is
  * lexically before more specific {@type "language tag" localizations}.
  *
  * @macro "Localization of_for_§has bindings«_::=_§‡,»;"
+ * @category "Localization"
  * @param "bundleType" "expression phrase ⇒ (localization bundle's type)"
  *        A {@type "localization|l10n bundle" localization bundle} {@type
  *        "type"} previously declared with {@method
@@ -441,6 +445,7 @@ Public macro "Localization of_for_§has bindings«_::=_§‡,»;" is
  * {@type "localization|l10n bundle" localization bundle}.
  *
  * @method "the localization|l10n bundle_for_"
+ * @category "Localization"
  * @param "bundleType" "localization bundle's type"
  * @param "languageTag" "language tag"
  * @returns "localization|l10n bundle"
@@ -467,6 +472,7 @@ Semantic restriction "the localization|l10n bundle_for_" is
  * bundle}.
  *
  * @method "the default localization|l10n bundle_"
+ * @category "Localization"
  * @param "bundleType" "localization bundle's type"
  * @returns "localization|l10n bundle"
  */

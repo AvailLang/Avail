@@ -734,6 +734,7 @@ Semantic restriction "try_else_" is
  * 		The full name of the system exception including the word "exception"
  * 		at the end.
  * @supertype "exception"
+ * @category "Exceptions"
  */
 Public class "system exception" extends exception
 	with fields
