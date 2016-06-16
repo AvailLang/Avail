@@ -102,7 +102,6 @@ Public method "_'s⁇next«value in»⁇_" is
 	rng : pRNG,
 	range : integer's type
 |
-	printme ::= false;
 	If range = ⊥ ∨ ⎡range⎤ = ∞ then
 	[
 		Raise an incorrect-argument-type exception
@@ -128,9 +127,14 @@ Public method "_'s⁇next«value in»⁇_" is
 	 * the task is (2^n)^m.  We will need to acquire m numbers from rng to
 	 * construct our final value through bit shifting.
 	 */
-	/*m : natural number := 1;
-	While (rangeSize ÷ ((rngSize^m) ÷ 2)) > 0 do [m:=m + 1;];*/
-	m ::= cast ⎡⎡(log 2 of rangeSize)⎤ ÷ bitCount⎤→extended integer
+	requiredValueCount ::= ⎡⎡(log 2 of rangeSize)⎤ ÷ bitCount⎤→extended integer;
+	
+	/* There will always be at least 1 roll required.  If the result of
+	 * requiredValueCount is less than 1, we need to choose 1
+	 */
+	requiredValueCounts : <extended integer…| 1..2> := 
+		<1> ++ <requiredValueCount>;
+	m ::= cast max requiredValueCounts 
 		into [n : natural number | n];
 	
 	/* Calculate the potential maximum random value that can occur as a result 
@@ -139,20 +143,12 @@ Public method "_'s⁇next«value in»⁇_" is
 	 * [0..maxRandomValue]
 	 */
 	maxRandomValue : whole number := rngSize^m - 1;
-If printme then
-[Print: format "desired random range size: “①”\n" with rangeSize;
-Print: format "rng range size: “①”\n" with rngSize;
-Print: format "rng base bit count: “①”\n" with bitCount;
-Print: format "required bit count for max 2 possibilities at boundary: “①”\n" with m × bitCount;
-Print: format "maximum possible random value: “①”\n" with maxRandomValue;
-];
 	
 	/* Acquire all necessary values from rng */
 	generatedNumbers : <whole number…|> := <>;
 	For each i from 1 to m do 
 	[
 	 	generatedNumbers := generatedNumbers ++ <rng's current element>;
-If printme then [Print: format "roll “②”: “①”\n" with rng's current element, i;];
 	 	Advance rng;
 	];
 	/* Obtain the total random number value */
@@ -180,16 +176,7 @@ If printme then [Print: format "roll “②”: “①”\n" with rng's current 
 	incrementedResultRangeValue ::= (randomValue + 1) ÷ boundaryMultiple;
 	wholeNumberDiff ::= incrementedResultRangeValue's whole number part 
 		- resultRangeValue's whole number part;
-If printme then 
-[Print: format "total roll: “①”\n" with randomValue;
-Print: format "boundary every: “①”\n\n" with boundaryMultiple;
-Print: "\n";
-Print: format "A: total roll ÷ boundary multiple = “①”\n" with resultRangeValue;
-Print: format "B: (total roll + 1) ÷ boundary multiple = “①”\n" with incrementedResultRangeValue;
-Print: "\n";
-Print: format "whole number difference (B-A): “①”\n" with wholeNumberDiff;
-Print: format "B's fraction is nonzero: “①”\n" with resultRangeValue's fraction is nonzero;
-];
+
 	baseResult : integer := if wholeNumberDiff > 0 
 		∧ resultRangeValue's fraction is nonzero then
 	[
@@ -197,34 +184,27 @@ Print: format "B's fraction is nonzero: “①”\n" with resultRangeValue's fra
 	 	resolutionReached : boolean := false;
 	 	weightedProbability : fraction :=  resultRangeValue's fraction;
 	 	outcome : integer := -1;
-If printme then [Print: "\nAdditional roll required\n";];	 	
+ 	
 	 	Do
 	 	[
 	 	 	newBoundary ::= rngSize × weightedProbability;
 	 	 	newResult ::= rng's current element;
-If printme then [ 
-Print: format "new boundary condition every: “①”\n" with newBoundary;
-Print: format "new roll: “①”\n" with newResult;];	 	 	
+
 	 	 	If newResult < newBoundary's whole number part then
 	 	 	[
 	 	 	 	outcome := resultRangeValue's whole number part;
 	 	 	 	resolutionReached := true;
-If printme then [Print: "Lower value wins!\n";];
 	 	 	] else if newResult > newBoundary's whole number part then
 	 	 	[
 	 	 	 	outcome := incrementedResultRangeValue's whole number part;
 	 	 	 	resolutionReached := true;
-If printme then [Print: "Higher value wins!\n";];
-	 	 	] else [weightedProbability := newBoundary's fraction; Print: "Reroll\n";];
+	 	 	] else [weightedProbability := newBoundary's fraction;];
 	 	]
 	 	until resolutionReached;
 	 	outcome
-	] else [If printme then [Print: "\nNo additional roll required\n";]; resultRangeValue's whole number part];
+	] else [resultRangeValue's whole number part];
  
 	/* Adjust the base result to match*/
-If printme then [
-Print: format "Bottom of random range adjustment: “①”\n" with ⎣range⎦;
-Print: "Final result: ";];
 	cast baseResult + ⎣range⎦ into [i : integer | i]
 ] : integer;
 
