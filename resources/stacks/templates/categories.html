@@ -1,0 +1,15 @@
+<table class="stacks">
+<thead>
+    <tr>
+        <th class="stacks i-col-label-narrow" scope="col">Category</th>
+        <th class="stacks i-col-label-wide" scope="col">Description</th>
+    </tr>
+</thead>
+<tbody>
+    <tr ng-repeat="category in categoriesDescriptions.content">
+        <td class="stacks i-code" scope="col">{{category.category}}</td>
+        <td class="stacks i-desc">{{category.description}}</td>
+    </tr>
+</tbody>
+
+</table>

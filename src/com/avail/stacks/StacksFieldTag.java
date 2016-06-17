@@ -112,13 +112,10 @@ public class StacksFieldTag extends AbstractStacksTag
 			jsonWriter.write("description");
 			fieldDescription
 				.toJSON(linkingFileMap, hashID, errorLog, jsonWriter);
-			jsonWriter.write("data");
-			jsonWriter.startArray();
-				jsonWriter.write(position);
-				jsonWriter.write(
-					fieldName
-						.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
-			jsonWriter.endArray();
+			jsonWriter.write("name");
+			jsonWriter.write(
+				fieldName
+					.toJSON(linkingFileMap, hashID, errorLog, jsonWriter));
 			jsonWriter.write("typeInfo");
 			jsonWriter.startArray();
 				jsonWriter.write(

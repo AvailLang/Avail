@@ -175,7 +175,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 
 		//The ordered position of the parameter in the method signature.
 		int position = 1;
-		jsonWriter.write("parameters");
+		jsonWriter.write("fields");
 		jsonWriter.startArray();
 		for (final StacksFieldTag fieldTag : fields)
 		{
