@@ -149,7 +149,7 @@ extends AvailServerChannel
 							sendQueue.addLast(pair.first());
 						}
 						nextMessage = sendQueue.peekFirst();
-						assert sendQueue.size() < maximumSendQueueDepth();
+						assert sendQueue.size() <= maximumSendQueueDepth();
 					}
 					// Begin transmission of the next message.
 					if (nextMessage != null)
