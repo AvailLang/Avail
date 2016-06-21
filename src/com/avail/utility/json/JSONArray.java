@@ -87,6 +87,12 @@ implements Iterable<JSONData>
 		return new JSONArray(array);
 	}
 
+	@Override
+	public boolean isArray ()
+	{
+		return true;
+	}
+
 	/**
 	 * Answer the length of the {@linkplain JSONArray receiver}.
 	 *
