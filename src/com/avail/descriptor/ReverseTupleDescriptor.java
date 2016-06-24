@@ -145,10 +145,9 @@ extends TupleDescriptor
 			object.becomeIndirectionTo(treeTuple);
 			return treeTuple.childAt(childIndex);
 		}
-
-		//Object is shared so cannot change to indirection, instead need
-		//to return the reverse of the child one level down at the opposite
-		//end of the tree from the childIndex.
+		// Object is shared so cannot change to indirection, instead need
+		// to return the reverse of the child one level down at the opposite
+		// end of the tree from the childIndex.
 		final int adjustedSubscript = object.childCount() + 1 - childIndex;
 		return object.slot(ORIGIN_TUPLE)
 			.childAt(adjustedSubscript)

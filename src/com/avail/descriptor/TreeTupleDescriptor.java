@@ -679,12 +679,7 @@ extends TupleDescriptor
 		{
 			// They're each big enough to be non-roots.  Do the cheapest thing
 			// and create a 2-way node holding both.
-			final AvailObject newNode = createPair(
-				tuple1,
-				tuple2,
-				level + 1,
-				newHash);
-			return newNode;
+			return createPair(tuple1, tuple2, level + 1, newHash);
 		}
 		if (count1 + count2 <= maxWidth)
 		{
@@ -742,12 +737,7 @@ extends TupleDescriptor
 		assert dest == destLimit + 1;
 		check(target);
 		// And tape them back together.
-		final AvailObject newNode = createPair(
-			newLeft,
-			newRight,
-			level + 1,
-			newHash);
-		return newNode;
+		return createPair(newLeft, newRight, level + 1, newHash);
 	}
 
 	/**
@@ -910,11 +900,15 @@ extends TupleDescriptor
 		assert object.descriptor() instanceof TreeTupleDescriptor;
 		assert (object.variableObjectSlotsCount() + 1) >> 1
 			== object.variableIntegerSlotsCount();
+		final int myLevelMinusOne = object.treeTupleLevel() - 1;
 		final int childCount = object.childCount();
 		int cumulativeSize = 0;
 		for (int childIndex = 1; childIndex <= childCount; childIndex++)
 		{
 			final A_Tuple child = object.slot(SUBTUPLE_AT_, childIndex);
+			assert child.treeTupleLevel() == myLevelMinusOne;
+			assert myLevelMinusOne == 0
+				|| child.childCount() >= minWidthOfNonRoot;
 			cumulativeSize += child.tupleSize();
 			assert object.intSlot(CUMULATIVE_SIZES_AREA_, childIndex)
 				== cumulativeSize;

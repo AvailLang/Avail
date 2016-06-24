@@ -440,13 +440,10 @@ extends Descriptor
 	@Override @AvailMethod
 	final int o_Hash (final AvailObject object)
 	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return hash(object);
-			}
-		}
+		// We could synchronize if the object isShared(), but why bother?  The
+		// hash computation is stable, so we'll only compute and write what
+		// other threads might already be writing.  Even reading a zero after
+		// reading the true hash isn't a big deal.
 		return hash(object);
 	}
 

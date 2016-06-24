@@ -279,7 +279,10 @@ extends TupleDescriptor
 		assert object.tupleSize() > 0;
 		if (otherTuple.tupleSize() == 0)
 		{
-			object.makeImmutable();
+			if (!canDestroy)
+			{
+				object.makeImmutable();
+			}
 			return object;
 		}
 		if (!canDestroy)
