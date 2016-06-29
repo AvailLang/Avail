@@ -315,7 +315,6 @@ public final class AvailRuntime
 	{
 		final int index = nextInterpreterIndex;
 		nextInterpreterIndex++;
-		assert 0 <= index && index < maxInterpreters;
 		return index;
 	}
 
