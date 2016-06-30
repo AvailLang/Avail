@@ -550,6 +550,15 @@ extends Descriptor
 		createSpecialAtom("All tokens");
 
 	/**
+	 * The atom used to identify the entry in a {@linkplain ParserState}'s
+	 * {@linkplain ParserState#clientDataMap client data map} containing the
+	 * bundle of the macro send for which the current fiber is computing a
+	 * replacement phrase.
+	 */
+	private static final A_Atom macroBundleKey =
+		createSpecialAtom("Macro bundle");
+
+	/**
 	 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s global
 	 * map to extract the current {@link ParserState}'s {@linkplain
 	 * ParserState#clientDataMap}.
@@ -659,12 +668,28 @@ extends Descriptor
 	 * ParserState}'s {@linkplain ParserState#clientDataMap client data map}
 	 * which holds the current tuple of encountered tokens.
 	 *
-	 * @return The tokens that have matched so far with the current method/macro
-	 *         site's tokens (as determined by the {@link MessageSplitter})
+	 * @return The special atom used as a key into the client data map to get
+	 *         tuple of tokens that have matched so far with the current
+	 *         method/macro site's tokens (as determined by the {@link
+	 *         MessageSplitter}).
 	 */
 	public static A_Atom allTokensKey ()
 	{
 		return allTokensKey;
+	}
+
+	/**
+	 * Answer the atom used to identify the entry in a {@linkplain
+	 * ParserState}'s {@linkplain ParserState#clientDataMap client data map}
+	 * which holds the bundle of the macro send for which the current fiber is
+	 * computing a replacement phrase.
+	 *
+	 * @return The special atom used as a key into the client data map to get
+	 *         the {@link A_Bundle} of the macro send being transformed.
+	 */
+	public static A_Atom macroBundleKey ()
+	{
+		return macroBundleKey;
 	}
 
 	/**

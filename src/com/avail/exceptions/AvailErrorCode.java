@@ -41,6 +41,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.phrases.P_AcceptParsing;
+import com.avail.interpreter.primitive.phrases.P_CurrentMacroName;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.Serializer;
@@ -425,7 +426,13 @@ public enum AvailErrorCode
 	 */
 	E_UNTIMELY_PARSE_ACCEPTANCE (64),
 
-//	E_??? (65),
+	/**
+	 * The {@linkplain FiberDescriptor#current() current fiber} attempted to
+	 * determine the {@linkplain P_CurrentMacroBundle current macro bundle}, the
+	 * bundle of a send node which was undergoing macro substitution, but this
+	 * fiber is not performing a macro substitution.
+	 */
+	E_NOT_EVALUATING_MACRO (65),
 
 	/**
 	 * A {@LINK DeclarationNodeDescriptor declaration} has the same name as

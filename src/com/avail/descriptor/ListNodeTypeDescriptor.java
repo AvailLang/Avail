@@ -444,11 +444,12 @@ extends ParseNodeTypeDescriptor
 		final A_Type yieldType,
 		final A_Type subexpressionsTupleType)
 	{
-//		assert listNodeEnumKind.isSubkindOf(LIST_NODE);
+		// Can't verify this, because LIST_NODE might not exist yet.
+		// assert listNodeEnumKind.isSubkindOf(LIST_NODE);
 		assert yieldType.isTupleType();
 		assert subexpressionsTupleType.isTupleType();
 
-		final AvailObject type = mutable.create();
+		final AvailObject type = listNodeTypeMutable.create();
 		type.setSlot(KIND, listNodeEnumKind.ordinal());
 		type.setSlot(EXPRESSION_TYPE, yieldType.makeImmutable());
 		type.setSlot(SUBEXPRESSIONS_TUPLE_TYPE, subexpressionsTupleType);
@@ -461,19 +462,19 @@ extends ParseNodeTypeDescriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public ListNodeTypeDescriptor (final Mutability mutability)
+	private ListNodeTypeDescriptor (final Mutability mutability)
 	{
 		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link ListNodeTypeDescriptor}. */
-	private static final ListNodeTypeDescriptor mutable =
+	private static final ListNodeTypeDescriptor listNodeTypeMutable =
 		new ListNodeTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
 	ListNodeTypeDescriptor mutable ()
 	{
-		return mutable;
+		return listNodeTypeMutable;
 	}
 
 	/** The shared {@link ListNodeTypeDescriptor}. */

@@ -331,6 +331,10 @@ public final class AvailBuilder
 		}
 	}
 
+	/**
+	 * DEBUG: Answer the {@link DebugLoadStatusTracker} that tracks module
+	 * compiling/loading progress.
+	 */
 	final DebugLoadStatusTracker debugLoadStatusTracker =
 		new DebugLoadStatusTracker();
 

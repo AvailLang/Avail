@@ -101,7 +101,9 @@ public class L2_RETURN extends L2Operation
 			if (returnee != null)
 			{
 				interpreter.recordCheckedReturnFromTo(
-					returner, returnee, after - before);
+					returner,
+					returnee,
+					after - before);
 			}
 		}
 	}

@@ -37,6 +37,7 @@ import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.AtomDescriptor.compilerScopeMapKey;
 import static com.avail.descriptor.AtomDescriptor.clientDataGlobalKey;
 import static com.avail.descriptor.AtomDescriptor.allTokensKey;
+import static com.avail.descriptor.AtomDescriptor.macroBundleKey;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -2798,6 +2799,7 @@ public final class AvailCompiler
 				}
 			});
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
+		fiber.setGeneralFlag(GeneralFlag.IS_EVALUATING_MACRO);
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataGlobalKey(), clientParseData, true);
@@ -5799,11 +5801,13 @@ public final class AvailCompiler
 		// Capture all of the tokens that comprised the entire macro send.
 		final A_Tuple constituentTokens = stateBeforeCall.upTo(stateAfterCall);
 		assert constituentTokens.tupleSize() != 0;
-		final A_Map withTokens =
-			stateAfterCall.clientDataMap.mapAtPuttingCanDestroy(
-				allTokensKey(),
-				constituentTokens,
-				false).makeImmutable();
+		final A_Map withTokensAndBundle =
+			stateAfterCall.clientDataMap
+				.mapAtPuttingCanDestroy(
+					allTokensKey(), constituentTokens, false)
+				.mapAtPuttingCanDestroy(
+					macroBundleKey(), bundle, true)
+				.makeImmutable();
 		startWorkUnit();
 		final MutableOrNull<A_Map> clientDataAfterRunning =
 			new MutableOrNull<>();
@@ -5811,7 +5815,7 @@ public final class AvailCompiler
 		evaluateMacroFunctionThen(
 			macroDefinitionToInvoke,
 			argumentsList,
-			withTokens,
+			withTokensAndBundle,
 			clientDataAfterRunning,
 			workUnitCompletion(
 				stateAfterCall.peekToken(),

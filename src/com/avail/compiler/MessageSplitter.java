@@ -3407,6 +3407,28 @@ public class MessageSplitter
 	}
 
 	/**
+	 * Answer the list of one-based positions in the original string
+	 * corresponding to the {@link #messageParts} that have been extracted.
+	 *
+	 * @return A {@link List} of {@link Integer}s.
+	 */
+	public final List<Integer> messagePartPositions ()
+	{
+		return messagePartPositions;
+	}
+
+	/**
+	 * Answer a record of where each "underscore" occurred in the list of {@link
+	 * #messageParts}.
+	 *
+	 * @return A {@link List} of one-based {@link Integer}s.
+	 */
+	public List<Integer> underscorePartNumbers ()
+	{
+		return underscorePartNumbers;
+	}
+
+	/**
 	 * Answer whether parsing has reached the end of the message parts.
 	 *
 	 * @return True if the current position has consumed the last message part.

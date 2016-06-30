@@ -63,6 +63,7 @@ import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
+import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.*;
@@ -2495,18 +2496,41 @@ public final class Interpreter
 	}
 
 	/**
-	 * Detailed statistics about checked non-primitive returns.  This is a map
-	 * whose keys are raw functions doing the returning, and whose values are
-	 * maps from the raw functions being returned into to a statistic.
+	 * Detailed statistics about checked non-primitive returns.  There is an
+	 * array of {@link Map}s, indexed by {@link Interpreter#interpreterIndex}.
+	 * Each map is from the {@link A_RawFunction} being returned from to another
+	 * map.  That map is from the raw function being return <em>into</em>, and
+	 * the value is a {@link PerInterpreterStatistic}.  There should be no
+	 * contention on the locks during accumulation, but the array of maps must
+	 * be aggregated before being displayed.  Note that both the inner and outer
+	 * maps are weak-keyed ({@link WeakHashMap}).  A second structure, {@link
+	 * #checkedReturnMapsByString}, strongly keeps mappings from equivalently
+	 * named raw function pairs to the {@link Statistic}s that hold the same
+	 * {@link PerInterpreterStatistic}s.
 	 */
-	private static final Map<A_RawFunction, Map<A_RawFunction, Statistic>>
-		checkedReturnMaps = new WeakHashMap<>();
+	@SuppressWarnings("unchecked")
+	private static final Map<
+			A_RawFunction, Map<A_RawFunction, PerInterpreterStatistic>>[]
+		checkedReturnMaps = new Map[AvailRuntime.maxInterpreters];
+
+	static
+	{
+		for (int i = 0; i < AvailRuntime.maxInterpreters; i++)
+		{
+			checkedReturnMaps[i] = new WeakHashMap<
+				A_RawFunction, Map<A_RawFunction,PerInterpreterStatistic>>();
+		}
+	}
 
 	/**
-	 * Statistics about checked non-primitive returns, keyed by the {@link
-	 * Statistic}'s name (which includes information about both the returner and
-	 * the returnee).  This holds the statistics strongly to allow the same
-	 * statistics to be used after unloading/loading.
+	 * Detailed statistics about checked non-primitive returns.  This is a
+	 * (strong) {@link Map} that flattens statistics into equally named from/to
+	 * pairs of {@link A_RawFunction}s.  Its keys are the string representation
+	 * of <from,to> pairs of raw functions.  Its values are {@link Statistic}s,
+	 * the same ones that contain the {@link PerInterpreterStatistic}s found in
+	 * {@link #checkedReturnMaps}.  This combination allows us to hold
+	 * statistics correctly even when unloading/loading modules, while requiring
+	 * only minimal lock contention during statistics gathering.
 	 */
 	private static final Map<A_String, Statistic>
 		checkedReturnMapsByString = new HashMap<>();
@@ -2525,38 +2549,42 @@ public final class Interpreter
 		final A_RawFunction returnee,
 		final double nanos)
 	{
-		Statistic statistic;
-		synchronized (checkedReturnMaps)
+		final Map<A_RawFunction, Map<A_RawFunction, PerInterpreterStatistic>>
+			outerMap = checkedReturnMaps[interpreterIndex];
+		Map<A_RawFunction, PerInterpreterStatistic> submap =
+			outerMap.get(returner);
+		if (submap == null)
 		{
-			Map<A_RawFunction, Statistic> submap =
-				checkedReturnMaps.get(returner);
-			if (submap == null)
+			submap = new WeakHashMap<
+				A_RawFunction, PerInterpreterStatistic>();
+			outerMap.put(returner, submap);
+		}
+		PerInterpreterStatistic perInterpreterStatistic = submap.get(returnee);
+		if (perInterpreterStatistic == null)
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append("Return from ");
+			builder.append(returner.methodName().asNativeString());
+			builder.append(" to ");
+			builder.append(returnee.methodName().asNativeString());
+			final String nameString = builder.toString();
+			final A_String stringKey = StringDescriptor.from(nameString);
+			synchronized (checkedReturnMapsByString)
 			{
-				submap = new WeakHashMap<>();
-				checkedReturnMaps.put(returner, submap);
-			}
-			statistic = submap.get(returnee);
-			if (statistic == null)
-			{
-				final StringBuilder builder = new StringBuilder();
-				builder.append("Return from ");
-				builder.append(returner.methodName().asNativeString());
-				builder.append(" to ");
-				builder.append(returnee.methodName().asNativeString());
-				final String nameString = builder.toString();
-				final A_String availString = StringDescriptor.from(nameString);
-				statistic = checkedReturnMapsByString.get(availString);
+				Statistic statistic = checkedReturnMapsByString.get(stringKey);
 				if (statistic == null)
 				{
 					statistic = new Statistic(
 						nameString,
 						StatisticReport.NON_PRIMITIVE_RETURN_TYPE_CHECKS);
-					checkedReturnMapsByString.put(availString, statistic);
-					submap.put(returnee, statistic);
+					checkedReturnMapsByString.put(stringKey, statistic);
 				}
+				perInterpreterStatistic =
+					statistic.statistics[interpreterIndex];
+				submap.put(returnee, perInterpreterStatistic);
 			}
 		}
-		statistic.record(nanos, interpreterIndex);
+		perInterpreterStatistic.record(nanos);
 	}
 
 	/**

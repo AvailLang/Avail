@@ -100,6 +100,7 @@ Names
 	/*  58 */ "literal token meta",
 	/*  65 */ "local constant phrase",
 	/*  64 */ "local variable phrase",
+	/* 154 */ "macro bundle key",
 	/*  47 */ "macro definition",
 	/* 109 */ "macro function",
 	/*  39 */ "map",
@@ -2057,4 +2058,14 @@ Special object "tuple of definition" is special object 152;
  * @alias "map from string to atom"
  */
 Special object "map from string to atom" is special object 153;
+
+/**
+ * The key within the client data fiber global that holds the bundle for which
+ * a send is undergoing macro substitution.
+ *
+ * @category "Primitives" "Constants"
+ * @method "macro bundle key"
+ * @returns "macro bundle key's type"
+ */
+Special object "macro bundle key" is special object 154;
 

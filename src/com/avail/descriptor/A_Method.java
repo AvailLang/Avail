@@ -125,8 +125,7 @@ extends A_ChunkDependable
 	/**
 	 * Answer the {@linkplain A_Definition definition} of this {@linkplain
 	 * A_Method method} that should be invoked for the given {@linkplain
-	 * A_Type argument types}. Use the {@linkplain #testingTree() testing tree}
-	 * to select a definition.
+	 * A_Type argument types}. Use the testing tree to select a definition.
 	 *
 	 * @param argumentTypeTuple
 	 *        The {@linkplain A_Tuple tuple} of argument types, ordered by
@@ -144,10 +143,9 @@ extends A_ChunkDependable
 	/**
 	 * Answer the {@linkplain A_Definition definition} of this {@linkplain
 	 * A_Method method} that should be invoked for the given values. Use the
-	 * {@linkplain #testingTree() testing tree} to select a definition. If
-	 * lookup fails, then write an appropriate {@linkplain AvailErrorCode error
-	 * code} into {@code errorCode} and answer {@linkplain NilDescriptor#nil()
-	 * nil}.
+	 * testing tree to select a definition. If lookup fails, then write an
+	 * appropriate {@linkplain AvailErrorCode error code} into {@code errorCode}
+	 * and answer {@linkplain NilDescriptor#nil() nil}.
 	 *
 	 * @param argumentList
 	 *        The {@linkplain A_Tuple tuple} of arguments, ordered by position.

@@ -282,6 +282,9 @@ Private method "stability body for_with«_‡,»" is
 /* These methods are needed for autogeneration of stable method restrictions. */
 stabilityBodyAtom ::= atom for "stability body for_with«_‡,»";
 
+/* The zero-argument atom that gets the atom of the macro being evaluated. */
+getCurrentMacroNameAtom ::= atom for "current macro name";
+
 /**
  * Declare that the {@type "method"} referenced by {@param "methodName"} is
  * stable for the given signature. A stable method produces the same value for
@@ -340,16 +343,22 @@ Public method "Method_is stable at_" is
 			into [t : <<>, variable use phrase…|whole number> | t];
 		true
 	];
+	currentMacroToken ::= (this token: currentMacroName);
+	sendGetCurrentMacro ::=
+		restricted send getCurrentMacroNameAtom with «<>» : atom;
+	currentMacroDecl ::= «currentMacroToken ::= sendGetCurrentMacro»;
+	currentMacroUse ::= «↓currentMacroDecl»(currentMacroToken);
 	sendStabilityBody ::=
 		restricted send stabilityBodyAtom
 		with
 			«<
-				‘methodName’,
+				currentMacroUse,
 				argUses → list phrase
 			>»
 		: (expression phrase ⇒ any);
 	/* Construct the function. */
-	macroBody ::= «[argDecls | <sendStabilityBody>] : expression phrase ⇒ any»;
+	macroBody ::= «[argDecls | <currentMacroDecl, sendStabilityBody>]
+		: expression phrase ⇒ any»;
 	macroFunction ::= macroBody → function;
 	/* Install the macro. */
 	Macro methodName is macroFunction;

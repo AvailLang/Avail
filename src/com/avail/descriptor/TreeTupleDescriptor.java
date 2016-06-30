@@ -587,9 +587,29 @@ extends TupleDescriptor
 		}
 		final A_Tuple newSubtuple = oldSubtuple.tupleAtPuttingCanDestroy(
 			index - delta, newValueObject, canDestroy);
-		result.setSlot(SUBTUPLE_AT_, subtupleSubscript, newSubtuple);
-		check(result);
-		return result;
+		final int newLevel = newSubtuple.treeTupleLevel();
+		if (newLevel == level - 1)
+		{
+			// Most common case
+			result.setSlot(SUBTUPLE_AT_, subtupleSubscript, newSubtuple);
+			check(result);
+			return result;
+		}
+		// The replacement in the subtuple changed its height.  We'll have to
+		// use general concatenation to combine the section of the original
+		// tuple left of the subtuple, the newSubtuple, and the section to the
+		// right of the subtuple.  Don't allow the left and right extractions to
+		// be destructive, since we mustn't modify the tuple between the
+		// extractions.
+		final A_Tuple leftPart = object.copyTupleFromToCanDestroy(
+			1, delta, false);
+		final A_Tuple rightPart = object.copyTupleFromToCanDestroy(
+			offsetForChildSubscript(object, subtupleSubscript + 1) + 1,
+			object.tupleSize(),
+			false);
+		final A_Tuple leftAndMiddle =
+			leftPart.concatenateWith(newSubtuple, true);
+		return leftAndMiddle.concatenateWith(rightPart, true);
 	}
 
 	@Override

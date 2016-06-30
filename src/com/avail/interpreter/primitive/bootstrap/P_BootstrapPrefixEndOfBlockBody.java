@@ -69,9 +69,6 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 	/** The key to the tuple of scopes to pop as blocks complete parsing. */
 	final A_Atom scopeStackKey = AtomDescriptor.compilerScopeStackKey();
 
-	/** The key to the all tokens tuple in the fiber's environment. */
-	final A_Atom allTokensKey = AtomDescriptor.allTokensKey();
-
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,

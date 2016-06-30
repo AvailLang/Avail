@@ -664,8 +664,11 @@ extends A_BasicObject
 	A_Type subexpressionsTupleType ();
 
 	/**
-	 * @param object
-	 * @return
+	 * Answer whether the receiver, a type, is a supertype of the given {@link
+	 * ListNodeTypeDescriptor list phrase type}.
+	 *
+	 * @param aListNodeType The list phrase type.
+	 * @return Whether the receiver is a supertype of the given type.
 	 */
 	boolean isSupertypeOfListNodeType (A_Type aListNodeType);
 }

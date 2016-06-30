@@ -129,6 +129,7 @@ Names
 	/*   9 */ "no-such-fiber-variable code",
 	/*  69 */ "no-such-field code",
 	/*  17 */ "not-an-enumeration code",
+	/*  65 */ "not-evaluating-macro code",
 	/*  93 */ "not-open-for-read code",
 	/*  94 */ "not-open-for-write code",
 	/*  88 */ "observed-variable-written-while-untraced code",
@@ -460,6 +461,11 @@ Primitive "macro-prefix-function-index-out-of-bounds code" is
 Primitive "untimely-parse-acceptance code" is
 [
 	64
+];
+
+Primitive "not-evaluating-macro code" is
+[
+	65
 ];
 
 Primitive "macro-prefix-function-argument-must-be-a-parse-node code" is

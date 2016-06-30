@@ -1666,6 +1666,7 @@ public final class AvailRuntime
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			TupleTypeDescriptor.stringType(),
 			Types.ATOM.o());
+		specials[154] = AtomDescriptor.macroBundleKey();
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
@@ -1707,7 +1708,8 @@ public final class AvailRuntime
 			MethodDescriptor.vmVariableGetAtom(),
 			ObjectTypeDescriptor.exceptionAtom(),
 			ObjectTypeDescriptor.stackDumpAtom(),
-			PojoTypeDescriptor.selfAtom()));
+			PojoTypeDescriptor.selfAtom(),
+			AtomDescriptor.macroBundleKey()));
 
 		for (final A_Atom atom : specialAtomsList)
 		{

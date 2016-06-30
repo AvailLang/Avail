@@ -245,6 +245,7 @@ Names
 	"current fiber can reject a parse",
 	"current fiber[_]",
 	"current fiber[_]:=_",
+	"current macro name",
 	"current module",
 	"current module's exported names",
 	"current module's visible names",

@@ -56,7 +56,6 @@ import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.IO;
 import com.avail.utility.Pair;
-import java.nio.file.Files;
 
 /**
  * An Avail documentation generator.  It takes tokenized method/class comments
@@ -77,6 +76,9 @@ public class StacksGenerator
 	 */
 	Path providedDocumentPath;
 
+	/**
+	 * The directory path for writing JSON Stacks data.
+	 */
 	Path jsonPath;
 
 	/**
@@ -148,7 +150,7 @@ public class StacksGenerator
 		this.errorLog = new StacksErrorLog(logPath);
 
 
-		this.providedDocumentPath = outputPath;;
+		this.providedDocumentPath = outputPath;
 
 		this.moduleToComments =
 			new HashMap<String,StacksCommentsModule>(50);
@@ -235,14 +237,14 @@ public class StacksGenerator
 			final StacksSynchronizer synchronizer =
 				new StacksSynchronizer(fileToOutPutCount);
 
-		//JSON files
-			moduleToComments
-			.get(outermostModule.qualifiedName())
-				.writeMethodsToJSONFiles(providedDocumentPath,
-					synchronizer, runtime, linkingFileMap,
+			// JSON files
+			moduleToComments.get(outermostModule.qualifiedName())
+				.writeMethodsToJSONFiles(
+					providedDocumentPath,
+					synchronizer,
+					runtime,
+					linkingFileMap,
 					errorLog);
-
-
 			synchronizer.waitForWorkUnitsToComplete();
 		}
 
@@ -257,7 +259,6 @@ public class StacksGenerator
 		IO.close(errorLog.file());
 
 		clear();
-
 	}
 
 	/**

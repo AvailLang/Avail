@@ -213,7 +213,12 @@ extends Descriptor
 		/**
 		 * Was the fiber started to apply a semantic restriction?
 		 */
-		CAN_REJECT_PARSE (_CAN_REJECT_PARSE);
+		CAN_REJECT_PARSE (_CAN_REJECT_PARSE),
+
+		/**
+		 * Was the fiber started to evaluate a macro invocation?
+		 */
+		IS_EVALUATING_MACRO (_IS_EVALUATING_MACRO);
 
 		/** The {@linkplain BitField bit field}. */
 		final transient BitField bitField;
@@ -295,6 +300,10 @@ extends Descriptor
 		/** See {@link GeneralFlag#CAN_REJECT_PARSE}. */
 		static final BitField _CAN_REJECT_PARSE = bitField(
 			FLAGS, 47, 1);
+
+		/** See {@link GeneralFlag#CAN_REJECT_PARSE}. */
+		static final BitField _IS_EVALUATING_MACRO = bitField(
+			FLAGS, 48, 1);
 	}
 
 	/**
