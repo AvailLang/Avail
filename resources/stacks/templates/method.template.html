@@ -10,115 +10,115 @@
 		<div class="method-section-content">
 			<table class="stacks">
 				<thead>
-					<tr>
-						<th class="stacks i-col-label-narrow" scope="col">Argument Position</th>
-						<th class="stacks i-col-label-wide" scope="col">Prohibited Expression</th>
-					</tr>
+				<tr>
+					<th class="stacks i-col-label-narrow" scope="col">Argument Position</th>
+					<th class="stacks i-col-label-wide" scope="col">Prohibited Expression</th>
+				</tr>
 				</thead>
 				<tbody ng-repeat="restriction in json.grammaticalRestrictions">
-					<tr ng-repeat="expression in restriction.expressions track by $index">
-						<td th ng-if="$index==0" class="stacks i-code" rowspan="{{restriction.expressions.length}}">{{restriction.position}}</td>
-						<td class="stacks i-code" scope="col" ng-show="expression[1]"><a href="{{expression[1]}}">{{expression[0]}}</a></td>
-						<td class="stacks i-code" scope="col" ng-hide="expression[1]">{{expression[0]}}</td>
-					</tr>
+				<tr ng-repeat="expression in restriction.expressions track by $index">
+					<td th ng-if="$index==0" class="stacks i-code" rowspan="{{restriction.expressions.length}}">{{restriction.position}}</td>
+					<td class="stacks i-code" scope="col" ng-show="expression[1]"><a href="{{expression[1]}}">{{expression[0]}}</a></td>
+					<td class="stacks i-code" scope="col" ng-hide="expression[1]">{{expression[0]}}</td>
+				</tr>
 				</tbody>
 			</table>
 		</div>
 	</div><!-- end grammatical restrictions -->
 
 	<!-- start method definitions -->
-	<h4 class="method-section-header">Definitions:</h4>	
+	<h4 class="method-section-header">Definitions:</h4>
 	<div class="method-section-content" ng-repeat="definition in json.definitions">
-	    <div class="signature-heading">
+		<div class="signature-heading">
 	        <span ng-repeat="parameter in definition.parameters">
 	          {{parameter.typeInfo[0]}}{{$last ? '' : ', '}}
 	        </span>
-	    </div>
-	    <div class="module-location"><em>Source</em>: {{definition.source}}<span ng-if="definition.sticky"><em>  (Documentation only; not exported for use)</em></span></div>
-	    <div class="category-list"><em>Categories:</em> 
+		</div>
+		<div class="module-location"><em>Source</em>: {{definition.source}}<span ng-if="definition.sticky"><em>  (Documentation only; not exported for use)</em></span></div>
+		<div class="category-list"><em>Categories:</em>
 	        <span ng-repeat="category in definition.categories">
 	            {{category}}{{$last ? '' : ', '}}
 	        </span>
-	    </div>
-	    <div ng-repeat="see in definition.sees">
-	    	<em>See: </em><span ng-bind-html="see"></span>
-	    </div>
-	    <div class="signature-description"><span ng-bind-html="definition.description"></span></div>
-	    <table class="stacks">
-	        <thead>
-	            <tr>
-	                <th class="transparent" scope="col"></th>
-	                <th class="stacks i-col-label-narrow" scope="col">Position</th>
-	                <th class="stacks i-col-label-narrow" scope="col">Name</th>
-	                <th class="stacks i-col-label-narrow" scope="col">Type</th>
-	                <th class="stacks i-col-label-wide" scope="col">Description</th>
-	            </tr>
-	        </thead>
-	        <tbody>
-	            <tr>
-	                <th class="stacks i-row-label" rowspan="{{definition.parameters.length + 1}}">Parameters</th>
-	            </tr>
+		</div>
+		<div ng-repeat="see in definition.sees">
+			<em>See: </em><span ng-bind-html="see"></span>
+		</div>
+		<div class="signature-description"><span ng-bind-html="definition.description"></span></div>
+		<table class="stacks">
+			<thead>
+			<tr>
+				<th class="transparent" scope="col"></th>
+				<th class="stacks i-col-label-narrow" scope="col">Position</th>
+				<th class="stacks i-col-label-narrow" scope="col">Name</th>
+				<th class="stacks i-col-label-narrow" scope="col">Type</th>
+				<th class="stacks i-col-label-wide" scope="col">Description</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr>
+				<th class="stacks i-row-label" rowspan="{{definition.parameters.length + 1}}">Parameters</th>
+			</tr>
 
-	            <tr ng-repeat="parameter in definition.parameters">
-	                <td id="{{parameter.elementID}}" class="stacks i-code" scope="col" ng-repeat="datum in parameter.data">{{datum}}</td>
-	                <td class="stacks i-code" scope="col" ng-show="parameter.typeInfo[1]"><a href="{{parameter.typeInfo[1]}}">{{parameter.typeInfo[0]}}</a></td>
-	                <td class="stacks i-code" scope="col" ng-hide="parameter.typeInfo[1]">{{parameter.typeInfo[0]}}</td>
-	                <td class="stacks i-desc"><span ng-bind-html="parameter.description"></span></td>
-	            </tr>
-	            <tr ng-show="definition.returns.length>0">
-	                <th class="stacks i-row-label" colspan="3">Returns</th>
-	                <td class="stacks i-code" ng-show="definition.returns[2]"><a href="{{definition.returns[2]}}">{{definition.returns[0]}}</a></td>
-	                <td class="stacks i-code" ng-hide="definition.returns[2]">{{definition.returns[0]}}</td>
-	                <td class="stacks i-desc"><span ng-bind-html="definition.returns[1]"></span></td>
-	            </tr>
-	            <tr ng-repeat="raise in definition.raises">
-	                <th class="stacks i-row-label" colspan="3">Raises</th>
-	                <td class="stacks i-code" ng-show="raise.link"><a href="{{raise.link}}">{{raise.name}}</a></td>
-	                <td class="stacks i-code" ng-hide="raise.link">{{raise.name}}</td>
-	                <td class="stacks i-desc"><span ng-bind-html="raise.description"></span></td>
-	            </tr>
-	        </tbody>
-	    </table>
+			<tr ng-repeat="parameter in definition.parameters">
+				<td id="{{parameter.elementID}}" class="stacks i-code" scope="col" ng-repeat="datum in parameter.data">{{datum}}</td>
+				<td class="stacks i-code" scope="col" ng-show="parameter.typeInfo[1]"><a href="{{parameter.typeInfo[1]}}">{{parameter.typeInfo[0]}}</a></td>
+				<td class="stacks i-code" scope="col" ng-hide="parameter.typeInfo[1]">{{parameter.typeInfo[0]}}</td>
+				<td class="stacks i-desc"><span ng-bind-html="parameter.description"></span></td>
+			</tr>
+			<tr ng-show="definition.returns.length>0">
+				<th class="stacks i-row-label" colspan="3">Returns</th>
+				<td class="stacks i-code" ng-show="definition.returns[2]"><a href="{{definition.returns[2]}}">{{definition.returns[0]}}</a></td>
+				<td class="stacks i-code" ng-hide="definition.returns[2]">{{definition.returns[0]}}</td>
+				<td class="stacks i-desc"><span ng-bind-html="definition.returns[1]"></span></td>
+			</tr>
+			<tr ng-repeat="raise in definition.raises">
+				<th class="stacks i-row-label" colspan="3">Raises</th>
+				<td class="stacks i-code" ng-show="raise.link"><a href="{{raise.link}}">{{raise.name}}</a></td>
+				<td class="stacks i-code" ng-hide="raise.link">{{raise.name}}</td>
+				<td class="stacks i-desc"><span ng-bind-html="raise.description"></span></td>
+			</tr>
+			</tbody>
+		</table>
 	</div><!-- end method definitions -->
 
 	<div ng-if="semanticRestriction">
 		<h4 class="method-section-header">Semantic restrictions:</h4>
 		<div class="method-section-content" ng-repeat="restriction in json.semanticRestrictions">
-		    <div class="signature-heading">
+			<div class="signature-heading">
 		        <span ng-repeat="parameter in restriction.parameters">
 		          {{parameter.typeInfo[0]}}{{$last ? '' : ', '}}
 		        </span>
-		    </div>
-		    <div class="module-location"><em>Source</em>: {{restriction.source}}</div>	
-		    <div ng-repeat="see in definition.sees">
-		    	<em>See: </em><span ng-bind-html="see"></span>
-		    </div>
-		    <div class="signature-description"><span ng-bind-html="restriction.description"></span></div>
-		    <table class="stacks">
-		        <thead>
-		            <tr>
-		                <th class="transparent" scope="col"></th>
-		                <th class="stacks i-col-label-narrow" scope="col">Type</th>
-		                <th class="stacks i-col-label-wide" scope="col">Description</th>
-		            </tr>
-		        </thead>
-		        <tbody>
-		            <tr>
-		                <th class="stacks i-row-label" rowspan="{{restriction.parameters.length + 1}}">Parameter Types</th>
-		            </tr>
-		            <tr ng-repeat="parameter in restriction.parameters">
-		                <td class="stacks i-code" scope="col" ng-show="parameter.typeInfo[1]"><a href="{{parameter.typeInfo[1]}}">{{parameter.typeInfo[0]}}</a></td>
-		                <td class="stacks i-code" scope="col" ng-hide="parameter.typeInfo[1]">{{parameter.typeInfo[0]}}</td>
-		                <td class="stacks i-desc"><span ng-bind-html="parameter.description"></span></td>
-		            </tr>
-		            <tr ng-show="restriction.returns.length>0">
-		                <th class="stacks i-row-label" rowspan="{{restriction.parameters.length + 1}}">Returns</th>
-		                <td class="stacks i-code" ng-show="restriction.returns[2]"><a href="{{restriction.returns[2]}}">{{restriction.returns[0]}}</a></td>
-		                <td class="stacks i-code" ng-hide="restriction.returns[2]">{{restriction.returns[0]}}</td>
-		                <td class="stacks i-desc"><span ng-bind-html="restriction.returns[1]"></span></td>
-		            </tr>
-		        </tbody>
-		    </table>
+			</div>
+			<div class="module-location"><em>Source</em>: {{restriction.source}}</div>
+			<div ng-repeat="see in definition.sees">
+				<em>See: </em><span ng-bind-html="see"></span>
+			</div>
+			<div class="signature-description"><span ng-bind-html="restriction.description"></span></div>
+			<table class="stacks">
+				<thead>
+				<tr>
+					<th class="transparent" scope="col"></th>
+					<th class="stacks i-col-label-narrow" scope="col">Type</th>
+					<th class="stacks i-col-label-wide" scope="col">Description</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<th class="stacks i-row-label" rowspan="{{restriction.parameters.length + 1}}">Parameter Types</th>
+				</tr>
+				<tr ng-repeat="parameter in restriction.parameters">
+					<td class="stacks i-code" scope="col" ng-show="parameter.typeInfo[1]"><a href="{{parameter.typeInfo[1]}}">{{parameter.typeInfo[0]}}</a></td>
+					<td class="stacks i-code" scope="col" ng-hide="parameter.typeInfo[1]">{{parameter.typeInfo[0]}}</td>
+					<td class="stacks i-desc"><span ng-bind-html="parameter.description"></span></td>
+				</tr>
+				<tr ng-show="restriction.returns.length>0">
+					<th class="stacks i-row-label" rowspan="{{restriction.parameters.length + 1}}">Returns</th>
+					<td class="stacks i-code" ng-show="restriction.returns[2]"><a href="{{restriction.returns[2]}}">{{restriction.returns[0]}}</a></td>
+					<td class="stacks i-code" ng-hide="restriction.returns[2]">{{restriction.returns[0]}}</td>
+					<td class="stacks i-desc"><span ng-bind-html="restriction.returns[1]"></span></td>
+				</tr>
+				</tbody>
+			</table>
 		</div>
 	</div><!-- end semantic restrictions -->
 </div><!-- stop methods and macros -->
@@ -130,25 +130,43 @@
         <span ng-repeat="category in json.categories">
             {{category}}{{$last ? '' : ', '}}
         </span>
-    </div>
-    <div ng-repeat="see in json.sees">
-    	<!--em>See: </em><a href="{{see}}">{{see}}</a-->
-    	<em>See: </em><span ng-bind-html="see"></span>
-    </div>
+	</div>
+	<div ng-repeat="see in json.sees">
+		<!--em>See: </em><a href="{{see}}">{{see}}</a-->
+		<em>See: </em><span ng-bind-html="see"></span>
+	</div>
 	<div class="category-list" ng-show="json.aliases.length>0"><em>Aliases: </em> 
 	    <span ng-repeat="alias in json.aliases">
 	        {{alias}}{{$last ? '' : ', '}}
 	    </span>
-	</div>	
-    <div class="method-section-content"> 
+	</div>
+	<div class="method-section-content">
 		<div class="signature-heading" ng-show="json.supertypes.length>0">
 			<span>Supertypes: </span>
 	        <span ng-repeat="type in json.supertypes">
 	        	<a href="{{type.link}}">{{type.type}}{{$last ? '' : ', '}}</a>
 	        </span>
-	    </div>
-	    <div class="signature-description"><span ng-bind-html="json.description"></span></div>
-	</div>		
+		</div>
+		<div class="signature-description"><span ng-bind-html="json.description"></span></div>
+		<table class="stacks">
+			<thead>
+			<tr>
+				<th class="stacks i-col-label-narrow" scope="col">Name</th>
+				<th class="stacks i-col-label-narrow" scope="col">Type</th>
+				<th class="stacks i-col-label-wide" scope="col">Description</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr ng-repeat="field in json.fields">
+				<td class="stacks i-code" scope="col">{{field.name}}</td>
+				<td class="stacks i-code" scope="col" ng-hide="field.typeInfo[1]">{{field.typeInfo[0]}}</td>
+				<td class="stacks i-code" scope="col" ng-show="field.typeInfo[1]"><a href="{{field.typeInfo[1]}}">{{field.typeInfo[0]}}</a></td>
+
+				<td class="stacks i-desc"><span ng-bind-html="field.description"></span></td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
 </div><!-- end class -->
 <div ng-if="type=='ambiguous'"><!-- start ambiguous -->
 	<!--h2 class="method-heading"></h2-->

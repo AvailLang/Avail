@@ -74,8 +74,7 @@ Public class "localization|l10n bundle" extends object
  * defined {@type "localization|l10n bundle" localization bundle} subtype.
  *
  * @macro "«Public»?Localization|localization bundle_§has key|keys«_§«:_†»«(_)»?‡,»;"
- * @category "Localization"
- *@param "isPublic" "literal phrase ⇒ boolean"
+ * @param "isPublic" "literal phrase ⇒ boolean"
  *        If lexically supplied, then the {@type "localization|l10n bundle"
  *        localization bundle} and its fields must all be exported via the
  *        {@type "current module"}'s "Names" section.
@@ -94,6 +93,7 @@ Public class "localization|l10n bundle" extends object
  *        localization bundle}. If a value type is not provided, then the type
  *        {@type "string"} is inferred.
  * @returns "sequence phrase"
+ * @category "Localization"
  */
 Public macro
 	"«Public»?Localization|localization bundle_§has key|keys«_§«:_†»«(_)»?‡,»;"

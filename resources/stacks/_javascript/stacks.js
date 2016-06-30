@@ -17,7 +17,8 @@ stacksApp.config(['$stateProvider', '$urlRouterProvider', function ($stateProvid
     })
     .state('stacks.main', {
     	url: 'main/',
-    	templateUrl: 'landing-detail.html'
+    	templateUrl: 'templates/categories.html',
+        controller: 'StacksCtrl'
     });
 
 }]);
@@ -62,7 +63,7 @@ stacksApp.controller('StacksCtrl',['$scope','$http','$window', function($scope,$
 		$scope.methodLinkage = response.data;
 		//console.log($scope.methodLinkage);
 	});
-
+    
     //JSON file containing all the category comment descriptions parsed
     //from category comments. - TODO build UI to populate this information dynamically
     var categoriesDescriptionsURL = "/json/categoriesDescriptions.json"
@@ -76,7 +77,7 @@ stacksApp.controller('StacksCtrl',['$scope','$http','$window', function($scope,$
         //REMOVE ME!!
         window.categoryDescriptions = response.data.categories;
 	});
-
+    
     //JSON file containing all the module comment descriptions parsed
     //from category comments. - TODO build UI to populate this information dynamically
     var moduleDescriptionsURL = "/json/moduleDescriptions.json"
