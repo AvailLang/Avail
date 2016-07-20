@@ -102,6 +102,9 @@ Names
 	"timestamp_/_/_«_:_:_«._»»««+|-»!_:_»",
 	"timestamp__,_«_:_:_«._»»««+|-»!_:_»",
 
+	/* Timestamp conversion (from milliseconds since the Unix Epoch). */
+	"_→timestamp",
+
 	/* Timestamp deconstruction. */
 	"_exploded",
 	"_'s⁇components",
@@ -155,6 +158,22 @@ Public explicit class "timestamp" extends object
 Public method "now" is
 [
 	a timestamp with Epoch milliseconds ::= milliseconds since the Epoch
+];
+
+/**
+ * Answer a {@type "timestamp"} for the given milliseconds since the Unix Epoch.
+ *
+ * @method "_→timestamp"
+ * @param "millis" "integer"
+ *        The number of milliseconds since the Unix Epoch. May be negative, to
+ *        represent earlier times.
+ * @returns "timestamp"
+ */
+Public method "_→timestamp" is
+[
+	millis : integer
+|
+	a timestamp with Epoch milliseconds ::= millis
 ];
 
 /**
