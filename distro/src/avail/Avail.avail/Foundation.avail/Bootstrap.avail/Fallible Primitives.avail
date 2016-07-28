@@ -99,6 +99,7 @@ Uses
 		"_→function",
 		"_→map",
 		"_→tuple",
+		"_⇒_",
 		"_∈_",
 		"_∈current fiber",
 		"`$_@pc=_stack=_[_]caller=_",
@@ -2681,6 +2682,30 @@ Primitive "first-of-seq`«_`»" is
 ] : first of sequence phrase;
 
 /**
+ * Construct and answer a phrase type with the specified semantic type.
+ *
+ * @category "Primitives" "Types" "Phrases" "Constructors"
+ * @method "_⇒_"
+ * @param "aPhrase" "phrase meta"
+ *        A phrase type.
+ * @param "semanticType" "type"
+ *        The semantic type of values producible by phrases that are instances
+ *        of the answer.
+ * @returns "(phrase⇒⊤)'s type"
+ *    The requested phrase type.
+ * @raises "bad-yield-type exception"
+ */
+Primitive "_⇒_" is
+[
+	aPhrase : phrase meta,
+	semanticType : type
+|
+	Primitive CreateParseNodeType (failureCode : {
+		bad-yield-type code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : phrase meta;
+
+/**
  * Construct and answer a value reference expression.
  *
  * @category "Primitives" "Phrases" "Constructors"
@@ -2900,13 +2925,13 @@ Primitive "`«supercast(_::_)`»" is
  * @method "current macro name"
  * @returns "atom"
  *    The atom of the send node undergoing macro expansion.
- * @raises "not-evaluating-macro exception"
+ * @raises "not-evaluating-macro"
  *    If a macro is not being evaluated by the current fiber.
  */
 Primitive "current macro name" is
 [
 	Primitive CurrentMacroName (failureCode : {
-		not-evaluating-macro code}ᵀ);
+		not-evaluating-macro}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : atom;
 

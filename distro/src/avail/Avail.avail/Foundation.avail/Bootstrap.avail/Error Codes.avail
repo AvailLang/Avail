@@ -57,6 +57,7 @@ Names
 	/*  85 */ "ambiguous-method-definition code",
 	/*  35 */ "ambiguous-name code",
 	/*  74 */ "atom-already-exists code",
+	/*  66 */ "bad-yield-type code",
 	/* 103 */ "block-compilation-failed code",
 	/* 100 */ "block-contains-invalid-statements code",
 	/* 101 */ "block-is-invalid code",
@@ -129,7 +130,7 @@ Names
 	/*   9 */ "no-such-fiber-variable code",
 	/*  69 */ "no-such-field code",
 	/*  17 */ "not-an-enumeration code",
-	/*  65 */ "not-evaluating-macro code",
+	/*  65 */ "not-evaluating-macro",
 	/*  93 */ "not-open-for-read code",
 	/*  94 */ "not-open-for-write code",
 	/*  88 */ "observed-variable-written-while-untraced code",
@@ -463,9 +464,14 @@ Primitive "untimely-parse-acceptance code" is
 	64
 ];
 
-Primitive "not-evaluating-macro code" is
+Primitive "not-evaluating-macro" is
 [
 	65
+];
+
+Primitive "bad-yield-type code" is
+[
+	66
 ];
 
 Primitive "macro-prefix-function-argument-must-be-a-parse-node code" is

@@ -116,7 +116,7 @@ extends TypeDescriptor
 		BLOCK_NODE("block phrase type", EXPRESSION_NODE)
 		{
 			@Override
-			A_Type mostGeneralYieldType ()
+			public A_Type mostGeneralYieldType ()
 			{
 				return FunctionTypeDescriptor.mostGeneralType();
 			}
@@ -126,7 +126,7 @@ extends TypeDescriptor
 		LITERAL_NODE("literal node type", EXPRESSION_NODE)
 		{
 			@Override
-			A_Type mostGeneralYieldType ()
+			public A_Type mostGeneralYieldType ()
 			{
 				return Types.ANY.o();
 			}
@@ -138,7 +138,7 @@ extends TypeDescriptor
 		REFERENCE_NODE("variable reference phrase type", EXPRESSION_NODE)
 		{
 			@Override
-			A_Type mostGeneralYieldType ()
+			public A_Type mostGeneralYieldType ()
 			{
 				return VariableTypeDescriptor.mostGeneralType();
 			}
@@ -150,7 +150,7 @@ extends TypeDescriptor
 		SUPER_CAST_NODE("super cast phrase", EXPRESSION_NODE)
 		{
 			@Override
-			A_Type mostGeneralYieldType ()
+			public A_Type mostGeneralYieldType ()
 			{
 				return Types.ANY.o();
 			}
@@ -163,7 +163,7 @@ extends TypeDescriptor
 		LIST_NODE("list phrase type", EXPRESSION_NODE)
 		{
 			@Override
-			A_Type mostGeneralYieldType ()
+			public A_Type mostGeneralYieldType ()
 			{
 				return TupleTypeDescriptor.mostGeneralType();
 			}
@@ -197,7 +197,7 @@ extends TypeDescriptor
 		PERMUTED_LIST_NODE("permuted list phrase type", LIST_NODE)
 		{
 			@Override
-			A_Type mostGeneralYieldType ()
+			public A_Type mostGeneralYieldType ()
 			{
 				return TupleTypeDescriptor.mostGeneralType();
 			}
@@ -232,7 +232,7 @@ extends TypeDescriptor
 		VARIABLE_USE_NODE("variable use phrase type", EXPRESSION_NODE)
 		{
 			@Override
-			A_Type mostGeneralYieldType ()
+			public A_Type mostGeneralYieldType ()
 			{
 				return Types.ANY.o();
 			}
@@ -308,7 +308,7 @@ extends TypeDescriptor
 		 *
 		 * @return The most general inner type for this kind of parse node.
 		 */
-		A_Type mostGeneralYieldType ()
+		public A_Type mostGeneralYieldType ()
 		{
 			return Types.TOP.o();
 		}

@@ -162,7 +162,6 @@ Uses
 		"_→set",
 		"_→statement phrase",
 		"_→tuple",
-		"_⇒_",
 		"_∈_",
 		"_∩_",
 		"_∪_",
@@ -2631,27 +2630,6 @@ Primitive "`«module variable_(_)`»" is
 |
 	Primitive CreateModuleVariableDeclaration;
 ] : module variable phrase;
-
-/**
- * Construct and answer a phrase type with the specified semantic type.
- *
- * @category "Primitives" "Types" "Phrases" "Constructors"
- * @method "_⇒_"
- * @param "aPhrase" "phrase meta"
- *        A phrase type.
- * @param "semanticType" "type"
- *        The semantic type of values producible by phrases that are instances
- *        of the answer.
- * @returns "(phrase⇒⊤)'s type"
- *    The requested phrase type.
- */
-Primitive "_⇒_" is
-[
-	aPhrase : phrase meta,
-	semanticType : type
-|
-	Primitive CreateParseNodeType;
-] : phrase meta;
 
 /**
  * Construct and answer a {@type "permuted list phrase"} given the specified
