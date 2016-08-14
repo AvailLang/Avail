@@ -278,7 +278,7 @@ extends StringDescriptor
 		// Answer the element at the given index in the tuple object. It's a
 		// two-byte character.
 		assert index >= 1 && index <= object.tupleSize();
-		return CharacterDescriptor.fromCodePoint(
+		return (AvailObject)CharacterDescriptor.fromCodePoint(
 			object.shortSlot(RAW_LONGS_, index));
 	}
 

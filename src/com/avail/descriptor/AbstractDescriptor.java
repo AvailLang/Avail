@@ -659,7 +659,7 @@ public abstract class AbstractDescriptor
 			intEnumClass = null;
 		}
 		final IntegerSlotsEnum[] intSlots = intEnumClass != null
-			? (IntegerSlotsEnum[])intEnumClass.getEnumConstants()
+			? intEnumClass.getEnumConstants()
 			: new IntegerSlotsEnum[0];
 
 		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
@@ -706,7 +706,7 @@ public abstract class AbstractDescriptor
 			objectEnumClass = null;
 		}
 		final ObjectSlotsEnum[] objectSlots = objectEnumClass != null
-			? (ObjectSlotsEnum[])objectEnumClass.getEnumConstants()
+			? objectEnumClass.getEnumConstants()
 			: new ObjectSlotsEnum[0];
 
 		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
@@ -2282,15 +2282,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param message
-	 * @return
-	 */
-	abstract boolean o_RemoveBundleNamed (
-		AvailObject object,
-		A_Atom message);
-
-	/**
-	 * @param object
 	 * @param obsoleteRestriction
 	 */
 	abstract void o_RemoveGrammaticalRestriction (
@@ -2898,7 +2889,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Map o_LazyComplete (AvailObject object);
+	abstract A_Set o_LazyComplete (AvailObject object);
 
 	/**
 	 * @param object
@@ -4374,12 +4365,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Map o_AllBundles (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract boolean o_IsSetBin (AvailObject object);
 
 	/**
@@ -5266,13 +5251,6 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final A_Atom methodName,
 		final A_Tuple argumentTypes);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract int o_AllocateFromCounter (
-		final AvailObject object);
 
 	/**
 	 * @param object
@@ -6164,26 +6142,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param prefixFunctions
-	 */
-	abstract void o_PrefixFunctions (
-		AvailObject object,
-		A_Tuple prefixFunctions);
-
-	/**
-	 * @param object
-	 * @param method
-	 * @param index
-	 * @param prefixFunction
-	 */
-	abstract void o_ModuleAddPrefixFunction (
-		AvailObject object,
-		A_Method method,
-		int index,
-		A_Function prefixFunction);
-
-	/**
-	 * @param object
 	 * @param argumentPhraseTuple
 	 * @param errorCode
 	 * @return
@@ -6287,12 +6245,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
-	 */
-	abstract A_Tuple o_TypesToCheck (AvailObject object);
-
-	/**
-	 * @param object
 	 * @param pc
 	 * @return
 	 */
@@ -6348,4 +6300,24 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract long o_UniqueId (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_BasicObject o_LazyTypeFilterTreePojo (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param plan
+	 */
+	abstract void o_AddPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Type o_ParsingSignature (final AvailObject object);
 }

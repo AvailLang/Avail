@@ -180,9 +180,8 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			TupleDescriptor.from(
-				E_LOADING_IS_OVER.numericCode(),
-				E_INCONSISTENT_PREFIX_FUNCTION.numericCode()
-			).asSet());
+			SetDescriptor.from(
+				E_LOADING_IS_OVER,
+				E_INCONSISTENT_PREFIX_FUNCTION));
 	}
 }

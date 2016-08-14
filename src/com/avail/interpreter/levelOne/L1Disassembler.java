@@ -148,7 +148,6 @@ public class L1Disassembler
 	 * @param indent
 	 *        The indentation level.
 	 */
-	@SuppressWarnings("unused")
 	public static void disassemble (
 		final A_RawFunction code,
 		final StringBuilder builder,

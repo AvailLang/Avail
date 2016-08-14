@@ -288,8 +288,8 @@ public enum ParsingOperation
 	 *
 	 * <p>This instruction is detected specially by the {@linkplain
 	 * MessageBundleTreeDescriptor message bundle tree}'s {@linkplain
-	 * A_BundleTree#expand(A_Module)} operation.  Its successors are separated
-	 * into distinct message bundle trees, one per message bundle.</p>
+	 * A_BundleTree#expand(A_Module, List)} operation.  Its successors are
+	 * separated into distinct message bundle trees, one per message bundle.</p>
 	 */
 	PREPARE_TO_RUN_PREFIX_FUNCTION(7)
 	{
@@ -546,7 +546,7 @@ public enum ParsingOperation
 
 	/**
 	 * Assume that the instruction encodes an operand that represents the index
-	 * of an argument to be checked (for grammatical permissiveness): answer the
+	 * of an argument to be checked (for grammatical restrictions): answer the
 	 * operand.
 	 *
 	 * @param instruction A coded instruction.
@@ -572,7 +572,8 @@ public enum ParsingOperation
 
 	/**
 	 * Extract the index of the permutation for a {@link #PERMUTE_LIST}
-	 * parsing instruction.
+	 * parsing instruction.  This indexes the static {@link
+	 * MessageSplitter#permutationAtIndex(int)}.
 	 *
 	 * @param instruction A coded instruction.
 	 * @return The index of the permutation.
@@ -583,8 +584,12 @@ public enum ParsingOperation
 	}
 
 	/**
-	 * @param instruction
-	 * @return
+	 * Extract the index of the type check argument for a {@link
+	 * #TYPE_CHECK_ARGUMENT} parsing instruction.  This indexes the static
+	 * {@link MessageSplitter#typeToCheck(int)}.
+	 *
+	 * @param instruction A coded instruction
+	 * @return The index of the type to be checked against.
 	 */
 	public int typeCheckArgumentIndex (final int instruction)
 	{

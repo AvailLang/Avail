@@ -123,8 +123,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_CANNOT_DIVIDE_BY_ZERO.numericCode(),
-				E_CANNOT_DIVIDE_INFINITIES.numericCode())));
+			SetDescriptor.from(
+				E_CANNOT_DIVIDE_BY_ZERO,
+				E_CANNOT_DIVIDE_INFINITIES));
 	}
 }

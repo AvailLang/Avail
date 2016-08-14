@@ -41,17 +41,26 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import com.avail.annotations.*;
 import com.avail.compiler.AvailCompiler.ParserState;
+import com.avail.compiler.InstructionGenerator.Label;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.*;
 import com.avail.utility.Generator;
+import com.avail.utility.Pair;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
  * of {@linkplain ParsingOperation instructions} that can be used directly for
  * parsing.
+ *
+ * <p>Message splitting occurs in two phases.  In the first phase, the
+ message is tokenized and parsed into an abstract {@link Expression}
+ * tree.  In the second phase, a {@linkplain TupleTypeDescriptor tuple type} of
+ * {@link com.avail.descriptor.ParseNodeTypeDescriptor phrase types} is
+ * supplied, and produces a tuple of integer-encoded {@link ParsingOperation}s.
+ * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -62,30 +71,28 @@ public class MessageSplitter
 	 * The {@linkplain A_Set set} of all {@linkplain AvailErrorCode errors} that
 	 * can happen during {@linkplain MessageSplitter message splitting}.
 	 */
-	public static final A_Set possibleErrors = SetDescriptor.fromCollection(
-		Arrays.asList(
-			E_INCORRECT_ARGUMENT_TYPE.numericCode(),
-			E_INCORRECT_TYPE_FOR_GROUP.numericCode(),
-			E_INCORRECT_TYPE_FOR_COMPLEX_GROUP.numericCode(),
-			E_INCORRECT_TYPE_FOR_COUNTING_GROUP.numericCode(),
-			E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP.numericCode(),
-			E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE.numericCode(),
-			E_INCORRECT_USE_OF_DOUBLE_DAGGER.numericCode(),
-			E_UNBALANCED_GUILLEMETS.numericCode(),
-			E_METHOD_NAME_IS_NOT_CANONICAL.numericCode(),
-			E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS.numericCode(),
-			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS.numericCode(),
-			E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS.numericCode(),
-			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP.numericCode(),
-			E_TILDE_MUST_NOT_FOLLOW_ARGUMENT.numericCode(),
-			E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS.numericCode(),
-			E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP.numericCode(),
-			E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP
-				.numericCode(),
-			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION.numericCode(),
-			E_EXPECTED_OPERATOR_AFTER_BACKQUOTE.numericCode(),
-			E_UP_ARROW_MUST_FOLLOW_ARGUMENT.numericCode(),
-			E_INCONSISTENT_ARGUMENT_REORDERING.numericCode())).makeShared();
+	public static final A_Set possibleErrors = SetDescriptor.from(
+		E_INCORRECT_ARGUMENT_TYPE,
+		E_INCORRECT_TYPE_FOR_GROUP,
+		E_INCORRECT_TYPE_FOR_COMPLEX_GROUP,
+		E_INCORRECT_TYPE_FOR_COUNTING_GROUP,
+		E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP,
+		E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE,
+		E_INCORRECT_USE_OF_DOUBLE_DAGGER,
+		E_UNBALANCED_GUILLEMETS,
+		E_METHOD_NAME_IS_NOT_CANONICAL,
+		E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
+		E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
+		E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
+		E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
+		E_TILDE_MUST_NOT_FOLLOW_ARGUMENT,
+		E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
+		E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
+		E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP,
+		E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
+		E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
+		E_UP_ARROW_MUST_FOLLOW_ARGUMENT,
+		E_INCONSISTENT_ARGUMENT_REORDERING).makeShared();
 
 	/** A String containing all 51 circled numbers. */
 	static final String circledNumbersString =
@@ -182,7 +189,7 @@ public class MessageSplitter
 	 * ellipsis indicates only a <em>literal</em> token will be accepted.</li>
 	 * <li>The N<sup>th</sup> {@linkplain StringDescriptor#sectionSign() section
 	 * sign} (§) in a message name indicates where a macro's N<sup>th</sup>
-	 * {@linkplain A_Method#prefixFunctions() prefix function} should be
+	 * {@linkplain A_Definition#prefixFunctions() prefix function} should be
 	 * invoked with the current parse stack up to that point.</li>
 	 * <li>A {@linkplain StringDescriptor#backQuote() backquote} (`) can
 	 * precede any operator character, such as guillemets or double dagger, to
@@ -200,7 +207,7 @@ public class MessageSplitter
 	final List<Integer> messagePartPositions = new ArrayList<>(10);
 
 	/** The current one-based parsing position in the list of tokens. */
-	@InnerAccess int messagePartPosition;
+	private int messagePartPosition;
 
 	/**
 	 * A record of where each "underscore" occurred in the list of {@link
@@ -212,14 +219,6 @@ public class MessageSplitter
 	 * The number of {@link SectionCheckpoint}s encountered so far.
 	 */
 	@InnerAccess int numberOfSectionCheckpoints;
-
-	/**
-	 * A list of integers representing parsing instructions. These instructions
-	 * can parse a specific keyword, recursively parse an argument, branch for
-	 * backtracking, and manipulate a stack of parse nodes.
-	 */
-	private final List<Integer> instructions =
-		new ArrayList<>(10);
 
 	/** The top-most {@linkplain Sequence sequence}. */
 	final Sequence rootSequence;
@@ -236,6 +235,20 @@ public class MessageSplitter
 	 */
 	public static AtomicReference<A_Tuple> permutations =
 		new AtomicReference<A_Tuple>(TupleDescriptor.empty());
+
+	/**
+	 * A statically-scoped index of types for which {@link
+	 * ParsingOperation#TYPE_CHECK_ARGUMENT} instructions have been emitted.
+	 *
+	 * <p>It's implemented as an {@link AtomicReference} containing both the map
+	 * from type to index, and the tuple from index to type.  That allows the
+	 * structure to be augmented in a wait-free way.</p>
+	 */
+	public static AtomicReference<Pair<A_Map, A_Tuple>> typesToCheck =
+		new AtomicReference<Pair<A_Map,A_Tuple>>(
+			new Pair<A_Map, A_Tuple>(
+				MapDescriptor.empty(),
+				TupleDescriptor.empty()));
 
 	/**
 	 * An {@code Expression} represents a structural view of part of the
@@ -406,29 +419,18 @@ public class MessageSplitter
 		/**
 		 * Write instructions for parsing me to the given list.
 		 *
-		 * @param list
-		 *        The list of integers {@linkplain MessageSplitter encoding}
-		 *        {@link ParsingOperation parsing instructions}.
-		 * @param caseInsensitive
-		 *        Should keywords be matched case insensitively?
-		 * @param partialListsCount
-		 *        The number of lists that are partially constructed in the
-		 *        enclosing expressions.  In order to assemble arguments to pass
-		 *        to a prefix function at a {@link SectionCheckpoint section
-		 *        checkpoint}, this is the number of times that we have to pop
-		 *        a value off the stack, only to concatenate it to the
-		 *        <em>list</em> that's under it on the stack (replacing the
-		 *        old, unaltered list with the new list).  The new stack is
-		 *        converted into a {@linkplain ListNodeDescriptor list node} and
-		 *        pushed on the old stack in preparation for being passed to the
-		 *        prefix function associated with that section checkpoint.  If
-		 *        we're in a region that cannot have a section checkpoint, then
-		 *        pass {@link Integer#MIN_VALUE}.
+		 * @param generator
+		 *        The {@link InstructionGenerator} that accumulates the parsing
+		 *        instructions.
+		 * @param tupleType
+		 *        The type of the arguments at and inside this parse point.
+		 *        Note that this type is used to unrolling leading iterations of
+		 *        loops up to the end of the variation (typically just past the
+		 *        tuple type's {@link A_Type#typeTuple()}).
 		 */
 		abstract void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount);
+			final InstructionGenerator generator,
+			final A_Type tupleType);
 
 		@Override
 		public String toString ()
@@ -554,14 +556,14 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
 			// Parse the specific keyword.
-			final ParsingOperation op =
-				caseInsensitive ? PARSE_PART_CASE_INSENSITIVELY : PARSE_PART;
-			list.add(op.encoding(tokenIndex));
+			final ParsingOperation op = generator.caseInsensitive
+				? PARSE_PART_CASE_INSENSITIVELY
+				: PARSE_PART;
+			generator.emit(this, op, tokenIndex);
 		}
 
 		@Override
@@ -644,6 +646,11 @@ public class MessageSplitter
 		final int absoluteUnderscoreIndex;
 
 		/**
+		 * The one-based
+		 */
+
+
+		/**
 		 * Construct an argument.
 		 *
 		 * @param startTokenIndex The one-based index of the underscore token.
@@ -691,12 +698,12 @@ public class MessageSplitter
 		 */
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
-			list.add(PARSE_ARGUMENT.encoding());
-			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
+			generator.emit(this, PARSE_ARGUMENT);
+			generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
 		}
 
 		@Override
@@ -758,13 +765,13 @@ public class MessageSplitter
 		 */
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
-			list.add(PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding());
-			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
-			list.add(CONVERT.encoding(EVALUATE_EXPRESSION.number()));
+			generator.emit(this, PARSE_ARGUMENT_IN_MODULE_SCOPE);
+			generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
+			generator.emit(this, CONVERT, EVALUATE_EXPRESSION.number());
 		}
 
 		@Override
@@ -806,12 +813,12 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
-			list.add(PARSE_VARIABLE_REFERENCE.encoding());
-			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
+			generator.emit(this, PARSE_VARIABLE_REFERENCE);
+			generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
 		}
 
 		@Override
@@ -866,12 +873,12 @@ public class MessageSplitter
 		 */
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
-			list.add(PARSE_TOP_VALUED_ARGUMENT.encoding());
-			list.add(CHECK_ARGUMENT.encoding(absoluteUnderscoreIndex));
+			generator.emit(this, PARSE_TOP_VALUED_ARGUMENT);
+			generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
 		}
 
 		@Override
@@ -912,11 +919,11 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
-			list.add(PARSE_ANY_RAW_TOKEN.encoding());
+			generator.emit(this, PARSE_ANY_RAW_TOKEN);
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
 		}
 
 		@Override
@@ -957,11 +964,11 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
-			list.add(PARSE_RAW_KEYWORD_TOKEN.encoding());
+			generator.emit(this, PARSE_RAW_KEYWORD_TOKEN);
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
 		}
 	}
 
@@ -990,11 +997,11 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
-			list.add(PARSE_RAW_STRING_LITERAL_TOKEN.encoding());
+			generator.emit(this, PARSE_RAW_STRING_LITERAL_TOKEN);
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
 		}
 	}
 
@@ -1024,11 +1031,11 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
-			list.add(PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding());
+			generator.emit(this, PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN);
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
 		}
 	}
 
@@ -1200,50 +1207,49 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
 			/*
 			 * Generate code to parse the sequence.  After parsing, the stack
 			 * contains a new list of parsed expressions for all arguments,
 			 * ellipses, and subgroups that were encountered.
 			 */
-			list.add(NEW_LIST.encoding());
-			emitWithoutInitialNewListPushOn (
-				list, caseInsensitive, partialListsCount);
+			generator.emit(this, NEW_LIST);
+			emitWithoutInitialNewListPushOn (generator, tupleType);
 		}
 
 		/**
 		 * Emit parsing instructions that assume that there has already been an
 		 * empty list pushed, onto which to accumulate arguments.
 		 *
-		 * @param list
-		 *        The list of instructions to augment.
-		 * @param caseInsensitive
-		 *        Whether to parse case-insensitively.
-		 * @param partialListsCount
-		 *        The number of partial lists already pushed.
+		 * @param generator
+		 *        The instruction generator with which to emit.
+		 * @param tupleType
+		 *        The {@link A_Type tuple type} for a definition's signature.
 		 */
 		@InnerAccess void emitWithoutInitialNewListPushOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
 			/* After parsing, the list that's already on the stack will contain
 			 * all arguments, ellipses, and subgroups that were encountered.
 			 */
+			int index = 0;
 			for (final Expression expression : expressions)
 			{
-				expression.emitOn(
-					list,
-					caseInsensitive,
-					partialListsCount);
-				if (expression.isArgumentOrGroup())
+				final boolean consumesArg = expression.isArgumentOrGroup();
+				final A_Type entryType = consumesArg
+					? tupleType.typeAtIndex(++index)
+					: BottomTypeDescriptor.bottom();
+				expression.emitOn(generator, entryType);
+				if (consumesArg)
 				{
-					list.add(APPEND_ARGUMENT.encoding());
+					generator.emit(this, APPEND_ARGUMENT);
 				}
 			}
+			assert tupleType.sizeRange().lowerBound().equalsInt(index);
+			assert tupleType.sizeRange().upperBound().equalsInt(index);
 			if (argumentsAreReordered == Boolean.TRUE)
 			{
 				final A_Tuple permutationTuple =
@@ -1252,7 +1258,7 @@ public class MessageSplitter
 					indexForPermutation(permutationTuple);
 				// This sequence was already collected into a list node as the
 				// arguments/groups were parsed.  Permute the list.
-				list.add(PERMUTE_LIST.encoding(permutationIndex));
+				generator.emit(this, PERMUTE_LIST, permutationIndex);
 			}
 		}
 
@@ -1451,29 +1457,9 @@ public class MessageSplitter
 		final Sequence afterDagger;
 
 		/**
-		 * The minimum number of occurrences accepted for this group.
-		 */
-		int minimumCardinality = 0;
-
-		/**
 		 * The maximum number of occurrences accepted for this group.
 		 */
 		int maximumCardinality = Integer.MAX_VALUE;
-
-		/**
-		 * The one-based position in the instruction stream to branch to in
-		 * order to parse zero occurrences of this group. Set during the first
-		 * pass of code generation.
-		 */
-		int loopSkip = -1;
-
-		/**
-		 * The one-based position in the instruction stream to branch to from
-		 * the dagger's position within the loop for this group. Depending on
-		 * the number of arguments and subgroups specified within this group,
-		 * this may or may not equal {@link #loopSkip}.
-		 */
-		int loopExit = -1;
 
 		/**
 		 * Construct a new {@link Group} having a double-dagger (‡).
@@ -1555,17 +1541,6 @@ public class MessageSplitter
 		}
 
 		/**
-		 * Set the minimum number of times this group may occur.
-		 *
-		 * @param min
-		 *        My new minimum cardinality (n≥0).
-		 */
-		void minimumCardinality (final int min)
-		{
-			minimumCardinality = min;
-		}
-
-		/**
 		 * Set the maximum number of times this group may occur.
 		 *
 		 * @param max
@@ -1625,7 +1600,7 @@ public class MessageSplitter
 			}
 
 			final A_Type requiredRange = IntegerRangeTypeDescriptor.create(
-				IntegerDescriptor.fromInt(minimumCardinality),
+				IntegerDescriptor.zero(),
 				true,
 				maximumCardinality == Integer.MAX_VALUE
 					? InfinityDescriptor.positiveInfinity()
@@ -1709,196 +1684,345 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
-			if (!needsDoubleWrapping())
+			final A_Type sizeRange = tupleType.sizeRange();
+			final A_Number minInteger = sizeRange.lowerBound();
+			final int minSize = minInteger.isInt()
+				? minInteger.extractInt() : Integer.MAX_VALUE;
+			final A_Number maxInteger = sizeRange.upperBound();
+			final int maxSize = maxInteger.isInt()
+				? maxInteger.extractInt() : Integer.MAX_VALUE;
+			final int endOfVariation =
+				maxSize == 0 ? 0 : tupleType.typeTuple().tupleSize() + 1;
+			generator.emit(this, NEW_LIST);
+			if (maxSize == 0)
+			{
+				// The signature requires an empty list, so that's what we get
+				// (emitted above).
+			}
+			else if (!needsDoubleWrapping())
 			{
 				/* Special case -- one argument case produces a list of
 				 * expressions rather than a list of fixed-length lists of
-				 * expressions.  The generated instructions should look like:
+				 * expressions.  The case of maxSize = 0 was already handled.
+				 * The generated instructions should look like:
 				 *
+				 * push empty list of solutions (emitted above)
+				 * branch to $skip (if minSize = 0)
 				 * push current parse position on the mark stack
-				 * push empty list
-				 * branch to @loopSkip
-				 * @loopStart:
-				 * ...Stuff before dagger, appending sole argument.
-				 * branch to @loopExit (even if no dagger)
-				 * ...Stuff after dagger, nothing if dagger is omitted.
-				 * ...Must not contain an argument or subgroup.
+				 * A repetition for each N=1..endOfVariation-1:
+				 *     ...Stuff before dagger, appending sole argument.
+				 *     branch to $exit (if N ≥ minSize)
+				 *     ...Stuff after dagger, nothing if dagger is omitted.
+				 *     ...Must not contain an argument or subgroup.
+				 *     check progress and update saved position, or abort.
+				 * And a final loop:
+				 *     $loopStart:
+				 *     ...Stuff before dagger, appending sole argument.
+				 *     EITHER branch to $exit (if endOfVariation ≥ minSize)
+				 *     OR branch to $exitCheckMin (if endOfVariation < minSize)
+				 *     if (endOfVariation < maxSize) then:
+				 *         check that the size is still < maxSize.
+				 *         ...Stuff after dagger, nothing if dagger is omitted.
+				 *         ...Must not contain an argument or subgroup.
+				 *         check progress and update saved position, or abort.
+				 *         jump to $loopStart.
+				 *         if (endOfVariation < minSize) then:
+				 *             $exitCheckMin:
+				 *             check at least minSize.
+				 * $exit:
 				 * check progress and update saved position, or abort.
-				 * jump to @loopStart
-				 * @loopExit:
-				 * check progress and update saved position, or abort.
-				 * @loopSkip:
 				 * discard the saved position from the mark stack.
+				 * $skip:
 				 */
-				list.add(SAVE_PARSE_POSITION.encoding());
-				list.add(NEW_LIST.encoding());
-				list.add(BRANCH.encoding(loopSkip));
-				final int loopStart = list.size() + 1;
-				if (maximumCardinality < Integer.MAX_VALUE)
+				final Label $skip = new Label();
+				final Label $exit = new Label();
+				final Label $exitCheckMin = new Label();
+				final Label $loopStart = new Label();
+				assert beforeDagger.arguments.size() == 1;
+				assert afterDagger.arguments.size() == 0;
+				if (minSize == 0)
 				{
-					list.add(CHECK_AT_MOST.encoding(maximumCardinality));
+					// If size zero is valid, go to the special $skip label that
+					// skips the progress check.  Simply fall through to it if
+					// the maxSize is zero (handled above).
+					assert maxSize > 0;
+					generator.emit(this, BRANCH, $skip);
 				}
-				for (final Expression expression : beforeDagger.expressions)
+				generator.emit(this, SAVE_PARSE_POSITION);
+				for (int index = 1; index < endOfVariation; index++)
 				{
-					expression.emitOn(
-						list,
-						caseInsensitive,
-						partialListsCount + 1);
-					if (expression.isArgumentOrGroup())
+					beforeDagger.emitWithoutInitialNewListPushOn(
+						generator,
+						TupleTypeDescriptor.forTypes(
+							tupleType.typeAtIndex(index)));
+					if (index >= minSize)
 					{
-						// Add a raw answer (no sublist) to the outer list.
-						list.add(APPEND_ARGUMENT.encoding());
+						generator.emit(this, BRANCH, $exit);
+					}
+					afterDagger.emitWithoutInitialNewListPushOn(
+						generator, BottomTypeDescriptor.bottom());
+					generator.emit(this, ENSURE_PARSE_PROGRESS);
+				}
+				// The homogenous part of the tuple, one or more iterations.
+				generator.emit($loopStart);
+				beforeDagger.emitWithoutInitialNewListPushOn(
+					generator,
+					TupleTypeDescriptor.forTypes(tupleType.defaultType()));
+				generator.emit(this, 
+					BRANCH, endOfVariation >= minSize ? $exit : $exitCheckMin);
+				if (endOfVariation < maxSize)
+				{
+					if (maxInteger.isFinite())
+					{
+						generator.emit(this, CHECK_AT_MOST, maxSize - 1);
+					}
+					afterDagger.emitWithoutInitialNewListPushOn(
+						generator, BottomTypeDescriptor.bottom());
+					generator.emit(this, ENSURE_PARSE_PROGRESS);
+					generator.emit(this, JUMP, $loopStart);
+					if (endOfVariation < minSize)
+					{
+						generator.emit($exitCheckMin);
+						generator.emit(this, CHECK_AT_LEAST, minSize);
 					}
 				}
-				list.add(BRANCH.encoding(loopExit));
-				for (final Expression expression : afterDagger.expressions)
-				{
-					assert !expression.isArgumentOrGroup();
-					expression.emitOn(
-						list,
-						caseInsensitive,
-						partialListsCount + 1);
-				}
-				list.add(ENSURE_PARSE_PROGRESS.encoding());
-				list.add(JUMP.encoding(loopStart));
-				loopExit = list.size() + 1;
-				list.add(ENSURE_PARSE_PROGRESS.encoding());
-				loopSkip = list.size() + 1;
-				if (minimumCardinality > 0)
-				{
-					list.add(CHECK_AT_LEAST.encoding(minimumCardinality));
-				}
-				list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
+				generator.emit($exit);
+				generator.emit(this, ENSURE_PARSE_PROGRESS);
+				generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+				generator.emit($skip);
 			}
 			else
 			{
 				/* General case -- the individual arguments need to be wrapped
 				 * with "append" as for the special case above, but the start
 				 * of each loop has to push an empty tuple, the dagger has to
-				 * branch to a special @loopExit that closes the last (partial)
+				 * branch to a special $exit that closes the last (partial)
 				 * group, and the backward jump should be preceded by an append
-				 * to capture a solution.  Here's the code:
+				 * to capture a solution.  Note that the cae of maxSize = 0 was
+				 * already handled.  Here's the code:
 				 *
-				 * push current parse position onto the mark stack
-				 * push empty list (the list of solutions)
-				 * branch to @loopSkip
-				 * @loopStart:
-				 * push empty list (a compound solution)
-				 * ...Stuff before dagger, where arguments and subgroups must
-				 * ...be followed by "append" instruction.
-				 * permute left-half arguments tuple if necessary
-				 * branch to @loopExit
-				 * ...Stuff after dagger, nothing if dagger is omitted.  Must
-				 * ...follow argument or subgroup with "append" instruction.
-				 * permute *only* right half of solution tuple if necessary
-				 * append  (add complete solution)
-				 * check progress and update saved position, or abort.
-				 * jump @loopStart
-				 * @loopExit:
+				 * push empty list (the list of solutions, emitted above)
+				 * branch to $skip (if minSize = 0)
+				 * push current parse position on the mark stack
+				 * A repetition for each N=1..endOfVariation-1:
+				 *     push empty list (a compound solution)
+				 *     ...Stuff before dagger, where arguments and subgroups are
+				 *     ...followed by "append" instructions.
+				 *     permute left-half arguments tuple if needed
+				 *     branch to $exit (if N ≥ minSize)
+				 *     ...Stuff after dagger, nothing if dagger is omitted.
+				 *     ...Must follow each argument or subgroup with "append"
+				 *     ...instruction.
+				 *     permute *only* right half of solution tuple if needed
+				 *     append  (add complete solution)
+				 *     check progress and update saved position, or abort.
+				 * And a final loop:
+				 *     $loopStart:
+				 *     push empty list (a compound solution)
+				 *     ...Stuff before dagger, where arguments and subgroups are
+				 *     ...followed by "append" instructions.
+				 *     permute left-half arguments tuple if needed
+				 *     EITHER branch to $exit (if endOfVariation ≥ minSize)
+				 *     OR branch to $exitCheckMin (if endOfVariation < minSize)
+				 *     if (endOfVariation < maxSize) then:
+				 *         check that the size is still < maxSize.
+				 *         ...Stuff after dagger, nothing if dagger is omitted.
+				 *         ...Must follow each arg or subgroup with "append"
+				 *         ...instruction.
+				 *         permute *only* right half of solution tuple if needed
+				 *         append  (add complete solution)
+				 *         check progress and update saved position, or abort.
+				 *         jump to $loopStart.
+				 *         if (endOfVariation < minSize) then:
+				 *             $exitCheckMin:
+				 *             append.
+				 *             check at least minSize.
+				 *             jump $mergedExit.
+				 * $exit:
 				 * append  (add partial solution up to dagger)
+				 * $mergedExit:
 				 * check progress and update saved position, or abort.
-				 * @loopSkip:
-				 * pop parse position from mark stack
+				 * discard the saved position from mark stack.
+				 * $skip:
 				 */
-				list.add(SAVE_PARSE_POSITION.encoding());
-				list.add(NEW_LIST.encoding());
-				list.add(BRANCH.encoding(loopSkip));
-				final int loopStart = list.size() + 1;
-				if (maximumCardinality < Integer.MAX_VALUE)
+				final Label $skip = new Label();
+				final Label $exit = new Label();
+				final Label $exitCheckMin = new Label();
+				final Label $mergedExit = new Label();
+				final Label $loopStart = new Label();
+				if (minSize == 0)
 				{
-					list.add(CHECK_AT_MOST.encoding(maximumCardinality));
+					// If size zero is valid, go to the special $skip label that
+					// skips the progress check.  Simply fall through to it if
+					// the maxSize is zero (handled above).
+					assert maxSize > 0;
+					generator.emit(this, BRANCH, $skip);
 				}
-				list.add(NEW_LIST.encoding());
-				for (final Expression expression : beforeDagger.expressions)
+				generator.emit(this, SAVE_PARSE_POSITION);
+				for (int index = 1; index < endOfVariation; index++)
 				{
-					// This group builds a list of tuples (i.e., it's
-					// double-wrapped), so adjust the partialListsCount by 2.
-					expression.emitOn(
-						list,
-						caseInsensitive,
-						partialListsCount + 2);
-					if (expression.isArgumentOrGroup())
+					generator.emit(this, NEW_LIST);
+					emitDoubleWrappedBeforeDaggerOn(
+						generator,
+						tupleType.typeAtIndex(index));
+					if (index >= minSize)
 					{
-						// Add to the current solution, which is a sublist.
-						list.add(APPEND_ARGUMENT.encoding());
+						generator.emit(this, BRANCH, $exit);
+					}
+					emitDoubleWrappedAfterDaggerOn(
+						generator,
+						tupleType.typeAtIndex(index));
+					generator.emit(this, APPEND_ARGUMENT);
+					generator.emit(this, ENSURE_PARSE_PROGRESS);
+				}
+				// The homogenous part of the tuple, one or more iterations.
+				generator.emit($loopStart);
+				generator.emit(this, NEW_LIST);
+				emitDoubleWrappedBeforeDaggerOn(
+					generator,
+					tupleType.typeAtIndex(endOfVariation));
+				generator.emit(this, 
+					BRANCH, endOfVariation >= minSize ? $exit : $exitCheckMin);
+				if (endOfVariation < maxSize)
+				{
+					if (maxInteger.isFinite())
+					{
+						generator.emit(this, CHECK_AT_MOST, maxSize - 1);
+					}
+					emitDoubleWrappedAfterDaggerOn(
+						generator,
+						tupleType.typeAtIndex(endOfVariation));
+					generator.emit(this, APPEND_ARGUMENT);
+					generator.emit(this, ENSURE_PARSE_PROGRESS);
+					generator.emit(this, JUMP, $loopStart);
+					if (endOfVariation < minSize)
+					{
+						generator.emit($exitCheckMin);
+						generator.emit(this, APPEND_ARGUMENT);
+						generator.emit(this, CHECK_AT_LEAST, minSize);
+						generator.emit(this, JUMP, $mergedExit);
 					}
 				}
-				if (beforeDagger.argumentsAreReordered == Boolean.TRUE)
-				{
-					// Permute the list on top of stack.
-					final A_Tuple permutationTuple =
-						TupleDescriptor.fromIntegerList(
-							beforeDagger.permutedArguments);
-					final int permutationIndex =
-						indexForPermutation(permutationTuple);
-					list.add(PERMUTE_LIST.encoding(permutationIndex));
-				}
-				list.add(BRANCH.encoding(loopExit));
-				for (final Expression expression : afterDagger.expressions)
-				{
-					// This group builds a list of tuples (i.e., it's
-					// double-wrapped), so adjust the partialListsCount by 2.
-					expression.emitOn(
-						list,
-						caseInsensitive,
-						partialListsCount + 2);
-					if (expression.isArgumentOrGroup())
-					{
-						// Same logic for arguments/groups before the double
-						// dagger.  Add it to the sublist holding the current
-						// partial solution.
-						list.add(APPEND_ARGUMENT.encoding());
-					}
-				}
-				if (afterDagger.argumentsAreReordered == Boolean.TRUE)
-				{
-					// Permute just the right portion of the list on top of
-					// stack.  The left portion was already adjusted in case it
-					// was the last iteration and didn't have a right side.
-					final int leftArgCount = beforeDagger.arguments.size();
-					final int rightArgCount = afterDagger.arguments.size();
-					final int adjustedPermutationSize =
-						leftArgCount + rightArgCount;
-					final ArrayList<Integer> adjustedPermutationList =
-						new ArrayList<>(adjustedPermutationSize);
-					for (int i = 1; i <= leftArgCount; i++)
-					{
-						// The left portion is the identity permutation, since
-						// the actual left permutation was already applied.
-						adjustedPermutationList.add(i);
-					}
-					for (int i = 0; i < rightArgCount; i++)
-					{
-						// Adjust the right permutation indices by the size of
-						// the left part.
-						adjustedPermutationList.add(
-							afterDagger.arguments.get(i).explicitOrdinal()
-							+ leftArgCount);
-					}
-					final A_Tuple permutationTuple =
-						TupleDescriptor.fromIntegerList(
-							adjustedPermutationList);
-					final int permutationIndex =
-						indexForPermutation(permutationTuple);
-					list.add(PERMUTE_LIST.encoding(permutationIndex));
-				}
-				list.add(APPEND_ARGUMENT.encoding());
-				list.add(ENSURE_PARSE_PROGRESS.encoding());
-				list.add(JUMP.encoding(loopStart));
-				loopExit = list.size() + 1;
-				list.add(APPEND_ARGUMENT.encoding());
-				list.add(ENSURE_PARSE_PROGRESS.encoding());
-				loopSkip = list.size() + 1;
-				if (minimumCardinality > 0)
-				{
-					list.add(CHECK_AT_LEAST.encoding(minimumCardinality));
-				}
-				list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
+				generator.emit($exit);
+				generator.emit(this, APPEND_ARGUMENT);
+				generator.emit($mergedExit);
+				generator.emit(this, ENSURE_PARSE_PROGRESS);
+				generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+				generator.emit($skip);
 			}
+		}
+
+		/**
+		 * Emit instructions to parse one occurrence of the portion of this
+		 * group before the double-dagger.  Append each argument or subgroup.
+		 * Permute this left-half list as needed.
+		 *
+		 * @param generator
+		 * @param tupleType
+		 */
+		private void emitDoubleWrappedBeforeDaggerOn (
+			final InstructionGenerator generator,
+			final A_Type tupleType)
+		{
+			int expressionCounter = 0;
+			for (final Expression expression : beforeDagger.expressions)
+			{
+				final boolean isArgOrGroup = expression.isArgumentOrGroup();
+				generator.partialListsCount += 2;
+				expression.emitOn(
+					generator,
+					isArgOrGroup
+						? tupleType.typeAtIndex(++expressionCounter)
+						: BottomTypeDescriptor.bottom());
+				generator.partialListsCount -= 2;
+				if (isArgOrGroup)
+				{
+					// Append to the current solution list.
+					generator.emit(this, APPEND_ARGUMENT);
+				}
+			}
+			if (beforeDagger.argumentsAreReordered == Boolean.TRUE)
+			{
+				// Permute the list on top of stack.
+				final A_Tuple permutationTuple =
+					TupleDescriptor.fromIntegerList(
+						beforeDagger.permutedArguments);
+				final int permutationIndex =
+					indexForPermutation(permutationTuple);
+				generator.emit(this, PERMUTE_LIST, permutationIndex);
+			}
+			// Ensure the tuple type was consumed up to its lowerBound.
+			assert tupleType.sizeRange().lowerBound().extractInt()
+				== expressionCounter;
+		}
+
+		/**
+		 * Emit instructions to parse one occurrence of the portion of this
+		 * group after the double-dagger.  Append each argument or subgroup.
+		 * Permute just the right half of this list as needed.
+		 *
+		 * @param generator
+		 * @param tupleType
+		 */
+		private void emitDoubleWrappedAfterDaggerOn (
+			final InstructionGenerator generator,
+			final A_Type tupleType)
+		{
+			int expressionCounter = beforeDagger.arguments.size();
+			for (final Expression expression : afterDagger.expressions)
+			{
+				final boolean isArgOrGroup = expression.isArgumentOrGroup();
+				generator.partialListsCount += 2;
+				expression.emitOn(
+					generator,
+					isArgOrGroup
+						? tupleType.typeAtIndex(++expressionCounter)
+						: BottomTypeDescriptor.bottom());
+				generator.partialListsCount -= 2;
+				if (isArgOrGroup)
+				{
+					// Append to the current solution list.
+					generator.emit(this, APPEND_ARGUMENT);
+				}
+			}
+			if (afterDagger.argumentsAreReordered == Boolean.TRUE)
+			{
+				// Permute just the right portion of the list on top of
+				// stack.  The left portion was already adjusted in case it
+				// was the last iteration and didn't have a right side.
+				final int leftArgCount = beforeDagger.arguments.size();
+				final int rightArgCount = afterDagger.arguments.size();
+				final int adjustedPermutationSize =
+					leftArgCount + rightArgCount;
+				final ArrayList<Integer> adjustedPermutationList =
+					new ArrayList<>(adjustedPermutationSize);
+				for (int i = 1; i <= leftArgCount; i++)
+				{
+					// The left portion is the identity permutation, since
+					// the actual left permutation was already applied.
+					adjustedPermutationList.add(i);
+				}
+				for (int i = 0; i < rightArgCount; i++)
+				{
+					// Adjust the right permutation indices by the size of
+					// the left part.
+					adjustedPermutationList.add(
+						afterDagger.arguments.get(i).explicitOrdinal()
+							+ leftArgCount);
+				}
+				final A_Tuple permutationTuple =
+					TupleDescriptor.fromIntegerList(
+						adjustedPermutationList);
+				final int permutationIndex =
+					indexForPermutation(permutationTuple);
+				generator.emit(this, PERMUTE_LIST, permutationIndex);
+			}
+			// Ensure the tuple type was consumed up to its upperBound.
+			assert tupleType.sizeRange().upperBound().extractInt()
+				== expressionCounter;
 		}
 
 		@Override
@@ -1926,24 +2050,7 @@ public class MessageSplitter
 			}
 
 			final StringBuilder builder = new StringBuilder();
-			builder.append("Group");
-			if (minimumCardinality != 0
-				|| maximumCardinality != Integer.MAX_VALUE)
-			{
-				builder.append("[");
-				builder.append(minimumCardinality);
-				builder.append("..");
-				if (maximumCardinality == Integer.MAX_VALUE)
-				{
-					builder.append("∞)");
-				}
-				else
-				{
-					builder.append(maximumCardinality);
-					builder.append("]");
-				}
-			}
-			builder.append("(");
+			builder.append("Group(");
 			boolean first = true;
 			for (final String s : strings)
 			{
@@ -1991,7 +2098,7 @@ public class MessageSplitter
 					assert occurrence.isInstanceOfKind(
 						EXPRESSION_NODE.mostGeneralType());
 					final List<AvailObject> argumentNodes =
-						Collections.<AvailObject>singletonList(occurrence);
+						Collections.singletonList(occurrence);
 					innerIterator = argumentNodes.iterator();
 				}
 				printGroupOccurrence(
@@ -2109,21 +2216,6 @@ public class MessageSplitter
 		final Group group;
 
 		/**
-		 * The one-based position in the instruction stream to branch to in
-		 * order to parse zero occurrences of this group. Set during the first
-		 * pass of code generation.
-		 */
-		int loopSkip = -1;
-
-		/**
-		 * The one-based position in the instruction stream to branch to from
-		 * the dagger's position within the loop for this group. Depending on
-		 * the number of arguments and subgroups specified within this group,
-		 * this may or may not equal {@link #loopSkip}.
-		 */
-		int loopExit = -1;
-
-		/**
 		 * Construct a new {@link Counter}.
 		 *
 		 * @param group
@@ -2180,9 +2272,8 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
 			/* push current parse position
 			 * push empty list
@@ -2201,11 +2292,14 @@ public class MessageSplitter
 			 * @loopSkip:
 			 * under-pop parse position (remove 2nd from top of stack)
 			 */
-			list.add(SAVE_PARSE_POSITION.encoding());
-			list.add(NEW_LIST.encoding());
-			list.add(BRANCH.encoding(loopSkip));
-			final int loopStart = list.size() + 1;
-			list.add(NEW_LIST.encoding());
+			final Label $loopStart = new Label();
+			final Label $loopExit = new Label();
+			final Label $loopSkip = new Label();
+			generator.emit(this, SAVE_PARSE_POSITION);
+			generator.emit(this, NEW_LIST);
+			generator.emit(this, BRANCH, $loopSkip);
+			generator.emit($loopStart);
+			generator.emit(this, NEW_LIST);
 			for (final Expression expression : group.beforeDagger.expressions)
 			{
 				assert !expression.isArgumentOrGroup();
@@ -2214,23 +2308,33 @@ public class MessageSplitter
 				// a section checkpoint.  There's no point, since the iteration
 				// would not be passed, in case it's confusing (number completed
 				// versus number started).
-				expression.emitOn(list, caseInsensitive, Integer.MIN_VALUE);
+				final int oldPartialListsCount = generator.partialListsCount;
+				generator.partialListsCount = Integer.MIN_VALUE;
+				expression.emitOn(
+					generator,
+					null); //TODO MvG - FIGURE OUT the types.
+				generator.partialListsCount = oldPartialListsCount;
 			}
-			list.add(APPEND_ARGUMENT.encoding());
-			list.add(BRANCH.encoding(loopExit));
+			generator.emit(this, APPEND_ARGUMENT);
+			generator.emit(this, BRANCH, $loopExit);
 			for (final Expression expression : group.afterDagger.expressions)
 			{
 				assert !expression.isArgumentOrGroup();
 				// Same as for the loop above for expressionsBeforeDagger.
-				expression.emitOn(list, caseInsensitive, Integer.MIN_VALUE);
+				final int oldPartialListsCount = generator.partialListsCount;
+				generator.partialListsCount = Integer.MIN_VALUE;
+				expression.emitOn(
+					generator,
+					null); //TODO MvG - FIGURE OUT the types.
+				generator.partialListsCount = oldPartialListsCount;
 			}
-			list.add(ENSURE_PARSE_PROGRESS.encoding());
-			list.add(JUMP.encoding(loopStart));
-			loopExit = list.size() + 1;
-			list.add(ENSURE_PARSE_PROGRESS.encoding());
-			loopSkip = list.size() + 1;
-			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
-			list.add(CONVERT.encoding(LIST_TO_SIZE.number()));
+			generator.emit(this, ENSURE_PARSE_PROGRESS);
+			generator.emit(this, JUMP, $loopStart);
+			generator.emit($loopExit);
+			generator.emit(this, ENSURE_PARSE_PROGRESS);
+			generator.emit($loopSkip);
+			generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+			generator.emit(this, CONVERT, LIST_TO_SIZE.number());
 		}
 
 		@Override
@@ -2307,20 +2411,6 @@ public class MessageSplitter
 		final Sequence sequence;
 
 		/**
-		 * The one-based position in the instruction stream that is reached
-		 * whether this optional section is parsed or not.  Set during the first
-		 * pass of code generation.
-		 */
-		int after = -1;
-
-		/**
-		 * The one-based position of the instruction sequence that deals with
-		 * this section being absent.  Set during the first pass of code
-		 * generation.
-		 */
-		int absent = -1;
-
-		/**
 		 * Construct a new {@link Optional}.
 		 *
 		 * @param sequence
@@ -2379,9 +2469,8 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
 			/* branch to @absent
 			 * push the current parse position on the mark stack
@@ -2394,20 +2483,24 @@ public class MessageSplitter
 			 * push literal false
 			 * @groupSkip:
 			 */
-			list.add(BRANCH.encoding(absent));
-			list.add(SAVE_PARSE_POSITION.encoding());
+			final Label $absent = new Label();
+			final Label $after = new Label();
+			generator.emit(this, BRANCH, $absent);
+			generator.emit(this, SAVE_PARSE_POSITION);
 			assert sequence.argumentsAreReordered != Boolean.TRUE;
 			for (final Expression expression : sequence.expressions)
 			{
-				expression.emitOn(list, caseInsensitive, partialListsCount);
+				expression.emitOn(
+					generator,
+					null); //TODO MvG - FIGURE OUT the types.
 			}
-			list.add(ENSURE_PARSE_PROGRESS.encoding());
-			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
-			list.add(PUSH_TRUE.encoding());
-			list.add(JUMP.encoding(after));
-			absent = list.size() + 1;
-			list.add(PUSH_FALSE.encoding());
-			after = list.size() + 1;
+			generator.emit(this, ENSURE_PARSE_PROGRESS);
+			generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+			generator.emit(this, PUSH_TRUE);
+			generator.emit(this, JUMP, $after);
+			generator.emit($absent);
+			generator.emit(this, PUSH_FALSE);
+			generator.emit($after);
 		}
 
 		@Override
@@ -2481,13 +2574,6 @@ public class MessageSplitter
 		final Expression expression;
 
 		/**
-		 * The one-based position in the instruction stream to branch to in
-		 * order to parse zero occurrences of this expression. Set during the
-		 * first pass of code generation.
-		 */
-		int expressionSkip = -1;
-
-		/**
 		 * Construct a new {@link Counter}.
 		 *
 		 * @param expression
@@ -2542,9 +2628,8 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
 			/* branch to @expressionSkip.
 			 * push current parse position on the mark stack.
@@ -2553,8 +2638,9 @@ public class MessageSplitter
 			 * discard mark position
 			 * @expressionSkip:
 			 */
-			list.add(BRANCH.encoding(expressionSkip));
-			list.add(SAVE_PARSE_POSITION.encoding());
+			final Label $expressionSkip = new Label();
+			generator.emit(this, BRANCH, $expressionSkip);
+			generator.emit(this, SAVE_PARSE_POSITION);
 			final List<Expression> expressions;
 			if (expression instanceof Simple)
 			{
@@ -2577,11 +2663,13 @@ public class MessageSplitter
 				// function should only run when the optional section actually
 				// occurs.  Since no completely optional section can produce a
 				// value (argument, counter, etc), there's no problem.
-				subexpression.emitOn(list, caseInsensitive, partialListsCount);
+				subexpression.emitOn(
+					generator,
+					null); //TODO MvG - FIGURE OUT types
 			}
-			list.add(ENSURE_PARSE_PROGRESS.encoding());
-			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
-			expressionSkip = list.size() + 1;
+			generator.emit(this, ENSURE_PARSE_PROGRESS);
+			generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+			generator.emit($expressionSkip);
 		}
 
 		@Override
@@ -2710,11 +2798,13 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
-			expression.emitOn(list, true, partialListsCount);
+			final boolean oldInsensitive = generator.caseInsensitive;
+			generator.caseInsensitive = true;
+			expression.emitOn(generator, tupleType);
+			generator.caseInsensitive = oldInsensitive;
 		}
 
 		@Override
@@ -2785,13 +2875,6 @@ public class MessageSplitter
 		{
 			return alternatives;
 		}
-		/**
-		 * The one-based positions in the instruction stream of the labels. All
-		 * but the last correspond to the beginnings of the alternatives. The
-		 * last corresponds to the first instruction beyond the code segment
-		 * associated with the last alternative.
-		 */
-		private final int[] branches;
 
 		/**
 		 * Construct a new {@link Alternation}.
@@ -2802,8 +2885,6 @@ public class MessageSplitter
 		Alternation (final List<Expression> alternatives)
 		{
 			this.alternatives = alternatives;
-			this.branches = new int[alternatives.size()];
-			Arrays.fill(branches, -1);
 		}
 
 		@Override
@@ -2847,9 +2928,8 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
 			/* push current parse position on the mark stack
 			 * branch to @branches[0]
@@ -2862,14 +2942,16 @@ public class MessageSplitter
 			 * check progress and update saved position, or abort.
 			 * under-pop parse position (remove 2nd from top of stack)
 			 */
-			list.add(SAVE_PARSE_POSITION.encoding());
+			final Label $after = new Label();
+			generator.emit(this, SAVE_PARSE_POSITION);
 			for (int i = 0; i < alternatives.size(); i++)
 			{
 				// Generate a branch to the next alternative unless this is the
 				// last alternative.
+				final Label $nextAlternative = new Label();
 				if (i < alternatives.size() - 1)
 				{
-					list.add(BRANCH.encoding(branches[i]));
+					generator.emit(this, BRANCH, $nextAlternative);
 				}
 				// The partialListsCount stays the same, in case there's a
 				// section checkpoint marker in one of the alternatives.  That's
@@ -2878,20 +2960,19 @@ public class MessageSplitter
 				// can produce a value (argument, counter, etc), there's no
 				// problem.
 				alternatives.get(i).emitOn(
-					list,
-					caseInsensitive,
-					partialListsCount);
+					generator,
+					null); //TODO MvG - FIGURE OUT types
 				// Generate a jump to the last label unless this is the last
 				// alternative.
 				if (i < alternatives.size() - 1)
 				{
-					list.add(JUMP.encoding(
-						branches[branches.length - 1]));
+					generator.emit(this, JUMP, $after);
 				}
-				branches[i] = list.size() + 1;
+				generator.emit($nextAlternative);
 			}
-			list.add(ENSURE_PARSE_PROGRESS.encoding());
-			list.add(DISCARD_SAVED_PARSE_POSITION.encoding());
+			generator.emit($after);
+			generator.emit(this, ENSURE_PARSE_PROGRESS);
+			generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
 		}
 
 		@Override
@@ -2978,23 +3059,6 @@ public class MessageSplitter
 		final Alternation alternation;
 
 		/**
-		 * The branch targets that are the starts of parsing of each
-		 * alternative.  Each alternative starts with a branch to skip it by
-		 * landing on the next branch.  The last alternative doesn't have a
-		 * branch.  Thus for A alternatives there are A-1 branches, each with a
-		 * distinct target.  These targets are set during the first pass of code
-		 * generation.
-		 */
-		int [] branchTargets;
-
-		/**
-		 * The one-based position in the instruction stream to branch to when
-		 * an alternative is chosen.  Set during the first pass of code
-		 * generation.
-		 */
-		int exitTarget = -1;
-
-		/**
 		 * Construct a new {@link NumberedChoice}.
 		 *
 		 * @param alternation The enclosed {@link Alternation}.
@@ -3002,10 +3066,7 @@ public class MessageSplitter
 		public NumberedChoice (final Alternation alternation)
 		{
 			this.alternation = alternation;
-			branchTargets = new int[alternation.alternatives().size() - 1];
-			Arrays.fill(branchTargets, -1);
 		}
-
 
 		@Override
 		boolean isArgumentOrGroup ()
@@ -3053,9 +3114,8 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
 			/* branch to @target1.
 			 * ...do first alternative.
@@ -3084,27 +3144,32 @@ public class MessageSplitter
 			 * @done:
 			 * ...
 			 */
-			for (int index = 0; index <= branchTargets.length; index++)
+			final int numAlternatives = alternation.alternatives().size() - 1;
+			final Label $exit = new Label();
+			for (int index = 0; index <= numAlternatives; index++)
 			{
-				final boolean last = index == branchTargets.length;
+				final Label $next = new Label();
+				final boolean last = index == numAlternatives;
 				if (!last)
 				{
-					list.add(BRANCH.encoding(branchTargets[index]));
+					generator.emit(this, BRANCH, $next);
 				}
 				final Expression alternative =
 					alternation.alternatives().get(index);
 				// If a section checkpoint occurs within a numbered choice, we
 				// *do not* pass the choice number as an argument.  Therefore
 				// nothing new has been pushed for us to clean up at this point.
-				alternative.emitOn(list, caseInsensitive, partialListsCount);
-				list.add(PUSH_INTEGER_LITERAL.encoding(index + 1));
+				alternative.emitOn(
+					generator,
+					null); //TODO MvG - FIGURE OUT the types.
+				generator.emit(this, PUSH_INTEGER_LITERAL, index + 1);
 				if (!last)
 				{
-					list.add(JUMP.encoding(exitTarget));
-					branchTargets[index] = list.size() + 1;
+					generator.emit(this, JUMP, $exit);
+					generator.emit($next);
 				}
 			}
-			exitTarget = list.size() + 1;
+			generator.emit($exit);
 		}
 
 		@Override
@@ -3207,16 +3272,17 @@ public class MessageSplitter
 
 		@Override
 		void emitOn (
-			final List<Integer> list,
-			final boolean caseInsensitive,
-			final int partialListsCount)
+			final InstructionGenerator generator,
+			final A_Type tupleType)
 		{
 			// Tidy up any partially-constructed groups and invoke the
 			// appropriate prefix function.  Note that the partialListsCount is
 			// constrained to always be at least one here.
-			list.add(
-				PREPARE_TO_RUN_PREFIX_FUNCTION.encoding(partialListsCount));
-			list.add(RUN_PREFIX_FUNCTION.encoding(subscript));
+			generator.emit(
+				this,
+				PREPARE_TO_RUN_PREFIX_FUNCTION,
+				generator.partialListsCount);
+			generator.emit(this, RUN_PREFIX_FUNCTION, subscript);
 		}
 
 		@Override
@@ -3254,22 +3320,27 @@ public class MessageSplitter
 	 */
 	static int indexForPermutation (final A_Tuple permutation)
 	{
+		int checkedLimit = 0;
 		while (true)
 		{
 			final A_Tuple before = permutations.get();
-			for (int i = 1; i <= before.tupleSize(); i++)
+			final int newLimit = before.tupleSize();
+			for (int i = checkedLimit + 1; i <= newLimit; i++)
 			{
 				if (before.tupleAt(i).equals(permutation))
 				{
+					// Already exists.
 					return i;
 				}
 			}
-			final A_Tuple after = before.appendCanDestroy(permutation, false);
-			after.makeShared();
+			final A_Tuple after =
+				before.appendCanDestroy(permutation, false).makeShared();
 			if (permutations.compareAndSet(before, after))
 			{
+				// Added it successfully.
 				return after.tupleSize();
 			}
+			checkedLimit = newLimit;
 		}
 	}
 
@@ -3284,6 +3355,58 @@ public class MessageSplitter
 	static A_Tuple permutationAtIndex (final int index)
 	{
 		return permutations.get().tupleAt(index);
+	}
+
+	/**
+	 * Answer the index of the given type, adding it to the global {@link
+	 * #typesToCheck} index if necessary.
+	 *
+	 * @param type
+	 *        The type to add to the global index.
+	 * @return The one-based index of the type, which can be retrieved later via
+	 *         {@link #typeToCheck(int)}.
+	 */
+	static int indexForType (final A_Type type)
+	{
+		final A_Type sharedType = type.makeShared();
+		while (true)
+		{
+			final Pair<A_Map, A_Tuple> oldPair = typesToCheck.get();
+			A_Map map = oldPair.first();
+			if (map.hasKey(sharedType))
+			{
+				return map.mapAt(sharedType).extractInt();
+			}
+			final int newIndex = map.mapSize() + 1;
+			map = map.mapAtPuttingCanDestroy(
+				sharedType, IntegerDescriptor.fromInt(newIndex), false);
+			map = map.makeShared();
+			A_Tuple tuple = oldPair.second();
+			tuple = tuple.appendCanDestroy(tuple, false).makeShared();
+			assert tuple.tupleSize() == newIndex;
+			assert map.mapSize() == newIndex;
+			final Pair<A_Map, A_Tuple> newPair =
+				new Pair<A_Map, A_Tuple>(map, tuple);
+			if (typesToCheck.compareAndSet(oldPair, newPair))
+			{
+				return newIndex;
+			}
+		}
+	}
+
+	/**
+	 * Answer the type having the given one-based index in the static {@link
+	 * #typesToCheck} tuple.  We need a read barrier here, but no lock, since
+	 * the tuple of types is only appended to, ensuring all extant indices will
+	 * always be valid.  The corresponding map from types to index is not used
+	 * during parsing, only during emission of {@link ParsingOperation}s.
+	 *
+	 * @param index The index of the type to retrieve.
+	 * @return The {@link A_Type} at the given index.
+	 */
+	static A_Tuple typeToCheck (final int index)
+	{
+		return typesToCheck.get().second().tupleAt(index);
 	}
 
 	/**
@@ -3326,11 +3449,6 @@ public class MessageSplitter
 				E_UNBALANCED_GUILLEMETS,
 				"Encountered " + encountered);
 		}
-		// Emit it twice -- once to calculate the branch positions, and then
-		// again to output using the correct branches.
-		rootSequence.emitWithoutInitialNewListPushOn(instructions, false, 1);
-		instructions.clear();
-		rootSequence.emitWithoutInitialNewListPushOn(instructions, false, 1);
 	}
 
 	/**
@@ -3348,37 +3466,6 @@ public class MessageSplitter
 		{
 			builder.append("\t");
 			builder.append(part.asNativeString());
-			builder.append("\n");
-		}
-		builder.append("\n------\n");
-		int counter = 1;
-		for (final A_Number instruction : instructionsTuple())
-		{
-			final int instructionInt = instruction.extractInt();
-			final ParsingOperation op = ParsingOperation.decode(instructionInt);
-			builder.append("\t");
-			builder.append(counter++);
-			builder.append(". ");
-			builder.append(op.name());
-			if (instructionInt >= ParsingOperation.distinctInstructions)
-			{
-				builder.append("(" + op.operand(instructionInt) + ")");
-				switch (op)
-				{
-					case PARSE_PART:
-					case PARSE_PART_CASE_INSENSITIVELY:
-					{
-						builder.append(" = ");
-						builder.append(
-							messageParts.get(op.operand(instructionInt) - 1));
-						break;
-					}
-					default:
-					{
-						// Do nothing.
-					}
-				}
-			}
 			builder.append("\n");
 		}
 	}
@@ -3492,14 +3579,32 @@ public class MessageSplitter
 	 * See {@link MessageSplitter} and {@link ParsingOperation} for an
 	 * understanding of the parse instructions.
 	 *
+	 * @param tupleType The tuple of phrase types for this signature.
 	 * @return The tuple of integers encoding parse instructions for this
-	 *         message.
+	 *         message and argument types.
 	 */
-	public A_Tuple instructionsTuple ()
+	public A_Tuple instructionsTupleFor (final A_Type tupleType)
 	{
-		final A_Tuple tuple = TupleDescriptor.fromIntegerList(instructions);
-		tuple.makeImmutable();
-		return tuple;
+		final InstructionGenerator generator = new InstructionGenerator();
+		rootSequence.emitOn(generator, tupleType);
+		return generator.instructionsTuple();
+	}
+
+	/**
+	 * Answer a {@link List} of {@link Expression} objects that correlates with
+	 * the {@linkplain #instructionsTupleFor(A_Type) parsing instructions}
+	 * generated for the give message name and provided signature tuple type.
+	 * Note that the list is 0-based and the tuple is 1-based.
+	 *
+	 * @param tupleType The tuple of phrase types for this signature.
+	 * @return A list that indicates the origin Expression of each {@link
+	 *         ParsingOperation}.
+	 */
+	public List<Expression> originExpressionsFor (final A_Type tupleType)
+	{
+		final InstructionGenerator generator = new InstructionGenerator();
+		rootSequence.emitOn(generator, tupleType);
+		return generator.expressionList();
 	}
 
 	/**
@@ -4271,7 +4376,7 @@ public class MessageSplitter
 	 * @param sectionNumber
 	 *            The {@link SectionCheckpoint}'s subscript if this is a check
 	 *            of a {@linkplain MacroDefinitionDescriptor macro}'s,
-	 *            {@linkplain A_Method#prefixFunctions() prefix function},
+	 *            {@linkplain A_Definition#prefixFunctions() prefix function},
 	 *            otherwise any value past the total {@link
 	 *            #numberOfSectionCheckpoints} for a method or macro body.
 	 * @throws SignatureException
@@ -4342,58 +4447,44 @@ public class MessageSplitter
 	 * indication inserted at the keyword or argument position related to the
 	 * given program counter.
 	 *
-	 * @param pc The 1-based instruction index into my {@link #instructions}.
-	 * @return The annotated method name.
+	 * @param pc
+	 *        The 1-based instruction index into my {@link
+	 *        #instructionsTupleFor(A_Type) instructions}.
+	 * @return The annotated, quoted method name.
 	 */
-	public String nameHighlightingPc (final int pc)
+	public String nameHighlightingPc (final A_Type signatureType, final int pc)
 	{
 		if (pc == 0)
 		{
 			return "(any method invocation)";
 		}
-		final int instruction = instructions.get(pc - 1);
-		final ParsingOperation op = ParsingOperation.decode(instruction);
-		int argCounter = 0;
-		final int position;
-		if (op == PARSE_PART || op == PARSE_PART_CASE_INSENSITIVELY)
+		final List<Expression> expressions =
+			originExpressionsFor(signatureType);
+		// Adjust for tuple vs. list.
+		final Expression expression = expressions.get(pc - 1);
+		int tokenIndex = -1;
+		if (expression instanceof Argument)
 		{
-			position = messagePartPositions.get(
-				op.keywordIndex(instruction) - 1);
+			final int absoluteArgumentIndex =
+				((Argument) expression).absoluteUnderscoreIndex;
+			tokenIndex = underscorePartNumbers().get(absoluteArgumentIndex - 1);
 		}
-		else
+		else if (expression instanceof Simple)
 		{
-			for (final int eachInstruction : instructions.subList(0, pc + 1))
-			{
-				final ParsingOperation eachOp =
-					ParsingOperation.decode(eachInstruction);
-				switch (eachOp)
-				{
-					case PARSE_ARGUMENT:
-					case PARSE_TOP_VALUED_ARGUMENT:
-					case PARSE_VARIABLE_REFERENCE:
-					case PARSE_ARGUMENT_IN_MODULE_SCOPE:
-					case PARSE_ANY_RAW_TOKEN:
-					case PARSE_RAW_KEYWORD_TOKEN:
-					case PARSE_RAW_STRING_LITERAL_TOKEN:
-					case PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN:
-					{
-						argCounter++;
-						break;
-					}
-					default:
-						break;
-				}
-			}
-			assert argCounter > 0;
-			final int argPartNumber = underscorePartNumbers.get(argCounter - 1);
-			position = messagePartPositions.get(argPartNumber - 1);
+			tokenIndex = ((Simple) expression).tokenIndex;
 		}
-		final String string = messageName.asNativeString();
-		final String annotatedString =
-			string.substring(0, position - 1)
-			+ AvailCompiler.errorIndicatorSymbol
-			+ string.substring(position - 1);
-		final A_String availString = StringDescriptor.from(annotatedString);
+		String javaString = messageName.asNativeString();
+		if (tokenIndex != -1)
+		{
+			// Add the annotation indicator.
+			final int characterPosition =
+				messagePartPositions.get(tokenIndex - 1);
+			javaString = javaString.substring(0, characterPosition - 1)
+					+ AvailCompiler.errorIndicatorSymbol
+					+ javaString.substring(characterPosition - 1);
+		}
+		final A_String availString = StringDescriptor.from(javaString);
+		// Finally, quote it.
 		return availString.toString();
 	}
 

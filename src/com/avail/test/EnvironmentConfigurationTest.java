@@ -32,8 +32,8 @@
 
 package com.avail.test;
 
-import static org.junit.Assert.*;
-import org.junit.Test;
+import org.testng.annotations.*;
+import static org.testng.Assert.*;
 
 
 /**

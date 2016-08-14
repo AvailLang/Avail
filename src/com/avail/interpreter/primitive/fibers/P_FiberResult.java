@@ -110,8 +110,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_FIBER_RESULT_UNAVAILABLE.numericCode(),
-				E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT.numericCode())));
+			SetDescriptor.from(
+				E_FIBER_RESULT_UNAVAILABLE,
+				E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT));
 	}
 }

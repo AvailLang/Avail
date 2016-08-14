@@ -203,8 +203,8 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_POJO_TYPE_IS_ABSTRACT.numericCode(),
-				E_JAVA_METHOD_NOT_AVAILABLE.numericCode())));
+			SetDescriptor.from(
+				E_POJO_TYPE_IS_ABSTRACT,
+				E_JAVA_METHOD_NOT_AVAILABLE));
 	}
 }

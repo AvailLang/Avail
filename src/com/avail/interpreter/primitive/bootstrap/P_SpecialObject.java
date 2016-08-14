@@ -93,7 +93,8 @@ public final class P_SpecialObject extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_NO_SPECIAL_OBJECT.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_NO_SPECIAL_OBJECT));
 	}
 }

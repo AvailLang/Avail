@@ -98,8 +98,8 @@ public final class P_AtomRemoveProperty extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_NO_SUCH_FIELD.numericCode(),
-				E_KEY_NOT_FOUND.numericCode())));
+			SetDescriptor.from(
+				E_NO_SUCH_FIELD,
+				E_KEY_NOT_FOUND));
 	}
 }

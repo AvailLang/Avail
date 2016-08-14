@@ -42,7 +42,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive:</strong> Either an expression is having an applicable
  * semantic checked, a macro body is being executed for some invocation site, or
- * a {@link A_Method#prefixFunctions() prefix function} for a macro is being
+ * a {@link A_Definition#prefixFunctions() prefix function} for a macro is being
  * invoked for a tentative prefix of an invocation site.  The Avail code has
  * decided by invoking this primitive that the terms of the invocation are
  * acceptable.
@@ -96,7 +96,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_UNTIMELY_PARSE_ACCEPTANCE.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_UNTIMELY_PARSE_ACCEPTANCE));
 	}
 }

@@ -348,7 +348,7 @@ extends Descriptor
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
 			0);
-		writer.argumentTypes(new A_Type[] {tupleType});
+		writer.argumentTypes(tupleType);
 		writer.returnType(returnType);
 		writer.write(
 			L1Operation.L1_doPushLiteral,

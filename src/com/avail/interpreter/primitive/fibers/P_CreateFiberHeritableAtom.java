@@ -135,8 +135,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_ATOM_ALREADY_EXISTS.numericCode(),
-				E_AMBIGUOUS_NAME.numericCode())));
+			SetDescriptor.from(
+				E_ATOM_ALREADY_EXISTS,
+				E_AMBIGUOUS_NAME));
 	}
 }

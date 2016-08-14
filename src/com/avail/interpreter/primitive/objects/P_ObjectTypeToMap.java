@@ -78,8 +78,8 @@ public final class P_ObjectTypeToMap extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_NO_SUCH_FIELD.numericCode())));
+			SetDescriptor.from(
+				E_NO_SUCH_FIELD));
 	}
 
 	@Override

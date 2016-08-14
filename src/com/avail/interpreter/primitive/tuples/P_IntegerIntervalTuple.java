@@ -90,7 +90,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_INCORRECT_ARGUMENT_TYPE.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

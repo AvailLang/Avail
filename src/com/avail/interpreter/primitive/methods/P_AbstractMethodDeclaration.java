@@ -131,12 +131,12 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-					E_LOADING_IS_OVER.numericCode(),
-					E_AMBIGUOUS_NAME.numericCode(),
-					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES.numericCode(),
-					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS.numericCode(),
-					E_METHOD_IS_SEALED.numericCode()))
+			SetDescriptor.from(
+					E_LOADING_IS_OVER,
+					E_AMBIGUOUS_NAME,
+					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
+					E_METHOD_IS_SEALED)
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

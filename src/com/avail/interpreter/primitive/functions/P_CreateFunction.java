@@ -92,7 +92,8 @@ public final class P_CreateFunction extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_WRONG_OUTERS.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_WRONG_OUTERS));
 	}
 }

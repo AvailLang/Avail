@@ -48,7 +48,6 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.effects.LoadingEffectToAddDefinition;
 import com.avail.interpreter.effects.LoadingEffectToAddGrammaticalRestriction;
-import com.avail.interpreter.effects.LoadingEffectToAddPrefixFunction;
 import com.avail.interpreter.effects.LoadingEffectToAddSeal;
 import com.avail.interpreter.effects.LoadingEffectToAddSemanticRestriction;
 import com.avail.io.TextInterface;
@@ -327,9 +326,6 @@ public final class AvailLoader
 	 *        A {@linkplain AtomDescriptor method name}.
 	 * @param bodyBlock
 	 *        The {@linkplain FunctionDescriptor body block}.
-	 * @param extendGrammar
-	 *        {@code true} if the method name should be added to the current
-	 *        module's bundle tree, {@code false} otherwise.
 	 * @throws MalformedMessageException
 	 *         If the message name is malformed.
 	 * @throws SignatureException
@@ -337,8 +333,7 @@ public final class AvailLoader
 	 */
 	public final void addMethodBody (
 			final A_Atom methodName,
-			final A_Function bodyBlock,
-			final boolean extendGrammar)
+			final A_Function bodyBlock)
 		throws MalformedMessageException, SignatureException
 	{
 		assert methodName.isAtom();
@@ -453,7 +448,7 @@ public final class AvailLoader
 		final MessageSplitter splitter = bundle.messageSplitter();
 		splitter.checkImplementationSignature(bodySignature);
 		final A_Type bodyArgsTupleType = bodySignature.argsTupleType();
-		//  Add the stubbed method definition.
+		// Add the stubbed method definition.
 		final A_Method method = bundle.bundleMethod();
 		for (final A_Definition definition : method.definitionsTuple())
 		{
@@ -483,9 +478,7 @@ public final class AvailLoader
 			}
 		}
 		final A_Definition newForward = ForwardDefinitionDescriptor.create(
-			method,
-			module,
-			bodySignature);
+			method, module, bodySignature);
 		method.methodAddDefinition(newForward);
 		recordEffect(new LoadingEffectToAddDefinition(newForward));
 		final A_Module theModule = module;
@@ -497,18 +490,17 @@ public final class AvailLoader
 			{
 				theModule.moduleAddDefinition(newForward);
 				pendingForwards = pendingForwards.setWithElementCanDestroy(
-					newForward,
-					true);
-//				for (final A_DefinitionParsingPlan plan
-//					: bundle.definitionParsingPlans())
-//				{
-//					if (plan.definition().equals(newForward))
-//					{
-//						// This is the plan added for the new definition.
-//						root.addDefinitionParsingPlan(plan);
-//					}
-//				}
+					newForward, true);
 				root.addBundle(bundle);
+				for (final A_DefinitionParsingPlan plan
+					: bundle.definitionParsingPlans())
+				{
+					if (plan.definition().equals(newForward))
+					{
+						// This is the plan added for the new definition.
+						root.addPlan(plan);
+					}
+				}
 				root.flushForNewOrChangedBundle(bundle);
 			}
 		});
@@ -594,27 +586,27 @@ public final class AvailLoader
 		recordEffect(new LoadingEffectToAddDefinition(newDefinition));
 		final A_Module theModule = module;
 		final A_BundleTree root = rootBundleTree();
-//		final A_Definition finalForward = forward;
+		final A_Definition finalForward = forward;
 		theModule.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
-//				for (final A_DefinitionParsingPlan plan
-//					: bundle.definitionParsingPlans())
-//				{
-//					if (plan.definition().equals(finalForward))
-//					{
-//						// This is the plan for the forward being replaced.
-//						root.removeDefinitionParsingPlan(plan);
-//					}
-//					else if (plan.definition().equals(newDefinition))
-//					{
-//						// This is the plan added for the new definition.
-//						root.addDefinitionParsingPlan(plan);
-//					}
-//				}
 				root.addBundle(bundle);
+				for (final A_DefinitionParsingPlan plan
+					: bundle.definitionParsingPlans())
+				{
+					if (plan.definition().equals(finalForward))
+					{
+						// This is the plan for the forward being replaced.
+						root.removeDefinitionParsingPlan(plan);
+					}
+					else if (plan.definition().equals(newDefinition))
+					{
+						// This is the plan added for the new definition.
+						root.addPlan(plan);
+					}
+				}
 				root.flushForNewOrChangedBundle(bundle);
 				theModule.moduleAddDefinition(newDefinition);
 			}
@@ -631,6 +623,9 @@ public final class AvailLoader
 	 * @param macroBody
 	 *        A {@linkplain FunctionDescriptor function} that manipulates parse
 	 *        nodes.
+	 * @param prefixFunctions
+	 *        The tuple of functions to run during macro parsing, corresponding
+	 *        with occurrences of section checkpoints ("§") in the macro name.
 	 * @throws MalformedMessageException
 	 *         If the macro signature is malformed.
 	 * @throws SignatureException
@@ -638,7 +633,8 @@ public final class AvailLoader
 	 */
 	public void addMacroBody (
 			final A_Atom methodName,
-			final A_Function macroBody)
+			final A_Function macroBody,
+			final A_Tuple prefixFunctions)
 		throws MalformedMessageException, SignatureException
 	{
 		assert methodName.isAtom();
@@ -662,7 +658,7 @@ public final class AvailLoader
 		// Add the macro definition.
 		final A_Method method = bundle.bundleMethod();
 		final AvailObject macroDefinition = MacroDefinitionDescriptor.create(
-			method, module, macroBody);
+			method, module, macroBody, prefixFunctions);
 		module.moduleAddDefinition(macroDefinition);
 		final A_Type macroBodyType = macroBody.kind();
 		for (final A_Definition existingDefinition
@@ -687,52 +683,16 @@ public final class AvailLoader
 			@Override
 			public void value ()
 			{
-//				for (final A_DefinitionParsingPlan plan
-//					: bundle.definitionParsingPlans())
-//				{
-//					if (plan.definition().equals(macroDefinition))
-//					{
-//						// This is the plan added for the new definition.
-//						root.addDefinitionParsingPlan(plan);
-//					}
-//				}
 				root.addBundle(bundle);
-				root.flushForNewOrChangedBundle(bundle);
-			}
-		});
-	}
-
-	/**
-	 * Add the specified {@link A_Function} as a macro prefix function.  A
-	 * prefix function runs at specific section checkpoints while parsing a
-	 * macro invocation, allowing actions like declarations of local variables.
-	 *
-	 * @param methodName The {@link A_Atom} naming the method.
-	 * @param index The prefix function subscript.
-	 * @param prefixFunction The prefix function.
-	 * @throws MalformedMessageException If the message is malformed.
-	 */
-	public void addPrefixFunction (
-			final A_Atom methodName,
-			final int index,
-			final A_Function prefixFunction)
-		throws MalformedMessageException
-	{
-		final A_Bundle bundle = methodName.bundleOrCreate();
-		final A_Method method = bundle.bundleMethod();
-		runtime.addPrefixFunction(method, index, prefixFunction);
-		final A_Module theModule = module;
-		final A_BundleTree root = rootBundleTree();
-		recordEffect(new LoadingEffectToAddPrefixFunction(
-			method, index, prefixFunction));
-		theModule.lock(new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				theModule.moduleAddPrefixFunction(
-					method, index, prefixFunction);
-				root.addBundle(bundle);
+				for (final A_DefinitionParsingPlan plan
+					: bundle.definitionParsingPlans())
+				{
+					if (plan.definition().equals(macroDefinition))
+					{
+						// This is the plan added for the new definition.
+						root.addPlan(plan);
+					}
+				}
 				root.flushForNewOrChangedBundle(bundle);
 			}
 		});
@@ -771,11 +731,7 @@ public final class AvailLoader
 				for (final A_Bundle bundle : method.bundles())
 				{
 					// Update the bundle tree if the bundle is visible
-//					if (root.allParsingPlans().hasKey(bundle.message()))
-//					{
-//						root.flushForNewOrChangedBundle(bundle);
-//					}
-					if (root.allBundles().hasKey(bundle.message()))
+					if (root.allParsingPlans().hasKey(bundle))
 					{
 						root.flushForNewOrChangedBundle(bundle);
 					}

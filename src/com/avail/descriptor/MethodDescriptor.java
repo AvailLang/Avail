@@ -41,7 +41,6 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.MessageSplitter;
-import com.avail.compiler.ParsingOperation;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
@@ -54,7 +53,15 @@ import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
 import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.general.P_DeclareStringificationAtom;
-import com.avail.interpreter.primitive.methods.*;
+import com.avail.interpreter.primitive.methods.P_AbstractMethodDeclarationForAtom;
+import com.avail.interpreter.primitive.methods.P_AddSemanticRestrictionForAtom;
+import com.avail.interpreter.primitive.methods.P_Alias;
+import com.avail.interpreter.primitive.methods.P_ForwardMethodDeclarationForAtom;
+import com.avail.interpreter.primitive.methods.P_GrammaticalRestrictionFromAtoms;
+import com.avail.interpreter.primitive.methods.P_MethodDeclarationFromAtom;
+import com.avail.interpreter.primitive.methods.P_SealMethodByAtom;
+import com.avail.interpreter.primitive.methods.P_SimpleMacroDeclaration;
+import com.avail.interpreter.primitive.methods.P_SimpleMethodDeclaration;
 import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken;
@@ -194,16 +201,7 @@ extends Descriptor
 		 * supplied argument types.  A {@linkplain NilDescriptor#nil() nil}
 		 * indicates the tree has not yet been constructed.
 		 */
-		MACRO_TESTING_TREE,
-
-		/**
-		 * A {@linkplain A_Tuple tuple} of (unordered) tuples of {@linkplain
-		 * A_Function functions} to invoke each time a {@linkplain
-		 * ParsingOperation#RUN_PREFIX_FUNCTION} parsing operation is
-		 * encountered, which corresponds to reaching an occurrence of a
-		 * section checkpoint ("§") in the message name.
-		 */
-		MACRO_PREFIX_FUNCTIONS;
+		MACRO_TESTING_TREE;
 	}
 
 	/**
@@ -1096,8 +1094,7 @@ extends Descriptor
 			|| e == SEMANTIC_RESTRICTIONS_SET
 			|| e == SEALED_ARGUMENTS_TYPES_TUPLE
 			|| e == MACRO_DEFINITIONS_TUPLE
-			|| e == MACRO_TESTING_TREE
-			|| e == MACRO_PREFIX_FUNCTIONS;
+			|| e == MACRO_TESTING_TREE;
 	}
 
 	@Override
@@ -1325,18 +1322,7 @@ extends Descriptor
 			{
 				return false;
 			}
-			if (object.slot(MACRO_DEFINITIONS_TUPLE).tupleSize() > 0)
-			{
-				return false;
-			}
-			for (final A_Tuple nthPrefixFunctions : object.prefixFunctions())
-			{
-				if (nthPrefixFunctions.tupleSize() > 0)
-				{
-					return false;
-				}
-			}
-			return true;
+			return object.slot(MACRO_DEFINITIONS_TUPLE).tupleSize() == 0;
 		}
 	}
 
@@ -1543,20 +1529,6 @@ extends Descriptor
 		return object.slot(NUM_ARGS);
 	}
 
-	@Override
-	A_Tuple o_PrefixFunctions (final AvailObject object)
-	{
-		return object.slot(MACRO_PREFIX_FUNCTIONS);
-	}
-
-	@Override
-	public void o_PrefixFunctions (
-		final AvailObject object,
-		final A_Tuple prefixFunctions)
-	{
-		object.setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions);
-	}
-
 	/**
 	 * Remove the definition from me. Causes dependent chunks to be
 	 * invalidated.
@@ -1674,8 +1646,6 @@ extends Descriptor
 		object.slot(DEFINITIONS_TUPLE).writeTo(writer);
 		writer.write("macro definitions");
 		object.slot(MACRO_DEFINITIONS_TUPLE).writeTo(writer);
-		writer.write("macro prefix functions");
-		object.slot(MACRO_PREFIX_FUNCTIONS).writeTo(writer);
 		writer.endObject();
 	}
 
@@ -1691,8 +1661,6 @@ extends Descriptor
 		object.slot(DEFINITIONS_TUPLE).writeSummaryTo(writer);
 		writer.write("macro definitions");
 		object.slot(MACRO_DEFINITIONS_TUPLE).writeSummaryTo(writer);
-		writer.write("macro prefix functions");
-		object.slot(MACRO_PREFIX_FUNCTIONS).writeSummaryTo(writer);
 		writer.endObject();
 	}
 
@@ -1744,10 +1712,6 @@ extends Descriptor
 		result.setSlot(
 			MACRO_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(macrosTree).makeShared());
-		result.setSlot(
-			MACRO_PREFIX_FUNCTIONS,
-			RepeatedElementTupleDescriptor.createRepeatedElementTuple(
-				numSections, TupleDescriptor.empty()));
 		result.makeShared();
 		return result;
 	}
@@ -1883,7 +1847,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	public static A_Atom createSpecialMethodAtom (
+	public static A_Atom  createSpecialMethodAtom (
 		final String name,
 		final Primitive... primitives)
 	{
@@ -1963,26 +1927,6 @@ extends Descriptor
 	}
 
 	/**
-	 * The (special) name of the VM-built method used to define a macro without
-	 * also defining prefix functions.
-	 */
-	private static final A_Atom vmJustMacroDefinerAtom =
-		createSpecialMethodAtom(
-			"vm macro_is_",
-			P_JustMacroDefinitionForAtom.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to define a macro without also defining prefix functions.
-	 *
-	 * @return The name of the bootstrap macro-defining method.
-	 */
-	public static A_Atom vmJustMacroDefinerAtom ()
-	{
-		return vmJustMacroDefinerAtom;
-	}
-
-	/**
 	 * The (special) name of the VM-built pre-bootstrap macro-defining method.
 	 */
 	private static final A_Atom vmMacroDefinerAtom = createSpecialMethodAtom(
@@ -1998,24 +1942,6 @@ extends Descriptor
 	public static A_Atom vmMacroDefinerAtom ()
 	{
 		return vmMacroDefinerAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built function that adds a prefix function.
-	 */
-	private static final A_Atom vmDeclarePrefixFunctionAtom =
-		createSpecialMethodAtom(
-			"vm declare prefix function_at_is_",
-			P_DeclarePrefixFunctionForAtom.instance);
-
-	/**
-	 * Answer the (special) name of the VM-built continuation caller atom.
-	 *
-	 * @return The name of the VM's continuation caller atom.
-	 */
-	public static A_Atom vmDeclarePrefixFunctionAtom ()
-	{
-		return vmDeclarePrefixFunctionAtom;
 	}
 
 	/**

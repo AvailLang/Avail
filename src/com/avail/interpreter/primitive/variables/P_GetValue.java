@@ -98,8 +98,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode(),
-				E_JAVA_MARSHALING_FAILED.numericCode())));
+			SetDescriptor.from(
+				E_CANNOT_READ_UNASSIGNED_VARIABLE,
+				E_JAVA_MARSHALING_FAILED));
 	}
 }

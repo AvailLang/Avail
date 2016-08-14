@@ -32,12 +32,12 @@
 
 package com.avail.test;
 
-import static org.junit.Assert.*;
+import org.testng.annotations.*;
+import static org.testng.Assert.*;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static java.lang.Math.*;
 import java.io.*;
 import java.util.*;
-import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.builder.*;
@@ -207,8 +207,8 @@ public final class SerializerTest
 		prepareToReadBack();
 		final A_BasicObject newObject = deserializer().deserialize();
 		assertTrue(
-			"Serialization stream was not fully emptied",
-			in().available() == 0);
+			in().available() == 0,
+			"Serialization stream was not fully emptied");
 		assert deserializer().deserialize() == null;
 		return (AvailObject)newObject;
 	}
@@ -432,8 +432,8 @@ public final class SerializerTest
 		deserializer().currentModule(currentModule);
 		final A_BasicObject newObject = deserializer().deserialize();
 		assertTrue(
-			"Serialization stream was not fully emptied",
-			in().available() == 0);
+			in().available() == 0,
+			"Serialization stream was not fully emptied");
 		assertEquals(tuple, newObject);
 	}
 

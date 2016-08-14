@@ -106,7 +106,8 @@ public final class P_BindPojoInstanceField extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_JAVA_FIELD_NOT_AVAILABLE.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_JAVA_FIELD_NOT_AVAILABLE));
 	}
 }

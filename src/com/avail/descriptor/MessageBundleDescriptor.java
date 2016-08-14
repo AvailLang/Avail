@@ -115,18 +115,6 @@ extends Descriptor
 		GRAMMATICAL_RESTRICTIONS,
 
 		/**
-		 * A tuple of integers that describe how to parse an invocation of this
-		 * method. The integers encode parsing instructions, many of which can
-		 * be executed en masse against a piece of Avail source code for
-		 * multiple potential methods. This is facilitated by the incremental
-		 * construction of a {@linkplain MessageBundleTreeDescriptor message
-		 * bundle tree}. The instructions are produced during analysis of the
-		 * method name by the {@link MessageSplitter}, which has a description
-		 * of the complete instruction set.
-		 */
-		PARSING_INSTRUCTIONS,
-
-		/**
 		 * The {@link SetDescriptor set} of {@link
 		 * DefinitionParsingPlanDescriptor definition parsing plans} that are
 		 * defined for this bundle.  This should agree in size with all other
@@ -314,12 +302,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_ParsingInstructions (final AvailObject object)
-	{
-		return object.slot(PARSING_INSTRUCTIONS);
-	}
-
-	@Override @AvailMethod
 	void o_RemoveDefinitionParsingPlan (
 		final AvailObject object,
 		final A_DefinitionParsingPlan plan)
@@ -486,7 +468,6 @@ extends Descriptor
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_PARTS, splitter.messageParts());
-		result.setSlot(PARSING_INSTRUCTIONS, splitter.instructionsTuple());
 		result.setSlot(MESSAGE_SPLITTER_POJO, splitterPojo);
 		result.setSlot(GRAMMATICAL_RESTRICTIONS, SetDescriptor.empty());
 		final A_Set plans = SetDescriptor.empty();

@@ -462,7 +462,7 @@ enum SerializerOperandEncoding
 		final A_BasicObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
-			final AvailObject[] elementsArray = new AvailObject[tupleSize];
+			final A_Character[] elementsArray = new AvailObject[tupleSize];
 			for (int i = 0; i < tupleSize; i++)
 			{
 				final int codePoint = readCompressedPositiveInt(deserializer);

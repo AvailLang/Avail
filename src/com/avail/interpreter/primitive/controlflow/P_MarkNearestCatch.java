@@ -73,12 +73,9 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				AbstractEnumerationTypeDescriptor.withInstances(
-					SetDescriptor.fromCollection(
-						Arrays.asList(new A_Number[]
-						{
-							E_HANDLER_SENTINEL.numericCode(),
-							E_UNWIND_SENTINEL.numericCode()
-						})))),
+					SetDescriptor.from(
+						E_HANDLER_SENTINEL,
+						E_UNWIND_SENTINEL))),
 			TOP.o());
 	}
 
@@ -86,11 +83,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(
-				Arrays.asList(new A_Number[]
-				{
-					E_CANNOT_MARK_HANDLER_FRAME.numericCode(),
-					E_NO_HANDLER_FRAME.numericCode()
-				})));
+			SetDescriptor.from(
+				E_CANNOT_MARK_HANDLER_FRAME,
+				E_NO_HANDLER_FRAME));
 	}
 }

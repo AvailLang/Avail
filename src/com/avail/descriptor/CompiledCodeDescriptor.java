@@ -514,14 +514,15 @@ extends Descriptor
 						final A_Module module = function.module();
 						if (!module.equalsNil())
 						{
-							final CodeCoverageReport report = new CodeCoverageReport(
-								getInvocationStatistic(
-									(AvailObject) function).hasRun,
-								function.startingChunk()
-									!= L2Chunk.unoptimizedChunk(),
-								function.startingLineNumber(),
-								module.moduleName().asNativeString(),
-								function.methodName().asNativeString());
+							final CodeCoverageReport report =
+								new CodeCoverageReport(
+									getInvocationStatistic(
+										(AvailObject) function).hasRun,
+									function.startingChunk()
+										!= L2Chunk.unoptimizedChunk(),
+									function.startingLineNumber(),
+									module.moduleName().asNativeString(),
+									function.methodName().asNativeString());
 							if (!reports.contains(report))
 							{
 								reports.add(report);

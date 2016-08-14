@@ -428,9 +428,9 @@ public enum AvailErrorCode
 
 	/**
 	 * The {@linkplain FiberDescriptor#current() current fiber} attempted to
-	 * determine the {@linkplain P_CurrentMacroBundle current macro bundle}, the
-	 * bundle of a send node which was undergoing macro substitution, but this
-	 * fiber is not performing a macro substitution.
+	 * determine the {@linkplain P_CurrentMacroName current macro name}, the
+	 * name (atom) of a send node which was undergoing macro substitution, but
+	 * this fiber is not performing a macro substitution.
 	 */
 	E_NOT_EVALUATING_MACRO (65),
 

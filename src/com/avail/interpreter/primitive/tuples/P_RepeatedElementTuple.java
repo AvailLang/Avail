@@ -89,8 +89,9 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_EXCEEDS_VM_LIMIT.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_EXCEEDS_VM_LIMIT));
 	}
 
 	@Override

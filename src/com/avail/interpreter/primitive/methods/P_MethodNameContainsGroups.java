@@ -64,7 +64,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_String name = args.get(0);
-		@Nullable MessageSplitter splitter = null;
+		final MessageSplitter splitter;
 		try
 		{
 			splitter = new MessageSplitter(name);
@@ -73,7 +73,6 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		assert splitter != null;
 		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
 			splitter.containsGroups()));
 	}

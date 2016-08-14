@@ -34,7 +34,9 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.evaluation.Transformer1;
 
 /**
  * {@code DefinitionDescriptor} is an abstraction for things placed into a
@@ -45,12 +47,8 @@ import com.avail.serialization.SerializerOperation;
  * <li>{@linkplain MethodDefinitionDescriptor method definitions}, or</li>
  * <li>{@linkplain MacroDefinitionDescriptor macro definitions}.</li>
  * </ul>
- *
- * <p>
- * If a macro definition is present, it must be the only definition.
- * </p>
- *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
  */
 public abstract class DefinitionDescriptor
 extends Descriptor
@@ -73,6 +71,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	abstract A_Type o_BodySignature (final AvailObject object);
+
+	@Override @AvailMethod
 	public A_Method o_DefinitionMethod (final AvailObject object)
 	{
 		return object.slot(DEFINITION_METHOD);
@@ -85,9 +86,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	abstract A_Type o_BodySignature (final AvailObject object);
-
-	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
@@ -95,9 +93,6 @@ extends Descriptor
 
 	@Override @AvailMethod
 	abstract int o_Hash (final AvailObject object);
-
-	@Override @AvailMethod
-	abstract A_Type o_Kind (final AvailObject object);
 
 	@Override @AvailMethod
 	boolean o_IsAbstractDefinition (final AvailObject object)
@@ -121,6 +116,28 @@ extends Descriptor
 	boolean o_IsMacroDefinition (final AvailObject object)
 	{
 		return false;
+	}
+
+	@Override @AvailMethod
+	abstract A_Type o_Kind (final AvailObject object);
+
+	@Override @AvailMethod
+	A_Type o_ParsingSignature (final AvailObject object)
+	{
+		// Non-macro definitions have a signature derived from the
+		// bodySignature.
+		final Transformer1<A_Type, A_Type> transformer =
+			new Transformer1<A_Type, A_Type>()
+			{
+				@Override
+				public A_Type value (@Nullable final A_Type argumentType)
+				{
+					assert argumentType != null;
+					return ParseNodeKind.PARSE_NODE.create(argumentType);
+				}
+			};
+		return TupleTypeDescriptor.mappingElementTypes(
+			object.bodySignature().argsTupleType(), transformer);
 	}
 
 	@Override @AvailMethod

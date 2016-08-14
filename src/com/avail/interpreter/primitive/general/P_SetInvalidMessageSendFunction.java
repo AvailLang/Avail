@@ -79,13 +79,12 @@ extends Primitive
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
 						AbstractEnumerationTypeDescriptor.withInstances(
-							TupleDescriptor.from(
-									E_NO_METHOD.numericCode(),
-									E_NO_METHOD_DEFINITION.numericCode(),
-									E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
-									E_FORWARD_METHOD_DEFINITION.numericCode(),
-									E_ABSTRACT_METHOD_DEFINITION.numericCode())
-								.asSet()),
+							SetDescriptor.from(
+								E_NO_METHOD,
+								E_NO_METHOD_DEFINITION,
+								E_AMBIGUOUS_METHOD_DEFINITION,
+								E_FORWARD_METHOD_DEFINITION,
+								E_ABSTRACT_METHOD_DEFINITION)),
 						METHOD.o(),
 						TupleTypeDescriptor.mostGeneralType()),
 					BottomTypeDescriptor.bottom())),

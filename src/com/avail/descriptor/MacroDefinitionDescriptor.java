@@ -35,7 +35,9 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
 import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.*;
 import com.avail.annotations.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -88,7 +90,17 @@ extends DefinitionDescriptor
 		 * the (complete) argument parse nodes into a suitable replacement parse
 		 * node.
 		 */
-		BODY_BLOCK;
+		BODY_BLOCK,
+
+		/**
+		 * A {@linkplain A_Tuple tuple} of {@linkplain A_Function functions}
+		 * corresponding with occurrences of section checkpoints ("§") in the
+		 * message name.  Each function takes the collected argument phrases
+		 * thus far, and has the opportunity to reject the parse or read/write
+		 * parse-specific information in a fiber-specific variable with the key
+		 * {@link AtomDescriptor#clientDataGlobalKey()}.
+		 */
+		MACRO_PREFIX_FUNCTIONS;
 
 		static
 		{
@@ -99,16 +111,6 @@ extends DefinitionDescriptor
 		}
 	}
 
-	/**
-	 * Answer my signature.
-	 */
-	@Override @AvailMethod
-	A_Type o_BodySignature (
-		final AvailObject object)
-	{
-		return object.bodyBlock().kind();
-	}
-
 	@Override @AvailMethod
 	A_Function o_BodyBlock (
 		final AvailObject object)
@@ -116,12 +118,29 @@ extends DefinitionDescriptor
 		return object.slot(BODY_BLOCK);
 	}
 
+	/**
+	 * Answer my signature.
+	 */
+	@Override @AvailMethod
+	A_Type o_BodySignature (
+		final AvailObject object)
+	{
+		return object.slot(BODY_BLOCK).kind();
+	}
+
 	@Override @AvailMethod
 	int o_Hash (
 		final AvailObject object)
 	{
-		final int hash = object.bodyBlock().hash() ^ 0x67f6ec56;
+		final int hash = object.bodyBlock().hash() ^ 0x67f6ec56 + 0x0AFB0E62;
 		return hash;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsMacroDefinition (
+		final AvailObject object)
+	{
+		return true;
 	}
 
 	@Override @AvailMethod
@@ -131,11 +150,18 @@ extends DefinitionDescriptor
 		return MACRO_DEFINITION.o();
 	}
 
-	@Override @AvailMethod
-	boolean o_IsMacroDefinition (
-		final AvailObject object)
+	@Override
+	A_Type o_ParsingSignature (final AvailObject object)
 	{
-		return true;
+		// A macro definition's parsing signature is just the body block's
+		// kind's arguments type.
+		return object.slot(BODY_BLOCK).kind().argsTupleType();
+	}
+
+	@Override
+	A_Tuple o_PrefixFunctions (final AvailObject object)
+	{
+		return object.slot(MACRO_PREFIX_FUNCTIONS);
 	}
 
 	@Override
@@ -156,6 +182,8 @@ extends DefinitionDescriptor
 		object.slot(MODULE).moduleName().writeTo(writer);
 		writer.write("body block");
 		object.slot(BODY_BLOCK).writeTo(writer);
+		writer.write("macro prefix functions");
+		object.slot(MACRO_PREFIX_FUNCTIONS).writeTo(writer);
 		writer.endObject();
 	}
 
@@ -171,6 +199,8 @@ extends DefinitionDescriptor
 		object.slot(MODULE).moduleName().writeTo(writer);
 		writer.write("body block");
 		object.slot(BODY_BLOCK).writeSummaryTo(writer);
+		writer.write("macro prefix functions");
+		object.slot(MACRO_PREFIX_FUNCTIONS).writeSummaryTo(writer);
 		writer.endObject();
 	}
 
@@ -184,20 +214,25 @@ extends DefinitionDescriptor
 	 *            The module in which this definition is added.
 	 * @param bodyBlock
 	 *            The body of the signature.  This will be invoked when a call
-	 *            site is compiled, passing the sub<em>expressions</em> (
-	 *            {@linkplain ParseNodeDescriptor parse nodes}) as arguments.
+	 *            site is compiled, passing the sub<em>expressions</em>
+	 *            ({@linkplain ParseNodeDescriptor parse nodes}) as arguments.
+	 * @param prefixFunctions
+	 *            The tuple of prefix functions that correspond with the section
+	 *            checkpoints ("§") in the macro's name.
 	 * @return
 	 *            A macro signature.
 	 */
 	public static AvailObject create (
 		final A_Method method,
 		final A_Module definitionModule,
-		final A_Function bodyBlock)
+		final A_Function bodyBlock,
+		final A_Tuple prefixFunctions)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(DEFINITION_METHOD, method);
 		instance.setSlot(MODULE, definitionModule);
 		instance.setSlot(BODY_BLOCK, bodyBlock);
+		instance.setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions);
 		instance.makeShared();
 		return instance;
 	}

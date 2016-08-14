@@ -107,9 +107,9 @@ public final class P_PojoArraySet extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode(),
-				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode(),
-				E_JAVA_MARSHALING_FAILED.numericCode())));
+			SetDescriptor.from(
+				E_SUBSCRIPT_OUT_OF_BOUNDS,
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
+				E_JAVA_MARSHALING_FAILED));
 	}
 }

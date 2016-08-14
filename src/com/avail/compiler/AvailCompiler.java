@@ -477,13 +477,11 @@ public final class AvailCompiler
 			// the argument parse, not the successor instruction that was
 			// captured.
 			final int pc = bundleTree.parsingPc() - 1;
-//			// Reduce to the the plans' unique bundles.
-//			final A_Map bundlesMap = bundleTree.allParsingPlans();
-//			final List<A_Bundle> bundles =
-//				TupleDescriptor.toList(bundlesMap.keysAsSet().asTuple());
-			final List<A_Bundle> bundles = TupleDescriptor.toList(
-				bundleTree.allBundles().valuesAsTuple());
-			Collections.<A_Bundle>sort(
+			// Reduce to the the plans' unique bundles.
+			final A_Map bundlesMap = bundleTree.allParsingPlans();
+			final List<A_Bundle> bundles =
+				TupleDescriptor.toList(bundlesMap.keysAsSet().asTuple());
+			Collections.sort(
 				bundles,
 				new Comparator<A_Bundle>()
 				{
@@ -507,12 +505,10 @@ public final class AvailCompiler
 				{
 					builder.append(", ");
 				}
-//				final A_Set plans = bundlesMap.mapAt(bundle);
-//				// Pick an active plan arbitrarily for this bundle.
-//				final A_DefinitionParsingPlan plan = plans.iterator().next();
-//				builder.append(plan.nameHighlightingPc(pc));
-				final MessageSplitter splitter = bundle.messageSplitter();
-				builder.append(splitter.nameHighlightingPc(pc));
+				final A_Set plans = bundlesMap.mapAt(bundle);
+				// Pick an active plan arbitrarily for this bundle.
+				final A_DefinitionParsingPlan plan = plans.iterator().next();
+				builder.append(plan.nameHighlightingPc(pc));
 				first = false;
 			}
 			if (bundles.size() > maxBundles)
@@ -3213,104 +3209,62 @@ public final class AvailCompiler
 				final int pc = bundleTree.parsingPc();
 				for (final MapDescriptor.Entry entry : incomplete.mapIterable())
 				{
-//					final A_String availString = entry.key();
-//					if (!availString.equals(excludedString))
-//					{
-//						final String string = availString.asNativeString();
-//						if (detail)
-//						{
-//							// Collect and deduplicate bundles, keeping one
-//							// representative definition parsing plan for each.
-//							final Set<A_Bundle> bundleSet =
-//								new HashSet<A_Bundle>();
-//							final List<A_DefinitionParsingPlan>
-//								representativePlans = new ArrayList<>();
-//							for (final MapDescriptor.Entry successorBundleEntry
-//								: entry.value().allParsingPlans().mapIterable())
-//							{
-//								final A_Bundle bundle =
-//									successorBundleEntry.key();
-//								final A_Set plans =
-//									successorBundleEntry.value();
-//								if (!bundleSet.contains(bundle))
-//								{
-//									bundleSet.add(bundle);
-//									representativePlans.add(
-//										plans.iterator().next());
-//								}
-//							}
-//							final StringBuilder buffer = new StringBuilder();
-//							buffer.append(string);
-//							buffer.append("  (");
-//							boolean first = true;
-//							for (final A_DefinitionParsingPlan plan
-//								: representativePlans)
-//							{
-//								if (!first)
-//								{
-//									buffer.append(", ");
-//								}
-//								final A_Bundle bundle = plan.bundle();
-//								buffer.append(plan.nameHighlightingPc(pc));
-//								buffer.append(" from ");
-//								final A_Module issuer =
-//									bundle.message().issuingModule();
-//								final String issuerName =
-//									issuer.moduleName().asNativeString();
-//								final String shortIssuer = issuerName.substring(
-//									issuerName.lastIndexOf('/') + 1);
-//								buffer.append(shortIssuer);
-//								first = false;
-//							}
-//							buffer.append(")");
-//							sorted.add(buffer.toString());
-//						}
-//						else
-//						{
-//							sorted.add(string);
-//						}
-//					}
-					final String string = entry.key().asNativeString();
-					if (detail)
+					final A_String availString = entry.key();
+					if (!availString.equals(excludedString))
 					{
-						final StringBuilder buffer = new StringBuilder();
-						buffer.append(string);
-						buffer.append("  (");
-						boolean first = true;
-						for (final MapDescriptor.Entry successorBundleEntry
-							: entry.value().allBundles().mapIterable())
+						final String string = availString.asNativeString();
+						if (detail)
 						{
-							if (successorBundleEntry.key().equals(
-								excludedString))
+							// Collect and deduplicate bundles, keeping one
+							// representative definition parsing plan for each.
+							final Set<A_Bundle> bundleSet =
+								new HashSet<A_Bundle>();
+							final List<A_DefinitionParsingPlan>
+								representativePlans = new ArrayList<>();
+							for (final MapDescriptor.Entry successorBundleEntry
+								: entry.value().allParsingPlans().mapIterable())
 							{
-								// Exclude this string since it was encountered.
-								continue;
+								final A_Bundle bundle =
+									successorBundleEntry.key();
+								if (!bundleSet.contains(bundle))
+								{
+									final A_Map plans =
+										successorBundleEntry.value();
+									bundleSet.add(bundle);
+									representativePlans.add(
+										plans.mapIterable().next().value());
+								}
 							}
-							if (!first)
+							final StringBuilder buffer = new StringBuilder();
+							buffer.append(string);
+							buffer.append("  (");
+							boolean first = true;
+							for (final A_DefinitionParsingPlan plan
+								: representativePlans)
 							{
-								buffer.append(", ");
+								if (!first)
+								{
+									buffer.append(", ");
+								}
+								final A_Bundle bundle = plan.bundle();
+								buffer.append(plan.nameHighlightingPc(pc));
+								buffer.append(" from ");
+								final A_Module issuer =
+									bundle.message().issuingModule();
+								final String issuerName =
+									issuer.moduleName().asNativeString();
+								final String shortIssuer = issuerName.substring(
+									issuerName.lastIndexOf('/') + 1);
+								buffer.append(shortIssuer);
+								first = false;
 							}
-							final A_Bundle bundle =
-								successorBundleEntry.value();
-							final MessageSplitter splitter =
-								bundle.messageSplitter();
-							buffer.append(splitter.nameHighlightingPc(pc));
-							buffer.append(" from ");
-							final A_Module issuer =
-								bundle.message().issuingModule();
-							final String issuerName =
-								issuer.moduleName().asNativeString();
-							final String shortIssuer = issuerName.substring(
-								issuerName.lastIndexOf('/') + 1);
-							buffer.append(shortIssuer);
-							first = false;
+							buffer.append(")");
+							sorted.add(buffer.toString());
 						}
-						buffer.append(")");
-						sorted.add(buffer.toString());
-					}
-					else
-					{
-						sorted.add(string);
+						else
+						{
+							sorted.add(string);
+						}
 					}
 				}
 				Collections.sort(sorted);
@@ -3368,8 +3322,7 @@ public final class AvailCompiler
 	 * an occurrence of a repeated or optional subexpression, even if it would
 	 * otherwise be recognized as such.
 	 */
-	private static List<Integer> initialMarkStack =
-		Collections.<Integer>emptyList();
+	private static List<Integer> initialMarkStack = Collections.emptyList();
 
 	/**
 	 * Parse a send node. To prevent infinite left-recursion and false
@@ -3560,23 +3513,27 @@ public final class AvailCompiler
 		final Con<A_Phrase> continuation)
 	{
 		bundleTree.expand(module, argsSoFar);
-		final A_Map complete = bundleTree.lazyComplete();
+		final A_Set complete = bundleTree.lazyComplete();
 		final A_Map incomplete = bundleTree.lazyIncomplete();
 		final A_Map caseInsensitive =
 			bundleTree.lazyIncompleteCaseInsensitive();
 		final A_Map actions = bundleTree.lazyActions();
 		final A_Map prefilter = bundleTree.lazyPrefilterMap();
-		final boolean anyComplete = complete.mapSize() > 0;
+		final A_BasicObject typeFilterTree =
+			bundleTree.lazyTypeFilterTreePojo();
+		final boolean anyComplete = complete.setSize() > 0;
 		final boolean anyIncomplete = incomplete.mapSize() > 0;
 		final boolean anyCaseInsensitive = caseInsensitive.mapSize() > 0;
 		final boolean anyActions = actions.mapSize() > 0;
 		final boolean anyPrefilter = prefilter.mapSize() > 0;
+		final boolean anyTypeFilter = !typeFilterTree.equalsNil();
 
 		if (!(anyComplete
 			|| anyIncomplete
 			|| anyCaseInsensitive
 			|| anyActions
-			|| anyPrefilter))
+			|| anyPrefilter
+			|| anyTypeFilter))
 		{
 			return;
 		}
@@ -3590,16 +3547,13 @@ public final class AvailCompiler
 			// restriction to prevent run-away left-recursion.  A type
 			// restriction won't be checked soon enough to prevent the
 			// recursion.
-			for (final MapDescriptor.Entry entry : complete.mapIterable())
+			assert marksSoFar.isEmpty();
+			assert argsSoFar.size() == 1;
+			final A_Phrase args = argsSoFar.get(0).stripMacro();
+			for (final A_Bundle bundle : complete)
 			{
-				assert marksSoFar.isEmpty();
-				assert argsSoFar.size() == 1;
 				completedSendNode(
-					initialTokenPosition,
-					start,
-					argsSoFar.get(0).stripMacro(),
-					entry.value(),
-					continuation);
+					initialTokenPosition, start, args, bundle, continuation);
 			}
 		}
 		if (anyIncomplete && firstArgOrNull == null)
@@ -3706,8 +3660,13 @@ public final class AvailCompiler
 				}
 				// The argument name was not in the prefilter map, so fall
 				// through to allow normal action processing.  Note that in this
-				// case the only possible action is the check argument instruction
+				// case the only possible action is the check argument
+				// instruction.
 			}
+		}
+		if (anyTypeFilter)
+		{
+			assert false : "Implement this"; //TODO MvG
 		}
 		if (anyActions)
 		{
@@ -4379,68 +4338,37 @@ public final class AvailCompiler
 				 * here, because the message bundle tree's o_Expand(AvailObject)
 				 * detected the previous instruction, always a
 				 * PREPARE_TO_RUN_PREFIX_FUNCTION, and put each plan into a new
-				 * tree.
-				 *
-				 * Attempt each Nth prefix function of the sole bundle, since
-				 * each one must be explored to determine if it contributes to
-				 * an unambiguous top-level statement.
+				 * tree.  Go to that plan's (macro) definition to find its
+				 * prefix functions, subscripting that tuple by this
+				 * RUN_PREFIX_FUNCTION's operand.
 				 */
 				assert successorTrees.tupleSize() == 1;
 				final A_BundleTree successorTree = successorTrees.tupleAt(1);
 				// Look inside the only successor to find the only bundle.
-//				@Nullable A_Bundle bundle = null;
-//				for (final MapDescriptor.Entry bundleEntry
-//					: successorTree.allParsingPlans().mapIterable())
-//				{
-//					final A_Bundle eachBundle = bundleEntry.key();
-//					if (bundle == null)
-//					{
-//						bundle = eachBundle;
-//					}
-//					else
-//					{
-//						// Sanity check.
-//						assert bundle.equals(eachBundle);
-//					}
-//				}
-//				assert bundle != null;
-				final A_Map bundlesMap = successorTree.allBundles();
+				final A_Map bundlesMap = successorTree.allParsingPlans();
 				assert bundlesMap.mapSize() == 1;
-				final A_Bundle bundle = bundlesMap.mapIterable().next().value();
-				final A_Tuple prefixFunctionTuples =
-					bundle.bundleMethod().prefixFunctions();
+				final A_Definition definition =
+					bundlesMap.mapIterable().next().key();
+				final A_Tuple prefixFunctions = definition.prefixFunctions();
 				final int prefixIndex = op.prefixFunctionSubscript(instruction);
-				final A_Tuple prefixFunctions =
-					prefixFunctionTuples.tupleAt(prefixIndex);
-				if (prefixFunctions.tupleSize() == 0)
-				{
-					// Warn about the missing prefix function.
-					start.expected(
-						"macro "
-						+ bundle.message()
-						+ " to have at least one prefix function #"
-						+ prefixIndex);
-					break;
-				}
+				final A_Function prefixFunction =
+					prefixFunctions.tupleAt(prefixIndex);
 				final A_Phrase prefixArgumentsList = last(argsSoFar);
 				final List<A_Phrase> withoutPrefixArguments =
 					withoutLast(argsSoFar);
 				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
 					prefixArgumentsList.stripMacro().expressionsTuple());
-				for (final A_Function prefixFunction : prefixFunctions)
-				{
-					runPrefixFunctionThen(
-						start,
-						successorTree,
-						prefixFunction,
-						listOfArgs,
-						firstArgOrNull,
-						initialTokenPosition,
-						consumedAnything,
-						withoutPrefixArguments,
-						marksSoFar,
-						continuation);
-				}
+				runPrefixFunctionThen(
+					start,
+					successorTree,
+					prefixFunction,
+					listOfArgs,
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					withoutPrefixArguments,
+					marksSoFar,
+					continuation);
 				break;
 			}
 			case PERMUTE_LIST:
@@ -5178,31 +5106,11 @@ public final class AvailCompiler
 			public void describeThen (
 				final Continuation1<String> continuation)
 			{
-//				final A_Set bundles =
-//					successorTree.allParsingPlans().keysAsSet();
-//				final StringBuilder builder = new StringBuilder();
-//				if (bundles.setSize() > 1)
-//				{
-//					builder.append("a variable use for one of:\n\t");
-//				}
-//				else
-//				{
-//					builder.append("a variable use for: ");
-//				}
-//				boolean first = true;
-//				for (final A_Bundle bundle : bundles)
-//				{
-//					if (!first)
-//					{
-//						builder.append(", ");
-//					}
-//					builder.append(bundle.message().atomName());
-//					first = false;
-//				}
-				final A_Map bundles = successorTree.allBundles();
+				final A_Set bundles =
+					successorTree.allParsingPlans().keysAsSet();
 				final StringBuilder builder = new StringBuilder();
 				builder.append("a variable use, for one of:");
-				if (bundles.mapSize() > 2)
+				if (bundles.setSize() > 2)
 				{
 					builder.append("\n\t");
 				}
@@ -5211,13 +5119,13 @@ public final class AvailCompiler
 					builder.append(" ");
 				}
 				boolean first = true;
-				for (final MapDescriptor.Entry entry : bundles.mapIterable())
+				for (final A_Bundle bundle : bundles)
 				{
 					if (!first)
 					{
 						builder.append(", ");
 					}
-					builder.append(entry.key());
+					builder.append(bundle.message().atomName());
 					first = false;
 				}
 				continuation.value(builder.toString());
@@ -5833,7 +5741,7 @@ public final class AvailCompiler
 							PARSE_NODE.mostGeneralType()))
 						{
 							stateAfterCall.expected(
-								asList(replacement),
+								Collections.singletonList(replacement),
 								new Transformer1<List<String>, String>()
 								{
 									@Override
@@ -6598,7 +6506,7 @@ public final class AvailCompiler
 		recordExpectationsRelativeTo(start.position);
 		parseOutermostStatement(
 			start,
-			new Con<A_Phrase>((PartialSubexpressionList)null)
+			new Con<A_Phrase>(null)
 			{
 				@Override
 				public void valueNotNull (
@@ -6940,7 +6848,7 @@ public final class AvailCompiler
 					// Rollback the module transaction no matter what happens.
 					parseExpressionThen(
 						new ParserState(0, clientData),
-						new Con<A_Phrase>((PartialSubexpressionList)null)
+						new Con<A_Phrase>(null)
 						{
 							@Override
 							public void valueNotNull (
@@ -7285,7 +7193,7 @@ public final class AvailCompiler
 					if (!expression.expressionType().isSubtypeOf(someType))
 					{
 						afterExpression.expected(
-							asList(someType),
+							Collections.singletonList(someType),
 							new Transformer1<List<String>, String>()
 							{
 								@Override
@@ -7398,12 +7306,15 @@ public final class AvailCompiler
 		final Con<A_Phrase> continuation,
 		final Continuation0 afterFail)
 	{
+		//TODO MvG : Remove DEBUG
+		System.out.println("DEBUG root:" + loader().rootBundleTree());
+
 		// If a parsing error happens during parsing of this outermost
 		// statement, only show the section of the file starting here.
 		recordExpectationsRelativeTo(start.position);
 		tryIfUnambiguousThen(
 			start,
-			new Con<Con<A_Phrase>>((PartialSubexpressionList)null)
+			new Con<Con<A_Phrase>>(null)
 			{
 				@Override
 				public void valueNotNull (
@@ -7412,7 +7323,7 @@ public final class AvailCompiler
 				{
 					parseExpressionThen(
 						realStart,
-						new Con<A_Phrase>((PartialSubexpressionList)null)
+						new Con<A_Phrase>(null)
 						{
 							@Override
 							public void valueNotNull (

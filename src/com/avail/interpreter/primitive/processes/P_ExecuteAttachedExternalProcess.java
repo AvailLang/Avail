@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.avail.AvailRuntime;
+import com.avail.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.exceptions.AvailErrorCode;
@@ -135,7 +136,7 @@ extends Primitive
 		newFiber.makeShared();
 		succeed.makeShared();
 		fail.makeShared();
-		AvailErrorCode error = null;
+		final AvailErrorCode error;
 		final AvailRuntime runtime = AvailRuntime.current();
 		// Start the process, running the success function on the new fiber if
 		// the process launches successfully.
@@ -193,9 +194,9 @@ extends Primitive
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(
 						AbstractEnumerationTypeDescriptor.withInstances(
-							SetDescriptor.fromCollection(Arrays.asList(
-								E_PERMISSION_DENIED.numericCode(),
-								E_NO_EXTERNAL_PROCESS.numericCode())))),
+							SetDescriptor.from(
+								E_PERMISSION_DENIED,
+								E_NO_EXTERNAL_PROCESS))),
 					TOP.o()),
 				IntegerRangeTypeDescriptor.bytes()),
 			FiberTypeDescriptor.forResultType(TOP.o()));
@@ -206,8 +207,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_PERMISSION_DENIED.numericCode(),
-				E_NO_EXTERNAL_PROCESS.numericCode())));
+			SetDescriptor.from(
+				E_PERMISSION_DENIED,
+				E_NO_EXTERNAL_PROCESS));
 	}
 }

@@ -114,32 +114,32 @@ extends Descriptor
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
-		 * atoms} that name methods to the {@linkplain MessageBundleDescriptor
-		 * message bundles} that assist with their parsing. In particular, any
-		 * {@linkplain MessageBundleTreeDescriptor message bundle tree}
-		 * represents the current state of collective parsing of an invocation
-		 * of one or more thus far equivalent methods. This is the collection
-		 * of such methods.
+		 * A {@linkplain MapDescriptor map} from {@link A_Bundle}s to maps,
+		 * which are themselves from {@link A_Definition definitions} to the
+		 * {@link A_DefinitionParsingPlan parsing plans} for that definition and
+		 * bundle.  Note that the inner maps may be empty in the case that a
+		 * grammatical restriction has been defined before any visible
+		 * definitions.  This doesn't affect parsing, but makes the logic
+		 * easier about deciding which grammatical restrictions are visible when
+		 * adding a definition later.
 		 */
-		ALL_BUNDLES,
+		ALL_PLANS,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
-		 * atoms} that name methods to the {@linkplain MessageBundleDescriptor
-		 * message bundles} that assist with their parsing. In particular,
-		 * these are methods that have not yet been categorized as complete,
-		 * incomplete, action, or prefilter. They are categorized if and when
-		 * this message bundle tree is reached during parsing.
+		 * A {@linkplain MapDescriptor map} from visible {@linkplain A_Bundle
+		 * bundles} to maps from {@link A_Definition definitions} to the
+		 * {@link A_DefinitionParsingPlan parsing plans} for that definition
+		 * and bundle.  It has the same content as ALL_PLANS until these items
+		 * have been categorized as complete, incomplete, action, or prefilter.
+		 * They are categorized if and when this message bundle tree is reached
+		 * during parsing.
 		 */
 		UNCLASSIFIED,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
-		 * atoms} that name methods to the {@linkplain MessageBundleDescriptor
-		 * message bundles} that assist with their parsing. In particular,
-		 * these are methods for which an invocation has just been completely
-		 * parsed.
+		 * A {@link A_Set set} of {@link A_Bundle bundles} that indicate which
+		 * methods have just had a complete invocation parsed at this point in
+		 * the tree.
 		 */
 		LAZY_COMPLETE,
 
@@ -258,39 +258,17 @@ extends Descriptor
 		 * checkArgument} instruction that all message bundles in this message
 		 * bundle tree must have.</p>
 		 */
-		LAZY_PREFILTER_MAP;
+		LAZY_PREFILTER_MAP,
 
-//		/**
-//		 * Macros sometimes have to have a "side-effect" like placing new
-//		 * variable declarations into the current scope – but before the entire
-//		 * macro invocation has been parsed.  We use the notion of {@link
-//		 * A_Method#prefixFunctions()} to represent what to do at various
-//		 * "section checkpoints" (indicated by a "§" symbol in the method name)
-//		 * while parsing a macro.
-//		 *
-//		 * <p>Because different macros having the same prefix may exist, and
-//		 * macros may be polymorphic, there will be cases where there are
-//		 * multiple distinct prefix functions to run during parsing.  However,
-//		 * we have to keep an entanglement between which prefix function was run
-//		 * and which macro definitions required that function to have run in its
-//		 * history.  Therefore, we diverge the tree between the {@link
-//		 * ParsingOperation#PREPARE_TO_RUN_PREFIX_FUNCTION} and the {@link
-//		 * ParsingOperation#RUN_PREFIX_FUNCTION} that always follows it.  That
-//		 * is, we produce a collection of successor trees at the {@code
-//		 * ParsingOperation#PREPARE_TO_RUN_PREFIX_FUNCTION}, one for each
-//		 * message bundle.  We use this slot to hold the list of successor
-//		 * {@linkplain A_BundleTree message bundle trees}.  When parsing arrives
-//		 * at a destination tree (representing a single bundle), it executes
-//		 * each of the Nth prefix functions for that bundle in parallel, in the
-//		 * hopes that (if there are multiple), only one will lead to a
-//		 * successful parse of the entire top-level expression.</p>
-//		 *
-//		 * <p>This slot, like most of the others, gets populated by the {@link
-//		 * A_BundleTree#expand(A_Module)} operation, but in particular, is only
-//		 * ever non-empty when a message bundle tree's current instruction is a
-//		 * {@link ParsingOperation#PREPARE_TO_RUN_PREFIX_FUNCTION}.</p>
-//		 */
-//		LAZY_MACRO_PREFIX_SINGLETONS;
+		/**
+		 * A {@link RawPojoDescriptor raw pojo} containing a type-dispatch tree
+		 * for handling the case that at least one {@link
+		 * A_DefinitionParsingPlan parsing plan} in this message bundle tree is
+		 * at a {@link #PARSING_PC} pointing to a {@link
+		 * ParsingOperation#TYPE_CHECK_ARGUMENT} operation.  This allows
+		 * relatively efficient elimination of inappropriately typed arguments
+		 */
+		LAZY_TYPE_FILTER_TREE_POJO;
 	}
 
 	@Override
@@ -298,13 +276,14 @@ extends Descriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == HASH_AND_PARSING_PC
-			|| e == ALL_BUNDLES
+			|| e == ALL_PLANS
 			|| e == UNCLASSIFIED
 			|| e == LAZY_COMPLETE
 			|| e == LAZY_INCOMPLETE
 			|| e == LAZY_INCOMPLETE_CASE_INSENSITIVE
 			|| e == LAZY_ACTIONS
-			|| e == LAZY_PREFILTER_MAP;
+			|| e == LAZY_PREFILTER_MAP
+			|| e == LAZY_TYPE_FILTER_TREE_POJO;
 	}
 
 	@Override
@@ -317,19 +296,27 @@ extends Descriptor
 		builder.append("BundleTree[pc=");
 		builder.append(object.slot(PARSING_PC));
 		builder.append("](");
-		final A_Map allBundles = object.slot(ALL_BUNDLES);
-		final int bundleCount = allBundles.mapSize();
-		if (bundleCount <= 10)
+		final A_Map allPlans = object.slot(ALL_PLANS);
+		final int bundleCount = allPlans.mapSize();
+		if (bundleCount <= 15)
 		{
 			boolean first = true;
-			for (final MapDescriptor.Entry entry : allBundles.mapIterable())
+			for (final MapDescriptor.Entry entry : allPlans.mapIterable())
 			{
-				if (!first)
+				if (bundleCount <= 3)
 				{
-					builder.append(", ");
+					builder.append(first ? "" : ", ");
+				}
+				else
+				{
+					Strings.newlineTab(builder, indent);
 				}
 				first = false;
-				builder.append(entry.key().atomName());
+				final A_Bundle bundle = entry.key();
+				builder.append(bundle.message().atomName());
+				builder.append(" (");
+				builder.append(entry.value().mapSize());
+				builder.append(" definitions)");
 			}
 		}
 		else
@@ -341,7 +328,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Add the given message/bundle pair.
+	 * Add the bundle to this tree.  Don't add any definitions/plans here.
 	 */
 	@Override @AvailMethod
 	void o_AddBundle (
@@ -350,32 +337,54 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			A_Map allBundles = object.slot(ALL_BUNDLES);
-			final A_Atom message = bundle.message();
-			if (!allBundles.hasKey(message))
+			A_Map allPlans = object.slot(ALL_PLANS);
+			if (!allPlans.hasKey(bundle))
 			{
-				allBundles = allBundles.mapAtPuttingCanDestroy(
-					message,
-					bundle,
-					true);
-				object.setSlot(ALL_BUNDLES, allBundles.makeShared());
+				allPlans = allPlans.mapAtPuttingCanDestroy(
+					bundle, MapDescriptor.empty(), true);
+				object.setSlot(ALL_PLANS, allPlans.makeShared());
 				A_Map unclassified = object.slot(UNCLASSIFIED);
-				if (!unclassified.hasKey(message))
+				if (!unclassified.hasKey(bundle))
 				{
 					unclassified = unclassified.mapAtPuttingCanDestroy(
-						message,
-						bundle,
-						true);
+						bundle, MapDescriptor.empty(), true);
 					object.setSlot(UNCLASSIFIED, unclassified.makeShared());
 				}
 			}
 		}
 	}
 
-	@Override @AvailMethod
-	A_Map o_AllBundles (final AvailObject object)
+	/**
+	 * Add the plan to this bundle tree.  The corresponding bundle must already
+	 * be present.
+	 */
+	@Override
+	void o_AddPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan)
 	{
-		return object.slot(ALL_BUNDLES);
+		synchronized (object)
+		{
+			final A_Bundle bundle = plan.bundle();
+			final A_Definition definition = plan.definition();
+			A_Map allPlans = object.slot(ALL_PLANS);
+			assert allPlans.hasKey(bundle);
+			A_Map submap = allPlans.mapAt(bundle);
+			submap = submap.mapAtPuttingCanDestroy(definition, plan, true);
+			allPlans = allPlans.mapAtPuttingCanDestroy(
+				bundle, submap, true);
+			object.setSlot(ALL_PLANS, allPlans.makeShared());
+			// And add it to unclassified.
+			A_Map unclassified = object.slot(UNCLASSIFIED);
+			A_Map unclassifiedSubmap = unclassified.hasKey(bundle)
+				? unclassified.mapAt(bundle)
+				: MapDescriptor.empty();
+			unclassifiedSubmap = unclassifiedSubmap.mapAtPuttingCanDestroy(
+				definition, plan, true);
+			unclassified = unclassified.mapAtPuttingCanDestroy(
+				bundle, unclassifiedSubmap, true);
+			object.setSlot(UNCLASSIFIED, unclassified);
+		}
 	}
 
 	@Override @AvailMethod
@@ -400,7 +409,7 @@ extends Descriptor
 			{
 				return;
 			}
-			final Mutable<A_Map> complete = new Mutable<A_Map>(
+			final Mutable<A_Set> complete = new Mutable<A_Set>(
 				object.slot(LAZY_COMPLETE));
 			final Mutable<A_Map> incomplete = new Mutable<A_Map>(
 				object.slot(LAZY_INCOMPLETE));
@@ -410,21 +419,30 @@ extends Descriptor
 				object.slot(LAZY_ACTIONS));
 			final Mutable<A_Map> prefilterMap = new Mutable<A_Map>(
 				object.slot(LAZY_PREFILTER_MAP));
+			final Mutable<A_BasicObject> typeFilterPojo =
+				new Mutable<A_BasicObject>(
+					object.slot(LAZY_TYPE_FILTER_TREE_POJO));
 			final int pc = object.slot(PARSING_PC);
 			// Fail fast if someone messes with this during iteration.
 			object.setSlot(UNCLASSIFIED, NilDescriptor.nil());
 			final A_Set allAncestorModules = module.allAncestors();
 			for (final MapDescriptor.Entry entry : unclassified.mapIterable())
 			{
-				updateForMessageAndBundle(
-					entry.value(),
-					allAncestorModules,
-					complete,
-					incomplete,
-					caseInsensitive,
-					actionMap,
-					prefilterMap,
-					pc);
+				for (final MapDescriptor.Entry entry2
+					: entry.value().mapIterable())
+				{
+					updateForPlan(
+						entry2.value(),
+						allAncestorModules,
+						complete,
+						incomplete,
+						caseInsensitive,
+						actionMap,
+						prefilterMap,
+						typeFilterPojo,
+						pc,
+						sampleArgsStack);
+				}
 			}
 			object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
 			object.setSlot(LAZY_COMPLETE, complete.value.makeShared());
@@ -434,6 +452,9 @@ extends Descriptor
 				caseInsensitive.value.makeShared());
 			object.setSlot(LAZY_ACTIONS, actionMap.value.makeShared());
 			object.setSlot(LAZY_PREFILTER_MAP, prefilterMap.value.makeShared());
+			object.setSlot(
+				LAZY_TYPE_FILTER_TREE_POJO,
+				typeFilterPojo.value.makeShared());
 		}
 	}
 
@@ -444,31 +465,30 @@ extends Descriptor
 	 *
 	 * <p>The bundle may have been added, or updated (but not removed), so if
 	 * the bundle has already been classified in this tree (via {@link
-	 * #o_Expand(AvailObject, A_Module)}, we may need to invalidate some of the
-	 * tree's lazy structures.</p>
+	 * #o_Expand(AvailObject, A_Module, List)}), we may need to invalidate some
+	 * of the tree's lazy structures.</p>
 	 */
 	@Override
 	void o_FlushForNewOrChangedBundle (
 		final AvailObject object,
 		final A_Bundle bundle)
 	{
-		final A_Map allBundles = object.slot(ALL_BUNDLES);
-		assert allBundles.hasKey(bundle.message());
+		final A_Map allPlans = object.slot(ALL_PLANS);
 		if (object.slot(UNCLASSIFIED).hasKey(bundle))
 		{
 			// It hasn't been classified yet, so there's nothing to clean up.
 			return;
 		}
-		// It has been classified already, so flush the lazy structures
+		// It has been classified already, so flush all lazy structures
 		// for safety, moving everything back to unclassified.
 		final A_Map emptyMap = MapDescriptor.empty();
-		object.setSlot(LAZY_COMPLETE, emptyMap);
+		object.setSlot(LAZY_COMPLETE, SetDescriptor.empty());
 		object.setSlot(LAZY_INCOMPLETE, emptyMap);
 		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
 		object.setSlot(LAZY_ACTIONS, emptyMap);
 		object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-		allBundles.makeImmutable();
-		object.setSlot(UNCLASSIFIED, allBundles);
+		object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
+		object.setSlot(UNCLASSIFIED, allPlans.makeShared());
 	}
 
 	@Override @AvailMethod
@@ -519,7 +539,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Map o_LazyComplete (final AvailObject object)
+	A_Set o_LazyComplete (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -559,6 +579,16 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	A_BasicObject o_LazyTypeFilterTreePojo (final AvailObject object)
+	{
+		assert isShared();
+		synchronized (object)
+		{
+			return object.slot(LAZY_TYPE_FILTER_TREE_POJO);
+		}
+	}
+
+	@Override @AvailMethod
 	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
@@ -577,72 +607,32 @@ extends Descriptor
 	}
 
 	/**
-	 * Remove the bundle with the given message name (expanded as parts).
-	 * Answer true if this tree is now empty and should be removed.
-	 */
-	@Override @AvailMethod
-	boolean o_RemoveBundleNamed (
-		final AvailObject object,
-		final A_Atom message)
-	{
-		assert message.isAtom();
-		synchronized (object)
-		{
-			AvailObject allBundles = object.slot(ALL_BUNDLES);
-			if (allBundles.hasKey(message))
-			{
-				allBundles = allBundles.mapWithoutKeyCanDestroy(
-					message,
-					true).traversed().makeShared();
-				object.setSlot(ALL_BUNDLES, allBundles);
-				AvailObject unclassified = object.slot(UNCLASSIFIED);
-				if (unclassified.hasKey(message))
-				{
-					// Easy to do.
-					unclassified = unclassified.mapWithoutKeyCanDestroy(
-						message,
-						true).traversed().makeShared();
-				}
-				else
-				{
-					// Not so easy -- just clear everything.
-					final A_Map emptyMap = MapDescriptor.empty();
-					object.setSlot(LAZY_COMPLETE, emptyMap);
-					object.setSlot(LAZY_INCOMPLETE, emptyMap);
-					object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
-					object.setSlot(LAZY_ACTIONS, emptyMap);
-					object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-					allBundles = allBundles.traversed().makeShared();
-					unclassified = allBundles;
-				}
-				object.setSlot(UNCLASSIFIED, unclassified);
-			}
-			return allBundles.mapSize() == 0;
-		}
-	}
-
-	/**
 	 * Categorize a single message/bundle pair.
 	 *
-	 * @param bundle
+	 * @param plan
 	 * @param allAncestorModules
 	 * @param complete
 	 * @param incomplete
 	 * @param caseInsensitive
 	 * @param actionMap
 	 * @param prefilterMap
+	 * @param typeFilterPojo
 	 * @param pc
+	 * @param sampleArgsStack
 	 */
-	private static void updateForMessageAndBundle (
-		final A_Bundle bundle,
+	private static void updateForPlan (
+		final A_DefinitionParsingPlan plan,
 		final A_Set allAncestorModules,
-		final Mutable<A_Map> complete,
+		final Mutable<A_Set> complete,
 		final Mutable<A_Map> incomplete,
 		final Mutable<A_Map> caseInsensitive,
 		final Mutable<A_Map> actionMap,
 		final Mutable<A_Map> prefilterMap,
-		final int pc)
+		final Mutable<A_BasicObject> typeFilterPojo,
+		final int pc,
+		final List<A_Phrase> sampleArgsStack)
 	{
+		final A_Bundle bundle = plan.bundle();
 		final A_Method method = bundle.bundleMethod();
 		if (method.definitionsTuple().tupleSize() == 0
 			&& method.macroDefinitionsTuple().tupleSize() == 0)
@@ -653,12 +643,12 @@ extends Descriptor
 			// reasonably common situation.
 			return;
 		}
-		final A_Tuple instructions = bundle.parsingInstructions();
+		final A_Tuple instructions = plan.parsingInstructions();
 		if (pc == instructions.tupleSize() + 1)
 		{
 			// It's past the end of the parsing instructions.
-			complete.value = complete.value.mapAtPuttingCanDestroy(
-				bundle.message(), bundle, true);
+			complete.value = complete.value.setWithElementCanDestroy(
+				bundle, true);
 			return;
 		}
 		final int instruction = instructions.tupleIntAt(pc);
@@ -671,9 +661,8 @@ extends Descriptor
 				|| op == PARSE_PART_CASE_INSENSITIVELY;
 			A_BundleTree subtree;
 			final A_String part = bundle.messageParts().tupleAt(keywordIndex);
-			final Mutable<A_Map> map = (op == PARSE_PART)
-				? incomplete
-				: caseInsensitive;
+			final Mutable<A_Map> map =
+				op == PARSE_PART ? incomplete : caseInsensitive;
 			if (map.value.hasKey(part))
 			{
 				subtree = map.value.mapAt(part);
@@ -691,10 +680,11 @@ extends Descriptor
 			IntegerDescriptor.fromInt(instruction);
 		if (op == PREPARE_TO_RUN_PREFIX_FUNCTION)
 		{
-			// Each possible message bundle gets its own successor message
-			// bundle tree.
+			// Each macro definition has its own prefix functions, so for each
+			// plan create a separate successor message bundle tree.
 			final A_BundleTree newTarget = newPc(pc + 1);
 			newTarget.addBundle(bundle);
+			newTarget.addPlan(plan);
 			A_Tuple successors = actionMap.value.hasKey(instructionObject)
 				? actionMap.value.mapAt(instructionObject)
 				: TupleDescriptor.empty();
@@ -704,12 +694,22 @@ extends Descriptor
 			// We added it to the actions, so don't fall through.
 			return;
 		}
-		// It's not a keyword parsing instruction.
+		if (op == TYPE_CHECK_ARGUMENT)
+		{
+			// An argument was just parsed and passed its grammatical
+			// restriction check.  Now it needs to do a type check with a
+			// type-dispatch tree.
+			assert false : "Need to implement type check tree building";
+			//TODO MvG - implement type check tree building.  Use the
+			// sampleArgsStack to figure out the type to dispatch.
+		}
+		// It's not a keyword parsing instruction or preparation for a prefix
+		// function.
 		final List<Integer> nextPcs = op.successorPcs(instruction, pc);
-		final int checkArgumentIndex = op.checkArgumentIndex(instruction);
-		if (checkArgumentIndex > 0)
+		if (op == CHECK_ARGUMENT)
 		{
 			// It's a checkArgument instruction.
+			final int checkArgumentIndex = op.checkArgumentIndex(instruction);
 			assert nextPcs.size() == 1;
 			assert nextPcs.get(0).intValue() == pc + 1;
 			// Add it to the action map.
@@ -750,6 +750,7 @@ extends Descriptor
 				if (!forbiddenBundles.hasElement(prefilterEntry.key()))
 				{
 					prefilterEntry.value().addBundle(bundle);
+					prefilterEntry.value().addDefinitionParsingPlan(plan);
 				}
 			}
 			// Add branches for any new restrictions.  Pre-populate
@@ -767,9 +768,9 @@ extends Descriptor
 					// since it *has* been kept up to date as the
 					// bundles have gotten classified.
 					for (final MapDescriptor.Entry existingEntry
-						: successor.allBundles().mapIterable())
+						: successor.allParsingPlans().mapIterable())
 					{
-						newTarget.addBundle(existingEntry.value());
+						newTarget.addBundle(existingEntry.key());
 					}
 					prefilterMap.value =
 						prefilterMap.value.mapAtPuttingCanDestroy(
@@ -787,8 +788,10 @@ extends Descriptor
 			// a non-send, or a send that is not forbidden in this position by
 			// *any* potential parent sends.
 		}
-
-		// It's an ordinary parsing instruction.
+		// It's not a keyword parsing instruction or a type-check or preparation
+		// for a prefix function, so it's an ordinary parsing instruction.  It
+		// might be a CHECK_ARGUMENT that has already updated the prefilterMap
+		// and fallen through.
 		final A_Tuple successors;
 		if (actionMap.value.hasKey(instructionObject))
 		{
@@ -825,15 +828,17 @@ extends Descriptor
 	{
 		final AvailObject result = mutable.create();
 		final A_Map emptyMap = MapDescriptor.empty();
+		final A_Set emptySet = SetDescriptor.empty();
 		result.setSlot(PARSING_PC, pc);
 		result.setSlot(HASH_OR_ZERO, 0);
-		result.setSlot(ALL_BUNDLES, emptyMap);
+		result.setSlot(ALL_PLANS, emptyMap);
 		result.setSlot(UNCLASSIFIED, emptyMap);
-		result.setSlot(LAZY_COMPLETE, emptyMap);
+		result.setSlot(LAZY_COMPLETE, emptySet);
 		result.setSlot(LAZY_INCOMPLETE, emptyMap);
 		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
 		result.setSlot(LAZY_ACTIONS, emptyMap);
 		result.setSlot(LAZY_PREFILTER_MAP, emptyMap);
+		result.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
 		result.makeShared();
 		return result;
 	}

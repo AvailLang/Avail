@@ -146,8 +146,8 @@ public final class P_BindPojoStaticField extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_JAVA_FIELD_NOT_AVAILABLE.numericCode(),
-				E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS.numericCode())));
+			SetDescriptor.from(
+				E_JAVA_FIELD_NOT_AVAILABLE,
+				E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS));
 	}
 }

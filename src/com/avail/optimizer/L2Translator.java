@@ -1300,7 +1300,7 @@ public class L2Translator
 			final LookupTree tree = LookupTree.createRoot(
 				nArgs, allPossible, argTypes);
 			final Mutable<Integer> branchLabelCounter = new Mutable<Integer>(1);
-			tree.<InternalNodeMemento>traverseEntireTree(
+			tree.traverseEntireTree(
 				// preInternalNode
 				new Transformer2<Integer, A_Type, InternalNodeMemento>()
 				{

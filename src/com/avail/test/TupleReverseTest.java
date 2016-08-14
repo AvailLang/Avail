@@ -32,9 +32,9 @@
 
 package com.avail.test;
 
-import static org.junit.Assert.*;
+import org.testng.annotations.*;
+import static org.testng.Assert.*;
 import java.nio.ByteBuffer;
-import org.junit.Test;
 import com.avail.descriptor.*;
 import com.avail.utility.Generator;
 
@@ -442,7 +442,7 @@ public class TupleReverseTest
 
 		assertEquals(twoByteString.tupleReverse(), twoByteStringReverse);
 		assertEquals(twoByteString, twoShouldBeSame);
-		assertEquals(twoByteString.tupleAt(51),
+		assertEquals((A_BasicObject)twoByteString.tupleAt(51),
 			twoByteString.tupleReverse().tupleAt(2));
 
 		//Small size TwoByteStringDescriptor where copies are made
