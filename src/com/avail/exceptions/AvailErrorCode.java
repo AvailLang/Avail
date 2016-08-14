@@ -39,6 +39,7 @@ import com.avail.AvailRuntime;
 import com.avail.compiler.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.phrases.P_AcceptParsing;
 import com.avail.interpreter.primitive.phrases.P_CurrentMacroName;
@@ -435,11 +436,11 @@ public enum AvailErrorCode
 	E_NOT_EVALUATING_MACRO (65),
 
 	/**
-	 * A {@LINK DeclarationNodeDescriptor declaration} has the same name as
-	 * another declaration in the current scope or an enclosing scope.  This is
-	 * not allowed.
+	 * The yield type specified for a {@link ParseNodeKind} was not a subtype of
+	 * the {@linkplain ParseNodeKind#mostGeneralYieldType() most general yield
+	 * type}.
 	 */
-//	E_??? (66),
+	E_BAD_YIELD_TYPE (66),
 
 	/**
 	 * A {@linkplain MacroDefinitionDescriptor macro}'s {@linkplain

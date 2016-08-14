@@ -1346,10 +1346,10 @@ System exception "label-type-should-agree-with-declared-return-type" (63)
 	extends definition exception;
 System exception "return-type-is-mandatory-with-primitives-or-labels" (64)
 	extends definition exception;
-System exception "declaration-type-must-not-be-top-or-bottom" (65)
+System exception "not-evaluating-macro" (65)
 	extends definition exception;
-System exception "local-declaration-shadows-another" (66)
-	extends definition exception;
+System exception "bad-yield-type" (66)
+	extends bad-phrase exception;
 System exception "macro-prefix-function-argument-must-be-a-parse-node" (67)
 	extends definition exception;
 System exception "macro-must-return-a-parse-node" (68)

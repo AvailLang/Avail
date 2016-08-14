@@ -36,6 +36,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import static com.avail.exceptions.AvailErrorCode.*;
 import com.avail.interpreter.*;
 
 /**
@@ -51,7 +52,7 @@ public final class P_CreateParseNodeType extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_CreateParseNodeType().init(
-			2, CannotFail, CanFold, CanInline);
+			2, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -66,8 +67,12 @@ public final class P_CreateParseNodeType extends Primitive
 		{
 			return interpreter.primitiveSuccess(baseType);
 		}
-		return interpreter.primitiveSuccess(
-			baseType.parseNodeKind().create(expressionType));
+		final ParseNodeKind kind = baseType.parseNodeKind();
+		if (!expressionType.isSubtypeOf(kind.mostGeneralYieldType()))
+		{
+			return interpreter.primitiveFailure(E_BAD_YIELD_TYPE);
+		}
+		return interpreter.primitiveSuccess(kind.create(expressionType));
 	}
 
 	@Override
@@ -78,5 +83,12 @@ public final class P_CreateParseNodeType extends Primitive
 				InstanceMetaDescriptor.on(PARSE_NODE.mostGeneralType()),
 				InstanceMetaDescriptor.topMeta()),
 			InstanceMetaDescriptor.on(PARSE_NODE.mostGeneralType()));
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_BAD_YIELD_TYPE.numericCode());
 	}
 }

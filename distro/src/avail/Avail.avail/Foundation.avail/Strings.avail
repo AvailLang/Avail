@@ -180,7 +180,7 @@ Private method "format metacharacters" is
  * @method "format sites for_"
  * @param "template" "string"
  *        A template.
- * @returns "<<string, interpolation mode, natural number, natural number…|4>…|>"
+ * @returns "format site*"
  *          A tuple comprising the format sites for the specified template.
  */
 Private stable method "format sites for_" is
@@ -211,9 +211,8 @@ Private stable method "format sites for_" is
 			sites := eject sites ++ <<varName, interpType, start, index>>;
 		];
 	invalid ::= [early failure function(invalid-format-metacharacter-use code)];
-	While  index ≤ |template| do
+	While index ≤ |template| do
 	[
-		char ::= template[index];
 		/* Handle a metacharacter. */
 		Cast template[index] into
 		[
@@ -255,7 +254,7 @@ Private stable method "format sites for_" is
 		index++;
 	];
 	sites
-] : <format site…|>;
+] : format site*;
 
 /**
  * Answer the result of partially formatting the specified template using format
