@@ -31,6 +31,7 @@
  */
 
 package com.avail.compiler;
+import com.avail.annotations.InnerAccess;
 import com.avail.compiler.MessageSplitter.Expression;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.TupleDescriptor;
@@ -63,8 +64,8 @@ class InstructionGenerator
 	 */
 	static class Label
 	{
-		private int position = -1;
-		private List<Pair<Integer, ParsingOperation>> operationsToFix =
+		@InnerAccess int position = -1;
+		@InnerAccess List<Pair<Integer, ParsingOperation>> operationsToFix =
 			new ArrayList<>();
 	}
 
@@ -86,7 +87,7 @@ class InstructionGenerator
 	 * The number of layers of lists that have been partially assembled at this
 	 * point in the generated code.
 	 */
-	int partialListsCount = 0;
+	int partialListsCount = 1;
 
 	/**
 	 * Emit a {@link ParsingOperation} that takes no operand.
@@ -133,8 +134,7 @@ class InstructionGenerator
 			// Label is still unresolved.  Promise to resolve this when the
 			// label is emitted.
 			label.operationsToFix.add(
-				new Pair<Integer, ParsingOperation>(
-					instructions.size() + 1, operation));
+				new Pair<>(instructions.size() + 1, operation));
 			instructions.add(placeholderInstruction);
 		}
 		else
@@ -148,13 +148,18 @@ class InstructionGenerator
 	{
 		assert label.position == -1 : "Label was already emitted";
 		label.position = instructions.size() + 1;
-		for (final Pair<Integer, ParsingOperation> pair
-			: label.operationsToFix)
+		for (final Pair<Integer, ParsingOperation> pair : label.operationsToFix)
 		{
+			assert instructions.get(pair.first() - 1)
+				.equals(placeholderInstruction);
+			if (pair.first() + 1 == label.position)
+			{
+				System.out.println("DEBUG: Operation target falls through.");
+			}
 			instructions.set(
-				pair.first(), pair.second().encoding(label.position));
-			instructions.clear();
+				pair.first() - 1, pair.second().encoding(label.position));
 		}
+		label.operationsToFix.clear();
 	}
 
 	/**

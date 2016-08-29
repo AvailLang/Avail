@@ -302,8 +302,7 @@ extends Descriptor
 		final StringBuilder disassembled = new StringBuilder();
 		object.printOnAvoidingIndent(
 			disassembled, new IdentityHashMap<A_BasicObject, Void>(), 0);
-		final String[] content = new String[1];
-		content[0] = disassembled.toString();
+		final String[] content = disassembled.toString().split("\n");
 		fields.add(
 			new AvailObjectFieldHelper(
 				object,

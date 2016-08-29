@@ -1,4 +1,4 @@
-/**
+/*
  * AvailErrorCode.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
@@ -847,7 +847,7 @@ public enum AvailErrorCode
 	 * @param code
 	 *        The numeric error code.
 	 */
-	private AvailErrorCode (final int code)
+	AvailErrorCode (final int code)
 	{
 		this.code = code;
 	}
@@ -869,17 +869,15 @@ public enum AvailErrorCode
 	 * AvailErrorCode}s.
 	 */
 	private final static Map<Integer, AvailErrorCode> byNumericCode
-		= new HashMap<Integer, AvailErrorCode>();
+		= new HashMap<>();
 
 	// The enumeration values have been initialized, so build the map.
 	static
 	{
 		for (final AvailErrorCode errorCode : values())
 		{
-			assert !byNumericCode.containsKey(errorCode.numericCode());
-			byNumericCode.put(
-				Integer.valueOf(errorCode.nativeCode()),
-				errorCode);
+			assert !byNumericCode.containsKey(errorCode.nativeCode());
+			byNumericCode.put(errorCode.nativeCode(), errorCode);
 		}
 	}
 

@@ -153,9 +153,31 @@ extends DefinitionDescriptor
 	@Override
 	A_Type o_ParsingSignature (final AvailObject object)
 	{
-		// A macro definition's parsing signature is just the body block's
-		// kind's arguments type.
-		return object.slot(BODY_BLOCK).kind().argsTupleType();
+		// A macro definition's parsing signature is a list phrase type whose
+		// covariant subexpressions type is the body block's kind's arguments
+		// type.
+		final A_Type argsTupleType =
+			object.slot(BODY_BLOCK).kind().argsTupleType();
+		final A_Type sizes = argsTupleType.sizeRange();
+		// TODO MvG - Maybe turn this into a check.
+		assert sizes.lowerBound().extractInt()
+			== sizes.upperBound().extractInt();
+		assert sizes.lowerBound().extractInt()
+			== object.slot(DEFINITION_METHOD).numArgs();
+		// TODO MvG - 2016-08-21 deal with permutation of main list.
+		return ListNodeTypeDescriptor.createListNodeType(
+			ParseNodeKind.LIST_NODE,
+			TupleTypeDescriptor.mappingElementTypes(
+				argsTupleType,
+				new Transformer1<A_Type, A_Type>()
+				{
+					@Override
+					public A_Type value (@Nullable final A_Type argPhraseType)
+					{
+						return argPhraseType.expressionType();
+					}
+				}),
+			argsTupleType);
 	}
 
 	@Override

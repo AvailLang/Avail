@@ -81,8 +81,13 @@ public final class P_ReverseTuple extends Primitive
 		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound())
 			|| !tupleSizeLowerBound.isInt())
 		{
-			// Variable number of <key,value> pairs.  Give up.
-			return super.returnTypeGuaranteedByVM(argumentTypes);
+			// Variable number of <key,value> pairs.  In theory we could
+			// still strengthen it, but a homogenous tuple type of the same size
+			// should be sufficient.
+			return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				tupleSizes,
+				TupleDescriptor.empty(),
+				tupleType.unionOfTypesAtThrough(1, Integer.MAX_VALUE));
 		}
 		final int tupleSize = tupleSizeLowerBound.extractInt();
 		final A_Tuple elementTypes = tupleType.tupleOfTypesFromTo(1, tupleSize);

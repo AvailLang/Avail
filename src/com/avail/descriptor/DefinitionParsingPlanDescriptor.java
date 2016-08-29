@@ -35,6 +35,9 @@ package com.avail.descriptor;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION_PARSING_PLAN;
+
+import java.io.CharArrayWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
@@ -43,6 +46,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.ParsingConversionRule;
 import com.avail.compiler.ParsingOperation;
 
 /**
@@ -100,11 +104,17 @@ extends Descriptor
 	 * Used for describing logical aspects of the bundle in the Eclipse
 	 * debugger.
 	 */
-	public static enum FakeSlots
+	private static enum FakeSlots
 	implements ObjectSlotsEnum
 	{
 		/** Used for showing the parsing instructions symbolically. */
-		SYMBOLIC_INSTRUCTIONS;
+		SYMBOLIC_INSTRUCTIONS,
+
+		/**
+		 * Used to indicate a problem producing the parsing instructions, or
+		 * printing them symbolically.
+		 */
+		ERROR_PRODUCING_INSTRUCTIONS;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -122,54 +132,102 @@ extends Descriptor
 	AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
+		// Weaken the plan's type to make sure we're not sending something it
+		// won't understand.
 		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
+		final A_DefinitionParsingPlan plan = object;
 		fields.addAll(Arrays.asList(super.o_DescribeForDebugger(object)));
-
-		final A_Tuple instructionsTuple = object.parsingInstructions();
-		final List<A_String> descriptionsList = new ArrayList<>();
-		for (
-			int i = 1, end = instructionsTuple.tupleSize();
-			i <= end;
-			i++)
+		try
 		{
-			final int encodedInstruction = instructionsTuple.tupleIntAt(i);
-			final ParsingOperation operation =
-				ParsingOperation.decode(encodedInstruction);
-			final int operand = operation.operand(encodedInstruction);
-			final StringBuilder builder = new StringBuilder();
-			builder.append(i);
-			builder.append(". ");
-			builder.append(operation.name());
-			if (operand > 0)
+			final A_Tuple instructionsTuple = plan.parsingInstructions();
+			final List<A_String> descriptionsList = new ArrayList<>();
+			for (
+				int i = 1, end = instructionsTuple.tupleSize();
+				i <= end;
+				i++)
 			{
-				builder.append(" (");
-				builder.append(operand);
-				builder.append(")");
-				switch (operation)
+				final int encodedInstruction = instructionsTuple.tupleIntAt(i);
+				final ParsingOperation operation =
+					ParsingOperation.decode(encodedInstruction);
+				final int operand = operation.operand(encodedInstruction);
+				final StringBuilder builder = new StringBuilder();
+				builder.append(i);
+				builder.append(". ");
+				builder.append(operation.name());
+				if (operand > 0)
 				{
-					case PARSE_PART:
-					case PARSE_PART_CASE_INSENSITIVELY:
+					builder.append(" (");
+					builder.append(operand);
+					builder.append(")");
+					switch (operation)
 					{
-						builder.append(" P=<");
-						builder.append(
-							object.messageParts().tupleAt(operand)
-								.asNativeString());
-						builder.append(">");
-						break;
+						case PARSE_PART:
+						case PARSE_PART_CASE_INSENSITIVELY:
+						{
+							builder.append(" Part = '");
+							builder.append(
+								plan.bundle().messageParts().tupleAt(operand)
+									.asNativeString());
+							builder.append("'");
+							break;
+						}
+						case PERMUTE_LIST:
+						{
+							builder.append(" Permutation = ");
+							builder.append(
+								MessageSplitter.permutationAtIndex(operand));
+							break;
+						}
+						case TYPE_CHECK_ARGUMENT:
+						{
+							builder.append(" Type = ");
+							builder.append(
+								MessageSplitter.typeToCheck(operand));
+							break;
+						}
+						case CONVERT:
+						{
+							builder.append(" Conversion = ");
+							builder.append(
+								ParsingConversionRule.ruleNumber(operand));
+							break;
+						}
+						default:
+							// Do nothing.
 					}
-					default:
-						// Do nothing.
 				}
+				descriptionsList.add(StringDescriptor.from(builder.toString()));
 			}
-			descriptionsList.add(StringDescriptor.from(builder.toString()));
+			final A_Tuple descriptionsTuple =
+				TupleDescriptor.fromList(descriptionsList);
+			fields.add(new AvailObjectFieldHelper(
+				plan,
+				FakeSlots.SYMBOLIC_INSTRUCTIONS,
+				-1,
+				descriptionsTuple));
 		}
-		final A_Tuple descriptionsTuple = TupleDescriptor.fromList(descriptionsList);
-		fields.add(new AvailObjectFieldHelper(
-			object,
-			FakeSlots.SYMBOLIC_INSTRUCTIONS,
-			-1,
-			descriptionsTuple));
+		catch (Exception e)
+		{
+			final CharArrayWriter trace = new CharArrayWriter();
+			e.printStackTrace(new PrintWriter(trace));
+			final String[] stackStrings = trace.toString().split("\n");
+			int lineNumber = 0;
+			for (final String line : stackStrings)
+			{
+				fields.add(new AvailObjectFieldHelper(
+					plan,
+					FakeSlots.ERROR_PRODUCING_INSTRUCTIONS,
+					++lineNumber,
+					line));
+			}
+		}
 		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+	}
+
+	@Override
+	A_Bundle o_Bundle (final AvailObject object)
+	{
+		return object.slot(BUNDLE);
 	}
 
 	@Override
@@ -265,8 +323,8 @@ extends Descriptor
 		final String string = bundle.message().atomName().asNativeString();
 		final String annotatedString =
 			string.substring(0, position - 1)
-			+ AvailCompiler.errorIndicatorSymbol
-			+ string.substring(position - 1);
+				+ AvailCompiler.errorIndicatorSymbol
+				+ string.substring(position - 1);
 		final A_String availString = StringDescriptor.from(annotatedString);
 		return availString.toString();
 	}
@@ -305,14 +363,14 @@ extends Descriptor
 		final A_Bundle bundle,
 		final A_Definition definition)
 	{
-		final List<A_Type> typesForTesting = new ArrayList<A_Type>();
+		final List<A_Type> typesForTesting = new ArrayList<>();
 		final AvailObject result = mutable.create();
 		result.setSlot(BUNDLE, bundle);
 		result.setSlot(DEFINITION, definition);
 		result.setSlot(
 			PARSING_INSTRUCTIONS,
 			bundle.messageSplitter().instructionsTupleFor(
-				definition.bodySignature()));
+				definition.parsingSignature()));
 		return result;
 	}
 

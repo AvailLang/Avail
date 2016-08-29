@@ -41,6 +41,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.ParsingOperation;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
@@ -53,22 +54,16 @@ import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
 import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.general.P_DeclareStringificationAtom;
-import com.avail.interpreter.primitive.methods.P_AbstractMethodDeclarationForAtom;
-import com.avail.interpreter.primitive.methods.P_AddSemanticRestrictionForAtom;
-import com.avail.interpreter.primitive.methods.P_Alias;
-import com.avail.interpreter.primitive.methods.P_ForwardMethodDeclarationForAtom;
-import com.avail.interpreter.primitive.methods.P_GrammaticalRestrictionFromAtoms;
-import com.avail.interpreter.primitive.methods.P_MethodDeclarationFromAtom;
-import com.avail.interpreter.primitive.methods.P_SealMethodByAtom;
-import com.avail.interpreter.primitive.methods.P_SimpleMacroDeclaration;
-import com.avail.interpreter.primitive.methods.P_SimpleMethodDeclaration;
+import com.avail.interpreter.primitive.methods.*;
 import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken;
 import com.avail.interpreter.primitive.variables.P_GetValue;
 import com.avail.optimizer.L2Translator;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Transformer2;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.*;
 
@@ -852,50 +847,50 @@ extends Descriptor
 			 * The definition's signature equals the criterion.
 			 */
 			SAME_TYPE
-			{
-				@Override
-				public void applyEffect (
-					final A_Definition undecidedDefinition,
-					final List<A_Definition> ifTruePositiveDefinitions,
-					final List<A_Definition> ifTrueUndecidedDefinitions,
-					final List<A_Definition> ifFalseUndecidedDefinitions)
 				{
-					ifTruePositiveDefinitions.add(undecidedDefinition);
-				}
-			},
+					@Override
+					public void applyEffect (
+						final A_Definition undecidedDefinition,
+						final List<A_Definition> ifTruePositiveDefinitions,
+						final List<A_Definition> ifTrueUndecidedDefinitions,
+						final List<A_Definition> ifFalseUndecidedDefinitions)
+					{
+						ifTruePositiveDefinitions.add(undecidedDefinition);
+					}
+				},
 
 			/**
 			 * The definition is a proper ancestor of the criterion.
 			 */
 			PROPER_ANCESTOR_TYPE
-			{
-				@Override
-				public void applyEffect (
-					final A_Definition undecidedDefinition,
-					final List<A_Definition> ifTruePositiveDefinitions,
-					final List<A_Definition> ifTrueUndecidedDefinitions,
-					final List<A_Definition> ifFalseUndecidedDefinitions)
 				{
-					ifTruePositiveDefinitions.add(undecidedDefinition);
-					ifFalseUndecidedDefinitions.add(undecidedDefinition);
-				}
-			},
+					@Override
+					public void applyEffect (
+						final A_Definition undecidedDefinition,
+						final List<A_Definition> ifTruePositiveDefinitions,
+						final List<A_Definition> ifTrueUndecidedDefinitions,
+						final List<A_Definition> ifFalseUndecidedDefinitions)
+					{
+						ifTruePositiveDefinitions.add(undecidedDefinition);
+						ifFalseUndecidedDefinitions.add(undecidedDefinition);
+					}
+				},
 
 			/**
 			 * The definition is a proper descendant of the criterion.
 			 */
 			PROPER_DESCENDANT_TYPE
-			{
-				@Override
-				public void applyEffect (
-					final A_Definition undecidedDefinition,
-					final List<A_Definition> ifTruePositiveDefinitions,
-					final List<A_Definition> ifTrueUndecidedDefinitions,
-					final List<A_Definition> ifFalseUndecidedDefinitions)
 				{
-					ifTrueUndecidedDefinitions.add(undecidedDefinition);
-				}
-			},
+					@Override
+					public void applyEffect (
+						final A_Definition undecidedDefinition,
+						final List<A_Definition> ifTruePositiveDefinitions,
+						final List<A_Definition> ifTrueUndecidedDefinitions,
+						final List<A_Definition> ifFalseUndecidedDefinitions)
+					{
+						ifTrueUndecidedDefinitions.add(undecidedDefinition);
+					}
+				},
 
 
 			/**
@@ -904,18 +899,18 @@ extends Descriptor
 			 * BottomTypeDescriptor bottom} (⊥).
 			 */
 			UNRELATED_TYPE
-			{
-				@Override
-				public void applyEffect (
-					final A_Definition undecidedDefinition,
-					final List<A_Definition> ifTruePositiveDefinitions,
-					final List<A_Definition> ifTrueUndecidedDefinitions,
-					final List<A_Definition> ifFalseUndecidedDefinitions)
 				{
-					ifTrueUndecidedDefinitions.add(undecidedDefinition);
-					ifFalseUndecidedDefinitions.add(undecidedDefinition);
-				}
-			},
+					@Override
+					public void applyEffect (
+						final A_Definition undecidedDefinition,
+						final List<A_Definition> ifTruePositiveDefinitions,
+						final List<A_Definition> ifTrueUndecidedDefinitions,
+						final List<A_Definition> ifFalseUndecidedDefinitions)
+					{
+						ifTrueUndecidedDefinitions.add(undecidedDefinition);
+						ifFalseUndecidedDefinitions.add(undecidedDefinition);
+					}
+				},
 
 
 			/**
@@ -927,24 +922,24 @@ extends Descriptor
 			 * other definition from being considered possible.
 			 */
 			DISJOINT_TYPE
-			{
-				@Override
-				public void applyEffect (
-					final A_Definition undecidedDefinition,
-					final List<A_Definition> ifTruePositiveDefinitions,
-					final List<A_Definition> ifTrueUndecidedDefinitions,
-					final List<A_Definition> ifFalseUndecidedDefinitions)
 				{
-					ifFalseUndecidedDefinitions.add(undecidedDefinition);
-				}
-			};
+					@Override
+					public void applyEffect (
+						final A_Definition undecidedDefinition,
+						final List<A_Definition> ifTruePositiveDefinitions,
+						final List<A_Definition> ifTrueUndecidedDefinitions,
+						final List<A_Definition> ifFalseUndecidedDefinitions)
+					{
+						ifFalseUndecidedDefinitions.add(undecidedDefinition);
+					}
+				};
 
 			/**
 			 * Conditionally augment the supplied lists with the provided
 			 * undecided {@linkplain DefinitionDescriptor definition}.  The
 			 * decision of which lists to augment depends on this instance,
-			 * which is the result of a previous {@linkplain #compareTo(
-			 * TypeComparison) comparison} between the two signatures.
+			 * which is the result of a previous {@linkplain #compare(
+			 * A_Type, A_Type) comparison} between the two signatures.
 			 *
 			 * @param undecidedDefinition
 			 *            A {@linkplain DefinitionDescriptor definition} whose
@@ -1349,7 +1344,7 @@ extends Descriptor
 			LookupTree tree =
 				(LookupTree)
 					object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-			List<A_Definition> solutions;
+			@Nullable  List<A_Definition> solutions;
 			while ((solutions = tree.solutionOrNull()) == null)
 			{
 				tree = tree.lookupStepByTypes(argumentTypesList);
@@ -1378,7 +1373,7 @@ extends Descriptor
 		LookupTree tree =
 			(LookupTree)
 				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-		List<A_Definition> solutions;
+		@Nullable List<A_Definition> solutions;
 		while ((solutions = tree.solutionOrNull()) == null)
 		{
 			tree = tree.lookupStepByValues(argumentList);
@@ -1417,7 +1412,7 @@ extends Descriptor
 	{
 		LookupTree tree =
 			(LookupTree) object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
-		List<A_Definition> solutions;
+		@Nullable List<A_Definition> solutions;
 		while ((solutions = tree.solutionOrNull()) == null)
 		{
 			tree = tree.lookupStepByValues(argumentPhraseTuple);
@@ -1477,6 +1472,11 @@ extends Descriptor
 		// suspended.  Use a global lock at the outermost calls to side-step
 		// deadlocks.  Because no fiber is running we don't have to protect
 		// subsystems like the L2Translator from these changes.
+		//
+		// Also create definition parsing plans for each bundle.  HOWEVER, note
+		// that we don't update the current module's message bundle tree here,
+		// and leave that to the caller to deal with.  Other modules' parsing
+		// should be unaffected (although runtime execution may change).
 		L2Chunk.invalidationLock.lock();
 		try
 		{
@@ -1508,6 +1508,13 @@ extends Descriptor
 				final A_Tuple newTuple = oldTuple.appendCanDestroy(
 					definition, true);
 				object.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared());
+			}
+			for (A_Bundle bundle : object.slot(OWNING_BUNDLES))
+			{
+				final A_DefinitionParsingPlan plan =
+					DefinitionParsingPlanDescriptor.createPlan(
+						bundle, definition);
+				bundle.addDefinitionParsingPlan(plan);
 			}
 			membershipChanged(object);
 		}
@@ -1548,8 +1555,8 @@ extends Descriptor
 		{
 			final ObjectSlotsEnum slot =
 				!definition.isMacroDefinition()
-				? DEFINITIONS_TUPLE
-				: MACRO_DEFINITIONS_TUPLE;
+					? DEFINITIONS_TUPLE
+					: MACRO_DEFINITIONS_TUPLE;
 			A_Tuple definitionsTuple = object.slot(slot);
 			definitionsTuple = TupleDescriptor.without(
 				definitionsTuple,
@@ -1847,7 +1854,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	public static A_Atom  createSpecialMethodAtom (
+	public static A_Atom createSpecialMethodAtom (
 		final String name,
 		final Primitive... primitives)
 	{
@@ -1893,7 +1900,7 @@ extends Descriptor
 	 * to crash during early bootstrapping problems.
 	 */
 	private static final A_Atom vmCrashAtom = createSpecialMethodAtom(
-		"vm crash:(«_‡,»)",
+		"vm crash:_",
 		P_EmergencyExit.instance);
 
 	/**
@@ -1931,7 +1938,8 @@ extends Descriptor
 	 */
 	private static final A_Atom vmMacroDefinerAtom = createSpecialMethodAtom(
 		"vm macro_is«_,»_",
-		P_SimpleMacroDeclaration.instance);
+		P_SimpleMacroDeclaration.instance,
+		P_SimpleMacroDefinitionForAtom.instance);
 
 	/**
 	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method

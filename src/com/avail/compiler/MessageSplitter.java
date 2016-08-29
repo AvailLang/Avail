@@ -49,6 +49,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.*;
 import com.avail.utility.Generator;
 import com.avail.utility.Pair;
+import com.avail.utility.evaluation.Transformer1;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
@@ -197,12 +198,19 @@ public class MessageSplitter
 	 * another backquote (to indicate that an actual backquote token will appear
 	 * in a call).</li>
 	 * </ul></p>
+	 * @see #messagePartsTuple
 	 */
-	final List<A_String> messageParts = new ArrayList<>(10);
+	final List<A_String> messagePartsList = new ArrayList<>(10);
+
+	/**
+	 * The sequence of strings constituting discrete tokens of the message name.
+	 * @see #messagePartsList
+	 */
+	final A_Tuple messagePartsTuple;
 
 	/**
 	 * A collection of one-based positions in the original string, corresponding
-	 * to the {@link #messageParts} that have been extracted.
+	 * to the {@link #messagePartsList} that have been extracted.
 	 */
 	final List<Integer> messagePartPositions = new ArrayList<>(10);
 
@@ -211,7 +219,7 @@ public class MessageSplitter
 
 	/**
 	 * A record of where each "underscore" occurred in the list of {@link
-	 * #messageParts}.
+	 * #messagePartsList}.
 	 */
 	@InnerAccess List<Integer> underscorePartNumbers = new ArrayList<>();
 
@@ -422,15 +430,16 @@ public class MessageSplitter
 		 * @param generator
 		 *        The {@link InstructionGenerator} that accumulates the parsing
 		 *        instructions.
-		 * @param tupleType
-		 *        The type of the arguments at and inside this parse point.
-		 *        Note that this type is used to unrolling leading iterations of
-		 *        loops up to the end of the variation (typically just past the
-		 *        tuple type's {@link A_Type#typeTuple()}).
+		 * @param phraseType
+		 *        The type of the phrase being parsed at and inside this parse
+		 *        point.  Note that when this is for a list phrase type, it's
+		 *        used for unrolling leading iterations of loops up to the end
+		 *        of the variation (typically just past the list phrase's tuple
+		 *        type's {@link A_Type#typeTuple()}).
 		 */
 		abstract void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType);
+			final A_Type phraseType);
 
 		@Override
 		public String toString ()
@@ -520,7 +529,7 @@ public class MessageSplitter
 	{
 		/**
 		 * The one-based index of this token within the {@link
-		 * MessageSplitter#messageParts message parts}.
+		 * MessageSplitter#messagePartsList message parts}.
 		 */
 		final int tokenIndex;
 
@@ -530,7 +539,7 @@ public class MessageSplitter
 		 *
 		 * @param tokenIndex
 		 *        The one-based index of the token within the {@link
-		 *        MessageSplitter#messageParts message parts}.
+		 *        MessageSplitter#messagePartsList message parts}.
 		 */
 		Simple (final int tokenIndex)
 		{
@@ -541,7 +550,7 @@ public class MessageSplitter
 		final boolean isLowerCase ()
 		{
 			final String token =
-				messageParts.get(tokenIndex - 1).asNativeString();
+				messagePartsList.get(tokenIndex - 1).asNativeString();
 			return token.toLowerCase().equals(token);
 		}
 
@@ -557,7 +566,7 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			// Parse the specific keyword.
 			final ParsingOperation op = generator.caseInsensitive
@@ -572,7 +581,7 @@ public class MessageSplitter
 			final StringBuilder builder = new StringBuilder();
 			builder.append(getClass().getSimpleName());
 			builder.append("(");
-			builder.append(messageParts.get(tokenIndex - 1));
+			builder.append(messagePartsList.get(tokenIndex - 1));
 			builder.append(")");
 			return builder.toString();
 		}
@@ -583,7 +592,7 @@ public class MessageSplitter
 			final StringBuilder builder,
 			final int indent)
 		{
-			final A_String token = messageParts.get(tokenIndex - 1);
+			final A_String token = messagePartsList.get(tokenIndex - 1);
 			builder.append(token.asNativeString());
 		}
 
@@ -605,7 +614,7 @@ public class MessageSplitter
 		boolean shouldBeSeparatedOnLeft ()
 		{
 			final String token =
-				messageParts.get(tokenIndex - 1).asNativeString();
+				messagePartsList.get(tokenIndex - 1).asNativeString();
 			assert token.length() > 0;
 			final int firstCharacter = token.codePointAt(0);
 			if (Character.isUnicodeIdentifierPart(firstCharacter))
@@ -619,7 +628,7 @@ public class MessageSplitter
 		boolean shouldBeSeparatedOnRight ()
 		{
 			final String token =
-				messageParts.get(tokenIndex - 1).asNativeString();
+				messagePartsList.get(tokenIndex - 1).asNativeString();
 			assert token.length() > 0;
 			final int lastCharacter = token.codePointBefore(token.length());
 			if (Character.isUnicodeIdentifierPart(lastCharacter))
@@ -644,11 +653,6 @@ public class MessageSplitter
 		 * to the left of this one in the message name.
 		 */
 		final int absoluteUnderscoreIndex;
-
-		/**
-		 * The one-based
-		 */
-
 
 		/**
 		 * Construct an argument.
@@ -699,11 +703,11 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			generator.emit(this, PARSE_ARGUMENT);
 			generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(phraseType));
 		}
 
 		@Override
@@ -766,11 +770,11 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			generator.emit(this, PARSE_ARGUMENT_IN_MODULE_SCOPE);
 			generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(phraseType));
 			generator.emit(this, CONVERT, EVALUATE_EXPRESSION.number());
 		}
 
@@ -814,11 +818,11 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			generator.emit(this, PARSE_VARIABLE_REFERENCE);
 			generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(phraseType));
 		}
 
 		@Override
@@ -874,11 +878,11 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			generator.emit(this, PARSE_TOP_VALUED_ARGUMENT);
 			generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(phraseType));
 		}
 
 		@Override
@@ -920,10 +924,10 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			generator.emit(this, PARSE_ANY_RAW_TOKEN);
-			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(phraseType));
 		}
 
 		@Override
@@ -965,10 +969,10 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			generator.emit(this, PARSE_RAW_KEYWORD_TOKEN);
-			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(phraseType));
 		}
 	}
 
@@ -998,10 +1002,10 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			generator.emit(this, PARSE_RAW_STRING_LITERAL_TOKEN);
-			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(phraseType));
 		}
 	}
 
@@ -1032,10 +1036,10 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			generator.emit(this, PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN);
-			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(tupleType));
+			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(phraseType));
 		}
 	}
 
@@ -1208,7 +1212,7 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			/*
 			 * Generate code to parse the sequence.  After parsing, the stack
@@ -1216,7 +1220,7 @@ public class MessageSplitter
 			 * ellipses, and subgroups that were encountered.
 			 */
 			generator.emit(this, NEW_LIST);
-			emitWithoutInitialNewListPushOn (generator, tupleType);
+			emitWithoutInitialNewListPushOn (generator, phraseType);
 		}
 
 		/**
@@ -1225,27 +1229,49 @@ public class MessageSplitter
 		 *
 		 * @param generator
 		 *        The instruction generator with which to emit.
-		 * @param tupleType
-		 *        The {@link A_Type tuple type} for a definition's signature.
+		 * @param phraseType
+		 *        The {@link A_Type phrase type} for a definition's signature.
 		 */
 		@InnerAccess void emitWithoutInitialNewListPushOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			/* After parsing, the list that's already on the stack will contain
 			 * all arguments, ellipses, and subgroups that were encountered.
 			 */
+			assert phraseType.isSubtypeOf(PARSE_NODE.mostGeneralType());
+			final A_Type tupleType;
+			if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+			{
+				tupleType = phraseType.subexpressionsTupleType();
+			}
+			else
+			{
+				tupleType = TupleTypeDescriptor.mappingElementTypes(
+					phraseType.expressionType(),
+					new Transformer1<A_Type, A_Type>()
+					{
+						@Override
+						public A_Type value (@Nullable final A_Type arg)
+						{
+							assert arg != null;
+							return PARSE_NODE.create(arg);
+						}
+					});
+			}
 			int index = 0;
 			for (final Expression expression : expressions)
 			{
-				final boolean consumesArg = expression.isArgumentOrGroup();
-				final A_Type entryType = consumesArg
-					? tupleType.typeAtIndex(++index)
-					: BottomTypeDescriptor.bottom();
-				expression.emitOn(generator, entryType);
-				if (consumesArg)
+				if (expression.isArgumentOrGroup())
 				{
+					final A_Type entryType = tupleType.typeAtIndex(++index);
+					expression.emitOn(generator, entryType);
 					generator.emit(this, APPEND_ARGUMENT);
+				}
+				else
+				{
+					expression.emitOn(
+						generator, ListNodeTypeDescriptor.empty());
 				}
 			}
 			assert tupleType.sizeRange().lowerBound().equalsInt(index);
@@ -1438,7 +1464,7 @@ public class MessageSplitter
 		/**
 		 * If a {@linkplain StringDescriptor#doubleDagger() double dagger} (‡)
 		 * has been encountered, this holds the one-based index of the {@link
-		 * #messageParts message part} that was the double dagger.
+		 * #messagePartsList message part} that was the double dagger.
 		 */
 		final int daggerPosition;
 
@@ -1685,9 +1711,29 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
-			final A_Type sizeRange = tupleType.sizeRange();
+			final A_Type subexpressionsTupleType;
+			if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+			{
+				subexpressionsTupleType = phraseType.subexpressionsTupleType();
+			}
+			else
+			{
+				subexpressionsTupleType =
+					TupleTypeDescriptor.mappingElementTypes(
+						phraseType.expressionType(),
+						new Transformer1<A_Type, A_Type>()
+						{
+							@Override
+							public A_Type value (
+								@Nullable final A_Type yieldType)
+							{
+								return PARSE_NODE.create(yieldType);
+							}
+						});
+			}
+			final A_Type sizeRange = subexpressionsTupleType.sizeRange();
 			final A_Number minInteger = sizeRange.lowerBound();
 			final int minSize = minInteger.isInt()
 				? minInteger.extractInt() : Integer.MAX_VALUE;
@@ -1695,7 +1741,9 @@ public class MessageSplitter
 			final int maxSize = maxInteger.isInt()
 				? maxInteger.extractInt() : Integer.MAX_VALUE;
 			final int endOfVariation =
-				maxSize == 0 ? 0 : tupleType.typeTuple().tupleSize() + 1;
+				maxSize == 0
+					? 0
+					: subexpressionsTupleType.typeTuple().tupleSize() + 1;
 			generator.emit(this, NEW_LIST);
 			if (maxSize == 0)
 			{
@@ -1721,9 +1769,9 @@ public class MessageSplitter
 				 * And a final loop:
 				 *     $loopStart:
 				 *     ...Stuff before dagger, appending sole argument.
-				 *     EITHER branch to $exit (if endOfVariation ≥ minSize)
-				 *     OR branch to $exitCheckMin (if endOfVariation < minSize)
 				 *     if (endOfVariation < maxSize) then:
+				 *         EITHER branch to $exit (if endOfVariation ≥ minSize)
+				 *         OR to $exitCheckMin (if endOfVariation < minSize)
 				 *         check that the size is still < maxSize.
 				 *         ...Stuff after dagger, nothing if dagger is omitted.
 				 *         ...Must not contain an argument or subgroup.
@@ -1737,6 +1785,7 @@ public class MessageSplitter
 				 * discard the saved position from the mark stack.
 				 * $skip:
 				 */
+				generator.partialListsCount++;
 				final Label $skip = new Label();
 				final Label $exit = new Label();
 				final Label $exitCheckMin = new Label();
@@ -1754,33 +1803,49 @@ public class MessageSplitter
 				generator.emit(this, SAVE_PARSE_POSITION);
 				for (int index = 1; index < endOfVariation; index++)
 				{
+					final A_Type innerPhraseType =
+						subexpressionsTupleType.typeAtIndex(index);
+					final A_Type singularListType =
+						ListNodeTypeDescriptor.createListNodeType(
+							LIST_NODE,
+							TupleTypeDescriptor.forTypes(
+								innerPhraseType.expressionType()),
+							TupleTypeDescriptor.forTypes(innerPhraseType));
 					beforeDagger.emitWithoutInitialNewListPushOn(
-						generator,
-						TupleTypeDescriptor.forTypes(
-							tupleType.typeAtIndex(index)));
+						generator, singularListType);
 					if (index >= minSize)
 					{
 						generator.emit(this, BRANCH, $exit);
 					}
 					afterDagger.emitWithoutInitialNewListPushOn(
-						generator, BottomTypeDescriptor.bottom());
+						generator, ListNodeTypeDescriptor.empty());
 					generator.emit(this, ENSURE_PARSE_PROGRESS);
 				}
 				// The homogenous part of the tuple, one or more iterations.
 				generator.emit($loopStart);
+				final A_Type innerPhraseType =
+					subexpressionsTupleType.defaultType();
+				final A_Type singularListType =
+					ListNodeTypeDescriptor.createListNodeType(
+						LIST_NODE,
+						TupleTypeDescriptor.forTypes(
+							innerPhraseType.expressionType()),
+						TupleTypeDescriptor.forTypes(innerPhraseType));
 				beforeDagger.emitWithoutInitialNewListPushOn(
-					generator,
-					TupleTypeDescriptor.forTypes(tupleType.defaultType()));
-				generator.emit(this, 
-					BRANCH, endOfVariation >= minSize ? $exit : $exitCheckMin);
+					generator, singularListType);
 				if (endOfVariation < maxSize)
 				{
+					generator.emit(
+						this,
+						BRANCH,
+						endOfVariation >= minSize ? $exit : $exitCheckMin);
 					if (maxInteger.isFinite())
 					{
 						generator.emit(this, CHECK_AT_MOST, maxSize - 1);
 					}
 					afterDagger.emitWithoutInitialNewListPushOn(
-						generator, BottomTypeDescriptor.bottom());
+						generator,
+						ListNodeTypeDescriptor.empty());
 					generator.emit(this, ENSURE_PARSE_PROGRESS);
 					generator.emit(this, JUMP, $loopStart);
 					if (endOfVariation < minSize)
@@ -1793,6 +1858,7 @@ public class MessageSplitter
 				generator.emit(this, ENSURE_PARSE_PROGRESS);
 				generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
 				generator.emit($skip);
+				generator.partialListsCount--;
 			}
 			else
 			{
@@ -1825,9 +1891,9 @@ public class MessageSplitter
 				 *     ...Stuff before dagger, where arguments and subgroups are
 				 *     ...followed by "append" instructions.
 				 *     permute left-half arguments tuple if needed
-				 *     EITHER branch to $exit (if endOfVariation ≥ minSize)
-				 *     OR branch to $exitCheckMin (if endOfVariation < minSize)
 				 *     if (endOfVariation < maxSize) then:
+				 *         EITHER branch to $exit (if endOfVariation ≥ minSize)
+				 *         OR to $exitCheckMin (if endOfVariation < minSize)
 				 *         check that the size is still < maxSize.
 				 *         ...Stuff after dagger, nothing if dagger is omitted.
 				 *         ...Must follow each arg or subgroup with "append"
@@ -1865,36 +1931,38 @@ public class MessageSplitter
 				for (int index = 1; index < endOfVariation; index++)
 				{
 					generator.emit(this, NEW_LIST);
+					final A_Type sublistPhraseType =
+						subexpressionsTupleType.typeAtIndex(index);
 					emitDoubleWrappedBeforeDaggerOn(
-						generator,
-						tupleType.typeAtIndex(index));
+						generator, sublistPhraseType);
 					if (index >= minSize)
 					{
 						generator.emit(this, BRANCH, $exit);
 					}
 					emitDoubleWrappedAfterDaggerOn(
-						generator,
-						tupleType.typeAtIndex(index));
+						generator, sublistPhraseType);
 					generator.emit(this, APPEND_ARGUMENT);
 					generator.emit(this, ENSURE_PARSE_PROGRESS);
 				}
 				// The homogenous part of the tuple, one or more iterations.
 				generator.emit($loopStart);
 				generator.emit(this, NEW_LIST);
+				final A_Type sublistPhraseType =
+					subexpressionsTupleType.typeAtIndex(endOfVariation);
 				emitDoubleWrappedBeforeDaggerOn(
-					generator,
-					tupleType.typeAtIndex(endOfVariation));
-				generator.emit(this, 
-					BRANCH, endOfVariation >= minSize ? $exit : $exitCheckMin);
+					generator, sublistPhraseType);
 				if (endOfVariation < maxSize)
 				{
+					generator.emit(
+						this,
+						BRANCH,
+						endOfVariation >= minSize ? $exit : $exitCheckMin);
 					if (maxInteger.isFinite())
 					{
 						generator.emit(this, CHECK_AT_MOST, maxSize - 1);
 					}
 					emitDoubleWrappedAfterDaggerOn(
-						generator,
-						tupleType.typeAtIndex(endOfVariation));
+						generator, sublistPhraseType);
 					generator.emit(this, APPEND_ARGUMENT);
 					generator.emit(this, ENSURE_PARSE_PROGRESS);
 					generator.emit(this, JUMP, $loopStart);
@@ -1921,29 +1989,53 @@ public class MessageSplitter
 		 * Permute this left-half list as needed.
 		 *
 		 * @param generator
-		 * @param tupleType
+		 *        Where to generate parsing instructions.
+		 * @param phraseType
+		 *        The phrase type of the particular repetition of this group
+		 *        whose before-dagger sequence is to be parsed.
 		 */
 		private void emitDoubleWrappedBeforeDaggerOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
+			final A_Type subexpressionsTupleType;
+			if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+			{
+				subexpressionsTupleType = phraseType.subexpressionsTupleType();
+			}
+			else
+			{
+				subexpressionsTupleType =
+					TupleTypeDescriptor.mappingElementTypes(
+						phraseType.expressionType(),
+						new Transformer1<A_Type, A_Type>()
+						{
+							@Override
+							public A_Type value (
+								@Nullable final A_Type yieldType)
+							{
+								return PARSE_NODE.create(yieldType);
+							}
+						});
+			}
 			int expressionCounter = 0;
+			generator.partialListsCount += 2;
 			for (final Expression expression : beforeDagger.expressions)
 			{
 				final boolean isArgOrGroup = expression.isArgumentOrGroup();
-				generator.partialListsCount += 2;
 				expression.emitOn(
 					generator,
 					isArgOrGroup
-						? tupleType.typeAtIndex(++expressionCounter)
-						: BottomTypeDescriptor.bottom());
-				generator.partialListsCount -= 2;
+						? subexpressionsTupleType.typeAtIndex(
+							++expressionCounter)
+						: ListNodeTypeDescriptor.empty());
 				if (isArgOrGroup)
 				{
 					// Append to the current solution list.
 					generator.emit(this, APPEND_ARGUMENT);
 				}
 			}
+			generator.partialListsCount -= 2;
 			if (beforeDagger.argumentsAreReordered == Boolean.TRUE)
 			{
 				// Permute the list on top of stack.
@@ -1954,9 +2046,7 @@ public class MessageSplitter
 					indexForPermutation(permutationTuple);
 				generator.emit(this, PERMUTE_LIST, permutationIndex);
 			}
-			// Ensure the tuple type was consumed up to its lowerBound.
-			assert tupleType.sizeRange().lowerBound().extractInt()
-				== expressionCounter;
+			assert expressionCounter == beforeDagger.arguments.size();
 		}
 
 		/**
@@ -1965,29 +2055,53 @@ public class MessageSplitter
 		 * Permute just the right half of this list as needed.
 		 *
 		 * @param generator
-		 * @param tupleType
+		 *        Where to generate parsing instructions.
+		 * @param phraseType
+		 *        The phrase type of the particular repetition of this group
+		 *        whose after-dagger sequence is to be parsed.
 		 */
 		private void emitDoubleWrappedAfterDaggerOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
+			final A_Type subexpressionsTupleType;
+			if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+			{
+				subexpressionsTupleType = phraseType.subexpressionsTupleType();
+			}
+			else
+			{
+				subexpressionsTupleType =
+					TupleTypeDescriptor.mappingElementTypes(
+						phraseType.expressionType(),
+						new Transformer1<A_Type, A_Type>()
+						{
+							@Override
+							public A_Type value (
+								@Nullable final A_Type yieldType)
+							{
+								return PARSE_NODE.create(yieldType);
+							}
+						});
+			}
 			int expressionCounter = beforeDagger.arguments.size();
+			generator.partialListsCount += 2;
 			for (final Expression expression : afterDagger.expressions)
 			{
 				final boolean isArgOrGroup = expression.isArgumentOrGroup();
-				generator.partialListsCount += 2;
 				expression.emitOn(
 					generator,
 					isArgOrGroup
-						? tupleType.typeAtIndex(++expressionCounter)
-						: BottomTypeDescriptor.bottom());
-				generator.partialListsCount -= 2;
+						? subexpressionsTupleType.typeAtIndex(
+							++expressionCounter)
+						: ListNodeTypeDescriptor.empty());
 				if (isArgOrGroup)
 				{
 					// Append to the current solution list.
 					generator.emit(this, APPEND_ARGUMENT);
 				}
 			}
+			generator.partialListsCount -= 2;
 			if (afterDagger.argumentsAreReordered == Boolean.TRUE)
 			{
 				// Permute just the right portion of the list on top of
@@ -2021,8 +2135,8 @@ public class MessageSplitter
 				generator.emit(this, PERMUTE_LIST, permutationIndex);
 			}
 			// Ensure the tuple type was consumed up to its upperBound.
-			assert tupleType.sizeRange().upperBound().extractInt()
-				== expressionCounter;
+			assert subexpressionsTupleType.sizeRange().upperBound().equalsInt(
+				expressionCounter);
 		}
 
 		@Override
@@ -2273,7 +2387,7 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			/* push current parse position
 			 * push empty list
@@ -2300,34 +2414,30 @@ public class MessageSplitter
 			generator.emit(this, BRANCH, $loopSkip);
 			generator.emit($loopStart);
 			generator.emit(this, NEW_LIST);
+			// Note that even though the Counter cannot contain anything that
+			// would push data, the Counter region must not contain a section
+			// checkpoint.  There's no point, since the iteration would not be
+			// passed, in case it's confusing (number completed versus number
+			// started).
+			final int oldPartialListsCount = generator.partialListsCount;
 			for (final Expression expression : group.beforeDagger.expressions)
 			{
 				assert !expression.isArgumentOrGroup();
-				// Note that even though the Counter cannot contain anything
-				// that would push data, the Counter region must not contain
-				// a section checkpoint.  There's no point, since the iteration
-				// would not be passed, in case it's confusing (number completed
-				// versus number started).
-				final int oldPartialListsCount = generator.partialListsCount;
 				generator.partialListsCount = Integer.MIN_VALUE;
 				expression.emitOn(
 					generator,
 					null); //TODO MvG - FIGURE OUT the types.
-				generator.partialListsCount = oldPartialListsCount;
 			}
 			generator.emit(this, APPEND_ARGUMENT);
 			generator.emit(this, BRANCH, $loopExit);
 			for (final Expression expression : group.afterDagger.expressions)
 			{
 				assert !expression.isArgumentOrGroup();
-				// Same as for the loop above for expressionsBeforeDagger.
-				final int oldPartialListsCount = generator.partialListsCount;
-				generator.partialListsCount = Integer.MIN_VALUE;
 				expression.emitOn(
 					generator,
 					null); //TODO MvG - FIGURE OUT the types.
-				generator.partialListsCount = oldPartialListsCount;
 			}
+			generator.partialListsCount = oldPartialListsCount;
 			generator.emit(this, ENSURE_PARSE_PROGRESS);
 			generator.emit(this, JUMP, $loopStart);
 			generator.emit($loopExit);
@@ -2470,7 +2580,7 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			/* branch to @absent
 			 * push the current parse position on the mark stack
@@ -2629,7 +2739,7 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			/* branch to @expressionSkip.
 			 * push current parse position on the mark stack.
@@ -2799,11 +2909,11 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			final boolean oldInsensitive = generator.caseInsensitive;
 			generator.caseInsensitive = true;
-			expression.emitOn(generator, tupleType);
+			expression.emitOn(generator, phraseType);
 			generator.caseInsensitive = oldInsensitive;
 		}
 
@@ -2929,7 +3039,7 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			/* push current parse position on the mark stack
 			 * branch to @branches[0]
@@ -3115,7 +3225,7 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			/* branch to @target1.
 			 * ...do first alternative.
@@ -3249,8 +3359,7 @@ public class MessageSplitter
 		 */
 		SectionCheckpoint ()
 		{
-			numberOfSectionCheckpoints++;
-			this.subscript = numberOfSectionCheckpoints;
+			this.subscript = ++numberOfSectionCheckpoints;
 		}
 
 		@Override
@@ -3273,7 +3382,7 @@ public class MessageSplitter
 		@Override
 		void emitOn (
 			final InstructionGenerator generator,
-			final A_Type tupleType)
+			final A_Type phraseType)
 		{
 			// Tidy up any partially-constructed groups and invoke the
 			// appropriate prefix function.  Note that the partialListsCount is
@@ -3318,7 +3427,7 @@ public class MessageSplitter
 	 *        determined.
 	 * @return The permutation's one-based index.
 	 */
-	static int indexForPermutation (final A_Tuple permutation)
+	@InnerAccess static int indexForPermutation (final A_Tuple permutation)
 	{
 		int checkedLimit = 0;
 		while (true)
@@ -3352,7 +3461,7 @@ public class MessageSplitter
 	 * @param index The index of the permutation to retrieve.
 	 * @return The permutation (a {@linkplain A_Tuple tuple} of Avail integers).
 	 */
-	static A_Tuple permutationAtIndex (final int index)
+	public static A_Tuple permutationAtIndex (final int index)
 	{
 		return permutations.get().tupleAt(index);
 	}
@@ -3366,27 +3475,26 @@ public class MessageSplitter
 	 * @return The one-based index of the type, which can be retrieved later via
 	 *         {@link #typeToCheck(int)}.
 	 */
-	static int indexForType (final A_Type type)
+	@InnerAccess static int indexForType (final A_Type type)
 	{
-		final A_Type sharedType = type.makeShared();
 		while (true)
 		{
 			final Pair<A_Map, A_Tuple> oldPair = typesToCheck.get();
 			A_Map map = oldPair.first();
-			if (map.hasKey(sharedType))
+			if (map.hasKey(type))
 			{
-				return map.mapAt(sharedType).extractInt();
+				return map.mapAt(type).extractInt();
 			}
 			final int newIndex = map.mapSize() + 1;
+			final A_Type sharedType = type.makeShared();
 			map = map.mapAtPuttingCanDestroy(
 				sharedType, IntegerDescriptor.fromInt(newIndex), false);
 			map = map.makeShared();
 			A_Tuple tuple = oldPair.second();
-			tuple = tuple.appendCanDestroy(tuple, false).makeShared();
+			tuple = tuple.appendCanDestroy(sharedType, false).makeShared();
 			assert tuple.tupleSize() == newIndex;
 			assert map.mapSize() == newIndex;
-			final Pair<A_Map, A_Tuple> newPair =
-				new Pair<A_Map, A_Tuple>(map, tuple);
+			final Pair<A_Map, A_Tuple> newPair = new Pair<>(map, tuple);
 			if (typesToCheck.compareAndSet(oldPair, newPair))
 			{
 				return newIndex;
@@ -3404,7 +3512,7 @@ public class MessageSplitter
 	 * @param index The index of the type to retrieve.
 	 * @return The {@link A_Type} at the given index.
 	 */
-	static A_Tuple typeToCheck (final int index)
+	public static A_Type typeToCheck (final int index)
 	{
 		return typesToCheck.get().second().tupleAt(index);
 	}
@@ -3449,6 +3557,7 @@ public class MessageSplitter
 				E_UNBALANCED_GUILLEMETS,
 				"Encountered " + encountered);
 		}
+		messagePartsTuple = TupleDescriptor.fromList(messagePartsList).makeShared();
 	}
 
 	/**
@@ -3462,7 +3571,7 @@ public class MessageSplitter
 	{
 		builder.append(messageName.asNativeString());
 		builder.append("\n------\n");
-		for (final A_String part : messageParts)
+		for (final A_String part : messagePartsList)
 		{
 			builder.append("\t");
 			builder.append(part.asNativeString());
@@ -3488,14 +3597,12 @@ public class MessageSplitter
 	 */
 	public A_Tuple messageParts ()
 	{
-		final A_Tuple tuple = TupleDescriptor.fromList(messageParts);
-		tuple.makeImmutable();
-		return tuple;
+		return messagePartsTuple;
 	}
 
 	/**
 	 * Answer the list of one-based positions in the original string
-	 * corresponding to the {@link #messageParts} that have been extracted.
+	 * corresponding to the {@link #messagePartsList} that have been extracted.
 	 *
 	 * @return A {@link List} of {@link Integer}s.
 	 */
@@ -3506,7 +3613,7 @@ public class MessageSplitter
 
 	/**
 	 * Answer a record of where each "underscore" occurred in the list of {@link
-	 * #messageParts}.
+	 * #messagePartsList}.
 	 *
 	 * @return A {@link List} of one-based {@link Integer}s.
 	 */
@@ -3522,7 +3629,7 @@ public class MessageSplitter
 	 */
 	public boolean atEnd ()
 	{
-		return messagePartPosition > messageParts.size();
+		return messagePartPosition > messagePartsList.size();
 	}
 
 	/**
@@ -3545,7 +3652,7 @@ public class MessageSplitter
 	private A_String currentMessagePart ()
 	{
 		assert !atEnd();
-		return messageParts.get(messagePartPosition - 1);
+		return messagePartsList.get(messagePartPosition - 1);
 	}
 
 	/**
@@ -3579,14 +3686,15 @@ public class MessageSplitter
 	 * See {@link MessageSplitter} and {@link ParsingOperation} for an
 	 * understanding of the parse instructions.
 	 *
-	 * @param tupleType The tuple of phrase types for this signature.
+	 * @param phraseType
+	 *        The phrase type (yielding a tuple type) for this signature.
 	 * @return The tuple of integers encoding parse instructions for this
 	 *         message and argument types.
 	 */
-	public A_Tuple instructionsTupleFor (final A_Type tupleType)
+	public A_Tuple instructionsTupleFor (final A_Type phraseType)
 	{
 		final InstructionGenerator generator = new InstructionGenerator();
-		rootSequence.emitOn(generator, tupleType);
+		rootSequence.emitWithoutInitialNewListPushOn(generator, phraseType);
 		return generator.instructionsTuple();
 	}
 
@@ -3629,17 +3737,17 @@ public class MessageSplitter
 			final char ch = (char) messageName.tupleAt(position).codePoint();
 			if (ch == ' ')
 			{
-				if (messageParts.size() == 0
+				if (messagePartsList.size() == 0
 					|| isCharacterAnUnderscoreOrSpaceOrOperator(
 						(char) messageName.tupleAt(position - 1).codePoint()))
 				{
 					// Problem is before the space.  Stuff the rest of the input
 					// in as a final token to make diagnostics look right.
-					messageParts.add(
+					messagePartsList.add(
 						(A_String)messageName.copyTupleFromToCanDestroy(
 							position, messageName.tupleSize(), false));
 					messagePartPositions.add(position);
-					messagePartPosition = messageParts.size() - 1;
+					messagePartPosition = messagePartsList.size() - 1;
 					throwMalformedMessageException(
 						E_METHOD_NAME_IS_NOT_CANONICAL,
 						"Expected alphanumeric character before space");
@@ -3661,11 +3769,11 @@ public class MessageSplitter
 					else
 					{
 						// Problem is after the space.
-						messageParts.add(
+						messagePartsList.add(
 							(A_String)messageName.copyTupleFromToCanDestroy(
 								position, messageName.tupleSize(), false));
 						messagePartPositions.add(position);
-						messagePartPosition = messageParts.size();
+						messagePartPosition = messagePartsList.size();
 						throwMalformedMessageException(
 							E_METHOD_NAME_IS_NOT_CANONICAL,
 							"Expected alphanumeric character after space");
@@ -3683,7 +3791,7 @@ public class MessageSplitter
 				{
 					// We didn't find an underscore, so we need to deal with the
 					// backquote in the usual way.
-					messageParts.add(
+					messagePartsList.add(
 						(A_String)(messageName.copyTupleFromToCanDestroy(
 							position,
 							position,
@@ -3732,7 +3840,7 @@ public class MessageSplitter
 								builder.appendCodePoint(cp);
 							}
 						}
-						messageParts.add(
+						messagePartsList.add(
 							StringDescriptor.from(builder.toString()));
 						messagePartPositions.add(position);
 					}
@@ -3744,7 +3852,7 @@ public class MessageSplitter
 							i <= limit;
 							i++)
 						{
-							messageParts.add((A_String)
+							messagePartsList.add((A_String)
 								(messageName.copyTupleFromToCanDestroy(
 									i,
 									i,
@@ -3756,7 +3864,7 @@ public class MessageSplitter
 			}
 			else if (isCharacterAnUnderscoreOrSpaceOrOperator(ch))
 			{
-				messageParts.add(
+				messagePartsList.add(
 					(A_String)(messageName.copyTupleFromToCanDestroy(
 						position,
 						position,
@@ -3799,11 +3907,11 @@ public class MessageSplitter
 							builder.appendCodePoint(cp);
 						}
 					}
-					messageParts.add(StringDescriptor.from(builder.toString()));
+					messagePartsList.add(StringDescriptor.from(builder.toString()));
 				}
 				else
 				{
-					messageParts.add(
+					messagePartsList.add(
 						(A_String)messageName.copyTupleFromToCanDestroy(
 							start,
 							position - 1,
@@ -3825,7 +3933,7 @@ public class MessageSplitter
 	 * guillemet (»), or a double-dagger (‡).</p>
 	 *
 	 * @return A {@link Sequence} expression parsed from the {@link
-	 *         #messageParts}.
+	 *         #messagePartsList}.
 	 * @throws MalformedMessageException If the method name is malformed.
 	 */
 	Sequence parseSequence ()
@@ -4296,7 +4404,7 @@ public class MessageSplitter
 	 * after parsing the group. The outermost caller is also responsible for
 	 * ensuring the entire input was exactly consumed.</p>
 	 *
-	 * @return A {@link Group} expression parsed from the {@link #messageParts}.
+	 * @return A {@link Group} expression parsed from the {@link #messagePartsList}.
 	 * @throws MalformedMessageException If the method name is malformed.
 	 */
 	Group parseGroup ()

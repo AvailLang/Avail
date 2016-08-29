@@ -400,7 +400,7 @@ public abstract class AbstractDescriptor
 	 * @param <A> The {@code Annotation} type.
 	 * @param enumConstant The {@code Enum} value.
 	 * @param annotationClass The {@link Class} of the {@code Annotation} type.
-	 * @return
+	 * @return The requested annotation or null.
 	 */
 	private static @Nullable <A extends Annotation> A getAnnotation (
 		final Enum<? extends Enum<?>> enumConstant,
@@ -426,14 +426,15 @@ public abstract class AbstractDescriptor
 	 * Describe the object for the Eclipse debugger.
 	 *
 	 * @param object
-	 * @return
+	 *        The {@link AvailObject} to describe.
+	 * @return An array of {@link AvailObjectFieldHelper}s that describe the
+	 *         logical parts of the given object.
 	 */
 	@SuppressWarnings("unchecked")
 	AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
-		final List<AvailObjectFieldHelper> fields =
-			new ArrayList<>();
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
 		Class<Enum<?>> enumClass;
@@ -481,8 +482,7 @@ public abstract class AbstractDescriptor
 							subscript,
 							new AvailIntegerValueHelper(
 								object.slot(
-									(IntegerSlotsEnum)slot,
-									subscript))));
+									(IntegerSlotsEnum)slot, subscript))));
 				}
 			}
 		}
@@ -832,7 +832,7 @@ public abstract class AbstractDescriptor
 				{
 					final Enum<?> slotAsEnum = (Enum<?>) slot;
 					final Class<?> slotClass = slotAsEnum.getDeclaringClass();
-					bitFields = new ArrayList<BitField>();
+					bitFields = new ArrayList<>();
 					for (final Field field : slotClass.getDeclaredFields())
 					{
 						if (Modifier.isStatic(field.getModifiers())
@@ -873,7 +873,7 @@ public abstract class AbstractDescriptor
 					{
 						builder.append(
 							new Formatter().format(
-								" (enum out of range: 0x%08X %08X)",
+								" (enum out of range: 0x%08X_%08X)",
 								value >>> 32L,
 								value & 0xFFFFFFFFL));
 					}
@@ -885,18 +885,15 @@ public abstract class AbstractDescriptor
 					// IntegerEnumSlotDescriptionEnum in this case, not
 					// necessarily an Enum.
 					final Method lookupMethod =
-						describingClass.getMethod(
-							lookupName,
-							Integer.TYPE);
+						describingClass.getMethod(lookupName, Integer.TYPE);
 					final IntegerEnumSlotDescriptionEnum lookedUp =
 						(IntegerEnumSlotDescriptionEnum)lookupMethod.invoke(
-							null,
-							value);
+							null, value);
 					if (lookedUp == null)
 					{
 						builder.append(
 							new Formatter().format(
-								" (enum out of range: 0x%08X %08X)",
+								" (enum out of range: 0x%08X_%08X)",
 								value >>> 32L,
 								value & 0xFFFFFFFFL));
 					}
@@ -935,9 +932,8 @@ public abstract class AbstractDescriptor
 			else
 			{
 				builder.append(
-					new Formatter().format(" = 0x%08X %08X",
-						value >>> 32L,
-						value & 0xFFFFFFFFL));
+					new Formatter().format(" = 0x%08X_%08X = %d",
+						value >>> 32L, value & 0xFFFFFFFFL, value));
 			}
 		}
 		catch (final NoSuchFieldException e)

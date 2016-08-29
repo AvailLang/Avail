@@ -128,9 +128,9 @@ implements A_BasicObject
 				descriptor.debugObjectSlots[field.ordinal()];
 			if (permittedFields != null)
 			{
-				for (int i = 0; i < permittedFields.length; i++)
+				for (final ObjectSlotsEnum permittedField : permittedFields)
 				{
-					if (permittedFields[i] == field)
+					if (permittedField == field)
 					{
 						return;
 					}
@@ -173,9 +173,9 @@ implements A_BasicObject
 				descriptor.debugIntegerSlots[field.ordinal()];
 			if (permittedFields != null)
 			{
-				for (int i = 0; i < permittedFields.length; i++)
+				for (final IntegerSlotsEnum permittedField : permittedFields)
 				{
-					if (permittedFields[i] == field)
+					if (permittedField == field)
 					{
 						return;
 					}
@@ -513,7 +513,7 @@ implements A_BasicObject
 	 * @param bitField A {@link BitField}.
 	 * @param anInteger An {@code int} to store in the indicated slot.
 	 */
-	public final void setMutableSlot (
+	final void setMutableSlot (
 		final BitField bitField,
 		final int anInteger)
 	{
@@ -637,7 +637,7 @@ implements A_BasicObject
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param aContinuation The object to store at the specified slot.
 	 */
-	public final void setContinuationSlotOfFiber (
+	final void setContinuationSlotOfFiber (
 		final ObjectSlotsEnum field,
 		final A_Continuation aContinuation)
 	{
@@ -716,7 +716,7 @@ implements A_BasicObject
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param anAvailObject The object to store at the specified slot.
 	 */
-	public final void setMutableSlot (
+	final void setMutableSlot (
 		final ObjectSlotsEnum field,
 		final A_BasicObject anAvailObject)
 	{
@@ -756,13 +756,10 @@ implements A_BasicObject
 		{
 			synchronized (this)
 			{
-				final AvailObject result =
-					objectSlots[field.ordinal() + subscript - 1];
-				return result;
+				return objectSlots[field.ordinal() + subscript - 1];
 			}
 		}
-		final AvailObject result = objectSlots[field.ordinal() + subscript - 1];
-		return result;
+		return objectSlots[field.ordinal() + subscript - 1];
 	}
 
 	/**
@@ -808,7 +805,7 @@ implements A_BasicObject
 	 * @param subscript The positive one-based subscript to apply.
 	 * @param anAvailObject The object to store unchecked in the slot.
 	 */
-	public final void writeBackSlot (
+	final void writeBackSlot (
 		final ObjectSlotsEnum field,
 		final int subscript,
 		final AvailObject anAvailObject)
@@ -905,9 +902,9 @@ implements A_BasicObject
 		assert descriptor.getClass().equals(objectToCopy.descriptor.getClass());
 		final int newObjectSlotCount =
 			objectToCopy.objectSlots.length + deltaObjectSlots;
+		assert newObjectSlotCount >= descriptor.numberOfFixedObjectSlots;
 		final int newIntegerSlotCount =
 			objectToCopy.longSlots.length + deltaIntegerSlots;
-		assert newObjectSlotCount >= descriptor.numberOfFixedObjectSlots;
 		assert newIntegerSlotCount >= descriptor.numberOfFixedIntegerSlots;
 		final AvailObject newObject =
 			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
@@ -940,37 +937,6 @@ implements A_BasicObject
 	}
 
 	/**
-	 * Search for the key in the {@linkplain #longSlots long slots} that occur
-	 * within those identified with the specified {@link IntegerSlotsEnum}.
-	 * These longs must be in ascending sorted order, and must be distinct.  If
-	 * the exact long is found, answer its zero-based index within this repeated
-	 * slot (i.e., ≥0).  If the exact long is not found, answer (-n-1), where
-	 * n is the zero-based position of the leftmost element of the repeated slot
-	 * which is greater than the key (if it was equal, the "if found" case would
-	 * have applied).
-	 *
-	 * @param slot
-	 *            The final integer slot, which must be the variable-length part
-	 *            of the longSlots array.
-	 * @param key
-	 *            The long value to seek in the designated region of the
-	 *            longSlots array.
-	 * @return
-	 *            The zero-based index of the key within the variable-length
-	 *            repeated slot if found, or else (-n-1) where n is the
-	 *            zero-based index of the leftmost int that is greater than the
-	 *            key.
-	 */
-	public final int binarySearch (final IntegerSlotsEnum slot, final long key)
-	{
-		return Arrays.binarySearch(
-			longSlots,
-			slot.ordinal(),
-			longSlots.length,
-			key);
-	}
-
-	/**
 	 * Search for the key in the 32-bit ints encoded within the {@linkplain
 	 * #longSlots long slots} that occur within those slots identified with the
 	 * specified {@link IntegerSlotsEnum}.  The int slots must be in ascending
@@ -995,7 +961,7 @@ implements A_BasicObject
 	 *            zero-based index of the leftmost int that is greater than the
 	 *            key.
 	 */
-	public final int intBinarySearch (
+	final int intBinarySearch (
 		final IntegerSlotsEnum slot,
 		final int slotCount,
 		final int key)

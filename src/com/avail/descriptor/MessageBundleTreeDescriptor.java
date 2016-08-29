@@ -264,7 +264,7 @@ extends Descriptor
 		 * A {@link RawPojoDescriptor raw pojo} containing a type-dispatch tree
 		 * for handling the case that at least one {@link
 		 * A_DefinitionParsingPlan parsing plan} in this message bundle tree is
-		 * at a {@link #PARSING_PC} pointing to a {@link
+		 * at a {@link IntegerSlots#PARSING_PC} pointing to a {@link
 		 * ParsingOperation#TYPE_CHECK_ARGUMENT} operation.  This allows
 		 * relatively efficient elimination of inappropriately typed arguments
 		 */
@@ -383,8 +383,14 @@ extends Descriptor
 				definition, plan, true);
 			unclassified = unclassified.mapAtPuttingCanDestroy(
 				bundle, unclassifiedSubmap, true);
-			object.setSlot(UNCLASSIFIED, unclassified);
+			object.setSlot(UNCLASSIFIED, unclassified.makeShared());
 		}
+	}
+
+	@Override
+	A_Map o_AllParsingPlans (final AvailObject object)
+	{
+		return object.slot(ALL_PLANS);
 	}
 
 	@Override @AvailMethod
@@ -674,6 +680,7 @@ extends Descriptor
 					part, subtree, true);
 			}
 			subtree.addBundle(bundle);
+			subtree.addPlan(plan);
 			return;
 		}
 		final A_Number instructionObject =
@@ -713,7 +720,7 @@ extends Descriptor
 			assert nextPcs.size() == 1;
 			assert nextPcs.get(0).intValue() == pc + 1;
 			// Add it to the action map.
-			final AvailObject successor;
+			final A_BundleTree successor;
 			if (actionMap.value.hasKey(instructionObject))
 			{
 				final A_Tuple successors =
@@ -749,8 +756,9 @@ extends Descriptor
 			{
 				if (!forbiddenBundles.hasElement(prefilterEntry.key()))
 				{
-					prefilterEntry.value().addBundle(bundle);
-					prefilterEntry.value().addDefinitionParsingPlan(plan);
+					final A_BundleTree nextTree = prefilterEntry.value();
+					nextTree.addBundle(bundle);
+					nextTree.addPlan(plan);
 				}
 			}
 			// Add branches for any new restrictions.  Pre-populate
@@ -782,6 +790,7 @@ extends Descriptor
 			// new restrictions, and the actionMap is what gets
 			// visited to populate new restrictions.
 			successor.addBundle(bundle);
+			successor.addPlan(plan);
 
 			// Note:  DO NOT return here, since the action has to also be added
 			// to the actionMap (to deal with the case that a subexpression is
@@ -815,6 +824,7 @@ extends Descriptor
 		for (final A_BundleTree successor : successors)
 		{
 			successor.addBundle(bundle);
+			successor.addPlan(plan);
 		}
 	}
 

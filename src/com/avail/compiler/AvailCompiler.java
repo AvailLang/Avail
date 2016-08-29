@@ -505,9 +505,10 @@ public final class AvailCompiler
 				{
 					builder.append(", ");
 				}
-				final A_Set plans = bundlesMap.mapAt(bundle);
+				final A_Map plans = bundlesMap.mapAt(bundle);
 				// Pick an active plan arbitrarily for this bundle.
-				final A_DefinitionParsingPlan plan = plans.iterator().next();
+				final A_DefinitionParsingPlan plan =
+					plans.mapIterable().next().value();
 				builder.append(plan.nameHighlightingPc(pc));
 				first = false;
 			}
@@ -1286,9 +1287,9 @@ public final class AvailCompiler
 	/**
 	 * Parse one or more string literals separated by commas. This parse isn't
 	 * backtracking like the rest of the grammar - it's greedy. It considers a
-	 * comma followed by something other than a string literal or final
-	 * ellipsis to be an unrecoverable parsing error (not a backtrack).
-	 * A {@linkplain #RIGHT_ARROW right arrow} between two strings indicates a
+	 * comma followed by something other than a string literal or final ellipsis
+	 * to be an unrecoverable parsing error (not a backtrack). A {@linkplain
+	 * ExpectedToken#RIGHT_ARROW right arrow} between two strings indicates a
 	 * rename.  An ellipsis at the end (the comma before it is optional)
 	 * indicates that all names not explicitly mentioned should be imported.
 	 *
@@ -3221,8 +3222,9 @@ public final class AvailCompiler
 								new HashSet<A_Bundle>();
 							final List<A_DefinitionParsingPlan>
 								representativePlans = new ArrayList<>();
+							final A_BundleTree nextTree = entry.value();
 							for (final MapDescriptor.Entry successorBundleEntry
-								: entry.value().allParsingPlans().mapIterable())
+								: nextTree.allParsingPlans().mapIterable())
 							{
 								final A_Bundle bundle =
 									successorBundleEntry.key();
@@ -3512,7 +3514,25 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final Con<A_Phrase> continuation)
 	{
-		bundleTree.expand(module, argsSoFar);
+		// TODO(MvG) - remove temporary try/catch handler.
+		try
+		{
+			bundleTree.expand(module, argsSoFar);
+		}
+		catch (final Exception|Error e)
+		{
+			final StringWriter stringWriter = new StringWriter();
+			stringWriter.append(
+				"expansion of message bundle tree not to have thrown Java "
+					+ "exception:\n");
+			e.printStackTrace(new PrintWriter(stringWriter));
+			stringWriter.append("\n...while parsing:");
+			final StringBuilder builder = new StringBuilder();
+			builder.append(stringWriter);
+			describeOn(continuation.superexpressions(), builder);
+			start.expected(builder.toString());
+			return;
+		}
 		final A_Set complete = bundleTree.lazyComplete();
 		final A_Map incomplete = bundleTree.lazyIncomplete();
 		final A_Map caseInsensitive =
@@ -4214,14 +4234,13 @@ public final class AvailCompiler
 				// Convert the argument.
 				assert successorTrees.tupleSize() == 1;
 				final A_Phrase input = last(argsSoFar);
+				final AtomicBoolean sanityFlag = new AtomicBoolean();
 				op.conversionRule(instruction).convert(
 					input,
 					start,
 					initialTokenPosition,
 					new Continuation1<A_Phrase>()
 					{
-						final AtomicBoolean sanityFlag = new AtomicBoolean();
-
 						@Override
 						public void value (
 							final @Nullable A_Phrase replacementExpression)
@@ -4248,9 +4267,27 @@ public final class AvailCompiler
 						@Override
 						public void value (final @Nullable Throwable e)
 						{
-							//TODO[MvG] - Deal with failed conversion (this can
-							// only happen during an evaluation conversion).
-							assert false : "Deal with this";
+							// Deal with a failed conversion.  As of 2016-08-28,
+							// this can only happen during an expression
+							// evaluation.
+							assert sanityFlag.compareAndSet(false, true);
+							assert e != null;
+							start.expected(new Describer()
+							{
+								@Override
+								public void describeThen (
+									final Continuation1<String> withString)
+								{
+									final StringWriter stringWriter =
+										new StringWriter();
+									stringWriter.append(
+										"evaluation of expression not to have "
+										+ "thrown Java exception:\n");
+									e.printStackTrace(
+										new PrintWriter(stringWriter));
+									withString.value(stringWriter.toString());
+								}
+							});
 						}
 					});
 				break;
@@ -7306,9 +7343,6 @@ public final class AvailCompiler
 		final Con<A_Phrase> continuation,
 		final Continuation0 afterFail)
 	{
-		//TODO MvG : Remove DEBUG
-		System.out.println("DEBUG root:" + loader().rootBundleTree());
-
 		// If a parsing error happens during parsing of this outermost
 		// statement, only show the section of the file starting here.
 		recordExpectationsRelativeTo(start.position);

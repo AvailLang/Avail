@@ -207,7 +207,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+2} - Parse the Nth {@linkplain MessageSplitter#messageParts
+	 * {@code 16*N+2} - Parse the Nth {@linkplain MessageSplitter#messagePartsList
 	 * message part} of the current message. This will be a specific {@linkplain
 	 * TokenDescriptor token}. It should be matched case sensitively against the
 	 * source token.
@@ -222,7 +222,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+3} - Parse the Nth {@linkplain MessageSplitter#messageParts
+	 * {@code 16*N+3} - Parse the Nth {@linkplain MessageSplitter#messagePartsList
 	 * message part} of the current message. This will be a specific {@linkplain
 	 * TokenDescriptor token}. It should be matched case insensitively against
 	 * the source token.
@@ -469,7 +469,7 @@ public enum ParsingOperation
 
 	/**
 	 * Assume that the instruction encodes an operand that represents a
-	 * {@linkplain MessageSplitter#messageParts message part} index: answer the
+	 * {@linkplain MessageSplitter#messagePartsList message part} index: answer the
 	 * operand.  Answer 0 if the operand does not represent a message part.
 	 *
 	 * @param instruction A coded instruction.

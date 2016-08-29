@@ -125,19 +125,30 @@ extends Descriptor
 	A_Type o_ParsingSignature (final AvailObject object)
 	{
 		// Non-macro definitions have a signature derived from the
-		// bodySignature.
-		final Transformer1<A_Type, A_Type> transformer =
-			new Transformer1<A_Type, A_Type>()
-			{
-				@Override
-				public A_Type value (@Nullable final A_Type argumentType)
+		// bodySignature.  We can safely make it a list phrase type.
+		final A_Type argsTupleType =
+			object.bodySignature().argsTupleType();
+		final A_Type sizes = argsTupleType.sizeRange();
+		// TODO MvG - Maybe turn this into a check.
+		assert sizes.lowerBound().extractInt()
+			== sizes.upperBound().extractInt();
+		assert sizes.lowerBound().extractInt()
+			== object.slot(DEFINITION_METHOD).numArgs();
+		// TODO MvG - 2016-08-21 deal with permutation of main list.
+		return ListNodeTypeDescriptor.createListNodeType(
+			ParseNodeKind.LIST_NODE,
+			argsTupleType,
+			TupleTypeDescriptor.mappingElementTypes(
+				argsTupleType,
+				new Transformer1<A_Type, A_Type>()
 				{
-					assert argumentType != null;
-					return ParseNodeKind.PARSE_NODE.create(argumentType);
-				}
-			};
-		return TupleTypeDescriptor.mappingElementTypes(
-			object.bodySignature().argsTupleType(), transformer);
+					@Override
+					public A_Type value (@Nullable final A_Type argYieldType)
+					{
+
+						return ParseNodeKind.PARSE_NODE.create(argYieldType);
+					}
+				}));
 	}
 
 	@Override @AvailMethod

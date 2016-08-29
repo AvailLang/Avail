@@ -2,21 +2,21 @@
  * L2Translator.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
- *
+ * <p>
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ * <p>
  * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
- *
+ * list of conditions and the following disclaimer.
+ * <p>
  * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
- *
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * <p>
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
- *
+ * may be used to endorse or promote products derived from this software
+ * without specific prior written permission.
+ * <p>
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -39,15 +39,17 @@ import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.Primitive.Fallibility.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.max;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.InternalLookupTree;
 import com.avail.descriptor.MethodDescriptor.LookupTree;
+import com.avail.descriptor.MethodDescriptor.InternalLookupTree;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Result;
@@ -73,22 +75,24 @@ public class L2Translator
 	 * {@code DebugFlag}s control which kinds of {@linkplain L2Translator
 	 * translation} events should be {@linkplain #logger logged}.
 	 */
-	@InnerAccess static enum DebugFlag
+	@InnerAccess
+	enum DebugFlag
 	{
 		/** Code generation. */
-		GENERATION (false),
+		GENERATION(false),
 
 		/** Code optimization. */
-		OPTIMIZATION (false),
+		OPTIMIZATION(false),
 
 		/** Data flow analysis. */
-		DATA_FLOW (false),
+		DATA_FLOW(false),
 
 		/** Dead instruction removal. */
-		DEAD_INSTRUCTION_REMOVAL (false);
+		DEAD_INSTRUCTION_REMOVAL(false);
 
 		/** The {@linkplain Logger logger}. */
-		@InnerAccess final Logger logger;
+		@InnerAccess
+		final Logger logger;
 
 		/**
 		 * Should translation events of this kind be logged?
@@ -99,7 +103,7 @@ public class L2Translator
 		 * Should translation events of this kind be logged?
 		 *
 		 * @return {@code true} if translation events of this kind should be
-		 *         logged, {@code false} otherwise.
+		 * logged, {@code false} otherwise.
 		 */
 		boolean shouldLog ()
 		{
@@ -201,7 +205,7 @@ public class L2Translator
 		 * @param shouldLog
 		 *        Should translation events of this kind be logged?
 		 */
-		private DebugFlag (final boolean shouldLog)
+		DebugFlag (final boolean shouldLog)
 		{
 			this.logger = Logger.getLogger(
 				L2Translator.class.getName() + "." + name());
@@ -275,7 +279,7 @@ public class L2Translator
 		 * Answer an array of all {@link OptimizationLevel} enumeration values.
 		 *
 		 * @return An array of all {@link OptimizationLevel} enum values.  Do
-		 *         not modify the array.
+		 * not modify the array.
 		 */
 		public static OptimizationLevel[] all ()
 		{
@@ -421,7 +425,8 @@ public class L2Translator
 	/**
 	 * Answer the specified fixed register.
 	 *
-	 * @param registerEnum The {@link FixedRegister} identifying the register.
+	 * @param registerEnum
+	 *        The {@link FixedRegister} identifying the register.
 	 * @return The {@link L2ObjectRegister} named by the registerEnum.
 	 */
 	public L2ObjectRegister fixed (final FixedRegister registerEnum)
@@ -466,9 +471,10 @@ public class L2Translator
 	 * Answer the register representing the slot of the stack associated with
 	 * the given index.
 	 *
-	 * @param stackIndex A stack position, for example stackp.
+	 * @param stackIndex
+	 *        A stack position, for example stackp.
 	 * @return A {@linkplain L2ObjectRegister register} representing the stack
-	 *         at the given position.
+	 * at the given position.
 	 */
 	public L2ObjectRegister stackRegister (final int stackIndex)
 	{
@@ -503,8 +509,10 @@ public class L2Translator
 	 * L2Operation} and variable number of {@link L2Operand}s.  Do not attempt
 	 * to propagate type or constant information.
 	 *
-	 * @param operation The operation to invoke.
-	 * @param operands The operands of the instruction.
+	 * @param operation
+	 *        The operation to invoke.
+	 * @param operands
+	 *        The operands of the instruction.
 	 */
 	@InnerAccess void justAddInstruction (
 		final L2Operation operation,
@@ -553,7 +561,8 @@ public class L2Translator
 	 * registers}.  Answer an existing vector if an equivalent one is already
 	 * defined.
 	 *
-	 * @param objectRegisters The list of object registers to aggregate.
+	 * @param objectRegisters
+	 *        The list of object registers to aggregate.
 	 * @return A new L2RegisterVector.
 	 */
 	public L2RegisterVector createVector (
@@ -566,7 +575,8 @@ public class L2Translator
 	/**
 	 * Create a new {@link L2_LABEL} pseudo-instruction}.
 	 *
-	 * @param comment A description of the label.
+	 * @param comment
+	 *        A description of the label.
 	 * @return The new label.
 	 */
 	public L2Instruction newLabel (final String comment)
@@ -584,11 +594,7 @@ public class L2Translator
 	 * eliminate newer registers introduced by moves and decomposable primitive
 	 * pairs (e.g., <a,b>[1]).
 	 */
-	final Transformer3<
-			L2Register,
-			L2OperandType,
-			RegisterSet,
-			L2Register>
+	final Transformer3<L2Register, L2OperandType, RegisterSet, L2Register>
 		normalizer =
 			new Transformer3<
 				L2Register,
@@ -614,21 +620,19 @@ public class L2Translator
 	 * (and was) inlined, return the primitive function; otherwise return null.
 	 *
 	 * @param function
-	 *            The {@linkplain FunctionDescriptor function} to be inlined or
-	 *            invoked.
+	 *        The {@linkplain FunctionDescriptor function} to be inlined or
+	 *        invoked.
 	 * @param args
-	 *            A {@link List} of {@linkplain L2ObjectRegister registers}
-	 *            holding the actual constant values used to look up the method
-	 *            definition for the call.
+	 *        A {@link List} of {@linkplain L2ObjectRegister registers}
+	 *        holding the actual constant values used to look up the method
+	 *        definition for the call.
 	 * @param registerSet
-	 *            A {@link RegisterSet} indicating the current state of the
-	 *            registers at this invocation point.
-	 * @return
-	 *            The provided method definition's primitive {@linkplain
-	 *            FunctionDescriptor function}, or {@code null} otherwise.
+	 *        A {@link RegisterSet} indicating the current state of the
+	 *        registers at this invocation point.
+	 * @return The provided method definition's primitive {@linkplain
+	 * FunctionDescriptor function}, or {@code null} otherwise.
 	 */
-	@InnerAccess
-	@Nullable A_Function primitiveFunctionToInline (
+	@InnerAccess @Nullable A_Function primitiveFunctionToInline (
 		final A_Function function,
 		final List<L2ObjectRegister> args,
 		final RegisterSet registerSet)
@@ -662,7 +666,7 @@ public class L2Translator
 	 * something much more efficient – without altering the level one semantics.
 	 */
 	public class L1NaiveTranslator
-	implements L1OperationDispatcher
+		implements L1OperationDispatcher
 	{
 		/**
 		 * The {@linkplain CompiledCodeDescriptor raw function} to transliterate
@@ -706,14 +710,14 @@ public class L2Translator
 		{
 			final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc++);
 			final int shift = firstNybble << 2;
-			int count = 0xF & (int)(0x8421_1100_0000_0000L >>> shift);
+			int count = 0xF & (int) (0x8421_1100_0000_0000L >>> shift);
 			int value = 0;
 			while (count-- > 0)
 			{
 				value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc++);
 			}
-			final int lowOff = 0xF & (int)(0x00AA_AA98_7654_3210L >>> shift);
-			final int highOff = 0xF & (int)(0x0032_1000_0000_0000L >>> shift);
+			final int lowOff = 0xF & (int) (0x00AA_AA98_7654_3210L >>> shift);
+			final int highOff = 0xF & (int) (0x0032_1000_0000_0000L >>> shift);
 			return value + lowOff + (highOff << 4);
 		}
 
@@ -825,7 +829,7 @@ public class L2Translator
 		 * @param stackIndex
 		 *        A stack position.
 		 * @return A {@linkplain L2ObjectRegister register} representing the
-		 *         stack at the given position.
+		 * stack at the given position.
 		 */
 		public L2ObjectRegister stackRegister (final int stackIndex)
 		{
@@ -928,8 +932,10 @@ public class L2Translator
 		 * Create and add an {@link L2Instruction} with the given {@link
 		 * L2Operation} and variable number of {@link L2Operand}s.
 		 *
-		 * @param operation The operation to invoke.
-		 * @param operands The operands of the instruction.
+		 * @param operation
+		 *        The operation to invoke.
+		 * @param operands
+		 *        The operands of the instruction.
 		 */
 		public void addInstruction (
 			final L2Operation operation,
@@ -941,7 +947,8 @@ public class L2Translator
 		/**
 		 * Add an {@link L2Instruction}.
 		 *
-		 * @param instruction The instruction to add.
+		 * @param instruction
+		 *        The instruction to add.
 		 */
 		public void addInstruction (
 			final L2Instruction instruction)
@@ -1004,8 +1011,7 @@ public class L2Translator
 				if (successor == null)
 				{
 					naiveRegisters = successorRegisterSet;
-				}
-				else
+				} else
 				{
 					assert successor.operation == L2_LABEL.instance;
 					if (successor != startLabel)
@@ -1019,8 +1025,7 @@ public class L2Translator
 							labelRegisterSets.put(
 								successor,
 								successorRegisterSet);
-						}
-						else
+						} else
 						{
 							existing.mergeFrom(successorRegisterSet);
 						}
@@ -1065,8 +1070,7 @@ public class L2Translator
 						if (naiveRegisters == null)
 						{
 							builder.append("\n[[[no RegisterSet]]]");
-						}
-						else
+						} else
 						{
 							naiveRegisters().debugOn(builder);
 						}
@@ -1085,8 +1089,10 @@ public class L2Translator
 		 * Generate instruction(s) to move the given {@link AvailObject} into
 		 * the specified {@link L2Register}.
 		 *
-		 * @param value The value to move.
-		 * @param destinationRegister Where to move it.
+		 * @param value
+		 *        The value to move.
+		 * @param destinationRegister
+		 *        Where to move it.
 		 */
 		public void moveConstant (
 			final A_BasicObject value,
@@ -1095,8 +1101,7 @@ public class L2Translator
 			if (value.equalsNil())
 			{
 				moveRegister(fixed(NULL), destinationRegister);
-			}
-			else
+			} else
 			{
 				addInstruction(
 					L2_MOVE_CONSTANT.instance,
@@ -1109,7 +1114,8 @@ public class L2Translator
 		 * Generate instructions to move {@linkplain NilDescriptor#nil() nil}
 		 * into the specified {@link L2ObjectRegister register}.
 		 *
-		 * @param destinationRegister Which register to clear.
+		 * @param destinationRegister
+		 *        Which register to clear.
 		 */
 		public void moveNil (
 			final L2ObjectRegister destinationRegister)
@@ -1124,7 +1130,8 @@ public class L2Translator
 		 * Generate instructions to move {@linkplain NilDescriptor#nil() nil}
 		 * into each of the specified {@link L2ObjectRegister registers}.
 		 *
-		 * @param destinationRegisters Which registers to clear.
+		 * @param destinationRegisters
+		 *        Which registers to clear.
 		 */
 		public void moveNils (
 			final Collection<L2ObjectRegister> destinationRegisters)
@@ -1141,8 +1148,10 @@ public class L2Translator
 		/**
 		 * Generate instruction(s) to move from one register to another.
 		 *
-		 * @param sourceRegister Where to read the AvailObject.
-		 * @param destinationRegister Where to write the AvailObject.
+		 * @param sourceRegister
+		 *        Where to read the AvailObject.
+		 * @param destinationRegister
+		 *        Where to write the AvailObject.
 		 */
 		public void moveRegister (
 			final L2ObjectRegister sourceRegister,
@@ -1217,12 +1226,12 @@ public class L2Translator
 			 * make it easier to decipher.
 			 *
 			 * @param argumentIndexToTest
-			 *            The subscript of the argument being tested.
+			 *        The subscript of the argument being tested.
 			 * @param typeToTest
-			 *            The type to test the argument against.
+			 *        The type to test the argument against.
 			 * @param branchLabelCounter
-			 *            An int unique to this dispatch tree, monotonically
-			 *            allocated at each branch.
+			 *        An int unique to this dispatch tree, monotonically
+			 *        allocated at each branch.
 			 */
 			public InternalNodeMemento (
 				final int argumentIndexToTest,
@@ -1300,7 +1309,7 @@ public class L2Translator
 			final LookupTree tree = LookupTree.createRoot(
 				nArgs, allPossible, argTypes);
 			final Mutable<Integer> branchLabelCounter = new Mutable<Integer>(1);
-			tree.traverseEntireTree(
+			tree.<InternalNodeMemento>traverseEntireTree(
 				// preInternalNode
 				new Transformer2<Integer, A_Type, InternalNodeMemento>()
 				{
@@ -1333,8 +1342,7 @@ public class L2Translator
 						// check.
 						final A_Type intersection =
 							existingType.typeIntersection(typeToTest);
-						assert
-							!intersection.isBottom()
+						assert !intersection.isBottom()
 							: "Impossible condition should have been excluded";
 						// Tricky here.  We have the type we want to test for,
 						// and we have the argument for which we want to test
@@ -1474,7 +1482,7 @@ public class L2Translator
 					}
 				},
 				// intraInternalNode
-				new Continuation1<InternalNodeMemento> ()
+				new Continuation1<InternalNodeMemento>()
 				{
 					@Override
 					public void value (
@@ -1491,7 +1499,7 @@ public class L2Translator
 					}
 				},
 				// postInternalNode
-				new Continuation1<InternalNodeMemento> ()
+				new Continuation1<InternalNodeMemento>()
 				{
 					@Override
 					public void value (
@@ -1600,9 +1608,9 @@ public class L2Translator
 		 * code stream.
 		 *
 		 * @param originalFunction
-		 *            The {@linkplain FunctionDescriptor function} to invoke.
+		 *        The {@linkplain FunctionDescriptor function} to invoke.
 		 * @param expectedType
-		 *            The expected return {@linkplain TypeDescriptor type}.
+		 *        The expected return {@linkplain TypeDescriptor type}.
 		 */
 		public void generateFunctionInvocation (
 			final A_Function originalFunction,
@@ -1839,15 +1847,15 @@ public class L2Translator
 		 * method.
 		 *
 		 * @param bundle
-		 *            The {@linkplain MessageBundleDescriptor message bundle}
-		 *            containing the definition to invoke.
+		 *        The {@linkplain MessageBundleDescriptor message bundle}
+		 *        containing the definition to invoke.
 		 * @param expectedType
-		 *            The expected return {@linkplain TypeDescriptor type}.
+		 *        The expected return {@linkplain TypeDescriptor type}.
 		 * @param superUnionType
-		 *            A tuple type whose union with the type of the arguments
-		 *            tuple at runtime is used for lookup.  The type ⊥ ({@link
-		 *            BottomTypeDescriptor#bottom() bottom}) is used to indicate
-		 *            this is not a super call.
+		 *        A tuple type whose union with the type of the arguments
+		 *        tuple at runtime is used for lookup.  The type ⊥ ({@link
+		 *        BottomTypeDescriptor#bottom() bottom}) is used to indicate
+		 *        this is not a super call.
 		 */
 		private void generateSlowPolymorphicCall (
 			final A_Bundle bundle,
@@ -2092,37 +2100,38 @@ public class L2Translator
 		 * </p>
 		 *
 		 * @param primitiveFunction
-		 *            A {@linkplain FunctionDescriptor function} for which its
-		 *            primitive might be inlined, or even folded if possible.
+		 *        A {@linkplain FunctionDescriptor function} for which its
+		 *        primitive might be inlined, or even folded if possible.
 		 * @param args
-		 *            The {@link List} of arguments to the primitive function.
+		 *        The {@link List} of arguments to the primitive function.
 		 * @param resultRegister
-		 *            The {@link L2Register} into which to write the primitive
-		 *            result.
+		 *        The {@link L2Register} into which to write the primitive
+		 *        result.
 		 * @param preserved
-		 *            A list of registers to consider preserved across this
-		 *            call.  They have no effect at runtime, but affect analysis
-		 *            of which instructions consume which writes.
+		 *        A list of registers to consider preserved across this
+		 *        call.  They have no effect at runtime, but affect analysis
+		 *        of which instructions consume which writes.
 		 * @param expectedType
-		 *            The {@linkplain TypeDescriptor type} of object that this
-		 *            primitive call site was expected to produce.
+		 *        The {@linkplain TypeDescriptor type} of object that this
+		 *        primitive call site was expected to produce.
 		 * @param failureValueRegister
-		 *            The {@linkplain L2ObjectRegister register} into which to
-		 *            write the failure information if the primitive fails.
+		 *        The {@linkplain L2ObjectRegister register} into which to
+		 *        write the failure information if the primitive fails.
 		 * @param successLabel
-		 *            The label to jump to if the primitive is not folded and is
-		 *            inlined.
+		 *        The label to jump to if the primitive is not folded and is
+		 *        inlined.
 		 * @param canFailPrimitive
-		 *            A {@linkplain Mutable Mutable<Boolean>} that this method
-		 *            sets if a fallible primitive was inlined.
+		 *        A {@linkplain Mutable Mutable<Boolean>} that this method
+		 *        sets if a fallible primitive was inlined.
 		 * @param registerSet
-		 *            The {@link RegisterSet} with the register information at
-		 *            this position in the instruction stream.
-		 * @return
-		 *            The value if the primitive was folded, otherwise {@code
-		 *            null}.
+		 *        The {@link RegisterSet} with the register information at
+		 *        this position in the instruction stream.
+		 * @return The value if the primitive was folded, otherwise {@code
+		 *         null}.
 		 */
-		private @Nullable A_BasicObject emitInlinePrimitiveAttempt (
+		private
+		@Nullable
+		A_BasicObject emitInlinePrimitiveAttempt (
 			final A_Function primitiveFunction,
 			final List<L2ObjectRegister> args,
 			final L2ObjectRegister resultRegister,
@@ -2372,7 +2381,8 @@ public class L2Translator
 		 * process} off-ramp. May only be called when the architectural
 		 * registers reflect an inter-nybblecode state.
 		 *
-		 * @param registerSet The {@link RegisterSet} to use and update.
+		 * @param registerSet
+		 *        The {@link RegisterSet} to use and update.
 		 */
 		@InnerAccess void emitInterruptOffRamp (
 			final RegisterSet registerSet)
@@ -2429,8 +2439,7 @@ public class L2Translator
 						nullSlots = nullSlots.setWithElementCanDestroy(
 							IntegerDescriptor.fromInt(slotIndex),
 							true);
-					}
-					else
+					} else
 					{
 						constants = constants.mapAtPuttingCanDestroy(
 							IntegerDescriptor.fromInt(slotIndex),
@@ -3088,7 +3097,7 @@ public class L2Translator
 			// Move into the permuted temps, then back to the stack.  This puts
 			// the responsibility for optimizing away extra moves (by coloring
 			// the registers) on the optimizer.
-   			final A_Tuple permutation = code.literalAt(getInteger());
+			final A_Tuple permutation = code.literalAt(getInteger());
 			final int size = permutation.tupleSize();
 			final L2ObjectRegister[] temps = new L2ObjectRegister[size];
 			for (int i = size; i >= 1; i--)
@@ -3438,8 +3447,8 @@ public class L2Translator
 	 * Also include the original instructions that have side-effect.
 	 *
 	 * @param reachableInstructions
-	 *            The instructions which are both reachable from the first
-	 *            instruction and have a side-effect.
+	 *        The instructions which are both reachable from the first
+	 *        instruction and have a side-effect.
 	 * @return The instructions that are essential and should be kept.
 	 */
 	private Set<L2Instruction> findInstructionsThatProduceNeededValues (
@@ -3612,12 +3621,12 @@ public class L2Translator
 				{
 					assert r1 != null;
 					assert r2 != null;
-					return (int)(r2.uniqueValue - r1.uniqueValue);
+					return Long.compare(r2.uniqueValue, r1.uniqueValue);
 				}
 			});
 		for (final L2Register register : encounteredList)
 		{
-			if (register.finalIndex() == - 1)
+			if (register.finalIndex() == -1)
 			{
 				register.setFinalIndex(++maxId);
 			}
@@ -3812,9 +3821,12 @@ public class L2Translator
 	/**
 	 * Construct a new {@link L2Translator}.
 	 *
-	 * @param code The {@linkplain CompiledCodeDescriptor code} to translate.
-	 * @param optimizationLevel The optimization level.
-	 * @param interpreter An {@link Interpreter}.
+	 * @param code
+	 *        The {@linkplain CompiledCodeDescriptor code} to translate.
+	 * @param optimizationLevel
+	 *        The optimization level.
+	 * @param interpreter
+	 *        An {@link Interpreter}.
 	 */
 	private L2Translator (
 		final A_RawFunction code,
