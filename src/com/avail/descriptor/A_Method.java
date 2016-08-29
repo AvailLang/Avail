@@ -132,13 +132,13 @@ extends A_ChunkDependable
 	 *        position.
 	 * @return The selected definition.
 	 * @throws MethodDefinitionException
-	 *         If {@linkplain MethodDefinitionException#noMethodDefinition() no
-	 *         definition is applicable} or if {@linkplain
-	 *         MethodDefinitionException#ambiguousMethodDefinition() multiple
-	 *         definitions are applicable}.
+	 *         In the event the lookup doesn't produce exactly one definition.
+	 *         Possible error codes are {@link
+	 *         AvailErrorCode#E_NO_METHOD_DEFINITION} and {@link
+	 *         AvailErrorCode#E_AMBIGUOUS_METHOD_DEFINITION}.
 	 */
 	A_Definition lookupByTypesFromTuple (A_Tuple argumentTypeTuple)
-		throws MethodDefinitionException;
+	throws MethodDefinitionException;
 
 	/**
 	 * Answer the {@linkplain A_Definition definition} of this {@linkplain
@@ -148,20 +148,42 @@ extends A_ChunkDependable
 	 * and answer {@linkplain NilDescriptor#nil() nil}.
 	 *
 	 * @param argumentList
-	 *        The {@linkplain A_Tuple tuple} of arguments, ordered by position.
-	 * @param errorCode
-	 *        A {@linkplain MutableOrNull container} for an {@linkplain
-	 *        AvailErrorCode error code} in the event of failure. Possible
-	 *        error codes are {@link AvailErrorCode#E_NO_METHOD_DEFINITION
-	 *        E_NO_METHOD_DEFINITION} and {@link
-	 *        AvailErrorCode#E_AMBIGUOUS_METHOD_DEFINITION
-	 *        E_AMBIGUOUS_METHOD_DEFINITION}.
-	 * @return The selected definition, or nil if no definition is applicable or
-	 *         if multiple definitions are applicable.
+	 *        The {@linkplain List} of arguments, ordered by position.
+	 * @return The selected definition if it's unique.
+	 * @throws MethodDefinitionException
+	 *         In the event the lookup doesn't produce exactly one definition.
+	 *         Possible error codes are {@link
+	 *         AvailErrorCode#E_NO_METHOD_DEFINITION} and {@link
+	 *         AvailErrorCode#E_AMBIGUOUS_METHOD_DEFINITION}.
 	 */
 	A_Definition lookupByValuesFromList (
-		List<? extends A_BasicObject> argumentList,
-		MutableOrNull<AvailErrorCode> errorCode);
+		List<? extends A_BasicObject> argumentList)
+	throws MethodDefinitionException;
+
+	/**
+	 * Look up the macro definition to invoke, given an array of argument
+	 * phrases.  Use the method's macro testing tree to find the macro
+	 * definition to invoke.  Answer nil if a lookup error occurs, in which case
+	 * the errorCode will be set to either {@link
+	 * AvailErrorCode#E_NO_METHOD_DEFINITION} or {@link
+	 * AvailErrorCode#E_AMBIGUOUS_METHOD_DEFINITION}.
+	 *
+	 * <p>Note that this testing tree approach is only applicable if all of the
+	 * macro definitions are visible (defined in the current module or an
+	 * ancestor.  That should be the <em>vast</em> majority of the use of
+	 * macros, but when it isn't, other lookup approaches are necessary.</p>
+	 *
+	 * @param argumentPhraseTuple
+	 *        The argument phrases destined to be transformed by the macro.
+	 * @return The selected macro definition if it's unique.
+	 * @throws MethodDefinitionException
+	 *         In the event the lookup doesn't produce exactly one definition.
+	 *         Possible error codes are {@link
+	 *         AvailErrorCode#E_NO_METHOD_DEFINITION} and {@link
+	 *         AvailErrorCode#E_AMBIGUOUS_METHOD_DEFINITION}.
+	 */
+	A_Definition lookupMacroByPhraseTuple (A_Tuple argumentPhraseTuple)
+	throws MethodDefinitionException;
 
 	/**
 	 * Remove the specified {@linkplain A_Definition definition} from this
@@ -250,31 +272,6 @@ extends A_ChunkDependable
 	 * @return A tuple of {@link A_Definition macro definitions}.
 	 */
 	A_Tuple macroDefinitionsTuple ();
-
-	/**
-	 * Look up the macro definition to invoke, given an array of argument
-	 * phrases.  Use the method's macro testing tree to find the macro
-	 * definition to invoke.  Answer nil if a lookup error occurs, in which case
-	 * the errorCode will be set to either {@link
-	 * AvailErrorCode#E_NO_METHOD_DEFINITION} or {@link
-	 * AvailErrorCode#E_AMBIGUOUS_METHOD_DEFINITION}.
-	 *
-	 * <p>Note that this testing tree approach is only applicable if all of the
-	 * macro definitions are visible (defined in the current module or an
-	 * ancestor.  That should be the <em>vast</em> majority of the use of
-	 * macros, but when it isn't, other lookup approaches are necessary.</p>
-	 *
-	 * @param argumentPhraseTuple
-	 *        The argument phrases destined to be transformed by the macro.
-	 * @param errorCode
-	 *        A {@link MutableOrNull} which will receive the error code if any.
-	 * @return The most specific {@linkplain MacroDefinitionDescriptor macro
-	 *         definition} for these arguments, or {@linkplain
-	 *         NilDescriptor#nil() nil}.
-	 */
-	A_Definition lookupMacroByPhraseTuple (
-		A_Tuple argumentPhraseTuple,
-		MutableOrNull<AvailErrorCode> errorCode);
 
 	/**
 	 * Of this method's bundles, choose one that is visible in the current

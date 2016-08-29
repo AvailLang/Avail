@@ -2909,11 +2909,10 @@ implements
 	 */
 	@Override
 	public A_Definition lookupByValuesFromList (
-		final List<? extends A_BasicObject> argumentList,
-		final MutableOrNull<AvailErrorCode> errorCode)
+		final List<? extends A_BasicObject> argumentList)
+	throws MethodDefinitionException
 	{
-		return descriptor.o_LookupByValuesFromList(
-			this, argumentList, errorCode);
+		return descriptor.o_LookupByValuesFromList(this, argumentList);
 	}
 
 	/**
@@ -6990,11 +6989,11 @@ implements
 
 	@Override
 	public A_Definition lookupMacroByPhraseTuple (
-		final A_Tuple argumentPhraseTuple,
-		final MutableOrNull<AvailErrorCode> errorCode)
+		final A_Tuple argumentPhraseTuple)
+	throws MethodDefinitionException
 	{
 		return descriptor.o_LookupMacroByPhraseTuple(
-			this, argumentPhraseTuple, errorCode);
+			this, argumentPhraseTuple);
 	}
 
 	@Override

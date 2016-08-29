@@ -909,8 +909,8 @@ extends AbstractDescriptor
 	@Override
 	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<? extends A_BasicObject> argumentList,
-		final MutableOrNull<AvailErrorCode> errorCode)
+		final List<? extends A_BasicObject> argumentList)
+	throws MethodDefinitionException
 	{
 		throw unsupportedOperationException();
 	}
@@ -4497,8 +4497,8 @@ extends AbstractDescriptor
 	@Override
 	A_Definition o_LookupMacroByPhraseTuple (
 		final AvailObject object,
-		final A_Tuple argumentPhraseTuple,
-		final MutableOrNull<AvailErrorCode> errorCode)
+		final A_Tuple argumentPhraseTuple)
+	throws MethodDefinitionException
 	{
 		throw unsupportedOperationException();
 	}

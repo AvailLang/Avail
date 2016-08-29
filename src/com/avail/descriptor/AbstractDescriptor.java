@@ -1979,8 +1979,8 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Definition o_LookupByValuesFromList (
 		AvailObject object,
-		List<? extends A_BasicObject> argumentList,
-		MutableOrNull<AvailErrorCode> errorCode);
+		List<? extends A_BasicObject> argumentList)
+	throws MethodDefinitionException;
 
 	/**
 	 * @param object
@@ -6144,8 +6144,8 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Definition o_LookupMacroByPhraseTuple (
 		AvailObject object,
-		A_Tuple argumentPhraseTuple,
-		MutableOrNull<AvailErrorCode> errorCode);
+		A_Tuple argumentPhraseTuple)
+	throws MethodDefinitionException;
 
 	/**
 	 * @param object

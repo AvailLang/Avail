@@ -32,35 +32,52 @@
 
 package com.avail.optimizer;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Result.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import static java.lang.Math.max;
+import com.avail.AvailRuntime;
+import com.avail.annotations.InnerAccess;
+import com.avail.annotations.Nullable;
+import com.avail.descriptor.*;
+import com.avail.dispatch.InternalLookupTree;
+import com.avail.dispatch.LookupTree;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Result;
+import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.interpreter.levelOne.L1OperationDispatcher;
+import com.avail.interpreter.levelTwo.L1InstructionStepper;
+import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher;
+import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operation.*;
+import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
+import com.avail.utility.Mutable;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Transformer2;
+import com.avail.utility.evaluation.Transformer3;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.avail.AvailRuntime;
-import com.avail.annotations.*;
-import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.LookupTree;
-import com.avail.descriptor.MethodDescriptor.InternalLookupTree;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.interpreter.*;
-import com.avail.interpreter.Primitive.Result;
-import com.avail.interpreter.levelOne.*;
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.operation.*;
-import com.avail.interpreter.levelTwo.register.*;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.FAILURE;
+import static com.avail.interpreter.Primitive.Result.SUCCESS;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import static java.lang.Math.max;
 
 /**
  * The {@code L2Translator} converts a level one {@linkplain FunctionDescriptor
@@ -545,7 +562,7 @@ public class L2Translator
 	 *
 	 * @return The code being translated.
 	 */
-	public A_RawFunction codeOrFail ()
+	final public A_RawFunction codeOrFail ()
 	{
 		final A_RawFunction c = codeOrNull;
 		if (c == null)

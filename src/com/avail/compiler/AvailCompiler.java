@@ -31,37 +31,18 @@
 
 package com.avail.compiler;
 
-import static com.avail.compiler.ExpectedToken.*;
-import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.problems.ProblemType.*;
-import static com.avail.descriptor.AtomDescriptor.compilerScopeMapKey;
-import static com.avail.descriptor.AtomDescriptor.clientDataGlobalKey;
-import static com.avail.descriptor.AtomDescriptor.allTokensKey;
-import static com.avail.descriptor.AtomDescriptor.macroBundleKey;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.utility.PrefixSharingList.*;
-import static java.lang.Math.*;
-import static java.util.Arrays.asList;
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
-import java.nio.charset.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
-import com.avail.annotations.Nullable;
 import com.avail.annotations.InnerAccess;
-import com.avail.builder.*;
+import com.avail.annotations.Nullable;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
-import com.avail.compiler.scanning.*;
+import com.avail.compiler.scanning.AvailScanner;
+import com.avail.compiler.scanning.AvailScannerException;
+import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
@@ -70,16 +51,64 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.*;
+import com.avail.exceptions.MethodDefinitionException;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.serialization.*;
-import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
+import com.avail.serialization.Serializer;
+import com.avail.utility.Generator;
+import com.avail.utility.Mutable;
+import com.avail.utility.MutableOrNull;
+import com.avail.utility.PrefixSharingList;
+import com.avail.utility.Strings;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation4;
+import com.avail.utility.evaluation.Describer;
+import com.avail.utility.evaluation.FormattingDescriber;
+import com.avail.utility.evaluation.SimpleDescriber;
+import com.avail.utility.evaluation.Transformer1;
+import com.avail.utility.evaluation.Transformer3;
+
+import java.io.ByteArrayOutputStream;
+import java.io.CharArrayWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardOpenOption;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static com.avail.compiler.ExpectedToken.*;
+import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.problems.ProblemType.*;
+import static com.avail.descriptor.AtomDescriptor.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
+import static com.avail.utility.PrefixSharingList.*;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.util.Arrays.asList;
 
 /**
  * The compiler for Avail code.
@@ -227,7 +256,7 @@ public final class AvailCompiler
 	 * parsing error.  This is also the offset to add to token positions to
 	 * index into {@link #greatExpectations}.
 	 */
-	protected int firstExpectation = 0;
+	@InnerAccess int firstExpectation = 0;
 
 	/** The memoization of results of previous parsing attempts. */
 	final @InnerAccess AvailCompilerFragmentCache fragmentCache =
@@ -378,7 +407,7 @@ public final class AvailCompiler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
 	 */
-	protected AvailCompiler (
+	@InnerAccess AvailCompiler (
 		final ResolvedModuleName moduleName,
 		final AvailScannerResult scannerResult,
 		final TextInterface textInterface,
@@ -2390,20 +2419,9 @@ public final class AvailCompiler
 	/**
 	 * Start a work unit.
 	 */
-	protected void startWorkUnit ()
+	@InnerAccess void startWorkUnit ()
 	{
 		workUnitsQueued.incrementAndGet();
-	}
-
-	/**
-	 * Start several work units.
-	 *
-	 * @param count
-	 *        The number of work units to start.
-	 */
-	protected void startWorkUnits (final int count)
-	{
-		workUnitsQueued.addAndGet(count);
 	}
 
 	/**
@@ -2424,7 +2442,7 @@ public final class AvailCompiler
 	 * @return A new continuation. It accepts an argument of some kind, which
 	 *         will be passed forward to the argument continuation.
 	 */
-	protected <ArgType> Continuation1<ArgType> workUnitCompletion (
+	@InnerAccess <ArgType> Continuation1<ArgType> workUnitCompletion (
 		final A_Token token,
 		final @Nullable AtomicBoolean optionalSafetyCheck,
 		final Continuation1<ArgType> continuation)
@@ -2633,7 +2651,7 @@ public final class AvailCompiler
 	 * @param onFailure
 	 *        What to do with a terminal {@link Throwable}.
 	 */
-	protected void evaluateFunctionThen (
+	@InnerAccess void evaluateFunctionThen (
 		final A_Function function,
 		final int lineNumber,
 		final List<? extends A_BasicObject> args,
@@ -2708,7 +2726,7 @@ public final class AvailCompiler
 	 * @param onFailure
 	 *        What to do with a terminal {@link Throwable}.
 	 */
-	protected void evaluateSemanticRestrictionFunctionThen (
+	@InnerAccess void evaluateSemanticRestrictionFunctionThen (
 		final A_SemanticRestriction restriction,
 		final List<? extends A_BasicObject> args,
 		final Continuation1<AvailObject> onSuccess,
@@ -2766,7 +2784,7 @@ public final class AvailCompiler
 	 * @param onFailure
 	 *        What to do with a terminal {@link Throwable}.
 	 */
-	protected void evaluateMacroFunctionThen (
+	@InnerAccess void evaluateMacroFunctionThen (
 		final A_Definition macro,
 		final List<? extends A_Phrase> args,
 		final A_Map clientParseData,
@@ -3337,7 +3355,7 @@ public final class AvailCompiler
 	 * @param continuation
 	 *            What to do after parsing a complete send node.
 	 */
-	protected void parseLeadingKeywordSendThen (
+	@InnerAccess void parseLeadingKeywordSendThen (
 		final ParserState start,
 		final Con<A_Phrase> continuation)
 	{
@@ -5233,13 +5251,19 @@ public final class AvailCompiler
 				}
 			}
 			final List<A_Definition> filtered = new ArrayList<>();
-			final MutableOrNull<AvailErrorCode> errorHolder =
-				new MutableOrNull<>();
+			AvailErrorCode errorCode = null;
 			if (visibleDefinitions.size() == macroDefinitionsTuple.tupleSize())
 			{
 				// All macro definitions are visible.  Use the lookup tree.
-				macro = method.lookupMacroByPhraseTuple(
-					argumentsListNode.expressionsTuple(), errorHolder);
+				try
+				{
+					macro = method.lookupMacroByPhraseTuple(
+						argumentsListNode.expressionsTuple());
+				}
+				catch (final MethodDefinitionException e)
+				{
+					errorCode = e.errorCode();
+				}
 			}
 			else
 			{
@@ -5269,7 +5293,7 @@ public final class AvailCompiler
 						"some definition of the macro "
 						+ bundle.message()
 						+ " to be visible");
-					errorHolder.value = E_NO_METHOD_DEFINITION;
+					errorCode = E_NO_METHOD_DEFINITION;
 					// Fall through.
 				}
 				else if (filtered.size() == 1)
@@ -5311,7 +5335,7 @@ public final class AvailCompiler
 					else
 					{
 						// There are multiple most-specific macros.
-						errorHolder.value = E_AMBIGUOUS_METHOD_DEFINITION;
+						errorCode = E_AMBIGUOUS_METHOD_DEFINITION;
 					}
 				}
 			}
@@ -5319,15 +5343,14 @@ public final class AvailCompiler
 			if (macro.equalsNil())
 			{
 				// Failed lookup.
-				final AvailErrorCode error = errorHolder.value();
-				if (error != E_NO_METHOD_DEFINITION)
+				if (errorCode != E_NO_METHOD_DEFINITION)
 				{
 					stateAfterCall.expected(
-						error == E_AMBIGUOUS_METHOD_DEFINITION
+						errorCode == E_AMBIGUOUS_METHOD_DEFINITION
 							? "unambiguous definition of macro "
 								+ bundle.message()
 							: "successful macro lookup, instead of: "
-								+ error.name());
+								+ errorCode.name());
 					// Don't try to treat it as a method invocation.
 					return;
 				}
@@ -5725,7 +5748,7 @@ public final class AvailCompiler
 	 * @param continuation
 	 *            What to do with the resulting send node.
 	 */
-	protected void completedSendNodeForMacro (
+	@InnerAccess void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final A_Phrase argumentsListNode,
@@ -7338,7 +7361,7 @@ public final class AvailCompiler
 	 * @param afterFail
 	 *            What to run after a failure has been reported.
 	 */
-	protected void parseOutermostStatement (
+	@InnerAccess void parseOutermostStatement (
 		final ParserState start,
 		final Con<A_Phrase> continuation,
 		final Continuation0 afterFail)
@@ -7393,7 +7416,7 @@ public final class AvailCompiler
 	 * @param continuation
 	 *            What to do with the expression.
 	 */
-	protected void parseExpressionUncachedThen (
+	@InnerAccess void parseExpressionUncachedThen (
 		final ParserState start,
 		final Con<A_Phrase> continuation)
 	{
@@ -7460,7 +7483,7 @@ public final class AvailCompiler
 	 * @return
 	 *            The token or {@code null}.
 	 */
-	protected @Nullable A_Token parseRawTokenOrNull (
+	@InnerAccess @Nullable A_Token parseRawTokenOrNull (
 		final ParserState start)
 	{
 		final A_Token token = start.peekToken();
@@ -7562,7 +7585,7 @@ public final class AvailCompiler
 	 * @param problem The problem to handle.
 	 * @param handler The handler which should handle the problem.
 	 */
-	protected static void handleProblem (
+	@InnerAccess static void handleProblem (
 		final Problem problem,
 		final ProblemHandler handler)
 	{
@@ -7576,7 +7599,7 @@ public final class AvailCompiler
 	 * @param problem
 	 *        The problem to handle.
 	 */
-	protected void handleProblem (final Problem problem)
+	@InnerAccess void handleProblem (final Problem problem)
 	{
 		handleProblem(problem, problemHandler);
 	}
@@ -7592,7 +7615,7 @@ public final class AvailCompiler
 	 *        The unexpected {@linkplain Throwable exception} that is the
 	 *        proximal cause of the problem.
 	 */
-	protected void reportInternalProblem (
+	@InnerAccess void reportInternalProblem (
 		final A_Token token,
 		final Throwable e)
 	{
@@ -7629,7 +7652,7 @@ public final class AvailCompiler
 	 *        The unexpected {@linkplain Throwable exception} that is the
 	 *        proximal cause of the problem.
 	 */
-	protected void reportExecutionProblem (
+	@InnerAccess void reportExecutionProblem (
 		final A_Token token,
 		final Throwable e)
 	{
@@ -7682,7 +7705,7 @@ public final class AvailCompiler
 	 * @param e
 	 *        The {@linkplain AvailAssertionFailedException assertion failure}.
 	 */
-	protected void reportAssertionFailureProblem (
+	@InnerAccess void reportAssertionFailureProblem (
 		final A_Token token,
 		final AvailAssertionFailedException e)
 	{
@@ -7714,7 +7737,7 @@ public final class AvailCompiler
 	 *        The {@linkplain AvailEmergencyExitException emergency exit
 	 *        failure}.
 	 */
-	protected void reportEmergencyExitProblem (
+	@InnerAccess void reportEmergencyExitProblem (
 		final A_Token token,
 		final AvailEmergencyExitException e)
 	{

@@ -1331,11 +1331,10 @@ extends AbstractDescriptor
 	@Override
 	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<? extends A_BasicObject> argumentList,
-		final MutableOrNull<AvailErrorCode> errorCode)
+		final List<? extends A_BasicObject> argumentList)
+	throws MethodDefinitionException
 	{
-		return o_Traversed(object).lookupByValuesFromList(
-			argumentList, errorCode);
+		return o_Traversed(object).lookupByValuesFromList(argumentList);
 	}
 
 	@Override
@@ -4663,11 +4662,11 @@ extends AbstractDescriptor
 	@Override
 	A_Definition o_LookupMacroByPhraseTuple (
 		final AvailObject object,
-		final A_Tuple argumentPhraseTuple,
-		final MutableOrNull<AvailErrorCode> errorCode)
+		final A_Tuple argumentPhraseTuple)
+	throws MethodDefinitionException
 	{
 		return o_Traversed(object).lookupMacroByPhraseTuple(
-			argumentPhraseTuple, errorCode);
+			argumentPhraseTuple);
 	}
 
 	@Override
