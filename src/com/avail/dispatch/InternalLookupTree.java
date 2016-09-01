@@ -1,3 +1,35 @@
+/**
+ * InternalLookupTree.java
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.avail.dispatch;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
@@ -19,16 +51,18 @@ import static java.lang.Math.min;
  * made.  If successful, the {@link #ifCheckHolds} child will be visited,
  * otherwise the {@link #ifCheckFails} child will be visited.
  */
-public class InternalLookupTree extends LookupTree
+public class InternalLookupTree<
+		Element extends A_BasicObject, Result extends A_BasicObject, Memento>
+	extends LookupTree<Element, Result, Memento>
 {
 	/** The definitions that are applicable at this tree node. */
-	private final List<A_Definition> positiveDefinitions;
+	private final List<? extends Element> positiveElements;
 
 	/**
 	 * The definitions whose applicability has not yet been decided at this
 	 * tree node.
 	 */
-	private final List<A_Definition> undecidedDefinitions;
+	private final List<? extends Element> undecidedElements;
 
 	/**
 	 * The types that the arguments must satisfy to have reached this
@@ -45,35 +79,35 @@ public class InternalLookupTree extends LookupTree
 	int argumentPositionToTest = -1;
 
 	/** The tree to visit if the supplied arguments conform. */
-	@InnerAccess @Nullable LookupTree ifCheckHolds;
+	@InnerAccess @Nullable LookupTree<Element, Result, Memento> ifCheckHolds;
 
 	/** The tree to visit if the supplied arguments do not conform. */
-	@InnerAccess @Nullable LookupTree ifCheckFails;
+	@InnerAccess @Nullable LookupTree<Element, Result, Memento> ifCheckFails;
 
 	/**
 	 * Construct a new {@link InternalLookupTree}.  It is constructed lazily
 	 * at first.  An attempt to lookup that reaches this node will cause
 	 * it to be expanded locally.
 	 *
-	 * @param positiveDefinitions
-	 *            The definitions which definitely apply to the supplied
-	 *            arguments at this point in the decision tree.
-	 * @param undecidedDefinitions
-	 *            The definitions for which a decision about whether they
-	 *            apply to the supplied arguments has not yet been made at
-	 *            this point in the decision tree.
+	 * @param positiveElements
+	 *        The elements which definitely apply to the supplied arguments
+	 *        at this point in the decision tree.
+	 * @param undecidedElements
+	 *        The elements for which a decision about whether they apply to the
+	 *        supplied arguments has not yet been made at this point in the
+	 *        decision tree.
 	 * @param knownArgumentTypes
-	 *            The list of argument types known to hold at this position
-	 *            in the decision tree.  Each element corresponds with an
-	 *            argument position for the method.
+	 *        The list of argument types known to hold at this position in the
+	 *        decision tree.  Each element corresponds with an argument position
+	 *        for the method.
 	 */
 	public InternalLookupTree (
-		final List<A_Definition> positiveDefinitions,
-		final List<A_Definition> undecidedDefinitions,
+		final List<? extends Element> positiveElements,
+		final List<? extends Element> undecidedElements,
 		final List<A_Type> knownArgumentTypes)
 	{
-		this.positiveDefinitions = positiveDefinitions;
-		this.undecidedDefinitions = undecidedDefinitions;
+		this.positiveElements = positiveElements;
+		this.undecidedElements = undecidedElements;
 		this.knownArgumentTypes = knownArgumentTypes;
 	}
 
@@ -97,9 +131,9 @@ public class InternalLookupTree extends LookupTree
 	 *
 	 * @return The "yes" subtree previously set by chooseCriterion().
 	 */
-	final LookupTree ifCheckHolds ()
+	final LookupTree<Element, Result, Memento> ifCheckHolds ()
 	{
-		final LookupTree subtree = ifCheckHolds;
+		final LookupTree<Element, Result, Memento> subtree = ifCheckHolds;
 		assert subtree != null;
 		return subtree;
 	}
@@ -110,9 +144,9 @@ public class InternalLookupTree extends LookupTree
 	 *
 	 * @return The "no" subtree previously set by chooseCriterion().
 	 */
-	final LookupTree ifCheckFails ()
+	final LookupTree<Element, Result, Memento> ifCheckFails ()
 	{
-		final LookupTree subtree = ifCheckFails;
+		final LookupTree<Element, Result, Memento> subtree = ifCheckFails;
 		assert subtree != null;
 		return subtree;
 	}
@@ -123,7 +157,9 @@ public class InternalLookupTree extends LookupTree
 	 * #argumentPositionToTest}, and {@link #ifCheckHolds}, and {@link
 	 * #ifCheckFails}.
 	 */
-	final void expandIfNecessary ()
+	final void expandIfNecessary (
+		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final Memento memento)
 	{
 		if (argumentTypeToTest == null)
 		{
@@ -136,7 +172,7 @@ public class InternalLookupTree extends LookupTree
 				// infamous double-check problem won't bite us.
 				if (argumentTypeToTest == null)
 				{
-					chooseCriterion();
+					chooseCriterion(adaptor, memento);
 				}
 			}
 		}
@@ -150,7 +186,7 @@ public class InternalLookupTree extends LookupTree
 	 * future.
 	 *
 	 * <p>The criterion to choose should be one which serves to eliminate at
-	 * least one of the {@linkplain #undecidedDefinitions}, regardless of
+	 * least one of the {@linkplain #undecidedElements}, regardless of
 	 * whether the test happens to be affirmative or negative.  Eliminating
 	 * more than one is better, however.  Ideally, we should choose a test
 	 * which serves to eliminate as much indecision as possible in the worst
@@ -169,8 +205,13 @@ public class InternalLookupTree extends LookupTree
 	 * the tree.  A single type for each argument suffices, since Avail's
 	 * type lattice is precise with respect to type intersection, which is
 	 * exactly what we use during decision tree construction.</p>
+	 *
+	 * @param adaptor
+	 *        The {@link LookupTreeAdaptor} to use for expanding the tree.
 	 */
-	final private void chooseCriterion ()
+	final private void chooseCriterion (
+		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		Memento memento)
 	{
 		// Choose a signature to test that guarantees it eliminates the most
 		// undecided definitions, regardless of whether the test passes or
@@ -182,18 +223,17 @@ public class InternalLookupTree extends LookupTree
 		A_Type bestSignature = null;
 		int smallestMax = Integer.MAX_VALUE;
 		int smallestMin = Integer.MAX_VALUE;
-		for (final A_Definition criterion : undecidedDefinitions)
+		for (final Element criterion : undecidedElements)
 		{
-			final A_Type criterionSignature = criterion.bodySignature();
-			final A_Type criterionArgsType =
-				criterionSignature.argsTupleType();
+			final A_Type criterionSignature =
+				adaptor.extractSignature(criterion);
 			int undecidedCountIfTrue = 0;
 			int undecidedCountIfFalse = 0;
-			for (final A_Definition each : undecidedDefinitions)
+			for (final Element each : undecidedElements)
 			{
 				switch (TypeComparison.compare(
-					criterionArgsType,
-					each.bodySignature().argsTupleType()))
+					criterionSignature,
+					adaptor.extractSignature(each)))
 				{
 					case SAME_TYPE:
 						break;
@@ -216,7 +256,7 @@ public class InternalLookupTree extends LookupTree
 				max(undecidedCountIfTrue, undecidedCountIfFalse);
 			final int minCount =
 				min(undecidedCountIfTrue, undecidedCountIfFalse);
-			assert maxCount < undecidedDefinitions.size();
+			assert maxCount < undecidedElements.size();
 			if (maxCount < smallestMax ||
 				(maxCount == smallestMax && minCount < smallestMin))
 			{
@@ -232,14 +272,13 @@ public class InternalLookupTree extends LookupTree
 		// already been performed.  In particular, ignore arguments whose
 		// knownArgumentTypes information is a subtype of the chosen
 		// signature's argument type at that position.
-		final A_Type bestArgsTupleType = bestSignature.argsTupleType();
 		final int numArgs =
-			bestArgsTupleType.sizeRange().lowerBound().extractInt();
+			bestSignature.sizeRange().lowerBound().extractInt();
 		A_Type selectedArgumentTypeToTest = null;
 		for (int i = 1; i <= numArgs; i++)
 		{
 			final A_Type knownType = knownArgumentTypes.get(i - 1);
-			final A_Type criterionType = bestArgsTupleType.typeAtIndex(i);
+			final A_Type criterionType = bestSignature.typeAtIndex(i);
 			if (!knownType.isSubtypeOf(criterionType))
 			{
 				argumentPositionToTest = i;
@@ -262,33 +301,32 @@ public class InternalLookupTree extends LookupTree
 			argumentPositionToTest - 1, replacementArgType);
 		// Compute the positive/undecided lists, both for the condition
 		// being true and for the condition being false.
-		final List<A_Definition> positiveIfTrue =
-			new ArrayList<>(positiveDefinitions);
-		final List<A_Definition> undecidedIfTrue = new ArrayList<>();
-		final List<A_Definition> undecidedIfFalse = new ArrayList<>();
+		final List<Element> positiveIfTrue = new ArrayList<>(positiveElements);
+		final List<Element> undecidedIfTrue = new ArrayList<>();
+		final List<Element> undecidedIfFalse = new ArrayList<>();
 		final A_Type criterionTupleType = TupleTypeDescriptor.forTypes(
 			newPositiveKnownTypes.toArray(new A_Type[numArgs]));
 		final A_Type knownTupleType = TupleTypeDescriptor.forTypes(
 			knownArgumentTypes.toArray(new A_Type[numArgs]));
-		for (final A_Definition undecidedDefinition : undecidedDefinitions)
+		for (final Element undecidedElement : undecidedElements)
 		{
 			// We need to synthesize a tuple type with the knowledge we
 			// currently have about the element types.
 			final TypeComparison comparison = TypeComparison.compare(
 				criterionTupleType,
-				undecidedDefinition.bodySignature().argsTupleType()
+				adaptor.extractSignature(undecidedElement)
 					.typeIntersection(knownTupleType));
 			comparison.applyEffect(
-				undecidedDefinition,
+				undecidedElement,
 				positiveIfTrue,
 				undecidedIfTrue,
 				undecidedIfFalse);
 		}
-		ifCheckHolds = createTree(
-			positiveIfTrue, undecidedIfTrue, newPositiveKnownTypes);
-		ifCheckFails = createTree(
-			positiveDefinitions, undecidedIfFalse, knownArgumentTypes);
-		assert undecidedIfFalse.size() < undecidedDefinitions.size();
+		ifCheckHolds = adaptor.createTree(
+			positiveIfTrue, undecidedIfTrue, newPositiveKnownTypes, memento);
+		ifCheckFails = adaptor.createTree(
+			positiveElements, undecidedIfFalse, knownArgumentTypes, memento);
+		assert undecidedIfFalse.size() < undecidedElements.size();
 		// This is a volatile write, so all previous writes had to precede
 		// it.  If another process runs expandIfNecessary(), it will either
 		// see null for this field, or see non-null and be guaranteed that
@@ -297,16 +335,18 @@ public class InternalLookupTree extends LookupTree
 	}
 
 	@Override
-	protected @Nullable List<A_Definition> solutionOrNull ()
+	protected @Nullable Result solutionOrNull ()
 	{
 		return null;
 	}
 
 	@Override
-	protected LookupTree lookupStepByValues (
-		final List<? extends A_BasicObject> argValues)
+	protected LookupTree<Element, Result, Memento> lookupStepByValues (
+		final List<? extends A_BasicObject> argValues,
+		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final Memento memento)
 	{
-		expandIfNecessary();
+		expandIfNecessary(adaptor, memento);
 		final A_Type testType = argumentTypeToTest();
 		final A_BasicObject argument =
 			argValues.get(argumentPositionToTest - 1);
@@ -318,10 +358,12 @@ public class InternalLookupTree extends LookupTree
 	}
 
 	@Override
-	protected LookupTree lookupStepByValues (
-		final A_Tuple argValues)
+	protected LookupTree<Element, Result, Memento> lookupStepByValues (
+		final A_Tuple argValues,
+		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final Memento memento)
 	{
-		expandIfNecessary();
+		expandIfNecessary(adaptor, memento);
 		final A_Type testType = argumentTypeToTest();
 		final A_BasicObject argument =
 			argValues.tupleAt(argumentPositionToTest);
@@ -333,13 +375,31 @@ public class InternalLookupTree extends LookupTree
 	}
 
 	@Override
-	protected LookupTree lookupStepByTypes (
-		final List<? extends A_Type> argTypes)
+	protected LookupTree<Element, Result, Memento> lookupStepByTypes (
+		final List<? extends A_Type> argTypes,
+		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final Memento memento)
 	{
-		expandIfNecessary();
+		expandIfNecessary(adaptor, memento);
 		final A_Type testType = argumentTypeToTest();
 		final A_Type argumentType =
 			argTypes.get(argumentPositionToTest - 1);
+		if (argumentType.isSubtypeOf(testType))
+		{
+			return ifCheckHolds();
+		}
+		return ifCheckFails();
+	}
+
+	@Override
+	protected LookupTree<Element, Result, Memento> lookupStepByTypes (
+		final A_Tuple argTypes,
+		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final Memento memento)
+	{
+		expandIfNecessary(adaptor, memento);
+		final A_Type testType = argumentTypeToTest();
+		final A_Type argumentType = argTypes.tupleAt(argumentPositionToTest);
 		if (argumentType.isSubtypeOf(testType))
 		{
 			return ifCheckHolds();

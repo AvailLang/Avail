@@ -1,4 +1,37 @@
+/**
+ * TypeComparison.java
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.avail.dispatch;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.BottomTypeDescriptor;
@@ -19,11 +52,11 @@ enum TypeComparison
 	SAME_TYPE
 		{
 			@Override
-			public void applyEffect (
-				final A_Definition undecidedDefinition,
-				final List<A_Definition> ifTruePositiveDefinitions,
-				final List<A_Definition> ifTrueUndecidedDefinitions,
-				final List<A_Definition> ifFalseUndecidedDefinitions)
+			public <Element extends A_BasicObject> void applyEffect (
+				final Element undecidedDefinition,
+				final List<? super Element> ifTruePositiveDefinitions,
+				final List<? super Element> ifTrueUndecidedDefinitions,
+				final List<? super Element> ifFalseUndecidedDefinitions)
 			{
 				ifTruePositiveDefinitions.add(undecidedDefinition);
 			}
@@ -35,11 +68,11 @@ enum TypeComparison
 	PROPER_ANCESTOR_TYPE
 		{
 			@Override
-			public void applyEffect (
-				final A_Definition undecidedDefinition,
-				final List<A_Definition> ifTruePositiveDefinitions,
-				final List<A_Definition> ifTrueUndecidedDefinitions,
-				final List<A_Definition> ifFalseUndecidedDefinitions)
+			public <Element extends A_BasicObject> void applyEffect (
+				final Element undecidedDefinition,
+				final List<? super Element> ifTruePositiveDefinitions,
+				final List<? super Element> ifTrueUndecidedDefinitions,
+				final List<? super Element> ifFalseUndecidedDefinitions)
 			{
 				ifTruePositiveDefinitions.add(undecidedDefinition);
 				ifFalseUndecidedDefinitions.add(undecidedDefinition);
@@ -52,11 +85,11 @@ enum TypeComparison
 	PROPER_DESCENDANT_TYPE
 		{
 			@Override
-			public void applyEffect (
-				final A_Definition undecidedDefinition,
-				final List<A_Definition> ifTruePositiveDefinitions,
-				final List<A_Definition> ifTrueUndecidedDefinitions,
-				final List<A_Definition> ifFalseUndecidedDefinitions)
+			public <Element extends A_BasicObject> void applyEffect (
+				final Element undecidedDefinition,
+				final List<? super Element> ifTruePositiveDefinitions,
+				final List<? super Element> ifTrueUndecidedDefinitions,
+				final List<? super Element> ifFalseUndecidedDefinitions)
 			{
 				ifTrueUndecidedDefinitions.add(undecidedDefinition);
 			}
@@ -71,11 +104,11 @@ enum TypeComparison
 	UNRELATED_TYPE
 		{
 			@Override
-			public void applyEffect (
-				final A_Definition undecidedDefinition,
-				final List<A_Definition> ifTruePositiveDefinitions,
-				final List<A_Definition> ifTrueUndecidedDefinitions,
-				final List<A_Definition> ifFalseUndecidedDefinitions)
+			public <Element extends A_BasicObject> void applyEffect (
+				final Element undecidedDefinition,
+				final List<? super Element> ifTruePositiveDefinitions,
+				final List<? super Element> ifTrueUndecidedDefinitions,
+				final List<? super Element> ifFalseUndecidedDefinitions)
 			{
 				ifTrueUndecidedDefinitions.add(undecidedDefinition);
 				ifFalseUndecidedDefinitions.add(undecidedDefinition);
@@ -94,11 +127,11 @@ enum TypeComparison
 	DISJOINT_TYPE
 		{
 			@Override
-			public void applyEffect (
-				final A_Definition undecidedDefinition,
-				final List<A_Definition> ifTruePositiveDefinitions,
-				final List<A_Definition> ifTrueUndecidedDefinitions,
-				final List<A_Definition> ifFalseUndecidedDefinitions)
+			public <Element extends A_BasicObject> void applyEffect (
+				final Element undecidedDefinition,
+				final List<? super Element> ifTruePositiveDefinitions,
+				final List<? super Element> ifTrueUndecidedDefinitions,
+				final List<? super Element> ifFalseUndecidedDefinitions)
 			{
 				ifFalseUndecidedDefinitions.add(undecidedDefinition);
 			}
@@ -125,11 +158,11 @@ enum TypeComparison
 	 *            A list of definitions that will be applicable to some
 	 *            arguments if the arguments do not meet the criterion.
 	 */
-	public abstract void applyEffect (
-		final A_Definition undecidedDefinition,
-		final List<A_Definition> ifTruePositiveDefinitions,
-		final List<A_Definition> ifTrueUndecidedDefinitions,
-		final List<A_Definition> ifFalseUndecidedDefinitions);
+	public abstract <Element extends A_BasicObject> void applyEffect (
+		final Element undecidedDefinition,
+		final List<? super Element> ifTruePositiveDefinitions,
+		final List<? super Element> ifTrueUndecidedDefinitions,
+		final List<? super Element> ifFalseUndecidedDefinitions);
 
 	/**
 	 * Compare two signatures (tuple types).  The first is the

@@ -39,6 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
@@ -1323,10 +1324,13 @@ public class L2Translator
 			// information about the known types of arguments that may be too
 			// weak for our purposes.  It's still correct, but it may produce
 			// extra tests that this site's argTypes would eliminate.
-			final LookupTree tree = LookupTree.createRoot(
-				nArgs, allPossible, argTypes);
-			final Mutable<Integer> branchLabelCounter = new Mutable<Integer>(1);
+			final LookupTree<A_Definition, A_Tuple, Void> tree =
+				LookupTreeAdaptor.runtimeDispatcher.createRoot(
+					nArgs, allPossible, argTypes, null);
+			final Mutable<Integer> branchLabelCounter = new Mutable<>(1);
 			tree.<InternalNodeMemento>traverseEntireTree(
+				LookupTreeAdaptor.runtimeDispatcher,
+				null,
 				// preInternalNode
 				new Transformer2<Integer, A_Type, InternalNodeMemento>()
 				{
@@ -1532,11 +1536,11 @@ public class L2Translator
 					}
 				},
 				// forEachLeafNode
-				new Continuation1<List<A_Definition>>()
+				new Continuation1<A_Tuple>()
 				{
 					@Override
 					public void value(
-						final @Nullable List<A_Definition> solutions)
+						final @Nullable A_Tuple solutions)
 					{
 						assert solutions != null;
 						assert stackp == initialStackp;
@@ -1547,8 +1551,8 @@ public class L2Translator
 							return;
 						}
 						A_Definition solution;
-						if (solutions.size() == 1
-							&& (solution = solutions.get(0)).isInstanceOf(
+						if (solutions.tupleSize() == 1
+							&& (solution = solutions.tupleAt(1)).isInstanceOf(
 								METHOD_DEFINITION.o()))
 						{
 							generateFunctionInvocation(
@@ -1560,8 +1564,7 @@ public class L2Translator
 						{
 							// Collect the arguments into a tuple and invoke the
 							// handler for failed method lookups.
-							final A_Set solutionsSet =
-								SetDescriptor.fromCollection(solutions);
+							final A_Set solutionsSet = solutions.asSet();
 							final List<L2ObjectRegister> argumentRegisters =
 								new ArrayList<>(nArgs);
 							for (int i = nArgs - 1; i >= 0; i--)

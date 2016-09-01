@@ -35,10 +35,10 @@ package com.avail.descriptor;
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.Nullable;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.MessageSplitter;
 import com.avail.dispatch.LookupTree;
+import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
@@ -60,7 +60,6 @@ import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken;
 import com.avail.interpreter.primitive.variables.P_GetValue;
 import com.avail.optimizer.L2Translator;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.MutableOrNull;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.ArrayList;
@@ -463,19 +462,24 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	A_Definition o_LookupByTypesFromTuple (
-			final AvailObject object,
-			final A_Tuple argumentTypeTuple)
-		throws MethodDefinitionException
+		final AvailObject object,
+		final A_Tuple argumentTypeTuple)
+	throws MethodDefinitionException
 	{
-		final List<A_Type> argumentTypesList =
-			TupleDescriptor.toList(argumentTypeTuple);
-		synchronized (object)
+		@SuppressWarnings("unchecked")
+		LookupTree<A_Definition, A_Tuple, Void> tree =
+			(LookupTree<A_Definition, A_Tuple, Void>)
+				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
+		A_Tuple resultTuple = LookupTreeAdaptor.runtimeDispatcher.lookupByTypes(
+			tree, argumentTypeTuple, null);
+		final int resultTupleSize = resultTuple.tupleSize();
+		if (resultTupleSize != 1)
 		{
-			LookupTree tree =
-				(LookupTree)
-					object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-			return tree.lookupByTypes(argumentTypesList);
+			throw resultTupleSize == 0
+				? MethodDefinitionException.noMethodDefinition()
+				: MethodDefinitionException.ambiguousMethodDefinition();
 		}
+		return resultTuple.tupleAt(1);
 	}
 
 	/**
@@ -489,10 +493,20 @@ extends Descriptor
 		final List<? extends A_BasicObject> argumentList)
 	throws MethodDefinitionException
 	{
-		LookupTree tree =
-			(LookupTree)
+		@SuppressWarnings("unchecked")
+		LookupTree<A_Definition, A_Tuple, Void> tree =
+			(LookupTree<A_Definition, A_Tuple, Void>)
 				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-		return tree.lookupByValues(argumentList);
+		A_Tuple results = LookupTreeAdaptor.runtimeDispatcher.lookupByValues(
+			tree, argumentList, null);
+		final int resultTupleSize = results.tupleSize();
+		if (resultTupleSize != 1)
+		{
+			throw resultTupleSize == 0
+				? MethodDefinitionException.noMethodDefinition()
+				: MethodDefinitionException.ambiguousMethodDefinition();
+		}
+		return results.tupleAt(1);
 	}
 
 	/**
@@ -513,9 +527,21 @@ extends Descriptor
 		final A_Tuple argumentPhraseTuple)
 	throws MethodDefinitionException
 	{
-		LookupTree tree =
-			(LookupTree) object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
-		return tree.lookupByValues(argumentPhraseTuple);
+		@SuppressWarnings("unchecked")
+		LookupTree<A_Definition, A_Tuple, Void> tree =
+			(LookupTree<A_Definition, A_Tuple, Void>)
+				object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
+		final A_Tuple results =
+			LookupTreeAdaptor.runtimeDispatcher.lookupByValues(
+				tree, argumentPhraseTuple, null);
+		final int resultTupleSize = results.tupleSize();
+		if (resultTupleSize != 1)
+		{
+			throw resultTupleSize == 0
+				? MethodDefinitionException.noMethodDefinition()
+				: MethodDefinitionException.ambiguousMethodDefinition();
+		}
+		return results.tupleAt(1);
 	}
 
 	@Override @AvailMethod
@@ -795,13 +821,21 @@ extends Descriptor
 			DEPENDENT_CHUNKS_WEAK_SET_POJO,
 			RawPojoDescriptor.identityWrap(chunkSet).makeShared());
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
-		final LookupTree definitionsTree = LookupTree.createRoot(
-			numArgs, Collections.<A_Definition>emptyList(), initialTypes);
+		final LookupTree definitionsTree =
+			LookupTreeAdaptor.runtimeDispatcher.createRoot(
+				numArgs,
+				Collections.<A_Definition>emptyList(),
+				initialTypes,
+				null);
 		result.setSlot(
 			PRIVATE_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
-		final LookupTree macrosTree = LookupTree.createRoot(
-			numArgs, Collections.<A_Definition>emptyList(), initialTypes);
+		final LookupTree macrosTree =
+			LookupTreeAdaptor.runtimeDispatcher.createRoot(
+				numArgs,
+				Collections.<A_Definition>emptyList(),
+				initialTypes,
+				null);
 		result.setSlot(
 			MACRO_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(macrosTree).makeShared());
@@ -867,19 +901,23 @@ extends Descriptor
 		// Rebuild the roots of the lookup trees.
 		final int numArgs = object.slot(NUM_ARGS);
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
-		final LookupTree definitionsTree = LookupTree.createRoot(
-			numArgs,
-			TupleDescriptor.<A_Definition>toList(
-				object.slot(DEFINITIONS_TUPLE)),
-			initialTypes);
+		final LookupTree definitionsTree =
+			LookupTreeAdaptor.runtimeDispatcher.createRoot(
+				numArgs,
+				TupleDescriptor.<A_Definition>toList(
+					object.slot(DEFINITIONS_TUPLE)),
+				initialTypes,
+				null);
 		object.setSlot(
 			PRIVATE_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
-		final LookupTree macrosTree = LookupTree.createRoot(
-			numArgs,
-			TupleDescriptor.<A_Definition>toList(
-				object.slot(MACRO_DEFINITIONS_TUPLE)),
-			initialTypes);
+		final LookupTree macrosTree =
+			LookupTreeAdaptor.runtimeDispatcher.createRoot(
+				numArgs,
+				TupleDescriptor.<A_Definition>toList(
+					object.slot(MACRO_DEFINITIONS_TUPLE)),
+				initialTypes,
+				null);
 		object.setSlot(
 			MACRO_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(macrosTree).makeShared());
