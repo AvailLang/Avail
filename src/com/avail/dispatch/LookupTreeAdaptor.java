@@ -31,9 +31,14 @@
  */
 
 package com.avail.dispatch;
-import com.avail.descriptor.*;
+
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_BundleTree;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -45,27 +50,29 @@ public abstract class LookupTreeAdaptor<
 	Result extends A_BasicObject,
 	Memento>
 {
-	abstract A_Type extractSignature (final Element element);
+	public abstract A_Type extractSignature (final Element element);
 
-	abstract Result constructResult (
+	public abstract Result constructResult (
 		final List<? extends Element> elements, final Memento memento);
 
 	/**
-	 * Create a {@link LookupTree}, using the provided list of {@link
-	 * DefinitionDescriptor definitions} of a {@link MethodDescriptor
-	 * method}.
+	 * Create a {@link LookupTree}, using the provided collection of {@link
+	 * Element}s, and the list of initial argument {@link A_Type types}.
 	 *
 	 * @param numArgs
-	 *        The number of top-level arguments expected by the definitions.
+	 *        The number of top-level arguments expected by the elements' type
+	 *        signatures.
 	 * @param allElements
-	 *        The list of elements to categorize.
+	 *        The collection of {@link Element}s to categorize.
 	 * @param knownArgumentTypes
 	 *        The initial knowledge about the argument types.
+	 * @param memento
+	 *        A value used by this adaptor to construct a {@link Result}.
 	 * @return A LookupTree, potentially lazy, suitable for dispatching.
 	 */
 	public LookupTree<Element, Result, Memento> createRoot (
 		final int numArgs,
-		final List<? extends Element> allElements,
+		final Collection<? extends Element> allElements,
 		final List<A_Type> knownArgumentTypes,
 		final Memento memento)
 	{
@@ -104,11 +111,11 @@ public abstract class LookupTreeAdaptor<
 
 
 	/**
-	 * Create a LookupTree suitable for deciding which definition to use
-	 * when actual argument types are provided.
+	 * Create a {@link LookupTree} suitable for deciding which {@link Result}
+	 * applies when supplied with actual argument {@link A_Type types}.
 	 *
 	 * @param positive
-	 *        Elements which definitely apply at this node.
+	 *        {@link Element}s which definitely apply at this node.
 	 * @param undecided
 	 *        Elements which are not known to apply or not apply at this node.
 	 * @param knownArgumentTypes
@@ -116,7 +123,7 @@ public abstract class LookupTreeAdaptor<
 	 *        point.
 	 * @return A (potentially lazy) LookupTree used to look up Elements.
 	 */
-	public LookupTree<Element, Result, Memento> createTree (
+	LookupTree<Element, Result, Memento> createTree (
 		final List<? extends Element> positive,
 		final List<? extends Element> undecided,
 		final List<A_Type> knownArgumentTypes,
@@ -127,8 +134,7 @@ public abstract class LookupTreeAdaptor<
 			// Find the most specific applicable definitions.
 			if (positive.size() <= 1)
 			{
-				return new LeafLookupTree<Element, Result, Memento>(
-					constructResult(positive, memento));
+				return new LeafLookupTree<>(constructResult(positive, memento));
 			}
 			final int size = positive.size();
 			final List<Element> mostSpecific = new ArrayList<>(1);
@@ -161,14 +167,17 @@ public abstract class LookupTreeAdaptor<
 
 	/**
 	 * Use the list of types to traverse the tree.  Answer the solution, a
-	 * {@link Result}.
+	 * {@link Result}.  Uses iteration rather than recursion to limit stack
+	 * depth.
 	 *
+	 * @param root
+	 *        The {@link LookupTree} to search.
 	 * @param argumentTypesList
-	 *        The input {@link List} of {@link A_Type}s.
-	 * @param adaptor
-	 *        The adaptor used to expand the tree and interpret the result.
-	 * @return The unique {@link Result}.
-	 * @throws MethodDefinitionException If the solution is not unique.
+	 *        The input {@link List} of {@link A_Type types}.
+	 * @param memento
+	 *        A value potentially used for constructing {@link Result}s in parts
+	 *        of the tree that have not yet been constructed.
+	 * @return The {@link Result}.
 	 */
 	public Result lookupByTypes (
 		final LookupTree<Element, Result, Memento> root,
@@ -186,15 +195,18 @@ public abstract class LookupTreeAdaptor<
 	}
 
 	/**
-	 * Use the list of types to traverse the tree.  Answer the solution, a
-	 * {@link Result}.
+	 * Use the tuple of types to traverse the tree.  Answer the solution, a
+	 * {@link Result}.  Uses iteration rather than recursion to limit stack
+	 * depth.
 	 *
-	 * @param argumentTypesList
-	 *        The input {@link List} of {@link A_Type}s.
-	 * @param adaptor
-	 *        The adaptor used to expand the tree and interpret the result.
-	 * @return The unique {@link Result}.
-	 * @throws MethodDefinitionException If the solution is not unique.
+	 * @param root
+	 *        The {@link LookupTree} to search.
+	 * @param argumentTypesTuple
+	 *        The input {@link A_Tuple tuple} of {@link A_Type types}.
+	 * @param memento
+	 *        A value potentially used for constructing {@link Result}s in parts
+	 *        of the tree that have not yet been constructed.
+	 * @return The {@link Result}.
 	 */
 	public Result lookupByTypes (
 		final LookupTree<Element, Result, Memento> root,
@@ -212,14 +224,18 @@ public abstract class LookupTreeAdaptor<
 	}
 
 	/**
-	 * Use the list of values to traverse the tree.  Answer the solution, a
-	 * {@link Result}.
+	 * Given a {@link List} of {@link A_BasicObject}s, use their types to
+	 * traverse the {@link LookupTree}.  Answer the solution, a {@link Result}.
+	 * Uses iteration rather than recursion to limit stack depth.
 	 *
+	 * @param root
+	 *        The {@link LookupTree} to search.
 	 * @param argValues
 	 *        The input {@link List} of {@link A_BasicObject}s.
-	 * @param adaptor
-	 *        The adaptor for interpreting and expanding the tree.
-	 * @return The unique {@link Result}.
+	 * @param memento
+	 *        A value potentially used for constructing {@link Result}s in parts
+	 *        of the tree that have not yet been constructed.
+	 * @return The {@link Result}.
 	 */
 	public Result lookupByValues (
 		final LookupTree<Element, Result, Memento> root,
@@ -237,11 +253,18 @@ public abstract class LookupTreeAdaptor<
 	}
 
 	/**
-	 * Use the {@link A_Tuple} of values to traverse the tree.  Answer the
-	 * {@link Result}.
+	 * Given a {@link A_Tuple tuple} of {@link A_BasicObject}s, use their types
+	 * to traverse the {@link LookupTree}.  Answer the solution, a {@link
+	 * Result}. Uses iteration rather than recursion to limit stack depth.
 	 *
-	 * @param argValues The {@link A_Tuple} of values.
-	 * @return The {@link Result} of the lookup.
+	 * @param root
+	 *        The {@link LookupTree} to search.
+	 * @param argValues
+	 *        The input tuple of {@link A_BasicObject}s.
+	 * @param memento
+	 *        A value potentially used for constructing {@link Result}s in parts
+	 *        of the tree that have not yet been constructed.
+	 * @return The {@link Result}.
 	 */
 	public Result lookupByValues (
 		final LookupTree<Element, Result, Memento> root,
@@ -257,49 +280,4 @@ public abstract class LookupTreeAdaptor<
 		}
 		return solution;
 	}
-
-	public final static LookupTreeAdaptor<A_Definition, A_Tuple, Void>
-		runtimeDispatcher = new LookupTreeAdaptor<A_Definition, A_Tuple, Void>()
-		{
-			@Override
-			A_Type extractSignature (final A_Definition element)
-			{
-				return element.bodySignature().argsTupleType();
-			}
-
-			@Override
-			A_Tuple constructResult (
-				final List<? extends A_Definition> elements,
-				final Void ignored)
-			{
-				return TupleDescriptor.fromList(elements);
-			}
-		};
-
-	public final static LookupTreeAdaptor<
-			A_DefinitionParsingPlan, A_BundleTree, Integer>
-		parserTypeChecker = new LookupTreeAdaptor<
-			A_DefinitionParsingPlan, A_BundleTree, Integer>()
-		{
-			@Override
-			A_Type extractSignature (final A_DefinitionParsingPlan element)
-			{
-				return element.definition().parsingSignature();
-			}
-
-			@Override
-			A_BundleTree constructResult (
-				final List<? extends A_DefinitionParsingPlan> elements,
-				final Integer pc)
-			{
-				final A_BundleTree newBundleTree =
-					MessageBundleTreeDescriptor.newPc(pc);
-				for (A_DefinitionParsingPlan plan : elements)
-				{
-					newBundleTree.addBundle(plan.bundle());
-					newBundleTree.addPlan(plan);
-				}
-				return newBundleTree;
-			}
-		};
 }

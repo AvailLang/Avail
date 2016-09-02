@@ -34,7 +34,6 @@ package com.avail.dispatch;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.Nullable;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TupleTypeDescriptor;
@@ -113,8 +112,7 @@ public class InternalLookupTree<
 
 	/**
 	 * Return an argument type to test against the supplied argument.  The
-	 * argument's 1-based index is provided by {@link
-	 * #argumentPositionToTest}.
+	 * argument's 1-based index is provided by {@link #argumentPositionToTest}.
 	 *
 	 * @return A list of argument types to check, expanding this node if
 	 *         necessary.
@@ -290,13 +288,13 @@ public class InternalLookupTree<
 		assert selectedArgumentTypeToTest != null;
 		final A_Type oldArgType =
 			knownArgumentTypes.get(argumentPositionToTest - 1);
-		final List<A_Type> newPositiveKnownTypes =
-			new ArrayList<>(knownArgumentTypes);
 		final A_Type replacementArgType =
 			selectedArgumentTypeToTest.typeIntersection(oldArgType);
 		// Sanity check:  Make sure we at least improve type knowledge in
 		// the positive case.
 		assert !replacementArgType.equals(oldArgType);
+		final List<A_Type> newPositiveKnownTypes = new ArrayList<>(
+			knownArgumentTypes);
 		newPositiveKnownTypes.set(
 			argumentPositionToTest - 1, replacementArgType);
 		// Compute the positive/undecided lists, both for the condition

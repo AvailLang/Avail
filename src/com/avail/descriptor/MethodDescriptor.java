@@ -208,6 +208,32 @@ extends Descriptor
 		MACRO_TESTING_TREE;
 	}
 
+	/**
+	 * A {@link LookupTreeAdaptor} used for building and navigating the {@link
+	 * LookupTree}s that implement runtime dispatching.  Also used for looking
+	 * up macros.
+	 *
+	 * @see ObjectSlots#PRIVATE_TESTING_TREE
+	 * @see ObjectSlots#MACRO_TESTING_TREE
+	 */
+	public final static LookupTreeAdaptor<A_Definition, A_Tuple, Void>
+		runtimeDispatcher = new LookupTreeAdaptor<A_Definition, A_Tuple, Void>()
+	{
+		@Override
+		public A_Type extractSignature (final A_Definition element)
+		{
+			return element.bodySignature().argsTupleType();
+		}
+
+		@Override
+		public A_Tuple constructResult (
+			final List<? extends A_Definition> elements,
+			final Void ignored)
+		{
+			return TupleDescriptor.fromList(elements);
+		}
+	};
+
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
@@ -470,7 +496,7 @@ extends Descriptor
 		LookupTree<A_Definition, A_Tuple, Void> tree =
 			(LookupTree<A_Definition, A_Tuple, Void>)
 				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-		A_Tuple resultTuple = LookupTreeAdaptor.runtimeDispatcher.lookupByTypes(
+		A_Tuple resultTuple = runtimeDispatcher.lookupByTypes(
 			tree, argumentTypeTuple, null);
 		final int resultTupleSize = resultTuple.tupleSize();
 		if (resultTupleSize != 1)
@@ -497,7 +523,7 @@ extends Descriptor
 		LookupTree<A_Definition, A_Tuple, Void> tree =
 			(LookupTree<A_Definition, A_Tuple, Void>)
 				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-		A_Tuple results = LookupTreeAdaptor.runtimeDispatcher.lookupByValues(
+		A_Tuple results = runtimeDispatcher.lookupByValues(
 			tree, argumentList, null);
 		final int resultTupleSize = results.tupleSize();
 		if (resultTupleSize != 1)
@@ -532,7 +558,7 @@ extends Descriptor
 			(LookupTree<A_Definition, A_Tuple, Void>)
 				object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple results =
-			LookupTreeAdaptor.runtimeDispatcher.lookupByValues(
+			runtimeDispatcher.lookupByValues(
 				tree, argumentPhraseTuple, null);
 		final int resultTupleSize = results.tupleSize();
 		if (resultTupleSize != 1)
@@ -822,7 +848,7 @@ extends Descriptor
 			RawPojoDescriptor.identityWrap(chunkSet).makeShared());
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
 		final LookupTree definitionsTree =
-			LookupTreeAdaptor.runtimeDispatcher.createRoot(
+			runtimeDispatcher.createRoot(
 				numArgs,
 				Collections.<A_Definition>emptyList(),
 				initialTypes,
@@ -831,7 +857,7 @@ extends Descriptor
 			PRIVATE_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
 		final LookupTree macrosTree =
-			LookupTreeAdaptor.runtimeDispatcher.createRoot(
+			runtimeDispatcher.createRoot(
 				numArgs,
 				Collections.<A_Definition>emptyList(),
 				initialTypes,
@@ -902,7 +928,7 @@ extends Descriptor
 		final int numArgs = object.slot(NUM_ARGS);
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
 		final LookupTree definitionsTree =
-			LookupTreeAdaptor.runtimeDispatcher.createRoot(
+			runtimeDispatcher.createRoot(
 				numArgs,
 				TupleDescriptor.<A_Definition>toList(
 					object.slot(DEFINITIONS_TUPLE)),
@@ -912,7 +938,7 @@ extends Descriptor
 			PRIVATE_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
 		final LookupTree macrosTree =
-			LookupTreeAdaptor.runtimeDispatcher.createRoot(
+			runtimeDispatcher.createRoot(
 				numArgs,
 				TupleDescriptor.<A_Definition>toList(
 					object.slot(MACRO_DEFINITIONS_TUPLE)),

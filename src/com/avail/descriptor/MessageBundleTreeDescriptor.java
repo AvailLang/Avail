@@ -40,6 +40,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.compiler.*;
+import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.utility.*;
 
 /**
@@ -270,6 +271,33 @@ extends Descriptor
 		 */
 		LAZY_TYPE_FILTER_TREE_POJO;
 	}
+
+	public final static LookupTreeAdaptor<
+			A_DefinitionParsingPlan, A_BundleTree, Integer>
+		parserTypeChecker = new LookupTreeAdaptor<
+			A_DefinitionParsingPlan, A_BundleTree, Integer>()
+	{
+		@Override
+		public A_Type extractSignature (final A_DefinitionParsingPlan element)
+		{
+			return element.definition().parsingSignature();
+		}
+
+		@Override
+		public A_BundleTree constructResult (
+			final List<? extends A_DefinitionParsingPlan> elements,
+			final Integer parsingPc)
+		{
+			final A_BundleTree newBundleTree =
+				MessageBundleTreeDescriptor.newPc(parsingPc);
+			for (A_DefinitionParsingPlan plan : elements)
+			{
+				newBundleTree.addBundle(plan.bundle());
+				newBundleTree.addPlan(plan);
+			}
+			return newBundleTree;
+		}
+	};
 
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (

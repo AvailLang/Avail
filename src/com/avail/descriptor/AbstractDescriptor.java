@@ -6139,8 +6139,8 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param argumentPhraseTuple
-	 * @param errorCode
-	 * @return
+	 * @return A_Definition
+	 * @throws MethodDefinitionException
 	 */
 	abstract A_Definition o_LookupMacroByPhraseTuple (
 		AvailObject object,

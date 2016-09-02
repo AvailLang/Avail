@@ -1325,11 +1325,11 @@ public class L2Translator
 			// weak for our purposes.  It's still correct, but it may produce
 			// extra tests that this site's argTypes would eliminate.
 			final LookupTree<A_Definition, A_Tuple, Void> tree =
-				LookupTreeAdaptor.runtimeDispatcher.createRoot(
+				MethodDescriptor.runtimeDispatcher.createRoot(
 					nArgs, allPossible, argTypes, null);
 			final Mutable<Integer> branchLabelCounter = new Mutable<>(1);
 			tree.<InternalNodeMemento>traverseEntireTree(
-				LookupTreeAdaptor.runtimeDispatcher,
+				MethodDescriptor.runtimeDispatcher,
 				null,
 				// preInternalNode
 				new Transformer2<Integer, A_Type, InternalNodeMemento>()
