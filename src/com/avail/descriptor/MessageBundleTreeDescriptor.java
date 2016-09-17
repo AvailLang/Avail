@@ -38,9 +38,13 @@ import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeAdaptor;
+import com.avail.dispatch.TypeComparison;
 import com.avail.utility.*;
 
 /**
@@ -262,6 +266,14 @@ extends Descriptor
 		LAZY_PREFILTER_MAP,
 
 		/**
+		 * A {@link A_Tuple tuple} of pairs (2-tuples) where the first element
+		 * is a phrase type and the second element is a {@link
+		 * A_DefinitionParsingPlan definition parsing plan}.  These should stay
+		 * synchronized with the {@link #LAZY_TYPE_FILTER_TREE_POJO} field.
+		 */
+		LAZY_TYPE_FILTER_PAIRS_TUPLE,
+
+		/**
 		 * A {@link RawPojoDescriptor raw pojo} containing a type-dispatch tree
 		 * for handling the case that at least one {@link
 		 * A_DefinitionParsingPlan parsing plan} in this message bundle tree is
@@ -272,30 +284,59 @@ extends Descriptor
 		LAZY_TYPE_FILTER_TREE_POJO;
 	}
 
-	public final static LookupTreeAdaptor<
-			A_DefinitionParsingPlan, A_BundleTree, Integer>
-		parserTypeChecker = new LookupTreeAdaptor<
-			A_DefinitionParsingPlan, A_BundleTree, Integer>()
+	/**
+	 * This is the {@link LookupTreeAdaptor} for building and navigating the
+	 * {@link ObjectSlots#LAZY_TYPE_FILTER_TREE_POJO}.  It gets built from
+	 * 2-tuples containing a {@link ParseNodeTypeDescriptor phrase type} and a
+	 * corresponding {@link A_DefinitionParsingPlan}.  The type is used to
+	 * perform type filtering after parsing each leaf argument, and the phrase
+	 * type is the expected type of that latest argument.
+	 */
+	public final static LookupTreeAdaptor<A_Tuple, A_BundleTree, Integer>
+		parserTypeChecker =
+			new LookupTreeAdaptor<A_Tuple, A_BundleTree, Integer>()
 	{
 		@Override
-		public A_Type extractSignature (final A_DefinitionParsingPlan element)
+		public A_Type extractSignature (final A_Tuple pair)
 		{
-			return element.definition().parsingSignature();
+			// Extract the phrase type from the pair, and use it directly as the
+			// signature type for the tree.
+			return pair.tupleAt(1);
 		}
 
 		@Override
 		public A_BundleTree constructResult (
-			final List<? extends A_DefinitionParsingPlan> elements,
+			final List<? extends A_Tuple> elements,
 			final Integer parsingPc)
 		{
 			final A_BundleTree newBundleTree =
 				MessageBundleTreeDescriptor.newPc(parsingPc);
-			for (A_DefinitionParsingPlan plan : elements)
+			for (A_Tuple pair : elements)
 			{
+				final A_DefinitionParsingPlan plan = pair.tupleAt(2);
 				newBundleTree.addBundle(plan.bundle());
 				newBundleTree.addPlan(plan);
 			}
 			return newBundleTree;
+		}
+
+		@Override
+		public TypeComparison compareTypes (
+			final A_Type criterionType, final A_Type someType)
+		{
+			return TypeComparison.compareForParsing(criterionType, someType);
+		}
+
+		@Override
+		public boolean testsArgumentPositions ()
+		{
+			return false;
+		}
+
+		@Override
+		public boolean subtypesHideSupertypes ()
+		{
+			return false;
 		}
 	};
 
@@ -311,6 +352,7 @@ extends Descriptor
 			|| e == LAZY_INCOMPLETE_CASE_INSENSITIVE
 			|| e == LAZY_ACTIONS
 			|| e == LAZY_PREFILTER_MAP
+			|| e == LAZY_TYPE_FILTER_PAIRS_TUPLE
 			|| e == LAZY_TYPE_FILTER_TREE_POJO;
 	}
 
@@ -433,8 +475,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_Expand (
 		final AvailObject object,
-		final A_Module module,
-		final List<A_Phrase> sampleArgsStack)
+		final A_Module module)
 	{
 		synchronized (object)
 		{
@@ -453,9 +494,9 @@ extends Descriptor
 				object.slot(LAZY_ACTIONS));
 			final Mutable<A_Map> prefilterMap = new Mutable<A_Map>(
 				object.slot(LAZY_PREFILTER_MAP));
-			final Mutable<A_BasicObject> typeFilterPojo =
-				new Mutable<A_BasicObject>(
-					object.slot(LAZY_TYPE_FILTER_TREE_POJO));
+			final Mutable<A_Tuple> typeFilterPairs = new Mutable<A_Tuple>(
+				object.slot(LAZY_TYPE_FILTER_PAIRS_TUPLE));
+			final int oldTypeFilterSize = typeFilterPairs.value.tupleSize();
 			final int pc = object.slot(PARSING_PC);
 			// Fail fast if someone messes with this during iteration.
 			object.setSlot(UNCLASSIFIED, NilDescriptor.nil());
@@ -473,9 +514,8 @@ extends Descriptor
 						caseInsensitive,
 						actionMap,
 						prefilterMap,
-						typeFilterPojo,
-						pc,
-						sampleArgsStack);
+						typeFilterPairs,
+						pc);
 				}
 			}
 			object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
@@ -487,8 +527,20 @@ extends Descriptor
 			object.setSlot(LAZY_ACTIONS, actionMap.value.makeShared());
 			object.setSlot(LAZY_PREFILTER_MAP, prefilterMap.value.makeShared());
 			object.setSlot(
-				LAZY_TYPE_FILTER_TREE_POJO,
-				typeFilterPojo.value.makeShared());
+				LAZY_TYPE_FILTER_PAIRS_TUPLE,
+				typeFilterPairs.value.makeShared());
+			if (typeFilterPairs.value.tupleSize() != oldTypeFilterSize)
+			{
+				// Rebuild the type-checking lookup tree.
+				LookupTree<A_Tuple, A_BundleTree, Integer> tree =
+					MessageBundleTreeDescriptor.parserTypeChecker.createRoot(
+						TupleDescriptor.<A_Tuple>toList(typeFilterPairs.value),
+						Collections.singletonList(
+							ParseNodeKind.PARSE_NODE.mostGeneralType()),
+						pc + 1);
+				final A_BasicObject pojo = RawPojoDescriptor.identityWrap(tree);
+				object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, pojo.makeShared());
+			}
 		}
 	}
 
@@ -499,7 +551,7 @@ extends Descriptor
 	 *
 	 * <p>The bundle may have been added, or updated (but not removed), so if
 	 * the bundle has already been classified in this tree (via {@link
-	 * #o_Expand(AvailObject, A_Module, List)}), we may need to invalidate some
+	 * #o_Expand(AvailObject, A_Module)}), we may need to invalidate some
 	 * of the tree's lazy structures.</p>
 	 */
 	@Override
@@ -521,6 +573,7 @@ extends Descriptor
 		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
 		object.setSlot(LAZY_ACTIONS, emptyMap);
 		object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
+		object.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.empty());
 		object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
 		object.setSlot(UNCLASSIFIED, allPlans.makeShared());
 	}
@@ -611,7 +664,7 @@ extends Descriptor
 			return object.slot(LAZY_PREFILTER_MAP);
 		}
 	}
-
+//	lazyTypeFilterPairs
 	@Override @AvailMethod
 	A_BasicObject o_LazyTypeFilterTreePojo (final AvailObject object)
 	{
@@ -641,6 +694,49 @@ extends Descriptor
 	}
 
 	/**
+	 * Remove the plan from this bundle tree.  Do not remove the bundle itself.
+	 * TODO(MvG) - It might be ok to remove the bundle if it has no more plans,
+	 * and neither semantic nor grammatical restrictions.
+	 */
+	@Override
+	void o_RemovePlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan)
+	{
+		synchronized (object)
+		{
+			final A_Bundle bundle = plan.bundle();
+			final A_Definition definition = plan.definition();
+			A_Map allPlans = object.slot(ALL_PLANS);
+			assert allPlans.hasKey(bundle);
+			A_Map submap = allPlans.mapAt(bundle);
+			submap = submap.mapWithoutKeyCanDestroy(definition, true);
+			// TODO(MvG) - For now, keep it around even without plans.
+			allPlans = allPlans.mapAtPuttingCanDestroy(bundle, submap, true);
+			object.setSlot(ALL_PLANS, allPlans.makeShared());
+			// And remove it from unclassified.
+			A_Map unclassified = object.slot(UNCLASSIFIED);
+			if (unclassified.hasKey(bundle))
+			{
+				A_Map unclassifiedSubmap = unclassified.mapAt(bundle);
+				unclassifiedSubmap = unclassifiedSubmap.mapWithoutKeyCanDestroy(
+					definition, true);
+				if (unclassifiedSubmap.mapSize() == 0)
+				{
+					unclassified = unclassified.mapWithoutKeyCanDestroy(
+						bundle, true);
+				}
+				else
+				{
+					unclassified = unclassified.mapAtPuttingCanDestroy(
+						bundle, unclassifiedSubmap, true);
+				}
+				object.setSlot(UNCLASSIFIED, unclassified.makeShared());
+			}
+		}
+	}
+
+	/**
 	 * Categorize a single message/bundle pair.
 	 *
 	 * @param plan
@@ -650,9 +746,8 @@ extends Descriptor
 	 * @param caseInsensitive
 	 * @param actionMap
 	 * @param prefilterMap
-	 * @param typeFilterPojo
+	 * @param typeFilterTuples
 	 * @param pc
-	 * @param sampleArgsStack
 	 */
 	private static void updateForPlan (
 		final A_DefinitionParsingPlan plan,
@@ -662,9 +757,8 @@ extends Descriptor
 		final Mutable<A_Map> caseInsensitive,
 		final Mutable<A_Map> actionMap,
 		final Mutable<A_Map> prefilterMap,
-		final Mutable<A_BasicObject> typeFilterPojo,
-		final int pc,
-		final List<A_Phrase> sampleArgsStack)
+		final Mutable<A_Tuple> typeFilterTuples,
+		final int pc)
 	{
 		final A_Bundle bundle = plan.bundle();
 		final A_Method method = bundle.bundleMethod();
@@ -734,9 +828,12 @@ extends Descriptor
 			// An argument was just parsed and passed its grammatical
 			// restriction check.  Now it needs to do a type check with a
 			// type-dispatch tree.
-			assert false : "Need to implement type check tree building";
-			//TODO MvG - implement type check tree building.  Use the
-			// sampleArgsStack to figure out the type to dispatch.
+			final int typeIndex = op.typeCheckArgumentIndex(instruction);
+			final A_Type phraseType = MessageSplitter.typeToCheck(typeIndex);
+			final A_Tuple pair = TupleDescriptor.from(phraseType, plan);
+			typeFilterTuples.value = typeFilterTuples.value.appendCanDestroy(
+				pair, true);
+			return;
 		}
 		// It's not a keyword parsing instruction or preparation for a prefix
 		// function.
@@ -876,6 +973,7 @@ extends Descriptor
 		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
 		result.setSlot(LAZY_ACTIONS, emptyMap);
 		result.setSlot(LAZY_PREFILTER_MAP, emptyMap);
+		result.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.empty());
 		result.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
 		result.makeShared();
 		return result;

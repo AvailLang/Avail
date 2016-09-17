@@ -35,7 +35,9 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.*;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;

@@ -35,9 +35,11 @@ package com.avail.builder;
 import static com.avail.persistence.IndexedRepositoryManager.isIndexedRepositoryFile;
 import java.io.*;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code ModuleRoots} encapsulates the Avail {@linkplain ModuleDescriptor

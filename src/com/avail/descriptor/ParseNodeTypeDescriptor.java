@@ -39,10 +39,15 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
 import java.util.List;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Define the structure and behavior of parse node types.  The parse node types
@@ -128,7 +133,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return Types.ANY.o();
+				return ANY.o();
 			}
 		},
 
@@ -310,7 +315,7 @@ extends TypeDescriptor
 		 */
 		public A_Type mostGeneralYieldType ()
 		{
-			return Types.TOP.o();
+			return TOP.o();
 		}
 
 		/**
@@ -388,11 +393,11 @@ extends TypeDescriptor
 		/**
 		 * Answer a {@linkplain ParseNodeTypeDescriptor parse node type} whose
 		 * kind is the receiver and whose expression type is {@linkplain
-		 * TypeDescriptor.Types#TOP top}. This is the most general parse node
-		 * type of that kind.
+		 * Types#TOP top}. This is the most general parse node type of that
+		 * kind.
 		 *
 		 * @return The new parse node type, whose kind is the receiver and whose
-		 *         expression type is {@linkplain TypeDescriptor.Types#TOP top}.
+		 *         expression type is {@linkplain Types#TOP top}.
 		 */
 		public final A_Type mostGeneralType ()
 		{
@@ -791,9 +796,7 @@ extends TypeDescriptor
 		}
 		builder.append("⇒");
 		object.expressionType().printOnAvoidingIndent(
-			builder,
-			recursionMap,
-			indent + 1);
+			builder, recursionMap, indent + 1);
 	}
 
 	/**

@@ -34,11 +34,13 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
 import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+import com.sun.istack.internal.Nullable;
 
 /**
  * Macros are extremely hygienic in Avail.  They are defined almost exactly like

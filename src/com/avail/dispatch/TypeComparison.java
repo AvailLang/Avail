@@ -44,7 +44,7 @@ import java.util.List;
  * types of function types representing (1) a criterion to test, and (2)
  * a definition's signature to be classified.
  */
-enum TypeComparison
+public enum TypeComparison
 {
 	/**
 	 * The definition's signature equals the criterion.
@@ -56,7 +56,8 @@ enum TypeComparison
 				final Element undecidedDefinition,
 				final List<? super Element> ifTruePositiveDefinitions,
 				final List<? super Element> ifTrueUndecidedDefinitions,
-				final List<? super Element> ifFalseUndecidedDefinitions)
+				final List<? super Element> ifFalseUndecidedDefinitions,
+				final boolean subtypesHideSupertypes)
 			{
 				ifTruePositiveDefinitions.add(undecidedDefinition);
 			}
@@ -72,7 +73,8 @@ enum TypeComparison
 				final Element undecidedDefinition,
 				final List<? super Element> ifTruePositiveDefinitions,
 				final List<? super Element> ifTrueUndecidedDefinitions,
-				final List<? super Element> ifFalseUndecidedDefinitions)
+				final List<? super Element> ifFalseUndecidedDefinitions,
+				final boolean subtypesHideSupertypes)
 			{
 				ifTruePositiveDefinitions.add(undecidedDefinition);
 				ifFalseUndecidedDefinitions.add(undecidedDefinition);
@@ -89,9 +91,17 @@ enum TypeComparison
 				final Element undecidedDefinition,
 				final List<? super Element> ifTruePositiveDefinitions,
 				final List<? super Element> ifTrueUndecidedDefinitions,
-				final List<? super Element> ifFalseUndecidedDefinitions)
+				final List<? super Element> ifFalseUndecidedDefinitions,
+				final boolean subtypesHideSupertypes)
 			{
-				ifTrueUndecidedDefinitions.add(undecidedDefinition);
+				if (subtypesHideSupertypes)
+				{
+					ifTrueUndecidedDefinitions.add(undecidedDefinition);
+				}
+				else
+				{
+					ifTruePositiveDefinitions.add(undecidedDefinition);
+				}
 			}
 		},
 
@@ -108,7 +118,8 @@ enum TypeComparison
 				final Element undecidedDefinition,
 				final List<? super Element> ifTruePositiveDefinitions,
 				final List<? super Element> ifTrueUndecidedDefinitions,
-				final List<? super Element> ifFalseUndecidedDefinitions)
+				final List<? super Element> ifFalseUndecidedDefinitions,
+				final boolean subtypesHideSupertypes)
 			{
 				ifTrueUndecidedDefinitions.add(undecidedDefinition);
 				ifFalseUndecidedDefinitions.add(undecidedDefinition);
@@ -131,7 +142,8 @@ enum TypeComparison
 				final Element undecidedDefinition,
 				final List<? super Element> ifTruePositiveDefinitions,
 				final List<? super Element> ifTrueUndecidedDefinitions,
-				final List<? super Element> ifFalseUndecidedDefinitions)
+				final List<? super Element> ifFalseUndecidedDefinitions,
+				final boolean subtypesHideSupertypes)
 			{
 				ifFalseUndecidedDefinitions.add(undecidedDefinition);
 			}
@@ -141,10 +153,8 @@ enum TypeComparison
 	 * Conditionally augment the supplied lists with the provided
 	 * undecided {@linkplain DefinitionDescriptor definition}.  The
 	 * decision of which lists to augment depends on this instance,
-	 * which is the result of a previous {@linkplain #compare(
-	 * A_Type, A_Type) comparison} between the two signatures.
-	 *
-	 * @param undecidedDefinition
+	 * which is the result of a previous comparison between the two signatures.
+	 *  @param undecidedDefinition
 	 *            A {@linkplain DefinitionDescriptor definition} whose
 	 *            applicability has not yet been decided at the current
 	 *            position in the {@link LookupTree}.
@@ -152,47 +162,79 @@ enum TypeComparison
 	 *            A list of definitions that will be applicable to some
 	 *            arguments if the arguments meet the criterion.
 	 * @param ifTrueUndecidedDefinitions
-	 *            A list of definitions that will be undecided for some
-	 *            arguments if the arguments meet the criterion.
+ *            A list of definitions that will be undecided for some
+ *            arguments if the arguments meet the criterion.
 	 * @param ifFalseUndecidedDefinitions
-	 *            A list of definitions that will be applicable to some
-	 *            arguments if the arguments do not meet the criterion.
+*            A list of definitions that will be applicable to some
+	 * @param subtypesHideSupertypes
 	 */
 	public abstract <Element extends A_BasicObject> void applyEffect (
 		final Element undecidedDefinition,
 		final List<? super Element> ifTruePositiveDefinitions,
 		final List<? super Element> ifTrueUndecidedDefinitions,
-		final List<? super Element> ifFalseUndecidedDefinitions);
+		final List<? super Element> ifFalseUndecidedDefinitions,
+		final boolean subtypesHideSupertypes);
 
 	/**
-	 * Compare two signatures (tuple types).  The first is the
-	 * criterion, which will eventually be tested against arguments.
-	 * The second signature is the one being compared by specificity
-	 * with the criterion.
+	 * Compare two types extracted from {@link
+	 * A_Definition#bodySignature()}s.  The first is the criterion, which
+	 * will eventually be tested against arguments.  The second signature is the
+	 * one being compared by specificity with the criterion.
 	 *
-	 * @param criterionTupleType
+	 * @param criterionType
 	 *            The criterion signature to test against.
-	 * @param someTupleType
+	 * @param someType
 	 *            A signature to test against the criterion signature.
 	 * @return A TypeComparison representing the relationship between
 	 *         the criterion and the other signature.
 	 */
-	public static TypeComparison compare (
-		final A_Type criterionTupleType,
-		final A_Type someTupleType)
+	public static TypeComparison compareForDispatch (
+		final A_Type criterionType,
+		final A_Type someType)
 	{
-		assert criterionTupleType.isTupleType();
-		assert someTupleType.isTupleType();
 		final A_Type intersection =
-			criterionTupleType.typeIntersection(someTupleType);
+			criterionType.typeIntersection(someType);
 		if (intersection.isBottom())
 		{
 			return DISJOINT_TYPE;
 		}
-		final boolean below =
-			someTupleType.isSubtypeOf(criterionTupleType);
-		final boolean above =
-			criterionTupleType.isSubtypeOf(someTupleType);
+		final boolean below = someType.isSubtypeOf(criterionType);
+		final boolean above = criterionType.isSubtypeOf(someType);
+		return
+			below
+				? (above ? SAME_TYPE : PROPER_DESCENDANT_TYPE)
+				: (above ? PROPER_ANCESTOR_TYPE : UNRELATED_TYPE);
+	}
+
+	/**
+	 * Compare two phrase types extracted from {@link
+	 * A_Definition#parsingSignature()}s.  The first is the criterion, which
+	 * will eventually be tested against arguments.  The second signature is the
+	 * one being compared by specificity with the criterion.
+	 *
+	 * @param criterionType
+	 *            The criterion signature to test against.
+	 * @param someType
+	 *            A signature to test against the criterion signature.
+	 * @return A TypeComparison representing the relationship between
+	 *         the criterion and the other signature.
+	 */
+	public static TypeComparison compareForParsing (
+		final A_Type criterionType,
+		final A_Type someType)
+	{
+		final A_Type intersection =
+			criterionType.typeIntersection(someType);
+		if (intersection.expressionType().isBottom())
+		{
+			// For the purpose of parsing, if the intersection of these phrase
+			// types produces a yield type that's ⊥, treat the types as
+			// disjoint.  That's because a parsed expression phrase isn't
+			// allowed to yield ⊥.
+			return DISJOINT_TYPE;
+		}
+		final boolean below = someType.isSubtypeOf(criterionType);
+		final boolean above = criterionType.isSubtypeOf(someType);
 		return
 			below
 				? (above ? SAME_TYPE : PROPER_DESCENDANT_TYPE)

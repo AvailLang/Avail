@@ -32,11 +32,13 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code StringDescriptor} has Avail strings as its instances. The actual

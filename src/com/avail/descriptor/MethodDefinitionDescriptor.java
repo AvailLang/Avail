@@ -34,7 +34,8 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 

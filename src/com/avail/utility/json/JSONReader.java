@@ -41,7 +41,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code JSONReader} produces {@link JSONFriendly JSON-friendly} {@linkplain

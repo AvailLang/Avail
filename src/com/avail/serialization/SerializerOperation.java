@@ -35,7 +35,7 @@ package com.avail.serialization;
 import static com.avail.serialization.SerializerOperandEncoding.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;

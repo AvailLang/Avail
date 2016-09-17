@@ -38,7 +38,6 @@ import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.utility.MutableOrNull;
 
 /**
  * {@code A_Method} is an interface that specifies behavior specific to Avail
@@ -80,12 +79,15 @@ extends A_ChunkDependable
 	/**
 	 * Add the {@linkplain A_Definition definition} to this {@linkplain A_Method
 	 * method}. Causes dependent {@linkplain L2Chunk chunks} to be invalidated.
+	 * Answer the {@link A_DefinitionParsingPlan}s that were created for the new
+	 * definition.
 	 *
 	 * @param definition The definition to be added.
+	 * @return The set of added definition parsing plans.
 	 * @throws SignatureException
 	 *         If the definition could not be added.
 	 */
-	void methodAddDefinition (A_Definition definition)
+	A_Set methodAddDefinition (A_Definition definition)
 		throws SignatureException;
 
 	/**

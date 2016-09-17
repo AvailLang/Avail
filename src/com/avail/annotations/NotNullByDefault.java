@@ -32,6 +32,8 @@
 
 package com.avail.annotations;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.annotation.*;
 
 /**

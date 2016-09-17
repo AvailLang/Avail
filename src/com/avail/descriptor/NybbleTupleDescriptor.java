@@ -39,7 +39,10 @@ import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.nio.ByteBuffer;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.InnerAccess;
 import com.avail.utility.Generator;
 
 /**

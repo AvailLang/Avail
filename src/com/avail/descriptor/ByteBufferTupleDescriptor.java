@@ -38,7 +38,9 @@ import static com.avail.descriptor.ByteBufferTupleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
 import java.nio.ByteBuffer;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 

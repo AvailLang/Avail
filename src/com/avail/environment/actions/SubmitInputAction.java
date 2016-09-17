@@ -38,7 +38,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import javax.swing.*;
-import com.avail.annotations.*;
 import com.avail.builder.AvailBuilder.CompiledCommand;
 import com.avail.descriptor.AvailObject;
 import com.avail.environment.AvailWorkbench;
@@ -50,6 +49,7 @@ import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation2;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code SubmitInputAction} sends a line of text from the input field to

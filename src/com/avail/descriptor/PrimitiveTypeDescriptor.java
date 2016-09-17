@@ -37,10 +37,14 @@ import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The primitive types of Avail are different from the notion of primitive types

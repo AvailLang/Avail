@@ -34,7 +34,7 @@ package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
@@ -1326,7 +1326,7 @@ public class L2Translator
 			// extra tests that this site's argTypes would eliminate.
 			final LookupTree<A_Definition, A_Tuple, Void> tree =
 				MethodDescriptor.runtimeDispatcher.createRoot(
-					nArgs, allPossible, argTypes, null);
+					allPossible, argTypes, null);
 			final Mutable<Integer> branchLabelCounter = new Mutable<>(1);
 			tree.<InternalNodeMemento>traverseEntireTree(
 				MethodDescriptor.runtimeDispatcher,

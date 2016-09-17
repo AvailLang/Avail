@@ -33,10 +33,12 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code DefinitionDescriptor} is an abstraction for things placed into a
@@ -145,8 +147,8 @@ extends Descriptor
 					@Override
 					public A_Type value (@Nullable final A_Type argYieldType)
 					{
-
-						return ParseNodeKind.PARSE_NODE.create(argYieldType);
+						return ParseNodeKind.EXPRESSION_NODE.create(
+							argYieldType);
 					}
 				}));
 	}

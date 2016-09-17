@@ -34,7 +34,9 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.utility.Generator;
 
 /**

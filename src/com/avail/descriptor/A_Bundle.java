@@ -58,6 +58,14 @@ extends A_BasicObject
 	void addDefinitionParsingPlan (A_DefinitionParsingPlan plan);
 
 	/**
+	 * Remove information about this {@link A_DefinitionParsingPlan definition
+	 * parsing plan} from this bundle.
+	 *
+	 * @param plan The parsing plan to exclude.
+	 */
+	void removeDefinitionParsingPlan (A_DefinitionParsingPlan plan);
+
+	/**
 	 * Add a {@linkplain GrammaticalRestrictionDescriptor grammatical
 	 * restriction} to the receiver.
 	 *

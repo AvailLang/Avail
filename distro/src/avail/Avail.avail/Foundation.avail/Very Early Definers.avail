@@ -40,6 +40,20 @@ Names
 Body
 
 /**
+ * Use the same primitive that implements {@method "_'s⁇type"} to implement its
+ * semantic restriction function.
+ *
+ * @method "_'s⁇type"
+ * @restricts "type"
+ */
+Semantic restriction "_'s⁇type" is
+[
+	value : type
+|
+	Primitive Type;
+] : type;
+
+/**
  * Construct and answer a tuple from the lexically specified expressions. The
  * hard work here is done automatically by the Avail compiler.
  *
@@ -59,7 +73,7 @@ Primitive "<«_‡,»>" is
 
 /**
  * Define a new method.
- * 
+ *
  * @method "Method_is_"
  * @category "Methods"
  * @param "methodName" "string"
@@ -79,7 +93,7 @@ Primitive "Method_is_" is
 
 /**
  * Define a new method.
- * 
+ *
  * @method "Method_is_"
  * @category "Methods"
  * @param "methodName" "atom"
@@ -103,7 +117,7 @@ Primitive "Method_is_" is
  * primary instance, a type.  Note that subtypes of that type are also instances
  * of the metatype.  The return type from this method will be narrowed by a
  * semantic restriction so the compiler will know it produces a type.
- * 
+ *
  * @method "private instance of meta_"
  * @param "m" "type's type"
  *        Any metatype.
@@ -138,7 +152,7 @@ Semantic restriction "private instance of meta_" is
 /**
  * Statically strengthen <em>just the return type</em>.  It's far too early in
  * the bootstrapping to deal sensibly with the tuple of argument types here.
- * 
+ *
  * @method "function accepting_and returning_"
  * @restricts "tuple of any meta's type"
  * @restricts "type's type"

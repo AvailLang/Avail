@@ -56,7 +56,7 @@ import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.tree.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
+import com.avail.annotations.InnerAccess;
 import com.avail.builder.*;
 import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.descriptor.*;
@@ -71,6 +71,7 @@ import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code AvailWorkbench} is a simple user interface for the {@linkplain

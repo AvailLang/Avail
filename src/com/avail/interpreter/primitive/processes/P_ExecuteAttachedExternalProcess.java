@@ -46,7 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.avail.AvailRuntime;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.exceptions.AvailErrorCode;

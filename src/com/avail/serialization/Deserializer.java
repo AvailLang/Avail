@@ -33,8 +33,9 @@
 package com.avail.serialization;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
 import com.avail.descriptor.*;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.*;
 import java.util.*;
 

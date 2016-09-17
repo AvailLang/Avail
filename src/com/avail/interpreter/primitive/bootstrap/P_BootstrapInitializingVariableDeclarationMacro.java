@@ -43,8 +43,9 @@ import com.avail.interpreter.*;
 
 /**
  * The {@code P_BootstrapInitializingVariableDeclarationMacro} primitive is
- * used for bootstrapping declaration of a {@link #LOCAL_VARIABLE_NODE local
- * variable} (without an initializing expression).
+ * used for bootstrapping declaration of a {@link
+ * DeclarationNodeDescriptor.DeclarationKind#LOCAL_VARIABLE local variable}
+ * with an initializing expression.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -128,7 +129,7 @@ extends Primitive
 				/* Variable type */
 				LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()),
 				/* Initialization expression */
-				EXPRESSION_NODE.mostGeneralType()),
+				EXPRESSION_NODE.create(ANY.o())),
 			LOCAL_VARIABLE_NODE.mostGeneralType());
 	}
 }

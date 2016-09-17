@@ -34,7 +34,7 @@ package com.avail;
 
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.Interpreter;

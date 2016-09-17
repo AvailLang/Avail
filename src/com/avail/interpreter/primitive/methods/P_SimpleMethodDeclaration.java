@@ -36,7 +36,6 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import com.avail.*;
 import com.avail.compiler.MessageSplitter;
@@ -81,9 +80,9 @@ extends Primitive
 		}
 		final A_Function failureFunction =
 			interpreter.primitiveFunctionBeingAttempted();
-		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		assert failureFunction.code().primitiveNumber() == primitiveNumber;
 		interpreter.primitiveSuspend();
+		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,

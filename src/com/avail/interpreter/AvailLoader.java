@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
+import com.avail.annotations.InnerAccess;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -53,6 +53,7 @@ import com.avail.interpreter.effects.LoadingEffectToAddSemanticRestriction;
 import com.avail.io.TextInterface;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code AvailLoader} is responsible for orchestrating module-level
@@ -345,32 +346,28 @@ public final class AvailLoader
 		final int numArgs = splitter.numberOfArguments();
 		if (bodyBlock.code().numArgs() != numArgs)
 		{
-			throw new SignatureException(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS);
+			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		//  Make it so we can safely hold onto these things in the VM
+		// Make it so we can safely hold onto these things in the VM
 		methodName.makeShared();
 		bodyBlock.makeShared();
-		//  Add the method definition.
+		// Add the method definition.
 		final A_Method method = bundle.bundleMethod();
-		final A_Definition newMethodDefinition =
-			MethodDefinitionDescriptor.create(method, module, bodyBlock);
 		final A_Type bodySignature = bodyBlock.kind();
-		A_Definition forward = null;
-		final A_Tuple impsTuple = method.definitionsTuple();
-		for (final A_Definition existingImp : impsTuple)
+		@Nullable A_Definition forward = null;
+		for (final A_Definition existingDefinition : method.definitionsTuple())
 		{
-			final A_Type existingType = existingImp.bodySignature();
+			final A_Type existingType = existingDefinition.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
 				bodySignature.argsTupleType());
 			if (same)
 			{
-				if (existingImp.isForwardDefinition())
+				if (existingDefinition.isForwardDefinition())
 				{
 					if (existingType.returnType().equals(
 						bodySignature.returnType()))
 					{
-						forward = existingImp;
+						forward = existingDefinition;
 					}
 					else
 					{
@@ -403,22 +400,58 @@ public final class AvailLoader
 				}
 			}
 		}
-		if (forward != null)
-		{
-			resolvedForwardWithName(forward, methodName);
-		}
-		method.methodAddDefinition(newMethodDefinition);
-		recordEffect(new LoadingEffectToAddDefinition(newMethodDefinition));
+		final @Nullable A_Definition finalForward = forward;
+		final A_Definition newDefinition = MethodDefinitionDescriptor.create(
+			method, module, bodyBlock);
 		final A_Module theModule = module;
-		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
-				root.addBundle(bundle);
-				root.flushForNewOrChangedBundle(bundle);
-				theModule.moduleAddDefinition(newMethodDefinition);
+				if (finalForward != null)
+				{
+					resolvedForwardWithName(finalForward, methodName);
+				}
+				final A_Set plans;
+				try
+				{
+					plans = method.methodAddDefinition(newDefinition);
+				}
+				catch (SignatureException e)
+				{
+					assert false : "Signature was already vetted";
+					return;
+				}
+				recordEffect(new LoadingEffectToAddDefinition(newDefinition));
+				final A_BundleTree root = rootBundleTree();
+				final A_Set ancestorModules = theModule.allAncestors();
+				for (A_DefinitionParsingPlan eachPlan : plans)
+				{
+					final A_Bundle eachBundle = eachPlan.bundle();
+					if (ancestorModules.hasElement(
+						eachBundle.message().issuingModule()))
+					{
+						if (finalForward != null)
+						{
+							// Remove the appropriate forwarder plan from the
+							// bundle tree.
+							for (A_DefinitionParsingPlan forwardPlan :
+								eachBundle.definitionParsingPlans())
+							{
+								if (forwardPlan.definition().equals(
+									finalForward))
+								{
+									root.removePlan(forwardPlan);
+								}
+							}
+						}
+						root.addBundle(eachBundle);
+						root.addPlan(eachPlan);
+						root.flushForNewOrChangedBundle(eachBundle);
+					}
+				}
+				theModule.moduleAddDefinition(newDefinition);
 			}
 		});
 	}
@@ -529,8 +562,11 @@ public final class AvailLoader
 		final MessageSplitter splitter = bundle.messageSplitter();
 		final int numArgs = splitter.numberOfArguments();
 		final A_Type bodyArgsSizes = bodySignature.argsTupleType().sizeRange();
-		assert bodyArgsSizes.lowerBound().equalsInt(numArgs)
-			: "Wrong number of arguments in abstract method signature";
+		if (!bodyArgsSizes.lowerBound().equalsInt(numArgs)
+			|| !bodyArgsSizes.upperBound().equalsInt(numArgs))
+		{
+			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
 		assert bodyArgsSizes.upperBound().equalsInt(numArgs)
 			: "Wrong number of arguments in abstract method signature";
 		//  Make it so we can safely hold onto these things in the VM
@@ -538,11 +574,8 @@ public final class AvailLoader
 		bodySignature.makeShared();
 		//  Add the method definition.
 		final A_Method method = bundle.bundleMethod();
-		final A_Definition newDefinition = AbstractDefinitionDescriptor.create(
-			method, module, bodySignature);
-		module().moduleAddDefinition(newDefinition);
-		@Nullable AvailObject forward = null;
-		for (final AvailObject existingDefinition : method.definitionsTuple())
+		@Nullable A_Definition forward = null;
+		for (final A_Definition existingDefinition : method.definitionsTuple())
 		{
 			final A_Type existingType = existingDefinition.bodySignature();
 			final boolean same = existingType.argsTupleType().equals(
@@ -551,7 +584,16 @@ public final class AvailLoader
 			{
 				if (existingDefinition.isForwardDefinition())
 				{
-					forward = existingDefinition;
+					if (existingType.returnType().equals(
+						bodySignature.returnType()))
+					{
+						forward = existingDefinition;
+					}
+					else
+					{
+						throw new SignatureException(
+							E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED);
+					}
 				}
 				else
 				{
@@ -578,36 +620,57 @@ public final class AvailLoader
 				}
 			}
 		}
-		if (forward != null)
-		{
-			resolvedForwardWithName(forward, methodName);
-		}
-		method.methodAddDefinition(newDefinition);
-		recordEffect(new LoadingEffectToAddDefinition(newDefinition));
+		final @Nullable A_Definition finalForward = forward;
+		final A_Definition newDefinition = AbstractDefinitionDescriptor.create(
+			method, module, bodySignature);
 		final A_Module theModule = module;
-		final A_BundleTree root = rootBundleTree();
-		final A_Definition finalForward = forward;
 		theModule.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
-				root.addBundle(bundle);
-				for (final A_DefinitionParsingPlan plan
-					: bundle.definitionParsingPlans())
+				if (finalForward != null)
 				{
-					if (plan.definition().equals(finalForward))
+					resolvedForwardWithName(finalForward, methodName);
+				}
+				final A_Set plans;
+				try
+				{
+					plans = method.methodAddDefinition(newDefinition);
+				}
+				catch (SignatureException e)
+				{
+					assert false : "Signature was already vetted";
+					return;
+				}
+				recordEffect(new LoadingEffectToAddDefinition(newDefinition));
+				final A_BundleTree root = rootBundleTree();
+				final A_Set ancestorModules = theModule.allAncestors();
+				for (A_DefinitionParsingPlan eachPlan : plans)
+				{
+					final A_Bundle eachBundle = eachPlan.bundle();
+					if (ancestorModules.hasElement(
+						eachBundle.message().issuingModule()))
 					{
-						// This is the plan for the forward being replaced.
-						root.removeDefinitionParsingPlan(plan);
-					}
-					else if (plan.definition().equals(newDefinition))
-					{
-						// This is the plan added for the new definition.
-						root.addPlan(plan);
+						if (finalForward != null)
+						{
+							// Remove the appropriate forwarder plan from the
+							// bundle tree.
+							for (A_DefinitionParsingPlan forwardPlan :
+								eachBundle.definitionParsingPlans())
+							{
+								if (forwardPlan.definition().equals(
+									finalForward))
+								{
+									root.removePlan(forwardPlan);
+								}
+							}
+						}
+						root.addBundle(eachBundle);
+						root.addPlan(eachPlan);
+						root.flushForNewOrChangedBundle(eachBundle);
 					}
 				}
-				root.flushForNewOrChangedBundle(bundle);
 				theModule.moduleAddDefinition(newDefinition);
 			}
 		});

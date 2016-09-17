@@ -32,8 +32,10 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.AvailMethod;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
 
 /**
  * {@code EqualityRawPojoDescriptor} differs from {@link RawPojoDescriptor}

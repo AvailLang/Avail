@@ -35,7 +35,9 @@ package com.avail.descriptor;
 import static com.avail.descriptor.LinearMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LinearMapBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.Mutability.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.MapDescriptor.*;
 
 /**

@@ -3961,7 +3961,7 @@ Primitive "Cast|cast_into_else_" is
  * @method "enumeration of_"
  * @param "instances" "set"
  *        The complete set of instances of the enumeration.
- * @returns "(⊤)'s type"
+ * @returns "(any)'s type"
  *    The requested enumeration.
  */
 Primitive "enumeration of_" is
@@ -3969,7 +3969,7 @@ Primitive "enumeration of_" is
 	instances : set
 |
 	Primitive CreateEnumeration;
-] : type;
+] : any meta;
 
 /**
  * Answer the number of instances of the specified type. This is `∞` for all

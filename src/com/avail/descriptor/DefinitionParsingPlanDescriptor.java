@@ -260,7 +260,7 @@ extends Descriptor
 	 * indication inserted at the keyword or argument position related to the
 	 * given program counter.
 	 *
-	 * @param parsingPlan
+	 * @param object
 	 *        The {@link DefinitionParsingPlanDescriptor parsing plan} to
 	 *        describe.
 	 * @param pc
@@ -270,15 +270,15 @@ extends Descriptor
 	 */
 	@Override @AvailMethod
 	String o_NameHighlightingPc (
-		final AvailObject parsingPlan,
+		final AvailObject object,
 		final int pc)
 	{
 		if (pc == 0)
 		{
 			return "(any method invocation)";
 		}
-		final A_Tuple instructions = parsingPlan.parsingInstructions();
-		final A_Bundle bundle = parsingPlan.bundle();
+		final A_Tuple instructions = object.parsingInstructions();
+		final A_Bundle bundle = object.bundle();
 		final MessageSplitter messageSplitter = bundle.messageSplitter();
 		final int instruction = instructions.tupleIntAt(pc);
 		final ParsingOperation op = ParsingOperation.decode(instruction);
@@ -294,8 +294,7 @@ extends Descriptor
 			for (int index = 1; index <= pc + 1; index++)
 			{
 				final int eachInstruction = instructions.tupleIntAt(index);
-				final ParsingOperation eachOp =
-					ParsingOperation.decode(eachInstruction);
+				final ParsingOperation eachOp = decode(eachInstruction);
 				switch (eachOp)
 				{
 					case PARSE_ARGUMENT:
@@ -325,8 +324,7 @@ extends Descriptor
 			string.substring(0, position - 1)
 				+ AvailCompiler.errorIndicatorSymbol
 				+ string.substring(position - 1);
-		final A_String availString = StringDescriptor.from(annotatedString);
-		return availString.toString();
+		return StringDescriptor.from(annotatedString).toString();
 	}
 
 	@Override @AvailMethod
@@ -363,7 +361,6 @@ extends Descriptor
 		final A_Bundle bundle,
 		final A_Definition definition)
 	{
-		final List<A_Type> typesForTesting = new ArrayList<>();
 		final AvailObject result = mutable.create();
 		result.setSlot(BUNDLE, bundle);
 		result.setSlot(DEFINITION, definition);

@@ -32,10 +32,12 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+
 import static com.avail.descriptor.SubrangeTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.SubrangeTupleDescriptor.ObjectSlots.*;
 import java.nio.ByteBuffer;
-import com.avail.annotations.*;
 
 /**
  * A subrange tuple holds a reference to a "basis" tuple, the subrange's

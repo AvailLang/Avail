@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The {@code IntegerEnumSlotDescriptionEnum} is an interface that constrains an

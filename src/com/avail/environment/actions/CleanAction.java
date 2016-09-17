@@ -35,11 +35,11 @@ package com.avail.environment.actions;
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.event.*;
 import java.io.IOException;
-import com.avail.annotations.*;
 import com.avail.builder.ModuleRoot;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.persistence.IndexedFileException;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code CleanAction} empties all compiled module repositories.

@@ -36,7 +36,7 @@ import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;

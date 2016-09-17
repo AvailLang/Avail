@@ -90,9 +90,8 @@ extends Primitive
 					{
 						try
 						{
-							loader.addAbstractSignature(
-								loader.lookupName(string),
-								blockSignature);
+							final A_Atom atom = loader.lookupName(string);
+							loader.addAbstractSignature(atom, blockSignature);
 							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,

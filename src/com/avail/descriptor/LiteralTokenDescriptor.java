@@ -35,7 +35,10 @@ package com.avail.descriptor;
 import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;

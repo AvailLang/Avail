@@ -39,12 +39,16 @@ import static com.avail.descriptor.DeclarationNodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * My instances represent variable and constant statements.  There are several

@@ -36,10 +36,14 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.InnerAccess;
 import com.avail.exceptions.*;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * An {@code PojoTypeDescriptor} describes the type of a plain-old Java
  * object (pojo) that is accessible to an Avail programmer as an {@linkplain

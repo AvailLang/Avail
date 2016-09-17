@@ -32,13 +32,14 @@
 
 package com.avail.dispatch;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TupleTypeDescriptor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static java.lang.Math.max;
@@ -229,9 +230,8 @@ public class InternalLookupTree<
 			int undecidedCountIfFalse = 0;
 			for (final Element each : undecidedElements)
 			{
-				switch (TypeComparison.compare(
-					criterionSignature,
-					adaptor.extractSignature(each)))
+				switch (adaptor.compareTypes(
+					criterionSignature, adaptor.extractSignature(each)))
 				{
 					case SAME_TYPE:
 						break;
@@ -264,72 +264,87 @@ public class InternalLookupTree<
 			}
 		}
 		assert bestSignature != null;
-		// We have chosen one of the best signatures to test.  However, we
-		// still need to decide which argument position to test.  Use the
-		// leftmost one which is not already guaranteed by tests that have
-		// already been performed.  In particular, ignore arguments whose
-		// knownArgumentTypes information is a subtype of the chosen
-		// signature's argument type at that position.
-		final int numArgs =
-			bestSignature.sizeRange().lowerBound().extractInt();
-		A_Type selectedArgumentTypeToTest = null;
-		for (int i = 1; i <= numArgs; i++)
+		final List<A_Type> newPositiveKnownTypes;
+		final A_Type criterionSignature;
+		final A_Type knownSignature;
+		A_Type selectedTypeToTest = null;
+		if (adaptor.testsArgumentPositions())
 		{
-			final A_Type knownType = knownArgumentTypes.get(i - 1);
-			final A_Type criterionType = bestSignature.typeAtIndex(i);
-			if (!knownType.isSubtypeOf(criterionType))
+			// We have chosen one of the best signatures to test.  However, we
+			// still need to decide which argument position to test.  Use the
+			// leftmost one which is not already guaranteed by tests that have
+			// already been performed.  In particular, ignore arguments whose
+			// knownArgumentTypes information is a subtype of the chosen
+			// signature's argument type at that position.
+			final int numArgs =
+				bestSignature.sizeRange().lowerBound().extractInt();
+			for (int i = 1; i <= numArgs; i++)
 			{
-				argumentPositionToTest = i;
-				selectedArgumentTypeToTest = criterionType;
-				break;
+				final A_Type knownType = knownArgumentTypes.get(i - 1);
+				final A_Type criterionArgumentType =
+					bestSignature.typeAtIndex(i);
+				if (!knownType.isSubtypeOf(criterionArgumentType))
+				{
+					argumentPositionToTest = i;
+					selectedTypeToTest = criterionArgumentType;
+					break;
+				}
 			}
+			assert argumentPositionToTest >= 1;
+			assert selectedTypeToTest != null;
+			final A_Type oldArgType =
+				knownArgumentTypes.get(argumentPositionToTest - 1);
+			final A_Type replacementArgType =
+				selectedTypeToTest.typeIntersection(oldArgType);
+			// Sanity check:  Make sure we at least improve type knowledge in
+			// the positive case.
+			assert !replacementArgType.equals(oldArgType);
+			newPositiveKnownTypes = new ArrayList<>(knownArgumentTypes);
+			newPositiveKnownTypes.set(
+				argumentPositionToTest - 1, replacementArgType);
+			criterionSignature = TupleTypeDescriptor.forTypes(
+				newPositiveKnownTypes.toArray(new A_Type[numArgs]));
+			knownSignature = TupleTypeDescriptor.forTypes(
+				knownArgumentTypes.toArray(new A_Type[numArgs]));
 		}
-		assert argumentPositionToTest >= 1;
-		assert selectedArgumentTypeToTest != null;
-		final A_Type oldArgType =
-			knownArgumentTypes.get(argumentPositionToTest - 1);
-		final A_Type replacementArgType =
-			selectedArgumentTypeToTest.typeIntersection(oldArgType);
-		// Sanity check:  Make sure we at least improve type knowledge in
-		// the positive case.
-		assert !replacementArgType.equals(oldArgType);
-		final List<A_Type> newPositiveKnownTypes = new ArrayList<>(
-			knownArgumentTypes);
-		newPositiveKnownTypes.set(
-			argumentPositionToTest - 1, replacementArgType);
+		else
+		{
+			argumentPositionToTest = 0;
+			newPositiveKnownTypes = Collections.singletonList(bestSignature);
+			criterionSignature = bestSignature;
+			selectedTypeToTest = criterionSignature;
+			knownSignature = knownArgumentTypes.get(0);
+		}
 		// Compute the positive/undecided lists, both for the condition
 		// being true and for the condition being false.
 		final List<Element> positiveIfTrue = new ArrayList<>(positiveElements);
 		final List<Element> undecidedIfTrue = new ArrayList<>();
 		final List<Element> undecidedIfFalse = new ArrayList<>();
-		final A_Type criterionTupleType = TupleTypeDescriptor.forTypes(
-			newPositiveKnownTypes.toArray(new A_Type[numArgs]));
-		final A_Type knownTupleType = TupleTypeDescriptor.forTypes(
-			knownArgumentTypes.toArray(new A_Type[numArgs]));
 		for (final Element undecidedElement : undecidedElements)
 		{
 			// We need to synthesize a tuple type with the knowledge we
 			// currently have about the element types.
-			final TypeComparison comparison = TypeComparison.compare(
-				criterionTupleType,
+			final TypeComparison comparison = adaptor.compareTypes(
+				criterionSignature,
 				adaptor.extractSignature(undecidedElement)
-					.typeIntersection(knownTupleType));
+					.typeIntersection(knownSignature));
 			comparison.applyEffect(
 				undecidedElement,
 				positiveIfTrue,
 				undecidedIfTrue,
-				undecidedIfFalse);
+				undecidedIfFalse,
+				adaptor.subtypesHideSupertypes());
 		}
 		ifCheckHolds = adaptor.createTree(
 			positiveIfTrue, undecidedIfTrue, newPositiveKnownTypes, memento);
 		ifCheckFails = adaptor.createTree(
 			positiveElements, undecidedIfFalse, knownArgumentTypes, memento);
 		assert undecidedIfFalse.size() < undecidedElements.size();
-		// This is a volatile write, so all previous writes had to precede
-		// it.  If another process runs expandIfNecessary(), it will either
-		// see null for this field, or see non-null and be guaranteed that
-		// all subsequent reads will see all the previous writes.
-		argumentTypeToTest = selectedArgumentTypeToTest;
+		// This is a volatile write, so all previous writes had to precede it.
+		// If another process runs expandIfNecessary(), it will either see null
+		// for this field, or see non-null and be guaranteed that all subsequent
+		// reads will see all the previous writes.
+		argumentTypeToTest = selectedTypeToTest;
 	}
 
 	@Override
@@ -345,10 +360,10 @@ public class InternalLookupTree<
 		final Memento memento)
 	{
 		expandIfNecessary(adaptor, memento);
-		final A_Type testType = argumentTypeToTest();
-		final A_BasicObject argument =
-			argValues.get(argumentPositionToTest - 1);
-		if (argument.isInstanceOf(testType))
+		final int index = argumentPositionToTest;
+		assert index > 0;
+		final A_BasicObject argument = argValues.get(index - 1);
+		if (argument.isInstanceOf(argumentTypeToTest()))
 		{
 			return ifCheckHolds();
 		}
@@ -362,10 +377,10 @@ public class InternalLookupTree<
 		final Memento memento)
 	{
 		expandIfNecessary(adaptor, memento);
-		final A_Type testType = argumentTypeToTest();
-		final A_BasicObject argument =
-			argValues.tupleAt(argumentPositionToTest);
-		if (argument.isInstanceOf(testType))
+		final int index = argumentPositionToTest;
+		assert index > 0;
+		final A_BasicObject argument = argValues.tupleAt(index);
+		if (argument.isInstanceOf(argumentTypeToTest()))
 		{
 			return ifCheckHolds();
 		}
@@ -379,10 +394,10 @@ public class InternalLookupTree<
 		final Memento memento)
 	{
 		expandIfNecessary(adaptor, memento);
-		final A_Type testType = argumentTypeToTest();
-		final A_Type argumentType =
-			argTypes.get(argumentPositionToTest - 1);
-		if (argumentType.isSubtypeOf(testType))
+		final int index = argumentPositionToTest;
+		assert index > 0;
+		final A_Type argumentType = argTypes.get(index - 1);
+		if (argumentType.isSubtypeOf(argumentTypeToTest()))
 		{
 			return ifCheckHolds();
 		}
@@ -396,9 +411,26 @@ public class InternalLookupTree<
 		final Memento memento)
 	{
 		expandIfNecessary(adaptor, memento);
-		final A_Type testType = argumentTypeToTest();
-		final A_Type argumentType = argTypes.tupleAt(argumentPositionToTest);
-		if (argumentType.isSubtypeOf(testType))
+		final int index = argumentPositionToTest;
+		assert index > 0;
+		final A_Type argumentType = argTypes.tupleAt(index);
+		if (argumentType.isSubtypeOf(argumentTypeToTest()))
+		{
+			return ifCheckHolds();
+		}
+		return ifCheckFails();
+	}
+
+	@Override
+	protected LookupTree<Element, Result, Memento> lookupStepByValue (
+		final A_BasicObject probeValue,
+		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final Memento memento)
+	{
+		expandIfNecessary(adaptor, memento);
+		final int index = argumentPositionToTest;
+		assert index == 0;
+		if (probeValue.isInstanceOf(argumentTypeToTest()))
 		{
 			return ifCheckHolds();
 		}

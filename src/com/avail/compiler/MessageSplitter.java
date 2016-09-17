@@ -39,7 +39,8 @@ import static com.avail.descriptor.StringDescriptor.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import com.avail.annotations.*;
+
+import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.InstructionGenerator.Label;
 import com.avail.compiler.scanning.AvailScanner;
@@ -50,6 +51,7 @@ import com.avail.exceptions.*;
 import com.avail.utility.Generator;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Transformer1;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
@@ -134,8 +136,7 @@ public class MessageSplitter
 	/**
 	 * The Avail string to be parsed.
 	 */
-	@InnerAccess
-	final A_String messageName;
+	@InnerAccess final A_String messageName;
 
 	/**
 	 * The individual tokens ({@linkplain StringDescriptor strings})
@@ -749,7 +750,7 @@ public class MessageSplitter
 	extends Argument
 	{
 		/**
-		 * Construct a new {@link MessageSplitter.ArgumentInModuleScope}.
+		 * Construct a new {@link ArgumentInModuleScope}.
 		 *
 		 * @param startTokenIndex The one-based token index of this argument.
 		 */
@@ -773,8 +774,14 @@ public class MessageSplitter
 			final A_Type phraseType)
 		{
 			generator.emit(this, PARSE_ARGUMENT_IN_MODULE_SCOPE);
+			// Check that the expression is syntactically allowed.
 			generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-			generator.emit(this, TYPE_CHECK_ARGUMENT, indexForType(phraseType));
+			// Check that it's any kind of expression with the right yield type,
+			// since it's going to be evaluated and wrapped in a literal phrase.
+			final A_Type expressionType = EXPRESSION_NODE.create(
+				phraseType.expressionType());
+			generator.emit(
+				this, TYPE_CHECK_ARGUMENT, indexForType(expressionType));
 			generator.emit(this, CONVERT, EVALUATE_EXPRESSION.number());
 		}
 
@@ -863,7 +870,7 @@ public class MessageSplitter
 	extends Argument
 	{
 		/**
-		 * Construct a new {@link MessageSplitter.ArgumentForMacroOnly}.
+		 * Construct a new {@link ArgumentForMacroOnly}.
 		 *
 		 * @param startTokenIndex The one-based token index of this argument.
 		 */

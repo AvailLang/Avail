@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.InfinityDescriptor.IntegerSlots;

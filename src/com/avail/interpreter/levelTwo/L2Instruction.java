@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo;
 
 import java.util.*;
-import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -46,6 +45,8 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.utility.evaluation.*;
+import com.sun.istack.internal.Nullable;
+
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
  * the {@linkplain Interpreter level two Avail interpreter}. These

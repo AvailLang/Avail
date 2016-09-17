@@ -34,13 +34,15 @@ package com.avail.compiler.scanning;
 
 import static com.avail.compiler.scanning.AvailScanner.ScannerAction.*;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.ExpectedToken;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.LRUCache;
 import com.avail.utility.evaluation.Transformer1;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}

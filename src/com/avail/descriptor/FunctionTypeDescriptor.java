@@ -37,7 +37,10 @@ import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;

@@ -152,7 +152,7 @@ Primitive "_ᵀ" is
 	instances : set
 |
 	Primitive CreateEnumeration;
-] : type;
+] : any meta;
 
 Primitive "Private fail primitive with_" is
 [

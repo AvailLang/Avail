@@ -32,7 +32,10 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 /**
  * This class assists with the presentation of {@link AvailObject}s in the
@@ -180,11 +183,23 @@ public class AvailObjectFieldHelper
 			}
 			else if (val instanceof AvailIntegerValueHelper)
 			{
-				AbstractDescriptor.describeIntegerSlot(
-					(AvailObject)parentObject,
-					((AvailIntegerValueHelper)val).longValue,
-					(IntegerSlotsEnum)slot,
-					builder);
+				try
+				{
+					AbstractDescriptor.describeIntegerSlot(
+						(AvailObject) parentObject,
+						((AvailIntegerValueHelper) val).longValue,
+						(IntegerSlotsEnum) slot,
+						builder);
+				}
+				catch (RuntimeException e)
+				{
+					final StringWriter stringWriter = new StringWriter();
+					stringWriter.append(
+						"PROBLEM DESCRIBING INTEGER FIELD:\n");
+					e.printStackTrace(
+						new PrintWriter(stringWriter));
+					builder.append(stringWriter);
+				}
 			}
 			else if (value instanceof String)
 			{

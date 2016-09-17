@@ -40,10 +40,15 @@ import static java.util.Collections.min;
 import static java.util.Collections.max;
 import java.nio.ByteBuffer;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.InnerAccess;
+import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code TupleDescriptor} is an abstract descriptor class under which all tuple
@@ -893,7 +898,7 @@ extends Descriptor
 	 * @param object The object to hash.
 	 * @return The hash value.
 	 */
-	final int computeHashForObject (final A_Tuple object)
+	private final static int computeHashForObject (final A_Tuple object)
 	{
 		return object.computeHashFromTo(1, object.tupleSize());
 	}
@@ -1083,7 +1088,7 @@ extends Descriptor
 		 * Construct a new {@link TupleIterator} on the given {@linkplain
 		 * TupleDescriptor tuple}.
 		 *
-		 * @param tuple
+		 * @param tuple The tuple to iterate over.
 		 */
 		@InnerAccess TupleIterator (final AvailObject tuple)
 		{
@@ -1267,7 +1272,7 @@ extends Descriptor
 		{
 			return empty();
 		}
-		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
+		return ObjectTupleDescriptor.generateFrom(
 			elements.length,
 			new Generator<A_BasicObject>()
 			{
@@ -1279,7 +1284,6 @@ extends Descriptor
 					return elements[index++];
 				}
 			});
-		return tuple;
 	}
 
 	/**
@@ -1300,7 +1304,7 @@ extends Descriptor
 		{
 			return empty();
 		}
-		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
+		return ObjectTupleDescriptor.generateFrom(
 			size,
 			new Generator<A_BasicObject>()
 			{
@@ -1312,7 +1316,6 @@ extends Descriptor
 					return list.get(index++);
 				}
 			});
-		return tuple;
 	}
 
 	/**
@@ -1381,7 +1384,7 @@ extends Descriptor
 			if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
 			{
 				final int finalSeekIndex = seekIndex;
-				final AvailObject newTuple = ObjectTupleDescriptor.generateFrom(
+				return ObjectTupleDescriptor.generateFrom(
 					originalSize - 1,
 					new Generator<A_BasicObject>()
 					{
@@ -1398,7 +1401,6 @@ extends Descriptor
 							return originalTuple.tupleAt(index++);
 						}
 					});
-				return newTuple;
 			}
 		}
 		return originalTuple;
@@ -1466,7 +1468,7 @@ extends Descriptor
 				public A_BasicObject value ()
 				{
 					return IntegerDescriptor.fromInt(
-						list.get(index++).intValue());
+						list.get(index++));
 				}
 			});
 		return tuple;
@@ -1477,7 +1479,7 @@ extends Descriptor
 	 * The 0th table contains M^i for i=0..255, the 1st table contains M^(256*i)
 	 * for i=0..255,... and the 3rd table contains M^((256^3)*i) for i=0..255.
 	 */
-	static final int[][] powersOfMultiplier = new int[4][256];
+	private static final int[][] powersOfMultiplier = new int[4][256];
 
 	static
 	{

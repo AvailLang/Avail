@@ -35,8 +35,11 @@ package com.avail.descriptor;
 import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots.*;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code SelfPojoTypeDescriptor} describes the self type of a Java class or

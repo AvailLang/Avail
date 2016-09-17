@@ -42,7 +42,7 @@ import java.util.Deque;
 import java.util.Formatter;
 import java.util.LinkedList;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.utility.evaluation.Continuation0;
 
 /**

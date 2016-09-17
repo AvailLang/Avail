@@ -45,7 +45,12 @@ import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
+import com.avail.annotations.InnerAccess;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
@@ -54,6 +59,7 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@linkplain CompiledCodeDescriptor compiled code} object is created
@@ -112,8 +118,7 @@ extends Descriptor
 		 * code object}. It is computed at construction time.
 		 */
 		@HideFieldInDebugger
-		static final BitField HASH = bitField(
-			HASH_AND_PRIMITIVE, 0, 32);
+		static final BitField HASH = bitField(HASH_AND_PRIMITIVE, 0, 32);
 
 		/**
 		 * The primitive number or zero. This does not correspond with the
@@ -124,8 +129,10 @@ extends Descriptor
 		 * nybblecodes. The nybblecode instructions are only run if the
 		 * primitive was unsuccessful.
 		 */
-		static final BitField PRIMITIVE_NUMBER = bitField(
-			HASH_AND_PRIMITIVE, 32, 32);
+		@EnumField(
+			describedBy=Primitive.class,
+			lookupMethodName="byPrimitiveNumberOrNull")
+		static final BitField PRIMITIVE = bitField(HASH_AND_PRIMITIVE, 32, 32);
 
 		/**
 		 * The number of outer variables that must captured by my {@linkplain
@@ -215,7 +222,8 @@ extends Descriptor
 	 * AtomicLong}s.  Since these require neither locks nor complete memory
 	 * barriers, they're ideally suited for this purpose.
 	 */
-	@InnerAccess static class InvocationStatistic
+	@InnerAccess
+	static class InvocationStatistic
 	{
 		/**
 		 * An {@link AtomicLong} holding a count of the total number of times
@@ -725,7 +733,7 @@ extends Descriptor
 	@Override @AvailMethod
 	@Nullable Primitive o_Primitive (final AvailObject object)
 	{
-		return Primitive.byNumber(object.slot(PRIMITIVE_NUMBER));
+		return Primitive.byNumber(object.slot(PRIMITIVE));
 	}
 
 	@Override @AvailMethod
@@ -733,7 +741,7 @@ extends Descriptor
 	{
 		// Answer the primitive number I should try before falling back on
 		// the Avail code.  Zero indicates not-a-primitive.
-		return object.slot(PRIMITIVE_NUMBER);
+		return object.slot(PRIMITIVE);
 	}
 
 	@Override @AvailMethod
@@ -1027,7 +1035,7 @@ extends Descriptor
 		code.setSlot(FRAME_SLOTS, slotCount);
 		code.setSlot(NUM_OUTERS, outersSize);
 		code.setSlot(
-			PRIMITIVE_NUMBER,
+			PRIMITIVE,
 			primitive == null ? 0 : primitive.primitiveNumber);
 		code.setSlot(NYBBLES, nybbles.makeShared());
 		code.setSlot(FUNCTION_TYPE, functionType.makeShared());

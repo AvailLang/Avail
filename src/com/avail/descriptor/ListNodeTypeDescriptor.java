@@ -37,10 +37,14 @@ import static com.avail.descriptor.ListNodeTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ListNodeTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Define the structure and behavior of {@link ParseNodeKind#LIST_NODE list

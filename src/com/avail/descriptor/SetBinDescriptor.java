@@ -32,8 +32,11 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import org.jetbrains.annotations.Nullable;
+
 import static com.avail.descriptor.SetBinDescriptor.IntegerSlots.*;
-import com.avail.annotations.*;
 
 /**
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree

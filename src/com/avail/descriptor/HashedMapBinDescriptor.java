@@ -37,7 +37,8 @@ import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.Mutability.*;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.MapDescriptor.Entry;
 

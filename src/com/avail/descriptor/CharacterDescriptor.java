@@ -35,10 +35,12 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.descriptor.CharacterDescriptor.IntegerSlots.*;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.MarshalingException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code CharacterDescriptor} implements an Avail character. Avail characters

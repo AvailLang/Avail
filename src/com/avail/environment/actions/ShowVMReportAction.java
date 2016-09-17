@@ -35,10 +35,10 @@ package com.avail.environment.actions;
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.event.*;
 import java.util.EnumSet;
-import com.avail.annotations.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.performance.StatisticReport;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code ReportAction} dumps performance information obtained from

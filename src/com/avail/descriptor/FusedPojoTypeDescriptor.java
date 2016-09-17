@@ -38,9 +38,13 @@ import static java.lang.reflect.Modifier.*;
 import java.io.Serializable;
 import java.lang.reflect.TypeVariable;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code FusedPojoTypeDescriptor} describes synthetic points in Avail's pojo

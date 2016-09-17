@@ -36,7 +36,8 @@ import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import java.lang.reflect.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.*;
 import com.avail.utility.json.JSONWriter;
 

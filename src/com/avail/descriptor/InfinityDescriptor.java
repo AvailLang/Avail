@@ -36,7 +36,9 @@ import static com.avail.descriptor.InfinityDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;

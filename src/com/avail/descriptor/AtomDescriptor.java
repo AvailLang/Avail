@@ -38,14 +38,19 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.RandomAccessFile;
 import java.nio.channels.*;
 import java.util.*;
+import java.util.regex.Pattern;
+
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -138,6 +143,9 @@ extends Descriptor
 		return e == HASH_AND_MORE;
 	}
 
+	/** A {@link Pattern} of one or more word characters. */
+	private final Pattern wordPattern = Pattern.compile("\\w+");
+
 	@Override
 	public final void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -156,7 +164,7 @@ extends Descriptor
 		// quotes if it contains any nonalphanumeric characters, followed by a
 		// parenthetical aside describing what module originally issued it.
 		aStream.append('$');
-		if (nativeName.matches("\\w+"))
+		if (wordPattern.matcher(nativeName).matches())
 		{
 			aStream.append(nativeName);
 		}
@@ -359,8 +367,7 @@ extends Descriptor
 			final A_String name = object.slot(NAME);
 			final MessageSplitter splitter = new MessageSplitter(name);
 			final A_Method method = MethodDescriptor.newMethod(
-				splitter.numberOfArguments(),
-				splitter.numberOfSectionCheckpoints());
+				splitter.numberOfArguments());
 			bundle =
 				MessageBundleDescriptor.newBundle(object, method, splitter);
 			object.setAtomProperty(messageBundleKey, bundle);
@@ -482,7 +489,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	public static A_Atom createSpecialAtom (
+	static A_Atom createSpecialAtom (
 		final String name)
 	{
 		AvailObject atom = mutable.create();

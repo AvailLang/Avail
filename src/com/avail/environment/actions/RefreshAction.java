@@ -37,10 +37,10 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
-import com.avail.annotations.*;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code RefreshAction} updates the module tree with new information from the

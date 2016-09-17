@@ -36,7 +36,6 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
-import com.avail.annotations.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
@@ -58,10 +57,10 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.*;
 import com.avail.utility.Generator;
-import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code AvailObject} is the fully realized, and mostly machine generated,
@@ -532,21 +531,20 @@ implements
 	/**
 	 * Add the {@linkplain DefinitionDescriptor definition} to the receiver, a
 	 * {@linkplain MethodDefinitionDescriptor method}.  Causes dependent chunks
-	 * to be invalidated.
-	 *
-	 * Macro signatures and non-macro signatures should not be combined in the
-	 * same method.
+	 * to be invalidated.  Answer the {@link A_DefinitionParsingPlan}s that
+	 * were created for the new definition.
 	 *
 	 * @param definition The definition to be added.
+	 * @return The set of added definition parsing plans.
 	 * @throws SignatureException
 	 *         If the definition could not be added.
 	 */
 	@Override
-	public void methodAddDefinition (
+	public A_Set methodAddDefinition (
 			final A_Definition definition)
 		throws SignatureException
 	{
-		descriptor.o_MethodAddDefinition(this, definition);
+		return descriptor.o_MethodAddDefinition(this, definition);
 	}
 
 	/**
@@ -2004,10 +2002,9 @@ implements
 	 */
 	@Override
 	public void expand (
-		final A_Module module,
-		final List<A_Phrase> sampleArgsStack)
+		final A_Module module)
 	{
-		descriptor.o_Expand(this, module, sampleArgsStack);
+		descriptor.o_Expand(this, module);
 	}
 
 	/**
@@ -7141,5 +7138,11 @@ implements
 	public A_Type parsingSignature ()
 	{
 		return descriptor.o_ParsingSignature(this);
+	}
+
+	@Override
+	public void removePlan (final A_DefinitionParsingPlan plan)
+	{
+		descriptor.o_RemovePlan(this, plan);
 	}
 }

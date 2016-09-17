@@ -34,7 +34,8 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.ContinuationTypeDescriptor.ObjectSlots.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.serialization.SerializerOperation;

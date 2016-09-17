@@ -59,18 +59,9 @@ extends A_BasicObject
 	 * the grammar is postponed until actually necessary.
 	 *
 	 * @param module
-	 *        The current module in which this bundle tree is being used to
-	 *        parse.
-	 * @param sampleArgsStack
-	 *        A list of {@link A_Phrase phrases} from the parser's argument
-	 *        stack at the moment this bundle tree is being expanded.  The
-	 *        actual phrases aren't important, but the <em>sizes</em> of the
-	 *        {@link ListNodeDescriptor list phrases} can be used to extract the
-	 *        criterion types by which {@link A_DefinitionParsingPlan plans} are
-	 *        organized into a decision tree for type-checking arguments (at
-	 *        this position in the bundle tree).
+	 *        The current module which this bundle tree is being used to parse.
 	 */
-	void expand (A_Module module, List<A_Phrase> sampleArgsStack);
+	void expand (A_Module module);
 
 	/**
 	 * The specified bundle has been added or modified in this bundle tree.
@@ -125,14 +116,6 @@ extends A_BasicObject
 	int parsingPc ();
 
 	/**
-	 * Remove information about this {@link A_DefinitionParsingPlan definition
-	 * parsing plan} from this bundle tree.
-	 *
-	 * @param plan The parsing plan to exclude.
-	 */
-	void removeDefinitionParsingPlan (A_DefinitionParsingPlan plan);
-
-	/**
 	 * If this message bundle tree has a type filter tree, return the raw pojo
 	 * holding it, otherwise {@link NilDescriptor#nil()}.
 	 *
@@ -148,4 +131,12 @@ extends A_BasicObject
 	 *            The definition parsing plan to add.
 	 */
 	void addPlan (A_DefinitionParsingPlan plan);
+
+	/**
+	 * Remove information about this {@link A_DefinitionParsingPlan definition
+	 * parsing plan} from this bundle tree.
+	 *
+	 * @param plan The parsing plan to exclude.
+	 */
+	void removePlan (A_DefinitionParsingPlan plan);
 }

@@ -32,6 +32,7 @@
 
 package com.avail.test;
 
+import org.jetbrains.annotations.Nullable;
 import org.testng.annotations.*;
 import static org.testng.Assert.*;
 import static com.avail.descriptor.TypeDescriptor.Types;
@@ -39,7 +40,6 @@ import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;

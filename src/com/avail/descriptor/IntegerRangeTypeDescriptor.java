@@ -37,9 +37,12 @@ import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.descriptor.AvailObject.error;
 import java.math.BigInteger;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * My instances represent the types of one or more extended integers. There are

@@ -36,13 +36,15 @@ import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.AssignmentNodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AssignmentNodeDescriptor.ObjectSlots.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * My instances represent assignment statements.

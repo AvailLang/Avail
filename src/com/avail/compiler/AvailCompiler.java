@@ -34,7 +34,7 @@ package com.avail.compiler;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.problems.Problem;
@@ -46,8 +46,10 @@ import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
@@ -65,6 +67,7 @@ import com.avail.serialization.Serializer;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
+import com.avail.utility.Pair;
 import com.avail.utility.PrefixSharingList;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
@@ -149,7 +152,7 @@ public final class AvailCompiler
 	 * migrate between two runtime environments, it is safe to cache it for
 	 * efficient access.
 	 */
-	final AvailRuntime runtime = AvailRuntime.current();
+	@InnerAccess final AvailRuntime runtime = AvailRuntime.current();
 
 	/**
 	 * The header information for the current module being parsed.
@@ -1049,28 +1052,6 @@ public final class AvailCompiler
 				position + 1,
 				after.position,
 				false);
-		}
-
-		/**
-		 * Return a new {@linkplain ParserState parser state} like this one, but
-		 * with the given declaration added.
-		 *
-		 * @param declaration
-		 *        The {@linkplain DeclarationNodeDescriptor declaration} to add
-		 *        to the map of visible bindings.
-		 * @return The new parser state including the declaration.
-		 */
-		ParserState withDeclaration (final A_Phrase declaration)
-		{
-			final A_String name = declaration.token().string();
-			A_Map scopeMap = clientDataMap.mapAt(compilerScopeMapKey());
-			assert !scopeMap.hasKey(name);
-			scopeMap = scopeMap.mapAtPuttingCanDestroy(name, declaration, true);
-			final A_Map newClientDataMap = clientDataMap.mapAtPuttingCanDestroy(
-				compilerScopeMapKey(), scopeMap, true);
-			return new ParserState(
-				position,
-				newClientDataMap);
 		}
 
 		/**
@@ -3532,39 +3513,21 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final Con<A_Phrase> continuation)
 	{
-		// TODO(MvG) - remove temporary try/catch handler.
-		try
-		{
-			bundleTree.expand(module, argsSoFar);
-		}
-		catch (final Exception|Error e)
-		{
-			final StringWriter stringWriter = new StringWriter();
-			stringWriter.append(
-				"expansion of message bundle tree not to have thrown Java "
-					+ "exception:\n");
-			e.printStackTrace(new PrintWriter(stringWriter));
-			stringWriter.append("\n...while parsing:");
-			final StringBuilder builder = new StringBuilder();
-			builder.append(stringWriter);
-			describeOn(continuation.superexpressions(), builder);
-			start.expected(builder.toString());
-			return;
-		}
+		bundleTree.expand(module);
 		final A_Set complete = bundleTree.lazyComplete();
 		final A_Map incomplete = bundleTree.lazyIncomplete();
 		final A_Map caseInsensitive =
 			bundleTree.lazyIncompleteCaseInsensitive();
 		final A_Map actions = bundleTree.lazyActions();
 		final A_Map prefilter = bundleTree.lazyPrefilterMap();
-		final A_BasicObject typeFilterTree =
+		final A_BasicObject typeFilterTreePojo =
 			bundleTree.lazyTypeFilterTreePojo();
 		final boolean anyComplete = complete.setSize() > 0;
 		final boolean anyIncomplete = incomplete.mapSize() > 0;
 		final boolean anyCaseInsensitive = caseInsensitive.mapSize() > 0;
 		final boolean anyActions = actions.mapSize() > 0;
 		final boolean anyPrefilter = prefilter.mapSize() > 0;
-		final boolean anyTypeFilter = !typeFilterTree.equalsNil();
+		final boolean anyTypeFilter = !typeFilterTreePojo.equalsNil();
 
 		if (!(anyComplete
 			|| anyIncomplete
@@ -3693,7 +3656,7 @@ public final class AvailCompiler
 					assert actions.mapSize() == 1;
 					assert ParsingOperation.decode(
 							actions.mapIterable().next().key().extractInt())
-						== ParsingOperation.CHECK_ARGUMENT;
+						== CHECK_ARGUMENT;
 					return;
 				}
 				// The argument name was not in the prefilter map, so fall
@@ -3704,11 +3667,63 @@ public final class AvailCompiler
 		}
 		if (anyTypeFilter)
 		{
-			assert false : "Implement this"; //TODO MvG
+			// Use the most recently pushed phrase's type to look up the
+			// successor bundle tree.  This implements parallel argument type
+			// filtering.
+			@SuppressWarnings("unchecked")
+			final LookupTree<A_Tuple, A_BundleTree, Integer>
+				typeFilterTree =
+					(LookupTree<A_Tuple, A_BundleTree, Integer>)
+						typeFilterTreePojo.javaObject();
+			final A_Phrase latestPhrase = last(argsSoFar);
+			final A_BundleTree successor =
+				MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(
+					typeFilterTree, latestPhrase, bundleTree.parsingPc() + 1);
+			// Don't complain if at least one plan was happy with the type of
+			// the argument.  Otherwise list all argument type/plan expectations
+			// as neatly as possible.
+			if (successor.allParsingPlans().mapSize() == 0)
+			{
+				start.expected(new Describer()
+				{
+					@Override
+					public void describeThen (
+						final Continuation1<String> continueWithDescription)
+					{
+						Interpreter.stringifyThen(
+							runtime,
+							textInterface,
+							latestPhrase.expressionType(),
+							new Continuation1<String>()
+							{
+								@Override
+								public void value (
+									@Nullable final String actualTypeString)
+								{
+									assert actualTypeString != null;
+									describeFailedTypeTestThen(
+										actualTypeString,
+										bundleTree,
+										continueWithDescription);
+								}
+							});
+					}
+				});
+			}
+			assert firstArgOrNull == null;
+			eventuallyParseRestOfSendNode(
+				start,
+				successor,
+				null,
+				initialTokenPosition,
+				consumedAnything,
+				argsSoFar,
+				marksSoFar,
+				continuation);
 		}
 		if (anyActions)
 		{
-			for (final MapDescriptor.Entry entry : actions.mapIterable())
+			for (final Entry entry : actions.mapIterable())
 			{
 				final A_Number key = entry.key();
 				final A_Tuple value = entry.value();
@@ -3733,6 +3748,96 @@ public final class AvailCompiler
 					start);
 			}
 		}
+	}
+
+	@InnerAccess void describeFailedTypeTestThen (
+		final String actualTypeString,
+		final A_BundleTree bundleTree,
+		final Continuation1<String> continuation)
+	{
+		// TODO(MvG) Present the full phrase type if it can be a macro argument.
+		final Map<A_Type, Set<String>> definitionsByType = new HashMap<>();
+		final int pc = bundleTree.parsingPc();
+		for (final Entry entry : bundleTree.allParsingPlans().mapIterable())
+		{
+			final A_Map submap = entry.value();
+			for (final Entry subentry : submap.mapIterable())
+			{
+				final A_DefinitionParsingPlan plan = subentry.value();
+				final A_Tuple instructions = plan.parsingInstructions();
+				final int instruction = instructions.tupleAt(pc).extractInt();
+				final int typeIndex =
+					TYPE_CHECK_ARGUMENT.typeCheckArgumentIndex(instruction);
+				final A_Type argType = MessageSplitter.typeToCheck(typeIndex);
+				Set<String> planStrings = definitionsByType.get(argType);
+				if (planStrings == null)
+				{
+					planStrings = new HashSet<>();
+					definitionsByType.put(
+						argType.expressionType(), planStrings);
+				}
+				planStrings.add(plan.nameHighlightingPc(pc));
+			}
+		}
+		final List<A_Type> types = new ArrayList<>(definitionsByType.keySet());
+		// Generate the type names in parallel.
+		Interpreter.stringifyThen(
+			runtime,
+			textInterface,
+			types,
+			new Continuation1<List<String>>()
+			{
+				@Override
+				public void value (
+					@Nullable final List<String> typeNames)
+				{
+					// Stitch the type names back onto the plan
+					// strings, prior to sorting by type name.
+					assert typeNames != null;
+					assert typeNames.size() == types.size();
+					final List<Pair<String, List<String>>> pairs =
+						new ArrayList<>();
+					for (int i = 0; i < types.size(); i++)
+					{
+						final A_Type type = types.get(i);
+						final List<String> planStrings =
+							new ArrayList<String>(definitionsByType.get(type));
+						// Sort individual lists of plans.
+						Collections.sort(planStrings);
+						pairs.add(new Pair<>(typeNames.get(i), planStrings));
+					}
+					// Now sort by type names.
+					Collections.sort(
+						pairs,
+						new Comparator<Pair<String, List<String>>>()
+						{
+							@Override
+							public int compare (
+								final Pair<String, List<String>> o1,
+								final Pair<String, List<String>> o2)
+							{
+								return o1.first().compareTo(o2.first());
+							}
+						});
+					// Print it all out.
+					StringBuilder builder = new StringBuilder(100);
+					builder.append("phrase to have a type other than ");
+					builder.append(actualTypeString);
+					builder.append(".  Expecting:");
+					for (final Pair<String, List<String>> pair : pairs)
+					{
+						builder.append("\n\t");
+						builder.append(pair.first());
+						for (final String planString : pair.second())
+						{
+							builder.append("\n\t\t");
+							builder.append(planString);
+						}
+					}
+					continuation.value(builder.toString());
+				}
+			}
+		);
 	}
 
 	/**
@@ -3801,8 +3906,8 @@ public final class AvailCompiler
 			}
 			case APPEND_ARGUMENT:
 			{
-				// Append the item that's the last thing to the list that's the
-				// second last thing. Pop both and push the new list (the
+				// Append the item that's the last thing onto the list that's
+				// the second last thing. Pop both and push the new list (the
 				// original list must not change), then continue.
 				assert successorTrees.tupleSize() == 1;
 				final A_Phrase value = last(argsSoFar);
@@ -4124,7 +4229,7 @@ public final class AvailCompiler
 					}
 					break;
 				}
-				else if (op == PARSE_RAW_STRING_LITERAL_TOKEN
+				if (op == PARSE_RAW_STRING_LITERAL_TOKEN
 					&& (newToken.tokenType() != LITERAL
 						|| !newToken.literal().isInstanceOf(
 							TupleTypeDescriptor.stringType())))
@@ -4146,7 +4251,7 @@ public final class AvailCompiler
 					}
 					break;
 				}
-				else if (op == PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN
+				if (op == PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN
 					&& (newToken.tokenType() != LITERAL
 						|| !newToken.literal().isInstanceOf(
 							IntegerRangeTypeDescriptor.wholeNumbers())))
@@ -4402,8 +4507,10 @@ public final class AvailCompiler
 				// Look inside the only successor to find the only bundle.
 				final A_Map bundlesMap = successorTree.allParsingPlans();
 				assert bundlesMap.mapSize() == 1;
+				final A_Map submap = bundlesMap.mapIterable().next().value();
+				assert submap.mapSize() == 1;
 				final A_Definition definition =
-					bundlesMap.mapIterable().next().key();
+					submap.mapIterable().next().key();
 				final A_Tuple prefixFunctions = definition.prefixFunctions();
 				final int prefixIndex = op.prefixFunctionSubscript(instruction);
 				final A_Function prefixFunction =
@@ -5250,7 +5357,6 @@ public final class AvailCompiler
 					visibleDefinitions.add(definition);
 				}
 			}
-			final List<A_Definition> filtered = new ArrayList<>();
 			AvailErrorCode errorCode = null;
 			if (visibleDefinitions.size() == macroDefinitionsTuple.tupleSize())
 			{
@@ -5277,6 +5383,7 @@ public final class AvailCompiler
 					phraseTypes.add(AbstractEnumerationTypeDescriptor
 						.withInstance(argPhrase));
 				}
+				final List<A_Definition> filtered = new ArrayList<>();
 				for (final A_Definition macroDefinition : visibleDefinitions)
 				{
 					if (macroDefinition.bodySignature()
@@ -5345,12 +5452,24 @@ public final class AvailCompiler
 				// Failed lookup.
 				if (errorCode != E_NO_METHOD_DEFINITION)
 				{
+					final AvailErrorCode finalErrorCode = errorCode;
 					stateAfterCall.expected(
-						errorCode == E_AMBIGUOUS_METHOD_DEFINITION
-							? "unambiguous definition of macro "
-								+ bundle.message()
-							: "successful macro lookup, instead of: "
-								+ errorCode.name());
+						new Describer()
+						{
+							@Override
+							public void describeThen (
+								final Continuation1<String> withString)
+							{
+								final String string =
+									finalErrorCode ==
+											E_AMBIGUOUS_METHOD_DEFINITION
+										? "unambiguous definition of macro "
+											+ bundle.message()
+										: "successful macro lookup, not: "
+											+ finalErrorCode.name();
+								withString.value(string);
+							}
+						});
 					// Don't try to treat it as a method invocation.
 					return;
 				}

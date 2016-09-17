@@ -32,10 +32,11 @@
 
 package com.avail.utility.configuration;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.Thread.State;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import com.avail.annotations.*;
 
 /**
  * An {@code XMLConfiguratorState} encapsulates the state of an

@@ -32,7 +32,7 @@
 
 package com.avail.server.io;
 
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
 import com.avail.utility.evaluation.Continuation0;

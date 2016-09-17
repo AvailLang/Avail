@@ -34,7 +34,8 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.ReadWriteVariableTypeDescriptor.ObjectSlots.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 

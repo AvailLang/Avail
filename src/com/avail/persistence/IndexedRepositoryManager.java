@@ -42,7 +42,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.DatatypeConverter;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.builder.*;
 import com.avail.compiler.ModuleHeader;
 import com.avail.descriptor.CommentTokenDescriptor;

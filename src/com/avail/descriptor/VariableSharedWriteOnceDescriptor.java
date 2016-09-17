@@ -37,7 +37,7 @@ import static com.avail.descriptor.VariableSharedWriteOnceDescriptor.ObjectSlots
 import java.util.Map;
 import java.util.WeakHashMap;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.VariableSetException;

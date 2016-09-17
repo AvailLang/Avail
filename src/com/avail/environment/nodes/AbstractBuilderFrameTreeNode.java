@@ -36,7 +36,7 @@ import java.awt.Image;
 import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.swing.tree.DefaultMutableTreeNode;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.environment.AvailWorkbench;
 import com.avail.utility.LRUCache;

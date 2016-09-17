@@ -33,7 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 
 /**

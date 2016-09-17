@@ -35,9 +35,14 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.*;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * {@code ByteStringDescriptor} represents a string of Latin-1 characters.
  *

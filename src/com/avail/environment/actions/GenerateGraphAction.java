@@ -34,12 +34,12 @@ package com.avail.environment.actions;
 
 import java.awt.*;
 import java.awt.event.*;
-import com.avail.annotations.*;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.environment.tasks.GraphTask;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code GenerateGraphAction} instructs the {@linkplain

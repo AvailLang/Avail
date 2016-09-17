@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import java.util.Arrays;
 import java.util.Set;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 
 /**
@@ -214,8 +214,8 @@ implements A_BasicObject
 		final BitField bitField)
 	{
 		checkSlot(bitField.integerSlot);
-		final long value = longSlots[bitField.integerSlotIndex];
-		return (int)((value >>> bitField.shift) & bitField.lowMask);
+		final long fieldValue = longSlots[bitField.integerSlotIndex];
+		return bitField.extractFromLong(fieldValue);
 	}
 
 	/**
@@ -231,8 +231,7 @@ implements A_BasicObject
 		checkWriteForField(bitField.integerSlot);
 		checkSlot(bitField.integerSlot);
 		long value = longSlots[bitField.integerSlotIndex];
-		value &= bitField.invertedMask;
-		value |= (((long)anInteger) << bitField.shift) & bitField.mask;
+		value = bitField.replaceBits(value, anInteger);
 		longSlots[bitField.integerSlotIndex] = value;
 	}
 
@@ -502,7 +501,7 @@ implements A_BasicObject
 		{
 			fieldValue = longSlots[bitField.integerSlotIndex];
 		}
-		return (int)((fieldValue >>> bitField.shift) & bitField.lowMask);
+		return bitField.extractFromLong(fieldValue);
 	}
 
 	/**
@@ -524,16 +523,14 @@ implements A_BasicObject
 			synchronized (this)
 			{
 				long value = longSlots[bitField.integerSlotIndex];
-				value &= bitField.invertedMask;
-				value |= (((long)anInteger) << bitField.shift) & bitField.mask;
+				value = bitField.replaceBits(value, anInteger);
 				longSlots[bitField.integerSlotIndex] = value;
 			}
 		}
 		else
 		{
 			long value = longSlots[bitField.integerSlotIndex];
-			value &= bitField.invertedMask;
-			value |= (((long)anInteger) << bitField.shift) & bitField.mask;
+			value = bitField.replaceBits(value, anInteger);
 			longSlots[bitField.integerSlotIndex] = value;
 		}
 	}

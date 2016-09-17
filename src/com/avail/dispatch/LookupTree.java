@@ -31,9 +31,10 @@
  */
 
 package com.avail.dispatch;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.utility.MutableOrNull;
@@ -109,6 +110,20 @@ public abstract class LookupTree<
 		A_Tuple argValues,
 		LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		Memento memento);
+
+	/**
+	 * Perform one step of looking up the most-specific {@link Result} that
+	 * matches the provided value.  Answer another {@link LookupTree} with which
+	 * to continue the search.  Requires {@link #solutionOrNull()} to be null,
+	 * indicating the search has not concluded.
+	 *
+	 * @param probeValue The value being looked up.
+	 * @return The next {@link LookupTree} to search.
+	 */
+	protected abstract LookupTree<Element, Result, Memento> lookupStepByValue (
+		final A_BasicObject probeValue,
+		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final Memento memento);
 
 	/**
 	 * Answer the lookup solution ({@link List} of {@linkplain A_Definition

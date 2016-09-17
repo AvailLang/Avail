@@ -37,9 +37,13 @@ import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.*;
 import java.lang.reflect.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code UnfusedPojoTypeDescriptor} describes a fully-parameterized Java

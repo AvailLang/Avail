@@ -37,7 +37,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.ArrayList;
 import java.util.List;
 import com.avail.AvailRuntime;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MapException;
 import com.avail.interpreter.*;

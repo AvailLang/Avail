@@ -32,9 +32,11 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.AvailMethod;
+import org.jetbrains.annotations.Nullable;
+
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import java.util.*;
-import com.avail.annotations.*;
 
 /**
  * A {@code RawPojoDescriptor} is a thin veneer over a plain-old Java object

@@ -34,9 +34,11 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.List;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.compiler.*;
 import com.avail.compiler.scanning.AvailScanner;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Every object in Avail has a type.  Types are also Avail objects.  The types

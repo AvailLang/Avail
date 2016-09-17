@@ -36,8 +36,11 @@ import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.*;
 import java.util.Map;
 import java.util.WeakHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.serialization.Serializer;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is

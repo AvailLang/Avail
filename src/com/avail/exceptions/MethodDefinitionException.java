@@ -33,8 +33,9 @@
 package com.avail.exceptions;
 
 import static com.avail.exceptions.AvailErrorCode.*;
-import com.avail.descriptor.AbstractDefinitionDescriptor;
-import com.avail.descriptor.ForwardDefinitionDescriptor;
+
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.MethodDefinitionDescriptor;
 import com.avail.descriptor.MethodDescriptor;
 
@@ -76,47 +77,20 @@ extends AvailException
 
 	/**
 	 * Answer a {@link MethodDefinitionException} that indicates the
-	 * nonexistence of a {@linkplain MethodDefinitionDescriptor method
-	 * definition}.
+	 * nonexistence of a {@linkplain MethodDescriptor method}.
 	 *
 	 * @return The requested exception.
 	 */
-	public static MethodDefinitionException noMethodDefinition ()
+	public static A_Definition extractUniqueMethod (
+		final A_Tuple methodDefinitions)
+	throws MethodDefinitionException
 	{
-		return new MethodDefinitionException(E_NO_METHOD_DEFINITION);
-	}
-
-	/**
-	 * Answer a {@link MethodDefinitionException} that indicates an ambiguous
-	 * resolution of a {@linkplain MethodDefinitionDescriptor method
-	 * definition}.
-	 *
-	 * @return The requested exception.
-	 */
-	public static MethodDefinitionException ambiguousMethodDefinition ()
-	{
-		return new MethodDefinitionException(E_AMBIGUOUS_METHOD_DEFINITION);
-	}
-
-	/**
-	 * Answer a {@link MethodDefinitionException} that indicates a {@linkplain
-	 * ForwardDefinitionDescriptor forward definition}.
-	 *
-	 * @return The requested exception.
-	 */
-	public static MethodDefinitionException forwardMethodDefinition ()
-	{
-		return new MethodDefinitionException(E_FORWARD_METHOD_DEFINITION);
-	}
-
-	/**
-	 * Answer a {@link MethodDefinitionException} that indicates an {@linkplain
-	 * AbstractDefinitionDescriptor abstract definition}.
-	 *
-	 * @return The requested exception.
-	 */
-	public static MethodDefinitionException abstractMethodDefinition ()
-	{
-		return new MethodDefinitionException(E_ABSTRACT_METHOD_DEFINITION);
+		switch (methodDefinitions.tupleSize())
+		{
+			case 0: throw new MethodDefinitionException(E_NO_METHOD_DEFINITION);
+			case 1: return methodDefinitions.tupleAt(1);
+			default: throw new MethodDefinitionException(
+				E_AMBIGUOUS_METHOD_DEFINITION);
+		}
 	}
 }

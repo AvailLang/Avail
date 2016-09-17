@@ -37,7 +37,9 @@ import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObjectRepresentation.*;
 import static com.avail.descriptor.Mutability.*;
 import static java.lang.Long.bitCount;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 
 /**

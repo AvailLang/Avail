@@ -34,7 +34,7 @@ package com.avail.compiler.problems;
 
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CharacterDescriptor;

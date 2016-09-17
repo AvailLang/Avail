@@ -36,10 +36,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 import javax.xml.parsers.SAXParser;
+
+import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-import com.avail.annotations.*;
 
 /**
  * An {@link XMLConfigurator} uses a {@code XMLEventHandler} to interface with

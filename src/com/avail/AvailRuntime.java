@@ -60,7 +60,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import com.avail.annotations.*;
+
+import com.avail.annotations.InnerAccess;
+import com.avail.annotations.ThreadSafe;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -75,6 +77,7 @@ import com.avail.io.TextInterface;
 import com.avail.utility.LRUCache;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -207,9 +210,8 @@ public final class AvailRuntime
 	private final ThreadFactory executorThreadFactory = new ThreadFactory()
 	{
 		@Override
-		public AvailThread newThread (final @Nullable Runnable runnable)
+		public AvailThread newThread (final Runnable runnable)
 		{
-			assert runnable != null;
 			return new AvailThread(
 				runnable,
 				new Interpreter(AvailRuntime.this));
@@ -226,9 +228,8 @@ public final class AvailRuntime
 		AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public Thread newThread (final @Nullable Runnable runnable)
+		public Thread newThread (final Runnable runnable)
 		{
-			assert runnable != null;
 			return new Thread(
 				runnable, "AvailFile-" + counter.incrementAndGet());
 		}
@@ -244,9 +245,8 @@ public final class AvailRuntime
 		AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public Thread newThread (final @Nullable Runnable runnable)
+		public Thread newThread (final Runnable runnable)
 		{
-			assert runnable != null;
 			return new Thread(
 				runnable, "AvailSocket-" + counter.incrementAndGet());
 		}
@@ -264,9 +264,9 @@ public final class AvailRuntime
 
 	/**
 	 * A counter from which unique interpreter indices in [0..maxInterpreters)
-	 * are allotted thread-safely.
+	 * are allotted.
 	 */
-	public static int nextInterpreterIndex = 0;
+	private AtomicInteger nextInterpreterIndex = new AtomicInteger(0);
 
 	/**
 	 * Allocate the next interpreter index in [0..maxInterpreters)
@@ -276,8 +276,8 @@ public final class AvailRuntime
 	 */
 	public synchronized int allocateInterpreterIndex ()
 	{
-		final int index = nextInterpreterIndex;
-		nextInterpreterIndex++;
+		final int index = nextInterpreterIndex.getAndIncrement();
+		assert index < maxInterpreters;
 		return index;
 	}
 
@@ -316,7 +316,7 @@ public final class AvailRuntime
 	private final ThreadPoolExecutor fileExecutor =
 		new ThreadPoolExecutor(
 			availableProcessors,
-			availableProcessors * 4,
+			availableProcessors << 2,
 			10L,
 			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(10),
@@ -345,7 +345,7 @@ public final class AvailRuntime
 	private final ThreadPoolExecutor socketExecutor =
 		new ThreadPoolExecutor(
 			availableProcessors,
-			availableProcessors * 4,
+			availableProcessors << 2,
 			10L,
 			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(),

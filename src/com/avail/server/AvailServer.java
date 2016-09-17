@@ -49,7 +49,7 @@ import java.util.logging.Logger;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FiberReference;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.AvailBuilder.CompiledCommand;
 import com.avail.builder.ModuleName;

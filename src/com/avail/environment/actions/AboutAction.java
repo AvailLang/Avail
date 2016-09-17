@@ -38,10 +38,10 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
 import com.avail.descriptor.A_String;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code AboutAction} presents the "About Avail" dialog.

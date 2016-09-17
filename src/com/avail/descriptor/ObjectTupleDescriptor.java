@@ -38,7 +38,10 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.InnerAccess;
 import com.avail.utility.Generator;
 
 /**

@@ -32,7 +32,8 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.Serializer;
 

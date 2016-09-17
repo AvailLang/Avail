@@ -36,9 +36,13 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FloatDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 floating point values.

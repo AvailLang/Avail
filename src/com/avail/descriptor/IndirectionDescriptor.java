@@ -36,7 +36,9 @@ import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.*;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
@@ -51,7 +53,6 @@ import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
@@ -64,10 +65,10 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
-import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@link AvailObject} with an {@link IndirectionDescriptor} keeps track of
@@ -314,12 +315,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_MethodAddDefinition (
+	A_Set o_MethodAddDefinition (
 		final AvailObject object,
 		final A_Definition definition)
 	throws SignatureException
 	{
-		o_Traversed(object).methodAddDefinition(definition);
+		return o_Traversed(object).methodAddDefinition(definition);
 	}
 
 	@Override
@@ -2124,10 +2125,9 @@ extends AbstractDescriptor
 	@Override
 	void o_Expand (
 		final AvailObject object,
-		final A_Module module,
-		final List<A_Phrase> sampleArgsStack)
+		final A_Module module)
 	{
-		o_Traversed(object).expand(module, sampleArgsStack);
+		o_Traversed(object).expand(module);
 	}
 
 	@Override
@@ -4831,5 +4831,12 @@ extends AbstractDescriptor
 	A_Type o_ParsingSignature (final AvailObject object)
 	{
 		return o_Traversed(object).parsingSignature();
+	}
+
+	@Override
+	void o_RemovePlan (
+		final AvailObject object, final A_DefinitionParsingPlan plan)
+	{
+		o_Traversed(object).removePlan(plan);
 	}
 }

@@ -32,7 +32,10 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.json.JSONWriter;
 
@@ -119,7 +122,8 @@ extends PrimitiveTypeDescriptor
 	}
 
 	@Override
-	@AvailMethod @ThreadSafe
+	@AvailMethod
+	@ThreadSafe
 	boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)

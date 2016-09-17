@@ -41,7 +41,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.io.TextInputChannel;
 import com.avail.server.messages.Message;
 import com.avail.utility.evaluation.Continuation0;

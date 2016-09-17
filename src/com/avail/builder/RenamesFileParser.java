@@ -38,8 +38,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.MalformedInputException;
 import java.util.Map;
-import com.avail.annotations.*;
+
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code RenamesFileParser} parses a {@linkplain File file} of Avail

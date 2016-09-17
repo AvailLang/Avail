@@ -41,8 +41,10 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.utility.MutableOrNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The abstract class {@code AbstractNumberDescriptor} serves as an abstraction

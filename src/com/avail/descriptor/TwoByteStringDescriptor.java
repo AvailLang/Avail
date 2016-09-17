@@ -35,8 +35,12 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.Mutability.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.utility.*;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of
  * two-byte characters.

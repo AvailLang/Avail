@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.L1InstructionStepper.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;

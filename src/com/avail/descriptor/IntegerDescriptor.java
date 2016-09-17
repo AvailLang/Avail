@@ -40,11 +40,13 @@ import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.Mutability.*;
 import java.math.BigInteger;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An Avail {@linkplain IntegerDescriptor integer} is represented by a little
@@ -188,19 +190,18 @@ extends ExtendedIntegerDescriptor
 	{
 		if (object.isLong())
 		{
-			final long longValue = object.extractLong();
-			String typeName = "Integer";
+			final StringBuilder builder = new StringBuilder(80);
+			builder.append("(Integer");
 			if (isMutable())
 			{
-				typeName = typeName + "\u2133";
+				builder.append("\u2133");
 			}
-			final String typeString = "(" + typeName + ")";
-			return String.format(
-				"%s = 0x%08X_%08X = %d",
-				typeString,
-				longValue >>> 32L,
-				longValue & 0xFFFFFFFFL,
-				longValue);
+			builder.append(") = ");
+			final long longValue = object.extractLong();
+			describeLong(longValue, builder);
+			builder.append(" = ");
+			builder.append(longValue);
+			return builder.toString();
 		}
 		return super.o_NameForDebugger(object);
 	}

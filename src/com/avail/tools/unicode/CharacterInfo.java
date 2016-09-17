@@ -32,7 +32,7 @@
 
 package com.avail.tools.unicode;
 
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.utility.json.JSONArray;
 import com.avail.utility.json.JSONData;
 import com.avail.utility.json.JSONFriendly;

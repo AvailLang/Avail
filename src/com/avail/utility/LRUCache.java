@@ -47,8 +47,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-import com.avail.annotations.*;
+
+import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code LRUCache} implements a memory-sensitive least-recently-used cache.
