@@ -132,7 +132,7 @@ extends JSONData
 	public void writeTo (final JSONWriter writer)
 	{
 		final Class<?> valueClass = value.getClass();
-		if (valueClass == Boolean.TYPE)
+		if (valueClass == Boolean.class)
 		{
 			writer.write(getBoolean());
 		}
