@@ -1197,12 +1197,11 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object The receiver.
 	 * @param definition The definition to be added.
-	 * @return The set of new {@link A_DefinitionParsingPlan}s.
 	 * @throws SignatureException
 	 *         If the definition could not be added.
 	 * @see AvailObject#methodAddDefinition(A_Definition)
 	 */
-	abstract A_Set o_MethodAddDefinition (
+	abstract void o_MethodAddDefinition (
 			AvailObject object,
 			A_Definition definition)
 		throws SignatureException;
@@ -1218,7 +1217,7 @@ public abstract class AbstractDescriptor
 	 *            The grammatical restriction to be added.
 	 * @see A_Bundle#addGrammaticalRestriction(A_GrammaticalRestriction)
 	 */
-	abstract void o_AddGrammaticalRestriction (
+	abstract void o_ModuleAddGrammaticalRestriction (
 		AvailObject object,
 		A_GrammaticalRestriction grammaticalRestriction);
 
@@ -1270,13 +1269,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param methodName
-	 * @param illegalArgMsgs
+	 * @param grammaticalRestriction
 	 */
-	abstract void o_AddGrammaticalRestrictions (
+	abstract void o_AddGrammaticalRestriction (
 		AvailObject object,
-		A_Atom methodName,
-		A_Tuple illegalArgMsgs);
+		A_GrammaticalRestriction grammaticalRestriction);
 
 	/**
 	 * @param object
@@ -1285,12 +1282,6 @@ public abstract class AbstractDescriptor
 	abstract void o_ModuleAddDefinition (
 		AvailObject object,
 		A_BasicObject definition);
-
-	/**
-	 * @param object
-	 * @param bundle
-	 */
-	abstract void o_AddBundle (AvailObject object, A_Bundle bundle);
 
 	/**
 	 * @param object
@@ -6333,15 +6324,15 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param plan
 	 */
-	abstract void o_RemoveDefinitionParsingPlan (
+	abstract void o_RemovePlanForDefinition (
 		AvailObject object,
-		A_DefinitionParsingPlan plan);
+		A_Definition definition);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	abstract A_Set o_DefinitionParsingPlans (AvailObject object);
+	abstract A_Map o_DefinitionParsingPlans (AvailObject object);
 
 	/**
 	 * @param object
@@ -6401,4 +6392,16 @@ public abstract class AbstractDescriptor
 	abstract void o_RemovePlan (
 		final AvailObject object,
 		final A_DefinitionParsingPlan plan);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_ModuleSemanticRestrictions (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_ModuleGrammaticalRestrictions (final AvailObject object);
 }

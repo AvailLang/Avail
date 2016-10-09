@@ -35,7 +35,6 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.DefinitionDescriptor;
 
 import java.util.List;
 
@@ -94,14 +93,7 @@ public enum TypeComparison
 				final List<? super Element> ifFalseUndecidedDefinitions,
 				final boolean subtypesHideSupertypes)
 			{
-				if (subtypesHideSupertypes)
-				{
-					ifTrueUndecidedDefinitions.add(undecidedDefinition);
-				}
-				else
-				{
-					ifTruePositiveDefinitions.add(undecidedDefinition);
-				}
+				ifTrueUndecidedDefinitions.add(undecidedDefinition);
 			}
 		},
 
@@ -150,23 +142,24 @@ public enum TypeComparison
 		};
 
 	/**
-	 * Conditionally augment the supplied lists with the provided
-	 * undecided {@linkplain DefinitionDescriptor definition}.  The
-	 * decision of which lists to augment depends on this instance,
-	 * which is the result of a previous comparison between the two signatures.
+	 * Conditionally augment the supplied lists with the provided undecided
+	 * {@link Element}.  The decision of which lists to augment depends on this
+	 * instance, which is the result of a previous comparison between the two
+	 * signatures.
 	 *  @param undecidedDefinition
-	 *            A {@linkplain DefinitionDescriptor definition} whose
-	 *            applicability has not yet been decided at the current
-	 *            position in the {@link LookupTree}.
+	 *            An {link Entry} whose applicability has not yet been decided.
 	 * @param ifTruePositiveDefinitions
 	 *            A list of definitions that will be applicable to some
-	 *            arguments if the arguments meet the criterion.
+	 *            arguments if the arguments meet the current criterion.
 	 * @param ifTrueUndecidedDefinitions
- *            A list of definitions that will be undecided for some
- *            arguments if the arguments meet the criterion.
+	 *            A list of definitions that will be undecided for some
+	 *            arguments if the arguments meet the current criterion.
 	 * @param ifFalseUndecidedDefinitions
-*            A list of definitions that will be applicable to some
+	 *            A list of definitions that will be undecided for some
+	 *            arguments if the aguments do not meet the current criterion.
 	 * @param subtypesHideSupertypes
+	 *        Whether an entry should makes another entry with a strictly weaker
+	 *        type ineligible.
 	 */
 	public abstract <Element extends A_BasicObject> void applyEffect (
 		final Element undecidedDefinition,

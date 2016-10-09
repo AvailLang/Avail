@@ -66,7 +66,7 @@ Body
 
 /**
  * Are all lexical arguments equal?
- * 
+ *
  * @method "«_‡=»"
  * @param "<any…|3..>" "aTuple"
  * @returns "boolean"
@@ -82,10 +82,10 @@ Public method "«_‡=»" is
 ] : boolean;
 
 /**
- * If there is no valid type intersection (the result of any type intersection 
+ * If there is no valid type intersection (the result of any type intersection
  * operation is ⊥) between the types in the tuple, then the equality comparison
  * will always fail.
- * 
+ *
  * @method "«_‡=»"
  * @restricts "<any…|3..>'s type"
  */
@@ -118,7 +118,7 @@ Semantic restriction "«_‡=»" is
 /**
  * Compute and answer the logical exclusive disjunction, i.e., XOR, of the
  * arguments. This is equivalent to (a ∧ ¬b) ∨ ((¬a) ∧ b)
- * 
+ *
  * @method "_⊕_"
  * @param "a" "boolean"
  * @param "a" "boolean"
@@ -138,7 +138,7 @@ Public stable method "_⊕_" is
  * is equivalent to ¬({@param "a"} ∧ {@param "b"}). Short-circuit the
  * computation, i.e., only evaluate {@param "b"} if {@param "a"} is {@method
  * "true"}.
- * 
+ *
  * @method "_`↑_"
  * @param "a" "boolean"
  * @param "b" "[]→boolean"
@@ -162,10 +162,10 @@ Method "_`↑_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of {@method "_`↑_"} is known statically to be 
- * {@method "false"}, then the expression is also known statically to be 
+ * If the left-hand argument of {@method "_`↑_"} is known statically to be
+ * {@method "false"}, then the expression is also known statically to be
  * {@method "true"}.
- * 
+ *
  * @method "_`↑_"
  * @restricts "false's type's type"
  * @restricts "([]→boolean)'s type"
@@ -179,8 +179,8 @@ Semantic restriction "_`↑_" is
 ];
 
 /**
- * If the left-hand argument of {@method "_`↑_"} is known statically to be 
- * {@method "true"}, then the static type of the expression is the negation of 
+ * If the left-hand argument of {@method "_`↑_"} is known statically to be
+ * {@method "true"}, then the static type of the expression is the negation of
  * {@param "b"}'s return type.
  *
  * @method "_`↑_"
@@ -196,8 +196,8 @@ Semantic restriction "_`↑_" is
 ];
 
 /**
- * If the right-hand argument of {@method "_`↑_"} is known statically to be 
- * {@method "true"}, then the static type of the expression is the negation of 
+ * If the right-hand argument of {@method "_`↑_"} is known statically to be
+ * {@method "true"}, then the static type of the expression is the negation of
  * {@param "b"}'s return type.
  *
  * @method "_`↑_"
@@ -267,10 +267,10 @@ Method "_↓_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of {@method "_↓_"} is known statically to be 
- * {@method "true"}, then the expression is known statically to be {@method 
+ * If the left-hand argument of {@method "_↓_"} is known statically to be
+ * {@method "true"}, then the expression is known statically to be {@method
  * "false"}.
- * 
+ *
  * @method "_↓_"
  * @restricts "true's type's type"
  * @restricts "[]→boolean's type"
@@ -284,10 +284,10 @@ Semantic restriction "_↓_" is
 ];
 
 /**
- * If the left-hand argument of {@method "_↓_"} is known statically to be 
- * {@method "false"}, then the static type of the expression is the negation of 
+ * If the left-hand argument of {@method "_↓_"} is known statically to be
+ * {@method "false"}, then the static type of the expression is the negation of
  * {@param "b"}'s return type.
- * 
+ *
  * @method "_↓_"
  * @restricts "false's type's type"
  * @restricts "[]→(true's type)'s type"
@@ -301,10 +301,10 @@ Semantic restriction "_↓_" is
 ];
 
 /**
- * If the left-hand argument of {@method "_↓_"} is known statically to be 
+ * If the left-hand argument of {@method "_↓_"} is known statically to be
  * {@method "false"}, then the static type of the expression is the negation of
  * {@param "b"}'s return type.
- * 
+ *
  * @method "_↓_"
  * @restricts "false's type's type"
  * @restricts "[]→(false's type)'s type"
@@ -318,10 +318,10 @@ Semantic restriction "_↓_" is
 ];
 
 /**
- * If the right-hand argument of {@method "_↓_"} is known statically to be 
- * {@method "false"}, then the static type of the expression is {@method 
+ * If the right-hand argument of {@method "_↓_"} is known statically to be
+ * {@method "false"}, then the static type of the expression is {@method
  * "false"}.
- * 
+ *
  * @method "_↓_"
  * @restricts "boolean's type"
  * @restricts "[]→(true's type)'s type"
@@ -363,7 +363,7 @@ Macro "_↓_" is
 
 /**
  * Compute and answer the material conditional of the arguments. This is the
- * equivalent of (¬{@param "a"}) ∨ {@param "b"}. Short-circuit the computation, 
+ * equivalent of (¬{@param "a"}) ∨ {@param "b"}. Short-circuit the computation,
  * i.e., only evaluate {@param "b"} if {@param "a"} is {@method "true"}.
  *
  * @method "_→_"
@@ -389,10 +389,10 @@ Method "_→_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of {@method "_→_"} is known statically to be 
- * {@method "false"}, then the expression is known statically to be {@method 
+ * If the left-hand argument of {@method "_→_"} is known statically to be
+ * {@method "false"}, then the expression is known statically to be {@method
  * "true"}.
- * 
+ *
  * @method "_→_"
  * @restricts "false's type's type"
  * @restricts "[]→boolean's type"
@@ -406,10 +406,10 @@ Semantic restriction "_→_" is
 ];
 
 /**
- * If the right-hand argument of {@method "_→_"} is known statically to be 
- * {@method "true"}, then the expression is known statically to be {@method 
+ * If the right-hand argument of {@method "_→_"} is known statically to be
+ * {@method "true"}, then the expression is known statically to be {@method
  * "true"}.
- * 
+ *
  * @method "_→_"
  * @restricts "boolean's type"
  * @restricts "[]→(true's type)'s type"
@@ -451,7 +451,7 @@ Macro "_→_" is
 
 /**
  * Compute and answer the converse implication of the arguments. This is
- * equivalent to {@param "a"} ∨ ¬{@param "b"}. Short-circuit the computation, 
+ * equivalent to {@param "a"} ∨ ¬{@param "b"}. Short-circuit the computation,
  * i.e., only evaluate {@param "b"} if {@param "a"}  is false.
  *
  * @method "_←_"
@@ -477,9 +477,9 @@ Method "_←_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of {@method "_←_"} is known statically to be 
+ * If the left-hand argument of {@method "_←_"} is known statically to be
  * {@method "true"}, then the static type of the expression is {@method "true"}.
- * 
+ *
  * @method "_←_"
  * @restricts "true's type's type"
  * @restricts "[]→boolean's type"
@@ -493,10 +493,10 @@ Semantic restriction "_←_" is
 ];
 
 /**
- * If the right-hand argument of {@method "_←_"} is known statically to be 
- * {@method "false"}, then the static type of the expression is {@method 
+ * If the right-hand argument of {@method "_←_"} is known statically to be
+ * {@method "false"}, then the static type of the expression is {@method
  * "true"}.
- * 
+ *
  * @method "_←_"
  * @restricts "boolean's type"
  * @restricts "[]→(false's type)'s type"
@@ -538,7 +538,7 @@ Macro "_←_" is
 
 /**
  * Compute and answer the logical biconditional of the arguments. This is the
- * negation of XOR and equivalent to ({@param "a"} ∧ {@param "b"}) ∨ ((¬{@param 
+ * negation of XOR and equivalent to ({@param "a"} ∧ {@param "b"}) ∨ ((¬{@param
  * "a"}) ∧ ¬{@param "b"}), which is a = b.
  *
  * @method "_↔_"
@@ -557,7 +557,7 @@ Public stable method "_↔_" is
 
 /**
  * Type can be strengthened as long as neither argument is of type boolean.
- * 
+ *
  * @method "_↔_"
  * @restricts "boolean's type"
  * @restricts "boolean's type"
@@ -567,7 +567,7 @@ Semantic restriction "_↔_" is
 	aType : boolean's type,
 	bType : boolean's type
 |
-	if (aType ≠ boolean) ∧ bType ≠ boolean then 
+	if (aType ≠ boolean) ∧ bType ≠ boolean then
 	[
 		(aType = bType)'s type
 	]
@@ -576,7 +576,7 @@ Semantic restriction "_↔_" is
 
 /**
  * Compute and answer the material nonimplication of the arguments. This is
- * equivalent to {@param "a"} ∧ ¬{@param "b"}. Short-circuit the computation, 
+ * equivalent to {@param "a"} ∧ ¬{@param "b"}. Short-circuit the computation,
  * i.e., only evaluate {@param "b"} if {@param "a"} is {@method "true"}.
  *
  * @method "_↛_"
@@ -602,8 +602,8 @@ Method "_↛_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of {@method "_↛_"} is known statically to be 
- * {@method "false"}, then the static type of the expression is {@method 
+ * If the left-hand argument of {@method "_↛_"} is known statically to be
+ * {@method "false"}, then the static type of the expression is {@method
  * "false"}.
  *
  * @method "_↛_"
@@ -619,8 +619,8 @@ Semantic restriction "_↛_" is
 ];
 
 /**
- * If the right-hand argument of {@method "_↛_"} is known statically to be 
- * {@method "true"}, then the static type of the expression is {@method 
+ * If the right-hand argument of {@method "_↛_"} is known statically to be
+ * {@method "true"}, then the static type of the expression is {@method
  * "false"}.
  *
  * @method "_↛_"
@@ -664,7 +664,7 @@ Macro "_↛_" is
 
 /**
  * Compute and answer the converse nonimplication of the arguments. This is
- * equivalent to (¬{@param "a"}) ∧ {@param "b"}. Short-circuit the computation, 
+ * equivalent to (¬{@param "a"}) ∧ {@param "b"}. Short-circuit the computation,
  * i.e., only evaluate {@param "b"} if {@param "a"} is {@method "false"}.
  *
  * @method "_↚_"
@@ -690,10 +690,10 @@ Method "_↚_" is
 ] : boolean;
 
 /**
- * If the left-hand argument of {@method "_↚_"} is known statically to be 
- * {@method "true"}, then the static type of the expression is {@method 
+ * If the left-hand argument of {@method "_↚_"} is known statically to be
+ * {@method "true"}, then the static type of the expression is {@method
  * "false"}.
- * 
+ *
  * @method "_↚_"
  * @restricts "true's type's type"
  * @restricts "[]→boolean's type"
@@ -707,10 +707,10 @@ Semantic restriction "_↚_" is
 ];
 
 /**
- * If the right-hand argument of {@method "_↚_"} is known statically to be 
- * {@method "false"}, then the static type of the expression is {@method 
+ * If the right-hand argument of {@method "_↚_"} is known statically to be
+ * {@method "false"}, then the static type of the expression is {@method
  * "false"}.
- * 
+ *
  * @method "_↚_"
  * @restricts "boolean's type"
  * @restricts "[]→(false's type)'s type"
@@ -724,11 +724,11 @@ Semantic restriction "_↚_" is
 ];
 
 /**
- * If the right-hand argument of {@method "_↚_"} is known statically to be 
- * {@method "true"} and the left-hand argument is known statically to be 
- * {@method "false"}, then the static type of the expression is {@method 
+ * If the right-hand argument of {@method "_↚_"} is known statically to be
+ * {@method "true"} and the left-hand argument is known statically to be
+ * {@method "false"}, then the static type of the expression is {@method
  * "true"}.
- * 
+ *
  * @method "_↚_"
  * @restricts "false's type's type"
  * @restricts "[]→(true's type)'s type"
@@ -770,7 +770,7 @@ Macro "_↚_" is
 
 /**
  * Negation has the highest precedence among logical operators.
- * 
+ *
  * @method "¬_"
  * @forbids 1 "_∧_" "_∨_" "_⊕_" "_`↑_" "_↓_" "_→_" "_←_" "_↔_" "_↛_" "_↚_"
  * 	"_=_" "_≠_"
@@ -782,7 +782,7 @@ Grammatical restriction "¬_" is
 /**
  * AND operation is second highest precedence among logical operators, after
  * negation.
- * 
+ *
  * @method "_∧_"
  * @forbids 1 "_⊕_" "_→_" "_↔_" "_←_" "_↛_" "_↚_"
  * @forbids 2 "_⊕_" "_→_" "_↔_" "_←_" "_↛_" "_↚_"
@@ -794,19 +794,19 @@ Grammatical restriction "_∧_" is
 /**
  * OR operation is third highest precedence among logical operators, after
  * AND and negation.
- * 
+ *
  * @method "_∨_"
- * @forbids 1 "_∨_" "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
- * @forbids 2 "_∧_" "_∨_" "_⊕_" "_→_" "_↔_" "_←_" "_↛_" "_↚_"
+ * @forbids 1 "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
+ * @forbids 2 "_⊕_" "_→_" "_↔_" "_←_" "_↛_" "_↚_"
  */
-Grammatical restriction "_∨_" is 
+Grammatical restriction "_∨_" is
 	<{"_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"},
 	{"_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"}>;
 
 /**
  * (Non-)implications and converse (non-)implications share the fourth highest
  * precedence.
- * 
+ *
  * @method "_→_"
  * @forbids 1 "_↔_" "_⊕_"
  * @forbids 2 "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
@@ -814,7 +814,7 @@ Grammatical restriction "_∨_" is
 /**
  * (Non-)implications and converse (non-)implications share the fourth highest
  * precedence.
- * 
+ *
  * @method "_←_"
  * @forbids 1 "_↔_" "_⊕_"
  * @forbids 2 "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
@@ -822,7 +822,7 @@ Grammatical restriction "_∨_" is
 /**
  * (Non-)implications and converse (non-)implications share the fourth highest
  * precedence.
- * 
+ *
  * @method "_↛_"
  * @forbids 1 "_↔_" "_⊕_"
  * @forbids 2 "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
@@ -830,23 +830,23 @@ Grammatical restriction "_∨_" is
 /**
  * (Non-)implications and converse (non-)implications share the fourth highest
  * precedence.
- * 
+ *
  * @method "_↚_"
  * @forbids 1 "_↔_" "_⊕_"
  * @forbids 2 "_→_" "_↔_" "_←_" "_⊕_" "_↛_" "_↚_"
  */
-Grammatical restriction {"_→_", "_←_", "_↛_", "_↚_"} is 
+Grammatical restriction {"_→_", "_←_", "_↛_", "_↚_"} is
 	<{"_↔_", "_⊕_"}, {"_→_", "_↔_", "_←_", "_⊕_", "_↛_", "_↚_"}>;
 
 /**
  * Biconditional and XOR operations have the lowest precedence.
- * 
+ *
  * @method "_↔_"
  * @forbids 2 "_↔_" "_⊕_"
  */
 /**
  * Biconditional and XOR operations have the lowest precedence.
- * 
+ *
  * @method "_⊕_"
  * @forbids 2 "_↔_" "_⊕_"
  */
@@ -854,7 +854,7 @@ Grammatical restriction {"_↔_", "_⊕_"} is <∅, {"_↔_", "_⊕_"}>;
 
 /**
  * Strengthen for exactly known values (but never for types).
- * 
+ *
  * @method "_=_"
  * @restricts "any meta"
  * @restricts "any meta"
@@ -888,19 +888,19 @@ Semantic restriction "_=_" is
  * dealt with by a grammatical restriction.  However, this can lead to confusing
  * diagnostics, since attempted grammatical restriction violations are never
  * reported as compilation errors – they're simply rejected.
- * 
+ *
  * @macro "¬_≠_"
  * @param "a" "expression phrase" An expression.
  * @param "b" "expression phrase" An expression.
  * @returns "⊥" Because it always rejects its invocations.
  * @category "Logic"
  */
-Public macro "¬_≠_" is 
+Public macro "¬_≠_" is
 [
 	a : expression phrase,
 	b : expression phrase
 |
-	Reject parse, expected: 
+	Reject parse, expected:
 		"use of \"_=_\", instead of \"¬_≠_\""
 ];
 
@@ -909,18 +909,18 @@ Public macro "¬_≠_" is
  * dealt with by a grammatical restriction.  However, this can lead to confusing
  * diagnostics, since attempted grammatical restriction violations are never
  * reported as compilation errors – they're simply rejected.
- * 
+ *
  * @macro "¬_=_"
  * @param "a" "expression phrase" An expression.
  * @param "b" "expression phrase" An expression.
  * @returns "⊥" Because it always rejects its invocations.
  * @category "Logic"
  */
-Public macro "¬_=_" is 
+Public macro "¬_=_" is
 [
 	a : expression phrase,
 	b : expression phrase
 |
-	Reject parse, expected: 
+	Reject parse, expected:
 		"use of \"_≠_\", instead of \"¬_=_\""
 ];

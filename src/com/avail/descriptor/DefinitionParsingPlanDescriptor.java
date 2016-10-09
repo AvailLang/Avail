@@ -104,7 +104,7 @@ extends Descriptor
 	 * Used for describing logical aspects of the bundle in the Eclipse
 	 * debugger.
 	 */
-	private static enum FakeSlots
+	private enum FakeSlots
 	implements ObjectSlotsEnum
 	{
 		/** Used for showing the parsing instructions symbolically. */
@@ -239,7 +239,14 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
-		return another.traversed().sameAddressAs(object);
+		if (!another.kind().equals(DEFINITION_PARSING_PLAN.o()))
+		{
+			return false;
+		}
+		final A_DefinitionParsingPlan strongAnother =
+			(A_DefinitionParsingPlan) another;
+		return object.slot(DEFINITION) == strongAnother.definition()
+			&& object.slot(BUNDLE) == strongAnother.bundle();
 	}
 
 	@Override @AvailMethod
@@ -343,10 +350,10 @@ extends Descriptor
 		// The existing definitions are also printed in parentheses to help
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
-		aStream.append("parsing plan for definition ");
-		aStream.append(object.definition());
-		aStream.append(" of bundle ");
-		aStream.append(object.bundle());
+		aStream.append("plan for ");
+		aStream.append(object.bundle().message());
+		aStream.append(" at ");
+		aStream.append(object.definition().parsingSignature());
 	}
 
 	/**

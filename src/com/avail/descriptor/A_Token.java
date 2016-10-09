@@ -88,10 +88,10 @@ extends A_BasicObject
 
 	/**
 	 * Set this token's exact trailing whitespace as it appeared in the source
-	 * code. This capability makes the {@linkplain AvailScanner scanner} must
+	 * code. This capability makes the {@linkplain AvailScanner scanner} much
 	 * easier to build and maintain.
 	 *
-	 * @param trailingWhitespace
+	 * @param trailingWhitespace A string.
 	 */
 	void trailingWhitespace (A_String trailingWhitespace);
 

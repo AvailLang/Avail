@@ -1,5 +1,5 @@
 /**
- * ResetCCReportDataAction.java
+ * ParserIntegrityCheckAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,10 +32,9 @@
 
 package com.avail.environment.actions;
 
-import static com.avail.environment.AvailWorkbench.StreamStyle.*;
-import java.awt.event.*;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
+import com.avail.compiler.AvailCompiler;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
@@ -43,12 +42,16 @@ import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.utility.evaluation.Continuation0;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.event.ActionEvent;
+
+import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
+
 /**
- * A {@code ResetCCReportDataAction} clears code coverage information obtained
- * from running.
+ * A {@code ParserIntegrityCheckAction} checks critical data structures used by
+ * the {@link AvailCompiler}.
  */
 @SuppressWarnings("serial")
-public final class ResetCCReportDataAction
+public final class ParserIntegrityCheckAction
 extends AbstractWorkbenchAction
 {
 	/** The current runtime. */
@@ -57,40 +60,33 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
+		workbench.clearTranscript();
 		runtime.execute(new AvailTask(FiberDescriptor.commandPriority)
 		{
 			@Override
 			public void value ()
 			{
-				CompiledCodeDescriptor.ResetCodeCoverageDetailsThen(
-					new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						workbench.writeText("Code coverage data reset.\n", INFO);
-					}
-				});
+				runtime.integrityCheck();
 			}
 		});
 	}
 
 	/**
-	 * Construct a new {@link ResetCCReportDataAction}.
+	 * Construct a new {@link ParserIntegrityCheckAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
 	 * @param runtime
 	 *        The active {@link AvailRuntime}.
 	 */
-	public ResetCCReportDataAction (
+	public ParserIntegrityCheckAction (
 		final AvailWorkbench workbench,
 		final AvailRuntime runtime)
 	{
-		super(workbench, "Clear code coverage data");
+		super(workbench, "Integrity check");
 		this.runtime = runtime;
 		putValue(
 			SHORT_DESCRIPTION,
-			"Reset the code coverage data.");
+			"Perform an integrity check on key parser structures.");
 	}
 }

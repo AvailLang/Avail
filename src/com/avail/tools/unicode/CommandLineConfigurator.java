@@ -58,7 +58,7 @@ implements Configurator<UnicodeConfiguration>
 	/**
 	 * {@code OptionKey} enumerates the valid configuration options.
 	 */
-	static enum OptionKey
+	enum OptionKey
 	{
 		/**
 		 * Request display of help text.

@@ -91,4 +91,15 @@ extends RuntimeException
 		super(cause);
 		this.errorCode = errorCode;
 	}
+
+	@Override
+	public String getMessage ()
+	{
+		String message = super.getMessage();
+		if (message == null)
+		{
+			message = errorCode.toString();
+		}
+		return message;
+	}
 }

@@ -315,12 +315,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Set o_MethodAddDefinition (
+	void o_MethodAddDefinition (
 		final AvailObject object,
 		final A_Definition definition)
 	throws SignatureException
 	{
-		return o_Traversed(object).methodAddDefinition(definition);
+		o_Traversed(object).methodAddDefinition(definition);
 	}
 
 	@Override
@@ -353,14 +353,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddGrammaticalRestrictions (
+	void o_ModuleAddGrammaticalRestriction (
 		final AvailObject object,
-		final A_Atom methodName,
-		final A_Tuple illegalArgMsgs)
+		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		o_Traversed(object).addGrammaticalRestrictions(
-			methodName,
-			illegalArgMsgs);
+		o_Traversed(object).moduleAddGrammaticalRestriction(
+			grammaticalRestriction);
 	}
 
 	@Override
@@ -370,12 +368,6 @@ extends AbstractDescriptor
 	{
 		o_Traversed(object).moduleAddDefinition(
 			definition);
-	}
-
-	@Override
-	void o_AddBundle (final AvailObject object, final A_Bundle bundle)
-	{
-		o_Traversed(object).addBundle(bundle);
 	}
 
 	@Override
@@ -4778,15 +4770,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveDefinitionParsingPlan (
+	void o_RemovePlanForDefinition (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan)
+		final A_Definition definition)
 	{
-		o_Traversed(object).removeDefinitionParsingPlan(plan);
+		o_Traversed(object).removePlanForDefinition(definition);
 	}
 
 	@Override
-	A_Set o_DefinitionParsingPlans (final AvailObject object)
+	A_Map o_DefinitionParsingPlans (final AvailObject object)
 	{
 		return o_Traversed(object).definitionParsingPlans();
 	}
@@ -4838,5 +4830,17 @@ extends AbstractDescriptor
 		final AvailObject object, final A_DefinitionParsingPlan plan)
 	{
 		o_Traversed(object).removePlan(plan);
+	}
+
+	@Override
+	A_Set o_ModuleSemanticRestrictions (final AvailObject object)
+	{
+		return o_Traversed(object).moduleSemanticRestrictions();
+	}
+
+	@Override
+	A_Set o_ModuleGrammaticalRestrictions (final AvailObject object)
+	{
+		return o_Traversed(object).moduleGrammaticalRestrictions();
 	}
 }

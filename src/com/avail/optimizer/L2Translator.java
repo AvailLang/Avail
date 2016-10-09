@@ -438,7 +438,7 @@ public class L2Translator
 	 * correctly explode the fields into registers then jump to the main
 	 * entry point at the {@link #startLabel}.
 	 */
-	final L2Instruction restartLabel = newLabel("restart");
+	L2Instruction restartLabel = null;
 
 	/**
 	 * Answer the specified fixed register.
@@ -778,15 +778,6 @@ public class L2Translator
 		 */
 		final Map<L2Instruction, RegisterSet> labelRegisterSets =
 			new HashMap<>();
-
-		/**
-		 * Whether any uses of the {@linkplain #L1Ext_doPushLabel() push-label}
-		 * nybblecode instruction have been encountered so far.  After naive
-		 * translation, if any push-labels occurred then the {@link
-		 * #restartLabel} will be appended, followed by code that will explode
-		 * the continuation and jump to the start.
-		 */
-		boolean anyPushLabelsEncountered = false;
 
 		/**
 		 * Return the {@link List} of {@link L2Instruction}s.
@@ -2739,7 +2730,7 @@ public class L2Translator
 			// Write a coda if necessary to support push-label instructions
 			// and give the resulting continuations a chance to explode before
 			// restarting them.
-			if (anyPushLabelsEncountered)
+			if (restartLabel != null)
 			{
 				addLabel(restartLabel);
 				A_Map typesMap = MapDescriptor.empty();
@@ -3039,7 +3030,6 @@ public class L2Translator
 		@Override
 		public void L1Ext_doPushLabel ()
 		{
-			anyPushLabelsEncountered = true;
 			stackp--;
 			final List<L2ObjectRegister> vectorWithOnlyArgsPreserved =
 				new ArrayList<>(numSlots);
@@ -3053,6 +3043,10 @@ public class L2Translator
 				vectorWithOnlyArgsPreserved.add(fixed(NULL));
 			}
 			final L2ObjectRegister destReg = stackRegister(stackp);
+			if (restartLabel == null)
+			{
+				restartLabel = newLabel("restart");
+			}
 			addInstruction(
 				L2_CREATE_CONTINUATION.instance,
 				new L2ReadPointerOperand(fixed(CALLER)),
@@ -3209,7 +3203,7 @@ public class L2Translator
 	 * other registers that currently hold equivalent values, and the set of
 	 * instructions that may have directly produced the current register value.
 	 */
-	void computeDataFlow ()
+	private void computeDataFlow ()
 	{
 		instructionRegisterSets.clear();
 		instructionRegisterSets.add(new RegisterSet(fixedRegisterMap));
@@ -3462,13 +3456,12 @@ public class L2Translator
 	}
 
 	/**
-	 * Given the set of instructions which are reachable and have side-effect,
-	 * compute which instructions recursively provide values needed by them.
-	 * Also include the original instructions that have side-effect.
+	 * Given the set of instructions which are reachable, compute the subset
+	 * which have side-effect or produce a value consumed by other reachable
+	 * instructions.
 	 *
 	 * @param reachableInstructions
-	 *        The instructions which are both reachable from the first
-	 *        instruction and have a side-effect.
+	 *        The instructions which are reachable from the first instruction.
 	 * @return The instructions that are essential and should be kept.
 	 */
 	private Set<L2Instruction> findInstructionsThatProduceNeededValues (
@@ -3944,10 +3937,10 @@ public class L2Translator
 		numArgs = theCode.numArgs();
 		numLocals = theCode.numLocals();
 		numSlots = theCode.numArgsAndLocalsAndStack();
-		// Now translate all the instructions. We already wrote a label as
-		// the first instruction so that L1Ext_doPushLabel can always find
-		// it. Since we only translate one method at a time, the first
-		// instruction always represents the start of this compiledCode.
+		// Now translate all the instructions. We already wrote a label as the
+		// first instruction so that L1Ext_doPushLabel can always find it. Since
+		// we only translate one method at a time, the first instruction always
+		// represents the start of this compiledCode.
 		final L1NaiveTranslator naiveTranslator =
 			new L1NaiveTranslator();
 		naiveTranslator.addNaiveInstructions();
@@ -3985,8 +3978,6 @@ public class L2Translator
 	 */
 	public static L2Chunk createChunkForFirstInvocation ()
 	{
-		final L2Translator translator = new L2Translator();
-		final L2Chunk newChunk = translator.chunk();
-		return newChunk;
+		return new L2Translator().chunk();
 	}
 }

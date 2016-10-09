@@ -287,7 +287,7 @@ Public method "_d|D_" is
 	count : whole number,
 	n : natural number
 |
-	resultType ::= cast enumeration of (1 to n)→set into [t : any's type | t];
+	resultType ::= enumeration of (1 to n)→set;
 	a dice group with
 		members ::= count occurrences of a standard n-sided die,
 		result type ::= [count..n × count]

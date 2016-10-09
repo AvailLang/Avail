@@ -129,13 +129,13 @@ public class L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT extends L2Operation
 	{
 //		final int target = instruction.pcAt(0);
 		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final A_Type value = instruction.constantAt(2);
+		final A_BasicObject value = instruction.constantAt(2);
 
 		assert registerSets.size() == 2;
 		final RegisterSet fallThroughSet = registerSets.get(0);
 //		final RegisterSet postJumpSet = registerSets.get(1);
 
-		fallThroughSet.constantAtPut(objectReg, value, instruction);
+		fallThroughSet.strengthenTestedValueAtPut(objectReg, value);
 	}
 
 	@Override

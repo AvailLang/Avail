@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.InnerAccess;
 
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.*;
@@ -683,7 +684,7 @@ extends TupleDescriptor
 	 * @return A tuple containing the left tuple's elements followed by the
 	 *         right tuple's elements.
 	 */
-	final static AvailObject concatenateSameLevel (
+	static AvailObject concatenateSameLevel (
 		final A_Tuple tuple1,
 		final A_Tuple tuple2)
 	{
@@ -879,7 +880,7 @@ extends TupleDescriptor
 	 * @param index The 1-based tuple index to search for.
 	 * @return The 1-based subscript of the subtuple containing the tuple index.
 	 */
-	private static final int childSubscriptForIndex (
+	private static int childSubscriptForIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -903,7 +904,7 @@ extends TupleDescriptor
 	 * @return How much to subtract to go from an index into the tuple to an
 	 *         index into the subtuple.
 	 */
-	public int offsetForChildSubscript (
+	private static int offsetForChildSubscript (
 		final AvailObject object,
 		final int childSubscript)
 	{
@@ -947,12 +948,12 @@ extends TupleDescriptor
 	 *         ObjectSlots#SUBTUPLE_AT_ subtuple} slots and {@linkplain
 	 *         IntegerSlots#CUMULATIVE_SIZES_AREA_ cumulative size} slots.
 	 */
-	public static AvailObject createUninitializedTree (
+	private static AvailObject createUninitializedTree (
 		final int level,
 		final int size)
 	{
 		final AvailObject instance =
-			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
+			newObjectIndexedIntegerIndexedDescriptor(
 				size,
 				(size + 1) >> 1,
 				descriptorFor(MUTABLE, level));
@@ -997,8 +998,9 @@ extends TupleDescriptor
 	public static AvailObject internalTreeReverse (final AvailObject object)
 	{
 		final int childCount = object.childCount();
-		final AvailObject newTree = TreeTupleDescriptor
-			.createUninitializedTree(object.treeTupleLevel(), childCount);
+		final AvailObject newTree =
+			TreeTupleDescriptor.createUninitializedTree(
+				object.treeTupleLevel(), childCount);
 		int cumulativeSize = 0;
 		for (int src = childCount, dest = 1; src > 0; src--, dest++)
 		{

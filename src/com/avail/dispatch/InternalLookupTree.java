@@ -79,10 +79,10 @@ public class InternalLookupTree<
 	int argumentPositionToTest = -1;
 
 	/** The tree to visit if the supplied arguments conform. */
-	@InnerAccess @Nullable LookupTree<Element, Result, Memento> ifCheckHolds;
+	private @Nullable LookupTree<Element, Result, Memento> ifCheckHolds;
 
 	/** The tree to visit if the supplied arguments do not conform. */
-	@InnerAccess @Nullable LookupTree<Element, Result, Memento> ifCheckFails;
+	private @Nullable LookupTree<Element, Result, Memento> ifCheckFails;
 
 	/**
 	 * Construct a new {@link InternalLookupTree}.  It is constructed lazily
@@ -236,7 +236,10 @@ public class InternalLookupTree<
 					case SAME_TYPE:
 						break;
 					case PROPER_ANCESTOR_TYPE:
-						undecidedCountIfFalse++;
+						if (!adaptor.subtypesHideSupertypes())
+						{
+							undecidedCountIfFalse++;
+						}
 						break;
 					case PROPER_DESCENDANT_TYPE:
 						undecidedCountIfTrue++;

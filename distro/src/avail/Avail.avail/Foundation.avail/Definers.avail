@@ -346,18 +346,16 @@ Public method "Method_is stable at_" is
 	currentMacroToken ::= (this token: currentMacroName);
 	sendGetCurrentMacro ::=
 		restricted send getCurrentMacroNameAtom with «<>» : atom;
-	currentMacroDecl ::= «currentMacroToken ::= sendGetCurrentMacro»;
-	currentMacroUse ::= «↓currentMacroDecl»(currentMacroToken);
 	sendStabilityBody ::=
 		restricted send stabilityBodyAtom
 		with
 			«<
-				currentMacroUse,
+				sendGetCurrentMacro,
 				argUses → list phrase
 			>»
 		: (expression phrase ⇒ any);
 	/* Construct the function. */
-	macroBody ::= «[argDecls | <currentMacroDecl, sendStabilityBody>]
+	macroBody ::= «[argDecls | <sendStabilityBody>]
 		: expression phrase ⇒ any»;
 	macroFunction ::= macroBody → function;
 	/* Install the macro. */

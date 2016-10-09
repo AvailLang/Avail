@@ -90,7 +90,7 @@ public final class CovariantParameterization
 	 *        specialization type is constrained to.
 	 * @return The new covariant specialization.
 	 */
-	final static CovariantParameterization co(
+	static CovariantParameterization co(
 		final String name,
 		final A_Type mostGeneralType)
 	{
@@ -104,7 +104,7 @@ public final class CovariantParameterization
 	 * @param array An array of covariant specializations.
 	 * @return The same array.
 	 */
-	final static CovariantParameterization[] array(
+	static CovariantParameterization[] array(
 		final CovariantParameterization... array)
 	{
 		return array;

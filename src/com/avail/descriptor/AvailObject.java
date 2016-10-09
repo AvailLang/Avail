@@ -535,16 +535,15 @@ implements
 	 * were created for the new definition.
 	 *
 	 * @param definition The definition to be added.
-	 * @return The set of added definition parsing plans.
 	 * @throws SignatureException
 	 *         If the definition could not be added.
 	 */
 	@Override
-	public A_Set methodAddDefinition (
+	public void methodAddDefinition (
 			final A_Definition definition)
 		throws SignatureException
 	{
-		return descriptor.o_MethodAddDefinition(this, definition);
+		descriptor.o_MethodAddDefinition(this, definition);
 	}
 
 	/**
@@ -555,10 +554,11 @@ implements
 	 * @param grammaticalRestriction The set of grammatical restrictions to be added.
 	 */
 	@Override
-	public void addGrammaticalRestriction (
+	public void moduleAddGrammaticalRestriction (
 		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		descriptor.o_AddGrammaticalRestriction(this, grammaticalRestriction);
+		descriptor.o_ModuleAddGrammaticalRestriction(
+			this, grammaticalRestriction);
 	}
 
 	/**
@@ -655,18 +655,14 @@ implements
 	}
 
 	/**
-	 * @param methodName
-	 * @param illegalArgMsgs
+	 * @param grammaticalRestriction
 	 */
 	@Override
-	public void addGrammaticalRestrictions (
-		final A_Atom methodName,
-		final A_Tuple illegalArgMsgs)
+	public void addGrammaticalRestriction (
+		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		descriptor.o_AddGrammaticalRestrictions(
-			this,
-			methodName,
-			illegalArgMsgs);
+		descriptor.o_AddGrammaticalRestriction(
+			this, grammaticalRestriction);
 	}
 
 	/**
@@ -691,18 +687,6 @@ implements
 		descriptor.o_AddDefinitionParsingPlan(
 			this,
 			plan);
-	}
-
-	/**
-	 * @param bundle
-	 */
-	@Override
-	public void addBundle (
-		final A_Bundle bundle)
-	{
-		descriptor.o_AddBundle(
-			this,
-			bundle);
 	}
 
 	/**
@@ -7099,13 +7083,13 @@ implements
 	}
 
 	@Override
-	public void removeDefinitionParsingPlan (final A_DefinitionParsingPlan plan)
+	public void removePlanForDefinition (final A_Definition definition)
 	{
-		descriptor.o_RemoveDefinitionParsingPlan(this, plan);
+		descriptor.o_RemovePlanForDefinition(this, definition);
 	}
 
 	@Override
-	public A_Set definitionParsingPlans ()
+	public A_Map definitionParsingPlans ()
 	{
 		return descriptor.o_DefinitionParsingPlans(this);
 	}
@@ -7145,4 +7129,17 @@ implements
 	{
 		descriptor.o_RemovePlan(this, plan);
 	}
+
+	@Override
+	public A_Set moduleSemanticRestrictions ()
+	{
+		return descriptor.o_ModuleSemanticRestrictions(this);
+	}
+
+	@Override
+	public A_Set moduleGrammaticalRestrictions ()
+	{
+		return descriptor.o_ModuleGrammaticalRestrictions(this);
+	}
 }
+

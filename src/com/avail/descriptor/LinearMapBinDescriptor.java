@@ -186,7 +186,7 @@ extends MapBinDescriptor
 	 *        LinearMapBinDescriptor}.
 	 * @return The number of entries in the bin.
 	 */
-	@InnerAccess static final int entryCount (final AvailObject object)
+	@InnerAccess static int entryCount (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount() >> 1;
 	}

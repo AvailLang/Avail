@@ -134,12 +134,9 @@ extends Descriptor
 		METHOD_DEFINITIONS_SET,
 
 		/**
-		 * A {@linkplain MapDescriptor map} from a parent {@linkplain
-		 * AtomDescriptor true names} to a {@linkplain TupleDescriptor tuple} of
-		 * {@linkplain SetDescriptor sets} of child true names. An argument of
-		 * a {@linkplain SendNodeDescriptor send} of the parent true name must
-		 * not be a send of a child name at the corresponding argument position
-		 * in the tuple.
+		 * A {@linkplain SetDescriptor set} of {@linkplain
+		 * GrammaticalRestrictionDescriptor grammatical restrictions} defined
+		 * within this module.
 		 */
 		GRAMMATICAL_RESTRICTIONS,
 
@@ -356,50 +353,6 @@ extends Descriptor
 				constantBinding,
 				true);
 			object.setSlot(CONSTANT_BINDINGS, constantBindings.makeShared());
-		}
-	}
-
-	@Override @AvailMethod
-	void o_AddGrammaticalRestrictions (
-		final AvailObject object,
-		final A_Atom methodName,
-		final A_Tuple exclusions)
-	{
-		// It's up to the client to ensure any relevant message bundle trees
-		// are correctly flushed.
-		synchronized (object)
-		{
-			A_Map grammaticalRestrictions =
-				object.slot(GRAMMATICAL_RESTRICTIONS);
-			A_Tuple fullExclusions;
-			if (!grammaticalRestrictions.hasKey(methodName))
-			{
-				fullExclusions = exclusions;
-			}
-			else
-			{
-				fullExclusions = grammaticalRestrictions.mapAt(methodName);
-				assert fullExclusions.descriptor().isShared();
-				for (int i = fullExclusions.tupleSize(); i >= 1; i--)
-				{
-					final A_Set union =
-						exclusions.tupleAt(i).setUnionCanDestroy(
-							fullExclusions.tupleAt(i),
-							false);
-					fullExclusions = fullExclusions.tupleAtPuttingCanDestroy(
-						i,
-						union,
-						true);
-				}
-			}
-			grammaticalRestrictions =
-				grammaticalRestrictions.mapAtPuttingCanDestroy(
-					methodName,
-					fullExclusions,
-					true);
-			object.setSlot(
-				GRAMMATICAL_RESTRICTIONS,
-				grammaticalRestrictions.makeShared());
 		}
 	}
 
@@ -646,6 +599,35 @@ extends Descriptor
 		return object;
 	}
 
+	@Override
+	void o_ModuleAddGrammaticalRestriction (
+		final AvailObject object,
+		final A_GrammaticalRestriction grammaticalRestriction)
+	{
+		synchronized (object)
+		{
+			A_Set grammaticalRestrictions =
+				object.slot(GRAMMATICAL_RESTRICTIONS);
+			grammaticalRestrictions =
+				grammaticalRestrictions.setWithElementCanDestroy(
+					grammaticalRestriction, true);
+			object.setSlot(
+				GRAMMATICAL_RESTRICTIONS, grammaticalRestrictions.makeShared());
+		}
+	}
+
+	@Override
+	A_Set o_ModuleGrammaticalRestrictions (final AvailObject object)
+	{
+		return object.slot(GRAMMATICAL_RESTRICTIONS);
+	}
+
+	@Override
+	A_Set o_ModuleSemanticRestrictions (final AvailObject object)
+	{
+		return object.slot(SEMANTIC_RESTRICTIONS);
+	}
+
 	@Override @AvailMethod
 	boolean o_NameVisible (final AvailObject object, final A_Atom trueName)
 	{
@@ -683,12 +665,16 @@ extends Descriptor
 								aLoader.removeDefinition(definition);
 							}
 							// Remove semantic restrictions.
-							final A_Set restrictions = object.slot(
-								SEMANTIC_RESTRICTIONS);
 							for (final A_SemanticRestriction restriction :
-								restrictions)
+								object.moduleSemanticRestrictions())
 							{
 								runtime.removeTypeRestriction(restriction);
+							}
+							for (final A_GrammaticalRestriction restriction :
+								object.moduleGrammaticalRestrictions())
+							{
+								runtime.removeGrammaticalRestriction(
+									restriction);
 							}
 							// Remove seals.
 							final A_Map seals = object.slot(SEALS);
@@ -740,8 +726,7 @@ extends Descriptor
 			A_Set methods = object.slot(METHOD_DEFINITIONS_SET);
 			assert methods.hasElement(forwardDeclaration);
 			methods = methods.setWithoutElementCanDestroy(
-				forwardDeclaration,
-				false);
+				forwardDeclaration, false);
 			object.setSlot(METHOD_DEFINITIONS_SET, methods.makeShared());
 		}
 	}
@@ -821,14 +806,13 @@ extends Descriptor
 				final A_Bundle bundle = visibleName.bundleOrNil();
 				if (!bundle.equalsNil())
 				{
-					filteredBundleTree.addBundle(bundle);
-					for (final A_DefinitionParsingPlan plan
-						: bundle.definitionParsingPlans())
+					for (final MapDescriptor.Entry definitionEntry
+						: bundle.definitionParsingPlans().mapIterable())
 					{
 						if (ancestors.hasElement(
-							plan.definition().definitionModule()))
+							definitionEntry.key().definitionModule()))
 						{
-							filteredBundleTree.addPlan(plan);
+							filteredBundleTree.addPlan(definitionEntry.value());
 						}
 					}
 				}
@@ -915,7 +899,7 @@ extends Descriptor
 		module.setSlot(PRIVATE_NAMES, emptyMap);
 		module.setSlot(VISIBLE_NAMES, emptySet);
 		module.setSlot(METHOD_DEFINITIONS_SET, emptySet);
-		module.setSlot(GRAMMATICAL_RESTRICTIONS, emptyMap);
+		module.setSlot(GRAMMATICAL_RESTRICTIONS, emptySet);
 		module.setSlot(VARIABLE_BINDINGS, emptyMap);
 		module.setSlot(CONSTANT_BINDINGS, emptyMap);
 		module.setSlot(VARIABLE_BINDINGS, emptyMap);

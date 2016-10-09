@@ -87,7 +87,7 @@ extends A_ChunkDependable
 	 * @throws SignatureException
 	 *         If the definition could not be added.
 	 */
-	A_Set methodAddDefinition (A_Definition definition)
+	void methodAddDefinition (A_Definition definition)
 		throws SignatureException;
 
 	/**

@@ -239,7 +239,7 @@ final class Resources
 	}
 
 	@SuppressWarnings("all")
-	public static enum Key
+	public enum Key
 	{
 		propertiesCopyright,
 		generatedPropertiesNotice,

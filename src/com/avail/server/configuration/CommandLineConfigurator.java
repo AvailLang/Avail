@@ -63,7 +63,7 @@ implements Configurator<AvailServerConfiguration>
 	/**
 	 * {@code OptionKey} enumerates the valid configuration options.
 	 */
-	static enum OptionKey
+	enum OptionKey
 	{
 		/**
 		 * Specification of the {@linkplain File path} to the {@linkplain

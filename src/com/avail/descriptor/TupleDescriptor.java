@@ -107,6 +107,8 @@ extends Descriptor
 		{
 			synchronized (object)
 			{
+				// The synchronized section is only to ensure other BitFields
+				// in the same long slot don't get clobbered.
 				object.setSlot(HASH_OR_ZERO, value);
 			}
 		}
@@ -119,13 +121,12 @@ extends Descriptor
 	@Override @AvailMethod
 	final int o_HashOrZero (final AvailObject object)
 	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return object.slot(HASH_OR_ZERO);
-			}
-		}
+		// If the tuple is shared, its elements can't be in flux, so its hash is
+		// stably computed by any interested thread.  And seeing a zero when the
+		// hash has been computed by another thread is safe, since it forces the
+		// reading thread to recompute the hash.  On the other hand, if the
+		// tuple isn't shared then only one thread can be reading or writing the
+		// hash field.  So either way we don't need synchronization.
 		return object.slot(HASH_OR_ZERO);
 	}
 
@@ -441,7 +442,7 @@ extends Descriptor
 	private final int hash (final A_Tuple object)
 	{
 		int hash = object.hashOrZero();
-		if (hash == 0)
+		if (hash == 0 && object.tupleSize() > 0)
 		{
 			hash = computeHashForObject(object);
 			object.hashOrZero(hash);
@@ -898,7 +899,7 @@ extends Descriptor
 	 * @param object The object to hash.
 	 * @return The hash value.
 	 */
-	private final static int computeHashForObject (final A_Tuple object)
+	private static int computeHashForObject (final A_Tuple object)
 	{
 		return object.computeHashFromTo(1, object.tupleSize());
 	}

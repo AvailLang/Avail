@@ -33,10 +33,11 @@
 package com.avail.interpreter.primitive.bootstrap;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+
 import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
@@ -172,7 +173,7 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 				/* Variable name for assignment */
 				LITERAL_NODE.create(TOKEN.o()),
 				/* Assignment value */
-				EXPRESSION_NODE.mostGeneralType()),
+				EXPRESSION_NODE.create(ANY.o())),
 			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
 	}
 }

@@ -101,11 +101,6 @@ extends A_BasicObject
 	A_Map lazyPrefilterMap ();
 
 	/**
-	 * @param bundle
-	 */
-	void addBundle (A_Bundle bundle);
-
-	/**
 	 * Answer the program counter that this bundle tree represents.  All bundles
 	 * still reachable here are at the same position in their state machines,
 	 * and all instructions already executed for these bundles are identical

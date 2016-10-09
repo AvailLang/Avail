@@ -43,6 +43,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.Generator;
+import com.avail.utility.evaluation.Transformer1;
 
 /**
  * This is a representation for {@linkplain TupleDescriptor tuples} that can
@@ -558,6 +559,35 @@ extends TupleDescriptor
 		}
 		return result;
 	}
+
+	/**
+	 * Transform each element of a {@link A_Tuple tuple} to form another tuple.
+	 *
+	 * @param tuple
+	 *        The tuple whose elemnts are to be transformed.
+	 * @param transformer
+	 *        The transformation to apply to each element of the tuple.
+	 * @return The tuple of transformed elements.
+	 */
+	public static A_Tuple mapElements (
+		final A_Tuple tuple,
+		final Transformer1<? super AvailObject, ? extends A_BasicObject>
+			transformer)
+	{
+		return ObjectTupleDescriptor.generateFrom(
+			tuple.tupleSize(),
+			new Generator<A_BasicObject>()
+			{
+				private int index = 1;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					return transformer.valueNotNull(tuple.tupleAt(index++));
+				}
+			});
+	}
+
 
 	/**
 	 * Construct a new {@link ObjectTupleDescriptor}.

@@ -109,7 +109,7 @@ extends Descriptor
 	 * The advisory interrupt request flags. The flags declared as enumeration
 	 * values within this {@code enum} are the interrupt request flags.
 	 */
-	public static enum InterruptRequestFlag
+	public enum InterruptRequestFlag
 	{
 		/**
 		 * Termination of the target fiber has been requested.
@@ -140,7 +140,7 @@ extends Descriptor
 	 * The synchronization flags. The flags declared as enumeration values
 	 * within this {@code enum} are for synchronization-related conditions.
 	 */
-	public static enum SynchronizationFlag
+	public enum SynchronizationFlag
 	{
 		/**
 		 * The fiber is bound to an {@linkplain Interpreter interpreter}.
@@ -175,7 +175,7 @@ extends Descriptor
 	 * The trace flags. The flags declared as enumeration values within this
 	 * {@code enum} are for system tracing modes.
 	 */
-	public static enum TraceFlag
+	public enum TraceFlag
 	{
 		/**
 		 * Should the {@linkplain Interpreter interpreter} record which
@@ -212,7 +212,7 @@ extends Descriptor
 	 * interrupts requests} or {@linkplain SynchronizationFlag synchronization
 	 * conditions}.
 	 */
-	public static enum GeneralFlag
+	public enum GeneralFlag
 	{
 		/**
 		 * Was the fiber started to apply a semantic restriction?

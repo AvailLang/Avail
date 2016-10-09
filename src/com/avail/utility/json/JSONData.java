@@ -132,7 +132,7 @@ implements JSONFriendly
 	 *
 	 * @return A JSON {code null}.
 	 */
-	public static final JSONData jsonNull ()
+	public static JSONData jsonNull ()
 	{
 		return jsonNull;
 	}

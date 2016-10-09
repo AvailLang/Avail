@@ -182,7 +182,7 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 				existingType.typeIntersection(constantType);
 			final A_Type intersectionMeta =
 				InstanceMetaDescriptor.on(intersectionType);
-			fallThroughSet.typeAtPut(typeReg, intersectionMeta, instruction);
+			fallThroughSet.strengthenTestedTypeAtPut(typeReg, intersectionMeta);
 		}
 	}
 

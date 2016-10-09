@@ -171,7 +171,7 @@ implements Comparable<CharacterInfo>, JSONFriendly
 	 *        A {@code JSONData}.
 	 * @return A {@code CharacterInfo}.
 	 */
-	public static final CharacterInfo readFrom (final JSONData data)
+	public static CharacterInfo readFrom (final JSONData data)
 	{
 		final JSONArray array = (JSONArray) data;
 		final CharacterInfo info =

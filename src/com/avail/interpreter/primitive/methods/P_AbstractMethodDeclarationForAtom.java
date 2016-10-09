@@ -94,9 +94,7 @@ extends Primitive
 					{
 						try
 						{
-							loader.addAbstractSignature(
-								atom,
-								blockSignature);
+							loader.addAbstractSignature(atom, blockSignature);
 							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,

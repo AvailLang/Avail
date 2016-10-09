@@ -77,7 +77,7 @@ implements Iterable<Map.Entry<String, JSONData>>
 	 *
 	 * @return An empty {@code JSONObject}.
 	 */
-	public static final JSONObject empty ()
+	public static JSONObject empty ()
 	{
 		return empty;
 	}

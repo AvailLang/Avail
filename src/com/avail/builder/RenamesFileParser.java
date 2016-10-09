@@ -141,7 +141,7 @@ public final class RenamesFileParser
 	/**
 	 * The types of the {@linkplain Token tokens}.
 	 */
-	private static enum TokenType
+	private enum TokenType
 	{
 		/**
 		 * A {@linkplain ModuleDescriptor module} or {@linkplain
@@ -376,7 +376,7 @@ public final class RenamesFileParser
 	 * A {@code ScannerAction} attempts to read a {@linkplain Token token} from
 	 * the {@linkplain #reader}.
 	 */
-	private static enum ScannerAction
+	private enum ScannerAction
 	{
 		/** A double quote (") was just seen. */
 		DOUBLE_QUOTE

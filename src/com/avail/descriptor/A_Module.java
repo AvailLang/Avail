@@ -142,6 +142,14 @@ extends A_BasicObject
 		A_SemanticRestriction semanticRestriction);
 
 	/**
+	 * Answer this {@link A_Module}'s {@linkplain A_Set} of {@linkplain
+	 * A_SemanticRestriction}s.
+	 *
+	 * @returns The set of semantic restrictions defined by this module.
+	 */
+	A_Set moduleSemanticRestrictions ();
+
+	/**
 	 * @param name
 	 * @param constantBinding
 	 */
@@ -155,12 +163,18 @@ extends A_BasicObject
 	A_Map constantBindings ();
 
 	/**
-	 * @param methodName
-	 * @param illegalArgMsgs
+	 * @param grammaticalRestriction
 	 */
-	void addGrammaticalRestrictions (
-		A_Atom methodName,
-		A_Tuple illegalArgMsgs);
+	void moduleAddGrammaticalRestriction (
+		A_GrammaticalRestriction grammaticalRestriction);
+
+	/**
+	 * Answer this {@link A_Module}'s {@linkplain A_Set} of {@link
+	 * A_GrammaticalRestriction}s.
+	 *
+	 * @returns The set of grammatical restrictions defined by this module.
+	 */
+	A_Set moduleGrammaticalRestrictions ();
 
 	/**
 	 * @param definition

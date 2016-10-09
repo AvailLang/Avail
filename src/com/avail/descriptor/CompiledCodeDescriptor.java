@@ -95,7 +95,7 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public static enum IntegerSlots
+	public enum IntegerSlots
 	implements IntegerSlotsEnum
 	{
 		/**
@@ -167,7 +167,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public static enum ObjectSlots
+	public enum ObjectSlots
 	implements ObjectSlotsEnum
 	{
 		/**
@@ -244,7 +244,7 @@ extends Descriptor
 		 * CompiledCodeDescriptor compiled code object} has been run during the
 		 * current code coverage session.
 		 */
-		public volatile boolean hasRun = false;
+		@InnerAccess volatile boolean hasRun = false;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -257,7 +257,7 @@ extends Descriptor
 	/**
 	 * Used for describing logical aspects of the code in the Eclipse debugger.
 	 */
-	public static enum FakeSlots
+	private enum FakeSlots
 	implements ObjectSlotsEnum
 	{
 		/** Used for showing the types of local variables. */
@@ -340,7 +340,7 @@ extends Descriptor
 	 *        statistics helper.
 	 * @return The code's invocation statistics.
 	 */
-	final static InvocationStatistic getInvocationStatistic (
+	static InvocationStatistic getInvocationStatistic (
 		final AvailObject object)
 	{
 		final AvailObject pojo = object.slot(INVOCATION_STATISTIC);
@@ -417,13 +417,13 @@ extends Descriptor
 		 * Whether this raw function has been run during this code coverage
 		 * session.
 		 */
-		public final boolean hasRun;
+		private final boolean hasRun;
 
 		/**
 		 * Whether this raw function has been translated during this code
 		 * coverage session.
 		 */
-		public final boolean isTranslated;
+		private final boolean isTranslated;
 
 		/** The starting line number of this raw function. */
 		public final int startingLineNumber;
@@ -450,7 +450,7 @@ extends Descriptor
 		 * @param methodName
 		 *        The method this raw function appears in.
 		 */
-		public CodeCoverageReport (
+		@InnerAccess CodeCoverageReport (
 			final boolean hasRun,
 			final boolean isTranslated,
 			final int startingLineNumber,
@@ -480,8 +480,7 @@ extends Descriptor
 			{
 				return lineComp;
 			}
-			final int methodComp = this.methodName.compareTo(o.methodName);
-			return methodComp;
+			return this.methodName.compareTo(o.methodName);
 		}
 
 		@Override

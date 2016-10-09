@@ -150,7 +150,7 @@ Semantic restriction "_[_]else_" is
 /**
  * Strengthen concatenation of tuple types. This is the most specific type whose
  * instance encompasses all possible concatenations of the two types.
- * 
+ *
  * @method "_++_"
  * @restricts "tuple meta's type"
  * @restricts "tuple meta's type"
@@ -212,7 +212,7 @@ Semantic restriction "concatenate_" is
 	];
 	If minCount > limit then
 	[
-		minSize := minSize + ((minCount - limit) × ⎣tupleType's default type⎦); 
+		minSize := minSize + ((minCount - limit) × ⎣tupleType's default type⎦);
 	];
 	range ::= cast [minSize..⎡result⎤ + 1) into [t : whole number's type | t];
 	<result's leading types, result's default type…|range>
@@ -539,7 +539,7 @@ Grammatical restriction {"_++_"} is <∅, {"_++_"}>;
 /**
  * Compute and answer the minimum size of {@param "tupleType"} for efficient
  * traversal of its relevant element types.
- * 
+ *
  * @method "relevant`|_`|"
  * @param "tupleType" "tuple meta"
  * @returns "whole number"
@@ -558,7 +558,7 @@ Public method "relevant`|_`|" is
 
 /**
  * There are no relevant element types when the tuple type is ⊥.
- * 
+ *
  * @method "relevant`|_`|"
  * @param "tupleType" "⊥"
  * @returns "0's type".
@@ -573,7 +573,7 @@ Public method "relevant`|_`|" is
 /**
  * Check that the tuple type and start and end subscript ranges could ever be
  * statically valid. Reject the current parse if they are never valid together.
- * 
+ *
  * @method "Require:_[_.._]is ever valid"
  * @param "aTuple" "tuple meta"
  *        A tuple type.
@@ -635,7 +635,7 @@ Public method "Require:_[_.._]is ever valid" is
 /**
  * Construct and answer the tuple type that represents the specified tuple
  * slice.
- * 
+ *
  * @method "tuple type of_[_.._]"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
@@ -812,7 +812,7 @@ Semantic restriction "_[_.._]" is
 /**
  * Construct and answer a slice (i.e., tuple type) that begins at subscript
  * {@param "sliceStart"} and continues to the end of the tuple type.
- * 
+ *
  * @method "_[_..]"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
@@ -833,7 +833,7 @@ Public method "_[_..]" is
 /**
  * Construct and answer a slice (i.e., subtuple) that begins at subscript
  * {@param "sliceStart"} and continues to the end of the tuple.
- * 
+ *
  * @method "_[_..]"
  * @param "aTuple" "tuple"
  *        A tuple.
@@ -870,7 +870,7 @@ Semantic restriction "_[_..]" is
 /**
  * Construct and answer a slice (i.e., tuple type) that begins at the start of
  * the tuple type and continues to subscript {@param "sliceEnd"}.
- * 
+ *
  * @method "_[.._]"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
@@ -891,7 +891,7 @@ Public method "_[.._]" is
 /**
  * Construct and answer a slice (i.e., subtuple) that begins at the start of the
  * tuple and continues to subscript {@param "sliceEnd"}.
- * 
+ *
  * @method "_[.._]"
  * @param "aTuple" "tuple"
  *        A tuple.
@@ -927,21 +927,21 @@ Semantic restriction "_[.._]" is
 
 /**
  * Bind subscripting and slicing tighter than concatenation.
- * 
+ *
  * @method "_[_]"
  * @forbids 1 "_++_"
  */
 
 /**
  * Bind subscripting and slicing tighter than concatenation.
- * 
+ *
  * @method "_[_..]"
  * @forbids 1 "_++_"
  */
 
 /**
  * Bind subscripting and slicing tighter than concatenation.
- * 
+ *
  * @method "_[.._]"
  * @forbids 1 "_++_"
  */
@@ -949,7 +949,7 @@ Grammatical restriction {"_[_]", "_[_..]", "_[.._]"} is <{"_++_"}, ∅>;
 
 /**
  * Bind subscripting and slicing tighter than concatenation.
- * 
+ *
  * @method "_[_.._]"
  * @forbids 1 "_++_"
  */
@@ -962,7 +962,7 @@ Method "_→set" is stable at function accepting <tuple> and returning set;
  * chromatic polynomials, and even then it's still expensive. Provide a simple
  * strengthening: the resulting element type is the type union of all tuple
  * element types.
- * 
+ *
  * @method "_→set"
  * @restricts "tuple meta"
  */
@@ -1050,9 +1050,9 @@ Semantic restriction "_→map" is
 	{keyType→valueType | [lower..⎡tupleType⎤ + 1)}
 ];
 
-/** 
- * Disambiguate {@method "_→_"} and {@method "_→tuple"}. 
- * 
+/**
+ * Disambiguate {@method "_→_"} and {@method "_→tuple"}.
+ *
  * @method "_→_"
  * @forbids 2 "tuple"
  */
@@ -1061,7 +1061,7 @@ Grammatical restriction "_→_" is <∅, {"tuple"}>;
 /**
  * Create an optional type from some (non-top) type.  The optional type based on
  * type X is simply the tuple type of zero or one X's.
- * 
+ *
  * @method "_`?"
  * @param "t" "type"
  *        The type to be made optional.
@@ -1079,7 +1079,7 @@ Public method "_`?" is
 
 /**
  * Strengthen the optional type derived from the given non-top type.
- * 
+ *
  * @method "_`?"
  * @restricts "t" "type's type"
  *            The type of type being made optional at a call site.
@@ -1094,7 +1094,7 @@ Semantic restriction "_`?" is
 /**
  * Create a one-or-more type from some (non-top) type.  The one-or-more type
  * based on type X is simply the tuple type of one or more X's.
- * 
+ *
  * @method "_+"
  * @param "t" "type"
  *        The type to be made one-or-more.
@@ -1111,7 +1111,7 @@ Public method "_+" is
 
 /**
  * Strengthen the one-or-more type derived from the given type.
- * 
+ *
  * @method "_+"
  * @restricts "t" "type's type"
  *            The type of type being made one-or-more at a call site.
@@ -1126,7 +1126,7 @@ Semantic restriction "_+" is
 /**
  * Create a zero-or-more type from some (non-top) type.  The zero-or-more type
  * based on type X is simply the tuple type of zero or more X's.
- * 
+ *
  * @method "_*"
  * @param "t" "type"
  *        The type to be made zero-or-more.
@@ -1143,7 +1143,7 @@ Public method "_*" is
 
 /**
  * Strengthen the zero-or-more type derived from the given type.
- * 
+ *
  * @method "_*"
  * @restricts "t" "type's type"
  *            The type of type being made zero-or-more at a call site.
@@ -1293,7 +1293,7 @@ Semantic restriction "_↑++=_" is
  * are {@param "aTuple"} and whose <code>N<sup>th</sup></code> element is
  * {@param "newElement"}.
  *
- * @category "Primitives" "Tuples" 
+ * @category "Primitives" "Tuples"
  * @method "_with_appended"
  * @param "aTuple" "tuple"
  *        A tuple.

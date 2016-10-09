@@ -314,7 +314,6 @@ extends Descriptor
 			for (A_Tuple pair : elements)
 			{
 				final A_DefinitionParsingPlan plan = pair.tupleAt(2);
-				newBundleTree.addBundle(plan.bundle());
 				newBundleTree.addPlan(plan);
 			}
 			return newBundleTree;
@@ -398,33 +397,6 @@ extends Descriptor
 	}
 
 	/**
-	 * Add the bundle to this tree.  Don't add any definitions/plans here.
-	 */
-	@Override @AvailMethod
-	void o_AddBundle (
-		final AvailObject object,
-		final A_Bundle bundle)
-	{
-		synchronized (object)
-		{
-			A_Map allPlans = object.slot(ALL_PLANS);
-			if (!allPlans.hasKey(bundle))
-			{
-				allPlans = allPlans.mapAtPuttingCanDestroy(
-					bundle, MapDescriptor.empty(), true);
-				object.setSlot(ALL_PLANS, allPlans.makeShared());
-				A_Map unclassified = object.slot(UNCLASSIFIED);
-				if (!unclassified.hasKey(bundle))
-				{
-					unclassified = unclassified.mapAtPuttingCanDestroy(
-						bundle, MapDescriptor.empty(), true);
-					object.setSlot(UNCLASSIFIED, unclassified.makeShared());
-				}
-			}
-		}
-	}
-
-	/**
 	 * Add the plan to this bundle tree.  The corresponding bundle must already
 	 * be present.
 	 */
@@ -438,11 +410,11 @@ extends Descriptor
 			final A_Bundle bundle = plan.bundle();
 			final A_Definition definition = plan.definition();
 			A_Map allPlans = object.slot(ALL_PLANS);
-			assert allPlans.hasKey(bundle);
-			A_Map submap = allPlans.mapAt(bundle);
+			A_Map submap = allPlans.hasKey(bundle)
+				? allPlans.mapAt(bundle)
+				: MapDescriptor.empty();
 			submap = submap.mapAtPuttingCanDestroy(definition, plan, true);
-			allPlans = allPlans.mapAtPuttingCanDestroy(
-				bundle, submap, true);
+			allPlans = allPlans.mapAtPuttingCanDestroy(bundle, submap, true);
 			object.setSlot(ALL_PLANS, allPlans.makeShared());
 			// And add it to unclassified.
 			A_Map unclassified = object.slot(UNCLASSIFIED);
@@ -694,9 +666,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Remove the plan from this bundle tree.  Do not remove the bundle itself.
-	 * TODO(MvG) - It might be ok to remove the bundle if it has no more plans,
-	 * and neither semantic nor grammatical restrictions.
+	 * Remove the plan from this bundle tree.  ALso remove the bundle if this
+	 * was the last plan.
 	 */
 	@Override
 	void o_RemovePlan (
@@ -711,8 +682,15 @@ extends Descriptor
 			assert allPlans.hasKey(bundle);
 			A_Map submap = allPlans.mapAt(bundle);
 			submap = submap.mapWithoutKeyCanDestroy(definition, true);
-			// TODO(MvG) - For now, keep it around even without plans.
-			allPlans = allPlans.mapAtPuttingCanDestroy(bundle, submap, true);
+			if (submap.mapSize() == 0)
+			{
+				allPlans = allPlans.mapWithoutKeyCanDestroy(bundle, true);
+			}
+			else
+			{
+				allPlans = allPlans.mapAtPuttingCanDestroy(
+					bundle, submap, true);
+			}
 			object.setSlot(ALL_PLANS, allPlans.makeShared());
 			// And remove it from unclassified.
 			A_Map unclassified = object.slot(UNCLASSIFIED);
@@ -740,14 +718,50 @@ extends Descriptor
 	 * Categorize a single message/bundle pair.
 	 *
 	 * @param plan
+	 *        The {@link A_DefinitionParsingPlan} to categorize.
 	 * @param allAncestorModules
+	 *        The {@link A_Set} of modules that are ancestors of (or equal to)
+	 *        the current module being parsed.  This is used to restrict the
+	 *        visibility of semantic and grammatical restrictions, as well as
+	 *        which method and macro {@link A_Definition}s can be parsed.
 	 * @param complete
+	 *        A {@link Mutable} {@link A_Set} of method sends that have been
+	 *        completely parsed at this point in the {@link A_BundleTree}.
 	 * @param incomplete
+	 *        A {@link Mutable} {@link A_Map} from {@link A_String} to successor
+	 *        {@link A_BundleTree}.  If a token's string matches one of the
+	 *        keys, it will be consumed and the successor bundle tree will be
+	 *        visited.
 	 * @param caseInsensitive
+	 *        A {@link Mutable} {@link A_Map} from lower-case {@link A_String}
+	 *        to successor {@link A_BundleTree}.  If the lower-case version of
+	 *        a token's string matches on of the keys, it will be consumed and
+	 *        the successor bundle tree will be visited.
 	 * @param actionMap
+	 *        A {@link Mutable} {@link A_Map} from an Avail integer encoding a
+	 *        {@link ParsingOperation} to a {@link A_Tuple} of successor
+	 *        {@link A_BundleTree}s.  Typically there is only one successor
+	 *        bundle tree, but some parsing operations require that the tree
+	 *        diverge into multiple successors.
 	 * @param prefilterMap
+	 *        A {@link Mutable} {@link A_Map} from {@link A_Bundle} to a
+	 *        successor {@link A_BundleTree}.  If the most recently parsed
+	 *        argument phrase is a send phrase and its bundle is a key in this
+	 *        map, the successor will be explored, but not the sole action in
+	 *        the actionMap (which contains at most one entry, a {@link
+	 *        ParsingOperation#CHECK_ARGUMENT}.  If the bundle is not present,
+	 *        or if the latest argument is not a send phrase, allow the
+	 *        associated action(s) to be followed instead.  This accomplishes
+	 *        grammatical restriction, assuming this method populates the
+	 *        successor bundle trees correctly.
 	 * @param typeFilterTuples
+	 *        A {@link Mutable} {@link A_Tuple} of pairs (2-tuples) from {@link
+	 *        A_Phrase phrase} {@link A_Type type} to {@link
+	 *        A_DefinitionParsingPlan}.
 	 * @param pc
+	 *        The one-based program counter that indexes each applicable
+	 *        {@link A_DefinitionParsingPlan}'s {@link A_DefinitionParsingPlan
+	 *        #parsingInstructions()}.
 	 */
 	private static void updateForPlan (
 		final A_DefinitionParsingPlan plan,
@@ -781,175 +795,184 @@ extends Descriptor
 		}
 		final int instruction = instructions.tupleIntAt(pc);
 		final ParsingOperation op = ParsingOperation.decode(instruction);
-		final int keywordIndex = op.keywordIndex(instruction);
-		if (keywordIndex != 0)
+		switch (op)
 		{
-			// It's a parsing instruction that matches some specific keyword.
-			assert op == PARSE_PART
-				|| op == PARSE_PART_CASE_INSENSITIVELY;
-			A_BundleTree subtree;
-			final A_String part = bundle.messageParts().tupleAt(keywordIndex);
-			final Mutable<A_Map> map =
-				op == PARSE_PART ? incomplete : caseInsensitive;
-			if (map.value.hasKey(part))
+			case PARSE_PART:
+			case PARSE_PART_CASE_INSENSITIVELY:
 			{
-				subtree = map.value.mapAt(part);
+				// Parse a specific keyword, or case-insensitive keyword.
+				final int keywordIndex = op.keywordIndex(instruction);
+				A_BundleTree subtree;
+				final A_String part =
+					bundle.messageParts().tupleAt(keywordIndex);
+				final Mutable<A_Map> map =
+					op == PARSE_PART ? incomplete : caseInsensitive;
+				if (map.value.hasKey(part))
+				{
+					subtree = map.value.mapAt(part);
+				}
+				else
+				{
+					subtree = newPc(pc + 1);
+					map.value = map.value.mapAtPuttingCanDestroy(
+						part, subtree, true);
+				}
+				subtree.addPlan(plan);
+				return;
 			}
-			else
+			case PREPARE_TO_RUN_PREFIX_FUNCTION:
 			{
-				subtree = newPc(pc + 1);
-				map.value = map.value.mapAtPuttingCanDestroy(
-					part, subtree, true);
-			}
-			subtree.addBundle(bundle);
-			subtree.addPlan(plan);
-			return;
-		}
-		final A_Number instructionObject =
-			IntegerDescriptor.fromInt(instruction);
-		if (op == PREPARE_TO_RUN_PREFIX_FUNCTION)
-		{
-			// Each macro definition has its own prefix functions, so for each
-			// plan create a separate successor message bundle tree.
-			final A_BundleTree newTarget = newPc(pc + 1);
-			newTarget.addBundle(bundle);
-			newTarget.addPlan(plan);
-			A_Tuple successors = actionMap.value.hasKey(instructionObject)
-				? actionMap.value.mapAt(instructionObject)
-				: TupleDescriptor.empty();
-			successors = successors.appendCanDestroy(newTarget, true);
-			actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-				instructionObject, successors, true);
-			// We added it to the actions, so don't fall through.
-			return;
-		}
-		if (op == TYPE_CHECK_ARGUMENT)
-		{
-			// An argument was just parsed and passed its grammatical
-			// restriction check.  Now it needs to do a type check with a
-			// type-dispatch tree.
-			final int typeIndex = op.typeCheckArgumentIndex(instruction);
-			final A_Type phraseType = MessageSplitter.typeToCheck(typeIndex);
-			final A_Tuple pair = TupleDescriptor.from(phraseType, plan);
-			typeFilterTuples.value = typeFilterTuples.value.appendCanDestroy(
-				pair, true);
-			return;
-		}
-		// It's not a keyword parsing instruction or preparation for a prefix
-		// function.
-		final List<Integer> nextPcs = op.successorPcs(instruction, pc);
-		if (op == CHECK_ARGUMENT)
-		{
-			// It's a checkArgument instruction.
-			final int checkArgumentIndex = op.checkArgumentIndex(instruction);
-			assert nextPcs.size() == 1;
-			assert nextPcs.get(0).intValue() == pc + 1;
-			// Add it to the action map.
-			final A_BundleTree successor;
-			if (actionMap.value.hasKey(instructionObject))
-			{
-				final A_Tuple successors =
-					actionMap.value.mapAt(instructionObject);
-				assert successors.tupleSize() == 1;
-				successor = successors.tupleAt(1);
-			}
-			else
-			{
-				successor = newPc(pc + 1);
+				// Each macro definition has its own prefix functions, so for
+				// each plan create a separate successor message bundle tree.
+				final A_BundleTree newTarget = newPc(pc + 1);
+				newTarget.addPlan(plan);
+				final A_Number instructionObject =
+					IntegerDescriptor.fromInt(instruction);
+				A_Tuple successors = actionMap.value.hasKey(instructionObject)
+					? actionMap.value.mapAt(instructionObject)
+					: TupleDescriptor.empty();
+				successors = successors.appendCanDestroy(newTarget, true);
 				actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-					instructionObject, TupleDescriptor.from(successor), true);
+					instructionObject, successors, true);
+				// We added it to the actions, so don't fall through.
+				return;
 			}
-			A_Set forbiddenBundles = SetDescriptor.empty();
-			for (final A_GrammaticalRestriction restriction
-				: bundle.grammaticalRestrictions())
+			case TYPE_CHECK_ARGUMENT:
 			{
-				// Exclude grammatical restrictions that aren't defined in an
-				// ancestor module.
-				if (allAncestorModules.hasElement(
-					restriction.definitionModule()))
+				// An argument was just parsed and passed its grammatical
+				// restriction check.  Now it needs to do a type check with a
+				// type-dispatch tree.
+				final int typeIndex = op.typeCheckArgumentIndex(instruction);
+				final A_Type phraseType =
+					MessageSplitter.typeToCheck(typeIndex);
+				final A_Tuple pair = TupleDescriptor.from(phraseType, plan);
+				typeFilterTuples.value =
+					typeFilterTuples.value.appendCanDestroy(pair, true);
+				return;
+			}
+			case CHECK_ARGUMENT:
+			{
+				// It's a checkArgument instruction.
+				final int checkArgumentIndex =
+					op.checkArgumentIndex(instruction);
+				// Add it to the action map.
+				final A_BundleTree successor;
+				final A_Number instructionObject =
+					IntegerDescriptor.fromInt(instruction);
+				if (actionMap.value.hasKey(instructionObject))
 				{
-					final A_Set bundles =
-						restriction.argumentRestrictionSets().tupleAt(
-							checkArgumentIndex);
-					forbiddenBundles = forbiddenBundles.setUnionCanDestroy(
-						bundles, true);
+					final A_Tuple successors =
+						actionMap.value.mapAt(instructionObject);
+					assert successors.tupleSize() == 1;
+					successor = successors.tupleAt(1);
 				}
-			}
-			// Add it to every existing branch where it's permitted.
-			for (final MapDescriptor.Entry prefilterEntry
-				: prefilterMap.value.mapIterable())
-			{
-				if (!forbiddenBundles.hasElement(prefilterEntry.key()))
+				else
 				{
-					final A_BundleTree nextTree = prefilterEntry.value();
-					nextTree.addBundle(bundle);
-					nextTree.addPlan(plan);
+					successor = newPc(pc + 1);
+					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
+						instructionObject,
+						TupleDescriptor.from(successor),
+						true);
 				}
-			}
-			// Add branches for any new restrictions.  Pre-populate
-			// with every bundle present thus far, since none of
-			// them had this restriction.
-			for (final A_Bundle restrictedBundle : forbiddenBundles)
-			{
-				if (!prefilterMap.value.hasKey(restrictedBundle))
+				A_Set forbiddenBundles = SetDescriptor.empty();
+				for (final A_GrammaticalRestriction restriction
+					: bundle.grammaticalRestrictions())
 				{
-					final AvailObject newTarget = newPc(pc + 1);
-					// Be careful.  We can't add ALL_BUNDLES, since
-					// it may contain some bundles that are still
-					// UNCLASSIFIED.  Instead, use ALL_BUNDLES of
-					// the successor found under this instruction,
-					// since it *has* been kept up to date as the
-					// bundles have gotten classified.
-					for (final MapDescriptor.Entry existingEntry
-						: successor.allParsingPlans().mapIterable())
+					// Exclude grammatical restrictions that aren't defined in
+					// an ancestor module.
+					if (allAncestorModules.hasElement(
+						restriction.definitionModule()))
 					{
-						newTarget.addBundle(existingEntry.key());
+						final A_Set bundles =
+							restriction.argumentRestrictionSets().tupleAt(
+								checkArgumentIndex);
+						forbiddenBundles = forbiddenBundles.setUnionCanDestroy(
+							bundles, true);
 					}
-					prefilterMap.value =
-						prefilterMap.value.mapAtPuttingCanDestroy(
-							restrictedBundle, newTarget, true);
+				}
+				// Add it to every existing branch where it's permitted.
+				for (final MapDescriptor.Entry prefilterEntry
+					: prefilterMap.value.mapIterable())
+				{
+					if (!forbiddenBundles.hasElement(prefilterEntry.key()))
+					{
+						final A_BundleTree nextTree = prefilterEntry.value();
+						nextTree.addPlan(plan);
+					}
+				}
+				// Add branches for any new restrictions.  Pre-populate
+				// with every bundle present thus far, since none of
+				// them had this restriction.
+				for (final A_Bundle restrictedBundle : forbiddenBundles)
+				{
+					if (!prefilterMap.value.hasKey(restrictedBundle))
+					{
+						final AvailObject newTarget = newPc(pc + 1);
+						// Be careful.  We can't add ALL_BUNDLES, since
+						// it may contain some bundles that are still
+						// UNCLASSIFIED.  Instead, use ALL_BUNDLES of
+						// the successor found under this instruction,
+						// since it *has* been kept up to date as the
+						// bundles have gotten classified.
+						for (final MapDescriptor.Entry existingEntry
+							: successor.allParsingPlans().mapIterable())
+						{
+							for (final MapDescriptor.Entry planEntry
+								: existingEntry.value().mapIterable())
+							{
+								newTarget.addPlan(planEntry.value());
+							}
+						}
+						prefilterMap.value =
+							prefilterMap.value.mapAtPuttingCanDestroy(
+								restrictedBundle, newTarget, true);
+					}
+				}
+				// Finally, add it to the action map.  This had to be
+				// postponed, since we didn't want to add it under any
+				// new restrictions, and the actionMap is what gets
+				// visited to populate new restrictions.
+				successor.addPlan(plan);
+
+				// Note:  Fall through here, since the action also has to be
+				// added to the actionMap (to deal with the case that a
+				// subexpression is a non-send, or a send that is not forbidden
+				// in this position by *any* potential parent sends.
+			}
+			// FALL-THROUGH.
+			default:
+			{
+				// It's not a keyword parsing instruction or a type-check or
+				// preparation for a prefix function, so it's an ordinary
+				// parsing instruction.  It might be a CHECK_ARGUMENT that has
+				// already updated the prefilterMap and fallen through.
+				final A_Tuple successors;
+				final A_Number instructionObject =
+					IntegerDescriptor.fromInt(instruction);
+				if (actionMap.value.hasKey(instructionObject))
+				{
+					successors = actionMap.value.mapAt(instructionObject);
+				}
+				else
+				{
+					final List<Integer> nextPcs = op.successorPcs(
+						instruction,
+						pc);
+					final List<A_BundleTree> successorsList =
+						new ArrayList<>(nextPcs.size());
+					for (final int nextPc : nextPcs)
+					{
+						successorsList.add(newPc(nextPc));
+					}
+					successors = TupleDescriptor.fromList(successorsList);
+					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
+						instructionObject, successors, true);
+				}
+				for (final A_BundleTree successor : successors)
+				{
+					successor.addPlan(plan);
 				}
 			}
-			// Finally, add it to the action map.  This had to be
-			// postponed, since we didn't want to add it under any
-			// new restrictions, and the actionMap is what gets
-			// visited to populate new restrictions.
-			successor.addBundle(bundle);
-			successor.addPlan(plan);
-
-			// Note:  DO NOT return here, since the action has to also be added
-			// to the actionMap (to deal with the case that a subexpression is
-			// a non-send, or a send that is not forbidden in this position by
-			// *any* potential parent sends.
-		}
-		// It's not a keyword parsing instruction or a type-check or preparation
-		// for a prefix function, so it's an ordinary parsing instruction.  It
-		// might be a CHECK_ARGUMENT that has already updated the prefilterMap
-		// and fallen through.
-		final A_Tuple successors;
-		if (actionMap.value.hasKey(instructionObject))
-		{
-			successors = actionMap.value.mapAt(instructionObject);
-		}
-		else
-		{
-			final List<A_BundleTree> successorsList =
-				new ArrayList<>(nextPcs.size());
-			for (final int nextPc : nextPcs)
-			{
-				successorsList.add(newPc(nextPc));
-			}
-			successors = TupleDescriptor.fromList(successorsList);
-			actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-				instructionObject,
-				successors,
-				true);
-		}
-		assert successors.tupleSize() == nextPcs.size();
-		for (final A_BundleTree successor : successors)
-		{
-			successor.addBundle(bundle);
-			successor.addPlan(plan);
 		}
 	}
 
@@ -959,7 +982,7 @@ extends Descriptor
 	 * @param pc A common index into each eligible message's instructions.
 	 * @return The new unexpanded, empty message bundle tree.
 	 */
-	public static AvailObject newPc (final int pc)
+	static AvailObject newPc (final int pc)
 	{
 		final AvailObject result = mutable.create();
 		final A_Map emptyMap = MapDescriptor.empty();

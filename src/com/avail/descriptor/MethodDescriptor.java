@@ -595,7 +595,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Set o_MethodAddDefinition (
+	void o_MethodAddDefinition (
 		final AvailObject object,
 		final A_Definition definition)
 	throws SignatureException
@@ -618,7 +618,6 @@ extends Descriptor
 			{
 				// Install the macro.
 				final A_Tuple oldTuple = object.slot(MACRO_DEFINITIONS_TUPLE);
-
 				final A_Tuple newTuple = oldTuple.appendCanDestroy(
 					definition, true);
 				object.setSlot(MACRO_DEFINITIONS_TUPLE, newTuple.makeShared());
@@ -645,17 +644,14 @@ extends Descriptor
 					definition, true);
 				object.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared());
 			}
-			A_Set plans = SetDescriptor.empty();
 			for (A_Bundle bundle : object.slot(OWNING_BUNDLES))
 			{
 				final A_DefinitionParsingPlan plan =
 					DefinitionParsingPlanDescriptor.createPlan(
 						bundle, definition);
 				bundle.addDefinitionParsingPlan(plan);
-				plans = plans.setWithElementCanDestroy(plan, true);
 			}
 			membershipChanged(object);
-			return plans;
 		}
 		finally
 		{
@@ -698,13 +694,14 @@ extends Descriptor
 					: MACRO_DEFINITIONS_TUPLE;
 			A_Tuple definitionsTuple = object.slot(slot);
 			definitionsTuple = TupleDescriptor.without(
-				definitionsTuple,
-				definition);
+				definitionsTuple, definition);
 			object.setSlot(
-				slot,
-				definitionsTuple.traversed().makeShared());
+				slot, definitionsTuple.traversed().makeShared());
+			for (final A_Bundle bundle : object.slot(OWNING_BUNDLES))
+			{
+				bundle.removePlanForDefinition(definition);
+			}
 			membershipChanged(object);
-
 		}
 		finally
 		{
@@ -846,17 +843,13 @@ extends Descriptor
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
 		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
 			runtimeDispatcher.createRoot(
-				Collections.<A_Definition>emptyList(),
-				initialTypes,
-				null);
+				Collections.<A_Definition>emptyList(), initialTypes, null);
 		result.setSlot(
 			PRIVATE_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
 		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
 			runtimeDispatcher.createRoot(
-				Collections.<A_Definition>emptyList(),
-				initialTypes,
-				null);
+				Collections.<A_Definition>emptyList(), initialTypes, null);
 		result.setSlot(
 			MACRO_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(macrosTree).makeShared());

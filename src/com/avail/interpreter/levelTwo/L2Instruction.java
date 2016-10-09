@@ -323,7 +323,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds the comment.
 	 * @return The String from the comment.
 	 */
-	public final String commentAt (final int operandIndex)
+	public String commentAt (final int operandIndex)
 	{
 		return ((L2CommentOperand)operands[operandIndex]).comment;
 	}
@@ -335,7 +335,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds the constant.
 	 * @return The constant value.
 	 */
-	public final AvailObject constantAt (final int operandIndex)
+	public AvailObject constantAt (final int operandIndex)
 	{
 		return ((L2ConstantOperand)operands[operandIndex]).object;
 	}
@@ -347,7 +347,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds the message bundle.
 	 * @return The message bundle.
 	 */
-	public final A_Bundle bundleAt (final int operandIndex)
+	public A_Bundle bundleAt (final int operandIndex)
 	{
 		return ((L2SelectorOperand)operands[operandIndex]).bundle;
 	}
@@ -359,7 +359,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds the immediate value.
 	 * @return The immediate value.
 	 */
-	public final int immediateAt (final int operandIndex)
+	public int immediateAt (final int operandIndex)
 	{
 		return ((L2ImmediateOperand)operands[operandIndex]).value;
 	}
@@ -371,7 +371,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds the program counter value.
 	 * @return An int representing a target offset into a chunk's instructions.
 	 */
-	public final int pcAt (final int operandIndex)
+	public int pcAt (final int operandIndex)
 	{
 		return ((L2PcOperand)operands[operandIndex]).targetLabel().offset;
 	}
@@ -383,7 +383,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds a primitive.
 	 * @return The specified {@link Primitive}.
 	 */
-	public final Primitive primitiveAt (final int operandIndex)
+	public Primitive primitiveAt (final int operandIndex)
 	{
 		return ((L2PrimitiveOperand)operands[operandIndex]).primitive;
 	}
@@ -395,7 +395,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds a read of an integer register.
 	 * @return The specified {@link L2IntegerRegister} to read.
 	 */
-	public final L2IntegerRegister readIntRegisterAt (final int operandIndex)
+	public L2IntegerRegister readIntRegisterAt (final int operandIndex)
 	{
 		return ((L2ReadIntOperand)operands[operandIndex]).register;
 	}
@@ -407,7 +407,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds a write of an integer register.
 	 * @return The specified {@link L2IntegerRegister} to write.
 	 */
-	public final L2IntegerRegister writeIntRegisterAt (final int operandIndex)
+	public L2IntegerRegister writeIntRegisterAt (final int operandIndex)
 	{
 		return ((L2WriteIntOperand)operands[operandIndex]).register;
 	}
@@ -422,7 +422,7 @@ public final class L2Instruction
 	 * @return
 	 *            The specified {@link L2IntegerRegister} to read and write.
 	 */
-	public final L2IntegerRegister readWriteIntRegisterAt (
+	public L2IntegerRegister readWriteIntRegisterAt (
 		final int operandIndex)
 	{
 		return ((L2ReadWriteIntOperand)operands[operandIndex]).register;
@@ -436,7 +436,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds a read of an object register.
 	 * @return The specified {@link L2ObjectRegister} to read.
 	 */
-	public final L2ObjectRegister readObjectRegisterAt (final int operandIndex)
+	public L2ObjectRegister readObjectRegisterAt (final int operandIndex)
 	{
 		return ((L2ReadPointerOperand)operands[operandIndex]).register;
 	}
@@ -449,7 +449,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds a write of an object register.
 	 * @return The specified {@link L2ObjectRegister} to write.
 	 */
-	public final L2ObjectRegister writeObjectRegisterAt (final int operandIndex)
+	public L2ObjectRegister writeObjectRegisterAt (final int operandIndex)
 	{
 		return ((L2WritePointerOperand)operands[operandIndex]).register;
 	}
@@ -464,7 +464,7 @@ public final class L2Instruction
 	 * @return
 	 *            The specified {@link L2IntegerRegister} to read and write.
 	 */
-	public final L2ObjectRegister readWriteObjectRegisterAt (
+	public L2ObjectRegister readWriteObjectRegisterAt (
 		final int operandIndex)
 	{
 		return ((L2ReadWritePointerOperand)operands[operandIndex]).register;
@@ -477,7 +477,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds a read of a register vector.
 	 * @return The specified {@link L2RegisterVector} to read.
 	 */
-	public final L2RegisterVector readVectorRegisterAt (final int operandIndex)
+	public L2RegisterVector readVectorRegisterAt (final int operandIndex)
 	{
 		return ((L2ReadVectorOperand)operands[operandIndex]).vector;
 	}
@@ -490,7 +490,7 @@ public final class L2Instruction
 	 * @param operandIndex Which operand holds a write of a register vector.
 	 * @return The specified {@link L2RegisterVector} to write.
 	 */
-	public final L2RegisterVector writeVectorRegisterAt (final int operandIndex)
+	public L2RegisterVector writeVectorRegisterAt (final int operandIndex)
 	{
 		return ((L2WriteVectorOperand)operands[operandIndex]).vector;
 	}
@@ -505,7 +505,7 @@ public final class L2Instruction
 	 * @return
 	 *            The specified {@link L2RegisterVector} to read and write.
 	 */
-	public final L2RegisterVector readWriteVectorRegisterAt (
+	public L2RegisterVector readWriteVectorRegisterAt (
 		final int operandIndex)
 	{
 		return ((L2ReadWriteVectorOperand)operands[operandIndex]).vector;

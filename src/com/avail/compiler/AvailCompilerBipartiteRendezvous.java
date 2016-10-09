@@ -67,13 +67,13 @@ public class AvailCompilerBipartiteRendezvous
 	 * The solutions that have been encountered so far, and will be passed to
 	 * new actions when they arrive.
 	 */
-	final List<AvailCompilerCachedSolution> solutions =
+	private final List<AvailCompilerCachedSolution> solutions =
 		new ArrayList<>(3);
 
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
 	 */
-	final List<Con<A_Phrase>> actions = new ArrayList<>(3);
+	private final List<Con<A_Phrase>> actions = new ArrayList<>(3);
 
 	/**
 	 * Record a new solution, and also run any waiting actions with it.
@@ -94,7 +94,18 @@ public class AvailCompilerBipartiteRendezvous
 				endState, parseNode.makeShared());
 		if (solutions.contains(solution))
 		{
-			throw new DuplicateSolutionException();
+			// TODO(MvG) - Should throw DuplicateSolutionException.
+			// For the moment, suppress duplicates if they're send phrases.
+			// We temporarily (9/29/2016) allow these duplicates because of the
+			// way definition parsing plans work.  The parsing instructions for
+			// repeated arguments can be unrolled, which causes the plans for
+			// different definitions of the same method to have diverging
+			// instructions.  More than one of these paths might complete
+			// successfully.  The resulting send nodes don't indicate which plan
+			// completed, just the bundle and argument phrases, hence the
+			// duplicate solutions.
+			return;
+			// throw new DuplicateSolutionException();
 		}
 		solutions.add(solution);
 		for (final Con<A_Phrase> action : actions)

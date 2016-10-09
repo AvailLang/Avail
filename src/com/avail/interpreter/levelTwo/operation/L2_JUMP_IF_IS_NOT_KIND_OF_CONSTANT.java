@@ -42,6 +42,7 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
@@ -67,12 +68,13 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int target = instruction.pcAt(0);
+//		final int target = instruction.pcAt(0);
 		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
 		final A_Type type = instruction.constantAt(2);
 
 		if (!objectReg.in(interpreter).isInstanceOf(type))
 		{
+			final int target = instruction.pcAt(0);
 			interpreter.offset(target);
 		}
 	}
@@ -171,7 +173,7 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		assert fallThroughSet.hasTypeAt(objectReg);
 		final A_Type existingType = fallThroughSet.typeAt(objectReg);
 		final A_Type intersection = existingType.typeIntersection(type);
-		fallThroughSet.typeAtPut(objectReg, intersection, instruction);
+		fallThroughSet.strengthenTestedTypeAtPut(objectReg, intersection);
 	}
 
 	@Override

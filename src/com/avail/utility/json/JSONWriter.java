@@ -85,7 +85,7 @@ implements AutoCloseable
 	 *
 	 * @return A JSONWriter.
 	 */
-	public static final JSONWriter newWriter ()
+	public static JSONWriter newWriter ()
 	{
 		return new JSONWriter(new StringWriter());
 	}
@@ -141,7 +141,7 @@ implements AutoCloseable
 	 * A {@JSONState} represents the {@linkplain JSONWriter writer}'s view of
 	 * what operations are legal based on what operations have become before.
 	 */
-	static enum JSONState
+	enum JSONState
 	{
 		/**
 		 * The {@linkplain JSONWriter writer} is expecting a single arbitrary

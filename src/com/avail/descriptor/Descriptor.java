@@ -223,12 +223,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddBundle (final AvailObject object, final A_Bundle bundle)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_AddDefinitionParsingPlan (
 		final AvailObject object, final A_DefinitionParsingPlan plan)
 	{
@@ -421,7 +415,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Set o_MethodAddDefinition (
+	void o_MethodAddDefinition (
 		final AvailObject object,
 		final A_Definition definition) throws SignatureException
 	{
@@ -455,10 +449,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddGrammaticalRestrictions (
+	void o_ModuleAddGrammaticalRestriction (
 		final AvailObject object,
-		final A_Atom methodName,
-		final A_Tuple illegalArgMsgs)
+		final A_GrammaticalRestriction grammaticalRestriction)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4609,15 +4602,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveDefinitionParsingPlan (
+	void o_RemovePlanForDefinition (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan)
+		final A_Definition definition)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	A_Set o_DefinitionParsingPlans (final AvailObject object)
+	A_Map o_DefinitionParsingPlans (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4675,6 +4668,18 @@ extends AbstractDescriptor
 	@Override
 	void o_RemovePlan (
 		final AvailObject object, final A_DefinitionParsingPlan plan)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_ModuleSemanticRestrictions (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_ModuleGrammaticalRestrictions (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AtomWithPropertiesSharedDescriptor.IntegerSlots.*;
+import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.exceptions.MalformedMessageException;
@@ -150,10 +152,15 @@ extends AtomWithPropertiesDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		synchronized (object)
+		int hash = object.slot(HASH_OR_ZERO);
+		if (hash == 0)
 		{
-			return super.o_Hash(object);
+			synchronized (object)
+			{
+				return super.o_Hash(object);
+			}
 		}
+		return hash;
 	}
 
 	@Override @AvailMethod

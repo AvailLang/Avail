@@ -70,7 +70,7 @@ Body
 
 /**
  * Print set types neatly.
- * 
+ *
  * @method "“_”"
  * @param "t" "set meta"
  * @returns "string"
@@ -150,8 +150,7 @@ Semantic restriction "_-_" is
 	else if |value| = 1 ∧ |elementType| ≠ ∞ then
 	[
 		instances ::= elementType's instances \ value's instances;
-		newElementType ::=
-			cast enumeration of instances into [t : any meta | t];
+		newElementType ::= enumeration of instances;
 		{newElementType | 0 max (⎣setType⎦-1) .. ⎡setType⎤}
 	]
 	else
@@ -196,7 +195,7 @@ Stable method "_is empty" is
 /**
  * Iteratively apply {@param "action"} to each element of {@param "aSet"}, but
  * in no particular order.
- * 
+ *
  * @method "For each of⁇_do_"
  * @param "aSet" "set"
  * @param "action" "[⊥]→⊤"
@@ -226,7 +225,7 @@ Method "For each of⁇_do_" is
 /**
  * Helper method for semantic restrictions: If {@param "action"} does not accept
  * the element types of {@param "setType"}, then reject the current parse.
- * 
+ *
  * @method "Require:_accepts_"
  * @param "action" "function meta"
  *        A function type whose first argument must correspond to the element
@@ -260,7 +259,7 @@ Method "Require:_accepts_" is
  * Ensure that the function will accept all elements of the set. If the set is
  * certainly nonempty and the function certainly does not complete if applied,
  * then answer ⊥.
- * 
+ *
  * @method "For each of⁇_do_"
  * @restricts "set meta"
  * @restricts "[⊥]→⊤'s type"
@@ -276,7 +275,7 @@ Semantic restriction "For each of⁇_do_" is
 
 /**
  * Answer a function that computes a prefix function.
- * 
+ *
  * @method "a set iteration prefix function"
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ set]→⊤"
  *          The requested function.
@@ -297,12 +296,12 @@ Public method "a set iteration prefix function" is
 
 /**
  * Answer a function that computes a body function.
- * 
+ *
  * @method "set body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
- * @returns "[literal phrase ⇒ token, expression phrase ⇒ set, 
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ set,
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
@@ -319,10 +318,10 @@ Public method "set body function(_,_)" is
 		name ::= elementPhrase's token's lexeme;
 		aSetType ::= aSet's semantic type;
 		elementType ::= aSetType's element type;
-		blockType ::= 
+		blockType ::=
 			[elementType]→(action's semantic type's return type);
 
-		returnType ::= strengthen baseReturnType for call of anAtom 
+		returnType ::= strengthen baseReturnType for call of anAtom
 			using <aSetType, blockType>;
 
 		statements ::= action's statements;
@@ -333,21 +332,21 @@ Public method "set body function(_,_)" is
 		Undeclare name;
 		restricted send anAtom with
 			«<
-				aSet, 
+				aSet,
 				«[
 				  	<cast declaration into [d : argument phrase | d]>
-				 | 
+				 |
 				 	statements
 				 ] : blockReturnType»
 			>» : returnType
 	] : send phrase ⇒ ⊤
-] : [literal phrase ⇒ token, expression phrase ⇒ set, 
+] : [literal phrase ⇒ token, expression phrase ⇒ set,
      block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
 
 /**
  * Set iterating-loop that invokes {@param "action"} once for every
- * {@param "elementPhrase"} in {@param "aSet"} 
- * 
+ * {@param "elementPhrase"} in {@param "aSet"}
+ *
  * @macro "For each…in|of_§do_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -433,7 +432,7 @@ Semantic restriction "map_through_" is
  * Iteratively apply {@param "transformer"} to each element of {@param "aSet"},
  * collecting the results into a new tuple. The set is traversed in no
  * particular order. Answer the resultant set.
- * 
+ *
  * @macro "map each…in|of_§through_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -455,14 +454,14 @@ Macro "map each…in|of_§through_" is a set iteration prefix function,
  * Iteratively apply {@param "predicate"} to each element of {@param "aSet"}, in
  * no particular order, collecting those elements for which {@param "predicate"}
  * answers {@param "true"} into a new set. Answer the new set.
- * 
+ *
  * @method "filter_by_"
  * @param "aSet" "set"
  * @param "predicate" "[⊥]→boolean"
  *        A function that accepts the elements of the set and answers {@param
  *        "true"} iff they should be accumulated into the output set.
  * @returns "set"
- *          A set containing exactly those elements of {@param "aSet"} for which 
+ *          A set containing exactly those elements of {@param "aSet"} for which
  *          {@param "predicate"} answered {@method "true"}.
  * @category "Collections" "Sets" "Control Structures"
  */
@@ -510,11 +509,11 @@ Semantic restriction "filter_by_" is
 ];
 
 /**
- * Iteratively apply {@param "predicate"} to each consecutive element of 
- * {@param "aSet"}, collecting those elements for which {@param "predicate"} 
- * answers {@method "true"} into a new set. Answer 
+ * Iteratively apply {@param "predicate"} to each consecutive element of
+ * {@param "aSet"}, collecting those elements for which {@param "predicate"}
+ * answers {@method "true"} into a new set. Answer
  * the new set.
- * 
+ *
  * @macro "select each…from_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -533,11 +532,11 @@ Macro "select each…from_§where_" is a set iteration prefix function,
 	set body function($"filter_by_",set);
 
 /**
- * Iteratively apply {@param "predicate"} to each consecutive element of 
- * {@param "aSet"}, rejecting those elements for which {@param "predicate"} 
- * answers {@method "true"} into a new set (and preserving ordering). Answer 
+ * Iteratively apply {@param "predicate"} to each consecutive element of
+ * {@param "aSet"}, rejecting those elements for which {@param "predicate"}
+ * answers {@method "true"} into a new set (and preserving ordering). Answer
  * the new set.
- * 
+ *
  * @macro "reject each…from_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -562,19 +561,19 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 	name ::= elementPhrase's token's lexeme;
 	aSetType ::= aSet's semantic type;
 	elementType ::= aSetType's element type;
-	blockType ::= 
+	blockType ::=
 		[elementType]→(predicate's semantic type's return type);
-	
-	returnType ::= strengthen set for call of anAtom 
+
+	returnType ::= strengthen set for call of anAtom
 			using <aSetType, blockType>;
 
 	statements ::= predicate's statements;
 	size ::= |statements|;
-	newStatements ::= if size = 0 then [<>] else 
+	newStatements ::= if size = 0 then [<>] else
 	[
 	 	end : whole number := cast size-1 into [w : whole number | w];
 	 	i : natural number := cast size into [n : natural number | n];
-	 	c : expression phrase⇒any := cast statements[i] into 
+	 	c : expression phrase⇒any := cast statements[i] into
 		 	[e : expression phrase⇒any | e];
 	 	statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
 	];
@@ -587,10 +586,10 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 
 	restricted send anAtom with
 		«<
-			aSet, 
+			aSet,
 			«[
 				<cast declaration into [d : argument phrase | d]>
-			 | 
+			 |
 			 	newStatements
 			] : blockReturnType»
 		>» : returnType
@@ -605,7 +604,7 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
  * will save at most one value per element of {@param "aSet"}, i.e., each time
  * that {@param "accumulator"} is invoked, it may invoke the keeper function at
  * most one time. Answer the new set.
- * 
+ *
  * @method "map and filter_by_"
  * @param "aSet" "set"
  * @param "accumulator" "[⊥, ⊥]→⊤"
@@ -679,7 +678,7 @@ Semantic restriction "map and filter_by_" is
 /**
  * Compute and answer whether any of the elements of {@param "aSet"} satisfies
  * the specified function. Do not examine more elements than necessary.
- * 
+ *
  * @method "any of_satisfies_"
  * @param "aSet" "set"
  * @param "predicate" "[⊥]→boolean"
@@ -707,7 +706,7 @@ Method "any of_satisfies_" is
 
 /**
  * Ensure that the function will accept all elements of the set.
- * 
+ *
  * @method "any of_satisfies_"
  * @restricts "set meta"
  * @restricts "[⊥]→boolean's type"
@@ -724,7 +723,7 @@ Semantic restriction "any of_satisfies_" is
 /**
  * Compute and answer whether each of the elements of {@param "aSet"} satisfies
  * the specified function. Do not examine more elements than necessary.
- * 
+ *
  * @method "each of_satisfies_"
  * @param "aSet" "set"
  * @param "predicate" "[⊥]→boolean"
@@ -752,7 +751,7 @@ Method "each of_satisfies_" is
 
 /**
  * Ensure that the function will accept all elements of the set.
- * 
+ *
  * @method "each of_satisfies_"
  * @restricts "set meta"
  * @restricts "[⊥]→boolean's type"
@@ -769,7 +768,7 @@ Semantic restriction "each of_satisfies_" is
 /**
  * Compute and answer whether any of the elements of {@param "aSet"} satisfies
  * the specified function. Do not examine more elements than necessary.
- * 
+ *
  * @macro "any…in|of_§satisfies_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -790,7 +789,7 @@ Macro "any…in|of_§satisfies_" is a set iteration prefix function,
 /**
  * Compute and answer whether all of the elements of {@param "aSet"} satisfies
  * the specified function. Do not examine more elements than necessary.
- * 
+ *
  * @macro "each…in|of_§satisfies_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -811,7 +810,7 @@ Macro "each…in|of_§satisfies_" is a set iteration prefix function,
 /**
  * Compute and answer the count of elements of {@param "aSet"} that satisfy the
  * given predicate.
- * 
+ *
  * @method "count of_where_"
  * @param "aSet" "set"
  * @param "predicate" "[⊥]→boolean"
@@ -832,7 +831,7 @@ Method "count of_where_" is
 
 /**
  * Ensure that the function will accept all elements of the set.
- * 
+ *
  * @method "count of_where_"
  * @restricts "set meta"
  * @restricts "[⊥]→boolean's type"
@@ -845,11 +844,11 @@ Semantic restriction "count of_where_" is
 	Require: predicate accepts setType;
 	[0..⎡setType⎤ + 1)
 ];
-	
+
 /**
- * Compute and answer the count of elements of {@param "aSet"} that satisfy 
+ * Compute and answer the count of elements of {@param "aSet"} that satisfy
  * the given predicate.
- * 
+ *
  * @macro "count of…from|in|of_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -890,7 +889,7 @@ Public stable method "_Δ_" is
 
 /**
  * Strengthen `_Δ_`.
- * 
+ *
  * @method "_Δ_"
  * @restricts "set meta"
  * @restricts "set meta"
@@ -913,7 +912,7 @@ Semantic restriction "_Δ_" is
 
 /**
  * Does {@param "aSet"} contain {@param "value"}?
- * 
+ *
  * @method "_∋_"
  * @param "aSet" "set"
  * @param "value" "any"
@@ -1053,7 +1052,7 @@ Semantic restriction "_⊇_" is
 	]
 	else basicRule
 ];
-	
+
 /**
  * Is {@param "a"} neither a superset nor equal to {@param "b"}?
  *
@@ -1319,7 +1318,7 @@ Public method "_∌_" is
 |
 	¬ element ∈ aSet
 ] : boolean;
-	
+
 /**
  * @method "_∌_"
  * @restricts "set meta"

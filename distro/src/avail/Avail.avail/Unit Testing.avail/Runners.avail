@@ -167,7 +167,7 @@ Private method "tear down for_" is
 
 /**
  * Run any necessary test-fixture setup for the specified test suite.
- * 
+ *
  * @method "Setup:_"
  * @param "aSuite" "unit test suite"
  *        A {@type "unit test suite"}.
@@ -196,7 +196,7 @@ Private method "Setup:_" is
 
 /**
  * Run any necessary test-fixture setup for the specified test.
- * 
+ *
  * @method "Setup:_"
  * @param "aTest" "unit test"
  *        A {@type "unit test"}.
@@ -225,7 +225,7 @@ Private method "Setup:_" is
 
 /**
  * Run any necessary test-fixture tear down for the specified test suite.
- * 
+ *
  * @method "Setup:_"
  * @param "aSuite" "unit test suite"
  *        A {@type "unit test suite"}.
@@ -254,7 +254,7 @@ Private method "Tear down:_" is
 
 /**
  * Run any necessary test-fixture tear down for the specified test.
- * 
+ *
  * @method "Setup:_"
  * @param "aTest" "unit test"
  *        A {@type "unit test"}.
@@ -545,7 +545,7 @@ Private method "recursively report on all tests in_" is
 			computeMetric ::= [test : unit test | test metric for test];
 			/* We are under no obligation to preserve the order of the tests, so
 			 * it is perfectly fine to concatenate the two result tuples. */
-					
+
 			parallel ::= groups[can parallelize] else [<>];
 			serial ::= groups[cannot parallelize] else [<>];
 			map parallel in parallel through computeMetric
@@ -601,7 +601,7 @@ Public method "report on all tests in_" is
 /**
  * Run and obtain a {@type "unit test report"} for all previously declared unit
  * tests.
- * 
+ *
  * @method "report on all tests"
  * @returns "<unit test result…|>"
  *          A tuple of unit test results.
@@ -893,7 +893,7 @@ Public method "all tests in_" is
 		[
 			aSuite : root unit test suite
 		|
-			/* No implementation required. */ 
+			/* No implementation required. */
 		]
 ] : atom*;
 

@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import com.avail.compiler.MessageSplitter;
-import com.avail.compiler.ParsingOperation;
 
 /**
  * {@code A_Bundle} is an interface that specifies the {@linkplain
@@ -58,12 +57,12 @@ extends A_BasicObject
 	void addDefinitionParsingPlan (A_DefinitionParsingPlan plan);
 
 	/**
-	 * Remove information about this {@link A_DefinitionParsingPlan definition
-	 * parsing plan} from this bundle.
+	 * Remove information about this {@link A_Definition definition} from this
+	 * bundle.
 	 *
-	 * @param plan The parsing plan to exclude.
+	 * @param definition The definition whose plan should be removed.
 	 */
-	void removeDefinitionParsingPlan (A_DefinitionParsingPlan plan);
+	void removePlanForDefinition (A_Definition definition);
 
 	/**
 	 * Add a {@linkplain GrammaticalRestrictionDescriptor grammatical
@@ -84,12 +83,12 @@ extends A_BasicObject
 	A_Method bundleMethod ();
 
 	/**
-	 * Answer this bundle's {@link SetDescriptor set} of
-	 * {@link DefinitionParsingPlanDescriptor definition parsing plans}.
+	 * Answer this bundle's {@link A_Map} from {@link A_Definition} to
+	 * {@link A_DefinitionParsingPlan}.
 	 *
-	 * @return The set of definition parsing plans.
+	 * @return The map of definition parsing plans.
 	 */
-	A_Set definitionParsingPlans ();
+	A_Map definitionParsingPlans ();
 
 	/**
 	 * Answer the set of {@linkplain GrammaticalRestrictionDescriptor

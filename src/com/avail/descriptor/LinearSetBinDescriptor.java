@@ -100,7 +100,7 @@ extends SetBinDescriptor
 	 *
 	 * @param object A linear set bin.
 	 */
-	public final static void checkBinHash (final AvailObject object)
+	private static void checkBinHash (final AvailObject object)
 	{
 		assert object.descriptor instanceof LinearSetBinDescriptor;
 		final int stored = object.binHash();
@@ -509,7 +509,7 @@ extends SetBinDescriptor
 	 * @param level The level at which this bin occurs.
 	 * @return An empty bin.
 	 */
-	final static AvailObject emptyBinForLevel (final byte level)
+	static AvailObject emptyBinForLevel (final byte level)
 	{
 		return emptyBins[level];
 	}

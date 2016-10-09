@@ -301,7 +301,7 @@ public class L1Decompiler
 	 * An {@link Enum} whose ordinals can be used as marker values in
 	 * {@linkplain MarkerNodeDescriptor marker nodes}.
 	 */
-	static enum MarkerTypes {
+	enum MarkerTypes {
 		/**
 		 * A marker standing for a duplicate of some value that was on the
 		 * stack.

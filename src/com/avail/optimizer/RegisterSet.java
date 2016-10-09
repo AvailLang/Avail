@@ -195,11 +195,37 @@ public final class RegisterSet
 	 * point.
 	 *
 	 * @param register
-	 *            The register.
+	 *        The register.
 	 * @param value
-	 *            The constant {@link AvailObject value} bound to the register.
+	 *        The constant {@link A_BasicObject value} bound to the register.
+	 */
+	public void constantAtPut (
+		final L2Register register,
+		final A_BasicObject value)
+	{
+		final AvailObject strongValue = (AvailObject) value;
+		final RegisterState state = stateForModifying(register);
+		state.constant(strongValue);
+		if (!strongValue.equalsNil())
+		{
+			final A_Type type =
+				AbstractEnumerationTypeDescriptor.withInstance(strongValue);
+			assert !type.isTop();
+			assert !type.isBottom();
+			state.type(type);
+		}
+	}
+
+	/**
+	 * Associate this register with a constant at the current code generation
+	 * point.
+	 *
+	 * @param register
+	 *        The register.
+	 * @param value
+	 *        The constant {@link AvailObject value} bound to the register.
 	 * @param instruction
-	 *            The instruction that puts the constant in the register.
+	 *        The instruction that puts the constant in the register.
 	 */
 	public void constantAtPut (
 		final L2Register register,
@@ -316,6 +342,49 @@ public final class RegisterSet
 			stateForModifying(register).constant(onlyPossibleValue);
 		}
 		propagateWriteTo(register, instruction);
+	}
+
+	/**
+	 * No new instruction has written to the register, but the path taken from a
+	 * type test has ascertained that the register contains a stronger type than
+	 * had been determined.
+	 *
+	 * <p>This is subtle, but we also update the type for each register which is
+	 * known to currently have the same value.</p>
+	 *
+	 * @param register The register that needs its type strengthened.
+	 * @param type The type to strengthen it to.
+	 */
+	public void strengthenTestedTypeAtPut (
+		final L2Register register,
+		final A_Type type)
+	{
+		typeAtPut(register, type);
+		for (L2Register alias : stateForReading(register).origins())
+		{
+			typeAtPut(alias, type);
+		}
+	}
+
+	/**
+	 * No new instruction has written to the register, but the path taken from a
+	 * value test has ascertained that the register contains a specific value.
+	 *
+	 * <p>This is subtle, but we also update the known value for each register
+	 * which has been shown to have the same value.</p>
+	 *
+	 * @param register The register that needs its type strengthened.
+	 * @param value The value in the register.
+	 */
+	public void strengthenTestedValueAtPut (
+		final L2Register register,
+		final A_BasicObject value)
+	{
+		constantAtPut(register, value);
+		for (L2Register alias : stateForReading(register).origins())
+		{
+			constantAtPut(alias, value);
+		}
 	}
 
 	/**
@@ -672,7 +741,10 @@ public final class RegisterSet
 			final AvailObject constant = entry.getValue().constant();
 			if (constant != null)
 			{
-				formatter.format("%n\t\t%s = %s", entry.getKey(), constant);
+				formatter.format(
+					"%n\t\t%s = %s",
+					entry.getKey(),
+					constant.toString().replace("\n", "\n\t\t"));
 			}
 		}
 		formatter.format("%n\tTypes:");
@@ -682,7 +754,10 @@ public final class RegisterSet
 			final A_Type type = entry.getValue().type();
 			if (type != null)
 			{
-				formatter.format("%n\t\t%s = %s", entry.getKey(), type);
+				formatter.format(
+					"%n\t\t%s = %s",
+					entry.getKey(),
+					type.toString().replace("\n", "\n\t\t"));
 			}
 		}
 		formatter.format("%n\tOrigins:");
@@ -692,7 +767,10 @@ public final class RegisterSet
 			final List<L2Register> origins = entry.getValue().origins();
 			if (!origins.isEmpty())
 			{
-				formatter.format("%n\t\t%s = %s", entry.getKey(), origins);
+				formatter.format(
+					"%n\t\t%s = %s",
+					entry.getKey(),
+					origins.toString().replace("\n", "\n\t\t"));
 			}
 		}
 		formatter.format("%n\tSources:");
@@ -703,9 +781,7 @@ public final class RegisterSet
 				entry.getValue().sourceInstructions();
 			if (!sourceInstructions.isEmpty())
 			{
-				formatter.format(
-					"%n\t\t%s = ",
-					entry.getKey());
+				formatter.format("%n\t\t%s = ", entry.getKey());
 				boolean first = true;
 				for (final L2Instruction instruction : sourceInstructions)
 				{

@@ -44,6 +44,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.effects.LoadingEffectToAddDefinition;
@@ -289,19 +290,14 @@ public final class AvailLoader
 	public A_Set pendingForwards = SetDescriptor.empty();
 
 	/**
-	 * The given forward is in the process of being resolved. A real
-	 * definition is about to be added to the method tables, so remove the
-	 * forward now.
+	 * The given forward is in the process of being resolved. A real definition
+	 * is about to be added to the method tables, so remove the forward now.
 	 *
 	 * @param forwardDefinition A forward declaration.
-	 * @param methodName A {@linkplain AtomDescriptor method name}.
 	 */
-	@InnerAccess final void resolvedForwardWithName (
-		final A_Definition forwardDefinition,
-		final A_Atom methodName)
+	@InnerAccess void removeForward (
+		final A_Definition forwardDefinition)
 	{
-		assert methodName.isAtom();
-
 		final A_Method method = forwardDefinition.definitionMethod();
 		if (!pendingForwards.hasElement(forwardDefinition))
 		{
@@ -320,143 +316,6 @@ public final class AvailLoader
 	}
 
 	/**
-	 * Add the method definition. The precedence rules can change at any
-	 * time.
-	 *
-	 * @param methodName
-	 *        A {@linkplain AtomDescriptor method name}.
-	 * @param bodyBlock
-	 *        The {@linkplain FunctionDescriptor body block}.
-	 * @throws MalformedMessageException
-	 *         If the message name is malformed.
-	 * @throws SignatureException
-	 *         If the signature is invalid.
-	 */
-	public final void addMethodBody (
-			final A_Atom methodName,
-			final A_Function bodyBlock)
-		throws MalformedMessageException, SignatureException
-	{
-		assert methodName.isAtom();
-		assert bodyBlock.isFunction();
-
-		final A_Bundle bundle = methodName.bundleOrCreate();
-		final MessageSplitter splitter = bundle.messageSplitter();
-		splitter.checkImplementationSignature(bodyBlock.kind());
-		final int numArgs = splitter.numberOfArguments();
-		if (bodyBlock.code().numArgs() != numArgs)
-		{
-			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
-		}
-		// Make it so we can safely hold onto these things in the VM
-		methodName.makeShared();
-		bodyBlock.makeShared();
-		// Add the method definition.
-		final A_Method method = bundle.bundleMethod();
-		final A_Type bodySignature = bodyBlock.kind();
-		@Nullable A_Definition forward = null;
-		for (final A_Definition existingDefinition : method.definitionsTuple())
-		{
-			final A_Type existingType = existingDefinition.bodySignature();
-			final boolean same = existingType.argsTupleType().equals(
-				bodySignature.argsTupleType());
-			if (same)
-			{
-				if (existingDefinition.isForwardDefinition())
-				{
-					if (existingType.returnType().equals(
-						bodySignature.returnType()))
-					{
-						forward = existingDefinition;
-					}
-					else
-					{
-						throw new SignatureException(
-							E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED);
-					}
-				}
-				else
-				{
-					throw new SignatureException(
-						E_REDEFINED_WITH_SAME_ARGUMENT_TYPES);
-				}
-			}
-			if (existingType.acceptsArgTypesFromFunctionType(bodySignature))
-			{
-				if (!bodySignature.returnType().isSubtypeOf(
-					existingType.returnType()))
-				{
-					throw new SignatureException(
-						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
-				}
-			}
-			if (bodySignature.acceptsArgTypesFromFunctionType(existingType))
-			{
-				if (!existingType.returnType().isSubtypeOf(
-					bodySignature.returnType()))
-				{
-					throw new SignatureException(
-						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS);
-				}
-			}
-		}
-		final @Nullable A_Definition finalForward = forward;
-		final A_Definition newDefinition = MethodDefinitionDescriptor.create(
-			method, module, bodyBlock);
-		final A_Module theModule = module;
-		theModule.lock(new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				if (finalForward != null)
-				{
-					resolvedForwardWithName(finalForward, methodName);
-				}
-				final A_Set plans;
-				try
-				{
-					plans = method.methodAddDefinition(newDefinition);
-				}
-				catch (SignatureException e)
-				{
-					assert false : "Signature was already vetted";
-					return;
-				}
-				recordEffect(new LoadingEffectToAddDefinition(newDefinition));
-				final A_BundleTree root = rootBundleTree();
-				final A_Set ancestorModules = theModule.allAncestors();
-				for (A_DefinitionParsingPlan eachPlan : plans)
-				{
-					final A_Bundle eachBundle = eachPlan.bundle();
-					if (ancestorModules.hasElement(
-						eachBundle.message().issuingModule()))
-					{
-						if (finalForward != null)
-						{
-							// Remove the appropriate forwarder plan from the
-							// bundle tree.
-							for (A_DefinitionParsingPlan forwardPlan :
-								eachBundle.definitionParsingPlans())
-							{
-								if (forwardPlan.definition().equals(
-									finalForward))
-								{
-									root.removePlan(forwardPlan);
-								}
-							}
-						}
-						root.addBundle(eachBundle);
-						root.addPlan(eachPlan);
-						root.flushForNewOrChangedBundle(eachBundle);
-					}
-				}
-				theModule.moduleAddDefinition(newDefinition);
-			}
-		});
-	}
-
-	/**
 	 * This is a forward declaration of a method. Insert an appropriately
 	 * stubbed definition in the module's method dictionary, and add it to
 	 * the list of methods needing to be declared later in this module.
@@ -470,10 +329,10 @@ public final class AvailLoader
 	 * @throws SignatureException
 	 *         If there is a problem with the signature.
 	 */
-	public final void addForwardStub (
-			final A_Atom methodName,
-			final A_Type bodySignature)
-		throws MalformedMessageException, SignatureException
+	public void addForwardStub (
+		final A_Atom methodName,
+		final A_Type bodySignature)
+	throws MalformedMessageException, SignatureException
 	{
 		methodName.makeShared();
 		bodySignature.makeShared();
@@ -524,19 +383,47 @@ public final class AvailLoader
 				theModule.moduleAddDefinition(newForward);
 				pendingForwards = pendingForwards.setWithElementCanDestroy(
 					newForward, true);
-				root.addBundle(bundle);
-				for (final A_DefinitionParsingPlan plan
-					: bundle.definitionParsingPlans())
-				{
-					if (plan.definition().equals(newForward))
-					{
-						// This is the plan added for the new definition.
-						root.addPlan(plan);
-					}
-				}
+				root.addPlan(bundle.definitionParsingPlans().mapAt(newForward));
 				root.flushForNewOrChangedBundle(bundle);
 			}
 		});
+	}
+
+	/**
+	 * Add the method definition. The precedence rules can change at any
+	 * time.
+	 *
+	 * @param methodName
+	 *        A {@linkplain AtomDescriptor method name}.
+	 * @param bodyBlock
+	 *        The {@linkplain FunctionDescriptor body block}.
+	 * @throws MalformedMessageException
+	 *         If the message name is malformed.
+	 * @throws SignatureException
+	 *         If the signature is invalid.
+	 */
+	public void addMethodBody (
+		final A_Atom methodName,
+		final A_Function bodyBlock)
+	throws MalformedMessageException, SignatureException
+	{
+		assert methodName.isAtom();
+		assert bodyBlock.isFunction();
+
+		final A_Bundle bundle = methodName.bundleOrCreate();
+		final MessageSplitter splitter = bundle.messageSplitter();
+		splitter.checkImplementationSignature(bodyBlock.kind());
+		final int numArgs = splitter.numberOfArguments();
+		if (bodyBlock.code().numArgs() != numArgs)
+		{
+			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
+		}
+		// Make it so we can safely hold onto these things in the VM
+		methodName.makeShared();
+		bodyBlock.makeShared();
+		addDefinition(
+			MethodDefinitionDescriptor.create(
+				bundle.bundleMethod(), module, bodyBlock));
 	}
 
 	/**
@@ -553,10 +440,10 @@ public final class AvailLoader
 	 * @throws SignatureException
 	 *         If there is a problem with the signature.
 	 */
-	public final void addAbstractSignature (
-			final A_Atom methodName,
-			final A_Type bodySignature)
-		throws MalformedMessageException, SignatureException
+	public void addAbstractSignature (
+		final A_Atom methodName,
+		final A_Type bodySignature)
+	throws MalformedMessageException, SignatureException
 	{
 		final A_Bundle bundle = methodName.bundleOrCreate();
 		final MessageSplitter splitter = bundle.messageSplitter();
@@ -572,8 +459,28 @@ public final class AvailLoader
 		//  Make it so we can safely hold onto these things in the VM
 		methodName.makeShared();
 		bodySignature.makeShared();
-		//  Add the method definition.
-		final A_Method method = bundle.bundleMethod();
+		addDefinition(
+			AbstractDefinitionDescriptor.create(
+				bundle.bundleMethod(), module, bodySignature));
+	}
+
+	/**
+	 * Add the new {@link A_Definition} to its {@link A_Method}.  Also update
+	 * the methods {@link A_Bundle}s and this loader's {@link #rootBundleTree}
+	 * as needed.
+	 *
+	 * @param newDefinition
+	 *        The definition to add.
+	 * @throws SignatureException
+	 *         If the signature disagrees with existing definitions and
+	 *         forwards.
+	 */
+	private void addDefinition (
+		final A_Definition newDefinition)
+	throws SignatureException
+	{
+		final A_Method method = newDefinition.definitionMethod();
+		final A_Type bodySignature = newDefinition.bodySignature();
 		@Nullable A_Definition forward = null;
 		for (final A_Definition existingDefinition : method.definitionsTuple())
 		{
@@ -621,22 +528,33 @@ public final class AvailLoader
 			}
 		}
 		final @Nullable A_Definition finalForward = forward;
-		final A_Definition newDefinition = AbstractDefinitionDescriptor.create(
-			method, module, bodySignature);
 		final A_Module theModule = module;
 		theModule.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
+				final A_Set ancestorModules = theModule.allAncestors();
+				final A_BundleTree root = rootBundleTree();
 				if (finalForward != null)
 				{
-					resolvedForwardWithName(finalForward, methodName);
+					for (final A_Bundle bundle : method.bundles())
+					{
+						if (ancestorModules.hasElement(
+							bundle.message().issuingModule()))
+						{
+							// Remove the appropriate forwarder plan from the
+							// bundle tree.
+							root.removePlan(
+								bundle.definitionParsingPlans().mapAt(
+									finalForward));
+						}
+					}
+					removeForward(finalForward);
 				}
-				final A_Set plans;
 				try
 				{
-					plans = method.methodAddDefinition(newDefinition);
+					method.methodAddDefinition(newDefinition);
 				}
 				catch (SignatureException e)
 				{
@@ -644,31 +562,15 @@ public final class AvailLoader
 					return;
 				}
 				recordEffect(new LoadingEffectToAddDefinition(newDefinition));
-				final A_BundleTree root = rootBundleTree();
-				final A_Set ancestorModules = theModule.allAncestors();
-				for (A_DefinitionParsingPlan eachPlan : plans)
+				for (final A_Bundle bundle : method.bundles())
 				{
-					final A_Bundle eachBundle = eachPlan.bundle();
 					if (ancestorModules.hasElement(
-						eachBundle.message().issuingModule()))
+						bundle.message().issuingModule()))
 					{
-						if (finalForward != null)
-						{
-							// Remove the appropriate forwarder plan from the
-							// bundle tree.
-							for (A_DefinitionParsingPlan forwardPlan :
-								eachBundle.definitionParsingPlans())
-							{
-								if (forwardPlan.definition().equals(
-									finalForward))
-								{
-									root.removePlan(forwardPlan);
-								}
-							}
-						}
-						root.addBundle(eachBundle);
-						root.addPlan(eachPlan);
-						root.flushForNewOrChangedBundle(eachBundle);
+						root.addPlan(
+							bundle.definitionParsingPlans().mapAt(
+								newDefinition));
+						root.flushForNewOrChangedBundle(bundle);
 					}
 				}
 				theModule.moduleAddDefinition(newDefinition);
@@ -695,10 +597,10 @@ public final class AvailLoader
 	 *         If the macro signature is invalid.
 	 */
 	public void addMacroBody (
-			final A_Atom methodName,
-			final A_Function macroBody,
-			final A_Tuple prefixFunctions)
-		throws MalformedMessageException, SignatureException
+		final A_Atom methodName,
+		final A_Function macroBody,
+		final A_Tuple prefixFunctions)
+	throws MalformedMessageException, SignatureException
 	{
 		assert methodName.isAtom();
 		assert macroBody.isFunction();
@@ -746,16 +648,9 @@ public final class AvailLoader
 			@Override
 			public void value ()
 			{
-				root.addBundle(bundle);
-				for (final A_DefinitionParsingPlan plan
-					: bundle.definitionParsingPlans())
-				{
-					if (plan.definition().equals(macroDefinition))
-					{
-						// This is the plan added for the new definition.
-						root.addPlan(plan);
-					}
-				}
+				A_DefinitionParsingPlan plan =
+					bundle.definitionParsingPlans().mapAt(macroDefinition);
+				root.addPlan(plan);
 				root.flushForNewOrChangedBundle(bundle);
 			}
 		});
@@ -771,9 +666,9 @@ public final class AvailLoader
 	 * @throws SignatureException
 	 *         If the signature is invalid.
 	 */
-	public final void addSemanticRestriction (
-			final A_SemanticRestriction restriction)
-		throws SignatureException
+	public void addSemanticRestriction (
+		final A_SemanticRestriction restriction)
+	throws SignatureException
 	{
 		final A_Method method = restriction.definitionMethod();
 		final int numArgs = method.numArgs();
@@ -815,10 +710,10 @@ public final class AvailLoader
 	 * @throws SignatureException
 	 *         If the macro signature is invalid.
 	 */
-	public final void addSeal (
-			final A_Atom methodName,
-			final A_Tuple seal)
-		throws MalformedMessageException, SignatureException
+	public void addSeal (
+		final A_Atom methodName,
+		final A_Tuple seal)
+	throws MalformedMessageException, SignatureException
 	{
 		assert methodName.isAtom();
 		assert seal.isTuple();
@@ -843,6 +738,10 @@ public final class AvailLoader
 	 * operator makes * bind tighter than + and also groups multiple *'s
 	 * left-to-right.
 	 *
+	 * Note that we don't have to prevent L2 code from running, since the
+	 * grammatical restrictions only affect parsing.  We still have to latch
+	 * access to the grammatical restrictions to avoid read/write conflicts.
+	 *
 	 * @param parentAtoms
 	 *        A {@linkplain A_Set set} of {@linkplain AtomDescriptor atom}s that
 	 *        name the message bundles that are to have their arguments
@@ -857,12 +756,25 @@ public final class AvailLoader
 	 *         If one of the specified names is inappropriate as a method name.
 	 */
 	public void addGrammaticalRestrictions (
-			final A_Set parentAtoms,
-			final A_Tuple illegalArgMsgs)
-		throws MalformedMessageException, SignatureException
+		final A_Set parentAtoms,
+		final A_Tuple illegalArgMsgs)
+	throws MalformedMessageException, SignatureException
 	{
 		parentAtoms.makeShared();
 		illegalArgMsgs.makeShared();
+		final List<A_Set> bundleSetList =
+			new ArrayList<>(illegalArgMsgs.tupleSize());
+		for (final A_Set atomsSet : illegalArgMsgs)
+		{
+			A_Set bundleSet = SetDescriptor.empty();
+			for (final A_Atom atom : atomsSet)
+			{
+				bundleSet = bundleSet.setWithElementCanDestroy(
+					atom.bundleOrCreate(), true);
+			}
+			bundleSetList.add(bundleSet.makeShared());
+		}
+		final A_Tuple bundleSetTuple = TupleDescriptor.fromList(bundleSetList);
 		for (final A_Atom parentAtom : parentAtoms)
 		{
 			final A_Bundle bundle = parentAtom.bundleOrCreate();
@@ -872,35 +784,19 @@ public final class AvailLoader
 			{
 				throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
-			final A_Module theModule = module;
-			final List<A_Set> bundleSets =
-				new ArrayList<>(illegalArgMsgs.tupleSize());
-			for (final A_Set atomsSet : illegalArgMsgs)
-			{
-				A_Set bundleSet = SetDescriptor.empty();
-				for (final A_Atom atom : atomsSet)
-				{
-					bundleSet = bundleSet.setWithElementCanDestroy(
-						atom.bundleOrCreate(),
-						true);
-				}
-				bundleSets.add(bundleSet.makeShared());
-			}
 			final A_GrammaticalRestriction grammaticalRestriction =
 				GrammaticalRestrictionDescriptor.create(
-					TupleDescriptor.fromList(bundleSets),
-					bundle,
-					theModule);
+					bundleSetTuple, bundle, module);
 			final A_BundleTree root = rootBundleTree();
+			final A_Module theModule = module;
 			theModule.lock(new Continuation0()
 			{
 				@Override
 				public void value ()
 				{
 					bundle.addGrammaticalRestriction(grammaticalRestriction);
-					root.addBundle(bundle);
-					theModule.addGrammaticalRestrictions(
-						parentAtom, illegalArgMsgs);
+					theModule.moduleAddGrammaticalRestriction(
+						grammaticalRestriction);
 					root.flushForNewOrChangedBundle(bundle);
 				}
 			});
@@ -916,7 +812,7 @@ public final class AvailLoader
 	 * @param definition
 	 *        A {@linkplain DefinitionDescriptor definition}.
 	 */
-	public final void removeDefinition (final A_Definition definition)
+	public void removeDefinition (final A_Definition definition)
 	{
 		if (definition.isForwardDefinition())
 		{
@@ -936,13 +832,12 @@ public final class AvailLoader
 	 * @param afterRunning
 	 *        What to do after every unload function has completed.
 	 */
-	public final void runUnloadFunctions (
+	public void runUnloadFunctions (
 		final A_Tuple unloadFunctions,
 		final Continuation0 afterRunning)
 	{
 		final int size = unloadFunctions.tupleSize();
-		final MutableOrNull<Continuation0> onExit =
-			new MutableOrNull<Continuation0>();
+		final MutableOrNull<Continuation0> onExit = new MutableOrNull<>();
 		onExit.value = new Continuation0()
 		{
 			/** The index into the tuple of unload functions. */
@@ -956,7 +851,7 @@ public final class AvailLoader
 					final A_Function unloadFunction =
 						unloadFunctions.tupleAt(index);
 					final A_Fiber fiber = FiberDescriptor.newFiber(
-						TypeDescriptor.Types.TOP.o(),
+						Types.TOP.o(),
 						FiberDescriptor.loaderPriority,
 						new Generator<A_String>()
 						{
@@ -1020,7 +915,7 @@ public final class AvailLoader
 	 * @throws AmbiguousNameException
 	 *         If the string could represent several different true names.
 	 */
-	public final A_Atom lookupName (final A_String stringName)
+	public A_Atom lookupName (final A_String stringName)
 		throws AmbiguousNameException
 	{
 		assert stringName.isString();
@@ -1067,7 +962,7 @@ public final class AvailLoader
 	 * @return Every {@linkplain AtomDescriptor true name} associated with the
 	 *         name.
 	 */
-	public final A_Set lookupAtomsForName (final A_String stringName)
+	public A_Set lookupAtomsForName (final A_String stringName)
 	{
 		assert stringName.isString();
 		final MutableOrNull<A_Set> who = new MutableOrNull<>();

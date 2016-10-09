@@ -136,7 +136,7 @@ extends SetBinDescriptor
 	 *
 	 * @param object A linear set bin.
 	 */
-	public final static void checkBinHash (final AvailObject object)
+	static void checkBinHash (final AvailObject object)
 	{
 		assert object.descriptor instanceof HashedSetBinDescriptor;
 		final int stored = object.binHash();

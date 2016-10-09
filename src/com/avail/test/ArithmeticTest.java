@@ -116,7 +116,7 @@ public final class ArithmeticTest
 	 */
 	static final float FloatEpsilon = (float)Math.pow(0.5, 20.0);
 
-	static final void assertEqualFloatsOrNan(final float a, final float b)
+	static void assertEqualFloatsOrNan (final float a, final float b)
 	{
 		assertEquals(Float.isNaN(a), Float.isNaN(b));
 		if (!Float.isNaN(a))

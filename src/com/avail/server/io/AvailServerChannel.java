@@ -96,7 +96,7 @@ implements AutoCloseable
 	 * {@code ProtocolState} represents the communication state of a {@linkplain
 	 * AvailServerChannel server channel}.
 	 */
-	public static enum ProtocolState
+	public enum ProtocolState
 	{
 		/** Protocol version must be negotiated. */
 		VERSION_NEGOTIATION

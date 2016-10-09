@@ -113,11 +113,10 @@ extends Primitive
 			@Override
 			public void value ()
 			{
-				root.addBundle(newBundle);
-				for (final A_DefinitionParsingPlan plan
-					: newBundle.definitionParsingPlans())
+				for (final MapDescriptor.Entry entry
+					: newBundle.definitionParsingPlans().mapIterable())
 				{
-					root.addPlan(plan);
+					root.addPlan(entry.value());
 				}
 				root.flushForNewOrChangedBundle(newBundle);
 			}

@@ -1,5 +1,5 @@
 /**
- * ResetCCReportDataAction.java
+ * TraceCompilerAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,65 +32,39 @@
 
 package com.avail.environment.actions;
 
-import static com.avail.environment.AvailWorkbench.StreamStyle.*;
-import java.awt.event.*;
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
-import com.avail.utility.evaluation.Continuation0;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.event.ActionEvent;
+
 /**
- * A {@code ResetCCReportDataAction} clears code coverage information obtained
- * from running.
+ * A {@code TraceCompilerAction} toggles the flag that indicates whether to show
+ * detailed compiler traces.
  */
 @SuppressWarnings("serial")
-public final class ResetCCReportDataAction
+public final class TraceCompilerAction
 extends AbstractWorkbenchAction
 {
-	/** The current runtime. */
-	final AvailRuntime runtime;
-
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		runtime.execute(new AvailTask(FiberDescriptor.commandPriority)
-		{
-			@Override
-			public void value ()
-			{
-				CompiledCodeDescriptor.ResetCodeCoverageDetailsThen(
-					new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						workbench.writeText("Code coverage data reset.\n", INFO);
-					}
-				});
-			}
-		});
+		final AvailRuntime runtime = workbench.availBuilder.runtime;
+		runtime.debugCompilerSteps = !runtime.debugCompilerSteps;
 	}
 
 	/**
-	 * Construct a new {@link ResetCCReportDataAction}.
+	 * Construct a new {@link TraceCompilerAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
-	 * @param runtime
-	 *        The active {@link AvailRuntime}.
 	 */
-	public ResetCCReportDataAction (
-		final AvailWorkbench workbench,
-		final AvailRuntime runtime)
+	public TraceCompilerAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "Clear code coverage data");
-		this.runtime = runtime;
+		super(workbench, "Trace compiler");
 		putValue(
 			SHORT_DESCRIPTION,
-			"Reset the code coverage data.");
+			"Show detailed compiler steps during compilation.");
 	}
 }

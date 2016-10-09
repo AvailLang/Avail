@@ -127,7 +127,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * ClientHandshake#receiveThen(WebSocketChannel, WebSocketAdapter,
 	 * Continuation1) recognizer}.
 	 */
-	private static enum HttpHeaderState
+	private enum HttpHeaderState
 	{
 		/** Beginning to read, or previously read an "ordinary" character. */
 		START
@@ -214,7 +214,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3">
 	 *      Method Definitions</a>
 	 */
-	private static enum HttpRequestMethod
+	private enum HttpRequestMethod
 	{
 		/**
 		 * Request the metadata and content of a particular resource. Must be
@@ -263,7 +263,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * enumeration comprises only those status codes used by the WebSocket
 	 * implementation; it is not intended to be comprehensive.
 	 */
-	private static enum HttpStatusCode
+	private enum HttpStatusCode
 	{
 		/** Switching protocols. */
 		SWITCHING_PROTOCOLS (101),
@@ -1066,7 +1066,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	/**
 	 * {@code Opcode} represents a WebSocket opcode.
 	 */
-	private static enum Opcode
+	private enum Opcode
 	{
 		/*
 		 * Do not change the order of these values! Their ordinals correspond
@@ -1194,7 +1194,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	 * {@code WebSocketStatusCode} represents one of the generic WebSocket
 	 * status codes.
 	 */
-	private static enum WebSocketStatusCode
+	private enum WebSocketStatusCode
 	{
 		/** Normal closure. */
 		NORMAL_CLOSURE (1000),

@@ -124,7 +124,7 @@ public final class AvailRuntime
 	 * @return The build version, or {@code "dev"} if Avail is not running from
 	 *         a distribution JAR.
 	 */
-	public static final String buildVersion ()
+	public static String buildVersion ()
 	{
 		return buildVersion;
 	}
@@ -159,7 +159,7 @@ public final class AvailRuntime
 	 *
 	 * @return The Avail runtime of the current thread.
 	 */
-	public static final AvailRuntime current ()
+	public static AvailRuntime current ()
 	{
 		return ((AvailThread) Thread.currentThread()).runtime;
 	}
@@ -812,6 +812,91 @@ public final class AvailRuntime
 	 * they happen.
 	 */
 	public boolean debugMacroExpansions = false;
+
+	/**
+	 * Whether to show detailed compiler trace information.
+	 */
+	public boolean debugCompilerSteps = false;
+
+	/**
+	 * Perform an integrity check on the parser data structures.  Report the
+	 * findings to System.out.
+	 */
+	public void integrityCheck ()
+	{
+		System.out.println("Integrity check:");
+		runtimeLock.writeLock().lock();
+		try
+		{
+			Set<A_Method> methods = new HashSet<>();
+			Set<A_Atom> atoms = new HashSet<>();
+			Set<A_Definition> definitions = new HashSet<>();
+			for (final MapDescriptor.Entry moduleEntry : modules.mapIterable())
+			{
+				final A_Module module = moduleEntry.value();
+				atoms.addAll(
+					TupleDescriptor.<A_Atom>toList(
+						module.newNames().valuesAsTuple()));
+				atoms.addAll(
+					TupleDescriptor.<A_Atom>toList(
+						module.visibleNames().asTuple()));
+				A_Tuple atomSets = module.importedNames().valuesAsTuple();
+				atomSets = atomSets.concatenateWith(
+					module.privateNames().valuesAsTuple(), true);
+				for (A_Set atomSet : atomSets)
+				{
+					atoms.addAll(
+						TupleDescriptor.<A_Atom>toList(atomSet.asTuple()));
+				}
+				for (A_Definition definition : module.methodDefinitions())
+				{
+					if (definitions.contains(definition))
+					{
+						System.out.println(
+							"Duplicate definition: " + definition);
+					}
+					definitions.add(definition);
+				}
+			}
+			for (final A_Atom atom : atoms)
+			{
+				final A_Bundle bundle = atom.bundleOrNil();
+				if (!bundle.equalsNil())
+				{
+					methods.add(bundle.bundleMethod());
+				}
+			}
+			final Set<A_Definition> encounteredDefinitions = new HashSet<>();
+			for (final A_Method method : methods)
+			{
+				Set<A_Definition> bundleDefinitions = new HashSet<>(
+					TupleDescriptor.<A_Definition>toList(
+						method.definitionsTuple()));
+				bundleDefinitions.addAll(
+					TupleDescriptor.<A_Definition>toList(
+						method.macroDefinitionsTuple()));
+				bundleDefinitions.addAll(bundleDefinitions);
+				for (final A_Bundle bundle : method.bundles())
+				{
+					final A_Map bundlePlans = bundle.definitionParsingPlans();
+					if (bundlePlans.mapSize() != bundleDefinitions.size())
+					{
+						System.out.println(
+							"Mismatched definitions / plans:"
+								+ "\n\tbundle = " + bundle
+								+ "\n\tdefinitions# = " + bundleDefinitions.size()
+								+ "\n\tplans# = " + bundlePlans.mapSize());
+					}
+				}
+			}
+			// TODO(MvG) - Do more checks.
+			System.out.println("done.");
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
 
 	/**
 	 * The {@linkplain ModuleNameResolver module name resolver} that this
@@ -1889,6 +1974,30 @@ public final class AvailRuntime
 		{
 			final A_Method method = restriction.definitionMethod();
 			method.removeSemanticRestriction(restriction);
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Remove a grammatical restriction from the method associated with the
+	 * given method name.
+	 *
+	 * @param restriction
+	 *            A {@linkplain A_GrammaticalRestriction grammatical
+	 *            restriction} that validates syntactic restrictions at call
+	 *            sites.
+	 */
+	public void removeGrammaticalRestriction (
+		final A_GrammaticalRestriction restriction)
+	{
+		runtimeLock.writeLock().lock();
+		try
+		{
+			final A_Bundle bundle = restriction.restrictedBundle();
+			bundle.removeGrammaticalRestriction(restriction);
 		}
 		finally
 		{

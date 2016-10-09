@@ -655,8 +655,8 @@ Semantic restriction "_×_" is
  *          "denominator"}.
  * @category "Mathematics" "Integers" "Types"
  */
-Method "_÷_" is
-[
+Method "_÷_" is[
+
 	numeratorRange : extended integer's type,
 	denominator : extended integer
 |
@@ -1284,7 +1284,6 @@ Private method "_positive range pairs" is
 		]
 		else
 		[
-			moo ::= 1+2*3+4*5;
 			lowBits := (-1 - low) bit∧ (low - 1);
 		];
 	]

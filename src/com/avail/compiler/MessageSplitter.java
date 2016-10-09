@@ -39,6 +39,8 @@ import static com.avail.descriptor.StringDescriptor.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler.ParserState;
@@ -49,7 +51,6 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.exceptions.*;
 import com.avail.utility.Generator;
-import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Transformer1;
 import org.jetbrains.annotations.Nullable;
 
@@ -246,18 +247,26 @@ public class MessageSplitter
 		new AtomicReference<A_Tuple>(TupleDescriptor.empty());
 
 	/**
-	 * A statically-scoped index of types for which {@link
-	 * ParsingOperation#TYPE_CHECK_ARGUMENT} instructions have been emitted.
-	 *
-	 * <p>It's implemented as an {@link AtomicReference} containing both the map
-	 * from type to index, and the tuple from index to type.  That allows the
-	 * structure to be augmented in a wait-free way.</p>
+	 * A statically-scoped {@link List} of unique {@link A_Type}s for which
+	 * {@link ParsingOperation#TYPE_CHECK_ARGUMENT} instructions have been
+	 * emitted.  The inverse {@link Map} (but containing one-based indices) is
+	 * kept in #typesToCheckMap}.
 	 */
-	public static AtomicReference<Pair<A_Map, A_Tuple>> typesToCheck =
-		new AtomicReference<Pair<A_Map,A_Tuple>>(
-			new Pair<A_Map, A_Tuple>(
-				MapDescriptor.empty(),
-				TupleDescriptor.empty()));
+	private static List<A_Type> typesToCheckList = new ArrayList<>(100);
+
+	/**
+	 * A statically-scoped map from type to one-based index (into
+	 * {@link #typesToCheckList}, after adjusting to a zero-based {@link List}),
+	 * for which {@link ParsingOperation#TYPE_CHECK_ARGUMENT} instructions have
+	 * been emitted.
+	 */
+	private static Map<A_Type, Integer> typesToCheckMap = new HashMap<>(100);
+
+	/**
+	 * A lock to protect {@link #typesToCheckList} and {@link #typesToCheckMap}.
+	 */
+	private static final ReadWriteLock typesToCheckLock =
+		new ReentrantReadWriteLock();
 
 	/**
 	 * An {@code Expression} represents a structural view of part of the
@@ -3475,53 +3484,67 @@ public class MessageSplitter
 
 	/**
 	 * Answer the index of the given type, adding it to the global {@link
-	 * #typesToCheck} index if necessary.
+	 * #typesToCheckList} and {@link #typesToCheckMap}} if necessary.
 	 *
 	 * @param type
-	 *        The type to add to the global index.
+	 *        The type to look up or add to the global index.
 	 * @return The one-based index of the type, which can be retrieved later via
 	 *         {@link #typeToCheck(int)}.
 	 */
 	@InnerAccess static int indexForType (final A_Type type)
 	{
-		while (true)
+		typesToCheckLock.readLock().lock();
+		try
 		{
-			final Pair<A_Map, A_Tuple> oldPair = typesToCheck.get();
-			A_Map map = oldPair.first();
-			if (map.hasKey(type))
+			final Integer index = typesToCheckMap.get(type);
+			if (index != null)
 			{
-				return map.mapAt(type).extractInt();
+				return index;
 			}
-			final int newIndex = map.mapSize() + 1;
-			final A_Type sharedType = type.makeShared();
-			map = map.mapAtPuttingCanDestroy(
-				sharedType, IntegerDescriptor.fromInt(newIndex), false);
-			map = map.makeShared();
-			A_Tuple tuple = oldPair.second();
-			tuple = tuple.appendCanDestroy(sharedType, false).makeShared();
-			assert tuple.tupleSize() == newIndex;
-			assert map.mapSize() == newIndex;
-			final Pair<A_Map, A_Tuple> newPair = new Pair<>(map, tuple);
-			if (typesToCheck.compareAndSet(oldPair, newPair))
+		}
+		finally
+		{
+			typesToCheckLock.readLock().unlock();
+		}
+
+		typesToCheckLock.writeLock().lock();
+		try
+		{
+			final Integer index = typesToCheckMap.get(type);
+			if (index != null)
 			{
-				return newIndex;
+				return index;
 			}
+			assert typesToCheckMap.size() == typesToCheckList.size();
+			final int newIndex = typesToCheckList.size() + 1;
+			typesToCheckList.add(type);
+			typesToCheckMap.put(type, newIndex);
+			return newIndex;
+		}
+		finally
+		{
+			typesToCheckLock.writeLock().unlock();
 		}
 	}
 
 	/**
-	 * Answer the type having the given one-based index in the static {@link
-	 * #typesToCheck} tuple.  We need a read barrier here, but no lock, since
-	 * the tuple of types is only appended to, ensuring all extant indices will
-	 * always be valid.  The corresponding map from types to index is not used
-	 * during parsing, only during emission of {@link ParsingOperation}s.
+	 * Answer the {@link A_Type} having the given one-based index in the static
+	 * {@link #typesToCheckList} {@link List}.
 	 *
-	 * @param index The index of the type to retrieve.
+	 * @param index The one-based index of the type to retrieve.
 	 * @return The {@link A_Type} at the given index.
 	 */
 	public static A_Type typeToCheck (final int index)
 	{
-		return typesToCheck.get().second().tupleAt(index);
+		typesToCheckLock.readLock().lock();
+		try
+		{
+			return typesToCheckList.get(index - 1);
+		}
+		finally
+		{
+			typesToCheckLock.readLock().unlock();
+		}
 	}
 
 	/**

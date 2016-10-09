@@ -136,10 +136,9 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT extends L2Operation
 		{
 			type = ANY.o();
 		}
-		fallThroughSet.typeAtPut(
+		fallThroughSet.strengthenTestedTypeAtPut(
 			typeReg,
-			type.typeIntersection(fallThroughSet.typeAt(objectReg)),
-			instruction);
+			type.typeIntersection(fallThroughSet.typeAt(objectReg)));
 	}
 
 	@Override

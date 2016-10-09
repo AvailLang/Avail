@@ -1174,7 +1174,7 @@ public final class Interpreter
 	 *            The one-based argument/local number.
 	 * @return The subscript to use with {@link Interpreter#pointerAt(int)}.
 	 */
-	public final static int argumentOrLocalRegister (
+	public static int argumentOrLocalRegister (
 		final int argumentOrLocalNumber)
 	{
 		// Skip the fixed registers.

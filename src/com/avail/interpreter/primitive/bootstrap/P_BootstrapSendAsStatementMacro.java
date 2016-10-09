@@ -84,8 +84,9 @@ extends Primitive
 		if (!sendPhrase.expressionType().isTop())
 		{
 			throw new AvailRejectedParseException(
-				"statement's type to be ⊤, but it was %s",
-				sendPhrase.expressionType());
+				"statement's type to be ⊤, but it was %s.  Expression is: %s",
+				sendPhrase.expressionType(),
+				sendPhrase);
 		}
 		final A_Phrase sendAsStatement =
 			ExpressionAsStatementNodeDescriptor.fromExpression(sendPhrase);
