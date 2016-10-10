@@ -288,8 +288,8 @@ public enum ParsingOperation
 	 *
 	 * <p>This instruction is detected specially by the {@linkplain
 	 * MessageBundleTreeDescriptor message bundle tree}'s {@linkplain
-	 * A_BundleTree#expand(A_Module, List)} operation.  Its successors are
-	 * separated into distinct message bundle trees, one per message bundle.</p>
+	 * A_BundleTree#expand(A_Module)} operation.  Its successors are separated
+	 * into distinct message bundle trees, one per message bundle.</p>
 	 */
 	PREPARE_TO_RUN_PREFIX_FUNCTION(7)
 	{

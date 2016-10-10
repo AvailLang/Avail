@@ -39,7 +39,6 @@ import com.avail.descriptor.*;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
@@ -1079,7 +1078,8 @@ public class L2Translator
 						if (naiveRegisters == null)
 						{
 							builder.append("\n[[[no RegisterSet]]]");
-						} else
+						}
+						else
 						{
 							naiveRegisters().debugOn(builder);
 						}
@@ -3395,13 +3395,10 @@ public class L2Translator
 		final List<L2Instruction> oldInstructions =
 			new ArrayList<>(instructions);
 		instructions.clear();
-		final List<RegisterSet> oldRegisterSets =
-			new ArrayList<>(instructionRegisterSets);
 		instructionRegisterSets.clear();
 		final L1NaiveTranslator newNaiveTranslator = new L1NaiveTranslator();
 		anyChanges |= regenerateInstructions(
-			oldInstructions, oldRegisterSets, newNaiveTranslator);
-//		instructionRegisterSets.clear();
+			oldInstructions, newNaiveTranslator);
 		for (int i = 0, end = instructions.size(); i < end; i++)
 		{
 			instructions.get(i).setOffset(i);
@@ -3569,9 +3566,6 @@ public class L2Translator
 	 *
 	 * @param oldInstructions
 	 *        The original sequence of instructions being examined.
-	 * @param oldRegisterSets
-	 *        The old list of {@link RegisterSet}s, indexed by instruction
-	 *        offset.
 	 * @param naiveTranslator
 	 *        The {@link L1NaiveTranslator} to which the replacement sequence of
 	 *        instructions is being written.
@@ -3581,19 +3575,25 @@ public class L2Translator
 	 */
 	private boolean regenerateInstructions (
 		final List<L2Instruction> oldInstructions,
-		final List<RegisterSet> oldRegisterSets,
 		final L1NaiveTranslator naiveTranslator)
 	{
 		boolean anyChanges = false;
 		for (final L2Instruction instruction : oldInstructions)
 		{
-			final RegisterSet registerSet =
-				oldRegisterSets.get(instruction.offset());
-			// Adjust the original instruction's offset.
-			instruction.setOffset(instructions.size());
+			// Wipe the original instruction's offset.
+			instruction.setOffset(-1);
 //			System.out.println(instruction + "\n" + registerSet + "\n\n");
-			anyChanges |= instruction.operation.regenerate(
-				instruction, naiveTranslator, registerSet);
+			if (instruction.operation instanceof L2_LABEL)
+			{
+				naiveTranslator.addLabel(instruction);
+			}
+			else
+			{
+				anyChanges |= instruction.operation.regenerate(
+					instruction,
+					naiveTranslator.naiveRegisters(),
+					naiveTranslator);
+			}
 		}
 		return anyChanges;
 	}

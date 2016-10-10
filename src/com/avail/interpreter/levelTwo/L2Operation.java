@@ -371,30 +371,25 @@ public abstract class L2Operation
 	 * has taken place that might require another pass of flow analysis.
 	 *
 	 * @param instruction
-	 *            The {@link L2Instruction} containing this operation.
-	 * @param naiveTranslator
-	 *            The list of instructions to augment.
+	 *        The {@link L2Instruction} containing this operation.
 	 * @param registerSet
-	 *            The state of registers upon starting this instruction.
+	 *        A {@link RegisterSet} holding type and value information about all
+	 *        live registers upon arriving at this instruction.  This method
+	 *        should modify the registerSet in-place to indicate the effect on
+	 *        register types and values that this instruction will have.
+	 * @param naiveTranslator
+	 *        The list of instructions to augment.
 	 * @return Whether the regenerated instructions are different enough to
 	 *         warrant another pass of flow analysis.
 	 */
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final L1NaiveTranslator naiveTranslator,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L1NaiveTranslator naiveTranslator)
 	{
 		// By default just produce the same instruction.
 		assert instruction.operation == this;
-		if (instruction.operation instanceof L2_LABEL)
-		{
-			instruction.setOffset(-1);
-			naiveTranslator.addLabel(instruction);
-		}
-		else
-		{
-			naiveTranslator.addInstruction(instruction);
-		}
+		naiveTranslator.addInstruction(instruction);
 		return false;
 	}
 

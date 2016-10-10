@@ -374,7 +374,7 @@ implements L1OperationDispatcher
 			return;
 		}
 		final int nybble = nybbles.extractNybbleFromTupleAt(pc);
-		interpreter.integerAtPut(pcRegister(), (pc + 1));
+		interpreter.integerAtPut(pcRegister(), pc + 1);
 
 		final L1Operation operation = L1Operation.all()[nybble];
 		if (debugL1)

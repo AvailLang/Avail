@@ -33,6 +33,8 @@
 package com.avail.optimizer;
 
 import java.util.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
@@ -345,6 +347,41 @@ public final class RegisterSet
 	}
 
 	/**
+	 * Produce the set of all registers known to contain the same value as the
+	 * given register.
+	 *
+	 * <p>Follow all transitive {@link RegisterState#origins()} and {@link
+	 * RegisterState#invertedOrigins()} to get the complete set.</p>
+	 *
+	 * @param register An {@link L2Register}
+	 * @return The set of all {@link L2Register}s known to contain the same
+	 *         value as the given register.
+	 */
+	private @NotNull Set<L2Register> allEquivalentRegisters (
+		final L2Register register)
+	{
+		Set<L2Register> equivalents = new HashSet<>(3);
+		equivalents.add(register);
+		while (true)
+		{
+			final Set<L2Register> newEquivalents = new HashSet<>(equivalents);
+			for (final L2Register reg : new ArrayList<>(equivalents))
+			{
+				RegisterState state = stateForReading(reg);
+				newEquivalents.addAll(state.origins());
+				newEquivalents.addAll(state.invertedOrigins());
+			}
+			if (equivalents.size() == newEquivalents.size())
+			{
+				equivalents = newEquivalents;
+				break;
+			}
+			equivalents = newEquivalents;
+		}
+		return equivalents;
+	}
+
+	/**
 	 * No new instruction has written to the register, but the path taken from a
 	 * type test has ascertained that the register contains a stronger type than
 	 * had been determined.
@@ -359,8 +396,7 @@ public final class RegisterSet
 		final L2Register register,
 		final A_Type type)
 	{
-		typeAtPut(register, type);
-		for (L2Register alias : stateForReading(register).origins())
+		for (final L2Register alias : allEquivalentRegisters(register))
 		{
 			typeAtPut(alias, type);
 		}
@@ -380,8 +416,7 @@ public final class RegisterSet
 		final L2Register register,
 		final A_BasicObject value)
 	{
-		constantAtPut(register, value);
-		for (L2Register alias : stateForReading(register).origins())
+		for (final L2Register alias : allEquivalentRegisters(register))
 		{
 			constantAtPut(alias, value);
 		}

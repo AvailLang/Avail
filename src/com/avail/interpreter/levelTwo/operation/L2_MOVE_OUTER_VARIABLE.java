@@ -115,8 +115,8 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final L1NaiveTranslator naiveTranslator,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L1NaiveTranslator naiveTranslator)
 	{
 		assert instruction.operation == this;
 		final L2ObjectRegister functionRegister =
@@ -144,6 +144,6 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 					destinationRegister,
 					naiveTranslator);
 		}
-		return super.regenerate(instruction, naiveTranslator, registerSet);
+		return super.regenerate(instruction, registerSet, naiveTranslator);
 	}
 }
