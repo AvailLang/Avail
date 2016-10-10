@@ -932,7 +932,9 @@ extends TupleDescriptor
 			assert child.treeTupleLevel() == myLevelMinusOne;
 			assert myLevelMinusOne == 0
 				|| child.childCount() >= minWidthOfNonRoot;
-			cumulativeSize += child.tupleSize();
+			final int childSize = child.tupleSize();
+			assert childSize > 0;
+			cumulativeSize += childSize;
 			assert object.intSlot(CUMULATIVE_SIZES_AREA_, childIndex)
 				== cumulativeSize;
 		}
@@ -963,7 +965,7 @@ extends TupleDescriptor
 
 	/**
 	 * Create a 2-child tree tuple at the specified level.  The children must
-	 * both be at newLevel - 1.
+	 * both be at newLevel - 1.  Neither may be empty.
 	 *
 	 * @param left The left child.
 	 * @param right The right child.
@@ -979,6 +981,8 @@ extends TupleDescriptor
 	{
 		assert left.treeTupleLevel() == newLevel - 1;
 		assert right.treeTupleLevel() == newLevel - 1;
+		assert left.tupleSize() > 0;
+		assert right.tupleSize() > 0;
 		final AvailObject newNode = createUninitializedTree(newLevel, 2);
 		newNode.setSlot(SUBTUPLE_AT_, 1, left);
 		newNode.setSlot(SUBTUPLE_AT_, 2, right);

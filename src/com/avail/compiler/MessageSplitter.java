@@ -1202,11 +1202,10 @@ public class MessageSplitter
 			// Make sure the tuple of argument types are suitable for the
 			// argument positions that I comprise.  Take the argument reordering
 			// permutation into account if present.
-			final A_Number expected =
-				IntegerDescriptor.fromInt(arguments.size());
+			final int expected = arguments.size();
 			final A_Type sizes = argumentType.sizeRange();
-			if (!sizes.lowerBound().equals(expected)
-				|| !sizes.upperBound().equals(expected))
+			if (!sizes.lowerBound().equalsInt(expected)
+				|| !sizes.upperBound().equalsInt(expected))
 			{
 				throwSignatureException(
 					this == rootSequence
@@ -1236,7 +1235,7 @@ public class MessageSplitter
 			 * ellipses, and subgroups that were encountered.
 			 */
 			generator.emit(this, NEW_LIST);
-			emitWithoutInitialNewListPushOn (generator, phraseType);
+			emitWithoutInitialNewListPushOn(generator, phraseType);
 		}
 
 		/**
@@ -1280,7 +1279,13 @@ public class MessageSplitter
 			{
 				if (expression.isArgumentOrGroup())
 				{
-					final A_Type entryType = tupleType.typeAtIndex(++index);
+					index++;
+					final int realTypeIndex =
+						argumentsAreReordered == Boolean.TRUE
+							? permutedArguments.get(index - 1)
+							: index;
+					final A_Type entryType =
+						tupleType.typeAtIndex(realTypeIndex);
 					expression.emitOn(generator, entryType);
 					generator.emit(this, APPEND_ARGUMENT);
 				}
@@ -1411,7 +1416,7 @@ public class MessageSplitter
 			}
 			final int size = usedOrdinalsList.size();
 			final Set<Integer> usedOrdinalsSet =
-				new HashSet<Integer>(usedOrdinalsList);
+				new HashSet<>(usedOrdinalsList);
 			final List<Integer> sortedOrdinalsList =
 				new ArrayList<>(usedOrdinalsList);
 			Collections.sort(sortedOrdinalsList);
@@ -2034,21 +2039,26 @@ public class MessageSplitter
 							}
 						});
 			}
-			int expressionCounter = 0;
 			generator.partialListsCount += 2;
+			int index = 0;
 			for (final Expression expression : beforeDagger.expressions)
 			{
-				final boolean isArgOrGroup = expression.isArgumentOrGroup();
-				expression.emitOn(
-					generator,
-					isArgOrGroup
-						? subexpressionsTupleType.typeAtIndex(
-							++expressionCounter)
-						: ListNodeTypeDescriptor.empty());
-				if (isArgOrGroup)
+				if (expression.isArgumentOrGroup())
 				{
-					// Append to the current solution list.
+					index++;
+					final int realTypeIndex =
+						beforeDagger.argumentsAreReordered == Boolean.TRUE
+							? beforeDagger.permutedArguments.get(index - 1)
+							: index;
+					final A_Type entryType =
+						subexpressionsTupleType.typeAtIndex(realTypeIndex);
+					expression.emitOn(generator, entryType);
 					generator.emit(this, APPEND_ARGUMENT);
+				}
+				else
+				{
+					expression.emitOn(
+						generator, ListNodeTypeDescriptor.empty());
 				}
 			}
 			generator.partialListsCount -= 2;
@@ -2062,7 +2072,7 @@ public class MessageSplitter
 					indexForPermutation(permutationTuple);
 				generator.emit(this, PERMUTE_LIST, permutationIndex);
 			}
-			assert expressionCounter == beforeDagger.arguments.size();
+			assert index == beforeDagger.arguments.size();
 		}
 
 		/**
@@ -2100,21 +2110,26 @@ public class MessageSplitter
 							}
 						});
 			}
-			int expressionCounter = beforeDagger.arguments.size();
 			generator.partialListsCount += 2;
+			int index = beforeDagger.arguments.size();
 			for (final Expression expression : afterDagger.expressions)
 			{
-				final boolean isArgOrGroup = expression.isArgumentOrGroup();
-				expression.emitOn(
-					generator,
-					isArgOrGroup
-						? subexpressionsTupleType.typeAtIndex(
-							++expressionCounter)
-						: ListNodeTypeDescriptor.empty());
-				if (isArgOrGroup)
+				if (expression.isArgumentOrGroup())
 				{
-					// Append to the current solution list.
+					index++;
+					final int realTypeIndex =
+						afterDagger.argumentsAreReordered == Boolean.TRUE
+							? afterDagger.permutedArguments.get(index - 1)
+							: index;
+					final A_Type entryType =
+						subexpressionsTupleType.typeAtIndex(realTypeIndex);
+					expression.emitOn(generator, entryType);
 					generator.emit(this, APPEND_ARGUMENT);
+				}
+				else
+				{
+					expression.emitOn(
+						generator, ListNodeTypeDescriptor.empty());
 				}
 			}
 			generator.partialListsCount -= 2;
@@ -2152,7 +2167,7 @@ public class MessageSplitter
 			}
 			// Ensure the tuple type was consumed up to its upperBound.
 			assert subexpressionsTupleType.sizeRange().upperBound().equalsInt(
-				expressionCounter);
+				index);
 		}
 
 		@Override
@@ -2616,9 +2631,7 @@ public class MessageSplitter
 			assert sequence.argumentsAreReordered != Boolean.TRUE;
 			for (final Expression expression : sequence.expressions)
 			{
-				expression.emitOn(
-					generator,
-					null); //TODO MvG - FIGURE OUT the types.
+				expression.emitOn(generator, ListNodeTypeDescriptor.empty());
 			}
 			generator.emit(this, ENSURE_PARSE_PROGRESS);
 			generator.emit(this, DISCARD_SAVED_PARSE_POSITION);

@@ -254,6 +254,11 @@ extends TupleDescriptor
 		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
+			if (otherTuple.tupleSize() == 0)
+			{
+				// Trees aren't allowed to have empty subtuples.
+				return object;
+			}
 			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
 		}
 		return TreeTupleDescriptor.concatenateAtLeastOneTree(
