@@ -288,7 +288,7 @@ extends TupleDescriptor
 				size,
 				new Generator<Short>()
 				{
-					private int index = start;
+					private int index = start - 1;
 
 					@Override
 					public Short value ()
@@ -504,15 +504,12 @@ extends TupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type))
-		{
-			return true;
-		}
-		return super.o_TupleElementsInRangeAreInstancesOf(
-			object,
-			startIndex,
-			endIndex,
-			type);
+		return IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type)
+			|| super.o_TupleElementsInRangeAreInstancesOf(
+				object,
+				startIndex,
+				endIndex,
+				type);
 	}
 
 	@Override

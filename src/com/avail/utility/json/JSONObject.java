@@ -82,6 +82,12 @@ implements Iterable<Map.Entry<String, JSONData>>
 		return empty;
 	}
 
+	@Override
+	public boolean isObject ()
+	{
+		return true;
+	}
+
 	/**
 	 * Does the {@link JSONObject} include a binding for the specified key?
 	 *
