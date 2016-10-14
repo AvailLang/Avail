@@ -96,6 +96,13 @@ extends SetBinDescriptor
 	}
 
 	/**
+	 * When a {@linkplain LinearSetBinDescriptor linear bin} reaches this many
+	 * entries and it's not already at the bottom allowable level ({@link
+	 * #numberOfLevels} - 1) of the hash tree, then convert it to a hashed bin.
+	 */
+	private static final int thresholdToHash = 10;
+
+	/**
 	 * Check that this linear bin has a correct binHash.
 	 *
 	 * @param object A linear set bin.
@@ -153,7 +160,7 @@ extends SetBinDescriptor
 		}
 		final int oldHash = object.binHash();
 		AvailObject result;
-		if (myLevel < numberOfLevels - 1 && oldSize >= 10)
+		if (myLevel < numberOfLevels - 1 && oldSize >= thresholdToHash)
 		{
 			final byte shift = (byte)(6 * myLevel);
 			assert shift < 32;

@@ -138,7 +138,7 @@ extends MapBinDescriptor
 	 * entries and it's not already at the bottom allowable level ({@link
 	 * #numberOfLevels} - 1) of the hash tree, then convert it to a hashed bin.
 	 */
-	private static final int thresholdToHash = 50;
+	private static final int thresholdToHash = 10;
 
 	/**
 	 * Check this {@linkplain LinearMapBinDescriptor linear map bin} for
