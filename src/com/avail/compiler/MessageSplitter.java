@@ -3738,6 +3738,7 @@ public class MessageSplitter
 	{
 		final InstructionGenerator generator = new InstructionGenerator();
 		rootSequence.emitWithoutInitialNewListPushOn(generator, phraseType);
+		generator.optimizeInstructions();
 		return generator.instructionsTuple();
 	}
 
@@ -3755,6 +3756,7 @@ public class MessageSplitter
 	{
 		final InstructionGenerator generator = new InstructionGenerator();
 		rootSequence.emitOn(generator, tupleType);
+		generator.optimizeInstructions();
 		return generator.expressionList();
 	}
 
@@ -4533,7 +4535,7 @@ public class MessageSplitter
 	 * @throws SignatureException
 	 *            If the function type is inappropriate for the method name.
 	 */
-	public void checkImplementationSignature (
+	private void checkImplementationSignature (
 		final A_Type functionType,
 		final int sectionNumber)
 	throws SignatureException
@@ -4598,6 +4600,10 @@ public class MessageSplitter
 	 * indication inserted at the keyword or argument position related to the
 	 * given program counter.
 	 *
+	 * @param signatureType
+	 *        The {@link ListNodeTypeDescriptor list phrase type} which is the
+	 *        signature of the parsing plan that was split into parsing
+	 *        instructions.
 	 * @param pc
 	 *        The 1-based instruction index into my {@link
 	 *        #instructionsTupleFor(A_Type) instructions}.

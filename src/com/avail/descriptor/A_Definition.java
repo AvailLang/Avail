@@ -126,12 +126,12 @@ extends A_BasicObject
 	A_Module module ();
 
 	/**
-	 * Answer the {@link TupleTypeDescriptor tuple type} of {@link
-	 * ParseNodeTypeDescriptor phrase types} for this definition.  The parser
-	 * uses this type to produce a customized {@link A_DefinitionParsingPlan
-	 * parsing plan}.
+	 * Answer the {@link ListNodeTypeDescriptor list phrase type} for this
+	 * definition.  The parser uses this type to produce a customized {@link
+	 * A_DefinitionParsingPlan parsing plan}, specialized to a particular {@link
+	 * A_Definition}.
 	 *
-	 * @return A subtype of {@code <phrase type…|>}
+	 * @return A subtype of {@code list phrase type}.
 	 */
 	A_Type parsingSignature ();
 

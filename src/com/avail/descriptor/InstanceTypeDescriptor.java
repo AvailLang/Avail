@@ -427,12 +427,12 @@ extends AbstractEnumerationTypeDescriptor
 			return IntegerRangeTypeDescriptor.singleInt(
 				getInstance(object).tupleSize());
 		}
-		else if (instance.isSet())
+		if (instance.isSet())
 		{
 			return IntegerRangeTypeDescriptor.singleInt(
 				getInstance(object).setSize());
 		}
-		else if (instance.isMap())
+		if (instance.isMap())
 		{
 			return IntegerRangeTypeDescriptor.singleInt(
 				getInstance(object).mapSize());

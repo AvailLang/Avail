@@ -131,12 +131,10 @@ extends Descriptor
 		final A_Type argsTupleType =
 			object.bodySignature().argsTupleType();
 		final A_Type sizes = argsTupleType.sizeRange();
-		// TODO MvG - Maybe turn this into a check.
 		assert sizes.lowerBound().extractInt()
 			== sizes.upperBound().extractInt();
 		assert sizes.lowerBound().extractInt()
 			== object.slot(DEFINITION_METHOD).numArgs();
-		// TODO MvG - 2016-08-21 deal with permutation of main list.
 		return ListNodeTypeDescriptor.createListNodeType(
 			ParseNodeKind.LIST_NODE,
 			argsTupleType,

@@ -106,23 +106,10 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type another)
 	{
-		if (!object.slot(LOWER_BOUND).equals(another.lowerBound()))
-		{
-			return false;
-		}
-		if (!object.slot(UPPER_BOUND).equals(another.upperBound()))
-		{
-			return false;
-		}
-		if (object.lowerInclusive() != another.lowerInclusive())
-		{
-			return false;
-		}
-		if (object.upperInclusive() != another.upperInclusive())
-		{
-			return false;
-		}
-		return true;
+		return object.slot(LOWER_BOUND).equals(another.lowerBound())
+			&& object.slot(UPPER_BOUND).equals(another.upperBound())
+			&& object.lowerInclusive() == another.lowerInclusive()
+			&& object.upperInclusive() == another.upperInclusive();
 	}
 
 	/**
@@ -141,7 +128,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return IntegerRangeTypeDescriptor.computeHash(
+		return computeHash(
 			object.slot(LOWER_BOUND).hash(),
 			object.slot(UPPER_BOUND).hash(),
 			object.lowerInclusive(),
@@ -235,19 +222,19 @@ extends TypeDescriptor
 		{
 			return Byte.TYPE;
 		}
-		else if (object.isSubtypeOf(PojoTypeDescriptor.shortRange()))
+		if (object.isSubtypeOf(PojoTypeDescriptor.shortRange()))
 		{
 			return Short.TYPE;
 		}
-		else if (object.isSubtypeOf(PojoTypeDescriptor.intRange()))
+		if (object.isSubtypeOf(PojoTypeDescriptor.intRange()))
 		{
 			return Integer.TYPE;
 		}
-		else if (object.isSubtypeOf(PojoTypeDescriptor.longRange()))
+		if (object.isSubtypeOf(PojoTypeDescriptor.longRange()))
 		{
 			return Long.TYPE;
 		}
-		else if (object.isSubtypeOf(integers()))
+		if (object.isSubtypeOf(integers()))
 		{
 			return BigInteger.class;
 		}
@@ -475,7 +462,7 @@ extends TypeDescriptor
 	 * @param upperInclusive Whether the upper bound is inclusive.
 	 * @return The hash value.
 	 */
-	static int computeHash (
+	private static int computeHash (
 		final int lowerBoundHash,
 		final int upperBoundHash,
 		final boolean lowerInclusive,
@@ -483,7 +470,7 @@ extends TypeDescriptor
 	{
 		final int flagsHash =
 			lowerInclusive
-				? (upperInclusive ? 0x1503045E : 0x753A6C17)
+				? upperInclusive ? 0x1503045E : 0x753A6C17
 				: upperInclusive ? 0x1DB2D751 : 0x1130427D;
 		return lowerBoundHash * 29 ^ flagsHash ^ upperBoundHash;
 	}

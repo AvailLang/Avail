@@ -33,11 +33,13 @@
 package com.avail.compiler;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.MessageSplitter.Expression;
+import static com.avail.compiler.ParsingOperation.*;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.Pair;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
@@ -160,6 +162,68 @@ class InstructionGenerator
 				pair.first() - 1, pair.second().encoding(label.position));
 		}
 		label.operationsToFix.clear();
+	}
+
+	/**
+	 * Re-order the instructions so that {@link ParsingOperation#PARSE_PART} and
+	 * {@link ParsingOperation#PARSE_PART_CASE_INSENSITIVELY} occur as early as
+	 * possible.
+	 */
+	void optimizeInstructions ()
+	{
+		final int instructionsCount = instructions.size();
+		final BitSet branchTargets = new BitSet(instructionsCount);
+		// Add branch/jump targets, assuming a null entry means it's just a
+		// fall-through from the previous instruction.  As a simplification,
+		// assume jumps fall through, even though they don't.
+		for (int i = 0; i < instructionsCount; i++)
+		{
+			final int instruction = instructions.get(i);
+			final ParsingOperation operation =
+				ParsingOperation.decode(instruction);
+			if (operation == JUMP || operation == BRANCH)
+			{
+				// Adjust to zero-based.
+				final int target = operation.operand(instruction) - 1;
+				branchTargets.set(target);
+			}
+		}
+		// Scan backward to allow backward bubbling PARSE_PARTs to travel as far
+		// as possible without any looping.  We repeat the loop to allow
+		// *sequences* of PARSE_PARTs to propagate backward.
+		boolean changed = true;
+		while (changed)
+		{
+			changed = false;
+			// Don't visit i=0, as it has no predecessors.
+			for (int i = instructionsCount - 1; i >= 1; i--)
+			{
+				if (!branchTargets.get(i))
+				{
+					// It's not a branch target.
+					final int instruction = instructions.get(i);
+					final ParsingOperation operation =
+						ParsingOperation.decode(instruction);
+					if (operation == PARSE_PART
+						|| operation == PARSE_PART_CASE_INSENSITIVELY)
+					{
+						// Swap it leftward if it commutes.
+						final int priorInstruction = instructions.get(i - 1);
+						final ParsingOperation priorOperation =
+							ParsingOperation.decode(priorInstruction);
+						if (priorOperation.commutesWithParsePart())
+						{
+							instructions.set(i, priorInstruction);
+							instructions.set(i - 1, instruction);
+							final Expression temp = expressionList.get(i);
+							expressionList.set(i, expressionList.get(i - 1));
+							expressionList.set(i - 1, temp);
+							changed = true;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
