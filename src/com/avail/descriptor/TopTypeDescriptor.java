@@ -33,10 +33,8 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -55,34 +53,22 @@ extends PrimitiveTypeDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for caching the hash, and the upper 32 are
-		 * for the ordinal of the primitive type.
+		 * The low 32 bits are used for caching the hash.
 		 */
 		@HideFieldInDebugger
-		HASH_AND_PRIMITIVE_TYPE_ORDINAL;
+		HASH_AND_MORE;
 
 		/**
 		 * The hash, populated during construction.
 		 */
-		static final BitField HASH = bitField(
-			HASH_AND_PRIMITIVE_TYPE_ORDINAL, 0, 32);
-
-		/**
-		 * This primitive type's (mutually) unique ordinal number.
-		 */
-		@EnumField(describedBy=ParseNodeKind.class)
-		static final BitField PRIMITIVE_TYPE_ORDINAL = bitField(
-			HASH_AND_PRIMITIVE_TYPE_ORDINAL, 32, 32);
+		static final BitField HASH = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert PrimitiveTypeDescriptor.IntegerSlots
-					.HASH_AND_PRIMITIVE_TYPE_ORDINAL.ordinal()
-				== IntegerSlots.HASH_AND_PRIMITIVE_TYPE_ORDINAL.ordinal();
+			assert PrimitiveTypeDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== IntegerSlots.HASH_AND_MORE.ordinal();
 			assert PrimitiveTypeDescriptor.IntegerSlots.HASH
 				.isSamePlaceAs(HASH);
-			assert PrimitiveTypeDescriptor.IntegerSlots.PRIMITIVE_TYPE_ORDINAL
-				.isSamePlaceAs(PRIMITIVE_TYPE_ORDINAL);
 		}
 	}
 
@@ -150,41 +136,18 @@ extends PrimitiveTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link TopTypeDescriptor}.
+	 * Construct a new {@link Mutability#SHARED shared} {@link
+	 * PrimitiveTypeDescriptor}.
 	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
+	 * @param primitiveType
+	 *        The {@link Types primitive type} represented by this descriptor.
 	 */
-	private TopTypeDescriptor (final Mutability mutability)
+	protected TopTypeDescriptor (
+		final TypeTag typeTag,
+		final Types primitiveType)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
-	}
-
-	/** The mutable {@link TopTypeDescriptor}. */
-	@SuppressWarnings("hiding")
-	final static TopTypeDescriptor mutable =
-		new TopTypeDescriptor(Mutability.MUTABLE);
-
-	@Override
-	TopTypeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The shared {@link TopTypeDescriptor}. */
-	final private static TopTypeDescriptor shared =
-		new TopTypeDescriptor(Mutability.SHARED);
-
-	@Override
-	TopTypeDescriptor immutable ()
-	{
-		// There is no immutable descriptor.
-		return shared;
-	}
-
-	@Override
-	TopTypeDescriptor shared ()
-	{
-		return shared;
+		super(typeTag, primitiveType, ObjectSlots.class, IntegerSlots.class);
 	}
 }

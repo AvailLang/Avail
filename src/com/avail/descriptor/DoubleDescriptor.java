@@ -752,7 +752,7 @@ extends AbstractNumberDescriptor
 	 */
 	private DoubleDescriptor (final Mutability mutability)
 	{
-		super(mutability, null, IntegerSlots.class);
+		super(mutability, TypeTag.DOUBLE_TAG, null, IntegerSlots.class);
 	}
 
 	/** The mutable {@link DoubleDescriptor}. */

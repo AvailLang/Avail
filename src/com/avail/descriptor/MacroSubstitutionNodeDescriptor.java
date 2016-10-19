@@ -274,7 +274,11 @@ extends ParseNodeDescriptor
 	 */
 	public MacroSubstitutionNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability,
+			TypeTag.MACRO_SUBSTITUTION_PHRASE_TAG,
+			ObjectSlots.class,
+			null);
 	}
 
 	/** The mutable {@link MacroSubstitutionNodeDescriptor}. */

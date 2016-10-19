@@ -54,7 +54,7 @@ implements A_BasicObject
 	 * occasionally valuable to enable for a short time, especially right after
 	 * introducing new descriptor subclasses.
 	 */
-	public final static boolean shouldCheckSlots = false; //XXX
+	public final static boolean shouldCheckSlots = false;
 
 	/** A {@code long} array encoding all of my digital state. */
 	private long[] longSlots;
@@ -99,15 +99,18 @@ implements A_BasicObject
 		{
 			scanSubobjects(
 				new MarkUnreachableSubobjectVisitor(anotherObject));
-			descriptor = IndirectionDescriptor.mutable;
+			descriptor = IndirectionDescriptor.mutable(
+				anotherTraversed.descriptor.typeTag);
 			objectSlots[0] = anotherTraversed;
 		}
 		else
 		{
 			anotherObject.makeImmutable();
-			descriptor = IndirectionDescriptor.mutable;
+			descriptor = IndirectionDescriptor.mutable(
+				anotherTraversed.descriptor.typeTag);
 			objectSlots[0] = anotherTraversed;
-			makeImmutable();
+			descriptor = IndirectionDescriptor.immutable(
+				anotherTraversed.descriptor.typeTag);
 		}
 	}
 
@@ -1030,6 +1033,26 @@ implements A_BasicObject
 	public final int hashCode ()
 	{
 		return descriptor.o_Hash((AvailObject)this);
+	}
+
+	/**
+	 * Extract the type tag for this object.  Does not answer {@link
+	 * TypeTag#UNKNOWN_TAG}.
+	 *
+	 * <p>It's usually sufficient to access this descriptor's typeTag, but
+	 * rarely it may be necessary to invoke computeTypeTag().</p>
+	 */
+	public final TypeTag typeTag ()
+	{
+		// First, directly access the descriptor's typeTag, which will be
+		// something other than UNKNOWN_TAG in the vast majority of attempts.
+		final TypeTag tag = descriptor.typeTag;
+		if (tag != TypeTag.UNKNOWN_TAG)
+		{
+			return tag;
+		}
+		// Fall back on computing the tag with a slower polymorphic method.
+		return descriptor.o_ComputeTypeTag((AvailObject)this);
 	}
 
 	/**

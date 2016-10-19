@@ -386,7 +386,7 @@ extends Descriptor
 	 */
 	private ObjectDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.OBJECT_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link ObjectDescriptor}. */

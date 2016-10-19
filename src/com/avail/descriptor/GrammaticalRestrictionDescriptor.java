@@ -199,7 +199,11 @@ extends Descriptor
 	 */
 	private GrammaticalRestrictionDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.GRAMMATICAL_RESTRICTION_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link GrammaticalRestrictionDescriptor}. */

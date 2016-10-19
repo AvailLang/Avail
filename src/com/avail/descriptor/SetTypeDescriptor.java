@@ -391,7 +391,7 @@ extends TypeDescriptor
 	 */
 	private SetTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.SET_TYPE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link SetTypeDescriptor}. */

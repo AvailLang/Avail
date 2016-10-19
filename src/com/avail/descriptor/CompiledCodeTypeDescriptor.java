@@ -258,7 +258,8 @@ extends TypeDescriptor
 	 */
 	private CompiledCodeTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability, TypeTag.RAW_FUNCTION_TYPE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link CompiledCodeTypeDescriptor}. */

@@ -398,18 +398,9 @@ extends Descriptor
 	 * Construct a new {@link AtomDescriptor}.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private AtomDescriptor (final Mutability mutability)
-	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
-	}
-
-	/**
-	 * Construct a new {@link AtomDescriptor}.
-	 *
-	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -421,15 +412,20 @@ extends Descriptor
 	 */
 	protected AtomDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	/** The mutable {@link AtomDescriptor}. */
 	private static final AtomDescriptor mutable =
-		new AtomDescriptor(Mutability.MUTABLE);
+		new AtomDescriptor(
+			Mutability.MUTABLE,
+			TypeTag.ATOM_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	@Override
 	AtomDescriptor mutable ()
@@ -439,7 +435,11 @@ extends Descriptor
 
 	/** The immutable {@link AtomDescriptor}. */
 	private static final AtomDescriptor immutable =
-		new AtomDescriptor(Mutability.IMMUTABLE);
+		new AtomDescriptor(
+			Mutability.IMMUTABLE,
+			TypeTag.ATOM_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	@Override
 	AtomDescriptor immutable ()
@@ -502,14 +502,44 @@ extends Descriptor
 	}
 
 	/**
+	 * Create one of the two boolean atoms, using the given name and boolean
+	 * value.  A special atom should not have properties added to it after
+	 * initialization.
+	 *
+	 * @param name
+	 *        A string used to help identify the new boolean atom.
+	 * @param booleanValue
+	 *        The boolean for which to build a corresponding special atom.
+	 * @return
+	 *        The new atom, not equal to any object in use before this method
+	 *        was invoked.
+	 */
+	static A_Atom createSpecialBooleanAtom (
+		final String name,
+		final boolean booleanValue)
+	{
+		AvailObject atom = mutable.create();
+		atom.setSlot(NAME, StringDescriptor.from(name).makeShared());
+		atom.setSlot(HASH_OR_ZERO, 0);
+		atom.setSlot(ISSUING_MODULE, NilDescriptor.nil());
+		atom = atom.makeShared();
+		atom.descriptor = booleanValue
+			? AtomWithPropertiesSharedDescriptor.sharedAndSpecialForTrue
+			: AtomWithPropertiesSharedDescriptor.sharedAndSpecialForFalse;
+		return atom;
+	}
+
+	/**
 	 * The atom representing the Avail concept "true".
 	 */
-	private static final A_Atom trueObject = createSpecialAtom("true");
+	private static final A_Atom trueObject =
+		createSpecialBooleanAtom("true", true);
 
 	/**
 	 * The atom representing the Avail concept "false".
 	 */
-	private static final A_Atom falseObject = createSpecialAtom("false");
+	private static final A_Atom falseObject =
+		createSpecialBooleanAtom("false", false);
 
 	/**
 	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are

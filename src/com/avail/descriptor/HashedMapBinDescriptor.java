@@ -768,7 +768,11 @@ extends MapBinDescriptor
 		final Mutability mutability,
 		final int level)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class, level);
+		super(
+			mutability,
+			TypeTag.MAP_HASHED_BIN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class, level);
 		shift = (byte)(level * 6);
 		assert shift < 32;
 	}

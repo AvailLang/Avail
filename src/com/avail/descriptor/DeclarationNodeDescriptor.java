@@ -34,18 +34,14 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.EnumField;
-import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.Primitive;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -60,29 +56,6 @@ import org.jetbrains.annotations.Nullable;
 public final class DeclarationNodeDescriptor
 extends ParseNodeDescriptor
 {
-	/**
-	 * My slots of type {@linkplain Integer int}.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
-	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
-	{
-		/**
-		 * A compound field consisting of the hash value, computed at
-		 * construction time, and the {@link Primitive} number or zero.
-		 */
-		@HideFieldInDebugger
-		DECLARATION_KIND_AND_MORE;
-
-		/**
-		 * The hash value of this {@linkplain CompiledCodeDescriptor compiled
-		 * code object}. It is computed at construction time.
-		 */
-		@EnumField(describedBy=DeclarationKind.class)
-		static final BitField DECLARATION_KIND = bitField(
-			DECLARATION_KIND_AND_MORE, 0, 32);
-	}
-
 	/**
 	 * My slots of type {@link AvailObject}.
 	 *
@@ -687,16 +660,14 @@ extends ParseNodeDescriptor
 	DeclarationKind o_DeclarationKind (
 		final AvailObject object)
 	{
-		return DeclarationKind.all()[object.slot(DECLARATION_KIND)];
+		return declarationKind;
 	}
-
 
 	@Override @AvailMethod
 	A_Type o_ExpressionType (final AvailObject object)
 	{
 		return TOP.o();
 	}
-
 
 	/**
 	 * This is a declaration, so it was handled on a separate pass.  Do nothing.
@@ -710,7 +681,6 @@ extends ParseNodeDescriptor
 	{
 		object.declarationKind().emitEffectForOn(object, codeGenerator);
 	}
-
 
 	/**
 	 * This is a declaration, so it shouldn't generally produce a value.
@@ -833,7 +803,6 @@ extends ParseNodeDescriptor
 			indent);
 	}
 
-
 	/**
 	 * Construct a {@linkplain DeclarationNodeDescriptor declaration node} of
 	 * some {@linkplain DeclarationKind kind}.
@@ -869,8 +838,8 @@ extends ParseNodeDescriptor
 			|| initializationExpression.isInstanceOfKind(
 				ParseNodeKind.EXPRESSION_NODE.create(Types.ANY.o()));
 
-		final AvailObject declaration = mutable.create();
-		declaration.setSlot(DECLARATION_KIND, declarationKind.ordinal());
+		final AvailObject declaration =
+			mutables[declarationKind.ordinal()].create();
 		declaration.setSlot(TOKEN, token);
 		declaration.setSlot(DECLARED_TYPE, declaredType);
 		declaration.setSlot(
@@ -1098,28 +1067,49 @@ extends ParseNodeDescriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	public DeclarationNodeDescriptor (final Mutability mutability)
+	public DeclarationNodeDescriptor (
+		final Mutability mutability,
+		final DeclarationKind declarationKind)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			declarationKind.parseNodeKind().typeTag,
+			ObjectSlots.class,
+			null);
+		this.declarationKind = declarationKind;
 	}
 
-	/** The mutable {@link DeclarationNodeDescriptor}. */
-	private static final DeclarationNodeDescriptor mutable =
-		new DeclarationNodeDescriptor(Mutability.MUTABLE);
+	/** The kind of declaration using this descriptor. */
+	private final DeclarationKind declarationKind;
+
+	/** The mutable {@link DeclarationNodeDescriptor}s. */
+	private static final DeclarationNodeDescriptor[] mutables =
+		new DeclarationNodeDescriptor[DeclarationKind.values().length];
+
+	/** The shared {@link DeclarationNodeDescriptor}s. */
+	private static final DeclarationNodeDescriptor[] shareds =
+		new DeclarationNodeDescriptor[DeclarationKind.values().length];
+
+	static
+	{
+		for (final DeclarationKind kind : DeclarationKind.values())
+		{
+			mutables[kind.ordinal()] = new DeclarationNodeDescriptor(
+				Mutability.MUTABLE, kind);
+			shareds[kind.ordinal()] = new DeclarationNodeDescriptor(
+				Mutability.SHARED, kind);
+		}
+	}
 
 	@Override
 	DeclarationNodeDescriptor mutable ()
 	{
-		return mutable;
+		return mutables[declarationKind.ordinal()];
 	}
-
-	/** The shared {@link DeclarationNodeDescriptor}. */
-	private static final DeclarationNodeDescriptor shared =
-		new DeclarationNodeDescriptor(Mutability.SHARED);
 
 	@Override
 	DeclarationNodeDescriptor shared ()
 	{
-		return shared;
+		return shareds[declarationKind.ordinal()];
 	}
 }

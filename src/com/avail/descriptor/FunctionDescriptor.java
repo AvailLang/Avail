@@ -607,7 +607,7 @@ extends Descriptor
 	 */
 	private FunctionDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.FUNCTION_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link FunctionDescriptor}. */

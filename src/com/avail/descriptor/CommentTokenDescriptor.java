@@ -213,7 +213,11 @@ extends TokenDescriptor
 		@Nullable final Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		@Nullable final Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(
+			mutability,
+			TypeTag.TOKEN_TAG,
+			objectSlotsEnumClass,
+			integerSlotsEnumClass);
 	}
 
 	/**
@@ -224,7 +228,7 @@ extends TokenDescriptor
 	 */
 	private CommentTokenDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		this(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link LiteralTokenDescriptor}. */

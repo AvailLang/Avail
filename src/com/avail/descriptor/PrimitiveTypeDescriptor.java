@@ -39,9 +39,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -85,20 +84,12 @@ extends TypeDescriptor
 		 * for the ordinal of the primitive type.
 		 */
 		@HideFieldInDebugger
-		HASH_AND_PRIMITIVE_TYPE_ORDINAL;
+		HASH_AND_MORE;
 
 		/**
 		 * The hash, populated during construction.
 		 */
-		static final BitField HASH = bitField(
-			HASH_AND_PRIMITIVE_TYPE_ORDINAL, 0, 32);
-
-		/**
-		 * This primitive type's (mutually) unique ordinal number.
-		 */
-		@EnumField(describedBy=ParseNodeKind.class)
-		static final BitField PRIMITIVE_TYPE_ORDINAL = bitField(
-			HASH_AND_PRIMITIVE_TYPE_ORDINAL, 32, 32);
+		static final BitField HASH = bitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/**
@@ -136,7 +127,7 @@ extends TypeDescriptor
 	 */
 	private static Types extractEnum (final AvailObject object)
 	{
-		return Types.all()[object.slot(PRIMITIVE_TYPE_ORDINAL)];
+		return ((PrimitiveTypeDescriptor)object.descriptor).primitiveType;
 	}
 
 	/**
@@ -148,7 +139,7 @@ extends TypeDescriptor
 	 */
 	private static int extractOrdinal (final AvailObject object)
 	{
-		return object.slot(PRIMITIVE_TYPE_ORDINAL);
+		return extractEnum(object).ordinal();
 	}
 
 	@Override @AvailMethod
@@ -176,12 +167,6 @@ extends TypeDescriptor
 	A_BasicObject o_Parent (final AvailObject object)
 	{
 		return object.slot(PARENT);
-	}
-
-	@Override @AvailMethod
-	void o_Parent (final AvailObject object, final AvailObject value)
-	{
-		object.setSlot(PARENT, value);
 	}
 
 	@Override @AvailMethod
@@ -489,80 +474,125 @@ extends TypeDescriptor
 	 *
 	 * @param typeNameString
 	 *        The name to give the object being initialized.
-	 * @param ordinal
-	 *        The unique ordinal number for this primitive type.
 	 * @return The partially initialized type.
 	 */
-	AvailObject createPrimitiveObjectNamed (
-		final String typeNameString,
-		final int ordinal)
+	static AvailObject createMutablePrimitiveObjectNamed (
+		final String typeNameString)
 	{
 		final A_String name = StringDescriptor.from(typeNameString);
-		final AvailObject object = create();
-		object.setSlot(NAME, name);
+		final AvailObject object = transientMutable.create();
+		object.setSlot(NAME, name.makeShared());
 		object.setSlot(PARENT, NilDescriptor.nil());
 		object.setSlot(HASH, typeNameString.hashCode() * multiplier);
-		object.setSlot(PRIMITIVE_TYPE_ORDINAL, ordinal);
 		return object;
 	}
 
 	/**
-	 * Construct a new {@link PrimitiveTypeDescriptor}.
+	 * Complete the given partially-initialized primitive type.  Set the type's
+	 * parent and (shared) descriptor.  Don't force the parent to be shared yet
+	 * if it isn't.
 	 *
-	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param parentType
+	 *        The parent of this object, not necessarily shared.
+	 */
+	final void finishInitializingPrimitiveTypeWithParent (
+		final AvailObject object,
+		final A_Type parentType)
+	{
+		assert mutability == Mutability.SHARED;
+		object.setSlot(PARENT, parentType);
+		object.descriptor = this;
+	}
+
+	/** The {@link Types primitive type} represented by this descriptor. */
+	@InnerAccess final @Nullable Types primitiveType;
+
+	/**
+	 * Construct a new {@link Mutability#SHARED shared} {@link
+	 * PrimitiveTypeDescriptor}.
+	 *
+	 * @param typeTag
+	 *        The {@link TypeTag} to embed in the new descriptor.
+	 * @param primitiveType
+	 *        The {@link Types primitive type} represented by this descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
+	 *        null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        IntegerSlotsEnum} and defines this object's integer slots layout,
+	 *        or null if there are no integer slots.
 	 */
 	protected PrimitiveTypeDescriptor (
-		final Mutability mutability,
+		final TypeTag typeTag,
+		final Types primitiveType,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(
+			Mutability.SHARED,
+			typeTag,
+			ObjectSlots.class,
+			IntegerSlots.class);
+		this.primitiveType = primitiveType;
 	}
 
 	/**
-	 * Construct a new {@link PrimitiveTypeDescriptor}.
+	 * Construct a new {@link Mutability#SHARED shared} {@link
+	 * PrimitiveTypeDescriptor}.
 	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
+	 * @param primitiveType
+	 *        The {@link Types primitive type} represented by this descriptor.
 	 */
-	private PrimitiveTypeDescriptor (final Mutability mutability)
+	PrimitiveTypeDescriptor (
+		final TypeTag typeTag,
+		final Types primitiveType)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		this(typeTag, primitiveType, ObjectSlots.class, IntegerSlots.class);
 	}
 
-	/** The mutable {@link PrimitiveTypeDescriptor}. */
-	final static PrimitiveTypeDescriptor mutable =
-		new PrimitiveTypeDescriptor(Mutability.MUTABLE);
+	/**
+	 * Construct the sole mutable {@link PrimitiveTypeDescriptor}, used only
+	 * during early instantiation of the primitive types.
+	 */
+	private PrimitiveTypeDescriptor ()
+	{
+		super(
+			Mutability.MUTABLE,
+			TypeTag.UNKNOWN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
+		primitiveType = null;
+	}
+
+	/**
+	 * The sole mutable {@link PrimitiveTypeDescriptor}, only used during early
+	 * instantiation.
+	 */
+	final static PrimitiveTypeDescriptor transientMutable =
+		new PrimitiveTypeDescriptor();
 
 	@Override
 	PrimitiveTypeDescriptor mutable ()
 	{
-		return mutable;
+		return transientMutable;
 	}
-
-	/** The shared {@link PrimitiveTypeDescriptor}. */
-	final private static PrimitiveTypeDescriptor shared =
-		new PrimitiveTypeDescriptor(Mutability.SHARED);
 
 	@Override
 	PrimitiveTypeDescriptor immutable ()
 	{
-		// There is no immutable descriptor.
-		return shared;
+		// There are no immutable versions.
+		assert mutability == Mutability.SHARED;
+		return this;
 	}
 
 	@Override
 	PrimitiveTypeDescriptor shared ()
 	{
-		return shared;
+		assert mutability == Mutability.SHARED;
+		return this;
 	}
 }

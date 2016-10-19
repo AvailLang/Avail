@@ -759,7 +759,11 @@ extends TypeDescriptor
 	 */
 	private ConcatenatedTupleTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.TUPLE_TYPE_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link ConcatenatedTupleTypeDescriptor}. */

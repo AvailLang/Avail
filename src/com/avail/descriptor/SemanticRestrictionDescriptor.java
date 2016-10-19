@@ -128,7 +128,11 @@ extends Descriptor
 	 */
 	private SemanticRestrictionDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability,
+			TypeTag.SEMANTIC_RESTRICTION_TAG,
+			ObjectSlots.class,
+			null);
 	}
 
 	/** The mutable {@link SemanticRestrictionDescriptor}. */

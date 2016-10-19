@@ -261,7 +261,7 @@ extends TypeDescriptor
 	 */
 	private LiteralTokenTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.NONTYPE_TYPE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link LiteralTokenTypeDescriptor}. */

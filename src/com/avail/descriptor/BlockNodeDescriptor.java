@@ -784,7 +784,11 @@ extends ParseNodeDescriptor
 	 */
 	private BlockNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.BLOCK_PHRASE_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link BlockNodeDescriptor}. */

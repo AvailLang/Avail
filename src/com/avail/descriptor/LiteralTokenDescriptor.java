@@ -299,7 +299,11 @@ extends TokenDescriptor
 	 */
 	private LiteralTokenDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.LITERAL_TOKEN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link LiteralTokenDescriptor}. */

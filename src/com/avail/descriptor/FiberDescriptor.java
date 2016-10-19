@@ -1565,7 +1565,11 @@ extends Descriptor
 	 */
 	private FiberDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.FIBER_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link FiberDescriptor}. */

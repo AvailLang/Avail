@@ -925,7 +925,7 @@ extends Descriptor
 	 */
 	private ModuleDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.MODULE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link ModuleDescriptor}. */

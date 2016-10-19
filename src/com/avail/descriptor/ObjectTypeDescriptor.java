@@ -670,7 +670,7 @@ extends TypeDescriptor
 	 */
 	private ObjectTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.OBJECT_TYPE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link ObjectTypeDescriptor}. */

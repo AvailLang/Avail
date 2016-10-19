@@ -66,23 +66,15 @@ extends TypeDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for caching the hash, and the upper 32 are
-		 * for the parse node kind.
+		 * The low 32 bits are used for caching the hash.
 		 */
 		@HideFieldInDebugger
-		HASH_AND_KIND;
+		HASH_AND_MORE;
 
 		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
 		 */
-		static final BitField HASH_OR_ZERO = bitField(HASH_AND_KIND, 0, 32);
-
-		/**
-		 * The {@linkplain ParseNodeKind kind} of parse node, encoded as an
-		 * {@code int}.
-		 */
-		@EnumField(describedBy=ParseNodeKind.class)
-		static final BitField KIND = bitField(HASH_AND_KIND, 32, 32);
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/**
@@ -104,21 +96,31 @@ extends TypeDescriptor
 	implements IntegerEnumSlotDescriptionEnum
 	{
 		/** The root parse node kind. */
-		PARSE_NODE("phrase type", null),
+		PARSE_NODE("phrase type", null, TypeTag.PHRASE_TAG),
 
 		/** The kind of a parse marker. */
-		MARKER_NODE("marker phrase type", PARSE_NODE),
+		MARKER_NODE(
+			"marker phrase type", PARSE_NODE, TypeTag.MARKER_PHRASE_TAG),
 
 		/** The abstract parent kind of all expression nodes. */
-		EXPRESSION_NODE("expression phrase type", PARSE_NODE),
+		EXPRESSION_NODE(
+			"expression phrase type",
+			PARSE_NODE,
+			TypeTag.EXPRESSION_PHRASE_TAG),
 
 		/**
 		 * The kind of an {@linkplain AssignmentNodeDescriptor assignment node}.
 		 */
-		ASSIGNMENT_NODE("assignment phrase type", EXPRESSION_NODE),
+		ASSIGNMENT_NODE(
+			"assignment phrase type",
+			EXPRESSION_NODE,
+			TypeTag.ASSIGNMENT_PHRASE_TAG),
 
 		/** The kind of a {@linkplain BlockNodeDescriptor block node}. */
-		BLOCK_NODE("block phrase type", EXPRESSION_NODE)
+		BLOCK_NODE(
+			"block phrase type",
+			EXPRESSION_NODE,
+			TypeTag.BLOCK_PHRASE_TAG)
 		{
 			@Override
 			public A_Type mostGeneralYieldType ()
@@ -128,7 +130,10 @@ extends TypeDescriptor
 		},
 
 		/** The kind of a {@linkplain LiteralNodeDescriptor literal node}. */
-		LITERAL_NODE("literal node type", EXPRESSION_NODE)
+		LITERAL_NODE(
+			"literal node type",
+			EXPRESSION_NODE,
+			TypeTag.LITERAL_PHRASE_TAG)
 		{
 			@Override
 			public A_Type mostGeneralYieldType ()
@@ -140,7 +145,10 @@ extends TypeDescriptor
 		/**
 		 * The kind of a {@linkplain ReferenceNodeDescriptor reference node}.
 		 */
-		REFERENCE_NODE("variable reference phrase type", EXPRESSION_NODE)
+		REFERENCE_NODE(
+			"variable reference phrase type",
+			EXPRESSION_NODE,
+			TypeTag.REFERENCE_PHRASE_TAG)
 		{
 			@Override
 			public A_Type mostGeneralYieldType ()
@@ -152,7 +160,8 @@ extends TypeDescriptor
 		/**
 		 * The kind of a {@linkplain SuperCastNodeDescriptor super cast node}.
 		 */
-		SUPER_CAST_NODE("super cast phrase", EXPRESSION_NODE)
+		SUPER_CAST_NODE(
+			"super cast phrase", EXPRESSION_NODE, TypeTag.SUPER_CAST_PHRASE_TAG)
 		{
 			@Override
 			public A_Type mostGeneralYieldType ()
@@ -162,11 +171,19 @@ extends TypeDescriptor
 		},
 
 		/** The kind of a {@linkplain SendNodeDescriptor send node}. */
-		SEND_NODE("send phrase type", EXPRESSION_NODE),
+		SEND_NODE("send phrase type", EXPRESSION_NODE, TypeTag.SEND_PHRASE_TAG),
 
 		/** The kind of a {@linkplain ListNodeDescriptor list node}. */
-		LIST_NODE("list phrase type", EXPRESSION_NODE)
+		LIST_NODE("list phrase type", EXPRESSION_NODE, TypeTag.LIST_PHRASE_TAG)
 		{
+			/** Create a descriptor for this kind. */
+			@Override
+			ParseNodeTypeDescriptor createDescriptor (
+				final Mutability mutability)
+			{
+				return new ListNodeTypeDescriptor(mutability, this);
+			}
+
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
@@ -199,8 +216,19 @@ extends TypeDescriptor
 		/**
 		 * The kind of a {@linkplain PermutedListNodeDescriptor permuted list
 		 * node}. */
-		PERMUTED_LIST_NODE("permuted list phrase type", LIST_NODE)
+		PERMUTED_LIST_NODE(
+			"permuted list phrase type",
+			LIST_NODE,
+			TypeTag.PERMUTED_LIST_PHRASE_TAG)
 		{
+			/** Create a descriptor for this kind. */
+			@Override
+			ParseNodeTypeDescriptor createDescriptor (
+				final Mutability mutability)
+			{
+				return new ListNodeTypeDescriptor(mutability, this);
+			}
+
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
@@ -234,7 +262,8 @@ extends TypeDescriptor
 		 * The kind of a {@linkplain VariableUseNodeDescriptor variable use
 		 * node}.
 		 */
-		VARIABLE_USE_NODE("variable use phrase type", EXPRESSION_NODE)
+		VARIABLE_USE_NODE(
+			"variable use phrase type", EXPRESSION_NODE, TypeTag.VARIABLE_TAG)
 		{
 			@Override
 			public A_Type mostGeneralYieldType ()
@@ -244,54 +273,87 @@ extends TypeDescriptor
 		},
 
 		/** A phrase that does not produce a result. */
-		STATEMENT_NODE("statement phrase type", PARSE_NODE),
+		STATEMENT_NODE(
+			"statement phrase type", PARSE_NODE, TypeTag.STATEMENT_PHRASE_TAG),
 
 		/** The kind of a {@linkplain SequenceNodeDescriptor sequence node}. */
-		SEQUENCE_NODE("sequence phrase type", STATEMENT_NODE),
+		SEQUENCE_NODE(
+			"sequence phrase type",
+			STATEMENT_NODE,
+			TypeTag.SEQUENCE_PHRASE_TAG),
 
 		/**
 		 * The kind of a {@linkplain FirstOfSequenceNodeDescriptor
 		 * first-of-sequence node}.
 		 */
-		FIRST_OF_SEQUENCE_NODE("first-of-sequence phrase type", STATEMENT_NODE),
+		FIRST_OF_SEQUENCE_NODE(
+			"first-of-sequence phrase type",
+			STATEMENT_NODE,
+			TypeTag.FIRST_OF_SEQUENCE_PHRASE_TAG),
 
 		/**
 		 * The kind of a {@linkplain DeclarationNodeDescriptor declaration
 		 * node}.
 		 */
-		DECLARATION_NODE("declaration phrase type", STATEMENT_NODE),
+		DECLARATION_NODE(
+			"declaration phrase type",
+			STATEMENT_NODE,
+			TypeTag.DECLARATION_PHRASE_TAG),
 
 		/** The kind of an argument declaration node. */
-		ARGUMENT_NODE("argument phrase type", DECLARATION_NODE),
+		ARGUMENT_NODE(
+			"argument phrase type",
+			DECLARATION_NODE,
+			TypeTag.ARGUMENT_PHRASE_TAG),
 
 		/** The kind of a label declaration node. */
-		LABEL_NODE("label phrase type", DECLARATION_NODE),
+		LABEL_NODE(
+			"label phrase type", DECLARATION_NODE, TypeTag.LABEL_PHRASE_TAG),
 
 		/** The kind of a local variable declaration node. */
-		LOCAL_VARIABLE_NODE("local variable phrase type", DECLARATION_NODE),
+		LOCAL_VARIABLE_NODE(
+			"local variable phrase type",
+			DECLARATION_NODE,
+			TypeTag.LOCAL_VARIABLE_PHRASE_TAG),
 
 		/** The kind of a local constant declaration node. */
-		LOCAL_CONSTANT_NODE("local constant phrase type", DECLARATION_NODE),
+		LOCAL_CONSTANT_NODE(
+			"local constant phrase type",
+			DECLARATION_NODE,
+			TypeTag.LOCAL_CONSTANT_PHRASE_TAG),
 
 		/** The kind of a module variable declaration node. */
-		MODULE_VARIABLE_NODE("module variable phrase type", DECLARATION_NODE),
+		MODULE_VARIABLE_NODE(
+			"module variable phrase type",
+			DECLARATION_NODE,
+			TypeTag.MODULE_VARIABLE_PHRASE_TAG),
 
 		/** The kind of a module constant declaration node. */
-		MODULE_CONSTANT_NODE("module constant phrase type", DECLARATION_NODE),
+		MODULE_CONSTANT_NODE(
+			"module constant phrase type",
+			DECLARATION_NODE,
+			TypeTag.MODULE_CONSTANT_PHRASE_TAG),
 
 		/** The kind of a primitive failure reason variable declaration. */
 		PRIMITIVE_FAILURE_REASON_NODE(
-			"primitive failure reason phrase type", DECLARATION_NODE),
+			"primitive failure reason phrase type",
+			DECLARATION_NODE,
+			TypeTag.PRIMITIVE_FAILURE_REASON_PHRASE_TAG),
 
 		/**
 		 * A statement phrase built from an expression.  At the moment, only
 		 * assignments and sends can be expression-as-statement phrases.
 		 */
 		EXPRESSION_AS_STATEMENT_NODE(
-			"expression as statement phrase type", STATEMENT_NODE),
+			"expression as statement phrase type",
+			STATEMENT_NODE,
+			TypeTag.EXPRESSION_AS_STATEMENT_PHRASE_TAG),
 
 		/** The result of a macro substitution. */
-		MACRO_SUBSTITUTION("macro substitution phrase type", PARSE_NODE);
+		MACRO_SUBSTITUTION(
+			"macro substitution phrase type",
+			PARSE_NODE,
+			TypeTag.MACRO_SUBSTITUTION_PHRASE_TAG);
 
 		/**
 		 * The kind of parse node that this kind is a child of.
@@ -326,6 +388,9 @@ extends TypeDescriptor
 		/** The JSON name of this type. */
 		final String jsonName;
 
+		/** The type tag associated with phrases of this kind. */
+		final TypeTag typeTag;
+
 		/**
 		 * Construct a new {@link ParseNodeKind}.
 		 *
@@ -333,13 +398,17 @@ extends TypeDescriptor
 		 *        The JSON name of this type.
 		 * @param parentKind
 		 *        The kind of parse node for which this is a subkind.
+		 * @param typeTag
+		 *        The type tag associated with phrases of this kind.
 		 */
 		ParseNodeKind (
 			final String jsonName,
-			final @Nullable ParseNodeKind parentKind)
+			final @Nullable ParseNodeKind parentKind,
+			final TypeTag typeTag)
 		{
 			this.jsonName = jsonName;
 			this.parentKind = parentKind;
+			this.typeTag = typeTag;
 			if (parentKind == null)
 			{
 				depth = 0;
@@ -348,7 +417,16 @@ extends TypeDescriptor
 			{
 				depth = parentKind.depth + 1;
 			}
+			mutableDescriptor = createDescriptor(Mutability.MUTABLE);
+			sharedDescriptor = createDescriptor(Mutability.SHARED);
 			mostGeneralType = createNoCheck(mostGeneralYieldType());
+		}
+
+		/** Create a descriptor for this kind. */
+		ParseNodeTypeDescriptor createDescriptor (final Mutability mutability)
+		{
+			return new ParseNodeTypeDescriptor(
+				mutability, this, ObjectSlots.class, IntegerSlots.class);
 		}
 
 		/**
@@ -379,11 +457,16 @@ extends TypeDescriptor
 		public A_Type createNoCheck (
 			final A_Type yieldType)
 		{
-			final AvailObject type = mutable.create();
+			final AvailObject type = mutableDescriptor.create();
 			type.setSlot(EXPRESSION_TYPE, yieldType.makeImmutable());
-			type.setSlot(KIND, ordinal());
 			return type;
 		}
+
+		/** The descriptor for mutable instances of this kind. */
+		@InnerAccess final ParseNodeTypeDescriptor mutableDescriptor;
+
+		/** The descriptor for shared instances of this kind. */
+		@InnerAccess final ParseNodeTypeDescriptor sharedDescriptor;
 
 		/**
 		 * The most general type for this kind of parse node.
@@ -554,7 +637,7 @@ extends TypeDescriptor
 		final AbstractSlotsEnum e)
 	{
 		// Only the hash part may change (be set lazily), not the kind.
-		return e == HASH_AND_KIND;
+		return e == HASH_AND_MORE;
 	}
 
 	/**
@@ -597,7 +680,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aParseNodeType)
 	{
-		return object.parseNodeKind() == aParseNodeType.parseNodeKind()
+		return kind == aParseNodeType.parseNodeKind()
 			&& object.slot(EXPRESSION_TYPE).equals(
 				aParseNodeType.expressionType());
  	}
@@ -613,7 +696,7 @@ extends TypeDescriptor
 		if (hash == 0)
 		{
 			hash = object.slot(EXPRESSION_TYPE).hash()
-				^ (object.slot(KIND) * multiplier);
+				^ (kind.ordinal() * multiplier);
 			object.setSlot(HASH_OR_ZERO, hash);
 		}
 		return hash;
@@ -631,7 +714,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
-		return LIST_NODE.isSubkindOf(object.parseNodeKind())
+		return LIST_NODE.isSubkindOf(kind)
 			&& aListNodeType.expressionType().isSubtypeOf(
 				object.expressionType());
 	}
@@ -642,9 +725,8 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aParseNodeType)
 	{
-		final ParseNodeKind myKind = object.parseNodeKind();
 		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
-		return otherKind.isSubkindOf(myKind)
+		return otherKind.isSubkindOf(kind)
 			&& aParseNodeType.expressionType().isSubtypeOf(
 				object.expressionType());
 	}
@@ -659,8 +741,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
-		final int ordinal = object.slot(KIND);
-		return ParseNodeKind.all()[ordinal];
+		return kind;
 	}
 
 	@Override @AvailMethod
@@ -668,7 +749,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final ParseNodeKind expectedParseNodeKind)
 	{
-		return object.parseNodeKind().isSubkindOf(expectedParseNodeKind);
+		return kind.isSubkindOf(expectedParseNodeKind);
 	}
 
 	@Override
@@ -692,7 +773,7 @@ extends TypeDescriptor
 	{
 		// Intersection of two list node types.
 		final @Nullable ParseNodeKind intersectionKind =
-			object.parseNodeKind().commonDescendantWith(
+			kind.commonDescendantWith(
 				aListNodeType.parseNodeKind());
 		if (intersectionKind == null)
 		{
@@ -712,8 +793,7 @@ extends TypeDescriptor
 		final A_Type aParseNodeType)
 	{
 		final @Nullable ParseNodeKind intersectionKind =
-			object.parseNodeKind().commonDescendantWith(
-				aParseNodeType.parseNodeKind());
+			kind.commonDescendantWith(aParseNodeType.parseNodeKind());
 		if (intersectionKind == null)
 		{
 			return BottomTypeDescriptor.bottom();
@@ -741,7 +821,7 @@ extends TypeDescriptor
 	{
 		// Union of a non-list parse node type and a list node type is a
 		// non-list parse node type.
-		final ParseNodeKind objectKind = object.parseNodeKind();
+		final ParseNodeKind objectKind = kind;
 		final ParseNodeKind otherKind = aListNodeType.parseNodeKind();
 		assert otherKind.isSubkindOf(LIST_NODE);
 		final ParseNodeKind unionKind = objectKind.commonAncestorWith(
@@ -757,7 +837,7 @@ extends TypeDescriptor
 		final A_Type aParseNodeType)
 	{
 		final ParseNodeKind unionKind =
-			object.parseNodeKind().commonAncestorWith(
+			kind.commonAncestorWith(
 				aParseNodeType.parseNodeKind());
 		return unionKind.createNoCheck(
 			object.slot(EXPRESSION_TYPE).typeUnion(
@@ -769,7 +849,7 @@ extends TypeDescriptor
 	{
 		writer.startObject();
 		writer.write("kind");
-		writer.write(object.parseNodeKind().jsonName);
+		writer.write(kind.jsonName);
 		writer.write("expression type");
 		object.slot(EXPRESSION_TYPE).writeTo(writer);
 		writer.endObject();
@@ -782,7 +862,6 @@ extends TypeDescriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		final ParseNodeKind kind = object.parseNodeKind();
 		if (kind == PARSE_NODE)
 		{
 			builder.append("phrase");
@@ -846,22 +925,16 @@ extends TypeDescriptor
 		return true;
 	}
 
-	/**
-	 * Construct a new {@link ParseNodeTypeDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	public ParseNodeTypeDescriptor (final Mutability mutability)
-	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
-	}
+	/** The {@link ParseNodeKind} of instances that use this descriptor. */
+	protected final ParseNodeKind kind;
 
 	/**
-	 * Re-export the three-argument constructor for subclasses to access.
+	 * Construct a new descriptor for this kind of phrase type.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param kind
+	 *            The {@link ParseNodeKind} of the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -873,36 +946,30 @@ extends TypeDescriptor
 	 */
 	protected ParseNodeTypeDescriptor (
 		final Mutability mutability,
+		final ParseNodeKind kind,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, kind.typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
+		this.kind = kind;
 	}
-
-	/** The mutable {@link ParseNodeTypeDescriptor}. */
-	@InnerAccess static final ParseNodeTypeDescriptor mutable =
-		new ParseNodeTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
 	ParseNodeTypeDescriptor mutable ()
 	{
-		return mutable;
+		return kind.mutableDescriptor;
 	}
-
-	/** The shared {@link ParseNodeTypeDescriptor}. */
-	private static final ParseNodeTypeDescriptor shared =
-		new ParseNodeTypeDescriptor(Mutability.SHARED);
 
 	@Override
 	ParseNodeTypeDescriptor immutable ()
 	{
-		// There is no immutable descriptor.
-		return shared;
+		// There are no immutable descriptors.
+		return kind.sharedDescriptor;
 	}
 
 	@Override
 	ParseNodeTypeDescriptor shared ()
 	{
-		return shared;
+		return kind.sharedDescriptor;
 	}
 }

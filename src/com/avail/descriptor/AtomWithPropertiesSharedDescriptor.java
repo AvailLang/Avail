@@ -223,21 +223,35 @@ extends AtomWithPropertiesDescriptor
 	 * Construct a new {@link AtomWithPropertiesSharedDescriptor}.
 	 *
 	 * @param isSpecial
-	 *            Whether this particular descriptor is used to represent
-	 *            an atom that has special meaning to the Avail virtual machine.
+	 *        Whether this particular descriptor is used to represent an atom
+	 *        that has special meaning to the Avail virtual machine.
+	 * @param typeTag
+	 *        The {@link TypeTag} to use in this descriptor.
 	 */
 	private AtomWithPropertiesSharedDescriptor (
-		final boolean isSpecial)
+		final boolean isSpecial,
+		final TypeTag typeTag)
 	{
-		super(Mutability.SHARED, ObjectSlots.class, IntegerSlots.class);
+		super(
+			Mutability.SHARED, typeTag, ObjectSlots.class, IntegerSlots.class);
 		this.isSpecial = isSpecial;
 	}
 
 	/** The shared {@link AtomWithPropertiesDescriptor}. */
 	static final AtomWithPropertiesSharedDescriptor shared =
-		new AtomWithPropertiesSharedDescriptor(false);
+		new AtomWithPropertiesSharedDescriptor(false, TypeTag.ATOM_TAG);
 
 	/** The sharedAndSpecial {@link AtomWithPropertiesDescriptor}. */
 	static final AtomWithPropertiesSharedDescriptor sharedAndSpecial =
-		new AtomWithPropertiesSharedDescriptor(true);
+		new AtomWithPropertiesSharedDescriptor(true, TypeTag.ATOM_TAG);
+
+	/** The descriptor reserved for the {@link AtomDescriptor#trueObject() true
+	 * atom}. */
+	static final AtomWithPropertiesSharedDescriptor sharedAndSpecialForTrue =
+		new AtomWithPropertiesSharedDescriptor(true, TypeTag.TRUE_TAG);
+
+	/** The descriptor reserved for the {@link AtomDescriptor#falseObject()
+	 * false atom}. */
+	static final AtomWithPropertiesSharedDescriptor sharedAndSpecialForFalse =
+		new AtomWithPropertiesSharedDescriptor(true, TypeTag.FALSE_TAG);
 }

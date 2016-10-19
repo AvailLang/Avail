@@ -238,7 +238,7 @@ extends ParseNodeDescriptor
 	 */
 	private SequenceNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.SEQUENCE_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link SequenceNodeDescriptor}. */

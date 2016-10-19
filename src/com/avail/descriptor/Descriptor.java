@@ -93,6 +93,8 @@ extends AbstractDescriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -104,10 +106,11 @@ extends AbstractDescriptor
 	 */
 	protected Descriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	/**
@@ -989,12 +992,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index,
 		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_Parent (final AvailObject object, final AvailObject value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4680,6 +4677,12 @@ extends AbstractDescriptor
 
 	@Override
 	A_Set o_ModuleGrammaticalRestrictions (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

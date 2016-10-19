@@ -1087,7 +1087,11 @@ extends Descriptor
 	 */
 	private CompiledCodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.RAW_FUNCTION_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link CompiledCodeDescriptor}. */

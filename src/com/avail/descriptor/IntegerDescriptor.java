@@ -2311,7 +2311,7 @@ extends ExtendedIntegerDescriptor
 		final Mutability mutability,
 		final byte unusedIntsOfLastLong)
 	{
-		super(mutability, null, IntegerSlots.class);
+		super(mutability, TypeTag.INTEGER_TAG, null, IntegerSlots.class);
 		assert (unusedIntsOfLastLong & ~1) == 0;
 		this.unusedIntsOfLastLong = unusedIntsOfLastLong;
 	}

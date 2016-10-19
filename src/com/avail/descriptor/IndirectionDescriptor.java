@@ -180,7 +180,7 @@ extends AbstractDescriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = immutable;
+			object.descriptor = immutable(typeTag);
 			return object.slot(INDIRECTION_TARGET).makeImmutable();
 		}
 		return object.slot(INDIRECTION_TARGET);
@@ -191,7 +191,7 @@ extends AbstractDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.descriptor = shared(typeTag);
 			return object.slot(INDIRECTION_TARGET).makeShared();
 		}
 		return object.slot(INDIRECTION_TARGET);
@@ -218,51 +218,75 @@ extends AbstractDescriptor
 		return finalObject;
 	}
 
-	@Override
-	Iterator<AvailObject> o_Iterator (final AvailObject object)
-	{
-		return o_Traversed(object).iterator();
-	}
-
 	/**
 	 * Construct a new {@link IndirectionDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private IndirectionDescriptor (final Mutability mutability)
+	private IndirectionDescriptor (
+		final Mutability mutability,
+		final TypeTag typeTag)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(mutability, typeTag, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link IndirectionDescriptor}. */
-	static final IndirectionDescriptor mutable =
-		new IndirectionDescriptor(Mutability.MUTABLE);
-
-	@Override
-	IndirectionDescriptor mutable ()
-	{
-		return mutable;
-	}
+	static final IndirectionDescriptor[] mutables =
+		new IndirectionDescriptor[TypeTag.values().length];
 
 	/** The immutable {@link IndirectionDescriptor}. */
-	static final IndirectionDescriptor immutable =
-		new IndirectionDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	IndirectionDescriptor immutable ()
-	{
-		return immutable;
-	}
+	static final IndirectionDescriptor[] immutables =
+		new IndirectionDescriptor[TypeTag.values().length];
 
 	/** The shared {@link IndirectionDescriptor}. */
-	static final IndirectionDescriptor shared =
-		new IndirectionDescriptor(Mutability.SHARED);
+	static final IndirectionDescriptor[] shareds =
+		new IndirectionDescriptor[TypeTag.values().length];
 
-	@Override
+	static
+	{
+		for (final TypeTag typeTag : TypeTag.values())
+		{
+			mutables[typeTag.ordinal()] =
+				new IndirectionDescriptor(Mutability.MUTABLE, typeTag);
+			immutables[typeTag.ordinal()] =
+				new IndirectionDescriptor(Mutability.IMMUTABLE, typeTag);
+			shareds[typeTag.ordinal()] =
+				new IndirectionDescriptor(Mutability.SHARED, typeTag);
+		}
+	}
+
+	static IndirectionDescriptor mutable (final TypeTag typeTag)
+	{
+		return mutables[typeTag.ordinal()];
+	}
+
+	static IndirectionDescriptor immutable (final TypeTag typeTag)
+	{
+		return immutables[typeTag.ordinal()];
+	}
+
+	static IndirectionDescriptor shared (final TypeTag typeTag)
+	{
+		return shareds[typeTag.ordinal()];
+	}
+
+	@Override @Deprecated
+	IndirectionDescriptor mutable ()
+	{
+		return mutables[typeTag.ordinal()];
+	}
+
+	@Override @Deprecated
+	IndirectionDescriptor immutable ()
+	{
+		return immutables[typeTag.ordinal()];
+	}
+
+	@Override @Deprecated
 	IndirectionDescriptor shared ()
 	{
-		return shared;
+		return shareds[typeTag.ordinal()];
 	}
 
 	@Override
@@ -1273,6 +1297,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	Iterator<AvailObject> o_Iterator (final AvailObject object)
+	{
+		return o_Traversed(object).iterator();
+	}
+
+	@Override
 	void o_LevelTwoChunkOffset (
 		final AvailObject object,
 		final L2Chunk chunk,
@@ -1428,14 +1458,6 @@ extends AbstractDescriptor
 		final AvailObject value)
 	{
 		o_Traversed(object).outerVarAtPut(index, value);
-	}
-
-	@Override
-	void o_Parent (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		o_Traversed(object).parent(value);
 	}
 
 	@Override
@@ -4842,5 +4864,19 @@ extends AbstractDescriptor
 	A_Set o_ModuleGrammaticalRestrictions (final AvailObject object)
 	{
 		return o_Traversed(object).moduleGrammaticalRestrictions();
+	}
+
+	@Override
+	TypeTag o_ComputeTypeTag (final AvailObject object)
+	{
+		final TypeTag tag = o_Traversed(object).typeTag();
+		// Now that we know it, switch to a descriptor that has it cached...
+		object.descriptor =
+			mutability == Mutability.MUTABLE
+				? mutable(tag)
+				: mutability == Mutability.IMMUTABLE
+					? immutable(tag)
+					: shared(tag);
+		return tag;
 	}
 }

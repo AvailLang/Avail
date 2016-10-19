@@ -39,7 +39,6 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
@@ -77,32 +76,22 @@ extends ParseNodeTypeDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for caching the hash, and the upper 32 are
-		 * for the parse node kind.
+		 * The low 32 bits are used for caching the hash.
 		 */
 		@HideFieldInDebugger
-		HASH_AND_KIND;
+		HASH_AND_MORE;
 
 		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
 		 */
-		static final BitField HASH_OR_ZERO = bitField(HASH_AND_KIND, 0, 32);
-
-		/**
-		 * The {@linkplain ParseNodeKind kind} of parse node, encoded as an
-		 * {@code int}.
-		 */
-		@EnumField(describedBy=ParseNodeKind.class)
-		static final BitField KIND = bitField(HASH_AND_KIND, 32, 32);
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
-			assert ParseNodeTypeDescriptor.IntegerSlots.HASH_AND_KIND.ordinal()
-				== HASH_AND_KIND.ordinal();
+			assert ParseNodeTypeDescriptor.IntegerSlots.HASH_AND_MORE.ordinal()
+				== HASH_AND_MORE.ordinal();
 			assert ParseNodeTypeDescriptor.IntegerSlots.HASH_OR_ZERO
 				.isSamePlaceAs(HASH_OR_ZERO);
-			assert ParseNodeTypeDescriptor.IntegerSlots.KIND
-				.isSamePlaceAs(KIND);
 		}
 	}
 
@@ -136,8 +125,8 @@ extends ParseNodeTypeDescriptor
 	boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		// Only the hash part may change (be set lazily), not the kind.
-		return e == HASH_AND_KIND;
+		// Only the hash part may change (be set lazily), not other bit fields.
+		return e == HASH_AND_MORE;
 	}
 
 	/**
@@ -195,7 +184,7 @@ extends ParseNodeTypeDescriptor
 		{
 			hash = object.slot(EXPRESSION_TYPE).hash();
 			hash *= multiplier;
-			hash -= object.slot(KIND);
+			hash -= kind.ordinal();
 			hash *= multiplier;
 			hash ^= object.slot(SUBEXPRESSIONS_TUPLE_TYPE).hash();
 			hash *= multiplier;
@@ -281,8 +270,8 @@ extends ParseNodeTypeDescriptor
 	{
 		final ParseNodeKind otherKind = aParseNodeType.parseNodeKind();
 		assert !otherKind.isSubkindOf(LIST_NODE);
-		final ParseNodeKind intersectionKind = otherKind.commonDescendantWith(
-			object.parseNodeKind());
+		final @Nullable ParseNodeKind intersectionKind =
+			otherKind.commonDescendantWith(object.parseNodeKind());
 		if (intersectionKind == null)
 		{
 			return BottomTypeDescriptor.bottom();
@@ -452,9 +441,7 @@ extends ParseNodeTypeDescriptor
 		// assert listNodeEnumKind.isSubkindOf(LIST_NODE);
 		assert yieldType.isTupleType();
 		assert subexpressionsTupleType.isTupleType();
-
-		final AvailObject type = listNodeTypeMutable.create();
-		type.setSlot(KIND, listNodeEnumKind.ordinal());
+		final AvailObject type = listNodeEnumKind.mutableDescriptor.create();
 		type.setSlot(EXPRESSION_TYPE, yieldType.makeImmutable());
 		type.setSlot(SUBEXPRESSIONS_TUPLE_TYPE, subexpressionsTupleType);
 		return type;
@@ -470,40 +457,17 @@ extends ParseNodeTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ListNodeTypeDescriptor}.
+	 * Construct a new descriptor for this kind of list phrase type.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param kind
+	 *            The {@link ParseNodeKind} of the new descriptor.
 	 */
-	private ListNodeTypeDescriptor (final Mutability mutability)
+	ListNodeTypeDescriptor (
+		final Mutability mutability,
+		final ParseNodeKind kind)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
-	}
-
-	/** The mutable {@link ListNodeTypeDescriptor}. */
-	private static final ListNodeTypeDescriptor listNodeTypeMutable =
-		new ListNodeTypeDescriptor(Mutability.MUTABLE);
-
-	@Override
-	ListNodeTypeDescriptor mutable ()
-	{
-		return listNodeTypeMutable;
-	}
-
-	/** The shared {@link ListNodeTypeDescriptor}. */
-	private static final ListNodeTypeDescriptor shared =
-		new ListNodeTypeDescriptor(Mutability.SHARED);
-
-	@Override
-	ListNodeTypeDescriptor immutable ()
-	{
-		// There is no immutable descriptor.
-		return shared;
-	}
-
-	@Override
-	ListNodeTypeDescriptor shared ()
-	{
-		return shared;
+		super(mutability, kind, ObjectSlots.class, IntegerSlots.class);
 	}
 }

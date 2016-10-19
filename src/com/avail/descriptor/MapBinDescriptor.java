@@ -118,25 +118,28 @@ extends Descriptor
 	 * Construct a new {@link MapBinDescriptor}.
 	 *
 	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *        The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
+	 *        null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        IntegerSlotsEnum} and defines this object's integer slots layout,
+	 *        or null if there are no integer slots.
 	 * @param level
-	 *            The depth of the bin in the hash tree.
+	 *        The depth of the bin in the hash tree.
 	 */
 	protected MapBinDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass,
 		final int level)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 		this.level = (byte) level;
 	}
 }

@@ -316,7 +316,11 @@ extends ParseNodeDescriptor
 	 */
 	private AssignmentNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.ASSIGNMENT_PHRASE_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link AssignmentNodeDescriptor}. */

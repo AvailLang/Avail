@@ -50,31 +50,6 @@ import org.jetbrains.annotations.Nullable;
 public abstract class ParseNodeDescriptor
 extends Descriptor
 {
-	/**
-	 * A special enumeration used to visit all object slots for copying.
-	 */
-	enum FakeObjectSlots
-	implements ObjectSlotsEnum
-	{
-		/**
-		 * An indexed object slot that makes it easy to visit all object slots.
-		 */
-		ALL_OBJECT_SLOTS_
-	}
-
-	/**
-	 * A special enumeration used to visit all integer slots for copying.
-	 */
-	enum FakeIntegerSlots
-	implements IntegerSlotsEnum
-	{
-		/**
-		 * An indexed integer slot that makes it easy to visit all integer
-		 * slots.
-		 */
-		ALL_INTEGER_SLOTS_
-	}
-
 	@Override int maximumIndent ()
 	{
 		return Integer.MAX_VALUE;
@@ -361,6 +336,8 @@ extends Descriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -372,10 +349,11 @@ extends Descriptor
 	 */
 	protected ParseNodeDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	@Override

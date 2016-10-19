@@ -183,7 +183,7 @@ extends Descriptor
 	 */
 	private NilDescriptor (final Mutability mutability)
 	{
-		super(mutability, null, null);
+		super(mutability, TypeTag.NIL_TAG, null, null);
 	}
 
 	/** The mutable {@link NilDescriptor}. */

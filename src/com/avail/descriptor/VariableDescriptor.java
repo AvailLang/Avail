@@ -657,6 +657,8 @@ extends Descriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -668,26 +670,20 @@ extends Descriptor
 	 */
 	protected VariableDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
-	}
-
-	/**
-	 * Construct a new {@link VariableDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private VariableDescriptor (final Mutability mutability)
-	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	/** The mutable {@link VariableDescriptor}. */
 	private static final VariableDescriptor mutable =
-		new VariableDescriptor(Mutability.MUTABLE);
+		new VariableDescriptor(
+			Mutability.MUTABLE,
+			TypeTag.VARIABLE_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	@Override
 	final VariableDescriptor mutable ()
@@ -697,7 +693,11 @@ extends Descriptor
 
 	/** The immutable {@link VariableDescriptor}. */
 	private static final VariableDescriptor immutable =
-		new VariableDescriptor(Mutability.IMMUTABLE);
+		new VariableDescriptor(
+			Mutability.IMMUTABLE,
+			TypeTag.VARIABLE_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	@Override
 	final VariableDescriptor immutable ()

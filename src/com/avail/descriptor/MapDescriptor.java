@@ -761,7 +761,7 @@ extends Descriptor
 	 */
 	private MapDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.MAP_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link MapDescriptor}. */

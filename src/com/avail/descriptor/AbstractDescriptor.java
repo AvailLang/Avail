@@ -54,7 +54,6 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -236,6 +235,13 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
+	 * Every descriptor has this field, and clients can access it directly to
+	 * quickly determine the basic type of any value having that descriptor.
+	 * This is purely an optimization for fast type checking and dispatching.
+	 */
+	final TypeTag typeTag;
+
+	/**
 	 * Whether an {@linkplain AvailObject object} using this {@linkplain
 	 * AbstractDescriptor descriptor} can have more than the minimum number of
 	 * integer slots. Populated automatically by the constructor.
@@ -356,6 +362,8 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -368,10 +376,12 @@ public abstract class AbstractDescriptor
 	@SuppressWarnings("null")
 	protected AbstractDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
 		this.mutability = mutability;
+		this.typeTag = typeTag;
 
 		final ObjectSlotsEnum [] objectSlots = objectSlotsEnumClass != null
 			? objectSlotsEnumClass.getEnumConstants()
@@ -1623,6 +1633,16 @@ public abstract class AbstractDescriptor
 		int end);
 
 	/**
+	 * Compute this object's {@link TypeTag}, having failed to extract it from
+	 * the descriptor directly in {@link AvailObjectRepresentation#typeTag()}.
+	 *
+	 * @param object
+	 * @return
+	 */
+	abstract TypeTag o_ComputeTypeTag (
+		AvailObject object);
+
+	/**
 	 * @param object
 	 * @param canDestroy
 	 * @return
@@ -2202,14 +2222,6 @@ public abstract class AbstractDescriptor
 	abstract void o_OuterVarAtPut (
 		AvailObject object,
 		int index,
-		AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_Parent (
-		AvailObject object,
 		AvailObject value);
 
 	/**

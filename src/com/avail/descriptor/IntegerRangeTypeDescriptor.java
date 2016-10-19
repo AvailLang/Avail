@@ -622,6 +622,7 @@ extends TypeDescriptor
 	{
 		super(
 			isMutable ? Mutability.MUTABLE : Mutability.SHARED,
+			TypeTag.EXTENDED_INTEGER_TYPE_TAG,
 			ObjectSlots.class,
 			null);
 		this.lowerInclusive = lowerInclusive;

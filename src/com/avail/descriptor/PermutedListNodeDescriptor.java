@@ -355,7 +355,11 @@ extends ParseNodeDescriptor
 	 */
 	private PermutedListNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability,
+			TypeTag.PERMUTED_LIST_PHRASE_TAG,
+			ObjectSlots.class,
+			null);
 	}
 
 	/** The mutable {@link PermutedListNodeDescriptor}. */

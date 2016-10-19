@@ -224,7 +224,7 @@ extends Descriptor
 		final Mutability mutability,
 		final @Nullable Object javaObject)
 	{
-		super(mutability, null, null);
+		super(mutability, TypeTag.POJO_TAG, null, null);
 		this.javaObject = javaObject;
 	}
 

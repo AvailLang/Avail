@@ -281,7 +281,11 @@ extends ParseNodeDescriptor
 	 */
 	private FirstOfSequenceNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability,
+			TypeTag.FIRST_OF_SEQUENCE_PHRASE_TAG,
+			ObjectSlots.class,
+			null);
 	}
 
 	/** The mutable {@link FirstOfSequenceNodeDescriptor}. */

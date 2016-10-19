@@ -1541,6 +1541,10 @@ extends Descriptor
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(
+			mutability,
+			TypeTag.TUPLE_TAG,
+			objectSlotsEnumClass,
+			integerSlotsEnumClass);
 	}
 }

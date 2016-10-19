@@ -213,7 +213,11 @@ extends ParseNodeDescriptor
 	 */
 	public ExpressionAsStatementNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability,
+			TypeTag.EXPRESSION_AS_STATEMENT_PHRASE_TAG,
+			ObjectSlots.class,
+			null);
 	}
 
 	/** The mutable {@link ExpressionAsStatementNodeDescriptor}. */

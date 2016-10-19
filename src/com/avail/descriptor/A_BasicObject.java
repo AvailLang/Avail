@@ -38,7 +38,6 @@ import java.util.Set;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
@@ -734,16 +733,6 @@ extends JSONFriendly
 	 * Dispatch to the descriptor.
 	 */
 	void makeSubobjectsShared ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject parent ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void parent (AvailObject value);
 
 	/**
 	 * Dispatch to the descriptor.

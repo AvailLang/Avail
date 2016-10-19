@@ -287,7 +287,7 @@ extends ParseNodeDescriptor
 	 */
 	private SendNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.SEND_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link SendNodeDescriptor}. */

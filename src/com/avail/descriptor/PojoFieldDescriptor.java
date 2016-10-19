@@ -300,7 +300,7 @@ extends Descriptor
 	 */
 	private PojoFieldDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.VARIABLE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link PojoFieldDescriptor}. */

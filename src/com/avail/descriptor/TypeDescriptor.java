@@ -83,7 +83,7 @@ extends AbstractTypeDescriptor
 		 * not accidentally used as procedures – and to ensure that the reader
 		 * of the code knows it.
 		 */
-		TOP(null, TopTypeDescriptor.mutable),
+		TOP(TypeTag.TOP_TYPE_TAG),
 
 		/**
 		 * This is the second-most general type in Avail's type lattice.  It is
@@ -95,18 +95,18 @@ extends AbstractTypeDescriptor
 		 * VariableDescriptor variable}) and can never be manipulated by an
 		 * Avail program.
 		 */
-		ANY(TOP),
+		ANY(TOP, TypeTag.ANY_TYPE_TAG),
 
 		/**
 		 * This is the kind of all nontypes.
 		 */
-		NONTYPE(ANY),
+		NONTYPE(ANY, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * This is the kind of all {@linkplain AtomDescriptor atoms}.  Atoms
 		 * have fiat identity and their corresponding type structure is trivial.
 		 */
-		ATOM(NONTYPE),
+		ATOM(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * This is the kind of all {@linkplain CharacterDescriptor characters},
@@ -114,7 +114,7 @@ extends AbstractTypeDescriptor
 		 * standard.  Note that all characters in the supplementary multilingual
 		 * planes are explicitly supported.
 		 */
-		CHARACTER(NONTYPE),
+		CHARACTER(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * {@code Number} is the generalization of all numeric types, which
@@ -123,7 +123,7 @@ extends AbstractTypeDescriptor
 		 * contain both {@linkplain IntegerDescriptor integers} and the signed
 		 * {@linkplain InfinityDescriptor integral infinities}),
 		 */
-		NUMBER(NONTYPE),
+		NUMBER(NONTYPE, TypeTag.NUMBER_TYPE_TAG),
 
 		/**
 		 * The type of all double-precision floating point numbers.  This
@@ -132,7 +132,7 @@ extends AbstractTypeDescriptor
 		 * DoubleDescriptor#negativeInfinity() negative} infinities and
 		 * {@linkplain DoubleDescriptor#notANumber() Not-a-Number}.
 		 */
-		DOUBLE(NUMBER),
+		DOUBLE(NUMBER, TypeTag.NUMBER_TYPE_TAG),
 
 		/**
 		 * The type of all single-precision floating point numbers.  This
@@ -141,25 +141,25 @@ extends AbstractTypeDescriptor
 		 * FloatDescriptor#negativeInfinity() negative} infinities and
 		 * {@linkplain FloatDescriptor#notANumber() Not-a-Number}.
 		 */
-		FLOAT(NUMBER),
+		FLOAT(NUMBER, TypeTag.NUMBER_TYPE_TAG),
 
 		/**
 		 * All {@linkplain MethodDescriptor methods} are of this kind.
 		 */
-		METHOD(NONTYPE),
+		METHOD(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * This is the kind of all {@linkplain MessageBundleDescriptor message
 		 * bundles}, which are used during parsing of Avail code.
 		 */
-		MESSAGE_BUNDLE(NONTYPE),
+		MESSAGE_BUNDLE(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * This is the kind of all {@linkplain DefinitionParsingPlanDescriptor
 		 * definition parsing plans}, which are used during parsing of Avail
 		 * code.
 		 */
-		DEFINITION_PARSING_PLAN(NONTYPE),
+		DEFINITION_PARSING_PLAN(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * This is the kind of all {@linkplain MessageBundleTreeDescriptor
@@ -168,7 +168,7 @@ extends AbstractTypeDescriptor
 		 * parsing method or macro invocations that start with the same tokens
 		 * and arguments.
 		 */
-		MESSAGE_BUNDLE_TREE(NONTYPE),
+		MESSAGE_BUNDLE_TREE(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * {@linkplain TokenDescriptor Tokens} all have the same kind, except
@@ -177,33 +177,33 @@ extends AbstractTypeDescriptor
 		 * produced by a {@linkplain AvailScanner lexical scanner} and are
 		 * consumed by the {@linkplain AvailCompiler parser}.
 		 */
-		TOKEN(NONTYPE),
+		TOKEN(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * The general kind of {@linkplain DefinitionDescriptor method
 		 * signatures}.
 		 */
-		DEFINITION(NONTYPE),
+		DEFINITION(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * The specific kind of a definition which is an {@linkplain
 		 * AbstractDefinitionDescriptor abstract declaration} of a method.
 		 */
-		ABSTRACT_DEFINITION(DEFINITION),
+		ABSTRACT_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * The specific kind of definition which is a {@linkplain
 		 * ForwardDefinitionDescriptor forward declaration}.  Such declarations
 		 * must be resolved by the end of the module in which they occur.
 		 */
-		FORWARD_DEFINITION(DEFINITION),
+		FORWARD_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * The specific kind of signature which is an actual {@linkplain
 		 * MethodDefinitionDescriptor method function}, by far the most
 		 * common case.
 		 */
-		METHOD_DEFINITION(DEFINITION),
+		METHOD_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * The specific kind of signature which is an actual {@linkplain
@@ -212,7 +212,7 @@ extends AbstractTypeDescriptor
 		 * definition sites, nor may it mix macro definition sites and
 		 * any other type of sites.
 		 */
-		MACRO_DEFINITION(DEFINITION),
+		MACRO_DEFINITION(DEFINITION, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * {@linkplain ModuleDescriptor Modules} are maintained mostly
@@ -221,7 +221,7 @@ extends AbstractTypeDescriptor
 		 * need for modules to be placed in sets and maps maintained by the
 		 * runtime, so the type story has to at least be consistent.
 		 */
-		MODULE(NONTYPE),
+		MODULE(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
 		 * A {@linkplain PojoDescriptor POJO} is a Plain Old Java {@linkplain
@@ -233,15 +233,23 @@ extends AbstractTypeDescriptor
 		 * and doing other things that occasionally require their kind to be
 		 * extracted.
 		 */
-		RAW_POJO(NONTYPE);
+		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG);
 
-		/** A value at least as large as this enumeration's membership. */
-		private static final int enumCount = 20;
+		/** The total count of {@link Types} enum values. */
+		public static final int enumCount = 20;
+
+		static
+		{
+			assert Types.values().length == enumCount;
+		}
 
 		/**
 		 * The {@link Types} object representing this type's supertype.
 		 */
 		public final @Nullable Types parent;
+
+		/** The {@link TypeTag} for this primitive type. */
+		final TypeTag typeTag;
 
 		/**
 		 * Answer the parent {@link Types} object.  Fail if this is the top
@@ -255,13 +263,6 @@ extends AbstractTypeDescriptor
 			assert p != null;
 			return p;
 		}
-
-		/**
-		 * The descriptor to instantiate.  This allows {@link TopTypeDescriptor}
-		 * to be used in place of {@link PrimitiveTypeDescriptor} for the top
-		 * type.
-		 */
-		protected final PrimitiveTypeDescriptor descriptor;
 
 		/**
 		 * The {@link AvailObject} itself that this represents.
@@ -290,25 +291,18 @@ extends AbstractTypeDescriptor
 		public final A_Type[] intersectionTypes = new A_Type[enumCount];
 
 		/**
-		 * Construct a new {@linkplain Types} instance with the specified
-		 * parent, the name of the new type's type, and the descriptor to use.
+		 * Construct the new top {@linkplain Types} instance.
 		 *
-		 * @param parent
-		 *        The new type's parent, or {@code null} if the type has no
-		 *        parent.
-		 * @param descriptor
-		 *        The descriptor for the new type.
+		 * @param typeTag
+		 *        The {@link TypeTag} for this {@link Types primitive type}'s
+		 *        descriptor.
 		 */
-		Types (
-			final @Nullable Types parent,
-			final PrimitiveTypeDescriptor descriptor)
+		Types (final TypeTag typeTag)
 		{
-			this.parent = parent;
-			this.descriptor = descriptor;
-			final String name = descriptor instanceof TopTypeDescriptor
-				? "⊤"
-				: name().toLowerCase().replace('_', ' ');
-			this.o = descriptor.createPrimitiveObjectNamed(name, ordinal());
+			this.parent = null;
+			this.typeTag = typeTag;
+			this.o =
+				PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed("⊤");
 		}
 
 		/**
@@ -320,9 +314,14 @@ extends AbstractTypeDescriptor
 		 *        The new type's parent, or {@code null} if the type has no
 		 *        parent.
 		 */
-		Types (final @Nullable Types parent)
+		Types (
+			final @Nullable Types parent,
+			final TypeTag typeTag)
 		{
-			this(parent, PrimitiveTypeDescriptor.mutable);
+			this.parent = parent;
+			this.typeTag = typeTag;
+			this.o = PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed(
+				name().toLowerCase().replace('_', ' '));
 		}
 
 		/**
@@ -332,9 +331,7 @@ extends AbstractTypeDescriptor
 		 */
 		public AvailObject o ()
 		{
-			final AvailObject obj = o;
-			assert obj != null;
-			return obj;
+			return o;
 		}
 
 		/**
@@ -356,15 +353,20 @@ extends AbstractTypeDescriptor
 		static
 		{
 			// Build all the objects with null fields.
-			assert all.length <= enumCount;
-			// Connect and name the objects.
+			assert all.length == enumCount;
+			// Connect the objects.
 			for (final Types spec : all)
 			{
 				final A_Type o = spec.o();
-				o.parent(
+				final PrimitiveTypeDescriptor descriptor =
+					spec == TOP
+						? new TopTypeDescriptor(spec.typeTag, spec)
+						: new PrimitiveTypeDescriptor(spec.typeTag, spec);
+				descriptor.finishInitializingPrimitiveTypeWithParent(
+					(AvailObject)o,
 					spec.parent == null
-						 ? NilDescriptor.nil()
-						: spec.parent().o());
+						? NilDescriptor.nil()
+						: spec.parent.o());
 				final boolean[] supersRow = spec.superTests;
 				assert supersRow != null;
 				Types pointer = spec;
@@ -378,8 +380,6 @@ extends AbstractTypeDescriptor
 			// Precompute all type unions and type intersections.
 			for (final Types a : all)
 			{
-				final A_Type unionRow [] = a.unionTypes;
-				final A_Type intersectionRow [] = a.intersectionTypes;
 				for (final Types b : all)
 				{
 					// First, compute the union.  Move both pointers up the tree
@@ -408,14 +408,14 @@ extends AbstractTypeDescriptor
 						// "top", it would have already been detected as a
 						// supertype of the other.
 					}
-					unionRow[bOrdinal] = union.o();
+					a.unionTypes[bOrdinal] = union.o();
 					assert a.superTests[union.ordinal()];
 					assert b.superTests[union.ordinal()];
 					// Now compute the type intersection.  Note that since the
 					// types form a tree, any two types related by sub/super
 					// typing have an intersection that's the subtype, and all
 					// other type pairs have bottom as their intersection.
-					intersectionRow[bOrdinal] =
+					a.intersectionTypes[bOrdinal] =
 						a.superTests[bOrdinal] ? a.o() :
 							b.superTests[a.ordinal()] ? b.o() :
 								BottomTypeDescriptor.bottom();
@@ -1120,6 +1120,8 @@ extends AbstractTypeDescriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -1131,9 +1133,10 @@ extends AbstractTypeDescriptor
 	 */
 	protected TypeDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 }

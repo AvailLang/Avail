@@ -454,7 +454,11 @@ extends SetBinDescriptor
 		final Mutability mutability,
 		final int level)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class, level);
+		super(
+			mutability,
+			TypeTag.SET_LINEAR_BIN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class, level);
 	}
 
 	/**

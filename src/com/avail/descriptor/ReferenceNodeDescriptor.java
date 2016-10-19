@@ -235,7 +235,8 @@ extends ParseNodeDescriptor
 	 */
 	public ReferenceNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability, TypeTag.REFERENCE_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link ReferenceNodeDescriptor}. */

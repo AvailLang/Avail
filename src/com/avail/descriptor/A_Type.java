@@ -298,6 +298,11 @@ extends A_BasicObject
 	boolean lowerInclusive ();
 
 	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_BasicObject parent ();
+
+	/**
 	 * Also declared in {@link A_Phrase} for {@linkplain ParseNodeDescriptor
 	 * parse nodes}, not just parse node types.
 	 *
