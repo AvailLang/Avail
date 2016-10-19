@@ -90,6 +90,18 @@ extends Descriptor
 		MESSAGE,
 
 		/**
+		 * The tuple of {@linkplain StringDescriptor strings} comprising the
+		 * method name's tokens. These tokens may be a single operator
+		 * character, a sequence of alphanumerics, the underscore "_", an open
+		 * guillemet "«", a close guillemet "»", the double-dagger "‡", the
+		 * ellipsis "…", or any backquoted non-alphanumeric character "`$". Some
+		 * of the parsing instructions index this tuple (e.g., to represent
+		 * parsing a particular keyword). This tuple is produced by the {@link
+		 * MessageSplitter}.
+		 */
+		MESSAGE_PARTS,
+
+		/**
 		 * The {@link MessageSplitter} that describes how to parse invocations
 		 * of this message bundle.
 		 */
@@ -103,6 +115,18 @@ extends Descriptor
 		GRAMMATICAL_RESTRICTIONS,
 
 		/**
+		 * A tuple of integers that describe how to parse an invocation of this
+		 * method. The integers encode parsing instructions, many of which can
+		 * be executed en masse against a piece of Avail source code for
+		 * multiple potential methods. This is facilitated by the incremental
+		 * construction of a {@linkplain MessageBundleTreeDescriptor message
+		 * bundle tree}. The instructions are produced during analysis of the
+		 * method name by the {@link MessageSplitter}, which has a description
+		 * of the complete instruction set.
+		 */
+		PARSING_INSTRUCTIONS,
+
+		/**
 		 * The {@link SetDescriptor set} of {@link
 		 * DefinitionParsingPlanDescriptor definition parsing plans} that are
 		 * defined for this bundle.  This should agree in size with all other
@@ -112,6 +136,17 @@ extends Descriptor
 		 * MacroDefinitionDescriptor macro definitions}.
 		 */
 		DEFINITION_PARSING_PLANS;
+	}
+
+	/**
+	 * Used for describing logical aspects of the bundle in the Eclipse
+	 * debugger.
+	 */
+	public static enum FakeSlots
+	implements ObjectSlotsEnum
+	{
+		/** Used for showing the parsing instructions symbolically. */
+		SYMBOLIC_INSTRUCTIONS;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -170,6 +205,65 @@ extends Descriptor
 		return object.slot(DEFINITION_PARSING_PLANS);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the types of local variables and outer variables.
+	 */
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
+		fields.addAll(Arrays.asList(super.o_DescribeForDebugger(object)));
+
+		final A_Tuple instructionsTuple = object.parsingInstructions();
+		final List<A_String> descriptionsList = new ArrayList<>();
+		for (
+			int i = 1, end = instructionsTuple.tupleSize();
+			i <= end;
+			i++)
+		{
+			final int encodedInstruction = instructionsTuple.tupleIntAt(i);
+			final ParsingOperation operation =
+				ParsingOperation.decode(encodedInstruction);
+			final int operand = operation.operand(encodedInstruction);
+			final StringBuilder builder = new StringBuilder();
+			builder.append(i);
+			builder.append(". ");
+			builder.append(operation.name());
+			if (operand > 0)
+			{
+				builder.append(" (");
+				builder.append(operand);
+				builder.append(")");
+				switch (operation)
+				{
+					case PARSE_PART:
+					case PARSE_PART_CASE_INSENSITIVELY:
+					{
+						builder.append(" P=<");
+						builder.append(
+							object.messageParts().tupleAt(operand)
+								.asNativeString());
+						builder.append(">");
+						break;
+					}
+					default:
+						// Do nothing.
+				}
+			}
+			descriptionsList.add(StringDescriptor.from(builder.toString()));
+		}
+		final A_Tuple descriptionsTuple = TupleDescriptor.fromList(descriptionsList);
+		fields.add(new AvailObjectFieldHelper(
+			object,
+			FakeSlots.SYMBOLIC_INSTRUCTIONS,
+			-1,
+			descriptionsTuple));
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
+	}
+
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
@@ -209,10 +303,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Tuple o_MessageParts (final AvailObject object)
 	{
-		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
-		MessageSplitter messageSplitter =
-			(MessageSplitter) splitterPojo.javaObject();
-		return messageSplitter.messageParts();
+		return object.slot(MESSAGE_PARTS);
 	}
 
 	@Override @AvailMethod
@@ -220,6 +311,12 @@ extends Descriptor
 	{
 		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
 		return (MessageSplitter)splitterPojo.javaObject();
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_ParsingInstructions (final AvailObject object)
+	{
+		return object.slot(PARSING_INSTRUCTIONS);
 	}
 
 	@Override @AvailMethod
@@ -388,16 +485,19 @@ extends Descriptor
 		final AvailObject result = mutable.create();
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);
+		result.setSlot(MESSAGE_PARTS, splitter.messageParts());
+		result.setSlot(PARSING_INSTRUCTIONS, splitter.instructionsTuple());
 		result.setSlot(MESSAGE_SPLITTER_POJO, splitterPojo);
 		result.setSlot(GRAMMATICAL_RESTRICTIONS, SetDescriptor.empty());
-		A_Set plans = SetDescriptor.empty();
-		for (final A_Definition definition : method.definitionsTuple())
-		{
-			final A_DefinitionParsingPlan plan =
-				DefinitionParsingPlanDescriptor.createPlan(
-					result, definition);
-			plans = plans.setWithElementCanDestroy(plan, true);
-		}
+		final A_Set plans = SetDescriptor.empty();
+//TODO[MvG] - Finish type-filtering compiler changes
+//		for (final A_Definition definition : method.definitionsTuple())
+//		{
+//			final A_DefinitionParsingPlan plan =
+//				DefinitionParsingPlanDescriptor.createPlan(
+//					result, definition);
+//			plans = plans.setWithElementCanDestroy(plan, true);
+//		}
 		result.setSlot(DEFINITION_PARSING_PLANS, plans);
 		result.makeShared();
 		method.methodAddBundle(result);

@@ -183,38 +183,6 @@ extends ExtendedIntegerDescriptor
 		}
 	}
 
-	@Override
-	String o_NameForDebugger (final AvailObject object)
-	{
-		if (object.isLong())
-		{
-			final long longValue = object.extractLong();
-			String typeName = "Integer";
-			if (isMutable())
-			{
-				typeName = typeName + "\u2133";
-			}
-			final String typeString = "(" + typeName + ")";
-			return String.format(
-				"%s = 0x%08X_%08X = %d",
-				typeString,
-				longValue >>> 32L,
-				longValue & 0xFFFFFFFFL,
-				longValue);
-		}
-		return super.o_NameForDebugger(object);
-	}
-
-	@Override
-	AvailObjectFieldHelper[] o_DescribeForDebugger (final AvailObject object)
-	{
-		if (object.isLong())
-		{
-			return new AvailObjectFieldHelper[0];
-		}
-		return super.o_DescribeForDebugger(object);
-	}
-
 	@Override @AvailMethod
 	int o_RawSignedIntegerAt (final AvailObject object, final int subscript)
 	{
@@ -905,6 +873,7 @@ extends ExtendedIntegerDescriptor
 		A_Number remainder = anInteger;
 		boolean remainderIsReallyNegative = false;
 		A_Number fullQuotient = zero();
+		A_Number partialQuotient = zero();
 
 		final int divisorSlotsCount = intCount(object);
 		// Power of two by which to scale doubleDivisor to get actual value
@@ -979,7 +948,7 @@ extends ExtendedIntegerDescriptor
 			assert quotientScale >= 0L;
 
 			// Include room for sign bit plus safety margin.
-			final A_Number partialQuotient = createUninitialized(
+			partialQuotient = createUninitialized(
 				(int)((quotientScale + 2 >> 5) + 1));
 
 			final long bitShift = quotientScale
@@ -1225,7 +1194,9 @@ extends ExtendedIntegerDescriptor
 			doubleObject.extractDouble() * scaledIntAsDouble;
 		final double product = Math.scalb(scaledProduct, scale);
 		return DoubleDescriptor.objectFromDoubleRecycling(
-			product, doubleObject, canDestroy);
+			product,
+			doubleObject,
+			canDestroy);
 	}
 
 	@Override
@@ -1247,7 +1218,9 @@ extends ExtendedIntegerDescriptor
 			floatObject.extractDouble() * scaledIntAsDouble;
 		final double product = Math.scalb(scaledProduct, scale);
 		return FloatDescriptor.objectFromFloatRecycling(
-			(float)product, floatObject, canDestroy);
+			(float)product,
+			floatObject,
+			canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -2101,7 +2074,7 @@ extends ExtendedIntegerDescriptor
 		final boolean neg = truncated < 0.0d;
 		truncated = abs(truncated);
 		final int exponent = getExponent(truncated);
-		final int slots = (exponent + 31) / 32;  // probably needs work
+		final int slots = exponent + 31 / 32;  // probably needs work
 		final AvailObject out = createUninitialized(slots);
 		truncated = scalb(truncated, (1 - slots) * 32);
 		for (int i = slots; i >= 1; --i)
@@ -2225,19 +2198,19 @@ extends ExtendedIntegerDescriptor
 	}
 
 	/** The initialization value for computing the hash of an integer. */
-	private static final int initialHashValue = 0x13592884;
+	static final int initialHashValue = 0x13592884;
 
 	/**
-	 * The value to xor with after multiplying by the {@link
-	 * AvailObject#multiplier} for each {@code int} of the integer.
+	 * The value to xor with after multiplying by the {@link #multiplier} for
+	 * each int of the integer.
 	 */
-	private static final int postMultiplyHashToggle = 0x95ffb59f;
+	static final int postMultiplyHashToggle = 0x95ffb59f;
 
 	/**
 	 * The value to add after performing a final extra multiply by {@link
-	 * AvailObject#multiplier}.
+	 * #multiplier}.
 	 */
-	private static final int finalHashAddend = 0x5127ee66;
+	static final int finalHashAddend = 0x5127ee66;
 
 
 	/**
@@ -2270,7 +2243,7 @@ extends ExtendedIntegerDescriptor
 	 * @return The hash of the given Avail {@linkplain IntegerDescriptor
 	 *         integer}.
 	 */
-	private static int computeHashOfIntegerObject (final A_Number anIntegerObject)
+	static int computeHashOfIntegerObject (final A_Number anIntegerObject)
 	{
 		int output = initialHashValue;
 		for (int i = intCount(anIntegerObject); i > 0; i--)

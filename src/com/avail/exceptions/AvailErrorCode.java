@@ -1,4 +1,4 @@
-/*
+/**
  * AvailErrorCode.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
@@ -429,9 +429,9 @@ public enum AvailErrorCode
 
 	/**
 	 * The {@linkplain FiberDescriptor#current() current fiber} attempted to
-	 * determine the {@linkplain P_CurrentMacroName current macro name}, the
-	 * name (atom) of a send node which was undergoing macro substitution, but
-	 * this fiber is not performing a macro substitution.
+	 * determine the {@linkplain P_CurrentMacroName current macro bundle}, the
+	 * bundle of a send node which was undergoing macro substitution, but this
+	 * fiber is not performing a macro substitution.
 	 */
 	E_NOT_EVALUATING_MACRO (65),
 
@@ -847,7 +847,7 @@ public enum AvailErrorCode
 	 * @param code
 	 *        The numeric error code.
 	 */
-	AvailErrorCode (final int code)
+	private AvailErrorCode (final int code)
 	{
 		this.code = code;
 	}
@@ -869,15 +869,17 @@ public enum AvailErrorCode
 	 * AvailErrorCode}s.
 	 */
 	private final static Map<Integer, AvailErrorCode> byNumericCode
-		= new HashMap<>();
+		= new HashMap<Integer, AvailErrorCode>();
 
 	// The enumeration values have been initialized, so build the map.
 	static
 	{
 		for (final AvailErrorCode errorCode : values())
 		{
-			assert !byNumericCode.containsKey(errorCode.nativeCode());
-			byNumericCode.put(errorCode.nativeCode(), errorCode);
+			assert !byNumericCode.containsKey(errorCode.numericCode());
+			byNumericCode.put(
+				Integer.valueOf(errorCode.nativeCode()),
+				errorCode);
 		}
 	}
 

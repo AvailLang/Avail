@@ -158,8 +158,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_PERMISSION_DENIED,
-				E_NO_EXTERNAL_PROCESS));
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_PERMISSION_DENIED.numericCode(),
+				E_NO_EXTERNAL_PROCESS.numericCode())));
 	}
 }

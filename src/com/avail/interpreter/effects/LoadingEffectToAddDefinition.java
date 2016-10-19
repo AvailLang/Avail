@@ -110,10 +110,6 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 			writer.write(
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(atom));
-			// Push the tuple of macro prefix functions.
-			writer.write(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(definition.prefixFunctions()));
 			// Push the macro body function.
 			writer.write(
 				L1Operation.L1_doPushLiteral,
@@ -122,7 +118,7 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 			writer.write(
 				L1Operation.L1_doCall,
 				writer.addLiteral(
-					MethodDescriptor.vmMacroDefinerAtom().bundleOrNil()),
+					MethodDescriptor.vmJustMacroDefinerAtom().bundleOrNil()),
 				writer.addLiteral(Types.TOP.o()));
 			return;
 		}

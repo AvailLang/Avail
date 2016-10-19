@@ -86,8 +86,7 @@ public final class P_CreateReferenceExpression extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE));
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE.numericCode());
 	}
 }

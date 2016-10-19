@@ -198,7 +198,11 @@ extends TupleDescriptor
 			}
 
 			// If the subranges start at the same place, they are the same.
-			return startIndex1 == startIndex2;
+			if (startIndex1 == startIndex2)
+			{
+				return true;
+			}
+			return false;
 		}
 
 		// Finally, check the subranges.
@@ -617,12 +621,13 @@ extends TupleDescriptor
 			(newEnd.extractLong() - newStart.extractLong())
 					/ delta.extractInt()
 				+ 1L;
-		// Watch out for the case that they're all ints, but the size is bigger
-		// than Integer.MAX_VALUE.  (e.g., -2 billion to +2 billion has a size
-		// of 4 billion, which is bigger than a signed int can hold.
-		return size == (int) size;
+		if (size != (int)size)
+		{
+			// They're all ints, but the size is bigger than Integer.MAX_VALUE.
+			return false;
+		}
+		return true;
 	}
-
 	/**
 	 * Create a new interval according to the parameters.
 	 *

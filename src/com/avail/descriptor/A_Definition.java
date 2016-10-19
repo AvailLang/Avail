@@ -45,23 +45,12 @@ public interface A_Definition
 extends A_BasicObject
 {
 	/**
-	 * If this is a {@linkplain MethodDefinitionDescriptor method definition}
-	 * then answer the actual {@linkplain FunctionDescriptor function}.  If this
-	 * is a {@linkplain MacroDefinitionDescriptor macro definition}, answer the
-	 * macro body function.  Fail otherwise.
+	 * Answer the {@linkplain ModuleDescriptor module} in which this
+	 * definition occurred.
 	 *
-	 * @return The function of the method/macro definition.
+	 * @return The module containing this definition.
 	 */
-	A_Function bodyBlock ();
-
-	/**
-	 * Answer a {@linkplain FunctionTypeDescriptor function type} that
-	 * identifies where this definition occurs in the {@linkplain
-	 * MethodDescriptor method}'s directed acyclic graph of definitions.
-	 *
-	 * @return The function type for this definition.
-	 */
-	A_Type bodySignature ();
+	A_Module module ();
 
 	/**
 	 * Answer the {@linkplain MethodDescriptor method} that this {@linkplain
@@ -85,6 +74,15 @@ extends A_BasicObject
 	A_Module definitionModule ();
 
 	/**
+	 * Answer a {@linkplain FunctionTypeDescriptor function type} that
+	 * identifies where this definition occurs in the {@linkplain
+	 * MethodDescriptor method}'s directed acyclic graph of definitions.
+	 *
+	 * @return The function type for this definition.
+	 */
+	A_Type bodySignature ();
+
+	/**
 	 * Answer whether this is an {@linkplain AbstractDefinitionDescriptor
 	 * abstract definition}.
 	 *
@@ -101,6 +99,14 @@ extends A_BasicObject
 	boolean isForwardDefinition ();
 
 	/**
+	 * Is the {@linkplain AvailObject receiver} a {@linkplain
+	 * MethodDefinitionDescriptor method definition}?
+	 *
+	 * @return {@code true} if the receiver is a method definition.
+	 */
+	boolean isMethodDefinition ();
+
+	/**
 	 * Answer whether this definition is a {@linkplain MacroDefinitionDescriptor
 	 * macro definition}.  Macro definitions may not be mixed with any other
 	 * kinds of definitions.
@@ -110,37 +116,11 @@ extends A_BasicObject
 	boolean isMacroDefinition ();
 
 	/**
-	 * Is the {@linkplain AvailObject receiver} a {@linkplain
-	 * MethodDefinitionDescriptor method definition}?
+	 * If this is a {@linkplain MethodDefinitionDescriptor method definition}
+	 * then answer the actual {@linkplain FunctionDescriptor function}.  Fail if
+	 * this is not a method definition.
 	 *
-	 * @return {@code true} if the receiver is a method definition.
+	 * @return The method definition's function.
 	 */
-	boolean isMethodDefinition ();
-
-	/**
-	 * Answer the {@linkplain ModuleDescriptor module} in which this
-	 * definition occurred.
-	 *
-	 * @return The module containing this definition.
-	 */
-	A_Module module ();
-
-	/**
-	 * Answer the {@link TupleTypeDescriptor tuple type} of {@link
-	 * ParseNodeTypeDescriptor phrase types} for this definition.  The parser
-	 * uses this type to produce a customized {@link A_DefinitionParsingPlan
-	 * parsing plan}.
-	 *
-	 * @return A subtype of {@code <phrase type…|>}
-	 */
-	A_Type parsingSignature ();
-
-	/**
-	 * Answer the {@linkplain A_Tuple tuple} of macro prefix {@link A_Function
-	 * functions} for this {@link MacroDefinitionDescriptor macro definition}.
-	 * Fail if this is not a macro definition.
-	 *
-	 * @return This macro definition's tuple of prefix functions.
-	 */
-	A_Tuple prefixFunctions ();
+	A_Function bodyBlock ();
 }

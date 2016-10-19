@@ -110,6 +110,6 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(E_INVALID_PATH));
+			TupleDescriptor.from(E_INVALID_PATH.numericCode()).asSet());
 	}
 }

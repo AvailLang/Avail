@@ -78,7 +78,7 @@ public final class P_DoubleTruncatedAsInteger extends Primitive
 		final boolean neg = d < 0.0d;
 		d = abs(d);
 		final int exponent = getExponent(d);
-		final int slots = (exponent + 31) / 32;  // probably needs work
+		final int slots = exponent + 31 / 32;  // probably needs work
 		A_Number out = IntegerDescriptor.createUninitialized(slots);
 		d = scalb(d, (1 - slots) * 32);
 		for (int i = slots; i >= 1; --i)
@@ -108,8 +108,7 @@ public final class P_DoubleTruncatedAsInteger extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER));
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER.numericCode());
 	}
 }

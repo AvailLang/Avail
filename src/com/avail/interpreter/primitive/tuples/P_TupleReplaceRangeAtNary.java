@@ -275,10 +275,10 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_SUBSCRIPT_OUT_OF_BOUNDS,
-				E_INCORRECT_ARGUMENT_TYPE,
-				E_KEY_NOT_FOUND,
-				E_NEGATIVE_SIZE));
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode(),
+				E_INCORRECT_ARGUMENT_TYPE.numericCode(),
+				E_KEY_NOT_FOUND.numericCode(),
+				E_NEGATIVE_SIZE.numericCode())));
 	}
 }

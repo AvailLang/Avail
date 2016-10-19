@@ -153,10 +153,10 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_INVALID_PRIMITIVE_NUMBER,
-				E_FUNCTION_DISAGREES_WITH_PRIMITIVE_RESTRICTION,
-				E_LOCAL_TYPE_LITERAL_IS_NOT_A_TYPE,
-				E_OUTER_TYPE_LITERAL_IS_NOT_A_TYPE));
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_INVALID_PRIMITIVE_NUMBER.numericCode(),
+				E_FUNCTION_DISAGREES_WITH_PRIMITIVE_RESTRICTION.numericCode(),
+				E_LOCAL_TYPE_LITERAL_IS_NOT_A_TYPE.numericCode(),
+				E_OUTER_TYPE_LITERAL_IS_NOT_A_TYPE.numericCode())));
 	}
 }

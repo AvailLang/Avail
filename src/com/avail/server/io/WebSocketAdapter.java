@@ -1026,7 +1026,8 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					}
 					else
 					{
-						final List<String> empty = Collections.emptyList();
+						final List<String> empty =
+							Collections.<String>emptyList();
 						final ServerHandshake serverHandshake =
 							new ServerHandshake(handshake.key, empty, empty);
 						serverHandshake.sendThen(

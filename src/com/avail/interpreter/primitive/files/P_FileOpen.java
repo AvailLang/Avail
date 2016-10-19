@@ -238,12 +238,13 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_EXCEEDS_VM_LIMIT,
-				E_INVALID_PATH,
-				E_ILLEGAL_OPTION,
-				E_OPERATION_NOT_SUPPORTED,
-				E_PERMISSION_DENIED,
-				E_IO_ERROR));
+			TupleDescriptor.from(
+				E_EXCEEDS_VM_LIMIT.numericCode(),
+				E_INVALID_PATH.numericCode(),
+				E_ILLEGAL_OPTION.numericCode(),
+				E_OPERATION_NOT_SUPPORTED.numericCode(),
+				E_PERMISSION_DENIED.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

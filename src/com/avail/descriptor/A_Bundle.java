@@ -127,6 +127,22 @@ extends A_BasicObject
 	MessageSplitter messageSplitter ();
 
 	/**
+	 * Answer a {@linkplain TupleDescriptor tuple} of {@linkplain
+	 * IntegerDescriptor integers} encoding the {@linkplain ParsingOperation
+	 * parsing instructions} required to parse a call to this bundle's method
+	 * using this bundle's name (message).
+	 *
+	 * <p>
+	 * Matching parsing instructions for multiple messages can (usually) be
+	 * executed in aggregate, avoiding the separate cost of attempting to parse
+	 * each possible message at each place where a call may occur.
+	 * </p>
+	 *
+	 * @return A tuple of integers encoding this bundle's parsing instructions.
+	 */
+	A_Tuple parsingInstructions ();
+
+	/**
 	 * Remove a {@linkplain GrammaticalRestrictionDescriptor grammatical
 	 * restriction} from the receiver.
 	 *

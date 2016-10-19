@@ -95,11 +95,12 @@ extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				AbstractEnumerationTypeDescriptor.withInstances(
-					SetDescriptor.from(
-						IntegerDescriptor.fromInt(1),
-						IntegerDescriptor.fromInt(256),
-						IntegerDescriptor.fromInt(384),
-						IntegerDescriptor.fromInt(512))),
+					SetDescriptor.fromCollection(
+						Arrays.asList(
+							IntegerDescriptor.fromInt(1),
+							IntegerDescriptor.fromInt(256),
+							IntegerDescriptor.fromInt(384),
+							IntegerDescriptor.fromInt(512)))),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					IntegerRangeTypeDescriptor.bytes())),
 			TupleTypeDescriptor.oneOrMoreOf(

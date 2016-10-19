@@ -107,8 +107,8 @@ public final class P_TupleTypeSequenceOfTypes extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_SUBSCRIPT_OUT_OF_BOUNDS,
-				E_NEGATIVE_SIZE));
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode(),
+				E_NEGATIVE_SIZE.numericCode())));
 	}
 }

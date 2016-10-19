@@ -172,11 +172,11 @@ public final class P_BootstrapBlockMacro extends Primitive
 		}
 
 		// Deal with the primitive declaration if present.
+		final int primNumber;
 		boolean canHaveStatements = true;
 		assert optionalPrimitive.expressionsSize() <= 1;
+		@Nullable A_Type primitiveReturnType = null;
 		final @Nullable Primitive prim;
-		final int primNumber;
-		final @Nullable A_Type primitiveReturnType;
 		if (optionalPrimitive.expressionsSize() == 1)
 		{
 			final A_Phrase primPhrase = optionalPrimitive.expressionAt(1);
@@ -230,17 +230,17 @@ public final class P_BootstrapBlockMacro extends Primitive
 		{
 			prim = null;
 			primNumber = 0;
-			primitiveReturnType = null;
 		}
 
 		// Deal with the label if present.
 		@Nullable A_Type labelReturnType = null;
+		@Nullable A_String labelDeclarationName = null;
 		assert optionalLabel.expressionsSize() <= 1;
 		if (optionalLabel.expressionsSize() == 1)
 		{
 			final A_Phrase presentLabel = optionalLabel.expressionAt(1);
 			final A_Token labelToken = presentLabel.expressionAt(1).token();
-			final A_String labelDeclarationName = labelToken.literal().string();
+			labelDeclarationName = labelToken.literal().string();
 			if (!scopeMap.hasKey(labelDeclarationName))
 			{
 				// The label binding is missing.
@@ -452,8 +452,9 @@ public final class P_BootstrapBlockMacro extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_LOADING_IS_OVER,
-				E_INCONSISTENT_PREFIX_FUNCTION));
+			TupleDescriptor.from(
+				E_LOADING_IS_OVER.numericCode(),
+				E_INCONSISTENT_PREFIX_FUNCTION.numericCode()
+			).asSet());
 	}
 }

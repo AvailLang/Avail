@@ -103,7 +103,7 @@ public class AvailObjectFieldHelper
 	/**
 	 * The object containing this field.
 	 */
-	private final @Nullable A_BasicObject parentObject;
+	public final @Nullable A_BasicObject parentObject;
 
 	/**
 	 * The actual value being presented with the given label.
@@ -155,7 +155,7 @@ public class AvailObjectFieldHelper
 	 *
 	 * @return A {@link String}.
 	 */
-	public String nameForDebugger ()
+	public String name ()
 	{
 		String string = name;
 		if (string == null)
@@ -176,7 +176,7 @@ public class AvailObjectFieldHelper
 			else if (val instanceof AvailObject)
 			{
 				builder.append(' ');
-				builder.append(((AvailObject)val).nameForDebugger());
+				builder.append(((A_BasicObject)val).nameForDebugger());
 			}
 			else if (val instanceof AvailIntegerValueHelper)
 			{
@@ -186,37 +186,15 @@ public class AvailObjectFieldHelper
 					(IntegerSlotsEnum)slot,
 					builder);
 			}
-			else if (value instanceof String)
-			{
-				builder.append(" = Java String: ");
-				builder.append((String)val);
-			}
-			else if (value instanceof String[])
-			{
-				builder.append(" = Multi-line text");
-			}
 			else
 			{
 				builder.append(String.format(
-					" *** UNKNOWN FIELD VALUE TYPE: %s ***",
+					"*** UNKNOWN FIELD VALUE TYPE: %s ***",
 					val.getClass().getCanonicalName()));
 			}
 			string = builder.toString();
 			name = string;
 		}
 		return string;
-	}
-
-	public Object describeForDebugger ()
-	{
-		if (value instanceof AvailObject)
-		{
-			return ((AvailObject) value).describeForDebugger();
-		}
-		if (value instanceof AvailIntegerValueHelper)
-		{
-			return new Object[0];
-		}
-		return value;
 	}
 }

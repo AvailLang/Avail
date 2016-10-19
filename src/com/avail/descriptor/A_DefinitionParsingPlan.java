@@ -64,8 +64,18 @@ extends A_BasicObject
 	A_Definition definition ();
 
 	/**
+	 * Answer the tuple of types that are referenced from encoded occurrences of
+	 * {@link ParsingOperation#TYPE_CHECK_ARGUMENT}, referenced by index within
+	 * this plan's bundle's {@link A_Bundle#parsingInstructions()}.
+	 *
+	 * @return A tuple of types used to filter parses.
+	 */
+	A_Tuple typesToCheck ();
+
+	/**
 	 * Answer a Java {@link String} representing this message name being parsed
-	 * at the given position within the plan's {@link #parsingInstructions()}.
+	 * at the given position within the plan's bundle's {@link
+	 * A_Bundle#parsingInstructions()}.
 	 *
 	 * @param pc
 	 *        The 1-based position within the parsing instructions at which to
@@ -74,18 +84,4 @@ extends A_BasicObject
 	 *         specified parsing instruction.
 	 */
 	String nameHighlightingPc (int pc);
-
-	/**
-	 * Answer a {@linkplain TupleDescriptor tuple} of {@linkplain
-	 * IntegerDescriptor integers} encoding the {@linkplain ParsingOperation}s
-	 * and operands required to parse a call to this parsing plan.
-	 *
-	 * <p>Matching parsing instructions for multiple messages can (usually) be
-	 * executed in aggregate, avoiding the separate cost of attempting to parse
-	 * each possible message at each place where a call may occur.</p>
-	 *
-	 * @return A tuple of integers encoding this plan's parsing instructions.
-	 */
-	A_Tuple parsingInstructions ();
-
 }

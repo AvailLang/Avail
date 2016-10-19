@@ -126,8 +126,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-					E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			SetDescriptor.fromCollection(Arrays.asList(
+					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode()))
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

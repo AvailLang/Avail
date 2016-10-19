@@ -102,8 +102,7 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_ILLEGAL_TRACE_MODE));
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_ILLEGAL_TRACE_MODE.numericCode());
 	}
 }

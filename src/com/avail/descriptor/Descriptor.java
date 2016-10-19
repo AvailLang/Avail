@@ -293,6 +293,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Map o_AllBundles (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	A_Map o_AllParsingPlans (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -382,6 +388,12 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_Atom methodName,
 		final A_Tuple argumentTypes)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_AllocateFromCounter (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -909,8 +921,8 @@ extends AbstractDescriptor
 	@Override
 	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<? extends A_BasicObject> argumentList)
-	throws MethodDefinitionException
+		final List<? extends A_BasicObject> argumentList,
+		final MutableOrNull<AvailErrorCode> errorCode)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1099,6 +1111,12 @@ extends AbstractDescriptor
 	void o_RemoveDefinition (
 		final AvailObject object,
 		final A_Definition definition)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_RemoveBundleNamed (final AvailObject object, final A_Atom message)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1587,7 +1605,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Set o_LazyComplete (final AvailObject object)
+	A_Map o_LazyComplete (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4495,10 +4513,28 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	public void o_PrefixFunctions(
+		final AvailObject object,
+		final A_Tuple prefixFunctions)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ModuleAddPrefixFunction (
+		final AvailObject object,
+		final A_Method method,
+		final int index,
+		final A_Function prefixFunction)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	A_Definition o_LookupMacroByPhraseTuple (
 		final AvailObject object,
-		final A_Tuple argumentPhraseTuple)
-	throws MethodDefinitionException
+		final A_Tuple argumentPhraseTuple,
+		final MutableOrNull<AvailErrorCode> errorCode)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4598,6 +4634,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Tuple o_TypesToCheck (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	String o_NameHighlightingPc (final AvailObject object, final int pc)
 	{
 		throw unsupportedOperationException();
@@ -4649,26 +4691,6 @@ extends AbstractDescriptor
 	A_Type o_TypeUnionOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_BasicObject o_LazyTypeFilterTreePojo (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_AddPlan (
-		final AvailObject object,
-		final A_DefinitionParsingPlan plan)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Type o_ParsingSignature (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

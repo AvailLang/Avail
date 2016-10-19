@@ -100,12 +100,12 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_CANNOT_READ_UNASSIGNED_VARIABLE,
-				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
-				E_JAVA_MARSHALING_FAILED,
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
-				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode(),
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode(),
+				E_CANNOT_MODIFY_FINAL_JAVA_FIELD.numericCode(),
+				E_JAVA_MARSHALING_FAILED.numericCode(),
+				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE.numericCode(),
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode())));
 	}
 }

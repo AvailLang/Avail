@@ -83,7 +83,7 @@ public final class P_CastIntoElse extends Primitive
 		{
 			return interpreter.invokeFunction(
 				castBlock,
-				Collections.singletonList(value),
+				Collections.<A_BasicObject>singletonList(value),
 				false);
 		}
 		return interpreter.invokeFunction(

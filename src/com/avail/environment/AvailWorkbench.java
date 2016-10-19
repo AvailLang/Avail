@@ -875,12 +875,9 @@ extends JFrame
 		graphAction.setEnabled(!busy && selectedModule() != null);
 		insertEntryPointAction.setEnabled(
 			!busy && selectedEntryPoint() != null);
-		final ResolvedModuleName selectedEntryPointModule =
-			selectedEntryPointModule();
 		createProgramAction.setEnabled(
 			!busy && selectedEntryPoint() != null
-				&& selectedEntryPointModule != null
-				&& availBuilder.getLoadedModule(selectedEntryPointModule)
+				&& availBuilder.getLoadedModule(selectedEntryPointModule())
 					!= null);
 		buildEntryPointModuleAction.setEnabled(
 			!busy && selectedEntryPointModule() != null);

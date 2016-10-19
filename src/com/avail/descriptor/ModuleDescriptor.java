@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.ModuleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
@@ -65,6 +66,36 @@ import com.avail.utility.json.JSONWriter;
 public class ModuleDescriptor
 extends Descriptor
 {
+	/**
+	 * The layout of integer slots for my instances.
+	 */
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
+	{
+		/**
+		 * A composite field containing with bit-fields for modules and a
+		 * (currently 31-bit) {@link #COUNTER} for generating integers unique to
+		 * this module.
+		 */
+		FLAGS_AND_COUNTER;
+
+		/**
+		 * An unused one-bit flag.
+		 */
+		static BitField RESERVED_1 = bitField(
+			FLAGS_AND_COUNTER,
+			31,
+			1);
+
+		/**
+		 * A counter for generating numbers unique to a module.
+		 */
+		static BitField COUNTER = bitField(
+			FLAGS_AND_COUNTER,
+			0,
+			30);
+	}
+
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -185,6 +216,13 @@ extends Descriptor
 		ENTRY_POINTS,
 
 		/**
+		 * A {@linkplain TupleDescriptor tuple} of tuples containing a
+		 * {@linkplain A_Bundle message bundle}, an {@linkplain
+		 * IntegerDescriptor index}, and a {@linkplain A_Function function}.
+		 */
+		PREFIX_FUNCTIONS,
+
+		/**
 		 * A {@linkplain TupleDescriptor tuple} of {@linkplain
 		 * FunctionDescriptor functions} that should be applied when this
 		 * {@linkplain ModuleDescriptor module} is unloaded.
@@ -208,7 +246,9 @@ extends Descriptor
 			|| e == SEMANTIC_RESTRICTIONS
 			|| e == SEALS
 			|| e == ENTRY_POINTS
-			|| e == UNLOAD_FUNCTIONS;
+			|| e == PREFIX_FUNCTIONS
+			|| e == UNLOAD_FUNCTIONS
+			|| e == FLAGS_AND_COUNTER;
 	}
 
 	@Override
@@ -457,6 +497,27 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_ModuleAddPrefixFunction (
+		final AvailObject object,
+		final A_Method method,
+		final int index,
+		final A_Function prefixFunction)
+	{
+		synchronized (object)
+		{
+			final A_Tuple triple = TupleDescriptor.from(
+				method,
+				IntegerDescriptor.fromInt(index),
+				prefixFunction);
+			A_Tuple prefixFunctions = object.slot(PREFIX_FUNCTIONS);
+			prefixFunctions = prefixFunctions.appendCanDestroy(
+				triple, true);
+			prefixFunctions = prefixFunctions.makeShared();
+			object.setSlot(PREFIX_FUNCTIONS, prefixFunctions);
+		}
+	}
+
+	@Override @AvailMethod
 	void o_AddVariableBinding (
 		final AvailObject object,
 		final A_String name,
@@ -472,6 +533,17 @@ extends Descriptor
 				variableBinding,
 				true);
 			object.setSlot(VARIABLE_BINDINGS, variableBindings.makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	int o_AllocateFromCounter (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			final int value = object.slot(COUNTER);
+			object.setSlot(COUNTER, value + 1);
+			return value;
 		}
 	}
 
@@ -711,6 +783,15 @@ extends Descriptor
 									}
 								}
 							}
+							// Remove prefix functions.
+							for (final A_Tuple triple
+								: object.slot(PREFIX_FUNCTIONS))
+							{
+								runtime.removePrefixFunction(
+									triple.tupleAt(1),
+									triple.tupleAt(2).extractInt(),
+									triple.tupleAt(3));
+							}
 						}
 						afterRemoval.value();
 					}
@@ -813,7 +894,6 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			final A_Set ancestors = object.slot(ALL_ANCESTORS);
 			final A_BundleTree filteredBundleTree =
 				MessageBundleTreeDescriptor.newPc(1);
 			for (final A_Atom visibleName : object.visibleNames())
@@ -821,16 +901,12 @@ extends Descriptor
 				final A_Bundle bundle = visibleName.bundleOrNil();
 				if (!bundle.equalsNil())
 				{
+//					for (final A_DefinitionParsingPlan plan
+//						: bundle.definitionParsingPlans())
+//					{
+//						filteredBundleTree.addDefinitionParsingPlan(plan);
+//					}
 					filteredBundleTree.addBundle(bundle);
-					for (final A_DefinitionParsingPlan plan
-						: bundle.definitionParsingPlans())
-					{
-						if (ancestors.hasElement(
-							plan.definition().definitionModule()))
-						{
-							filteredBundleTree.addPlan(plan);
-						}
-					}
 				}
 			}
 			return filteredBundleTree;
@@ -922,7 +998,9 @@ extends Descriptor
 		module.setSlot(SEMANTIC_RESTRICTIONS, emptySet);
 		module.setSlot(SEALS, emptyMap);
 		module.setSlot(ENTRY_POINTS, emptyMap);
+		module.setSlot(PREFIX_FUNCTIONS, emptyTuple);
 		module.setSlot(UNLOAD_FUNCTIONS, emptyTuple);
+		module.setSlot(COUNTER, 0);
 		// Adding the module to its ancestors set will cause recursive scanning
 		// to mark everything as shared, so it's essential that all fields have
 		// been initialized to *something* by now.
@@ -941,7 +1019,7 @@ extends Descriptor
 	 */
 	private ModuleDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link ModuleDescriptor}. */

@@ -113,12 +113,12 @@ extends Primitive
 			@Override
 			public void value ()
 			{
+//				for (final A_DefinitionParsingPlan plan
+//					: newBundle.definitionParsingPlans())
+//				{
+//					root.addDefinitionParsingPlan(plan);
+//				}
 				root.addBundle(newBundle);
-				for (final A_DefinitionParsingPlan plan
-					: newBundle.definitionParsingPlans())
-				{
-					root.addPlan(plan);
-				}
 				root.flushForNewOrChangedBundle(newBundle);
 			}
 		});
@@ -139,11 +139,11 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-					E_LOADING_IS_OVER,
-					E_SPECIAL_ATOM,
-					E_AMBIGUOUS_NAME,
-					E_ATOM_ALREADY_EXISTS)
+			SetDescriptor.fromCollection(Arrays.asList(
+					E_LOADING_IS_OVER.numericCode(),
+					E_SPECIAL_ATOM.numericCode(),
+					E_AMBIGUOUS_NAME.numericCode(),
+					E_ATOM_ALREADY_EXISTS.numericCode()))
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

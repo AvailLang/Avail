@@ -280,7 +280,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		assert originalList.size() > 0;
 		if (originalList.size() == 1)
 		{
-			return Collections.emptyList();
+			return Collections.<E2>emptyList();
 		}
 		if (originalList instanceof PrefixSharingList<?>)
 		{

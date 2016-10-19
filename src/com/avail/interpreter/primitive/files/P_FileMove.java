@@ -136,11 +136,12 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_INVALID_PATH,
-				E_PERMISSION_DENIED,
-				E_NO_FILE,
-				E_FILE_EXISTS,
-				E_IO_ERROR));
+			TupleDescriptor.from(
+				E_INVALID_PATH.numericCode(),
+				E_PERMISSION_DENIED.numericCode(),
+				E_NO_FILE.numericCode(),
+				E_FILE_EXISTS.numericCode(),
+				E_IO_ERROR.numericCode()
+			).asSet());
 	}
 }

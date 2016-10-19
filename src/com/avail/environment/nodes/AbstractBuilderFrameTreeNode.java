@@ -33,7 +33,6 @@
 package com.avail.environment.nodes;
 
 import java.awt.Image;
-import java.net.URL;
 import javax.swing.ImageIcon;
 import javax.swing.tree.DefaultMutableTreeNode;
 import com.avail.annotations.Nullable;
@@ -125,11 +124,10 @@ extends DefaultMutableTreeNode
 				{
 					assert key != null;
 					final String iconResourceName = key.first();
-					final String path = "/workbench/"
-						+ iconResourceName + ".png";
-					final Class<?> thisClass = this.getClass();
-					final URL resource = thisClass.getResource(path);
-					final ImageIcon originalIcon = new ImageIcon(resource);
+					final ImageIcon originalIcon = new ImageIcon(
+						this.getClass().getResource(
+							"/resources/workbench/"
+							+ iconResourceName + ".png"));
 					final Image scaled =
 						originalIcon.getImage().getScaledInstance(
 							-1, key.second(), Image.SCALE_SMOOTH);

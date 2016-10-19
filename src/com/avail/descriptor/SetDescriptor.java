@@ -36,7 +36,6 @@ import static com.avail.descriptor.SetDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
 import com.avail.annotations.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
@@ -618,45 +617,6 @@ extends Descriptor
 		for (final A_BasicObject element : collection)
 		{
 			set = set.setWithElementCanDestroy(element, true);
-		}
-		return set;
-	}
-
-	/**
-	 * Create an Avail set with the specified elements. The elements are not
-	 * made immutable first, nor is the new set.
-	 *
-	 * @param elements
-	 *        The array of Avail values from which to construct a set.
-	 * @return The new mutable set.
-	 */
-	public static A_Set from (
-		final A_BasicObject... elements)
-	{
-		A_Set set = empty();
-		for (A_BasicObject element : elements)
-		{
-			set = set.setWithElementCanDestroy(element, true);
-		}
-		return set;
-	}
-
-	/**
-	 * Create an Avail set with the numeric values of the specified {@link
-	 * AvailErrorCode}s.  The numeric codes (Avail integers) are not made
-	 * immutable first, nor is the new set.
-	 *
-	 * @param errorCodeElements
-	 *        The array of AvailErrorCodes from which to construct a set.
-	 * @return The new mutable set.
-	 */
-	public static A_Set from (
-		final AvailErrorCode... errorCodeElements)
-	{
-		A_Set set = empty();
-		for (AvailErrorCode element : errorCodeElements)
-		{
-			set = set.setWithElementCanDestroy(element.numericCode(), true);
 		}
 		return set;
 	}

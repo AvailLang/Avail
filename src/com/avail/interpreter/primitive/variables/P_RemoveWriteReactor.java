@@ -97,8 +97,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_SPECIAL_ATOM,
-				E_KEY_NOT_FOUND));
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_SPECIAL_ATOM.numericCode(),
+				E_KEY_NOT_FOUND.numericCode())));
 	}
 }

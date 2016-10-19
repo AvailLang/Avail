@@ -32,12 +32,12 @@
 
 package com.avail.test;
 
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
+import static org.junit.Assert.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.test.ScannerTest.Case.C;
 import java.util.*;
+import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.compiler.scanning.*;
 import com.avail.descriptor.*;
@@ -433,32 +433,32 @@ public final class ScannerTest
 						+ " tokens");
 				}
 				assertEquals(
-					TokenDescriptor.create(
-										TupleDescriptor.empty(),
-										TupleDescriptor.empty(),
-										TupleDescriptor.empty(),
-										input.length(),
-										1,
-										-1,
-										END_OF_FILE),
-					scannedTokens.get(scannedTokens.size() - 1),
 					c + ": Expected scanner to have produced the"
-									+ " end-of-file token.");
+					+ " end-of-file token.",
+					TokenDescriptor.create(
+						TupleDescriptor.empty(),
+						TupleDescriptor.empty(),
+						TupleDescriptor.empty(),
+						input.length(),
+						1,
+						-1,
+						END_OF_FILE),
+					scannedTokens.get(scannedTokens.size() - 1));
 				scannedTokens = scannedTokens.subList(
 					0,
 					scannedTokens.size() - 1);
 				assertEquals(
+					c + ": Scanner produced the wrong number of tokens.",
 					c.tokenGenerators.length,
-					scannedTokens.size(),
-					c + ": Scanner produced the wrong number of tokens.");
+					scannedTokens.size());
 				for (int i = 0; i < c.tokenGenerators.length; i++)
 				{
 					final A_BasicObject expected = c.tokenGenerators[i].value();
 					final A_BasicObject actual = scannedTokens.get(i);
 					assertEquals(
+						c + ": Scanner produced a wrong token.",
 						expected,
-						actual,
-						c + ": Scanner produced a wrong token.");
+						actual);
 				}
 			}
 			catch (final AvailScannerException e)
@@ -529,15 +529,15 @@ public final class ScannerTest
 				if (lit_i.literal().equals(lit_j.literal()))
 				{
 					assertEquals(
+						"Literals on same value should be equal",
 						lit_i,
-						lit_j,
-						"Literals on same value should be equal");
+						lit_j);
 				}
 				else
 				{
 					assertFalse(
-						lit_i.equals(lit_j),
-						"Literals on different values should be unequal");
+						"Literals on different values should be unequal",
+						lit_i.equals(lit_j));
 				}
 			}
 		}

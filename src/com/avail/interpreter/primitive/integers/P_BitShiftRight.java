@@ -83,8 +83,7 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_TOO_LARGE_TO_REPRESENT));
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_TOO_LARGE_TO_REPRESENT.numericCode());
 	}
 }

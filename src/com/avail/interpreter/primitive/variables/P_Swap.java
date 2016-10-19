@@ -104,8 +104,8 @@ public final class P_Swap extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES,
-				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES.numericCode(),
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode())));
 	}
 }

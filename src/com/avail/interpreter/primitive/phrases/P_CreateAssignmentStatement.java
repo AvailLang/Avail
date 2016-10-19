@@ -103,8 +103,8 @@ public final class P_CreateAssignmentStatement extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT,
-				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE));
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT.numericCode(),
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode())));
 	}
 }

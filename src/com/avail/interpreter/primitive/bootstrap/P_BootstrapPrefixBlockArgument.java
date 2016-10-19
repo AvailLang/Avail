@@ -148,7 +148,7 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_LOADING_IS_OVER));
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_LOADING_IS_OVER.numericCode())));
 	}
 }

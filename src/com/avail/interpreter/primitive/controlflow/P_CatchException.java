@@ -99,10 +99,11 @@ public final class P_CatchException extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_REQUIRED_FAILURE,
-				E_INCORRECT_ARGUMENT_TYPE,
-				E_HANDLER_SENTINEL,
-				E_UNWIND_SENTINEL));
+			TupleDescriptor.from(
+				IntegerDescriptor.zero(),
+				E_INCORRECT_ARGUMENT_TYPE.numericCode(),
+				E_HANDLER_SENTINEL.numericCode(),
+				E_UNWIND_SENTINEL.numericCode()
+			).asSet());
 	}
 }

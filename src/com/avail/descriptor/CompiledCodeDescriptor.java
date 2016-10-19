@@ -302,7 +302,8 @@ extends Descriptor
 		final StringBuilder disassembled = new StringBuilder();
 		object.printOnAvoidingIndent(
 			disassembled, new IdentityHashMap<A_BasicObject, Void>(), 0);
-		final String[] content = disassembled.toString().split("\n");
+		final String[] content = new String[1];
+		content[0] = disassembled.toString();
 		fields.add(
 			new AvailObjectFieldHelper(
 				object,
@@ -513,15 +514,14 @@ extends Descriptor
 						final A_Module module = function.module();
 						if (!module.equalsNil())
 						{
-							final CodeCoverageReport report =
-								new CodeCoverageReport(
-									getInvocationStatistic(
-										(AvailObject) function).hasRun,
-									function.startingChunk()
-										!= L2Chunk.unoptimizedChunk(),
-									function.startingLineNumber(),
-									module.moduleName().asNativeString(),
-									function.methodName().asNativeString());
+							final CodeCoverageReport report = new CodeCoverageReport(
+								getInvocationStatistic(
+									(AvailObject) function).hasRun,
+								function.startingChunk()
+									!= L2Chunk.unoptimizedChunk(),
+								function.startingLineNumber(),
+								module.moduleName().asNativeString(),
+								function.methodName().asNativeString());
 							if (!reports.contains(report))
 							{
 								reports.add(report);

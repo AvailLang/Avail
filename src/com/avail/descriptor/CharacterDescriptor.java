@@ -298,7 +298,7 @@ extends Descriptor
 	 * @param codePoint A Unicode code point.
 	 * @return An {@link AvailObject}.
 	 */
-	public static A_Character fromCodePoint (final int codePoint)
+	public static AvailObject fromCodePoint (final int codePoint)
 	{
 		if (codePoint >= 0 && codePoint <= 255)
 		{
@@ -318,7 +318,7 @@ extends Descriptor
 	 * @param codePoint An unsigned 8-bit Unicode code point.
 	 * @return An {@link AvailObject}.
 	 */
-	public static A_Character fromByteCodePoint (final short codePoint)
+	public static AvailObject fromByteCodePoint (final short codePoint)
 	{
 		// Provided separately so it can return more efficiently by constant
 		// reference.

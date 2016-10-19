@@ -1253,7 +1253,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public A_Set lazyComplete ()
+	public A_Map lazyComplete ()
 	{
 		return descriptor.o_LazyComplete(this);
 	}
@@ -2909,10 +2909,11 @@ implements
 	 */
 	@Override
 	public A_Definition lookupByValuesFromList (
-		final List<? extends A_BasicObject> argumentList)
-	throws MethodDefinitionException
+		final List<? extends A_BasicObject> argumentList,
+		final MutableOrNull<AvailErrorCode> errorCode)
 	{
-		return descriptor.o_LookupByValuesFromList(this, argumentList);
+		return descriptor.o_LookupByValuesFromList(
+			this, argumentList, errorCode);
 	}
 
 	/**
@@ -3592,6 +3593,18 @@ implements
 		final A_Definition definition)
 	{
 		descriptor.o_RemoveDefinition(this, definition);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
+	public boolean removeBundleNamed (
+		final A_Atom message)
+	{
+		return descriptor.o_RemoveBundleNamed(
+			this,
+			message);
 	}
 
 	/**
@@ -4791,6 +4804,15 @@ implements
 	public A_Map allParsingPlans ()
 	{
 		return descriptor.o_AllParsingPlans(this);
+	}
+
+	/**
+	 * @return
+	 */
+	@Override
+	public A_Map allBundles ()
+	{
+		return descriptor.o_AllBundles(this);
 	}
 
 	/**
@@ -5999,6 +6021,15 @@ implements
 	}
 
 	/**
+	 * @return
+	 */
+	@Override
+	public int allocateFromCounter ()
+	{
+		return descriptor.o_AllocateFromCounter(this);
+	}
+
+	/**
 	 * @param methodName
 	 */
 	@Override
@@ -6155,6 +6186,15 @@ implements
 	public A_Tuple prefixFunctions ()
 	{
 		return descriptor.o_PrefixFunctions(this);
+	}
+
+	/**
+	 * @param prefixFunctions
+	 */
+	@Override
+	public void prefixFunctions (final A_Tuple prefixFunctions)
+	{
+		descriptor.o_PrefixFunctions(this, prefixFunctions);
 	}
 
 	/**
@@ -6988,12 +7028,22 @@ implements
 	}
 
 	@Override
+	public void moduleAddPrefixFunction (
+		final A_Method method,
+		final int index,
+		final A_Function prefixFunction)
+	{
+		descriptor.o_ModuleAddPrefixFunction(
+			this, method, index, prefixFunction);
+	}
+
+	@Override
 	public A_Definition lookupMacroByPhraseTuple (
-		final A_Tuple argumentPhraseTuple)
-	throws MethodDefinitionException
+		final A_Tuple argumentPhraseTuple,
+		final MutableOrNull<AvailErrorCode> errorCode)
 	{
 		return descriptor.o_LookupMacroByPhraseTuple(
-			this, argumentPhraseTuple);
+			this, argumentPhraseTuple, errorCode);
 	}
 
 	@Override
@@ -7090,6 +7140,12 @@ implements
 	}
 
 	@Override
+	public A_Tuple typesToCheck ()
+	{
+		return descriptor.o_TypesToCheck(this);
+	}
+
+	@Override
 	public String nameHighlightingPc (final int pc)
 	{
 		return descriptor.o_NameHighlightingPc(this, pc);
@@ -7123,23 +7179,5 @@ implements
 	public A_Type subexpressionsTupleType ()
 	{
 		return descriptor.o_SubexpressionsTupleType(this);
-	}
-
-	@Override
-	public A_BasicObject lazyTypeFilterTreePojo ()
-	{
-		return descriptor.o_LazyTypeFilterTreePojo(this);
-	}
-
-	@Override
-	public void addPlan (final A_DefinitionParsingPlan plan)
-	{
-		descriptor.o_AddPlan(this, plan);
-	}
-
-	@Override
-	public A_Type parsingSignature ()
-	{
-		return descriptor.o_ParsingSignature(this);
 	}
 }

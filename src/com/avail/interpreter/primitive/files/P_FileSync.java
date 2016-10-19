@@ -178,9 +178,10 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_INVALID_HANDLE,
-				E_SPECIAL_ATOM,
-				E_NOT_OPEN_FOR_WRITE));
+			TupleDescriptor.from(
+				E_INVALID_HANDLE.numericCode(),
+				E_SPECIAL_ATOM.numericCode(),
+				E_NOT_OPEN_FOR_WRITE.numericCode()
+			).asSet());
 	}
 }

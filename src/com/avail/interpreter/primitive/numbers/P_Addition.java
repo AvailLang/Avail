@@ -170,8 +170,7 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_CANNOT_ADD_UNLIKE_INFINITIES));
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CANNOT_ADD_UNLIKE_INFINITIES.numericCode());
 	}
 }

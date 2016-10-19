@@ -90,7 +90,7 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_NO_SUCH_FIBER_VARIABLE));
+			SetDescriptor.fromCollection(Arrays.asList(
+				E_NO_SUCH_FIBER_VARIABLE.numericCode())));
 	}
 }

@@ -192,8 +192,7 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_CANNOT_MULTIPLY_ZERO_AND_INFINITY));
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_CANNOT_MULTIPLY_ZERO_AND_INFINITY.numericCode());
 	}
 }

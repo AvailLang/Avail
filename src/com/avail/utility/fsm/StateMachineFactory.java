@@ -410,7 +410,7 @@ public final class StateMachineFactory<
 		}
 
 		// Verify that every state is reachable.
-		final EnumSet<StateType> statesReached = EnumSet.noneOf(stateType);
+		final EnumSet<StateType> statesReached = EnumSet.<StateType>noneOf(stateType);
 		recursivelyReachState(startState, statesReached);
 		if (statesReached.size() != stateType.getEnumConstants().length)
 		{
@@ -421,7 +421,8 @@ public final class StateMachineFactory<
 		}
 
 		// Verify that every event is handled by at least one transition.
-		final EnumSet<EventType> eventsHandled = EnumSet.noneOf(eventType);
+		final EnumSet<EventType> eventsHandled =
+			EnumSet.<EventType>noneOf(eventType);
 		for (final StateType state : stateType.getEnumConstants())
 		{
 			eventsHandled.addAll(getSummary(state).transitionEvents());
@@ -446,7 +447,7 @@ public final class StateMachineFactory<
 
 		// Verify that every guard key is invoked.
 		final EnumSet<GuardKeyType> guardKeysInvoked =
-			EnumSet.noneOf(guardKeyType);
+			EnumSet.<GuardKeyType>noneOf(guardKeyType);
 		for (final StateType state : stateType.getEnumConstants())
 		{
 			for (final StateTransitionArc<
@@ -514,7 +515,7 @@ public final class StateMachineFactory<
 
 		// Verify that every action key is invoked.
 		final EnumSet<ActionKeyType> actionKeysInvoked =
-			EnumSet.noneOf(actionKeyType);
+			EnumSet.<ActionKeyType>noneOf(actionKeyType);
 		for (final StateType state : stateType.getEnumConstants())
 		{
 			for (final StateTransitionArc<

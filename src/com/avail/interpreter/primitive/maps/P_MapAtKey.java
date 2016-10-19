@@ -108,8 +108,7 @@ public final class P_MapAtKey extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_KEY_NOT_FOUND));
+		return AbstractEnumerationTypeDescriptor.withInstance(
+			E_KEY_NOT_FOUND.numericCode());
 	}
 }

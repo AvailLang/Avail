@@ -295,8 +295,7 @@ extends TypeDescriptor
 		final int endIndex)
 	{
 		becomeRealTupleType(object);
-		assert object.descriptor() != this;
-		return object.tupleOfTypesFromTo(startIndex, endIndex);
+		return super.o_TupleOfTypesFromTo(object, startIndex, endIndex);
 	}
 
 	/**
