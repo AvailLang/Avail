@@ -323,9 +323,15 @@ extends Descriptor
 	@AvailMethod @ThreadSafe
 	final SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		return object.getAtomProperty(heritableKey).equalsNil()
-			? SerializerOperation.ATOM
-			: SerializerOperation.HERITABLE_ATOM;
+		if (!object.getAtomProperty(heritableKey).equalsNil())
+		{
+			return SerializerOperation.HERITABLE_ATOM;
+		}
+		if (!object.getAtomProperty(explicitSubclassingKey).equalsNil())
+		{
+			return SerializerOperation.EXPLICIT_SUBCLASS_ATOM;
+		}
+		return SerializerOperation.ATOM;
 	}
 
 	@Override
@@ -639,6 +645,13 @@ extends Descriptor
 		createSpecialAtom("message bundle");
 
 	/**
+	 * The property key whose presence indicates an atom is for explicit
+	 * subclassing of object types.
+	 */
+	private static final A_Atom explicitSubclassingKey =
+		createSpecialAtom("explicit subclassing");
+
+	/**
 	 * Answer the atom representing the Avail concept "true".
 	 *
 	 * @return Avail's <code>true</code> boolean object.
@@ -798,5 +811,18 @@ extends Descriptor
 	public static A_Atom messageBundleKey ()
 	{
 		return messageBundleKey;
+	}
+
+	/**
+	 * Answer the property key whose presence indicates that an atom was created
+	 * for explicit subclassing of object types.
+	 *
+	 * @return An atom held by the VM, used to indicate that an atom having this
+	 *         as a property key means the atom is used for explicit subclassing
+	 *         of object types.
+	 */
+	public static A_Atom explicitSubclassingKey ()
+	{
+		return explicitSubclassingKey;
 	}
 }

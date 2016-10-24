@@ -424,7 +424,7 @@ public class TypeConsistencyTest
 			{
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
-						SOME_ATOM_TYPE.t(),
+						SOME_ATOM_TYPE.t().instance(),
 						TypeDescriptor.Types.ANY.o(),
 						false));
 			}
@@ -441,7 +441,7 @@ public class TypeConsistencyTest
 			{
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
-						SOME_ATOM_TYPE.t(),
+						SOME_ATOM_TYPE.t().instance(),
 						IntegerRangeTypeDescriptor.integers(),
 						false));
 			}
@@ -458,7 +458,7 @@ public class TypeConsistencyTest
 			{
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
-						ANOTHER_ATOM_TYPE.t(),
+						ANOTHER_ATOM_TYPE.t().instance(),
 						TypeDescriptor.Types.ANY.o(),
 						false));
 			}

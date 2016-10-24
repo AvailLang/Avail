@@ -221,8 +221,9 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anObjectType
 	 */
-	boolean isSupertypeOfObjectType (A_Type anObjectType);
+	boolean isSupertypeOfObjectType (AvailObject anObjectType);
 
 	/**
 	 */
@@ -449,9 +450,10 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anObjectType
 	 */
 	A_Type typeIntersectionOfObjectType (
-		A_Type anObjectType);
+		AvailObject anObjectType);
 
 	/**
 	 * @param aParseNodeType
@@ -532,8 +534,9 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anObjectType
 	 */
-	A_Type typeUnionOfObjectType (A_Type anObjectType);
+	A_Type typeUnionOfObjectType (AvailObject anObjectType);
 
 	/**
 	 * @param aParseNodeType

@@ -71,6 +71,7 @@ Names
 	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
 	/*  24 */ "exception",
+	/* 155 */ "explicit subclassing key",
 	/* 150 */ "expression as statement phrase",
 	/*  52 */ "expression phrase",
 	/* 126 */ "expression yielding any",
@@ -2068,4 +2069,14 @@ Special object "map from string to atom" is special object 153;
  * @returns "macro bundle key's type"
  */
 Special object "macro bundle key" is special object 154;
+
+/**
+ * An atom property key that indicates the atom is for explicit subclassing of
+ * ebject types.
+ *
+ * @category "Primitives" "Constants"
+ * @method "explicit subclassing key"
+ * @returns "explicit subclassing key's type"
+ */
+Special object "explicit subclassing key" is special object 155;
 

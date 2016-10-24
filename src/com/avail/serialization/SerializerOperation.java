@@ -1701,22 +1701,47 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
+	 * An {@linkplain AtomDescriptor atom} which is used for creating explicit
+	 * subclasses.  Output the atom name and the name of the module that issued
+	 * it.  Look up the corresponding atom during reconstruction, recreating it
+	 * if it's not present and supposed to have been issued by the current
+	 * module.
+	 *
+	 * <P>This should be the same as {@link #ATOM}, other than adding the
+	 * special {@link AtomDescriptor#explicitSubclassingKey()} property.</P>
 	 */
-	RESERVED_54 (54)
+	EXPLICIT_SUBCLASS_ATOM(54,
+		OBJECT_REFERENCE.as("atom name"),
+		OBJECT_REFERENCE.as("module name"))
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			assert object.getAtomProperty(AtomDescriptor.heritableKey())
+				.equalsNil();
+			assert object.getAtomProperty(
+					AtomDescriptor.explicitSubclassingKey())
+				.equals(AtomDescriptor.explicitSubclassingKey());
+			final A_Module module = object.issuingModule();
+			if (module.equalsNil())
+			{
+				throw new RuntimeException("Atom has no issuing module");
+			}
+			return array(object.atomName(), module.moduleName());
 		}
 
 		@Override
 		A_BasicObject compose (
-			final AvailObject[] subobjects,
-			final Deserializer deserializer)
+		final AvailObject[] subobjects,
+		final Deserializer deserializer)
 		{
-			throw new RuntimeException("Reserved serializer operation");
+			final AvailObject atomName = subobjects[0];
+			final AvailObject moduleName = subobjects[1];
+			final A_Atom atom = lookupAtom(atomName, moduleName, deserializer);
+			atom.setAtomProperty(
+				AtomDescriptor.explicitSubclassingKey(),
+				AtomDescriptor.explicitSubclassingKey());
+			return atom.makeShared();
 		}
 	},
 

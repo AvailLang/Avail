@@ -220,7 +220,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	final A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return computeIntersectionWith(object, anObjectType);
 	}
@@ -334,7 +334,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	final A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return computeUnionWith(object, anObjectType);
 	}
@@ -598,7 +598,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	final boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return false;
 	}

@@ -1,0 +1,210 @@
+/**
+ * ObjectLayoutVariant.java
+ * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.avail.descriptor;
+
+import com.avail.AvailRuntime;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+/**
+ * The {@link ObjectLayoutVariant}s capture field layouts for objects and object
+ * types.  An object or object type's descriptor refers to a variant, and the
+ * variant contains a mapping from each present field atom to the slot number
+ * within the object or object type.  All objects or object types with a
+ * particular set of field atoms have the same variant.
+ *
+ * @see ObjectDescriptor
+ * @see ObjectTypeDescriptor
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+public class ObjectLayoutVariant
+{
+	/**
+	 * The number of slots to allocate in an object or object type to
+	 * accommodate the real fields.  This excludes the keys that were created
+	 * solely for the purpose of explicit subclassing.  This value is always the
+	 * largest value in fieldToSlotIndex.
+	 */
+	public final int realSlotCount;
+
+	/**
+	 * A random int suitable for seeding the hash of my objects and object
+	 * types.
+	 */
+	public final int randomInt;
+
+	/**
+	 * The set of all fields present in this variant.  This includes not just
+	 * the real fields that can hold multiple potential values, but also the
+	 * fields that were created solely for the purpose of explicit subclassing.
+	 */
+	public final A_Set allFields;
+
+	/**
+	 * The mapping from field atoms to slots.  The fields that are created just
+	 * for making explicit subclasses all map to 0, which is not a valid slot.
+	 */
+	public final Map<A_Atom, Integer> fieldToSlotIndex;
+
+	/**
+	 * A {@link RawPojoDescriptor raw POJO} that wraps to this {@link
+	 * ObjectLayoutVariant}.  Makes it convenient to capture the variant in an
+	 * object register in Level Two code.
+	 */
+	public final A_BasicObject thisPojo;
+
+	/** The mutable object descriptor for this variant. */
+	public final ObjectDescriptor mutableObjectDescriptor;
+
+	/** The immutable object descriptor for this variant. */
+	public final ObjectDescriptor immutableObjectDescriptor;
+
+	/** The shared object descriptor for this variant. */
+	public final ObjectDescriptor sharedObjectDescriptor;
+
+	/** The mutable object type descriptor for this variant. */
+	public final ObjectTypeDescriptor mutableObjectTypeDescriptor;
+
+	/** The immutable object type descriptor for this variant. */
+	public final ObjectTypeDescriptor immutableObjectTypeDescriptor;
+
+	/** The shared object type descriptor for this variant. */
+	public final ObjectTypeDescriptor sharedObjectTypeDescriptor;
+
+	/**
+	 * Create a new {@link ObjectLayoutVariant} for the given set of fields.
+	 *
+	 * @param allFields
+	 *        The complete {@link A_Set set} of {@link A_Atom atom}s that are
+	 *        present in objects and object types that will use the new variant.
+	 */
+	ObjectLayoutVariant (final A_Set allFields)
+	{
+		this.allFields = allFields.makeShared();
+		A_Set subclassFields = SetDescriptor.empty();
+		final A_Atom explicitSubclassingKey =
+			AtomDescriptor.explicitSubclassingKey();
+		// Alphabetize the fields to make debugging nice.  Note that field names
+		// don't have to be lexicographically unique.
+		final List<A_Atom> sortedFields =
+			TupleDescriptor.toList(allFields.asTuple());
+		Collections.sort(sortedFields, new Comparator<A_Atom>()
+		{
+			@Override
+			public int compare (final A_Atom atom1, final A_Atom atom2)
+			{
+				return atom1.atomName().asNativeString().compareTo(
+					atom2.atomName().asNativeString());
+			}
+		});
+		this.fieldToSlotIndex = new HashMap<>(sortedFields.size());
+		int slotCount = 0;
+		for (final A_Atom field : sortedFields)
+		{
+			final boolean isReal =
+				field.getAtomProperty(explicitSubclassingKey).equalsNil();
+			fieldToSlotIndex.put(field, isReal ? ++slotCount : 0);
+		}
+		this.realSlotCount = slotCount;
+		this.randomInt = AvailRuntime.nextHash();
+		thisPojo = RawPojoDescriptor.identityWrap(this);
+		this.mutableObjectDescriptor =
+			new ObjectDescriptor(Mutability.MUTABLE, this);
+		this.immutableObjectDescriptor =
+			new ObjectDescriptor(Mutability.IMMUTABLE, this);
+		this.sharedObjectDescriptor =
+			new ObjectDescriptor(Mutability.SHARED, this);
+		this.mutableObjectTypeDescriptor =
+			new ObjectTypeDescriptor(Mutability.MUTABLE, this);
+		this.immutableObjectTypeDescriptor =
+			new ObjectTypeDescriptor(Mutability.IMMUTABLE, this);
+		this.sharedObjectTypeDescriptor =
+			new ObjectTypeDescriptor(Mutability.SHARED, this);
+	}
+
+	/** The collection of all variants, indexed by the set of field atoms. */
+	final static Map<A_Set, ObjectLayoutVariant> allVariants = new HashMap<>();
+
+	/** The lock used to protect access to the allVariants map. */
+	private final static ReadWriteLock variantsLock = new ReentrantReadWriteLock();
+
+	/**
+	 * Look up or create a variant for the given set of fields ({@link
+	 * A_Atom}s).
+	 */
+	static ObjectLayoutVariant variantForFields (final A_Set allFields)
+	{
+		variantsLock.readLock().lock();
+		try
+		{
+			final ObjectLayoutVariant variant = allVariants.get(allFields);
+			if (variant != null)
+			{
+				return variant;
+			}
+		}
+		finally
+		{
+			variantsLock.readLock().unlock();
+		}
+
+		// Didn't find it while holding the read lock.  Create it outside of the
+		// lock.  There's a small chance that somebody else adds it during this
+		// time, so be prepared to abandon our new variant and use theirs.
+		final ObjectLayoutVariant variant = new ObjectLayoutVariant(allFields);
+		variantsLock.writeLock().lock();
+		try
+		{
+			// Check if someone added it between our read and write locks.
+			final ObjectLayoutVariant theirVariant = allVariants.get(allFields);
+			if (theirVariant != null)
+			{
+				// No cleanup is needed for the one we're abandoning.
+				return theirVariant;
+			}
+			allVariants.put(allFields, variant);
+			return variant;
+		}
+		finally
+		{
+			variantsLock.writeLock().unlock();
+		}
+	}
+}

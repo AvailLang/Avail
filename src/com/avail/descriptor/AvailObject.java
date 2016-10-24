@@ -2650,10 +2650,11 @@ implements
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anObjectType
 	 */
 	@Override
 	public boolean isSupertypeOfObjectType (
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return descriptor.o_IsSupertypeOfObjectType(this, anObjectType);
 	}
@@ -4126,10 +4127,11 @@ implements
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anObjectType
 	 */
 	@Override
 	public A_Type typeIntersectionOfObjectType (
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return descriptor.o_TypeIntersectionOfObjectType(this, anObjectType);
 	}
@@ -4280,10 +4282,11 @@ implements
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anObjectType
 	 */
 	@Override
 	public A_Type typeUnionOfObjectType (
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return descriptor.o_TypeUnionOfObjectType(this, anObjectType);
 	}
@@ -5883,7 +5886,7 @@ implements
 	 */
 	@Override
 	public boolean equalsObjectType (
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return descriptor.o_EqualsObjectType(this, anObjectType);
 	}
@@ -7130,5 +7133,20 @@ implements
 	{
 		return descriptor.o_ModuleGrammaticalRestrictions(this);
 	}
-}
 
+	@Override
+	public AvailObject fieldAt (final A_Atom field)
+	{
+		return descriptor.o_FieldAt(this, field);
+	}
+
+	@Override
+	public A_BasicObject fieldAtPuttingCanDestroy (
+		final A_Atom field,
+		final A_BasicObject value,
+		final boolean canDestroy)
+	{
+		return descriptor.o_FieldAtPuttingCanDestroy(
+			this, field, value, canDestroy);
+	}
+}

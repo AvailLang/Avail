@@ -819,7 +819,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1358,7 +1358,7 @@ extends AbstractDescriptor
 	@Override
 	A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1466,7 +1466,7 @@ extends AbstractDescriptor
 	@Override
 	A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3624,7 +3624,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return false;
 	}
@@ -4683,6 +4683,23 @@ extends AbstractDescriptor
 
 	@Override
 	TypeTag o_ComputeTypeTag (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_FieldAt (
+		final AvailObject object, final A_Atom field)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_BasicObject o_FieldAtPuttingCanDestroy (
+		final AvailObject object,
+		final A_Atom field,
+		final A_BasicObject value,
+		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
 	}

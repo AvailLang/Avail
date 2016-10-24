@@ -966,7 +966,7 @@ extends JSONFriendly
 	 * @param anObjectType
 	 * @return
 	 */
-	boolean equalsObjectType (A_Type anObjectType);
+	boolean equalsObjectType (AvailObject anObjectType);
 
 	/**
 	 * @param aToken
@@ -1132,4 +1132,25 @@ extends JSONFriendly
 	 * @return Whether the receiver equals the given list phrase type.
 	 */
 	boolean equalsListNodeType (A_Type listNodeType);
+
+	/**
+	 * Extract a field from an {@link ObjectDescriptor object}.
+	 *
+	 * @param field
+	 * @return
+	 */
+	AvailObject fieldAt (A_Atom field);
+
+	/**
+	 * Add or replace a field of an {@link ObjectDescriptor object}.
+	 *
+	 * @param field
+	 * @param value
+	 * @param canDestroy
+	 * @return
+	 */
+	A_BasicObject fieldAtPuttingCanDestroy (
+		A_Atom field,
+		A_BasicObject value,
+		boolean canDestroy);
 }

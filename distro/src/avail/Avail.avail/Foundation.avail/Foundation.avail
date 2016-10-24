@@ -141,6 +141,7 @@ Extends
 		"double",
 		"enumeration of_",
 		"exception",
+		"explicit subclassing key",
 		"expression as statement phrase",
 		"expression phrase",
 		"extended integer",
@@ -989,7 +990,6 @@ Extends
 	"Objects" =
 	(
 		"a|an_«with«_«:»?:=_‡,»»",
-		"explicit atom",
 		"extend_with«_:_‡,»",
 		"«Public»?«Explicit|explicit»?\
 			\|Class|class_extends_\

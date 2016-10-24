@@ -54,7 +54,6 @@ Uses
 	"Variables"
 Names
 	"a|an_«with«_«:»?:=_‡,»»",
-	"explicit atom",
 	"extend_with«_:_‡,»",
 	"«Public»?«Explicit|explicit»?\
 		\|Class|class_extends_\
@@ -64,16 +63,6 @@ Names
 		\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
 	"_as_«with«_::=_‡,»»"
 Body
-
-/**
- * The explicit atom is installed as a property into any {@type "atom"} that is
- * created in order to ensure explicitness of {@type "object"} type lineage.
- *
- * @method "explicit atom"
- * @returns "atom"
- * @category "Objects" "Types"
- */
-Public "explicit atom" is a new atom;
 
 /**
  * Strengthen object field extraction ({@method "_[_]"}).
@@ -802,7 +791,7 @@ Private method "Generate and install_mutator for mutable_" is
 /**
  * Construct and answer the name of the object reconstructor method from the
  * specified tuple of field atoms.
- * 
+ *
  * @method "reconstructor name for_"
  * @param "fieldAtoms" "atom+"
  *        The atoms of the fields migrated by the reconstructor.
@@ -825,7 +814,7 @@ Private method "reconstructor name for_" is
 /**
  * Construct and answer the name of the object reconstructor method from the
  * specified tuple of field atom names.
- * 
+ *
  * @method "reconstructor name for_"
  * @param "fieldAtomNames" "nonempty string+"
  *        The names of the fields migrated by the reconstructor.
@@ -1017,7 +1006,7 @@ is
  * @param "supertype" "object's type"
  *        The supertype of the class. Type intersection may be used here to
  *        facilitate inheritance from multiple sources.
- * @param "optionalImmutable" 
+ * @param "optionalImmutable"
  *        "<
  *           <
  *             <
@@ -1057,7 +1046,7 @@ is
  *           |1..>…
  *         |0..1>"
  *        The mutable fields of this class. An accessor will be generated for
- *        each field. A referrer will be generated for each field tagged as 
+ *        each field. A referrer will be generated for each field tagged as
  *        {@code referable}. A mutator will be generated for each field not
  *        tagged as {@code read-only}. Each field tagged as {@code public} must
  *        have its accessor, referrer, and mutator exported by the defining
@@ -1151,7 +1140,7 @@ is
 	Unless optionalMutable is empty then
 	[
 		mutable := optionalMutable[1];
-		newDefinitions := eject newDefinitions ++ 
+		newDefinitions := eject newDefinitions ++
 			map each fieldTuple in mutable through
 			[
 				fieldAtom ::= fieldTuple[5];
@@ -1170,8 +1159,8 @@ is
 	explicitDef : <atom, any meta…|2>? := <>;
 	If explicit then
 	[
-		explicitAtom ::= atom for "explicit-" ++ className;
-		explicitAtom[explicit atom] := explicit atom;
+		explicitAtom ::= new explicit subclass atom named
+			"explicit-" ++ className;
 		explicitDef := <<explicitAtom, explicitAtom's type>>;
 	];
 	/* Construct and verify the subtype. */
@@ -1324,7 +1313,7 @@ is
 	Unless optionalReconstructors is empty then
 	[
 		specs ::= optionalReconstructors[1];
-		reconstructors := eject reconstructors ++ 
+		reconstructors := eject reconstructors ++
 			map each spec in specs through [spec[2]];
 	];
 	/* Generate the reconstructors. */

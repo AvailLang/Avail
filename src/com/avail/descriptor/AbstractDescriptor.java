@@ -1945,7 +1945,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IsSupertypeOfObjectType (
 		AvailObject object,
-		A_Type anObjectType);
+		AvailObject anObjectType);
 
 	/**
 	 * @param object
@@ -2690,7 +2690,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Type o_TypeIntersectionOfObjectType (
 		AvailObject object,
-		A_Type anObjectType);
+		AvailObject anObjectType);
 
 	/**
 	 * @param object
@@ -2823,7 +2823,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Type o_TypeUnionOfObjectType (
 		AvailObject object,
-		A_Type anObjectType);
+		AvailObject anObjectType);
 
 	/**
 	 * @param object
@@ -5273,7 +5273,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsObjectType (
 		final AvailObject object,
-		final A_Type anObjectType);
+		final AvailObject anObjectType);
 
 	/**
 	 * @param object
@@ -6416,4 +6416,26 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Set o_ModuleGrammaticalRestrictions (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param field
+	 * @return
+	 */
+	abstract AvailObject o_FieldAt (
+		final AvailObject object,
+		final A_Atom field);
+
+	/**
+	 * @param object
+	 * @param field
+	 * @param value
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract A_BasicObject o_FieldAtPuttingCanDestroy (
+		final AvailObject object,
+		final A_Atom field,
+		final A_BasicObject value,
+		final boolean canDestroy);
 }

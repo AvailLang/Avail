@@ -1713,6 +1713,7 @@ public final class AvailRuntime
 			TupleTypeDescriptor.stringType(),
 			Types.ATOM.o());
 		specials[154] = AtomDescriptor.macroBundleKey();
+		specials[155] = AtomDescriptor.explicitSubclassingKey();
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
@@ -1753,7 +1754,8 @@ public final class AvailRuntime
 			ObjectTypeDescriptor.exceptionAtom(),
 			ObjectTypeDescriptor.stackDumpAtom(),
 			PojoTypeDescriptor.selfAtom(),
-			AtomDescriptor.macroBundleKey()));
+			AtomDescriptor.macroBundleKey(),
+			AtomDescriptor.explicitSubclassingKey()));
 
 		for (final A_Atom atom : specialAtomsList)
 		{

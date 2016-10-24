@@ -678,7 +678,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		// By default, nothing is a supertype of an eager object type unless it
 		// states otherwise.
@@ -902,7 +902,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return BottomTypeDescriptor.bottom();
 	}
@@ -1031,7 +1031,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return object.typeUnion(NONTYPE.o());
 	}

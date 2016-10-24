@@ -1241,7 +1241,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return o_Traversed(object).isSupertypeOfObjectType(anObjectType);
 	}
@@ -1820,7 +1820,7 @@ extends AbstractDescriptor
 	@Override
 	A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return o_Traversed(object).typeIntersectionOfObjectType(anObjectType);
 	}
@@ -1937,7 +1937,7 @@ extends AbstractDescriptor
 	@Override
 	A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return o_Traversed(object).typeUnionOfObjectType(anObjectType);
 	}
@@ -3789,7 +3789,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return o_Traversed(object).equalsObjectType(anObjectType);
 	}
@@ -4878,5 +4878,23 @@ extends AbstractDescriptor
 					? immutable(tag)
 					: shared(tag);
 		return tag;
+	}
+
+	@Override
+	AvailObject o_FieldAt (
+		final AvailObject object, final A_Atom field)
+	{
+		return o_Traversed(object).fieldAt(field);
+	}
+
+	@Override
+	A_BasicObject o_FieldAtPuttingCanDestroy (
+		final AvailObject object,
+		final A_Atom field,
+		final A_BasicObject value,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).fieldAtPuttingCanDestroy(
+			field, value, canDestroy);
 	}
 }

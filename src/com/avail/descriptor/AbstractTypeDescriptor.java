@@ -200,7 +200,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType);
+		final AvailObject anObjectType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfParseNodeType (
@@ -340,7 +340,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType);
+		final AvailObject anObjectType);
 
 	@Override @AvailMethod
 	abstract A_Type o_TypeIntersectionOfParseNodeType (
@@ -423,7 +423,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType);
+		final AvailObject anObjectType);
 
 	@Override @AvailMethod
 	abstract A_Type o_TypeUnionOfParseNodeType (

@@ -32,14 +32,18 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.*;
 import java.util.*;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
@@ -82,50 +86,51 @@ public class ObjectDescriptor
 extends Descriptor
 {
 	/**
+	 * The layout of integer slots for my instances.
+	 */
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
+	{
+		/**
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}.
+		 */
+		@HideFieldInDebugger
+		HASH_AND_MORE;
+
+		/**
+		 * A bit field to hold the cached hash value of an object.  If zero,
+		 * then the hash value must be computed upon request.  Note that in the
+		 * very rare case that the hash value actually equals zero, the hash
+		 * value has to be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
+	}
+
+	/**
 	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * A map from attribute keys to their corresponding values. Attribute
-		 * keys are {@linkplain AtomDescriptor atoms}, and the values can be
-		 * anything. An object's type is derived from this map and the types of
-		 * the attribute values, so it's not quite right to say that the values
-		 * can be anything.
-		 */
-		FIELD_MAP,
-
-		/**
 		 * The {@linkplain ObjectTypeDescriptor kind} of the {@linkplain
 		 * ObjectDescriptor object}.
 		 */
-		KIND
+		KIND,
+
+		/**
+		 * The values associated with keys for this object.  The assignment of
+		 * object fields to these slots is determined by the descriptor's {@link
+		 * ObjectDescriptor#variant}.
+		 */
+		FIELD_VALUES_;
 	}
 
 	@Override
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
-		return e == KIND;
-	}
-
-	@Override @AvailMethod
-	A_Map o_FieldMap (final AvailObject object)
-	{
-		return object.slot(FIELD_MAP);
-	}
-
-	@Override @AvailMethod
-	A_Tuple o_FieldTuple (final AvailObject object)
-	{
-		final A_Map map = object.slot(FIELD_MAP);
-		final List<A_Tuple> fieldAssignments = new ArrayList<>(
-			map.mapSize());
-		for (final MapDescriptor.Entry entry : map.mapIterable())
-		{
-			fieldAssignments.add(TupleDescriptor.from(entry.key(), entry.value()));
-		}
-		return TupleDescriptor.fromList(fieldAssignments);
+		return e == HASH_AND_MORE
+			|| e == KIND;
 	}
 
 	@Override @AvailMethod
@@ -143,7 +148,190 @@ extends Descriptor
 		{
 			return true;
 		}
-		return object.slot(FIELD_MAP).equals(anObject.slot(FIELD_MAP));
+		final ObjectDescriptor otherDescriptor =
+			(ObjectDescriptor) anObject.descriptor;
+		if (variant != otherDescriptor.variant)
+		{
+			return false;
+		}
+		// If one of the hashes is already computed, compute the other if
+		// necessary, then compare the hashes to eliminate the vast majority of
+		// the unequal cases.
+		int myHash = object.slot(HASH_OR_ZERO);
+		int otherHash = anObject.slot(HASH_OR_ZERO);
+		if (myHash != 0 || otherHash != 0)
+		{
+			if (myHash == 0)
+			{
+				myHash = object.hash();
+			}
+			if (otherHash == 0)
+			{
+				otherHash = anObject.hash();
+			}
+			if (myHash != otherHash)
+			{
+				return false;
+			}
+		}
+		// Hashes are equal.  Compare fields, which must be in corresponding
+		// positions because we share the same variant.
+		for (
+			int i = 1, limit = object.variableObjectSlotsCount();
+			i <= limit;
+			i++)
+		{
+			if (!object.slot(FIELD_VALUES_, i).equals(
+				anObject.slot(FIELD_VALUES_, i)))
+			{
+				return false;
+			}
+		}
+		if (!isShared() && object.slot(KIND).equalsNil())
+		{
+			object.becomeIndirectionTo(anObject);
+		}
+		else if (!otherDescriptor.isShared())
+		{
+			anObject.becomeIndirectionTo(object);
+		}
+		return true;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_FieldAt (final AvailObject object, final A_Atom field)
+	{
+		// Fails with NullPointerException if key is not found.
+		final int slotIndex = variant.fieldToSlotIndex.get(field);
+		if (slotIndex == 0)
+		{
+			return (AvailObject) field;
+		}
+		return object.slot(FIELD_VALUES_, slotIndex);
+	}
+
+	@Override @AvailMethod
+	A_BasicObject o_FieldAtPuttingCanDestroy (
+		final AvailObject object,
+		final A_Atom field,
+		final A_BasicObject value,
+		final boolean canDestroy)
+	{
+		if (!canDestroy && isMutable())
+		{
+			object.makeImmutable();
+		}
+		final Map<A_Atom, Integer> fieldToSlotIndex = variant.fieldToSlotIndex;
+		final Integer slotIndex = fieldToSlotIndex.get(field);
+		if (slotIndex != null)
+		{
+			if (slotIndex == 0)
+			{
+				assert value.equals(field);
+				return object;
+			}
+			// Replace an existing real field.
+			final AvailObject result =  canDestroy && isMutable()
+				? object
+				: newLike(variant.mutableObjectDescriptor, object, 0, 0);
+			result.setSlot(FIELD_VALUES_, slotIndex, value);
+			result.setSlot(KIND, NilDescriptor.nil());
+			result.setSlot(HASH_OR_ZERO, 0);
+			return result;
+		}
+		// Make room for another slot and find/create the variant.
+		final A_Set newFieldsSet =
+			variant.allFields.setWithElementCanDestroy(field, false);
+		final ObjectLayoutVariant newVariant =
+			ObjectLayoutVariant.variantForFields(newFieldsSet);
+		final Map<A_Atom, Integer> newVariantSlotMap =
+			newVariant.fieldToSlotIndex;
+		final AvailObject result =
+			newVariant.mutableObjectDescriptor.create(newVariant.realSlotCount);
+		for (Map.Entry<A_Atom, Integer> oldEntry : fieldToSlotIndex.entrySet())
+		{
+			result.setSlot(
+				FIELD_VALUES_,
+				newVariantSlotMap.get(oldEntry.getKey()),
+				object.slot(FIELD_VALUES_, oldEntry.getValue()));
+		}
+		final int newVariantSlotIndex = newVariantSlotMap.get(field);
+		if (newVariantSlotIndex != 0)
+		{
+			result.setSlot(FIELD_VALUES_, newVariantSlotIndex, value);
+		}
+		result.setSlot(KIND, NilDescriptor.nil());
+		result.setSlot(HASH_OR_ZERO, 0);
+		return result;
+	}
+
+	@Override @AvailMethod
+	A_Map o_FieldMap (final AvailObject object)
+	{
+		// Warning: May be much slower than it was before ObjectLayoutVariant.
+		A_Map fieldMap = MapDescriptor.empty();
+		for (Map.Entry<A_Atom, Integer> entry
+			: variant.fieldToSlotIndex.entrySet())
+		{
+			final A_Atom field = entry.getKey();
+			final int slotIndex = entry.getValue();
+			fieldMap = fieldMap.mapAtPuttingCanDestroy(
+				field,
+				slotIndex == 0
+					? field
+					: object.slot(FIELD_VALUES_, slotIndex),
+				true);
+		}
+		return fieldMap;
+	}
+
+	@Override @AvailMethod
+	A_Tuple o_FieldTuple (final AvailObject object)
+	{
+		final Iterator<Map.Entry<A_Atom, Integer>> fieldIterator =
+			variant.fieldToSlotIndex.entrySet().iterator();
+		final A_Tuple resultTuple = ObjectTupleDescriptor.generateFrom(
+			variant.fieldToSlotIndex.size(),
+			new Generator<A_BasicObject>()
+			{
+				@Override
+				public A_BasicObject value ()
+				{
+					final Map.Entry<A_Atom, Integer> entry =
+						fieldIterator.next();
+					final A_Atom field = entry.getKey();
+					final int slotIndex = entry.getValue();
+					return TupleDescriptor.from(
+						field,
+						slotIndex == 0
+							? field
+							: object.slot(FIELD_VALUES_, slotIndex));
+				}
+			});
+		assert !fieldIterator.hasNext();
+		return resultTuple;
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		int hash = object.slot(HASH_OR_ZERO);
+		if (hash == 0)
+		{
+			// Don't lock if we're shared.  Multiple simultaneous computations
+			// of *the same* value are benign races.
+			hash = variant.randomInt;
+			for (
+				int i = 1, limit = object.variableObjectSlotsCount();
+				i <= limit;
+				i++)
+			{
+				hash *= multiplier;
+				hash ^= object.slot(FIELD_VALUES_, i).hash();
+			}
+			object.setSlot(HASH_OR_ZERO, hash);
+		}
+		return hash;
 	}
 
 	@Override @AvailMethod
@@ -151,63 +339,28 @@ extends Descriptor
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
-		if (aTypeObject.isSupertypeOfPrimitiveTypeEnum(NONTYPE))
-		{
-			return true;
-		}
-		return aTypeObject.hasObjectInstance(object);
-	}
-
-	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
-	{
-		// Answer the object's hash value.
-		return computeHashFromFieldMapHash(object.slot(FIELD_MAP).hash());
-	}
-
-	/**
-	 * Lazily compute and install the kind of the specfied {@linkplain
-	 * ObjectDescriptor object}.
-	 *
-	 * @param object An object.
-	 * @return A type.
-	 */
-	private AvailObject kind (final AvailObject object)
-	{
-		AvailObject kind = object.slot(KIND);
-		if (kind.equalsNil())
-		{
-			object.makeImmutable();
-			final A_Map valueMap = object.slot(FIELD_MAP);
-			A_Map typeMap = MapDescriptor.empty();
-			for (final MapDescriptor.Entry entry : valueMap.mapIterable())
-			{
-				typeMap = typeMap.mapAtPuttingCanDestroy(
-					entry.key(),
-					AbstractEnumerationTypeDescriptor.withInstance(entry.value()),
-					true);
-			}
-			kind = ObjectTypeDescriptor.objectTypeFromMap(typeMap);
-			if (isShared())
-			{
-				kind = kind.traversed().makeShared();
-			}
-			object.setSlot(KIND, kind);
-		}
-		return kind;
+		return aTypeObject.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+			|| aTypeObject.hasObjectInstance(object);
 	}
 
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{
-		if (isShared())
+		AvailObject kind = object.slot(KIND);
+		if (kind.equalsNil())
 		{
-			synchronized (object)
+			object.makeImmutable();
+			kind = variant.mutableObjectTypeDescriptor.createFromObject(object);
+			if (isShared())
 			{
-				return kind(object);
+				// Don't lock, since multiple threads would compute equal values
+				// anyhow.  Make the object shared since it's being written to
+				// a mutable slot of a shared object.
+				kind = kind.traversed().makeShared();
 			}
+			object.setSlot(KIND, kind);
 		}
-		return kind(object);
+		return kind;
 	}
 
 	@Override @AvailMethod @ThreadSafe
@@ -230,10 +383,16 @@ extends Descriptor
 		writer.write("object");
 		writer.write("map");
 		writer.startObject();
-		for (final Entry entry : object.slot(FIELD_MAP).mapIterable())
+		for (Map.Entry<A_Atom, Integer> entry
+			: variant.fieldToSlotIndex.entrySet())
 		{
-			entry.key().atomName().writeTo(writer);
-			entry.value().writeTo(writer);
+			final A_Atom field = entry.getKey();
+			final int slotIndex = entry.getValue();
+			final A_BasicObject value = slotIndex == 0
+				? field
+				: object.slot(FIELD_VALUES_, slotIndex);
+			field.atomName().writeTo(writer);
+			value.writeTo(writer);
 		}
 		writer.endObject();
 		writer.endObject();
@@ -247,13 +406,33 @@ extends Descriptor
 		writer.write("object");
 		writer.write("map");
 		writer.startObject();
-		for (final Entry entry : object.slot(FIELD_MAP).mapIterable())
+		for (Map.Entry<A_Atom, Integer> entry
+			: variant.fieldToSlotIndex.entrySet())
 		{
-			entry.key().atomName().writeTo(writer);
-			entry.value().writeSummaryTo(writer);
+			final A_Atom field = entry.getKey();
+			final int slotIndex = entry.getValue();
+			final A_BasicObject value = slotIndex == 0
+				? field
+				: object.slot(FIELD_VALUES_, slotIndex);
+			field.atomName().writeTo(writer);
+			value.writeSummaryTo(writer);
 		}
 		writer.endObject();
 		writer.endObject();
+	}
+
+	/**
+	 * Extract the field value at the specified slot index.
+	 *
+	 * @param object An object.
+	 * @param slotIndex The non-zero slot index.
+	 * @return The value of the field at the specified slot index.
+	 */
+	public static AvailObject getField (
+		final AvailObject object,
+		final int slotIndex)
+	{
+		return object.slot(FIELD_VALUES_, slotIndex);
 	}
 
 	@Override
@@ -267,8 +446,8 @@ extends Descriptor
 			ObjectTypeDescriptor.namesAndBaseTypesForType(object.kind());
 		final A_Set names = pair.tupleAt(1);
 		final A_Set baseTypes = pair.tupleAt(2);
-		boolean first = true;
 		builder.append("a/an ");
+		boolean first = true;
 		for (final A_String name : names)
 		{
 			if (!first)
@@ -301,8 +480,7 @@ extends Descriptor
 			}
 		}
 		first = true;
-		for (final MapDescriptor.Entry entry
-			: object.slot(FIELD_MAP).mapIterable())
+		for (final MapDescriptor.Entry entry : object.fieldMap().mapIterable())
 		{
 			if (!ignoreKeys.hasElement(entry.key()))
 			{
@@ -336,9 +514,23 @@ extends Descriptor
 	 */
 	public static AvailObject objectFromMap (final A_Map map)
 	{
-		final AvailObject result = mutable.create();
-		result.setSlot(FIELD_MAP, map);
+		final ObjectLayoutVariant variant =
+			ObjectLayoutVariant.variantForFields(map.keysAsSet());
+		final ObjectDescriptor mutableDescriptor =
+			variant.mutableObjectDescriptor;
+		final Map<A_Atom, Integer> slotMap = variant.fieldToSlotIndex;
+		final AvailObject result =
+			mutableDescriptor.create(variant.realSlotCount);
+		for (MapDescriptor.Entry entry : map.mapIterable())
+		{
+			final int slotIndex = slotMap.get(entry.key());
+			if (slotIndex > 0)
+			{
+				result.setSlot(FIELD_VALUES_, slotIndex, entry.value());
+			}
+		}
 		result.setSlot(KIND, NilDescriptor.nil());
+		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
 
@@ -364,19 +556,8 @@ extends Descriptor
 		return objectFromMap(map);
 	}
 
-	/**
-	 * Compute the hash of a user-defined object that would be {@linkplain
-	 * #objectFromMap(A_Map) constructed} from a map with the given hash
-	 * value.
-	 *
-	 * @param fieldMapHash The hash of some map.
-	 * @return The hash of the user-defined object that would be constructed
-	 *         from a map whose hash was provided.
-	 */
-	private static int computeHashFromFieldMapHash (final int fieldMapHash)
-	{
-		return fieldMapHash + 0x1099BE88 ^ 0x38547ADE;
-	}
+	/** This descriptor's {@link ObjectLayoutVariant}. */
+	public final ObjectLayoutVariant variant;
 
 	/**
 	 * Construct a new {@link ObjectDescriptor}.
@@ -384,38 +565,33 @@ extends Descriptor
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private ObjectDescriptor (final Mutability mutability)
+	ObjectDescriptor (
+		final Mutability mutability,
+		final ObjectLayoutVariant variant)
 	{
-		super(mutability, TypeTag.OBJECT_TAG, ObjectSlots.class, null);
+		super(
+			mutability,
+			TypeTag.OBJECT_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
+		this.variant = variant;
 	}
 
-	/** The mutable {@link ObjectDescriptor}. */
-	private static final ObjectDescriptor mutable =
-		new ObjectDescriptor(Mutability.MUTABLE);
-
-	@Override
+	@Deprecated @Override
 	ObjectDescriptor mutable ()
 	{
-		return mutable;
+		return variant.mutableObjectDescriptor;
 	}
 
-	/** The immutable {@link ObjectDescriptor}. */
-	private static final ObjectDescriptor immutable =
-		new ObjectDescriptor(Mutability.IMMUTABLE);
-
-	@Override
+	@Deprecated @Override
 	ObjectDescriptor immutable ()
 	{
-		return immutable;
+		return variant.immutableObjectDescriptor;
 	}
 
-	/** The shared {@link ObjectDescriptor}. */
-	private static final ObjectDescriptor shared =
-		new ObjectDescriptor(Mutability.SHARED);
-
-	@Override
+	@Deprecated @Override
 	ObjectDescriptor shared ()
 	{
-		return shared;
+		return variant.sharedObjectDescriptor;
 	}
 }

@@ -177,7 +177,7 @@ Public method "current fiber's unhandled exception handler" is
 /**
  * Establish {@param "handler"} as the function that the current fiber will
  * apply in the event of an unhandled exception.
- * 
+ *
  * @method "Current fiber's unhandled exception handler is_"
  * @param "handler" "[exception]→⊥"
  *    The unhandled exception handler. When an unhandled exception is trapped by
@@ -253,7 +253,7 @@ Private method "Mark nearest guard frame with_" is
 [
 	marker : {handler-sentinel code, unwind-sentinel code}ᵀ
 |
-	Primitive MarkNearestCatch (failureCode : 
+	Primitive MarkNearestCatch (failureCode :
 		{cannot-mark-handler-frame code, no-handler-frame code}ᵀ);
 	early failure function(failureCode)
 ] : ⊤;
@@ -535,7 +535,7 @@ Private method "Handle_with_and_" is
 /**
  * Reject the current parse if 1) any of the exception handlers aren't or 2) any
  * earlier handlers hide later handlers (by having a more general type).
- * 
+ *
  * @method "Guard|guard_«intercept_»«ensure_»"
  * @restricts "[]→⊤'s type"
  * @restricts "<[⊥]→⊤…|>'s type"
@@ -726,7 +726,7 @@ Semantic restriction "try_else_" is
 
 /**
  * A system exception privately contains a system error code.
- * 
+ *
  * @type "system exception"
  * @field "error code" "natural number"
  * 		The vm error code.
@@ -795,7 +795,7 @@ Private method "System exception_(_)extends_" is
 /**
  * An arithmetic exception describes error conditions related to arithmetic and
  * manipulation of numbers.
- * 
+ *
  * @type "arithmetic exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -806,7 +806,7 @@ Public explicit class "arithmetic exception" extends exception;
  * A bad-argument exception describes error conditions related to invoking a
  * method, function, or similar entity with arguments that are correctly typed
  * but not semantically valid.
- * 
+ *
  * @type "bad-argument exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -816,7 +816,7 @@ Public explicit class "bad-argument exception" extends exception;
 /**
  * A bad-format exception describes error conditions related to invalid formats
  * and/or format applications.
- * 
+ *
  * @type "bad-format exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -826,7 +826,7 @@ Public explicit class "bad-format exception" extends bad-argument exception;
 /**
  * A message exception describes error conditions related to messages, i.e.,
  * method names.
- * 
+ *
  * @type "bad-message exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -836,7 +836,7 @@ Public explicit class "bad-message exception" extends exception;
 /**
  * A bad phrase exception describes error conditions related to phrase
  * construction.
- * 
+ *
  * @type "bad-phrase exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -846,7 +846,7 @@ Public explicit class "bad-phrase exception" extends exception;
 /**
  * A bad-primitive exception describes error conditions related to invocations
  * of nonexistent or not meaningfully implemented primitives.
- * 
+ *
  * @type "bad=primitive exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -856,7 +856,7 @@ Public explicit class "bad-primitive exception" extends exception;
 /**
  * A code-generation exception describes error conditions related to runtime
  * generation of code.
- * 
+ *
  * @type "code-generation exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -866,7 +866,7 @@ Public explicit class "code-generation exception" extends exception;
 /**
  * A definition exception describes error conditions related to defining Avail
  * methods, restrictions, types, and other entities.
- * 
+ *
  * @type "definition exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -877,7 +877,7 @@ Public explicit class "definition exception" extends exception;
  * An element-access exception describes error conditions related to failed
  * retrieval of an object from a larger structure (including the runtime
  * system).
- * 
+ *
  * @type "element-access exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -887,7 +887,7 @@ Public explicit class "element-access exception" extends exception;
 /**
  * An I/O exception describes error conditions related to program input or
  * output.
- * 
+ *
  * @type "I/O exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -898,7 +898,7 @@ Public explicit class "I/O exception" extends exception;
  * An invocation exception describes error conditions related to invoking
  * functions, methods, or similar objects with the wrong number or types of
  * arguments.
- * 
+ *
  * @type "invocation exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -908,7 +908,7 @@ Public explicit class "invocation exception" extends exception;
 /**
  * An instantiation exception describes error conditions related to
  * instantiating types (particularly user-defined object types).
- * 
+ *
  * @type "instantiation exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -918,7 +918,7 @@ Public explicit class "instantiation exception" extends exception;
 /**
  * A security exception describes error conditions related to program
  * permissions.
- * 
+ *
  * @type "security exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -947,7 +947,7 @@ Public explicit class "unsupported-operation exception" extends exception;
 /**
  * A variable use exception describes error conditions related to usage of
  * variables.
- * 
+ *
  * @type "variable-use exception"
  * @supertype "exception"
  * @category "Exceptions"
@@ -1505,10 +1505,10 @@ System exception "cannot-compute-logarithm-of-nonpositive-number" (1041)
 Private method "Ensure:all error codes have corresponding exceptions" is [];
 Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 [
-	missingSystemExceptions ::= reject each errorCode from VM error codes 
+	missingSystemExceptions ::= reject each errorCode from VM error codes
 		where [errorCode ∈ exceptionsByCode];
-	missingExceptionClasses ::= 
-		reject each errorCode → errorName from error codes 
+	missingExceptionClasses ::=
+		reject each errorCode → errorName from error codes
 			where [errorCode ∈ exceptionsByCode];
 	problem : string := "exception classes to be defined for the following";
 	If |missingSystemExceptions| ≠ 0 then
@@ -1531,7 +1531,7 @@ Ensure: all error codes have corresponding exceptions;
 
 /**
  * A descriptive exception holds an error message.
- * 
+ *
  * @type "descriptive exception"
  * @supertype "exception"
  * @field "error message" "string"

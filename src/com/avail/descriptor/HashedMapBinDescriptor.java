@@ -84,7 +84,6 @@ extends MapBinDescriptor
 	{
 		if (shouldCheck)
 		{
-			assert object.descriptor() instanceof HashedMapBinDescriptor;
 			int keyHashSum = 0;
 			int valueHashSum = 0;
 			int totalCount = 0;

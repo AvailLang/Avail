@@ -32,12 +32,16 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots.*;
 import java.util.*;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.Generator;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
@@ -54,17 +58,44 @@ public final class ObjectTypeDescriptor
 extends TypeDescriptor
 {
 	/**
+	 * The layout of integer slots for my instances.
+	 */
+	public enum IntegerSlots
+	implements IntegerSlotsEnum
+	{
+		/**
+		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}.
+		 */
+		@HideFieldInDebugger
+		HASH_AND_MORE;
+
+		/**
+		 * A bit field to hold the cached hash value of an object type.  If
+		 * zero, the hash value must be computed upon request.  Note that in the
+		 * very rare case that the hash value actually equals zero, the hash
+		 * value has to be computed every time it is requested.
+		 */
+		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
+	}
+
+	/**
 	 * The layout of object slots for my instances.
 	 */
 	public enum ObjectSlots
 	implements ObjectSlotsEnum
 	{
 		/**
-		 * A {@linkplain MapTypeDescriptor map} from {@linkplain
-		 * AtomDescriptor field names} to their declared {@linkplain
-		 * TypeDescriptor types}.
+		 * The types associated with keys for this object.  The assignment of
+		 * object fields to these slots is determined by the descriptor's {@link
+		 * ObjectTypeDescriptor#variant}.
 		 */
-		FIELD_TYPE_MAP
+		FIELD_TYPES_
+	}
+
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	{
+		return e == HASH_AND_MORE;
 	}
 
 	@Override
@@ -145,12 +176,6 @@ extends TypeDescriptor
 		}
 	}
 
-	@Override @AvailMethod
-	A_Map o_FieldTypeMap (final AvailObject object)
-	{
-		return object.slot(FIELD_TYPE_MAP);
-	}
-
 	@Override
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
@@ -160,30 +185,129 @@ extends TypeDescriptor
 	@Override
 	boolean o_EqualsObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
-		return object.slot(FIELD_TYPE_MAP).equals(
-			anObjectType.fieldTypeMap());
+		if (object.sameAddressAs(anObjectType))
+		{
+			return true;
+		}
+		final ObjectTypeDescriptor otherDescriptor =
+			(ObjectTypeDescriptor) anObjectType.descriptor;
+		if (variant != otherDescriptor.variant)
+		{
+			return false;
+		}
+		// If one of the hashes is already computed, compute the other if
+		// necessary, then compare the hashes to eliminate the vast majority of
+		// the unequal cases.
+		int myHash = object.slot(HASH_OR_ZERO);
+		int otherHash = anObjectType.slot(HASH_OR_ZERO);
+		if (myHash != 0 || otherHash != 0)
+		{
+			if (myHash == 0)
+			{
+				myHash = object.hash();
+			}
+			if (otherHash == 0)
+			{
+				otherHash = anObjectType.hash();
+			}
+			if (myHash != otherHash)
+			{
+				return false;
+			}
+		}
+		// Hashes are equal.  Compare field types, which must be in
+		// corresponding positions because we share the same variant.
+		for (
+			int i = 1, limit = object.variableObjectSlotsCount();
+			i <= limit;
+			i++)
+		{
+			if (!object.slot(FIELD_TYPES_, i).equals(
+				anObjectType.slot(FIELD_TYPES_, i)))
+			{
+				return false;
+			}
+		}
+		if (!isShared())
+		{
+			object.becomeIndirectionTo(anObjectType);
+		}
+		else if (!otherDescriptor.isShared())
+		{
+			anObjectType.becomeIndirectionTo(object);
+		}
+		return true;
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	A_Map o_FieldTypeMap (final AvailObject object)
 	{
-		return object.fieldTypeMap().hash() * 11 ^ 0xE3561F16;
+		// Warning: May be much slower than it was before ObjectLayoutVariant.
+		A_Map fieldTypeMap = MapDescriptor.empty();
+		for (Map.Entry<A_Atom, Integer> entry
+			: variant.fieldToSlotIndex.entrySet())
+		{
+			final A_Atom field = entry.getKey();
+			final int slotIndex = entry.getValue();
+			fieldTypeMap = fieldTypeMap.mapAtPuttingCanDestroy(
+				field,
+				slotIndex == 0
+					? InstanceTypeDescriptor.on(field)
+					: object.slot(FIELD_TYPES_, slotIndex),
+				true);
+		}
+		return fieldTypeMap;
 	}
 
 	@Override @AvailMethod
 	A_Tuple o_FieldTypeTuple (final AvailObject object)
 	{
-		final A_Map map = object.slot(FIELD_TYPE_MAP);
-		final List<A_Tuple> fieldAssignments = new ArrayList<>(
-			map.mapSize());
-		for (final MapDescriptor.Entry entry : map.mapIterable())
+		final Iterator<Map.Entry<A_Atom, Integer>> fieldIterator =
+			variant.fieldToSlotIndex.entrySet().iterator();
+		final A_Tuple resultTuple = ObjectTupleDescriptor.generateFrom(
+			variant.fieldToSlotIndex.size(),
+			new Generator<A_BasicObject>()
+			{
+				@Override
+				public A_BasicObject value ()
+				{
+					final Map.Entry<A_Atom, Integer> entry =
+						fieldIterator.next();
+					final A_Atom field = entry.getKey();
+					final int slotIndex = entry.getValue();
+					return TupleDescriptor.from(
+						field,
+						slotIndex == 0
+							? InstanceTypeDescriptor.on(field)
+							: object.slot(FIELD_TYPES_, slotIndex));
+				}
+			});
+		assert !fieldIterator.hasNext();
+		return resultTuple;
+	}
+
+	@Override @AvailMethod
+	int o_Hash (final AvailObject object)
+	{
+		int hash = object.slot(HASH_OR_ZERO);
+		if (hash == 0)
 		{
-			fieldAssignments.add(
-			TupleDescriptor.from(entry.key(), entry.value()));
+			// Don't lock if we're shared.  Multiple simultaneous computations
+			// of *the same* value are benign races.
+			hash = variant.randomInt ^ 0xE3561F16;
+			for (
+				int i = 1, limit = object.variableObjectSlotsCount();
+				i <= limit;
+				i++)
+			{
+				hash *= multiplier;
+				hash -= object.slot(FIELD_TYPES_, i).hash();
+			}
+			object.setSlot(HASH_OR_ZERO, hash);
 		}
-		return TupleDescriptor.fromList(fieldAssignments);
+		return hash;
 	}
 
 	@Override @AvailMethod
@@ -191,23 +315,66 @@ extends TypeDescriptor
 		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
-		final A_Map typeMap = object.slot(FIELD_TYPE_MAP);
-		final A_Map instMap = potentialInstance.fieldMap();
-		if (instMap.mapSize() < typeMap.mapSize())
+		final ObjectDescriptor instanceDescriptor =
+			(ObjectDescriptor) potentialInstance.descriptor;
+		final ObjectLayoutVariant instanceVariant =
+			instanceDescriptor.variant;
+		if (instanceVariant == variant)
 		{
-			return false;
-		}
-		for (final MapDescriptor.Entry entry : typeMap.mapIterable())
-		{
-			final AvailObject fieldKey = entry.key();
-			final AvailObject fieldType = entry.value();
-			if (!instMap.hasKey(fieldKey))
+			// The instance and I share a variant, so blast through the fields
+			// in lock-step doing instance checks.
+			for (
+				int i = 1, limit = variant.realSlotCount;
+				i <= limit;
+				i++)
 			{
-				return false;
+				final AvailObject instanceFieldValue =
+					ObjectDescriptor.getField(potentialInstance, i);
+				final A_Type fieldType = object.slot(FIELD_TYPES_, i);
+				if (!instanceFieldValue.isInstanceOf(fieldType))
+				{
+					return false;
+				}
 			}
-			if (!instMap.mapAt(fieldKey).isInstanceOf(fieldType))
+			return true;
+		}
+		// The variants disagree.  For each field type in this object type,
+		// check that there is a corresponding field value in the object, and
+		// that its type conforms.  For field types that are only for explicit
+		// subclassing, just make sure the same field is present in the object.
+		final Map<A_Atom, Integer> instanceVariantSlotMap =
+			instanceVariant.fieldToSlotIndex;
+		for (final Map.Entry<A_Atom, Integer> entry
+			: variant.fieldToSlotIndex.entrySet())
+		{
+			final A_Atom field = entry.getKey();
+			final int slotIndex = entry.getValue();
+			if (slotIndex == 0)
 			{
-				return false;
+				if (!instanceVariantSlotMap.containsKey(field))
+				{
+					return false;
+				}
+			}
+			else
+			{
+				final Integer instanceSlotIndex =
+					instanceVariantSlotMap.get(field);
+				if (instanceSlotIndex == null)
+				{
+					// The instance didn't have a field that the type requires.
+					return false;
+				}
+				// The object and object type should agree about whether the
+				// field is for explicit subclassing.
+				assert instanceSlotIndex != 0;
+				final A_BasicObject fieldValue = ObjectDescriptor.getField(
+					potentialInstance, instanceSlotIndex);
+				A_Type fieldType = object.slot(FIELD_TYPES_, slotIndex);
+				if (!fieldValue.isInstanceOf(fieldType))
+				{
+					return false;
+				}
 			}
 		}
 		return true;
@@ -224,25 +391,82 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
-		final A_Map m1 = object.slot(FIELD_TYPE_MAP);
-		final A_Map m2 = anObjectType.fieldTypeMap();
-		if (m1.mapSize() > m2.mapSize())
+		if (object.sameAddressAs(anObjectType))
+		{
+			return true;
+		}
+		final ObjectTypeDescriptor subtypeDescriptor =
+			(ObjectTypeDescriptor) anObjectType.descriptor;
+		final ObjectLayoutVariant subtypeVariant =
+			subtypeDescriptor.variant;
+		if (subtypeVariant == variant)
+		{
+			// The potential subtype and I share a variant, so blast through the
+			// fields in lock-step doing subtype checks.
+			for (
+				int i = 1, limit = variant.realSlotCount;
+				i <= limit;
+				i++)
+			{
+				final AvailObject subtypeFieldType =
+					anObjectType.slot(FIELD_TYPES_, i);
+				final AvailObject myFieldType = object.slot(FIELD_TYPES_, i);
+				if (!subtypeFieldType.isSubtypeOf(myFieldType))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		// The variants disagree.  Do some quick field count checks first.  Note
+		// that since variants are canonized by the set of fields, we can safely
+		// assume that the subtype has *strictly* more fields than the
+		// supertype... but also note that the number of real slots can still
+		// be equal while satisfying the not-same-variant but is-subtype.
+		if (subtypeVariant.realSlotCount < variant.realSlotCount
+			|| subtypeVariant.fieldToSlotIndex.size() <=
+				variant.fieldToSlotIndex.size())
 		{
 			return false;
 		}
-		for (final MapDescriptor.Entry entry : m1.mapIterable())
+		// For each of my fields, check that the field is present in the
+		// potential subtype, and that its type is a subtype of my field's type.
+		final Map<A_Atom, Integer> subtypeVariantSlotMap =
+			subtypeVariant.fieldToSlotIndex;
+		for (final Map.Entry<A_Atom, Integer> entry
+			: variant.fieldToSlotIndex.entrySet())
 		{
-			final AvailObject fieldKey = entry.key();
-			final AvailObject fieldType = entry.value();
-			if (!m2.hasKey(fieldKey))
+			final A_Atom field = entry.getKey();
+			final int supertypeSlotIndex = entry.getValue();
+			if (supertypeSlotIndex == 0)
 			{
-				return false;
+				if (!subtypeVariantSlotMap.containsKey(field))
+				{
+					return false;
+				}
 			}
-			if (!m2.mapAt(fieldKey).isSubtypeOf(fieldType))
+			else
 			{
-				return false;
+				final Integer subtypeSlotIndex =
+					subtypeVariantSlotMap.get(field);
+				if (subtypeSlotIndex == null)
+				{
+					// The potential subtype didn't have a necessary field.
+					return false;
+				}
+				// The types should agree about whether the field is for
+				// explicit subclassing.
+				assert subtypeSlotIndex != 0;
+				final A_Type subtypeFieldType = anObjectType.slot(
+					FIELD_TYPES_, subtypeSlotIndex);
+				final A_Type supertypeFieldType = object.slot(
+					FIELD_TYPES_, supertypeSlotIndex);
+				if (!subtypeFieldType.isSubtypeOf(supertypeFieldType))
+				{
+					return false;
+				}
 			}
 		}
 		return true;
@@ -266,47 +490,83 @@ extends TypeDescriptor
 
 	/**
 	 * Answer the most general type that is still at least as specific as these.
-	 * Here we're finding the nearest common descendant of two eager object
-	 * types.
+	 * Here we're finding the nearest common descendant of two object types.
 	 */
 	@Override @AvailMethod
 	A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
-		final A_Map map1 = object.slot(FIELD_TYPE_MAP);
-		final A_Map map2 = anObjectType.fieldTypeMap();
-		A_Map resultMap = MapDescriptor.empty();
-		for (final MapDescriptor.Entry entry : map1.mapIterable())
+		final ObjectTypeDescriptor otherDescriptor =
+			(ObjectTypeDescriptor) anObjectType.descriptor();
+		final ObjectLayoutVariant otherVariant =
+			otherDescriptor.variant;
+		if (otherVariant == variant)
 		{
-			final A_Atom key = entry.key();
-			A_Type type = entry.value();
-			if (map2.hasKey(key))
+			// Field slot indices agree, so blast through the slots in order.
+			final AvailObject intersection =
+				variant.mutableObjectTypeDescriptor.create(
+					variant.realSlotCount);
+			for (int i = 1, limit = variant.realSlotCount; i <= limit; i++)
 			{
-				type = type.typeIntersection(map2.mapAt(key));
-				if (type.isBottom())
+				final A_Type fieldIntersaction =
+					object.slot(FIELD_TYPES_, i).typeIntersection(
+						anObjectType.slot(FIELD_TYPES_, i));
+				if (fieldIntersaction.isBottom())
 				{
+					// Abandon the partially built object type.
 					return BottomTypeDescriptor.bottom();
 				}
+				intersection.setSlot(FIELD_TYPES_, i, fieldIntersaction);
 			}
-			resultMap = resultMap.mapAtPuttingCanDestroy(
-				key,
-				type,
-				true);
+			intersection.setSlot(HASH_OR_ZERO, 0);
+			return intersection;
 		}
-		for (final MapDescriptor.Entry entry : map2.mapIterable())
+		// The variants disagree, so do it the hard(er) way.
+		final A_Set mergedFields = variant.allFields.setUnionCanDestroy(
+			otherVariant.allFields, false);
+		final ObjectLayoutVariant resultVariant =
+			ObjectLayoutVariant.variantForFields(mergedFields);
+		final Map<A_Atom, Integer> mySlotMap = variant.fieldToSlotIndex;
+		final Map<A_Atom, Integer> otherSlotMap = otherVariant.fieldToSlotIndex;
+		final Map<A_Atom, Integer> resultSlotMap =
+			resultVariant.fieldToSlotIndex;
+		final AvailObject result =
+			resultVariant.mutableObjectTypeDescriptor.create(
+				resultVariant.realSlotCount);
+		for (final Map.Entry<A_Atom, Integer> resultEntry
+			: resultSlotMap.entrySet())
 		{
-			final AvailObject key = entry.key();
-			final AvailObject type = entry.value();
-			if (!map1.hasKey(key))
+			final int resultSlotIndex = resultEntry.getValue();
+			if (resultSlotIndex > 0)
 			{
-				resultMap = resultMap.mapAtPuttingCanDestroy(
-					key,
-					type,
-					true);
+				final A_Atom field = resultEntry.getKey();
+				final Integer mySlotIndex = mySlotMap.get(field);
+				final Integer otherSlotIndex = otherSlotMap.get(field);
+				final A_Type fieldType;
+				if (mySlotIndex == null)
+				{
+					fieldType = anObjectType.slot(FIELD_TYPES_, otherSlotIndex);
+				}
+				else if (otherSlotIndex == null)
+				{
+					fieldType = object.slot(FIELD_TYPES_, mySlotIndex);
+				}
+				else
+				{
+					fieldType = object.slot(FIELD_TYPES_, mySlotIndex)
+						.typeIntersection(
+							anObjectType.slot(FIELD_TYPES_, otherSlotIndex));
+					if (fieldType.isBottom())
+					{
+						return BottomTypeDescriptor.bottom();
+					}
+				}
+				result.setSlot(FIELD_TYPES_, resultEntry.getValue(), fieldType);
 			}
 		}
-		return objectTypeFromMap(resultMap);
+		result.setSlot(HASH_OR_ZERO, 0);
+		return result;
 	}
 
 	@Override @AvailMethod
@@ -325,7 +585,6 @@ extends TypeDescriptor
 		return another.typeUnionOfObjectType(object);
 	}
 
-
 	/**
 	 * Answer the most specific type that is still at least as general as these.
 	 * Here we're finding the nearest common ancestor of two eager object types.
@@ -333,24 +592,57 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
-		final A_Map map1 = object.slot(FIELD_TYPE_MAP);
-		final A_Map map2 = anObjectType.fieldTypeMap();
-		A_Map resultMap = MapDescriptor.empty();
-		for (final MapDescriptor.Entry entry : map1.mapIterable())
+		final ObjectTypeDescriptor otherDescriptor =
+			(ObjectTypeDescriptor) anObjectType.descriptor();
+		final ObjectLayoutVariant otherVariant =
+			otherDescriptor.variant;
+		if (otherVariant == variant)
 		{
-			final AvailObject key = entry.key();
-			if (map2.hasKey(key))
+			// Field slot indices agree, so blast through the slots in order.
+			final AvailObject union =
+				variant.mutableObjectTypeDescriptor.create(
+					variant.realSlotCount);
+			for (int i = 1, limit = variant.realSlotCount; i <= limit; i++)
 			{
-				final A_Type valueType = entry.value();
-				resultMap = resultMap.mapAtPuttingCanDestroy(
-					key,
-					valueType.typeUnion(map2.mapAt(key)),
-					true);
+				final A_Type fieldIntersaction =
+					object.slot(FIELD_TYPES_, i).typeUnion(
+						anObjectType.slot(FIELD_TYPES_, i));
+				union.setSlot(FIELD_TYPES_, i, fieldIntersaction);
+			}
+			union.setSlot(HASH_OR_ZERO, 0);
+			return union;
+		}
+		// The variants disagree, so do it the hard(er) way.
+		final A_Set narrowedFields =
+			variant.allFields.setIntersectionCanDestroy(
+				otherVariant.allFields, false);
+		final ObjectLayoutVariant resultVariant =
+			ObjectLayoutVariant.variantForFields(narrowedFields);
+		final Map<A_Atom, Integer> mySlotMap = variant.fieldToSlotIndex;
+		final Map<A_Atom, Integer> otherSlotMap = otherVariant.fieldToSlotIndex;
+		final Map<A_Atom, Integer> resultSlotMap =
+			resultVariant.fieldToSlotIndex;
+		final AvailObject result =
+			resultVariant.mutableObjectTypeDescriptor.create(
+				resultVariant.realSlotCount);
+		for (final Map.Entry<A_Atom, Integer> resultEntry
+			: resultSlotMap.entrySet())
+		{
+			final int resultSlotIndex = resultEntry.getValue();
+			if (resultSlotIndex > 0)
+			{
+				final A_Atom field = resultEntry.getKey();
+				final int mySlotIndex = mySlotMap.get(field);
+				final int otherSlotIndex = otherSlotMap.get(field);
+				final A_Type fieldType = object.slot(FIELD_TYPES_, mySlotIndex)
+					.typeUnion(anObjectType.slot(FIELD_TYPES_, otherSlotIndex));
+				result.setSlot(FIELD_TYPES_, resultEntry.getValue(), fieldType);
 			}
 		}
-		return objectTypeFromMap(resultMap);
+		result.setSlot(HASH_OR_ZERO, 0);
+		return result;
 	}
 
 	@Override @AvailMethod @ThreadSafe
@@ -377,7 +669,7 @@ extends TypeDescriptor
 		writer.write("kind");
 		writer.write("object type");
 		for (final MapDescriptor.Entry entry :
-			object.slot(FIELD_TYPE_MAP).mapIterable())
+			object.fieldTypeMap().mapIterable())
 		{
 			entry.key().atomName().writeTo(writer);
 			entry.value().writeTo(writer);
@@ -392,7 +684,7 @@ extends TypeDescriptor
 		writer.write("kind");
 		writer.write("object type");
 		for (final MapDescriptor.Entry entry :
-			object.slot(FIELD_TYPE_MAP).mapIterable())
+			object.fieldTypeMap().mapIterable())
 		{
 			entry.key().atomName().writeTo(writer);
 			entry.value().writeSummaryTo(writer);
@@ -410,8 +702,22 @@ extends TypeDescriptor
 	 */
 	public static AvailObject objectTypeFromMap (final A_Map map)
 	{
-		final AvailObject result = mutable.create();
-		result.setSlot(FIELD_TYPE_MAP, map);
+		final ObjectLayoutVariant variant =
+			ObjectLayoutVariant.variantForFields(map.keysAsSet());
+		final ObjectTypeDescriptor mutableDescriptor =
+			variant.mutableObjectTypeDescriptor;
+		final Map<A_Atom, Integer> slotMap = variant.fieldToSlotIndex;
+		final AvailObject result =
+			mutableDescriptor.create(variant.realSlotCount);
+		for (MapDescriptor.Entry entry : map.mapIterable())
+		{
+			final int slotIndex = slotMap.get(entry.key());
+			if (slotIndex > 0)
+			{
+				result.setSlot(FIELD_TYPES_, slotIndex, entry.value());
+			}
+		}
+		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
 
@@ -428,14 +734,35 @@ extends TypeDescriptor
 	public static AvailObject objectTypeFromTuple (final A_Tuple tuple)
 	{
 		A_Map map = MapDescriptor.empty();
-		for (final A_Tuple fieldDefinition : tuple)
+		for (final A_Tuple fieldTypeAssignment : tuple)
 		{
-			final AvailObject fieldAtom = fieldDefinition.tupleAt(1);
-			final AvailObject type = fieldDefinition.tupleAt(2);
-			map = map.mapAtPuttingCanDestroy(fieldAtom, type, true);
+			final A_Atom fieldAtom = fieldTypeAssignment.tupleAt(1);
+			final A_BasicObject fieldType = fieldTypeAssignment.tupleAt(2);
+			map = map.mapAtPuttingCanDestroy(fieldAtom, fieldType, true);
 		}
-		final AvailObject result = mutable.create();
-		result.setSlot(FIELD_TYPE_MAP, map);
+		return objectTypeFromMap(map);
+	}
+
+	/**
+	 * Given an {@link ObjectDescriptor object} whose variant is this mutable
+	 * object type descriptor's variant, create an object type whose fields are
+	 * populated with instance types based on the object's fields.
+	 *
+	 * @param object An object.
+	 * @return An object type.
+	 */
+	AvailObject createFromObject (AvailObject object)
+	{
+		final AvailObject result = create(variant.realSlotCount);
+		for (int i = 1, limit = variant.realSlotCount; i <= limit; i++)
+		{
+			final A_BasicObject fieldValue =
+				ObjectDescriptor.getField(object, i);
+			final A_Type fieldType =
+				AbstractEnumerationTypeDescriptor.withInstance(fieldValue);
+			result.setSlot(FIELD_TYPES_, i, fieldType);
+		}
+		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
 
@@ -662,44 +989,45 @@ extends TypeDescriptor
 	{
 		return namesAndBaseTypesForType(anObjectType).tupleAt(2);
 	}
+
+	/** This descriptor's {@link ObjectLayoutVariant}. */
+	public final ObjectLayoutVariant variant;
+
 	/**
-	 * Construct a new {@link ObjectTypeDescriptor}.
+	 * Construct a new {@link ObjectDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private ObjectTypeDescriptor (final Mutability mutability)
+	ObjectTypeDescriptor (
+		final Mutability mutability,
+		final ObjectLayoutVariant variant)
 	{
-		super(mutability, TypeTag.OBJECT_TYPE_TAG, ObjectSlots.class, null);
+		super(
+			mutability,
+			TypeTag.OBJECT_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
+		this.variant = variant;
 	}
 
-	/** The mutable {@link ObjectTypeDescriptor}. */
-	private static final ObjectTypeDescriptor mutable =
-		new ObjectTypeDescriptor(Mutability.MUTABLE);
-
-	@Override
+	@Deprecated @Override
 	ObjectTypeDescriptor mutable ()
 	{
-		return mutable;
+		return variant.mutableObjectTypeDescriptor;
 	}
 
-	/** The shared {@link ObjectTypeDescriptor}. */
-	private static final ObjectTypeDescriptor shared =
-		new ObjectTypeDescriptor(Mutability.SHARED);
-
-	@Override
+	@Deprecated @Override
 	ObjectTypeDescriptor immutable ()
 	{
-		// There isn't an immutable descriptor, only a shared one.
-		return shared;
+		return variant.immutableObjectTypeDescriptor;
 	}
 
-	@Override
+	@Deprecated @Override
 	ObjectTypeDescriptor shared ()
 	{
-		return shared;
+		return variant.sharedObjectTypeDescriptor;
 	}
-
 
 	/**
 	 * The most general {@linkplain ObjectTypeDescriptor object type}.
@@ -742,6 +1070,13 @@ extends TypeDescriptor
 	 */
 	private static final A_Atom exceptionAtom =
 		AtomDescriptor.createSpecialAtom("explicit-exception");
+
+	static
+	{
+		exceptionAtom.setAtomProperty(
+			AtomDescriptor.explicitSubclassingKey(),
+			AtomDescriptor.trueObject());
+	}
 
 	/**
 	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
