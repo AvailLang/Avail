@@ -42,7 +42,7 @@ import com.avail.AvailRuntime;
 import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.AvailAcceptedParseException;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.MalformedMessageException;

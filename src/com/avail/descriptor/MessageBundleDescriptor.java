@@ -38,7 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;

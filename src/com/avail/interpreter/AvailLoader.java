@@ -41,7 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.compiler.*;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;

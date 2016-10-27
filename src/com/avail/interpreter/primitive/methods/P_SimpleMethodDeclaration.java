@@ -38,7 +38,7 @@ import static com.avail.interpreter.Primitive.Result.*;
 import java.util.ArrayList;
 import java.util.List;
 import com.avail.*;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;

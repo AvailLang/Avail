@@ -34,9 +34,26 @@ package com.avail.compiler;
 
 import static com.avail.compiler.ParsingConversionRule.*;
 import java.util.*;
-import com.avail.compiler.MessageSplitter.SectionCheckpoint;
-import com.avail.descriptor.*;
+
+import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.A_BundleTree;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.ListNodeDescriptor;
+import com.avail.descriptor.LiteralNodeDescriptor;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.MarkerNodeDescriptor;
+import com.avail.descriptor.MessageBundleTreeDescriptor;
+import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.descriptor.ReferenceNodeDescriptor;
+import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 
 /**
  * {@code ParsingOperation} describes the operations available for parsing Avail
@@ -279,12 +296,12 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 16*N+7} - A macro has been parsed up to a {@link
-	 * SectionCheckpoint} (§).  Make a copy of the parse stack, then perform the
-	 * equivalent of an {@link #APPEND_ARGUMENT} on the copy, the specified
-	 * number of times minus one (because zero is not a legal operand).  Make it
-	 * into a single {@linkplain ListNodeDescriptor list node} and push it onto
-	 * the original parse stack.  It will be consumed by a subsequent {@link
-	 * #RUN_PREFIX_FUNCTION}.
+	 * MessageSplitter.SectionCheckpoint} (§).  Make a copy of the parse stack,
+	 * then perform the equivalent of an {@link #APPEND_ARGUMENT} on the copy,
+	 * the specified number of times minus one (because zero is not a legal
+	 * operand).  Make it into a single {@linkplain ListNodeDescriptor list
+	 * node} and push it onto the original parse stack.  It will be consumed by
+	 * a subsequent {@link #RUN_PREFIX_FUNCTION}.
 	 *
 	 * <p>This instruction is detected specially by the {@linkplain
 	 * MessageBundleTreeDescriptor message bundle tree}'s {@linkplain
@@ -302,10 +319,10 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 16*N+8} - A macro has been parsed up to a {@link
-	 * SectionCheckpoint} (§), and a copy of the cleaned up parse stack has been
-	 * pushed, so invoke the Nth prefix function associated with the macro.
-	 * Consume the previously pushed copy of the parse stack.  The current
-	 * {@link AvailCompiler.ParserState}'s {@linkplain
+	 * MessageSplitter.SectionCheckpoint} (§), and a copy of the cleaned up
+	 * parse stack has been pushed, so invoke the Nth prefix function associated
+	 * with the macro.  Consume the previously pushed copy of the parse stack.
+	 * The current {@link AvailCompiler.ParserState}'s {@linkplain
 	 * AvailCompiler.ParserState#clientDataMap} is stashed in the
 	 * new {@link FiberDescriptor fiber}'s {@linkplain
 	 * AvailObject#fiberGlobals()} and retrieved afterward, so the prefix

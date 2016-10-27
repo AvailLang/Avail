@@ -46,7 +46,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.AvailCompiler.ParserState;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.*;
 import com.avail.utility.json.JSONWriter;

@@ -45,7 +45,7 @@ import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompilerFragmentCache;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.compiler.ParsingConversionRule;
 import com.avail.compiler.ParsingOperation;
 

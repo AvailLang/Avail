@@ -41,6 +41,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.*;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeAdaptor;

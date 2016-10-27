@@ -38,6 +38,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import com.avail.AvailRuntime;
+import com.avail.compiler.splitter.MessageSplitter;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;

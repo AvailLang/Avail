@@ -260,7 +260,7 @@ public final class AvailRuntime
 	 * The maximum number of {@link Interpreter}s that can be constructed for
 	 * this runtime.
 	 */
-	public static final int maxInterpreters = availableProcessors * 3;
+	public static final int maxInterpreters = availableProcessors;
 
 	/**
 	 * A counter from which unique interpreter indices in [0..maxInterpreters)

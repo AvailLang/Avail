@@ -30,9 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.compiler.splitter;
 import com.avail.annotations.InnerAccess;
-import com.avail.compiler.MessageSplitter.Expression;
+import com.avail.compiler.ParsingOperation;
+
 import static com.avail.compiler.ParsingOperation.*;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.TupleDescriptor;

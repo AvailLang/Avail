@@ -1,5 +1,5 @@
 /**
- * P_BundleParametersCount.java
+ * RawStringLiteralTokenArgument.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,52 +29,45 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.compiler.splitter;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 
-package com.avail.interpreter.primitive.methods;
-
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import static com.avail.compiler.ParsingOperation.PARSE_RAW_STRING_LITERAL_TOKEN;
+import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 
 /**
- * <strong>Primitive:</strong> Answer the number of arguments expected by
- * the specified {@linkplain MethodDescriptor method}.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * A {@linkplain RawStringLiteralTokenArgument} is an occurrence of
+ * {@linkplain StringDescriptor#ellipsis() ellipsis} (…) in a message name,
+ * followed by a {@linkplain StringDescriptor#dollarSign() dollarSign} ($).
+ * It indicates where a raw string literal token argument is expected. Like
+ * its superclass, the {@link RawTokenArgument}, the token is captured after
+ * being placed in a literal phrase, but in this case the token is
+ * restricted to be a {@link TokenType#LITERAL} (currently positive
+ * integers, doubles, and strings).
  */
-public final class P_BundleParametersCount
-extends Primitive
+final class RawStringLiteralTokenArgument
+extends RawTokenArgument
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * Construct a new {@link RawStringLiteralTokenArgument}.
+	 *
+	 * @param startTokenIndex The one-based token index of this argument.
 	 */
-	public final static Primitive instance =
-		new P_BundleParametersCount().init(
-			1, CannotFail, CanFold, CanInline);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	public RawStringLiteralTokenArgument (
+		final MessageSplitter splitter,
+		final int startTokenIndex)
 	{
-		assert args.size() == 1;
-		final A_Bundle bundle = args.get(0);
-
-		final MessageSplitter splitter = bundle.messageSplitter();
-		return interpreter.primitiveSuccess(IntegerDescriptor.fromInt(
-			splitter.numberOfArguments()));
+		super(splitter, startTokenIndex);
 	}
 
 	@Override
-	protected A_Type privateBlockTypeRestriction ()
+	void emitOn (
+		final InstructionGenerator generator,
+		final A_Type phraseType)
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MESSAGE_BUNDLE.o()),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+		generator.emit(this, PARSE_RAW_STRING_LITERAL_TOKEN);
+		generator.emit(this, TYPE_CHECK_ARGUMENT, MessageSplitter.indexForType(phraseType));
 	}
 }

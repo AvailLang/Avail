@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 
 /**
  * {@code A_Bundle} is an interface that specifies the {@linkplain

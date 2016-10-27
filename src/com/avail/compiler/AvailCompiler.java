@@ -34,6 +34,7 @@ package com.avail.compiler;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
+import com.avail.compiler.splitter.MessageSplitter;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
