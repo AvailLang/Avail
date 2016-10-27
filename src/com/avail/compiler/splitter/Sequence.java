@@ -121,7 +121,7 @@ extends Expression
 		if (e.canBeReordered())
 		{
 			if (argumentsAreReordered != null
-				&& argumentsAreReordered != (e.explicitOrdinal() != -1))
+				&& argumentsAreReordered == (e.explicitOrdinal() == -1))
 			{
 				messageSplitter.throwMalformedMessageException(
 					E_INCONSISTENT_ARGUMENT_REORDERING,
@@ -132,18 +132,6 @@ extends Expression
 			}
 			argumentsAreReordered = e.explicitOrdinal() != -1;
 		}
-	}
-
-	@Override
-	boolean isArgumentOrGroup ()
-	{
-		return false;
-	}
-
-	@Override
-	boolean isGroup ()
-	{
-		return false;
 	}
 
 	@Override
@@ -326,7 +314,7 @@ extends Expression
 			{
 				builder.append(", ");
 			}
-			builder.append(e.toString());
+			builder.append(e);
 			if (e.canBeReordered() && e.explicitOrdinal() != -1)
 			{
 				builder.appendCodePoint(
@@ -387,7 +375,7 @@ extends Expression
 	 *         If the arguments have reordering numerals (circled numbers),
 	 *         but they don't form a non-trivial permutation of [1..N].
 	 */
-	public void checkForConsistentOrdinals ()
+	void checkForConsistentOrdinals ()
 		throws MalformedMessageException
 	{
 		if (argumentsAreReordered == Boolean.TRUE)
@@ -420,11 +408,10 @@ extends Expression
 			}
 		}
 		final int size = usedOrdinalsList.size();
-		final Set<Integer> usedOrdinalsSet =
-			new HashSet<>(usedOrdinalsList);
 		final List<Integer> sortedOrdinalsList =
 			new ArrayList<>(usedOrdinalsList);
 		Collections.sort(sortedOrdinalsList);
+		final Set<Integer> usedOrdinalsSet = new HashSet<>(usedOrdinalsList);
 		if (usedOrdinalsSet.size() < usedOrdinalsList.size()
 			|| sortedOrdinalsList.get(0) != 1
 			|| sortedOrdinalsList.get(size - 1) != size

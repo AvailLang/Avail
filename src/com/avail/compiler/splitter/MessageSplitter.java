@@ -380,7 +380,8 @@ public class MessageSplitter
 				E_UNBALANCED_GUILLEMETS,
 				"Encountered " + encountered);
 		}
-		messagePartsTuple = TupleDescriptor.fromList(messagePartsList).makeShared();
+		messagePartsTuple =
+			TupleDescriptor.fromList(messagePartsList).makeShared();
 	}
 
 	/**
@@ -1242,7 +1243,6 @@ public class MessageSplitter
 		final Sequence beforeDagger = parseSequence();
 		if (!atEnd() && currentMessagePart().equals(doubleDagger()))
 		{
-			final int daggerPosition = messagePartPosition;
 			messagePartPosition++;
 			final Sequence afterDagger = parseSequence();
 			if (!atEnd() && currentMessagePart().equals(doubleDagger()))
@@ -1252,7 +1252,7 @@ public class MessageSplitter
 					E_INCORRECT_USE_OF_DOUBLE_DAGGER,
 					"A group must have at most one double-dagger (‡)");
 			}
-			return new Group(this, beforeDagger, daggerPosition, afterDagger);
+			return new Group(beforeDagger, afterDagger);
 		}
 		return new Group(this, beforeDagger);
 	}

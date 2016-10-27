@@ -60,20 +60,18 @@ import static com.avail.compiler.ParsingOperation.RUN_PREFIX_FUNCTION;
 final class SectionCheckpoint
 extends Expression
 {
-	private MessageSplitter messageSplitter;
 	/**
 	 * The occurrence number of this SectionCheckpoint.  The section
 	 * checkpoints are one-based and are numbered consecutively in the order
 	 * in which they occur in the whole method name.
 	 */
-	final int subscript;
+	private final int subscript;
 
 	/**
 	 * Construct a SectionCheckpoint.
 	 */
 	SectionCheckpoint (final MessageSplitter messageSplitter)
 	{
-		this.messageSplitter = messageSplitter;
 		this.subscript = ++messageSplitter.numberOfSectionCheckpoints;
 	}
 

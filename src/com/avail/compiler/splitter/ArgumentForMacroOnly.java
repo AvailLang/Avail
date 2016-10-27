@@ -30,16 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ListNodeDescriptor;
 import com.avail.descriptor.StringDescriptor;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.IdentityHashMap;
-import java.util.Iterator;
 
 import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
 import static com.avail.compiler.ParsingOperation.PARSE_TOP_VALUED_ARGUMENT;
@@ -71,7 +65,7 @@ extends Argument
 	 *
 	 * @param startTokenIndex The one-based token index of this argument.
 	 */
-	public ArgumentForMacroOnly (
+	ArgumentForMacroOnly (
 		final MessageSplitter splitter,
 		final int startTokenIndex)
 	{
@@ -89,20 +83,5 @@ extends Argument
 		generator.emit(this, PARSE_TOP_VALUED_ARGUMENT);
 		generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
 		generator.emit(this, TYPE_CHECK_ARGUMENT, MessageSplitter.indexForType(phraseType));
-	}
-
-	@Override
-	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> arguments,
-		final StringBuilder builder,
-		final int indent)
-	{
-		assert arguments != null;
-		// Produce an ordinary description of the argument, even though it
-		// might have an expression type of top.
-		arguments.next().printOnAvoidingIndent(
-			builder,
-			new IdentityHashMap<A_BasicObject, Void>(),
-			indent + 1);
 	}
 }

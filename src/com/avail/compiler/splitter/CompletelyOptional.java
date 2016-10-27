@@ -65,7 +65,6 @@ import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDE
 final class CompletelyOptional
 extends Expression
 {
-	private MessageSplitter messageSplitter;
 	/** The governed {@linkplain Expression expression}. */
 	final Expression expression;
 
@@ -82,7 +81,6 @@ extends Expression
 		final Expression expression)
 		throws MalformedMessageException
 	{
-		this.messageSplitter = messageSplitter;
 		this.expression = expression;
 		if (expression.canBeReordered()
 			&& expression.explicitOrdinal() != -1)
@@ -174,12 +172,7 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append(getClass().getSimpleName());
-		builder.append("(");
-		builder.append(expression);
-		builder.append(")");
-		return builder.toString();
+		return getClass().getSimpleName() + "(" + expression + ")";
 	}
 
 	@Override

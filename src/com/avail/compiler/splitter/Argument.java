@@ -54,7 +54,6 @@ import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 class Argument
 extends Expression
 {
-	private MessageSplitter messageSplitter;
 	/**
 	 * The one-based index for this argument.  In particular, it's one plus
 	 * the number of non-backquoted underscores/ellipses that occur anywhere
@@ -71,7 +70,6 @@ extends Expression
 		final MessageSplitter messageSplitter,
 		final int startTokenIndex)
 	{
-		this.messageSplitter = messageSplitter;
 		messageSplitter.underscorePartNumbers.add(startTokenIndex);
 		absoluteUnderscoreIndex = messageSplitter.numberOfUnderscores();
 	}

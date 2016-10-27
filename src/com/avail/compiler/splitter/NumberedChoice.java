@@ -76,14 +76,14 @@ extends Expression
 	 * The alternation expression, exactly one alternative of which must be
 	 * chosen.
 	 */
-	final Alternation alternation;
+	private final Alternation alternation;
 
 	/**
 	 * Construct a new {@link NumberedChoice}.
 	 *
 	 * @param alternation The enclosed {@link Alternation}.
 	 */
-	public NumberedChoice (final Alternation alternation)
+	NumberedChoice (final Alternation alternation)
 	{
 		this.alternation = alternation;
 	}
@@ -195,12 +195,7 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append(getClass().getSimpleName());
-		builder.append("(");
-		builder.append(alternation);
-		builder.append(")");
-		return builder.toString();
+		return getClass().getSimpleName() + "(" + alternation + ")";
 	}
 
 	@Override

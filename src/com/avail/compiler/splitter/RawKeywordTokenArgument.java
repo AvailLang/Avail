@@ -53,7 +53,7 @@ extends RawTokenArgument
 	 *
 	 * @param startTokenIndex The one-based token index of this argument.
 	 */
-	public RawKeywordTokenArgument (
+	RawKeywordTokenArgument (
 		final MessageSplitter splitter,
 		final int startTokenIndex)
 	{
@@ -66,6 +66,7 @@ extends RawTokenArgument
 		final A_Type phraseType)
 	{
 		generator.emit(this, PARSE_RAW_KEYWORD_TOKEN);
-		generator.emit(this, TYPE_CHECK_ARGUMENT, MessageSplitter.indexForType(phraseType));
+		generator.emit(
+			this, TYPE_CHECK_ARGUMENT, MessageSplitter.indexForType(phraseType));
 	}
 }

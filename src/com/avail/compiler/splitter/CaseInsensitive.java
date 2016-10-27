@@ -128,12 +128,7 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append(getClass().getSimpleName());
-		builder.append("(");
-		builder.append(expression);
-		builder.append(")");
-		return builder.toString();
+		return getClass().getSimpleName() + "(" + expression + ")";
 	}
 
 	@Override

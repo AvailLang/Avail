@@ -33,7 +33,6 @@ package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.descriptor.*;
 import com.avail.dispatch.LookupTree;
-import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.evaluation.Transformer1;
 import org.jetbrains.annotations.Nullable;
@@ -85,19 +84,11 @@ import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP;
 final class Group
 extends Expression
 {
-	private MessageSplitter messageSplitter;
 	/**
 	 * Whether a {@linkplain StringDescriptor#doubleDagger() double dagger}
 	 * (‡) has been encountered in the tokens for this group.
 	 */
 	final boolean hasDagger;
-
-	/**
-	 * If a {@linkplain StringDescriptor#doubleDagger() double dagger} (‡)
-	 * has been encountered, this holds the one-based index of the {@link
-	 * #messagePartsList message part} that was the double dagger.
-	 */
-	final int daggerPosition;
 
 	/**
 	 * The {@link Sequence} of {@link Expression}s that appeared before the
@@ -116,28 +107,22 @@ extends Expression
 	/**
 	 * The maximum number of occurrences accepted for this group.
 	 */
-	int maximumCardinality = Integer.MAX_VALUE;
+	private int maximumCardinality = Integer.MAX_VALUE;
 
 	/**
 	 * Construct a new {@link Group} having a double-dagger (‡).
 	 *
 	 * @param beforeDagger
 	 *        The {@link Sequence} before the double-dagger.
-	 * @param daggerPosition
-	 *        The 1-based position of the double-dagger.
 	 * @param afterDagger
 	 *        The {@link Sequence} after the double-dagger.
 	 */
 	public Group (
-		final MessageSplitter messageSplitter,
 		final Sequence beforeDagger,
-		final int daggerPosition,
 		final Sequence afterDagger)
 	{
-		this.messageSplitter = messageSplitter;
 		this.beforeDagger = beforeDagger;
 		this.hasDagger = true;
-		this.daggerPosition = daggerPosition;
 		this.afterDagger = afterDagger;
 	}
 
@@ -152,29 +137,9 @@ extends Expression
 		final MessageSplitter messageSplitter,
 		final Sequence beforeDagger)
 	{
-		this.messageSplitter = messageSplitter;
 		this.beforeDagger = beforeDagger;
 		this.hasDagger = false;
-		this.daggerPosition = -1;
 		this.afterDagger = new Sequence(messageSplitter);
-	}
-
-	/**
-	 * Add an {@linkplain Expression expression} to the {@link Group},
-	 * either before or after the {@linkplain
-	 * StringDescriptor#doubleDagger() double dagger}, depending on whether
-	 * {@link #hasDagger} has been set.
-	 *
-	 * @param e
-	 *        The expression to add.
-	 * @throws MalformedMessageException
-	 *         If the absence or presence of argument numbering would be
-	 *         inconsistent within this {@link Group}.
-	 */
-	void addExpression (final Expression e)
-		throws MalformedMessageException
-	{
-		(hasDagger ? afterDagger : beforeDagger).addExpression(e);
 	}
 
 	@Override
@@ -276,12 +241,7 @@ extends Expression
 			MessageSplitter.throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
 		}
 
-		if (!needsDoubleWrapping())
-		{
-			// Expect a tuple of individual values.  No further checks are
-			// needed.
-		}
-		else
+		if (needsDoubleWrapping())
 		{
 			// Expect a tuple of tuples of values, where the inner tuple
 			// size ranges from the number of arguments left of the dagger
@@ -306,7 +266,8 @@ extends Expression
 				if (!solutionType.isTupleType())
 				{
 					// The argument should be a tuple of tuples.
-					MessageSplitter.throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
+					MessageSplitter.throwSignatureException(
+						E_INCORRECT_TYPE_FOR_GROUP);
 				}
 				// Check that the solution that will reside at the current
 				// index accepts either a full group or a group up to the
@@ -381,6 +342,7 @@ extends Expression
 				? 0
 				: subexpressionsTupleType.typeTuple().tupleSize() + 1;
 		generator.emit(this, NEW_LIST);
+		//noinspection StatementWithEmptyBody
 		if (maxSize == 0)
 		{
 			// The signature requires an empty list, so that's what we get
@@ -888,7 +850,7 @@ extends Expression
 	 *        double-dagger. The last repetition of a subgroup uses false
 	 *        for this flag.
 	 */
-	public void printGroupOccurrence (
+	void printGroupOccurrence (
 		final Iterator<AvailObject> argumentProvider,
 		final StringBuilder builder,
 		final int indent,
@@ -898,7 +860,7 @@ extends Expression
 		final List<Expression> expressionsToVisit;
 		if (completeGroup && !afterDagger.expressions.isEmpty())
 		{
-			expressionsToVisit = new ArrayList<Expression>(
+			expressionsToVisit = new ArrayList<>(
 				beforeDagger.expressions.size()
 				+ 1
 				+ afterDagger.expressions.size());

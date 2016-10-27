@@ -70,7 +70,7 @@ final class Counter
 extends Expression
 {
 	/** The {@linkplain Group group} whose occurrences should be counted. */
-	final Group group;
+	private final Group group;
 
 	/**
 	 * Construct a new {@link Counter}.
@@ -193,12 +193,7 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append(getClass().getSimpleName());
-		builder.append("(");
-		builder.append(group);
-		builder.append(")");
-		return builder.toString();
+		return getClass().getSimpleName() + "(" + group + ")";
 	}
 
 	@Override

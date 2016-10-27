@@ -83,12 +83,6 @@ extends Expression
 	}
 
 	@Override
-	int underscoreCount ()
-	{
-		return 0;
-	}
-
-	@Override
 	boolean isLowerCase ()
 	{
 		for (final Expression expression : alternatives)

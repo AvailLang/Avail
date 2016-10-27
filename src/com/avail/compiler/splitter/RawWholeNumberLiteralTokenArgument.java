@@ -56,7 +56,7 @@ extends RawTokenArgument
 	 *
 	 * @param startTokenIndex The one-based token index of this argument.
 	 */
-	public RawWholeNumberLiteralTokenArgument (
+	RawWholeNumberLiteralTokenArgument (
 		final MessageSplitter splitter,
 		final int startTokenIndex)
 	{

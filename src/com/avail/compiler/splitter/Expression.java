@@ -37,7 +37,6 @@ import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.SignatureException;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -105,45 +104,6 @@ abstract class Expression
 	}
 
 	/**
-	 * Return whether the {@link SectionCheckpoint} with the given index is
-	 * within this expression.
-	 *
-	 * @param sectionCheckpointNumber Which section checkpoint to look for.
-	 * @return Whether this expression recursively contains the given
-	 *         section checkpoint.
-	 */
-	final boolean containsSectionCheckpoint (
-		final int sectionCheckpointNumber)
-	{
-		final List<SectionCheckpoint> sectionCheckpoints =
-			new ArrayList<>();
-		extractSectionCheckpointsInto(sectionCheckpoints);
-		for (final SectionCheckpoint checkpoint : sectionCheckpoints)
-		{
-			if (checkpoint.subscript == sectionCheckpointNumber)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Return whether any {@link SectionCheckpoint} occurs within this
-	 * expression.
-	 *
-	 * @return Whether this expression recursively contains any section
-	 *         checkpoints.
-	 */
-	final boolean containsAnySectionCheckpoint ()
-	{
-		final List<SectionCheckpoint> sectionCheckpoints =
-			new ArrayList<>();
-		extractSectionCheckpointsInto(sectionCheckpoints);
-		return !sectionCheckpoints.isEmpty();
-	}
-
-	/**
 	 * Extract all {@link SectionCheckpoint}s into the specified list.
 	 *
 	 * @param sectionCheckpoints
@@ -198,7 +158,7 @@ abstract class Expression
 	 *        of argument types are being validated against.  To validate
 	 *        the final method or macro body rather than a prefix function,
 	 *        use any value greater than the {@linkplain
-	 *        #numberOfSectionCheckpoints}.
+	 *        MessageSplitter#numberOfSectionCheckpoints}.
 	 * @throws SignatureException
 	 *        If the argument type is inappropriate.
 	 */
@@ -271,7 +231,7 @@ abstract class Expression
 	 *
 	 * @return Whether the expression can in theory be reordered.
 	 */
-	public final boolean canBeReordered ()
+	final boolean canBeReordered ()
 	{
 		return isArgumentOrGroup();
 	}
@@ -283,7 +243,7 @@ abstract class Expression
 	 *
 	 * @return My explicitOrdinal or -1.
 	 */
-	public final int explicitOrdinal ()
+	final int explicitOrdinal ()
 	{
 		assert canBeReordered();
 		return explicitOrdinal;
@@ -296,7 +256,7 @@ abstract class Expression
 	 *
 	 * @param ordinal My explicitOrdinal or -1.
 	 */
-	public final void explicitOrdinal (final int ordinal)
+	final void explicitOrdinal (final int ordinal)
 	{
 		assert canBeReordered();
 		explicitOrdinal = ordinal;

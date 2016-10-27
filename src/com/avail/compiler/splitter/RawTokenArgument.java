@@ -30,14 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.StringDescriptor;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.IdentityHashMap;
-import java.util.Iterator;
 
 import static com.avail.compiler.ParsingOperation.PARSE_ANY_RAW_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
@@ -55,9 +49,10 @@ extends Argument
 	/**
 	 * Construct a new {@link RawTokenArgument}.
 	 *
-	 * @param startTokenIndex The one-based token index of this argument.
+	 * @param startTokenIndex
+	 * 	The one-based token index of this argument.
 	 */
-	public RawTokenArgument (
+	RawTokenArgument (
 		final MessageSplitter splitter,
 		final int startTokenIndex)
 	{
@@ -70,20 +65,9 @@ extends Argument
 		final A_Type phraseType)
 	{
 		generator.emit(this, PARSE_ANY_RAW_TOKEN);
-		generator.emit(this, TYPE_CHECK_ARGUMENT, MessageSplitter.indexForType(phraseType));
-	}
-
-	@Override
-	public void printWithArguments (
-		final @Nullable Iterator<AvailObject> arguments,
-		final StringBuilder builder,
-		final int indent)
-	{
-		assert arguments != null;
-		// Describe the token that was parsed as this raw token argument.
-		arguments.next().printOnAvoidingIndent(
-			builder,
-			new IdentityHashMap<A_BasicObject, Void>(),
-			indent + 1);
+		generator.emit(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForType(phraseType));
 	}
 }

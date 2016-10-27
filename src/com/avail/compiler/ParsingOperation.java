@@ -35,6 +35,7 @@ package com.avail.compiler;
 import static com.avail.compiler.ParsingConversionRule.*;
 import java.util.*;
 
+import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_BundleTree;
 import com.avail.descriptor.A_Module;
@@ -151,38 +152,24 @@ public enum ParsingOperation
 	/**
 	 * {@code 11} - Parse <em>any</em> {@linkplain TokenDescriptor raw token},
 	 * leaving it on the parse stack.
-	 *
-	 * <p>This is used by the {@link MessageSplitter.RawTokenArgument} message
-	 * expression, denoted by the characters "…!" in the message name.</p>
 	 */
 	PARSE_ANY_RAW_TOKEN(11, false),
 
 	/**
 	 * {@code 12} - Parse a raw <em>{@linkplain TokenType#KEYWORD keyword}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
-	 *
-	 * <p>This is used by the {@link MessageSplitter.RawKeywordTokenArgument}
-	 * message expression, denoted by characters "…" in the message name.</p>
 	 */
 	PARSE_RAW_KEYWORD_TOKEN(12, false),
 
 	/**
 	 * {@code 13} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
-	 *
-	 * <p>This is used by the {@link
-	 * MessageSplitter.RawStringLiteralTokenArgument} message expression,
-	 * denoted by characters "…$" in the message name.</p>
 	 */
 	PARSE_RAW_STRING_LITERAL_TOKEN(13, false),
 
 	/**
 	 * {@code 14} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
-	 *
-	 * <p>This is used by the {@link
-	 * MessageSplitter.RawWholeNumberLiteralTokenArgument} message expression,
-	 * denoted by characters "…#" in the message name.</p>
 	 */
 	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(14, false),
 
@@ -295,13 +282,12 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+7} - A macro has been parsed up to a {@link
-	 * MessageSplitter.SectionCheckpoint} (§).  Make a copy of the parse stack,
-	 * then perform the equivalent of an {@link #APPEND_ARGUMENT} on the copy,
-	 * the specified number of times minus one (because zero is not a legal
-	 * operand).  Make it into a single {@linkplain ListNodeDescriptor list
-	 * node} and push it onto the original parse stack.  It will be consumed by
-	 * a subsequent {@link #RUN_PREFIX_FUNCTION}.
+	 * {@code 16*N+7} - A macro has been parsed up to a section checkpoint (§).
+	 * Make a copy of the parse stack, then perform the equivalent of an {@link
+	 * #APPEND_ARGUMENT} on the copy, the specified number of times minus one
+	 * (because zero is not a legal operand).  Make it into a single {@linkplain
+	 * ListNodeDescriptor list node} and push it onto the original parse stack.
+	 * It will be consumed by a subsequent {@link #RUN_PREFIX_FUNCTION}.
 	 *
 	 * <p>This instruction is detected specially by the {@linkplain
 	 * MessageBundleTreeDescriptor message bundle tree}'s {@linkplain
@@ -318,19 +304,17 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+8} - A macro has been parsed up to a {@link
-	 * MessageSplitter.SectionCheckpoint} (§), and a copy of the cleaned up
-	 * parse stack has been pushed, so invoke the Nth prefix function associated
-	 * with the macro.  Consume the previously pushed copy of the parse stack.
-	 * The current {@link AvailCompiler.ParserState}'s {@linkplain
-	 * AvailCompiler.ParserState#clientDataMap} is stashed in the
-	 * new {@link FiberDescriptor fiber}'s {@linkplain
-	 * AvailObject#fiberGlobals()} and retrieved afterward, so the prefix
-	 * function and macros can alter the scope or communicate with each other
-	 * by manipulating this {@linkplain MapDescriptor map}.  This technique
-	 * prevents chatter between separate fibers (i.e., parsing can still be
-	 * done in parallel) and between separate linguistic abstractions (the keys
-	 * are atoms and are therefore modular).
+	 * {@code 16*N+8} - A macro has been parsed up to a section checkpoint (§),
+	 * and a copy of the cleaned up parse stack has been pushed, so invoke the
+	 * Nth prefix function associated with the macro.  Consume the previously
+	 * pushed copy of the parse stack.  The current {@link ParserState}'s
+	 * {@linkplain ParserState#clientDataMap} is stashed in the new {@link
+	 * FiberDescriptor fiber}'s {@linkplain AvailObject#fiberGlobals()} and
+	 * retrieved afterward, so the prefix function and macros can alter the
+	 * scope or communicate with each other by manipulating this {@linkplain
+	 * MapDescriptor map}.  This technique prevents chatter between separate
+	 * fibers (i.e., parsing can still be done in parallel) and between separate
+	 * linguistic abstractions (the keys are atoms and are therefore modular).
 	 */
 	RUN_PREFIX_FUNCTION(8, true)
 	{
@@ -431,7 +415,7 @@ public enum ParsingOperation
 	 * @param modulus
 	 *        The modulus that represents the operation uniquely for its arity.
 	 */
-	private ParsingOperation (
+	ParsingOperation (
 		final int modulus,
 		final boolean commutesWithParsePart)
 	{
@@ -484,7 +468,7 @@ public enum ParsingOperation
 	 * @param instruction A coded instruction.
 	 * @return The operand.
 	 */
-	public int operand (final int instruction)
+	public static int operand (final int instruction)
 	{
 		return instruction >> distinctInstructionsShift;
 	}
@@ -508,6 +492,8 @@ public enum ParsingOperation
 	 * the operand.
 	 *
 	 * @param instruction
+	 *        The instruction from which to extract the immediate integer value
+	 *        to push.
 	 * @return The {@code int} value to push.
 	 */
 	public int integerToPush (final int instruction)
@@ -516,21 +502,12 @@ public enum ParsingOperation
 	}
 
 	/**
-	 * Assume that the instruction encodes an operand which is to be treated as
-	 * a boolean to be passed as an argument at an Avail call site.  Answer the
-	 * operand as a Java boolean.
+	 * Answer the depth to fix the argument stack for preparing a partial parse
+	 * for a prefix function.  Fail here, as it's only applicable for {@link
+	 * #PREPARE_TO_RUN_PREFIX_FUNCTION}.
 	 *
-	 * @param instruction
-	 * @return The {@code boolean} value to push.
-	 */
-	public boolean booleanToPush (final int instruction)
-	{
-		 throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
-	 * @param instruction
-	 * @return
+	 * @param instruction The instruction to decompose.
+	 * @return The depth to which to fix the parse stack.
 	 */
 	public int fixupDepth (final int instruction)
 	{
@@ -538,10 +515,11 @@ public enum ParsingOperation
 	}
 
 	/**
-	 * Answer the subscript of the prefix function that should be invoked.
+	 * Answer the subscript of the prefix function that should be invoked.  Fail
+	 * here, as it's only applicable for a {@link #RUN_PREFIX_FUNCTION}.
 	 *
-	 * @param instruction
-	 * @return
+	 * @param instruction The instruction to decompose.
+	 * @return The prefix function subscript.
 	 */
 	public int prefixFunctionSubscript (final int instruction)
 	{

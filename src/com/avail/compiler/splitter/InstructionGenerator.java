@@ -34,7 +34,10 @@ package com.avail.compiler.splitter;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.ParsingOperation;
 
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.JUMP;
+import static com.avail.compiler.ParsingOperation.BRANCH;
+import static com.avail.compiler.ParsingOperation.PARSE_PART;
+import static com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.Pair;
@@ -177,9 +180,8 @@ class InstructionGenerator
 		// Add branch/jump targets, assuming a null entry means it's just a
 		// fall-through from the previous instruction.  As a simplification,
 		// assume jumps fall through, even though they don't.
-		for (int i = 0; i < instructionsCount; i++)
+		for (final int instruction : instructions)
 		{
-			final int instruction = instructions.get(i);
 			final ParsingOperation operation =
 				ParsingOperation.decode(instruction);
 			if (operation == JUMP || operation == BRANCH)

@@ -48,7 +48,11 @@ import static com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY;
 final class Simple
 extends Expression
 {
+	/**
+	 * The {@link MessageSplitter} in which this is a {@link Simple} expression.
+	 */
 	private MessageSplitter messageSplitter;
+
 	/**
 	 * The one-based index of this token within the {@link
 	 * MessageSplitter#messagePartsList message parts}.
@@ -70,7 +74,7 @@ extends Expression
 	}
 
 	@Override
-	final boolean isLowerCase ()
+	boolean isLowerCase ()
 	{
 		final String token =
 			messageSplitter.messagePartsList.get(tokenIndex - 1).asNativeString();
@@ -101,12 +105,8 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append(getClass().getSimpleName());
-		builder.append("(");
-		builder.append(messageSplitter.messagePartsList.get(tokenIndex - 1));
-		builder.append(")");
-		return builder.toString();
+		return getClass().getSimpleName() +
+			"(" + messageSplitter.messagePartsList.get(tokenIndex - 1) + ")";
 	}
 
 	@Override
@@ -124,40 +124,38 @@ extends Expression
 	 * space before the token.  If the predecessor agrees, there will be a
 	 * space.
 	 */
-	final static String charactersThatLikeSpacesBefore = "(=+-×÷*/∧∨:?";
+	private final static String charactersThatLikeSpacesBefore = "(=+-×÷*/∧∨:?";
 
 	/**
 	 * Characters which, if they end a token, should vote for having a
 	 * space after the token.  If the successor agrees, there will be a
 	 * space.
 	 */
-	final static String charactersThatLikeSpacesAfter = ")]=+-×÷*/∧∨→";
+	private final static String charactersThatLikeSpacesAfter = ")]=+-×÷*/∧∨→";
 
 	@Override
 	boolean shouldBeSeparatedOnLeft ()
 	{
-		final String token =
-			messageSplitter.messagePartsList.get(tokenIndex - 1).asNativeString();
-		assert token.length() > 0;
-		final int firstCharacter = token.codePointAt(0);
-		if (Character.isUnicodeIdentifierPart(firstCharacter))
-		{
-			return true;
-		}
-		return charactersThatLikeSpacesBefore.indexOf(firstCharacter) >= 0;
+		final String string =
+			messageSplitter.messagePartsList
+				.get(tokenIndex - 1)
+				.asNativeString();
+		assert string.length() > 0;
+		final int firstCharacter = string.codePointAt(0);
+		return Character.isUnicodeIdentifierPart(firstCharacter)
+			|| charactersThatLikeSpacesBefore.indexOf(firstCharacter) >= 0;
 	}
 
 	@Override
 	boolean shouldBeSeparatedOnRight ()
 	{
 		final String token =
-			messageSplitter.messagePartsList.get(tokenIndex - 1).asNativeString();
+			messageSplitter.messagePartsList
+				.get(tokenIndex - 1)
+				.asNativeString();
 		assert token.length() > 0;
 		final int lastCharacter = token.codePointBefore(token.length());
-		if (Character.isUnicodeIdentifierPart(lastCharacter))
-		{
-			return true;
-		}
-		return charactersThatLikeSpacesAfter.indexOf(lastCharacter) >= 0;
+		return Character.isUnicodeIdentifierPart(lastCharacter)
+			|| charactersThatLikeSpacesAfter.indexOf(lastCharacter) >= 0;
 	}
 }

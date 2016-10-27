@@ -66,7 +66,7 @@ final class Optional
 extends Expression
 {
 	/** The optional {@link Sequence}. */
-	final Sequence sequence;
+	private final Sequence sequence;
 
 	/**
 	 * Construct a new {@link Optional}.
@@ -162,12 +162,7 @@ extends Expression
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append(getClass().getSimpleName());
-		builder.append("(");
-		builder.append(sequence);
-		builder.append(")");
-		return builder.toString();
+		return getClass().getSimpleName() + "(" + sequence + ")";
 	}
 
 	@Override

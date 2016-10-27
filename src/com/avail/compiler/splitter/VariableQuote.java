@@ -61,7 +61,7 @@ extends Argument
 	 *
 	 * @param startTokenIndex The one-based token index of this argument.
 	 */
-	public VariableQuote (
+	VariableQuote (
 		final MessageSplitter splitter,
 		final int startTokenIndex)
 	{
