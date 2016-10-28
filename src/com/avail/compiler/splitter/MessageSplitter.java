@@ -63,7 +63,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class MessageSplitter
+public final class MessageSplitter
 {
 	/**
 	 * The {@linkplain A_Set set} of all {@linkplain AvailErrorCode errors} that
@@ -110,7 +110,7 @@ public class MessageSplitter
 	 * found in various regions of the Unicode code space.  See {@link
 	 * #circledNumbersString}.
 	 */
-	static final Map<Integer, Integer> circledNumbersMap =
+	private static final Map<Integer, Integer> circledNumbersMap =
 		new HashMap<>(circledNumbersCount);
 
 	/* Initialize circledNumbersMap and circledNumberCodePoints */
@@ -131,7 +131,7 @@ public class MessageSplitter
 	/**
 	 * The Avail string to be parsed.
 	 */
-	@InnerAccess final A_String messageName;
+	private final A_String messageName;
 
 	/**
 	 * The individual tokens ({@linkplain StringDescriptor strings})
@@ -202,13 +202,13 @@ public class MessageSplitter
 	 * The sequence of strings constituting discrete tokens of the message name.
 	 * @see #messagePartsList
 	 */
-	final A_Tuple messagePartsTuple;
+	private final A_Tuple messagePartsTuple;
 
 	/**
 	 * A collection of one-based positions in the original string, corresponding
 	 * to the {@link #messagePartsList} that have been extracted.
 	 */
-	final List<Integer> messagePartPositions = new ArrayList<>(10);
+	private final List<Integer> messagePartPositions = new ArrayList<>(10);
 
 	/** The current one-based parsing position in the list of tokens. */
 	private int messagePartPosition;
@@ -374,7 +374,7 @@ public class MessageSplitter
 			}
 			else
 			{
-				encountered = "unexpected token " + part.toString();
+				encountered = "unexpected token " + part;
 			}
 			throwMalformedMessageException(
 				E_UNBALANCED_GUILLEMETS,
@@ -430,7 +430,7 @@ public class MessageSplitter
 	 *
 	 * @return A {@link List} of {@link Integer}s.
 	 */
-	public final List<Integer> messagePartPositions ()
+	public List<Integer> messagePartPositions ()
 	{
 		return messagePartPositions;
 	}
@@ -451,7 +451,7 @@ public class MessageSplitter
 	 *
 	 * @return True if the current position has consumed the last message part.
 	 */
-	public boolean atEnd ()
+	private boolean atEnd ()
 	{
 		return messagePartPosition > messagePartsList.size();
 	}
@@ -533,7 +533,7 @@ public class MessageSplitter
 	 * @return A list that indicates the origin Expression of each {@link
 	 *         ParsingOperation}.
 	 */
-	public List<Expression> originExpressionsFor (final A_Type tupleType)
+	private List<Expression> originExpressionsFor (final A_Type tupleType)
 	{
 		final InstructionGenerator generator = new InstructionGenerator();
 		rootSequence.emitOn(generator, tupleType);
@@ -762,7 +762,7 @@ public class MessageSplitter
 	 *         #messagePartsList}.
 	 * @throws MalformedMessageException If the method name is malformed.
 	 */
-	Sequence parseSequence ()
+	private Sequence parseSequence ()
 		throws MalformedMessageException
 	{
 		List<Expression> alternatives = new ArrayList<Expression>();
@@ -1237,7 +1237,7 @@ public class MessageSplitter
 	 * @return A {@link Group} expression parsed from the {@link #messagePartsList}.
 	 * @throws MalformedMessageException If the method name is malformed.
 	 */
-	Group parseGroup ()
+	private Group parseGroup ()
 		throws MalformedMessageException
 	{
 		final Sequence beforeDagger = parseSequence();
@@ -1294,15 +1294,6 @@ public class MessageSplitter
 		return underscorePartNumbers.size();
 	}
 
-	/**
-	 * Answer the number of section checkpoints (§) present in the method name.
-	 *
-	 * @return The number of section checkpoints.
-	 */
-	public int numberOfSectionCheckpoints ()
-	{
-		return numberOfSectionCheckpoints;
-	}
 	/**
 	 * Check that an {@linkplain DefinitionDescriptor implementation} with
 	 * the given {@linkplain FunctionTypeDescriptor signature} is appropriate

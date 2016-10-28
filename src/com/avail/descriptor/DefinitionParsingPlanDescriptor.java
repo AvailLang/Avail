@@ -149,7 +149,8 @@ extends Descriptor
 				final int encodedInstruction = instructionsTuple.tupleIntAt(i);
 				final ParsingOperation operation =
 					ParsingOperation.decode(encodedInstruction);
-				final int operand = operation.operand(encodedInstruction);
+				final int operand =
+					ParsingOperation.operand(encodedInstruction);
 				final StringBuilder builder = new StringBuilder();
 				builder.append(i);
 				builder.append(". ");

@@ -1291,7 +1291,7 @@ public class MessageSplitterTest
 			if (operation.ordinal() >= ParsingOperation.distinctInstructions)
 			{
 				builder.append('(');
-				builder.append(operation.operand(instructionEncoding));
+				builder.append(ParsingOperation.operand(instructionEncoding));
 				builder.append(')');
 			}
 			first = false;

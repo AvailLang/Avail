@@ -3928,7 +3928,7 @@ public final class AvailCompiler
 					"Instr: "
 						+ op.name()
 						+ " ("
-						+ op.operand(instruction)
+						+ ParsingOperation.operand(instruction)
 						+ ") -> "
 						+ successorTrees);
 			}

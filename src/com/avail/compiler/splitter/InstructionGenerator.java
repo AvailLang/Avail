@@ -187,7 +187,7 @@ class InstructionGenerator
 			if (operation == JUMP || operation == BRANCH)
 			{
 				// Adjust to zero-based.
-				final int target = operation.operand(instruction) - 1;
+				final int target = ParsingOperation.operand(instruction) - 1;
 				branchTargets.set(target);
 			}
 		}
