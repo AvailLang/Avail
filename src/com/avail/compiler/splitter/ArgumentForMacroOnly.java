@@ -35,9 +35,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.ListNodeDescriptor;
 import com.avail.descriptor.StringDescriptor;
 
-import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.PARSE_TOP_VALUED_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.*;
 
 /**
  * An {@linkplain ArgumentForMacroOnly} is the translation of an {@linkplain
@@ -81,7 +79,10 @@ extends Argument
 		final A_Type phraseType)
 	{
 		generator.emit(this, PARSE_TOP_VALUED_ARGUMENT);
-		generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-		generator.emit(this, TYPE_CHECK_ARGUMENT, MessageSplitter.indexForType(phraseType));
+		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForType(phraseType));
 	}
 }

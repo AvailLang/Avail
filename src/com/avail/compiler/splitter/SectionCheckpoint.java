@@ -100,6 +100,7 @@ extends Expression
 		// Tidy up any partially-constructed groups and invoke the
 		// appropriate prefix function.  Note that the partialListsCount is
 		// constrained to always be at least one here.
+		generator.flushDelayed();
 		generator.emit(
 			this,
 			PREPARE_TO_RUN_PREFIX_FUNCTION,
@@ -127,6 +128,12 @@ extends Expression
 	boolean shouldBeSeparatedOnRight ()
 	{
 		// The section symbol should always stand out.
+		return true;
+	}
+
+	@Override
+	boolean mightBeEmpty (final A_Type phraseType)
+	{
 		return true;
 	}
 }

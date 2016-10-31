@@ -34,8 +34,10 @@ import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.SignatureException;
@@ -128,7 +130,8 @@ extends Expression
 		{
 			// The declared type of the subexpression must be a subtype of
 			// [1..N] where N is the number of alternatives.
-			MessageSplitter.throwSignatureException(E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE);
+			MessageSplitter.throwSignatureException(
+				E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE);
 		}
 	}
 
@@ -179,9 +182,7 @@ extends Expression
 			// If a section checkpoint occurs within a numbered choice, we
 			// *do not* pass the choice number as an argument.  Therefore
 			// nothing new has been pushed for us to clean up at this point.
-			alternative.emitOn(
-				generator,
-				null); //TODO MvG - FIGURE OUT the types.
+			alternative.emitOn(generator, ListNodeTypeDescriptor.empty());
 			generator.emit(this, PUSH_INTEGER_LITERAL, index + 1);
 			if (!last)
 			{
@@ -213,9 +214,7 @@ extends Expression
 		final Expression alternative =
 			alternation.alternatives().get(index - 1);
 		alternative.printWithArguments(
-			Collections.<AvailObject>emptyIterator(),
-			builder,
-			indent);
+			Collections.<AvailObject>emptyIterator(), builder, indent);
 		builder.append("»!");
 	}
 
@@ -232,5 +231,12 @@ extends Expression
 		// Don't bother with a space after the close guillemet and
 		// exclamation mark.
 		return false;
+	}
+
+	@Override
+	boolean mightBeEmpty (
+		final A_Type phraseType)
+	{
+		return alternation.mightBeEmpty(BottomTypeDescriptor.bottom());
 	}
 }

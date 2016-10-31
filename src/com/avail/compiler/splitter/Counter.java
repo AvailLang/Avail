@@ -35,6 +35,7 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.SignatureException;
@@ -149,10 +150,13 @@ extends Expression
 		 * @loopSkip:
 		 * under-pop parse position (remove 2nd from top of stack)
 		 */
+		generator.flushDelayed();
+		final boolean needsProgressCheck =
+			group.beforeDagger.mightBeEmpty(phraseType);
 		final Label $loopStart = new Label();
 		final Label $loopExit = new Label();
 		final Label $loopSkip = new Label();
-		generator.emit(this, SAVE_PARSE_POSITION);
+		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		generator.emit(this, NEW_LIST);
 		generator.emit(this, BRANCH, $loopSkip);
 		generator.emit($loopStart);
@@ -167,26 +171,23 @@ extends Expression
 		{
 			assert !expression.isArgumentOrGroup();
 			generator.partialListsCount = Integer.MIN_VALUE;
-			expression.emitOn(
-				generator,
-				null); //TODO MvG - FIGURE OUT the types.
+			expression.emitOn(generator, ListNodeTypeDescriptor.empty());
 		}
 		generator.emit(this, APPEND_ARGUMENT);
 		generator.emit(this, BRANCH, $loopExit);
 		for (final Expression expression : group.afterDagger.expressions)
 		{
 			assert !expression.isArgumentOrGroup();
-			expression.emitOn(
-				generator,
-				null); //TODO MvG - FIGURE OUT the types.
+			expression.emitOn(generator, ListNodeTypeDescriptor.empty());
 		}
 		generator.partialListsCount = oldPartialListsCount;
-		generator.emit(this, ENSURE_PARSE_PROGRESS);
+		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emit(this, JUMP, $loopStart);
 		generator.emit($loopExit);
-		generator.emit(this, ENSURE_PARSE_PROGRESS);
+		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emit($loopSkip);
-		generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+		generator.emitIf(
+			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 		generator.emit(this, CONVERT, LIST_TO_SIZE.number());
 	}
 
@@ -236,5 +237,13 @@ extends Expression
 		// This Counter node should be separated on the right to emphasize
 		// the trailing "#".
 		return true;
+	}
+
+	@Override
+	boolean mightBeEmpty (final A_Type phraseType)
+	{
+		final A_Type integerRangeType = phraseType.expressionType();
+		assert integerRangeType.isIntegerRangeType();
+		return integerRangeType.lowerBound().equalsInt(0);
 	}
 }

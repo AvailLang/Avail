@@ -34,10 +34,6 @@ package com.avail.compiler.splitter;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.ParsingOperation;
 
-import static com.avail.compiler.ParsingOperation.JUMP;
-import static com.avail.compiler.ParsingOperation.BRANCH;
-import static com.avail.compiler.ParsingOperation.PARSE_PART;
-import static com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.Pair;
@@ -46,6 +42,8 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+
+import static com.avail.compiler.ParsingOperation.*;
 
 /**
  * {@code InstructionGenerator} is used by {@code MessageSplitter} to
@@ -79,10 +77,25 @@ class InstructionGenerator
 	private final List<Integer> instructions = new ArrayList<>();
 
 	/**
-	 * The innermost {@link Expression} that was active for the corresponding
-	 * {@link #instructions}.
+	 * The {@link Expression} that produced the corresponding {@link
+	 * #instructions}.
 	 */
 	private final List<Expression> expressionList = new ArrayList<>();
+
+	/**
+	 * Holds a sequence of (relocatable) instructions that will perform grammar
+	 * and type checks, and sometimes a {@link ParsingOperation#APPEND_ARGUMENT}
+	 * on an argument that has been parsed but not yet processed.  This allows
+	 * faster checks (like token matching) to filter out incorrect matches,
+	 * avoiding expensive type tests.
+	 */
+	private final List<Integer> delayedArgumentInstructions = new ArrayList<>();
+
+	/**
+	 * A {@link List} praallel to {@link }#delayedArgumentInstructions}, which
+	 * indicates the expression that produced each delayed instruction.
+	 */
+	private final List<Expression> delayedExpressionList = new ArrayList<>();
 
 	private static final Integer placeholderInstruction = Integer.MIN_VALUE;
 
@@ -104,6 +117,9 @@ class InstructionGenerator
 		final Expression expression,
 		final ParsingOperation operation)
 	{
+		assert !(operation == APPEND_ARGUMENT
+				|| operation == PERMUTE_LIST)
+			|| delayedArgumentInstructions.isEmpty();
 		expressionList.add(expression);
 		instructions.add(operation.encoding());
 	}
@@ -121,6 +137,43 @@ class InstructionGenerator
 	{
 		expressionList.add(expression);
 		instructions.add(operation.encoding(operand));
+	}
+
+
+	/**
+	 * Emit a {@link ParsingOperation} that takes no operand, but only if the
+	 * condition is true.
+	 *
+	 * @param operation The operandless {@link ParsingOperation} to emit.
+	 */
+	final void emitIf (
+		final boolean condition,
+		final Expression expression,
+		final ParsingOperation operation)
+	{
+		if (condition)
+		{
+			emit(expression, operation);
+		}
+	}
+
+	/**
+	 * Emit a {@link ParsingOperation} that takes an integer operand, but only
+	 * if the condition is true.
+	 *
+	 * @param operation
+	 *        The {@link ParsingOperation} to emit with its operand.
+	 */
+	final void emitIf (
+		final boolean condition,
+		final Expression expression,
+		final ParsingOperation operation,
+		final int operand)
+	{
+		if (condition)
+		{
+			emit(expression, operation, operand);
+		}
 	}
 
 	/**
@@ -150,6 +203,11 @@ class InstructionGenerator
 		}
 	}
 
+	/**
+	 * Emit a label, pinning it to the current location in the instruction list.
+	 *
+	 * @param label The label to emit.
+	 */
 	final void emit (final Label label)
 	{
 		assert label.position == -1 : "Label was already emitted";
@@ -169,11 +227,69 @@ class InstructionGenerator
 	}
 
 	/**
+	 * Record an argument post-processing instruction.  It won't actually be
+	 * emitted into the instruction stream until as late as possible.
+	 *
+	 * <p>The instruction must be relocatable.</p>
+	 *
+	 * @param expression The expression that is emitting the instruction.
+	 * @param operation The operation of the instruction to delay.
+	 */
+	final void emitDelayed (
+		final Expression expression,
+		final ParsingOperation operation)
+	{
+		delayedExpressionList.add(expression);
+		delayedArgumentInstructions.add(operation.encoding());
+	}
+
+	/**
+	 * Record an argument post-processing instruction.  It won't actually be
+	 * emitted into the instruction stream until as late as possible.
+	 *
+	 * <p>The instruction must be relocatable.</p>
+	 *
+	 * @param expression The expression that is emitting the instruction.
+	 * @param operation The operation of the instruction to delay.
+	 * @param operand The operand of the instruction to delay.
+	 */
+	final void emitDelayed (
+		final Expression expression,
+		final ParsingOperation operation,
+		final int operand)
+	{
+		delayedExpressionList.add(expression);
+		delayedArgumentInstructions.add(operation.encoding(operand));
+	}
+
+	/**
+	 * Flush any delayed instructions to the main instruction list.
+	 */
+	final void flushDelayed ()
+	{
+		if (!delayedArgumentInstructions.isEmpty())
+		{
+			expressionList.addAll(delayedExpressionList);
+			instructions.addAll(delayedArgumentInstructions);
+			delayedExpressionList.clear();
+			delayedArgumentInstructions.clear();
+		}
+	}
+
+	/**
+	 * Perform optimizations on the sequence of {@link ParsingOperation}s.
+	 */
+	void optimizeInstructions ()
+	{
+		hoistTokenParsing();
+	}
+
+	/**
 	 * Re-order the instructions so that {@link ParsingOperation#PARSE_PART} and
 	 * {@link ParsingOperation#PARSE_PART_CASE_INSENSITIVELY} occur as early as
 	 * possible.
 	 */
-	void optimizeInstructions ()
+	private void hoistTokenParsing ()
 	{
 		final int instructionsCount = instructions.size();
 		final BitSet branchTargets = new BitSet(instructionsCount);
@@ -239,6 +355,7 @@ class InstructionGenerator
 		assert !instructions.contains(placeholderInstruction)
 			: "A placeholder instruction using a label was not resolved";
 		assert instructions.size() == expressionList.size();
+		assert delayedExpressionList.isEmpty();
 		return TupleDescriptor.fromIntegerList(instructions).makeShared();
 	}
 

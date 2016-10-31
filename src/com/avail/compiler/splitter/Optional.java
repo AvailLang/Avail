@@ -121,7 +121,8 @@ extends Expression
 		{
 			// The declared type of the subexpression must be a subtype of
 			// boolean.
-			MessageSplitter.throwSignatureException(E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP);
+			MessageSplitter.throwSignatureException(
+				E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP);
 		}
 	}
 
@@ -132,7 +133,7 @@ extends Expression
 	{
 		/* branch to @absent
 		 * push the current parse position on the mark stack
-		 * ...Stuff before dagger (i.e., all expressions).
+		 * ...the sequence's expressions...
 		 * check progress and update saved position or abort.
 		 * discard the saved parse position from the mark stack.
 		 * push literal true
@@ -141,17 +142,20 @@ extends Expression
 		 * push literal false
 		 * @groupSkip:
 		 */
+		final boolean needsProgressCheck =
+			sequence.mightBeEmpty(ListNodeTypeDescriptor.empty());
 		final Label $absent = new Label();
 		final Label $after = new Label();
 		generator.emit(this, BRANCH, $absent);
-		generator.emit(this, SAVE_PARSE_POSITION);
+		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
 		for (final Expression expression : sequence.expressions)
 		{
 			expression.emitOn(generator, ListNodeTypeDescriptor.empty());
 		}
-		generator.emit(this, ENSURE_PARSE_PROGRESS);
-		generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
+		generator.emitIf(
+			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 		generator.emit(this, PUSH_TRUE);
 		generator.emit(this, JUMP, $after);
 		generator.emit($absent);
@@ -180,9 +184,7 @@ extends Expression
 		{
 			builder.append("«");
 			sequence.printWithArguments(
-				Collections.<AvailObject>emptyIterator(),
-				builder,
-				indent);
+				Collections.<AvailObject>emptyIterator(), builder, indent);
 			builder.append("»?");
 		}
 	}
@@ -200,6 +202,13 @@ extends Expression
 	{
 		// For now.  Eventually we could find out whether there were even
 		// any tokens printed by passing an argument iterator.
+		return true;
+	}
+
+	@Override
+	boolean mightBeEmpty (final A_Type phraseType)
+	{
+		// Optional things can be absent.
 		return true;
 	}
 }

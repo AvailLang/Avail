@@ -1,5 +1,5 @@
 /**
- * RawWholeNumberLiteralTokenArgument.java
+ * LookaheadSet.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,49 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.StringDescriptor;
-import com.avail.descriptor.TokenDescriptor.TokenType;
 
-import static com.avail.compiler.ParsingOperation.PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN;
-import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * A {@linkplain RawWholeNumberLiteralTokenArgument} is an occurrence of
- * {@linkplain StringDescriptor#ellipsis() ellipsis} (…) in a message name,
- * followed by an {@linkplain StringDescriptor#octothorp() octothorp} (#).
- * It indicates where a raw whole number literal token argument is expected.
- * Like its superclass, the {@link RawTokenArgument}, the token is captured
- * after being placed in a literal phrase, but in this case the token is
- * restricted to be a {@link TokenType#LITERAL} (currently positive
- * integers, doubles, and strings).
+ * A {@code {@link LookaheadSet} holds information about what fixed tokens may
+ * occur at some point while parsing a method or macro invocation.
  */
-final class RawWholeNumberLiteralTokenArgument
-extends RawTokenArgument
+final class LookaheadSet
 {
-	/**
-	 * Construct a new {@link
-	 * RawStringLiteralTokenArgument}.
-	 *
-	 * @param startTokenIndex The one-based token index of this argument.
-	 */
-	RawWholeNumberLiteralTokenArgument (
-		final MessageSplitter splitter,
-		final int startTokenIndex)
-	{
-		super(splitter, startTokenIndex);
-	}
+	/** The {@link Set} of token {@link String}s that may occur next. */
+	final Set<String> nextTokens = new HashSet<>();
 
-	@Override
-	void emitOn (
-		final InstructionGenerator generator,
-		final A_Type phraseType)
-	{
-		generator.flushDelayed();
-		generator.emit(this, PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN);
-		generator.emitDelayed(
-			this,
-			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForType(phraseType));
-	}
+	/**
+	 * The {@link Set} of lower-case token {@link String}s that may occur (in
+	 * any case) next in the input stream.
+	 */
+	final Set<String> nextTokensCaseInsensitive = new HashSet<>();
+
+	/**
+	 * Whether this {@link LookaheadSet} might be followed by an argument, a raw
+	 * token argument, or the end of parsing of an invocation.
+	 */
+	boolean canBeOther = false;
 }

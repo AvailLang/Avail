@@ -342,6 +342,8 @@ extends Expression
 				? 0
 				: subexpressionsTupleType.typeTuple().tupleSize() + 1;
 		generator.emit(this, NEW_LIST);
+		final boolean needsProgressCheck =
+			beforeDagger.mightBeEmpty(phraseType);
 		//noinspection StatementWithEmptyBody
 		if (maxSize == 0)
 		{
@@ -398,7 +400,7 @@ extends Expression
 				assert maxSize > 0;
 				generator.emit(this, BRANCH, $skip);
 			}
-			generator.emit(this, SAVE_PARSE_POSITION);
+			generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 			for (int index = 1; index < endOfVariation; index++)
 			{
 				final A_Type innerPhraseType =
@@ -413,13 +415,16 @@ extends Expression
 					generator, singularListType);
 				if (index >= minSize)
 				{
+					generator.flushDelayed();
 					generator.emit(this, BRANCH, $exit);
 				}
 				afterDagger.emitWithoutInitialNewListPushOn(
 					generator, ListNodeTypeDescriptor.empty());
-				generator.emit(this, ENSURE_PARSE_PROGRESS);
+				generator.emitIf(
+					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 			}
 			// The homogenous part of the tuple, one or more iterations.
+			generator.flushDelayed();
 			generator.emit($loopStart);
 			final A_Type innerPhraseType =
 				subexpressionsTupleType.defaultType();
@@ -433,6 +438,7 @@ extends Expression
 				generator, singularListType);
 			if (endOfVariation < maxSize)
 			{
+				generator.flushDelayed();
 				generator.emit(
 					this,
 					BRANCH,
@@ -442,9 +448,10 @@ extends Expression
 					generator.emit(this, CHECK_AT_MOST, maxSize - 1);
 				}
 				afterDagger.emitWithoutInitialNewListPushOn(
-					generator,
-					ListNodeTypeDescriptor.empty());
-				generator.emit(this, ENSURE_PARSE_PROGRESS);
+					generator, ListNodeTypeDescriptor.empty());
+				generator.flushDelayed();
+				generator.emitIf(
+					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 				generator.emit(this, JUMP, $loopStart);
 				if (endOfVariation < minSize)
 				{
@@ -452,9 +459,11 @@ extends Expression
 					generator.emit(this, CHECK_AT_LEAST, minSize);
 				}
 			}
+			generator.flushDelayed();
 			generator.emit($exit);
-			generator.emit(this, ENSURE_PARSE_PROGRESS);
-			generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+			generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
+			generator.emitIf(
+				needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 			generator.emit($skip);
 			generator.partialListsCount--;
 		}
@@ -525,30 +534,31 @@ extends Expression
 				assert maxSize > 0;
 				generator.emit(this, BRANCH, $skip);
 			}
-			generator.emit(this, SAVE_PARSE_POSITION);
+			generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 			for (int index = 1; index < endOfVariation; index++)
 			{
 				generator.emit(this, NEW_LIST);
 				final A_Type sublistPhraseType =
 					subexpressionsTupleType.typeAtIndex(index);
-				emitDoubleWrappedBeforeDaggerOn(
-					generator, sublistPhraseType);
+				emitDoubleWrappedBeforeDaggerOn(generator, sublistPhraseType);
 				if (index >= minSize)
 				{
+					generator.flushDelayed();
 					generator.emit(this, BRANCH, $exit);
 				}
-				emitDoubleWrappedAfterDaggerOn(
-					generator, sublistPhraseType);
+				emitDoubleWrappedAfterDaggerOn(generator, sublistPhraseType);
+				generator.flushDelayed();
 				generator.emit(this, APPEND_ARGUMENT);
-				generator.emit(this, ENSURE_PARSE_PROGRESS);
+				generator.emitIf(
+					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 			}
 			// The homogenous part of the tuple, one or more iterations.
 			generator.emit($loopStart);
 			generator.emit(this, NEW_LIST);
 			final A_Type sublistPhraseType =
 				subexpressionsTupleType.typeAtIndex(endOfVariation);
-			emitDoubleWrappedBeforeDaggerOn(
-				generator, sublistPhraseType);
+			emitDoubleWrappedBeforeDaggerOn(generator, sublistPhraseType);
+			generator.flushDelayed();
 			if (endOfVariation < maxSize)
 			{
 				generator.emit(
@@ -561,8 +571,10 @@ extends Expression
 				}
 				emitDoubleWrappedAfterDaggerOn(
 					generator, sublistPhraseType);
+				generator.flushDelayed();
 				generator.emit(this, APPEND_ARGUMENT);
-				generator.emit(this, ENSURE_PARSE_PROGRESS);
+				generator.emitIf(
+					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 				generator.emit(this, JUMP, $loopStart);
 				if (endOfVariation < minSize)
 				{
@@ -575,8 +587,9 @@ extends Expression
 			generator.emit($exit);
 			generator.emit(this, APPEND_ARGUMENT);
 			generator.emit($mergedExit);
-			generator.emit(this, ENSURE_PARSE_PROGRESS);
-			generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+			generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
+			generator.emitIf(
+				needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 			generator.emit($skip);
 		}
 	}
@@ -629,8 +642,9 @@ extends Expression
 						: index;
 				final A_Type entryType =
 					subexpressionsTupleType.typeAtIndex(realTypeIndex);
+				generator.flushDelayed();
 				expression.emitOn(generator, entryType);
-				generator.emit(this, APPEND_ARGUMENT);
+				generator.emitDelayed(this, APPEND_ARGUMENT);
 			}
 			else
 			{
@@ -647,6 +661,7 @@ extends Expression
 					beforeDagger.permutedArguments);
 			final int permutationIndex =
 				LookupTree.indexForPermutation(permutationTuple);
+			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
 		}
 		assert index == beforeDagger.arguments.size();
@@ -700,8 +715,9 @@ extends Expression
 						: index;
 				final A_Type entryType =
 					subexpressionsTupleType.typeAtIndex(realTypeIndex);
+				generator.flushDelayed();
 				expression.emitOn(generator, entryType);
-				generator.emit(this, APPEND_ARGUMENT);
+				generator.emitDelayed(this, APPEND_ARGUMENT);
 			}
 			else
 			{
@@ -740,6 +756,7 @@ extends Expression
 					adjustedPermutationList);
 			final int permutationIndex =
 				LookupTree.indexForPermutation(permutationTuple);
+			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
 		}
 		// Ensure the tuple type was consumed up to its upperBound.
@@ -888,10 +905,7 @@ extends Expression
 					builder.append(" ");
 				}
 				final int oldLength = builder.length();
-				expr.printWithArguments(
-					argumentProvider,
-					builder,
-					indent);
+				expr.printWithArguments(argumentProvider, builder, indent);
 				needsSpace = expr.shouldBeSeparatedOnRight()
 					&& builder.length() != oldLength;
 			}
@@ -910,5 +924,14 @@ extends Expression
 	boolean shouldBeSeparatedOnRight ()
 	{
 		return false;
+	}
+
+	@Override
+	boolean mightBeEmpty (final A_Type phraseType)
+	{
+		// This group can consume no tokens iff it can have zero repetitions.
+		final A_Type tupleType = phraseType.expressionType();
+		assert tupleType.isTupleType();
+		return tupleType.sizeRange().lowerBound().equalsInt(0);
 	}
 }

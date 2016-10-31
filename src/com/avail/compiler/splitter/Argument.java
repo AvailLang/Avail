@@ -115,8 +115,11 @@ extends Expression
 		final A_Type phraseType)
 	{
 		generator.emit(this, PARSE_ARGUMENT);
-		generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-		generator.emit(this, TYPE_CHECK_ARGUMENT, MessageSplitter.indexForType(phraseType));
+		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForType(phraseType));
 	}
 
 	@Override

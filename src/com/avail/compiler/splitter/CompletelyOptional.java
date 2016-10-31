@@ -35,13 +35,13 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ListNodeDescriptor;
+import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -65,25 +65,25 @@ import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDE
 final class CompletelyOptional
 extends Expression
 {
-	/** The governed {@linkplain Expression expression}. */
-	final Expression expression;
+	/** The governed {@linkplain Sequence sequence}. */
+	final Sequence sequence;
 
 	/**
-	 * Construct a new {@link Counter}.
+	 * Construct a new {@link CompletelyOptional}.
 	 *
-	 * @param expression
-	 *        The governed {@linkplain Expression expression}.
+	 * @param sequence
+	 *        The governed {@linkplain Sequence sequence}.
 	 * @throws MalformedMessageException
 	 *         If the inner expression has an {@link #explicitOrdinal()}.
 	 */
 	CompletelyOptional (
 		final MessageSplitter messageSplitter,
-		final Expression expression)
+		final Sequence sequence)
 		throws MalformedMessageException
 	{
-		this.expression = expression;
-		if (expression.canBeReordered()
-			&& expression.explicitOrdinal() != -1)
+		this.sequence = sequence;
+		if (sequence.canBeReordered()
+			&& sequence.explicitOrdinal() != -1)
 		{
 			messageSplitter.throwMalformedMessageException(
 				E_INCONSISTENT_ARGUMENT_REORDERING,
@@ -95,21 +95,21 @@ extends Expression
 	@Override
 	int underscoreCount ()
 	{
-		assert expression.underscoreCount() == 0;
+		assert sequence.underscoreCount() == 0;
 		return 0;
 	}
 
 	@Override
 	boolean isLowerCase ()
 	{
-		return expression.isLowerCase();
+		return sequence.isLowerCase();
 	}
 
 	@Override
 	void extractSectionCheckpointsInto (
 		final List<SectionCheckpoint> sectionCheckpoints)
 	{
-		expression.extractSectionCheckpointsInto(sectionCheckpoints);
+		sequence.extractSectionCheckpointsInto(sectionCheckpoints);
 	}
 
 	@Override
@@ -135,44 +135,32 @@ extends Expression
 		 * discard mark position
 		 * @expressionSkip:
 		 */
+		final boolean needsProgressCheck =
+			sequence.mightBeEmpty(ListNodeTypeDescriptor.empty());
 		final Label $expressionSkip = new Label();
 		generator.emit(this, BRANCH, $expressionSkip);
-		generator.emit(this, SAVE_PARSE_POSITION);
-		final List<Expression> expressions;
-		if (expression instanceof Simple)
+		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
+		assert !sequence.isArgumentOrGroup();
+		// The partialListsCount stays the same, in case there's a
+		// section checkpoint marker within this completely optional
+		// region.  That's a reasonable way to indicate that a prefix
+		// function should only run when the optional section actually
+		// occurs.  Since no completely optional section can produce a
+		// value (argument, counter, etc), there's no problem.
+		for (final Expression expression : sequence.expressions)
 		{
-			expressions = Collections.singletonList(expression);
+			expression.emitOn(generator, ListNodeTypeDescriptor.empty());
 		}
-		else
-		{
-			assert expression instanceof Group;
-			final Group group = (Group) expression;
-			assert group.afterDagger.expressions.isEmpty();
-			assert group.underscoreCount() == 0;
-			expressions = group.beforeDagger.expressions;
-		}
-		for (final Expression subexpression : expressions)
-		{
-			assert !subexpression.isArgumentOrGroup();
-			// The partialListsCount stays the same, in case there's a
-			// section checkpoint marker within this completely optional
-			// region.  That's a reasonable way to indicate that a prefix
-			// function should only run when the optional section actually
-			// occurs.  Since no completely optional section can produce a
-			// value (argument, counter, etc), there's no problem.
-			subexpression.emitOn(
-				generator,
-				null); //TODO MvG - FIGURE OUT types
-		}
-		generator.emit(this, ENSURE_PARSE_PROGRESS);
-		generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
+		generator.emitIf(
+			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 		generator.emit($expressionSkip);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return getClass().getSimpleName() + "(" + expression + ")";
+		return getClass().getSimpleName() + "(" + sequence.expressions + ")";
 	}
 
 	@Override
@@ -181,28 +169,32 @@ extends Expression
 		final StringBuilder builder,
 		final int indent)
 	{
-		// Don't consume any real arguments.  In case the expression is
-		// itself a group, synthesize a dummy argument for it, containing
-		// just an entry for that group.  The entry should itself contain a
-		// single empty list of arguments for an occurrence.  That is, there
-		// is one argument-position worth of arguments in the iterator, and
-		// it holds one occurrence of the group (to make it print once), and
-		// since it's really a CompletelyOptional group, the occurrence has
-		// no values within it.
-		final A_Phrase emptyListNode = ListNodeDescriptor.empty();
-		final A_Phrase oneEmptyListNode = ListNodeDescriptor.newExpressions(
-			TupleDescriptor.from(emptyListNode));
-		expression.printWithArguments(
-			TupleDescriptor.from(oneEmptyListNode).iterator(),
-			builder,
-			indent);
+		// Don't consume any real arguments.  If the sequence contains just a
+		// single Simple, show it with a double question mark.  Otherwise place
+		// guillemets around the sequence and follow it with the double question
+		// mark.
+		if (sequence.expressions.size() == 1
+			&& sequence.expressions.get(0) instanceof Simple)
+		{
+			// A single optional token.
+			sequence.printWithArguments(
+				TupleDescriptor.empty().iterator(), builder, indent);
+		}
+		else
+		{
+			// A sequence of tokens that are optional (in aggregate).
+			builder.append("«");
+			sequence.printWithArguments(
+				TupleDescriptor.empty().iterator(), builder, indent);
+			builder.append("»");
+		}
 		builder.append("⁇");
 	}
 
 	@Override
 	boolean shouldBeSeparatedOnLeft ()
 	{
-		return expression.isGroup() || expression.shouldBeSeparatedOnLeft();
+		return sequence.shouldBeSeparatedOnLeft();
 	}
 
 	@Override
@@ -210,6 +202,13 @@ extends Expression
 	{
 		// Emphasize the double question mark that will always be printed
 		// by ensuring a space follows it.
+		return true;
+	}
+
+	@Override
+	boolean mightBeEmpty (final A_Type phraseType)
+	{
+		// Completely optional expressions can be absent.
 		return true;
 	}
 }

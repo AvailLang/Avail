@@ -33,6 +33,8 @@ package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.SignatureException;
 import org.jetbrains.annotations.Nullable;
@@ -129,10 +131,16 @@ extends Expression
 		 * ...the last alternative.
 		 * @branches[N-1]:
 		 * check progress and update saved position, or abort.
-		 * under-pop parse position (remove 2nd from top of stack)
+		 * pop the parse position.
 		 */
 		final Label $after = new Label();
-		generator.emit(this, SAVE_PARSE_POSITION);
+		boolean needsProgressCheck = false;
+		for (final Expression alternative : alternatives)
+		{
+			needsProgressCheck |= alternative.mightBeEmpty(
+				BottomTypeDescriptor.bottom());
+		}
+		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		for (int i = 0; i < alternatives.size(); i++)
 		{
 			// Generate a branch to the next alternative unless this is the
@@ -149,8 +157,7 @@ extends Expression
 			// can produce a value (argument, counter, etc), there's no
 			// problem.
 			alternatives.get(i).emitOn(
-				generator,
-				null); //TODO MvG - FIGURE OUT types
+				generator, ListNodeTypeDescriptor.empty());
 			// Generate a jump to the last label unless this is the last
 			// alternative.
 			if (i < alternatives.size() - 1)
@@ -160,8 +167,9 @@ extends Expression
 			generator.emit($nextAlternative);
 		}
 		generator.emit($after);
-		generator.emit(this, ENSURE_PARSE_PROGRESS);
-		generator.emit(this, DISCARD_SAVED_PARSE_POSITION);
+		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
+		generator.emitIf(
+			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 	}
 
 	@Override
@@ -216,5 +224,19 @@ extends Expression
 	{
 		final Expression last = alternatives.get(alternatives.size() - 1);
 		return last.shouldBeSeparatedOnRight();
+	}
+
+	@Override
+	boolean mightBeEmpty (
+		final A_Type phraseType)
+	{
+		for (final Expression alternative : alternatives)
+		{
+			if (alternative.mightBeEmpty(BottomTypeDescriptor.bottom()))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }

@@ -279,15 +279,16 @@ extends Expression
 						: index;
 				final A_Type entryType =
 					tupleType.typeAtIndex(realTypeIndex);
+				generator.flushDelayed();
 				expression.emitOn(generator, entryType);
-				generator.emit(this, APPEND_ARGUMENT);
+				generator.emitDelayed(this, APPEND_ARGUMENT);
 			}
 			else
 			{
-				expression.emitOn(
-					generator, ListNodeTypeDescriptor.empty());
+				expression.emitOn(generator, ListNodeTypeDescriptor.empty());
 			}
 		}
+		generator.flushDelayed();
 		assert tupleType.sizeRange().lowerBound().equalsInt(index);
 		assert tupleType.sizeRange().upperBound().equalsInt(index);
 		if (argumentsAreReordered == Boolean.TRUE)
@@ -298,6 +299,7 @@ extends Expression
 				LookupTree.indexForPermutation(permutationTuple);
 			// This sequence was already collected into a list node as the
 			// arguments/groups were parsed.  Permute the list.
+			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
 		}
 	}
@@ -342,9 +344,7 @@ extends Expression
 			}
 			final int oldLength = builder.length();
 			expression.printWithArguments(
-				argumentProvider,
-				builder,
-				indent);
+				argumentProvider, builder, indent);
 			needsSpace = expression.shouldBeSeparatedOnRight()
 				&& builder.length() != oldLength;
 		}
@@ -378,29 +378,12 @@ extends Expression
 	void checkForConsistentOrdinals ()
 		throws MalformedMessageException
 	{
-		if (argumentsAreReordered == Boolean.TRUE)
+		if (argumentsAreReordered != Boolean.TRUE)
 		{
-			checkForConsistentOrdinals(expressions);
+			return;
 		}
-	}
-
-	/**
-	 * Check whether the provided list of expressions has specified a
-	 * reordering that is a non-trivial permutation of [1..N].
-	 *
-	 * @param subexpressions
-	 *        The expressions, N of which are argument subexpressions, which
-	 *        we check are distinct values in [1..N] and not all ascending.
-	 * @throws MalformedMessageException
-	 *         If the reordering numbers of the argument subexpressions are
-	 *         not a non-trivial permutation of [1..N].
-	 */
-	private void checkForConsistentOrdinals (
-			final List<? extends Expression> subexpressions)
-		throws MalformedMessageException
-	{
 		final List<Integer> usedOrdinalsList = new ArrayList<>();
-		for (final Expression e : subexpressions)
+		for (final Expression e : expressions)
 		{
 			if (e.canBeReordered())
 			{
@@ -431,5 +414,55 @@ extends Expression
 		}
 		assert permutedArguments.isEmpty();
 		permutedArguments.addAll(usedOrdinalsList);
+	}
+
+	@Override
+	boolean mightBeEmpty (
+		final A_Type phraseType)
+	{
+		final A_Type tupleType;
+		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+		{
+			tupleType = phraseType.subexpressionsTupleType();
+		}
+		else
+		{
+			tupleType = TupleTypeDescriptor.mappingElementTypes(
+				phraseType.expressionType(),
+				new Transformer1<A_Type, A_Type>()
+				{
+					@Override
+					public A_Type value (@Nullable final A_Type arg)
+					{
+						assert arg != null;
+						return PARSE_NODE.create(arg);
+					}
+				});
+		}
+		int index = 0;
+		for (final Expression expression : expressions)
+		{
+			if (expression.isArgumentOrGroup())
+			{
+				index++;
+				final int realTypeIndex =
+					argumentsAreReordered == Boolean.TRUE
+						? permutedArguments.get(index - 1)
+						: index;
+				final A_Type entryType = tupleType.typeAtIndex(realTypeIndex);
+				if (!expression.mightBeEmpty(entryType))
+				{
+					return false;
+				}
+			}
+			else
+			{
+				if (!expression.mightBeEmpty(ListNodeTypeDescriptor.empty()))
+				{
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 }

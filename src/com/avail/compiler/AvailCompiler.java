@@ -3648,6 +3648,7 @@ public final class AvailCompiler
 					keywordToken.lowerCaseString());
 			}
 		}
+		boolean skipCheckArgumentAction = false;
 		if (anyPrefilter)
 		{
 			assert firstArgOrNull == null;
@@ -3678,18 +3679,14 @@ public final class AvailCompiler
 						argsSoFar,
 						marksSoFar,
 						continuation);
-					// Don't allow normal action processing, as it would ignore
-					// the restriction which we've been so careful to prefilter.
-					assert actions.mapSize() == 1;
-					assert ParsingOperation.decode(
-							actions.mapIterable().next().key().extractInt())
-						== CHECK_ARGUMENT;
-					return;
+					// Don't allow any check-argument actions to be processed
+					// normally, as it would ignore the restriction which we've
+					// been so careful to prefilter.
+					skipCheckArgumentAction = true;
 				}
 				// The argument name was not in the prefilter map, so fall
-				// through to allow normal action processing.  Note that in this
-				// case the only possible action is the check argument
-				// instruction.
+				// through to allow normal action processing, including the
+				// default check-argument action if it's present.
 			}
 		}
 		if (anyTypeFilter)
@@ -3754,13 +3751,25 @@ public final class AvailCompiler
 				argsSoFar,
 				marksSoFar,
 				continuation);
-			assert !anyActions;
+			// Parse instruction optimization allows there to be some plans that
+			// do a type filter here, but some that are able to postpone it.
+			// Therefore, also allow general actions to be collected here by
+			// falling through.
 		}
 		if (anyActions)
 		{
 			for (final Entry entry : actions.mapIterable())
 			{
 				final A_Number key = entry.key();
+				final int keyInt = key.extractInt();
+				if (skipCheckArgumentAction
+					&& ParsingOperation.decode(keyInt) == CHECK_ARGUMENT)
+				{
+					// Skip this action, because the latest argument was a send
+					// that had an entry in the prefilter map, so it has already
+					// been dealt with.
+					continue;
+				}
 				final A_Tuple value = entry.value();
 				workUnitDo(
 					new Continuation0()
@@ -3770,7 +3779,7 @@ public final class AvailCompiler
 						{
 							runParsingInstructionThen(
 								start,
-								key.extractInt(),
+								keyInt,
 								firstArgOrNull,
 								argsSoFar,
 								marksSoFar,

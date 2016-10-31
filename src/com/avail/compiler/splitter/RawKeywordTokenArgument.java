@@ -33,6 +33,7 @@ package com.avail.compiler.splitter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.TypeDescriptor.Types;
 
 import static com.avail.compiler.ParsingOperation.PARSE_RAW_KEYWORD_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
@@ -65,8 +66,11 @@ extends RawTokenArgument
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
+		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_KEYWORD_TOKEN);
-		generator.emit(
-			this, TYPE_CHECK_ARGUMENT, MessageSplitter.indexForType(phraseType));
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForType(phraseType));
 	}
 }

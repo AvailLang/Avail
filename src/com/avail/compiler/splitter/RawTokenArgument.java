@@ -64,8 +64,9 @@ extends Argument
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
+		generator.flushDelayed();
 		generator.emit(this, PARSE_ANY_RAW_TOKEN);
-		generator.emit(
+		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
 			MessageSplitter.indexForType(phraseType));

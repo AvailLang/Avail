@@ -139,7 +139,7 @@ Semantic restriction "time_" is
  * @returns "string"
  *          The help text.
  */
-Method "Help" is 
+Method "Help" is
 [
 	Print: "\n\
 		\|The Availuator\n\n\

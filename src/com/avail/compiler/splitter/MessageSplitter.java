@@ -1046,7 +1046,8 @@ public final class MessageSplitter
 								+ "a token or simple group, not one with a "
 								+ "double-dagger (‡) or arguments");
 						}
-						subexpression = new CompletelyOptional(this, subgroup);
+						subexpression =
+							new CompletelyOptional(this, subgroup.beforeDagger);
 						messagePartPosition++;
 					}
 					else if (token.equals(exclamationMark()))
@@ -1162,7 +1163,8 @@ public final class MessageSplitter
 				}
 				// Parse a regular keyword or operator.
 				justParsedVerticalBar = false;
-				Expression subexpression = new Simple(this, messagePartPosition);
+				Expression subexpression =
+					new Simple(this, messagePartPosition);
 				messagePartPosition++;
 				// Parse a completely optional.
 				if (!atEnd())
@@ -1170,9 +1172,10 @@ public final class MessageSplitter
 					token = currentMessagePart();
 					if (token.equals(doubleQuestionMark()))
 					{
-						subexpression = new CompletelyOptional(
-							this,
-							subexpression);
+						final Sequence singleSequence = new Sequence(this);
+						singleSequence.addExpression(subexpression);
+						subexpression =
+							new CompletelyOptional(this, singleSequence);
 						messagePartPosition++;
 					}
 				}

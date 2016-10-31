@@ -158,4 +158,11 @@ extends Expression
 		// visually emphasize the tilde by ensuring a space follows it.
 		return true;
 	}
+
+	@Override
+	boolean mightBeEmpty (
+		final A_Type phraseType)
+	{
+		return expression.mightBeEmpty(phraseType);
+	}
 }

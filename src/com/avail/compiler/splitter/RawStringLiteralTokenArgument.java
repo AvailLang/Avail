@@ -67,7 +67,11 @@ extends RawTokenArgument
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
+		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_STRING_LITERAL_TOKEN);
-		generator.emit(this, TYPE_CHECK_ARGUMENT, MessageSplitter.indexForType(phraseType));
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForType(phraseType));
 	}
 }

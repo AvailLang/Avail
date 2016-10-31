@@ -261,4 +261,17 @@ abstract class Expression
 		assert canBeReordered();
 		explicitOrdinal = ordinal;
 	}
+
+	/**
+	 * Answer whether this expression might match an empty sequence of tokens.
+	 *
+	 * @return Whether what this expression matches could be empty.
+	 * @param phraseType
+	 */
+	boolean mightBeEmpty (
+		final A_Type phraseType)
+	{
+		// Most expressions can't match an empty sequence of tokens.
+		return false;
+	};
 }

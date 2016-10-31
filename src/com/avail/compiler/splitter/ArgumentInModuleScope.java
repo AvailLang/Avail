@@ -84,14 +84,16 @@ extends Argument
 	{
 		generator.emit(this, PARSE_ARGUMENT_IN_MODULE_SCOPE);
 		// Check that the expression is syntactically allowed.
-		generator.emit(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
+		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
 		// Check that it's any kind of expression with the right yield type,
 		// since it's going to be evaluated and wrapped in a literal phrase.
 		final A_Type expressionType = EXPRESSION_NODE.create(
 			phraseType.expressionType());
-		generator.emit(
-			this, TYPE_CHECK_ARGUMENT, MessageSplitter.indexForType(expressionType));
-		generator.emit(this, CONVERT, EVALUATE_EXPRESSION.number());
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForType(expressionType));
+		generator.emitDelayed(this, CONVERT, EVALUATE_EXPRESSION.number());
 	}
 
 	@Override

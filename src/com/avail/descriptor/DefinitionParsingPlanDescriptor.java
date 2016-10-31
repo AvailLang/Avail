@@ -140,7 +140,7 @@ extends Descriptor
 		try
 		{
 			final A_Tuple instructionsTuple = plan.parsingInstructions();
-			final List<A_String> descriptionsList = new ArrayList<>();
+			final List<String> descriptionsList = new ArrayList<>();
 			for (
 				int i = 1, end = instructionsTuple.tupleSize();
 				i <= end;
@@ -197,15 +197,13 @@ extends Descriptor
 							// Do nothing.
 					}
 				}
-				descriptionsList.add(StringDescriptor.from(builder.toString()));
+				descriptionsList.add(builder.toString());
 			}
-			final A_Tuple descriptionsTuple =
-				TupleDescriptor.fromList(descriptionsList);
 			fields.add(new AvailObjectFieldHelper(
 				plan,
 				FakeSlots.SYMBOLIC_INSTRUCTIONS,
 				-1,
-				descriptionsTuple));
+				descriptionsList.toArray(new String[descriptionsList.size()])));
 		}
 		catch (Exception e)
 		{
