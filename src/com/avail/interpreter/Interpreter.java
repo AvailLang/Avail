@@ -1033,7 +1033,7 @@ public final class Interpreter
 	 *            primitive backup Avail code produces type ⊥.
 	 * @return The resulting status of the primitive attempt.
 	 */
-	public final Result attemptPrimitive (
+	public Result attemptPrimitive (
 		final int primitiveNumber,
 		final @Nullable A_Function function,
 		final List<AvailObject> args,

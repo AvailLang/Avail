@@ -197,8 +197,6 @@ Uses
 		"ln_",
 		"method exists named_",
 		"milliseconds since the Epoch",
-		"new atom named_",
-		"new explicit subclass atom named_",
 		"new_[_]",
 		"new_applying_",
 		"new`↑_",
@@ -252,53 +250,6 @@ Primitive "_'s⁇name" is
 |
 	Primitive AtomName;
 ] : string;
-
-/**
- * Construct and answer a new atom. Associate with the atom the supplied string,
- * which should be a name used for debugging purposes only. Atoms have identity
- * and all atoms are distinct, regardless of whether their debug names are
- * equal.
- *
- * @category "Primitives" "Atoms" "Constructors"
- * @method "new atom named_"
- * @param "debugName" "string"
- *        A name to associate with the atom for debugging purposes. This name
- *        does not participate in atom comparison.
- * @returns "atom"
- *    A new atom, distinct from every other atom answered by a different
- *    invocation of this primitive.
- */
-Primitive "new atom named_" is
-[
-	debugName : string
-|
-	Primitive CreateAtom;
-] : atom;
-
-/**
- * Construct and answer a new atom for use as a field key in an object or
- * object type. This field keys sole purpose is to differentiate the object
- * type from any existing object types. Associate with the atom the supplied
- * string, which should be a name used for debugging purposes only. Atoms have
- * identity and all atoms are distinct, regardless of whether their debug names
- * are equal.
- *
- * @category "Primitives" "Atoms" "Constructors"
- * @method "{0}"
- * @param "{1}" "{2}"
- *        A name to associate with the atom for debugging purposes. This name
- *        does not participate in atom comparison.
- * @returns "{3}"
- *    A new atom, distinct from every other atom answered by a different
- *    invocation of this primitive, and marked for use as an explicit subclass
- *    field key in a new object type.
- */
-Primitive "new explicit subclass atom named_" is
-[
-	debugName : string
-|
-	Primitive CreateExplicitSubclassAtom;
-] : atom;
 
 /**
  * Is {@param "name"} a valid message? Do not attempt to look up a method

@@ -14,12 +14,17 @@
       <w>reoptimization</w>
       <w>reoptimize</w>
       <w>shareds</w>
+      <w>stringifier</w>
       <w>subclassing</w>
+      <w>subcomponents</w>
+      <w>subobjects</w>
       <w>subrange</w>
       <w>subtuples</w>
       <w>superexpressions</w>
       <w>tokenized</w>
       <w>tuples</w>
+      <w>unregister</w>
+      <w>unsummarized</w>
     </words>
   </dictionary>
 </component>

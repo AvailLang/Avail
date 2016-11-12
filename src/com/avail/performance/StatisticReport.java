@@ -38,6 +38,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MessageBundleTreeDescriptor;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.utility.Pair;
@@ -60,6 +64,29 @@ import com.avail.utility.Pair;
  */
 public enum StatisticReport
 {
+	/** Statistics for executing parsing instructions. */
+	RUNNING_PARSING_INSTRUCTIONS
+	{
+		@Override
+		public String keyword ()
+		{
+			return "Running Parsing Operations";
+		}
+	},
+
+	/**
+	 * Statistics for {@link MessageBundleTreeDescriptor#o_Expand(AvailObject,
+	 * A_Module) expanding} ParsingOperations.
+	 */
+	EXPANDING_PARSING_INSTRUCTIONS
+		{
+			@Override
+			public String keyword ()
+			{
+				return "Expanding Parsing Operations";
+			}
+		},
+
 	/** Level-Two Operations report. */
 	L2_OPERATIONS
 	{

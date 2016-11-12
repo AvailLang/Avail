@@ -1750,7 +1750,7 @@ implements
 	/**
 	 * Answer whether the {@linkplain AvailObject receiver} is an {@linkplain
 	 * InfinityDescriptor infinity} with the specified {@link
-	 * IntegerSlots#SIGN}.
+	 * Sign}.
 	 *
 	 * @param sign The type of infinity for comparison.
 	 * @return {@code true} if the receiver is an infinity of the specified
@@ -6179,13 +6179,16 @@ implements
 	}
 
 	/**
-	 * @param bundle
+	 * @param plan
+	 * @param treesToVisit
 	 */
 	@Override
-	public void flushForNewOrChangedBundle (
-		final A_Bundle bundle)
+	public void updateForNewGrammaticalRestriction (
+		final A_DefinitionParsingPlan plan,
+		final Collection<A_BundleTree> treesToVisit)
 	{
-		descriptor.o_FlushForNewOrChangedBundle(this, bundle);
+		descriptor.o_UpdateForNewGrammaticalRestriction(
+			this, plan, treesToVisit);
 	}
 
 	/**

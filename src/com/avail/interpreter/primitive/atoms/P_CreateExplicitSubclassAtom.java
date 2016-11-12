@@ -31,28 +31,26 @@
  */
 package com.avail.interpreter.primitive.atoms;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.*;
+import com.avail.exceptions.AmbiguousNameException;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a new {@linkplain AtomDescriptor
  * atom} with the given name.  Add the {@link
  * AtomDescriptor#explicitSubclassingKey()} as a property to indicate this atom
  * will be used for explicitly subclassing object types.
+ *
+ * <p>If this method is executed outside the scope of compiling or loading, a
+ * new atom will always be created.</p>
  */
 public final class P_CreateExplicitSubclassAtom extends Primitive
 {
@@ -61,7 +59,7 @@ public final class P_CreateExplicitSubclassAtom extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_CreateExplicitSubclassAtom().init(
-			1, CanInline, CannotFail);
+			1, CanInline);
 
 	@Override
 	public Result attempt (
@@ -71,12 +69,28 @@ public final class P_CreateExplicitSubclassAtom extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject name = args.get(0);
-		final A_Atom newAtom =
-			AtomDescriptor.create(name, ModuleDescriptor.current());
-		newAtom.setAtomProperty(
-			AtomDescriptor.explicitSubclassingKey(),
-			AtomDescriptor.explicitSubclassingKey());
-		return interpreter.primitiveSuccess(newAtom.makeShared());
+		final AvailLoader loader = interpreter.availLoaderOrNull();
+		final A_Atom atom;
+		if (loader == null)
+		{
+			atom = AtomDescriptor.create(name, NilDescriptor.nil());
+			atom.setAtomProperty(
+				AtomDescriptor.explicitSubclassingKey(),
+				AtomDescriptor.explicitSubclassingKey());
+		}
+		else
+		{
+			try
+			{
+				atom = loader.lookupName(name, true);
+			}
+			catch (AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(
+					AvailErrorCode.E_AMBIGUOUS_NAME);
+			}
+		}
+		return interpreter.primitiveSuccess(atom);
 	}
 
 	@Override
@@ -86,5 +100,13 @@ public final class P_CreateExplicitSubclassAtom extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType()),
 			ATOM.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				AvailErrorCode.E_AMBIGUOUS_NAME));
 	}
 }

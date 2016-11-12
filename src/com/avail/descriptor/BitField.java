@@ -69,7 +69,7 @@ implements Comparable<BitField>
 	/**
 	 * The number of bits that this BitField occupies within a {@code long}.
 	 */
-	private final int bits;
+	final int bits;
 
 	/**
 	 * A string of 1's of length {@link #bits}, right aligned in the {@code

@@ -1285,13 +1285,12 @@ public class MessageSplitterTest
 				builder.append(",\n");
 			}
 			builder.append('\t');
-			final ParsingOperation operation =
-				ParsingOperation.decode(instructionEncoding);
+			final ParsingOperation operation = decode(instructionEncoding);
 			builder.append(operation.name());
 			if (operation.ordinal() >= ParsingOperation.distinctInstructions)
 			{
 				builder.append('(');
-				builder.append(ParsingOperation.operand(instructionEncoding));
+				builder.append(operand(instructionEncoding));
 				builder.append(')');
 			}
 			first = false;

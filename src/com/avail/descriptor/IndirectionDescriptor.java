@@ -4002,11 +4002,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_FlushForNewOrChangedBundle (
+	void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
-		final A_Bundle bundle)
+		final A_DefinitionParsingPlan plan,
+		final Collection<A_BundleTree> treesToVisit)
 	{
-		o_Traversed(object).flushForNewOrChangedBundle(bundle);
+		o_Traversed(object).updateForNewGrammaticalRestriction(plan,
+			treesToVisit);
 	}
 
 	@Override

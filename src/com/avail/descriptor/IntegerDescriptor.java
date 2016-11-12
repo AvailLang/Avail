@@ -198,7 +198,10 @@ extends ExtendedIntegerDescriptor
 			}
 			builder.append(") = ");
 			final long longValue = object.extractLong();
-			describeLong(longValue, builder);
+			describeLong(
+				longValue,
+				longValue == (int)longValue ? 32 : 64,
+				builder);
 			builder.append(" = ");
 			builder.append(longValue);
 			return builder.toString();

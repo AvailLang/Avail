@@ -850,8 +850,17 @@ public abstract class AbstractDescriptor
 				final Field slotMirror = slot.getClass().getField(slotName);
 				final EnumField enumAnnotation =
 					slotMirror.getAnnotation(EnumField.class);
+				int numBits = 64;
+				if (enumAnnotation != null)
+				{
+					final Class<? extends IntegerEnumSlotDescriptionEnum>
+						enumClass = enumAnnotation.describedBy();
+					final IntegerEnumSlotDescriptionEnum[] enumValues =
+						enumClass.getEnumConstants();
+					numBits = 64 - Long.numberOfLeadingZeros(enumValues.length);
+				}
 				builder.append(" = ");
-				describeIntegerField(value, enumAnnotation, builder);
+				describeIntegerField(value, numBits, enumAnnotation, builder);
 			}
 			else
 			{
@@ -866,7 +875,10 @@ public abstract class AbstractDescriptor
 					builder.append(bitField.name);
 					builder.append("=");
 					describeIntegerField(
-						object.slot(bitField), bitField.enumField, builder);
+						object.slot(bitField),
+						bitField.bits,
+						bitField.enumField,
+						builder);
 					first = false;
 				}
 				builder.append(")");
@@ -961,6 +973,7 @@ public abstract class AbstractDescriptor
 
 	private static void describeIntegerField (
 		final long value,
+		final int numBits,
 		final @Nullable EnumField enumAnnotation,
 		final StringBuilder builder)
 	throws
@@ -985,7 +998,7 @@ public abstract class AbstractDescriptor
 				else
 				{
 					builder.append("(enum out of range: ");
-					describeLong(value, builder);
+					describeLong(value, numBits, builder);
 					builder.append(")");
 				}
 			}
@@ -1016,40 +1029,45 @@ public abstract class AbstractDescriptor
 		}
 		else
 		{
-			describeLong(value, builder);
+			describeLong(value, numBits, builder);
 		}
 	}
 
 	protected static void describeLong (
 		final long value,
+		final int numBits,
 		final StringBuilder builder)
 	{
-		if (value == (value & 0x7F))
+		// Present signed byte as unsigned, and unsigned byte unchanged.
+		if (numBits <= 8 && -0x80 <= value && value <= 0xFF)
 		{
-			builder.append(String.format("0x%02X", value & 0x7F));
+			builder.append(String.format("0x%02X", value & 0xFF));
+			return;
 		}
-		else if (value == (value & 0x7FFF))
+		// Present signed 16-bits as unsigned, and unsigned 16-bits unchanged.
+		if (numBits <= 16 && -0x8000 <= value && value <= 0xFFFF)
 		{
-			builder.append(String.format("0x%04X", value & 0x7FFF));
+			builder.append(String.format("0x%04X", value & 0xFFFF));
+			return;
 		}
-		else if (value == (int)value)
+		// Present signed int as unsigned, and unsigned int unchanged.
+		if (numBits <= 32 && -0x8000_0000 <= value && value <= 0xFFFF_FFFFL)
 		{
 			builder.append(
 				String.format(
 					"0x%04X_%04X",
 					(value >>> 16L) & 0xFFFF,
 					value & 0xFFFF));
+			return;
 		}
-		else
-		{
-			builder.append(
-				String.format(
-					"0x%04X_%04X_%04X_%04X",
-					(value >>> 48L) & 0xFFFF,
-					(value >>> 32L) & 0xFFFF,
-					(value >>> 16L) & 0xFFFF,
-					value & 0xFFFF));
-		}
+		// Present a long as unsigned.
+		builder.append(
+			String.format(
+				"0x%04X_%04X_%04X_%04X",
+				(value >>> 48L) & 0xFFFF,
+				(value >>> 32L) & 0xFFFF,
+				(value >>> 16L) & 0xFFFF,
+				value & 0xFFFF));
 	}
 
 	/**
@@ -5507,11 +5525,13 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param bundle
+	 * @param plan
+	 * @param treesToVisit
 	 */
-	abstract void o_FlushForNewOrChangedBundle (
+	abstract void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
-		final A_Bundle bundle);
+		final A_DefinitionParsingPlan plan,
+		final Collection<A_BundleTree> treesToVisit);
 
 	/**
 	 * @param object

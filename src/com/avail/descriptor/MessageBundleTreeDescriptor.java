@@ -38,6 +38,7 @@ import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 import java.util.*;
 import com.avail.AvailRuntime;
+import com.avail.AvailThread;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.*;
@@ -398,8 +399,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Add the plan to this bundle tree.  The corresponding bundle must already
-	 * be present.
+	 * Add the plan to this bundle tree.
 	 */
 	@Override
 	void o_AddPlan (
@@ -479,16 +479,39 @@ extends Descriptor
 				for (final MapDescriptor.Entry entry2
 					: entry.value().mapIterable())
 				{
-					updateForPlan(
-						entry2.value(),
-						allAncestorModules,
-						complete,
-						incomplete,
-						caseInsensitive,
-						actionMap,
-						prefilterMap,
-						typeFilterPairs,
-						pc);
+					final A_Definition definition = entry2.key();
+					final A_DefinitionParsingPlan plan = entry2.value();
+					final A_Tuple instructions = plan.parsingInstructions();
+					if (pc == instructions.tupleSize() + 1)
+					{
+						// Just reached the end of these instructions.
+						// It's past the end of the parsing instructions.
+						complete.value =
+							complete.value.setWithElementCanDestroy(
+								entry.key(), true);
+					}
+					else
+					{
+						final long timeBefore = System.nanoTime();
+						final int instruction = instructions.tupleIntAt(pc);
+						final ParsingOperation op = decode(instruction);
+						updateForPlan(
+							plan,
+							pc,
+							instruction,
+							allAncestorModules,
+							incomplete,
+							caseInsensitive,
+							actionMap,
+							prefilterMap,
+							typeFilterPairs);
+						final long timeAfter = System.nanoTime();
+						final AvailThread thread =
+							(AvailThread) Thread.currentThread();
+						op.expandingStatisticInNanoseconds.record(
+							timeAfter - timeBefore,
+							thread.interpreter.interpreterIndex);
+					}
 				}
 			}
 			object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
@@ -518,28 +541,89 @@ extends Descriptor
 	}
 
 	/**
-	 * Update information in this {@linkplain MessageBundleTreeDescriptor
-	 * message bundle tree} to reflect the latest information about the
-	 * {@linkplain MessageBundleDescriptor message bundle} with the given name.
-	 *
-	 * <p>The bundle may have been added, or updated (but not removed), so if
-	 * the bundle has already been classified in this tree (via {@link
-	 * #o_Expand(AvailObject, A_Module)}), we may need to invalidate some
-	 * of the tree's lazy structures.</p>
+	 * A {@link A_GrammaticalRestriction} has been added.  Update this bundle
+	 * tree and any relevant successors related to the given {@link
+	 * A_DefinitionParsingPlan} to agree with the new restriction.
 	 */
 	@Override
-	void o_FlushForNewOrChangedBundle (
+	void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
-		final A_Bundle bundle)
+		final A_DefinitionParsingPlan plan,
+		final Collection<A_BundleTree> treesToVisit)
 	{
-		final A_Map allPlans = object.slot(ALL_PLANS);
-		if (object.slot(UNCLASSIFIED).hasKey(bundle))
+		if (object.slot(UNCLASSIFIED).hasKey(plan.bundle()))
 		{
-			// It hasn't been classified yet, so there's nothing to clean up.
+			// The plan (or another plan with the same bundle) is still
+			// unclassified, so do nothing.
 			return;
 		}
-		// It has been classified already, so flush all lazy structures
-		// for safety, moving everything back to unclassified.
+		final A_Tuple instructions = plan.parsingInstructions();
+		final int pc = object.parsingPc();
+		if (pc == instructions.tupleSize() + 1)
+		{
+			// We've reached an end-point for parsing this plan.  The
+			// grammatical restriction has no remaining effect.
+			return;
+		}
+		final int instruction = instructions.tupleIntAt(pc);
+		final ParsingOperation op = decode(instruction);
+		switch (op)
+		{
+			case CHECK_ARGUMENT:
+			{
+				// This is one of the instructions we're interested in.  Let's
+				// keep things simple and invalidate this entire bundle tree.
+				invalidate(object);
+				break;
+			}
+			case TYPE_CHECK_ARGUMENT:
+			{
+				// It might be expensive to visit each relevant successor, so
+				// just invalidate the entire bundle tree.
+				invalidate(object);
+				break;
+			}
+			case PARSE_PART:
+			{
+				// Look it up in LAZY_INCOMPLETE.
+				final int keywordIndex = op.keywordIndex(instruction);
+				final A_String keyword =
+					plan.bundle().messageParts().tupleAt(keywordIndex);
+				final A_BundleTree successor =
+					object.slot(LAZY_INCOMPLETE).mapAt(keyword);
+				treesToVisit.add(successor);
+				break;
+			}
+			case PARSE_PART_CASE_INSENSITIVELY:
+			{
+				// Look it up in LAZY_INCOMPLETE_CASE_INSENSITIVE.
+				final int keywordIndex = op.keywordIndex(instruction);
+				final A_String keyword =
+					plan.bundle().messageParts().tupleAt(keywordIndex);
+				final A_BundleTree successor =
+					object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE).mapAt(keyword);
+				treesToVisit.add(successor);
+				break;
+			}
+			default:
+			{
+				// It's an ordinary action.  Even a JUMP or BRANCH falls into
+				// this category.
+				final A_Tuple successorTrees =
+					object.slot(LAZY_ACTIONS).mapAt(instructions.tupleAt(pc));
+				for (final A_BundleTree successorTree : successorTrees)
+				{
+					treesToVisit.add(successorTree);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Invalidate the internal expansion of the given bundle tree.
+	 */
+	private static void invalidate (final AvailObject object)
+	{
 		final A_Map emptyMap = MapDescriptor.empty();
 		object.setSlot(LAZY_COMPLETE, SetDescriptor.empty());
 		object.setSlot(LAZY_INCOMPLETE, emptyMap);
@@ -548,8 +632,9 @@ extends Descriptor
 		object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
 		object.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.empty());
 		object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
-		object.setSlot(UNCLASSIFIED, allPlans.makeShared());
+		object.setSlot(UNCLASSIFIED, object.slot(ALL_PLANS));
 	}
+
 
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
@@ -720,14 +805,17 @@ extends Descriptor
 	 *
 	 * @param plan
 	 *        The {@link A_DefinitionParsingPlan} to categorize.
+	 * @param pc
+	 *        The one-based program counter that indexes each applicable
+	 *        {@link A_DefinitionParsingPlan}'s {@link A_DefinitionParsingPlan
+	 *        #parsingInstructions()}.
+	 * @param instruction
+	 *        The current encoded parse instruction.
 	 * @param allAncestorModules
 	 *        The {@link A_Set} of modules that are ancestors of (or equal to)
 	 *        the current module being parsed.  This is used to restrict the
 	 *        visibility of semantic and grammatical restrictions, as well as
 	 *        which method and macro {@link A_Definition}s can be parsed.
-	 * @param complete
-	 *        A {@link Mutable} {@link A_Set} of method sends that have been
-	 *        completely parsed at this point in the {@link A_BundleTree}.
 	 * @param incomplete
 	 *        A {@link Mutable} {@link A_Map} from {@link A_String} to successor
 	 *        {@link A_BundleTree}.  If a token's string matches one of the
@@ -759,43 +847,19 @@ extends Descriptor
 	 *        A {@link Mutable} {@link A_Tuple} of pairs (2-tuples) from {@link
 	 *        A_Phrase phrase} {@link A_Type type} to {@link
 	 *        A_DefinitionParsingPlan}.
-	 * @param pc
-	 *        The one-based program counter that indexes each applicable
-	 *        {@link A_DefinitionParsingPlan}'s {@link A_DefinitionParsingPlan
-	 *        #parsingInstructions()}.
 	 */
 	private static void updateForPlan (
 		final A_DefinitionParsingPlan plan,
+		final int pc,
+		final int instruction,
 		final A_Set allAncestorModules,
-		final Mutable<A_Set> complete,
 		final Mutable<A_Map> incomplete,
 		final Mutable<A_Map> caseInsensitive,
 		final Mutable<A_Map> actionMap,
 		final Mutable<A_Map> prefilterMap,
-		final Mutable<A_Tuple> typeFilterTuples,
-		final int pc)
+		final Mutable<A_Tuple> typeFilterTuples)
 	{
-		final A_Bundle bundle = plan.bundle();
-		final A_Method method = bundle.bundleMethod();
-		if (method.definitionsTuple().tupleSize() == 0
-			&& method.macroDefinitionsTuple().tupleSize() == 0)
-		{
-			// There are no method or macro definitions, so there's no reason
-			// to try to parse it.  This can happen when grammatical
-			// restrictions are defined before a method is implemented, a
-			// reasonably common situation.
-			return;
-		}
-		final A_Tuple instructions = plan.parsingInstructions();
-		if (pc == instructions.tupleSize() + 1)
-		{
-			// It's past the end of the parsing instructions.
-			complete.value = complete.value.setWithElementCanDestroy(
-				bundle, true);
-			return;
-		}
-		final int instruction = instructions.tupleIntAt(pc);
-		final ParsingOperation op = ParsingOperation.decode(instruction);
+		final ParsingOperation op = decode(instruction);
 		switch (op)
 		{
 			case PARSE_PART:
@@ -805,7 +869,7 @@ extends Descriptor
 				final int keywordIndex = op.keywordIndex(instruction);
 				A_BundleTree subtree;
 				final A_String part =
-					bundle.messageParts().tupleAt(keywordIndex);
+					plan.bundle().messageParts().tupleAt(keywordIndex);
 				final Mutable<A_Map> map =
 					op == PARSE_PART ? incomplete : caseInsensitive;
 				if (map.value.hasKey(part))
@@ -877,7 +941,7 @@ extends Descriptor
 				}
 				A_Set forbiddenBundles = SetDescriptor.empty();
 				for (final A_GrammaticalRestriction restriction
-					: bundle.grammaticalRestrictions())
+					: plan.bundle().grammaticalRestrictions())
 				{
 					// Exclude grammatical restrictions that aren't defined in
 					// an ancestor module.
@@ -957,8 +1021,7 @@ extends Descriptor
 				else
 				{
 					final List<Integer> nextPcs = op.successorPcs(
-						instruction,
-						pc);
+						instruction, pc);
 					final List<A_BundleTree> successorsList =
 						new ArrayList<>(nextPcs.size());
 					for (final int nextPc : nextPcs)

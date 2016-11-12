@@ -31,15 +31,23 @@
  */
 package com.avail.interpreter.primitive.atoms;
 
+import com.avail.descriptor.*;
+import com.avail.exceptions.AmbiguousNameException;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive:</strong> Create a new {@linkplain AtomDescriptor
+ * <strong>Primitive:</strong> Lookup or create a new {@linkplain AtomDescriptor
  * atom} with the given name.
+ *
+ * <p>If this method is executed outside the scope of compiling or loading, a
+ * new atom will always be created.</p>
  */
 public final class P_CreateAtom extends Primitive
 {
@@ -48,7 +56,7 @@ public final class P_CreateAtom extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_CreateAtom().init(
-			1, CanInline, CannotFail);
+			1, CanInline);
 
 	@Override
 	public Result attempt (
@@ -58,8 +66,25 @@ public final class P_CreateAtom extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject name = args.get(0);
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.create(name, ModuleDescriptor.current()));
+		final AvailLoader loader = interpreter.availLoaderOrNull();
+		final A_Atom atom;
+		if (loader == null)
+		{
+			atom = AtomDescriptor.create(name, NilDescriptor.nil());
+		}
+		else
+		{
+			try
+			{
+				atom = loader.lookupName(name);
+			}
+			catch (AmbiguousNameException e)
+			{
+				return interpreter.primitiveFailure(
+					AvailErrorCode.E_AMBIGUOUS_NAME);
+			}
+		}
+		return interpreter.primitiveSuccess(atom);
 	}
 
 	@Override
@@ -69,5 +94,13 @@ public final class P_CreateAtom extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType()),
 			ATOM.o());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				AvailErrorCode.E_AMBIGUOUS_NAME));
 	}
 }

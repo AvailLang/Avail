@@ -147,10 +147,8 @@ extends Descriptor
 				i++)
 			{
 				final int encodedInstruction = instructionsTuple.tupleIntAt(i);
-				final ParsingOperation operation =
-					ParsingOperation.decode(encodedInstruction);
-				final int operand =
-					ParsingOperation.operand(encodedInstruction);
+				final ParsingOperation operation = decode(encodedInstruction);
+				final int operand = operand(encodedInstruction);
 				final StringBuilder builder = new StringBuilder();
 				builder.append(i);
 				builder.append(". ");
@@ -287,7 +285,7 @@ extends Descriptor
 		final A_Bundle bundle = object.bundle();
 		final MessageSplitter messageSplitter = bundle.messageSplitter();
 		final int instruction = instructions.tupleIntAt(pc);
-		final ParsingOperation op = ParsingOperation.decode(instruction);
+		final ParsingOperation op = decode(instruction);
 		int argCounter = 0;
 		final int position;
 		if (op == PARSE_PART || op == PARSE_PART_CASE_INSENSITIVELY)

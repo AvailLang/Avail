@@ -291,23 +291,23 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Set o_ExportedNames (final AvailObject object)
 	{
+		A_Set exportedNames = SetDescriptor.empty();
 		synchronized (object)
 		{
-			A_Set exportedNames = SetDescriptor.empty();
 			for (final MapDescriptor.Entry entry
 				: object.slot(IMPORTED_NAMES).mapIterable())
 			{
 				exportedNames = exportedNames.setUnionCanDestroy(
-					entry.value(), true);
+					entry.value().makeShared(), true);
 			}
 			for (final MapDescriptor.Entry entry
 				: object.slot(PRIVATE_NAMES).mapIterable())
 			{
 				exportedNames = exportedNames.setMinusCanDestroy(
-					entry.value(), true);
+					entry.value().makeShared(), true);
 			}
-			return exportedNames;
 		}
+		return exportedNames;
 	}
 
 	@Override @AvailMethod

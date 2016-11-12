@@ -118,7 +118,6 @@ extends Primitive
 				{
 					root.addPlan(entry.value());
 				}
-				root.flushForNewOrChangedBundle(newBundle);
 			}
 		});
 		return interpreter.primitiveSuccess(NilDescriptor.nil());

@@ -121,6 +121,7 @@ implements Comparable<AvailTask>, Runnable
 					}
 					fiber.failureContinuation().value(e);
 					fiber.executionState(RETIRED);
+					interpreter.runtime().unregisterFiber(fiber);
 				}
 				finally
 				{
@@ -147,6 +148,7 @@ implements Comparable<AvailTask>, Runnable
 							fiber.resultContinuation().value(
 								fiber.fiberResult());
 							fiber.executionState(RETIRED);
+							interpreter.runtime().unregisterFiber(fiber);
 						}
 					}
 				});

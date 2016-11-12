@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * {@code A_BundleTree} is an interface that specifies the {@linkplain
@@ -64,13 +64,18 @@ extends A_BasicObject
 	void expand (A_Module module);
 
 	/**
-	 * The specified bundle has been added or modified in this bundle tree.
-	 * Adjust the bundle tree as needed.
+	 * A grammatical restriction has been added.  Update this bundle tree to
+	 * conform to the new restriction along any already-expanded paths for the
+	 * given plan.
 	 *
-	 * @param bundle The {@link MessageBundleDescriptor bundle} that has been
-	 *               added or modified in this bundle tree.
+	 * @param plan
+	 *        The {@link A_DefinitionParsingPlan} along which to update the
+	 *        bundle tree (and extant successors).
+	 * @param treesToVisit
 	 */
-	void flushForNewOrChangedBundle (A_Bundle bundle);
+	void updateForNewGrammaticalRestriction (
+		final A_DefinitionParsingPlan plan,
+		final Collection<A_BundleTree> treesToVisit);
 
 	/**
 	 * Dispatch to the descriptor.

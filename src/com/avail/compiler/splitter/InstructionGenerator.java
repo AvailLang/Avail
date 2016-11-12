@@ -298,12 +298,11 @@ class InstructionGenerator
 		// assume jumps fall through, even though they don't.
 		for (final int instruction : instructions)
 		{
-			final ParsingOperation operation =
-				ParsingOperation.decode(instruction);
+			final ParsingOperation operation = decode(instruction);
 			if (operation == JUMP || operation == BRANCH)
 			{
 				// Adjust to zero-based.
-				final int target = ParsingOperation.operand(instruction) - 1;
+				final int target = operand(instruction) - 1;
 				branchTargets.set(target);
 			}
 		}
@@ -321,15 +320,14 @@ class InstructionGenerator
 				{
 					// It's not a branch target.
 					final int instruction = instructions.get(i);
-					final ParsingOperation operation =
-						ParsingOperation.decode(instruction);
+					final ParsingOperation operation = decode(instruction);
 					if (operation == PARSE_PART
 						|| operation == PARSE_PART_CASE_INSENSITIVELY)
 					{
 						// Swap it leftward if it commutes.
 						final int priorInstruction = instructions.get(i - 1);
 						final ParsingOperation priorOperation =
-							ParsingOperation.decode(priorInstruction);
+							decode(priorInstruction);
 						if (priorOperation.commutesWithParsePart())
 						{
 							instructions.set(i, priorInstruction);

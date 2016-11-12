@@ -125,6 +125,8 @@ Uses
 		"method definition of_for_",
 		"method for_",
 		"method_._,⁇parameterized by_,⁇on failure doing_",
+		"new atom named_",
+		"new explicit subclass atom named_",
 		"new⁇heritable«fiber-local»⁇atom named_",
 		"next character",
 		"restricted send_with_:_",
@@ -327,6 +329,57 @@ Primitive "_[_]:=_" is
 		special-atom code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
+
+/**
+ * Construct and answer a new atom. Associate with the atom the supplied string,
+ * which should be a name used for debugging purposes only. Atoms have identity
+ * and all atoms are distinct, regardless of whether their debug names are
+ * equal.
+ *
+ * @category "Primitives" "Atoms" "Constructors"
+ * @method "new atom named_"
+ * @param "debugName" "string"
+ *        A name to associate with the atom for debugging purposes. This name
+ *        does not participate in atom comparison.
+ * @returns "atom"
+ *    A new atom, distinct from every other atom answered by a different
+ *    invocation of this primitive.
+ */
+Primitive "new atom named_" is
+[
+	debugName : string
+|
+	Primitive CreateAtom (failureCode : {
+		ambiguous-name code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : atom;
+
+/**
+ * Construct and answer a new atom for use as a field key in an object or
+ * object type. This field keys sole purpose is to differentiate the object
+ * type from any existing object types. Associate with the atom the supplied
+ * string, which should be a name used for debugging purposes only. Atoms have
+ * identity and all atoms are distinct, regardless of whether their debug names
+ * are equal.
+ *
+ * @category "Primitives" "Atoms" "Constructors"
+ * @method "{0}"
+ * @param "{1}" "{2}"
+ *        A name to associate with the atom for debugging purposes. This name
+ *        does not participate in atom comparison.
+ * @returns "{3}"
+ *    A new atom, distinct from every other atom answered by a different
+ *    invocation of this primitive, and marked for use as an explicit subclass
+ *    field key in a new object type.
+ */
+Primitive "new explicit subclass atom named_" is
+[
+	debugName : string
+|
+	Primitive CreateExplicitSubclassAtom (failureCode : {
+		ambiguous-name code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : atom;
 
 /**
  * Is {@param "name"} unambiguous in the {@method "current module"}?

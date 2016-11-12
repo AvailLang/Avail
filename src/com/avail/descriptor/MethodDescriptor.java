@@ -48,6 +48,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
+import com.avail.interpreter.primitive.atoms.P_CreateAtom;
+import com.avail.interpreter.primitive.atoms.P_CreateExplicitSubclassAtom;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
@@ -1346,7 +1348,7 @@ extends Descriptor
 	/**
 	 * Answer the (special) name of the VM-built literal token creation atom.
 	 *
-	 * @return The name of the VM's literal token creation atom.
+	 * @return The name of the VM's literal token creation method.
 	 */
 	public static A_Atom vmCreateLiteralTokenAtom ()
 	{
@@ -1354,7 +1356,7 @@ extends Descriptor
 	}
 
 	/**
-	 * The (special) name of the VM-built literal phrase creation atom.
+	 * The (special) name of the VM-built literal phrase creation method.
 	 */
 	private static final A_Atom vmCreateLiteralExpressionAtom =
 		createSpecialMethodAtom(
@@ -1362,9 +1364,9 @@ extends Descriptor
 			P_CreateLiteralExpression.instance);
 
 	/**
-	 * Answer the (special) name of the VM-built literal phrase creation atom.
+	 * Answer the (special) name of the VM-built literal phrase creation method.
 	 *
-	 * @return The name of the VM's literal phrase creation atom.
+	 * @return The name of the VM's literal phrase creation method.
 	 */
 	public static A_Atom vmCreateLiteralExpressionAtom ()
 	{

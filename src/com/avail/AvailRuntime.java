@@ -1289,10 +1289,28 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer an {@linkplain Collections#unmodifiableSet(Set) unmodifiable} view
-	 * of the {@linkplain Set set} of all {@linkplain A_Fiber fibers} that have
-	 * not yet {@linkplain ExecutionState#RETIRED retired} and been reclaimed by
-	 * garbage collection.
+	 * Remove the specified {@linkplain A_Fiber fiber} to this {@linkplain
+	 * AvailRuntime runtime}.  This should be done when a fiber retires,
+	 * although the {@link FiberReference} mechanism will eventually clean up
+	 * any fiber not explicitly unregistered.
+	 *
+	 * @param fiber
+	 *        A fiber to unregister.
+	 */
+	void unregisterFiber (final A_Fiber fiber)
+	{
+		synchronized (allFibers)
+		{
+			final FiberReference reference = allFibers.remove(fiber.uniqueId());
+			reference.clear();
+		}
+	}
+
+	/**
+	 * Answer the {@link Map} of all {@link A_Fiber fibers}, keyed by {@link
+	 * A_Fiber#uniqueId()}, that have not yet {@linkplain ExecutionState#RETIRED
+	 * retired}.  Retired fibers will be garbage collected when there are no
+	 * remaining references.
 	 *
 	 * @return All fibers belonging to this {@linkplain AvailRuntime runtime}.
 	 */
@@ -1723,9 +1741,11 @@ public final class AvailRuntime
 			AtomDescriptor.clientDataGlobalKey(),
 			AtomDescriptor.compilerScopeMapKey(),
 			AtomDescriptor.compilerScopeStackKey(),
+			AtomDescriptor.explicitSubclassingKey(),
 			AtomDescriptor.falseObject(),
 			AtomDescriptor.fileKey(),
 			AtomDescriptor.heritableKey(),
+			AtomDescriptor.macroBundleKey(),
 			AtomDescriptor.messageBundleKey(),
 			AtomDescriptor.objectTypeNamePropertyKey(),
 			AtomDescriptor.serverSocketKey(),
@@ -1753,9 +1773,7 @@ public final class AvailRuntime
 			MethodDescriptor.vmVariableGetAtom(),
 			ObjectTypeDescriptor.exceptionAtom(),
 			ObjectTypeDescriptor.stackDumpAtom(),
-			PojoTypeDescriptor.selfAtom(),
-			AtomDescriptor.macroBundleKey(),
-			AtomDescriptor.explicitSubclassingKey()));
+			PojoTypeDescriptor.selfAtom()));
 
 		for (final A_Atom atom : specialAtomsList)
 		{

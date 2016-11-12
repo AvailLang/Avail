@@ -55,6 +55,8 @@ import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.VariableDescriptor;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 
 /**
  * {@code ParsingOperation} describes the operations available for parsing Avail
@@ -407,7 +409,22 @@ public enum ParsingOperation
 	/** The modulus that represents the operation uniquely for its arity. */
 	private final int modulus;
 
+	/** Whether this instance commutes with PARSE_PART instructions. */
 	private final boolean commutesWithParsePart;
+
+	/**
+	 * A {@link Statistic} that records the number of nanoseconds spent while
+	 * executing occurrences of this {@link ParsingOperation}.
+	 */
+	public Statistic parsingStatisticInNanoseconds = new Statistic(
+		name(), StatisticReport.RUNNING_PARSING_INSTRUCTIONS);
+
+	/**
+	 * A {@link Statistic} that records the number of nanoseconds spent while
+	 * expanding occurrences of this {@link ParsingOperation}.
+	 */
+	public Statistic expandingStatisticInNanoseconds = new Statistic(
+		name(), StatisticReport.EXPANDING_PARSING_INSTRUCTIONS);
 
 	/**
 	 * Construct a new ({@code 0}) {@link ParsingOperation}.

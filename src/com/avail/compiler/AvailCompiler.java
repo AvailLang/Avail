@@ -33,8 +33,11 @@ package com.avail.compiler;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
+import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
@@ -3453,6 +3456,18 @@ public final class AvailCompiler
 			node);
 	}
 
+	/** Statistic for matching an exact token. */
+	private static final Statistic matchTokenStat =
+		new Statistic(
+			"(Match particular token)",
+			StatisticReport.RUNNING_PARSING_INSTRUCTIONS);
+
+	/** Statistic for matching a token case-insensitively. */
+	private static final Statistic matchTokenInsensitivelyStat =
+		new Statistic(
+			"(Match insensitive token)",
+			StatisticReport.RUNNING_PARSING_INSTRUCTIONS);
+
 	/**
 	 * We've parsed part of a send. Try to finish the job.
 	 *
@@ -3508,25 +3523,11 @@ public final class AvailCompiler
 		final boolean anyPrefilter = prefilter.mapSize() > 0;
 		final boolean anyTypeFilter = !typeFilterTreePojo.equalsNil();
 
-		if (!(anyComplete
-			|| anyIncomplete
-			|| anyCaseInsensitive
-			|| anyActions
-			|| anyPrefilter
-			|| anyTypeFilter))
-		{
-			return;
-		}
 		if (anyComplete && consumedAnything && firstArgOrNull == null)
 		{
 			// There are complete messages, we didn't leave a leading argument
 			// stranded, and we made progress in the file (i.e., the message
-			// send does not consist of exactly zero tokens).  It *should* be
-			// powerful enough to parse calls of "_" (i.e., the implicit
-			// conversion operation), but only if there is a grammatical
-			// restriction to prevent run-away left-recursion.  A type
-			// restriction won't be checked soon enough to prevent the
-			// recursion.
+			// send does not consist of exactly zero tokens).
 			assert marksSoFar.isEmpty();
 			assert argsSoFar.size() == 1;
 			final A_Phrase args = argsSoFar.get(0).stripMacro();
@@ -3534,9 +3535,9 @@ public final class AvailCompiler
 			{
 				if (runtime.debugCompilerSteps)
 				{
-					System.out.println("Completed send/macro: "
-						+ bundle.message()
-						+ " " + args);
+					System.out.println(
+						"Completed send/macro: "
+						+ bundle.message() + " " + args);
 				}
 				completedSendNode(
 					initialTokenPosition, start, args, bundle, continuation);
@@ -3546,22 +3547,21 @@ public final class AvailCompiler
 		{
 			boolean keywordRecognized = false;
 			final A_Token keywordToken = start.peekToken();
-			if (keywordToken.tokenType() == KEYWORD
-				|| keywordToken.tokenType() == OPERATOR)
+			final A_String keywordString = keywordToken.string();
+			final TokenType tokenType = keywordToken.tokenType();
+			if (tokenType == KEYWORD || tokenType == OPERATOR)
 			{
-				final A_String keywordString = keywordToken.string();
 				if (incomplete.hasKey(keywordString))
 				{
+					final long timeBefore = System.nanoTime();
 					final A_BundleTree successor =
 						incomplete.mapAt(keywordString);
 					if (runtime.debugCompilerSteps)
 					{
-						System.out.println("Matched token: "
-							+ keywordToken.string()
-							+ "@"
-							+ keywordToken.lineNumber()
-							+ " for "
-							+ successor);
+						System.out.println(
+							"Matched token: " + keywordString
+							+ "@" + keywordToken.lineNumber()
+							+ " for " + successor);
 					}
 					keywordRecognized = true;
 					// Record this token for the call site.
@@ -3583,38 +3583,40 @@ public final class AvailCompiler
 						argsSoFar,
 						marksSoFar,
 						continuation);
+					final long timeAfter = System.nanoTime();
+					final AvailThread thread =
+						(AvailThread) Thread.currentThread();
+					matchTokenStat.record(
+						timeAfter - timeBefore,
+						thread.interpreter.interpreterIndex);
 				}
 			}
 			if (!keywordRecognized && consumedAnything)
 			{
 				expectedKeywordsOf(
-					start,
-					incomplete,
-					false,
-					bundleTree,
-					keywordToken.string());
+					start, incomplete, false, bundleTree, keywordString);
 			}
 		}
 		if (anyCaseInsensitive && firstArgOrNull == null)
 		{
 			boolean keywordRecognized = false;
 			final A_Token keywordToken = start.peekToken();
-			if (keywordToken.tokenType() == KEYWORD
-				|| keywordToken.tokenType() == OPERATOR)
+			final A_String lowercaseString = keywordToken.lowerCaseString();
+			final TokenType tokenType = keywordToken.tokenType();
+			if (tokenType == KEYWORD || tokenType == OPERATOR)
 			{
-				final A_String keywordString = keywordToken.lowerCaseString();
-				if (caseInsensitive.hasKey(keywordString))
+				if (caseInsensitive.hasKey(lowercaseString))
 				{
+					final long timeBefore = System.nanoTime();
 					final A_BundleTree successor =
-						caseInsensitive.mapAt(keywordString);
+						caseInsensitive.mapAt(lowercaseString);
 					if (runtime.debugCompilerSteps)
 					{
-						System.out.println("Matched insensitive token: "
+						System.out.println(
+							"Matched insensitive token: "
 							+ keywordToken.string()
-							+ "@"
-							+ keywordToken.lineNumber()
-							+ " for "
-							+ successor);
+							+ "@" + keywordToken.lineNumber()
+							+ " for " + successor);
 					}
 					keywordRecognized = true;
 					// Record this token for the call site.
@@ -3636,16 +3638,18 @@ public final class AvailCompiler
 						argsSoFar,
 						marksSoFar,
 						continuation);
+					final long timeAfter = System.nanoTime();
+					final AvailThread thread =
+						(AvailThread) Thread.currentThread();
+					matchTokenInsensitivelyStat.record(
+						timeAfter - timeBefore,
+						thread.interpreter.interpreterIndex);
 				}
 			}
 			if (!keywordRecognized && consumedAnything)
 			{
 				expectedKeywordsOf(
-					start,
-					caseInsensitive,
-					true,
-					bundleTree,
-					keywordToken.lowerCaseString());
+					start, caseInsensitive, true, bundleTree, lowercaseString);
 			}
 		}
 		boolean skipCheckArgumentAction = false;
@@ -3665,10 +3669,9 @@ public final class AvailCompiler
 						prefilter.mapAt(argumentBundle);
 					if (runtime.debugCompilerSteps)
 					{
-						System.out.println("Grammatical prefilter: "
-							+ argumentBundle
-							+ " to "
-							+ successor);
+						System.out.println(
+							"Grammatical prefilter: " + argumentBundle
+							+ " to " + successor);
 					}
 					eventuallyParseRestOfSendNode(
 						start,
@@ -3706,10 +3709,9 @@ public final class AvailCompiler
 					typeFilterTree, latestPhrase, bundleTree.parsingPc() + 1);
 			if (runtime.debugCompilerSteps)
 			{
-				System.out.println("Type filter: "
-					+ latestPhrase
-					+ " -> "
-					+ successor);
+				System.out.println(
+					"Type filter: " + latestPhrase
+					+ " -> " + successor);
 			}
 			// Don't complain if at least one plan was happy with the type of
 			// the argument.  Otherwise list all argument type/plan expectations
@@ -3762,8 +3764,7 @@ public final class AvailCompiler
 			{
 				final A_Number key = entry.key();
 				final int keyInt = key.extractInt();
-				if (skipCheckArgumentAction
-					&& ParsingOperation.decode(keyInt) == CHECK_ARGUMENT)
+				if (skipCheckArgumentAction && decode(keyInt) == CHECK_ARGUMENT)
 				{
 					// Skip this action, because the latest argument was a send
 					// that had an entry in the prefilter map, so it has already
@@ -3928,7 +3929,7 @@ public final class AvailCompiler
 		final A_Tuple successorTrees,
 		final Con<A_Phrase> continuation)
 	{
-		final ParsingOperation op = ParsingOperation.decode(instruction);
+		final ParsingOperation op = decode(instruction);
 		if (runtime.debugCompilerSteps)
 		{
 			if (op.ordinal() >= ParsingOperation.distinctInstructions)
@@ -3937,7 +3938,7 @@ public final class AvailCompiler
 					"Instr: "
 						+ op.name()
 						+ " ("
-						+ ParsingOperation.operand(instruction)
+						+ operand(instruction)
 						+ ") -> "
 						+ successorTrees);
 			}
@@ -3947,6 +3948,7 @@ public final class AvailCompiler
 			}
 		}
 
+		final long timeBefore = System.nanoTime();
 		switch (op)
 		{
 			case NEW_LIST:
@@ -4655,6 +4657,11 @@ public final class AvailCompiler
 				break;
 			}
 		}
+		final long timeAfter = System.nanoTime();
+		final AvailThread thread = (AvailThread) Thread.currentThread();
+		op.parsingStatisticInNanoseconds.record(
+			timeAfter - timeBefore,
+			thread.interpreter.interpreterIndex);
 	}
 
 	/**
@@ -6979,6 +6986,7 @@ public final class AvailCompiler
 			public void value ()
 			{
 				serializePublicationFunction(true);
+				serializePublicationFunction(false);
 				commitModuleTransaction();
 				succeed.value(new AvailCompilerResult(module, commentTokens));
 			}
@@ -7812,7 +7820,8 @@ public final class AvailCompiler
 		A_Set names = SetDescriptor.empty();
 		for (final MapDescriptor.Entry entry : sourceNames.mapIterable())
 		{
-			names = names.setUnionCanDestroy(entry.value(), false);
+			names = names.setUnionCanDestroy(
+				entry.value().makeImmutable(), true);
 		}
 		final A_Phrase send = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),

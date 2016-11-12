@@ -36,8 +36,10 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
@@ -93,7 +95,7 @@ public final class AvailLoader
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing {@linkplain
 	 * AvailLoader loader}.
 	 */
-	private final A_Module module;
+	@InnerAccess final A_Module module;
 
 	/**
 	 * Answer the {@linkplain ModuleDescriptor module} undergoing loading by
@@ -384,7 +386,6 @@ public final class AvailLoader
 				pendingForwards = pendingForwards.setWithElementCanDestroy(
 					newForward, true);
 				root.addPlan(bundle.definitionParsingPlans().mapAt(newForward));
-				root.flushForNewOrChangedBundle(bundle);
 			}
 		});
 	}
@@ -570,7 +571,6 @@ public final class AvailLoader
 						root.addPlan(
 							bundle.definitionParsingPlans().mapAt(
 								newDefinition));
-						root.flushForNewOrChangedBundle(bundle);
 					}
 				}
 				theModule.moduleAddDefinition(newDefinition);
@@ -651,7 +651,6 @@ public final class AvailLoader
 				A_DefinitionParsingPlan plan =
 					bundle.definitionParsingPlans().mapAt(macroDefinition);
 				root.addPlan(plan);
-				root.flushForNewOrChangedBundle(bundle);
 			}
 		});
 	}
@@ -679,21 +678,12 @@ public final class AvailLoader
 		runtime.addSemanticRestriction(restriction);
 		recordEffect(new LoadingEffectToAddSemanticRestriction(restriction));
 		final A_Module theModule = module;
-		final A_BundleTree root = rootBundleTree();
 		theModule.lock(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
 				theModule.moduleAddSemanticRestriction(restriction);
-				for (final A_Bundle bundle : method.bundles())
-				{
-					// Update the bundle tree if the bundle is visible
-					if (root.allParsingPlans().hasKey(bundle))
-					{
-						root.flushForNewOrChangedBundle(bundle);
-					}
-				}
 			}
 		});
 	}
@@ -797,7 +787,21 @@ public final class AvailLoader
 					bundle.addGrammaticalRestriction(grammaticalRestriction);
 					theModule.moduleAddGrammaticalRestriction(
 						grammaticalRestriction);
-					root.flushForNewOrChangedBundle(bundle);
+					// Now update the message bundle tree to accommodate the new
+					// grammatical restriction.
+					Deque<A_BundleTree> treesToVisit = new ArrayDeque<>();
+					for (final MapDescriptor.Entry planEntry
+						: bundle.definitionParsingPlans().mapIterable())
+					{
+						final A_DefinitionParsingPlan plan = planEntry.value();
+						treesToVisit.addLast(root);
+						while (!treesToVisit.isEmpty())
+						{
+							final A_BundleTree tree = treesToVisit.removeLast();
+							tree.updateForNewGrammaticalRestriction(
+								plan, treesToVisit);
+						}
+					}
 				}
 			});
 		}
@@ -915,32 +919,62 @@ public final class AvailLoader
 	 * @throws AmbiguousNameException
 	 *         If the string could represent several different true names.
 	 */
-	public A_Atom lookupName (final A_String stringName)
-		throws AmbiguousNameException
+	public A_Atom lookupName (
+		final A_String stringName)
+	throws AmbiguousNameException
+	{
+		return lookupName(stringName, false);
+	}
+
+	/**
+	 * Look up the given {@linkplain TupleDescriptor string} in the current
+	 * {@linkplain ModuleDescriptor module}'s namespace. Answer the
+	 * {@linkplain AtomDescriptor true name} associated with the string,
+	 * creating the true name if necessary. A local true name always hides other
+	 * true names.  If #isExplicitSubclassAtom is true and we're creating a new
+	 * atom, add the {@link AtomDescriptor#explicitSubclassingKey()} property.
+	 *
+	 * @param stringName
+	 *        An Avail {@linkplain TupleDescriptor string}.
+	 * @param isExplicitSubclassAtom
+	 *        Whether to mark a new atom for creating an explicit subclass.
+	 * @return A {@linkplain AtomDescriptor true name}.
+	 * @throws AmbiguousNameException
+	 *         If the string could represent several different true names.
+	 */
+	public A_Atom lookupName (
+		final A_String stringName,
+		final boolean isExplicitSubclassAtom)
+	throws AmbiguousNameException
 	{
 		assert stringName.isString();
 		//  Check if it's already defined somewhere...
 		final MutableOrNull<A_Atom> atom = new MutableOrNull<>();
-		final A_Module theModule = module;
-		theModule.lock(
+		module.lock(
 			new Continuation0()
 			{
 				@Override
 				public void value ()
 				{
-					final A_Set who = theModule.trueNamesForStringName(
+					final A_Set who = module.trueNamesForStringName(
 						stringName);
 					if (who.setSize() == 0)
 					{
 						final A_Atom trueName = AtomDescriptor.create(
-							stringName, theModule);
+							stringName, module);
+						if (isExplicitSubclassAtom)
+						{
+							trueName.setAtomProperty(
+								AtomDescriptor.explicitSubclassingKey(),
+								AtomDescriptor.explicitSubclassingKey());
+						}
 						trueName.makeImmutable();
-						theModule.addPrivateName(trueName);
+						module.addPrivateName(trueName);
 						atom.value = trueName;
 					}
 					if (who.setSize() == 1)
 					{
-						atom.value = who.asTuple().tupleAt(1);
+						atom.value = who.iterator().next();
 					}
 				}
 			});

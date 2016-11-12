@@ -118,7 +118,6 @@ public class ObjectLayoutVariant
 	ObjectLayoutVariant (final A_Set allFields)
 	{
 		this.allFields = allFields.makeShared();
-		A_Set subclassFields = SetDescriptor.empty();
 		final A_Atom explicitSubclassingKey =
 			AtomDescriptor.explicitSubclassingKey();
 		// Alphabetize the fields to make debugging nice.  Note that field names

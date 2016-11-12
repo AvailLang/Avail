@@ -38,7 +38,6 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.*;
@@ -182,7 +181,6 @@ public abstract class L2Operation
 	 */
 	protected L2Operation ()
 	{
-		super();
 		synchronized (values)
 		{
 			final String className = this.getClass().getSimpleName();
