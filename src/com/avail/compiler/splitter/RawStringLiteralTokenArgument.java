@@ -31,8 +31,10 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.LiteralTokenTypeDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.TupleTypeDescriptor;
 
 import static com.avail.compiler.ParsingOperation.PARSE_RAW_STRING_LITERAL_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
@@ -69,9 +71,13 @@ extends RawTokenArgument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_STRING_LITERAL_TOKEN);
-		generator.emitDelayed(
-			this,
-			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForType(phraseType));
+		if (!LiteralTokenTypeDescriptor.create(TupleTypeDescriptor.stringType())
+			.isSubtypeOf(phraseType))
+		{
+			generator.emitDelayed(
+				this,
+				TYPE_CHECK_ARGUMENT,
+				MessageSplitter.indexForType(phraseType));
+		}
 	}
 }

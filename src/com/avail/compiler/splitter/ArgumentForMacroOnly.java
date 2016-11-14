@@ -49,7 +49,7 @@ import static com.avail.compiler.ParsingOperation.*;
  * the macro body.
  *
  * <p>Because {@link ListNodeDescriptor list phrases} have an {@linkplain
- * A_Phrase#expressionType()} that depends on the types of the expressinType
+ * A_Phrase#expressionType()} that depends on the types of the expressionType
  * of each subexpression, and because ⊥ as an element in a tuple type makes
  * the entire resulting tuple type also be ⊥, we can't just directly accept
  * an expression that produces ⊤ or ⊥ (e.g., the resulting list's apparent

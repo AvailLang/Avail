@@ -5730,7 +5730,7 @@ public final class AvailCompiler
 	 *
 	 * @param phrase
 	 *        A phrase.
-	 * @return
+	 * @return A literal phrase that yields the given phrase as its value.
 	 */
 	@InnerAccess A_Phrase wrapAsLiteral (
 		final A_Phrase phrase)
@@ -7328,6 +7328,20 @@ public final class AvailCompiler
 			// have no knowledge about it.
 			if (!fragmentCache.hasStartedParsingAt(start))
 			{
+				start.expected(new Describer()
+				{
+					@Override
+					public void describeThen (
+						final Continuation1<String> withDescription)
+					{
+						final StringBuilder builder = new StringBuilder();
+						builder.append(
+							"an expression for (at least) this reason:");
+						describeOn(
+							originalContinuation.superexpressions, builder);
+						withDescription.value(builder.toString());
+					}
+				});
 				fragmentCache.indicateParsingHasStartedAt(start);
 				final Con<A_Phrase> action = new Con<A_Phrase>(
 					originalContinuation.superexpressions)
@@ -7479,44 +7493,6 @@ public final class AvailCompiler
 			}
 		};
 		parseLeadingKeywordSendThen(start, newContinuation);
-		parseSimpleThen(start, newContinuation);
-	}
-
-	/**
-	 * Parse a literal, then invoke the continuation.
-	 *
-	 * @param start
-	 *            Where to start parsing.
-	 * @param continuation
-	 *            What to do with the simple parse node.
-	 */
-	private void parseSimpleThen (
-		final ParserState start,
-		final Con<A_Phrase> continuation)
-	{
-		// Try a literal.
-		if (start.peekToken().tokenType() == LITERAL)
-		{
-			final A_Phrase literalNode =
-				LiteralNodeDescriptor.fromToken(start.peekToken());
-			attempt(start.afterToken(), continuation, literalNode);
-		}
-		else
-		{
-			start.expected(new Describer()
-			{
-				@Override
-				public void describeThen (
-					final Continuation1<String> withDescription)
-				{
-					final StringBuilder builder = new StringBuilder();
-					builder.append(
-						"a simple expression for (at least) this reason:");
-					describeOn(continuation.superexpressions, builder);
-					withDescription.value(builder.toString());
-				}
-			});
-		}
 	}
 
 	/**

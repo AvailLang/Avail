@@ -31,6 +31,8 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.descriptor.LiteralTokenTypeDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 
@@ -70,9 +72,14 @@ extends RawTokenArgument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN);
-		generator.emitDelayed(
-			this,
-			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForType(phraseType));
+		if (!LiteralTokenTypeDescriptor.create(
+				IntegerRangeTypeDescriptor.wholeNumbers())
+			.isSubtypeOf(phraseType))
+		{
+			generator.emitDelayed(
+				this,
+				TYPE_CHECK_ARGUMENT,
+				MessageSplitter.indexForType(phraseType));
+		}
 	}
 }

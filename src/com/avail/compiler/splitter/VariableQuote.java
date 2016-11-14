@@ -33,6 +33,7 @@ package com.avail.compiler.splitter;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ReferenceNodeDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.VariableDescriptor;
@@ -76,10 +77,14 @@ extends Argument
 		generator.flushDelayed();
 		generator.emit(this, PARSE_VARIABLE_REFERENCE);
 		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
-		generator.emitDelayed(
-			this,
-			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForType(phraseType));
+		if (!ParseNodeKind.REFERENCE_NODE.mostGeneralType().isSubtypeOf(
+			phraseType))
+		{
+			generator.emitDelayed(
+				this,
+				TYPE_CHECK_ARGUMENT,
+				MessageSplitter.indexForType(phraseType));
+		}
 	}
 
 	@Override

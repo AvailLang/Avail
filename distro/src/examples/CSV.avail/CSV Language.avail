@@ -34,7 +34,8 @@ Module "CSV Language"
 Extends
 	"Avail" =
 	(
-		"_!;"
+		"_!;",
+		"…$"
 	)
 Uses
 	"Avail"
