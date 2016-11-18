@@ -3899,7 +3899,7 @@ public final class AvailCompiler
 					for (final Pair<String, List<String>> pair : pairs)
 					{
 						builder.append("\n\t");
-						builder.append(pair.first());
+						builder.append(pair.first().replace("\n", "\n\t\t"));
 						for (final String planString : pair.second())
 						{
 							builder.append("\n\t\t");
