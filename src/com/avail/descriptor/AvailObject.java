@@ -57,6 +57,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.*;
 import com.avail.utility.Generator;
+import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.*;
@@ -94,6 +95,7 @@ implements
 		A_Method,
 		A_Module,
 		A_Number,
+		A_ParsingPlanInProgress,
 		A_Phrase,
 		A_RawFunction,
 		A_SemanticRestriction,
@@ -4762,9 +4764,9 @@ implements
 	 * @return
 	 */
 	@Override
-	public A_Map allParsingPlans ()
+	public A_Map allParsingPlansInProgress ()
 	{
-		return descriptor.o_AllParsingPlans(this);
+		return descriptor.o_AllParsingPlansInProgress(this);
 	}
 
 	/**
@@ -6179,16 +6181,17 @@ implements
 	}
 
 	/**
-	 * @param plan
+	 * @param planInProgress
 	 * @param treesToVisit
 	 */
 	@Override
 	public void updateForNewGrammaticalRestriction (
-		final A_DefinitionParsingPlan plan,
-		final Collection<A_BundleTree> treesToVisit)
+		final A_ParsingPlanInProgress planInProgress,
+		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
+			treesToVisit)
 	{
 		descriptor.o_UpdateForNewGrammaticalRestriction(
-			this, plan, treesToVisit);
+			this, planInProgress, treesToVisit);
 	}
 
 	/**
@@ -7067,9 +7070,9 @@ implements
 	}
 
 	@Override
-	public String nameHighlightingPc (final int pc)
+	public String nameHighlightingPc ()
 	{
-		return descriptor.o_NameHighlightingPc(this, pc);
+		return descriptor.o_NameHighlightingPc(this);
 	}
 
 	@Override
@@ -7109,9 +7112,9 @@ implements
 	}
 
 	@Override
-	public void addPlan (final A_DefinitionParsingPlan plan)
+	public void addPlanInProgress (final A_ParsingPlanInProgress planInProgress)
 	{
-		descriptor.o_AddPlan(this, plan);
+		descriptor.o_AddPlanInProgress(this, planInProgress);
 	}
 
 	@Override
@@ -7121,9 +7124,9 @@ implements
 	}
 
 	@Override
-	public void removePlan (final A_DefinitionParsingPlan plan)
+	public void removePlanInProgress (final A_ParsingPlanInProgress planInProgress)
 	{
-		descriptor.o_RemovePlan(this, plan);
+		descriptor.o_RemovePlanInProgress(this, planInProgress);
 	}
 
 	@Override
@@ -7152,5 +7155,11 @@ implements
 	{
 		return descriptor.o_FieldAtPuttingCanDestroy(
 			this, field, value, canDestroy);
+	}
+
+	@Override
+	public A_DefinitionParsingPlan parsingPlan ()
+	{
+		return descriptor.o_ParsingPlan(this);
 	}
 }

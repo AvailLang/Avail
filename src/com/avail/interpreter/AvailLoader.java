@@ -385,7 +385,11 @@ public final class AvailLoader
 				theModule.moduleAddDefinition(newForward);
 				pendingForwards = pendingForwards.setWithElementCanDestroy(
 					newForward, true);
-				root.addPlan(bundle.definitionParsingPlans().mapAt(newForward));
+				final A_DefinitionParsingPlan plan =
+					bundle.definitionParsingPlans().mapAt(newForward);
+				final A_ParsingPlanInProgress planInProgress =
+					ParsingPlanInProgressDescriptor.create(plan, 1);
+				root.addPlanInProgress(planInProgress);
 			}
 		});
 	}
@@ -546,9 +550,12 @@ public final class AvailLoader
 						{
 							// Remove the appropriate forwarder plan from the
 							// bundle tree.
-							root.removePlan(
+							final A_DefinitionParsingPlan plan =
 								bundle.definitionParsingPlans().mapAt(
-									finalForward));
+									finalForward);
+							final A_ParsingPlanInProgress planInProgress =
+								ParsingPlanInProgressDescriptor.create(plan, 1);
+							root.removePlanInProgress(planInProgress);
 						}
 					}
 					removeForward(finalForward);
@@ -568,9 +575,12 @@ public final class AvailLoader
 					if (ancestorModules.hasElement(
 						bundle.message().issuingModule()))
 					{
-						root.addPlan(
+						final A_DefinitionParsingPlan plan =
 							bundle.definitionParsingPlans().mapAt(
-								newDefinition));
+								newDefinition);
+						final A_ParsingPlanInProgress planInProgress =
+							ParsingPlanInProgressDescriptor.create(plan, 1);
+						root.addPlanInProgress(planInProgress);
 					}
 				}
 				theModule.moduleAddDefinition(newDefinition);
@@ -650,7 +660,9 @@ public final class AvailLoader
 			{
 				A_DefinitionParsingPlan plan =
 					bundle.definitionParsingPlans().mapAt(macroDefinition);
-				root.addPlan(plan);
+				A_ParsingPlanInProgress planInProgress =
+					ParsingPlanInProgressDescriptor.create(plan, 1);
+				root.addPlanInProgress(planInProgress);
 			}
 		});
 	}
@@ -789,17 +801,26 @@ public final class AvailLoader
 						grammaticalRestriction);
 					// Now update the message bundle tree to accommodate the new
 					// grammatical restriction.
-					Deque<A_BundleTree> treesToVisit = new ArrayDeque<>();
+					Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>
+						treesToVisit = new ArrayDeque<>();
 					for (final MapDescriptor.Entry planEntry
 						: bundle.definitionParsingPlans().mapIterable())
 					{
 						final A_DefinitionParsingPlan plan = planEntry.value();
-						treesToVisit.addLast(root);
+						treesToVisit.addLast(
+							new Pair<>(
+								root,
+								ParsingPlanInProgressDescriptor.create(
+									plan, 1)));
 						while (!treesToVisit.isEmpty())
 						{
-							final A_BundleTree tree = treesToVisit.removeLast();
+							final Pair<A_BundleTree, A_ParsingPlanInProgress>
+								pair = treesToVisit.removeLast();
+							final A_BundleTree tree = pair.first();
+							final A_ParsingPlanInProgress planInProgress =
+								pair.second();
 							tree.updateForNewGrammaticalRestriction(
-								plan, treesToVisit);
+								planInProgress, treesToVisit);
 						}
 					}
 				}

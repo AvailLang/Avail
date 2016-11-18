@@ -68,9 +68,32 @@ class InstructionGenerator
 	 */
 	static class Label
 	{
+		/**
+		 * The one-based index of the label, where -1 indicates the label has
+		 * not yet been emitted.
+		 */
 		@InnerAccess int position = -1;
+
+		/**
+		 * The operations that need to be fixed up when this label is emitted.
+		 * Each operation is encoded as a pair consisting of the index of the
+		 * instruction to be fixed, and the ParsingOperation to emit at that
+		 * location after combining with this label's position to form a parsing
+		 * instruction.
+		 */
 		@InnerAccess List<Pair<Integer, ParsingOperation>> operationsToFix =
 			new ArrayList<>();
+
+		/**
+		 * Answer whether an instruction using this label as an operand has been
+		 * emitted.
+		 *
+		 * @return Whether this label has been used.
+		 */
+		public boolean isUsed ()
+		{
+			return position != -1 || !operationsToFix.isEmpty();
+		}
 	}
 
 	/** The instructions generated so far. */
@@ -92,7 +115,7 @@ class InstructionGenerator
 	private final List<Integer> delayedArgumentInstructions = new ArrayList<>();
 
 	/**
-	 * A {@link List} praallel to {@link }#delayedArgumentInstructions}, which
+	 * A {@link List} parallel to {@link #delayedArgumentInstructions}, which
 	 * indicates the expression that produced each delayed instruction.
 	 */
 	private final List<Expression> delayedExpressionList = new ArrayList<>();

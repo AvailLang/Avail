@@ -482,8 +482,8 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * Output a description of the layers of message sends that are being
-	 * parsed at this point in history.
+	 * Output a description of the layers of message sends that are being parsed
+	 * at this point in history.
 	 *
 	 * @param partialSubexpressions
 	 *        The {@link PartialSubexpressionList} that captured the nesting of
@@ -509,12 +509,8 @@ public final class AvailCompiler
 			builder.append(pointer.depth);
 			builder.append(". ");
 			final A_BundleTree bundleTree = pointer.bundleTree;
-			// Adjust the pc to refer to the actual instruction that caused
-			// the argument parse, not the successor instruction that was
-			// captured.
-			final int pc = bundleTree.parsingPc() - 1;
-			// Reduce to the the plans' unique bundles.
-			final A_Map bundlesMap = bundleTree.allParsingPlans();
+			// Reduce to the plans' unique bundles.
+			final A_Map bundlesMap = bundleTree.allParsingPlansInProgress();
 			final List<A_Bundle> bundles =
 				TupleDescriptor.toList(bundlesMap.keysAsSet().asTuple());
 			Collections.sort(
@@ -543,9 +539,18 @@ public final class AvailCompiler
 				}
 				final A_Map plans = bundlesMap.mapAt(bundle);
 				// Pick an active plan arbitrarily for this bundle.
-				final A_DefinitionParsingPlan plan =
+				final A_Set plansInProgress =
 					plans.mapIterable().next().value();
-				builder.append(plan.nameHighlightingPc(pc));
+				final A_ParsingPlanInProgress planInProgress =
+					plansInProgress.iterator().next();
+				// Adjust the pc to refer to the actual instruction that caused
+				// the argument parse, not the successor instruction that was
+				// captured.
+				final A_ParsingPlanInProgress adjustedPlanInProgress =
+					ParsingPlanInProgressDescriptor.create(
+						planInProgress.parsingPlan(),
+						planInProgress.parsingPc() - 1);
+				builder.append(adjustedPlanInProgress.nameHighlightingPc());
 				first = false;
 			}
 			if (bundles.size() > maxBundles)
@@ -923,6 +928,20 @@ public final class AvailCompiler
 					? tokens.get(position).string()
 					: "(end)"),
 				clientDataMap);
+		}
+
+		public String shortString ()
+		{
+			final A_Token token = tokens.get(max(position - 1, 0));
+			String string = position > 0
+				? token.string().asNativeString()
+				: "(start)";
+			if (string.length() > 20)
+			{
+				string = string.substring(0, 10) + " … "
+					+ string.substring(string.length() - 10);
+			}
+			return token.lineNumber() + "(" + string + ")";
 		}
 
 		/**
@@ -3155,9 +3174,6 @@ public final class AvailCompiler
 	 * @param caseInsensitive
 	 *        {@code true} if the parsed keywords are case-insensitive, {@code
 	 *        false} otherwise.
-	 * @param bundleTree
-	 *        The {@linkplain A_BundleTree bundle tree} which was being used to
-	 *        parse these keywords.
 	 * @param excludedString
 	 *        The string to omit from the message, since it was the actual
 	 *        encountered token's text.
@@ -3166,7 +3182,6 @@ public final class AvailCompiler
 		final ParserState where,
 		final A_Map incomplete,
 		final boolean caseInsensitive,
-		final A_BundleTree bundleTree,
 		final A_String excludedString)
 	{
 		where.expected(new Describer()
@@ -3178,77 +3193,87 @@ public final class AvailCompiler
 				if (caseInsensitive)
 				{
 					builder.append(
-						"one of the following case-insensitive internal "
-						+ "keywords:");
+						"one of the following case-insensitive tokens:");
 				}
 				else
 				{
 					builder.append(
-						"one of the following internal keywords:");
+						"one of the following tokens:");
 				}
-				final List<String> sorted = new ArrayList<>(
-					incomplete.mapSize());
+				final List<String> sorted =
+					new ArrayList<>(incomplete.mapSize());
 				final boolean detail = incomplete.mapSize() < 10;
-				final int pc = bundleTree.parsingPc();
 				for (final MapDescriptor.Entry entry : incomplete.mapIterable())
 				{
-					final A_String availString = entry.key();
-					if (!availString.equals(excludedString))
+					final A_String availTokenString = entry.key();
+					if (!availTokenString.equals(excludedString))
 					{
-						final String string = availString.asNativeString();
-						if (detail)
+						if (!detail)
 						{
-							// Collect and deduplicate bundles, keeping one
-							// representative definition parsing plan for each.
-							final Set<A_Bundle> bundleSet =
-								new HashSet<A_Bundle>();
-							final List<A_DefinitionParsingPlan>
-								representativePlans = new ArrayList<>();
-							final A_BundleTree nextTree = entry.value();
-							for (final MapDescriptor.Entry successorBundleEntry
-								: nextTree.allParsingPlans().mapIterable())
+							sorted.add(availTokenString.asNativeString());
+							continue;
+						}
+						// Collect the plans-in-progress and deduplicate
+						// them by their string representation (including
+						// the indicator at the current parsing location).
+						// We can't just deduplicate by bundle, since the
+						// current bundle tree might be eligible for
+						// continued parsing at multiple positions.
+						final Set<String> strings = new HashSet<>();
+						final List<A_ParsingPlanInProgress>
+							representativePlansInProgress =
+								new ArrayList<>();
+						final A_BundleTree nextTree = entry.value();
+						for (final Entry successorBundleEntry :
+							nextTree.allParsingPlansInProgress().mapIterable())
+						{
+							final A_Bundle bundle = successorBundleEntry.key();
+							for (final Entry definitionEntry :
+								successorBundleEntry.value().mapIterable())
 							{
-								final A_Bundle bundle =
-									successorBundleEntry.key();
-								if (!bundleSet.contains(bundle))
+								for (final A_ParsingPlanInProgress inProgress
+									: definitionEntry.value())
 								{
-									final A_Map plans =
-										successorBundleEntry.value();
-									bundleSet.add(bundle);
-									representativePlans.add(
-										plans.mapIterable().next().value());
+									final A_ParsingPlanInProgress
+										previousPlan =
+											ParsingPlanInProgressDescriptor
+												.create(
+													inProgress.parsingPlan(),
+													max(
+														inProgress.parsingPc()
+															- 1,
+														1));
+									final String moduleName =
+										bundle.message().issuingModule()
+											.moduleName().asNativeString();
+									final String shortModuleName =
+										moduleName.substring(
+											moduleName.lastIndexOf('/') + 1);
+									strings.add(
+										previousPlan.nameHighlightingPc()
+											+ " from "
+											+ shortModuleName);
 								}
 							}
-							final StringBuilder buffer = new StringBuilder();
-							buffer.append(string);
-							buffer.append("  (");
-							boolean first = true;
-							for (final A_DefinitionParsingPlan plan
-								: representativePlans)
-							{
-								if (!first)
-								{
-									buffer.append(", ");
-								}
-								final A_Bundle bundle = plan.bundle();
-								buffer.append(plan.nameHighlightingPc(pc));
-								buffer.append(" from ");
-								final A_Module issuer =
-									bundle.message().issuingModule();
-								final String issuerName =
-									issuer.moduleName().asNativeString();
-								final String shortIssuer = issuerName.substring(
-									issuerName.lastIndexOf('/') + 1);
-								buffer.append(shortIssuer);
-								first = false;
-							}
-							buffer.append(")");
-							sorted.add(buffer.toString());
 						}
-						else
+						final List<String> sortedStrings =
+							new ArrayList<>(strings);
+						Collections.sort(sortedStrings);
+						final StringBuilder buffer = new StringBuilder();
+						buffer.append(availTokenString.asNativeString());
+						buffer.append("  (");
+						boolean first = true;
+						for (final String progressString : sortedStrings)
 						{
-							sorted.add(string);
+							if (!first)
+							{
+								buffer.append(", ");
+							}
+							buffer.append(progressString);
+							first = false;
 						}
+						buffer.append(")");
+						sorted.add(buffer.toString());
 					}
 				}
 				Collections.sort(sorted);
@@ -3517,11 +3542,6 @@ public final class AvailCompiler
 		final A_BasicObject typeFilterTreePojo =
 			bundleTree.lazyTypeFilterTreePojo();
 		final boolean anyComplete = complete.setSize() > 0;
-		final boolean anyIncomplete = incomplete.mapSize() > 0;
-		final boolean anyCaseInsensitive = caseInsensitive.mapSize() > 0;
-		final boolean anyActions = actions.mapSize() > 0;
-		final boolean anyPrefilter = prefilter.mapSize() > 0;
-		final boolean anyTypeFilter = !typeFilterTreePojo.equalsNil();
 
 		if (anyComplete && consumedAnything && firstArgOrNull == null)
 		{
@@ -3543,7 +3563,7 @@ public final class AvailCompiler
 					initialTokenPosition, start, args, bundle, continuation);
 			}
 		}
-		if (anyIncomplete && firstArgOrNull == null)
+		if (incomplete.mapSize() > 0 && firstArgOrNull == null)
 		{
 			boolean keywordRecognized = false;
 			final A_Token keywordToken = start.peekToken();
@@ -3593,11 +3613,10 @@ public final class AvailCompiler
 			}
 			if (!keywordRecognized && consumedAnything)
 			{
-				expectedKeywordsOf(
-					start, incomplete, false, bundleTree, keywordString);
+				expectedKeywordsOf(start, incomplete, false, keywordString);
 			}
 		}
-		if (anyCaseInsensitive && firstArgOrNull == null)
+		if (caseInsensitive.mapSize() > 0 && firstArgOrNull == null)
 		{
 			boolean keywordRecognized = false;
 			final A_Token keywordToken = start.peekToken();
@@ -3649,11 +3668,11 @@ public final class AvailCompiler
 			if (!keywordRecognized && consumedAnything)
 			{
 				expectedKeywordsOf(
-					start, caseInsensitive, true, bundleTree, lowercaseString);
+					start, caseInsensitive, true, lowercaseString);
 			}
 		}
 		boolean skipCheckArgumentAction = false;
-		if (anyPrefilter)
+		if (prefilter.mapSize() > 0)
 		{
 			assert firstArgOrNull == null;
 			final A_Phrase latestArgument = last(argsSoFar);
@@ -3692,7 +3711,7 @@ public final class AvailCompiler
 				// default check-argument action if it's present.
 			}
 		}
-		if (anyTypeFilter)
+		if (!typeFilterTreePojo.equalsNil())
 		{
 			// Use the most recently pushed phrase's type to look up the
 			// successor bundle tree.  This implements parallel argument type
@@ -3700,13 +3719,13 @@ public final class AvailCompiler
 			assert firstArgOrNull == null;
 			final A_Phrase latestPhrase = last(argsSoFar);
 			@SuppressWarnings("unchecked")
-			final LookupTree<A_Tuple, A_BundleTree, Integer>
+			final LookupTree<A_Tuple, A_BundleTree, Void>
 				typeFilterTree =
-					(LookupTree<A_Tuple, A_BundleTree, Integer>)
+					(LookupTree<A_Tuple, A_BundleTree, Void>)
 						typeFilterTreePojo.javaObject();
 			final A_BundleTree successor =
 				MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(
-					typeFilterTree, latestPhrase, bundleTree.parsingPc() + 1);
+					typeFilterTree, latestPhrase, null);
 			if (runtime.debugCompilerSteps)
 			{
 				System.out.println(
@@ -3716,7 +3735,7 @@ public final class AvailCompiler
 			// Don't complain if at least one plan was happy with the type of
 			// the argument.  Otherwise list all argument type/plan expectations
 			// as neatly as possible.
-			if (successor.allParsingPlans().mapSize() == 0)
+			if (successor.allParsingPlansInProgress().mapSize() == 0)
 			{
 				start.expected(new Describer()
 				{
@@ -3758,7 +3777,7 @@ public final class AvailCompiler
 			// Therefore, also allow general actions to be collected here by
 			// falling through.
 		}
-		if (anyActions)
+		if (actions.mapSize() > 0)
 		{
 			for (final Entry entry : actions.mapIterable())
 			{
@@ -3802,26 +3821,34 @@ public final class AvailCompiler
 	{
 		// TODO(MvG) Present the full phrase type if it can be a macro argument.
 		final Map<A_Type, Set<String>> definitionsByType = new HashMap<>();
-		final int pc = bundleTree.parsingPc();
-		for (final Entry entry : bundleTree.allParsingPlans().mapIterable())
+		for (final Entry entry
+			: bundleTree.allParsingPlansInProgress().mapIterable())
 		{
 			final A_Map submap = entry.value();
 			for (final Entry subentry : submap.mapIterable())
 			{
-				final A_DefinitionParsingPlan plan = subentry.value();
-				final A_Tuple instructions = plan.parsingInstructions();
-				final int instruction = instructions.tupleAt(pc).extractInt();
-				final int typeIndex =
-					TYPE_CHECK_ARGUMENT.typeCheckArgumentIndex(instruction);
-				final A_Type argType = MessageSplitter.typeToCheck(typeIndex);
-				Set<String> planStrings = definitionsByType.get(argType);
-				if (planStrings == null)
+				final A_Set inProgressSet = subentry.value();
+				for (final A_ParsingPlanInProgress planInProgress
+					: inProgressSet)
 				{
-					planStrings = new HashSet<>();
-					definitionsByType.put(
-						argType.expressionType(), planStrings);
+					final A_DefinitionParsingPlan plan =
+						planInProgress.parsingPlan();
+					final A_Tuple instructions = plan.parsingInstructions();
+					final int instruction =
+						instructions.tupleIntAt(planInProgress.parsingPc());
+					final int typeIndex =
+						TYPE_CHECK_ARGUMENT.typeCheckArgumentIndex(instruction);
+					final A_Type argType =
+						MessageSplitter.typeToCheck(typeIndex);
+					Set<String> planStrings = definitionsByType.get(argType);
+					if (planStrings == null)
+					{
+						planStrings = new HashSet<>();
+						definitionsByType.put(
+							argType.expressionType(), planStrings);
+					}
+					planStrings.add(planInProgress.nameHighlightingPc());
 				}
-				planStrings.add(plan.nameHighlightingPc(pc));
 			}
 		}
 		final List<A_Type> types = new ArrayList<>(definitionsByType.keySet());
@@ -3935,7 +3962,9 @@ public final class AvailCompiler
 			if (op.ordinal() >= ParsingOperation.distinctInstructions)
 			{
 				System.out.println(
-					"Instr: "
+					"Instr @"
+						+ start.shortString()
+						+ ": "
 						+ op.name()
 						+ " ("
 						+ operand(instruction)
@@ -3944,7 +3973,13 @@ public final class AvailCompiler
 			}
 			else
 			{
-				System.out.println("Instr: " + op + " -> " + successorTrees);
+				System.out.println(
+					"Instr @"
+						+ start.shortString()
+						+ ": "
+						+ op.name()
+						+ " -> "
+						+ successorTrees);
 			}
 		}
 
@@ -4093,23 +4128,9 @@ public final class AvailCompiler
 						: continuation.superexpressions;
 				parseSendArgumentWithExplanationThen(
 					start,
-					new Generator<String>()
-					{
-						@Override
-						public String value ()
-						{
-							final StringBuilder builder = new StringBuilder();
-							builder.append(
-								op == PARSE_ARGUMENT
-									? "an argument"
-									: "a top-valued argument");
-							builder.append(
-								" in this chain of partially completed "
-								+ "messages:");
-							describeOn(partialSubexpressionList, builder);
-							return builder.toString();
-						}
-					},
+					op == PARSE_ARGUMENT
+						? "argument"
+						: "top-valued argument",
 					firstArgOrNull,
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
@@ -4148,19 +4169,7 @@ public final class AvailCompiler
 						: continuation.superexpressions;
 				parseSendArgumentWithExplanationThen(
 					start,
-					new Generator<String>()
-					{
-						@Override
-						public String value ()
-						{
-							final StringBuilder builder = new StringBuilder();
-							builder.append(
-								"a variable reference in this chain of "
-								+ "partially completed messages:");
-							describeOn(partialSubexpressionList, builder);
-							return builder.toString();
-						}
-					},
+					"variable reference",
 					firstArgOrNull,
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
@@ -4570,7 +4579,8 @@ public final class AvailCompiler
 				assert successorTrees.tupleSize() == 1;
 				final A_BundleTree successorTree = successorTrees.tupleAt(1);
 				// Look inside the only successor to find the only bundle.
-				final A_Map bundlesMap = successorTree.allParsingPlans();
+				final A_Map bundlesMap =
+					successorTree.allParsingPlansInProgress();
 				assert bundlesMap.mapSize() == 1;
 				final A_Map submap = bundlesMap.mapIterable().next().value();
 				assert submap.mapSize() == 1;
@@ -5304,7 +5314,7 @@ public final class AvailCompiler
 	 *        The next {@link A_BundleTree} after the current instruction.
 	 * @return The {@link Describer}.
 	 */
-	private Describer describeWhyVariableUseIsExpected (
+	@InnerAccess Describer describeWhyVariableUseIsExpected (
 		final A_BundleTree successorTree)
 	{
 		return new Describer()
@@ -5314,7 +5324,7 @@ public final class AvailCompiler
 				final Continuation1<String> continuation)
 			{
 				final A_Set bundles =
-					successorTree.allParsingPlans().keysAsSet();
+					successorTree.allParsingPlansInProgress().keysAsSet();
 				final StringBuilder builder = new StringBuilder();
 				builder.append("a variable use, for one of:");
 				if (bundles.setSize() > 2)
@@ -5627,8 +5637,9 @@ public final class AvailCompiler
 	 *
 	 * @param start
 	 *            Where to start parsing.
-	 * @param explanation
-	 *            A {@link Describer} explaining why it's parsing an argument.
+	 * @param kindOfArgument
+	 *            A {@link String}, in the form of a noun phrase, saying the
+	 *            kind of argument that is expected.
 	 * @param firstArgOrNull
 	 *            Either a parse node to use as the argument, or null if we
 	 *            should parse one now.
@@ -5644,7 +5655,7 @@ public final class AvailCompiler
 	 */
 	private void parseSendArgumentWithExplanationThen (
 		final ParserState start,
-		final Generator<String> explanation,
+		final String kindOfArgument,
 		final @Nullable A_Phrase firstArgOrNull,
 		final boolean canReallyParse,
 		final boolean wrapInLiteral,
@@ -5672,16 +5683,32 @@ public final class AvailCompiler
 							if (!wrapInLiteral)
 							{
 								final A_Type type = argument.expressionType();
-								if (type.isTop())
+								final @Nullable String badTypeName =
+									type.isTop()
+										? "⊤"
+										: type.isBottom() ? "⊥" : null;
+								if (badTypeName != null)
 								{
-									afterArgument.expected(
-										"argument to have a type other than ⊤");
-									return;
-								}
-								if (type.isBottom())
-								{
-									afterArgument.expected(
-										"argument to have a type other than ⊥");
+									final Describer describer = new Describer()
+									{
+										@Override
+										public void describeThen (
+											final Continuation1<String> c)
+										{
+											StringBuilder b =
+												new StringBuilder(100);
+											b.append(kindOfArgument);
+											b.append(
+												" to have a type other than ");
+											b.append(badTypeName);
+											b.append(" in:");
+											describeOn(
+												continuation.superexpressions,
+												b);
+											c.value(b.toString());
+										}
+									};
+									afterArgument.expected(describer);
 									return;
 								}
 							}
@@ -5704,17 +5731,23 @@ public final class AvailCompiler
 
 			// wrapInLiteral allows us to accept anything, even expressions that
 			// are ⊤- or ⊥-valued.
-			if ((!firstArgOrNull.expressionType().isTop()
-					&& !firstArgOrNull.expressionType().isBottom())
-				|| wrapInLiteral)
+			if (wrapInLiteral)
 			{
-				attempt(
-					start,
-					continuation,
-					wrapInLiteral
-						? wrapAsLiteral(firstArgOrNull)
-						: firstArgOrNull);
+				attempt(start, continuation, wrapAsLiteral(firstArgOrNull));
+				return;
 			}
+			final A_Type expressionType = firstArgOrNull.expressionType();
+			if (expressionType.isTop())
+			{
+				start.expected("leading argument not to be ⊤-valued.");
+				return;
+			}
+			if (expressionType.isBottom())
+			{
+				start.expected("leading argument not to be ⊥-valued.");
+				return;
+			}
+			attempt(start, continuation, firstArgOrNull);
 		}
 	}
 
@@ -5799,14 +5832,7 @@ public final class AvailCompiler
 			clientDataInGlobalScope);
 		parseSendArgumentWithExplanationThen(
 			startInGlobalScope,
-			new Generator<String>()
-			{
-				@Override
-				public String value ()
-				{
-					return "a global-scoped argument for:\n";
-				}
-			},
+			"module-scoped argument",
 			firstArgOrNull,
 			firstArgOrNull == null
 				&& initialTokenPosition.position != start.position,

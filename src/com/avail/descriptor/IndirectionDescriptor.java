@@ -66,6 +66,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
+import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
@@ -2959,9 +2960,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Map o_AllParsingPlans (final AvailObject object)
+	A_Map o_AllParsingPlansInProgress (final AvailObject object)
 	{
-		return o_Traversed(object).allParsingPlans();
+		return o_Traversed(object).allParsingPlansInProgress();
 	}
 
 	@Override
@@ -4004,10 +4005,12 @@ extends AbstractDescriptor
 	@Override
 	void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan,
-		final Collection<A_BundleTree> treesToVisit)
+		final A_ParsingPlanInProgress planInProgress,
+		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
+			treesToVisit)
 	{
-		o_Traversed(object).updateForNewGrammaticalRestriction(plan,
+		o_Traversed(object).updateForNewGrammaticalRestriction(
+			planInProgress,
 			treesToVisit);
 	}
 
@@ -4783,9 +4786,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	String o_NameHighlightingPc (final AvailObject object, final int pc)
+	String o_NameHighlightingPc (final AvailObject object)
 	{
-		return o_Traversed(object).nameHighlightingPc(pc);
+		return o_Traversed(object).nameHighlightingPc();
 	}
 
 	@Override
@@ -4837,11 +4840,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddPlan (
+	void o_AddPlanInProgress (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan)
+		final A_ParsingPlanInProgress planInProgress)
 	{
-		o_Traversed(object).addPlan(plan);
+		o_Traversed(object).addPlanInProgress(planInProgress);
 	}
 
 	@Override
@@ -4851,10 +4854,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemovePlan (
-		final AvailObject object, final A_DefinitionParsingPlan plan)
+	void o_RemovePlanInProgress (
+		final AvailObject object, final A_ParsingPlanInProgress planInProgress)
 	{
-		o_Traversed(object).removePlan(plan);
+		o_Traversed(object).removePlanInProgress(planInProgress);
 	}
 
 	@Override
@@ -4899,5 +4902,11 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).fieldAtPuttingCanDestroy(
 			field, value, canDestroy);
+	}
+
+	@Override
+	A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
+	{
+		return o_Traversed(object).parsingPlan();
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * A_DefinitionParsingPlan.java
+ * A_ParsingPlanInProgress.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,48 +32,38 @@
 
 package com.avail.descriptor;
 
-import com.avail.compiler.ParsingOperation;
-
 /**
- * {@code A_DefinitionParsingPlan} is an interface that specifies the operations
- * that must be implemented by a {@linkplain DefinitionParsingPlanDescriptor
- * definition parsing plan}.  It's a sub-interface of {@link A_BasicObject},
+ * {@code A_ParsingPlanInPrgoress} is an interface that specifies the operations
+ * that must be implemented by a {@linkplain ParsingPlanInProgressDescriptor
+ * parsing-plan-in-progress}.  It's a sub-interface of {@link A_BasicObject},
  * the interface that defines the behavior that all AvailObjects are required to
  * support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface A_DefinitionParsingPlan
+public interface A_ParsingPlanInProgress
 extends A_BasicObject
 {
-	/**
-	 * Answer the {@linkplain A_Bundle message bundle} that this definition
-	 * parsing plan names.
-	 *
-	 * @return The bundle to be parsed.
-	 */
-	A_Bundle bundle ();
 
 	/**
-	 * Answer the {@linkplain A_Definition definition} that this plan has been
-	 * specialized for.
+	 * Answer the program counter that this plan-in-progress represents.
 	 *
-	 * @return The definition whose argument types restrict parsing of the
-	 *         bundle.
+	 * @return The index into the plan's parsing instructions.
 	 */
-	A_Definition definition ();
+	int parsingPc ();
 
 	/**
-	 * Answer a {@linkplain TupleDescriptor tuple} of {@linkplain
-	 * IntegerDescriptor integers} encoding the {@linkplain ParsingOperation}s
-	 * and operands required to parse a call to this parsing plan.
-	 *
-	 * <p>Matching parsing instructions for multiple messages can (usually) be
-	 * executed in aggregate, avoiding the separate cost of attempting to parse
-	 * each possible message at each place where a call may occur.</p>
-	 *
-	 * @return A tuple of integers encoding this plan's parsing instructions.
+	 * Answer this {@linkplain ParsingPlanInProgressDescriptor
+	 * plan-in-progress's} {@link A_DefinitionParsingPlan}.
 	 */
-	A_Tuple parsingInstructions ();
+	A_DefinitionParsingPlan parsingPlan ();
 
+	/**
+	 * Answer a Java {@link String} representing this message name being parsed
+	 * at its position within the plan's parsing instructions.
+	 *
+	 * @return A string describing the parsing plan with an indicator at the
+	 *         specified parsing instruction.
+	 */
+	String nameHighlightingPc ();
 }

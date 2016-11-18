@@ -33,7 +33,6 @@
 package com.avail.dispatch;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_BundleTree;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 
@@ -66,7 +65,7 @@ public abstract class LookupTreeAdaptor<
 	 *        The list of elements from which to construct a result.
 	 * @param memento
 	 *        A memento to supply arbitrary additional information
-	 * @return
+	 * @return The answer, some combination of the elements.
 	 */
 	public abstract Result constructResult (
 		final List<? extends Element> elements, final Memento memento);

@@ -162,6 +162,13 @@ extends AbstractTypeDescriptor
 		DEFINITION_PARSING_PLAN(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
 
 		/**
+		 * This is the kind of all {@linkplain ParsingPlanInProgressDescriptor
+		 * parsing-plans-in-progress}, which are used during parsing of Avail
+		 * code.
+		 */
+		PARSING_PLAN_IN_PROGRESS(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
+
+		/**
 		 * This is the kind of all {@linkplain MessageBundleTreeDescriptor
 		 * message bundle trees}, which are lazily expanded during parallel
 		 * parsing of Avail expressions.  They collapse together the cost of
@@ -236,7 +243,7 @@ extends AbstractTypeDescriptor
 		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG);
 
 		/** The total count of {@link Types} enum values. */
-		public static final int enumCount = 20;
+		public static final int enumCount = 21;
 
 		static
 		{

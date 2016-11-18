@@ -116,7 +116,9 @@ extends Primitive
 				for (final MapDescriptor.Entry entry
 					: newBundle.definitionParsingPlans().mapIterable())
 				{
-					root.addPlan(entry.value());
+					root.addPlanInProgress(
+						ParsingPlanInProgressDescriptor.create(
+							entry.value(), 1));
 				}
 			}
 		});

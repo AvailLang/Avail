@@ -74,6 +74,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
+import com.avail.utility.Pair;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
@@ -4453,7 +4454,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Map o_AllParsingPlans (AvailObject object);
+	abstract A_Map o_AllParsingPlansInProgress (AvailObject object);
 
 	/**
 	 * @param object
@@ -5525,13 +5526,14 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param plan
+	 * @param planInProgress
 	 * @param treesToVisit
 	 */
 	abstract void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan,
-		final Collection<A_BundleTree> treesToVisit);
+		final A_ParsingPlanInProgress planInProgress,
+		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
+			treesToVisit);
 
 	/**
 	 * @param object
@@ -6341,10 +6343,9 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param pc
 	 * @return
 	 */
-	abstract String o_NameHighlightingPc (AvailObject object, int pc);
+	abstract String o_NameHighlightingPc (AvailObject object);
 
 	/**
 	 * @param object
@@ -6355,7 +6356,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param plan
+	 * @param definition
 	 */
 	abstract void o_RemovePlanForDefinition (
 		AvailObject object,
@@ -6405,11 +6406,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param plan
+	 * @param planInProgress
 	 */
-	abstract void o_AddPlan (
+	abstract void o_AddPlanInProgress (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan);
+		final A_ParsingPlanInProgress planInProgress);
 
 	/**
 	 * @param object
@@ -6419,12 +6420,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param plan
+	 * @param planInProgress
 	 * @return
 	 */
-	abstract void o_RemovePlan (
+	abstract void o_RemovePlanInProgress (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan);
+		final A_ParsingPlanInProgress planInProgress);
 
 	/**
 	 * @param object
@@ -6459,4 +6460,10 @@ public abstract class AbstractDescriptor
 		final A_Atom field,
 		final A_BasicObject value,
 		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object);
 }

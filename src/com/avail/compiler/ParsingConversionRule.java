@@ -174,7 +174,7 @@ public enum ParsingConversionRule
 	 *
 	 * @param number The rule number.
 	 */
-	private ParsingConversionRule (final int number)
+	ParsingConversionRule (final int number)
 	{
 		this.number = number;
 	}

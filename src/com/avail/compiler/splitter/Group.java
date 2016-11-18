@@ -453,7 +453,7 @@ extends Expression
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 				generator.emit(this, JUMP, $loopStart);
-				if (endOfVariation < minSize)
+				if ($exitCheckMin.isUsed())
 				{
 					generator.emit($exitCheckMin);
 					generator.emit(this, CHECK_AT_LEAST, minSize);
@@ -569,14 +569,13 @@ extends Expression
 				{
 					generator.emit(this, CHECK_AT_MOST, maxSize - 1);
 				}
-				emitDoubleWrappedAfterDaggerOn(
-					generator, sublistPhraseType);
+				emitDoubleWrappedAfterDaggerOn(generator, sublistPhraseType);
 				generator.flushDelayed();
 				generator.emit(this, APPEND_ARGUMENT);
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 				generator.emit(this, JUMP, $loopStart);
-				if (endOfVariation < minSize)
+				if ($exitCheckMin.isUsed())
 				{
 					generator.emit($exitCheckMin);
 					generator.emit(this, APPEND_ARGUMENT);

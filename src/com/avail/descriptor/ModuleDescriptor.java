@@ -796,11 +796,11 @@ extends Descriptor
 	A_BundleTree o_BuildFilteredBundleTree (
 		final AvailObject object)
 	{
+		final A_BundleTree filteredBundleTree =
+			MessageBundleTreeDescriptor.createEmpty();
 		synchronized (object)
 		{
 			final A_Set ancestors = object.slot(ALL_ANCESTORS);
-			final A_BundleTree filteredBundleTree =
-				MessageBundleTreeDescriptor.newPc(1);
 			for (final A_Atom visibleName : object.visibleNames())
 			{
 				final A_Bundle bundle = visibleName.bundleOrNil();
@@ -812,13 +812,19 @@ extends Descriptor
 						if (ancestors.hasElement(
 							definitionEntry.key().definitionModule()))
 						{
-							filteredBundleTree.addPlan(definitionEntry.value());
+							final A_DefinitionParsingPlan plan =
+								definitionEntry.value();
+							final A_ParsingPlanInProgress planInProgress =
+								ParsingPlanInProgressDescriptor.create(
+									plan, 1);
+							filteredBundleTree.addPlanInProgress(
+								planInProgress);
 						}
 					}
 				}
 			}
-			return filteredBundleTree;
 		}
+		return filteredBundleTree;
 	}
 
 	@Override
