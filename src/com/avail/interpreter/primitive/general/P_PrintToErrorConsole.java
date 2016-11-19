@@ -74,6 +74,13 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_String string = args.get(0);
+
+		final AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+
 		final AvailRuntime runtime = interpreter.runtime();
 		final A_Fiber fiber = interpreter.fiber();
 		final TextInterface textInterface = fiber.textInterface();
