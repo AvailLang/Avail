@@ -3791,25 +3791,16 @@ public final class AvailCompiler
 					continue;
 				}
 				final A_Tuple value = entry.value();
-				workUnitDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							runParsingInstructionThen(
-								start,
-								keyInt,
-								firstArgOrNull,
-								argsSoFar,
-								marksSoFar,
-								initialTokenPosition,
-								consumedAnything,
-								value,
-								continuation);
-						}
-					},
-					start);
+				runParsingInstructionThen(
+					start,
+					keyInt,
+					firstArgOrNull,
+					argsSoFar,
+					marksSoFar,
+					initialTokenPosition,
+					consumedAnything,
+					value,
+					continuation);
 			}
 		}
 	}
