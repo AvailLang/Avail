@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.NEW_LIST;
+import static com.avail.compiler.ParsingOperation.EMPTY_LIST;
 import static com.avail.compiler.ParsingOperation.PERMUTE_LIST;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
@@ -216,37 +216,102 @@ extends Expression
 		}
 	}
 
+	/**
+	 * Generate code to parse the sequence.  After parsing, the stack contains
+	 * one new list of parsed expressions for all arguments, ellipses, and
+	 * subgroups that were encountered.
+	 */
 	@Override
 	void emitOn (
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
-		/*
-		 * Generate code to parse the sequence.  After parsing, the stack
-		 * contains a new list of parsed expressions for all arguments,
-		 * ellipses, and subgroups that were encountered.
-		 */
-		generator.emit(this, NEW_LIST);
-		emitWithoutInitialNewListPushOn(generator, phraseType);
+		assert phraseType.isSubtypeOf(PARSE_NODE.mostGeneralType());
+		final A_Type tupleType;
+		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+		{
+			tupleType = phraseType.subexpressionsTupleType();
+		}
+		else
+		{
+			tupleType = TupleTypeDescriptor.mappingElementTypes(
+				phraseType.expressionType(),
+				new Transformer1<A_Type, A_Type>()
+				{
+					@Override
+					public A_Type value (@Nullable final A_Type arg)
+					{
+						assert arg != null;
+						return PARSE_NODE.create(arg);
+					}
+				});
+		}
+		boolean hasWrapped = false;
+		int index = 0;
+		for (final Expression expression : expressions)
+		{
+			if (!hasWrapped && expression.hasSectionCheckpoints())
+			{
+				generator.flushDelayed();
+				generator.emitWrapped(this, index);
+				hasWrapped = true;
+			}
+			if (expression.isArgumentOrGroup())
+			{
+				index++;
+				final int realTypeIndex =
+					argumentsAreReordered == Boolean.TRUE
+						? permutedArguments.get(index - 1)
+						: index;
+				final A_Type entryType =
+					tupleType.typeAtIndex(realTypeIndex);
+				generator.flushDelayed();
+				expression.emitOn(generator, entryType);
+				if (hasWrapped)
+				{
+					generator.emitDelayed(this, APPEND_ARGUMENT);
+				}
+			}
+			else
+			{
+				expression.emitOn(generator, ListNodeTypeDescriptor.empty());
+			}
+		}
+		generator.flushDelayed();
+		if (!hasWrapped)
+		{
+			generator.emitWrapped(this, index);
+			hasWrapped = true;
+		}
+		assert hasWrapped;
+		assert tupleType.sizeRange().lowerBound().equalsInt(index);
+		assert tupleType.sizeRange().upperBound().equalsInt(index);
+		if (argumentsAreReordered == Boolean.TRUE)
+		{
+			final A_Tuple permutationTuple =
+				TupleDescriptor.fromIntegerList(permutedArguments);
+			final int permutationIndex =
+				LookupTree.indexForPermutation(permutationTuple);
+			// This sequence was already collected into a list node as the
+			// arguments/groups were parsed.  Permute the list.
+			generator.flushDelayed();
+			generator.emit(this, PERMUTE_LIST, permutationIndex);
+		}
 	}
 
 	/**
-	 * Emit parsing instructions that assume that there has already been an
-	 * empty list pushed, onto which to accumulate arguments.
+	 * Emit parsing instructions that assume that a list has already been pushed
+	 * and each encountered argument or group should be appended to it.
 	 *
 	 * @param generator
 	 *        The instruction generator with which to emit.
 	 * @param phraseType
 	 *        The {@link A_Type phrase type} for a definition's signature.
 	 */
-	@InnerAccess
-	void emitWithoutInitialNewListPushOn (
+	void emitAppendingOn (
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
-		/* After parsing, the list that's already on the stack will contain
-		 * all arguments, ellipses, and subgroups that were encountered.
-		 */
 		assert phraseType.isSubtypeOf(PARSE_NODE.mostGeneralType());
 		final A_Type tupleType;
 		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
@@ -302,6 +367,67 @@ extends Expression
 			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
 		}
+	}
+
+	/**
+	 * Emit parsing instructions that simply push each encountered argument or
+	 * group.  This must not be used if it contains a section checkpoint or if
+	 * it requires permutation.
+	 *
+	 * @param generator
+	 *        The instruction generator with which to emit.
+	 * @param phraseType
+	 *        The {@link A_Type phrase type} for a definition's signature.
+	 */
+	void emitNoAppendOn (
+		final InstructionGenerator generator,
+		final A_Type phraseType)
+	{
+		assert !hasSectionCheckpoints();
+		assert argumentsAreReordered == Boolean.FALSE;
+		assert phraseType.isSubtypeOf(PARSE_NODE.mostGeneralType());
+		final A_Type tupleType;
+		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+		{
+			tupleType = phraseType.subexpressionsTupleType();
+		}
+		else
+		{
+			tupleType = TupleTypeDescriptor.mappingElementTypes(
+				phraseType.expressionType(),
+				new Transformer1<A_Type, A_Type>()
+				{
+					@Override
+					public A_Type value (@Nullable final A_Type arg)
+					{
+						assert arg != null;
+						return PARSE_NODE.create(arg);
+					}
+				});
+		}
+		int index = 0;
+		for (final Expression expression : expressions)
+		{
+			if (expression.isArgumentOrGroup())
+			{
+				index++;
+				final int realTypeIndex =
+					argumentsAreReordered == Boolean.TRUE
+						? permutedArguments.get(index - 1)
+						: index;
+				final A_Type entryType =
+					tupleType.typeAtIndex(realTypeIndex);
+				generator.flushDelayed();
+				expression.emitOn(generator, entryType);
+			}
+			else
+			{
+				expression.emitOn(generator, ListNodeTypeDescriptor.empty());
+			}
+		}
+		generator.flushDelayed();
+		assert tupleType.sizeRange().lowerBound().equalsInt(index);
+		assert tupleType.sizeRange().upperBound().equalsInt(index);
 	}
 
 	@Override

@@ -518,7 +518,7 @@ public final class MessageSplitter
 	public A_Tuple instructionsTupleFor (final A_Type phraseType)
 	{
 		final InstructionGenerator generator = new InstructionGenerator();
-		rootSequence.emitWithoutInitialNewListPushOn(generator, phraseType);
+		rootSequence.emitAppendingOn(generator, phraseType);
 		generator.optimizeInstructions();
 		return generator.instructionsTuple();
 	}

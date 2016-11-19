@@ -157,10 +157,10 @@ extends Expression
 		final Label $loopExit = new Label();
 		final Label $loopSkip = new Label();
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
-		generator.emit(this, NEW_LIST);
+		generator.emit(this, EMPTY_LIST);
 		generator.emit(this, BRANCH, $loopSkip);
 		generator.emit($loopStart);
-		generator.emit(this, NEW_LIST);
+		generator.emit(this, EMPTY_LIST);
 		// Note that even though the Counter cannot contain anything that
 		// would push data, the Counter region must not contain a section
 		// checkpoint.  There's no point, since the iteration would not be

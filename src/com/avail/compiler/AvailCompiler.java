@@ -3986,7 +3986,7 @@ public final class AvailCompiler
 		final long timeBefore = System.nanoTime();
 		switch (op)
 		{
-			case NEW_LIST:
+			case EMPTY_LIST:
 			{
 				// Push an empty list node and continue.
 				assert successorTrees.tupleSize() == 1;
@@ -4664,6 +4664,30 @@ public final class AvailCompiler
 						marksSoFar,
 						continuation);
 				}
+				break;
+			}
+			case WRAP_IN_LIST:
+			{
+				assert successorTrees.tupleSize() == 1;
+				final int listSize = op.listSize(instruction);
+				final int totalSize = argsSoFar.size();
+				final List<A_Phrase> unpopped =
+					argsSoFar.subList(0, totalSize - listSize);
+				final List<A_Phrase> popped =
+					argsSoFar.subList(totalSize - listSize, totalSize);
+				final A_Phrase newListNode = ListNodeDescriptor.newExpressions(
+					TupleDescriptor.fromList(popped));
+				final List<A_Phrase> newArgsSoFar =
+					append(unpopped, newListNode);
+				eventuallyParseRestOfSendNode(
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					marksSoFar,
+					continuation);
 				break;
 			}
 		}

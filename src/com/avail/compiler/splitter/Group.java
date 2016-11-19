@@ -338,17 +338,18 @@ extends Expression
 		final int maxSize = maxInteger.isInt()
 			? maxInteger.extractInt() : Integer.MAX_VALUE;
 		final int endOfVariation =
-			maxSize == 0
-				? 0
-				: subexpressionsTupleType.typeTuple().tupleSize() + 1;
-		generator.emit(this, NEW_LIST);
+			Math.min(
+				Math.max(
+					subexpressionsTupleType.typeTuple().tupleSize() + 2,
+					Math.min(minSize, 3)),
+				maxSize);
 		final boolean needsProgressCheck =
 			beforeDagger.mightBeEmpty(phraseType);
-		//noinspection StatementWithEmptyBody
+		generator.flushDelayed();
 		if (maxSize == 0)
 		{
-			// The signature requires an empty list, so that's what we get
-			// (emitted above).
+			// The type signature requires an empty list, so that's what we get.
+			generator.emit(this, EMPTY_LIST);
 		}
 		else if (!needsDoubleWrapping())
 		{
@@ -392,13 +393,21 @@ extends Expression
 			final Label $loopStart = new Label();
 			assert beforeDagger.arguments.size() == 1;
 			assert afterDagger.arguments.size() == 0;
+			boolean hasWrapped = false;
 			if (minSize == 0)
 			{
-				// If size zero is valid, go to the special $skip label that
-				// skips the progress check.  Simply fall through to it if
-				// the maxSize is zero (handled above).
+				// If size zero is valid, branch to the special $skip label that
+				// avoids the progress check.  The case maxSize==0 was already
+				// handled above.
 				assert maxSize > 0;
+				generator.emit(this, EMPTY_LIST);
+				hasWrapped = true;
 				generator.emit(this, BRANCH, $skip);
+			}
+			if (!hasWrapped && beforeDagger.hasSectionCheckpoints())
+			{
+				generator.emit(this, EMPTY_LIST);
+				hasWrapped = true;
 			}
 			generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 			for (int index = 1; index < endOfVariation; index++)
@@ -411,20 +420,45 @@ extends Expression
 						TupleTypeDescriptor.forTypes(
 							innerPhraseType.expressionType()),
 						TupleTypeDescriptor.forTypes(innerPhraseType));
-				beforeDagger.emitWithoutInitialNewListPushOn(
-					generator, singularListType);
+				if (hasWrapped)
+				{
+					beforeDagger.emitAppendingOn(generator, singularListType);
+				}
+				else
+				{
+					beforeDagger.emitNoAppendOn(generator, singularListType);
+				}
 				if (index >= minSize)
 				{
 					generator.flushDelayed();
+					if (!hasWrapped && index == minSize)
+					{
+						generator.emitWrapped(this, index);
+						hasWrapped = true;
+					}
 					generator.emit(this, BRANCH, $exit);
 				}
-				afterDagger.emitWithoutInitialNewListPushOn(
+				if (!hasWrapped
+					&& index == 1
+					&& afterDagger.hasSectionCheckpoints())
+				{
+					generator.flushDelayed();
+					generator.emitWrapped(this, 1);
+					hasWrapped = true;
+				}
+				afterDagger.emitAppendingOn(
 					generator, ListNodeTypeDescriptor.empty());
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 			}
 			// The homogenous part of the tuple, one or more iterations.
 			generator.flushDelayed();
+			if (!hasWrapped)
+			{
+				generator.emitWrapped(this, endOfVariation - 1);
+				hasWrapped = true;
+			}
+			assert hasWrapped;
 			generator.emit($loopStart);
 			final A_Type innerPhraseType =
 				subexpressionsTupleType.defaultType();
@@ -434,8 +468,7 @@ extends Expression
 					TupleTypeDescriptor.forTypes(
 						innerPhraseType.expressionType()),
 					TupleTypeDescriptor.forTypes(innerPhraseType));
-			beforeDagger.emitWithoutInitialNewListPushOn(
-				generator, singularListType);
+			beforeDagger.emitAppendingOn(generator, singularListType);
 			if (endOfVariation < maxSize)
 			{
 				generator.flushDelayed();
@@ -447,7 +480,7 @@ extends Expression
 				{
 					generator.emit(this, CHECK_AT_MOST, maxSize - 1);
 				}
-				afterDagger.emitWithoutInitialNewListPushOn(
+				afterDagger.emitAppendingOn(
 					generator, ListNodeTypeDescriptor.empty());
 				generator.flushDelayed();
 				generator.emitIf(
@@ -526,18 +559,37 @@ extends Expression
 			final Label $exitCheckMin = new Label();
 			final Label $mergedExit = new Label();
 			final Label $loopStart = new Label();
+			boolean hasWrapped = false;
+			generator.flushDelayed();
 			if (minSize == 0)
 			{
-				// If size zero is valid, go to the special $skip label that
-				// skips the progress check.  Simply fall through to it if
-				// the maxSize is zero (handled above).
+				// If size zero is valid, branch to the special $skip label that
+				// avoids the progress check.  The case maxSize==0 was already
+				// handled above.
 				assert maxSize > 0;
+				generator.emit(this, EMPTY_LIST);
+				hasWrapped = true;
 				generator.emit(this, BRANCH, $skip);
+			}
+			if (!hasWrapped
+				&& (beforeDagger.hasSectionCheckpoints()
+					|| afterDagger.hasSectionCheckpoints()))
+			{
+				generator.emit(this, EMPTY_LIST);
+				hasWrapped = true;
 			}
 			generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 			for (int index = 1; index < endOfVariation; index++)
 			{
-				generator.emit(this, NEW_LIST);
+				if (index >= minSize)
+				{
+					if (!hasWrapped && index == minSize)
+					{
+						generator.flushDelayed();
+						generator.emitWrapped(this, index - 1);
+						hasWrapped = true;
+					}
+				}
 				final A_Type sublistPhraseType =
 					subexpressionsTupleType.typeAtIndex(index);
 				emitDoubleWrappedBeforeDaggerOn(generator, sublistPhraseType);
@@ -548,13 +600,22 @@ extends Expression
 				}
 				emitDoubleWrappedAfterDaggerOn(generator, sublistPhraseType);
 				generator.flushDelayed();
-				generator.emit(this, APPEND_ARGUMENT);
+				if (hasWrapped)
+				{
+					generator.emit(this, APPEND_ARGUMENT);
+				}
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 			}
+			generator.flushDelayed();
+			if (!hasWrapped)
+			{
+				generator.emitWrapped(this, endOfVariation - 1);
+				hasWrapped = true;
+			}
+			assert hasWrapped;
 			// The homogenous part of the tuple, one or more iterations.
 			generator.emit($loopStart);
-			generator.emit(this, NEW_LIST);
 			final A_Type sublistPhraseType =
 				subexpressionsTupleType.typeAtIndex(endOfVariation);
 			emitDoubleWrappedBeforeDaggerOn(generator, sublistPhraseType);
@@ -595,8 +656,10 @@ extends Expression
 
 	/**
 	 * Emit instructions to parse one occurrence of the portion of this
-	 * group before the double-dagger.  Append each argument or subgroup.
-	 * Permute this left-half list as needed.
+	 * group before the double-dagger.  Ensure the arguments and subgroups are
+	 * assembled into a new list and pushed.
+	 *
+	 * <p>Permute this left-half list as needed.</p>
 	 *
 	 * @param generator
 	 *        Where to generate parsing instructions.
@@ -608,6 +671,7 @@ extends Expression
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
+		boolean hasWrapped = false;
 		final A_Type subexpressionsTupleType;
 		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
 		{
@@ -632,6 +696,16 @@ extends Expression
 		int index = 0;
 		for (final Expression expression : beforeDagger.expressions)
 		{
+			// In order to ensure section checkpoints see a reasonable view of
+			// the parse stack, form a list with what has been pushed before any
+			// subexpression that has a section checkpoint, and use appends from
+			// that point onward.
+			if (!hasWrapped && expression.hasSectionCheckpoints())
+			{
+				generator.flushDelayed();
+				generator.emitWrapped(expression, index);
+				hasWrapped = true;
+			}
 			if (expression.isArgumentOrGroup())
 			{
 				index++;
@@ -643,13 +717,24 @@ extends Expression
 					subexpressionsTupleType.typeAtIndex(realTypeIndex);
 				generator.flushDelayed();
 				expression.emitOn(generator, entryType);
-				generator.emitDelayed(this, APPEND_ARGUMENT);
+				if (hasWrapped)
+				{
+					generator.emitDelayed(this, APPEND_ARGUMENT);
+				}
 			}
 			else
 			{
 				expression.emitOn(
 					generator, ListNodeTypeDescriptor.empty());
 			}
+		}
+		if (!hasWrapped)
+		{
+			// There were no section checkpoints, so we simply pushed the N
+			// arguments and groups.  Collect them into a single list now.
+			generator.flushDelayed();
+			generator.emitWrapped(this, index);
+			hasWrapped = true;
 		}
 		generator.partialListsCount -= 2;
 		if (beforeDagger.argumentsAreReordered == Boolean.TRUE)
@@ -744,8 +829,8 @@ extends Expression
 			}
 			for (int i = 0; i < rightArgCount; i++)
 			{
-				// Adjust the right permutation indices by the size of
-				// the left part.
+				// Adjust the right permutation indices by the size of the left
+				// part.
 				adjustedPermutationList.add(
 					afterDagger.arguments.get(i).explicitOrdinal()
 						+ leftArgCount);

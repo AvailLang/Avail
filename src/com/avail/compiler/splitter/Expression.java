@@ -37,6 +37,7 @@ import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.SignatureException;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -113,6 +114,20 @@ abstract class Expression
 		final List<SectionCheckpoint> sectionCheckpoints)
 	{
 		// Do nothing by default.
+	}
+
+	/**
+	 * Answer whether this expression recursively contains any section
+	 * checkpoints.
+	 *
+	 * @return True if this expression recursively contains any section
+	 *         checkpoints, otherwise false.
+	 */
+	boolean hasSectionCheckpoints ()
+	{
+		final List<SectionCheckpoint> any = new ArrayList<>();
+		extractSectionCheckpointsInto(any);
+		return !any.isEmpty();
 	}
 
 	/**

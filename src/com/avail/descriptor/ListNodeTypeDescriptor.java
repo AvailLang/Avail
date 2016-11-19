@@ -40,6 +40,7 @@ import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
@@ -447,13 +448,28 @@ extends ParseNodeTypeDescriptor
 		return type;
 	}
 
-	/** The empty list phrase's type. */
+	@InnerAccess static class Empty
+	{
+		/** The empty list phrase's type. */
+		private static final A_Type empty = createListNodeTypeNoCheck(
+				LIST_NODE,
+				TupleTypeDescriptor.forTypes(),
+				TupleTypeDescriptor.forTypes()
+			).makeShared();
+	}
+
+	/** Answer the empty list phrase's type. */
 	public static A_Type empty()
 	{
-		return createListNodeTypeNoCheck(
-			LIST_NODE,
-			TupleTypeDescriptor.forTypes(),
-			TupleTypeDescriptor.forTypes());
+		if (Empty.empty == null)
+		{
+			createListNodeTypeNoCheck(
+				LIST_NODE,
+				TupleTypeDescriptor.forTypes(),
+				TupleTypeDescriptor.forTypes()
+			).makeShared();
+		}
+		return Empty.empty;
 	}
 
 	/**

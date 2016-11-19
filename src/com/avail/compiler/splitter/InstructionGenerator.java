@@ -285,6 +285,7 @@ class InstructionGenerator
 		delayedArgumentInstructions.add(operation.encoding(operand));
 	}
 
+
 	/**
 	 * Flush any delayed instructions to the main instruction list.
 	 */
@@ -296,6 +297,32 @@ class InstructionGenerator
 			instructions.addAll(delayedArgumentInstructions);
 			delayedExpressionList.clear();
 			delayedArgumentInstructions.clear();
+		}
+	}
+
+	/**
+	 * Emit instructions to create a list from the N most recently pushed
+	 * phrases.  N may be zero.
+	 *
+	 * @param expression
+	 *        The expression that is emitting the instruction.
+	 * @param listSize
+	 *        The number of phrases to pop from the parseStack and assemble into
+	 *        a list to be pushed.
+	 */
+	final void emitWrapped (
+		final Expression expression,
+		final int listSize)
+	{
+		assert delayedArgumentInstructions.isEmpty();
+		assert listSize >= 0;
+		if (listSize == 0)
+		{
+			emit(expression, EMPTY_LIST);
+		}
+		else
+		{
+			emit(expression, WRAP_IN_LIST, listSize);
 		}
 	}
 

@@ -33,6 +33,8 @@
 Module "Fibonacci"
 Uses
 	"Avail"
+Extends
+	"Avail" = ("…#")
 Entries
 	"_st|nd|rd|th Fibonacci number"
 Body

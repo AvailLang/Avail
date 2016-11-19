@@ -33,6 +33,8 @@
 Module "Leet"
 Uses
 	"Avail"
+Extends
+	"Avail" = ("…$")
 Entries
 	"_translated"
 Body

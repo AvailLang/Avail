@@ -76,7 +76,7 @@ public enum ParsingOperation
 	 * contains an {@linkplain TupleDescriptor#empty() empty tuple} of
 	 * {@linkplain ParseNodeDescriptor phrases} onto the parse stack.
 	 */
-	NEW_LIST(0, true),
+	EMPTY_LIST(0, true),
 
 	/**
 	 * {@code 1} - Pop an argument from the parse stack of the current
@@ -175,7 +175,9 @@ public enum ParsingOperation
 	 */
 	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(14, false),
 
-	/** Reserved for future parsing concepts. */
+	/**
+	 * {@code 15} - Reserved for future use.
+	 */
 	RESERVED_15(15, false),
 
 	/*
@@ -383,6 +385,30 @@ public enum ParsingOperation
 	{
 		@Override
 		public int typeCheckArgumentIndex (final int instruction)
+		{
+			return operand(instruction);
+		}
+	},
+
+	/**
+	 * {@code 16*N+13} - Pop N arguments from the parse stack of the current
+	 * potential message send. Create an N-element {@linkplain
+	 * ListNodeDescriptor list} with them, and push the list back onto the
+	 * parse stack.
+	 *
+	 * <p>This is the equivalent of pushing a {@link #EMPTY_LIST} <em>prior</em>
+	 * to pushing those arguments, then using {@link #APPEND_ARGUMENT} after
+	 * each argument is parsed to add them to the list.  The advantage of using
+	 * this operation instead is to allow the pure stack manipulation operations
+	 * to occur after parsing an argument and/or fixed tokens, which increases
+	 * the conformity between the non-repeating and repeating clauses, which in
+	 * turn reduces (at least) the number of actions executed each time the root
+	 * bundle tree is used to start parsing a subexpression.</p>
+	 */
+	WRAP_IN_LIST(13, true)
+	{
+		@Override
+		public int listSize (final int instruction)
 		{
 			return operand(instruction);
 		}
@@ -633,6 +659,17 @@ public enum ParsingOperation
 	 * @return The maximum list size.
 	 */
 	public int requiredMaximumSize (final int instruction)
+	{
+		throw new RuntimeException("Parsing instruction is inappropriate");
+	}
+
+	/**
+	 * Extract the number of arguments to pop and combine into a list.
+	 *
+	 * @param instruction A coded instruction.
+	 * @return The resulting list size.
+	 */
+	public int listSize (final int instruction)
 	{
 		throw new RuntimeException("Parsing instruction is inappropriate");
 	}
