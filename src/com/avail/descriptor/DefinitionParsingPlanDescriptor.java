@@ -43,7 +43,6 @@ import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import com.avail.annotations.AvailMethod;
-import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.compiler.ParsingConversionRule;
@@ -170,6 +169,13 @@ extends Descriptor
 							builder.append("'");
 							break;
 						}
+						case PUSH_LITERAL:
+						{
+							builder.append(" Constant = ");
+							builder.append(
+								MessageSplitter.constantForIndex(operand));
+							break;
+						}
 						case PERMUTE_LIST:
 						{
 							builder.append(" Permutation = ");
@@ -181,7 +187,7 @@ extends Descriptor
 						{
 							builder.append(" Type = ");
 							builder.append(
-								MessageSplitter.typeToCheck(operand));
+								MessageSplitter.constantForIndex(operand));
 							break;
 						}
 						case CONVERT:

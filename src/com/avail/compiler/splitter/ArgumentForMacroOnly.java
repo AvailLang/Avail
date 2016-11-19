@@ -83,6 +83,6 @@ extends Argument
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForType(phraseType));
+			MessageSplitter.indexForConstant(phraseType));
 	}
 }

@@ -40,6 +40,8 @@ import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
+import com.avail.server.messages.Message;
+import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Transformer1;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,9 +52,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.compiler.ParsingOperation.APPEND_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.EMPTY_LIST;
-import static com.avail.compiler.ParsingOperation.PERMUTE_LIST;
+import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -248,8 +248,13 @@ extends Expression
 		}
 		boolean hasWrapped = false;
 		int index = 0;
-		for (final Expression expression : expressions)
+		final int expressionsSize = expressions.size();
+		for (
+			int expressionZeroIndex = 0;
+			expressionZeroIndex < expressionsSize;
+			expressionZeroIndex++)
 		{
+			final Expression expression = expressions.get(expressionZeroIndex);
 			if (!hasWrapped && expression.hasSectionCheckpoints())
 			{
 				generator.flushDelayed();
@@ -263,8 +268,7 @@ extends Expression
 					argumentsAreReordered == Boolean.TRUE
 						? permutedArguments.get(index - 1)
 						: index;
-				final A_Type entryType =
-					tupleType.typeAtIndex(realTypeIndex);
+				final A_Type entryType = tupleType.typeAtIndex(realTypeIndex);
 				generator.flushDelayed();
 				expression.emitOn(generator, entryType);
 				if (hasWrapped)
@@ -333,8 +337,13 @@ extends Expression
 				});
 		}
 		int index = 0;
-		for (final Expression expression : expressions)
+		final int expressionsSize = expressions.size();
+		for (
+			int expressionZeroIndex = 0;
+			expressionZeroIndex < expressionsSize;
+			expressionZeroIndex++)
 		{
+			final Expression expression = expressions.get(expressionZeroIndex);
 			if (expression.isArgumentOrGroup())
 			{
 				index++;
@@ -345,8 +354,91 @@ extends Expression
 				final A_Type entryType =
 					tupleType.typeAtIndex(realTypeIndex);
 				generator.flushDelayed();
-				expression.emitOn(generator, entryType);
-				generator.emitDelayed(this, APPEND_ARGUMENT);
+
+				final @Nullable Expression nextExpression =
+					expressionZeroIndex < expressionsSize - 1
+						? expressions.get(expressionZeroIndex + 1)
+						: null;
+				if (nextExpression != null
+					&& expression instanceof Optional
+					&& !expression.hasSectionCheckpoints()
+					&& !nextExpression.hasSectionCheckpoints())
+				{
+					// A non-last expression is Optional.  To avoid polluting
+					// the action map with an early PUSH_FALSE, we keep the
+					// control flow split for a bit and duplicate the expression
+					// that follows along both paths.  This should increase the
+					// opportunity for instruction migration, allowing a
+					// PARSE_PART or PARSE_ARGUMENT to occur before the
+					// PUSH_FALSE.
+					final A_Type nextEntryType;
+					if (nextExpression.isArgumentOrGroup())
+					{
+						// Consume the type for nextExpression.
+						index++;
+						final int nextRealTypeIndex =
+							argumentsAreReordered == Boolean.TRUE
+								? permutedArguments.get(index - 1)
+								: index;
+						nextEntryType =
+							tupleType.typeAtIndex(nextRealTypeIndex);
+					}
+					else
+					{
+						nextEntryType = ListNodeTypeDescriptor.empty();
+					}
+					((Optional)expression).emitWithSplitOn(
+						generator,
+						// entryType,   // Ignored; currently must be boolean.
+						new Continuation1<Boolean>()
+						{
+							@Override
+							public void value (final Boolean whichPath)
+							{
+								if (nextExpression.isArgumentOrGroup())
+								{
+									// Parse the second expression, leaving it
+									// on the stack, push true or false, swap
+									// them, then append them both.
+									nextExpression.emitOn(
+										generator, nextEntryType);
+									generator.flushDelayed();
+									generator.emit(
+										expression,
+										PUSH_LITERAL,
+										whichPath
+											? MessageSplitter.indexForTrue()
+											: MessageSplitter.indexForFalse());
+									generator.emit(nextExpression, SWAP);
+									generator.emit(
+										nextExpression, WRAP_IN_LIST, 2);
+									generator.emit(nextExpression, CONCATENATE);
+								}
+								else
+								{
+									// Parse the second expression, then push
+									// true or false and append it.
+									nextExpression.emitOn(
+										generator, nextEntryType);
+									generator.emit(
+										expression,
+										PUSH_LITERAL,
+										whichPath
+											? MessageSplitter.indexForTrue()
+											: MessageSplitter.indexForFalse());
+									generator.flushDelayed();
+									generator.emit(expression, APPEND_ARGUMENT);
+								}
+							}
+						});
+					// Also consume nextExpression.
+					expressionZeroIndex++;
+				}
+				else
+				{
+					expression.emitOn(generator, entryType);
+					generator.emitDelayed(this, APPEND_ARGUMENT);
+				}
 			}
 			else
 			{

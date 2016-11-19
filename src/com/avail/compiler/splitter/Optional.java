@@ -40,6 +40,7 @@ import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.SignatureException;
+import com.avail.utility.evaluation.Continuation1;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -142,6 +143,7 @@ extends Expression
 		 * push literal false
 		 * @groupSkip:
 		 */
+		generator.flushDelayed();
 		final boolean needsProgressCheck =
 			sequence.mightBeEmpty(ListNodeTypeDescriptor.empty());
 		final Label $absent = new Label();
@@ -156,10 +158,53 @@ extends Expression
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emitIf(
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
-		generator.emit(this, PUSH_TRUE);
+		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForTrue());
 		generator.emit(this, JUMP, $after);
 		generator.emit($absent);
-		generator.emit(this, PUSH_FALSE);
+		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForFalse());
+		generator.emit($after);
+	}
+
+	void emitWithSplitOn (
+		final InstructionGenerator generator,
+		Continuation1<Boolean> generateSplit)
+	{
+		/* branch to @absent
+		 * push the current parse position on the mark stack
+		 * ...the sequence's expressions...
+		 * check progress and update saved position or abort.
+		 * discard the saved parse position from the mark stack.
+		 * ...generateSplit(true), which have the same effect as pushing the
+		 *    literal true, appending it, and pushing and appending anything
+		 *    that the generatorSplit produces...
+		 * jump to @groupSkip
+		 * @absent:
+		 * ...generateSplit(false), which have the same effect as pushing the
+		 *    literal false, appending it, and pushing and appending anything
+		 *    that the generatorSplit produces...
+		 * @groupSkip:
+		 */
+		generator.flushDelayed();
+		final boolean needsProgressCheck =
+			sequence.mightBeEmpty(ListNodeTypeDescriptor.empty());
+		final Label $absent = new Label();
+		final Label $after = new Label();
+		generator.emit(this, BRANCH, $absent);
+		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
+		assert sequence.argumentsAreReordered != Boolean.TRUE;
+		for (final Expression expression : sequence.expressions)
+		{
+			expression.emitOn(generator, ListNodeTypeDescriptor.empty());
+		}
+		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
+		generator.emitIf(
+			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
+		generateSplit.value(true);
+		generator.flushDelayed();
+		generator.emit(this, JUMP, $after);
+		generator.emit($absent);
+		generateSplit.value(false);
+		generator.flushDelayed();
 		generator.emit($after);
 	}
 

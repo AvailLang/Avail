@@ -241,25 +241,24 @@ public final class MessageSplitter
 		new AtomicReference<A_Tuple>(TupleDescriptor.empty());
 
 	/**
-	 * A statically-scoped {@link List} of unique {@link A_Type}s for which
-	 * {@link ParsingOperation#TYPE_CHECK_ARGUMENT} instructions have been
-	 * emitted.  The inverse {@link Map} (but containing one-based indices) is
-	 * kept in #typesToCheckMap}.
+	 * A statically-scoped {@link List} of unique constants needed as operands
+	 * of some {@link ParsingOperation}s.  The inverse {@link Map} (but
+	 * containing one-based indices) is kept in #constantsMap}.
 	 */
-	private static List<A_Type> typesToCheckList = new ArrayList<>(100);
+	private static List<AvailObject> constantsList = new ArrayList<>(100);
 
 	/**
-	 * A statically-scoped map from type to one-based index (into
-	 * {@link #typesToCheckList}, after adjusting to a zero-based {@link List}),
-	 * for which {@link ParsingOperation#TYPE_CHECK_ARGUMENT} instructions have
-	 * been emitted.
+	 * A statically-scoped map from Avail object to one-based index (into
+	 * {@link #constantsList}, after adjusting to a zero-based {@link List}),
+	 * for which some {@link ParsingOperation} needed to hold that constant as
+	 * an operand.
 	 */
-	private static Map<A_Type, Integer> typesToCheckMap = new HashMap<>(100);
+	private static Map<AvailObject, Integer> constantsMap = new HashMap<>(100);
 
 	/**
-	 * A lock to protect {@link #typesToCheckList} and {@link #typesToCheckMap}.
+	 * A lock to protect {@link #constantsList} and {@link #constantsMap}.
 	 */
-	private static final ReadWriteLock typesToCheckLock =
+	private static final ReadWriteLock constantsLock =
 		new ReentrantReadWriteLock();
 
 	/**
@@ -276,20 +275,21 @@ public final class MessageSplitter
 	}
 
 	/**
-	 * Answer the index of the given type, adding it to the global {@link
-	 * #typesToCheckList} and {@link #typesToCheckMap}} if necessary.
+	 * Answer the index of the given constant, adding it to the global {@link
+	 * #constantsList} and {@link #constantsMap}} if necessary.
 	 *
-	 * @param type
+	 * @param constant
 	 *        The type to look up or add to the global index.
 	 * @return The one-based index of the type, which can be retrieved later via
-	 *         {@link #typeToCheck(int)}.
+	 *         {@link #constantForIndex(int)}.
 	 */
-	@InnerAccess static int indexForType (final A_Type type)
+	@InnerAccess static int indexForConstant (final A_BasicObject constant)
 	{
-		typesToCheckLock.readLock().lock();
+		final AvailObject strongConstant = (AvailObject) constant.makeShared();
+		constantsLock.readLock().lock();
 		try
 		{
-			final Integer index = typesToCheckMap.get(type);
+			final Integer index = constantsMap.get(strongConstant);
 			if (index != null)
 			{
 				return index;
@@ -297,46 +297,66 @@ public final class MessageSplitter
 		}
 		finally
 		{
-			typesToCheckLock.readLock().unlock();
+			constantsLock.readLock().unlock();
 		}
 
-		typesToCheckLock.writeLock().lock();
+		constantsLock.writeLock().lock();
 		try
 		{
-			final Integer index = typesToCheckMap.get(type);
+			final Integer index = constantsMap.get(strongConstant);
 			if (index != null)
 			{
 				return index;
 			}
-			assert typesToCheckMap.size() == typesToCheckList.size();
-			final int newIndex = typesToCheckList.size() + 1;
-			typesToCheckList.add(type);
-			typesToCheckMap.put(type, newIndex);
+			assert constantsMap.size() == constantsList.size();
+			final int newIndex = constantsList.size() + 1;
+			constantsList.add(strongConstant);
+			constantsMap.put(strongConstant, newIndex);
 			return newIndex;
 		}
 		finally
 		{
-			typesToCheckLock.writeLock().unlock();
+			constantsLock.writeLock().unlock();
 		}
 	}
 
-	/**
-	 * Answer the {@link A_Type} having the given one-based index in the static
-	 * {@link #typesToCheckList} {@link List}.
-	 *
-	 * @param index The one-based index of the type to retrieve.
-	 * @return The {@link A_Type} at the given index.
-	 */
-	public static A_Type typeToCheck (final int index)
+	/** The position at which true is stored in the {@link #constantsList}. */
+	private final static int indexForTrue =
+		indexForConstant(AtomDescriptor.trueObject());
+
+	/** The position at which true is stored in the {@link #constantsList}. */
+	static int indexForTrue ()
 	{
-		typesToCheckLock.readLock().lock();
+		return indexForTrue;
+	}
+
+	/** The position at which false is stored in the {@link #constantsList}. */
+	private final static int indexForFalse =
+		indexForConstant(AtomDescriptor.falseObject());
+
+	/** The position at which false is stored in the {@link #constantsList}. */
+	static int indexForFalse ()
+	{
+		return indexForFalse;
+	}
+
+	/**
+	 * Answer the {@link AvailObject} having the given one-based index in the
+	 * static {@link #constantsList} {@link List}.
+	 *
+	 * @param index The one-based index of the constant to retrieve.
+	 * @return The {@link AvailObject} at the given index.
+	 */
+	public static AvailObject constantForIndex (final int index)
+	{
+		constantsLock.readLock().lock();
 		try
 		{
-			return typesToCheckList.get(index - 1);
+			return constantsList.get(index - 1);
 		}
 		finally
 		{
-			typesToCheckLock.readLock().unlock();
+			constantsLock.readLock().unlock();
 		}
 	}
 

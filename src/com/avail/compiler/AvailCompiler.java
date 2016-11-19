@@ -3839,7 +3839,7 @@ public final class AvailCompiler
 					final int typeIndex =
 						TYPE_CHECK_ARGUMENT.typeCheckArgumentIndex(instruction);
 					final A_Type argType =
-						MessageSplitter.typeToCheck(typeIndex);
+						MessageSplitter.constantForIndex(typeIndex);
 					Set<String> planStrings = definitionsByType.get(argType);
 					if (planStrings == null)
 					{
@@ -4085,34 +4085,6 @@ public final class AvailCompiler
 					consumedAnything,
 					argsSoFar,
 					newMarksSoFar,
-					continuation);
-				break;
-			}
-			case PUSH_FALSE:
-			case PUSH_TRUE:
-			{
-				final A_Atom booleanValue =
-					AtomDescriptor.objectFromBoolean(op == PUSH_TRUE);
-				final A_Token innerToken = initialTokenPosition.peekToken();
-				final A_Token token = LiteralTokenDescriptor.create(
-					StringDescriptor.from(booleanValue.toString()),
-					innerToken.leadingWhitespace(),
-					innerToken.trailingWhitespace(),
-					innerToken.start(),
-					innerToken.lineNumber(),
-					innerToken.tokenIndex(),
-					LITERAL,
-					booleanValue);
-				final A_Phrase literalNode =
-					LiteralNodeDescriptor.fromToken(token);
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					append(argsSoFar, literalNode),
-					marksSoFar,
 					continuation);
 				break;
 			}
@@ -4372,11 +4344,52 @@ public final class AvailCompiler
 					continuation);
 				break;
 			}
-			case RESERVED_15:
+			case SWAP:
 			{
-				AvailObject.error("Invalid parse instruction: " + op);
+				assert successorTrees.tupleSize() == 1;
+				final A_Phrase top1 = last(argsSoFar);
+				final List<A_Phrase> popped1 = withoutLast(argsSoFar);
+				final A_Phrase top2 = last(popped1);
+				final List<A_Phrase> popped2 = withoutLast(popped1);
+				final List<A_Phrase> newArgsSoFar =
+					append(append(popped2, top1), top2);
+				eventuallyParseRestOfSendNode(
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					marksSoFar,
+					continuation);
 				break;
 			}
+			case CONCATENATE:
+			{
+				assert successorTrees.tupleSize() == 1;
+				final A_Phrase right = last(argsSoFar);
+				final List<A_Phrase> popped1 = withoutLast(argsSoFar);
+				A_Phrase concatenated = last(popped1);
+				final List<A_Phrase> popped2 = withoutLast(popped1);
+				for (A_Phrase rightElement : right.expressionsTuple())
+				{
+					concatenated = concatenated.copyWith(rightElement);
+				}
+				final List<A_Phrase> newArgsSoFar =
+					append(popped2, concatenated);
+				eventuallyParseRestOfSendNode(
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					marksSoFar,
+					continuation);
+				break;
+			}
+
+
 			case BRANCH:
 				// $FALL-THROUGH$
 				// Fall through.  The successorTrees will be different
@@ -4487,35 +4500,6 @@ public final class AvailCompiler
 							});
 						}
 					});
-				break;
-			}
-			case PUSH_INTEGER_LITERAL:
-			{
-				final A_Number integerValue = IntegerDescriptor.fromInt(
-					op.integerToPush(instruction));
-				final A_Token innerToken = initialTokenPosition.peekToken();
-				final A_Token token = LiteralTokenDescriptor.create(
-					StringDescriptor.from(integerValue.toString()),
-					innerToken.leadingWhitespace(),
-					innerToken.trailingWhitespace(),
-					innerToken.start(),
-					innerToken.lineNumber(),
-					innerToken.tokenIndex(),
-					LITERAL,
-					integerValue);
-				final A_Phrase literalNode =
-					LiteralNodeDescriptor.fromToken(token);
-				final List<A_Phrase> newArgsSoFar =
-					append(argsSoFar, literalNode);
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					newArgsSoFar,
-					marksSoFar,
-					continuation);
 				break;
 			}
 			case PREPARE_TO_RUN_PREFIX_FUNCTION:
@@ -4686,6 +4670,33 @@ public final class AvailCompiler
 					initialTokenPosition,
 					consumedAnything,
 					newArgsSoFar,
+					marksSoFar,
+					continuation);
+				break;
+			}
+			case PUSH_LITERAL:
+			{
+				final AvailObject constant = MessageSplitter.constantForIndex(
+					op.literalIndex(instruction));
+				final A_Token innerToken = initialTokenPosition.peekToken();
+				final A_Token token = LiteralTokenDescriptor.create(
+					StringDescriptor.from(constant.toString()),
+					innerToken.leadingWhitespace(),
+					innerToken.trailingWhitespace(),
+					innerToken.start(),
+					innerToken.lineNumber(),
+					innerToken.tokenIndex(),
+					LITERAL,
+					constant);
+				final A_Phrase literalNode =
+					LiteralNodeDescriptor.fromToken(token);
+				eventuallyParseRestOfSendNode(
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					append(argsSoFar, literalNode),
 					marksSoFar,
 					continuation);
 				break;

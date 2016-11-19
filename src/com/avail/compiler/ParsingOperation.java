@@ -40,10 +40,8 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_BundleTree;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.ListNodeDescriptor;
 import com.avail.descriptor.LiteralNodeDescriptor;
 import com.avail.descriptor.MapDescriptor;
@@ -106,25 +104,13 @@ public enum ParsingOperation
 	ENSURE_PARSE_PROGRESS(4, false),
 
 	/**
-	 * {@code 5} - Push a {@link LiteralNodeDescriptor literal node}
-	 * containing the {@linkplain AtomDescriptor Avail false boolean}.
-	 */
-	PUSH_FALSE(5, true),
-
-	/**
-	 * {@code 6} - Push a {@link LiteralNodeDescriptor literal node}
-	 * containing the {@linkplain AtomDescriptor Avail true boolean}.
-	 */
-	PUSH_TRUE(6, true),
-
-	/**
-	 * {@code 7} - Parse an ordinary argument of a message send, pushing the
+	 * {@code 5} - Parse an ordinary argument of a message send, pushing the
 	 * expression onto the parse stack.
 	 */
-	PARSE_ARGUMENT(7, false),
+	PARSE_ARGUMENT(5, false),
 
 	/**
-	 * {@code 8} - Parse an expression, even one whose expressionType is ⊤,
+	 * {@code 6} - Parse an expression, even one whose expressionType is ⊤,
 	 * then push <em>a literal node wrapping this expression</em> onto the parse
 	 * stack.
 	 *
@@ -135,49 +121,57 @@ public enum ParsingOperation
 	 * (or phrase⇒⊥), which is perfectly fine to put inside a list node during
 	 * parsing.</p>
 	 */
-	PARSE_TOP_VALUED_ARGUMENT(8, false),
+	PARSE_TOP_VALUED_ARGUMENT(6, false),
 
 	/**
-	 * {@code 9} - Parse a {@linkplain TokenDescriptor raw token}. It should
+	 * {@code 7} - Parse a {@linkplain TokenDescriptor raw token}. It should
 	 * correspond to a {@linkplain VariableDescriptor variable} that is
 	 * in scope. Push a {@linkplain ReferenceNodeDescriptor variable reference
 	 * phrase} onto the parse stack.
 	 */
-	PARSE_VARIABLE_REFERENCE(9, false),
+	PARSE_VARIABLE_REFERENCE(7, false),
 
 	/**
-	 * {@code 10} - Parse an argument of a message send, using the <em>outermost
+	 * {@code 8} - Parse an argument of a message send, using the <em>outermost
 	 * (module) scope</em>.  Leave it on the parse stack.
 	 */
-	PARSE_ARGUMENT_IN_MODULE_SCOPE(10, false),
+	PARSE_ARGUMENT_IN_MODULE_SCOPE(8, false),
 
 	/**
-	 * {@code 11} - Parse <em>any</em> {@linkplain TokenDescriptor raw token},
+	 * {@code 9} - Parse <em>any</em> {@linkplain TokenDescriptor raw token},
 	 * leaving it on the parse stack.
 	 */
-	PARSE_ANY_RAW_TOKEN(11, false),
+	PARSE_ANY_RAW_TOKEN(9, false),
 
 	/**
-	 * {@code 12} - Parse a raw <em>{@linkplain TokenType#KEYWORD keyword}</em>
+	 * {@code 10} - Parse a raw <em>{@linkplain TokenType#KEYWORD keyword}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
 	 */
-	PARSE_RAW_KEYWORD_TOKEN(12, false),
+	PARSE_RAW_KEYWORD_TOKEN(10, false),
 
 	/**
-	 * {@code 13} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
+	 * {@code 11} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
 	 */
-	PARSE_RAW_STRING_LITERAL_TOKEN(13, false),
+	PARSE_RAW_STRING_LITERAL_TOKEN(11, false),
 
 	/**
-	 * {@code 14} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
+	 * {@code 12} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
 	 */
-	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(14, false),
+	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(12, false),
 
 	/**
-	 * {@code 15} - Reserved for future use.
+	 * {@code 13} - Swap the most recently pushed two stack entries.
 	 */
+	SWAP(13, false),
+
+	/**
+	 * {@code 14} - Concatenate the two lists that have been pushed previously.
+	 */
+	CONCATENATE(14, false),
+
+	/** Reserved for future use. */
 	RESERVED_15(15, false),
 
 	/*
@@ -215,7 +209,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+2} - Parse the Nth {@linkplain MessageSplitter#messagePartsList
+	 * {@code 16*N+2} - Parse the Nth {@linkplain MessageSplitter#messageParts()
 	 * message part} of the current message. This will be a specific {@linkplain
 	 * TokenDescriptor token}. It should be matched case sensitively against the
 	 * source token.
@@ -245,24 +239,10 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+4} - Push a {@link LiteralNodeDescriptor literal node}
-	 * containing an {@linkplain IntegerDescriptor Avail integer} based on the
-	 * operand.
-	 */
-	PUSH_INTEGER_LITERAL(4, true)
-	{
-		@Override
-		public int integerToPush (final int instruction)
-		{
-			return operand(instruction);
-		}
-	},
-
-	/**
-	 * {@code 16*N+5} - Apply grammatical restrictions to the Nth leaf argument
+	 * {@code 16*N+4} - Apply grammatical restrictions to the Nth leaf argument
 	 * (underscore/ellipsis) of the current message.
 	 */
-	CHECK_ARGUMENT(5, true)
+	CHECK_ARGUMENT(4, true)
 	{
 		@Override
 		public int checkArgumentIndex (final int instruction)
@@ -272,10 +252,10 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+6} - Pop an argument from the parse stack and apply the
+	 * {@code 16*N+5} - Pop an argument from the parse stack and apply the
 	 * {@linkplain ParsingConversionRule conversion rule} specified by N.
 	 */
-	CONVERT(6, true)
+	CONVERT(5, true)
 	{
 		@Override
 		public ParsingConversionRule conversionRule (
@@ -286,7 +266,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+7} - A macro has been parsed up to a section checkpoint (§).
+	 * {@code 16*N+6} - A macro has been parsed up to a section checkpoint (§).
 	 * Make a copy of the parse stack, then perform the equivalent of an {@link
 	 * #APPEND_ARGUMENT} on the copy, the specified number of times minus one
 	 * (because zero is not a legal operand).  Make it into a single {@linkplain
@@ -298,7 +278,7 @@ public enum ParsingOperation
 	 * A_BundleTree#expand(A_Module)} operation.  Its successors are separated
 	 * into distinct message bundle trees, one per message bundle.</p>
 	 */
-	PREPARE_TO_RUN_PREFIX_FUNCTION(7, true)
+	PREPARE_TO_RUN_PREFIX_FUNCTION(6, true)
 	{
 		@Override
 		public int fixupDepth (final int instruction)
@@ -308,7 +288,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+8} - A macro has been parsed up to a section checkpoint (§),
+	 * {@code 16*N+7} - A macro has been parsed up to a section checkpoint (§),
 	 * and a copy of the cleaned up parse stack has been pushed, so invoke the
 	 * Nth prefix function associated with the macro.  Consume the previously
 	 * pushed copy of the parse stack.  The current {@link ParserState}'s
@@ -320,7 +300,7 @@ public enum ParsingOperation
 	 * fibers (i.e., parsing can still be done in parallel) and between separate
 	 * linguistic abstractions (the keys are atoms and are therefore modular).
 	 */
-	RUN_PREFIX_FUNCTION(8, true)
+	RUN_PREFIX_FUNCTION(7, true)
 	{
 		@Override
 		public int prefixFunctionSubscript (final int instruction)
@@ -330,12 +310,12 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+9} - Permute the elements of the list node on the top of the
+	 * {@code 16*N+8} - Permute the elements of the list node on the top of the
 	 * stack via the permutation found via {@linkplain
 	 * MessageSplitter#permutationAtIndex(int)}.  The list node must be the same
 	 * size as the permutation.
 	 */
-	PERMUTE_LIST(9, true)
+	PERMUTE_LIST(8, true)
 	{
 		@Override
 		public int permutationIndex (final int instruction)
@@ -345,11 +325,11 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+10} - Check that the list node on the top of the stack has at
+	 * {@code 16*N+9} - Check that the list node on the top of the stack has at
 	 * least the specified size.  Proceed to the next instruction only if this
 	 * is the case.
 	 */
-	CHECK_AT_LEAST(10, true)
+	CHECK_AT_LEAST(9, true)
 	{
 		@Override
 		public int requiredMinimumSize (final int instruction)
@@ -359,11 +339,11 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+11} - Check that the list node on the top of the stack has at
+	 * {@code 16*N+10} - Check that the list node on the top of the stack has at
 	 * most the specified size.  Proceed to the next instruction only if this
 	 * is the case.
 	 */
-	CHECK_AT_MOST(11, true)
+	CHECK_AT_MOST(10, true)
 	{
 		@Override
 		public int requiredMaximumSize (final int instruction)
@@ -373,7 +353,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+12} - Use the type of the argument just parsed to select
+	 * {@code 16*N+11} - Use the type of the argument just parsed to select
 	 * among successor message bundle trees.  Those message bundle trees are
 	 * filtered by the allowable leaf argument type.  This test is
 	 * <em>precise</em>, and requires repeated groups to be unrolled for the
@@ -381,7 +361,7 @@ public enum ParsingOperation
 	 * until the {@link A_Type#defaultType()} of the tuple type has been
 	 * reached.
 	 */
-	TYPE_CHECK_ARGUMENT(12, true)
+	TYPE_CHECK_ARGUMENT(11, true)
 	{
 		@Override
 		public int typeCheckArgumentIndex (final int instruction)
@@ -391,24 +371,38 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+13} - Pop N arguments from the parse stack of the current
+	 * {@code 16*N+12} - Pop N arguments from the parse stack of the current
 	 * potential message send. Create an N-element {@linkplain
 	 * ListNodeDescriptor list} with them, and push the list back onto the
 	 * parse stack.
 	 *
-	 * <p>This is the equivalent of pushing a {@link #EMPTY_LIST} <em>prior</em>
-	 * to pushing those arguments, then using {@link #APPEND_ARGUMENT} after
-	 * each argument is parsed to add them to the list.  The advantage of using
-	 * this operation instead is to allow the pure stack manipulation operations
-	 * to occur after parsing an argument and/or fixed tokens, which increases
-	 * the conformity between the non-repeating and repeating clauses, which in
-	 * turn reduces (at least) the number of actions executed each time the root
-	 * bundle tree is used to start parsing a subexpression.</p>
+	 * <p>This is the equivalent of pushing an empty list prior to pushing those
+	 * arguments, then using {@link #APPEND_ARGUMENT} after each argument is
+	 * parsed to add them to the list.  The advantage of using this operation
+	 * instead is to allow the pure stack manipulation operations to occur after
+	 * parsing an argument and/or fixed tokens, which increases the conformity
+	 * between the non-repeating and repeating clauses, which in turn reduces
+	 * (at least) the number of actions executed each time the root bundle tree
+	 * is used to start parsing a subexpression.</p>
 	 */
-	WRAP_IN_LIST(13, true)
+	WRAP_IN_LIST(12, true)
 	{
 		@Override
 		public int listSize (final int instruction)
+		{
+			return operand(instruction);
+		}
+	},
+
+	/**
+	 * {@code 16*N+13} - Push a {@link LiteralNodeDescriptor literal node}
+	 * containing the constant found at the position in the type list indicated
+	 * by the operand.
+	 */
+	PUSH_LITERAL(13, true)
+	{
+		@Override
+		public int literalIndex (final int instruction)
 		{
 			return operand(instruction);
 		}
@@ -629,12 +623,25 @@ public enum ParsingOperation
 	/**
 	 * Extract the index of the type check argument for a {@link
 	 * #TYPE_CHECK_ARGUMENT} parsing instruction.  This indexes the static
-	 * {@link MessageSplitter#typeToCheck(int)}.
+	 * {@link MessageSplitter#constantForIndex(int)}.
 	 *
 	 * @param instruction A coded instruction
 	 * @return The index of the type to be checked against.
 	 */
 	public int typeCheckArgumentIndex (final int instruction)
+	{
+		throw new RuntimeException("Parsing instruction is inappropriate");
+	}
+
+	/**
+	 * Extract the index of the value for which to push literal phrase for the
+	 * {@link #PUSH_LITERAL} parsing instruction.  This indexes the static
+	 * {@link MessageSplitter#constantForIndex(int)}.
+	 *
+	 * @param instruction A coded instruction
+	 * @return The index of the type to be checked against.
+	 */
+	public int literalIndex (final int instruction)
 	{
 		throw new RuntimeException("Parsing instruction is inappropriate");
 	}

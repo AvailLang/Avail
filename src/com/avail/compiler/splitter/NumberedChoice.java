@@ -49,7 +49,7 @@ import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.BRANCH;
 import static com.avail.compiler.ParsingOperation.JUMP;
-import static com.avail.compiler.ParsingOperation.PUSH_INTEGER_LITERAL;
+import static com.avail.compiler.ParsingOperation.PUSH_LITERAL;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
 
 /**
@@ -183,7 +183,9 @@ extends Expression
 			// *do not* pass the choice number as an argument.  Therefore
 			// nothing new has been pushed for us to clean up at this point.
 			alternative.emitOn(generator, ListNodeTypeDescriptor.empty());
-			generator.emit(this, PUSH_INTEGER_LITERAL, index + 1);
+			generator.emit(
+				this, PUSH_LITERAL, MessageSplitter.indexForConstant(
+					IntegerDescriptor.fromInt(index + 1)));
 			if (!last)
 			{
 				generator.emit(this, JUMP, $exit);

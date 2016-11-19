@@ -92,7 +92,7 @@ extends Argument
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
-			MessageSplitter.indexForType(expressionType));
+			MessageSplitter.indexForConstant(expressionType));
 		generator.emitDelayed(this, CONVERT, EVALUATE_EXPRESSION.number());
 	}
 

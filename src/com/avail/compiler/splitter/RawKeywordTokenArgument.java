@@ -34,7 +34,6 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.LiteralTokenTypeDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 
 import static com.avail.compiler.ParsingOperation.PARSE_RAW_KEYWORD_TOKEN;
@@ -76,7 +75,7 @@ extends RawTokenArgument
 			generator.emitDelayed(
 				this,
 				TYPE_CHECK_ARGUMENT,
-				MessageSplitter.indexForType(phraseType));
+				MessageSplitter.indexForConstant(phraseType));
 		}
 	}
 }

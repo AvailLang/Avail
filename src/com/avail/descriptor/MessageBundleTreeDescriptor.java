@@ -1008,7 +1008,7 @@ extends Descriptor
 				// type-dispatch tree.
 				final int typeIndex = op.typeCheckArgumentIndex(instruction);
 				final A_Type phraseType =
-					MessageSplitter.typeToCheck(typeIndex);
+					MessageSplitter.constantForIndex(typeIndex);
 				final A_ParsingPlanInProgress planInProgress =
 					ParsingPlanInProgressDescriptor.create(plan, pc + 1);
 				final A_Tuple pair = TupleDescriptor.from(
