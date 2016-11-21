@@ -3009,6 +3009,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	abstract A_Tuple o_CopyAsMutableIntTuple (
+		AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	abstract A_Tuple o_CopyAsMutableObjectTuple (
 		AvailObject object);
 
@@ -5932,6 +5939,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param anIntTuple
+	 * @return
+	 */
+	abstract boolean o_EqualsIntTuple (
+		AvailObject object,
+		A_Tuple anIntTuple);
+
+	/**
+	 * @param object
 	 * @param aSmallIntegerIntervalTuple
 	 * @return
 	 */
@@ -6466,4 +6482,25 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param anIntTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	abstract boolean o_CompareFromToWithIntTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsIntTuple (final AvailObject object);
 }

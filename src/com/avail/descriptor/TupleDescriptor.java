@@ -319,6 +319,15 @@ extends Descriptor
 		return o_EqualsAnyTuple(object, aTuple);
 	}
 
+	@Override
+	boolean o_EqualsIntTuple (
+		final AvailObject object,
+		final A_Tuple anIntTuple)
+	{
+		// Default to generic tuple comparison.
+		return o_EqualsAnyTuple(object, anIntTuple);
+	}
+
 	@Override @AvailMethod
 	boolean o_EqualsReverseTuple (
 		final AvailObject object,
@@ -404,7 +413,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		// The tuple's size is out of range.
+		// The tuple's size is in range.
 		final A_Tuple typeTuple = aTypeObject.typeTuple();
 		final int breakIndex = min(tupleSize, typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
@@ -588,6 +597,19 @@ extends Descriptor
 			endIndex1,
 			anIntegerIntervalTuple,
 			startIndex2);
+	}
+
+	@Override @AvailMethod
+	boolean o_CompareFromToWithIntTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2)
+	{
+		// Compare sections of two tuples. Default to generic comparison.
+		return o_CompareFromToWithAnyTupleStartingAt(
+			object, startIndex1, endIndex1, anIntTuple, startIndex2);
 	}
 
 	@Override @AvailMethod
@@ -1026,6 +1048,29 @@ extends Descriptor
 	}
 
 	/**
+	 * Answer a mutable copy of object that holds ints.
+	 */
+	@Override @AvailMethod
+	A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
+	{
+		final int size = object.tupleSize();
+		final AvailObject result = IntTupleDescriptor.generateFrom(
+			size,
+			new Generator<Integer>()
+			{
+				int index = 1;
+
+				@Override
+				public Integer value ()
+				{
+					return object.tupleIntAt(index++);
+				}
+			});
+		result.hashOrZero(object.hashOrZero());
+		return result;
+	}
+
+	/**
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
 	@Override @AvailMethod
@@ -1408,8 +1453,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new tuple of integers. Use the most compact representation
-	 * that can still represent each supplied {@link Integer}.
+	 * Construct a new tuple of ints. Use the most compact representation that
+	 * can still represent each supplied {@link Integer}.
 	 *
 	 * @param list
 	 *        The list of Java {@linkplain Integer}s to assemble in a tuple.
@@ -1459,17 +1504,16 @@ extends Descriptor
 				return tuple;
 			}
 		}
-		tuple = ObjectTupleDescriptor.generateFrom(
+		tuple = IntTupleDescriptor.generateFrom(
 			list.size(),
-			new Generator<A_BasicObject>()
+			new Generator<Integer>()
 			{
 				private int index = 0;
 
 				@Override
-				public A_BasicObject value ()
+				public Integer value ()
 				{
-					return IntegerDescriptor.fromInt(
-						list.get(index++));
+					return list.get(index++);
 				}
 			});
 		return tuple;

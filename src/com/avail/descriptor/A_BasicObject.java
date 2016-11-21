@@ -650,6 +650,17 @@ extends JSONFriendly
 	boolean isIntegerRangeType ();
 
 	/**
+	 * Is the {@linkplain AvailObject receiver} an Avail {@linkplain
+	 * IntTupleDescriptor int tuple}?  This is conservative, in that some object
+	 * tuples <em>may</em> only contain ints but not be reported as being int
+	 * tuples.
+	 *
+	 * @return {@code true} if the receiver is easily determined to be an int
+	 *         tuple, {@code false} otherwise.
+	 */
+	boolean isIntTuple ();
+
+	/**
 	 * Is the {@linkplain AvailObject receiver} an Avail map?
 	 *
 	 * @return {@code true} if the receiver is a map, {@code false} otherwise.
@@ -1092,22 +1103,29 @@ extends JSONFriendly
 	boolean isRepeatedElementTuple ();
 
 	/**
-	 * @param object
+	 * @param anIntegerIntervalTuple
 	 * @return
 	 */
-	boolean equalsIntegerIntervalTuple (A_Tuple object);
+	boolean equalsIntegerIntervalTuple (A_Tuple anIntegerIntervalTuple);
 
 	/**
-	 * @param object
+	 * @param anIntTuple
 	 * @return
 	 */
-	boolean equalsSmallIntegerIntervalTuple (A_Tuple object);
+	boolean equalsIntTuple (A_Tuple anIntTuple);
 
 	/**
-	 * @param object
+	 * @param aSmallIntegerIntervalTuple
 	 * @return
 	 */
-	boolean equalsRepeatedElementTuple (A_Tuple object);
+	boolean equalsSmallIntegerIntervalTuple (
+		A_Tuple aSmallIntegerIntervalTuple);
+
+	/**
+	 * @param aRepeatedElementTuple
+	 * @return
+	 */
+	boolean equalsRepeatedElementTuple (A_Tuple aRepeatedElementTuple);
 
 	/**
 	 * @param critical

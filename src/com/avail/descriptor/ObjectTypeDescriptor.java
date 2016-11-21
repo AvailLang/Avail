@@ -296,7 +296,7 @@ extends TypeDescriptor
 		{
 			// Don't lock if we're shared.  Multiple simultaneous computations
 			// of *the same* value are benign races.
-			hash = variant.randomInt ^ 0xE3561F16;
+			hash = variant.variantId ^ 0xE3561F16;
 			for (
 				int i = 1, limit = object.variableObjectSlotsCount();
 				i <= limit;

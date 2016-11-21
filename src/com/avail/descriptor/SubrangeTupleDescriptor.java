@@ -443,30 +443,30 @@ extends TupleDescriptor
 		final int tupleSize = object.slot(SIZE);
 		assert index >= 1 && index <= tupleSize;
 		final int adjustment = object.slot(START_INDEX) - 1;
-		final int adjustedIndex = index + adjustment;
 		final AvailObject basis = object.slot(BASIS_TUPLE).traversed();
 		if (!canDestroy)
 		{
 			basis.makeImmutable();
 		}
 		assert tupleSize >= 3
-		: "subrange is too small; recursion won't bottom out correctly";
-		// First, split into two parts, approximately evenly.  Use the
-		// coordinate system of the basis tuple.
-		final int start = 1 + adjustment;
-		final int end = tupleSize + adjustment;
-		final int splitPoint = start + (tupleSize >>> 1);
+			: "subrange is too small; recursion won't bottom out correctly";
 		// Freeze the basis, since there may be two references to it below.
 		basis.makeImmutable();
+		// Split into two parts, approximately evenly.  Use the coordinate
+		// system of the basis tuple.
+		final int start = 1 + adjustment;
+		final int splitPoint = start + (tupleSize >>> 1);
 		A_Tuple leftPart = basis.copyTupleFromToCanDestroy(
 			start, splitPoint - 1, false);
 		assert 1 <= leftPart.tupleSize();
 		assert leftPart.tupleSize() < tupleSize;
+		final int end = tupleSize + adjustment;
 		A_Tuple rightPart = basis.copyTupleFromToCanDestroy(
 			splitPoint, end, false);
 		assert 1 <= rightPart.tupleSize();
 		assert rightPart.tupleSize() < tupleSize;
 		assert leftPart.tupleSize() + rightPart.tupleSize() == tupleSize;
+		final int adjustedIndex = index + adjustment;
 		if (adjustedIndex < splitPoint)
 		{
 			leftPart = leftPart.tupleAtPuttingCanDestroy(

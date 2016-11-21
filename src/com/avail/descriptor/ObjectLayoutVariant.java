@@ -65,10 +65,11 @@ public class ObjectLayoutVariant
 	public final int realSlotCount;
 
 	/**
-	 * A random int suitable for seeding the hash of my objects and object
-	 * types.
+	 * A unique int suitable for distinguishing variants.  This may become more
+	 * useful when Level Two code needs to track metrics and create variant
+	 * specific versions of code without garbage collection complexity.
 	 */
-	public final int randomInt;
+	public final int variantId;
 
 	/**
 	 * The set of all fields present in this variant.  This includes not just
@@ -114,8 +115,12 @@ public class ObjectLayoutVariant
 	 * @param allFields
 	 *        The complete {@link A_Set set} of {@link A_Atom atom}s that are
 	 *        present in objects and object types that will use the new variant.
+	 * @param variantId
+	 *        An {@code int} unique to this variant, allocated from the
+	 *        {@link #variantsCounter} while holding the writeLock of the
+	 *        {@link #variantsLock}.
 	 */
-	ObjectLayoutVariant (final A_Set allFields)
+	ObjectLayoutVariant (final A_Set allFields, final int variantId)
 	{
 		this.allFields = allFields.makeShared();
 		final A_Atom explicitSubclassingKey =
@@ -142,7 +147,7 @@ public class ObjectLayoutVariant
 			fieldToSlotIndex.put(field, isReal ? ++slotCount : 0);
 		}
 		this.realSlotCount = slotCount;
-		this.randomInt = AvailRuntime.nextHash();
+		this.variantId = variantId;
 		thisPojo = RawPojoDescriptor.identityWrap(this);
 		this.mutableObjectDescriptor =
 			new ObjectDescriptor(Mutability.MUTABLE, this);
@@ -162,7 +167,15 @@ public class ObjectLayoutVariant
 	final static Map<A_Set, ObjectLayoutVariant> allVariants = new HashMap<>();
 
 	/** The lock used to protect access to the allVariants map. */
-	private final static ReadWriteLock variantsLock = new ReentrantReadWriteLock();
+	private final static ReadWriteLock variantsLock =
+		new ReentrantReadWriteLock();
+
+	/**
+	 * A monotonically increasing counter for allocating a unique {@link
+	 * #variantId} for each variant.  Should only be accessed while holding
+	 * the variantsLock's writeLock.
+	 */
+	private static int variantsCounter = 0;
 
 	/**
 	 * Look up or create a variant for the given set of fields ({@link
@@ -176,6 +189,7 @@ public class ObjectLayoutVariant
 			final ObjectLayoutVariant variant = allVariants.get(allFields);
 			if (variant != null)
 			{
+				// By far the most likely path.
 				return variant;
 			}
 		}
@@ -184,10 +198,10 @@ public class ObjectLayoutVariant
 			variantsLock.readLock().unlock();
 		}
 
-		// Didn't find it while holding the read lock.  Create it outside of the
-		// lock.  There's a small chance that somebody else adds it during this
-		// time, so be prepared to abandon our new variant and use theirs.
-		final ObjectLayoutVariant variant = new ObjectLayoutVariant(allFields);
+		// Didn't find it while holding the read lock.  We could create it
+		// outside of the lock, then test for its presence again inside the
+		// write lock, abandoning it for the existing one if found.  Instead,
+		// hold the write lock, test again, and create and add if necessary.
 		variantsLock.writeLock().lock();
 		try
 		{
@@ -195,9 +209,10 @@ public class ObjectLayoutVariant
 			final ObjectLayoutVariant theirVariant = allVariants.get(allFields);
 			if (theirVariant != null)
 			{
-				// No cleanup is needed for the one we're abandoning.
 				return theirVariant;
 			}
+			final ObjectLayoutVariant variant =
+				new ObjectLayoutVariant(allFields, ++variantsCounter);
 			allVariants.put(allFields, variant);
 			return variant;
 		}

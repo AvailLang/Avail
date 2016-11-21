@@ -1075,6 +1075,38 @@ implements
 
 	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain IntTupleDescriptor int tuple}. The
+	 * size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param anIntTuple
+	 *        The int tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the int tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 */
+	@Override
+	public boolean compareFromToWithIntTupleStartingAt (
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2)
+	{
+		return descriptor.o_CompareFromToWithIntTupleStartingAt(
+			this,
+			startIndex1,
+			endIndex1,
+			anIntTuple,
+			startIndex2);
+	}
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of the given {@linkplain SmallIntegerIntervalTupleDescriptor
 	 * small integer interval tuple}. The size of the subrange of both objects
 	 * is determined by the index range supplied for the receiver.
@@ -1301,6 +1333,15 @@ implements
 		final A_Continuation value)
 	{
 		descriptor.o_Continuation(this, value);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
+	public A_Tuple copyAsMutableIntTuple ()
+	{
+		return descriptor.o_CopyAsMutableIntTuple(this);
 	}
 
 	/**
@@ -1565,6 +1606,22 @@ implements
 		return descriptor.o_EqualsIntegerIntervalTuple(
 			this,
 			anIntegerIntervalTuple);
+	}
+
+	/**
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, an {@linkplain IntTupleDescriptor int tuple}, are equal in
+	 * value.
+	 *
+	 * @param anIntTuple The int tuple to be compared to the receiver.
+	 * @return {@code true} if the receiver is a tuple equal to the argument,
+	 *         {@code false} otherwise.
+	 */
+	@Override
+	public boolean equalsIntTuple (
+		final A_Tuple anIntTuple)
+	{
+		return descriptor.o_EqualsIntTuple(this, anIntTuple);
 	}
 
 	/**
@@ -2442,6 +2499,12 @@ implements
 	public boolean isIntegerIntervalTuple ()
 	{
 		return descriptor.o_IsIntegerIntervalTuple(this);
+	}
+
+	@Override
+	public boolean isIntTuple ()
+	{
+		return descriptor.o_IsIntTuple(this);
 	}
 
 	/**

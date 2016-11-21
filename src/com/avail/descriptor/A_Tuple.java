@@ -252,6 +252,29 @@ extends A_BasicObject, Iterable<AvailObject>
 
 	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain IntTupleDescriptor int tuple}. The size
+	 * of the subrange of both objects is determined by the index range supplied
+	 * for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param anIntTuple
+	 *        The int tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the int tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 */
+	boolean compareFromToWithIntTupleStartingAt (
+		int startIndex1,
+		int endIndex1,
+		A_Tuple anIntTuple,
+		int startIndex2);
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}.
 	 * The size of the subrange of both objects is determined by the index range
 	 * supplied for the receiver.
@@ -422,6 +445,13 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * @return The new mutable {@link ObjectTupleDescriptor object tuple}.
 	 */
 	A_Tuple copyAsMutableObjectTuple ();
+
+	/**
+	 * Make a mutable copy of the tuple but in a form that accepts ints.
+	 *
+	 * @return The new mutable {@link IntTupleDescriptor int tuple}.
+	 */
+	A_Tuple copyAsMutableIntTuple ();
 
 	/**
 	 * Make a tuple that only contains the given range of elements of the given

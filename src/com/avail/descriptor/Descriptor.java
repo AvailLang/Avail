@@ -1603,6 +1603,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -2131,6 +2137,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_EqualsIntTuple (
+		final AvailObject object,
+		final A_Tuple anIntTuple)
+	{
+		return false;
+	}
+
+	@Override
 	boolean o_EqualsSmallIntegerIntervalTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
@@ -2470,6 +2484,12 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_IsCharacter (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_IsIntTuple (final AvailObject object)
 	{
 		return false;
 	}
@@ -4709,6 +4729,17 @@ extends AbstractDescriptor
 
 	@Override
 	A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_CompareFromToWithIntTupleStartingAt (
+		final AvailObject availObject,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2)
 	{
 		throw unsupportedOperationException();
 	}

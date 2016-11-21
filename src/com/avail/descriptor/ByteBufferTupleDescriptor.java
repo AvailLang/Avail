@@ -288,7 +288,7 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		// tuple's size is out of range.
+		// tuple's size is in range.
 		final A_Tuple typeTuple = aType.typeTuple();
 		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
@@ -336,10 +336,13 @@ extends TupleDescriptor
 		assert 1 <= index && index <= object.tupleSize();
 		if (!newValueObject.isUnsignedByte())
 		{
+			if (newValueObject.isInt())
+			{
+				return object.copyAsMutableIntTuple().tupleAtPuttingCanDestroy(
+					index, newValueObject, true);
+			}
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
+				index, newValueObject, true);
 		}
 		if (!canDestroy || !isMutable())
 		{

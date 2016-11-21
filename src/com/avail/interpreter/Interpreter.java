@@ -337,7 +337,10 @@ public final class Interpreter
 		/**
 		 * The integer register values.
 		 */
-		INTEGERS
+		INTEGERS,
+
+		/** The current {@link AvailLoader}, if any. */
+		LOADER;
 	}
 
 	/**
@@ -368,7 +371,7 @@ public final class Interpreter
 		outerArray[FakeStackTraceSlots.L2_INSTRUCTIONS.ordinal()] =
 			chunk().instructions;
 
-		// Produce the current chunk's L2 instructions...
+		// Produce the current function being executed...
 		outerArray[FakeStackTraceSlots.CURRENT_FUNCTION.ordinal()] =
 			pointers[FUNCTION.ordinal()];
 
@@ -401,6 +404,8 @@ public final class Interpreter
 		}
 		outerArray[FakeStackTraceSlots.INTEGERS.ordinal()] =
 			TupleDescriptor.fromIntegerList(integersList);
+
+		outerArray[FakeStackTraceSlots.LOADER.ordinal()] = availLoaderOrNull();
 
 		// Now put all the top level constructs together...
 		final AvailObjectFieldHelper[] helpers =

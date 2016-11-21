@@ -359,18 +359,17 @@ extends Expression
 					expressionZeroIndex < expressionsSize - 1
 						? expressions.get(expressionZeroIndex + 1)
 						: null;
+				// A non-last expression is Optional.  To avoid polluting the
+				// action map with an early PUSH_FALSE, we keep the control flow
+				// split for a bit and duplicate the expression that follows
+				// along both paths.  This should increase the opportunity for
+				// instruction migration, allowing a PARSE_PART or
+				// PARSE_ARGUMENT to occur before the PUSH_FALSE.
 				if (nextExpression != null
 					&& expression instanceof Optional
 					&& !expression.hasSectionCheckpoints()
 					&& !nextExpression.hasSectionCheckpoints())
 				{
-					// A non-last expression is Optional.  To avoid polluting
-					// the action map with an early PUSH_FALSE, we keep the
-					// control flow split for a bit and duplicate the expression
-					// that follows along both paths.  This should increase the
-					// opportunity for instruction migration, allowing a
-					// PARSE_PART or PARSE_ARGUMENT to occur before the
-					// PUSH_FALSE.
 					final A_Type nextEntryType;
 					if (nextExpression.isArgumentOrGroup())
 					{

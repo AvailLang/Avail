@@ -320,7 +320,7 @@ extends Descriptor
 		{
 			// Don't lock if we're shared.  Multiple simultaneous computations
 			// of *the same* value are benign races.
-			hash = variant.randomInt;
+			hash = variant.variantId;
 			for (
 				int i = 1, limit = object.variableObjectSlotsCount();
 				i <= limit;

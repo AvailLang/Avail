@@ -2109,6 +2109,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
+	{
+		return o_Traversed(object).copyAsMutableIntTuple();
+	}
+
+	@Override
 	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		return o_Traversed(object).copyAsMutableObjectTuple();
@@ -4908,5 +4914,30 @@ extends AbstractDescriptor
 	A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
 	{
 		return o_Traversed(object).parsingPlan();
+	}
+
+	@Override
+	boolean o_CompareFromToWithIntTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2)
+	{
+		return o_Traversed(object).compareFromToWithIntTupleStartingAt(
+			startIndex1, endIndex1, anIntTuple, startIndex2);
+	}
+
+	@Override
+	boolean o_IsIntTuple (final AvailObject object)
+	{
+		return o_Traversed(object).isIntTuple();
+	}
+
+	@Override
+	boolean o_EqualsIntTuple (
+		final AvailObject object, final A_Tuple anIntTuple)
+	{
+		return o_Traversed(object).equalsIntTuple(anIntTuple);
 	}
 }

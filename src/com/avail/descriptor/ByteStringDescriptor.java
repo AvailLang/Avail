@@ -310,9 +310,7 @@ extends StringDescriptor
 		}
 		//  Convert to an arbitrary Tuple instead.
 		return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-			index,
-			newValueObject,
-			true);
+			index, newValueObject, true);
 	}
 
 	@Override @AvailMethod

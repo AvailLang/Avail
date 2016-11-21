@@ -361,13 +361,35 @@ extends TupleDescriptor
 		// If it's cheap to check my elements, just do it.  This can help keep
 		// representations smaller and faster when concatenating short, quickly
 		// built object tuples that happen to only contain bytes onto the start
-		// of end of other byte tuples.
+		// or end of other byte tuples.
 		final int tupleSize = object.tupleSize();
 		if (tupleSize <= 5)
 		{
 			for (int i = 1; i <= tupleSize; i++)
 			{
 				if (!object.slot(TUPLE_AT_, i).isUnsignedByte())
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsIntTuple (final AvailObject object)
+	{
+		// If it's cheap to check my elements, just do it.  This can help keep
+		// representations smaller and faster when concatenating short, quickly
+		// built object tuples that happen to only contain ints onto the start
+		// or end of other int tuples.
+		final int tupleSize = object.tupleSize();
+		if (tupleSize <= 5)
+		{
+			for (int i = 1; i <= tupleSize; i++)
+			{
+				if (!object.slot(TUPLE_AT_, i).isInt())
 				{
 					return false;
 				}

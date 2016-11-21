@@ -109,7 +109,7 @@ extends TupleDescriptor
 	 * IntegerSlots#RAW_LONG_AT_ integer slot} that are not considered part of
 	 * the tuple.
 	 */
-	int unusedNybblesOfLastLong;
+	private final int unusedNybblesOfLastLong;
 
 	@Override @AvailMethod
 	A_Tuple o_AppendCanDestroy (
@@ -489,27 +489,28 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
-		final int nybbleIndex,
+		final int index,
 		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
-		assert nybbleIndex >= 1 && nybbleIndex <= object.tupleSize();
+		assert index >= 1 && index <= object.tupleSize();
 		if (!newValueObject.isNybble())
 		{
 			if (newValueObject.isUnsignedByte())
 			{
 				return copyAsMutableByteTuple(object).tupleAtPuttingCanDestroy(
-					nybbleIndex,
-					newValueObject,
-					true);
+					index, newValueObject, true);
+			}
+			if (newValueObject.isInt())
+			{
+				return object.copyAsMutableIntTuple().tupleAtPuttingCanDestroy(
+					index, newValueObject, true);
 			}
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				nybbleIndex,
-				newValueObject,
-				true);
+				index, newValueObject, true);
 		}
 		final AvailObject result;
 		if (canDestroy && isMutable())
@@ -522,7 +523,7 @@ extends TupleDescriptor
 		}
 		// All clear.  Clobber the object in place...
 		final byte newNybble = ((A_Number)newValueObject).extractNybble();
-		setNybble(result, nybbleIndex, newNybble);
+		setNybble(result, index, newNybble);
 		result.hashOrZero(0);
 		//  ...invalidate the hash value. Probably cheaper than computing the
 		// difference or even testing for an actual change.

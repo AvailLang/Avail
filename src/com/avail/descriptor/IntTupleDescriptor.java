@@ -1,5 +1,5 @@
 /**
- * ByteTupleDescriptor.java
+ * IntTupleDescriptor.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,26 +32,30 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static java.lang.Math.*;
-import java.nio.ByteBuffer;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 
+import java.nio.ByteBuffer;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObject.newIndexedDescriptor;
+import static com.avail.descriptor.AvailObject.newLike;
+import static com.avail.descriptor.IntTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
+import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static java.lang.Math.min;
+
 /**
- * {@code ByteTupleDescriptor} represents a tuple of integers that happen to
- * fall in the range 0..255.
+ * {@code IntTupleDescriptor} efficiently represents a tuple of integers that
+ * happen to fall in the range of a Java {@code int}, which is
+ * [-2<sup>31</sup>..2<sup>31</sup>-1].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class ByteTupleDescriptor
+public class IntTupleDescriptor
 extends TupleDescriptor
 {
 	/**
@@ -69,7 +73,7 @@ extends TupleDescriptor
 
 		/**
 		 * The raw 64-bit machine words that constitute the representation of
-		 * the {@linkplain ByteTupleDescriptor byte tuple}.
+		 * the {@linkplain IntTupleDescriptor byte tuple}.
 		 */
 		RAW_LONG_AT_;
 
@@ -91,18 +95,18 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * The number of ints of the last {@code long} that do not participate in
+	 * the representation of the {@linkplain IntTupleDescriptor tuple}.
+	 * Must be 0 or 1.
+	 */
+	private final int unusedIntsOfLastLong;
+
+	/**
 	 * Defined threshold for making copies versus using {@linkplain
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
 	 * a new tuple.
 	 */
-	private static final int maximumCopySize = 64;
-
-	/**
-	 * The number of bytes of the last {@code long} that do not participate in
-	 * the representation of the {@linkplain ByteTupleDescriptor byte tuple}.
-	 * Must be between 0 and 7.
-	 */
-	private final int unusedBytesOfLastLong;
+	private static final int maximumCopySize = 32;
 
 	@Override @AvailMethod
 	A_Tuple o_AppendCanDestroy (
@@ -111,32 +115,44 @@ extends TupleDescriptor
 		final boolean canDestroy)
 	{
 		final int originalSize = object.tupleSize();
-		final int intValue;
-		if (originalSize >= maximumCopySize
-			|| !newElement.isInt()
-			|| ((intValue = ((A_Number) newElement).extractInt()) & 255)
-				!= intValue)
+		if (!newElement.isInt())
 		{
-			// Transition to a tree tuple.
+			// Transition to a tree tuple because it's not an int.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
+		final int intValue = ((AvailObject)newElement).extractInt();
+		if (originalSize >= maximumCopySize)
+		{
+			// Transition to a tree tuple because it's too big.
+			final A_Tuple singleton = IntTupleDescriptor.generateFrom(
+				1,
+				new Generator<Integer>()
+				{
+					@Override
+					public Integer value ()
+					{
+						return intValue;
+					}
+				});
+			return object.concatenateWith(singleton, canDestroy);
+		}
 		final int newSize = originalSize + 1;
-		if (isMutable() && canDestroy && (originalSize & 7) != 0)
+		if (isMutable() && canDestroy && (originalSize & 1) != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
 			object.descriptor = descriptorFor(MUTABLE, newSize);
-			object.setByteSlot(RAW_LONG_AT_, newSize, (short)intValue);
+			object.setIntSlot(RAW_LONG_AT_, newSize, intValue);
 			object.setSlot(HASH_OR_ZERO, 0);
 			return object;
 		}
-		// Copy to a potentially larger ByteTupleDescriptor.
+		// Copy to a potentially larger IntTupleDescriptor.
 		final AvailObject result = newLike(
 			descriptorFor(MUTABLE, newSize),
 			object,
 			0,
-			(originalSize & 7) == 0 ? 1 : 0);
-		result.setByteSlot(RAW_LONG_AT_, newSize, (short)intValue);
+			(originalSize & 1) == 0 ? 1 : 0);
+		result.setIntSlot(RAW_LONG_AT_, newSize, intValue);
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
@@ -147,7 +163,7 @@ extends TupleDescriptor
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
-		return 8;
+		return 32;
 	}
 
 	@Override @AvailMethod
@@ -158,17 +174,39 @@ extends TupleDescriptor
 		final A_Tuple aByteTuple,
 		final int startIndex2)
 	{
-		if (object.sameAddressAs(aByteTuple) && startIndex1 == startIndex2)
-		{
-			return true;
-		}
-		// Compare actual bytes.
+		// Compare the argument's bytes to my ints.
 		for (
 			int index1 = startIndex1, index2 = startIndex2;
 			index1 <= endIndex1;
 			index1++, index2++)
 		{
 			if (object.tupleIntAt(index1) != aByteTuple.tupleIntAt(index2))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override @AvailMethod
+	boolean o_CompareFromToWithIntTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2)
+	{
+		if (object.sameAddressAs(anIntTuple) && startIndex1 == startIndex2)
+		{
+			return true;
+		}
+		// Compare the argument's bytes to my ints.
+		for (
+			int index1 = startIndex1, index2 = startIndex2;
+			index1 <= endIndex1;
+			index1++, index2++)
+		{
+			if (object.tupleIntAt(index1) != anIntTuple.tupleIntAt(index2))
 			{
 				return false;
 			}
@@ -184,7 +222,7 @@ extends TupleDescriptor
 		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
-		return anotherObject.compareFromToWithByteTupleStartingAt(
+		return anotherObject.compareFromToWithIntTupleStartingAt(
 			startIndex2,
 			startIndex2 + endIndex1 - startIndex1,
 			object,
@@ -201,8 +239,9 @@ extends TupleDescriptor
 		int hash = 0;
 		for (int index = end; index >= start; index--)
 		{
-			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-				(short) object.tupleIntAt(index)) ^ preToggle;
+			final int itemHash =
+				IntegerDescriptor.computeHashOfInt(object.tupleIntAt(index))
+					^ preToggle;
 			hash = (hash + itemHash) * multiplier;
 		}
 		return hash;
@@ -233,10 +272,10 @@ extends TupleDescriptor
 			return object;
 		}
 		final int newSize = size1 + size2;
-		if (otherTuple.isByteTuple() && newSize <= maximumCopySize)
+		if (otherTuple.isIntTuple() && newSize <= maximumCopySize)
 		{
-			// Copy the bytes.
-			final int newLongCount = (newSize + 7) >>> 3;
+			// Copy the ints.
+			final int newLongCount = (newSize + 1) >>> 1;
 			final int deltaSlots =
 				newLongCount - object.variableIntegerSlotsCount();
 			final AvailObject result;
@@ -254,10 +293,8 @@ extends TupleDescriptor
 			int dest = size1 + 1;
 			for (int src = 1; src <= size2; src++, dest++)
 			{
-				result.setByteSlot(
-					RAW_LONG_AT_,
-					dest,
-					(short) otherTuple.tupleIntAt(src));
+				result.setIntSlot(
+					RAW_LONG_AT_, dest, otherTuple.tupleIntAt(src));
 			}
 			result.setSlot(HASH_OR_ZERO, 0);
 			return result;
@@ -289,17 +326,15 @@ extends TupleDescriptor
 		if (size > 0 && size < tupleSize && size < maximumCopySize)
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
-			// Just copy the applicable bytes out.  In theory we could use
-			// newLike() if start is 1.  Make sure to mask the last word in that
+			// Just copy the applicable ints out.  In theory we could use
+			// newLike() if start is 1.  Make sure to mask the last long in that
 			// case.
 			final AvailObject result = mutableObjectOfSize(size);
 			int dest = 1;
 			for (int src = start; src <= end; src++, dest++)
 			{
-				result.setByteSlot(
-					RAW_LONG_AT_,
-					dest,
-					object.byteSlot(RAW_LONG_AT_, src));
+				result.setIntSlot(
+					RAW_LONG_AT_, dest, object.intSlot(RAW_LONG_AT_, src));
 			}
 			if (canDestroy)
 			{
@@ -316,7 +351,7 @@ extends TupleDescriptor
 		final AvailObject object,
 		final A_BasicObject another)
 	{
-		return another.equalsByteTuple(object);
+		return another.equalsIntTuple(object);
 	}
 
 	@Override @AvailMethod
@@ -324,11 +359,6 @@ extends TupleDescriptor
 		final AvailObject object,
 		final A_Tuple aByteTuple)
 	{
-		// First, check for object-structure (address) identity.
-		if (object.sameAddressAs(aByteTuple))
-		{
-			return true;
-		}
 		if (object.tupleSize() != aByteTuple.tupleSize())
 		{
 			return false;
@@ -345,9 +375,10 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		// They're equal (but occupy disjoint storage). If possible, then
-		// replace one with an indirection to the other to keep down the
-		// frequency of byte-wise comparisons.
+		// They're equal (but occupy disjoint storage). If possible, replace one
+		// with an indirection to the other to keep down the frequency of
+		// byte/int-wise comparisons.  Prefer the byte representation if there's
+		// a choice.
 		if (!isShared())
 		{
 			aByteTuple.makeImmutable();
@@ -362,7 +393,72 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_EqualsIntTuple (
+		final AvailObject object,
+		final A_Tuple anIntTuple)
+	{
+		// First, check for object-structure (address) identity.
+		if (object.sameAddressAs(anIntTuple))
+		{
+			return true;
+		}
+		if (object.tupleSize() != anIntTuple.tupleSize())
+		{
+			return false;
+		}
+		if (object.hash() != anIntTuple.hash())
+		{
+			return false;
+		}
+		if (!object.compareFromToWithIntTupleStartingAt(
+			1,
+			object.tupleSize(),
+			anIntTuple,
+			1))
+		{
+			return false;
+		}
+		// They're equal (but occupy disjoint storage). If possible, then
+		// replace one with an indirection to the other to keep down the
+		// frequency of int-wise comparisons.
+		if (!isShared())
+		{
+			anIntTuple.makeImmutable();
+			object.becomeIndirectionTo(anIntTuple);
+		}
+		else if (!anIntTuple.descriptor().isShared())
+		{
+			object.makeImmutable();
+			anIntTuple.becomeIndirectionTo(object);
+		}
+		return true;
+	}
+
+	@Override @AvailMethod
 	boolean o_IsByteTuple (final AvailObject object)
+	{
+		// If it's cheap to check my elements, just do it.  This can help keep
+		// representations smaller and faster when concatenating short, quickly
+		// built int tuples that happen to only contain bytes onto the start
+		// or end of other byte tuples.
+		final int tupleSize = object.tupleSize();
+		if (tupleSize <= 10)
+		{
+			for (int i = 1; i <= tupleSize; i++)
+			{
+				final int element = object.intSlot(RAW_LONG_AT_, i);
+				if (element != (element & 255))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsIntTuple (final AvailObject object)
 	{
 		return true;
 	}
@@ -396,7 +492,7 @@ extends TupleDescriptor
 			}
 		}
 		final A_Type defaultTypeObject = aType.defaultType();
-		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(defaultTypeObject))
+		if (IntegerRangeTypeDescriptor.int32().isSubtypeOf(defaultTypeObject))
 		{
 			return true;
 		}
@@ -439,7 +535,10 @@ extends TupleDescriptor
 	{
 		for (int index = startIndex; index <= endIndex; index++)
 		{
-			outputByteBuffer.put((byte) object.byteSlot(RAW_LONG_AT_, index));
+			final int mustBeByte = object.intSlot(RAW_LONG_AT_, index);
+			assert mustBeByte == (mustBeByte & 255);
+			//noinspection NumericCastThatLosesPrecision
+			outputByteBuffer.put((byte) mustBeByte);
 		}
 	}
 
@@ -448,10 +547,10 @@ extends TupleDescriptor
 		final AvailObject object,
 		final int index)
 	{
-		//  Answer the element at the given index in the tuple object.
+		// Answer the element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
-		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
-			object.byteSlot(RAW_LONG_AT_, index));
+		return (AvailObject)IntegerDescriptor.fromInt(
+			object.intSlot(RAW_LONG_AT_, index));
 	}
 
 	@Override @AvailMethod
@@ -464,25 +563,19 @@ extends TupleDescriptor
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
-
 		assert index >= 1 && index <= object.tupleSize();
-		if (!newValueObject.isUnsignedByte())
+		if (!newValueObject.isInt())
 		{
-			if (newValueObject.isInt())
-			{
-				return object.copyAsMutableIntTuple().tupleAtPuttingCanDestroy(
-					index, newValueObject, true);
-			}
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index, newValueObject, true);
+				index,
+				newValueObject,
+				true);
 		}
 		final AvailObject result = canDestroy && isMutable()
 			? object
 			: newLike(mutable(), object, 0, 0);
-		result.setByteSlot(
-			RAW_LONG_AT_,
-			index,
-			((A_Number)newValueObject).extractUnsignedByte());
+		result.setIntSlot(
+			RAW_LONG_AT_, index, ((A_Number)newValueObject).extractInt());
 		result.hashOrZero(0);
 		return result;
 	}
@@ -494,15 +587,12 @@ extends TupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type))
+		if (IntegerRangeTypeDescriptor.int32().isSubtypeOf(type))
 		{
 			return true;
 		}
 		return super.o_TupleElementsInRangeAreInstancesOf(
-			object,
-			startIndex,
-			endIndex,
-			type);
+			object, startIndex, endIndex, type);
 	}
 
 	@Override @AvailMethod
@@ -512,23 +602,25 @@ extends TupleDescriptor
 	{
 		// Answer the integer element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
-		return object.byteSlot(RAW_LONG_AT_, index);
+		return object.intSlot(RAW_LONG_AT_, index);
 	}
 
 	@Override @AvailMethod
 	A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final int tupleSize = object.tupleSize();
-		if (tupleSize > 0 && tupleSize < maximumCopySize)
+		if (tupleSize <= 1)
 		{
-			// It's not empty and it's reasonably small.
+			return object;
+		}
+		if (tupleSize < maximumCopySize)
+		{
+			// It's not empty or singular, but it's reasonably small.
 			final AvailObject result = mutableObjectOfSize(tupleSize);
 			for (int dest = 1, src = tupleSize; src > 0; dest++, src--)
 			{
-				result.setByteSlot(
-					RAW_LONG_AT_,
-					dest,
-					object.byteSlot(RAW_LONG_AT_, src));
+				result.setIntSlot(
+					RAW_LONG_AT_, dest, object.intSlot(RAW_LONG_AT_, src));
 			}
 			return result;
 		}
@@ -538,7 +630,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	int o_TupleSize (final AvailObject object)
 	{
-		return object.variableIntegerSlotsCount() * 8 - unusedBytesOfLastLong;
+		return (object.variableIntegerSlotsCount() << 1) - unusedIntsOfLastLong;
 	}
 
 	@Override
@@ -547,65 +639,65 @@ extends TupleDescriptor
 		writer.startArray();
 		for (int i = 1, limit = object.tupleSize(); i <= limit; i++)
 		{
-			writer.write((short) object.tupleIntAt(i));
+			writer.write(object.tupleIntAt(i));
 		}
 		writer.endArray();
 	}
 
 	/**
-	 * Construct a new {@link ByteTupleDescriptor}.
+	 * Construct a new {@link IntTupleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 * @param unusedBytes
-	 *        The number of unused bytes of the last word.
+	 * @param unusedInts
+	 *        The number of unused ints of the last long.
 	 */
-	private ByteTupleDescriptor (
+	private IntTupleDescriptor (
 		final Mutability mutability,
-		final int unusedBytes)
+		final int unusedInts)
 	{
 		super(mutability, null, IntegerSlots.class);
-		unusedBytesOfLastLong = unusedBytes;
+		unusedIntsOfLastLong = unusedInts;
 	}
 
-	/** The {@link ByteTupleDescriptor} instances. */
-	private static final ByteTupleDescriptor[] descriptors =
-		new ByteTupleDescriptor[8 * 3];
+	/** The {@link IntTupleDescriptor} instances. */
+	private static final IntTupleDescriptor[] descriptors =
+		new IntTupleDescriptor[2 * 3];
 
 	static {
 		int i = 0;
-		for (final int excess : new int[] {0,7,6,5,4,3,2,1})
+		for (final int excess : new int[] {0,1})
 		{
 			for (final Mutability mut : Mutability.values())
 			{
-				descriptors[i++] = new ByteTupleDescriptor(mut, excess);
+				descriptors[i++] = new IntTupleDescriptor(mut, excess);
 			}
 		}
 	}
 
 	@Override
-	ByteTupleDescriptor mutable ()
+	IntTupleDescriptor mutable ()
 	{
 		return descriptors[
-			((8 - unusedBytesOfLastLong) & 7) * 3 + MUTABLE.ordinal()];
+			(unusedIntsOfLastLong & 1) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
-	ByteTupleDescriptor immutable ()
+	IntTupleDescriptor immutable ()
 	{
 		return descriptors[
-			((8 - unusedBytesOfLastLong) & 7) * 3 + IMMUTABLE.ordinal()];
+			(unusedIntsOfLastLong & 1) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
-	ByteTupleDescriptor shared ()
+	IntTupleDescriptor shared ()
 	{
 		return descriptors[
-			((8 - unusedBytesOfLastLong) & 7) * 3 + SHARED.ordinal()];
+			(unusedIntsOfLastLong & 1) * 3 + SHARED.ordinal()];
 	}
 
 	/**
-	 * Answer the appropriate {@linkplain ByteTupleDescriptor descriptor} to
+	 * Answer the appropriate {@linkplain IntTupleDescriptor descriptor} to
 	 * represent an {@linkplain AvailObject object} of the specified mutability
 	 * and size.
 	 *
@@ -613,66 +705,70 @@ extends TupleDescriptor
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param size
 	 *        The desired number of elements.
-	 * @return A {@linkplain ByteTupleDescriptor descriptor}.
+	 * @return A {@linkplain IntTupleDescriptor descriptor}.
 	 */
-	private static ByteTupleDescriptor descriptorFor (
+	private static IntTupleDescriptor descriptorFor (
 		final Mutability flag,
 		final int size)
 	{
-		final int delta = flag.ordinal();
-		return descriptors[(size & 7) * 3 + delta];
+		return descriptors[(size & 1) * 3 + flag.ordinal()];
 	}
 
 	/**
-	 * Build a mutable {@linkplain ByteTupleDescriptor byte tuple} with room for
+	 * Build a mutable {@linkplain IntTupleDescriptor int tuple} with room for
 	 * the specified number of elements.
 	 *
-	 * @param size The number of bytes in the resulting tuple.
-	 * @return A byte tuple with the specified number of bytes (initially zero).
+	 * @param size The number of ints in the resulting tuple.
+	 * @return An int tuple with the specified number of ints (initially zero).
 	 */
 	public static AvailObject mutableObjectOfSize (final int size)
 	{
-		final ByteTupleDescriptor descriptor = descriptorFor(MUTABLE, size);
-		assert (size + descriptor.unusedBytesOfLastLong & 7) == 0;
-		return descriptor.create(size + 7 >> 3);
+		final IntTupleDescriptor descriptor = descriptorFor(MUTABLE, size);
+		assert (size + descriptor.unusedIntsOfLastLong & 1) == 0;
+		return descriptor.create((size + 1) >>> 1);
+	}
+
+	/**
+	 * Answer a mutable copy of object that holds int objects.
+	 */
+	@Override @AvailMethod
+	A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
+	{
+		return newLike(mutable(), object, 0, 0);
 	}
 
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link ByteTupleDescriptor}.  Run the generator for each position in
-	 * ascending order to produce the unsigned bytes (as shorts in the range
-	 * [0..15]) with which to populate the tuple.
+	 * of {@link IntTupleDescriptor}.  Run the generator for each position in
+	 * ascending order to produce the {@code int}s with which to populate the
+	 * tuple.
 	 *
-	 * @param size The size of byte tuple to create.
-	 * @param generator A generator to provide unsigned bytes to store.
+	 * @param size The size of int-tuple to create.
+	 * @param generator A generator to provide ints to store.
 	 * @return The new tuple.
 	 */
 	public static AvailObject generateFrom (
 		final int size,
-		final Generator<Short> generator)
+		final Generator<Integer> generator)
 	{
-		final AvailObject result = mutableObjectOfSize(size);
-		// Aggregate eight writes at a time for the bulk of the tuple.
+		final IntTupleDescriptor descriptor = descriptorFor(MUTABLE, size);
+		final AvailObject result =
+			newIndexedDescriptor((size + 1) >>> 1, descriptor);
+		// Aggregate two writes at a time for the bulk of the tuple.
 		for (
-			int slotIndex = 1, limit = size >>> 3;
+			int slotIndex = 1, limit = size >>> 1;
 			slotIndex <= limit;
 			slotIndex++)
 		{
-			long combined = 0;
-			for (int shift = 0; shift < 64; shift += 8)
-			{
-				final long c = generator.value();
-				assert (c & 255) == c;
-				combined += c << shift;
-			}
+			long combined = generator.value() & 0xFFFF_FFFFL;
+			combined += ((long)generator.value()) << 32L;
 			result.setSlot(RAW_LONG_AT_, slotIndex, combined);
 		}
-		// Do the last 0-7 writes the slow way.
-		for (int index = (size & ~7) + 1; index <= size; index++)
+		if ((size & 1) == 1)
 		{
-			final long c = generator.value();
-			assert (c & 255) == c;
-			result.setByteSlot(RAW_LONG_AT_, index, (short)c);
+			// Do the last (odd) write the slow way.  Assume the upper int was
+			// zeroed.
+			result.setIntSlot(RAW_LONG_AT_, size, generator.value());
 		}
 		return result;
 	}
