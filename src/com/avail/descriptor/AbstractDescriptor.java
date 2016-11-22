@@ -400,7 +400,7 @@ public abstract class AbstractDescriptor
 	 * @param <A> The {@code Annotation} type.
 	 * @param enumConstant The {@code Enum} value.
 	 * @param annotationClass The {@link Class} of the {@code Annotation} type.
-	 * @return
+	 * @return The requested annotation or null.
 	 */
 	private static @Nullable <A extends Annotation> A getAnnotation (
 		final Enum<? extends Enum<?>> enumConstant,
@@ -426,14 +426,15 @@ public abstract class AbstractDescriptor
 	 * Describe the object for the Eclipse debugger.
 	 *
 	 * @param object
-	 * @return
+	 *        The {@link AvailObject} to describe.
+	 * @return An array of {@link AvailObjectFieldHelper}s that describe the
+	 *         logical parts of the given object.
 	 */
 	@SuppressWarnings("unchecked")
 	AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
-		final List<AvailObjectFieldHelper> fields =
-			new ArrayList<>();
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
 		Class<Enum<?>> enumClass;
@@ -481,8 +482,7 @@ public abstract class AbstractDescriptor
 							subscript,
 							new AvailIntegerValueHelper(
 								object.slot(
-									(IntegerSlotsEnum)slot,
-									subscript))));
+									(IntegerSlotsEnum)slot, subscript))));
 				}
 			}
 		}
@@ -659,7 +659,7 @@ public abstract class AbstractDescriptor
 			intEnumClass = null;
 		}
 		final IntegerSlotsEnum[] intSlots = intEnumClass != null
-			? (IntegerSlotsEnum[])intEnumClass.getEnumConstants()
+			? intEnumClass.getEnumConstants()
 			: new IntegerSlotsEnum[0];
 
 		for (int i = 1, limit = object.integerSlotsCount(); i <= limit; i++)
@@ -706,7 +706,7 @@ public abstract class AbstractDescriptor
 			objectEnumClass = null;
 		}
 		final ObjectSlotsEnum[] objectSlots = objectEnumClass != null
-			? (ObjectSlotsEnum[])objectEnumClass.getEnumConstants()
+			? objectEnumClass.getEnumConstants()
 			: new ObjectSlotsEnum[0];
 
 		for (int i = 1, limit = object.objectSlotsCount(); i <= limit; i++)
@@ -832,7 +832,7 @@ public abstract class AbstractDescriptor
 				{
 					final Enum<?> slotAsEnum = (Enum<?>) slot;
 					final Class<?> slotClass = slotAsEnum.getDeclaringClass();
-					bitFields = new ArrayList<BitField>();
+					bitFields = new ArrayList<>();
 					for (final Field field : slotClass.getDeclaredFields())
 					{
 						if (Modifier.isStatic(field.getModifiers())
@@ -873,7 +873,7 @@ public abstract class AbstractDescriptor
 					{
 						builder.append(
 							new Formatter().format(
-								" (enum out of range: 0x%08X %08X)",
+								" (enum out of range: 0x%08X_%08X)",
 								value >>> 32L,
 								value & 0xFFFFFFFFL));
 					}
@@ -885,18 +885,15 @@ public abstract class AbstractDescriptor
 					// IntegerEnumSlotDescriptionEnum in this case, not
 					// necessarily an Enum.
 					final Method lookupMethod =
-						describingClass.getMethod(
-							lookupName,
-							Integer.TYPE);
+						describingClass.getMethod(lookupName, Integer.TYPE);
 					final IntegerEnumSlotDescriptionEnum lookedUp =
 						(IntegerEnumSlotDescriptionEnum)lookupMethod.invoke(
-							null,
-							value);
+							null, value);
 					if (lookedUp == null)
 					{
 						builder.append(
 							new Formatter().format(
-								" (enum out of range: 0x%08X %08X)",
+								" (enum out of range: 0x%08X_%08X)",
 								value >>> 32L,
 								value & 0xFFFFFFFFL));
 					}
@@ -935,9 +932,8 @@ public abstract class AbstractDescriptor
 			else
 			{
 				builder.append(
-					new Formatter().format(" = 0x%08X %08X",
-						value >>> 32L,
-						value & 0xFFFFFFFFL));
+					new Formatter().format(" = 0x%08X_%08X = %d",
+						value >>> 32L, value & 0xFFFFFFFFL, value));
 			}
 		}
 		catch (final NoSuchFieldException e)
@@ -1983,8 +1979,8 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Definition o_LookupByValuesFromList (
 		AvailObject object,
-		List<? extends A_BasicObject> argumentList,
-		MutableOrNull<AvailErrorCode> errorCode);
+		List<? extends A_BasicObject> argumentList)
+	throws MethodDefinitionException;
 
 	/**
 	 * @param object
@@ -2279,15 +2275,6 @@ public abstract class AbstractDescriptor
 	abstract void o_RemoveDefinition (
 		AvailObject object,
 		A_Definition definition);
-
-	/**
-	 * @param object
-	 * @param message
-	 * @return
-	 */
-	abstract boolean o_RemoveBundleNamed (
-		AvailObject object,
-		A_Atom message);
 
 	/**
 	 * @param object
@@ -2898,7 +2885,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Map o_LazyComplete (AvailObject object);
+	abstract A_Set o_LazyComplete (AvailObject object);
 
 	/**
 	 * @param object
@@ -4374,12 +4361,6 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Map o_AllBundles (AvailObject object);
-
-	/**
-	 * @param object
-	 * @return
-	 */
 	abstract boolean o_IsSetBin (AvailObject object);
 
 	/**
@@ -5266,13 +5247,6 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final A_Atom methodName,
 		final A_Tuple argumentTypes);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract int o_AllocateFromCounter (
-		final AvailObject object);
 
 	/**
 	 * @param object
@@ -6164,34 +6138,14 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param prefixFunctions
-	 */
-	abstract void o_PrefixFunctions (
-		AvailObject object,
-		A_Tuple prefixFunctions);
-
-	/**
-	 * @param object
-	 * @param method
-	 * @param index
-	 * @param prefixFunction
-	 */
-	abstract void o_ModuleAddPrefixFunction (
-		AvailObject object,
-		A_Method method,
-		int index,
-		A_Function prefixFunction);
-
-	/**
-	 * @param object
 	 * @param argumentPhraseTuple
-	 * @param errorCode
-	 * @return
+	 * @return A_Definition
+	 * @throws MethodDefinitionException
 	 */
 	abstract A_Definition o_LookupMacroByPhraseTuple (
 		AvailObject object,
-		A_Tuple argumentPhraseTuple,
-		MutableOrNull<AvailErrorCode> errorCode);
+		A_Tuple argumentPhraseTuple)
+	throws MethodDefinitionException;
 
 	/**
 	 * @param object
@@ -6287,12 +6241,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
-	 */
-	abstract A_Tuple o_TypesToCheck (AvailObject object);
-
-	/**
-	 * @param object
 	 * @param pc
 	 * @return
 	 */
@@ -6348,4 +6296,24 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract long o_UniqueId (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_BasicObject o_LazyTypeFilterTreePojo (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param plan
+	 */
+	abstract void o_AddPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Type o_ParsingSignature (final AvailObject object);
 }

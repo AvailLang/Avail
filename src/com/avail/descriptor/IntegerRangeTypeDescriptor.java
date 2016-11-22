@@ -756,9 +756,7 @@ extends TypeDescriptor
 	}
 
 	/** The range [0..1]. */
-	private static final A_Type zeroOrOne = inclusive(
-		IntegerDescriptor.zero(),
-		IntegerDescriptor.one()).makeShared();
+	private static final A_Type zeroOrOne = smallRanges[1][0];
 
 	/**
 	 * Return the range [0..1].

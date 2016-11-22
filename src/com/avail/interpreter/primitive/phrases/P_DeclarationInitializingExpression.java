@@ -104,9 +104,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			TupleDescriptor.from(
-				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE.numericCode(),
-				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode()
-			).asSet());
+			SetDescriptor.from(
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
 	}
 }

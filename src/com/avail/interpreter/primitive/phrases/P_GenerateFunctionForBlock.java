@@ -113,9 +113,9 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_BLOCK_IS_INVALID.numericCode(),
-				E_BLOCK_MUST_NOT_CONTAIN_OUTERS.numericCode(),
-				E_BLOCK_COMPILATION_FAILED.numericCode())));
+			SetDescriptor.from(
+				E_BLOCK_IS_INVALID,
+				E_BLOCK_MUST_NOT_CONTAIN_OUTERS,
+				E_BLOCK_COMPILATION_FAILED));
 	}
 }

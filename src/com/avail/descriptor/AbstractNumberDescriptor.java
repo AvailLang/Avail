@@ -415,7 +415,7 @@ extends Descriptor
 	{
 		assert !firstType.equals(BottomTypeDescriptor.bottom());
 		assert !secondType.equals(BottomTypeDescriptor.bottom());
-		final Set<Order> possibleResults = EnumSet.<Order>noneOf(Order.class);
+		final Set<Order> possibleResults = EnumSet.noneOf(Order.class);
 		// Note that we can't intersect the two types to determine, in either
 		// conservative sense, whether numeric equality is possible.  It fails
 		// to detect some possible equalities because 0 is *numerically* equal

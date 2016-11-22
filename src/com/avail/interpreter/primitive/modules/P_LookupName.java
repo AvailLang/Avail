@@ -92,8 +92,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-					E_LOADING_IS_OVER.numericCode(),
-					E_AMBIGUOUS_NAME.numericCode())));
+			SetDescriptor.from(
+				E_LOADING_IS_OVER,
+				E_AMBIGUOUS_NAME));
 	}
 }

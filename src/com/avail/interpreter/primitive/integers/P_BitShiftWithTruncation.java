@@ -89,8 +89,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE.numericCode(),
-				E_TOO_LARGE_TO_REPRESENT.numericCode())));
+			SetDescriptor.from(
+				E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE,
+				E_TOO_LARGE_TO_REPRESENT));
 	}
 }

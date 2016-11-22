@@ -32,12 +32,12 @@
 
 package com.avail.test;
 
-import static org.junit.Assert.*;
+import org.testng.annotations.*;
+import static org.testng.Assert.*;
 import static com.avail.descriptor.TypeDescriptor.Types;
 import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.*;
-import org.junit.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.*;
 import com.avail.descriptor.*;

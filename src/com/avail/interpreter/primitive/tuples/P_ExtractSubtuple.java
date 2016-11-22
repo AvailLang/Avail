@@ -142,7 +142,8 @@ public final class P_ExtractSubtuple extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_SUBSCRIPT_OUT_OF_BOUNDS.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_SUBSCRIPT_OUT_OF_BOUNDS));
 	}
 }

@@ -117,7 +117,8 @@ public final class P_ExitContinuationWithResult extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_CONTINUATION_EXPECTED_STRONGER_TYPE.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_CONTINUATION_EXPECTED_STRONGER_TYPE));
 	}
 }

@@ -456,6 +456,15 @@ extends ParseNodeTypeDescriptor
 		return type;
 	}
 
+	/** The empty list phrase's type. */
+	public static A_Type empty()
+	{
+		return createListNodeTypeNoCheck(
+			LIST_NODE,
+			TupleTypeDescriptor.forTypes(),
+			TupleTypeDescriptor.forTypes());
+	}
+
 	/**
 	 * Construct a new {@link ListNodeTypeDescriptor}.
 	 *

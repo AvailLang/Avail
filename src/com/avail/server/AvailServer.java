@@ -104,7 +104,7 @@ public final class AvailServer
 
 	/** The supported client protocol versions. */
 	public static final Set<Integer> supportedProtocolVersions =
-		Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+		Collections.unmodifiableSet(new HashSet<>(Collections.singletonList(
 			protocolVersion)));
 
 	/** The {@linkplain AvailServerConfiguration configuration}. */

@@ -127,7 +127,7 @@ extends Primitive
 		final A_Tuple argTypesTuple =
 			argsTupleType.tupleOfTypesFromTo(1, argsCount);
 		final List<A_Type> argTypesList =
-			TupleDescriptor.<A_Type>toList(argTypesTuple);
+			TupleDescriptor.toList(argTypesTuple);
 		// Compute the intersection of the supplied type, applicable definition
 		// return types, and semantic restriction types.  Start with the
 		// supplied type.
@@ -152,7 +152,7 @@ extends Primitive
 		if (!anyDefinitionsApplicable)
 		{
 			return interpreter.primitiveFailure(
-				E_NO_METHOD_DEFINITION.numericCode());
+				E_NO_METHOD_DEFINITION);
 		}
 		final List<A_SemanticRestriction> applicableRestrictions =
 			new ArrayList<>();
@@ -376,9 +376,9 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
-					E_NO_METHOD_DEFINITION.numericCode()))
+			SetDescriptor.from(
+					E_INCORRECT_NUMBER_OF_ARGUMENTS,
+					E_NO_METHOD_DEFINITION)
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

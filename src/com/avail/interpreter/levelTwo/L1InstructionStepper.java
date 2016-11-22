@@ -410,16 +410,18 @@ implements L1OperationDispatcher
 			argsBuffer.add(0, pop());
 		}
 		final A_Method method = bundle.bundleMethod();
-		final MutableOrNull<AvailErrorCode> errorCode = new MutableOrNull<>();
-		final A_Definition matching = method.lookupByValuesFromList(
-			argsBuffer, errorCode);
-		if (matching.equalsNil())
+		final A_Definition matching;
+		try
+		{
+			matching = method.lookupByValuesFromList(argsBuffer);
+		}
+		catch (MethodDefinitionException e)
 		{
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().invalidMessageSendFunction(),
 				Arrays.asList(
-					errorCode.value().numericCode(),
+					e.numericCode(),
 					method,
 					TupleDescriptor.fromList(argsBuffer)),
 				true);

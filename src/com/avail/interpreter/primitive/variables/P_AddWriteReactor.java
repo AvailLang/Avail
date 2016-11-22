@@ -97,8 +97,9 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_SPECIAL_ATOM.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_SPECIAL_ATOM));
 	}
 
 	@Override

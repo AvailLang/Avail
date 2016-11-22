@@ -267,7 +267,7 @@ extends StringDescriptor
 		// one-byte character.
 		assert index >= 1 && index <= object.tupleSize();
 		final short codePoint = object.byteSlot(RAW_LONGS_, index);
-		return CharacterDescriptor.fromByteCodePoint(codePoint);
+		return (AvailObject)CharacterDescriptor.fromByteCodePoint(codePoint);
 	}
 
 	@Override @AvailMethod

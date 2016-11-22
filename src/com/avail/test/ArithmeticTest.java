@@ -32,9 +32,9 @@
 
 package com.avail.test;
 
-import static org.junit.Assert.*;
+import org.testng.annotations.*;
+import static org.testng.Assert.*;
 import java.math.BigInteger;
-import org.junit.*;
 import com.avail.descriptor.*;
 
 /**
@@ -116,6 +116,15 @@ public final class ArithmeticTest
 	 */
 	static final float FloatEpsilon = (float)Math.pow(0.5, 20.0);
 
+	static final void assertEqualFloatsOrNan(final float a, final float b)
+	{
+		assertEquals(Float.isNaN(a), Float.isNaN(b));
+		if (!Float.isNaN(a))
+		{
+			assertEquals(a, b, Math.abs(b * FloatEpsilon));
+		}
+	}
+
 	/**
 	 * Test some basic properties of {@linkplain FloatDescriptor Avail floats}.
 	 */
@@ -129,22 +138,18 @@ public final class ArithmeticTest
 			for (final float f2 : sampleFloats)
 			{
 				final A_Number F2 = FloatDescriptor.fromFloat(f2);
-				assertEquals(
+				assertEqualFloatsOrNan(
 					F1.plusCanDestroy(F2, false).extractFloat(),
-					f1+f2,
-					(f1+f2) * FloatEpsilon);
-				assertEquals(
+					f1+f2);
+				assertEqualFloatsOrNan(
 					F1.minusCanDestroy(F2, false).extractFloat(),
-					f1-f2,
-					(f1-f2) * FloatEpsilon);
-				assertEquals(
+					f1-f2);
+				assertEqualFloatsOrNan(
 					F1.timesCanDestroy(F2, false).extractFloat(),
-					f1*f2,
-					(f1*f2) * FloatEpsilon);
-				assertEquals(
+					f1*f2);
+				assertEqualFloatsOrNan(
 					F1.divideCanDestroy(F2, false).extractFloat(),
-					f1/f2,
-					(f1/f2) * FloatEpsilon);
+					f1/f2);
 			}
 		}
 	}

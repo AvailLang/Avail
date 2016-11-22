@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AvailObject.*;
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.min;
 import static java.util.Collections.min;
@@ -86,6 +86,13 @@ extends Descriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == HASH_AND_MORE;
+	}
+
+	@Override
+	String o_NameForDebugger (final AvailObject object)
+	{
+		return super.o_NameForDebugger(object) + ": tupleSize="
+			+ object.tupleSize();
 	}
 
 	@Override @AvailMethod
@@ -1466,8 +1473,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Four tables, each containing powers of {@link #multiplier}.  The 0th
-	 * table contains M^i for i=0..255, the 1st table contains M^(256*i)
+	 * Four tables, each containing powers of {@link AvailObject#multiplier}.
+	 * The 0th table contains M^i for i=0..255, the 1st table contains M^(256*i)
 	 * for i=0..255,... and the 3rd table contains M^((256^3)*i) for i=0..255.
 	 */
 	static final int[][] powersOfMultiplier = new int[4][256];
@@ -1488,12 +1495,13 @@ extends Descriptor
 	}
 
 	/**
-	 * Compute {@link #multiplier} raised to the specified power, truncated to
-	 * an int.
+	 * Compute {@link AvailObject#multiplier} raised to the specified power,
+	 * truncated to an int.
 	 *
 	 * @param anInteger
-	 *        The exponent by which to raise the base {@link #multiplier}.
-	 * @return {@link #multiplier} raised to the specified power.
+	 *        The exponent by which to raise the base {@link
+	 *        AvailObject#multiplier}.
+	 * @return {@link AvailObject#multiplier} raised to the specified power.
 	 */
 	static int multiplierRaisedTo (final int anInteger)
 	{

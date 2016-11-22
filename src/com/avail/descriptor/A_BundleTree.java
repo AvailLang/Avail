@@ -47,17 +47,9 @@ public interface A_BundleTree
 extends A_BasicObject
 {
 	/**
-	 * @return
-	 */
-	A_Map allBundles ();
-
-	/**
-	 * @param plan
-	 */
-	void addDefinitionParsingPlan (A_DefinitionParsingPlan plan);
-
-	/**
-	 * @return
+	 * Answer the bundle tree's map of all plans.
+	 *
+	 * @return A map of type {bundle→{definition→plan|0..}|}.
 	 */
 	A_Map allParsingPlans ();
 
@@ -93,7 +85,7 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 * @return
 	 */
-	A_Map lazyComplete ();
+	A_Set lazyComplete ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -123,13 +115,6 @@ extends A_BasicObject
 	void addBundle (A_Bundle bundle);
 
 	/**
-	 * Dispatch to the descriptor.
-	 * @param message
-	 * @return
-	 */
-	boolean removeBundleNamed (A_Atom message);
-
-	/**
 	 * Answer the program counter that this bundle tree represents.  All bundles
 	 * still reachable here are at the same position in their state machines,
 	 * and all instructions already executed for these bundles are identical
@@ -146,4 +131,21 @@ extends A_BasicObject
 	 * @param plan The parsing plan to exclude.
 	 */
 	void removeDefinitionParsingPlan (A_DefinitionParsingPlan plan);
+
+	/**
+	 * If this message bundle tree has a type filter tree, return the raw pojo
+	 * holding it, otherwise {@link NilDescriptor#nil()}.
+	 *
+	 * @return The type filter tree pojo or nil.
+	 */
+	A_BasicObject lazyTypeFilterTreePojo ();
+
+	/**
+	 * Add a {@link DefinitionParsingPlanDescriptor definition parsing plan} to
+	 * this bundle tree.  The corresponding bundle must already be present.
+	 *
+	 * @param plan
+	 *            The definition parsing plan to add.
+	 */
+	void addPlan (A_DefinitionParsingPlan plan);
 }

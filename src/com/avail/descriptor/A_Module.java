@@ -184,11 +184,6 @@ extends A_BasicObject
 		A_Variable variableBinding);
 
 	/**
-	 * @return
-	 */
-	int allocateFromCounter ();
-
-	/**
 	 * Dispatch to the descriptor.
 	 */
 	A_BundleTree buildFilteredBundleTree ();
@@ -245,14 +240,4 @@ extends A_BasicObject
 	 *        A function.
 	 */
 	void addUnloadFunction (A_Function unloadFunction);
-
-	/**
-	 * @param method
-	 * @param index
-	 * @param prefixFunction
-	 */
-	void moduleAddPrefixFunction (
-		A_Method method,
-		int index,
-		A_Function prefixFunction);
 }

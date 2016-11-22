@@ -101,7 +101,7 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode())));
+			SetDescriptor.from(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS));
 	}
 }

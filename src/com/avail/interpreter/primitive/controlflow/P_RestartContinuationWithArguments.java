@@ -114,8 +114,8 @@ public final class P_RestartContinuationWithArguments extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
-				E_INCORRECT_ARGUMENT_TYPE.numericCode())));
+			SetDescriptor.from(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS,
+				E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

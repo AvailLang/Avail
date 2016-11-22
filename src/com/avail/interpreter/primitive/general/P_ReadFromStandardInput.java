@@ -129,7 +129,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_IO_ERROR.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_IO_ERROR));
 	}
 }

@@ -78,7 +78,7 @@ extends Primitive
 		}
 		catch (final MapException e)
 		{
-			assert e.numericCode().equals(E_KEY_NOT_FOUND.numericCode());
+			assert e.numericCode().equals(E_KEY_NOT_FOUND);
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
 		interpreter.primitiveSuspend();
@@ -121,7 +121,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return InstanceTypeDescriptor.on(
-			E_INCORRECT_ARGUMENT_TYPE.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

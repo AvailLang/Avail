@@ -106,10 +106,10 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
-				E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
-				E_NO_METHOD.numericCode(),
-				E_NO_METHOD_DEFINITION.numericCode())));
+			SetDescriptor.from(
+				E_AMBIGUOUS_METHOD_DEFINITION,
+				E_INCORRECT_NUMBER_OF_ARGUMENTS,
+				E_NO_METHOD,
+				E_NO_METHOD_DEFINITION));
 	}
 }

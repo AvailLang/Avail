@@ -378,12 +378,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Map o_AllBundles (final AvailObject object)
-	{
-		return o_Traversed(object).allBundles();
-	}
-
-	@Override
 	void o_AddDefinitionParsingPlan (
 		final AvailObject object,
 		final A_DefinitionParsingPlan plan)
@@ -1337,11 +1331,10 @@ extends AbstractDescriptor
 	@Override
 	A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
-		final List<? extends A_BasicObject> argumentList,
-		final MutableOrNull<AvailErrorCode> errorCode)
+		final List<? extends A_BasicObject> argumentList)
+	throws MethodDefinitionException
 	{
-		return o_Traversed(object).lookupByValuesFromList(
-			argumentList, errorCode);
+		return o_Traversed(object).lookupByValuesFromList(argumentList);
 	}
 
 	@Override
@@ -1557,14 +1550,6 @@ extends AbstractDescriptor
 		final A_Definition definition)
 	{
 		o_Traversed(object).removeDefinition(definition);
-	}
-
-	@Override
-	boolean o_RemoveBundleNamed (
-		final AvailObject object,
-		final A_Atom message)
-	{
-		return o_Traversed(object).removeBundleNamed(message);
 	}
 
 	@Override
@@ -2083,7 +2068,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Map o_LazyComplete (final AvailObject object)
+	A_Set o_LazyComplete (final AvailObject object)
 	{
 		return o_Traversed(object).lazyComplete();
 	}
@@ -3847,13 +3832,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_AllocateFromCounter (
-		final AvailObject object)
-	{
-		return o_Traversed(object).allocateFromCounter();
-	}
-
-	@Override
 	void o_SetMethodName (
 		final AvailObject object,
 		final A_String methodName)
@@ -4682,32 +4660,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public void o_PrefixFunctions(
-		final AvailObject object,
-		final A_Tuple prefixFunctions)
-	{
-		o_Traversed(object).prefixFunctions(prefixFunctions);
-	}
-
-	@Override
-	void o_ModuleAddPrefixFunction(
-		final AvailObject object,
-		final A_Method method,
-		final int index,
-		final A_Function prefixFunction)
-	{
-		o_Traversed(object).moduleAddPrefixFunction(
-			method, index, prefixFunction);
-	}
-
-	@Override
 	A_Definition o_LookupMacroByPhraseTuple (
 		final AvailObject object,
-		final A_Tuple argumentPhraseTuple,
-		final MutableOrNull<AvailErrorCode> errorCode)
+		final A_Tuple argumentPhraseTuple)
+	throws MethodDefinitionException
 	{
 		return o_Traversed(object).lookupMacroByPhraseTuple(
-			argumentPhraseTuple, errorCode);
+			argumentPhraseTuple);
 	}
 
 	@Override
@@ -4807,12 +4766,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Tuple o_TypesToCheck (final AvailObject object)
-	{
-		return o_Traversed(object).typesToCheck();
-	}
-
-	@Override
 	String o_NameHighlightingPc (final AvailObject object, final int pc)
 	{
 		return o_Traversed(object).nameHighlightingPc(pc);
@@ -4858,5 +4811,25 @@ extends AbstractDescriptor
 		final A_Type aListNodeType)
 	{
 		return o_Traversed(object).typeUnionOfListNodeType(aListNodeType);
+	}
+
+	@Override
+	A_BasicObject o_LazyTypeFilterTreePojo (final AvailObject object)
+	{
+		return o_Traversed(object).lazyTypeFilterTreePojo();
+	}
+
+	@Override
+	void o_AddPlan (
+		final AvailObject object,
+		final A_DefinitionParsingPlan plan)
+	{
+		o_Traversed(object).addPlan(plan);
+	}
+
+	@Override
+	A_Type o_ParsingSignature (final AvailObject object)
+	{
+		return o_Traversed(object).parsingSignature();
 	}
 }

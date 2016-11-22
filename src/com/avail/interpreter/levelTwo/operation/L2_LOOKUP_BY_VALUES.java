@@ -38,6 +38,7 @@ import java.util.*;
 import java.util.logging.Level;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -91,17 +92,23 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			interpreter.argsBuffer.add(argumentReg.in(interpreter));
 		}
 		final A_Method method = bundle.bundleMethod();
-		final MutableOrNull<AvailErrorCode> errorCode = new MutableOrNull<>();
 		final long before = System.nanoTime();
-		final A_Definition definitionToCall =
-			method.lookupByValuesFromList(interpreter.argsBuffer, errorCode);
-		final long after = System.nanoTime();
-		interpreter.recordDynamicLookup(bundle, after - before);
-		if (definitionToCall.equalsNil())
+		final A_Definition definitionToCall;
+		try
 		{
-			errorCodeReg.set(errorCode.value().numericCode(), interpreter);
+			definitionToCall =
+				method.lookupByValuesFromList(interpreter.argsBuffer);
+		}
+		catch (MethodDefinitionException e)
+		{
+			errorCodeReg.set(e.numericCode(), interpreter);
 			// Fall through to the next instruction.
 			return;
+		}
+		finally
+		{
+			final long after = System.nanoTime();
+			interpreter.recordDynamicLookup(bundle, after - before);
 		}
 		if (definitionToCall.isAbstractDefinition())
 		{

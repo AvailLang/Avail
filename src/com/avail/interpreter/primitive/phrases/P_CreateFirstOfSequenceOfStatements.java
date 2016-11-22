@@ -95,7 +95,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_SEQUENCE_CONTAINS_INVALID_STATEMENTS.numericCode());
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS));
 	}
 }

@@ -117,11 +117,11 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-					E_LOADING_IS_OVER.numericCode(),
-					E_AMBIGUOUS_NAME.numericCode(),
-					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES.numericCode(),
-					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode()))
+			SetDescriptor.from(
+					E_LOADING_IS_OVER,
+					E_AMBIGUOUS_NAME,
+					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES,
+					E_INCORRECT_NUMBER_OF_ARGUMENTS)
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

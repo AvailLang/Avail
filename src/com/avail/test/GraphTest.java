@@ -32,12 +32,13 @@
 
 package com.avail.test;
 
-import static org.junit.Assert.*;
+import org.testng.annotations.*;
+import static org.testng.Assert.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import org.junit.*;
+
 import com.avail.annotations.Nullable;
 import com.avail.utility.*;
 import com.avail.utility.Graph.GraphPreconditionFailure;
@@ -97,7 +98,7 @@ public class GraphTest
 	/**
 	 * Test: Check invalid addVertex().
 	 */
-	@Test(expected = GraphPreconditionFailure.class)
+	@Test(expectedExceptions = GraphPreconditionFailure.class)
 	public void testInvalidAddVertex ()
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();
@@ -142,7 +143,7 @@ public class GraphTest
 	/**
 	 * Test: Check invalid removeEdge() when neither vertex is present.
 	 */
-	@Test(expected = GraphPreconditionFailure.class)
+	@Test(expectedExceptions = GraphPreconditionFailure.class)
 	public void testInvalidRemoveEdgeWithNeitherVertexPresent ()
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();
@@ -152,7 +153,7 @@ public class GraphTest
 	/**
 	 * Test: Check invalid removeEdge() when only the source vertex is present.
 	 */
-	@Test(expected = GraphPreconditionFailure.class)
+	@Test(expectedExceptions = GraphPreconditionFailure.class)
 	public void testInvalidRemoveEdgeWithOnlySourceVertexPresent ()
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();
@@ -163,7 +164,7 @@ public class GraphTest
 	/**
 	 * Test: Check invalid removeEdge() when only the target vertex is present.
 	 */
-	@Test(expected = GraphPreconditionFailure.class)
+	@Test(expectedExceptions = GraphPreconditionFailure.class)
 	public void testInvalidRemoveEdgeWithOnlyTargetVertexPresent ()
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();
@@ -174,7 +175,7 @@ public class GraphTest
 	/**
 	 * Test: Check invalid removeEdge() when both vertices are present.
 	 */
-	@Test(expected = GraphPreconditionFailure.class)
+	@Test(expectedExceptions = GraphPreconditionFailure.class)
 	public void testInvalidRemoveEdgeWithBothVerticesPresent ()
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();

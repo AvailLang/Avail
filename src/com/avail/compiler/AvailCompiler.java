@@ -31,37 +31,18 @@
 
 package com.avail.compiler;
 
-import static com.avail.compiler.ExpectedToken.*;
-import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.problems.ProblemType.*;
-import static com.avail.descriptor.AtomDescriptor.compilerScopeMapKey;
-import static com.avail.descriptor.AtomDescriptor.clientDataGlobalKey;
-import static com.avail.descriptor.AtomDescriptor.allTokensKey;
-import static com.avail.descriptor.AtomDescriptor.macroBundleKey;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.utility.PrefixSharingList.*;
-import static java.lang.Math.*;
-import static java.util.Arrays.asList;
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
-import java.nio.charset.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
-import com.avail.annotations.Nullable;
 import com.avail.annotations.InnerAccess;
-import com.avail.builder.*;
+import com.avail.annotations.Nullable;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
-import com.avail.compiler.scanning.*;
+import com.avail.compiler.scanning.AvailScanner;
+import com.avail.compiler.scanning.AvailScannerException;
+import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
@@ -70,16 +51,64 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.*;
+import com.avail.exceptions.MethodDefinitionException;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.serialization.*;
-import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
+import com.avail.serialization.Serializer;
+import com.avail.utility.Generator;
+import com.avail.utility.Mutable;
+import com.avail.utility.MutableOrNull;
+import com.avail.utility.PrefixSharingList;
+import com.avail.utility.Strings;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation4;
+import com.avail.utility.evaluation.Describer;
+import com.avail.utility.evaluation.FormattingDescriber;
+import com.avail.utility.evaluation.SimpleDescriber;
+import com.avail.utility.evaluation.Transformer1;
+import com.avail.utility.evaluation.Transformer3;
+
+import java.io.ByteArrayOutputStream;
+import java.io.CharArrayWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.CompletionHandler;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.StandardOpenOption;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static com.avail.compiler.ExpectedToken.*;
+import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.problems.ProblemType.*;
+import static com.avail.descriptor.AtomDescriptor.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
+import static com.avail.utility.PrefixSharingList.*;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.util.Arrays.asList;
 
 /**
  * The compiler for Avail code.
@@ -227,7 +256,7 @@ public final class AvailCompiler
 	 * parsing error.  This is also the offset to add to token positions to
 	 * index into {@link #greatExpectations}.
 	 */
-	protected int firstExpectation = 0;
+	@InnerAccess int firstExpectation = 0;
 
 	/** The memoization of results of previous parsing attempts. */
 	final @InnerAccess AvailCompilerFragmentCache fragmentCache =
@@ -378,7 +407,7 @@ public final class AvailCompiler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
 	 */
-	protected AvailCompiler (
+	@InnerAccess AvailCompiler (
 		final ResolvedModuleName moduleName,
 		final AvailScannerResult scannerResult,
 		final TextInterface textInterface,
@@ -477,13 +506,11 @@ public final class AvailCompiler
 			// the argument parse, not the successor instruction that was
 			// captured.
 			final int pc = bundleTree.parsingPc() - 1;
-//			// Reduce to the the plans' unique bundles.
-//			final A_Map bundlesMap = bundleTree.allParsingPlans();
-//			final List<A_Bundle> bundles =
-//				TupleDescriptor.toList(bundlesMap.keysAsSet().asTuple());
-			final List<A_Bundle> bundles = TupleDescriptor.toList(
-				bundleTree.allBundles().valuesAsTuple());
-			Collections.<A_Bundle>sort(
+			// Reduce to the the plans' unique bundles.
+			final A_Map bundlesMap = bundleTree.allParsingPlans();
+			final List<A_Bundle> bundles =
+				TupleDescriptor.toList(bundlesMap.keysAsSet().asTuple());
+			Collections.sort(
 				bundles,
 				new Comparator<A_Bundle>()
 				{
@@ -507,12 +534,11 @@ public final class AvailCompiler
 				{
 					builder.append(", ");
 				}
-//				final A_Set plans = bundlesMap.mapAt(bundle);
-//				// Pick an active plan arbitrarily for this bundle.
-//				final A_DefinitionParsingPlan plan = plans.iterator().next();
-//				builder.append(plan.nameHighlightingPc(pc));
-				final MessageSplitter splitter = bundle.messageSplitter();
-				builder.append(splitter.nameHighlightingPc(pc));
+				final A_Map plans = bundlesMap.mapAt(bundle);
+				// Pick an active plan arbitrarily for this bundle.
+				final A_DefinitionParsingPlan plan =
+					plans.mapIterable().next().value();
+				builder.append(plan.nameHighlightingPc(pc));
 				first = false;
 			}
 			if (bundles.size() > maxBundles)
@@ -1290,9 +1316,9 @@ public final class AvailCompiler
 	/**
 	 * Parse one or more string literals separated by commas. This parse isn't
 	 * backtracking like the rest of the grammar - it's greedy. It considers a
-	 * comma followed by something other than a string literal or final
-	 * ellipsis to be an unrecoverable parsing error (not a backtrack).
-	 * A {@linkplain #RIGHT_ARROW right arrow} between two strings indicates a
+	 * comma followed by something other than a string literal or final ellipsis
+	 * to be an unrecoverable parsing error (not a backtrack). A {@linkplain
+	 * ExpectedToken#RIGHT_ARROW right arrow} between two strings indicates a
 	 * rename.  An ellipsis at the end (the comma before it is optional)
 	 * indicates that all names not explicitly mentioned should be imported.
 	 *
@@ -2393,20 +2419,9 @@ public final class AvailCompiler
 	/**
 	 * Start a work unit.
 	 */
-	protected void startWorkUnit ()
+	@InnerAccess void startWorkUnit ()
 	{
 		workUnitsQueued.incrementAndGet();
-	}
-
-	/**
-	 * Start several work units.
-	 *
-	 * @param count
-	 *        The number of work units to start.
-	 */
-	protected void startWorkUnits (final int count)
-	{
-		workUnitsQueued.addAndGet(count);
 	}
 
 	/**
@@ -2427,7 +2442,7 @@ public final class AvailCompiler
 	 * @return A new continuation. It accepts an argument of some kind, which
 	 *         will be passed forward to the argument continuation.
 	 */
-	protected <ArgType> Continuation1<ArgType> workUnitCompletion (
+	@InnerAccess <ArgType> Continuation1<ArgType> workUnitCompletion (
 		final A_Token token,
 		final @Nullable AtomicBoolean optionalSafetyCheck,
 		final Continuation1<ArgType> continuation)
@@ -2636,7 +2651,7 @@ public final class AvailCompiler
 	 * @param onFailure
 	 *        What to do with a terminal {@link Throwable}.
 	 */
-	protected void evaluateFunctionThen (
+	@InnerAccess void evaluateFunctionThen (
 		final A_Function function,
 		final int lineNumber,
 		final List<? extends A_BasicObject> args,
@@ -2711,7 +2726,7 @@ public final class AvailCompiler
 	 * @param onFailure
 	 *        What to do with a terminal {@link Throwable}.
 	 */
-	protected void evaluateSemanticRestrictionFunctionThen (
+	@InnerAccess void evaluateSemanticRestrictionFunctionThen (
 		final A_SemanticRestriction restriction,
 		final List<? extends A_BasicObject> args,
 		final Continuation1<AvailObject> onSuccess,
@@ -2769,7 +2784,7 @@ public final class AvailCompiler
 	 * @param onFailure
 	 *        What to do with a terminal {@link Throwable}.
 	 */
-	protected void evaluateMacroFunctionThen (
+	@InnerAccess void evaluateMacroFunctionThen (
 		final A_Definition macro,
 		final List<? extends A_Phrase> args,
 		final A_Map clientParseData,
@@ -3213,104 +3228,63 @@ public final class AvailCompiler
 				final int pc = bundleTree.parsingPc();
 				for (final MapDescriptor.Entry entry : incomplete.mapIterable())
 				{
-//					final A_String availString = entry.key();
-//					if (!availString.equals(excludedString))
-//					{
-//						final String string = availString.asNativeString();
-//						if (detail)
-//						{
-//							// Collect and deduplicate bundles, keeping one
-//							// representative definition parsing plan for each.
-//							final Set<A_Bundle> bundleSet =
-//								new HashSet<A_Bundle>();
-//							final List<A_DefinitionParsingPlan>
-//								representativePlans = new ArrayList<>();
-//							for (final MapDescriptor.Entry successorBundleEntry
-//								: entry.value().allParsingPlans().mapIterable())
-//							{
-//								final A_Bundle bundle =
-//									successorBundleEntry.key();
-//								final A_Set plans =
-//									successorBundleEntry.value();
-//								if (!bundleSet.contains(bundle))
-//								{
-//									bundleSet.add(bundle);
-//									representativePlans.add(
-//										plans.iterator().next());
-//								}
-//							}
-//							final StringBuilder buffer = new StringBuilder();
-//							buffer.append(string);
-//							buffer.append("  (");
-//							boolean first = true;
-//							for (final A_DefinitionParsingPlan plan
-//								: representativePlans)
-//							{
-//								if (!first)
-//								{
-//									buffer.append(", ");
-//								}
-//								final A_Bundle bundle = plan.bundle();
-//								buffer.append(plan.nameHighlightingPc(pc));
-//								buffer.append(" from ");
-//								final A_Module issuer =
-//									bundle.message().issuingModule();
-//								final String issuerName =
-//									issuer.moduleName().asNativeString();
-//								final String shortIssuer = issuerName.substring(
-//									issuerName.lastIndexOf('/') + 1);
-//								buffer.append(shortIssuer);
-//								first = false;
-//							}
-//							buffer.append(")");
-//							sorted.add(buffer.toString());
-//						}
-//						else
-//						{
-//							sorted.add(string);
-//						}
-//					}
-					final String string = entry.key().asNativeString();
-					if (detail)
+					final A_String availString = entry.key();
+					if (!availString.equals(excludedString))
 					{
-						final StringBuilder buffer = new StringBuilder();
-						buffer.append(string);
-						buffer.append("  (");
-						boolean first = true;
-						for (final MapDescriptor.Entry successorBundleEntry
-							: entry.value().allBundles().mapIterable())
+						final String string = availString.asNativeString();
+						if (detail)
 						{
-							if (successorBundleEntry.key().equals(
-								excludedString))
+							// Collect and deduplicate bundles, keeping one
+							// representative definition parsing plan for each.
+							final Set<A_Bundle> bundleSet =
+								new HashSet<A_Bundle>();
+							final List<A_DefinitionParsingPlan>
+								representativePlans = new ArrayList<>();
+							final A_BundleTree nextTree = entry.value();
+							for (final MapDescriptor.Entry successorBundleEntry
+								: nextTree.allParsingPlans().mapIterable())
 							{
-								// Exclude this string since it was encountered.
-								continue;
+								final A_Bundle bundle =
+									successorBundleEntry.key();
+								if (!bundleSet.contains(bundle))
+								{
+									final A_Map plans =
+										successorBundleEntry.value();
+									bundleSet.add(bundle);
+									representativePlans.add(
+										plans.mapIterable().next().value());
+								}
 							}
-							if (!first)
+							final StringBuilder buffer = new StringBuilder();
+							buffer.append(string);
+							buffer.append("  (");
+							boolean first = true;
+							for (final A_DefinitionParsingPlan plan
+								: representativePlans)
 							{
-								buffer.append(", ");
+								if (!first)
+								{
+									buffer.append(", ");
+								}
+								final A_Bundle bundle = plan.bundle();
+								buffer.append(plan.nameHighlightingPc(pc));
+								buffer.append(" from ");
+								final A_Module issuer =
+									bundle.message().issuingModule();
+								final String issuerName =
+									issuer.moduleName().asNativeString();
+								final String shortIssuer = issuerName.substring(
+									issuerName.lastIndexOf('/') + 1);
+								buffer.append(shortIssuer);
+								first = false;
 							}
-							final A_Bundle bundle =
-								successorBundleEntry.value();
-							final MessageSplitter splitter =
-								bundle.messageSplitter();
-							buffer.append(splitter.nameHighlightingPc(pc));
-							buffer.append(" from ");
-							final A_Module issuer =
-								bundle.message().issuingModule();
-							final String issuerName =
-								issuer.moduleName().asNativeString();
-							final String shortIssuer = issuerName.substring(
-								issuerName.lastIndexOf('/') + 1);
-							buffer.append(shortIssuer);
-							first = false;
+							buffer.append(")");
+							sorted.add(buffer.toString());
 						}
-						buffer.append(")");
-						sorted.add(buffer.toString());
-					}
-					else
-					{
-						sorted.add(string);
+						else
+						{
+							sorted.add(string);
+						}
 					}
 				}
 				Collections.sort(sorted);
@@ -3368,8 +3342,7 @@ public final class AvailCompiler
 	 * an occurrence of a repeated or optional subexpression, even if it would
 	 * otherwise be recognized as such.
 	 */
-	private static List<Integer> initialMarkStack =
-		Collections.<Integer>emptyList();
+	private static List<Integer> initialMarkStack = Collections.emptyList();
 
 	/**
 	 * Parse a send node. To prevent infinite left-recursion and false
@@ -3382,7 +3355,7 @@ public final class AvailCompiler
 	 * @param continuation
 	 *            What to do after parsing a complete send node.
 	 */
-	protected void parseLeadingKeywordSendThen (
+	@InnerAccess void parseLeadingKeywordSendThen (
 		final ParserState start,
 		final Con<A_Phrase> continuation)
 	{
@@ -3559,24 +3532,46 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final Con<A_Phrase> continuation)
 	{
-		bundleTree.expand(module, argsSoFar);
-		final A_Map complete = bundleTree.lazyComplete();
+		// TODO(MvG) - remove temporary try/catch handler.
+		try
+		{
+			bundleTree.expand(module, argsSoFar);
+		}
+		catch (final Exception|Error e)
+		{
+			final StringWriter stringWriter = new StringWriter();
+			stringWriter.append(
+				"expansion of message bundle tree not to have thrown Java "
+					+ "exception:\n");
+			e.printStackTrace(new PrintWriter(stringWriter));
+			stringWriter.append("\n...while parsing:");
+			final StringBuilder builder = new StringBuilder();
+			builder.append(stringWriter);
+			describeOn(continuation.superexpressions(), builder);
+			start.expected(builder.toString());
+			return;
+		}
+		final A_Set complete = bundleTree.lazyComplete();
 		final A_Map incomplete = bundleTree.lazyIncomplete();
 		final A_Map caseInsensitive =
 			bundleTree.lazyIncompleteCaseInsensitive();
 		final A_Map actions = bundleTree.lazyActions();
 		final A_Map prefilter = bundleTree.lazyPrefilterMap();
-		final boolean anyComplete = complete.mapSize() > 0;
+		final A_BasicObject typeFilterTree =
+			bundleTree.lazyTypeFilterTreePojo();
+		final boolean anyComplete = complete.setSize() > 0;
 		final boolean anyIncomplete = incomplete.mapSize() > 0;
 		final boolean anyCaseInsensitive = caseInsensitive.mapSize() > 0;
 		final boolean anyActions = actions.mapSize() > 0;
 		final boolean anyPrefilter = prefilter.mapSize() > 0;
+		final boolean anyTypeFilter = !typeFilterTree.equalsNil();
 
 		if (!(anyComplete
 			|| anyIncomplete
 			|| anyCaseInsensitive
 			|| anyActions
-			|| anyPrefilter))
+			|| anyPrefilter
+			|| anyTypeFilter))
 		{
 			return;
 		}
@@ -3590,16 +3585,13 @@ public final class AvailCompiler
 			// restriction to prevent run-away left-recursion.  A type
 			// restriction won't be checked soon enough to prevent the
 			// recursion.
-			for (final MapDescriptor.Entry entry : complete.mapIterable())
+			assert marksSoFar.isEmpty();
+			assert argsSoFar.size() == 1;
+			final A_Phrase args = argsSoFar.get(0).stripMacro();
+			for (final A_Bundle bundle : complete)
 			{
-				assert marksSoFar.isEmpty();
-				assert argsSoFar.size() == 1;
 				completedSendNode(
-					initialTokenPosition,
-					start,
-					argsSoFar.get(0).stripMacro(),
-					entry.value(),
-					continuation);
+					initialTokenPosition, start, args, bundle, continuation);
 			}
 		}
 		if (anyIncomplete && firstArgOrNull == null)
@@ -3706,8 +3698,13 @@ public final class AvailCompiler
 				}
 				// The argument name was not in the prefilter map, so fall
 				// through to allow normal action processing.  Note that in this
-				// case the only possible action is the check argument instruction
+				// case the only possible action is the check argument
+				// instruction.
 			}
+		}
+		if (anyTypeFilter)
+		{
+			assert false : "Implement this"; //TODO MvG
 		}
 		if (anyActions)
 		{
@@ -4255,14 +4252,13 @@ public final class AvailCompiler
 				// Convert the argument.
 				assert successorTrees.tupleSize() == 1;
 				final A_Phrase input = last(argsSoFar);
+				final AtomicBoolean sanityFlag = new AtomicBoolean();
 				op.conversionRule(instruction).convert(
 					input,
 					start,
 					initialTokenPosition,
 					new Continuation1<A_Phrase>()
 					{
-						final AtomicBoolean sanityFlag = new AtomicBoolean();
-
 						@Override
 						public void value (
 							final @Nullable A_Phrase replacementExpression)
@@ -4289,9 +4285,27 @@ public final class AvailCompiler
 						@Override
 						public void value (final @Nullable Throwable e)
 						{
-							//TODO[MvG] - Deal with failed conversion (this can
-							// only happen during an evaluation conversion).
-							assert false : "Deal with this";
+							// Deal with a failed conversion.  As of 2016-08-28,
+							// this can only happen during an expression
+							// evaluation.
+							assert sanityFlag.compareAndSet(false, true);
+							assert e != null;
+							start.expected(new Describer()
+							{
+								@Override
+								public void describeThen (
+									final Continuation1<String> withString)
+								{
+									final StringWriter stringWriter =
+										new StringWriter();
+									stringWriter.append(
+										"evaluation of expression not to have "
+										+ "thrown Java exception:\n");
+									e.printStackTrace(
+										new PrintWriter(stringWriter));
+									withString.value(stringWriter.toString());
+								}
+							});
 						}
 					});
 				break;
@@ -4379,68 +4393,37 @@ public final class AvailCompiler
 				 * here, because the message bundle tree's o_Expand(AvailObject)
 				 * detected the previous instruction, always a
 				 * PREPARE_TO_RUN_PREFIX_FUNCTION, and put each plan into a new
-				 * tree.
-				 *
-				 * Attempt each Nth prefix function of the sole bundle, since
-				 * each one must be explored to determine if it contributes to
-				 * an unambiguous top-level statement.
+				 * tree.  Go to that plan's (macro) definition to find its
+				 * prefix functions, subscripting that tuple by this
+				 * RUN_PREFIX_FUNCTION's operand.
 				 */
 				assert successorTrees.tupleSize() == 1;
 				final A_BundleTree successorTree = successorTrees.tupleAt(1);
 				// Look inside the only successor to find the only bundle.
-//				@Nullable A_Bundle bundle = null;
-//				for (final MapDescriptor.Entry bundleEntry
-//					: successorTree.allParsingPlans().mapIterable())
-//				{
-//					final A_Bundle eachBundle = bundleEntry.key();
-//					if (bundle == null)
-//					{
-//						bundle = eachBundle;
-//					}
-//					else
-//					{
-//						// Sanity check.
-//						assert bundle.equals(eachBundle);
-//					}
-//				}
-//				assert bundle != null;
-				final A_Map bundlesMap = successorTree.allBundles();
+				final A_Map bundlesMap = successorTree.allParsingPlans();
 				assert bundlesMap.mapSize() == 1;
-				final A_Bundle bundle = bundlesMap.mapIterable().next().value();
-				final A_Tuple prefixFunctionTuples =
-					bundle.bundleMethod().prefixFunctions();
+				final A_Definition definition =
+					bundlesMap.mapIterable().next().key();
+				final A_Tuple prefixFunctions = definition.prefixFunctions();
 				final int prefixIndex = op.prefixFunctionSubscript(instruction);
-				final A_Tuple prefixFunctions =
-					prefixFunctionTuples.tupleAt(prefixIndex);
-				if (prefixFunctions.tupleSize() == 0)
-				{
-					// Warn about the missing prefix function.
-					start.expected(
-						"macro "
-						+ bundle.message()
-						+ " to have at least one prefix function #"
-						+ prefixIndex);
-					break;
-				}
+				final A_Function prefixFunction =
+					prefixFunctions.tupleAt(prefixIndex);
 				final A_Phrase prefixArgumentsList = last(argsSoFar);
 				final List<A_Phrase> withoutPrefixArguments =
 					withoutLast(argsSoFar);
 				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
 					prefixArgumentsList.stripMacro().expressionsTuple());
-				for (final A_Function prefixFunction : prefixFunctions)
-				{
-					runPrefixFunctionThen(
-						start,
-						successorTree,
-						prefixFunction,
-						listOfArgs,
-						firstArgOrNull,
-						initialTokenPosition,
-						consumedAnything,
-						withoutPrefixArguments,
-						marksSoFar,
-						continuation);
-				}
+				runPrefixFunctionThen(
+					start,
+					successorTree,
+					prefixFunction,
+					listOfArgs,
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					withoutPrefixArguments,
+					marksSoFar,
+					continuation);
 				break;
 			}
 			case PERMUTE_LIST:
@@ -5178,31 +5161,11 @@ public final class AvailCompiler
 			public void describeThen (
 				final Continuation1<String> continuation)
 			{
-//				final A_Set bundles =
-//					successorTree.allParsingPlans().keysAsSet();
-//				final StringBuilder builder = new StringBuilder();
-//				if (bundles.setSize() > 1)
-//				{
-//					builder.append("a variable use for one of:\n\t");
-//				}
-//				else
-//				{
-//					builder.append("a variable use for: ");
-//				}
-//				boolean first = true;
-//				for (final A_Bundle bundle : bundles)
-//				{
-//					if (!first)
-//					{
-//						builder.append(", ");
-//					}
-//					builder.append(bundle.message().atomName());
-//					first = false;
-//				}
-				final A_Map bundles = successorTree.allBundles();
+				final A_Set bundles =
+					successorTree.allParsingPlans().keysAsSet();
 				final StringBuilder builder = new StringBuilder();
 				builder.append("a variable use, for one of:");
-				if (bundles.mapSize() > 2)
+				if (bundles.setSize() > 2)
 				{
 					builder.append("\n\t");
 				}
@@ -5211,13 +5174,13 @@ public final class AvailCompiler
 					builder.append(" ");
 				}
 				boolean first = true;
-				for (final MapDescriptor.Entry entry : bundles.mapIterable())
+				for (final A_Bundle bundle : bundles)
 				{
 					if (!first)
 					{
 						builder.append(", ");
 					}
-					builder.append(entry.key());
+					builder.append(bundle.message().atomName());
 					first = false;
 				}
 				continuation.value(builder.toString());
@@ -5288,13 +5251,19 @@ public final class AvailCompiler
 				}
 			}
 			final List<A_Definition> filtered = new ArrayList<>();
-			final MutableOrNull<AvailErrorCode> errorHolder =
-				new MutableOrNull<>();
+			AvailErrorCode errorCode = null;
 			if (visibleDefinitions.size() == macroDefinitionsTuple.tupleSize())
 			{
 				// All macro definitions are visible.  Use the lookup tree.
-				macro = method.lookupMacroByPhraseTuple(
-					argumentsListNode.expressionsTuple(), errorHolder);
+				try
+				{
+					macro = method.lookupMacroByPhraseTuple(
+						argumentsListNode.expressionsTuple());
+				}
+				catch (final MethodDefinitionException e)
+				{
+					errorCode = e.errorCode();
+				}
 			}
 			else
 			{
@@ -5324,7 +5293,7 @@ public final class AvailCompiler
 						"some definition of the macro "
 						+ bundle.message()
 						+ " to be visible");
-					errorHolder.value = E_NO_METHOD_DEFINITION;
+					errorCode = E_NO_METHOD_DEFINITION;
 					// Fall through.
 				}
 				else if (filtered.size() == 1)
@@ -5366,7 +5335,7 @@ public final class AvailCompiler
 					else
 					{
 						// There are multiple most-specific macros.
-						errorHolder.value = E_AMBIGUOUS_METHOD_DEFINITION;
+						errorCode = E_AMBIGUOUS_METHOD_DEFINITION;
 					}
 				}
 			}
@@ -5374,15 +5343,14 @@ public final class AvailCompiler
 			if (macro.equalsNil())
 			{
 				// Failed lookup.
-				final AvailErrorCode error = errorHolder.value();
-				if (error != E_NO_METHOD_DEFINITION)
+				if (errorCode != E_NO_METHOD_DEFINITION)
 				{
 					stateAfterCall.expected(
-						error == E_AMBIGUOUS_METHOD_DEFINITION
+						errorCode == E_AMBIGUOUS_METHOD_DEFINITION
 							? "unambiguous definition of macro "
 								+ bundle.message()
 							: "successful macro lookup, instead of: "
-								+ error.name());
+								+ errorCode.name());
 					// Don't try to treat it as a method invocation.
 					return;
 				}
@@ -5780,7 +5748,7 @@ public final class AvailCompiler
 	 * @param continuation
 	 *            What to do with the resulting send node.
 	 */
-	protected void completedSendNodeForMacro (
+	@InnerAccess void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
 		final ParserState stateAfterCall,
 		final A_Phrase argumentsListNode,
@@ -5833,7 +5801,7 @@ public final class AvailCompiler
 							PARSE_NODE.mostGeneralType()))
 						{
 							stateAfterCall.expected(
-								asList(replacement),
+								Collections.singletonList(replacement),
 								new Transformer1<List<String>, String>()
 								{
 									@Override
@@ -6598,7 +6566,7 @@ public final class AvailCompiler
 		recordExpectationsRelativeTo(start.position);
 		parseOutermostStatement(
 			start,
-			new Con<A_Phrase>((PartialSubexpressionList)null)
+			new Con<A_Phrase>(null)
 			{
 				@Override
 				public void valueNotNull (
@@ -6940,7 +6908,7 @@ public final class AvailCompiler
 					// Rollback the module transaction no matter what happens.
 					parseExpressionThen(
 						new ParserState(0, clientData),
-						new Con<A_Phrase>((PartialSubexpressionList)null)
+						new Con<A_Phrase>(null)
 						{
 							@Override
 							public void valueNotNull (
@@ -7285,7 +7253,7 @@ public final class AvailCompiler
 					if (!expression.expressionType().isSubtypeOf(someType))
 					{
 						afterExpression.expected(
-							asList(someType),
+							Collections.singletonList(someType),
 							new Transformer1<List<String>, String>()
 							{
 								@Override
@@ -7393,7 +7361,7 @@ public final class AvailCompiler
 	 * @param afterFail
 	 *            What to run after a failure has been reported.
 	 */
-	protected void parseOutermostStatement (
+	@InnerAccess void parseOutermostStatement (
 		final ParserState start,
 		final Con<A_Phrase> continuation,
 		final Continuation0 afterFail)
@@ -7403,7 +7371,7 @@ public final class AvailCompiler
 		recordExpectationsRelativeTo(start.position);
 		tryIfUnambiguousThen(
 			start,
-			new Con<Con<A_Phrase>>((PartialSubexpressionList)null)
+			new Con<Con<A_Phrase>>(null)
 			{
 				@Override
 				public void valueNotNull (
@@ -7412,7 +7380,7 @@ public final class AvailCompiler
 				{
 					parseExpressionThen(
 						realStart,
-						new Con<A_Phrase>((PartialSubexpressionList)null)
+						new Con<A_Phrase>(null)
 						{
 							@Override
 							public void valueNotNull (
@@ -7448,7 +7416,7 @@ public final class AvailCompiler
 	 * @param continuation
 	 *            What to do with the expression.
 	 */
-	protected void parseExpressionUncachedThen (
+	@InnerAccess void parseExpressionUncachedThen (
 		final ParserState start,
 		final Con<A_Phrase> continuation)
 	{
@@ -7515,7 +7483,7 @@ public final class AvailCompiler
 	 * @return
 	 *            The token or {@code null}.
 	 */
-	protected @Nullable A_Token parseRawTokenOrNull (
+	@InnerAccess @Nullable A_Token parseRawTokenOrNull (
 		final ParserState start)
 	{
 		final A_Token token = start.peekToken();
@@ -7617,7 +7585,7 @@ public final class AvailCompiler
 	 * @param problem The problem to handle.
 	 * @param handler The handler which should handle the problem.
 	 */
-	protected static void handleProblem (
+	@InnerAccess static void handleProblem (
 		final Problem problem,
 		final ProblemHandler handler)
 	{
@@ -7631,7 +7599,7 @@ public final class AvailCompiler
 	 * @param problem
 	 *        The problem to handle.
 	 */
-	protected void handleProblem (final Problem problem)
+	@InnerAccess void handleProblem (final Problem problem)
 	{
 		handleProblem(problem, problemHandler);
 	}
@@ -7647,7 +7615,7 @@ public final class AvailCompiler
 	 *        The unexpected {@linkplain Throwable exception} that is the
 	 *        proximal cause of the problem.
 	 */
-	protected void reportInternalProblem (
+	@InnerAccess void reportInternalProblem (
 		final A_Token token,
 		final Throwable e)
 	{
@@ -7684,7 +7652,7 @@ public final class AvailCompiler
 	 *        The unexpected {@linkplain Throwable exception} that is the
 	 *        proximal cause of the problem.
 	 */
-	protected void reportExecutionProblem (
+	@InnerAccess void reportExecutionProblem (
 		final A_Token token,
 		final Throwable e)
 	{
@@ -7737,7 +7705,7 @@ public final class AvailCompiler
 	 * @param e
 	 *        The {@linkplain AvailAssertionFailedException assertion failure}.
 	 */
-	protected void reportAssertionFailureProblem (
+	@InnerAccess void reportAssertionFailureProblem (
 		final A_Token token,
 		final AvailAssertionFailedException e)
 	{
@@ -7769,7 +7737,7 @@ public final class AvailCompiler
 	 *        The {@linkplain AvailEmergencyExitException emergency exit
 	 *        failure}.
 	 */
-	protected void reportEmergencyExitProblem (
+	@InnerAccess void reportEmergencyExitProblem (
 		final A_Token token,
 		final AvailEmergencyExitException e)
 	{

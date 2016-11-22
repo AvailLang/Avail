@@ -102,9 +102,9 @@ public final class P_CreateSuperCastExpression extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-				E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM.numericCode(),
-				E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST.numericCode(),
-				E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE.numericCode())));
+			SetDescriptor.from(
+				E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM,
+				E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST,
+				E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE));
 	}
 }

@@ -135,7 +135,8 @@ extends Primitive
 						try
 						{
 							final A_Atom atom = loader.lookupName(string);
-							loader.addMacroBody(atom, function);
+							loader.addMacroBody(
+								atom, function, prefixFunctions);
 							int counter = 1;
 							for (final A_Function prefixFunction
 								: prefixFunctions)
@@ -145,8 +146,6 @@ extends Primitive
 										"Macro prefix #%d of %s",
 										counter,
 										string));
-								loader.addPrefixFunction(
-									atom, counter, prefixFunction);
 								counter++;
 							}
 							function.code().setMethodName(
@@ -193,16 +192,15 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.fromCollection(Arrays.asList(
-					E_LOADING_IS_OVER.numericCode(),
-					E_AMBIGUOUS_NAME.numericCode(),
-					E_INCORRECT_NUMBER_OF_ARGUMENTS.numericCode(),
-					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES.numericCode(),
-					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
-						.numericCode(),
-					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP.numericCode(),
-					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE.numericCode(),
-					E_MACRO_MUST_RETURN_A_PARSE_NODE.numericCode()))
+			SetDescriptor.from(
+					E_LOADING_IS_OVER,
+					E_AMBIGUOUS_NAME,
+					E_INCORRECT_NUMBER_OF_ARGUMENTS,
+					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
+					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
+					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
+					E_MACRO_MUST_RETURN_A_PARSE_NODE)
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

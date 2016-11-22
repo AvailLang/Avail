@@ -116,43 +116,6 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * This is a volatile static field used for the sole purpose of establishing
-	 * very weak happens-before relations between threads without using mutual
-	 * exclusions or any blocking other than memory barriers.
-	 */
-	private static volatile int synchronizationBarrierField;
-
-	/**
-	 * Ensure writes from this thread that happen before the call to
-	 * writeBarrier() complete before any writes that occur after.  If another
-	 * thread performs a readBarrier() and then sees a value that was written
-	 * after the writeBarrier(), then any subsequent read will be guaranteed to
-	 * see values at least as recent as the writes that occurred before the
-	 * writeBarrier().
-	 *
-	 * <p>This is a very weak condition, and should only be used to ensure
-	 * a weak ordering of writes and reads suitable for implementing the
-	 * double-check pattern.  Or anti-pattern, since it's so difficult to get
-	 * right in general.</p>
-	 */
-	public static void writeBarrier ()
-	{
-		synchronizationBarrierField = 0;
-	}
-
-	/**
-	 * Say some other thread performs some writes, then executes a writeBarrier,
-	 * then performs more writes.  Ensure that after the readBarrier completes,
-	 * if an observation of a write performed after the writeBarrier is
-	 * detected, all values written before the writeBarrier will be visible.
-	 */
-	public static void readBarrier ()
-	{
-		@SuppressWarnings("unused")
-		final int ignored = synchronizationBarrierField;
-	}
-
-	/**
 	 * Answer the build version, as set by the build process.
 	 *
 	 * @return The build version, or {@code "dev"} if Avail is not running from
@@ -1168,13 +1131,12 @@ public final class AvailRuntime
 			"failed method lookup",
 			TupleDescriptor.from(
 				AbstractEnumerationTypeDescriptor.withInstances(
-					TupleDescriptor.from(
-							E_NO_METHOD.numericCode(),
-							E_NO_METHOD_DEFINITION.numericCode(),
-							E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
-							E_FORWARD_METHOD_DEFINITION.numericCode(),
-							E_ABSTRACT_METHOD_DEFINITION.numericCode())
-						.asSet()),
+					SetDescriptor.from(
+						E_NO_METHOD,
+						E_NO_METHOD_DEFINITION,
+						E_AMBIGUOUS_METHOD_DEFINITION,
+						E_FORWARD_METHOD_DEFINITION,
+						E_ABSTRACT_METHOD_DEFINITION)),
 				METHOD.o(),
 				TupleTypeDescriptor.mostGeneralType()));
 	}
@@ -1692,12 +1654,10 @@ public final class AvailRuntime
 			MethodDescriptor.vmCrashAtom(),
 			MethodDescriptor.vmCreateLiteralExpressionAtom(),
 			MethodDescriptor.vmCreateLiteralTokenAtom(),
-			MethodDescriptor.vmDeclarePrefixFunctionAtom(),
 			MethodDescriptor.vmDeclareStringifierAtom(),
 			MethodDescriptor.vmForwardDefinerAtom(),
 			MethodDescriptor.vmFunctionApplyAtom(),
 			MethodDescriptor.vmGrammaticalRestrictionsAtom(),
-			MethodDescriptor.vmJustMacroDefinerAtom(),
 			MethodDescriptor.vmMacroDefinerAtom(),
 			MethodDescriptor.vmMethodDefinerAtom(),
 			MethodDescriptor.vmPublishAtomsAtom(),
@@ -1997,87 +1957,11 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Add a macro prefix function at the given prefix function index (also
-	 * called the section checkpoint index) in the given method.
-	 *
-	 * @param method The method to which to add the prefix function.
-	 * @param index The index for which to add a prefix function.
-	 * @param prefixFunction The function to add.
-	 */
-	public void addPrefixFunction (
-		final A_Method method,
-		final int index,
-		final A_Function prefixFunction)
-	{
-		runtimeLock.writeLock().lock();
-		try
-		{
-			A_Tuple functionTuples = method.prefixFunctions();
-			assert 1 <= index && index <= functionTuples.tupleSize();
-			A_Tuple functionTuple = functionTuples.tupleAt(index);
-			functionTuple = functionTuple.appendCanDestroy(
-				prefixFunction, true);
-			functionTuples = functionTuples.tupleAtPuttingCanDestroy(
-				index, functionTuple, true);
-			method.prefixFunctions(functionTuples.makeShared());
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Remove a macro prefix function at the given prefix function index (also
-	 * called the section checkpoint index) within the given method.
-	 *
-	 * @param method The method from which to remove the prefix function.
-	 * @param index The index in which the prefix function should be found.
-	 * @param prefixFunction The function to remove (one occurrence of).
-	 */
-	public void removePrefixFunction (
-		final A_Method method,
-		final int index,
-		final A_Function prefixFunction)
-	{
-		runtimeLock.writeLock().lock();
-		try
-		{
-			A_Tuple functionTuples = method.prefixFunctions();
-			assert 1 <= index && index <= functionTuples.tupleSize();
-			A_Tuple functionTuple = functionTuples.tupleAt(index);
-			final int functionTupleSize = functionTuple.tupleSize();
-			int indexToRemove = Integer.MIN_VALUE;
-			for (int i = 1; i <= functionTupleSize; i++)
-			{
-				if (functionTuple.tupleAt(i).equals(prefixFunction))
-				{
-					indexToRemove = i;
-					break;
-				}
-			}
-			assert indexToRemove > 0;
-			final A_Tuple part1 = functionTuple.copyTupleFromToCanDestroy(
-				1, indexToRemove - 1, false);
-			final A_Tuple part2 = functionTuple.copyTupleFromToCanDestroy(
-				indexToRemove + 1, functionTupleSize, false);
-			functionTuple = part1.concatenateWith(part2, true);
-			functionTuples = functionTuples.tupleAtPuttingCanDestroy(
-				index, functionTuple, true);
-			method.prefixFunctions(functionTuples.makeShared());
-		}
-		finally
-		{
-			runtimeLock.writeLock().unlock();
-		}
-	}
-
-	/**
 	 * The {@linkplain ReentrantLock lock} that guards access to the Level One
 	 * {@linkplain #levelOneSafeTasks -safe} and {@linkplain
 	 * #levelOneUnsafeTasks -unsafe} queues and counters.
 	 *
-	 * <p>For example, a {@link L2Chunk} may not be {@linkplain
+	 * <p>For example, an {@link L2Chunk} may not be {@linkplain
 	 * L2Chunk#invalidate() invalidated} while any {@linkplain FiberDescriptor
 	 * fiber} is {@linkplain ExecutionState#RUNNING running} a Level Two chunk.
 	 * These two activities are mutually exclusive.</p>
