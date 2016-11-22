@@ -37,10 +37,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import com.avail.*;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
@@ -94,9 +93,7 @@ extends Primitive
 					{
 						try
 						{
-							loader.addAbstractSignature(
-								atom,
-								blockSignature);
+							loader.addAbstractSignature(atom, blockSignature);
 							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,

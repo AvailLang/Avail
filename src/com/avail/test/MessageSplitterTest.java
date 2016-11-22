@@ -34,10 +34,11 @@ package com.avail.test;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
+
+import com.avail.compiler.splitter.MessageSplitter;
+
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.ParsingConversionRule.*;
+
 import java.util.*;
 import com.avail.compiler.*;
 import com.avail.descriptor.*;
@@ -398,7 +399,7 @@ public class MessageSplitterTest
 			A("«", "_", ";", "»"),
 			A(
 				SAVE_PARSE_POSITION.encoding(),
-				NEW_LIST.encoding(),
+				EMPTY_LIST.encoding(),
 				BRANCH.encoding(12),
 				PARSE_ARGUMENT.encoding(),
 				CHECK_ARGUMENT.encoding(1),
@@ -415,9 +416,9 @@ public class MessageSplitterTest
 			A("«", "x", "»"),
 			A(
 				SAVE_PARSE_POSITION.encoding(),
-				NEW_LIST.encoding(),
+				EMPTY_LIST.encoding(),
 				BRANCH.encoding(12),
-				NEW_LIST.encoding(),
+				EMPTY_LIST.encoding(),
 				PARSE_PART.encoding(2),
 				BRANCH.encoding(10),
 				APPEND_ARGUMENT.encoding(),
@@ -432,9 +433,9 @@ public class MessageSplitterTest
 			A("«", "x", "y", "»"),
 			A(
 				SAVE_PARSE_POSITION.encoding(),
-				NEW_LIST.encoding(),
+				EMPTY_LIST.encoding(),
 				BRANCH.encoding(13),
-				NEW_LIST.encoding(),
+				EMPTY_LIST.encoding(),
 				PARSE_PART.encoding(2),
 				PARSE_PART.encoding(3),
 				BRANCH.encoding(11),
@@ -450,7 +451,7 @@ public class MessageSplitterTest
 			A("«", "x", "_", "y", "»"),
 			A(
 				SAVE_PARSE_POSITION.encoding(),
-				NEW_LIST.encoding(),
+				EMPTY_LIST.encoding(),
 				BRANCH.encoding(13),
 				PARSE_PART.encoding(2),
 				PARSE_ARGUMENT.encoding(),
@@ -467,9 +468,9 @@ public class MessageSplitterTest
 //			A("«", "_", ":", "_", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(18),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_ARGUMENT.encoding(),
 //				CHECK_ARGUMENT.encoding(1),
 //				APPEND_ARGUMENT.encoding(),
@@ -489,9 +490,9 @@ public class MessageSplitterTest
 //			A("«", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(11),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(9),
 //				APPEND_ARGUMENT.encoding(),
 //				ENSURE_PARSE_PROGRESS.encoding(),
@@ -504,9 +505,9 @@ public class MessageSplitterTest
 //			A("«", "»", "«", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(11),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(9),
 //				APPEND_ARGUMENT.encoding(),
 //				ENSURE_PARSE_PROGRESS.encoding(),
@@ -516,9 +517,9 @@ public class MessageSplitterTest
 //				DISCARD_SAVED_PARSE_POSITION.encoding(),
 //				APPEND_ARGUMENT.encoding(),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(23),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(21),
 //				APPEND_ARGUMENT.encoding(),
 //				ENSURE_PARSE_PROGRESS.encoding(),
@@ -531,7 +532,7 @@ public class MessageSplitterTest
 //			A("«", "_", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(11),
 //				PARSE_ARGUMENT.encoding(),
 //				CHECK_ARGUMENT.encoding(1),
@@ -547,7 +548,7 @@ public class MessageSplitterTest
 //			A("«", "_", "‡", ",", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(12),
 //				PARSE_ARGUMENT.encoding(),
 //				CHECK_ARGUMENT.encoding(1),
@@ -563,9 +564,9 @@ public class MessageSplitterTest
 //			A("«", "‡", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(11),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(9),
 //				APPEND_ARGUMENT.encoding(),
 //				ENSURE_PARSE_PROGRESS.encoding(),
@@ -582,13 +583,13 @@ public class MessageSplitterTest
 //				CHECK_ARGUMENT.encoding(1),
 //				APPEND_ARGUMENT.encoding(),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(33),
 //				PARSE_PART.encoding(4),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(27),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_ARGUMENT.encoding(),
 //				CHECK_ARGUMENT.encoding(2),
 //				APPEND_ARGUMENT.encoding(),
@@ -616,9 +617,9 @@ public class MessageSplitterTest
 //			A("«", "x", "»", "#"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(11),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(2),
 //				APPEND_ARGUMENT.encoding(),
 //				BRANCH.encoding(10),
@@ -632,9 +633,9 @@ public class MessageSplitterTest
 //			A("«", "x", "y", "»", "#"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(12),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(2),
 //				PARSE_PART.encoding(3),
 //				APPEND_ARGUMENT.encoding(),
@@ -649,9 +650,9 @@ public class MessageSplitterTest
 //			A("«", "»", "#"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(10),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				APPEND_ARGUMENT.encoding(),
 //				BRANCH.encoding(9),
 //				ENSURE_PARSE_PROGRESS.encoding(),
@@ -664,9 +665,9 @@ public class MessageSplitterTest
 //			A("«", "»", "#", "«", "»", "#"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(10),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				APPEND_ARGUMENT.encoding(),
 //				BRANCH.encoding(9),
 //				ENSURE_PARSE_PROGRESS.encoding(),
@@ -676,9 +677,9 @@ public class MessageSplitterTest
 //				CONVERT.encoding(LIST_TO_SIZE.number()),
 //				APPEND_ARGUMENT.encoding(),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(22),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				APPEND_ARGUMENT.encoding(),
 //				BRANCH.encoding(21),
 //				ENSURE_PARSE_PROGRESS.encoding(),
@@ -692,9 +693,9 @@ public class MessageSplitterTest
 //			A("«", "‡", "»", "#"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(10),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				APPEND_ARGUMENT.encoding(),
 //				BRANCH.encoding(9),
 //				ENSURE_PARSE_PROGRESS.encoding(),
@@ -707,9 +708,9 @@ public class MessageSplitterTest
 //			A("«", "fish", "‡", "»", "#"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(11),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(2),
 //				APPEND_ARGUMENT.encoding(),
 //				BRANCH.encoding(10),
@@ -723,9 +724,9 @@ public class MessageSplitterTest
 //			A("«", "‡", "face", "»", "#"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(11),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				APPEND_ARGUMENT.encoding(),
 //				BRANCH.encoding(10),
 //				PARSE_PART.encoding(3),
@@ -739,9 +740,9 @@ public class MessageSplitterTest
 //			A("«", "fish", "‡", "face", "»", "#"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(12),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(2),
 //				APPEND_ARGUMENT.encoding(),
 //				BRANCH.encoding(11),
@@ -756,12 +757,12 @@ public class MessageSplitterTest
 //			A("«", "«", "fish", "‡", "face", "»", "#", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(22),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(15),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(3),
 //				APPEND_ARGUMENT.encoding(),
 //				BRANCH.encoding(14),
@@ -819,13 +820,13 @@ public class MessageSplitterTest
 //			A("«", "«", "bagel", "»", "#", "«", "friend", "»", "?", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(33),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(15),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(3),
 //				APPEND_ARGUMENT.encoding(),
 //				BRANCH.encoding(14),
@@ -888,9 +889,9 @@ public class MessageSplitterTest
 //			A("«", "x", "~", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(12),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
 //				BRANCH.encoding(10),
 //				APPEND_ARGUMENT.encoding(),
@@ -904,9 +905,9 @@ public class MessageSplitterTest
 //			A("«", "x", "»", "~"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(12),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
 //				BRANCH.encoding(10),
 //				APPEND_ARGUMENT.encoding(),
@@ -920,9 +921,9 @@ public class MessageSplitterTest
 //			A("«", "x", "~", "y", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(13),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
 //				PARSE_PART.encoding(4),
 //				BRANCH.encoding(11),
@@ -937,9 +938,9 @@ public class MessageSplitterTest
 //			A("«", "x", "y", "»", "~"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(13),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
 //				PARSE_PART_CASE_INSENSITIVELY.encoding(3),
 //				BRANCH.encoding(11),
@@ -954,9 +955,9 @@ public class MessageSplitterTest
 //			A("«", "x", "y", "»", "#", "~"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(12),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
 //				PARSE_PART_CASE_INSENSITIVELY.encoding(3),
 //				APPEND_ARGUMENT.encoding(),
@@ -1022,9 +1023,9 @@ public class MessageSplitterTest
 //				SAVE_PARSE_POSITION.encoding(),
 //				BRANCH.encoding(17),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(15),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(2),
 //				PARSE_PART.encoding(3),
 //				BRANCH.encoding(13),
@@ -1042,9 +1043,9 @@ public class MessageSplitterTest
 //				PARSE_PART.encoding(8),
 //				JUMP.encoding(36),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(35),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(11),
 //				PARSE_PART.encoding(12),
 //				BRANCH.encoding(33),
@@ -1083,13 +1084,13 @@ public class MessageSplitterTest
 //				PARSE_PART.encoding(1),  // = "["
 //			// argument declarations:
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(33),
 //				CHECK_AT_MOST.encoding(1),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(26),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_RAW_KEYWORD_TOKEN.encoding(),
 //				APPEND_ARGUMENT.encoding(),
 //				PARSE_PART.encoding(5),  // = ":"
@@ -1117,18 +1118,18 @@ public class MessageSplitterTest
 //				APPEND_ARGUMENT.encoding(),
 //			// optional primitive declaration:
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(74),
 //				CHECK_AT_MOST.encoding(1),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(17),  // = "Primitive"
 //				PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding(),
 //				APPEND_ARGUMENT.encoding(),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(63),
 //				CHECK_AT_MOST.encoding(1),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(21),  // = "("
 //				PARSE_RAW_KEYWORD_TOKEN.encoding(),
 //				APPEND_ARGUMENT.encoding(),
@@ -1159,15 +1160,15 @@ public class MessageSplitterTest
 //				APPEND_ARGUMENT.encoding(),
 //			// optional label declaration:
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(108),
 //				CHECK_AT_MOST.encoding(1),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				PARSE_PART.encoding(35),  // = "$"
 //				PARSE_RAW_KEYWORD_TOKEN.encoding(),
 //				APPEND_ARGUMENT.encoding(),
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(97),
 //				CHECK_AT_MOST.encoding(1),
 //				PARSE_PART.encoding(38),  // = ":"
@@ -1194,7 +1195,7 @@ public class MessageSplitterTest
 //				APPEND_ARGUMENT.encoding(),
 //			// statements and declarations
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(120),
 //				PARSE_TOP_VALUED_ARGUMENT.encoding(),
 //				CHECK_ARGUMENT.encoding(8),
@@ -1207,7 +1208,7 @@ public class MessageSplitterTest
 //				APPEND_ARGUMENT.encoding(),
 //			// optional return expression
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(133),
 //				CHECK_AT_MOST.encoding(1),
 //				PARSE_TOP_VALUED_ARGUMENT.encoding(),
@@ -1223,7 +1224,7 @@ public class MessageSplitterTest
 //				PARSE_PART.encoding(56),  // = "]"
 //			// optional result type declaration
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(149),
 //				CHECK_AT_MOST.encoding(1),
 //				PARSE_PART.encoding(58),  // = ":"
@@ -1239,12 +1240,12 @@ public class MessageSplitterTest
 //				APPEND_ARGUMENT.encoding(),
 //			// optional exceptions declaration
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(174),
 //				CHECK_AT_MOST.encoding(1),
 //				PARSE_PART.encoding(64),  // = "^"
 //				SAVE_PARSE_POSITION.encoding(),
-//				NEW_LIST.encoding(),
+//				EMPTY_LIST.encoding(),
 //				BRANCH.encoding(168),
 //				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),
 //				CHECK_ARGUMENT.encoding(11),
@@ -1284,13 +1285,12 @@ public class MessageSplitterTest
 				builder.append(",\n");
 			}
 			builder.append('\t');
-			final ParsingOperation operation =
-				ParsingOperation.decode(instructionEncoding);
+			final ParsingOperation operation = decode(instructionEncoding);
 			builder.append(operation.name());
 			if (operation.ordinal() >= ParsingOperation.distinctInstructions)
 			{
 				builder.append('(');
-				builder.append(operation.operand(instructionEncoding));
+				builder.append(operand(instructionEncoding));
 				builder.append(')');
 			}
 			first = false;

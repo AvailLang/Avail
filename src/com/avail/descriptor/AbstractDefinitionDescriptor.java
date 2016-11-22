@@ -33,7 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;

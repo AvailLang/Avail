@@ -33,7 +33,7 @@
 package com.avail.performance;
 
 import com.avail.AvailRuntime;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.interpreter.Interpreter;
 
 /**

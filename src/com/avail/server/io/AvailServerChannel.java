@@ -38,7 +38,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.io.TextInterface;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.CommandMessage;
@@ -96,7 +96,7 @@ implements AutoCloseable
 	 * {@code ProtocolState} represents the communication state of a {@linkplain
 	 * AvailServerChannel server channel}.
 	 */
-	public static enum ProtocolState
+	public enum ProtocolState
 	{
 		/** Protocol version must be negotiated. */
 		VERSION_NEGOTIATION

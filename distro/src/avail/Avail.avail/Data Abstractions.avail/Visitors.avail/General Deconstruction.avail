@@ -82,7 +82,7 @@ Private method "_is visitable field" is
 [
 	value : atom
 |
-	¬explicit atom ∈ value
+	¬explicit subclassing key ∈ value
 ];
 
 Public method "_'s⁇subcomponents" is

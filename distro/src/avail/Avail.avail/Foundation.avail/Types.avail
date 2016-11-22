@@ -75,7 +75,7 @@ Body
 /**
  * Construct and answer a function type from the lexically specified argument
  * types and return type.
- * 
+ *
  * @method "[«_‡,»]→_"
  * @param "argTypes" "tuple of any meta"
  * 	The lexically specified argument types.
@@ -112,7 +112,7 @@ Semantic restriction "<_,_`…`|_>" is
 	defaultTypeType : any meta's type,
 	cardinalityTypeType : whole number meta's type
 |
-	leadingTupleLeadingAndDefaultTypes :: = 
+	leadingTupleLeadingAndDefaultTypes :: =
 		leadingTypesTypes' leading types ++ <leadingTypesTypes' default type>;
 	leadingTypesTypesSize ::= |leadingTupleLeadingAndDefaultTypes|;
 	typesTypesInstanceTuple : tuple := <>;
@@ -121,11 +121,11 @@ Semantic restriction "<_,_`…`|_>" is
 	[
 		index : natural number
 	|
-		typesTypesInstanceTuple := 
+		typesTypesInstanceTuple :=
 			if |leadingTupleLeadingAndDefaultTypes[index]| ≠ 1 then
 			[
 				Assert: leadingTupleLeadingAndDefaultTypes[index] ∈ {type,⊥}
-					("tuple leading type at index: " 
+					("tuple leading type at index: "
 						++ “index”
 						++ " has size ≠ 1 and is "
 						++  “leadingTupleLeadingAndDefaultTypes[index]”
@@ -142,7 +142,7 @@ Semantic restriction "<_,_`…`|_>" is
 			]
 			else
 			[
-				eject typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++
 					<leadingTupleLeadingAndDefaultTypes[index]'s instance>
 			];
 		true
@@ -152,7 +152,7 @@ Semantic restriction "<_,_`…`|_>" is
 		[
 			Assert: defaultTypeType ∈ {type}
 				("tuple default type is "
-					++ “defaultTypeType” 
+					++ “defaultTypeType”
 					++ " and has size ≠ 1, however only type is acceptable"
 					++ " in this case.");
 			type
@@ -163,10 +163,10 @@ Semantic restriction "<_,_`…`|_>" is
 		];
 
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-	bound ::= cast ⎡cardinalityTypeTypeInstance⎤ + 
+	bound ::= cast ⎡cardinalityTypeTypeInstance⎤ +
 		1 into [ t : [0..∞] | t ];
 	lower ::= ⎣cardinalityTypeTypeInstance⎦;
-	allTypesToUse ::= cast typesTypesInstanceTuple into 
+	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: <<>,any's type…|[0..∞)> | t];
 
 	<allTypesToUse,finalDefaultType…|[lower..bound)>'s type
@@ -175,9 +175,9 @@ Semantic restriction "<_,_`…`|_>" is
 /**
  * Tuple type constructor.
  * @method "<«_‡,»`…`|_.._>"
- * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>" 
+ * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>"
  *		a tuple of the types in the tuple
- * @param "minimumSize" "whole number" 
+ * @param "minimumSize" "whole number"
  *		minimum cardinality
  * @param "maximumSize" "[0..∞]"
  *		maximum cardinality
@@ -205,14 +205,14 @@ Public method "<«_‡,»`…`|_.._>" is
  * @restricts "whole number's type"
  * @restricts "[0..∞]'s type"
  * @category "Tuples" "Types"
- */ 
+ */
 Semantic restriction "<«_‡,»`…`|_.._>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type,
 	minimumSizeType : whole number's type,
 	maximumSizeType : [0..∞]'s type
 |
-	leadingTypesTypes ::= 
+	leadingTypesTypes ::=
 		leadingAndDefaultTypesTypes' leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
@@ -221,10 +221,10 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 	[
 		index : natural number
 	|
-		typesTypesInstanceTuple := 
+		typesTypesInstanceTuple :=
 			if |leadingTypesTypes[index]| ≠ 1 then
 			[
-				Assert: leadingTypesTypes[index] = type 
+				Assert: leadingTypesTypes[index] = type
 					("tuple leading type at index: "
 						++ “index”
 						++ " has size ≠ 1 and is "
@@ -235,7 +235,7 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 			]
 			else
 			[
-				eject typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++
 					<leadingTypesTypes[index]'s instance>
 			];
 		true
@@ -245,7 +245,7 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 	defaultTypeTypeInstance ::=
 		if |defaultTypeType| ≠ 1 then
 		[
-			Assert: defaultTypeType = type 
+			Assert: defaultTypeType = type
 				("tuple default type is "
 					++ “defaultTypeType”
 					++ " and has size ≠ 1, however only type is acceptable"
@@ -259,7 +259,7 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
 
 	bound ::= cast ⎡maximumSizeType⎤ + 1 into [ t : [0..∞] | t ];
 	lower ::= ⎣minimumSizeType⎦;
-	allTypesToUse ::= cast typesTypesInstanceTuple into 
+	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: any's type* | t];
 
 	<allTypesToUse,defaultTypeTypeInstance…|[lower..bound)>'s type
@@ -269,9 +269,9 @@ Semantic restriction "<«_‡,»`…`|_.._>" is
  * Tuple type constructor with max cardinality of ∞.
  *
  * @method "<«_‡,»`…`|_..>"
- * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>" 
+ * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>"
  *		a tuple of the types in the tuple
- * @param "minimumSize" "whole number" 
+ * @param "minimumSize" "whole number"
  *		minimum cardinality
  * @category "Tuples" "Types"
  * @returns "tuple meta"
@@ -293,13 +293,13 @@ Public method "<«_‡,»`…`|_..>" is
  * @method "<«_‡,»`…`|_..>"
  * @restricts "<<>, any's type…|natural number>'s type"
  * @restricts "whole number's type"
- */ 
+ */
 Semantic restriction "<«_‡,»`…`|_..>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type,
 	minimumSizeType : whole number's type
 |
-	leadingTypesTypes ::= 
+	leadingTypesTypes ::=
 	leadingAndDefaultTypesTypes' leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
@@ -308,10 +308,10 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 	[
 		index : natural number
 	|
-		typesTypesInstanceTuple := 
+		typesTypesInstanceTuple :=
 			if |leadingTypesTypes[index]| ≠ 1 then
 			[
-				Assert: leadingTypesTypes[index] = type 
+				Assert: leadingTypesTypes[index] = type
 					("tuple leading type at index: "
 						++ “index”
 						++ " has size ≠ 1 and is "
@@ -321,7 +321,7 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 			]
 			else
 			[
-				eject typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++
 					<leadingTypesTypes[index]'s instance>
 			];
 		true
@@ -331,7 +331,7 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 	defaultTypeTypeInstance ::=
 		if |defaultTypeType| ≠ 1 then
 		[
-			Assert: defaultTypeType = type 
+			Assert: defaultTypeType = type
 				("tuple default type is "
 					++ “defaultTypeType”
 					++ " and has size ≠ 1, however only type is acceptable "
@@ -344,7 +344,7 @@ Semantic restriction "<«_‡,»`…`|_..>" is
 		];
 
 	lower ::= ⎣minimumSizeType⎦;
-	allTypesToUse ::= cast typesTypesInstanceTuple into 
+	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: any's type* | t];
 
 	<allTypesToUse,defaultTypeTypeInstance…|[lower..∞)>'s type
@@ -354,8 +354,8 @@ Semantic restriction "<«_‡,»`…`|_..>" is
  * Tuple type constructor with minimum cardinality of 0.
  *
  * @method "<«_‡,»`…`|.._>"
- * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>" 
- *		a tuple of the types in the tuple 
+ * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>"
+ *		a tuple of the types in the tuple
  * @param "maximumSize" "[0..∞]"
  *		maximum cardinality
  * @category "Tuples" "Types"
@@ -380,13 +380,13 @@ Public method "<«_‡,»`…`|.._>" is
  * @category "Tuples" "Types"
  * @restricts "<<>, any's type…|natural number>'s type"
  * @restricts "[0..∞]'s type"
- */ 
+ */
 Semantic restriction "<«_‡,»`…`|.._>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type,
 	maximumSizeType : [0..∞]'s type
 |
-	leadingTypesTypes ::= 
+	leadingTypesTypes ::=
 	leadingAndDefaultTypesTypes' leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
@@ -395,10 +395,10 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 	[
 		index : natural number
 	|
-		typesTypesInstanceTuple := 
+		typesTypesInstanceTuple :=
 			if |leadingTypesTypes[index]| ≠ 1 then
 			[
-				Assert: leadingTypesTypes[index] = type 
+				Assert: leadingTypesTypes[index] = type
 					("tuple leading type at index: "
 						++ “index”
 						++ " has size ≠ 1 and is "
@@ -408,7 +408,7 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 			]
 			else
 			[
-				eject typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++
 					<leadingTypesTypes[index]'s instance>
 			];
 		true
@@ -418,7 +418,7 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 	defaultTypeTypeInstance ::=
 		if |defaultTypeType| ≠ 1 then
 		[
-			Assert: defaultTypeType = type 
+			Assert: defaultTypeType = type
 				("tuple default type is "
 					++ “defaultTypeType”
 					++ " and has size ≠ 1, however only type is acceptable"
@@ -431,7 +431,7 @@ Semantic restriction "<«_‡,»`…`|.._>" is
 		];
 
 	bound ::= cast ⎡maximumSizeType⎤ + 1 into [ t : [0..∞] | t ];
-	allTypesToUse ::= cast typesTypesInstanceTuple into 
+	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: any's type* | t];
 
 	<allTypesToUse,defaultTypeTypeInstance…|[0..bound)>'s type
@@ -441,9 +441,9 @@ Semantic restriction "<«_‡,»`…`|.._>" is
  * Tuple type constructor with exact tuple size for cardinality.
  *
  * @method "<«_‡,»`…`|_>"
- * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>" 
+ * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>"
  *		a tuple of the types in the tuple
- * @param "exactSize" "whole number" 
+ * @param "exactSize" "whole number"
  *		the minimum and maximum cardinality
  * @category "Tuples" "Types"
  * @returns "tuple meta"
@@ -467,24 +467,24 @@ Public method "<«_‡,»`…`|_>" is
  * @restricts "<<>, any's type…|natural number>'s type"
  * @restricts "whole number's type"
  * @category "Tuples" "Types"
- */ 
+ */
 Semantic restriction "<«_‡,»`…`|_>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type,
 	exactSizeType : whole number's type
 |
-	leadingTypesTypes ::= 
+	leadingTypesTypes ::=
 	leadingAndDefaultTypesTypes' leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
 
-	From 1 to leadingTypesTypesSize do [ 
+	From 1 to leadingTypesTypesSize do [
 		index : natural number
 	|
-		typesTypesInstanceTuple := 
+		typesTypesInstanceTuple :=
 			if |leadingTypesTypes[index]| ≠ 1 then
 			[
-				Assert: leadingTypesTypes[index] = type 
+				Assert: leadingTypesTypes[index] = type
 					("tuple leading type at index: "
 						++ “index”
 						++ " has size ≠ 1 and is "
@@ -495,7 +495,7 @@ Semantic restriction "<«_‡,»`…`|_>" is
 			]
 			else
 			[
-				eject typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++
 					<leadingTypesTypes[index]'s instance>
 			];
 		true
@@ -505,7 +505,7 @@ Semantic restriction "<«_‡,»`…`|_>" is
 	defaultTypeTypeInstance ::=
 		if |defaultTypeType| ≠ 1 then
 		[
-			Assert: defaultTypeType = type 
+			Assert: defaultTypeType = type
 				("tuple default type is "
 					++ “defaultTypeType”
 					++ " and has size ≠ 1, however only type is acceptable "
@@ -519,7 +519,7 @@ Semantic restriction "<«_‡,»`…`|_>" is
 
 	lower ::= ⎣exactSizeType⎦;
 	upper ::= cast ⎡exactSizeType⎤ + 1 into [ t : [0..∞] | t ];
-	allTypesToUse ::= cast typesTypesInstanceTuple into 
+	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: any's type* | t];
 
 	<allTypesToUse,defaultTypeTypeInstance…|[lower..upper)>'s type
@@ -529,7 +529,7 @@ Semantic restriction "<«_‡,»`…`|_>" is
  * Tuple type constructor with cardinality [0..∞).
  *
  * @method "<«_‡,»`…`|>"
- * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>" 
+ * @param "leadingAndDefaultTypes" "<<>, any's type…|natural number>"
  *		a tuple of the types in the tuple
  * @returns "tuple meta"
  *    The requested tuple's type's type.
@@ -550,12 +550,12 @@ Public method "<«_‡,»`…`|>" is
  * @method "<«_‡,»`…`|>"
  * @restricts "<<>, any's type…|natural number>'s type"
  * @category "Tuples" "Types"
- */ 
+ */
 Semantic restriction "<«_‡,»`…`|>" is
 [
 	leadingAndDefaultTypesTypes : <<>, any's type…|natural number>'s type
 |
-	leadingTypesTypes ::= 
+	leadingTypesTypes ::=
 	leadingAndDefaultTypesTypes' leading types;
 	leadingTypesTypesSize ::= |leadingTypesTypes|;
 	typesTypesInstanceTuple : tuple := <>;
@@ -564,19 +564,19 @@ Semantic restriction "<«_‡,»`…`|>" is
 	[
 		index : natural number
 	|
-		typesTypesInstanceTuple := 
+		typesTypesInstanceTuple :=
 			if |leadingTypesTypes[index]| ≠ 1 then [
-				Assert: leadingTypesTypes[index] = type 
+				Assert: leadingTypesTypes[index] = type
 					("tuple leading type at index: "
 						++ “index”
 						++ " has size ≠ 1 and is "
-						++ “leadingTypesTypes[index]” 
+						++ “leadingTypesTypes[index]”
 						++ ", however only type is acceptable in this case.");
 				eject typesTypesInstanceTuple ++ <type>
 			]
 			else
 			[
-				eject typesTypesInstanceTuple ++ 
+				eject typesTypesInstanceTuple ++
 					<leadingTypesTypes[index]'s instance>
 			];
 		true
@@ -586,9 +586,9 @@ Semantic restriction "<«_‡,»`…`|>" is
 	defaultTypeTypeInstance ::=
 		if |defaultTypeType| ≠ 1 then
 		[
-			Assert: defaultTypeType = type 
+			Assert: defaultTypeType = type
 				("tuple default type is "
-					++ “defaultTypeType” 
+					++ “defaultTypeType”
 					++ " and has size ≠ 1, however only type is acceptable"
 					++ " in this case.");
 			type
@@ -598,7 +598,7 @@ Semantic restriction "<«_‡,»`…`|>" is
 			defaultTypeType's instance
 		];
 
-	allTypesToUse ::= cast typesTypesInstanceTuple into 
+	allTypesToUse ::= cast typesTypesInstanceTuple into
 		[t: any's type* | t];
 
 	<allTypesToUse,defaultTypeTypeInstance…|[0..∞)>'s type
@@ -616,27 +616,27 @@ Semantic restriction "{_`|_}" is
 	cardinalityTypeType : whole number meta's type
 |
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-	bound ::= cast ⎡cardinalityTypeTypeInstance⎤ + 
+	bound ::= cast ⎡cardinalityTypeTypeInstance⎤ +
 		1 into [ t : [0..∞] | t ];
 	lower ::= ⎣cardinalityTypeTypeInstance⎦;
 	{elementTypeType's instance|[lower..bound)}'s type
 ];
 
 /**
- * Construct and answer a set type with the specified element type and the 
+ * Construct and answer a set type with the specified element type and the
  * specified minimum value and maximum value of the cardinalities.
- * 
+ *
  * @method "{_`|_.._}"
- * @param "elementType" "any's type" 
+ * @param "elementType" "any's type"
  *		The element type.
- * @param "minimumSize" "whole number" 
+ * @param "minimumSize" "whole number"
  * 		The minimum cardinality of the set.
  * @param "maximumSize" "[0..∞]"
  *		The maximum cardinality of the set.
  * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to
- *    `elementType` and cardinalities, using the supplied minimum and maximum 
+ *    `elementType` and cardinalities, using the supplied minimum and maximum
  *    provided values, that conform to `cardinalityType`.
  */
 Public method "{_`|_.._}" is
@@ -691,19 +691,19 @@ Semantic restriction "{_`|_.._}" is
 ];
 
 /**
- * Construct and answer a set type with the specified element type and the 
- * specified minimum value of the cardinality. The maximum value of the 
+ * Construct and answer a set type with the specified element type and the
+ * specified minimum value of the cardinality. The maximum value of the
  * cardinality is automatically set to ∞.
  *
  * @method "{_`|_..}"
- * @param "elementType" "any's type" 
+ * @param "elementType" "any's type"
  *		The element type.
- * @param "minimumSize" "whole number" 
+ * @param "minimumSize" "whole number"
  * 		The minimum cardinality of the set.
  * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to
- *    `elementType` and cardinalities, using the supplied minimum value and 
+ *    `elementType` and cardinalities, using the supplied minimum value and
  *    infinity as the maximum value, that conform to `cardinalityType`.
  */
 Public method "{_`|_..}" is
@@ -730,19 +730,19 @@ Semantic restriction "{_`|_..}" is
 ];
 
 /**
- * Construct and answer a set type with the specified element type and the 
- * specified minimum value of the cardinality. The maximum value of the 
+ * Construct and answer a set type with the specified element type and the
+ * specified minimum value of the cardinality. The maximum value of the
  * cardinality is automatically set to ∞.
  *
  * @method "{_`|.._}"
- * @param "elementType" "any's type" 
+ * @param "elementType" "any's type"
  *		The element type.
  * @param "maximumSize" "[0..∞]"
  *		The maximum cardinality of the set.
  * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to
- *    `elementType` and cardinalities, using the supplied maximum value and 
+ *    `elementType` and cardinalities, using the supplied maximum value and
  *    0 as the minimum value, that conform to `cardinalityType`.
  */
 Public method "{_`|.._}" is
@@ -772,7 +772,7 @@ Semantic restriction "{_`|.._}" is
 /**
  * Construct and answer a set type with the specified element type and exact
  * cardinality.
- * 
+ *
  * @method "{_`|_}"
  * @restricts "any's type"
  * @restricts "whole number"
@@ -822,17 +822,17 @@ Semantic restriction "{_`|_}" is
 ];
 
 /**
- * Construct and answer a set type with the specified element type and the 
- * specified minimum value of the cardinality. The maximum value of the 
+ * Construct and answer a set type with the specified element type and the
+ * specified minimum value of the cardinality. The maximum value of the
  * cardinality is automatically set to ∞.
- * 
+ *
  * @method "{_`|}"
- * @param "elementType" "any's type" 
+ * @param "elementType" "any's type"
  *        The element type.
  * @category "Sets" "Types"
  * @returns "set meta"
  *    The requested set type. Instances have elements that conform to
- *    `elementType` and cardinalities, using the supplied maximum value and 
+ *    `elementType` and cardinalities, using the supplied maximum value and
  *    0 as the minimum value, that conform to `cardinalityType`.
  */
 Public method "{_`|}" is
@@ -867,7 +867,7 @@ Semantic restriction "{_→_`|_}" is
 	cardinalityTypeType : whole number meta's type
 |
 	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-	bound ::= cast ⎡cardinalityTypeTypeInstance⎤ + 
+	bound ::= cast ⎡cardinalityTypeTypeInstance⎤ +
 	1 into [ t : [0..∞] | t ];
 	lower ::= ⎣cardinalityTypeTypeInstance⎦;
 	{keyTypeType's instance→valueTypeType's instance|[lower..bound)}'s type
@@ -923,9 +923,9 @@ Semantic restriction "{_→_`|_.._}" is
 
 /**
  * Construct and answer a map type with the specified key type, value type, and
- * the specified minimum value of the cardinality and ∞ as the maximum value of 
+ * the specified minimum value of the cardinality and ∞ as the maximum value of
  * the cardinality.
- * 
+ *
  * @method "{_→_`|_..}"
  * @param "keyType" "any meta"
  *        A type to which all keys of instances must conform.
@@ -962,10 +962,10 @@ Semantic restriction "{_→_`|_..}" is
 	lower ::= ⎣minimumSizeType⎦;
 	{keyTypeType's instance→valueTypeType's instance|[lower..∞)}'s type
 ];
-	
+
 /**
  * Construct and answer a map type with the specified key type, value type, and
- * the specified maximum value of the cardinality and 0 as the minimum value of 
+ * the specified maximum value of the cardinality and 0 as the minimum value of
  * the cardinality.
  *
  * @method "{_→_`|.._}"
@@ -1009,7 +1009,7 @@ Semantic restriction "{_→_`|.._}" is
 /**
  * Construct and answer a map type with the specified key type, value type, and
  * the exact size of the cardinality.
- * 
+ *
  * @method "{_→_`|_}"
  * @param "keyType" "any meta"
  *        A type to which all keys of instances must conform.
@@ -1051,7 +1051,7 @@ Semantic restriction "{_→_`|_}" is
 /**
  * Construct and answer a map type with the specified key type, value type, and
  * uses all whole numbers as the value of the cardinality.
- * 
+ *
  * @method "{_→_`|}"
  * @param "keyType" "any meta"
  *        A type to which all keys of instances must conform.
@@ -1162,7 +1162,7 @@ Semantic restriction "`|`|_`|`|" is
 /**
  * Generic function type construction can at least statically ensure the return
  * type.
- * 
+ *
  * @method "[`…]→_"
  * @restricts "type's type"
  * @category "Functions" "Types"
@@ -1190,14 +1190,8 @@ Private method "function type construction semantic restriction" is
 		argTypes : tuple of any meta's type,
 		returnType : type's type
 	|
-		bottoms : <⊥'s type…|> := <>;
-		From 1 to ⎣argTypes⎦ do
-		[
-			index : natural number
-		|
-			bottoms := eject bottoms ++ <⊥>;
-			true
-		];
+		bottoms ::= cast ⎣argTypes⎦ occurrences of ⊥
+			into [t : <any's type…|> | t];
 		return ::= if |returnType| = 1
 			then [returnType's instance]
 			else [⊤];
@@ -1208,7 +1202,7 @@ Private method "function type construction semantic restriction" is
 /**
  * Function type construction can at least statically ensure the correct number
  * of arguments and the return type.
- * 
+ *
  * @method "[«_‡,»]→_"
  * @restricts "tuple of any meta's type"
  * @restricts "type's type"

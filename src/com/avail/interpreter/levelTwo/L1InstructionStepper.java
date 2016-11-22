@@ -99,7 +99,7 @@ implements L1OperationDispatcher
 	 *
 	 * @return The subscript to use with {@link Interpreter#integerAt(int)}.
 	 */
-	public final static int pcRegister ()
+	public static int pcRegister ()
 	{
 		// Reserved.
 		return 1;
@@ -115,7 +115,7 @@ implements L1OperationDispatcher
 	 *
 	 * @return The subscript to use with {@link Interpreter#integerAt(int)}.
 	 */
-	public final static int stackpRegister ()
+	public static int stackpRegister ()
 	{
 		// Reserved.
 		return 2;
@@ -133,7 +133,7 @@ implements L1OperationDispatcher
 	 *
 	 * @return The subscript to use with {@link Interpreter#integerAt(int)}.
 	 */
-	public final static int skipReturnCheckRegister ()
+	public static int skipReturnCheckRegister ()
 	{
 		// Reserved.
 		return 3;
@@ -374,7 +374,7 @@ implements L1OperationDispatcher
 			return;
 		}
 		final int nybble = nybbles.extractNybbleFromTupleAt(pc);
-		interpreter.integerAtPut(pcRegister(), (pc + 1));
+		interpreter.integerAtPut(pcRegister(), pc + 1);
 
 		final L1Operation operation = L1Operation.all()[nybble];
 		if (debugL1)

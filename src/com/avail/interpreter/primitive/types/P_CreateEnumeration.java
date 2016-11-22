@@ -68,7 +68,7 @@ public final class P_CreateEnumeration extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				SetTypeDescriptor.mostGeneralType()),
-			InstanceMetaDescriptor.topMeta());
+			InstanceMetaDescriptor.anyMeta());
 	}
 
 	@Override
@@ -83,7 +83,6 @@ public final class P_CreateEnumeration extends Primitive
 		// when the set's element type is an enumeration.
 		final A_Type elementType = setType.contentType();
 		final A_Type metaType = InstanceMetaDescriptor.on(elementType);
-		metaType.makeImmutable();
-		return metaType;
+		return metaType.makeImmutable();
 	}
 }

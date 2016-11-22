@@ -35,7 +35,9 @@ package com.avail.descriptor;
 import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.ObjectSlots.*;
 import static java.lang.Math.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
@@ -757,7 +759,11 @@ extends TypeDescriptor
 	 */
 	private ConcatenatedTupleTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.TUPLE_TYPE_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link ConcatenatedTupleTypeDescriptor}. */

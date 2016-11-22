@@ -35,9 +35,9 @@ package com.avail.interpreter.primitive.methods;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.Arrays;
+
 import java.util.List;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
@@ -113,13 +113,13 @@ extends Primitive
 			@Override
 			public void value ()
 			{
-				root.addBundle(newBundle);
-				for (final A_DefinitionParsingPlan plan
-					: newBundle.definitionParsingPlans())
+				for (final MapDescriptor.Entry entry
+					: newBundle.definitionParsingPlans().mapIterable())
 				{
-					root.addPlan(plan);
+					root.addPlanInProgress(
+						ParsingPlanInProgressDescriptor.create(
+							entry.value(), 1));
 				}
-				root.flushForNewOrChangedBundle(newBundle);
 			}
 		});
 		return interpreter.primitiveSuccess(NilDescriptor.nil());

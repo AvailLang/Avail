@@ -32,9 +32,12 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.*;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
+
 import static com.avail.descriptor.CommentTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CommentTokenDescriptor.ObjectSlots.*;
 
@@ -210,7 +213,11 @@ extends TokenDescriptor
 		@Nullable final Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		@Nullable final Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(
+			mutability,
+			TypeTag.TOKEN_TAG,
+			objectSlotsEnumClass,
+			integerSlotsEnumClass);
 	}
 
 	/**
@@ -221,7 +228,7 @@ extends TokenDescriptor
 	 */
 	private CommentTokenDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		this(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link LiteralTokenDescriptor}. */

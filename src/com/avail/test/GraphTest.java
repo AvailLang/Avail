@@ -39,7 +39,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.utility.*;
 import com.avail.utility.Graph.GraphPreconditionFailure;
 import com.avail.utility.evaluation.Continuation0;

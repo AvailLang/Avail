@@ -33,7 +33,7 @@
 package com.avail.optimizer;
 
 import java.util.*;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.*;

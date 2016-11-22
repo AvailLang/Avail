@@ -60,8 +60,7 @@ public final class P_AtomHasProperty extends Primitive
 		assert args.size() == 2;
 		final A_Atom propertyKey = args.get(0);
 		final A_Atom atom = args.get(1);
-		if (atom.isAtomSpecial()
-			|| propertyKey.isAtomSpecial())
+		if (atom.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}

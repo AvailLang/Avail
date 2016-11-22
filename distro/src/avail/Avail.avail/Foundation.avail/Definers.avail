@@ -101,7 +101,7 @@ Method "stability failure function" is [failureFunction];
 
 /**
  * Set the {@global "failureFunction"} that wraps invocations of stable methods
- * in macros produced by {@method "Method_is stable at_"}. This is a bootstap
+ * in macros produced by {@method "Method_is stable at_"}. This is a bootstrap
  * method, and should not escape "Foundation".
  *
  * @method "Set stability failure function to_"
@@ -346,18 +346,16 @@ Public method "Method_is stable at_" is
 	currentMacroToken ::= (this token: currentMacroName);
 	sendGetCurrentMacro ::=
 		restricted send getCurrentMacroNameAtom with «<>» : atom;
-	currentMacroDecl ::= «currentMacroToken ::= sendGetCurrentMacro»;
-	currentMacroUse ::= «↓currentMacroDecl»(currentMacroToken);
 	sendStabilityBody ::=
 		restricted send stabilityBodyAtom
 		with
 			«<
-				currentMacroUse,
+				sendGetCurrentMacro,
 				argUses → list phrase
 			>»
 		: (expression phrase ⇒ any);
 	/* Construct the function. */
-	macroBody ::= «[argDecls | <currentMacroDecl, sendStabilityBody>]
+	macroBody ::= «[argDecls | <sendStabilityBody>]
 		: expression phrase ⇒ any»;
 	macroFunction ::= macroBody → function;
 	/* Install the macro. */
@@ -366,12 +364,12 @@ Public method "Method_is stable at_" is
 
 /**
  * Declare that the method referenced by {@param "methodName"} is stable for the
- * given signature. A stable method produces the same value for the same 
- * arguments on every call. Automatically generate and install a semantic 
- * restriction that will statically strengthen the answer produced at a call 
- * site to a precisely known value when all arguments are themselves precisely 
+ * given signature. A stable method produces the same value for the same
+ * arguments on every call. Automatically generate and install a semantic
+ * restriction that will statically strengthen the answer produced at a call
+ * site to a precisely known value when all arguments are themselves precisely
  * known.
- * 
+ *
  * @method "Method_is stable at_"
  * @param "methodName" "string"
  *        The name of the stable.
@@ -448,7 +446,7 @@ Public method "Stable abstract method_is_" is
  *
  * Recursive methods must be forward declared. Mutually recursive methods must
  * forward declare all but the lexically first participant in the recursion.
- * 
+ *
  * Also declare that the method is stable A stable method produces the same
  * value for the same arguments on every call. Automatically generate and
  * install a semantic restriction that will statically strengthen the answer
@@ -479,7 +477,7 @@ Public method "Stable forward method_is_" is
  *
  * Recursive methods must be forward declared. Mutually recursive methods must
  * forward declare all but the lexically first participant in the recursion.
- * 
+ *
  * Also declare that the method is stable A stable method produces the same
  * value for the same arguments on every call. Automatically generate and
  * install a semantic restriction that will statically strengthen the answer
@@ -509,7 +507,7 @@ Public method "Stable forward method_is_" is
  * restriction that will statically strengthen the answer produced at a call
  * site to a precisely known value when all arguments are themselves precisely
  * known.
- * 
+ *
  * @method "Stable method_is_"
  * @param "methodName" "string"
  *        The name of the new method.
@@ -533,7 +531,7 @@ Public method "Stable method_is_" is
  * restriction that will statically strengthen the answer produced at a call
  * site to a precisely known value when all arguments are themselves precisely
  * known.
- * 
+ *
  * @method "Stable method_is_"
  * @param "methodAtom" "atom"
  *        The atom representing the new method.
@@ -581,7 +579,7 @@ Public method "Public stable abstract method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
- * 
+ *
  * @method "Public stable abstract method_is_"
  * @restricts "string's type"
  * @restricts "function meta's type"
@@ -631,7 +629,7 @@ Public method "Public stable abstract method_is_" is
  *
  * Recursive methods must be forward declared. Mutually recursive methods must
  * forward declare all but the lexically first participant in the recursion.
- * 
+ *
  * Also declare that the method is stable A stable method produces the same
  * value for the same arguments on every call. Automatically generate and
  * install a semantic restriction that will statically strengthen the answer
@@ -640,7 +638,7 @@ Public method "Public stable abstract method_is_" is
  *
  * The semantic restriction ensures that the method is named in the current
  * module's "Names" section.
- * 
+ *
  * This should not be used to extend existing methods.
  *
  * @method "Public stable forward method_is_"
@@ -662,7 +660,7 @@ Public method "Public stable forward method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
- * 
+ *
  * @method "Public stable forward method_is_"
  * @restricts "string's type"
  * @restricts "function meta's type"
@@ -684,7 +682,7 @@ Semantic restriction "Public stable forward method_is_" is
  *
  * Recursive methods must be forward declared. Mutually recursive methods must
  * forward declare all but the lexically first participant in the recursion.
- * 
+ *
  * Also declare that the method is stable A stable method produces the same
  * value for the same arguments on every call. Automatically generate and
  * install a semantic restriction that will statically strengthen the answer
@@ -693,7 +691,7 @@ Semantic restriction "Public stable forward method_is_" is
  *
  * The semantic restriction ensures that the method is named in the current
  * module's "Names" section.
- * 
+ *
  * This should not be used to extend existing methods.
  *
  * @method "Public stable forward method_is_"
@@ -721,7 +719,7 @@ Public method "Public stable forward method_is_" is
  * precisely known. The semantic restriction ensures that the method is named in
  * the current module's "Names" section. This should not be used to extend
  * existing methods.
- * 
+ *
  * @method "Public stable method_is_"
  * @param "methodName" "string"
  *        The name of the new method.
@@ -741,7 +739,7 @@ Public method "Public stable method_is_" is
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
- * 
+ *
  * @method "Public stable method_is_"
  * @restricts "string's type"
  * @restricts "function meta"
@@ -763,7 +761,7 @@ Semantic restriction "Public stable method_is_" is
  * precisely known. The semantic restriction ensures that the method is named in
  * the current module's "Names" section. This should not be used to extend
  * existing methods.
- * 
+ *
  * @method "Public stable method_is_"
  * @param "methodAtom" "atom"
  *        The atom representing the new method.
@@ -811,7 +809,7 @@ Public method "Private stable abstract method_is_" is
 
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
- * 
+ *
  * @method "Private stable abstract method_is_"
  * @restricts "string's type"
  * @restricts "function meta's type"
@@ -861,16 +859,16 @@ Public method "Private stable abstract method_is_" is
  *
  * Recursive methods must be forward declared. Mutually recursive methods must
  * forward declare all but the lexically first participant in the recursion.
- * 
+ *
  * Also declare that the method is stable A stable method produces the same
  * value for the same arguments on every call. Automatically generate and
  * install a semantic restriction that will statically strengthen the answer
  * produced at a call site to a precisely known value when all arguments are
  * themselves precisely known.
- * 
+ *
  * The semantic restriction ensures that the method is not named in the current
  * module's "Names" section.
- * 
+ *
  * This should not be used to extend existing methods.
  *
  * @method "Private stable forward method_is_"
@@ -892,7 +890,7 @@ Public method "Private stable forward method_is_" is
 
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
- * 
+ *
  * @method "Private stable forward method_is_"
  * @restricts "string's type"
  * @restricts "function meta's type"
@@ -914,16 +912,16 @@ Semantic restriction "Private stable forward method_is_" is
  *
  * Recursive methods must be forward declared. Mutually recursive methods must
  * forward declare all but the lexically first participant in the recursion.
- * 
+ *
  * Also declare that the method is stable A stable method produces the same
  * value for the same arguments on every call. Automatically generate and
  * install a semantic restriction that will statically strengthen the answer
  * produced at a call site to a precisely known value when all arguments are
  * themselves precisely known.
- * 
+ *
  * The semantic restriction ensures that the method is not named in the current
  * module's "Names" section.
- * 
+ *
  * This should not be used to extend existing methods.
  *
  * @method "Private stable forward method_is_"
@@ -951,7 +949,7 @@ Public method "Private stable forward method_is_" is
  * precisely known. The semantic restriction ensures that the method is not
  * named in the current module's "Names" section. This should not be used to
  * extend existing methods.
- * 
+ *
  * @method "Private stable method_is_"
  * @param "methodName" "string"
  *        The name of the new method.
@@ -971,7 +969,7 @@ Public method "Private stable method_is_" is
 
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
- * 
+ *
  * @method "Private stable method_is_"
  * @restricts "string's type"
  * @restricts "function meta"
@@ -993,7 +991,7 @@ Semantic restriction "Private stable method_is_" is
  * precisely known. The semantic restriction ensures that the method is not
  * named in the current module's "Names" section. This should not be used to
  * extend existing methods.
- * 
+ *
  * @method "Private stable method_is_"
  * @param "methodAtom" "atom"
  *        The atom representing the new method.
@@ -1020,7 +1018,7 @@ Public method "Private stable method_is_" is
  * @param "var" "variable"
  *        The variable for which an accessor and a mutator should be generated.
  * @param "accessorName" "string"
- *        The name of the accessor. The name of the mutator will be 
+ *        The name of the accessor. The name of the mutator will be
  *        {@param "accessorName"} ++ ":=_".
  * @returns "⊤"
  * @category "Declarations" "Variables"
@@ -1043,7 +1041,7 @@ Public method "Public variable_is_" is
 
 /**
  * Ensure that the new methods are introduced by the module's "Names" section.
- * 
+ *
  * @method "Public variable_is_"
  * @restricts "variable meta"
  * @restricts "string's type"
@@ -1092,7 +1090,7 @@ Public method "Public read-only variable_is_" is
 
 /**
  * Ensure that the new methods are introduced by the module's "Names" section.
- * 
+ *
  * @method "Public read-only variable_is_"
  * @restricts "variable meta"
  * @restricts "string's type"

@@ -32,8 +32,11 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import org.jetbrains.annotations.Nullable;
+
 import static com.avail.descriptor.SetBinDescriptor.IntegerSlots.*;
-import com.avail.annotations.*;
 
 /**
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree
@@ -111,6 +114,8 @@ extends Descriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} for the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -124,11 +129,12 @@ extends Descriptor
 	 */
 	protected SetBinDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass,
 		final int level)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 		this.level = (byte) level;
 	}
 }

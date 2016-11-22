@@ -32,8 +32,10 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.EnumField;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
 
 /**
  * A {@code RuntimeBitField} is constructed at class loading time and contains
@@ -42,6 +44,7 @@ import com.avail.annotations.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
 final class BitField
 implements Comparable<BitField>
 {
@@ -61,7 +64,7 @@ implements Comparable<BitField>
 	 * The lowest bit position that this BitField occupies.  Zero ({@code 0}) is
 	 * the rightmost or lowest order bit.
 	 */
-	final int shift;
+	private final int shift;
 
 	/**
 	 * The number of bits that this BitField occupies within a {@code long}.
@@ -73,19 +76,19 @@ implements Comparable<BitField>
 	 * long}.  Even though bit fields can't be more than 32 long, it's a long
 	 * to avoid sign extension problems.
 	 */
-	final long lowMask;
+	private final long lowMask;
 
 	/**
 	 * An integer containing 1-bits in exactly the positions reserved for this
 	 * bit field.
 	 */
-	final long mask;
+	private final long mask;
 
 	/**
 	 * An integer containing 0-bits in exactly the positions reserved for this
 	 * bit field.
 	 */
-	final long invertedMask;
+	private final long invertedMask;
 
 	/**
 	 * The name of this {@code BitField}.  This is filled in as needed by the
@@ -94,6 +97,14 @@ implements Comparable<BitField>
 	 * mechanism.
 	 */
 	@Nullable String name;
+
+	/**
+	 * The {@link EnumField} with which this {@code BitField} is annotated, if
+	 * any.  This is populated by the default {@linkplain
+	 * AbstractDescriptor#printObjectOnAvoidingIndent(AvailObject,
+	 * StringBuilder, IdentityHashMap, int) object printing} mechanism.
+	 */
+	@Nullable EnumField enumField;
 
 	/**
 	 * Construct a new {@link BitField}.
@@ -160,5 +171,31 @@ implements Comparable<BitField>
 			getClass().getSimpleName(),
 			shift,
 			bits);
+	}
+
+	/**
+	 * Extract this {@code BitField} from the given {@code long}.
+	 * @param longValue A long.
+	 * @return An {@code int} extracted from the range of bits this {@code
+	 *         BitField} occupies.
+	 */
+	int extractFromLong (final long longValue)
+	{
+		return (int)((longValue >>> shift) & lowMask);
+
+	}
+
+	/**
+	 * Given a {@code long} field value, replace the bits occupied by this
+	 * {@code BitField} with the supplied {@code int} value, returning the
+	 * resulting {@code long}.
+	 * @param longValue A {@code long} into which to replace the bit field.
+	 * @param bitFieldValue The {@code int} to be written into the bit field.
+	 * @return The {@code long} with the bit field updated.
+	 */
+	long replaceBits (final long longValue, final int bitFieldValue)
+	{
+		return (longValue & invertedMask)
+			| ((((long)bitFieldValue) << shift) & mask);
 	}
 }

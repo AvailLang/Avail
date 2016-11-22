@@ -65,7 +65,7 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.utility.IO;
 import com.avail.utility.json.JSONArray;
 import com.avail.utility.json.JSONData;
@@ -276,7 +276,7 @@ public class Catalog
 	 * @throws MalformedURLException
 	 *         If the URL is malformed (but this should never happen).
 	 */
-	private static final URL urlFor (final CharacterInfo info)
+	private static URL urlFor (final CharacterInfo info)
 		throws MalformedURLException
 	{
 		final String urlString = String.format(
@@ -601,7 +601,7 @@ public class Catalog
 	 *        A {@code JSONData}. May be {@code null}.
 	 * @return A {@code Catalog}.
 	 */
-	public static final Catalog readFrom (final @Nullable JSONData data)
+	public static Catalog readFrom (final @Nullable JSONData data)
 	{
 		return new Catalog(data);
 	}

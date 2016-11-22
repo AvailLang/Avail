@@ -48,6 +48,8 @@ Extends
 		"_!;",
 		"_!;" → "_!",
 		"…" → "(Perl)`$…",
+		"…$",
+		"…#",
 
 		/* Array construction. */
 		"<«_‡,»>" → "(Perl)(«_‡,»)",
@@ -84,6 +86,12 @@ Extends
 Names
 	/* Statements. */
 	"_!",
+
+	/* String literals. */
+	"…$",
+
+	/* Integer literals. */
+	"…#",
 
 	/* Variable use. */
 	"@…",

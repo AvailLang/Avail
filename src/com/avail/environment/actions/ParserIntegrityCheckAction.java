@@ -1,5 +1,5 @@
 /**
- * NotNull.java
+ * ParserIntegrityCheckAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,43 +30,63 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.annotations;
+package com.avail.environment.actions;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
+import com.avail.compiler.AvailCompiler;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.environment.AvailWorkbench;
+import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import com.avail.utility.evaluation.Continuation0;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.event.ActionEvent;
+
+import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 
 /**
- * {@code NotNull} annotation indicates that the annotated target must not
- * yield a {@code null} when evaluated. The precise meaning depends upon the
- * type of the target:
- *
- * <p><ul>
- * <li><strong>Static field.</strong> Once all {@code static} initializers have
- * run to completion, the field must not and must never again contain {@code
- * null}.</li>
- * <li><strong>Instance field.</strong> Once the invoked constructor chain and
- * all instance initializers have run to completion, the field must not and must
- * never again contain {@code null}.</li>
- * <li><strong>Method.</strong> No invocation of the method is permitted to
- * yield {@code null} as its return value.</li>
- * <li><strong>Method parameter.</strong> No invocation of the method is
- * permitted to bind a {@code null} argument to the formal parameter.</li>
- * <li><strong>Local variable.</strong> Once the local variable has been
- * initialized, it must not and must never contain {@code null}.</li>
- * </ul></p>
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * A {@code ParserIntegrityCheckAction} checks critical data structures used by
+ * the {@link AvailCompiler}.
  */
-@Retention(RetentionPolicy.CLASS)
-@Target({
-	ElementType.FIELD,
-	ElementType.LOCAL_VARIABLE,
-	ElementType.METHOD,
-	ElementType.PARAMETER
-})
-public @interface NotNull
+@SuppressWarnings("serial")
+public final class ParserIntegrityCheckAction
+extends AbstractWorkbenchAction
 {
-	// No implementation required.
+	/** The current runtime. */
+	final AvailRuntime runtime;
+
+	@Override
+	public void actionPerformed (final @Nullable ActionEvent event)
+	{
+		workbench.clearTranscript();
+		runtime.execute(new AvailTask(FiberDescriptor.commandPriority)
+		{
+			@Override
+			public void value ()
+			{
+				runtime.integrityCheck();
+			}
+		});
+	}
+
+	/**
+	 * Construct a new {@link ParserIntegrityCheckAction}.
+	 *
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
+	 * @param runtime
+	 *        The active {@link AvailRuntime}.
+	 */
+	public ParserIntegrityCheckAction (
+		final AvailWorkbench workbench,
+		final AvailRuntime runtime)
+	{
+		super(workbench, "Integrity check");
+		this.runtime = runtime;
+		putValue(
+			SHORT_DESCRIPTION,
+			"Perform an integrity check on key parser structures.");
+	}
 }

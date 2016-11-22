@@ -36,7 +36,8 @@ import java.util.*;
 import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -47,6 +48,7 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
+import com.sun.istack.internal.Nullable;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -524,7 +526,11 @@ extends Descriptor
 	 */
 	private ContinuationDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.CONTINUATION_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link ContinuationDescriptor}. */
@@ -640,11 +646,10 @@ extends Descriptor
 					assert allTypeNames != null;
 					int allTypesIndex = 0;
 					for (
-						int index = 0, end = frames.size();
-						index < end;
-						index++)
+						int frameIndex = 0, end = frames.size();
+						frameIndex < end;
+						frameIndex++)
 					{
-						final int frameIndex = index;
 						final A_Continuation frame = frames.get(frameIndex);
 						final A_RawFunction code = frame.function().code();
 						final StringBuilder signatureBuilder =

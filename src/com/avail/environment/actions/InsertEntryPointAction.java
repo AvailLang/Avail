@@ -34,11 +34,11 @@ package com.avail.environment.actions;
 
 import java.awt.*;
 import java.awt.event.*;
-import com.avail.annotations.*;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.environment.tasks.BuildTask;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code InsertEntryPointAction} inserts a string based on the currently

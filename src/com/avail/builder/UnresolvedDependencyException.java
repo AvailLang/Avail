@@ -32,7 +32,7 @@
 
 package com.avail.builder;
 
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.ModuleDescriptor;
 
 /**

@@ -38,7 +38,9 @@ import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.nio.ByteBuffer;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 
@@ -383,7 +385,7 @@ extends TupleDescriptor
 		{
 			return false;
 		}
-		//  tuple's size is out of range.
+		//  tuple's size is in range.
 		final A_Tuple typeTuple = aType.typeTuple();
 		final int breakIndex = min(object.tupleSize(), typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
@@ -466,10 +468,13 @@ extends TupleDescriptor
 		assert index >= 1 && index <= object.tupleSize();
 		if (!newValueObject.isUnsignedByte())
 		{
+			if (newValueObject.isInt())
+			{
+				return object.copyAsMutableIntTuple().tupleAtPuttingCanDestroy(
+					index, newValueObject, true);
+			}
 			return object.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true);
+				index, newValueObject, true);
 		}
 		final AvailObject result = canDestroy && isMutable()
 			? object

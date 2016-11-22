@@ -36,8 +36,8 @@ import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
-import com.avail.annotations.*;
 import com.avail.compiler.*;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -45,7 +45,6 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -58,10 +57,11 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.*;
 import com.avail.utility.Generator;
-import com.avail.utility.MutableOrNull;
+import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code AvailObject} is the fully realized, and mostly machine generated,
@@ -95,6 +95,7 @@ implements
 		A_Method,
 		A_Module,
 		A_Number,
+		A_ParsingPlanInProgress,
 		A_Phrase,
 		A_RawFunction,
 		A_SemanticRestriction,
@@ -532,10 +533,8 @@ implements
 	/**
 	 * Add the {@linkplain DefinitionDescriptor definition} to the receiver, a
 	 * {@linkplain MethodDefinitionDescriptor method}.  Causes dependent chunks
-	 * to be invalidated.
-	 *
-	 * Macro signatures and non-macro signatures should not be combined in the
-	 * same method.
+	 * to be invalidated.  Answer the {@link A_DefinitionParsingPlan}s that
+	 * were created for the new definition.
 	 *
 	 * @param definition The definition to be added.
 	 * @throws SignatureException
@@ -557,10 +556,11 @@ implements
 	 * @param grammaticalRestriction The set of grammatical restrictions to be added.
 	 */
 	@Override
-	public void addGrammaticalRestriction (
+	public void moduleAddGrammaticalRestriction (
 		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		descriptor.o_AddGrammaticalRestriction(this, grammaticalRestriction);
+		descriptor.o_ModuleAddGrammaticalRestriction(
+			this, grammaticalRestriction);
 	}
 
 	/**
@@ -657,18 +657,14 @@ implements
 	}
 
 	/**
-	 * @param methodName
-	 * @param illegalArgMsgs
+	 * @param grammaticalRestriction
 	 */
 	@Override
-	public void addGrammaticalRestrictions (
-		final A_Atom methodName,
-		final A_Tuple illegalArgMsgs)
+	public void addGrammaticalRestriction (
+		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		descriptor.o_AddGrammaticalRestrictions(
-			this,
-			methodName,
-			illegalArgMsgs);
+		descriptor.o_AddGrammaticalRestriction(
+			this, grammaticalRestriction);
 	}
 
 	/**
@@ -693,18 +689,6 @@ implements
 		descriptor.o_AddDefinitionParsingPlan(
 			this,
 			plan);
-	}
-
-	/**
-	 * @param bundle
-	 */
-	@Override
-	public void addBundle (
-		final A_Bundle bundle)
-	{
-		descriptor.o_AddBundle(
-			this,
-			bundle);
 	}
 
 	/**
@@ -1091,6 +1075,38 @@ implements
 
 	/**
 	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
+	 * subrange of the given {@linkplain IntTupleDescriptor int tuple}. The
+	 * size of the subrange of both objects is determined by the index range
+	 * supplied for the receiver.
+	 *
+	 * @param startIndex1
+	 *        The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *        The inclusive upper bound of the receiver's subrange.
+	 * @param anIntTuple
+	 *        The int tuple used in the comparison.
+	 * @param startIndex2
+	 *        The inclusive lower bound of the int tuple's subrange.
+	 * @return {@code true} if the contents of the subranges match exactly,
+	 *         {@code false} otherwise.
+	 */
+	@Override
+	public boolean compareFromToWithIntTupleStartingAt (
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2)
+	{
+		return descriptor.o_CompareFromToWithIntTupleStartingAt(
+			this,
+			startIndex1,
+			endIndex1,
+			anIntTuple,
+			startIndex2);
+	}
+
+	/**
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
 	 * subrange of the given {@linkplain SmallIntegerIntervalTupleDescriptor
 	 * small integer interval tuple}. The size of the subrange of both objects
 	 * is determined by the index range supplied for the receiver.
@@ -1317,6 +1333,15 @@ implements
 		final A_Continuation value)
 	{
 		descriptor.o_Continuation(this, value);
+	}
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	@Override
+	public A_Tuple copyAsMutableIntTuple ()
+	{
+		return descriptor.o_CopyAsMutableIntTuple(this);
 	}
 
 	/**
@@ -1585,6 +1610,22 @@ implements
 
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
+	 * argument, an {@linkplain IntTupleDescriptor int tuple}, are equal in
+	 * value.
+	 *
+	 * @param anIntTuple The int tuple to be compared to the receiver.
+	 * @return {@code true} if the receiver is a tuple equal to the argument,
+	 *         {@code false} otherwise.
+	 */
+	@Override
+	public boolean equalsIntTuple (
+		final A_Tuple anIntTuple)
+	{
+		return descriptor.o_EqualsIntTuple(this, anIntTuple);
+	}
+
+	/**
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
 	 * argument, a {@linkplain SmallIntegerIntervalTupleDescriptor small integer
 	 * interval tuple}, are equal in value.
 	 *
@@ -1768,7 +1809,7 @@ implements
 	/**
 	 * Answer whether the {@linkplain AvailObject receiver} is an {@linkplain
 	 * InfinityDescriptor infinity} with the specified {@link
-	 * IntegerSlots#SIGN}.
+	 * Sign}.
 	 *
 	 * @param sign The type of infinity for comparison.
 	 * @return {@code true} if the receiver is an infinity of the specified
@@ -2004,10 +2045,9 @@ implements
 	 */
 	@Override
 	public void expand (
-		final A_Module module,
-		final List<A_Phrase> sampleArgsStack)
+		final A_Module module)
 	{
-		descriptor.o_Expand(this, module, sampleArgsStack);
+		descriptor.o_Expand(this, module);
 	}
 
 	/**
@@ -2461,6 +2501,12 @@ implements
 		return descriptor.o_IsIntegerIntervalTuple(this);
 	}
 
+	@Override
+	public boolean isIntTuple ()
+	{
+		return descriptor.o_IsIntTuple(this);
+	}
+
 	/**
 	 * Dispatch to the descriptor.
 	 */
@@ -2670,10 +2716,11 @@ implements
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anObjectType
 	 */
 	@Override
 	public boolean isSupertypeOfObjectType (
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return descriptor.o_IsSupertypeOfObjectType(this, anObjectType);
 	}
@@ -3338,16 +3385,6 @@ implements
 	public A_BasicObject parent ()
 	{
 		return descriptor.o_Parent(this);
-	}
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	@Override
-	public void parent (
-		final AvailObject value)
-	{
-		descriptor.o_Parent(this, value);
 	}
 
 	/**
@@ -4156,10 +4193,11 @@ implements
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anObjectType
 	 */
 	@Override
 	public A_Type typeIntersectionOfObjectType (
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return descriptor.o_TypeIntersectionOfObjectType(this, anObjectType);
 	}
@@ -4310,10 +4348,11 @@ implements
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anObjectType
 	 */
 	@Override
 	public A_Type typeUnionOfObjectType (
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return descriptor.o_TypeUnionOfObjectType(this, anObjectType);
 	}
@@ -4788,9 +4827,9 @@ implements
 	 * @return
 	 */
 	@Override
-	public A_Map allParsingPlans ()
+	public A_Map allParsingPlansInProgress ()
 	{
-		return descriptor.o_AllParsingPlans(this);
+		return descriptor.o_AllParsingPlansInProgress(this);
 	}
 
 	/**
@@ -5913,7 +5952,7 @@ implements
 	 */
 	@Override
 	public boolean equalsObjectType (
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return descriptor.o_EqualsObjectType(this, anObjectType);
 	}
@@ -6205,13 +6244,17 @@ implements
 	}
 
 	/**
-	 * @param bundle
+	 * @param planInProgress
+	 * @param treesToVisit
 	 */
 	@Override
-	public void flushForNewOrChangedBundle (
-		final A_Bundle bundle)
+	public void updateForNewGrammaticalRestriction (
+		final A_ParsingPlanInProgress planInProgress,
+		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
+			treesToVisit)
 	{
-		descriptor.o_FlushForNewOrChangedBundle(this, bundle);
+		descriptor.o_UpdateForNewGrammaticalRestriction(
+			this, planInProgress, treesToVisit);
 	}
 
 	/**
@@ -7090,9 +7133,9 @@ implements
 	}
 
 	@Override
-	public String nameHighlightingPc (final int pc)
+	public String nameHighlightingPc ()
 	{
-		return descriptor.o_NameHighlightingPc(this, pc);
+		return descriptor.o_NameHighlightingPc(this);
 	}
 
 	@Override
@@ -7102,13 +7145,13 @@ implements
 	}
 
 	@Override
-	public void removeDefinitionParsingPlan (final A_DefinitionParsingPlan plan)
+	public void removePlanForDefinition (final A_Definition definition)
 	{
-		descriptor.o_RemoveDefinitionParsingPlan(this, plan);
+		descriptor.o_RemovePlanForDefinition(this, definition);
 	}
 
 	@Override
-	public A_Set definitionParsingPlans ()
+	public A_Map definitionParsingPlans ()
 	{
 		return descriptor.o_DefinitionParsingPlans(this);
 	}
@@ -7132,14 +7175,54 @@ implements
 	}
 
 	@Override
-	public void addPlan (final A_DefinitionParsingPlan plan)
+	public void addPlanInProgress (final A_ParsingPlanInProgress planInProgress)
 	{
-		descriptor.o_AddPlan(this, plan);
+		descriptor.o_AddPlanInProgress(this, planInProgress);
 	}
 
 	@Override
 	public A_Type parsingSignature ()
 	{
 		return descriptor.o_ParsingSignature(this);
+	}
+
+	@Override
+	public void removePlanInProgress (final A_ParsingPlanInProgress planInProgress)
+	{
+		descriptor.o_RemovePlanInProgress(this, planInProgress);
+	}
+
+	@Override
+	public A_Set moduleSemanticRestrictions ()
+	{
+		return descriptor.o_ModuleSemanticRestrictions(this);
+	}
+
+	@Override
+	public A_Set moduleGrammaticalRestrictions ()
+	{
+		return descriptor.o_ModuleGrammaticalRestrictions(this);
+	}
+
+	@Override
+	public AvailObject fieldAt (final A_Atom field)
+	{
+		return descriptor.o_FieldAt(this, field);
+	}
+
+	@Override
+	public A_BasicObject fieldAtPuttingCanDestroy (
+		final A_Atom field,
+		final A_BasicObject value,
+		final boolean canDestroy)
+	{
+		return descriptor.o_FieldAtPuttingCanDestroy(
+			this, field, value, canDestroy);
+	}
+
+	@Override
+	public A_DefinitionParsingPlan parsingPlan ()
+	{
+		return descriptor.o_ParsingPlan(this);
 	}
 }

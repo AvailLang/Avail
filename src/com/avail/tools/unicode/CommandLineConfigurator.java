@@ -36,7 +36,7 @@ import static com.avail.tools.unicode.CommandLineConfigurator.OptionKey.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.tools.options.DefaultOption;
 import com.avail.tools.options.GenericHelpOption;
 import com.avail.tools.options.OptionProcessor;
@@ -58,7 +58,7 @@ implements Configurator<UnicodeConfiguration>
 	/**
 	 * {@code OptionKey} enumerates the valid configuration options.
 	 */
-	static enum OptionKey
+	enum OptionKey
 	{
 		/**
 		 * Request display of help text.

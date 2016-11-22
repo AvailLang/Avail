@@ -34,12 +34,11 @@ package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
@@ -438,7 +437,7 @@ public class L2Translator
 	 * correctly explode the fields into registers then jump to the main
 	 * entry point at the {@link #startLabel}.
 	 */
-	final L2Instruction restartLabel = newLabel("restart");
+	L2Instruction restartLabel = null;
 
 	/**
 	 * Answer the specified fixed register.
@@ -780,15 +779,6 @@ public class L2Translator
 			new HashMap<>();
 
 		/**
-		 * Whether any uses of the {@linkplain #L1Ext_doPushLabel() push-label}
-		 * nybblecode instruction have been encountered so far.  After naive
-		 * translation, if any push-labels occurred then the {@link
-		 * #restartLabel} will be appended, followed by code that will explode
-		 * the continuation and jump to the start.
-		 */
-		boolean anyPushLabelsEncountered = false;
-
-		/**
 		 * Return the {@link List} of {@link L2Instruction}s.
 		 *
 		 * @return The current list of instructions.
@@ -1088,7 +1078,8 @@ public class L2Translator
 						if (naiveRegisters == null)
 						{
 							builder.append("\n[[[no RegisterSet]]]");
-						} else
+						}
+						else
 						{
 							naiveRegisters().debugOn(builder);
 						}
@@ -1326,7 +1317,7 @@ public class L2Translator
 			// extra tests that this site's argTypes would eliminate.
 			final LookupTree<A_Definition, A_Tuple, Void> tree =
 				MethodDescriptor.runtimeDispatcher.createRoot(
-					nArgs, allPossible, argTypes, null);
+					allPossible, argTypes, null);
 			final Mutable<Integer> branchLabelCounter = new Mutable<>(1);
 			tree.<InternalNodeMemento>traverseEntireTree(
 				MethodDescriptor.runtimeDispatcher,
@@ -2739,7 +2730,7 @@ public class L2Translator
 			// Write a coda if necessary to support push-label instructions
 			// and give the resulting continuations a chance to explode before
 			// restarting them.
-			if (anyPushLabelsEncountered)
+			if (restartLabel != null)
 			{
 				addLabel(restartLabel);
 				A_Map typesMap = MapDescriptor.empty();
@@ -3039,7 +3030,6 @@ public class L2Translator
 		@Override
 		public void L1Ext_doPushLabel ()
 		{
-			anyPushLabelsEncountered = true;
 			stackp--;
 			final List<L2ObjectRegister> vectorWithOnlyArgsPreserved =
 				new ArrayList<>(numSlots);
@@ -3053,6 +3043,10 @@ public class L2Translator
 				vectorWithOnlyArgsPreserved.add(fixed(NULL));
 			}
 			final L2ObjectRegister destReg = stackRegister(stackp);
+			if (restartLabel == null)
+			{
+				restartLabel = newLabel("restart");
+			}
 			addInstruction(
 				L2_CREATE_CONTINUATION.instance,
 				new L2ReadPointerOperand(fixed(CALLER)),
@@ -3209,7 +3203,7 @@ public class L2Translator
 	 * other registers that currently hold equivalent values, and the set of
 	 * instructions that may have directly produced the current register value.
 	 */
-	void computeDataFlow ()
+	private void computeDataFlow ()
 	{
 		instructionRegisterSets.clear();
 		instructionRegisterSets.add(new RegisterSet(fixedRegisterMap));
@@ -3401,13 +3395,10 @@ public class L2Translator
 		final List<L2Instruction> oldInstructions =
 			new ArrayList<>(instructions);
 		instructions.clear();
-		final List<RegisterSet> oldRegisterSets =
-			new ArrayList<>(instructionRegisterSets);
 		instructionRegisterSets.clear();
 		final L1NaiveTranslator newNaiveTranslator = new L1NaiveTranslator();
 		anyChanges |= regenerateInstructions(
-			oldInstructions, oldRegisterSets, newNaiveTranslator);
-//		instructionRegisterSets.clear();
+			oldInstructions, newNaiveTranslator);
 		for (int i = 0, end = instructions.size(); i < end; i++)
 		{
 			instructions.get(i).setOffset(i);
@@ -3462,13 +3453,12 @@ public class L2Translator
 	}
 
 	/**
-	 * Given the set of instructions which are reachable and have side-effect,
-	 * compute which instructions recursively provide values needed by them.
-	 * Also include the original instructions that have side-effect.
+	 * Given the set of instructions which are reachable, compute the subset
+	 * which have side-effect or produce a value consumed by other reachable
+	 * instructions.
 	 *
 	 * @param reachableInstructions
-	 *        The instructions which are both reachable from the first
-	 *        instruction and have a side-effect.
+	 *        The instructions which are reachable from the first instruction.
 	 * @return The instructions that are essential and should be kept.
 	 */
 	private Set<L2Instruction> findInstructionsThatProduceNeededValues (
@@ -3576,9 +3566,6 @@ public class L2Translator
 	 *
 	 * @param oldInstructions
 	 *        The original sequence of instructions being examined.
-	 * @param oldRegisterSets
-	 *        The old list of {@link RegisterSet}s, indexed by instruction
-	 *        offset.
 	 * @param naiveTranslator
 	 *        The {@link L1NaiveTranslator} to which the replacement sequence of
 	 *        instructions is being written.
@@ -3588,19 +3575,25 @@ public class L2Translator
 	 */
 	private boolean regenerateInstructions (
 		final List<L2Instruction> oldInstructions,
-		final List<RegisterSet> oldRegisterSets,
 		final L1NaiveTranslator naiveTranslator)
 	{
 		boolean anyChanges = false;
 		for (final L2Instruction instruction : oldInstructions)
 		{
-			final RegisterSet registerSet =
-				oldRegisterSets.get(instruction.offset());
-			// Adjust the original instruction's offset.
-			instruction.setOffset(instructions.size());
+			// Wipe the original instruction's offset.
+			instruction.setOffset(-1);
 //			System.out.println(instruction + "\n" + registerSet + "\n\n");
-			anyChanges |= instruction.operation.regenerate(
-				instruction, naiveTranslator, registerSet);
+			if (instruction.operation instanceof L2_LABEL)
+			{
+				naiveTranslator.addLabel(instruction);
+			}
+			else
+			{
+				anyChanges |= instruction.operation.regenerate(
+					instruction,
+					naiveTranslator.naiveRegisters(),
+					naiveTranslator);
+			}
 		}
 		return anyChanges;
 	}
@@ -3944,10 +3937,10 @@ public class L2Translator
 		numArgs = theCode.numArgs();
 		numLocals = theCode.numLocals();
 		numSlots = theCode.numArgsAndLocalsAndStack();
-		// Now translate all the instructions. We already wrote a label as
-		// the first instruction so that L1Ext_doPushLabel can always find
-		// it. Since we only translate one method at a time, the first
-		// instruction always represents the start of this compiledCode.
+		// Now translate all the instructions. We already wrote a label as the
+		// first instruction so that L1Ext_doPushLabel can always find it. Since
+		// we only translate one method at a time, the first instruction always
+		// represents the start of this compiledCode.
 		final L1NaiveTranslator naiveTranslator =
 			new L1NaiveTranslator();
 		naiveTranslator.addNaiveInstructions();
@@ -3985,8 +3978,6 @@ public class L2Translator
 	 */
 	public static L2Chunk createChunkForFirstInvocation ()
 	{
-		final L2Translator translator = new L2Translator();
-		final L2Chunk newChunk = translator.chunk();
-		return newChunk;
+		return new L2Translator().chunk();
 	}
 }

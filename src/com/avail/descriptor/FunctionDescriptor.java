@@ -37,7 +37,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import java.util.Collections;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.ThreadSafe;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
@@ -173,8 +175,9 @@ extends Descriptor
 	@Override
 	String o_NameForDebugger (final AvailObject object)
 	{
-		return super.o_NameForDebugger(object) + ": "
-			+ object.code().methodName();
+		return super.o_NameForDebugger(object) + " /* "
+			+ object.code().methodName().asNativeString()
+			+ " */";
 	}
 
 	/**
@@ -604,7 +607,7 @@ extends Descriptor
 	 */
 	private FunctionDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.FUNCTION_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link FunctionDescriptor}. */

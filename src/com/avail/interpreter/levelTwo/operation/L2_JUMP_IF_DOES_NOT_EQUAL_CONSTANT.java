@@ -78,8 +78,8 @@ public class L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final L1NaiveTranslator naiveTranslator,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L1NaiveTranslator naiveTranslator)
 	{
 		// Eliminate tests due to type propagation.
 //		final int target = instruction.pcAt(0);
@@ -118,7 +118,7 @@ public class L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT extends L2Operation
 			return true;
 		}
 		// The test could not be eliminated or improved.
-		return super.regenerate(instruction, naiveTranslator, registerSet);
+		return super.regenerate(instruction, registerSet, naiveTranslator);
 	}
 
 	@Override
@@ -129,13 +129,13 @@ public class L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT extends L2Operation
 	{
 //		final int target = instruction.pcAt(0);
 		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final A_Type value = instruction.constantAt(2);
+		final A_BasicObject value = instruction.constantAt(2);
 
 		assert registerSets.size() == 2;
 		final RegisterSet fallThroughSet = registerSets.get(0);
 //		final RegisterSet postJumpSet = registerSets.get(1);
 
-		fallThroughSet.constantAtPut(objectReg, value, instruction);
+		fallThroughSet.strengthenTestedValueAtPut(objectReg, value);
 	}
 
 	@Override

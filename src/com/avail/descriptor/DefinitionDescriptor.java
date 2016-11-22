@@ -33,10 +33,12 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code DefinitionDescriptor} is an abstraction for things placed into a
@@ -129,12 +131,10 @@ extends Descriptor
 		final A_Type argsTupleType =
 			object.bodySignature().argsTupleType();
 		final A_Type sizes = argsTupleType.sizeRange();
-		// TODO MvG - Maybe turn this into a check.
 		assert sizes.lowerBound().extractInt()
 			== sizes.upperBound().extractInt();
 		assert sizes.lowerBound().extractInt()
 			== object.slot(DEFINITION_METHOD).numArgs();
-		// TODO MvG - 2016-08-21 deal with permutation of main list.
 		return ListNodeTypeDescriptor.createListNodeType(
 			ParseNodeKind.LIST_NODE,
 			argsTupleType,
@@ -145,8 +145,8 @@ extends Descriptor
 					@Override
 					public A_Type value (@Nullable final A_Type argYieldType)
 					{
-
-						return ParseNodeKind.PARSE_NODE.create(argYieldType);
+						return ParseNodeKind.EXPRESSION_NODE.create(
+							argYieldType);
 					}
 				}));
 	}
@@ -174,6 +174,10 @@ extends Descriptor
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(
+			mutability,
+			TypeTag.DEFINITION_TAG,
+			objectSlotsEnumClass,
+			integerSlotsEnumClass);
 	}
 }

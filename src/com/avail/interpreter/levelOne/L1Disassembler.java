@@ -34,7 +34,8 @@ package com.avail.interpreter.levelOne;
 
 import static com.avail.descriptor.AvailObject.error;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 
 /**

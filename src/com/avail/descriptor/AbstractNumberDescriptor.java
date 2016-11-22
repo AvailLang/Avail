@@ -41,8 +41,10 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.utility.MutableOrNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The abstract class {@code AbstractNumberDescriptor} serves as an abstraction
@@ -837,6 +839,8 @@ extends Descriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -848,9 +852,10 @@ extends Descriptor
 	 */
 	protected AbstractNumberDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 }

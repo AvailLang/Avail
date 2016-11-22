@@ -36,10 +36,9 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import com.avail.*;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
@@ -90,9 +89,8 @@ extends Primitive
 					{
 						try
 						{
-							loader.addAbstractSignature(
-								loader.lookupName(string),
-								blockSignature);
+							final A_Atom atom = loader.lookupName(string);
+							loader.addAbstractSignature(atom, blockSignature);
 							Interpreter.resumeFromSuccessfulPrimitive(
 								AvailRuntime.current(),
 								fiber,

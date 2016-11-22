@@ -34,7 +34,8 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.ContinuationTypeDescriptor.ObjectSlots.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.serialization.SerializerOperation;
@@ -289,7 +290,8 @@ extends TypeDescriptor
 	 */
 	private ContinuationTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability, TypeTag.CONTINUATION_TYPE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link ContinuationTypeDescriptor}. */

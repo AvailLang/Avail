@@ -32,7 +32,7 @@
 
 package com.avail.exceptions;
 
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.utility.Generator;
 
 /**

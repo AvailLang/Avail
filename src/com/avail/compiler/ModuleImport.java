@@ -229,7 +229,7 @@ public class ModuleImport
 			{
 				if (first)
 				{
-					first = !first;
+					first = false;
 				}
 				else
 				{

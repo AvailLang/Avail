@@ -42,25 +42,11 @@ Names
 Body
 
 /**
- * Use the same primitive that implements {@method "_'s⁇type"} to implement its 
- * semantic restriction function.
- * 
- * @method "_'s⁇type"
- * @restricts "type"
- */
-Semantic restriction "_'s⁇type" is
-[
-	value : type
-|
-	Primitive Type;
-] : type;
-
-/**
  * Answer the sole instance of the specified enumeration.
  *
  * @method "_'s⁇instance"
  * @param "enum" "type"
- *        An enumeration. Anything answered by {@method "_'s⁇type"} satisfies 
+ *        An enumeration. Anything answered by {@method "_'s⁇type"} satisfies
  *        this criterion.
  * @returns "any"
  *          The sole instance of the argument.
@@ -76,7 +62,7 @@ Public method "_'s⁇instance" is
 
 /**
  * Is {@param "value"} an instance of {@param "aType"}?
- * 
+ *
  * @method "_∈_"
  * @param "value" "any"
  * @param "aType" "type"

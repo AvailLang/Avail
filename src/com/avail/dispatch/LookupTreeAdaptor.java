@@ -33,7 +33,6 @@
 package com.avail.dispatch;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_BundleTree;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 
@@ -50,18 +49,60 @@ public abstract class LookupTreeAdaptor<
 	Result extends A_BasicObject,
 	Memento>
 {
+	/**
+	 * Convert from an {@link Element} to a suitable {@link A_Type} for
+	 * organizing the tree.
+	 *
+	 * @param element The {@link Element}.
+	 * @return The corresponding {@link A_Type}.
+	 */
 	public abstract A_Type extractSignature (final Element element);
 
+	/**
+	 * Construct a {@link Result} from a {@link List} of {@link Element}s.
+	 *
+	 * @param elements
+	 *        The list of elements from which to construct a result.
+	 * @param memento
+	 *        A memento to supply arbitrary additional information
+	 * @return The answer, some combination of the elements.
+	 */
 	public abstract Result constructResult (
 		final List<? extends Element> elements, final Memento memento);
+
+	/**
+	 * Compare two types to produce a {@link TypeComparison}.
+	 *
+	 * @param criterionType
+	 *            The criterion signature to test against.
+	 * @param someType
+	 *            A signature to test against the criterion signature.
+	 * @return A {@link TypeComparison} indicating the result of the comparison.
+	 */
+	public abstract TypeComparison compareTypes (
+		final A_Type criterionType, final A_Type someType);
+
+	/**
+	 * Answer whether the tree tests individual argument positions, versus the
+	 * entire type.
+	 *
+	 * @return {@code true} if the tree uses whole type testing, or {@code
+	 *         false} if the tree tests individual elements of a tuple type.
+	 */
+	public abstract boolean testsArgumentPositions ();
+
+	/**
+	 * Answer whether {@link Element}s with more specific signatures exclude
+	 * those with strictly more general signatures.
+	 *
+	 * @return A boolean.
+	 */
+	public abstract boolean subtypesHideSupertypes ();
 
 	/**
 	 * Create a {@link LookupTree}, using the provided collection of {@link
 	 * Element}s, and the list of initial argument {@link A_Type types}.
 	 *
-	 * @param numArgs
-	 *        The number of top-level arguments expected by the elements' type
-	 *        signatures.
 	 * @param allElements
 	 *        The collection of {@link Element}s to categorize.
 	 * @param knownArgumentTypes
@@ -71,7 +112,6 @@ public abstract class LookupTreeAdaptor<
 	 * @return A LookupTree, potentially lazy, suitable for dispatching.
 	 */
 	public LookupTree<Element, Result, Memento> createRoot (
-		final int numArgs,
 		final Collection<? extends Element> allElements,
 		final List<A_Type> knownArgumentTypes,
 		final Memento memento)
@@ -80,23 +120,42 @@ public abstract class LookupTreeAdaptor<
 		final List<Element> undecided = new ArrayList<>(allElements.size());
 		for (final Element element : allElements)
 		{
-			final A_Type argsTupleType = extractSignature(element);
+			final A_Type signatureType = extractSignature(element);
 			boolean allComply = true;
 			boolean impossible = false;
-			for (int i = 1; i <= numArgs; i++)
+			if (testsArgumentPositions())
 			{
-				final A_Type knownType = knownArgumentTypes.get(i - 1);
-				final A_Type definitionArgType =
-					argsTupleType.typeAtIndex(i);
-				if (!knownType.isSubtypeOf(definitionArgType))
+				final int numArgs = knownArgumentTypes.size();
+				for (int i = 1; i <= numArgs; i++)
+				{
+					final A_Type knownType = knownArgumentTypes.get(i - 1);
+					final A_Type definitionArgType =
+						signatureType.typeAtIndex(i);
+					if (!knownType.isSubtypeOf(definitionArgType))
+					{
+						allComply = false;
+					}
+					if (knownType.typeIntersection(definitionArgType)
+						.isBottom())
+					{
+						impossible = true;
+					}
+				}
+			}
+			else
+			{
+				assert knownArgumentTypes.size() == 1;
+				final A_Type knownType = knownArgumentTypes.get(0);
+				if (!knownType.isSubtypeOf(signatureType))
 				{
 					allComply = false;
 				}
-				if (knownType.typeIntersection(definitionArgType).isBottom())
+				if (knownType.typeIntersection(signatureType).isBottom())
 				{
 					impossible = true;
 				}
 			}
+
 			if (allComply)
 			{
 				prequalified.add(element);
@@ -132,13 +191,14 @@ public abstract class LookupTreeAdaptor<
 		if (undecided.size() == 0)
 		{
 			// Find the most specific applicable definitions.
-			if (positive.size() <= 1)
+			if (!subtypesHideSupertypes() || positive.size() <= 1)
 			{
 				return new LeafLookupTree<>(constructResult(positive, memento));
 			}
 			final int size = positive.size();
 			final List<Element> mostSpecific = new ArrayList<>(1);
-			outer: for (int outer = 0; outer < size; outer++)
+			outer:
+			for (int outer = 0; outer < size; outer++)
 			{
 				final A_Type outerType = extractSignature(positive.get(outer));
 				for (int inner = 0; inner < size; inner++)
@@ -161,7 +221,7 @@ public abstract class LookupTreeAdaptor<
 			}
 			return new LeafLookupTree<>(constructResult(mostSpecific, memento));
 		}
-		return new InternalLookupTree<Element, Result, Memento>(
+		return new InternalLookupTree<>(
 			positive, undecided, knownArgumentTypes);
 	}
 
@@ -276,6 +336,35 @@ public abstract class LookupTreeAdaptor<
 		while (solution == null)
 		{
 			tree = tree.lookupStepByValues(argValues, this, memento);
+			solution = tree.solutionOrNull();
+		}
+		return solution;
+	}
+
+	/**
+	 * Use the given singular value to traverse the tree.  Answer the solution,
+	 * a {@link Result}.  Uses iteration rather than recursion to limit stack
+	 * depth.
+	 *
+	 * @param root
+	 *        The {@link LookupTree} to search.
+	 * @param argValue
+	 *        The input {@link A_BasicObject value}.
+	 * @param memento
+	 *        A value potentially used for constructing {@link Result}s in parts
+	 *        of the tree that have not yet been constructed.
+	 * @return The {@link Result}.
+	 */
+	public Result lookupByValue (
+		final LookupTree<Element, Result, Memento> root,
+		final A_BasicObject argValue,
+		final Memento memento)
+	{
+		LookupTree<Element, Result, Memento> tree = root;
+		Result solution = tree.solutionOrNull();
+		while (solution == null)
+		{
+			tree = tree.lookupStepByValue(argValue, this, memento);
 			solution = tree.solutionOrNull();
 		}
 		return solution;

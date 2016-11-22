@@ -32,7 +32,7 @@
 
 package com.avail.compiler.problems;
 
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.ParseNodeDescriptor;
 import com.avail.utility.evaluation.Continuation1;
 

@@ -39,7 +39,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;

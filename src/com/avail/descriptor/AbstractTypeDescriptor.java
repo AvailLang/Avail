@@ -33,9 +33,11 @@
 package com.avail.descriptor;
 
 import java.util.List;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code AbstractTypeDescriptor} explicitly defines the responsibilities of all
@@ -198,7 +200,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType);
+		final AvailObject anObjectType);
 
 	@Override @AvailMethod
 	abstract boolean o_IsSupertypeOfParseNodeType (
@@ -338,7 +340,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType);
+		final AvailObject anObjectType);
 
 	@Override @AvailMethod
 	abstract A_Type o_TypeIntersectionOfParseNodeType (
@@ -421,7 +423,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType);
+		final AvailObject anObjectType);
 
 	@Override @AvailMethod
 	abstract A_Type o_TypeUnionOfParseNodeType (
@@ -486,6 +488,8 @@ extends Descriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -497,9 +501,10 @@ extends Descriptor
 	 */
 	protected AbstractTypeDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 }

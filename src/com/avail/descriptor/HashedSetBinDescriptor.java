@@ -38,8 +38,11 @@ import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.AvailObjectRepresentation.*;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
@@ -133,7 +136,7 @@ extends SetBinDescriptor
 	 *
 	 * @param object A linear set bin.
 	 */
-	public final static void checkBinHash (final AvailObject object)
+	static void checkBinHash (final AvailObject object)
 	{
 		assert object.descriptor instanceof HashedSetBinDescriptor;
 		final int stored = object.binHash();
@@ -672,7 +675,11 @@ extends SetBinDescriptor
 		final Mutability mutability,
 		final int level)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class, level);
+		super(
+			mutability,
+			TypeTag.SET_HASHED_BIN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class, level);
 		shift = (byte)(level * 6);
 		assert level < 32;
 	}

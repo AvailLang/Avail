@@ -85,7 +85,7 @@ Method "¬_" is
  * Compute and answer the logical conjunction, i.e., AND, of the arguments.
  * Short-circuit the computation, i.e., only evaluate {@param "b"} if {@param
  * "a"} is {@method "true"}.
- * 
+ *
  * @method "_∧_"
  * @param "a" "boolean"
  *        A boolean.
@@ -113,7 +113,7 @@ Public method "_∧_" is
 
 /**
  * Improve on the ShortCircuitHelper primitive's return type.
- * 
+ *
  * @method "_∧_"
  * @restricts "boolean's type"
  * @restricts "[]→boolean's type"
@@ -130,7 +130,7 @@ Semantic restriction "_∧_" is
  * If the left-hand argument of {@method "_∧_"} is known statically to be
  * {@method "false"}, then the expression is also known statically to be
  * {@method "false"}.
- * 
+ *
  * @method "_∧_"
  * @restricts "false's type's type"
  * @restricts "[]→boolean's type"
@@ -147,7 +147,7 @@ Semantic restriction "_∧_" is
  * If the left-hand argument of {@method "_∧_"} is known statically to be
  * {@method "true"}, then the static type of the expression is {@param "b"}'s
  * return type.
- * 
+ *
  * @method "_∧_"
  * @restricts "true's type's type"
  * @restricts "[]→boolean's type"
@@ -164,7 +164,7 @@ Semantic restriction "_∧_" is
  * If the right-hand argument of {@method "_∧_"} is known statically to be
  * {@method "false"}, then the expression is also known statically to be
  * {@method "false"}.
- * 
+ *
  * @method "_∧_"
  * @restricts "boolean's type"
  * @restricts "[]→boolean's type"
@@ -208,7 +208,7 @@ Macro "_∧_" is
  * Compute and answer the logical disjunction, i.e., OR, of the arguments.
  * Short-circuit the computation, i.e., only evaluate {@param "b"} if {@param
  * "a"} is {@method "false"}.
- * 
+ *
  * @method "_∨_"
  * @param "a" "boolean"
  *        A boolean.
@@ -236,7 +236,7 @@ Public method "_∨_" is
 
 /**
  * Improve on the ShortCircuitHelper primitive's return type.
- * 
+ *
  * @method "_∨_"
  * @restricts "boolean's type"
  * @restricts "[]→boolean's type"
@@ -253,7 +253,7 @@ Semantic restriction "_∨_" is
  * If the left-hand argument of {@method "_∨_"} is known statically to be
  * {@method "true"}, then the expression is also known statically to be {@method
  * "true"}.
- * 
+ *
  * @method "_∨_"
  * @restricts "true's type's type"
  * @restricts "[]→boolean's type"
@@ -270,7 +270,7 @@ Semantic restriction "_∨_" is
  * If the left-hand argument of {@method "_∨_"} is known statically to be
  * {@method "false"}, then the static type of the expression is {@param
  * "b"}'s return type.
- * 
+ *
  * @method "_∨_"
  * @restricts "false's type's type"
  * @restricts "[]→boolean's type"
@@ -287,7 +287,7 @@ Semantic restriction "_∨_" is
  * If the right-hand argument of {@method "_∨_"} is known statically to be
  * {@method "true"}, then the expression is also known statically to be {@method
  * "true"}.
- * 
+ *
  * @method "_∨_"
  * @restricts "boolean's type"
  * @restricts "[]→boolean's type"
@@ -329,7 +329,7 @@ Macro "_∨_" is
 
 /**
  * Are the arguments unequal?
- * 
+ *
  * @method "_≠_"
  * @param "a" "any"
  *        A value.
@@ -348,7 +348,11 @@ Public stable method "_≠_" is
 	¬a = b
 ] : boolean;
 
-/* Make logical operators left associative. */
+/*
+ * Make logical operators left-associative.  Even though the right-associative
+ * form would allow earlier exits from long chains, it would require a deeper
+ * block structure.
+ */
 Grammatical restriction {"_∧_", "_∨_"} (set of string) is
 <
 	{"_∧_", "_∨_"} (set of string),

@@ -34,7 +34,7 @@ package com.avail;
 
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.Interpreter;
@@ -68,7 +68,7 @@ implements Comparable<AvailTask>, Runnable
 	 *         AvailThread thread}'s {@linkplain Interpreter interpreter}, and
 	 *         then runs the specified continuation.
 	 */
-	public static final AvailTask forFiberResumption (
+	public static AvailTask forFiberResumption (
 		final A_Fiber fiber,
 		final Transformer0<ExecutionState> transformer)
 	{
@@ -121,6 +121,7 @@ implements Comparable<AvailTask>, Runnable
 					}
 					fiber.failureContinuation().value(e);
 					fiber.executionState(RETIRED);
+					interpreter.runtime().unregisterFiber(fiber);
 				}
 				finally
 				{
@@ -147,6 +148,7 @@ implements Comparable<AvailTask>, Runnable
 							fiber.resultContinuation().value(
 								fiber.fiberResult());
 							fiber.executionState(RETIRED);
+							interpreter.runtime().unregisterFiber(fiber);
 						}
 					}
 				});
@@ -170,7 +172,7 @@ implements Comparable<AvailTask>, Runnable
 	 * @return A task that runs the specified continuation, and handles any
 	 *         errors appropriately.
 	 */
-	public static final AvailTask forUnboundFiber (
+	public static AvailTask forUnboundFiber (
 		final A_Fiber fiber,
 		final Continuation0 continuation)
 	{

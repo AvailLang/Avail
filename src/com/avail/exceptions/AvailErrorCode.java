@@ -36,7 +36,7 @@ import java.lang.reflect.*;
 import java.nio.file.Path;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;

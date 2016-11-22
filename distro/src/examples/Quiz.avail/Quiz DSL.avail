@@ -39,7 +39,9 @@ Uses
 Extends
 	"Avail" =
 	(
-		"_!;"
+		"_!;",
+		"…$",
+		"…#"
 	),
 	"Dimensional Analysis" = ("__")
 Names
@@ -269,7 +271,7 @@ Public method "Multiple Choice(_)._«A:_«✔»?»" is
 	questionText : nonempty string,
 	answerTuples : <<nonempty string, boolean…|2>…|1..>
 |
-	answers ::= map each t in answerTuples through 
+	answers ::= map each t in answerTuples through
 		[an answer with text ::= t[1]];
 	correctAnswers ::= (map and filter answerTuples by
 		[

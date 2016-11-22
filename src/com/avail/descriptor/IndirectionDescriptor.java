@@ -36,8 +36,11 @@ import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.*;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -51,7 +54,6 @@ import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
@@ -64,10 +66,11 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
-import com.avail.utility.MutableOrNull;
+import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@link AvailObject} with an {@link IndirectionDescriptor} keeps track of
@@ -179,7 +182,7 @@ extends AbstractDescriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = immutable;
+			object.descriptor = immutable(typeTag);
 			return object.slot(INDIRECTION_TARGET).makeImmutable();
 		}
 		return object.slot(INDIRECTION_TARGET);
@@ -190,7 +193,7 @@ extends AbstractDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.descriptor = shared(typeTag);
 			return object.slot(INDIRECTION_TARGET).makeShared();
 		}
 		return object.slot(INDIRECTION_TARGET);
@@ -217,51 +220,75 @@ extends AbstractDescriptor
 		return finalObject;
 	}
 
-	@Override
-	Iterator<AvailObject> o_Iterator (final AvailObject object)
-	{
-		return o_Traversed(object).iterator();
-	}
-
 	/**
 	 * Construct a new {@link IndirectionDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 */
-	private IndirectionDescriptor (final Mutability mutability)
+	private IndirectionDescriptor (
+		final Mutability mutability,
+		final TypeTag typeTag)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(mutability, typeTag, ObjectSlots.class, IntegerSlots.class);
 	}
 
 	/** The mutable {@link IndirectionDescriptor}. */
-	static final IndirectionDescriptor mutable =
-		new IndirectionDescriptor(Mutability.MUTABLE);
-
-	@Override
-	IndirectionDescriptor mutable ()
-	{
-		return mutable;
-	}
+	static final IndirectionDescriptor[] mutables =
+		new IndirectionDescriptor[TypeTag.values().length];
 
 	/** The immutable {@link IndirectionDescriptor}. */
-	static final IndirectionDescriptor immutable =
-		new IndirectionDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	IndirectionDescriptor immutable ()
-	{
-		return immutable;
-	}
+	static final IndirectionDescriptor[] immutables =
+		new IndirectionDescriptor[TypeTag.values().length];
 
 	/** The shared {@link IndirectionDescriptor}. */
-	static final IndirectionDescriptor shared =
-		new IndirectionDescriptor(Mutability.SHARED);
+	static final IndirectionDescriptor[] shareds =
+		new IndirectionDescriptor[TypeTag.values().length];
 
-	@Override
+	static
+	{
+		for (final TypeTag typeTag : TypeTag.values())
+		{
+			mutables[typeTag.ordinal()] =
+				new IndirectionDescriptor(Mutability.MUTABLE, typeTag);
+			immutables[typeTag.ordinal()] =
+				new IndirectionDescriptor(Mutability.IMMUTABLE, typeTag);
+			shareds[typeTag.ordinal()] =
+				new IndirectionDescriptor(Mutability.SHARED, typeTag);
+		}
+	}
+
+	static IndirectionDescriptor mutable (final TypeTag typeTag)
+	{
+		return mutables[typeTag.ordinal()];
+	}
+
+	static IndirectionDescriptor immutable (final TypeTag typeTag)
+	{
+		return immutables[typeTag.ordinal()];
+	}
+
+	static IndirectionDescriptor shared (final TypeTag typeTag)
+	{
+		return shareds[typeTag.ordinal()];
+	}
+
+	@Override @Deprecated
+	IndirectionDescriptor mutable ()
+	{
+		return mutables[typeTag.ordinal()];
+	}
+
+	@Override @Deprecated
+	IndirectionDescriptor immutable ()
+	{
+		return immutables[typeTag.ordinal()];
+	}
+
+	@Override @Deprecated
 	IndirectionDescriptor shared ()
 	{
-		return shared;
+		return shareds[typeTag.ordinal()];
 	}
 
 	@Override
@@ -352,14 +379,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddGrammaticalRestrictions (
+	void o_ModuleAddGrammaticalRestriction (
 		final AvailObject object,
-		final A_Atom methodName,
-		final A_Tuple illegalArgMsgs)
+		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		o_Traversed(object).addGrammaticalRestrictions(
-			methodName,
-			illegalArgMsgs);
+		o_Traversed(object).moduleAddGrammaticalRestriction(
+			grammaticalRestriction);
 	}
 
 	@Override
@@ -369,12 +394,6 @@ extends AbstractDescriptor
 	{
 		o_Traversed(object).moduleAddDefinition(
 			definition);
-	}
-
-	@Override
-	void o_AddBundle (final AvailObject object, final A_Bundle bundle)
-	{
-		o_Traversed(object).addBundle(bundle);
 	}
 
 	@Override
@@ -1224,7 +1243,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return o_Traversed(object).isSupertypeOfObjectType(anObjectType);
 	}
@@ -1277,6 +1296,12 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).isSupertypeOfEnumerationType(
 			anEnumerationType);
+	}
+
+	@Override
+	Iterator<AvailObject> o_Iterator (final AvailObject object)
+	{
+		return o_Traversed(object).iterator();
 	}
 
 	@Override
@@ -1435,14 +1460,6 @@ extends AbstractDescriptor
 		final AvailObject value)
 	{
 		o_Traversed(object).outerVarAtPut(index, value);
-	}
-
-	@Override
-	void o_Parent (
-		final AvailObject object,
-		final AvailObject value)
-	{
-		o_Traversed(object).parent(value);
 	}
 
 	@Override
@@ -1805,7 +1822,7 @@ extends AbstractDescriptor
 	@Override
 	A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return o_Traversed(object).typeIntersectionOfObjectType(anObjectType);
 	}
@@ -1922,7 +1939,7 @@ extends AbstractDescriptor
 	@Override
 	A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return o_Traversed(object).typeUnionOfObjectType(anObjectType);
 	}
@@ -2092,6 +2109,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
+	{
+		return o_Traversed(object).copyAsMutableIntTuple();
+	}
+
+	@Override
 	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		return o_Traversed(object).copyAsMutableObjectTuple();
@@ -2124,10 +2147,9 @@ extends AbstractDescriptor
 	@Override
 	void o_Expand (
 		final AvailObject object,
-		final A_Module module,
-		final List<A_Phrase> sampleArgsStack)
+		final A_Module module)
 	{
-		o_Traversed(object).expand(module, sampleArgsStack);
+		o_Traversed(object).expand(module);
 	}
 
 	@Override
@@ -2944,9 +2966,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Map o_AllParsingPlans (final AvailObject object)
+	A_Map o_AllParsingPlansInProgress (final AvailObject object)
 	{
-		return o_Traversed(object).allParsingPlans();
+		return o_Traversed(object).allParsingPlansInProgress();
 	}
 
 	@Override
@@ -3775,7 +3797,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return o_Traversed(object).equalsObjectType(anObjectType);
 	}
@@ -3987,11 +4009,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_FlushForNewOrChangedBundle (
+	void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
-		final A_Bundle bundle)
+		final A_ParsingPlanInProgress planInProgress,
+		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
+			treesToVisit)
 	{
-		o_Traversed(object).flushForNewOrChangedBundle(bundle);
+		o_Traversed(object).updateForNewGrammaticalRestriction(
+			planInProgress,
+			treesToVisit);
 	}
 
 	@Override
@@ -4766,9 +4792,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	String o_NameHighlightingPc (final AvailObject object, final int pc)
+	String o_NameHighlightingPc (final AvailObject object)
 	{
-		return o_Traversed(object).nameHighlightingPc(pc);
+		return o_Traversed(object).nameHighlightingPc();
 	}
 
 	@Override
@@ -4778,15 +4804,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveDefinitionParsingPlan (
+	void o_RemovePlanForDefinition (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan)
+		final A_Definition definition)
 	{
-		o_Traversed(object).removeDefinitionParsingPlan(plan);
+		o_Traversed(object).removePlanForDefinition(definition);
 	}
 
 	@Override
-	A_Set o_DefinitionParsingPlans (final AvailObject object)
+	A_Map o_DefinitionParsingPlans (final AvailObject object)
 	{
 		return o_Traversed(object).definitionParsingPlans();
 	}
@@ -4820,16 +4846,98 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddPlan (
+	void o_AddPlanInProgress (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan)
+		final A_ParsingPlanInProgress planInProgress)
 	{
-		o_Traversed(object).addPlan(plan);
+		o_Traversed(object).addPlanInProgress(planInProgress);
 	}
 
 	@Override
 	A_Type o_ParsingSignature (final AvailObject object)
 	{
 		return o_Traversed(object).parsingSignature();
+	}
+
+	@Override
+	void o_RemovePlanInProgress (
+		final AvailObject object, final A_ParsingPlanInProgress planInProgress)
+	{
+		o_Traversed(object).removePlanInProgress(planInProgress);
+	}
+
+	@Override
+	A_Set o_ModuleSemanticRestrictions (final AvailObject object)
+	{
+		return o_Traversed(object).moduleSemanticRestrictions();
+	}
+
+	@Override
+	A_Set o_ModuleGrammaticalRestrictions (final AvailObject object)
+	{
+		return o_Traversed(object).moduleGrammaticalRestrictions();
+	}
+
+	@Override
+	TypeTag o_ComputeTypeTag (final AvailObject object)
+	{
+		final TypeTag tag = o_Traversed(object).typeTag();
+		// Now that we know it, switch to a descriptor that has it cached...
+		object.descriptor =
+			mutability == Mutability.MUTABLE
+				? mutable(tag)
+				: mutability == Mutability.IMMUTABLE
+					? immutable(tag)
+					: shared(tag);
+		return tag;
+	}
+
+	@Override
+	AvailObject o_FieldAt (
+		final AvailObject object, final A_Atom field)
+	{
+		return o_Traversed(object).fieldAt(field);
+	}
+
+	@Override
+	A_BasicObject o_FieldAtPuttingCanDestroy (
+		final AvailObject object,
+		final A_Atom field,
+		final A_BasicObject value,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).fieldAtPuttingCanDestroy(
+			field, value, canDestroy);
+	}
+
+	@Override
+	A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
+	{
+		return o_Traversed(object).parsingPlan();
+	}
+
+	@Override
+	boolean o_CompareFromToWithIntTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2)
+	{
+		return o_Traversed(object).compareFromToWithIntTupleStartingAt(
+			startIndex1, endIndex1, anIntTuple, startIndex2);
+	}
+
+	@Override
+	boolean o_IsIntTuple (final AvailObject object)
+	{
+		return o_Traversed(object).isIntTuple();
+	}
+
+	@Override
+	boolean o_EqualsIntTuple (
+		final AvailObject object, final A_Tuple anIntTuple)
+	{
+		return o_Traversed(object).equalsIntTuple(anIntTuple);
 	}
 }

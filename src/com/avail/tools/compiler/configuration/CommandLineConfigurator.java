@@ -40,7 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
@@ -70,7 +70,7 @@ implements Configurator<CompilerConfiguration>
 	/**
 	 * {@code OptionKey} enumerates the valid configuration options.
 	 */
-	static enum OptionKey
+	enum OptionKey
 	{
 		/**
 		 * Specification of the {@linkplain File path} to the {@linkplain

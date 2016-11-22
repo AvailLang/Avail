@@ -37,6 +37,9 @@
     <inspection_tool class="CastToIncompatibleInterface" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CharUsedInArithmeticContext" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ClassEscapesItsScope" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="ClassNestingDepth" enabled="false" level="WARNING" enabled_by_default="false">
+      <option name="m_limit" value="3" />
+    </inspection_tool>
     <inspection_tool class="ClassNewInstance" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CollectionContainsUrl" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CollectionsFieldAccessReplaceableByMethodCall" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -72,7 +75,7 @@
     <inspection_tool class="EmptyDirectory" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="EmptyInitializer" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="EmptySynchronizedStatement" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="EnumSwitchStatementWhichMissesCases" enabled="true" level="WARNING" enabled_by_default="true">
+    <inspection_tool class="EnumSwitchStatementWhichMissesCases" enabled="true" level="ERROR" enabled_by_default="true">
       <option name="ignoreSwitchStatementsWithDefault" value="true" />
     </inspection_tool>
     <inspection_tool class="EnumerationCanBeIteration" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -87,10 +90,14 @@
     <inspection_tool class="FieldHidesSuperclassField" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="m_ignoreInvisibleFields" value="true" />
     </inspection_tool>
+    <inspection_tool class="FieldMayBeFinal" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="FieldMayBeStatic" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="FinalMethodInFinalClass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="FinalPrivateMethod" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="FloatingPointEquality" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="ForLoopReplaceableByWhile" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="m_ignoreLoopsWithoutConditions" value="false" />
+    </inspection_tool>
     <inspection_tool class="ForLoopThatDoesntUseLoopVariable" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="IOResource" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredTypesString" value="java.io.ByteArrayOutputStream,java.io.ByteArrayInputStream,java.io.StringBufferInputStream,java.io.CharArrayWriter,java.io.CharArrayReader,java.io.StringWriter,java.io.StringReader" />
@@ -161,6 +168,7 @@
     <inspection_tool class="KeySetIterationMayUseEntrySet" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="LambdaParameterHidingMemberVariable" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="LengthOneStringInIndexOf" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="ListIndexOfReplaceableByContains" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="LocalVariableHidingMemberVariable" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="m_ignoreInvisibleFields" value="true" />
       <option name="m_ignoreStaticMethods" value="true" />
@@ -176,12 +184,18 @@
     </inspection_tool>
     <inspection_tool class="MethodMayBeSynchronized" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="MethodNamesDifferOnlyByCase" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="MethodOnlyUsedFromInnerClass" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoreMethodsAccessedFromAnonymousClass" value="false" />
+      <option name="ignoreStaticMethodsFromNonStaticInnerClass" value="false" />
+      <option name="onlyReportStaticMethods" value="false" />
+    </inspection_tool>
     <inspection_tool class="MethodOverloadsParentMethod" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="reportIncompatibleParameters" value="true" />
     </inspection_tool>
     <inspection_tool class="MethodOverridesPackageLocalMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="MethodOverridesPrivateMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="MethodOverridesStaticMethod" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="MismatchedArrayReadWrite" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="MissingOverrideAnnotation" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreObjectMethods" value="false" />
       <option name="ignoreAnonymousClassMethods" value="false" />
@@ -248,6 +262,12 @@
     <inspection_tool class="StaticFieldReferenceOnSubclass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="StaticInheritance" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="StaticSuite" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="StaticVariableInitialization" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="m_ignorePrimitives" value="false" />
+    </inspection_tool>
+    <inspection_tool class="StaticVariableUninitializedUse" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="m_ignorePrimitives" value="false" />
+    </inspection_tool>
     <inspection_tool class="StringBufferField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="StringConcatenationInFormatCall" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="StringConcatenationInLoops" enabled="true" level="WARNING" enabled_by_default="true">
@@ -295,20 +315,21 @@
       <option name="m_onlyLookAtBlocks" value="false" />
     </inspection_tool>
     <inspection_tool class="TrivialStringConcatenation" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="TypeMayBeWeakened" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="useRighthandTypeAsWeakestTypeInAssignments" value="true" />
-      <option name="useParameterizedTypeForCollectionMethods" value="true" />
-      <option name="doNotWeakenToJavaLangObject" value="true" />
-      <option name="onlyWeakentoInterface" value="true" />
-    </inspection_tool>
     <inspection_tool class="TypeParameterExtendsFinalClass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnaryPlus" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnconditionalWait" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnconstructableTestCase" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="UnnecessarilyQualifiedInnerClassAccess" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoreReferencesNeedingImport" value="false" />
+    </inspection_tool>
     <inspection_tool class="UnnecessarilyQualifiedStaticallyImportedElement" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnnecessaryCallToStringValueOf" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnnecessaryDefault" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="UnnecessaryFullyQualifiedName" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="m_ignoreJavadoc" value="false" />
+    </inspection_tool>
     <inspection_tool class="UnnecessaryInheritDoc" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="UnnecessarySemicolon" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="UnnecessarySuperConstructor" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnnecessarySuperQualifier" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UnnecessaryToStringCall" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -317,8 +338,8 @@
       <option name="ignoreReferences" value="true" />
       <option name="ignoreComplexLiterals" value="false" />
     </inspection_tool>
-    <inspection_tool class="UnqualifiedInnerClassAccess" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="ignoreReferencesToLocalInnerClasses" value="false" />
+    <inspection_tool class="UnqualifiedInnerClassAccess" enabled="false" level="WARNING" enabled_by_default="false">
+      <option name="ignoreReferencesToLocalInnerClasses" value="true" />
     </inspection_tool>
     <inspection_tool class="UnusedImport" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UpperCaseFieldNameNotConstant" enabled="true" level="WARNING" enabled_by_default="true" />

@@ -32,12 +32,11 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.InfinityDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
-import com.avail.descriptor.AbstractNumberDescriptor.Sign;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.utility.json.JSONWriter;
@@ -56,33 +55,6 @@ import com.avail.utility.json.JSONWriter;
 public class InfinityDescriptor
 extends ExtendedIntegerDescriptor
 {
-	/**
-	 * The layout of integer slots for my instances.
-	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
-	{
-		/**
-		 * A slot to indicate the sign of the infinity.
-		 */
-		@EnumField(describedBy=Sign.class)
-		SIGN
-	}
-
-	/**
-	 * Compute the {@linkplain AbstractNumberDescriptor.Sign sign} of the given
-	 * {@linkplain InfinityDescriptor infinity}.
-	 *
-	 * @param anInfinity The infinity to examine.
-	 * @return The {@code Sign} of the infinity.
-	 */
-	private static Sign getSign (final AvailObject anInfinity)
-	{
-		return anInfinity.slot(SIGN) == Sign.POSITIVE.ordinal()
-			? Sign.POSITIVE
-			: Sign.NEGATIVE;
-	}
-
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -100,13 +72,13 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
-		return another.equalsInfinity(getSign(object));
+		return another.equalsInfinity(sign);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsInfinity (final AvailObject object, final Sign sign)
+	boolean o_EqualsInfinity (final AvailObject object, final Sign theSign)
 	{
-		return object.slot(SIGN) == sign.ordinal();
+		return sign == theSign;
 	}
 
 	@Override @AvailMethod
@@ -115,17 +87,16 @@ extends ExtendedIntegerDescriptor
 		final A_Number anInteger)
 	{
 		// Infinities are either above or below all integer, depending on sign.
-		return getSign(object) == Sign.POSITIVE ? MORE : LESS;
+		return sign == Sign.POSITIVE ? MORE : LESS;
 	}
 
 	@Override @AvailMethod
 	Order o_NumericCompareToInfinity (
 		final AvailObject object,
-		final Sign sign)
+		final Sign theSign)
 	{
 		return DoubleDescriptor.compareDoubles(
-			getSign(object).limitDouble(),
-			sign.limitDouble());
+			sign.limitDouble(), theSign.limitDouble());
 	}
 
 	@Override @AvailMethod
@@ -141,7 +112,7 @@ extends ExtendedIntegerDescriptor
 		{
 			return false;
 		}
-		if (object.isPositive())
+		if (sign == Sign.POSITIVE)
 		{
 			return aType.upperBound().equals(object) && aType.upperInclusive();
 		}
@@ -151,7 +122,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		return object.isPositive() ? 0x14B326DA : 0xBF9302D;
+		return sign == Sign.POSITIVE ? 0x14B326DA : 0xBF9302D;
 	}
 
 	@Override @AvailMethod
@@ -189,9 +160,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number aNumber,
 		final boolean canDestroy)
 	{
-		return aNumber.divideIntoInfinityCanDestroy(
-			getSign(object),
-			canDestroy);
+		return aNumber.divideIntoInfinityCanDestroy(sign, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -200,9 +169,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number aNumber,
 		final boolean canDestroy)
 	{
-		return aNumber.subtractFromInfinityCanDestroy(
-			getSign(object),
-			canDestroy);
+		return aNumber.subtractFromInfinityCanDestroy(sign, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -211,7 +178,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number aNumber,
 		final boolean canDestroy)
 	{
-		return aNumber.addToInfinityCanDestroy(getSign(object), canDestroy);
+		return aNumber.addToInfinityCanDestroy(sign, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -220,24 +187,22 @@ extends ExtendedIntegerDescriptor
 		final A_Number aNumber,
 		final boolean canDestroy)
 	{
-		return aNumber.multiplyByInfinityCanDestroy(
-			getSign(object),
-			canDestroy);
+		return aNumber.multiplyByInfinityCanDestroy(sign, canDestroy);
 	}
 
 	@Override @AvailMethod
 	boolean o_IsPositive (final AvailObject object)
 	{
-		return object.slot(SIGN) == Sign.POSITIVE.ordinal();
+		return sign == Sign.POSITIVE;
 	}
 
 	@Override @AvailMethod
 	A_Number o_AddToInfinityCanDestroy (
 		final AvailObject object,
-		final Sign sign,
+		final Sign theSign,
 		final boolean canDestroy)
 	{
-		if (sign == getSign(object))
+		if (theSign == sign)
 		{
 			return object;
 		}
@@ -261,7 +226,7 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return DoubleDescriptor.objectFromDoubleRecycling(
-			doubleObject.extractDouble() + getSign(object).limitDouble(),
+			doubleObject.extractDouble() + sign.limitDouble(),
 			doubleObject,
 			canDestroy);
 	}
@@ -273,7 +238,7 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return FloatDescriptor.objectFromFloatRecycling(
-			floatObject.extractFloat() + getSign(object).limitFloat(),
+			floatObject.extractFloat() + sign.limitFloat(),
 			floatObject,
 			canDestroy);
 	}
@@ -281,7 +246,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	A_Number o_DivideIntoInfinityCanDestroy (
 		final AvailObject object,
-		final Sign sign,
+		final Sign theSign,
 		final boolean canDestroy)
 	{
 		throw new ArithmeticException(
@@ -304,7 +269,7 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return DoubleDescriptor.objectFromDoubleRecycling(
-			doubleObject.extractDouble() / getSign(object).limitDouble(),
+			doubleObject.extractDouble() / sign.limitDouble(),
 			doubleObject,
 			canDestroy);
 	}
@@ -316,7 +281,7 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return FloatDescriptor.objectFromFloatRecycling(
-			floatObject.extractFloat() / getSign(object).limitFloat(),
+			floatObject.extractFloat() / sign.limitFloat(),
 			floatObject,
 			canDestroy);
 	}
@@ -324,10 +289,10 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	A_Number o_MultiplyByInfinityCanDestroy (
 		final AvailObject object,
-		final Sign sign,
+		final Sign theSign,
 		final boolean canDestroy)
 	{
-		return (sign == Sign.POSITIVE) == object.isPositive()
+		return (theSign == Sign.POSITIVE) == object.isPositive()
 			? InfinityDescriptor.positiveInfinity()
 			: InfinityDescriptor.negativeInfinity();
 	}
@@ -356,7 +321,7 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return DoubleDescriptor.objectFromDoubleRecycling(
-			doubleObject.extractDouble() * getSign(object).limitDouble(),
+			doubleObject.extractDouble() * sign.limitDouble(),
 			doubleObject,
 			canDestroy);
 	}
@@ -368,7 +333,7 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return FloatDescriptor.objectFromFloatRecycling(
-			floatObject.extractFloat() * getSign(object).limitFloat(),
+			floatObject.extractFloat() * sign.limitFloat(),
 			floatObject,
 			canDestroy);
 	}
@@ -376,12 +341,12 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	A_Number o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
-		final Sign sign,
+		final Sign theSign,
 		final boolean canDestroy)
 	{
-		if (sign != getSign(object))
+		if (theSign != sign)
 		{
-			return sign == Sign.POSITIVE
+			return theSign == Sign.POSITIVE
 				? positiveInfinity()
 				: negativeInfinity();
 		}
@@ -407,7 +372,7 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return DoubleDescriptor.objectFromDoubleRecycling(
-			doubleObject.extractDouble() - getSign(object).limitDouble(),
+			doubleObject.extractDouble() - sign.limitDouble(),
 			doubleObject,
 			canDestroy);
 	}
@@ -419,7 +384,7 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return FloatDescriptor.objectFromFloatRecycling(
-			floatObject.extractFloat() - getSign(object).limitFloat(),
+			floatObject.extractFloat() - sign.limitFloat(),
 			floatObject,
 			canDestroy);
 	}
@@ -427,7 +392,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	Order o_NumericCompare (final AvailObject object, final A_Number another)
 	{
-		return another.numericCompareToInfinity(getSign(object)).reverse();
+		return another.numericCompareToInfinity(sign).reverse();
 	}
 
 	@Override @AvailMethod
@@ -436,7 +401,7 @@ extends ExtendedIntegerDescriptor
 		final double double1)
 	{
 		return DoubleDescriptor.compareDoubles(
-			getSign(object).limitDouble(),
+			sign.limitDouble(),
 			double1);
 	}
 
@@ -452,7 +417,7 @@ extends ExtendedIntegerDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.descriptor = shared();
 		}
 		return object;
 	}
@@ -467,29 +432,9 @@ extends ExtendedIntegerDescriptor
 	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
-		writer.write(getSign(object) == Sign.POSITIVE
+		writer.write(sign == Sign.POSITIVE
 			? Double.POSITIVE_INFINITY
 			: Double.NEGATIVE_INFINITY);
-	}
-
-	/**
-	 * Return an infinity with the given sign.  Only valid for {@link
-	 * Sign#POSITIVE} and {@link Sign#NEGATIVE}.
-	 *
-	 * @param sign
-	 * @return
-	 */
-	public static A_Number fromSign (final Sign sign)
-	{
-		if (sign == Sign.POSITIVE)
-		{
-			return positiveInfinity();
-		}
-		if (sign == Sign.NEGATIVE)
-		{
-			return negativeInfinity();
-		}
-		throw new RuntimeException("Invalid sign for infinity");
 	}
 
 	/**
@@ -497,53 +442,68 @@ extends ExtendedIntegerDescriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param sign
+	 *            The {@link Sign} of the infinity for this descriptor.
 	 */
-	private InfinityDescriptor (final Mutability mutability)
+	private InfinityDescriptor (
+		final Mutability mutability,
+		final Sign sign)
 	{
-		super(mutability, null, IntegerSlots.class);
+		super(
+			mutability,
+			sign == Sign.POSITIVE
+				? TypeTag.POSITIVE_INFINITY_TAG
+				: TypeTag.NEGATIVE_INFINITY_TAG,
+			null,
+			null);
+		assert sign == Sign.POSITIVE || sign == Sign.NEGATIVE;
+		this.sign = sign;
 	}
 
-	/** The mutable {@link InfinityDescriptor}. */
-	private static final InfinityDescriptor mutable =
-		new InfinityDescriptor(Mutability.MUTABLE);
+	/** The {@link Sign} of infinity that my instance represents. */
+	private final Sign sign;
+
+	/** The mutable {@link InfinityDescriptor} for positive infinity. */
+	private static final InfinityDescriptor mutablePositive =
+		new InfinityDescriptor(Mutability.MUTABLE, Sign.POSITIVE);
+
+	/** The mutable {@link InfinityDescriptor} for negative infinity. */
+	private static final InfinityDescriptor mutableNegative =
+		new InfinityDescriptor(Mutability.MUTABLE, Sign.NEGATIVE);
+
+	/** The shared {@link InfinityDescriptor} for positive infinity. */
+	private static final InfinityDescriptor sharedPositive =
+		new InfinityDescriptor(Mutability.SHARED, Sign.POSITIVE);
+
+	/** The shared {@link InfinityDescriptor} for negative infinity. */
+	private static final InfinityDescriptor sharedNegative =
+		new InfinityDescriptor(Mutability.SHARED, Sign.NEGATIVE);
 
 	@Override
-	InfinityDescriptor mutable ()
+	AbstractDescriptor mutable ()
 	{
-		return mutable;
+		return sign == Sign.POSITIVE ? mutablePositive : mutableNegative;
 	}
-
-	/** The shared {@link InfinityDescriptor}. */
-	private static final InfinityDescriptor shared =
-		new InfinityDescriptor(Mutability.SHARED);
 
 	@Override
 	InfinityDescriptor immutable ()
 	{
-		// There isn't an immutable variant; answer the shared one.
-		return shared;
+		// There isn't an immutable variant; answer a shared one.
+		return shared();
 	}
 
 	@Override
 	InfinityDescriptor shared ()
 	{
-		return shared;
+		return sign == Sign.POSITIVE ? sharedPositive : sharedNegative;
 	}
 
 	/**
 	 * The Avail {@linkplain ExtendedIntegerDescriptor extended integer}
 	 * representing positive infinity.
 	 */
-	private static final A_Number positiveInfinity;
-
-	static
-	{
-		final AvailObject positive = mutable.create();
-		positive.setSlot(
-			SIGN,
-			Sign.POSITIVE.ordinal());
-		positiveInfinity = positive.makeShared();
-	}
+	private static final A_Number positiveInfinity =
+		mutablePositive.create().makeShared();
 
 	/**
 	 * Answer the positive infinity object.
@@ -559,16 +519,8 @@ extends ExtendedIntegerDescriptor
 	 * The Avail {@linkplain ExtendedIntegerDescriptor extended integer}
 	 * representing negative infinity.
 	 */
-	private static final A_Number negativeInfinity;
-
-	static
-	{
-		final AvailObject negative = mutable.create();
-		negative.setSlot(
-			SIGN,
-			Sign.NEGATIVE.ordinal());
-		negativeInfinity = negative.makeShared();
-	}
+	private static final A_Number negativeInfinity =
+		mutableNegative.create().makeShared();
 
 	/**
 	 * Answer the negative infinity object.

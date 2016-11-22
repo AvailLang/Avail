@@ -38,8 +38,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.MalformedInputException;
 import java.util.Map;
-import com.avail.annotations.*;
+
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code RenamesFileParser} parses a {@linkplain File file} of Avail
@@ -139,7 +141,7 @@ public final class RenamesFileParser
 	/**
 	 * The types of the {@linkplain Token tokens}.
 	 */
-	private static enum TokenType
+	private enum TokenType
 	{
 		/**
 		 * A {@linkplain ModuleDescriptor module} or {@linkplain
@@ -374,7 +376,7 @@ public final class RenamesFileParser
 	 * A {@code ScannerAction} attempts to read a {@linkplain Token token} from
 	 * the {@linkplain #reader}.
 	 */
-	private static enum ScannerAction
+	private enum ScannerAction
 	{
 		/** A double quote (") was just seen. */
 		DOUBLE_QUOTE

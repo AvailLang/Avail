@@ -37,13 +37,13 @@ import static com.avail.descriptor.VariableSharedWriteOnceDescriptor.ObjectSlots
 import java.util.Map;
 import java.util.WeakHashMap;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * My {@linkplain AvailObject object instances} are {@linkplain
@@ -298,11 +298,25 @@ extends VariableSharedDescriptor
 	 * Construct a new {@link VariableSharedWriteOnceDescriptor}.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
+	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
+	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
 	 */
-	private VariableSharedWriteOnceDescriptor (final Mutability mutability)
+	private VariableSharedWriteOnceDescriptor (
+		final Mutability mutability,
+		final TypeTag typeTag,
+		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
+		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	/**
@@ -310,9 +324,17 @@ extends VariableSharedDescriptor
 	 * support creation.
 	 */
 	private static final VariableSharedWriteOnceDescriptor mutableWriteOnce =
-		new VariableSharedWriteOnceDescriptor(Mutability.MUTABLE);
+		new VariableSharedWriteOnceDescriptor(
+			Mutability.MUTABLE,
+			TypeTag.VARIABLE_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	/** The shared {@link VariableSharedWriteOnceDescriptor}. */
-	static final VariableSharedWriteOnceDescriptor sharedWriteOnce =
-		new VariableSharedWriteOnceDescriptor(Mutability.SHARED);
+	private static final VariableSharedWriteOnceDescriptor sharedWriteOnce =
+		new VariableSharedWriteOnceDescriptor(
+			Mutability.SHARED,
+			TypeTag.VARIABLE_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 }

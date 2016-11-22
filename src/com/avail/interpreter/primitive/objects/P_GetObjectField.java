@@ -62,12 +62,20 @@ extends Primitive
 		assert args.size() == 2;
 		final A_BasicObject object = args.get(0);
 		final A_Atom field = args.get(1);
-		final A_Map fieldMap = object.fieldMap();
-		if (!fieldMap.hasKey(field))
+
+		final AvailObject traversed = object.traversed();
+		final ObjectDescriptor descriptor =
+			(ObjectDescriptor) traversed.descriptor();
+		final Integer slotIndex =
+			descriptor.variant.fieldToSlotIndex.get(field);
+		if (slotIndex == null)
 		{
 			return interpreter.primitiveFailure(E_NO_SUCH_FIELD);
 		}
-		return interpreter.primitiveSuccess(fieldMap.mapAt(field));
+		return interpreter.primitiveSuccess(
+			slotIndex == 0
+				? field
+				: ObjectDescriptor.getField(traversed, slotIndex));
 	}
 
 	@Override

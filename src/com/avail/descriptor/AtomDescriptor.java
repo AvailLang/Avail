@@ -38,14 +38,19 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.io.RandomAccessFile;
 import java.nio.channels.*;
 import java.util.*;
+import java.util.regex.Pattern;
+
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.AvailCompiler.ParserState;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -138,6 +143,9 @@ extends Descriptor
 		return e == HASH_AND_MORE;
 	}
 
+	/** A {@link Pattern} of one or more word characters. */
+	private final Pattern wordPattern = Pattern.compile("\\w+");
+
 	@Override
 	public final void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -156,7 +164,7 @@ extends Descriptor
 		// quotes if it contains any nonalphanumeric characters, followed by a
 		// parenthetical aside describing what module originally issued it.
 		aStream.append('$');
-		if (nativeName.matches("\\w+"))
+		if (wordPattern.matcher(nativeName).matches())
 		{
 			aStream.append(nativeName);
 		}
@@ -315,9 +323,15 @@ extends Descriptor
 	@AvailMethod @ThreadSafe
 	final SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		return object.getAtomProperty(heritableKey).equalsNil()
-			? SerializerOperation.ATOM
-			: SerializerOperation.HERITABLE_ATOM;
+		if (!object.getAtomProperty(heritableKey).equalsNil())
+		{
+			return SerializerOperation.HERITABLE_ATOM;
+		}
+		if (!object.getAtomProperty(explicitSubclassingKey).equalsNil())
+		{
+			return SerializerOperation.EXPLICIT_SUBCLASS_ATOM;
+		}
+		return SerializerOperation.ATOM;
 	}
 
 	@Override
@@ -359,8 +373,7 @@ extends Descriptor
 			final A_String name = object.slot(NAME);
 			final MessageSplitter splitter = new MessageSplitter(name);
 			final A_Method method = MethodDescriptor.newMethod(
-				splitter.numberOfArguments(),
-				splitter.numberOfSectionCheckpoints());
+				splitter.numberOfArguments());
 			bundle =
 				MessageBundleDescriptor.newBundle(object, method, splitter);
 			object.setAtomProperty(messageBundleKey, bundle);
@@ -391,18 +404,9 @@ extends Descriptor
 	 * Construct a new {@link AtomDescriptor}.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private AtomDescriptor (final Mutability mutability)
-	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
-	}
-
-	/**
-	 * Construct a new {@link AtomDescriptor}.
-	 *
-	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -414,15 +418,20 @@ extends Descriptor
 	 */
 	protected AtomDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	/** The mutable {@link AtomDescriptor}. */
 	private static final AtomDescriptor mutable =
-		new AtomDescriptor(Mutability.MUTABLE);
+		new AtomDescriptor(
+			Mutability.MUTABLE,
+			TypeTag.ATOM_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	@Override
 	AtomDescriptor mutable ()
@@ -432,7 +441,11 @@ extends Descriptor
 
 	/** The immutable {@link AtomDescriptor}. */
 	private static final AtomDescriptor immutable =
-		new AtomDescriptor(Mutability.IMMUTABLE);
+		new AtomDescriptor(
+			Mutability.IMMUTABLE,
+			TypeTag.ATOM_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	@Override
 	AtomDescriptor immutable ()
@@ -482,7 +495,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	public static A_Atom createSpecialAtom (
+	static A_Atom createSpecialAtom (
 		final String name)
 	{
 		AvailObject atom = mutable.create();
@@ -495,14 +508,44 @@ extends Descriptor
 	}
 
 	/**
+	 * Create one of the two boolean atoms, using the given name and boolean
+	 * value.  A special atom should not have properties added to it after
+	 * initialization.
+	 *
+	 * @param name
+	 *        A string used to help identify the new boolean atom.
+	 * @param booleanValue
+	 *        The boolean for which to build a corresponding special atom.
+	 * @return
+	 *        The new atom, not equal to any object in use before this method
+	 *        was invoked.
+	 */
+	static A_Atom createSpecialBooleanAtom (
+		final String name,
+		final boolean booleanValue)
+	{
+		AvailObject atom = mutable.create();
+		atom.setSlot(NAME, StringDescriptor.from(name).makeShared());
+		atom.setSlot(HASH_OR_ZERO, 0);
+		atom.setSlot(ISSUING_MODULE, NilDescriptor.nil());
+		atom = atom.makeShared();
+		atom.descriptor = booleanValue
+			? AtomWithPropertiesSharedDescriptor.sharedAndSpecialForTrue
+			: AtomWithPropertiesSharedDescriptor.sharedAndSpecialForFalse;
+		return atom;
+	}
+
+	/**
 	 * The atom representing the Avail concept "true".
 	 */
-	private static final A_Atom trueObject = createSpecialAtom("true");
+	private static final A_Atom trueObject =
+		createSpecialBooleanAtom("true", true);
 
 	/**
 	 * The atom representing the Avail concept "false".
 	 */
-	private static final A_Atom falseObject = createSpecialAtom("false");
+	private static final A_Atom falseObject =
+		createSpecialBooleanAtom("false", false);
 
 	/**
 	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are
@@ -600,6 +643,13 @@ extends Descriptor
 	 */
 	private static final A_Atom messageBundleKey =
 		createSpecialAtom("message bundle");
+
+	/**
+	 * The property key whose presence indicates an atom is for explicit
+	 * subclassing of object types.
+	 */
+	private static final A_Atom explicitSubclassingKey =
+		createSpecialAtom("explicit subclassing");
 
 	/**
 	 * Answer the atom representing the Avail concept "true".
@@ -761,5 +811,18 @@ extends Descriptor
 	public static A_Atom messageBundleKey ()
 	{
 		return messageBundleKey;
+	}
+
+	/**
+	 * Answer the property key whose presence indicates that an atom was created
+	 * for explicit subclassing of object types.
+	 *
+	 * @return An atom held by the VM, used to indicate that an atom having this
+	 *         as a property key means the atom is used for explicit subclassing
+	 *         of object types.
+	 */
+	public static A_Atom explicitSubclassingKey ()
+	{
+		return explicitSubclassingKey;
 	}
 }

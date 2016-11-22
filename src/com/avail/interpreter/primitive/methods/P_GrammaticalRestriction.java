@@ -34,9 +34,8 @@ package com.avail.interpreter.primitive.methods;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
-import java.util.Arrays;
 import java.util.List;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
@@ -97,7 +96,6 @@ extends Primitive
 			excludedAtomSets = excludedAtomSets.tupleAtPuttingCanDestroy(
 				i, atomSet, true);
 		}
-		excludedAtomSets = excludedAtomSets.makeShared();
 		A_Set parentAtoms = SetDescriptor.empty();
 		try
 		{

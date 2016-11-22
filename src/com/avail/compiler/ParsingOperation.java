@@ -34,9 +34,27 @@ package com.avail.compiler;
 
 import static com.avail.compiler.ParsingConversionRule.*;
 import java.util.*;
-import com.avail.compiler.MessageSplitter.SectionCheckpoint;
-import com.avail.descriptor.*;
+
+import com.avail.compiler.AvailCompiler.ParserState;
+import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.A_BundleTree;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.ListNodeDescriptor;
+import com.avail.descriptor.LiteralNodeDescriptor;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.MarkerNodeDescriptor;
+import com.avail.descriptor.MessageBundleTreeDescriptor;
+import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.descriptor.ReferenceNodeDescriptor;
+import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.VariableDescriptor;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 
 /**
  * {@code ParsingOperation} describes the operations available for parsing Avail
@@ -56,7 +74,7 @@ public enum ParsingOperation
 	 * contains an {@linkplain TupleDescriptor#empty() empty tuple} of
 	 * {@linkplain ParseNodeDescriptor phrases} onto the parse stack.
 	 */
-	NEW_LIST(0),
+	EMPTY_LIST(0, true),
 
 	/**
 	 * {@code 1} - Pop an argument from the parse stack of the current
@@ -64,18 +82,18 @@ public enum ParsingOperation
 	 * the parse stack. Append the argument to the list. Push the resultant list
 	 * onto the parse stack.
 	 */
-	APPEND_ARGUMENT(1),
+	APPEND_ARGUMENT(1, true),
 
 	/**
 	 * {@code 2} - Push a {@linkplain MarkerNodeDescriptor marker} representing
 	 * the current parse position onto the mark stack.
 	 */
-	SAVE_PARSE_POSITION(2),
+	SAVE_PARSE_POSITION(2, false),
 
 	/**
 	 * {@code 3} - Pop the top marker off the mark stack.
 	 */
-	DISCARD_SAVED_PARSE_POSITION(3),
+	DISCARD_SAVED_PARSE_POSITION(3, true),
 
 	/**
 	 * {@code 4} - Pop the top marker off the mark stack and compare it to the
@@ -83,28 +101,16 @@ public enum ParsingOperation
 	 * otherwise push the current parse position onto the mark stack in place of
 	 * the old marker and continue parsing.
 	 */
-	ENSURE_PARSE_PROGRESS(4),
+	ENSURE_PARSE_PROGRESS(4, false),
 
 	/**
-	 * {@code 5} - Push a {@link LiteralNodeDescriptor literal node}
-	 * containing the {@linkplain AtomDescriptor Avail false boolean}.
-	 */
-	PUSH_FALSE(5),
-
-	/**
-	 * {@code 6} - Push a {@link LiteralNodeDescriptor literal node}
-	 * containing the {@linkplain AtomDescriptor Avail true boolean}.
-	 */
-	PUSH_TRUE(6),
-
-	/**
-	 * {@code 7} - Parse an ordinary argument of a message send, pushing the
+	 * {@code 5} - Parse an ordinary argument of a message send, pushing the
 	 * expression onto the parse stack.
 	 */
-	PARSE_ARGUMENT(7),
+	PARSE_ARGUMENT(5, false),
 
 	/**
-	 * {@code 8} - Parse an expression, even one whose expressionType is ⊤,
+	 * {@code 6} - Parse an expression, even one whose expressionType is ⊤,
 	 * then push <em>a literal node wrapping this expression</em> onto the parse
 	 * stack.
 	 *
@@ -115,62 +121,58 @@ public enum ParsingOperation
 	 * (or phrase⇒⊥), which is perfectly fine to put inside a list node during
 	 * parsing.</p>
 	 */
-	PARSE_TOP_VALUED_ARGUMENT(8),
+	PARSE_TOP_VALUED_ARGUMENT(6, false),
 
 	/**
-	 * {@code 9} - Parse a {@linkplain TokenDescriptor raw token}. It should
+	 * {@code 7} - Parse a {@linkplain TokenDescriptor raw token}. It should
 	 * correspond to a {@linkplain VariableDescriptor variable} that is
 	 * in scope. Push a {@linkplain ReferenceNodeDescriptor variable reference
 	 * phrase} onto the parse stack.
 	 */
-	PARSE_VARIABLE_REFERENCE(9),
+	PARSE_VARIABLE_REFERENCE(7, false),
 
 	/**
-	 * {@code 10} - Parse an argument of a message send, using the <em>outermost
+	 * {@code 8} - Parse an argument of a message send, using the <em>outermost
 	 * (module) scope</em>.  Leave it on the parse stack.
 	 */
-	PARSE_ARGUMENT_IN_MODULE_SCOPE(10),
+	PARSE_ARGUMENT_IN_MODULE_SCOPE(8, false),
 
 	/**
-	 * {@code 11} - Parse <em>any</em> {@linkplain TokenDescriptor raw token},
+	 * {@code 9} - Parse <em>any</em> {@linkplain TokenDescriptor raw token},
 	 * leaving it on the parse stack.
-	 *
-	 * <p>This is used by the {@link MessageSplitter.RawTokenArgument} message
-	 * expression, denoted by the characters "…!" in the message name.</p>
 	 */
-	PARSE_ANY_RAW_TOKEN(11),
+	PARSE_ANY_RAW_TOKEN(9, false),
 
 	/**
-	 * {@code 12} - Parse a raw <em>{@linkplain TokenType#KEYWORD keyword}</em>
+	 * {@code 10} - Parse a raw <em>{@linkplain TokenType#KEYWORD keyword}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
-	 *
-	 * <p>This is used by the {@link MessageSplitter.RawKeywordTokenArgument}
-	 * message expression, denoted by characters "…" in the message name.</p>
 	 */
-	PARSE_RAW_KEYWORD_TOKEN(12),
+	PARSE_RAW_KEYWORD_TOKEN(10, false),
 
 	/**
-	 * {@code 13} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
+	 * {@code 11} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
-	 *
-	 * <p>This is used by the {@link
-	 * MessageSplitter.RawStringLiteralTokenArgument} message expression,
-	 * denoted by characters "…$" in the message name.</p>
 	 */
-	PARSE_RAW_STRING_LITERAL_TOKEN(13),
+	PARSE_RAW_STRING_LITERAL_TOKEN(11, false),
 
 	/**
-	 * {@code 14} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
+	 * {@code 12} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
-	 *
-	 * <p>This is used by the {@link
-	 * MessageSplitter.RawWholeNumberLiteralTokenArgument} message expression,
-	 * denoted by characters "…#" in the message name.</p>
 	 */
-	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(14),
+	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(12, false),
 
-	/** Reserved for future parsing concepts. */
-	RESERVED_15(15),
+	/**
+	 * {@code 13} - Swap the most recently pushed two stack entries.
+	 */
+	SWAP(13, false),
+
+	/**
+	 * {@code 14} - Concatenate the two lists that have been pushed previously.
+	 */
+	CONCATENATE(14, false),
+
+	/** Reserved for future use. */
+	RESERVED_15(15, false),
 
 	/*
 	 * Arity one entries:
@@ -180,7 +182,7 @@ public enum ParsingOperation
 	 * {@code 16*N+0} - Branch to instruction N. Attempt to continue parsing at
 	 * both the next instruction and instruction N.
 	 */
-	BRANCH(0)
+	BRANCH(0, false)
 	{
 		@Override
 		public List<Integer> successorPcs (
@@ -195,7 +197,7 @@ public enum ParsingOperation
 	 * {@code 16*N+1} - Jump to instruction N. Attempt to continue parsing only
 	 * at instruction N.
 	 */
-	JUMP(1)
+	JUMP(1, false)
 	{
 		@Override
 		public List<Integer> successorPcs (
@@ -207,12 +209,12 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+2} - Parse the Nth {@linkplain MessageSplitter#messagePartsList
+	 * {@code 16*N+2} - Parse the Nth {@linkplain MessageSplitter#messageParts()
 	 * message part} of the current message. This will be a specific {@linkplain
 	 * TokenDescriptor token}. It should be matched case sensitively against the
 	 * source token.
 	 */
-	PARSE_PART(2)
+	PARSE_PART(2, false)
 	{
 		@Override
 		public int keywordIndex (final int instruction)
@@ -227,7 +229,7 @@ public enum ParsingOperation
 	 * TokenDescriptor token}. It should be matched case insensitively against
 	 * the source token.
 	 */
-	PARSE_PART_CASE_INSENSITIVELY(3)
+	PARSE_PART_CASE_INSENSITIVELY(3, false)
 	{
 		@Override
 		public int keywordIndex (final int instruction)
@@ -237,24 +239,10 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+4} - Push a {@link LiteralNodeDescriptor literal node}
-	 * containing an {@linkplain IntegerDescriptor Avail integer} based on the
-	 * operand.
-	 */
-	PUSH_INTEGER_LITERAL(4)
-	{
-		@Override
-		public int integerToPush (final int instruction)
-		{
-			return operand(instruction);
-		}
-	},
-
-	/**
-	 * {@code 16*N+5} - Apply grammatical restrictions to the Nth leaf argument
+	 * {@code 16*N+4} - Apply grammatical restrictions to the Nth leaf argument
 	 * (underscore/ellipsis) of the current message.
 	 */
-	CHECK_ARGUMENT(5)
+	CHECK_ARGUMENT(4, true)
 	{
 		@Override
 		public int checkArgumentIndex (final int instruction)
@@ -264,10 +252,10 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+6} - Pop an argument from the parse stack and apply the
+	 * {@code 16*N+5} - Pop an argument from the parse stack and apply the
 	 * {@linkplain ParsingConversionRule conversion rule} specified by N.
 	 */
-	CONVERT(6)
+	CONVERT(5, true)
 	{
 		@Override
 		public ParsingConversionRule conversionRule (
@@ -278,20 +266,19 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+7} - A macro has been parsed up to a {@link
-	 * SectionCheckpoint} (§).  Make a copy of the parse stack, then perform the
-	 * equivalent of an {@link #APPEND_ARGUMENT} on the copy, the specified
-	 * number of times minus one (because zero is not a legal operand).  Make it
-	 * into a single {@linkplain ListNodeDescriptor list node} and push it onto
-	 * the original parse stack.  It will be consumed by a subsequent {@link
-	 * #RUN_PREFIX_FUNCTION}.
+	 * {@code 16*N+6} - A macro has been parsed up to a section checkpoint (§).
+	 * Make a copy of the parse stack, then perform the equivalent of an {@link
+	 * #APPEND_ARGUMENT} on the copy, the specified number of times minus one
+	 * (because zero is not a legal operand).  Make it into a single {@linkplain
+	 * ListNodeDescriptor list node} and push it onto the original parse stack.
+	 * It will be consumed by a subsequent {@link #RUN_PREFIX_FUNCTION}.
 	 *
 	 * <p>This instruction is detected specially by the {@linkplain
 	 * MessageBundleTreeDescriptor message bundle tree}'s {@linkplain
-	 * A_BundleTree#expand(A_Module, List)} operation.  Its successors are
-	 * separated into distinct message bundle trees, one per message bundle.</p>
+	 * A_BundleTree#expand(A_Module)} operation.  Its successors are separated
+	 * into distinct message bundle trees, one per message bundle.</p>
 	 */
-	PREPARE_TO_RUN_PREFIX_FUNCTION(7)
+	PREPARE_TO_RUN_PREFIX_FUNCTION(6, true)
 	{
 		@Override
 		public int fixupDepth (final int instruction)
@@ -301,21 +288,19 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+8} - A macro has been parsed up to a {@link
-	 * SectionCheckpoint} (§), and a copy of the cleaned up parse stack has been
-	 * pushed, so invoke the Nth prefix function associated with the macro.
-	 * Consume the previously pushed copy of the parse stack.  The current
-	 * {@link AvailCompiler.ParserState}'s {@linkplain
-	 * AvailCompiler.ParserState#clientDataMap} is stashed in the
-	 * new {@link FiberDescriptor fiber}'s {@linkplain
-	 * AvailObject#fiberGlobals()} and retrieved afterward, so the prefix
-	 * function and macros can alter the scope or communicate with each other
-	 * by manipulating this {@linkplain MapDescriptor map}.  This technique
-	 * prevents chatter between separate fibers (i.e., parsing can still be
-	 * done in parallel) and between separate linguistic abstractions (the keys
-	 * are atoms and are therefore modular).
+	 * {@code 16*N+7} - A macro has been parsed up to a section checkpoint (§),
+	 * and a copy of the cleaned up parse stack has been pushed, so invoke the
+	 * Nth prefix function associated with the macro.  Consume the previously
+	 * pushed copy of the parse stack.  The current {@link ParserState}'s
+	 * {@linkplain ParserState#clientDataMap} is stashed in the new {@link
+	 * FiberDescriptor fiber}'s {@linkplain AvailObject#fiberGlobals()} and
+	 * retrieved afterward, so the prefix function and macros can alter the
+	 * scope or communicate with each other by manipulating this {@linkplain
+	 * MapDescriptor map}.  This technique prevents chatter between separate
+	 * fibers (i.e., parsing can still be done in parallel) and between separate
+	 * linguistic abstractions (the keys are atoms and are therefore modular).
 	 */
-	RUN_PREFIX_FUNCTION(8)
+	RUN_PREFIX_FUNCTION(7, true)
 	{
 		@Override
 		public int prefixFunctionSubscript (final int instruction)
@@ -325,12 +310,12 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+9} - Permute the elements of the list node on the top of the
+	 * {@code 16*N+8} - Permute the elements of the list node on the top of the
 	 * stack via the permutation found via {@linkplain
 	 * MessageSplitter#permutationAtIndex(int)}.  The list node must be the same
 	 * size as the permutation.
 	 */
-	PERMUTE_LIST(9)
+	PERMUTE_LIST(8, true)
 	{
 		@Override
 		public int permutationIndex (final int instruction)
@@ -340,11 +325,11 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+10} - Check that the list node on the top of the stack has at
+	 * {@code 16*N+9} - Check that the list node on the top of the stack has at
 	 * least the specified size.  Proceed to the next instruction only if this
 	 * is the case.
 	 */
-	CHECK_AT_LEAST(10)
+	CHECK_AT_LEAST(9, true)
 	{
 		@Override
 		public int requiredMinimumSize (final int instruction)
@@ -354,11 +339,11 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+11} - Check that the list node on the top of the stack has at
+	 * {@code 16*N+10} - Check that the list node on the top of the stack has at
 	 * most the specified size.  Proceed to the next instruction only if this
 	 * is the case.
 	 */
-	CHECK_AT_MOST(11)
+	CHECK_AT_MOST(10, true)
 	{
 		@Override
 		public int requiredMaximumSize (final int instruction)
@@ -368,7 +353,7 @@ public enum ParsingOperation
 	},
 
 	/**
-	 * {@code 16*N+12} - Use the type of the argument just parsed to select
+	 * {@code 16*N+11} - Use the type of the argument just parsed to select
 	 * among successor message bundle trees.  Those message bundle trees are
 	 * filtered by the allowable leaf argument type.  This test is
 	 * <em>precise</em>, and requires repeated groups to be unrolled for the
@@ -376,10 +361,48 @@ public enum ParsingOperation
 	 * until the {@link A_Type#defaultType()} of the tuple type has been
 	 * reached.
 	 */
-	TYPE_CHECK_ARGUMENT(12)
+	TYPE_CHECK_ARGUMENT(11, true)
 	{
 		@Override
 		public int typeCheckArgumentIndex (final int instruction)
+		{
+			return operand(instruction);
+		}
+	},
+
+	/**
+	 * {@code 16*N+12} - Pop N arguments from the parse stack of the current
+	 * potential message send. Create an N-element {@linkplain
+	 * ListNodeDescriptor list} with them, and push the list back onto the
+	 * parse stack.
+	 *
+	 * <p>This is the equivalent of pushing an empty list prior to pushing those
+	 * arguments, then using {@link #APPEND_ARGUMENT} after each argument is
+	 * parsed to add them to the list.  The advantage of using this operation
+	 * instead is to allow the pure stack manipulation operations to occur after
+	 * parsing an argument and/or fixed tokens, which increases the conformity
+	 * between the non-repeating and repeating clauses, which in turn reduces
+	 * (at least) the number of actions executed each time the root bundle tree
+	 * is used to start parsing a subexpression.</p>
+	 */
+	WRAP_IN_LIST(12, true)
+	{
+		@Override
+		public int listSize (final int instruction)
+		{
+			return operand(instruction);
+		}
+	},
+
+	/**
+	 * {@code 16*N+13} - Push a {@link LiteralNodeDescriptor literal node}
+	 * containing the constant found at the position in the type list indicated
+	 * by the operand.
+	 */
+	PUSH_LITERAL(13, true)
+	{
+		@Override
+		public int literalIndex (final int instruction)
 		{
 			return operand(instruction);
 		}
@@ -406,15 +429,35 @@ public enum ParsingOperation
 	/** The modulus that represents the operation uniquely for its arity. */
 	private final int modulus;
 
+	/** Whether this instance commutes with PARSE_PART instructions. */
+	private final boolean commutesWithParsePart;
+
+	/**
+	 * A {@link Statistic} that records the number of nanoseconds spent while
+	 * executing occurrences of this {@link ParsingOperation}.
+	 */
+	public Statistic parsingStatisticInNanoseconds = new Statistic(
+		name(), StatisticReport.RUNNING_PARSING_INSTRUCTIONS);
+
+	/**
+	 * A {@link Statistic} that records the number of nanoseconds spent while
+	 * expanding occurrences of this {@link ParsingOperation}.
+	 */
+	public Statistic expandingStatisticInNanoseconds = new Statistic(
+		name(), StatisticReport.EXPANDING_PARSING_INSTRUCTIONS);
+
 	/**
 	 * Construct a new ({@code 0}) {@link ParsingOperation}.
 	 *
 	 * @param modulus
 	 *        The modulus that represents the operation uniquely for its arity.
 	 */
-	private ParsingOperation (final int modulus)
+	ParsingOperation (
+		final int modulus,
+		final boolean commutesWithParsePart)
 	{
 		this.modulus = modulus;
+		this.commutesWithParsePart = commutesWithParsePart;
 	}
 
 	/**
@@ -462,7 +505,7 @@ public enum ParsingOperation
 	 * @param instruction A coded instruction.
 	 * @return The operand.
 	 */
-	public int operand (final int instruction)
+	public static int operand (final int instruction)
 	{
 		return instruction >> distinctInstructionsShift;
 	}
@@ -486,6 +529,8 @@ public enum ParsingOperation
 	 * the operand.
 	 *
 	 * @param instruction
+	 *        The instruction from which to extract the immediate integer value
+	 *        to push.
 	 * @return The {@code int} value to push.
 	 */
 	public int integerToPush (final int instruction)
@@ -494,21 +539,12 @@ public enum ParsingOperation
 	}
 
 	/**
-	 * Assume that the instruction encodes an operand which is to be treated as
-	 * a boolean to be passed as an argument at an Avail call site.  Answer the
-	 * operand as a Java boolean.
+	 * Answer the depth to fix the argument stack for preparing a partial parse
+	 * for a prefix function.  Fail here, as it's only applicable for {@link
+	 * #PREPARE_TO_RUN_PREFIX_FUNCTION}.
 	 *
-	 * @param instruction
-	 * @return The {@code boolean} value to push.
-	 */
-	public boolean booleanToPush (final int instruction)
-	{
-		 throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
-	 * @param instruction
-	 * @return
+	 * @param instruction The instruction to decompose.
+	 * @return The depth to which to fix the parse stack.
 	 */
 	public int fixupDepth (final int instruction)
 	{
@@ -516,10 +552,11 @@ public enum ParsingOperation
 	}
 
 	/**
-	 * Answer the subscript of the prefix function that should be invoked.
+	 * Answer the subscript of the prefix function that should be invoked.  Fail
+	 * here, as it's only applicable for a {@link #RUN_PREFIX_FUNCTION}.
 	 *
-	 * @param instruction
-	 * @return
+	 * @param instruction The instruction to decompose.
+	 * @return The prefix function subscript.
 	 */
 	public int prefixFunctionSubscript (final int instruction)
 	{
@@ -586,12 +623,25 @@ public enum ParsingOperation
 	/**
 	 * Extract the index of the type check argument for a {@link
 	 * #TYPE_CHECK_ARGUMENT} parsing instruction.  This indexes the static
-	 * {@link MessageSplitter#typeToCheck(int)}.
+	 * {@link MessageSplitter#constantForIndex(int)}.
 	 *
 	 * @param instruction A coded instruction
 	 * @return The index of the type to be checked against.
 	 */
 	public int typeCheckArgumentIndex (final int instruction)
+	{
+		throw new RuntimeException("Parsing instruction is inappropriate");
+	}
+
+	/**
+	 * Extract the index of the value for which to push literal phrase for the
+	 * {@link #PUSH_LITERAL} parsing instruction.  This indexes the static
+	 * {@link MessageSplitter#constantForIndex(int)}.
+	 *
+	 * @param instruction A coded instruction
+	 * @return The index of the type to be checked against.
+	 */
+	public int literalIndex (final int instruction)
 	{
 		throw new RuntimeException("Parsing instruction is inappropriate");
 	}
@@ -621,6 +671,17 @@ public enum ParsingOperation
 	}
 
 	/**
+	 * Extract the number of arguments to pop and combine into a list.
+	 *
+	 * @param instruction A coded instruction.
+	 * @return The resulting list size.
+	 */
+	public int listSize (final int instruction)
+	{
+		throw new RuntimeException("Parsing instruction is inappropriate");
+	}
+
+	/**
 	 * Decode the specified instruction into an {@linkplain ParsingOperation
 	 * operation}.
 	 *
@@ -638,5 +699,17 @@ public enum ParsingOperation
 		final int subscript = (instruction & (distinctInstructions - 1))
 			+ distinctInstructions;
 		return all[subscript];
+	}
+
+	/**
+	 * Answer whether this operation can commute with an adjacent {@link
+	 * #PARSE_PART} or {@link #PARSE_PART_CASE_INSENSITIVELY} operation without
+	 * changing the semantics of the parse.
+	 *
+	 * @return A {@code boolean}.
+	 */
+	public boolean commutesWithParsePart ()
+	{
+		return commutesWithParsePart;
 	}
 }

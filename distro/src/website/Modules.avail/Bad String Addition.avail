@@ -32,7 +32,25 @@
 
 Module "Bad String Addition"
 Uses
-	"Avail" = ("Method_is_", "string", "_+_", "_++_"),
+	"Avail" = (
+		"\
+			\|[§\
+				\|««…:_†§‡,»`|»?\
+				\|«Primitive…«(…:_†)»?§;»?\
+				\|«`$…«:_†»?;§»?\
+				\|«_!§»\
+				\|«_!»?\
+			\|]§\
+			\|«:_†»?\
+			\|«^«_†‡,»»?",
+		"…",
+		"_!;",
+		"…$",
+		"…#",
+		"Method_is_",
+		"string",
+		"_+_",
+		"_++_"),
 	"Dimensional Analysis" = ("_+_")
 Body
 

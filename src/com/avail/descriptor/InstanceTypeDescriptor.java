@@ -38,7 +38,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static java.lang.Math.*;
 import java.util.IdentityHashMap;
 import java.util.List;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -426,12 +427,12 @@ extends AbstractEnumerationTypeDescriptor
 			return IntegerRangeTypeDescriptor.singleInt(
 				getInstance(object).tupleSize());
 		}
-		else if (instance.isSet())
+		if (instance.isSet())
 		{
 			return IntegerRangeTypeDescriptor.singleInt(
 				getInstance(object).setSize());
 		}
-		else if (instance.isMap())
+		if (instance.isMap())
 		{
 			return IntegerRangeTypeDescriptor.singleInt(
 				getInstance(object).mapSize());

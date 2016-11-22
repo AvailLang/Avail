@@ -32,7 +32,7 @@
 
 package com.avail.utility;
 
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Just like {@link Mutable}, but allows {@linkplain #value} to hold {@code

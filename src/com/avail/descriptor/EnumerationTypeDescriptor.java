@@ -37,9 +37,11 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import java.util.IdentityHashMap;
 import java.util.List;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * My instances are called <em>enumerations</em>. This descriptor family is

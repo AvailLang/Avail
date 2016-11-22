@@ -36,8 +36,11 @@ import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.*;
 import java.util.Map;
 import java.util.WeakHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.serialization.Serializer;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -280,38 +283,34 @@ extends AtomDescriptor
 	 * Construct a new {@link AtomWithPropertiesDescriptor}.
 	 *
 	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *        The {@link TypeTag} to use in this descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
+	 *        null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        IntegerSlotsEnum} and defines this object's integer slots layout,
+	 *        or null if there are no integer slots.
 	 */
 	protected AtomWithPropertiesDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
-	}
-
-	/**
-	 * Construct a new {@link AtomWithPropertiesDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private AtomWithPropertiesDescriptor (final Mutability mutability)
-	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	/** The mutable {@link AtomWithPropertiesDescriptor}. */
 	private static final AtomWithPropertiesDescriptor mutable =
-		new AtomWithPropertiesDescriptor(Mutability.MUTABLE);
+		new AtomWithPropertiesDescriptor(
+			Mutability.MUTABLE,
+			TypeTag.ATOM_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	@Override
 	AtomWithPropertiesDescriptor mutable ()
@@ -321,7 +320,11 @@ extends AtomDescriptor
 
 	/** The immutable {@link AtomWithPropertiesDescriptor}. */
 	private static final AtomWithPropertiesDescriptor immutable =
-		new AtomWithPropertiesDescriptor(Mutability.IMMUTABLE);
+		new AtomWithPropertiesDescriptor(
+			Mutability.IMMUTABLE,
+			TypeTag.ATOM_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	@Override
 	AtomWithPropertiesDescriptor immutable ()

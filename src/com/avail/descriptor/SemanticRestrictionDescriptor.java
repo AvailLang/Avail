@@ -33,7 +33,8 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 
 /**
@@ -127,7 +128,11 @@ extends Descriptor
 	 */
 	private SemanticRestrictionDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability,
+			TypeTag.SEMANTIC_RESTRICTION_TAG,
+			ObjectSlots.class,
+			null);
 	}
 
 	/** The mutable {@link SemanticRestrictionDescriptor}. */

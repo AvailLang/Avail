@@ -40,10 +40,15 @@ import static java.util.Collections.min;
 import static java.util.Collections.max;
 import java.nio.ByteBuffer;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.InnerAccess;
+import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code TupleDescriptor} is an abstract descriptor class under which all tuple
@@ -102,6 +107,8 @@ extends Descriptor
 		{
 			synchronized (object)
 			{
+				// The synchronized section is only to ensure other BitFields
+				// in the same long slot don't get clobbered.
 				object.setSlot(HASH_OR_ZERO, value);
 			}
 		}
@@ -114,13 +121,12 @@ extends Descriptor
 	@Override @AvailMethod
 	final int o_HashOrZero (final AvailObject object)
 	{
-		if (isShared())
-		{
-			synchronized (object)
-			{
-				return object.slot(HASH_OR_ZERO);
-			}
-		}
+		// If the tuple is shared, its elements can't be in flux, so its hash is
+		// stably computed by any interested thread.  And seeing a zero when the
+		// hash has been computed by another thread is safe, since it forces the
+		// reading thread to recompute the hash.  On the other hand, if the
+		// tuple isn't shared then only one thread can be reading or writing the
+		// hash field.  So either way we don't need synchronization.
 		return object.slot(HASH_OR_ZERO);
 	}
 
@@ -313,6 +319,15 @@ extends Descriptor
 		return o_EqualsAnyTuple(object, aTuple);
 	}
 
+	@Override
+	boolean o_EqualsIntTuple (
+		final AvailObject object,
+		final A_Tuple anIntTuple)
+	{
+		// Default to generic tuple comparison.
+		return o_EqualsAnyTuple(object, anIntTuple);
+	}
+
 	@Override @AvailMethod
 	boolean o_EqualsReverseTuple (
 		final AvailObject object,
@@ -398,7 +413,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		// The tuple's size is out of range.
+		// The tuple's size is in range.
 		final A_Tuple typeTuple = aTypeObject.typeTuple();
 		final int breakIndex = min(tupleSize, typeTuple.tupleSize());
 		for (int i = 1; i <= breakIndex; i++)
@@ -436,7 +451,7 @@ extends Descriptor
 	private final int hash (final A_Tuple object)
 	{
 		int hash = object.hashOrZero();
-		if (hash == 0)
+		if (hash == 0 && object.tupleSize() > 0)
 		{
 			hash = computeHashForObject(object);
 			object.hashOrZero(hash);
@@ -582,6 +597,19 @@ extends Descriptor
 			endIndex1,
 			anIntegerIntervalTuple,
 			startIndex2);
+	}
+
+	@Override @AvailMethod
+	boolean o_CompareFromToWithIntTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2)
+	{
+		// Compare sections of two tuples. Default to generic comparison.
+		return o_CompareFromToWithAnyTupleStartingAt(
+			object, startIndex1, endIndex1, anIntTuple, startIndex2);
 	}
 
 	@Override @AvailMethod
@@ -893,7 +921,7 @@ extends Descriptor
 	 * @param object The object to hash.
 	 * @return The hash value.
 	 */
-	final int computeHashForObject (final A_Tuple object)
+	private static int computeHashForObject (final A_Tuple object)
 	{
 		return object.computeHashFromTo(1, object.tupleSize());
 	}
@@ -1020,6 +1048,29 @@ extends Descriptor
 	}
 
 	/**
+	 * Answer a mutable copy of object that holds ints.
+	 */
+	@Override @AvailMethod
+	A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
+	{
+		final int size = object.tupleSize();
+		final AvailObject result = IntTupleDescriptor.generateFrom(
+			size,
+			new Generator<Integer>()
+			{
+				int index = 1;
+
+				@Override
+				public Integer value ()
+				{
+					return object.tupleIntAt(index++);
+				}
+			});
+		result.hashOrZero(object.hashOrZero());
+		return result;
+	}
+
+	/**
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
 	@Override @AvailMethod
@@ -1083,7 +1134,7 @@ extends Descriptor
 		 * Construct a new {@link TupleIterator} on the given {@linkplain
 		 * TupleDescriptor tuple}.
 		 *
-		 * @param tuple
+		 * @param tuple The tuple to iterate over.
 		 */
 		@InnerAccess TupleIterator (final AvailObject tuple)
 		{
@@ -1267,7 +1318,7 @@ extends Descriptor
 		{
 			return empty();
 		}
-		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
+		return ObjectTupleDescriptor.generateFrom(
 			elements.length,
 			new Generator<A_BasicObject>()
 			{
@@ -1279,7 +1330,6 @@ extends Descriptor
 					return elements[index++];
 				}
 			});
-		return tuple;
 	}
 
 	/**
@@ -1300,7 +1350,7 @@ extends Descriptor
 		{
 			return empty();
 		}
-		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
+		return ObjectTupleDescriptor.generateFrom(
 			size,
 			new Generator<A_BasicObject>()
 			{
@@ -1312,7 +1362,6 @@ extends Descriptor
 					return list.get(index++);
 				}
 			});
-		return tuple;
 	}
 
 	/**
@@ -1381,7 +1430,7 @@ extends Descriptor
 			if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
 			{
 				final int finalSeekIndex = seekIndex;
-				final AvailObject newTuple = ObjectTupleDescriptor.generateFrom(
+				return ObjectTupleDescriptor.generateFrom(
 					originalSize - 1,
 					new Generator<A_BasicObject>()
 					{
@@ -1398,15 +1447,14 @@ extends Descriptor
 							return originalTuple.tupleAt(index++);
 						}
 					});
-				return newTuple;
 			}
 		}
 		return originalTuple;
 	}
 
 	/**
-	 * Construct a new tuple of integers. Use the most compact representation
-	 * that can still represent each supplied {@link Integer}.
+	 * Construct a new tuple of ints. Use the most compact representation that
+	 * can still represent each supplied {@link Integer}.
 	 *
 	 * @param list
 	 *        The list of Java {@linkplain Integer}s to assemble in a tuple.
@@ -1456,17 +1504,16 @@ extends Descriptor
 				return tuple;
 			}
 		}
-		tuple = ObjectTupleDescriptor.generateFrom(
+		tuple = IntTupleDescriptor.generateFrom(
 			list.size(),
-			new Generator<A_BasicObject>()
+			new Generator<Integer>()
 			{
 				private int index = 0;
 
 				@Override
-				public A_BasicObject value ()
+				public Integer value ()
 				{
-					return IntegerDescriptor.fromInt(
-						list.get(index++).intValue());
+					return list.get(index++);
 				}
 			});
 		return tuple;
@@ -1477,7 +1524,7 @@ extends Descriptor
 	 * The 0th table contains M^i for i=0..255, the 1st table contains M^(256*i)
 	 * for i=0..255,... and the 3rd table contains M^((256^3)*i) for i=0..255.
 	 */
-	static final int[][] powersOfMultiplier = new int[4][256];
+	private static final int[][] powersOfMultiplier = new int[4][256];
 
 	static
 	{
@@ -1538,6 +1585,10 @@ extends Descriptor
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(
+			mutability,
+			TypeTag.TUPLE_TAG,
+			objectSlotsEnumClass,
+			integerSlotsEnumClass);
 	}
 }

@@ -50,9 +50,11 @@ import java.util.zip.CRC32;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
-import com.avail.annotations.*;
+
+import com.avail.annotations.InnerAccess;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code IndexedFile}s are record journals. Records may be {@linkplain

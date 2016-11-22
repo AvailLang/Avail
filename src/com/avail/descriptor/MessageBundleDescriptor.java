@@ -34,13 +34,11 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
-import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.IdentityHashMap;
-import java.util.List;
+
 import com.avail.annotations.AvailMethod;
-import com.avail.compiler.MessageSplitter;
-import com.avail.compiler.ParsingOperation;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -103,13 +101,9 @@ extends Descriptor
 		GRAMMATICAL_RESTRICTIONS,
 
 		/**
-		 * The {@link SetDescriptor set} of {@link
-		 * DefinitionParsingPlanDescriptor definition parsing plans} that are
-		 * defined for this bundle.  This should agree in size with all other
-		 * renames of the same bundle (i.e., bundles attached to the same
-		 * {@link MethodDescriptor method} as this), and with the method's own
-		 * tuple of {@link DefinitionDescriptor definitions} and {@link
-		 * MacroDefinitionDescriptor macro definitions}.
+		 * The {@link A_Map} from {@link A_Definition} to {@link
+		 * A_DefinitionParsingPlan}.  The keys should always agree with the
+		 * {@link A_Method}'s collection of definitions and macro definitions.
 		 */
 		DEFINITION_PARSING_PLANS;
 	}
@@ -165,7 +159,7 @@ extends Descriptor
 	}
 
 	@Override
-	A_Set o_DefinitionParsingPlans (final AvailObject object)
+	A_Map o_DefinitionParsingPlans (final AvailObject object)
 	{
 		return object.slot(DEFINITION_PARSING_PLANS);
 	}
@@ -212,6 +206,7 @@ extends Descriptor
 		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
 		MessageSplitter messageSplitter =
 			(MessageSplitter) splitterPojo.javaObject();
+		assert messageSplitter != null;
 		return messageSplitter.messageParts();
 	}
 
@@ -223,20 +218,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_RemoveDefinitionParsingPlan (
+	void o_RemovePlanForDefinition (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan)
+		final A_Definition definition)
 	{
 		if (isShared())
 		{
 			synchronized (object)
 			{
-				removeDefinitionParsingPlan(object, plan);
+				removePlanForDefinition(object, definition);
 			}
 		}
 		else
 		{
-			removeDefinitionParsingPlan(object, plan);
+			removePlanForDefinition(object, definition);
 		}
 	}
 
@@ -288,26 +283,27 @@ extends Descriptor
 		final AvailObject object,
 		final A_DefinitionParsingPlan plan)
 	{
-		A_Set plans = object.slot(DEFINITION_PARSING_PLANS);
-		plans = plans.setWithElementCanDestroy(plan, true);
+		A_Map plans = object.slot(DEFINITION_PARSING_PLANS);
+		plans = plans.mapAtPuttingCanDestroy(plan.definition(), plan, true);
 		object.setSlot(DEFINITION_PARSING_PLANS, plans.makeShared());
 	}
 
 	/**
-	 * Remove a {@link DefinitionParsingPlanDescriptor definition parsing plan}
-	 * from this bundle.  This is performed to make the bundle agree with the
-	 * method's definitions and macro definitions.
+	 * Remove a {@link A_DefinitionParsingPlan} from this bundle, specifically
+	 * the one associated with the give {@link A_Definition}.  This is performed
+	 * to make the bundle agree with the method's definitions and macro
+	 * definitions.
 	 *
 	 * @param object The affected message bundle.
-	 * @param plan A definition parsing plan.
+	 * @param definition A definition whose plan should be removed.
 	 */
-	private void removeDefinitionParsingPlan (
+	private void removePlanForDefinition (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan)
+		final A_Definition definition)
 	{
-		A_Set plans = object.mutableSlot(DEFINITION_PARSING_PLANS);
-		assert plans.hasElement(plan);
-		plans = plans.setWithoutElementCanDestroy(plan, true);
+		A_Map plans = object.mutableSlot(DEFINITION_PARSING_PLANS);
+		assert plans.hasKey(definition);
+		plans = plans.mapWithoutKeyCanDestroy(definition, true);
 		object.setMutableSlot(DEFINITION_PARSING_PLANS, plans.makeShared());
 	}
 
@@ -390,13 +386,20 @@ extends Descriptor
 		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_SPLITTER_POJO, splitterPojo);
 		result.setSlot(GRAMMATICAL_RESTRICTIONS, SetDescriptor.empty());
-		A_Set plans = SetDescriptor.empty();
+		A_Map plans = MapDescriptor.empty();
 		for (final A_Definition definition : method.definitionsTuple())
 		{
 			final A_DefinitionParsingPlan plan =
 				DefinitionParsingPlanDescriptor.createPlan(
 					result, definition);
-			plans = plans.setWithElementCanDestroy(plan, true);
+			plans = plans.mapAtPuttingCanDestroy(definition, plan, true);
+		}
+		for (final A_Definition definition : method.macroDefinitionsTuple())
+		{
+			final A_DefinitionParsingPlan plan =
+				DefinitionParsingPlanDescriptor.createPlan(
+					result, definition);
+			plans = plans.mapAtPuttingCanDestroy(definition, plan, true);
 		}
 		result.setSlot(DEFINITION_PARSING_PLANS, plans);
 		result.makeShared();
@@ -412,7 +415,7 @@ extends Descriptor
 	 */
 	private MessageBundleDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.BUNDLE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link MessageBundleDescriptor}. */

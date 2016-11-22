@@ -32,7 +32,7 @@
 
 package com.avail.utility;
 
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An immutable pair of {@linkplain Object objects}.

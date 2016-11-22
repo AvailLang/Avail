@@ -36,7 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -84,8 +84,9 @@ extends Primitive
 		if (!sendPhrase.expressionType().isTop())
 		{
 			throw new AvailRejectedParseException(
-				"statement's type to be ⊤, but it was %s",
-				sendPhrase.expressionType());
+				"statement's type to be ⊤, but it was %s.  Expression is: %s",
+				sendPhrase.expressionType(),
+				sendPhrase);
 		}
 		final A_Phrase sendAsStatement =
 			ExpressionAsStatementNodeDescriptor.fromExpression(sendPhrase);

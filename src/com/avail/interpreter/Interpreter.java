@@ -47,7 +47,7 @@ import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
-import com.avail.annotations.*;
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.FiberDescriptor.*;
@@ -68,6 +68,7 @@ import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a
@@ -336,7 +337,10 @@ public final class Interpreter
 		/**
 		 * The integer register values.
 		 */
-		INTEGERS
+		INTEGERS,
+
+		/** The current {@link AvailLoader}, if any. */
+		LOADER;
 	}
 
 	/**
@@ -367,7 +371,7 @@ public final class Interpreter
 		outerArray[FakeStackTraceSlots.L2_INSTRUCTIONS.ordinal()] =
 			chunk().instructions;
 
-		// Produce the current chunk's L2 instructions...
+		// Produce the current function being executed...
 		outerArray[FakeStackTraceSlots.CURRENT_FUNCTION.ordinal()] =
 			pointers[FUNCTION.ordinal()];
 
@@ -400,6 +404,8 @@ public final class Interpreter
 		}
 		outerArray[FakeStackTraceSlots.INTEGERS.ordinal()] =
 			TupleDescriptor.fromIntegerList(integersList);
+
+		outerArray[FakeStackTraceSlots.LOADER.ordinal()] = availLoaderOrNull();
 
 		// Now put all the top level constructs together...
 		final AvailObjectFieldHelper[] helpers =
@@ -1032,7 +1038,7 @@ public final class Interpreter
 	 *            primitive backup Avail code produces type ⊥.
 	 * @return The resulting status of the primitive attempt.
 	 */
-	public final Result attemptPrimitive (
+	public Result attemptPrimitive (
 		final int primitiveNumber,
 		final @Nullable A_Function function,
 		final List<AvailObject> args,
@@ -1173,7 +1179,7 @@ public final class Interpreter
 	 *            The one-based argument/local number.
 	 * @return The subscript to use with {@link Interpreter#pointerAt(int)}.
 	 */
-	public final static int argumentOrLocalRegister (
+	public static int argumentOrLocalRegister (
 		final int argumentOrLocalNumber)
 	{
 		// Skip the fixed registers.

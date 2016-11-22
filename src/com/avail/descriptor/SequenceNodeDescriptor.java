@@ -35,11 +35,14 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.SequenceNodeDescriptor.ObjectSlots.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 
 /**
@@ -235,7 +238,7 @@ extends ParseNodeDescriptor
 	 */
 	private SequenceNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.SEQUENCE_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link SequenceNodeDescriptor}. */

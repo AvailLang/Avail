@@ -35,8 +35,10 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.PojoDescriptor.ObjectSlots.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code PojoDescriptor} describes a plain-old Java object (pojo) that is
@@ -190,7 +192,7 @@ extends Descriptor
 	 */
 	private PojoDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.POJO_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link PojoDescriptor}. */

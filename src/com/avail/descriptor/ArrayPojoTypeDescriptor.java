@@ -38,9 +38,13 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code ArrayPojoTypeDescriptor} describes Java array types. A Java array

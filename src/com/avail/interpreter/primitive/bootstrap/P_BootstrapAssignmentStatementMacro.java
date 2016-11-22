@@ -33,11 +33,12 @@
 package com.avail.interpreter.primitive.bootstrap;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
-import com.avail.annotations.Nullable;
+
+import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
@@ -80,12 +81,13 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		assert literalToken.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final A_Token actualToken = literalToken.literal();
 		assert actualToken.isInstanceOf(TOKEN.o());
+		final A_String variableNameString = actualToken.string();
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				"variable name for assignment to be alphanumeric");
+				"variable name for assignment to be alphanumeric, not "
+				+ variableNameString);
 		}
-		final A_String variableNameString = actualToken.string();
 		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
 		final A_Map clientData = fiberGlobals.mapAt(
 			AtomDescriptor.clientDataGlobalKey());
@@ -119,7 +121,8 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		if (declaration == null)
 		{
 			throw new AvailRejectedParseException(
-				"variable for assignment to be in scope");
+				"variable (" + variableNameString +
+					") for assignment to be in scope");
 		}
 		final A_Phrase declarationFinal = declaration;
 		if (!declaration.declarationKind().isVariable())
@@ -172,7 +175,7 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 				/* Variable name for assignment */
 				LITERAL_NODE.create(TOKEN.o()),
 				/* Assignment value */
-				EXPRESSION_NODE.mostGeneralType()),
+				EXPRESSION_NODE.create(ANY.o())),
 			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
 	}
 }

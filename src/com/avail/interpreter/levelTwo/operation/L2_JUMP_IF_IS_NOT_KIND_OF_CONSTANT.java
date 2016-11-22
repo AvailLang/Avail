@@ -67,12 +67,13 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int target = instruction.pcAt(0);
+//		final int target = instruction.pcAt(0);
 		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
 		final A_Type type = instruction.constantAt(2);
 
 		if (!objectReg.in(interpreter).isInstanceOf(type))
 		{
+			final int target = instruction.pcAt(0);
 			interpreter.offset(target);
 		}
 	}
@@ -80,8 +81,8 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final L1NaiveTranslator naiveTranslator,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L1NaiveTranslator naiveTranslator)
 	{
 		// Eliminate tests due to type propagation.
 //		final int target = instruction.pcAt(0);
@@ -151,7 +152,7 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 			return true;
 		}
 		// The test could not be eliminated or improved.
-		return super.regenerate(instruction, naiveTranslator, registerSet);
+		return super.regenerate(instruction, registerSet, naiveTranslator);
 	}
 
 	@Override
@@ -171,7 +172,7 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		assert fallThroughSet.hasTypeAt(objectReg);
 		final A_Type existingType = fallThroughSet.typeAt(objectReg);
 		final A_Type intersection = existingType.typeIntersection(type);
-		fallThroughSet.typeAtPut(objectReg, intersection, instruction);
+		fallThroughSet.strengthenTestedTypeAtPut(objectReg, intersection);
 	}
 
 	@Override

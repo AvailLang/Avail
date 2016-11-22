@@ -1,5 +1,5 @@
 /**
- * Nullable.java
+ * RawTokenArgument.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,25 +29,52 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.compiler.splitter;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.LiteralTokenTypeDescriptor;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 
-package com.avail.annotations;
-
-import java.lang.annotation.*;
+import static com.avail.compiler.ParsingOperation.PARSE_ANY_RAW_TOKEN;
+import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 
 /**
- * {@code @Nullable} annotation indicates that the annotated target may be {@code
- * null} when evaluated.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * A {@linkplain RawTokenArgument} is an occurrence of {@linkplain
+ * StringDescriptor#ellipsis() ellipsis} (…) in a message name, followed by
+ * an {@linkplain StringDescriptor#exclamationMark() exclamation mark} (!).
+ * It indicates where <em>any</em> raw token is expected, which gets
+ * captured as an argument, wrapped in a literal phrase.
  */
-@Retention(RetentionPolicy.CLASS)
-@Target({
-	ElementType.FIELD,
-	ElementType.LOCAL_VARIABLE,
-	ElementType.METHOD,
-	ElementType.PARAMETER
-})
-public @interface Nullable
+class RawTokenArgument
+extends Argument
 {
-	// No implementation required.
+	/**
+	 * Construct a new {@link RawTokenArgument}.
+	 *
+	 * @param startTokenIndex
+	 * 	The one-based token index of this argument.
+	 */
+	RawTokenArgument (
+		final MessageSplitter splitter,
+		final int startTokenIndex)
+	{
+		super(splitter, startTokenIndex);
+	}
+
+	@Override
+	void emitOn (
+		final InstructionGenerator generator,
+		final A_Type phraseType)
+	{
+		generator.flushDelayed();
+		generator.emit(this, PARSE_ANY_RAW_TOKEN);
+		if (!LiteralTokenTypeDescriptor.create(Types.TOKEN.o()).isSubtypeOf(
+			phraseType))
+		{
+			generator.emitDelayed(
+				this,
+				TYPE_CHECK_ARGUMENT,
+				MessageSplitter.indexForConstant(phraseType));
+		}
+	}
 }

@@ -33,7 +33,7 @@
 package com.avail.environment.tasks;
 
 import java.awt.*;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.environment.AvailWorkbench;

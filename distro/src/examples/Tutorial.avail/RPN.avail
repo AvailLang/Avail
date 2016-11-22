@@ -33,6 +33,8 @@
 Module "RPN"
 Uses
 	"Avail"
+Extends
+	"Avail" = ("…#")
 Names
 	"__+",
 	"__-",

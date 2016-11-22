@@ -32,7 +32,7 @@
 
 package com.avail.serialization;
 
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A problem occurred while using a {@link Deserializer}, indicating an invalid

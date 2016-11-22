@@ -36,7 +36,8 @@ import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import java.lang.reflect.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.*;
 import com.avail.utility.json.JSONWriter;
 
@@ -203,7 +204,7 @@ extends Descriptor
 	 */
 	public PojoFinalFieldDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.VARIABLE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link PojoFinalFieldDescriptor}. */

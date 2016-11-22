@@ -197,7 +197,6 @@ Uses
 		"ln_",
 		"method exists named_",
 		"milliseconds since the Epoch",
-		"new atom named_",
 		"new_[_]",
 		"new_applying_",
 		"new`↑_",
@@ -251,28 +250,6 @@ Primitive "_'s⁇name" is
 |
 	Primitive AtomName;
 ] : string;
-
-/**
- * Construct and answer a new atom. Associate with the atom the supplied string,
- * which should be a name used for debugging purposes only. Atoms have identity
- * and all atoms are distinct, regardless of whether their debug names are
- * equal.
- *
- * @category "Primitives" "Atoms" "Constructors"
- * @method "new atom named_"
- * @param "debugName" "string"
- *        A name to associate with the atom for debugging purposes. This name
- *        does not participate in atom comparison.
- * @returns "atom"
- *    A new atom, distinct from every other atom answered by a different
- *    invocation of this primitive.
- */
-Primitive "new atom named_" is
-[
-	debugName : string
-|
-	Primitive CreateAtom;
-] : atom;
 
 /**
  * Is {@param "name"} a valid message? Do not attempt to look up a method
@@ -3961,7 +3938,7 @@ Primitive "Cast|cast_into_else_" is
  * @method "enumeration of_"
  * @param "instances" "set"
  *        The complete set of instances of the enumeration.
- * @returns "(⊤)'s type"
+ * @returns "(any)'s type"
  *    The requested enumeration.
  */
 Primitive "enumeration of_" is
@@ -3969,7 +3946,7 @@ Primitive "enumeration of_" is
 	instances : set
 |
 	Primitive CreateEnumeration;
-] : type;
+] : any meta;
 
 /**
  * Answer the number of instances of the specified type. This is `∞` for all

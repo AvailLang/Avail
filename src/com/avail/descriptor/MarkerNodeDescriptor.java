@@ -36,10 +36,12 @@ import static com.avail.descriptor.MarkerNodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse
@@ -174,7 +176,7 @@ extends ParseNodeDescriptor
 	 */
 	private MarkerNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.MARKER_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link MarkerNodeDescriptor}. */

@@ -35,7 +35,10 @@ import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
 
 /**
  * A label can be the target of a branching instruction.  It is not actually
@@ -80,4 +83,16 @@ public class L2_LABEL extends L2Operation
 	{
 		return false;
 	}
+
+	@Override
+	public boolean regenerate (
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
+		final L1NaiveTranslator naiveTranslator)
+	{
+		instruction.setOffset(-1);
+		naiveTranslator.addLabel(instruction);
+		return false;
+	}
+
 }

@@ -81,8 +81,8 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final L1NaiveTranslator naiveTranslator,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L1NaiveTranslator naiveTranslator)
 	{
 		final L2PcOperand target = (L2PcOperand)(instruction.operands[0]);
 		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
@@ -101,7 +101,7 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT extends L2Operation
 				new L2ConstantOperand(constantType));
 			return true;
 		}
-		return super.regenerate(instruction, naiveTranslator, registerSet);
+		return super.regenerate(instruction, registerSet, naiveTranslator);
 	}
 
 	@Override
@@ -136,10 +136,9 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT extends L2Operation
 		{
 			type = ANY.o();
 		}
-		fallThroughSet.typeAtPut(
+		fallThroughSet.strengthenTestedTypeAtPut(
 			typeReg,
-			type.typeIntersection(fallThroughSet.typeAt(objectReg)),
-			instruction);
+			type.typeIntersection(fallThroughSet.typeAt(objectReg)));
 	}
 
 	@Override

@@ -22,11 +22,11 @@ else
  *
  * @method "${methodName}"
  * @categories "${category}"
- * @param "${parameter}" "${parameterType}" 
+ * @param "${parameter}" "${parameterType}"
  *		${paramaterdescription}
  * @returnType "${returnType}"
  *		${returnTypeDescription}
- * @raises "${exceptionName}" 
+ * @raises "${exceptionName}"
  *		${exceptionDescription}
  * @author "${authorName}"
  */
@@ -34,7 +34,7 @@ Private method "${methodName}" is
 [
 	${parameter} : ${parameterType}
  |
-	
+
 ]:${returnType};
 </template><template autoinsert="true" context="java" deleted="false" description="The micro (µ) sign." enabled="true" name="micro">µ</template><template autoinsert="true" context="java" deleted="false" description="A middle dot (·)." enabled="true" name="middledot">·</template><template autoinsert="true" context="java" deleted="false" description="New Avail primitive implementation." enabled="true" name="newprimitiveimpl">/**
  * ${file}
@@ -75,7 +75,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.annotations.NotNull;
+import org.jetbrains.annotations.NotNull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 

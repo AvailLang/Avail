@@ -35,7 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -456,7 +457,7 @@ extends TypeDescriptor
 	 */
 	private MapTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.MAP_TYPE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link MapTypeDescriptor}. */

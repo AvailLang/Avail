@@ -32,7 +32,25 @@
 
 Module "Summation"
 Uses
-	"Avail" = ("Method_is_", "number", "_+_"),
+	"Avail" = (
+		"\
+			\|[§\
+				\|««…:_†§‡,»`|»?\
+				\|«Primitive…«(…:_†)»?§;»?\
+				\|«`$…«:_†»?;§»?\
+				\|«_!§»\
+				\|«_!»?\
+			\|]§\
+			\|«:_†»?\
+			\|«^«_†‡,»»?",
+		"_!;",
+		"…",
+		"…$",
+		"…#",
+		"Method_is_",
+		"number",
+		"_+_"
+	),
 	"Dimensional Analysis" = ("dimensioned quantity", "_+_")
 Extends
 	"Dimensional Analysis" = ("__", "m", "s")

@@ -43,9 +43,8 @@ import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
 import com.avail.annotations.AvailMethod;
-import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompilerFragmentCache;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.compiler.ParsingConversionRule;
 import com.avail.compiler.ParsingOperation;
 
@@ -104,7 +103,7 @@ extends Descriptor
 	 * Used for describing logical aspects of the bundle in the Eclipse
 	 * debugger.
 	 */
-	private static enum FakeSlots
+	private enum FakeSlots
 	implements ObjectSlotsEnum
 	{
 		/** Used for showing the parsing instructions symbolically. */
@@ -140,16 +139,15 @@ extends Descriptor
 		try
 		{
 			final A_Tuple instructionsTuple = plan.parsingInstructions();
-			final List<A_String> descriptionsList = new ArrayList<>();
+			final List<String> descriptionsList = new ArrayList<>();
 			for (
 				int i = 1, end = instructionsTuple.tupleSize();
 				i <= end;
 				i++)
 			{
 				final int encodedInstruction = instructionsTuple.tupleIntAt(i);
-				final ParsingOperation operation =
-					ParsingOperation.decode(encodedInstruction);
-				final int operand = operation.operand(encodedInstruction);
+				final ParsingOperation operation = decode(encodedInstruction);
+				final int operand = operand(encodedInstruction);
 				final StringBuilder builder = new StringBuilder();
 				builder.append(i);
 				builder.append(". ");
@@ -171,6 +169,13 @@ extends Descriptor
 							builder.append("'");
 							break;
 						}
+						case PUSH_LITERAL:
+						{
+							builder.append(" Constant = ");
+							builder.append(
+								MessageSplitter.constantForIndex(operand));
+							break;
+						}
 						case PERMUTE_LIST:
 						{
 							builder.append(" Permutation = ");
@@ -182,7 +187,7 @@ extends Descriptor
 						{
 							builder.append(" Type = ");
 							builder.append(
-								MessageSplitter.typeToCheck(operand));
+								MessageSplitter.constantForIndex(operand));
 							break;
 						}
 						case CONVERT:
@@ -196,15 +201,13 @@ extends Descriptor
 							// Do nothing.
 					}
 				}
-				descriptionsList.add(StringDescriptor.from(builder.toString()));
+				descriptionsList.add(builder.toString());
 			}
-			final A_Tuple descriptionsTuple =
-				TupleDescriptor.fromList(descriptionsList);
 			fields.add(new AvailObjectFieldHelper(
 				plan,
 				FakeSlots.SYMBOLIC_INSTRUCTIONS,
 				-1,
-				descriptionsTuple));
+				descriptionsList.toArray(new String[descriptionsList.size()])));
 		}
 		catch (Exception e)
 		{
@@ -239,7 +242,14 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
-		return another.traversed().sameAddressAs(object);
+		if (!another.kind().equals(DEFINITION_PARSING_PLAN.o()))
+		{
+			return false;
+		}
+		final A_DefinitionParsingPlan strongAnother =
+			(A_DefinitionParsingPlan) another;
+		return object.slot(DEFINITION) == strongAnother.definition()
+			&& object.slot(BUNDLE) == strongAnother.bundle();
 	}
 
 	@Override @AvailMethod
@@ -253,80 +263,6 @@ extends Descriptor
 	A_Type o_Kind (final AvailObject object)
 	{
 		return DEFINITION_PARSING_PLAN.o();
-	}
-
-	/**
-	 * Answer a String consisting of the name of the message with a visual
-	 * indication inserted at the keyword or argument position related to the
-	 * given program counter.
-	 *
-	 * @param parsingPlan
-	 *        The {@link DefinitionParsingPlanDescriptor parsing plan} to
-	 *        describe.
-	 * @param pc
-	 *        The 1-based instruction index into my {@linkplain
-	 *        #o_ParsingInstructions(AvailObject) parsing instructions}.
-	 * @return The annotated method name, a Java {@code String}.
-	 */
-	@Override @AvailMethod
-	String o_NameHighlightingPc (
-		final AvailObject parsingPlan,
-		final int pc)
-	{
-		if (pc == 0)
-		{
-			return "(any method invocation)";
-		}
-		final A_Tuple instructions = parsingPlan.parsingInstructions();
-		final A_Bundle bundle = parsingPlan.bundle();
-		final MessageSplitter messageSplitter = bundle.messageSplitter();
-		final int instruction = instructions.tupleIntAt(pc);
-		final ParsingOperation op = ParsingOperation.decode(instruction);
-		int argCounter = 0;
-		final int position;
-		if (op == PARSE_PART || op == PARSE_PART_CASE_INSENSITIVELY)
-		{
-			position = messageSplitter.messagePartPositions().get(
-				op.keywordIndex(instruction) - 1);
-		}
-		else
-		{
-			for (int index = 1; index <= pc + 1; index++)
-			{
-				final int eachInstruction = instructions.tupleIntAt(index);
-				final ParsingOperation eachOp =
-					ParsingOperation.decode(eachInstruction);
-				switch (eachOp)
-				{
-					case PARSE_ARGUMENT:
-					case PARSE_TOP_VALUED_ARGUMENT:
-					case PARSE_VARIABLE_REFERENCE:
-					case PARSE_ARGUMENT_IN_MODULE_SCOPE:
-					case PARSE_ANY_RAW_TOKEN:
-					case PARSE_RAW_KEYWORD_TOKEN:
-					case PARSE_RAW_STRING_LITERAL_TOKEN:
-					case PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN:
-					{
-						argCounter++;
-						break;
-					}
-					default:
-						break;
-				}
-			}
-			assert argCounter > 0;
-			final int argPartNumber =
-				messageSplitter.underscorePartNumbers().get(argCounter - 1);
-			position = messageSplitter.messagePartPositions().get(
-				argPartNumber - 1);
-		}
-		final String string = bundle.message().atomName().asNativeString();
-		final String annotatedString =
-			string.substring(0, position - 1)
-				+ AvailCompiler.errorIndicatorSymbol
-				+ string.substring(position - 1);
-		final A_String availString = StringDescriptor.from(annotatedString);
-		return availString.toString();
 	}
 
 	@Override @AvailMethod
@@ -345,10 +281,10 @@ extends Descriptor
 		// The existing definitions are also printed in parentheses to help
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
-		aStream.append("parsing plan for definition ");
-		aStream.append(object.definition());
-		aStream.append(" of bundle ");
-		aStream.append(object.bundle());
+		aStream.append("plan for ");
+		aStream.append(object.bundle().message());
+		aStream.append(" at ");
+		aStream.append(object.definition().parsingSignature());
 	}
 
 	/**
@@ -363,7 +299,6 @@ extends Descriptor
 		final A_Bundle bundle,
 		final A_Definition definition)
 	{
-		final List<A_Type> typesForTesting = new ArrayList<>();
 		final AvailObject result = mutable.create();
 		result.setSlot(BUNDLE, bundle);
 		result.setSlot(DEFINITION, definition);
@@ -382,7 +317,7 @@ extends Descriptor
 	 */
 	private DefinitionParsingPlanDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.PARSING_PLAN_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link DefinitionParsingPlanDescriptor}. */

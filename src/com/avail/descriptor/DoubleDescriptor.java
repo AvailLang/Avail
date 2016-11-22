@@ -36,10 +36,13 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.DoubleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 double-precision
@@ -749,7 +752,7 @@ extends AbstractNumberDescriptor
 	 */
 	private DoubleDescriptor (final Mutability mutability)
 	{
-		super(mutability, null, IntegerSlots.class);
+		super(mutability, TypeTag.DOUBLE_TAG, null, IntegerSlots.class);
 	}
 
 	/** The mutable {@link DoubleDescriptor}. */

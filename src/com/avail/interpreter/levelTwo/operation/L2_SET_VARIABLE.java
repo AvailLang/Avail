@@ -105,8 +105,8 @@ extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final L1NaiveTranslator naiveTranslator,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L1NaiveTranslator naiveTranslator)
 	{
 		final L2ObjectRegister variableReg =
 			instruction.readObjectRegisterAt(0);
@@ -125,7 +125,7 @@ extends L2Operation
 				instruction.operands[2]);
 			return true;
 		}
-		return super.regenerate(instruction, naiveTranslator, registerSet);
+		return super.regenerate(instruction, registerSet, naiveTranslator);
 	}
 
 	@Override

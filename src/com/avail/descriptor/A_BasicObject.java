@@ -35,10 +35,9 @@ package com.avail.descriptor;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
@@ -651,6 +650,17 @@ extends JSONFriendly
 	boolean isIntegerRangeType ();
 
 	/**
+	 * Is the {@linkplain AvailObject receiver} an Avail {@linkplain
+	 * IntTupleDescriptor int tuple}?  This is conservative, in that some object
+	 * tuples <em>may</em> only contain ints but not be reported as being int
+	 * tuples.
+	 *
+	 * @return {@code true} if the receiver is easily determined to be an int
+	 *         tuple, {@code false} otherwise.
+	 */
+	boolean isIntTuple ();
+
+	/**
 	 * Is the {@linkplain AvailObject receiver} an Avail map?
 	 *
 	 * @return {@code true} if the receiver is a map, {@code false} otherwise.
@@ -734,16 +744,6 @@ extends JSONFriendly
 	 * Dispatch to the descriptor.
 	 */
 	void makeSubobjectsShared ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BasicObject parent ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void parent (AvailObject value);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -977,7 +977,7 @@ extends JSONFriendly
 	 * @param anObjectType
 	 * @return
 	 */
-	boolean equalsObjectType (A_Type anObjectType);
+	boolean equalsObjectType (AvailObject anObjectType);
 
 	/**
 	 * @param aToken
@@ -1103,22 +1103,29 @@ extends JSONFriendly
 	boolean isRepeatedElementTuple ();
 
 	/**
-	 * @param object
+	 * @param anIntegerIntervalTuple
 	 * @return
 	 */
-	boolean equalsIntegerIntervalTuple (A_Tuple object);
+	boolean equalsIntegerIntervalTuple (A_Tuple anIntegerIntervalTuple);
 
 	/**
-	 * @param object
+	 * @param anIntTuple
 	 * @return
 	 */
-	boolean equalsSmallIntegerIntervalTuple (A_Tuple object);
+	boolean equalsIntTuple (A_Tuple anIntTuple);
 
 	/**
-	 * @param object
+	 * @param aSmallIntegerIntervalTuple
 	 * @return
 	 */
-	boolean equalsRepeatedElementTuple (A_Tuple object);
+	boolean equalsSmallIntegerIntervalTuple (
+		A_Tuple aSmallIntegerIntervalTuple);
+
+	/**
+	 * @param aRepeatedElementTuple
+	 * @return
+	 */
+	boolean equalsRepeatedElementTuple (A_Tuple aRepeatedElementTuple);
 
 	/**
 	 * @param critical
@@ -1143,4 +1150,25 @@ extends JSONFriendly
 	 * @return Whether the receiver equals the given list phrase type.
 	 */
 	boolean equalsListNodeType (A_Type listNodeType);
+
+	/**
+	 * Extract a field from an {@link ObjectDescriptor object}.
+	 *
+	 * @param field
+	 * @return
+	 */
+	AvailObject fieldAt (A_Atom field);
+
+	/**
+	 * Add or replace a field of an {@link ObjectDescriptor object}.
+	 *
+	 * @param field
+	 * @param value
+	 * @param canDestroy
+	 * @return
+	 */
+	A_BasicObject fieldAtPuttingCanDestroy (
+		A_Atom field,
+		A_BasicObject value,
+		boolean canDestroy);
 }

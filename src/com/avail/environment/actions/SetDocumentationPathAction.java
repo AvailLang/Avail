@@ -36,9 +36,9 @@ import java.awt.event.*;
 import java.io.File;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import com.avail.annotations.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code SetDocumentationPathAction} displays a {@linkplain

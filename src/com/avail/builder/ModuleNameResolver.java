@@ -38,11 +38,15 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import com.avail.annotations.*;
+
+import com.avail.annotations.InnerAccess;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
+
 /**
  * A {@code ModuleNameResolver} resolves fully-qualified references to Avail
  * {@linkplain ModuleDescriptor modules} to {@linkplain File#isAbsolute()

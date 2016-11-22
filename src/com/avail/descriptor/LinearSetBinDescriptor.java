@@ -37,7 +37,9 @@ import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObjectRepresentation.*;
 import static com.avail.descriptor.Mutability.*;
 import static java.lang.Long.bitCount;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 
 /**
@@ -94,11 +96,18 @@ extends SetBinDescriptor
 	}
 
 	/**
+	 * When a {@linkplain LinearSetBinDescriptor linear bin} reaches this many
+	 * entries and it's not already at the bottom allowable level ({@link
+	 * #numberOfLevels} - 1) of the hash tree, then convert it to a hashed bin.
+	 */
+	private static final int thresholdToHash = 10;
+
+	/**
 	 * Check that this linear bin has a correct binHash.
 	 *
 	 * @param object A linear set bin.
 	 */
-	public final static void checkBinHash (final AvailObject object)
+	private static void checkBinHash (final AvailObject object)
 	{
 		assert object.descriptor instanceof LinearSetBinDescriptor;
 		final int stored = object.binHash();
@@ -151,7 +160,7 @@ extends SetBinDescriptor
 		}
 		final int oldHash = object.binHash();
 		AvailObject result;
-		if (myLevel < numberOfLevels - 1 && oldSize >= 10)
+		if (myLevel < numberOfLevels - 1 && oldSize >= thresholdToHash)
 		{
 			final byte shift = (byte)(6 * myLevel);
 			assert shift < 32;
@@ -445,7 +454,11 @@ extends SetBinDescriptor
 		final Mutability mutability,
 		final int level)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class, level);
+		super(
+			mutability,
+			TypeTag.SET_LINEAR_BIN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class, level);
 	}
 
 	/**
@@ -507,7 +520,7 @@ extends SetBinDescriptor
 	 * @param level The level at which this bin occurs.
 	 * @return An empty bin.
 	 */
-	final static AvailObject emptyBinForLevel (final byte level)
+	static AvailObject emptyBinForLevel (final byte level)
 	{
 		return emptyBins[level];
 	}

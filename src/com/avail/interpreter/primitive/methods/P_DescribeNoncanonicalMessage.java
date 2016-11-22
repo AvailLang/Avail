@@ -1,5 +1,5 @@
 /**
- * P_IncompleteMessages.java
+ * P_DescribeNoncanonicalMessage.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive.methods;
 
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import com.avail.compiler.MessageSplitter;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;

@@ -34,7 +34,9 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.MapDescriptor.*;
 import com.avail.serialization.SerializerOperation;
 
@@ -181,7 +183,7 @@ extends Descriptor
 	 */
 	private NilDescriptor (final Mutability mutability)
 	{
-		super(mutability, null, null);
+		super(mutability, TypeTag.NIL_TAG, null, null);
 	}
 
 	/** The mutable {@link NilDescriptor}. */

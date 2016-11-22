@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import java.util.List;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;

@@ -36,12 +36,14 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.SendNodeDescriptor.ObjectSlots.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.compiler.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * My instances represent invocations of multi-methods in Avail code.
@@ -92,9 +94,7 @@ extends ParseNodeDescriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		final MessageSplitter splitter;
-		splitter = object.bundle().messageSplitter();
-		splitter.printSendNodeOnIndent(
+		object.bundle().messageSplitter().printSendNodeOnIndent(
 			object, builder, indent);
 	}
 
@@ -287,7 +287,7 @@ extends ParseNodeDescriptor
 	 */
 	private SendNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.SEND_PHRASE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link SendNodeDescriptor}. */

@@ -37,14 +37,19 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+
+import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_BootstrapConstantDeclarationMacro} primitive is used
- * for bootstrapping declaration of a {@link #LOCAL_CONSTANT_NODE local
- * constant declaration}.
+ * The {@code P_BootstrapConstantDeclarationMacro} primitive is used for
+ * bootstrapping declaration of a {@link ParseNodeKind#LOCAL_CONSTANT_NODE local
+ * constant declaration}.  Constant declarations that occur at the outermost
+ * scope are rewritten by the {@link AvailCompiler} as a {@link ParseNodeKind
+ * #MODULE_CONSTANT_NODE}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

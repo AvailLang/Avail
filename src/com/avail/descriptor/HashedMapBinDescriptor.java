@@ -37,7 +37,8 @@ import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.Mutability.*;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.MapDescriptor.Entry;
 
@@ -83,7 +84,6 @@ extends MapBinDescriptor
 	{
 		if (shouldCheck)
 		{
-			assert object.descriptor() instanceof HashedMapBinDescriptor;
 			int keyHashSum = 0;
 			int valueHashSum = 0;
 			int totalCount = 0;
@@ -767,7 +767,11 @@ extends MapBinDescriptor
 		final Mutability mutability,
 		final int level)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class, level);
+		super(
+			mutability,
+			TypeTag.MAP_HASHED_BIN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class, level);
 		shift = (byte)(level * 6);
 		assert shift < 32;
 	}

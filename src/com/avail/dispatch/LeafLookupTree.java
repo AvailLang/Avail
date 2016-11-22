@@ -31,7 +31,7 @@
  */
 
 package com.avail.dispatch;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
@@ -102,6 +102,16 @@ extends LookupTree<Element, Result, Memento>
 	@Override
 	protected LookupTree<Element, Result, Memento> lookupStepByValues (
 		final A_Tuple argValues,
+		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final Memento memento)
+	{
+		error("Attempting to lookup past leaf of decision tree");
+		return this;
+	}
+
+	@Override
+	protected LookupTree<Element, Result, Memento> lookupStepByValue (
+		final A_BasicObject probeValue,
 		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		final Memento memento)
 	{

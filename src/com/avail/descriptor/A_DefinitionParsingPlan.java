@@ -64,18 +64,6 @@ extends A_BasicObject
 	A_Definition definition ();
 
 	/**
-	 * Answer a Java {@link String} representing this message name being parsed
-	 * at the given position within the plan's {@link #parsingInstructions()}.
-	 *
-	 * @param pc
-	 *        The 1-based position within the parsing instructions at which to
-	 *        indicate parsing is taking place.
-	 * @return A string describing the parsing plan with an indicator at the
-	 *         specified parsing instruction.
-	 */
-	String nameHighlightingPc (int pc);
-
-	/**
 	 * Answer a {@linkplain TupleDescriptor tuple} of {@linkplain
 	 * IntegerDescriptor integers} encoding the {@linkplain ParsingOperation}s
 	 * and operands required to parse a call to this parsing plan.

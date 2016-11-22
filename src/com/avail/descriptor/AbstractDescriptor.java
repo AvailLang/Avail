@@ -39,8 +39,15 @@ import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
-import com.avail.annotations.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
+import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.*;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -48,14 +55,12 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.InfinityDescriptor.IntegerSlots;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailUnsupportedOperationException;
 import com.avail.exceptions.MalformedMessageException;
@@ -69,11 +74,12 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
-import com.avail.utility.MutableOrNull;
+import com.avail.utility.Pair;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@link AbstractDescriptor} is the base descriptor type.  An {@link
@@ -231,6 +237,13 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
+	 * Every descriptor has this field, and clients can access it directly to
+	 * quickly determine the basic type of any value having that descriptor.
+	 * This is purely an optimization for fast type checking and dispatching.
+	 */
+	final TypeTag typeTag;
+
+	/**
 	 * Whether an {@linkplain AvailObject object} using this {@linkplain
 	 * AbstractDescriptor descriptor} can have more than the minimum number of
 	 * integer slots. Populated automatically by the constructor.
@@ -351,6 +364,8 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -363,10 +378,12 @@ public abstract class AbstractDescriptor
 	@SuppressWarnings("null")
 	protected AbstractDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
 		this.mutability = mutability;
+		this.typeTag = typeTag;
 
 		final ObjectSlotsEnum [] objectSlots = objectSlotsEnumClass != null
 			? objectSlotsEnumClass.getEnumConstants()
@@ -434,11 +451,9 @@ public abstract class AbstractDescriptor
 	AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
-		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
 		final ClassLoader loader = cls.getClassLoader();
 		Class<Enum<?>> enumClass;
-		Enum<?>[] slots;
 
 		try
 		{
@@ -449,6 +464,8 @@ public abstract class AbstractDescriptor
 		{
 			enumClass = null;
 		}
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
+		Enum<?>[] slots;
 		if (enumClass != null)
 		{
 			slots = enumClass.getEnumConstants();
@@ -804,6 +821,9 @@ public abstract class AbstractDescriptor
 	private static final Map<IntegerSlotsEnum, List<BitField>> bitFieldsCache =
 		new HashMap<>(500);
 
+	private static final ReadWriteLock bitFieldsLock =
+		new ReentrantReadWriteLock();
+
 	/**
 	 * Describe the integer field onto the provided {@link StringDescriptor}.
 	 * The pre-extracted {@code int} value is provided, as well as the
@@ -824,95 +844,27 @@ public abstract class AbstractDescriptor
 	{
 		try
 		{
-			List<BitField> bitFields;
-			synchronized(bitFieldsCache)
+			final String slotName = slot.name();
+			final List<BitField> bitFields = bitFieldsFor(slot);
+			if (bitFields.isEmpty())
 			{
-				bitFields = bitFieldsCache.get(slot);
-				if (bitFields == null)
+				final Field slotMirror = slot.getClass().getField(slotName);
+				final EnumField enumAnnotation =
+					slotMirror.getAnnotation(EnumField.class);
+				int numBits = 64;
+				if (enumAnnotation != null)
 				{
-					final Enum<?> slotAsEnum = (Enum<?>) slot;
-					final Class<?> slotClass = slotAsEnum.getDeclaringClass();
-					bitFields = new ArrayList<>();
-					for (final Field field : slotClass.getDeclaredFields())
-					{
-						if (Modifier.isStatic(field.getModifiers())
-							&& BitField.class.isAssignableFrom(field.getType()))
-						{
-							final BitField bitField =
-								(BitField) (field.get(null));
-							if (bitField.integerSlot == slot)
-							{
-								bitField.name = field.getName();
-								bitFields.add(bitField);
-							}
-						}
-					}
-					Collections.sort(bitFields);
-					bitFieldsCache.put(slot, bitFields);
+					final Class<? extends IntegerEnumSlotDescriptionEnum>
+						enumClass = enumAnnotation.describedBy();
+					final IntegerEnumSlotDescriptionEnum[] enumValues =
+						enumClass.getEnumConstants();
+					numBits = 64 - Long.numberOfLeadingZeros(enumValues.length);
 				}
+				builder.append(" = ");
+				describeIntegerField(value, numBits, enumAnnotation, builder);
 			}
-			final Field slotMirror = slot.getClass().getField(slot.name());
-			final EnumField enumAnnotation =
-				slotMirror.getAnnotation(EnumField.class);
-			if (enumAnnotation != null)
+			else
 			{
-				final Class<? extends IntegerEnumSlotDescriptionEnum>
-					describingClass = enumAnnotation.describedBy();
-				final String lookupName = enumAnnotation.lookupMethodName();
-				if (lookupName.isEmpty())
-				{
-					// Look it up by ordinal (must be an actual Enum).
-					final IntegerEnumSlotDescriptionEnum[] allValues =
-						describingClass.getEnumConstants();
-					if (0 <= value && value < allValues.length)
-					{
-						builder.append(" = ");
-						builder.append(allValues[(int)value].name());
-					}
-					else
-					{
-						builder.append(
-							new Formatter().format(
-								" (enum out of range: 0x%08X_%08X)",
-								value >>> 32L,
-								value & 0xFFFFFFFFL));
-					}
-				}
-				else
-				{
-					// Look it up via the specified static lookup method.
-					// It's only required to be an
-					// IntegerEnumSlotDescriptionEnum in this case, not
-					// necessarily an Enum.
-					final Method lookupMethod =
-						describingClass.getMethod(lookupName, Integer.TYPE);
-					final IntegerEnumSlotDescriptionEnum lookedUp =
-						(IntegerEnumSlotDescriptionEnum)lookupMethod.invoke(
-							null, value);
-					if (lookedUp == null)
-					{
-						builder.append(
-							new Formatter().format(
-								" (enum out of range: 0x%08X_%08X)",
-								value >>> 32L,
-								value & 0xFFFFFFFFL));
-					}
-					else
-					{
-						if (lookedUp instanceof Enum)
-						{
-							assert ((Enum<?>)lookedUp).getDeclaringClass()
-								== describingClass;
-						}
-						builder.append(" = ");
-						builder.append(lookedUp.name());
-					}
-				}
-			}
-			else if (!bitFields.isEmpty())
-			{
-				// Show each bit field.
-				assert object != null;
 				builder.append(" (");
 				boolean first = true;
 				for (final BitField bitField : bitFields)
@@ -923,43 +875,200 @@ public abstract class AbstractDescriptor
 					}
 					builder.append(bitField.name);
 					builder.append("=");
-					final int subfieldValue = object.slot(bitField);
-					builder.append(subfieldValue);
+					describeIntegerField(
+						object.slot(bitField),
+						bitField.bits,
+						bitField.enumField,
+						builder);
 					first = false;
 				}
 				builder.append(")");
 			}
-			else
+		}
+		catch (
+			final NoSuchFieldException
+				| IllegalAccessException
+				| SecurityException
+				| NoSuchMethodException
+				| IllegalArgumentException
+				| InvocationTargetException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Extract the {@link IntegerSlotsEnum integer slot}'s {@link List} of
+	 * {@link BitField}s.
+	 *
+	 * @param slot The integer slot.
+	 * @return The slot's bit fields.
+	 */
+	private static List<BitField> bitFieldsFor (final IntegerSlotsEnum slot)
+	{
+		bitFieldsLock.readLock().lock();
+		try
+		{
+			// Vast majority of cases.
+			final List<BitField> bitFields = bitFieldsCache.get(slot);
+			if (bitFields != null)
 			{
-				builder.append(
-					new Formatter().format(" = 0x%08X_%08X = %d",
-						value >>> 32L, value & 0xFFFFFFFFL, value));
+				return bitFields;
 			}
 		}
-		catch (final NoSuchFieldException e)
+		finally
 		{
-			throw new RuntimeException(e);
+			bitFieldsLock.readLock().unlock();
 		}
-		catch (final IllegalAccessException e)
+
+		bitFieldsLock.writeLock().lock();
+		try
 		{
-			throw new RuntimeException(e);
+			// Try again, this time holding the write lock to avoid
+			// multiple threads trying to populate the cache.
+			List<BitField> bitFields = bitFieldsCache.get(slot);
+			if (bitFields != null)
+			{
+				return bitFields;
+			}
+			final Enum<?> slotAsEnum = (Enum<?>) slot;
+			final Class<?> slotClass = slotAsEnum.getDeclaringClass();
+			bitFields = new ArrayList<>();
+			for (final Field field : slotClass.getDeclaredFields())
+			{
+				if (Modifier.isStatic(field.getModifiers())
+					&& BitField.class.isAssignableFrom(field.getType()))
+				{
+					try
+					{
+						final BitField bitField = (BitField) (field.get(null));
+						if (bitField.integerSlot == slot)
+						{
+							bitField.enumField =
+								field.getAnnotation(EnumField.class);
+							bitField.name = field.getName();
+							bitFields.add(bitField);
+						}
+					}
+					catch (IllegalAccessException e)
+					{
+						assert false;
+						throw new RuntimeException(e);
+					}
+				}
+			}
+			if (bitFields.isEmpty())
+			{
+				// Save a little space.
+				return Collections.emptyList();
+			}
+			Collections.sort(bitFields);
+			bitFieldsCache.put(slot, bitFields);
+			return bitFields;
 		}
-		catch (final SecurityException e)
+		finally
 		{
-			throw new RuntimeException(e);
+			bitFieldsLock.writeLock().unlock();
 		}
-		catch (final NoSuchMethodException e)
+	}
+
+	private static void describeIntegerField (
+		final long value,
+		final int numBits,
+		final @Nullable EnumField enumAnnotation,
+		final StringBuilder builder)
+	throws
+		NoSuchMethodException,
+		IllegalAccessException,
+		InvocationTargetException
+	{
+		if (enumAnnotation != null)
 		{
-			throw new RuntimeException(e);
+			final Class<? extends IntegerEnumSlotDescriptionEnum>
+				describingClass = enumAnnotation.describedBy();
+			final String lookupName = enumAnnotation.lookupMethodName();
+			if (lookupName.isEmpty())
+			{
+				// Look it up by ordinal (must be an actual Enum).
+				final IntegerEnumSlotDescriptionEnum[] allValues =
+					describingClass.getEnumConstants();
+				if (0 <= value && value < allValues.length)
+				{
+					builder.append(allValues[(int)value].name());
+				}
+				else
+				{
+					builder.append("(enum out of range: ");
+					describeLong(value, numBits, builder);
+					builder.append(")");
+				}
+			}
+			else
+			{
+				// Look it up via the specified static lookup method.  It's only
+				// required to be an IntegerEnumSlotDescriptionEnum in this
+				// case, not necessarily an Enum.
+				final Method lookupMethod =
+					describingClass.getMethod(lookupName, Integer.TYPE);
+				final IntegerEnumSlotDescriptionEnum lookedUp =
+					(IntegerEnumSlotDescriptionEnum)lookupMethod.invoke(
+						null, (int)value);
+				if (lookedUp == null)
+				{
+					builder.append("null");
+				}
+				else
+				{
+					if (lookedUp instanceof Enum)
+					{
+						assert ((Enum<?>)lookedUp).getDeclaringClass()
+							== describingClass;
+					}
+					builder.append(lookedUp.name());
+				}
+			}
 		}
-		catch (final IllegalArgumentException e)
+		else
 		{
-			throw new RuntimeException(e);
+			describeLong(value, numBits, builder);
 		}
-		catch (final InvocationTargetException e)
+	}
+
+	protected static void describeLong (
+		final long value,
+		final int numBits,
+		final StringBuilder builder)
+	{
+		// Present signed byte as unsigned, and unsigned byte unchanged.
+		if (numBits <= 8 && -0x80 <= value && value <= 0xFF)
 		{
-			throw new RuntimeException(e);
+			builder.append(String.format("0x%02X", value & 0xFF));
+			return;
 		}
+		// Present signed 16-bits as unsigned, and unsigned 16-bits unchanged.
+		if (numBits <= 16 && -0x8000 <= value && value <= 0xFFFF)
+		{
+			builder.append(String.format("0x%04X", value & 0xFFFF));
+			return;
+		}
+		// Present signed int as unsigned, and unsigned int unchanged.
+		if (numBits <= 32 && -0x8000_0000 <= value && value <= 0xFFFF_FFFFL)
+		{
+			builder.append(
+				String.format(
+					"0x%04X_%04X",
+					(value >>> 16L) & 0xFFFF,
+					value & 0xFFFF));
+			return;
+		}
+		// Present a long as unsigned.
+		builder.append(
+			String.format(
+				"0x%04X_%04X_%04X_%04X",
+				(value >>> 48L) & 0xFFFF,
+				(value >>> 32L) & 0xFFFF,
+				(value >>> 16L) & 0xFFFF,
+				value & 0xFFFF));
 	}
 
 	/**
@@ -983,10 +1092,7 @@ public abstract class AbstractDescriptor
 		final int shift,
 		final int bits)
 	{
-		return new BitField(
-			integerSlot,
-			shift,
-			bits);
+		return new BitField(integerSlot, shift, bits);
 	}
 
 	/**
@@ -1141,7 +1247,7 @@ public abstract class AbstractDescriptor
 	 *            The grammatical restriction to be added.
 	 * @see A_Bundle#addGrammaticalRestriction(A_GrammaticalRestriction)
 	 */
-	abstract void o_AddGrammaticalRestriction (
+	abstract void o_ModuleAddGrammaticalRestriction (
 		AvailObject object,
 		A_GrammaticalRestriction grammaticalRestriction);
 
@@ -1193,13 +1299,11 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param methodName
-	 * @param illegalArgMsgs
+	 * @param grammaticalRestriction
 	 */
-	abstract void o_AddGrammaticalRestrictions (
+	abstract void o_AddGrammaticalRestriction (
 		AvailObject object,
-		A_Atom methodName,
-		A_Tuple illegalArgMsgs);
+		A_GrammaticalRestriction grammaticalRestriction);
 
 	/**
 	 * @param object
@@ -1208,12 +1312,6 @@ public abstract class AbstractDescriptor
 	abstract void o_ModuleAddDefinition (
 		AvailObject object,
 		A_BasicObject definition);
-
-	/**
-	 * @param object
-	 * @param bundle
-	 */
-	abstract void o_AddBundle (AvailObject object, A_Bundle bundle);
 
 	/**
 	 * @param object
@@ -1555,6 +1653,16 @@ public abstract class AbstractDescriptor
 		int end);
 
 	/**
+	 * Compute this object's {@link TypeTag}, having failed to extract it from
+	 * the descriptor directly in {@link AvailObjectRepresentation#typeTag()}.
+	 *
+	 * @param object
+	 * @return
+	 */
+	abstract TypeTag o_ComputeTypeTag (
+		AvailObject object);
+
+	/**
 	 * @param object
 	 * @param canDestroy
 	 * @return
@@ -1857,7 +1965,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_IsSupertypeOfObjectType (
 		AvailObject object,
-		A_Type anObjectType);
+		AvailObject anObjectType);
 
 	/**
 	 * @param object
@@ -2134,14 +2242,6 @@ public abstract class AbstractDescriptor
 	abstract void o_OuterVarAtPut (
 		AvailObject object,
 		int index,
-		AvailObject value);
-
-	/**
-	 * @param object
-	 * @param value
-	 */
-	abstract void o_Parent (
-		AvailObject object,
 		AvailObject value);
 
 	/**
@@ -2610,7 +2710,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Type o_TypeIntersectionOfObjectType (
 		AvailObject object,
-		A_Type anObjectType);
+		AvailObject anObjectType);
 
 	/**
 	 * @param object
@@ -2743,7 +2843,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_Type o_TypeUnionOfObjectType (
 		AvailObject object,
-		A_Type anObjectType);
+		AvailObject anObjectType);
 
 	/**
 	 * @param object
@@ -2909,6 +3009,13 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	abstract A_Tuple o_CopyAsMutableIntTuple (
+		AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	abstract A_Tuple o_CopyAsMutableObjectTuple (
 		AvailObject object);
 
@@ -2937,8 +3044,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_Expand (
 		AvailObject object,
-		A_Module module,
-		List<A_Phrase> sampleArgsStack);
+		A_Module module);
 
 	/**
 	 * @param object
@@ -4355,7 +4461,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract A_Map o_AllParsingPlans (AvailObject object);
+	abstract A_Map o_AllParsingPlansInProgress (AvailObject object);
 
 	/**
 	 * @param object
@@ -5194,7 +5300,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_EqualsObjectType (
 		final AvailObject object,
-		final A_Type anObjectType);
+		final AvailObject anObjectType);
 
 	/**
 	 * @param object
@@ -5427,11 +5533,14 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param bundle
+	 * @param planInProgress
+	 * @param treesToVisit
 	 */
-	abstract void o_FlushForNewOrChangedBundle (
+	abstract void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
-		final A_Bundle bundle);
+		final A_ParsingPlanInProgress planInProgress,
+		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
+			treesToVisit);
 
 	/**
 	 * @param object
@@ -5827,6 +5936,15 @@ public abstract class AbstractDescriptor
 	abstract boolean o_EqualsIntegerIntervalTuple (
 		AvailObject object,
 		A_Tuple anIntegerIntervalTuple);
+
+	/**
+	 * @param object
+	 * @param anIntTuple
+	 * @return
+	 */
+	abstract boolean o_EqualsIntTuple (
+		AvailObject object,
+		A_Tuple anIntTuple);
 
 	/**
 	 * @param object
@@ -6241,10 +6359,9 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param pc
 	 * @return
 	 */
-	abstract String o_NameHighlightingPc (AvailObject object, int pc);
+	abstract String o_NameHighlightingPc (AvailObject object);
 
 	/**
 	 * @param object
@@ -6255,17 +6372,17 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param plan
+	 * @param definition
 	 */
-	abstract void o_RemoveDefinitionParsingPlan (
+	abstract void o_RemovePlanForDefinition (
 		AvailObject object,
-		A_DefinitionParsingPlan plan);
+		A_Definition definition);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	abstract A_Set o_DefinitionParsingPlans (AvailObject object);
+	abstract A_Map o_DefinitionParsingPlans (AvailObject object);
 
 	/**
 	 * @param object
@@ -6305,15 +6422,85 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param plan
+	 * @param planInProgress
 	 */
-	abstract void o_AddPlan (
+	abstract void o_AddPlanInProgress (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan);
+		final A_ParsingPlanInProgress planInProgress);
 
 	/**
 	 * @param object
 	 * @return
 	 */
 	abstract A_Type o_ParsingSignature (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param planInProgress
+	 * @return
+	 */
+	abstract void o_RemovePlanInProgress (
+		final AvailObject object,
+		final A_ParsingPlanInProgress planInProgress);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_ModuleSemanticRestrictions (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Set o_ModuleGrammaticalRestrictions (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param field
+	 * @return
+	 */
+	abstract AvailObject o_FieldAt (
+		final AvailObject object,
+		final A_Atom field);
+
+	/**
+	 * @param object
+	 * @param field
+	 * @param value
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract A_BasicObject o_FieldAtPuttingCanDestroy (
+		final AvailObject object,
+		final A_Atom field,
+		final A_BasicObject value,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param startIndex1
+	 * @param endIndex1
+	 * @param anIntTuple
+	 * @param startIndex2
+	 * @return
+	 */
+	abstract boolean o_CompareFromToWithIntTupleStartingAt (
+		final AvailObject object,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsIntTuple (final AvailObject object);
 }

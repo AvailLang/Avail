@@ -35,7 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.VariableTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -304,7 +305,7 @@ extends TypeDescriptor
 	 */
 	private VariableTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.VARIABLE_TYPE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link VariableTypeDescriptor}. */

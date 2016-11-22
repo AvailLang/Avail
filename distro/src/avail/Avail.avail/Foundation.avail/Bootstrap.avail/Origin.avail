@@ -63,7 +63,9 @@ Names
 	"…:=_;",
 	"…",
 	"_!;",
-	"(_::_†)"
+	"(_::_†)",
+	"…$",
+	"…#"
 Pragma
 	"check=version=1.0.0 DEV 2014-04-28",
 	"method=SimpleMethodDeclaration=Primitive_is_",
@@ -92,7 +94,9 @@ Pragma
 	"macro=BootstrapAssignmentStatementMacro=…:=_;",
 	"macro=BootstrapVariableUseMacro=…",
 	"macro=BootstrapSendAsStatementMacro=_!;",
-	"macro=BootstrapSuperCastMacro=(_::_†)"
+	"macro=BootstrapSuperCastMacro=(_::_†)",
+	"macro=BootstrapStringLiteral=…$",
+	"macro=BootstrapIntegerLiteral=…#"
 Body
 
 /**
@@ -278,5 +282,29 @@ Body
  *        should be used to rebase the resolution of the target {@type "method"}
  *        to a {@type "method definition"}.
  * @returns "super cast phrase"
+ * @category "Avail Syntax"
+ */
+
+/**
+ * Construct and answer a literal phrase based on the parsed string literal
+ * token.
+ *
+ * @macro "…$"
+ * @param "stringLiteralToken" "literal phrase⇒literal token⇒string"
+ *        The {@type "literal phrase"} built by parsing the argument denoted
+ *        by the macro metacharacters '…$'.
+ * @returns "literal phrase→string"
+ * @category "Avail Syntax"
+ */
+
+/**
+ * Construct and answer a literal phrase based on the parsed non-negative
+ * integer literal token.
+ *
+ * @macro "…#"
+ * @param "integerLiteralPhrase" "literal phrase⇒literal token⇒whole number"
+ *        The {@type "literal phrase"} built by parsing the argument denoted
+ *        by the macro metacharacters '…#'.
+ * @returns "literal phrase→whole number"
  * @category "Avail Syntax"
  */

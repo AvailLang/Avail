@@ -36,9 +36,9 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.compiler.MessageSplitter;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeAdaptor;
+import com.avail.dispatch.TypeComparison;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
@@ -48,6 +48,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
+import com.avail.interpreter.primitive.atoms.P_CreateAtom;
+import com.avail.interpreter.primitive.atoms.P_CreateExplicitSubclassAtom;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
@@ -70,8 +72,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import static com.avail.descriptor.MethodDescriptor.IntegerSlots.HASH;
-import static com.avail.descriptor.MethodDescriptor.IntegerSlots.NUM_ARGS;
+import static com.avail.descriptor.MethodDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
@@ -213,8 +214,8 @@ extends Descriptor
 	 * LookupTree}s that implement runtime dispatching.  Also used for looking
 	 * up macros.
 	 *
-	 * @see ObjectSlots#PRIVATE_TESTING_TREE
-	 * @see ObjectSlots#MACRO_TESTING_TREE
+	 * @see MethodDescriptor.ObjectSlots#PRIVATE_TESTING_TREE
+	 * @see MethodDescriptor.ObjectSlots#MACRO_TESTING_TREE
 	 */
 	public final static LookupTreeAdaptor<A_Definition, A_Tuple, Void>
 		runtimeDispatcher = new LookupTreeAdaptor<A_Definition, A_Tuple, Void>()
@@ -231,6 +232,25 @@ extends Descriptor
 			final Void ignored)
 		{
 			return TupleDescriptor.fromList(elements);
+		}
+
+		@Override
+		public TypeComparison compareTypes (
+			final A_Type criterionType, final A_Type someType)
+		{
+			return TypeComparison.compareForDispatch(criterionType, someType);
+		}
+
+		@Override
+		public boolean testsArgumentPositions ()
+		{
+			return true;
+		}
+
+		@Override
+		public boolean subtypesHideSupertypes ()
+		{
+			return true;
 		}
 	};
 
@@ -271,7 +291,7 @@ extends Descriptor
 			{
 				aStream.append(" a.k.a. ");
 			}
-			aStream.append(eachBundle.message().toString());
+			aStream.append(eachBundle.message());
 			first = false;
 		}
 	}
@@ -290,8 +310,8 @@ extends Descriptor
 		{
 			final A_BasicObject pojo =
 				object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
-			final Set<L2Chunk> chunkSet;
-			chunkSet = (Set<L2Chunk>) pojo.javaObjectNotNull();
+			final Set<L2Chunk> chunkSet =
+				(Set<L2Chunk>) pojo.javaObjectNotNull();
 			chunkSet.add(chunk);
 		}
 	}
@@ -468,11 +488,8 @@ extends Descriptor
 			}
 			final A_Tuple sealedArgumentsTypesTuple =
 				object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-			if (sealedArgumentsTypesTuple.tupleSize() > 0)
-			{
-				return false;
-			}
-			return object.slot(MACRO_DEFINITIONS_TUPLE).tupleSize() == 0;
+			return sealedArgumentsTypesTuple.tupleSize() <= 0
+				&& object.slot(MACRO_DEFINITIONS_TUPLE).tupleSize() == 0;
 		}
 	}
 
@@ -498,14 +515,7 @@ extends Descriptor
 				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		A_Tuple resultTuple = runtimeDispatcher.lookupByTypes(
 			tree, argumentTypeTuple, null);
-		final int resultTupleSize = resultTuple.tupleSize();
-		if (resultTupleSize != 1)
-		{
-			throw resultTupleSize == 0
-				? MethodDefinitionException.noMethodDefinition()
-				: MethodDefinitionException.ambiguousMethodDefinition();
-		}
-		return resultTuple.tupleAt(1);
+		return MethodDefinitionException.extractUniqueMethod(resultTuple);
 	}
 
 	/**
@@ -525,22 +535,15 @@ extends Descriptor
 				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		A_Tuple results = runtimeDispatcher.lookupByValues(
 			tree, argumentList, null);
-		final int resultTupleSize = results.tupleSize();
-		if (resultTupleSize != 1)
-		{
-			throw resultTupleSize == 0
-				? MethodDefinitionException.noMethodDefinition()
-				: MethodDefinitionException.ambiguousMethodDefinition();
-		}
-		return results.tupleAt(1);
+		return MethodDefinitionException.extractUniqueMethod(results);
 	}
 
 	/**
 	 * Look up the macro definition to invoke, given an array of argument
-	 * phrases.  Use the {@linkplain ObjectSlots#MACRO_TESTING_TREE macro
-	 * testing tree} to find the macro definition to invoke.  Throw a
-	 * {@link MethodDefinitionException} if the macro cannot be determined
-	 * uniquely.
+	 * phrases.  Use the {@linkplain
+	 * ObjectSlots#MACRO_TESTING_TREE macro testing tree} to
+	 * find the macro definition to invoke.  Throw a {@link
+	 * MethodDefinitionException} if the macro cannot be determined uniquely.
 	 *
 	 * <p>Note that this testing tree approach is only applicable if all of the
 	 * macro definitions are visible (defined in the current module or an
@@ -560,14 +563,7 @@ extends Descriptor
 		final A_Tuple results =
 			runtimeDispatcher.lookupByValues(
 				tree, argumentPhraseTuple, null);
-		final int resultTupleSize = results.tupleSize();
-		if (resultTupleSize != 1)
-		{
-			throw resultTupleSize == 0
-				? MethodDefinitionException.noMethodDefinition()
-				: MethodDefinitionException.ambiguousMethodDefinition();
-		}
-		return results.tupleAt(1);
+		return MethodDefinitionException.extractUniqueMethod(results);
 	}
 
 	@Override @AvailMethod
@@ -624,7 +620,6 @@ extends Descriptor
 			{
 				// Install the macro.
 				final A_Tuple oldTuple = object.slot(MACRO_DEFINITIONS_TUPLE);
-
 				final A_Tuple newTuple = oldTuple.appendCanDestroy(
 					definition, true);
 				object.setSlot(MACRO_DEFINITIONS_TUPLE, newTuple.makeShared());
@@ -635,8 +630,12 @@ extends Descriptor
 				final A_Tuple seals = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 				for (final A_Tuple seal : seals)
 				{
-					final A_Type sealType = TupleTypeDescriptor.forTypes(
-						TupleDescriptor.toArray(seal));
+					final A_Type sealType =
+						TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+							IntegerRangeTypeDescriptor.singleInt(
+								seal.tupleSize()),
+							seal,
+							BottomTypeDescriptor.bottom());
 					if (paramTypes.isSubtypeOf(sealType))
 					{
 						throw new SignatureException(
@@ -697,13 +696,14 @@ extends Descriptor
 					: MACRO_DEFINITIONS_TUPLE;
 			A_Tuple definitionsTuple = object.slot(slot);
 			definitionsTuple = TupleDescriptor.without(
-				definitionsTuple,
-				definition);
+				definitionsTuple, definition);
 			object.setSlot(
-				slot,
-				definitionsTuple.traversed().makeShared());
+				slot, definitionsTuple.traversed().makeShared());
+			for (final A_Bundle bundle : object.slot(OWNING_BUNDLES))
+			{
+				bundle.removePlanForDefinition(definition);
+			}
 			membershipChanged(object);
-
 		}
 		finally
 		{
@@ -824,14 +824,10 @@ extends Descriptor
 	 *
 	 * @param numArgs
 	 *        The number of arguments that this method expects.
-	 * @param numSections
-	 *        The number of {@link MessageSplitter#numberOfSectionCheckpoints()
-	 *        section checkpoints} (§).
 	 * @return A new method with no name.
 	 */
-	public static AvailObject newMethod (
-		final int numArgs,
-		final int numSections)
+	static AvailObject newMethod (
+		final int numArgs)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(HASH, AvailRuntime.nextHash());
@@ -847,21 +843,15 @@ extends Descriptor
 			DEPENDENT_CHUNKS_WEAK_SET_POJO,
 			RawPojoDescriptor.identityWrap(chunkSet).makeShared());
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
-		final LookupTree definitionsTree =
+		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
 			runtimeDispatcher.createRoot(
-				numArgs,
-				Collections.<A_Definition>emptyList(),
-				initialTypes,
-				null);
+				Collections.<A_Definition>emptyList(), initialTypes, null);
 		result.setSlot(
 			PRIVATE_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
-		final LookupTree macrosTree =
+		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
 			runtimeDispatcher.createRoot(
-				numArgs,
-				Collections.<A_Definition>emptyList(),
-				initialTypes,
-				null);
+				Collections.<A_Definition>emptyList(), initialTypes, null);
 		result.setSlot(
 			MACRO_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(macrosTree).makeShared());
@@ -870,10 +860,10 @@ extends Descriptor
 	}
 
 	/** The number of lists to cache of N occurrences of the type any. */
-	static final int sizeOfListsOfAny = 10;
+	private static final int sizeOfListsOfAny = 10;
 
 	/** A list of lists of increasing size consisting only of the type any. */
-	static final List<List<A_Type>> listsOfAny;
+	private static final List<List<A_Type>> listsOfAny;
 
 	static
 	{
@@ -890,7 +880,7 @@ extends Descriptor
 	 * @param n The number of elements in the desired list, all the type any.
 	 * @return The list.  Do not modify it, as it may be cached and reused.
 	 */
-	private static final List<A_Type> nCopiesOfAny (final int n)
+	private static List<A_Type> nCopiesOfAny (final int n)
 	{
 		if (n < sizeOfListsOfAny)
 		{
@@ -927,9 +917,8 @@ extends Descriptor
 		// Rebuild the roots of the lookup trees.
 		final int numArgs = object.slot(NUM_ARGS);
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
-		final LookupTree definitionsTree =
+		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
 			runtimeDispatcher.createRoot(
-				numArgs,
 				TupleDescriptor.<A_Definition>toList(
 					object.slot(DEFINITIONS_TUPLE)),
 				initialTypes,
@@ -937,9 +926,8 @@ extends Descriptor
 		object.setSlot(
 			PRIVATE_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
-		final LookupTree macrosTree =
+		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
 			runtimeDispatcher.createRoot(
-				numArgs,
 				TupleDescriptor.<A_Definition>toList(
 					object.slot(MACRO_DEFINITIONS_TUPLE)),
 				initialTypes,
@@ -957,7 +945,11 @@ extends Descriptor
 	 */
 	private MethodDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.METHOD_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link MethodDescriptor}. */
@@ -1004,7 +996,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	public static A_Atom createSpecialMethodAtom (
+	private static A_Atom createSpecialMethodAtom (
 		final String name,
 		final Primitive... primitives)
 	{
@@ -1037,7 +1029,7 @@ extends Descriptor
 			{
 				assert false : "This should not happen!";
 				throw new RuntimeException(
-					"VM method name is invalid: " + name.toString(), e);
+					"VM method name is invalid: " + name, e);
 			}
 		}
 		assert atom.descriptor().isShared();
@@ -1356,7 +1348,7 @@ extends Descriptor
 	/**
 	 * Answer the (special) name of the VM-built literal token creation atom.
 	 *
-	 * @return The name of the VM's literal token creation atom.
+	 * @return The name of the VM's literal token creation method.
 	 */
 	public static A_Atom vmCreateLiteralTokenAtom ()
 	{
@@ -1364,7 +1356,7 @@ extends Descriptor
 	}
 
 	/**
-	 * The (special) name of the VM-built literal phrase creation atom.
+	 * The (special) name of the VM-built literal phrase creation method.
 	 */
 	private static final A_Atom vmCreateLiteralExpressionAtom =
 		createSpecialMethodAtom(
@@ -1372,9 +1364,9 @@ extends Descriptor
 			P_CreateLiteralExpression.instance);
 
 	/**
-	 * Answer the (special) name of the VM-built literal phrase creation atom.
+	 * Answer the (special) name of the VM-built literal phrase creation method.
 	 *
-	 * @return The name of the VM's literal phrase creation atom.
+	 * @return The name of the VM's literal phrase creation method.
 	 */
 	public static A_Atom vmCreateLiteralExpressionAtom ()
 	{

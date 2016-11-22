@@ -32,8 +32,9 @@
 
 package com.avail.utility;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
-import com.avail.annotations.*;
 
 /**
  * This is an implementation of an immutable {@link List} for which {@link

@@ -34,12 +34,14 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.LiteralNodeDescriptor.ObjectSlots.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At
@@ -243,7 +245,11 @@ extends ParseNodeDescriptor
 	 */
 	public LiteralNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability,
+			TypeTag.LITERAL_PHRASE_TAG,
+			ObjectSlots.class,
+			null);
 	}
 
 	/** The mutable {@link LiteralNodeDescriptor}. */

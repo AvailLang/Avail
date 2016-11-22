@@ -34,9 +34,11 @@ package com.avail.tools.options;
 
 import static java.util.Arrays.asList;
 import java.io.IOException;
-import com.avail.annotations.*;
+
+import com.avail.annotations.InnerAccess;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
+import com.sun.istack.internal.Nullable;
 
 /**
  * A {@code GenericHelpOption} provides an application help message that
@@ -66,7 +68,8 @@ extends GenericOption<OptionKeyType>
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	@InnerAccess static <KeyType extends Enum<KeyType>> void writeHelpText (
+	@InnerAccess
+	static <KeyType extends Enum<KeyType>> void writeHelpText (
 			final OptionProcessor<KeyType> optionProcessor,
 			final String preamble,
 			final Appendable appendable)

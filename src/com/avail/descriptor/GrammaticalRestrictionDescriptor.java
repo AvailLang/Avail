@@ -35,7 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.GrammaticalRestrictionDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
 
 /**
  * A {@code GrammaticalRestrictionDescriptor grammatical restriction} serves to
@@ -198,7 +199,11 @@ extends Descriptor
 	 */
 	private GrammaticalRestrictionDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.GRAMMATICAL_RESTRICTION_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link GrammaticalRestrictionDescriptor}. */

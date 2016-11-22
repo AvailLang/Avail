@@ -35,7 +35,9 @@ package com.avail.descriptor;
 import static com.avail.descriptor.SetDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.ThreadSafe;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
@@ -669,7 +671,7 @@ extends Descriptor
 	 */
 	private SetDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.SET_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link SetDescriptor}. */

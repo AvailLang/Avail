@@ -33,6 +33,12 @@
 Module "Hilbert Hotel"
 Uses
 	"Avail"
+Extends
+	"Avail" =
+	(
+		"…$",
+		"…#"
+	)
 Names
 	"a guest named_,_"
 Entries

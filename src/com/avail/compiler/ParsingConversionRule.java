@@ -33,7 +33,7 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.descriptor.*;
 import com.avail.utility.evaluation.*;
@@ -174,7 +174,7 @@ public enum ParsingConversionRule
 	 *
 	 * @param number The rule number.
 	 */
-	private ParsingConversionRule (final int number)
+	ParsingConversionRule (final int number)
 	{
 		this.number = number;
 	}

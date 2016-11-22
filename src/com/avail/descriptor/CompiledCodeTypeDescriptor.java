@@ -34,7 +34,8 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.ObjectSlots.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -257,7 +258,8 @@ extends TypeDescriptor
 	 */
 	private CompiledCodeTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(
+			mutability, TypeTag.RAW_FUNCTION_TYPE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link CompiledCodeTypeDescriptor}. */

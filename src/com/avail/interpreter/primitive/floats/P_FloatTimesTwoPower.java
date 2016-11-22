@@ -33,6 +33,8 @@ package com.avail.interpreter.primitive.floats;
 
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.lang.Math.scalb;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -52,12 +54,6 @@ public final class P_FloatTimesTwoPower extends Primitive
 		new P_FloatTimesTwoPower().init(
 			3, CannotFail, CanFold, CanInline);
 
-	/** The Avail integer representing 10^5. */
-	final static A_Number tenK = IntegerDescriptor.fromInt(10_000);
-
-	/** The Avail integer representing (-10)^5. */
-	final static A_Number minusTenK = IntegerDescriptor.fromInt(-10_000);
-
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,
@@ -66,20 +62,12 @@ public final class P_FloatTimesTwoPower extends Primitive
 	{
 		assert args.size() == 2;
 		final A_Number a = args.get(0);
-		final A_Number b = args.get(1);
-		final int scale;
-		if (b.greaterOrEqual(tenK))
-		{
-			scale = tenK.extractInt();
-		}
-		else if (b.lessOrEqual(minusTenK))
-		{
-			scale = minusTenK.extractInt();
-		}
-		else
-		{
-			scale = b.extractInt();
-		}
+//		final A_Token literalTwo = args.get(1);
+		final A_Number b = args.get(2);
+
+		final int scale = b.isInt()
+			? min(max(b.extractInt(), -10000), 10000)
+			: b.greaterOrEqual(IntegerDescriptor.zero()) ? 10000 : -10000;
 		final float f = scalb(a.extractFloat(), scale);
 		return interpreter.primitiveSuccess(
 			FloatDescriptor.objectFromFloatRecycling(f, a, true));

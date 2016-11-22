@@ -34,7 +34,7 @@ package com.avail.environment;
 
 import java.lang.reflect.*;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.utility.evaluation.Transformer1;
 
 /**

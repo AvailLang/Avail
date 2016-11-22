@@ -36,7 +36,7 @@ import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.*
 import static java.util.Arrays.asList;
 import java.io.File;
 import com.avail.annotations.InnerAccess;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.server.AvailServer;
@@ -63,7 +63,7 @@ implements Configurator<AvailServerConfiguration>
 	/**
 	 * {@code OptionKey} enumerates the valid configuration options.
 	 */
-	static enum OptionKey
+	enum OptionKey
 	{
 		/**
 		 * Specification of the {@linkplain File path} to the {@linkplain

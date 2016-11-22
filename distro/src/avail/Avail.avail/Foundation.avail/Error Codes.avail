@@ -52,7 +52,7 @@ Names
 	 */
 Body
 
-/** 
+/**
  * A map from the error codes to their names (corresponding to the method
  * names).
  *
@@ -73,7 +73,7 @@ Public method "error codes" is [errorCodes];
 
 /**
  * Define a method named {@method "name"} that stably answers {@param "code"}.
- * 
+ *
  * @method "Next error code is_(_)"
  * @param "baseName" "string"
  *        The name of the new method (without the trailing " code").

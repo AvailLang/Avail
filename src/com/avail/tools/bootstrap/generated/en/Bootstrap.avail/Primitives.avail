@@ -267,6 +267,7 @@ Names
 	"method_._,⁇parameterized by_,⁇on failure doing_",
 	"milliseconds since the Epoch",
 	"new atom named_",
+	"new explicit subclass atom named_",
 	"new_[_]",
 	"new_applying_",
 	"new`↑_",

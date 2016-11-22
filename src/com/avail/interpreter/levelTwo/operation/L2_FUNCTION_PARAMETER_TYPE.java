@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
@@ -132,8 +132,8 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final L1NaiveTranslator naiveTranslator,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L1NaiveTranslator naiveTranslator)
 	{
 		final L2ObjectRegister functionReg =
 			instruction.readObjectRegisterAt(0);
@@ -179,6 +179,6 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 				new L2WritePointerOperand(outputParamTypeReg));
 			return true;
 		}
-		return super.regenerate(instruction, naiveTranslator, registerSet);
+		return super.regenerate(instruction, registerSet, naiveTranslator);
 	}
 }

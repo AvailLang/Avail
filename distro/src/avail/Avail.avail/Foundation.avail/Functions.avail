@@ -85,7 +85,7 @@ invokeAtom ::= atom for "Invoke|invoke_with_";
  *   invoke [f2 : function, a2 : any, d2 : any |
  *       [b : any, c : any, e : any | f2(a2,b,c,d2,e)]]
  *   with <f, a, d>
- * 
+ *
  * @method "_partial evaluator with_"
  * @param "originalFunctionPhrase" "expression phrase ⇒ function"
  *        The expression providing the function to ultimately invoke.
@@ -142,7 +142,7 @@ Private method "_partial evaluator with_" is
 				>» : originalFunctionType's return type
 			>
 		] : originalFunctionType's return type»;
-	outerFunction ::= 
+	outerFunction ::=
 		«[outerParams |
 			<innerFunction>
 		] : innerFunction's semantic type»;
@@ -162,12 +162,12 @@ Private method "_partial evaluator with_" is
  * arguments such as g(10,30), it will invoke f as though it had been invoked as
  * f(10,20,30).  This is a generalization of currying as found in functional
  * languages.
- * 
+ *
  * In particular, convert an expression like f(a,_,_,d,_) into one like:
  *   invoke [f2 : function, a2 : any, d2 : any |
  *       [b : any, c : any, e : any | f2(a2,b,c,d2,e)]]
  *   with <f, a, d>
- * 
+ *
  * @method "_(««_»?«`_»?‡,»)"
  * @param "originalFunction" "expression phrase ⇒ function"
  *        An expression producing the function to ultimately invoke.
@@ -215,7 +215,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 	Assert: ⎣pairs⎦ = ⎡pairs⎤ (
 		"Need a definite number of arguments and underscores");
 	paramTypes ::= originalFunction's parameters' type;
-	If ⎣paramTypes⎦ ≠ ⎡paramTypes⎤ then
+	If paramTypes = ⊥ ∨ ⎣paramTypes⎦ ≠ ⎡paramTypes⎤ then
 	[
 		Reject parse, expected:
 			"function for partial application to have \

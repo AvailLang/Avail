@@ -33,8 +33,11 @@
 package com.avail.descriptor;
 
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
+import org.jetbrains.annotations.Nullable;
+
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
@@ -217,7 +220,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	final A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return computeIntersectionWith(object, anObjectType);
 	}
@@ -331,7 +334,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	final A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return computeUnionWith(object, anObjectType);
 	}
@@ -595,7 +598,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	final boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return false;
 	}
@@ -800,6 +803,10 @@ extends AbstractTypeDescriptor
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(
+			mutability,
+			TypeTag.UNKNOWN_TAG,
+			objectSlotsEnumClass,
+			integerSlotsEnumClass);
 	}
 }

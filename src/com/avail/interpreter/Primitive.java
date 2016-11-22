@@ -38,7 +38,8 @@ import java.net.*;
 import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
@@ -67,6 +68,7 @@ import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.Serializer;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -541,11 +543,8 @@ implements IntegerEnumSlotDescriptionEnum
 					{
 						// Ignore if no such primitive.
 					}
-					catch (final NoSuchFieldException e)
-					{
-						throw new RuntimeException(e);
-					}
-					catch (final IllegalAccessException e)
+					catch (final NoSuchFieldException
+						| IllegalAccessException e)
 					{
 						throw new RuntimeException(e);
 					}
@@ -561,7 +560,7 @@ implements IntegerEnumSlotDescriptionEnum
 		 * @param className The fully qualified name of the Primitive subclass.
 		 * @param number The primitive's assigned index in the
 		 */
-		public PrimitiveHolder (
+		@InnerAccess PrimitiveHolder (
 			final String name,
 			final String className,
 			final int number)
@@ -613,13 +612,13 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	static
 	{
-		final Map<String, PrimitiveHolder> byNames = new HashMap<>();
-		final Map<String, PrimitiveHolder> byClassNames = new HashMap<>();
 		final List<PrimitiveHolder> byNumbers = new ArrayList<>();
 		byNumbers.add(null);  // Entry zero is reserved for not-a-primitive.
 		final ClassLoader classLoader = Primitive.class.getClassLoader();
 		assert classLoader != null;
 		int counter = 1;
+		final Map<String, PrimitiveHolder> byNames = new HashMap<>();
+		final Map<String, PrimitiveHolder> byClassNames = new HashMap<>();
 		try
 		{
 			final URL resource =
@@ -696,9 +695,9 @@ implements IntegerEnumSlotDescriptionEnum
 		}
 		// Sanity check certain conditions.
 		assert !primitiveFlags.contains(Flag.CanFold)
-				| primitiveFlags.contains(Flag.CanInline)
+				|| primitiveFlags.contains(Flag.CanInline)
 			: "Primitive " + getClass().getSimpleName()
-				+ "has CanFold without CanInline";
+				+ " has CanFold without CanInline";
 		// Register this instance.
 		assert holder.primitive == null;
 		holder.primitive = this;

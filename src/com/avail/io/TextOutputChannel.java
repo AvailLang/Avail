@@ -36,7 +36,7 @@ import java.io.PrintStream;
 import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousChannel;
 import java.nio.channels.CompletionHandler;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code TextOutputChannel} provides a wrapper for a standard output

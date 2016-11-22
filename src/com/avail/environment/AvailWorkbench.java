@@ -56,7 +56,7 @@ import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.tree.*;
 import com.avail.AvailRuntime;
-import com.avail.annotations.*;
+import com.avail.annotations.InnerAccess;
 import com.avail.builder.*;
 import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.descriptor.*;
@@ -71,6 +71,7 @@ import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code AvailWorkbench} is a simple user interface for the {@linkplain
@@ -314,8 +315,7 @@ extends JFrame
 				final List<Pair<StreamStyle, StringBuilder>> allPairs;
 				synchronized (updateQueue)
 				{
-					allPairs = new ArrayList<Pair<StreamStyle, StringBuilder>>(
-						updateQueue);
+					allPairs = new ArrayList<>(updateQueue);
 					updateQueue.clear();
 				}
 				assert !allPairs.isEmpty();
@@ -823,6 +823,13 @@ extends JFrame
 	/** The {@linkplain TraceMacrosAction toggle trace macros action}. */
 	@InnerAccess final TraceMacrosAction debugMacroExpansionsAction =
 		new TraceMacrosAction(this);
+
+	/** The {@linkplain TraceCompilerAction toggle trace compiler action}. */
+	@InnerAccess final TraceCompilerAction debugCompilerAction =
+		new TraceCompilerAction(this);
+
+	/** The {@linkplain ParserIntegrityCheckAction}. */
+	@InnerAccess final ParserIntegrityCheckAction parserIntegrityCheckAction;
 
 	/** The {@linkplain ClearTranscriptAction clear transcript action}. */
 	@InnerAccess final ClearTranscriptAction clearTranscriptAction =
@@ -1740,6 +1747,11 @@ extends JFrame
 			devMenu.add(new JMenuItem(resetCCReportDataAction));
 			devMenu.addSeparator();
 			devMenu.add(new JCheckBoxMenuItem(debugMacroExpansionsAction));
+			devMenu.add(new JCheckBoxMenuItem(debugCompilerAction));
+			devMenu.addSeparator();
+			parserIntegrityCheckAction =
+				new ParserIntegrityCheckAction(this, runtime);
+			devMenu.add(new JMenuItem(parserIntegrityCheckAction));
 			devMenu.addSeparator();
 			devMenu.add(new JMenuItem(graphAction));
 			menuBar.add(devMenu);
@@ -1748,6 +1760,7 @@ extends JFrame
 		{
 			showCCReportAction = null;
 			resetCCReportDataAction = null;
+			parserIntegrityCheckAction = null;
 		}
 		setJMenuBar(menuBar);
 

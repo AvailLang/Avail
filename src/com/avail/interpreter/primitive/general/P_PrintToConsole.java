@@ -38,7 +38,7 @@ import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.List;
 import com.avail.AvailRuntime;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
@@ -71,6 +71,13 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_String string = args.get(0);
+
+		final AvailLoader loader = interpreter.availLoaderOrNull();
+		if (loader != null)
+		{
+			loader.statementCanBeSummarized(false);
+		}
+
 		final AvailRuntime runtime = interpreter.runtime();
 		final A_Fiber fiber = interpreter.fiber();
 		final TextInterface textInterface = fiber.textInterface();

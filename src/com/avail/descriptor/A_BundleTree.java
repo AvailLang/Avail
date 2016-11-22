@@ -32,7 +32,9 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
+import com.avail.utility.Pair;
+
+import java.util.Collection;
 
 /**
  * {@code A_BundleTree} is an interface that specifies the {@linkplain
@@ -51,7 +53,7 @@ extends A_BasicObject
 	 *
 	 * @return A map of type {bundle→{definition→plan|0..}|}.
 	 */
-	A_Map allParsingPlans ();
+	A_Map allParsingPlansInProgress ();
 
 	/**
 	 * Expand the bundle tree if there's anything currently unclassified in it.
@@ -59,27 +61,28 @@ extends A_BasicObject
 	 * the grammar is postponed until actually necessary.
 	 *
 	 * @param module
-	 *        The current module in which this bundle tree is being used to
-	 *        parse.
-	 * @param sampleArgsStack
-	 *        A list of {@link A_Phrase phrases} from the parser's argument
-	 *        stack at the moment this bundle tree is being expanded.  The
-	 *        actual phrases aren't important, but the <em>sizes</em> of the
-	 *        {@link ListNodeDescriptor list phrases} can be used to extract the
-	 *        criterion types by which {@link A_DefinitionParsingPlan plans} are
-	 *        organized into a decision tree for type-checking arguments (at
-	 *        this position in the bundle tree).
+	 *        The current module which this bundle tree is being used to parse.
 	 */
-	void expand (A_Module module, List<A_Phrase> sampleArgsStack);
+	void expand (A_Module module);
 
 	/**
-	 * The specified bundle has been added or modified in this bundle tree.
-	 * Adjust the bundle tree as needed.
+	 * A grammatical restriction has been added.  Update this bundle tree to
+	 * conform to the new restriction along any already-expanded paths for the
+	 * given plan.  Updated the treesToVisit collection to include any new
+	 * trees to visit as a consequence of visiting this tree.
 	 *
-	 * @param bundle The {@link MessageBundleDescriptor bundle} that has been
-	 *               added or modified in this bundle tree.
+	 * @param planInProgress
+	 *        The {@link A_DefinitionParsingPlan} along which to update the
+	 *        bundle tree (and extant successors).
+	 * @param treesToVisit
+	 *        A collection of {@link Pair<A_BundleTree,
+	 *        A_ParsingPlanInProgress>} to visit.  Updated to include successors
+	 *        of this <bundle, planInProgress>.
 	 */
-	void flushForNewOrChangedBundle (A_Bundle bundle);
+	void updateForNewGrammaticalRestriction (
+		final A_ParsingPlanInProgress planInProgress,
+		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
+			treesToVisit);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -110,29 +113,6 @@ extends A_BasicObject
 	A_Map lazyPrefilterMap ();
 
 	/**
-	 * @param bundle
-	 */
-	void addBundle (A_Bundle bundle);
-
-	/**
-	 * Answer the program counter that this bundle tree represents.  All bundles
-	 * still reachable here are at the same position in their state machines,
-	 * and all instructions already executed for these bundles are identical
-	 * (between bundles).
-	 *
-	 * @return The index into the bundle tree's bundles' parsing instructions.
-	 */
-	int parsingPc ();
-
-	/**
-	 * Remove information about this {@link A_DefinitionParsingPlan definition
-	 * parsing plan} from this bundle tree.
-	 *
-	 * @param plan The parsing plan to exclude.
-	 */
-	void removeDefinitionParsingPlan (A_DefinitionParsingPlan plan);
-
-	/**
 	 * If this message bundle tree has a type filter tree, return the raw pojo
 	 * holding it, otherwise {@link NilDescriptor#nil()}.
 	 *
@@ -144,8 +124,16 @@ extends A_BasicObject
 	 * Add a {@link DefinitionParsingPlanDescriptor definition parsing plan} to
 	 * this bundle tree.  The corresponding bundle must already be present.
 	 *
-	 * @param plan
+	 * @param planInProgress
 	 *            The definition parsing plan to add.
 	 */
-	void addPlan (A_DefinitionParsingPlan plan);
+	void addPlanInProgress (A_ParsingPlanInProgress planInProgress);
+
+	/**
+	 * Remove information about this {@link A_DefinitionParsingPlan definition
+	 * parsing plan} from this bundle tree.
+	 *
+	 * @param planInProgress The parsing plan to exclude.
+	 */
+	void removePlanInProgress (A_ParsingPlanInProgress planInProgress);
 }

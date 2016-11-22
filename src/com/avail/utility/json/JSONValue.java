@@ -74,7 +74,7 @@ extends JSONData
 	 *
 	 * @return A JSON {@code false}.
 	 */
-	public static final JSONValue jsonFalse ()
+	public static JSONValue jsonFalse ()
 	{
 		return jsonFalse;
 	}
@@ -87,7 +87,7 @@ extends JSONData
 	 *
 	 * @return A JSON {@code true}.
 	 */
-	public static final JSONValue jsonTrue ()
+	public static JSONValue jsonTrue ()
 	{
 		return jsonTrue;
 	}

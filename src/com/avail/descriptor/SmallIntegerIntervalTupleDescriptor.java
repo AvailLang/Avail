@@ -105,7 +105,7 @@ extends TupleDescriptor
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
 	 * a new tuple.
 	 */
-	private final int maximumCopySize = 32;
+	private static final int maximumCopySize = 32;
 
 	@Override @AvailMethod
 	A_Tuple o_AppendCanDestroy (
@@ -116,24 +116,49 @@ extends TupleDescriptor
 		final int originalSize = object.tupleSize();
 		final long endValue = object.slot(END);
 		final long deltaValue = object.slot(DELTA);
-		final long nextValue = endValue + deltaValue;
-		if (newElement.isInt()
-			&& ((A_Number)newElement).extractInt() == nextValue
-			&& originalSize < Integer.MAX_VALUE)
+		if (newElement.isInt())
 		{
-			// Extend the interval.
-			if (canDestroy && isMutable())
+			final int newElementValue = ((A_Number) newElement).extractInt();
+			if (newElementValue == endValue + deltaValue
+				&& originalSize < Integer.MAX_VALUE)
 			{
-				object.setSlot(END, (int)nextValue);
-				object.setSlot(SIZE, originalSize + 1);
-				object.setSlot(HASH_OR_ZERO, 0);
-				return object;
+				// Extend the interval.
+				if (canDestroy && isMutable())
+				{
+					object.setSlot(END, newElementValue);
+					object.setSlot(SIZE, originalSize + 1);
+					object.setSlot(HASH_OR_ZERO, 0);
+					return object;
+				}
+				// Create another small integer interval.
+				return createInterval(
+					object.slot(START), newElementValue, deltaValue);
 			}
-			// Create another small integer interval.
-			return createInterval(
-				object.slot(START),
-				(int)nextValue,
-				(int)deltaValue);
+			// The new value isn't consecutive, but it's still an int.
+			if (originalSize < maximumCopySize)
+			{
+				return IntTupleDescriptor.generateFrom(
+					originalSize + 1,
+					new Generator<Integer>()
+					{
+						int counter = 1;
+						int value = object.slot(START);
+
+						@Override
+						public Integer value ()
+						{
+							if (counter == originalSize)
+							{
+								return newElementValue;
+							}
+							counter++;
+							final int oldValue = value;
+							value += (int) deltaValue;
+							return oldValue;
+						}
+					});
+			}
+			// Too big; fall through and make a tree-tuple.
 		}
 		// Fall back to concatenating a singleton.
 		final A_Tuple singleton = TupleDescriptor.from(newElement);
@@ -393,9 +418,8 @@ extends TupleDescriptor
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
 		assert index >= 1 && index <= object.tupleSize();
-		long temp = index - 1;
-		temp = temp * object.slot(DELTA);
-		temp = temp + object.slot(START);
+		long temp = object.slot(START) + (index - 1) * object.slot(DELTA);
+		assert temp == (int)temp;
 		return (AvailObject) IntegerDescriptor.fromInt((int)temp);
 	}
 

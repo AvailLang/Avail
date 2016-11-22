@@ -42,13 +42,17 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import com.avail.*;
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.utility.Generator;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An Avail {@linkplain FiberDescriptor fiber} represents an independently
@@ -105,7 +109,7 @@ extends Descriptor
 	 * The advisory interrupt request flags. The flags declared as enumeration
 	 * values within this {@code enum} are the interrupt request flags.
 	 */
-	public static enum InterruptRequestFlag
+	public enum InterruptRequestFlag
 	{
 		/**
 		 * Termination of the target fiber has been requested.
@@ -136,7 +140,7 @@ extends Descriptor
 	 * The synchronization flags. The flags declared as enumeration values
 	 * within this {@code enum} are for synchronization-related conditions.
 	 */
-	public static enum SynchronizationFlag
+	public enum SynchronizationFlag
 	{
 		/**
 		 * The fiber is bound to an {@linkplain Interpreter interpreter}.
@@ -171,7 +175,7 @@ extends Descriptor
 	 * The trace flags. The flags declared as enumeration values within this
 	 * {@code enum} are for system tracing modes.
 	 */
-	public static enum TraceFlag
+	public enum TraceFlag
 	{
 		/**
 		 * Should the {@linkplain Interpreter interpreter} record which
@@ -208,7 +212,7 @@ extends Descriptor
 	 * interrupts requests} or {@linkplain SynchronizationFlag synchronization
 	 * conditions}.
 	 */
-	public static enum GeneralFlag
+	public enum GeneralFlag
 	{
 		/**
 		 * Was the fiber started to apply a semantic restriction?
@@ -1561,7 +1565,11 @@ extends Descriptor
 	 */
 	private FiberDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.FIBER_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link FiberDescriptor}. */

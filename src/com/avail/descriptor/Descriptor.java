@@ -35,8 +35,10 @@ package com.avail.descriptor;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.compiler.*;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.MapDescriptor.*;
@@ -49,7 +51,6 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
@@ -62,10 +63,11 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
-import com.avail.utility.MutableOrNull;
+import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This is the primary subclass of {@linkplain AbstractDescriptor}. It has the
@@ -93,6 +95,8 @@ extends AbstractDescriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -104,10 +108,11 @@ extends AbstractDescriptor
 	 */
 	protected Descriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	/**
@@ -223,12 +228,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddBundle (final AvailObject object, final A_Bundle bundle)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
 	void o_AddDefinitionParsingPlan (
 		final AvailObject object, final A_DefinitionParsingPlan plan)
 	{
@@ -293,7 +292,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Map o_AllParsingPlans (final AvailObject object)
+	A_Map o_AllParsingPlansInProgress (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -455,10 +454,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddGrammaticalRestrictions (
+	void o_ModuleAddGrammaticalRestriction (
 		final AvailObject object,
-		final A_Atom methodName,
-		final A_Tuple illegalArgMsgs)
+		final A_GrammaticalRestriction grammaticalRestriction)
 	{
 		throw unsupportedOperationException();
 	}
@@ -823,7 +821,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -996,12 +994,6 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final int index,
 		final AvailObject value)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_Parent (final AvailObject object, final AvailObject value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1368,7 +1360,7 @@ extends AbstractDescriptor
 	@Override
 	A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1476,7 +1468,7 @@ extends AbstractDescriptor
 	@Override
 	A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1611,6 +1603,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -1637,8 +1635,7 @@ extends AbstractDescriptor
 	@Override
 	void o_Expand (
 		final AvailObject object,
-		final A_Module module,
-		final List<A_Phrase> sampleArgsStack)
+		final A_Module module)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2140,6 +2137,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	boolean o_EqualsIntTuple (
+		final AvailObject object,
+		final A_Tuple anIntTuple)
+	{
+		return false;
+	}
+
+	@Override
 	boolean o_EqualsSmallIntegerIntervalTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
@@ -2479,6 +2484,12 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_IsCharacter (final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override
+	boolean o_IsIntTuple (final AvailObject object)
 	{
 		return false;
 	}
@@ -3635,7 +3646,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_EqualsObjectType (
 		final AvailObject object,
-		final A_Type anObjectType)
+		final AvailObject anObjectType)
 	{
 		return false;
 	}
@@ -3853,9 +3864,10 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_FlushForNewOrChangedBundle (
+	void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
-		final A_Bundle bundle)
+		final A_ParsingPlanInProgress planInProgress,
+		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>> treesToVisit)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4598,7 +4610,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	String o_NameHighlightingPc (final AvailObject object, final int pc)
+	String o_NameHighlightingPc (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4610,15 +4622,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_RemoveDefinitionParsingPlan (
+	void o_RemovePlanForDefinition (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan)
+		final A_Definition definition)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	A_Set o_DefinitionParsingPlans (final AvailObject object)
+	A_Map o_DefinitionParsingPlans (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4660,15 +4672,74 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_AddPlan (
+	void o_AddPlanInProgress (
 		final AvailObject object,
-		final A_DefinitionParsingPlan plan)
+		final A_ParsingPlanInProgress planInProgress)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
 	A_Type o_ParsingSignature (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_RemovePlanInProgress (
+		final AvailObject object, final A_ParsingPlanInProgress planInProgress)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_ModuleSemanticRestrictions (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Set o_ModuleGrammaticalRestrictions (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	TypeTag o_ComputeTypeTag (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	AvailObject o_FieldAt (
+		final AvailObject object, final A_Atom field)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_BasicObject o_FieldAtPuttingCanDestroy (
+		final AvailObject object,
+		final A_Atom field,
+		final A_BasicObject value,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_CompareFromToWithIntTupleStartingAt (
+		final AvailObject availObject,
+		final int startIndex1,
+		final int endIndex1,
+		final A_Tuple anIntTuple,
+		final int startIndex2)
 	{
 		throw unsupportedOperationException();
 	}

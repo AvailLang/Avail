@@ -34,7 +34,7 @@ Module "FAQ"
 Uses
 	"Avail"
 Extends
-	"Avail" = ("-_")
+	"Avail" = ("-_", "…#")
 Entries
 	"roots of_x^_+_x+_"
 Body

@@ -33,7 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
@@ -122,8 +122,8 @@ public class L2_INVOKE extends L2Operation
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final L1NaiveTranslator naiveTranslator,
-		final RegisterSet registerSet)
+		final RegisterSet registerSet,
+		final L1NaiveTranslator naiveTranslator)
 	{
 		final L2ObjectRegister continuationReg =
 			instruction.readObjectRegisterAt(0);
@@ -172,6 +172,6 @@ public class L2_INVOKE extends L2Operation
 				}
 			}
 		}
-		return super.regenerate(instruction, naiveTranslator, registerSet);
+		return super.regenerate(instruction, registerSet, naiveTranslator);
 	}
 }

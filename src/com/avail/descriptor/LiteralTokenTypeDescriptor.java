@@ -35,7 +35,8 @@ package com.avail.descriptor;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -93,7 +94,8 @@ extends TypeDescriptor
 		return object.literalType().equals(aLiteralTokenType.literalType());
 	}
 
-	@Override @AvailMethod int o_Hash(final AvailObject object)
+	@Override @AvailMethod
+	int o_Hash(final AvailObject object)
 	{
 		return object.slot(LITERAL_TYPE).hash() ^ 0xF47FF1B1;
 	}
@@ -259,7 +261,7 @@ extends TypeDescriptor
 	 */
 	private LiteralTokenTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.NONTYPE_TYPE_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link LiteralTokenTypeDescriptor}. */

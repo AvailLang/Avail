@@ -38,8 +38,12 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.InnerAccess;
 import com.avail.utility.Generator;
+import com.avail.utility.evaluation.Transformer1;
 
 /**
  * This is a representation for {@linkplain TupleDescriptor tuples} that can
@@ -357,13 +361,35 @@ extends TupleDescriptor
 		// If it's cheap to check my elements, just do it.  This can help keep
 		// representations smaller and faster when concatenating short, quickly
 		// built object tuples that happen to only contain bytes onto the start
-		// of end of other byte tuples.
+		// or end of other byte tuples.
 		final int tupleSize = object.tupleSize();
 		if (tupleSize <= 5)
 		{
 			for (int i = 1; i <= tupleSize; i++)
 			{
 				if (!object.slot(TUPLE_AT_, i).isUnsignedByte())
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsIntTuple (final AvailObject object)
+	{
+		// If it's cheap to check my elements, just do it.  This can help keep
+		// representations smaller and faster when concatenating short, quickly
+		// built object tuples that happen to only contain ints onto the start
+		// or end of other int tuples.
+		final int tupleSize = object.tupleSize();
+		if (tupleSize <= 5)
+		{
+			for (int i = 1; i <= tupleSize; i++)
+			{
+				if (!object.slot(TUPLE_AT_, i).isInt())
 				{
 					return false;
 				}
@@ -555,6 +581,35 @@ extends TupleDescriptor
 		}
 		return result;
 	}
+
+	/**
+	 * Transform each element of a {@link A_Tuple tuple} to form another tuple.
+	 *
+	 * @param tuple
+	 *        The tuple whose elemnts are to be transformed.
+	 * @param transformer
+	 *        The transformation to apply to each element of the tuple.
+	 * @return The tuple of transformed elements.
+	 */
+	public static A_Tuple mapElements (
+		final A_Tuple tuple,
+		final Transformer1<? super AvailObject, ? extends A_BasicObject>
+			transformer)
+	{
+		return ObjectTupleDescriptor.generateFrom(
+			tuple.tupleSize(),
+			new Generator<A_BasicObject>()
+			{
+				private int index = 1;
+
+				@Override
+				public A_BasicObject value ()
+				{
+					return transformer.valueNotNull(tuple.tupleAt(index++));
+				}
+			});
+	}
+
 
 	/**
 	 * Construct a new {@link ObjectTupleDescriptor}.

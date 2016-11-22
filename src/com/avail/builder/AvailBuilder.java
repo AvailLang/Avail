@@ -55,7 +55,7 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 import com.avail.*;
-import com.avail.annotations.*;
+import com.avail.annotations.InnerAccess;
 import com.avail.compiler.*;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.AvailCompiler.ParserState;
@@ -74,6 +74,7 @@ import com.avail.serialization.*;
 import com.avail.stacks.StacksGenerator;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and

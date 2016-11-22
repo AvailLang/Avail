@@ -36,10 +36,14 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.Descriptor;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -408,6 +412,8 @@ extends Descriptor
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *            The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
 	 *            The Java {@link Class} which is a subclass of {@link
 	 *            ObjectSlotsEnum} and defines this object's object slots
@@ -419,26 +425,20 @@ extends Descriptor
 	 */
 	protected TokenDescriptor (
 		final Mutability mutability,
+		final TypeTag typeTag,
 		final @Nullable Class<? extends ObjectSlotsEnum> objectSlotsEnumClass,
 		final @Nullable Class<? extends IntegerSlotsEnum> integerSlotsEnumClass)
 	{
-		super(mutability, objectSlotsEnumClass, integerSlotsEnumClass);
-	}
-
-	/**
-	 * Construct a new {@link TokenDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private TokenDescriptor (final Mutability mutability)
-	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 	}
 
 	/** The mutable {@link TokenDescriptor}. */
 	private static final TokenDescriptor mutable =
-		new TokenDescriptor(Mutability.MUTABLE);
+		new TokenDescriptor(
+			Mutability.MUTABLE,
+			TypeTag.TOKEN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	@Override
 	TokenDescriptor mutable ()
@@ -448,7 +448,11 @@ extends Descriptor
 
 	/** The shared {@link TokenDescriptor}. */
 	private static final TokenDescriptor shared =
-		new TokenDescriptor(Mutability.SHARED);
+		new TokenDescriptor(
+			Mutability.SHARED,
+			TypeTag.TOKEN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 
 	@Override
 	TokenDescriptor immutable ()

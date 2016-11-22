@@ -32,8 +32,8 @@
 
 package com.avail.utility.evaluation;
 
-import com.avail.annotations.NotNull;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implementors of {@code Transformer2} provide a single arbitrary operation

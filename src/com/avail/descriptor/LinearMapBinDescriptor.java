@@ -35,7 +35,9 @@ package com.avail.descriptor;
 import static com.avail.descriptor.LinearMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LinearMapBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.Mutability.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.MapDescriptor.*;
 
 /**
@@ -184,7 +186,7 @@ extends MapBinDescriptor
 	 *        LinearMapBinDescriptor}.
 	 * @return The number of entries in the bin.
 	 */
-	@InnerAccess static final int entryCount (final AvailObject object)
+	@InnerAccess static int entryCount (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount() >> 1;
 	}
@@ -676,7 +678,11 @@ extends MapBinDescriptor
 		final Mutability mutability,
 		final int level)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class, level);
+		super(
+			mutability,
+			TypeTag.MAP_LINEAR_BIN_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class, level);
 	}
 
 	/**

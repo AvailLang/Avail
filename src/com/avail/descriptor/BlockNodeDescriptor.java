@@ -38,7 +38,9 @@ import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.*;
-import com.avail.annotations.*;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
@@ -46,6 +48,7 @@ import com.avail.interpreter.Primitive.Flag;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * My instances represent occurrences of blocks (functions) encountered in code.
@@ -781,7 +784,11 @@ extends ParseNodeDescriptor
 	 */
 	private BlockNodeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, IntegerSlots.class);
+		super(
+			mutability,
+			TypeTag.BLOCK_PHRASE_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
 	}
 
 	/** The mutable {@link BlockNodeDescriptor}. */

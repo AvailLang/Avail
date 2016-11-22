@@ -60,7 +60,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import com.avail.annotations.*;
+
+import com.avail.annotations.InnerAccess;
+import com.avail.annotations.ThreadSafe;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -75,6 +77,7 @@ import com.avail.io.TextInterface;
 import com.avail.utility.LRUCache;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -121,7 +124,7 @@ public final class AvailRuntime
 	 * @return The build version, or {@code "dev"} if Avail is not running from
 	 *         a distribution JAR.
 	 */
-	public static final String buildVersion ()
+	public static String buildVersion ()
 	{
 		return buildVersion;
 	}
@@ -156,7 +159,7 @@ public final class AvailRuntime
 	 *
 	 * @return The Avail runtime of the current thread.
 	 */
-	public static final AvailRuntime current ()
+	public static AvailRuntime current ()
 	{
 		return ((AvailThread) Thread.currentThread()).runtime;
 	}
@@ -207,9 +210,8 @@ public final class AvailRuntime
 	private final ThreadFactory executorThreadFactory = new ThreadFactory()
 	{
 		@Override
-		public AvailThread newThread (final @Nullable Runnable runnable)
+		public AvailThread newThread (final Runnable runnable)
 		{
-			assert runnable != null;
 			return new AvailThread(
 				runnable,
 				new Interpreter(AvailRuntime.this));
@@ -226,9 +228,8 @@ public final class AvailRuntime
 		AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public Thread newThread (final @Nullable Runnable runnable)
+		public Thread newThread (final Runnable runnable)
 		{
-			assert runnable != null;
 			return new Thread(
 				runnable, "AvailFile-" + counter.incrementAndGet());
 		}
@@ -244,9 +245,8 @@ public final class AvailRuntime
 		AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public Thread newThread (final @Nullable Runnable runnable)
+		public Thread newThread (final Runnable runnable)
 		{
-			assert runnable != null;
 			return new Thread(
 				runnable, "AvailSocket-" + counter.incrementAndGet());
 		}
@@ -260,13 +260,13 @@ public final class AvailRuntime
 	 * The maximum number of {@link Interpreter}s that can be constructed for
 	 * this runtime.
 	 */
-	public static final int maxInterpreters = availableProcessors * 3;
+	public static final int maxInterpreters = availableProcessors;
 
 	/**
 	 * A counter from which unique interpreter indices in [0..maxInterpreters)
-	 * are allotted thread-safely.
+	 * are allotted.
 	 */
-	public static int nextInterpreterIndex = 0;
+	private AtomicInteger nextInterpreterIndex = new AtomicInteger(0);
 
 	/**
 	 * Allocate the next interpreter index in [0..maxInterpreters)
@@ -276,8 +276,8 @@ public final class AvailRuntime
 	 */
 	public synchronized int allocateInterpreterIndex ()
 	{
-		final int index = nextInterpreterIndex;
-		nextInterpreterIndex++;
+		final int index = nextInterpreterIndex.getAndIncrement();
+		assert index < maxInterpreters;
 		return index;
 	}
 
@@ -316,7 +316,7 @@ public final class AvailRuntime
 	private final ThreadPoolExecutor fileExecutor =
 		new ThreadPoolExecutor(
 			availableProcessors,
-			availableProcessors * 4,
+			availableProcessors << 2,
 			10L,
 			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(10),
@@ -345,7 +345,7 @@ public final class AvailRuntime
 	private final ThreadPoolExecutor socketExecutor =
 		new ThreadPoolExecutor(
 			availableProcessors,
-			availableProcessors * 4,
+			availableProcessors << 2,
 			10L,
 			TimeUnit.SECONDS,
 			new LinkedBlockingQueue<Runnable>(),
@@ -814,6 +814,91 @@ public final class AvailRuntime
 	public boolean debugMacroExpansions = false;
 
 	/**
+	 * Whether to show detailed compiler trace information.
+	 */
+	public boolean debugCompilerSteps = false;
+
+	/**
+	 * Perform an integrity check on the parser data structures.  Report the
+	 * findings to System.out.
+	 */
+	public void integrityCheck ()
+	{
+		System.out.println("Integrity check:");
+		runtimeLock.writeLock().lock();
+		try
+		{
+			Set<A_Method> methods = new HashSet<>();
+			Set<A_Atom> atoms = new HashSet<>();
+			Set<A_Definition> definitions = new HashSet<>();
+			for (final MapDescriptor.Entry moduleEntry : modules.mapIterable())
+			{
+				final A_Module module = moduleEntry.value();
+				atoms.addAll(
+					TupleDescriptor.<A_Atom>toList(
+						module.newNames().valuesAsTuple()));
+				atoms.addAll(
+					TupleDescriptor.<A_Atom>toList(
+						module.visibleNames().asTuple()));
+				A_Tuple atomSets = module.importedNames().valuesAsTuple();
+				atomSets = atomSets.concatenateWith(
+					module.privateNames().valuesAsTuple(), true);
+				for (A_Set atomSet : atomSets)
+				{
+					atoms.addAll(
+						TupleDescriptor.<A_Atom>toList(atomSet.asTuple()));
+				}
+				for (A_Definition definition : module.methodDefinitions())
+				{
+					if (definitions.contains(definition))
+					{
+						System.out.println(
+							"Duplicate definition: " + definition);
+					}
+					definitions.add(definition);
+				}
+			}
+			for (final A_Atom atom : atoms)
+			{
+				final A_Bundle bundle = atom.bundleOrNil();
+				if (!bundle.equalsNil())
+				{
+					methods.add(bundle.bundleMethod());
+				}
+			}
+			final Set<A_Definition> encounteredDefinitions = new HashSet<>();
+			for (final A_Method method : methods)
+			{
+				Set<A_Definition> bundleDefinitions = new HashSet<>(
+					TupleDescriptor.<A_Definition>toList(
+						method.definitionsTuple()));
+				bundleDefinitions.addAll(
+					TupleDescriptor.<A_Definition>toList(
+						method.macroDefinitionsTuple()));
+				bundleDefinitions.addAll(bundleDefinitions);
+				for (final A_Bundle bundle : method.bundles())
+				{
+					final A_Map bundlePlans = bundle.definitionParsingPlans();
+					if (bundlePlans.mapSize() != bundleDefinitions.size())
+					{
+						System.out.println(
+							"Mismatched definitions / plans:"
+								+ "\n\tbundle = " + bundle
+								+ "\n\tdefinitions# = " + bundleDefinitions.size()
+								+ "\n\tplans# = " + bundlePlans.mapSize());
+					}
+				}
+			}
+			// TODO(MvG) - Do more checks.
+			System.out.println("done.");
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
+
+	/**
 	 * The {@linkplain ModuleNameResolver module name resolver} that this
 	 * {@linkplain AvailRuntime runtime} should use to resolve unqualified
 	 * {@linkplain ModuleDescriptor module} names.
@@ -1204,10 +1289,28 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer an {@linkplain Collections#unmodifiableSet(Set) unmodifiable} view
-	 * of the {@linkplain Set set} of all {@linkplain A_Fiber fibers} that have
-	 * not yet {@linkplain ExecutionState#RETIRED retired} and been reclaimed by
-	 * garbage collection.
+	 * Remove the specified {@linkplain A_Fiber fiber} to this {@linkplain
+	 * AvailRuntime runtime}.  This should be done when a fiber retires,
+	 * although the {@link FiberReference} mechanism will eventually clean up
+	 * any fiber not explicitly unregistered.
+	 *
+	 * @param fiber
+	 *        A fiber to unregister.
+	 */
+	void unregisterFiber (final A_Fiber fiber)
+	{
+		synchronized (allFibers)
+		{
+			final FiberReference reference = allFibers.remove(fiber.uniqueId());
+			reference.clear();
+		}
+	}
+
+	/**
+	 * Answer the {@link Map} of all {@link A_Fiber fibers}, keyed by {@link
+	 * A_Fiber#uniqueId()}, that have not yet {@linkplain ExecutionState#RETIRED
+	 * retired}.  Retired fibers will be garbage collected when there are no
+	 * remaining references.
 	 *
 	 * @return All fibers belonging to this {@linkplain AvailRuntime runtime}.
 	 */
@@ -1628,6 +1731,7 @@ public final class AvailRuntime
 			TupleTypeDescriptor.stringType(),
 			Types.ATOM.o());
 		specials[154] = AtomDescriptor.macroBundleKey();
+		specials[155] = AtomDescriptor.explicitSubclassingKey();
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
@@ -1637,9 +1741,11 @@ public final class AvailRuntime
 			AtomDescriptor.clientDataGlobalKey(),
 			AtomDescriptor.compilerScopeMapKey(),
 			AtomDescriptor.compilerScopeStackKey(),
+			AtomDescriptor.explicitSubclassingKey(),
 			AtomDescriptor.falseObject(),
 			AtomDescriptor.fileKey(),
 			AtomDescriptor.heritableKey(),
+			AtomDescriptor.macroBundleKey(),
 			AtomDescriptor.messageBundleKey(),
 			AtomDescriptor.objectTypeNamePropertyKey(),
 			AtomDescriptor.serverSocketKey(),
@@ -1667,8 +1773,7 @@ public final class AvailRuntime
 			MethodDescriptor.vmVariableGetAtom(),
 			ObjectTypeDescriptor.exceptionAtom(),
 			ObjectTypeDescriptor.stackDumpAtom(),
-			PojoTypeDescriptor.selfAtom(),
-			AtomDescriptor.macroBundleKey()));
+			PojoTypeDescriptor.selfAtom()));
 
 		for (final A_Atom atom : specialAtomsList)
 		{
@@ -1889,6 +1994,30 @@ public final class AvailRuntime
 		{
 			final A_Method method = restriction.definitionMethod();
 			method.removeSemanticRestriction(restriction);
+		}
+		finally
+		{
+			runtimeLock.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Remove a grammatical restriction from the method associated with the
+	 * given method name.
+	 *
+	 * @param restriction
+	 *            A {@linkplain A_GrammaticalRestriction grammatical
+	 *            restriction} that validates syntactic restrictions at call
+	 *            sites.
+	 */
+	public void removeGrammaticalRestriction (
+		final A_GrammaticalRestriction restriction)
+	{
+		runtimeLock.writeLock().lock();
+		try
+		{
+			final A_Bundle bundle = restriction.restrictedBundle();
+			bundle.removeGrammaticalRestriction(restriction);
 		}
 		finally
 		{

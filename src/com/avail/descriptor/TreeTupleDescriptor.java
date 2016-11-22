@@ -32,13 +32,16 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.InnerAccess;
+
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TreeTupleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.Mutability.*;
 import static java.lang.Math.*;
 import java.nio.ByteBuffer;
-import com.avail.annotations.*;
 
 /**
  * A tree tuple is a tuple organized as a constant height tree, similar to the
@@ -681,7 +684,7 @@ extends TupleDescriptor
 	 * @return A tuple containing the left tuple's elements followed by the
 	 *         right tuple's elements.
 	 */
-	final static AvailObject concatenateSameLevel (
+	static AvailObject concatenateSameLevel (
 		final A_Tuple tuple1,
 		final A_Tuple tuple2)
 	{
@@ -877,7 +880,7 @@ extends TupleDescriptor
 	 * @param index The 1-based tuple index to search for.
 	 * @return The 1-based subscript of the subtuple containing the tuple index.
 	 */
-	private static final int childSubscriptForIndex (
+	private static int childSubscriptForIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -901,7 +904,7 @@ extends TupleDescriptor
 	 * @return How much to subtract to go from an index into the tuple to an
 	 *         index into the subtuple.
 	 */
-	public int offsetForChildSubscript (
+	private static int offsetForChildSubscript (
 		final AvailObject object,
 		final int childSubscript)
 	{
@@ -929,7 +932,9 @@ extends TupleDescriptor
 			assert child.treeTupleLevel() == myLevelMinusOne;
 			assert myLevelMinusOne == 0
 				|| child.childCount() >= minWidthOfNonRoot;
-			cumulativeSize += child.tupleSize();
+			final int childSize = child.tupleSize();
+			assert childSize > 0;
+			cumulativeSize += childSize;
 			assert object.intSlot(CUMULATIVE_SIZES_AREA_, childIndex)
 				== cumulativeSize;
 		}
@@ -945,12 +950,12 @@ extends TupleDescriptor
 	 *         ObjectSlots#SUBTUPLE_AT_ subtuple} slots and {@linkplain
 	 *         IntegerSlots#CUMULATIVE_SIZES_AREA_ cumulative size} slots.
 	 */
-	public static AvailObject createUninitializedTree (
+	private static AvailObject createUninitializedTree (
 		final int level,
 		final int size)
 	{
 		final AvailObject instance =
-			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
+			newObjectIndexedIntegerIndexedDescriptor(
 				size,
 				(size + 1) >> 1,
 				descriptorFor(MUTABLE, level));
@@ -960,7 +965,7 @@ extends TupleDescriptor
 
 	/**
 	 * Create a 2-child tree tuple at the specified level.  The children must
-	 * both be at newLevel - 1.
+	 * both be at newLevel - 1.  Neither may be empty.
 	 *
 	 * @param left The left child.
 	 * @param right The right child.
@@ -976,6 +981,8 @@ extends TupleDescriptor
 	{
 		assert left.treeTupleLevel() == newLevel - 1;
 		assert right.treeTupleLevel() == newLevel - 1;
+		assert left.tupleSize() > 0;
+		assert right.tupleSize() > 0;
 		final AvailObject newNode = createUninitializedTree(newLevel, 2);
 		newNode.setSlot(SUBTUPLE_AT_, 1, left);
 		newNode.setSlot(SUBTUPLE_AT_, 2, right);
@@ -995,8 +1002,9 @@ extends TupleDescriptor
 	public static AvailObject internalTreeReverse (final AvailObject object)
 	{
 		final int childCount = object.childCount();
-		final AvailObject newTree = TreeTupleDescriptor
-			.createUninitializedTree(object.treeTupleLevel(), childCount);
+		final AvailObject newTree =
+			TreeTupleDescriptor.createUninitializedTree(
+				object.treeTupleLevel(), childCount);
 		int cumulativeSize = 0;
 		for (int src = childCount, dest = 1; src > 0; src--, dest++)
 		{

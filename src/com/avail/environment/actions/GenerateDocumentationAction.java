@@ -35,13 +35,13 @@ package com.avail.environment.actions;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.KeyStroke;
-import com.avail.annotations.*;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.environment.tasks.DocumentationTask;
 import com.avail.stacks.StacksGenerator;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code GenerateDocumentationAction} instructs the {@linkplain

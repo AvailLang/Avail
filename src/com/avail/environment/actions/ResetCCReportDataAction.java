@@ -36,12 +36,12 @@ import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.event.*;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
-import com.avail.annotations.*;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.utility.evaluation.Continuation0;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code ResetCCReportDataAction} clears code coverage information obtained
@@ -81,6 +81,7 @@ extends AbstractWorkbenchAction
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
 	 * @param runtime
+	 *        The active {@link AvailRuntime}.
 	 */
 	public ResetCCReportDataAction (
 		final AvailWorkbench workbench,

@@ -36,7 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
-import com.avail.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
