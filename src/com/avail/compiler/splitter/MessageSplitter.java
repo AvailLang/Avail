@@ -131,7 +131,7 @@ public final class MessageSplitter
 	/**
 	 * The Avail string to be parsed.
 	 */
-	private final A_String messageName;
+	@InnerAccess final A_String messageName;
 
 	/**
 	 * The individual tokens ({@linkplain StringDescriptor strings})
@@ -208,10 +208,10 @@ public final class MessageSplitter
 	 * A collection of one-based positions in the original string, corresponding
 	 * to the {@link #messagePartsList} that have been extracted.
 	 */
-	private final List<Integer> messagePartPositions = new ArrayList<>(10);
+	@InnerAccess final List<Integer> messagePartPositions = new ArrayList<>(10);
 
 	/** The current one-based parsing position in the list of tokens. */
-	private int messagePartPosition;
+	@InnerAccess int messagePartPosition;
 
 	/**
 	 * A record of where each "underscore" occurred in the list of {@link
@@ -1391,56 +1391,6 @@ public final class MessageSplitter
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Answer a String consisting of the name of the message with a visual
-	 * indication inserted at the keyword or argument position related to the
-	 * given program counter.
-	 *
-	 * @param signatureType
-	 *        The {@link ListNodeTypeDescriptor list phrase type} which is the
-	 *        signature of the parsing plan that was split into parsing
-	 *        instructions.
-	 * @param pc
-	 *        The 1-based instruction index into my {@link
-	 *        #instructionsTupleFor(A_Type) instructions}.
-	 * @return The annotated, quoted method name.
-	 */
-	public String nameHighlightingPc (final A_Type signatureType, final int pc)
-	{
-		if (pc == 0)
-		{
-			return "(any method invocation)";
-		}
-		final List<Expression> expressions =
-			originExpressionsFor(signatureType);
-		// Adjust for tuple vs. list.
-		final Expression expression = expressions.get(pc - 1);
-		int tokenIndex = -1;
-		if (expression instanceof Argument)
-		{
-			final int absoluteArgumentIndex =
-				((Argument) expression).absoluteUnderscoreIndex;
-			tokenIndex = underscorePartNumbers().get(absoluteArgumentIndex - 1);
-		}
-		else if (expression instanceof Simple)
-		{
-			tokenIndex = ((Simple) expression).tokenIndex;
-		}
-		String javaString = messageName.asNativeString();
-		if (tokenIndex != -1)
-		{
-			// Add the annotation indicator.
-			final int characterPosition =
-				messagePartPositions.get(tokenIndex - 1);
-			javaString = javaString.substring(0, characterPosition - 1)
-					+ AvailCompiler.errorIndicatorSymbol
-					+ javaString.substring(characterPosition - 1);
-		}
-		final A_String availString = StringDescriptor.from(javaString);
-		// Finally, quote it.
-		return availString.toString();
 	}
 
 	/**

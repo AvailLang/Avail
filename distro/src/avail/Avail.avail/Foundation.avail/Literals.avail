@@ -96,7 +96,7 @@ Semantic restriction "`|_`|" is
 
 Method "`|_`|" is stable at
 	function accepting <map> and returning whole number;
-	
+
 /**
  * @method "`|_`|"
  * @restricts "map meta"
@@ -336,7 +336,7 @@ Semantic restriction "⎡_⎤" is
  * {@type "token"}. The atom is obtained via {@method "atom for_"}, i.e., it is
  * looked up using in the current module's context. The name of the atom is
  * provided by the argument's lexeme.
- * 
+ *
  * @macro "`$…"
  * @param "tokenPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -357,7 +357,7 @@ Public macro "`$…" is
  * literal token. The atom is obtained via {@method "atom for_"}, i.e., it is
  * looked up in the current module's context. If the token is a string literal,
  * then use its value instead of its lexeme for the name of the atom.
- * 
+ *
  * @macro "`$…$"
  * @param "aToken"
  *        "literal phrase ⇒ (literal token ⇒ string)"
@@ -377,7 +377,7 @@ Public macro "`$…$" is
 /**
  * Construct a {@type "character"} {@type "literal phrase" literal} from an
  * arbitrary one-character {@type "token"}.
- * 
+ *
  * @macro "¢…!"
  * @param "tokenPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -396,7 +396,7 @@ Public macro "¢…!" is
 /**
  * Construct a character literal from a literal string token of length one.
  * This allows capture of characters like space and double quote (").
- * 
+ *
  * @macro "¢…!"
  * @param "tokenPhrase" "literal phrase ⇒ (literal token ⇒ <character…|1>)"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -415,7 +415,7 @@ Public macro "¢…!" is
 /**
  * Disambiguate subscript of ⊥. This is a type subscript operation, such as
  * defined for tuple types or function types, and can consistently answer ⊥.
- * 
+ *
  * @method "_[_]"
  * @param "bottom" "⊥'s type"
  * @param "index" "natural number"
@@ -651,7 +651,7 @@ Semantic restriction "{«_‡,»}" is
 
 /**
  * Construct and answer a map from the lexically specified key-value bindings.
- * 
+ *
  * @method "{«_→_‡,»}"
  * @param "bindings" "key-value tuple"
  *        The key-value bindings that constitute the answer.
@@ -841,70 +841,6 @@ Macro "<«_‡,»>" is
 	]
 	else [exprs]
 ];
-
-/**
- * If a lexical tuple is built only from expressions with statically well-known
- * runtime values, then answer the instance type of the tuple that contains
- * those statically known elements. This gives lexical tuples of literals and
- * statically well-known elements the same force as lexical literals, e.g.,
- * numbers and strings.
- *
- * @method "<«_‡,»>"
- * @restricts "tuple meta"
- */
-/*
- * TODO [MvG] REMOVE THIS RESTRICTION.  It's probably pointless with the macro
- * that was just defined above.
-[
-	elements : tuple meta
-|
-	/* Since the argument is derived from a lexically constructed tuple, then
-	 * the cardinality of the argument is guaranteed to be a fixed, finite
-	 * value. Therefore asking for either the lower or upper bound would be
-	 * equivalent.
-	 */
-	limit ::= ⎡elements⎤;
-	accumulator : tuple := <>;
-	From 1 to limit do
-	[
-		index : natural number
-	|
-		if |elements[index]| = 1 then
-		[
-			instance ::= elements[index]'s instance;
-			/* Do not blithely construct a literal-force tuple if any of the
-			 * instances are themselves types. This prevents expressions like
-			 * `<elements[index]>` from asserting the type `<any>'s type` rather
-			 * than `<any's type…|1>`, which frequently leads to (absurd)
-			 * runtime type errors, e.g., if elements[index] has the static type
-			 * [0..5], then the return type verification nybblecode would fail
-			 * because `<[0..5]>` is not a subtype of `<any>`.
-			 */
-			if instance's type ⊆ type then
-			[
-				false
-			]
-			else
-			[
-				accumulator := concatenate <eject accumulator, <instance>>;
-				true
-			]
-		]
-		else
-		[
-			false
-		]
-	];
-	if |accumulator| = limit then
-	[
-		accumulator's type
-	]
-	else
-	[
-		elements
-	]
-];
-*/
 
 /**
  * Attempt to produce a literal {@type "set"} from the specified lexical

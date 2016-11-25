@@ -79,16 +79,14 @@ public final class P_TupleTypeAt extends Primitive
 		final A_Type tupleType = tupleMeta.instance();
 		final A_Number minIndex = indexType.lowerBound();
 		final A_Number maxIndex = indexType.upperBound();
-		final int maxIndexInt = maxIndex.isInt()
-			? maxIndex.extractInt()
-			: Integer.MAX_VALUE;
 		if (minIndex.isInt())
 		{
 			return tupleType.unionOfTypesAtThrough(
-				minIndex.extractInt(), maxIndexInt);
+				minIndex.extractInt(), maxIndex.isInt()
+					? maxIndex.extractInt()
+					: Integer.MAX_VALUE);
 		}
-		return super.returnTypeGuaranteedByVM(
-			argumentTypes);
+		return super.returnTypeGuaranteedByVM(argumentTypes);
 	}
 
 	@Override

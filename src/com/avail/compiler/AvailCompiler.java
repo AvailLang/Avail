@@ -3791,16 +3791,25 @@ public final class AvailCompiler
 					continue;
 				}
 				final A_Tuple value = entry.value();
-				runParsingInstructionThen(
-					start,
-					keyInt,
-					firstArgOrNull,
-					argsSoFar,
-					marksSoFar,
-					initialTokenPosition,
-					consumedAnything,
-					value,
-					continuation);
+				workUnitDo(
+					new Continuation0()
+					{
+						@Override
+						public void value ()
+						{
+							runParsingInstructionThen(
+								start,
+								keyInt,
+								firstArgOrNull,
+								argsSoFar,
+								marksSoFar,
+								initialTokenPosition,
+								consumedAnything,
+								value,
+								continuation);
+						}
+					},
+					start);
 			}
 		}
 	}
@@ -4272,18 +4281,11 @@ public final class AvailCompiler
 				{
 					if (consumedAnything)
 					{
-						if (newToken.tokenType() != LITERAL)
-						{
-							start.expected(
-								"a string literal token, not "
-									+ newToken.string());
-						}
-						else
-						{
-							start.expected(
-								"a string literal token, not "
-									+ newToken.literal());
-						}
+						start.expected(
+							"a string literal token, not "
+								+ (newToken.tokenType() != LITERAL
+									? newToken.string()
+									: newToken.literal()));
 					}
 					break;
 				}
@@ -4294,18 +4296,11 @@ public final class AvailCompiler
 				{
 					if (consumedAnything)
 					{
-						if (newToken.tokenType() != LITERAL)
-						{
-							start.expected(
-								"a whole number literal token, not "
-									+ newToken.string());
-						}
-						else
-						{
-							start.expected(
-								"a whole number literal token, not "
-									+ newToken.literal());
-						}
+						start.expected(
+							"a whole number literal token, not "
+								+ (newToken.tokenType() != LITERAL
+									   ? newToken.string()
+									   : newToken.literal()));
 					}
 					break;
 				}

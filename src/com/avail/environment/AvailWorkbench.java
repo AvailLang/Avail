@@ -71,6 +71,7 @@ import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -1093,7 +1094,7 @@ extends JFrame
 	 *
 	 * @return The (invisible) root of the module tree.
 	 */
-	public TreeNode newModuleTree ()
+	public final TreeNode newModuleTree ()
 	{
 		final ModuleRoots roots = resolver.moduleRoots();
 		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(
@@ -1132,7 +1133,7 @@ extends JFrame
 	 *
 	 * @return The (invisible) root of the entry points tree.
 	 */
-	public TreeNode newEntryPointsTree ()
+	public final TreeNode newEntryPointsTree ()
 	{
 		final Object mutex = new Object();
 		final Map<String, DefaultMutableTreeNode> moduleNodes = new HashMap<>();
@@ -1317,32 +1318,6 @@ extends JFrame
 			return ((EntryPointModuleNode)selection).resolvedModuleName();
 		}
 		return null;
-	}
-
-	/**
-	 * Redirect the standard streams.
-	 */
-	@InnerAccess void redirectStandardStreams ()
-	{
-		try
-		{
-			outputStream = new PrintStream(
-				new BuildOutputStream(OUT),
-				false,
-				StandardCharsets.UTF_8.name());
-			errorStream = new PrintStream(
-				new BuildOutputStream(ERR),
-				false,
-				StandardCharsets.UTF_8.name());
-		}
-		catch (final UnsupportedEncodingException e)
-		{
-			assert false : "Somehow Java doesn't support characters.";
-		}
-		inputStream = new BuildInputStream();
-		System.setOut(outputStream);
-		System.setErr(errorStream);
-		System.setIn(inputStream);
 	}
 
 	/**
@@ -1666,13 +1641,7 @@ extends JFrame
 				html = "<html>" + html + "</html>";
 				final JComponent component =
 					(JComponent) super.getTreeCellRendererComponent(
-						tree,
-						html,
-						selected1,
-						expanded,
-						leaf,
-						row,
-						hasFocus1);
+						tree, html, selected1, expanded, leaf, row, hasFocus1);
 				return component;
 			}
 			return super.getTreeCellRendererComponent(
@@ -1710,51 +1679,42 @@ extends JFrame
 
 		// Create the menu bar and its menus.
 		final JMenuBar menuBar = new JMenuBar();
-		final JMenu buildMenu = new JMenu("Build");
+		final JMenu buildMenu = menu("Build");
 		if (!runningOnMac)
 		{
-			buildMenu.add(new JMenuItem(aboutAction));
-			buildMenu.addSeparator();
+			augment(buildMenu, aboutAction, null);
 		}
-		buildMenu.add(new JMenuItem(buildAction));
-		buildMenu.add(new JMenuItem(cancelAction));
-		buildMenu.addSeparator();
-		buildMenu.add(new JMenuItem(unloadAction));
-		buildMenu.add(new JMenuItem(unloadAllAction));
-		buildMenu.add(new JMenuItem(cleanAction));
-		buildMenu.addSeparator();
-		buildMenu.add(new JMenuItem(refreshAction));
+		augment(
+			buildMenu,
+			buildAction, cancelAction, null,
+			unloadAction, unloadAllAction, cleanAction, null,
+			refreshAction);
 		menuBar.add(buildMenu);
-		final JMenu documentationMenu = new JMenu("Document");
-		documentationMenu.add(new JMenuItem(documentAction));
-		documentationMenu.addSeparator();
-		documentationMenu.add(new JMenuItem(setDocumentationPathAction));
-		menuBar.add(documentationMenu);
-		final JMenu runMenu = new JMenu("Run");
-		runMenu.add(new JMenuItem(insertEntryPointAction));
-		runMenu.addSeparator();
-		runMenu.add(new JMenuItem(clearTranscriptAction));
-		menuBar.add(runMenu);
+		menuBar.add(
+			menu(
+				"Document",
+				documentAction, null,
+				setDocumentationPathAction));
+		menuBar.add(
+			menu(
+				"Run",
+				insertEntryPointAction, null,
+				clearTranscriptAction));
 		if (showDeveloperTools)
 		{
-			final JMenu devMenu = new JMenu("Developer");
-			devMenu.add(new JMenuItem(showVMReportAction));
-			devMenu.add(new JMenuItem(resetVMReportDataAction));
-			devMenu.addSeparator();
 			showCCReportAction = new ShowCCReportAction(this, runtime);
-			devMenu.add(new JMenuItem(showCCReportAction));
-			resetCCReportDataAction = new ResetCCReportDataAction(this, runtime);
-			devMenu.add(new JMenuItem(resetCCReportDataAction));
-			devMenu.addSeparator();
-			devMenu.add(new JCheckBoxMenuItem(debugMacroExpansionsAction));
-			devMenu.add(new JCheckBoxMenuItem(debugCompilerAction));
-			devMenu.addSeparator();
+			resetCCReportDataAction =
+				new ResetCCReportDataAction(this, runtime);
 			parserIntegrityCheckAction =
 				new ParserIntegrityCheckAction(this, runtime);
-			devMenu.add(new JMenuItem(parserIntegrityCheckAction));
-			devMenu.addSeparator();
-			devMenu.add(new JMenuItem(graphAction));
-			menuBar.add(devMenu);
+			menuBar.add(
+				menu(
+					"Developer",
+					showVMReportAction, resetVMReportDataAction, null,
+					showCCReportAction, resetCCReportDataAction, null,
+					debugMacroExpansionsAction, debugCompilerAction, null,
+					parserIntegrityCheckAction, null,
+					graphAction));
 		}
 		else
 		{
@@ -1764,13 +1724,11 @@ extends JFrame
 		}
 		setJMenuBar(menuBar);
 
-		final JPopupMenu buildPopup = new JPopupMenu("Modules");
-		buildPopup.add(new JMenuItem(buildAction));
-		buildPopup.add(new JMenuItem(documentAction));
-		buildPopup.addSeparator();
-		buildPopup.add(new JMenuItem(unloadAction));
-		buildPopup.addSeparator();
-		buildPopup.add(new JMenuItem(refreshAction));
+		final JMenu buildPopup = menu(
+			"Modules",
+			buildAction, documentAction, null,
+			unloadAction, null,
+			refreshAction);
 		// The refresh item needs a little help ...
 		InputMap inputMap = getRootPane().getInputMap(
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -1778,33 +1736,23 @@ extends JFrame
 		inputMap.put(KeyStroke.getKeyStroke("F5"), "refresh");
 		actionMap.put("refresh", refreshAction);
 
-		final JPopupMenu entryPointsPopup = new JPopupMenu("Entry points");
-		entryPointsPopup.add(new JMenuItem(buildEntryPointModuleAction));
-		entryPointsPopup.addSeparator();
-		entryPointsPopup.add(new JMenuItem(insertEntryPointAction));
-		entryPointsPopup.addSeparator();
-		entryPointsPopup.add(new JMenuItem(createProgramAction));
-		entryPointsPopup.addSeparator();
-		entryPointsPopup.add(new JMenuItem(refreshAction));
+		final JMenu entryPointsPopup = menu(
+			"Entry points",
+			buildEntryPointModuleAction, null,
+			insertEntryPointAction, null,
+			createProgramAction, null,
+			refreshAction);
 
-		final JPopupMenu transcriptPopup = new JPopupMenu("Transcript");
-		transcriptPopup.add(new JMenuItem(clearTranscriptAction));
+		final JMenu transcriptPopup = menu("Transcript", clearTranscriptAction);
 
 		// Collect the modules and entry points.
 		final TreeNode modules = newModuleTree();
 		final TreeNode entryPoints = newEntryPointsTree();
 
 		// Create the module tree.
-		final JScrollPane moduleTreeScrollArea = new JScrollPane();
-		moduleTreeScrollArea.setHorizontalScrollBarPolicy(
-			HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		moduleTreeScrollArea.setVerticalScrollBarPolicy(
-			VERTICAL_SCROLLBAR_AS_NEEDED);
-		moduleTreeScrollArea.setMinimumSize(new Dimension(100, 0));
 		moduleTree = new JTree(modules);
-		moduleTree.setToolTipText(
-			"All modules, organized by module root.");
-		moduleTree.setComponentPopupMenu(buildPopup);
+		moduleTree.setToolTipText("All modules, organized by module root.");
+		moduleTree.setComponentPopupMenu(buildPopup.getPopupMenu());
 		moduleTree.setEditable(false);
 		moduleTree.setEnabled(true);
 		moduleTree.setFocusable(true);
@@ -1848,19 +1796,12 @@ extends JFrame
 		{
 			moduleTree.expandRow(i);
 		}
-		moduleTreeScrollArea.setViewportView(moduleTree);
 
 		// Create the entry points tree.
-		final JScrollPane entryPointsScrollArea = new JScrollPane();
-		entryPointsScrollArea.setHorizontalScrollBarPolicy(
-			HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		entryPointsScrollArea.setVerticalScrollBarPolicy(
-			VERTICAL_SCROLLBAR_AS_NEEDED);
-		entryPointsScrollArea.setMinimumSize(new Dimension(100, 0));
 		entryPointsTree = new JTree(entryPoints);
 		entryPointsTree.setToolTipText(
 			"All entry points, organized by defining module.");
-		entryPointsTree.setComponentPopupMenu(entryPointsPopup);
+		entryPointsTree.setComponentPopupMenu(entryPointsPopup.getPopupMenu());
 		entryPointsTree.setEditable(false);
 		entryPointsTree.setEnabled(true);
 		entryPointsTree.setFocusable(true);
@@ -1872,7 +1813,7 @@ extends JFrame
 		entryPointsTree.addTreeSelectionListener(new TreeSelectionListener()
 		{
 			@Override
- 			public void valueChanged (final @Nullable TreeSelectionEvent event)
+			public void valueChanged (final @Nullable TreeSelectionEvent event)
 			{
 				setEnablements();
 			}
@@ -1920,7 +1861,6 @@ extends JFrame
 		{
 			entryPointsTree.expandRow(i);
 		}
-		entryPointsScrollArea.setViewportView(entryPointsTree);
 
 		// Create the build progress bar.
 		buildProgress = new JProgressBar(0, 100);
@@ -1935,28 +1875,24 @@ extends JFrame
 
 		// Create the transcript.
 		final JLabel outputLabel = new JLabel("Transcript:");
-		transcriptScrollArea = new JScrollPane();
-		transcriptScrollArea.setHorizontalScrollBarPolicy(
-			HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		transcriptScrollArea.setVerticalScrollBarPolicy(
-			VERTICAL_SCROLLBAR_AS_NEEDED);
+
 		// Make this row and column be where the excess space goes.
 		// And reset the weights...
 		transcript = new JTextPane();
 		transcript.setBorder(BorderFactory.createEtchedBorder());
-		transcript.setComponentPopupMenu(transcriptPopup);
+		transcript.setComponentPopupMenu(transcriptPopup.getPopupMenu());
 		transcript.setEditable(false);
 		transcript.setEnabled(true);
 		transcript.setFocusable(true);
 		transcript.setPreferredSize(new Dimension(0, 500));
-		transcriptScrollArea.setViewportView(transcript);
+		transcriptScrollArea = createScrollPane(transcript);
 
 		// Create the input area.
 		inputLabel = new JLabel("Command:");
 		inputField = new JTextField();
 		inputField.setToolTipText(
 			"Enter commands and interact with Avail programs.  Press "
-			+ "ENTER to submit.");
+				+ "ENTER to submit.");
 		inputField.setAction(new SubmitInputAction(this));
 		inputMap = inputField.getInputMap(JComponent.WHEN_FOCUSED);
 		actionMap = inputField.getActionMap();
@@ -2012,25 +1948,38 @@ extends JFrame
 		}
 
 		// Redirect the standard streams.
-		redirectStandardStreams();
-		final BuildInputStream in = inputStream;
-		final PrintStream out = outputStream;
-		final PrintStream err = errorStream;
-		assert in != null;
-		assert out != null;
-		assert err != null;
+		try
+		{
+			outputStream = new PrintStream(
+				new BuildOutputStream(OUT),
+				false,
+				StandardCharsets.UTF_8.name());
+			errorStream = new PrintStream(
+				new BuildOutputStream(ERR),
+				false,
+				StandardCharsets.UTF_8.name());
+		}
+		catch (final UnsupportedEncodingException e)
+		{
+			// Java must support UTF_8.
+			throw new RuntimeException(e);
+		}
+		inputStream = new BuildInputStream();
+		System.setOut(outputStream);
+		System.setErr(errorStream);
+		System.setIn(inputStream);
 		final TextInterface textInterface = new TextInterface(
-			new ConsoleInputChannel(in),
-			new ConsoleOutputChannel(out),
-			new ConsoleOutputChannel(err));
+			new ConsoleInputChannel(inputStream),
+			new ConsoleOutputChannel(outputStream),
+			new ConsoleOutputChannel(errorStream));
 		runtime.setTextInterface(textInterface);
 		availBuilder.setTextInterface(textInterface);
 
 		final JSplitPane leftPane = new JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,
 			true,
-			moduleTreeScrollArea,
-			entryPointsScrollArea);
+			createScrollPane(moduleTree),
+			createScrollPane(entryPointsTree));
 		leftPane.setDividerLocation(configuration.moduleVerticalProportion());
 		leftPane.setResizeWeight(configuration.moduleVerticalProportion());
 		final JPanel rightPane = new JPanel();
@@ -2048,22 +1997,20 @@ extends JFrame
 			rightPaneLayout.createSequentialGroup()
 				.addGroup(rightPaneLayout.createSequentialGroup()
 					.addComponent(buildProgress))
-				.addGroup(rightPaneLayout.createSequentialGroup()
-					.addComponent(outputLabel)
-					.addComponent(transcriptScrollArea))
+				.addGroup(
+					rightPaneLayout.createSequentialGroup()
+						.addComponent(outputLabel)
+						.addComponent(transcriptScrollArea))
 				.addGroup(rightPaneLayout.createSequentialGroup()
 					.addComponent(inputLabel)
 					.addComponent(
 						inputField,
 						GroupLayout.PREFERRED_SIZE,
-						GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE,
 						GroupLayout.PREFERRED_SIZE)));
 
 		final JSplitPane mainSplit = new JSplitPane(
-			JSplitPane.HORIZONTAL_SPLIT,
-			true,
-			leftPane,
-			rightPane);
+			JSplitPane.HORIZONTAL_SPLIT, true, leftPane, rightPane);
 		mainSplit.setDividerLocation(configuration.leftSectionWidth());
 		getContentPane().add(mainSplit);
 		pack();
@@ -2143,6 +2090,58 @@ extends JFrame
 			}
 		}
 		setEnablements();
+	}
+
+	/**
+	 * Create a menu with the given name and entries, which can be null to
+	 * indicate a separator, a JMenuItem, or an Action to wrap in a JMenuItem.
+	 */
+	private static @NotNull JMenu menu (
+		final String name,
+		final Object... actionsAndSubmenus)
+	{
+		JMenu menu = new JMenu(name);
+		augment(menu, actionsAndSubmenus);
+		return menu;
+	}
+
+	/**
+	 * Augment the given menu with the array of entries, which can be null to
+	 * indicate a separator, a JMenuItem, or an Action to wrap in a JMenuItem.
+	 */
+	private static void augment (final JMenu menu, Object... actionsAndSubmenus)
+	{
+		for (Object item : actionsAndSubmenus)
+		{
+			if (item == null)
+			{
+				menu.addSeparator();
+			}
+			else if (item instanceof Action)
+			{
+				menu.add((Action) item);
+			}
+			else if (item instanceof JMenuItem)
+			{
+				menu.add((JMenuItem) item);
+			}
+			else
+			{
+				assert false : "Bad argument while building menu";
+			}
+		}
+	}
+
+	/** Answer the pane wrapped in a JScrollPane. */
+	private static @NotNull JScrollPane createScrollPane (
+		final Component innerComponent)
+	{
+		final JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane.setMinimumSize(new Dimension(100, 0));
+		scrollPane.setViewportView(innerComponent);
+		return scrollPane;
 	}
 
 	/**

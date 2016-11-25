@@ -1289,7 +1289,7 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Remove the specified {@linkplain A_Fiber fiber} to this {@linkplain
+	 * Remove the specified {@linkplain A_Fiber fiber} from this {@linkplain
 	 * AvailRuntime runtime}.  This should be done when a fiber retires,
 	 * although the {@link FiberReference} mechanism will eventually clean up
 	 * any fiber not explicitly unregistered.

@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.AvailRuntime;
+import com.avail.utility.LRUCache;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -62,21 +62,21 @@ public class ObjectLayoutVariant
 	 * solely for the purpose of explicit subclassing.  This value is always the
 	 * largest value in fieldToSlotIndex.
 	 */
-	public final int realSlotCount;
+	final int realSlotCount;
 
 	/**
 	 * A unique int suitable for distinguishing variants.  This may become more
 	 * useful when Level Two code needs to track metrics and create variant
 	 * specific versions of code without garbage collection complexity.
 	 */
-	public final int variantId;
+	final int variantId;
 
 	/**
 	 * The set of all fields present in this variant.  This includes not just
 	 * the real fields that can hold multiple potential values, but also the
 	 * fields that were created solely for the purpose of explicit subclassing.
 	 */
-	public final A_Set allFields;
+	final A_Set allFields;
 
 	/**
 	 * The mapping from field atoms to slots.  The fields that are created just
@@ -89,25 +89,25 @@ public class ObjectLayoutVariant
 	 * ObjectLayoutVariant}.  Makes it convenient to capture the variant in an
 	 * object register in Level Two code.
 	 */
-	public final A_BasicObject thisPojo;
+	final A_BasicObject thisPojo;
 
 	/** The mutable object descriptor for this variant. */
-	public final ObjectDescriptor mutableObjectDescriptor;
+	final ObjectDescriptor mutableObjectDescriptor;
 
 	/** The immutable object descriptor for this variant. */
-	public final ObjectDescriptor immutableObjectDescriptor;
+	final ObjectDescriptor immutableObjectDescriptor;
 
 	/** The shared object descriptor for this variant. */
-	public final ObjectDescriptor sharedObjectDescriptor;
+	final ObjectDescriptor sharedObjectDescriptor;
 
 	/** The mutable object type descriptor for this variant. */
-	public final ObjectTypeDescriptor mutableObjectTypeDescriptor;
+	final ObjectTypeDescriptor mutableObjectTypeDescriptor;
 
 	/** The immutable object type descriptor for this variant. */
-	public final ObjectTypeDescriptor immutableObjectTypeDescriptor;
+	final ObjectTypeDescriptor immutableObjectTypeDescriptor;
 
 	/** The shared object type descriptor for this variant. */
-	public final ObjectTypeDescriptor sharedObjectTypeDescriptor;
+	final ObjectTypeDescriptor sharedObjectTypeDescriptor;
 
 	/**
 	 * Create a new {@link ObjectLayoutVariant} for the given set of fields.
@@ -120,7 +120,8 @@ public class ObjectLayoutVariant
 	 *        {@link #variantsCounter} while holding the writeLock of the
 	 *        {@link #variantsLock}.
 	 */
-	ObjectLayoutVariant (final A_Set allFields, final int variantId)
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
+	private ObjectLayoutVariant (final A_Set allFields, final int variantId)
 	{
 		this.allFields = allFields.makeShared();
 		final A_Atom explicitSubclassingKey =
@@ -164,7 +165,8 @@ public class ObjectLayoutVariant
 	}
 
 	/** The collection of all variants, indexed by the set of field atoms. */
-	final static Map<A_Set, ObjectLayoutVariant> allVariants = new HashMap<>();
+	private final static Map<A_Set, ObjectLayoutVariant> allVariants =
+		new HashMap<>();
 
 	/** The lock used to protect access to the allVariants map. */
 	private final static ReadWriteLock variantsLock =

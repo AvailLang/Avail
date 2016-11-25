@@ -204,12 +204,6 @@ implements Comparable<AvailTask>, Runnable
 		};
 	}
 
-	/**
-	 * Has the {@linkplain AvailTask task} already run? A task is forbidden to
-	 * run twice.
-	 */
-	protected boolean alreadyRun;
-
 	/** The priority of the {@linkplain AvailTask task}. */
 	public final int priority;
 
@@ -235,11 +229,6 @@ implements Comparable<AvailTask>, Runnable
 	@Override
 	public final void run ()
 	{
-		synchronized (this)
-		{
-			assert !alreadyRun;
-			alreadyRun = true;
-		}
 		try
 		{
 			value();
