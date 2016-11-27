@@ -610,7 +610,7 @@ public abstract class AbstractStacksScanner
 					else
 					{
 						scanner.beingTokenized().appendCodePoint(c);
-						if (canErase && !Character.isWhitespace(c) && c != '*')
+						if (canErase && !Character.isWhitespace(c))
 						{
 							canErase = false;
 						}
@@ -734,13 +734,11 @@ public abstract class AbstractStacksScanner
 							scanner);
 					}
 					scanner.beingTokenized().appendCodePoint(value);
-					assert c == ',' || c == ')';
 					if (c == ',')
 					{
 						c = scanner.next();
 					}
 				}
-				assert c == ')';
 			}
 		},
 

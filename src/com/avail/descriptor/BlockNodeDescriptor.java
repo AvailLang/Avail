@@ -148,7 +148,7 @@ extends ParseNodeDescriptor
 		{
 			explicitResultType = null;
 		}
-		@Nullable A_Set declaredExceptions = object.declaredExceptions();
+		A_Set declaredExceptions = object.declaredExceptions();
 		if (declaredExceptions.setSize() == 0)
 		{
 			declaredExceptions = null;

@@ -997,6 +997,17 @@ public final class AvailBuilder
 				true,
 				textInterface,
 				pollForAbort,
+				new CompilerProgressReporter()
+				{
+					@Override
+					public void value (
+						@Nullable final ModuleName moduleName,
+						@Nullable final Long moduleSize,
+						@Nullable final Long position)
+					{
+						// do nothing.
+					}
+				},
 				new Continuation1<AvailCompiler>()
 				{
 					@Override
@@ -1146,7 +1157,10 @@ public final class AvailBuilder
 									loadedModule.sourceDigest);
 							}
 						}
-						getLoadedModule(moduleName).deletionRequest = dirty;
+						final LoadedModule loadedModule =
+							getLoadedModule(moduleName);
+						assert loadedModule != null;
+						loadedModule.deletionRequest = dirty;
 						log(Level.FINEST, "(Module %s is dirty)", moduleName);
 						completionAction.value();
 					}
@@ -1262,13 +1276,15 @@ public final class AvailBuilder
 							for (final ResolvedModuleName predecessor
 								: moduleGraph.predecessorsOf(moduleName))
 							{
-								final LoadedModule loadedModule =
+								final LoadedModule predecessorLoadedModule =
 									getLoadedModule(predecessor);
-								assert loadedModule != null;
-								if (loadedModule.deletionRequest)
+								assert predecessorLoadedModule != null;
+								if (predecessorLoadedModule.deletionRequest)
 								{
-									getLoadedModule(moduleName).deletionRequest
-										= true;
+									final LoadedModule loadedModule =
+										getLoadedModule(moduleName);
+									assert loadedModule != null;
+									loadedModule.deletionRequest = true;
 									break;
 								}
 							}
@@ -1516,6 +1532,17 @@ public final class AvailBuilder
 				true,
 				textInterface,
 				pollForAbort,
+				new CompilerProgressReporter()
+				{
+					@Override
+					public void value (
+						@Nullable final ModuleName moduleName,
+						@Nullable final Long moduleSize,
+						@Nullable final Long position)
+					{
+						// do nothing
+					}
+				},
 				new Continuation1<AvailCompiler>()
 				{
 					@Override
@@ -1710,9 +1737,9 @@ public final class AvailBuilder
 		 * <li>the name of the module currently undergoing {@linkplain
 		 * AvailCompiler compilation} as part of the recursive build
 		 * of target,</li>
-		 * <li>the current line number within the current module,</li>
-		 * <li>the position of the ongoing parse (in bytes), and</li>
 		 * <li>the size of the module in bytes.</li>
+		 * <li>the current token at which parsing is taking place,</li>
+		 * </ol>
 		 */
 		@InnerAccess final CompilerProgressReporter localTracker;
 
@@ -1725,7 +1752,7 @@ public final class AvailBuilder
 		 * <li>the global size (in bytes) of all modules that will be
 		 * built.</li>
 		 */
-		@InnerAccess final Continuation3<ModuleName, Long, Long> globalTracker;
+		@InnerAccess final Continuation2<Long, Long> globalTracker;
 
 		/**
 		 * Construct a new {@link BuildLoader}.
@@ -1744,7 +1771,6 @@ public final class AvailBuilder
 		 * @param globalTracker
 		 *        A {@linkplain Continuation3 continuation} that accepts
 		 *        <ol>
-		 *        <li>the name of the module undergoing compilation,</li>
 		 *        <li>the number of bytes globally processed, and</li>
 		 *        <li>the global size (in bytes) of all modules that will be
 		 *        built.</li>
@@ -1752,7 +1778,7 @@ public final class AvailBuilder
 		 */
 		public BuildLoader (
 			final CompilerProgressReporter localTracker,
-			final Continuation3<ModuleName, Long, Long> globalTracker)
+			final Continuation2<Long, Long> globalTracker)
 		{
 			this.localTracker = localTracker;
 			this.globalTracker = globalTracker;
@@ -1838,11 +1864,10 @@ public final class AvailBuilder
 		 *        What to do after loading the module successfully.
 		 */
 		@InnerAccess void loadModule (
-				final ResolvedModuleName moduleName,
-				final Continuation0 completionAction)
+			final ResolvedModuleName moduleName,
+			final Continuation0 completionAction)
 		{
-			globalTracker.value(
-				moduleName, bytesCompiled.get(), globalCodeSize());
+			globalTracker.value(bytesCompiled.get(), globalCodeSize());
 			// If the module is already loaded into the runtime, then we
 			// must not reload it.
 			final boolean isLoaded;
@@ -1947,13 +1972,18 @@ public final class AvailBuilder
 		 *        What to do after loading the module successfully.
 		 */
 		private void loadRepositoryModule (
-				final ResolvedModuleName moduleName,
-				final ModuleVersion version,
-				final ModuleCompilation compilation,
-				final byte[] sourceDigest,
-				final Continuation0 completionAction)
+			final ResolvedModuleName moduleName,
+			final ModuleVersion version,
+			final ModuleCompilation compilation,
+			final byte[] sourceDigest,
+			final Continuation0 completionAction)
 		{
-			localTracker.value(moduleName, -1L, null, null);
+			final A_Token fakeStartToken =
+				TokenDescriptor.createSyntheticStart();
+			localTracker.value(
+				moduleName,
+				moduleName.moduleSize(),
+				0L);
 			final A_Module module = ModuleDescriptor.newModule(
 				StringDescriptor.from(moduleName.qualifiedName()));
 			final AvailLoader availLoader =
@@ -1975,7 +2005,7 @@ public final class AvailBuilder
 									postLoad(moduleName, 0L);
 									final Problem problem = new Problem(
 										moduleName,
-										TokenDescriptor.createSyntheticStart(),
+										fakeStartToken,
 										ProblemType.EXECUTION,
 										"Problem loading module: {0}",
 										e.getLocalizedMessage())
@@ -2168,7 +2198,6 @@ public final class AvailBuilder
 			final ModuleCompilationKey compilationKey,
 			final Continuation0 completionAction)
 		{
-
 			final IndexedRepositoryManager repository = moduleName.repository();
 			final ModuleArchive archive = repository.getArchive(
 				moduleName.rootRelativeName());
@@ -2185,33 +2214,6 @@ public final class AvailBuilder
 					{
 						assert compiler != null;
 						compiler.parseModule(
-							new CompilerProgressReporter()
-							{
-								@Override
-								public void value (
-									final @Nullable ModuleName moduleName2,
-									final @Nullable Long moduleSize,
-									final @Nullable ParserState localPosition,
-									final @Nullable A_Phrase lastStatement)
-								{
-									assert moduleName.equals(moduleName2);
-									assert moduleSize != null;
-									assert localPosition != null;
-									localTracker.value(
-										moduleName,
-										moduleSize,
-										localPosition,
-										lastStatement);
-									final long start =
-										localPosition.peekToken().start();
-									globalTracker.value(
-										moduleName,
-										bytesCompiled.addAndGet(
-											start - lastPosition.value),
-										globalCodeSize());
-									lastPosition.value = start;
-								}
-							},
 							new Continuation1<AvailCompilerResult>()
 							{
 								@Override
@@ -2278,6 +2280,26 @@ public final class AvailBuilder
 				false,
 				textInterface,
 				pollForAbort,
+				new CompilerProgressReporter()
+				{
+					@Override
+					public void value (
+						final @Nullable ModuleName moduleName2,
+						final @Nullable Long moduleSize,
+						final @Nullable Long position)
+					{
+						assert moduleName.equals(moduleName2);
+						assert moduleSize != null;
+						assert position != null;
+						localTracker.value(
+							moduleName, moduleSize, position);
+						globalTracker.value(
+							bytesCompiled.addAndGet(
+								position - lastPosition.value),
+							globalCodeSize());
+						lastPosition.value = position;
+					}
+				},
 				continuation,
 				new Continuation0()
 				{
@@ -2293,8 +2315,8 @@ public final class AvailBuilder
 
 		/**
 		 * Report progress related to this module.  In particular, note that the
-		 * current module has advanced from its provided lastPosition to the
-		 * end of the module.
+		 * current module has advanced from its provided lastPosition to the end
+		 * of the module.
 		 *
 		 * @param moduleName
 		 *        The {@linkplain ResolvedModuleName resolved name} of the
@@ -2306,10 +2328,11 @@ public final class AvailBuilder
 			final ResolvedModuleName moduleName,
 			final long lastPosition)
 		{
+			final long moduleSize = moduleName.moduleSize();
 			globalTracker.value(
-				moduleName,
-				bytesCompiled.addAndGet(moduleName.moduleSize() - lastPosition),
+				bytesCompiled.addAndGet(moduleSize - lastPosition),
 				globalCodeSize());
+			localTracker.value(moduleName, moduleSize, moduleSize);
 		}
 
 		/**
@@ -2393,8 +2416,7 @@ public final class AvailBuilder
 			final byte [] digest = archive.digestForFile(moduleName);
 			final ModuleVersionKey versionKey =
 				new ModuleVersionKey(moduleName, digest);
-			final ModuleVersion version = archive.getVersion(versionKey);
-			return version;
+			return archive.getVersion(versionKey);
 		}
 
 		/**
@@ -3088,7 +3110,6 @@ public final class AvailBuilder
 	 * @param globalTracker
 	 *        A {@linkplain Continuation3 continuation} that accepts
 	 *        <ol>
-	 *        <li>the name of the module undergoing compilation,</li>
 	 *        <li>the number of bytes globally processed, and</li>
 	 *        <li>the global size (in bytes) of all modules that will be
 	 *        built.</li>
@@ -3097,7 +3118,7 @@ public final class AvailBuilder
 	public void buildTarget (
 		final ModuleName target,
 		final CompilerProgressReporter localTracker,
-		final Continuation3<ModuleName, Long, Long> globalTracker)
+		final Continuation2<Long, Long> globalTracker)
 	{
 		clearShouldStopBuild();
 		new BuildUnloader().unloadModified();
@@ -3445,10 +3466,22 @@ public final class AvailBuilder
 				module.addImportedName(entry.value());
 			}
 			final AvailCompiler compiler = new AvailCompiler(
+				header,
 				module,
 				scanResult,
 				textInterface,
 				pollForAbort,
+				new CompilerProgressReporter()
+				{
+					@Override
+					public void value (
+						final @Nullable ModuleName moduleName,
+						final @Nullable Long moduleSize,
+						final @Nullable Long position)
+					{
+						// do nothing.
+					}
+				},
 				new BuilderProblemHandler("«collection only»")
 				{
 					@Override

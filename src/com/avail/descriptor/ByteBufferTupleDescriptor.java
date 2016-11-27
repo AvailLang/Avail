@@ -127,7 +127,7 @@ extends TupleDescriptor
 		final ByteBuffer buffer =
 			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
 		final int newSize = originalSize + 1;
-		final AvailObject result = ByteTupleDescriptor.generateFrom(
+		return ByteTupleDescriptor.generateFrom(
 			newSize,
 			new Generator<Short>()
 			{
@@ -141,7 +141,6 @@ extends TupleDescriptor
 						: (short)intValue;
 				}
 			});
-		return result;
 	}
 
 	@Override @AvailMethod

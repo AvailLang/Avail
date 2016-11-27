@@ -282,8 +282,7 @@ public class Catalog
 		final String urlString = String.format(
 			"http://www.fileformat.info/info/unicode/char/%04x/index.html",
 			info.codePoint());
-		final URL url = new URL(urlString);
-		return url;
+		return new URL(urlString);
 	}
 
 	/**

@@ -57,7 +57,7 @@ public interface AbstractSlotsEnum
 	 *
 	 * @return A string that names this enumeration value.
 	 */
-	public @Nullable String name ();
+	public String name ();
 
 	/**
 	 * Answer an integer that identifies this enumeration value uniquely within

@@ -89,13 +89,14 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(1);
 		final A_Type constantType = instruction.constantAt(2);
 
-		boolean canJump = false;
-		boolean mustJump = false;
-		A_Type intersection = null;
+		final boolean canJump;
+		final boolean mustJump;
+		final A_Type intersection;
 		if (registerSet.hasConstantAt(typeReg))
 		{
 			final AvailObject type = registerSet.constantAt(typeReg);
-			mustJump = canJump = !type.isSubtypeOf(constantType);
+			mustJump = !type.isSubtypeOf(constantType);
+			canJump = mustJump;
 			intersection = constantType.typeIntersection(type);
 		}
 		else
@@ -107,11 +108,13 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 			intersection = constantType.typeIntersection(knownType);
 			if (intersection.isBottom())
 			{
-				mustJump = canJump = true;
+				mustJump = true;
+				canJump = true;
 			}
 			else if (knownType.isSubtypeOf(constantType))
 			{
-				mustJump = canJump = false;
+				mustJump = false;
+				canJump = false;
 			}
 			else
 			{
@@ -124,13 +127,11 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 			// It can never be a subtype of the constantType.  Always jump.  The
 			// instructions that follow the jump will become dead code and
 			// be eliminated next pass.
-			assert canJump;
 			naiveTranslator.addInstruction(
 				L2_JUMP.instance,
 				instruction.operands[0]);
 			return true;
 		}
-		assert !mustJump;
 		if (!canJump)
 		{
 			// It is always a subtype of the constantType, so never jump.

@@ -89,13 +89,14 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
 		final A_Type type = instruction.constantAt(2);
 
-		boolean canJump = false;
-		boolean mustJump = false;
-		A_Type intersection = null;
+		final boolean canJump;
+		final boolean mustJump;
+		final A_Type intersection;
 		if (registerSet.hasConstantAt(objectReg))
 		{
 			final AvailObject constant = registerSet.constantAt(objectReg);
-			mustJump = canJump = constant.isInstanceOf(type);
+			mustJump = constant.isInstanceOf(type);
+			canJump = mustJump;
 			final A_Type knownType =
 				AbstractEnumerationTypeDescriptor.withInstance(constant);
 			intersection = type.typeIntersection(knownType);
@@ -108,11 +109,13 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 			intersection = type.typeIntersection(knownType);
 			if (intersection.isBottom())
 			{
-				mustJump = canJump = false;
+				mustJump = false;
+				canJump = false;
 			}
 			else if (knownType.isSubtypeOf(type))
 			{
-				mustJump = canJump = true;
+				mustJump = true;
+				canJump = true;
 			}
 			else
 			{
@@ -125,18 +128,17 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 			// It can never be that kind of object.  Always jump.  The
 			// instructions that follow the jump will become dead code and
 			// be eliminated next pass.
-			assert canJump;
 			naiveTranslator.addInstruction(
 				L2_JUMP.instance,
 				instruction.operands[0]);
 			return true;
 		}
-		assert !mustJump;
 		if (!canJump)
 		{
 			// It is always of the specified type, so never jump.
 			return true;
-		}// Since it's already an X and we're testing for Y, we might be
+		}
+		// Since it's already an X and we're testing for Y, we might be
 		// better off testing for an X∩Y instead.  Let's just assume it's
 		// quicker for now.  Eventually we can extend this idea to testing
 		// things other than types, such as if we know we have a tuple but we

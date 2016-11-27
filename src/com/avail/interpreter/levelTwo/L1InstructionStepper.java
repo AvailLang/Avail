@@ -955,12 +955,12 @@ implements L1OperationDispatcher
 		final boolean skipCheck = integerAt(skipReturnCheckRegister()) != 0;
 		if (skipCheck)
 		{
-			interpreter.returnToCaller(caller, value, skipCheck);
+			interpreter.returnToCaller(caller, value, true);
 		}
 		else
 		{
 			final long before = System.nanoTime();
-			interpreter.returnToCaller(caller, value, skipCheck);
+			interpreter.returnToCaller(caller, value, false);
 			final long after = System.nanoTime();
 			checkedNonPrimitiveReturn.record(
 				after - before, interpreter.interpreterIndex);

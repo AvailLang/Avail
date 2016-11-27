@@ -32,7 +32,6 @@
 
 package com.avail.environment.tasks;
 
-import static javax.swing.SwingUtilities.*;
 import java.awt.*;
 import com.avail.builder.*;
 import com.avail.compiler.AvailCompiler.*;
@@ -78,10 +77,12 @@ extends AbstractWorkbenchTask
 			public void value (
 				final @Nullable ModuleName moduleName,
 				final @Nullable Long moduleSize,
-				final @Nullable ParserState position,
-				final @Nullable A_Phrase lastStatement)
+				final @Nullable Long position)
 			{
-				// Do nothing.
+				assert moduleSize != null;
+				assert position != null;
+				workbench.eventuallyUpdatePerModuleProgress(
+					moduleName, moduleSize, position);
 			}
 		};
 	}
@@ -91,30 +92,19 @@ extends AbstractWorkbenchTask
 	 *
 	 * @return A global tracker.
 	 */
-	private Continuation3<ModuleName, Long, Long> globalTracker ()
+	private Continuation2<Long, Long> globalTracker ()
 	{
-		return new Continuation3<ModuleName, Long, Long>()
+		return new Continuation2<Long, Long>()
 		{
 			@Override
 			public void value (
-				final @Nullable ModuleName moduleName,
 				final @Nullable Long position,
 				final @Nullable Long globalCodeSize)
 			{
-				assert moduleName != null;
 				assert position != null;
 				assert globalCodeSize != null;
-				invokeLater(new Runnable()
-				{
-					@Override
-					public void run ()
-					{
-						workbench.updateBuildProgress(
-							moduleName,
-							position,
-							globalCodeSize);
-					}
-				});
+				workbench.eventuallyUpdateBuildProgress(
+					position, globalCodeSize);
 			}
 		};
 	}

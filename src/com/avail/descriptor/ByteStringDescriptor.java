@@ -578,8 +578,7 @@ extends StringDescriptor
 	{
 		assert isMutable();
 		assert ((size + unusedBytesOfLastLong) & 7) == 0;
-		final AvailObject result = create((size + 7) >> 3);
-		return result;
+		return create((size + 7) >> 3);
 	}
 
 	/**

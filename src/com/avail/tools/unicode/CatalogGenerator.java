@@ -76,8 +76,7 @@ public final class CatalogGenerator
 				catalogPath, StandardCharsets.UTF_8);
 			reader = new JSONReader(fileReader);
 			final JSONData data = reader.read();
-			final Catalog catalog = Catalog.readFrom(data);
-			return catalog;
+			return Catalog.readFrom(data);
 		}
 		catch (final NoSuchFileException e)
 		{

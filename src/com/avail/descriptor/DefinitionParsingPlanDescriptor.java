@@ -63,7 +63,7 @@ import com.avail.compiler.ParsingOperation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class DefinitionParsingPlanDescriptor
+public final class DefinitionParsingPlanDescriptor
 extends Descriptor
 {
 	/**
@@ -116,12 +116,6 @@ extends Descriptor
 		ERROR_PRODUCING_INSTRUCTIONS;
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return false;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 *
@@ -134,11 +128,10 @@ extends Descriptor
 		// Weaken the plan's type to make sure we're not sending something it
 		// won't understand.
 		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
-		final A_DefinitionParsingPlan plan = object;
 		fields.addAll(Arrays.asList(super.o_DescribeForDebugger(object)));
 		try
 		{
-			final A_Tuple instructionsTuple = plan.parsingInstructions();
+			final A_Tuple instructionsTuple = object.parsingInstructions();
 			final List<String> descriptionsList = new ArrayList<>();
 			for (
 				int i = 1, end = instructionsTuple.tupleSize();
@@ -164,7 +157,7 @@ extends Descriptor
 						{
 							builder.append(" Part = '");
 							builder.append(
-								plan.bundle().messageParts().tupleAt(operand)
+								object.bundle().messageParts().tupleAt(operand)
 									.asNativeString());
 							builder.append("'");
 							break;
@@ -204,7 +197,7 @@ extends Descriptor
 				descriptionsList.add(builder.toString());
 			}
 			fields.add(new AvailObjectFieldHelper(
-				plan,
+				object,
 				FakeSlots.SYMBOLIC_INSTRUCTIONS,
 				-1,
 				descriptionsList.toArray(new String[descriptionsList.size()])));
@@ -213,12 +206,12 @@ extends Descriptor
 		{
 			final CharArrayWriter trace = new CharArrayWriter();
 			e.printStackTrace(new PrintWriter(trace));
-			final String[] stackStrings = trace.toString().split("\n");
+			final String[] stackStrings = trace.toString().split("\\n");
 			int lineNumber = 0;
 			for (final String line : stackStrings)
 			{
 				fields.add(new AvailObjectFieldHelper(
-					plan,
+					object,
 					FakeSlots.ERROR_PRODUCING_INSTRUCTIONS,
 					++lineNumber,
 					line));

@@ -180,16 +180,13 @@ public class Compiler
 			public void value (
 				final @Nullable ModuleName module,
 				final @Nullable Long moduleSize,
-				final @Nullable ParserState state,
-				final @Nullable A_Phrase lastStatement)
+				final @Nullable Long position)
 			{
 				assert module != null;
 				assert moduleSize != null;
-				assert state != null;
-				assert lastStatement != null;
+				assert position != null;
 
-				final int parsePosition = state.peekToken().start();
-				final int percent = (int) ((parsePosition * 100) / moduleSize);
+				final int percent = (int) ((position * 100) / moduleSize);
 				String modName = module.qualifiedName();
 				final int maxModuleNameLength = 61;
 				final int len = modName.length();
@@ -215,7 +212,7 @@ public class Compiler
 	 * unified status notification can be output regardless of the verbosity
 	 * level.
 	 */
-	@InnerAccess static String globalStatus = "";
+	@InnerAccess static volatile String globalStatus = "";
 
 	/**
 	 * @param configuration The configuration from which to read the verbosity
@@ -223,24 +220,24 @@ public class Compiler
 	 * @return A global tracker to store information about the progress on
 	 *         all modules to be compiled.
 	 */
-	private static Continuation3<ModuleName, Long, Long> globalTracker(
+	private static Continuation2<Long, Long> globalTracker(
 		final CompilerConfiguration configuration)
 	{
-		return new Continuation3<ModuleName, Long, Long>()
+		return new Continuation2<Long, Long>()
 		{
 			@Override
 			public void value (
-				@Nullable final ModuleName module,
 				@Nullable final Long processedBytes,
 				@Nullable final Long totalBytes)
 			{
-				assert module != null;
 				assert processedBytes != null;
 				assert totalBytes != null;
 
-				final int percent = (int) ((processedBytes * 100) / totalBytes);
+				final int perThousand =
+					(int) ((processedBytes * 1000) / totalBytes);
+				final float percent = perThousand / 10.0f;
 				globalStatus = String.format(
-					"Build Progress - %3d%%", percent);
+					"Build Progress - %3.1f%%", percent);
 				final VerbosityLevel level = configuration.verbosityLevel();
 				if (level.displayGlobalProgress() &&
 					!level.displayLocalProgress())

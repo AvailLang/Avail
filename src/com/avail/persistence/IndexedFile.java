@@ -744,10 +744,10 @@ extends AbstractList<byte[]>
 		// Write the header.
 		final byte[] headerBytes = headerBytes();
 		previousMasterPosition =
-			((headerBytes.length + 16 + pageSize - 1) / pageSize) * pageSize;
+			((headerBytes.length + 16L + pageSize - 1) / pageSize) * pageSize;
 		masterPosition = previousMasterPosition + masterNodeSize();
 		final long fileLimit = masterPosition + masterNodeSize();
-		final long bufferSize = previousMasterPosition + masterNodeSize() * 2;
+		final long bufferSize = previousMasterPosition + masterNodeSize() << 1;
 		assert bufferSize == (int) bufferSize;
 		final ByteBuffer buffer = ByteBuffer.allocateDirect((int) bufferSize);
 		buffer.order(ByteOrder.BIG_ENDIAN);
@@ -762,6 +762,7 @@ extends AbstractList<byte[]>
 		// Write the master blocks.
 		MasterNode m = new MasterNode(1, fileLimit);
 		final ByteBuffer b = masterNodeBuffer;
+		assert b != null;
 		m.writeTo(b);
 		buffer.put(b);
 		assert buffer.position() == masterPosition;
@@ -781,7 +782,7 @@ extends AbstractList<byte[]>
 			tempFilename.deleteOnExit();
 			file = new RandomAccessFile(tempFilename, "rw");
 			assert file().length() == 0 : "The file is not empty.";
-			file().setLength(pageSize * 100);
+			file().setLength(pageSize * 100L);
 			channel = file().getChannel();
 			longTermLock = acquireLockForWriting(true);
 			channel().write(buffer);
@@ -1568,7 +1569,6 @@ extends AbstractList<byte[]>
 					previousMasterPosition = masterPosition;
 					masterPosition = tempPos;
 				}
-				assert current != null;
 				if (master != null
 					&& master().serialNumber != current.serialNumber)
 				{

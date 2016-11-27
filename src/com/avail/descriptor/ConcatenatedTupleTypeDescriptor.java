@@ -651,9 +651,8 @@ extends TypeDescriptor
 		{
 			highIndexInB = tupleType2.typeTuple().tupleSize() + 1;
 		}
-		final A_Type typeUnion = tupleType1.defaultType().typeUnion(
+		return tupleType1.defaultType().typeUnion(
 			tupleType2.unionOfTypesAtThrough(1, highIndexInB));
-		return typeUnion;
 	}
 
 	/**
@@ -699,12 +698,10 @@ extends TypeDescriptor
 					return elementOfConcatenation(part1, part2, index++);
 				}
 			});
-		final A_Type newObject =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				sizeRangeOfConcatenation(sizes1, sizes2),
-				typeTuple,
-				defaultTypeOfConcatenation(part1, part2));
-		return newObject;
+		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			sizeRangeOfConcatenation(sizes1, sizes2),
+			typeTuple,
+			defaultTypeOfConcatenation(part1, part2));
 	}
 
 	/**

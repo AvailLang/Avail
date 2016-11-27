@@ -86,34 +86,31 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
 		final A_Type value = instruction.constantAt(2);
 
-		boolean canJump = false;
-		boolean mustJump = false;
+		final boolean canJump;
+		final boolean mustJump;
 		if (registerSet.hasConstantAt(objectReg))
 		{
 			final AvailObject constant = registerSet.constantAt(objectReg);
-			mustJump = canJump = constant.equals(value);
+			mustJump = constant.equals(value);
+			canJump = mustJump;
 		}
 		else
 		{
 			assert registerSet.hasTypeAt(objectReg);
 			final A_Type knownType = registerSet.typeAt(objectReg);
 			assert knownType != null;
-			if (value.isInstanceOf(knownType))
-			{
-				canJump = true;
-			}
+			canJump = value.isInstanceOf(knownType);
+			mustJump = false;
 		}
 		if (mustJump)
 		{
 			// It must be that value.  Always jump.  The instructions that
 			// follow the jump will die and be eliminated next pass.
-			assert canJump;
 			naiveTranslator.addInstruction(
 				L2_JUMP.instance,
 				instruction.operands[0]);
 			return true;
 		}
-		assert !mustJump;
 		if (!canJump)
 		{
 			// It is never the specified value, so never jump.

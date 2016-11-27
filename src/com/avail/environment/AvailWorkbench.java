@@ -50,6 +50,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.prefs.Preferences;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -372,7 +373,10 @@ extends JFrame
 		INFO("info", Color.BLUE),
 
 		/** The stream style used to echo commands. */
-		COMMAND("command", Color.MAGENTA);
+		COMMAND("command", Color.MAGENTA),
+
+		/** Progress updates produced by a build. */
+		BUILD_PROGRESS("build", new Color(128, 96, 0));
 
 		/** The name of this style. */
 		final String styleName;
@@ -468,6 +472,7 @@ extends JFrame
 		public synchronized void write (final @Nullable byte[] b)
 		throws IOException
 		{
+			assert b != null;
 			super.write(b);
 			queueForTranscript();
 		}
@@ -478,6 +483,7 @@ extends JFrame
 			final int off,
 			final int len)
 		{
+			assert b != null;
 			super.write(b, off, len);
 			queueForTranscript();
 		}
@@ -592,8 +598,7 @@ extends JFrame
 			{
 				return -1;
 			}
-			final int next = buf[pos++] & 0xFF;
-			return next;
+			return buf[pos++] & 0xFF;
 		}
 
 		@Override
@@ -602,6 +607,7 @@ extends JFrame
 			final int start,
 			final int requestSize)
 		{
+			assert readBuffer != null;
 			if (requestSize <= 0)
 			{
 				return 0;
@@ -808,7 +814,8 @@ extends JFrame
 		new SetDocumentationPathAction(this);
 
 	/** The {@linkplain ShowVMReportAction show VM report action}. */
-	@InnerAccess final ShowVMReportAction showVMReportAction = new ShowVMReportAction(this);
+	@InnerAccess final ShowVMReportAction showVMReportAction =
+		new ShowVMReportAction(this);
 
 	/** The {@linkplain ResetVMReportDataAction reset VM report data action}. */
 	@InnerAccess final ResetVMReportDataAction resetVMReportDataAction =
@@ -1313,7 +1320,7 @@ extends JFrame
 		{
 			return ((EntryPointNode)selection).resolvedModuleName();
 		}
-		else if (selection instanceof EntryPointModuleNode)
+		if (selection instanceof EntryPointModuleNode)
 		{
 			return ((EntryPointModuleNode)selection).resolvedModuleName();
 		}
@@ -1321,38 +1328,226 @@ extends JFrame
 	}
 
 	/**
-	 * Update the {@linkplain #buildProgress build progress bar}.
-	 *
-	 * @param moduleName
-	 *        The {@linkplain ModuleDescriptor module} undergoing compilation.
-	 * @param position
-	 *        The parse position, in bytes.
-	 * @param globalCodeSize
-	 *        The module size, in bytes.
+	 * A monitor to serialize access to the current build status information.
 	 */
-	public void updateBuildProgress (
-		final ModuleName moduleName,
-		final Long position,
-		final Long globalCodeSize)
+	private final Object buildGlobalUpdateMonitor = new Object();
+
+	/**
+	 * The position up to which the current build has completed.  Protected by
+	 * {@link #buildGlobalUpdateMonitor}.
+	 */
+	private long latestGlobalBuildPosition = -1;
+
+	/**
+	 * The total number of bytes of code to be loaded.  Protected by {@link
+	 * #buildGlobalUpdateMonitor}.
+	 */
+	private long globalBuildLimit = -1;
+
+	/**
+	 * Whether a user interface task for updating the visible build progress has
+	 * been queued but not yet completed.  Protected by {@link
+	 * #buildGlobalUpdateMonitor}.
+	 */
+	private boolean hasQueuedGlobalBuildUpdate = false;
+
+	/**
+	 * Ensure the new build position information will eventually be presented to
+	 * the display.
+	 *
+	 * @param position
+	 *        The global parse position, in bytes.
+	 * @param globalCodeSize
+	 *        The target number of bytes to parse.
+	 */
+	public void eventuallyUpdateBuildProgress (
+		final long position,
+		final long globalCodeSize)
 	{
-		final int percent = (int) ((position * 100) / globalCodeSize);
-		buildProgress.setValue(percent);
+		synchronized (buildGlobalUpdateMonitor)
+		{
+			latestGlobalBuildPosition = position;
+			globalBuildLimit = globalCodeSize;
+			if (!hasQueuedGlobalBuildUpdate)
+			{
+				hasQueuedGlobalBuildUpdate = true;
+				availBuilder.runtime.timer.schedule(
+					new TimerTask()
+					{
+						@Override
+						public void run ()
+						{
+							invokeLater(new Runnable()
+							{
+								@Override
+								public void run ()
+								{
+									updateBuildProgress();
+								}
+							});
+						}
+					},
+					100);
+			}
+		}
+	}
+
+	/**
+	 * Update the {@linkplain #buildProgress build progress bar}.
+	 */
+	@InnerAccess void updateBuildProgress ()
+	{
+		final long position;
+		final long max;
+		synchronized (buildGlobalUpdateMonitor)
+		{
+			assert hasQueuedGlobalBuildUpdate;
+			position = latestGlobalBuildPosition;
+			max = globalBuildLimit;
+			hasQueuedGlobalBuildUpdate = false;
+		}
+		final int perThousand = (int) ((position * 1000) / max);
+		buildProgress.setValue(perThousand);
+		final float percent = perThousand / 10.0f;
 		buildProgress.setString(String.format(
-			"Build Progress: %,d / %,d bytes (%,d%%)",
+			"Build Progress: %,d / %,d bytes (%3.1f%%)",
 			position,
-			globalCodeSize,
+			max,
 			percent));
 	}
 
+
+	/** A monitor to protect updates to the per module progress. */
+	private final Object perModuleProgressMonitor = new Object();
+
+	/**
+	 * The progress map per module.  Protected by {@link
+	 * #perModuleProgressMonitor}.
+	 */
+	private final Map<ModuleName, Pair<Long, Long>> perModuleProgress =
+		new HashMap<>();
+
+	/**
+	 * The number of characters of text at the start of the transcript which is
+	 * currently displaying per-module progress information.  Protected by
+	 * {@link #perModuleProgressMonitor}
+	 */
+	private int perModuleStatusTextSize = 0;
+
+	/**
+	 * Whether a user interface task for updating the visible per-module
+	 * information has been queued but not yet completed.  Protected by {@link
+	 * #perModuleProgressMonitor}.
+	 */
+	private boolean hasQueuedPerModuleBuildUpdate = false;
+
+	/**
+	 * Progress has been made at loading a module.
+	 */
+	public void eventuallyUpdatePerModuleProgress (
+		final ModuleName moduleName,
+		final long moduleSize,
+		final long position)
+	{
+		synchronized (perModuleProgressMonitor)
+		{
+			if (position == moduleSize)
+			{
+				perModuleProgress.remove(moduleName);
+			}
+			else
+			{
+				perModuleProgress.put(
+					moduleName, new Pair<Long, Long>(position, moduleSize));
+			}
+			if (!hasQueuedPerModuleBuildUpdate)
+			{
+				hasQueuedPerModuleBuildUpdate = true;
+				availBuilder.runtime.timer.schedule(
+					new TimerTask()
+					{
+						@Override
+						public void run ()
+						{
+							invokeLater(new Runnable()
+							{
+								@Override
+								public void run ()
+								{
+									updatePerModuleProgress();
+								}
+							});
+						}
+					},
+					100);
+			}
+		}
+	}
+
+	@InnerAccess void updatePerModuleProgress ()
+	{
+		final List<Map.Entry<ModuleName, Pair<Long, Long>>> progress;
+		synchronized (perModuleProgressMonitor)
+		{
+			assert hasQueuedPerModuleBuildUpdate;
+			progress = new ArrayList<>(perModuleProgress.entrySet());
+			hasQueuedPerModuleBuildUpdate = false;
+		}
+		Collections.sort(
+			progress,
+			new Comparator<Entry<ModuleName, Pair<Long, Long>>>()
+			{
+				@Override
+				public int compare (
+					final Entry<ModuleName, Pair<Long, Long>> entry1,
+					final Entry<ModuleName, Pair<Long, Long>> entry2)
+				{
+					return entry1.getKey().qualifiedName().compareTo(
+						entry2.getKey().qualifiedName());
+				}
+			});
+		final StringBuilder builder = new StringBuilder(100);
+		for (final Entry<ModuleName, Pair<Long, Long>> entry : progress)
+		{
+			final Pair<Long, Long> pair = entry.getValue();
+			builder.append(
+				String.format(
+					"%,6d / %,6d - %s%n",
+					pair.first(),
+					pair.second(),
+					entry.getKey()));
+		}
+		final String string = builder.toString();
+		final StyledDocument doc = transcript.getStyledDocument();
+		try
+		{
+			doc.remove(0, perModuleStatusTextSize);
+			doc.insertString(
+				0,
+				string,
+				BUILD_PROGRESS.styleIn(doc));
+		}
+		catch (final BadLocationException e)
+		{
+			// Shouldn't happen.
+			assert false;
+		}
+		synchronized (perModuleProgressMonitor)
+		{
+			perModuleStatusTextSize = string.length();
+		}
+	}
+
 	/** The user-specific {@link Preferences} for this application to use. */
-	@InnerAccess final Preferences basePreferences =
+	private final Preferences basePreferences =
 		Preferences.userNodeForPackage(getClass());
 
 	/** The key under which to organize all placement information. */
-	final String placementByMonitorNamesString = "placementByMonitorNames";
+	private final static String placementByMonitorNamesString =
+		"placementByMonitorNames";
 
 	/** The leaf key under which to store a single window placement. */
-	final String placementLeafKeyString = "placement";
+	private final static String placementLeafKeyString = "placement";
 
 	/**
 	 * Answer a {@link List} of {@link Rectangle}s corresponding with the
@@ -1360,8 +1555,7 @@ extends JFrame
 	 *
 	 * @return The list of rectangles to which physical screens are mapped.
 	 */
-	@InnerAccess
-	List<String> allScreenNames ()
+	@InnerAccess static List<String> allScreenNames ()
 	{
 		final GraphicsEnvironment graphicsEnvironment =
 			GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -1615,39 +1809,38 @@ extends JFrame
 	 * The {@link DefaultTreeCellRenderer} that knows how to render tree nodes
 	 * for my {@link #moduleTree} and my {@link #entryPointsTree}.
 	 */
-	final DefaultTreeCellRenderer treeRenderer = new DefaultTreeCellRenderer()
-	{
-		@Override
-		public Component getTreeCellRendererComponent(
-			final @Nullable JTree tree,
-			final @Nullable Object value,
-			final boolean selected1,
-			final boolean expanded,
-			final boolean leaf,
-			final int row,
-			final boolean hasFocus1)
+	private final DefaultTreeCellRenderer treeRenderer =
+		new DefaultTreeCellRenderer()
 		{
-			assert value != null;
-			if (value instanceof AbstractBuilderFrameTreeNode)
+			@Override
+			public Component getTreeCellRendererComponent(
+				final @Nullable JTree tree,
+				final @Nullable Object value,
+				final boolean selected1,
+				final boolean expanded,
+				final boolean leaf,
+				final int row,
+				final boolean hasFocus1)
 			{
 				assert tree != null;
-				final AbstractBuilderFrameTreeNode node =
-					(AbstractBuilderFrameTreeNode) value;
-				final Icon icon = node.icon(tree.getRowHeight());
-				setLeafIcon(icon);
-				setOpenIcon(icon);
-				setClosedIcon(icon);
-				String html = node.htmlText(selected1);
-				html = "<html>" + html + "</html>";
-				final JComponent component =
-					(JComponent) super.getTreeCellRendererComponent(
+				assert value != null;
+				if (value instanceof AbstractBuilderFrameTreeNode)
+				{
+					final AbstractBuilderFrameTreeNode node =
+						(AbstractBuilderFrameTreeNode) value;
+					final Icon icon = node.icon(tree.getRowHeight());
+					setLeafIcon(icon);
+					setOpenIcon(icon);
+					setClosedIcon(icon);
+					String html = node.htmlText(selected1);
+					html = "<html>" + html + "</html>";
+					return (JComponent) super.getTreeCellRendererComponent(
 						tree, html, selected1, expanded, leaf, row, hasFocus1);
-				return component;
+				}
+				return super.getTreeCellRendererComponent(
+					tree, value, selected1, expanded, leaf, row, hasFocus1);
 			}
-			return super.getTreeCellRendererComponent(
-				tree, value, selected1, expanded, leaf, row, hasFocus1);
-		}
-	};
+		};
 
 	/**
 	 * Construct a new {@link AvailWorkbench}.
@@ -1863,7 +2056,7 @@ extends JFrame
 		}
 
 		// Create the build progress bar.
-		buildProgress = new JProgressBar(0, 100);
+		buildProgress = new JProgressBar(0, 1000);
 		buildProgress.setToolTipText("Progress indicator for the build.");
 		buildProgress.setDoubleBuffered(true);
 		buildProgress.setEnabled(false);
@@ -1996,11 +2189,19 @@ extends JFrame
 		rightPaneLayout.setVerticalGroup(
 			rightPaneLayout.createSequentialGroup()
 				.addGroup(rightPaneLayout.createSequentialGroup()
-					.addComponent(buildProgress))
+					.addComponent(
+						buildProgress,
+						GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE))
 				.addGroup(
 					rightPaneLayout.createSequentialGroup()
 						.addComponent(outputLabel)
-						.addComponent(transcriptScrollArea))
+						.addComponent(
+							transcriptScrollArea,
+							0,
+							300,
+							Short.MAX_VALUE))
 				.addGroup(rightPaneLayout.createSequentialGroup()
 					.addComponent(inputLabel)
 					.addComponent(

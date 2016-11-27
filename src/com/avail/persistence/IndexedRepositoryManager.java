@@ -951,7 +951,6 @@ public class IndexedRepositoryManager
 			{
 				return null;
 			}
-			assert stacksRecordNumber != -1;
 			lock.lock();
 			try
 			{

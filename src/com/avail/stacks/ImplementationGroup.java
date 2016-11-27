@@ -661,21 +661,6 @@ public class ImplementationGroup
 	}
 
 	/**
-	 * Generate json objects of alias names
-	 * @return
-	 */
-	public ArrayList<String> aliasFilePathsJSON()
-	{
-		final ArrayList<String> jsonFilePaths = new ArrayList<String>();
-		for (final String alias : aliases)
-		{
-			jsonFilePaths
-				.add("\"" + alias + "\" : " + "\"" + filepath() + "\"");
-		}
-		return jsonFilePaths;
-	}
-
-	/**
 	 * Merge the input {@linkplain ImplementationGroup group} with this group
 	 * @param group
 	 * 		The {@linkplain ImplementationGroup} to merge into this group.

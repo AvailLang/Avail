@@ -83,28 +83,29 @@ public class L2_RETURN extends L2Operation
 		final boolean skipCheck = skipCheckReg.in(interpreter) != 0;
 		if (skipCheck)
 		{
-			interpreter.returnToCaller(continuation, value, skipCheck);
+			interpreter.returnToCaller(continuation, value, true);
 		}
-		else
+		else if (continuation.equalsNil())
 		{
-			final A_RawFunction returnee = continuation.equalsNil()
-				? null
-				: continuation.function().code();
-			final A_RawFunction returner = returnee == null
-				? null
-				: interpreter.pointerAt(FixedRegister.FUNCTION).code();
+			// Final return from fiber.
 			final long before = System.nanoTime();
-			interpreter.returnToCaller(continuation, value, skipCheck);
+			interpreter.returnToCaller(continuation, value, false);
 			final long after = System.nanoTime();
 			checkedNonPrimitiveReturn.record(
 				after - before, interpreter.interpreterIndex);
-			if (returnee != null)
-			{
-				interpreter.recordCheckedReturnFromTo(
-					returner,
-					returnee,
-					after - before);
-			}
+		}
+		else
+		{
+			final A_RawFunction returnee = continuation.function().code();
+			final A_RawFunction returner =
+				interpreter.pointerAt(FixedRegister.FUNCTION).code();
+			final long before = System.nanoTime();
+			interpreter.returnToCaller(continuation, value, false);
+			final long after = System.nanoTime();
+			checkedNonPrimitiveReturn.record(
+				after - before, interpreter.interpreterIndex);
+			interpreter.recordCheckedReturnFromTo(
+				returner, returnee, after - before);
 		}
 	}
 

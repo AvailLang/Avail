@@ -510,7 +510,6 @@ extends Descriptor
 		if (firstIsEnumeration)
 		{
 			// The first is an enumeration and the second is an integer range.
-			assert !secondIsEnumeration;
 			for (final A_Number firstValue : firstComparablesList)
 			{
 				if (firstValue.isFinite())
@@ -553,7 +552,6 @@ extends Descriptor
 		if (secondIsEnumeration)
 		{
 			// The first is an integer range and the second is an enumeration.
-			assert !firstIsEnumeration;
 			for (final A_Number secondValue : secondComparablesList)
 			{
 				if (secondValue.isFinite())
@@ -594,8 +592,6 @@ extends Descriptor
 			return possibleResults;
 		}
 		// They're both integer ranges.  Just check for non-empty intersection.
-		assert !firstIsEnumeration;
-		assert !secondIsEnumeration;
 		if (!firstType.typeIntersection(secondType).equals(
 			BottomTypeDescriptor.bottom()))
 		{

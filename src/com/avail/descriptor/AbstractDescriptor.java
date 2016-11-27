@@ -408,7 +408,6 @@ public abstract class AbstractDescriptor
 			integerSlots.length - (hasVariableIntegerSlots ? 1 : 0);
 	}
 
-
 	/**
 	 * Look up the specified {@link Annotation} from the {@link Enum} constant.
 	 * If the enumeration constant does not have an annotation of that type then

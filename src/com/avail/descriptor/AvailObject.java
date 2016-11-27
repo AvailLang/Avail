@@ -3004,8 +3004,7 @@ implements
 		{
 			return this;
 		}
-		final AvailObject shared = descriptor.o_MakeShared(this);
-		return shared;
+		return descriptor.o_MakeShared(this);
 	}
 
 	/**

@@ -812,19 +812,19 @@ public final class AvailServer
 			if (isRoot)
 			{
 				writer.write("isRoot");
-				writer.write(isRoot);
+				writer.write(true);
 			}
 			final List<ModuleNode> mods = modules;
 			final boolean isPackage = !isRoot && mods != null;
 			if (isPackage)
 			{
 				writer.write("isPackage");
-				writer.write(isPackage);
+				writer.write(true);
 			}
 			if (isResource)
 			{
 				writer.write("isResource");
-				writer.write(isResource);
+				writer.write(true);
 			}
 			final List<ModuleNode> res = resources;
 			if (mods != null || res != null)
@@ -859,7 +859,7 @@ public final class AvailServer
 				if (missingRepresentative)
 				{
 					writer.write("missingRepresentative");
-					writer.write(missingRepresentative);
+					writer.write(true);
 				}
 			}
 			final Throwable e = exception;
@@ -1250,7 +1250,6 @@ public final class AvailServer
 					final @Nullable Continuation0 resumeUpgrader)
 				{
 					assert upgradedChannel != null;
-					assert uuid != null;
 					assert resumeUpgrader != null;
 					assert uuid.equals(receivedUUID);
 					upgradedChannel.upgradeToIOChannel();
@@ -1266,7 +1265,7 @@ public final class AvailServer
 	/**
 	 * Request new I/O-upgraded {@linkplain AvailServerChannel channels} to
 	 * support {@linkplain AvailBuilder#buildTarget(ModuleName,
-	 * CompilerProgressReporter, Continuation3) module loading}.
+	 * CompilerProgressReporter, Continuation2) module loading}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
@@ -1410,26 +1409,18 @@ public final class AvailServer
 				@Override
 				public void value (
 					final @Nullable ModuleName name,
-					final @Nullable Long lineNumber,
-					final @Nullable ParserState state,
-					final @Nullable A_Phrase phrase)
+					final @Nullable Long moduleSize,
+					final @Nullable Long position)
 				{
 					assert name != null;
-					assert lineNumber != null;
+					assert moduleSize != null;
+					assert position != null;
 					final JSONWriter writer = new JSONWriter();
 					writer.startObject();
 					writer.write("module");
 					writer.write(name.qualifiedName());
-					if (lineNumber != -1)
-					{
-						writer.write("line");
-						writer.write(lineNumber);
-					}
-					if (state != null)
-					{
-						writer.write("position");
-						writer.write(state.peekToken().start());
-					}
+					writer.write("position");
+					writer.write(position);
 					writer.endObject();
 					synchronized (localUpdates)
 					{
@@ -1437,21 +1428,17 @@ public final class AvailServer
 					}
 				}
 			},
-			new Continuation3<ModuleName, Long, Long>()
+			new Continuation2<Long, Long>()
 			{
 				@Override
 				public void value (
-					final @Nullable ModuleName name,
 					final @Nullable Long bytesSoFar,
 					final @Nullable Long totalBytes)
 				{
-					assert name != null;
 					assert bytesSoFar != null;
 					assert totalBytes != null;
 					final JSONWriter writer = new JSONWriter();
 					writer.startObject();
-					writer.write("module");
-					writer.write(name.qualifiedName());
 					writer.write("bytesSoFar");
 					writer.write(bytesSoFar);
 					writer.write("totalBytes");

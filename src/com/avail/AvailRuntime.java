@@ -828,7 +828,6 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			Set<A_Method> methods = new HashSet<>();
 			Set<A_Atom> atoms = new HashSet<>();
 			Set<A_Definition> definitions = new HashSet<>();
 			for (final MapDescriptor.Entry moduleEntry : modules.mapIterable())
@@ -858,6 +857,7 @@ public final class AvailRuntime
 					definitions.add(definition);
 				}
 			}
+			Set<A_Method> methods = new HashSet<>();
 			for (final A_Atom atom : atoms)
 			{
 				final A_Bundle bundle = atom.bundleOrNil();
@@ -866,7 +866,6 @@ public final class AvailRuntime
 					methods.add(bundle.bundleMethod());
 				}
 			}
-			final Set<A_Definition> encounteredDefinitions = new HashSet<>();
 			for (final A_Method method : methods)
 			{
 				Set<A_Definition> bundleDefinitions = new HashSet<>(
@@ -875,7 +874,6 @@ public final class AvailRuntime
 				bundleDefinitions.addAll(
 					TupleDescriptor.<A_Definition>toList(
 						method.macroDefinitionsTuple()));
-				bundleDefinitions.addAll(bundleDefinitions);
 				for (final A_Bundle bundle : method.bundles())
 				{
 					final A_Map bundlePlans = bundle.definitionParsingPlans();
@@ -884,7 +882,8 @@ public final class AvailRuntime
 						System.out.println(
 							"Mismatched definitions / plans:"
 								+ "\n\tbundle = " + bundle
-								+ "\n\tdefinitions# = " + bundleDefinitions.size()
+								+ "\n\tdefinitions# = "
+								+ bundleDefinitions.size()
 								+ "\n\tplans# = " + bundlePlans.mapSize());
 					}
 				}

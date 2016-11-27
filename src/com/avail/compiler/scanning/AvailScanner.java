@@ -694,13 +694,11 @@ public class AvailScanner
 							scanner);
 					}
 					stringBuilder.appendCodePoint(value);
-					assert c == ',' || c == ')';
 					if (c == ',')
 					{
 						c = scanner.next();
 					}
 				}
-				assert c == ')';
 			}
 		},
 

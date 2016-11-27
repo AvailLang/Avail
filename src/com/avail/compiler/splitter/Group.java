@@ -456,9 +456,7 @@ extends Expression
 			if (!hasWrapped)
 			{
 				generator.emitWrapped(this, endOfVariation - 1);
-				hasWrapped = true;
 			}
-			assert hasWrapped;
 			generator.emit($loopStart);
 			final A_Type innerPhraseType =
 				subexpressionsTupleType.defaultType();
@@ -611,9 +609,7 @@ extends Expression
 			if (!hasWrapped)
 			{
 				generator.emitWrapped(this, endOfVariation - 1);
-				hasWrapped = true;
 			}
-			assert hasWrapped;
 			// The homogenous part of the tuple, one or more iterations.
 			generator.emit($loopStart);
 			final A_Type sublistPhraseType =

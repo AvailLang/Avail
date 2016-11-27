@@ -201,18 +201,16 @@ public class ModuleName
 	@Override
 	public boolean equals (final @Nullable Object obj)
 	{
-		if (obj instanceof ModuleName)
-		{
-			return qualifiedName.equals(((ModuleName) obj).qualifiedName);
-		}
-		return false;
+		return this == obj
+			|| ((obj instanceof ModuleName)
+				    && qualifiedName.equals(((ModuleName) obj).qualifiedName));
 	}
 
 	@Override
 	public int hashCode ()
 	{
 		// The magic number is a prime.
-		return 345533 * qualifiedName.hashCode();
+		return 345533 * qualifiedName.hashCode() ^ 0x5881271A;
 	}
 
 	@Override

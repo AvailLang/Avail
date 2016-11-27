@@ -539,16 +539,9 @@ public final class Interpreter
 			availLoader = newFiber.availLoader();
 			final boolean readsBeforeWrites =
 				newFiber.traceFlag(TRACE_VARIABLE_READS_BEFORE_WRITES);
-			if (readsBeforeWrites)
-			{
-				traceVariableReadsBeforeWrites = readsBeforeWrites;
-				traceVariableWrites = true;
-			}
-			else
-			{
-				traceVariableReadsBeforeWrites = false;
-				traceVariableWrites = newFiber.traceFlag(TRACE_VARIABLE_WRITES);
-			}
+			traceVariableReadsBeforeWrites = readsBeforeWrites;
+			traceVariableWrites =
+				readsBeforeWrites || newFiber.traceFlag(TRACE_VARIABLE_WRITES);
 		}
 		else
 		{
@@ -789,7 +782,7 @@ public final class Interpreter
 	 * Should the {@linkplain Interpreter interpreter} exit its {@linkplain
 	 * #run() run loop}?
 	 */
-	@InnerAccess boolean exitNow = true;
+	@InnerAccess volatile boolean exitNow = true;
 
 	/**
 	 * A {@linkplain Continuation0 continuation} to run after a {@linkplain
@@ -1922,7 +1915,6 @@ public final class Interpreter
 	 * set up to run something other than a (successful) primitive function at
 	 * the outermost level.
 	 */
-	@SuppressWarnings("null")
 	@InnerAccess void run ()
 	{
 		startTick = runtime.clock.get();
@@ -1935,7 +1927,9 @@ public final class Interpreter
 			 * continuation, <em>not</em> the caller. That is, only the
 			 * callerRegister()'s content is valid.
 			 */
-			final L2Instruction instruction = chunkInstructions[offset];
+			final L2Instruction[] instructions = chunkInstructions;
+			assert instructions != null;
+			final L2Instruction instruction = instructions[offset];
 			final L2Operation operation = instruction.operation;
 			if (debugL2)
 			{

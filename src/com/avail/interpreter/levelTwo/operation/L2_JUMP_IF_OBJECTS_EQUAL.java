@@ -93,8 +93,9 @@ public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
 			// Both constants are known.  This is its own special case to
 			// deal with instance metas that are known by value, not just by
 			// their type (which would be too weak to draw conclusions).
-			canJump = mustJump = registerSet.constantAt(firstReg).equals(
+			mustJump = registerSet.constantAt(firstReg).equals(
 				registerSet.constantAt(secondReg));
+			canJump = mustJump;
 		}
 		else
 		{
@@ -104,12 +105,14 @@ public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
 				firstType.typeIntersection(secondType);
 			if (intersection.isBottom())
 			{
-				canJump = mustJump = false;
+				canJump = false;
+				mustJump = false;
 			}
 			else if (intersection.instanceCount().equalsInt(1)
 				&& !intersection.isInstanceMeta())
 			{
-				canJump = mustJump = true;
+				canJump = true;
+				mustJump = true;
 			}
 			else
 			{
@@ -122,13 +125,11 @@ public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
 		{
 			// Jump unconditionally.  The instructions that follow the
 			// replacement jump will die and be eliminated next pass.
-			assert canJump;
 			naiveTranslator.addInstruction(
 				L2_JUMP.instance,
 				instruction.operands[0]);
 			return true;
 		}
-		assert !mustJump;
 		if (!canJump)
 		{
 			// Never jump.  Leave off the jump, and let the code at the target

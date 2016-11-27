@@ -38,6 +38,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.utility.evaluation.*;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
@@ -74,15 +75,6 @@ import com.avail.utility.MutableOrNull;
 import com.avail.utility.Pair;
 import com.avail.utility.PrefixSharingList;
 import com.avail.utility.Strings;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Continuation2;
-import com.avail.utility.evaluation.Continuation4;
-import com.avail.utility.evaluation.Describer;
-import com.avail.utility.evaluation.FormattingDescriber;
-import com.avail.utility.evaluation.SimpleDescriber;
-import com.avail.utility.evaluation.Transformer1;
-import com.avail.utility.evaluation.Transformer3;
 
 import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
@@ -144,9 +136,13 @@ public final class AvailCompiler
 	 * The {@linkplain AvailCompiler compiler} notifies a {@code
 	 * CompilerProgressReporter} whenever a top-level statement is parsed
 	 * unambiguously.
+	 *
+	 * <p>The {@link #value(Object, Object, Object)} method takes the module
+	 * name, the module size in bytes, and the current parse position within the
+	 * module.</p>
 	 */
 	public interface CompilerProgressReporter
-	extends Continuation4<ModuleName, Long, ParserState, A_Phrase>
+	extends Continuation3<ModuleName, Long, Long>
 	{
 		// nothing
 	}
@@ -310,6 +306,7 @@ public final class AvailCompiler
 		final boolean stopAfterBodyToken,
 		final TextInterface textInterface,
 		final Generator<Boolean> pollForAbort,
+		final CompilerProgressReporter reporter,
 		final Continuation1<AvailCompiler> succeed,
 		final Continuation0 afterFail,
 		final ProblemHandler problemHandler)
@@ -350,10 +347,14 @@ public final class AvailCompiler
 						return;
 					}
 					final AvailCompiler compiler = new AvailCompiler(
-						resolvedName,
+						new ModuleHeader(resolvedName),
+						ModuleDescriptor.newModule(
+							StringDescriptor.from(
+								resolvedName.qualifiedName())),
 						result,
 						textInterface,
 						pollForAbort,
+						reporter,
 						problemHandler);
 					succeed.value(compiler);
 				}
@@ -365,6 +366,10 @@ public final class AvailCompiler
 	/**
 	 * Construct a new {@link AvailCompiler}.
 	 *
+	 * @param moduleHeader
+	 *        The {@link ModuleHeader module header} of the module to compile.
+	 *        May be null for synthetic modules (for entry points), or when
+	 *        parsing the header.
 	 * @param module
 	 *        The current {@linkplain ModuleDescriptor module}.
 	 * @param scannerResult
@@ -374,18 +379,28 @@ public final class AvailCompiler
 	 *        A_Fiber fibers} started by this compiler.
 	 * @param pollForAbort
 	 *        How to quickly check if the client wants to abort compilation.
+	 * @param progressReporter
+	 *        How to report progress to the client who instigated compilation.
+	 *        This {@linkplain CompilerProgressReporter continuation} that
+	 *        accepts the {@linkplain ModuleName name} of the {@linkplain
+	 *        ModuleDescriptor module} undergoing {@linkplain
+	 *        AvailCompiler compilation}, the line number on which the
+	 *        last complete statement concluded, the position of the ongoing
+	 *        parse (in bytes), and the size of the module (in bytes).
 	 * @param problemHandler
 	 *        The {@link ProblemHandler} used for reporting compilation
 	 *        problems.
 	 */
 	public AvailCompiler (
+		final @Nullable ModuleHeader moduleHeader,
 		final A_Module module,
 		final AvailScannerResult scannerResult,
 		final TextInterface textInterface,
 		final Generator<Boolean> pollForAbort,
+		final CompilerProgressReporter progressReporter,
 		final ProblemHandler problemHandler)
 	{
-		this.moduleHeader = null;
+		this.moduleHeader = moduleHeader;
 		this.module = module;
 		this.source = scannerResult.source();
 		this.tokens = scannerResult.outputTokens();
@@ -393,42 +408,7 @@ public final class AvailCompiler
 		this.commentTokens = scannerResult.commentTokens();
 		this.textInterface = textInterface;
 		this.pollForAbort = pollForAbort;
-		this.problemHandler = problemHandler;
-	}
-
-	/**
-	 * Construct a new {@link AvailCompiler}.
-	 *
-	 * @param moduleName
-	 *        The {@link ResolvedModuleName resolved name} of the module to
-	 *        compile.
-	 * @param scannerResult
-	 *        An {@link AvailScannerResult}.
-	 * @param textInterface
-	 *        The {@linkplain TextInterface text interface} for any {@linkplain
-	 *        A_Fiber fibers} started by this compiler.
-	 * @param pollForAbort
-	 *        How to quickly check if the client wants to abort compilation.
-	 * @param problemHandler
-	 *        The {@link ProblemHandler} used for reporting compilation
-	 *        problems.
-	 */
-	@InnerAccess AvailCompiler (
-		final ResolvedModuleName moduleName,
-		final AvailScannerResult scannerResult,
-		final TextInterface textInterface,
-		final Generator<Boolean> pollForAbort,
-		final ProblemHandler problemHandler)
-	{
-		this.moduleHeader = new ModuleHeader(moduleName);
-		this.module = ModuleDescriptor.newModule(
-			StringDescriptor.from(moduleName.qualifiedName()));
-		this.source = scannerResult.source();
-		this.tokens = scannerResult.outputTokens();
-		this.tokensTuple = TupleDescriptor.fromList(tokens).makeShared();
-		this.commentTokens = scannerResult.commentTokens();
-		this.textInterface = textInterface;
-		this.pollForAbort = pollForAbort;
+		this.progressReporter = progressReporter;
 		this.problemHandler = problemHandler;
 	}
 
@@ -2077,9 +2057,8 @@ public final class AvailCompiler
 		// line after the last problem token.
 		final ProblemsAtToken lastProblem = ascending.get(ascending.size() - 1);
 		final int finalLineNumber = lastProblem.token.lineNumber();
-		final int startOfLine =
+		int startOfNextLine =
 			source.lastIndexOf('\n', lastProblem.token.start() - 1) + 1;
-		int startOfNextLine = startOfLine;
 		// Eat 1 + the number of embedded line breaks.
 		int lineBreaksToEat =
 			lastProblem.token.string().asNativeString().split("\n").length;
@@ -2809,9 +2788,9 @@ public final class AvailCompiler
 			public void value (@Nullable final AvailObject outputPhrase)
 			{
 				assert outputPhrase != null;
-				final A_Map clientDataAfter =
-					fiber.fiberGlobals().mapAt(clientDataGlobalKey());
-				clientParseDataOut.value = clientDataAfter;
+				clientParseDataOut.value = fiber
+					.fiberGlobals()
+					.mapAt(clientDataGlobalKey());
 				onSuccess.value(outputPhrase);
 			}
 		});
@@ -5529,6 +5508,7 @@ public final class AvailCompiler
 				if (errorCode != E_NO_METHOD_DEFINITION)
 				{
 					final AvailErrorCode finalErrorCode = errorCode;
+					assert finalErrorCode != null;
 					stateAfterCall.expected(
 						new Describer()
 						{
@@ -6719,25 +6699,25 @@ public final class AvailCompiler
 			reportError(afterFail);
 			return;
 		}
-		// Update the reporter. This condition just prevents
-		// the reporter from being called twice at the end of a
-		// file.
-		else if (!afterHeader.atEnd())
+		// Update the reporter. This condition just prevents the reporter from
+		// being called twice at the end of a file.
+		if (!afterHeader.atEnd())
 		{
-			final CompilerProgressReporter reporter = progressReporter;
-			assert reporter != null;
-			reporter.value(
+			progressReporter.value(
 				moduleName(),
 				(long) source.length(),
-				afterHeader,
-				null);
+				(long) afterHeader.peekToken().start());
 		}
-		assert afterHeader != null;
 		// Run any side-effects implied by this module header against the
 		// module.
-		final String errorString = moduleHeader().applyToModule(module, runtime);
+		final String errorString =
+			moduleHeader().applyToModule(module, runtime);
 		if (errorString != null)
 		{
+			progressReporter.value(
+				moduleName(),
+				(long) source.length(),
+				(long) source.length());
 			afterHeader.expected(errorString);
 			reportError(afterFail);
 			return;
@@ -6850,14 +6830,10 @@ public final class AvailCompiler
 								return;
 							}
 							// Not the end; report progress.
-							final CompilerProgressReporter reporter =
-								progressReporter;
-							assert reporter != null;
-							reporter.value(
+							progressReporter.value(
 								moduleName(),
 								(long) source.length(),
-								afterStatement,
-								unambiguousStatement);
+								(long) afterStatement.peekToken().start());
 							eventuallyDo(
 								afterStatement.peekToken(),
 								new Continuation0()
@@ -6967,7 +6943,7 @@ public final class AvailCompiler
 	 * number on which the last complete statement concluded, the position of
 	 * the ongoing parse (in bytes), and the size of the module (in bytes).
 	 */
-	@InnerAccess volatile @Nullable CompilerProgressReporter progressReporter;
+	@InnerAccess volatile CompilerProgressReporter progressReporter;
 
 	/**
 	 * The {@linkplain Continuation1 continuation} that reports success of
@@ -7006,14 +6982,6 @@ public final class AvailCompiler
 	 * TokenDescriptor token} list and install it into the {@linkplain
 	 * AvailRuntime runtime}.
 	 *
-	 * @param reporter
-	 *        How to report progress to the client who instigated compilation.
-	 *        This {@linkplain CompilerProgressReporter continuation} that
-	 *        accepts the {@linkplain ModuleName name} of the {@linkplain
-	 *        ModuleDescriptor module} undergoing {@linkplain
-	 *        AvailCompiler compilation}, the line number on which the
-	 *        last complete statement concluded, the position of the ongoing
-	 *        parse (in bytes), and the size of the module (in bytes).
 	 * @param succeed
 	 *        What to do after compilation succeeds. This {@linkplain
 	 *        Continuation1 continuation} is invoked with an {@link
@@ -7022,11 +6990,9 @@ public final class AvailCompiler
 	 *        What to do after compilation fails.
 	 */
 	public synchronized void parseModule (
-		final CompilerProgressReporter reporter,
 		final Continuation1<AvailCompilerResult> succeed,
 		final Continuation0 afterFail)
 	{
-		progressReporter = reporter;
 		successReporter = new Continuation0()
 		{
 			@Override

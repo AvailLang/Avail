@@ -111,7 +111,7 @@ Public class "bad-cast exception" extends bad-multiway-cast exception
  * @param "accept" "[⊥]→⊤"
  *        The function to invoke if {@param "value"} is an instance of the its
  *        parameter type.
- * @returns "any" 
+ * @returns "any"
  * 		The result of {@param "accept"}.
  * @raises "bad-cast exception"
  *         If {@param "value"} is not an instance of {@param "accept"}'s
@@ -200,7 +200,7 @@ Semantic restriction "Cast|cast_into_else_" is
  * "value"}. If no such function is specified, then invoke {@param "else"}. If
  * {@param "else"} is not specified, then raise a {@type
  * "bad-multiway-cast exception"}.
- * 
+ *
  * @method "Cast|cast_into«_‡,»«else_»"
  * @param "value" "any"
  *        An arbitrary value.
@@ -209,7 +209,7 @@ Semantic restriction "Cast|cast_into_else_" is
  *        {@param "value"} will be applied to it.
  * @param "else" "([]→⊤)?"
  *        An optional arity-0 function. If provided, then it will be invoked iff
- *        no function of {@param "caseTuple"} is able to accept {@param 
+ *        no function of {@param "caseTuple"} is able to accept {@param
  *        "value"}.
  * @returns "⊤"
  *          The result of whatever function is applied.
@@ -250,11 +250,11 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 ] : ⊤;
 
 /**
- * Strengthen the return type so the method may be used as a value-producing 
- * expression. If any case is unnecessary or invalid, then reject the current 
+ * Strengthen the return type so the method may be used as a value-producing
+ * expression. If any case is unnecessary or invalid, then reject the current
  * parse.
- * 
- * @method "Cast|cast_into«_‡,»«else_»" 
+ *
+ * @method "Cast|cast_into«_‡,»«else_»"
  * @restricts "any meta"
  * @restricts "<[⊥]→⊤…|2..>'s type"
  * @restricts "([]→⊤)?'s type"
@@ -307,7 +307,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
  * @param "accept" "function"
  *        The function to invoke if each element of {@param "values"} is a
  *        subtype of the corresponding parameter type.
- * @returns "any" 
+ * @returns "any"
  * 		The result of {@param "accept"}.
  * @raises "bad-cast exception"
  *         If any element of {@param "values"} is not an instance of the
@@ -400,7 +400,7 @@ Semantic restriction "Cast|cast each of_into_" is
  * @param "reject" "[]→⊤"
  *        The function to invoke if any element of {@param "values"} is not a
  *        subtype of the corresponding parameter type of {@param "accept"}.
- * @returns "any" 
+ * @returns "any"
  *          The result of {@param "accept"} or {@param "reject"}.
  * @category "Casts" "Control Structures" "Conditionals"
  */

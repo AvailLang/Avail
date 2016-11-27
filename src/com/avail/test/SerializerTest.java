@@ -209,7 +209,8 @@ public final class SerializerTest
 		assertTrue(
 			in().available() == 0,
 			"Serialization stream was not fully emptied");
-		assert deserializer().deserialize() == null;
+		final AvailObject objectAfter = deserializer().deserialize();
+		assert objectAfter == null;
 		return (AvailObject)newObject;
 	}
 

@@ -89,13 +89,14 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
 		final A_Type type = instruction.constantAt(2);
 
-		boolean canJump = false;
-		boolean mustJump = false;
+		final boolean canJump;
+		final boolean mustJump;
 		A_Type intersection = null;
 		if (registerSet.hasConstantAt(objectReg))
 		{
 			final AvailObject constant = registerSet.constantAt(objectReg);
-			mustJump = canJump = !constant.isInstanceOf(type);
+			mustJump = !constant.isInstanceOf(type);
+			canJump = mustJump;
 			final A_Type knownType =
 				AbstractEnumerationTypeDescriptor.withInstance(constant);
 			intersection = type.typeIntersection(knownType);
@@ -108,11 +109,13 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 			intersection = type.typeIntersection(knownType);
 			if (intersection.isBottom())
 			{
-				mustJump = canJump = true;
+				mustJump = true;
+				canJump = true;
 			}
 			else if (knownType.isSubtypeOf(type))
 			{
-				mustJump = canJump = false;
+				mustJump = false;
+				canJump = false;
 			}
 			else
 			{

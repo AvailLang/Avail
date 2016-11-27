@@ -123,8 +123,7 @@ public final class BootstrapGenerator
 			numericCode.extractInt());
 		assert code != null : String.format(
 			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);
-		final String name = errorCodeBundle.getString(errorCodeKey(code));
-		return name;
+		return errorCodeBundle.getString(errorCodeKey(code));
 	}
 
 	/**
@@ -141,8 +140,7 @@ public final class BootstrapGenerator
 		assert code != null : String.format(
 			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);
 		final String codeName = errorCodeBundle.getString(errorCodeKey(code));
-		final String name = codeName.replace(" code", " exception");
-		return name;
+		return codeName.replace(" code", " exception");
 	}
 
 	/**
