@@ -627,7 +627,7 @@ extends ParseNodeDescriptor
 	{
 		return newBlockNode(
 			TupleDescriptor.fromList(argumentsList),
-			IntegerDescriptor.fromInt(primitive),
+			primitive,
 			TupleDescriptor.fromList(statementsList),
 			resultType,
 			declaredExceptions,
@@ -660,7 +660,7 @@ extends ParseNodeDescriptor
 	 */
 	public static AvailObject newBlockNode (
 		final A_Tuple arguments,
-		final A_Number primitive,
+		final int primitive,
 		final A_Tuple statements,
 		final A_Type resultType,
 		final A_Set declaredExceptions,
@@ -684,7 +684,7 @@ extends ParseNodeDescriptor
 		}
 		final AvailObject block = mutable.create();
 		block.setSlot(ARGUMENTS_TUPLE, arguments);
-		block.setSlot(PRIMITIVE, primitive.extractInt());
+		block.setSlot(PRIMITIVE, primitive);
 		block.setSlot(
 			STATEMENTS_TUPLE, TupleDescriptor.fromList(flattenedStatements));
 		block.setSlot(RESULT_TYPE, resultType);

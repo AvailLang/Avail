@@ -72,11 +72,14 @@ extends Expression
 	/**
 	 * Construct a new {@link Optional}.
 	 *
+	 * @param positionInName
+	 *        The position of the group or token in the message name.
 	 * @param sequence
 	 *        The governed {@linkplain Sequence sequence}.
 	 */
-	Optional (final Sequence sequence)
+	Optional (final int positionInName, final Sequence sequence)
 	{
+		super(positionInName);
 		this.sequence = sequence;
 		if (sequence.canBeReordered())
 		{

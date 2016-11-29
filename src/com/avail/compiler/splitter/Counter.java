@@ -76,12 +76,14 @@ extends Expression
 	/**
 	 * Construct a new {@link Counter}.
 	 *
+	 * @param positionInName
+	 *        The position of the start of the group in the message name.
 	 * @param group
-	 *        The {@linkplain Group group} whose occurrences should be
-	 *        counted.
+	 *        The {@linkplain Group group} whose occurrences should be counted.
 	 */
-	Counter (final Group group)
+	Counter (final int positionInName, final Group group)
 	{
+		super(positionInName);
 		this.group = group;
 		explicitOrdinal(group.explicitOrdinal());
 		group.explicitOrdinal(-1);

@@ -144,8 +144,6 @@ public final class P_BootstrapBlockMacro extends Primitive
 		final A_Map scopeMap = scopeStack.tupleAt(scopeStack.tupleSize());
 		final A_Tuple tokens = clientData.mapAt(allTokensKey);
 
-		final List<A_Phrase> allStatements = new ArrayList<>();
-
 		assert optionalArgumentDeclarations.expressionsSize() <= 1;
 		final A_Tuple argumentDeclarationPairs =
 			optionalArgumentDeclarations.expressionsSize() == 0
@@ -172,11 +170,12 @@ public final class P_BootstrapBlockMacro extends Primitive
 		}
 
 		// Deal with the primitive declaration if present.
-		boolean canHaveStatements = true;
 		assert optionalPrimitive.expressionsSize() <= 1;
 		final @Nullable Primitive prim;
 		final int primNumber;
 		final @Nullable A_Type primitiveReturnType;
+		boolean canHaveStatements = true;
+		final List<A_Phrase> allStatements = new ArrayList<>();
 		if (optionalPrimitive.expressionsSize() == 1)
 		{
 			final A_Phrase primPhrase = optionalPrimitive.expressionAt(1);
@@ -184,8 +183,8 @@ public final class P_BootstrapBlockMacro extends Primitive
 			if (!primNamePhrase.parseNodeKindIsUnder(LITERAL_NODE))
 			{
 				throw new AvailRejectedParseException(
-					"primitive specification to be a (compiler created) literal "
-					+ "keyword token");
+					"primitive specification to be a (compiler created) "
+					+ "literal keyword token");
 			}
 			final A_String primName = primNamePhrase.token().string();
 			prim = Primitive.byName(primName.asNativeString());
@@ -234,8 +233,8 @@ public final class P_BootstrapBlockMacro extends Primitive
 		}
 
 		// Deal with the label if present.
-		@Nullable A_Type labelReturnType = null;
 		assert optionalLabel.expressionsSize() <= 1;
+		@Nullable A_Type labelReturnType = null;
 		if (optionalLabel.expressionsSize() == 1)
 		{
 			final A_Phrase presentLabel = optionalLabel.expressionAt(1);

@@ -547,8 +547,7 @@ Private method "Generate and install_accessor for«mutable»?_" is
 	fieldType ::= objectMap[fieldAtom];
 	defineClassAccessor : boolean := false;
 	defineInstanceAccessor : boolean := false;
-	/* If the method doesn't exist at all, then define it and install
-	 * accessors.
+	/* If the method doesn't exist at all, then define it and install accessors.
 	 */
 	If ¬method exists named methodAtom
 		∨ (methodAtom has definition for <objectType>

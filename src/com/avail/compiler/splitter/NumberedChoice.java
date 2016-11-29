@@ -83,10 +83,12 @@ extends Expression
 	/**
 	 * Construct a new {@link NumberedChoice}.
 	 *
-	 * @param alternation The enclosed {@link Alternation}.
+	 * @param alternation
+	 *        The enclosed {@link Alternation}.
 	 */
 	NumberedChoice (final Alternation alternation)
 	{
+		super(alternation.positionInName);
 		this.alternation = alternation;
 	}
 

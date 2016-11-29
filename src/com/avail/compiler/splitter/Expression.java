@@ -48,6 +48,22 @@ import java.util.List;
 abstract class Expression
 {
 	/**
+	 * Create a new Expression, capturing its 1-based start position in the
+	 * message name.
+	 *
+	 * @param positionInName
+	 *        The 1-based position at which this expression starts in the
+	 *        message name string.
+	 */
+	Expression (final int positionInName)
+	{
+		this.positionInName = positionInName;
+	}
+
+	/** The 1-based start position of this expression in the message name. */
+	final int positionInName;
+
+	/**
 	 * The one-based explicit numbering for this argument.  To specify this
 	 * in a message name, a circled number (0-50) immediately follows the
 	 * underscore or ellipsis (or the close guillemet for permuting {@link

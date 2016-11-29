@@ -273,7 +273,7 @@ Private method "private-do-and-also-function" is
 		«[
 			<_argDecl1, _argDecl2>
 		|
-			Primitive 0
+			Primitive ""
 			<_first_of_sequence>
 		] : ⊤ ^ ∅»;
 	_block → function

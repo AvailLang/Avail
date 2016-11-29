@@ -77,10 +77,12 @@ extends Expression
 	 *         If the inner expression has an {@link #explicitOrdinal()}.
 	 */
 	CompletelyOptional (
+		final int positionInName,
 		final MessageSplitter messageSplitter,
 		final Sequence sequence)
-		throws MalformedMessageException
+	throws MalformedMessageException
 	{
+		super(positionInName);
 		this.sequence = sequence;
 		if (sequence.canBeReordered()
 			&& sequence.explicitOrdinal() != -1)

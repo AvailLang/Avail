@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive.controlflow;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+
+import com.avail.descriptor.TypeDescriptor.Types;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -42,9 +44,8 @@ import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**
  * <strong>Primitive:</strong> Run the zero-argument {@linkplain
- * FunctionDescriptor function}, ignoring the leading {@linkplain
- * EnumerationTypeDescriptor#booleanObject() boolean} argument. This is used
- * for short-circuit evaluation.
+ * FunctionDescriptor function}, ignoring the leading {@linkplain Types#ANY any}
+ * argument. This is used for short-circuit evaluation.
  */
 public final class P_ShortCircuitHelper extends Primitive
 {

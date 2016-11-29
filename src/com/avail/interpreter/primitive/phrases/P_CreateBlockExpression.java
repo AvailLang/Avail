@@ -67,7 +67,7 @@ extends Primitive
 	{
 		assert args.size() == 5;
 		final A_Tuple argDecls = args.get(0);
-		final A_Number primitive = args.get(1);
+		final A_String primitiveName = args.get(1);
 		final A_Tuple statements = args.get(2);
 		final A_Type resultType = args.get(3);
 		final A_Set exceptions = args.get(4);
@@ -80,18 +80,28 @@ extends Primitive
 		{
 			statement.flattenStatementsInto(flat);
 		}
+		final int primNumber;
+		if (primitiveName.tupleSize() > 0)
+		{
+			final Primitive primitive =
+				Primitive.byName(primitiveName.asNativeString());
+			if (primitive == null)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PRIMITIVE_NUMBER);
+			}
+			primNumber = primitive.primitiveNumber;
+		}
+		else
+		{
+			primNumber = 0;
+		}
 		if (!ParseNodeTypeDescriptor.containsOnlyStatements(flat, resultType))
 		{
 			return interpreter.primitiveFailure(
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS);
 		}
 		final AvailObject block = newBlockNode(
-			argDecls,
-			primitive,
-			statements,
-			resultType,
-			exceptions,
-			0);
+			argDecls, primNumber, statements, resultType, exceptions, 0);
 		return interpreter.primitiveSuccess(block);
 	}
 
@@ -102,7 +112,7 @@ extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.zeroOrMoreOf(
 					ARGUMENT_NODE.mostGeneralType()),
-				IntegerRangeTypeDescriptor.unsignedShorts(),
+				TupleTypeDescriptor.stringType(),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					PARSE_NODE.mostGeneralType()),
 				InstanceMetaDescriptor.topMeta(),
@@ -117,6 +127,7 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.from(
-				E_BLOCK_CONTAINS_INVALID_STATEMENTS));
+				E_BLOCK_CONTAINS_INVALID_STATEMENTS,
+				E_INVALID_PRIMITIVE_NUMBER));
 	}
 }

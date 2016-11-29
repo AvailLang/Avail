@@ -45,6 +45,7 @@ import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
 
 import java.util.IdentityHashMap;
+import java.util.List;
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
@@ -154,66 +155,8 @@ extends Descriptor
 		final A_Tuple instructions = plan.parsingInstructions();
 		final A_Bundle bundle = plan.bundle();
 		final MessageSplitter messageSplitter = bundle.messageSplitter();
-		final String string = bundle.message().atomName().asNativeString();
-		final int position;
-		if (pc == instructions.tupleSize() + 1)
-		{
-			position = string.length() + 1;
-		}
-		else
-		{
-			final int instruction = instructions.tupleIntAt(pc);
-			final ParsingOperation op = decode(instruction);
-			if (op == PARSE_PART || op == PARSE_PART_CASE_INSENSITIVELY)
-			{
-				position = messageSplitter.messagePartPositions().get(
-					op.keywordIndex(instruction) - 1);
-			}
-			else
-			{
-				int argCounter = 0;
-				for (int index = 1; index <= pc; index++)
-				{
-					final int eachInstruction = instructions.tupleIntAt(index);
-					final ParsingOperation eachOp = decode(eachInstruction);
-					switch (eachOp)
-					{
-						case PARSE_ARGUMENT:
-						case PARSE_TOP_VALUED_ARGUMENT:
-						case PARSE_VARIABLE_REFERENCE:
-						case PARSE_ARGUMENT_IN_MODULE_SCOPE:
-						case PARSE_ANY_RAW_TOKEN:
-						case PARSE_RAW_KEYWORD_TOKEN:
-						case PARSE_RAW_STRING_LITERAL_TOKEN:
-						case PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN:
-						{
-							argCounter++;
-							break;
-						}
-						default:
-							break;
-					}
-				}
-				if (argCounter == 0)
-				{
-					position = 1;
-				}
-				else
-				{
-					final int argPartNumber =
-						messageSplitter
-							.underscorePartNumbers()
-							.get(argCounter - 1);
-					position = messageSplitter.messagePartPositions().get(
-						argPartNumber - 1);
-				}
-			}
-		}
-		final String annotatedString =
-			string.substring(0, position - 1)
-				+ AvailCompiler.errorIndicatorSymbol
-				+ string.substring(position - 1);
-		return StringDescriptor.from(annotatedString).toString();
+		return bundle.messageSplitter().highlightedNameFor(
+			plan.definition().parsingSignature(), pc);
 	}
 
 	@Override

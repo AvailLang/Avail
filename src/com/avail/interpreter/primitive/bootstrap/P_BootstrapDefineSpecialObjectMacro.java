@@ -95,7 +95,7 @@ extends Primitive
 					nameLiteral,
 					BlockNodeDescriptor.newBlockNode(
 						TupleDescriptor.empty(),
-						IntegerDescriptor.fromInt(0),
+						0,
 						TupleDescriptor.from(specialObjectLiteral),
 						specialObjectLiteral.expressionType(),
 						SetDescriptor.empty(),
@@ -136,7 +136,7 @@ extends Primitive
 					ListNodeDescriptor.empty(),
 					BlockNodeDescriptor.newBlockNode(
 						TupleDescriptor.empty(),
-						IntegerDescriptor.fromInt(0),
+						0,
 						TupleDescriptor.from(createLiteralNode),
 						LITERAL_NODE.create(
 							specialObjectLiteral.expressionType()),

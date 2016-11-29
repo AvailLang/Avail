@@ -59,12 +59,15 @@ extends Expression
 	/**
 	 * Construct a new {@link CaseInsensitive}.
 	 *
+	 * @param positionInName
+	 *        The position of this expression in the message name.
 	 * @param expression
 	 *        The {@linkplain Expression expression} whose keywords should
 	 *        be matched case-insensitively.
 	 */
-	CaseInsensitive (final Expression expression)
+	CaseInsensitive (final int positionInName, final Expression expression)
 	{
+		super(positionInName);
 		this.expression = expression;
 		if (expression.canBeReordered())
 		{

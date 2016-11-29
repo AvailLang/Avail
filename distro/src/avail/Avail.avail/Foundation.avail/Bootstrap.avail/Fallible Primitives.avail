@@ -356,18 +356,18 @@ Primitive "new atom named_" is
 
 /**
  * Construct and answer a new atom for use as a field key in an object or
- * object type. This field keys sole purpose is to differentiate the object
+ * object type. This field key's sole purpose is to differentiate the object
  * type from any existing object types. Associate with the atom the supplied
  * string, which should be a name used for debugging purposes only. Atoms have
  * identity and all atoms are distinct, regardless of whether their debug names
  * are equal.
  *
  * @category "Primitives" "Atoms" "Constructors"
- * @method "{0}"
- * @param "{1}" "{2}"
+ * @method "new explicit subclass atom named_"
+ * @param "debugName" "string"
  *        A name to associate with the atom for debugging purposes. This name
  *        does not participate in atom comparison.
- * @returns "{3}"
+ * @returns "atom"
  *    A new atom, distinct from every other atom answered by a different
  *    invocation of this primitive, and marked for use as an explicit subclass
  *    field key in a new object type.
@@ -2687,7 +2687,7 @@ Primitive "`«_:=_`»" is
  * @method "`«[_`|Primitive__]:_^_`»"
  * @param "argumentDeclarations" "argument tuple"
  *        A tuple of argument declarations.
- * @param "primitiveNumber" "unsigned short"
+ * @param "primitiveName" "string"
  *        The primitive linkage number, or 0 for no primitive linkage.
  * @param "statements" "phrase tuple"
  *        A tuple of statements. Each element except for the last must be an
@@ -2698,17 +2698,18 @@ Primitive "`«_:=_`»" is
  *        The set of exceptions that may be raised.
  * @returns "block phrase⇒[…]→⊤"
  *    The requested block.
- * @raises "block-contains-invalid-statements exception"
+ * @raises "invalid-primitive-number exception"
  */
 Primitive "`«[_`|Primitive__]:_^_`»" is
 [
 	argumentDeclarations : argument tuple,
-	primitiveNumber : unsigned short,
+	primitiveName : string,
 	statements : phrase tuple,
 	returnType : type,
 	exceptions : set of exception
 |
 	Primitive CreateBlockExpression (failureCode : {
+		invalid-primitive-number code,
 		block-contains-invalid-statements code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : block phrase;

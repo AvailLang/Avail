@@ -1461,14 +1461,14 @@ Primitive "_'s⁇hash" is
  *
  * @category "Primitives" "Methods" "Queries"
  * @method "_is a primitive"
- * @param "primitiveNumber" "unsigned short"
- *        A potential primitive number.
+ * @param "primitiveName" "string"
+ *        A potential primitive name.
  * @returns "boolean"
  *    `true` if the argument denotes a valid primitive, `false` otherwise.
  */
 Primitive "_is a primitive" is
 [
-	primitiveNumber : unsigned short
+	primitiveName : string
 |
 	Primitive IsPrimitiveDefined;
 ] : boolean;
@@ -3917,8 +3917,8 @@ Primitive "∪_" is
  *        compatible with the parameter type.
  * @param "elseBlock" "nullary procedure"
  *        A zero-argument function to invoke if the value was not compatible
- *        with the first functions parameter.
- * @returns "{7}"
+ *        with the first function's parameter.
+ * @returns "⊤"
  *    The value produced by whichever function ran.  May be ⊤-valued.
  */
 Primitive "Cast|cast_into_else_" is

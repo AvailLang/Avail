@@ -70,8 +70,11 @@ extends Expression
 	/**
 	 * Construct a SectionCheckpoint.
 	 */
-	SectionCheckpoint (final MessageSplitter messageSplitter)
+	SectionCheckpoint (
+		final int positionInName,
+		final MessageSplitter messageSplitter)
 	{
+		super(positionInName);
 		this.subscript = ++messageSplitter.numberOfSectionCheckpoints;
 	}
 

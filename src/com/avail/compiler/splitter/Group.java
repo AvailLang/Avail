@@ -112,15 +112,19 @@ extends Expression
 	/**
 	 * Construct a new {@link Group} having a double-dagger (‡).
 	 *
+	 * @param positionInName
+	 *        The position of the group in the message name.
 	 * @param beforeDagger
 	 *        The {@link Sequence} before the double-dagger.
 	 * @param afterDagger
 	 *        The {@link Sequence} after the double-dagger.
 	 */
 	public Group (
+		final int positionInName,
 		final Sequence beforeDagger,
 		final Sequence afterDagger)
 	{
+		super(positionInName);
 		this.beforeDagger = beforeDagger;
 		this.hasDagger = true;
 		this.afterDagger = afterDagger;
@@ -130,16 +134,20 @@ extends Expression
 	 * Construct a new {@link Group} that does not contain a double-dagger
 	 * (‡).
 	 *
+	 * @param positionInName
+	 *        The position of the group in the message name.
 	 * @param beforeDagger
 	 *        The {@link Sequence} of {@link Expression}s in the group.
 	 */
 	public Group (
+		final int positionInName,
 		final MessageSplitter messageSplitter,
 		final Sequence beforeDagger)
 	{
+		super(positionInName);
 		this.beforeDagger = beforeDagger;
 		this.hasDagger = false;
-		this.afterDagger = new Sequence(messageSplitter);
+		this.afterDagger = new Sequence(positionInName + 1, messageSplitter);
 	}
 
 	@Override

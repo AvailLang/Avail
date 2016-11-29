@@ -88,8 +88,8 @@ extends PropertiesFileGenerator
 				// it.
 				writer.print(primitive.getClass().getSimpleName());
 				writer.print('=');
-				final String primitiveName =
-					properties.getProperty(primitive.getClass().getSimpleName());
+				final String primitiveName = properties.getProperty(
+					primitive.getClass().getSimpleName());
 				if (primitiveName != null)
 				{
 					writer.print(escape(primitiveName));

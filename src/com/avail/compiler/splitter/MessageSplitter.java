@@ -54,11 +54,10 @@ import org.jetbrains.annotations.Nullable;
  * parsing.
  *
  * <p>Message splitting occurs in two phases.  In the first phase, the
- message is tokenized and parsed into an abstract {@link Expression}
- * tree.  In the second phase, a {@linkplain TupleTypeDescriptor tuple type} of
- * {@link com.avail.descriptor.ParseNodeTypeDescriptor phrase types} is
- * supplied, and produces a tuple of integer-encoded {@link ParsingOperation}s.
- * </p>
+ * message is tokenized and parsed into an abstract {@link Expression} tree.
+ * In the second phase, a {@linkplain TupleTypeDescriptor tuple type} of {@link
+ * ParseNodeTypeDescriptor phrase types} is supplied, and produces a tuple of
+ * integer-encoded {@link ParsingOperation}s.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -445,14 +444,16 @@ public final class MessageSplitter
 	}
 
 	/**
-	 * Answer the list of one-based positions in the original string
-	 * corresponding to the {@link #messagePartsList} that have been extracted.
-	 *
-	 * @return A {@link List} of {@link Integer}s.
+	 * Answer the 1-based position of the current message part in the message
+	 * name.
 	 */
-	public List<Integer> messagePartPositions ()
+	private int positionInName()
 	{
-		return messagePartPositions;
+		if (atEnd())
+		{
+			return messageName().tupleSize();
+		}
+		return messagePartPositions.get(messagePartPosition - 1);
 	}
 
 	/**
@@ -546,19 +547,56 @@ public final class MessageSplitter
 	/**
 	 * Answer a {@link List} of {@link Expression} objects that correlates with
 	 * the {@linkplain #instructionsTupleFor(A_Type) parsing instructions}
-	 * generated for the give message name and provided signature tuple type.
+	 * generated for the message name and the provided signature tuple type.
 	 * Note that the list is 0-based and the tuple is 1-based.
 	 *
-	 * @param tupleType The tuple of phrase types for this signature.
+	 * @param phraseType
+	 *        The phrase type (yielding a tuple type) for this signature.
 	 * @return A list that indicates the origin Expression of each {@link
 	 *         ParsingOperation}.
 	 */
-	private List<Expression> originExpressionsFor (final A_Type tupleType)
+	private List<Expression> originExpressionsFor (final A_Type phraseType)
 	{
 		final InstructionGenerator generator = new InstructionGenerator();
-		rootSequence.emitOn(generator, tupleType);
+		rootSequence.emitOn(generator, phraseType);
 		generator.optimizeInstructions();
-		return generator.expressionList();
+		final List<Expression> expressions = generator.expressionList();
+		assert expressions.size() == generator.instructionsTuple().tupleSize();
+		return expressions;
+	}
+
+	/**
+	 * Answer a String containing the message name with an indicator inserted to
+	 * show which area of the message is being parsed by the given program
+	 * counter.
+	 *
+	 * @param phraseType
+	 *        The phrase type (yielding a tuple type) for this signature.
+	 * @param pc
+	 *        The program counter for which an appropriate annotation should be
+	 *        inserted into the name.  It's between 1 and the number of
+	 *        instructions generated plus one.
+	 * @return The annotated message string.
+	 */
+	public String highlightedNameFor(final A_Type phraseType, final int pc)
+	{
+		final String string = messageName().asNativeString();
+		final List<Expression> expressions = originExpressionsFor(phraseType);
+		final int zeroBasedPosition;
+		if (pc == expressions.size() + 1)
+		{
+			zeroBasedPosition = string.length();
+		}
+		else
+		{
+			final Expression expression = expressions.get(pc - 1);
+			zeroBasedPosition = expression.positionInName - 1;
+		}
+		final String annotatedString =
+			string.substring(0, zeroBasedPosition)
+				+ AvailCompiler.errorIndicatorSymbol
+				+ string.substring(zeroBasedPosition);
+		return StringDescriptor.from(annotatedString).toString();
 	}
 
 	/**
@@ -787,7 +825,7 @@ public final class MessageSplitter
 	{
 		List<Expression> alternatives = new ArrayList<Expression>();
 		boolean justParsedVerticalBar = false;
-		final Sequence sequence = new Sequence(this);
+		final Sequence sequence = new Sequence(positionInName(), this);
 		while (true)
 		{
 			assert !justParsedVerticalBar || !alternatives.isEmpty();
@@ -975,8 +1013,9 @@ public final class MessageSplitter
 			{
 				// Eat the open guillemet, parse a subgroup, eat the (mandatory)
 				// close guillemet, and add the group.
+				final int startOfGroup = positionInName();
 				messagePartPosition++;
-				final Group subgroup = parseGroup();
+				final Group subgroup = parseGroup(startOfGroup);
 				justParsedVerticalBar = false;
 				if (!atEnd())
 				{
@@ -1024,7 +1063,7 @@ public final class MessageSplitter
 								"An octothorp (#) may only follow a simple "
 								+ "group or an ellipsis (…)");
 						}
-						subexpression = new Counter(subgroup);
+						subexpression = new Counter(startOfGroup, subgroup);
 						messagePartPosition++;
 					}
 					else if (token.equals(questionMark()))
@@ -1049,7 +1088,8 @@ public final class MessageSplitter
 						}
 						else
 						{
-							subexpression = new Optional(subgroup.beforeDagger);
+							subexpression = new Optional(
+								startOfGroup, subgroup.beforeDagger);
 						}
 						messagePartPosition++;
 					}
@@ -1066,8 +1106,8 @@ public final class MessageSplitter
 								+ "a token or simple group, not one with a "
 								+ "double-dagger (‡) or arguments");
 						}
-						subexpression =
-							new CompletelyOptional(this, subgroup.beforeDagger);
+						subexpression = new CompletelyOptional(
+							startOfGroup, this, subgroup.beforeDagger);
 						messagePartPosition++;
 					}
 					else if (token.equals(exclamationMark()))
@@ -1107,7 +1147,8 @@ public final class MessageSplitter
 								"Tilde (~) may only occur after a lowercase "
 								+ "token or a group of lowercase tokens");
 						}
-						subexpression = new CaseInsensitive(subexpression);
+						subexpression = new CaseInsensitive(
+							startOfGroup, subexpression);
 						messagePartPosition++;
 					}
 				}
@@ -1120,7 +1161,8 @@ public final class MessageSplitter
 					if (alternatives.size() > 0)
 					{
 						alternatives.add(subexpression);
-						subexpression = new Alternation(alternatives);
+						subexpression = new Alternation(
+							startOfGroup, alternatives);
 						alternatives = new ArrayList<Expression>();
 					}
 					sequence.addExpression(subexpression);
@@ -1150,7 +1192,8 @@ public final class MessageSplitter
 						+ "checkpoint (§)");
 				}
 				assert !justParsedVerticalBar;
-				sequence.addExpression(new SectionCheckpoint(this));
+				sequence.addExpression(
+					new SectionCheckpoint(positionInName(), this));
 				messagePartPosition++;
 			}
 			else
@@ -1192,10 +1235,11 @@ public final class MessageSplitter
 					token = currentMessagePart();
 					if (token.equals(doubleQuestionMark()))
 					{
-						final Sequence singleSequence = new Sequence(this);
+						final Sequence singleSequence =
+							new Sequence(subexpression.positionInName, this);
 						singleSequence.addExpression(subexpression);
-						subexpression =
-							new CompletelyOptional(this, singleSequence);
+						subexpression = new CompletelyOptional(
+							subexpression.positionInName, this, singleSequence);
 						messagePartPosition++;
 					}
 				}
@@ -1212,7 +1256,8 @@ public final class MessageSplitter
 								"Tilde (~) may only occur after a lowercase "
 								+ "token or a group of lowercase tokens");
 						}
-						subexpression = new CaseInsensitive(subexpression);
+						subexpression = new CaseInsensitive(
+							subexpression.positionInName, subexpression);
 						messagePartPosition++;
 					}
 				}
@@ -1225,7 +1270,8 @@ public final class MessageSplitter
 					if (alternatives.size() > 0)
 					{
 						alternatives.add(subexpression);
-						subexpression = new Alternation(alternatives);
+						subexpression = new Alternation(
+							alternatives.get(0).positionInName, alternatives);
 						alternatives = new ArrayList<Expression>();
 					}
 					sequence.addExpression(subexpression);
@@ -1257,10 +1303,13 @@ public final class MessageSplitter
 	 * after parsing the group. The outermost caller is also responsible for
 	 * ensuring the entire input was exactly consumed.</p>
 	 *
-	 * @return A {@link Group} expression parsed from the {@link #messagePartsList}.
+	 * @param positionInName
+	 *        The position of the group in the message name.
+	 * @return A {@link Group} expression parsed from the {@link
+	 *         #messagePartsList}.
 	 * @throws MalformedMessageException If the method name is malformed.
 	 */
-	private Group parseGroup ()
+	private Group parseGroup (final int positionInName)
 		throws MalformedMessageException
 	{
 		final Sequence beforeDagger = parseSequence();
@@ -1275,9 +1324,9 @@ public final class MessageSplitter
 					E_INCORRECT_USE_OF_DOUBLE_DAGGER,
 					"A group must have at most one double-dagger (‡)");
 			}
-			return new Group(beforeDagger, afterDagger);
+			return new Group(positionInName, beforeDagger, afterDagger);
 		}
-		return new Group(this, beforeDagger);
+		return new Group(positionInName, this, beforeDagger);
 	}
 
 	/**

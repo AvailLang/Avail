@@ -69,6 +69,7 @@ extends Expression
 	 */
 	Simple (final MessageSplitter messageSplitter, final int tokenIndex)
 	{
+		super(messageSplitter.messagePartPositions.get(tokenIndex - 1));
 		this.messageSplitter = messageSplitter;
 		this.tokenIndex = tokenIndex;
 	}

@@ -770,23 +770,6 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * Does the {@linkplain Interpreter interpreter} provide a {@linkplain
-	 * Primitive primitive} with the specified primitive number?
-	 *
-	 * @param primitiveNumber
-	 *        The primitive number.
-	 * @return {@code true} if there is a {@linkplain Primitive primitive}
-	 *         with the specified primitive number, {@code false} otherwise.
-	 */
-	public static boolean supportsPrimitive (final int primitiveNumber)
-	{
-		return primitiveNumber > 0
-			&& primitiveNumber < holdersByNumber.length
-			&& !holdersByNumber[primitiveNumber].primitive().hasFlag(
-				Flag.Private);
-	}
-
-	/**
 	 * Answer whether a raw function using this primitive can/should have
 	 * nybblecode instructions.
 	 *

@@ -55,7 +55,7 @@ Body
 
 /**
  * Make "_'s type" bind more tightly than phrase type construction.
- * 
+ *
  * @method "_⇒_"
  * @returns "⊤"
  */
@@ -76,7 +76,7 @@ Semantic restriction "_'s⁇value" is
 /**
  * Construct and answer a (synthetic) literal token whose artificial source text
  * is the description of the value.
- * 
+ *
  * @method "``_``"
  * @param "value" "any"
  *        Any value, irrespective of whether an Avail compiler would be able to
@@ -94,7 +94,7 @@ Public method "``_``" is
 
 /**
  * Strengthen literal token building to covary with the literal value's type.
- * 
+ *
  * @method "``_``"
  * @restricts "any meta"
  */
@@ -108,7 +108,7 @@ Semantic restriction "``_``" is
 /**
  * Strengthen literal <em>node</em> building to covary with the type of object
  * inside the passed literal token.
- * 
+ *
  * @method "_→literal phrase"
  * @restricts "literal token's type"
  */
@@ -144,7 +144,7 @@ Semantic restriction "‘_’" is
 /**
  * Construct and answer a variable use expression from the specified
  * declaration.
- * 
+ *
  * @method "`«↓_`»"
  * @param "decl" "declaration phrase"
  *        The declaration that introduced the referenced entity.
@@ -161,7 +161,7 @@ Method "`«↓_`»" is
 
 /**
  * Construct and answer a list phrase from the specified tuple.
- * 
+ *
  * @method "`«<«_‡,»>`»"
  * @param "aTuple" "<<>, expression phrase⇒any…|whole number>"
  *        A tuple of expressions.
@@ -179,7 +179,7 @@ Public method "`«<«_‡,»>`»" is
 /**
  * Construct and answer a block from the specified argument declarations,
  * statements, and return type.
- * 
+ *
  * @method "`«[_`|_]:_`»"
  * @param "args" "<<>, argument phrase…|whole number>"
  *        A tuple of argument declarations.
@@ -200,7 +200,7 @@ Public method "`«[_`|_]:_`»" is
 	«[
 		args
 	|
-		Primitive 0
+		Primitive ""
 		statements
 	] : returnType ^ ∅»
 ] : block phrase;
@@ -223,7 +223,7 @@ Semantic restriction "`«[_`|_]:_`»" is
 /**
  * Construct and answer an arity-0 block from the specified statements and
  * return type.
- * 
+ *
  * @method "`«[_]:_`»"
  * @param "statements" "<<>, phrase…|whole number>"
  *        A tuple of statements.
@@ -241,7 +241,7 @@ Public method "`«[_]:_`»" is
 	«[
 		<>
 	|
-		Primitive 0
+		Primitive ""
 		statements
 	] : returnType ^ ∅»
 ];
@@ -330,7 +330,7 @@ Semantic restriction "_'s⁇semantic type" is
 
 /**
  * A list type's semantic type is always a tuple of values.
- * 
+ *
  * @method "_'s⁇semantic type"
  * @restricts "list phrase's type's type"
  */
@@ -344,7 +344,7 @@ Semantic restriction "_'s⁇semantic type" is
 /**
  * The function type of a function generated from a block is the same as the
  * block's semantic type.
- * 
+ *
  * @method "_→function"
  * @restricts "block phrase's type"
  */
@@ -358,7 +358,7 @@ Semantic restriction "_→function" is
 /**
  * Answer the actual token that occurs in the source text at the indicated
  * position.
- * 
+ *
  * @method "this token:…"
  * @param "t" "token"
  *        A token actually occurring at the invocation site in the source.
@@ -421,7 +421,7 @@ Semantic restriction "_compiled" is
 [
 	phraseType : phrase's type
 |
-	function accepting <> and returning phraseType's semantic type 
+	function accepting <> and returning phraseType's semantic type
 ];
 
 /**

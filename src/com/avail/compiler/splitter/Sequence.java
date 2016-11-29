@@ -96,8 +96,11 @@ extends Expression
 	 */
 	@Nullable Boolean argumentsAreReordered = null;
 
-	public Sequence (final MessageSplitter messageSplitter)
+	Sequence (
+		final int positionInName,
+		final MessageSplitter messageSplitter)
 	{
+		super(positionInName);
 		this.messageSplitter = messageSplitter;
 	}
 
@@ -388,7 +391,6 @@ extends Expression
 					}
 					((Optional)expression).emitWithSplitOn(
 						generator,
-						// entryType,   // Ignored; currently must be boolean.
 						new Continuation1<Boolean>()
 						{
 							@Override

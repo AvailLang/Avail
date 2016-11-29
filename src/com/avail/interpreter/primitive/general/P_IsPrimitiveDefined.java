@@ -38,7 +38,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Is there a {@linkplain Primitive
- * primitive} with the specified ordinal?
+ * primitive} with the specified name?
  */
 public final class P_IsPrimitiveDefined
 extends Primitive
@@ -57,11 +57,14 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Number ordinal = args.get(0);
+		final A_String primitiveName = args.get(0);
 
-		final int index = ordinal.extractInt();
+		final Primitive primitive =
+			Primitive.byName(primitiveName.asNativeString());
+		final boolean defined =
+			primitive != null && !primitive.hasFlag(Flag.Private);
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(supportsPrimitive(index)));
+			AtomDescriptor.objectFromBoolean(defined));
 	}
 
 	@Override
@@ -69,7 +72,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				IntegerRangeTypeDescriptor.unsignedShorts()),
+				TupleTypeDescriptor.stringType()),
 			EnumerationTypeDescriptor.booleanObject());
 	}
 }

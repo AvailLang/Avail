@@ -70,6 +70,7 @@ extends Expression
 		final MessageSplitter messageSplitter,
 		final int startTokenIndex)
 	{
+		super(messageSplitter.messagePartPositions.get(startTokenIndex - 1));
 		messageSplitter.underscorePartNumbers.add(startTokenIndex);
 		absoluteUnderscoreIndex = messageSplitter.numberOfUnderscores();
 	}

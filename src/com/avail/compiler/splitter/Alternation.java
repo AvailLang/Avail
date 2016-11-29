@@ -76,11 +76,14 @@ extends Expression
 	/**
 	 * Construct a new {@link Alternation}.
 	 *
+	 * @param positionInName
+	 *        The position of this expression in the message name.
 	 * @param alternatives
 	 *        The alternative {@linkplain Expression expressions}.
 	 */
-	Alternation (final List<Expression> alternatives)
+	Alternation (final int positionInName, final List<Expression> alternatives)
 	{
+		super(positionInName);
 		this.alternatives = alternatives;
 	}
 
