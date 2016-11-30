@@ -85,7 +85,6 @@ Uses
 		"_[_]",
 		"_[_]:=_",
 		"_[_]→_",
-		"_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)",
 		"_has definition for_",
 		"_is unambiguous",
 		"_occurrences⁇of_",
@@ -3406,51 +3405,6 @@ Primitive "return type of_._«parameterized by»⁇_" is
 		Java-method-reference-is-ambiguous code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : type;
-
-/**
- * Construct and answer a function implementation from the specified arguments.
- *
- * @category "Primitives" "Function Implementations" "Constructors"
- * @method "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)"
- * @param "nybblecodes" "tuple of nybble"
- *        The Level One instructions as a tuple of nybblecodes.
- * @param "primitiveNumber" "unsigned short"
- *        The primitive number, or `0` if the result should not have primitive
- *        linkage.
- * @param "aFunctionType" "function meta"
- *        The function type of any function able to close the result.
- * @param "literals" "tuple"
- *        The literals used by the algorithm.
- * @param "localsCount" "whole number"
- *        The number of local variables used by the algorithm.
- * @param "outersCount" "whole number"
- *        The number of outer variables used by the algorithm.
- * @param "maximumStackDepth" "whole number"
- *        The maximum stack depth.
- * @returns "¢[…]→⊤"
- *    The requested function implementation.
- * @raises "invalid-primitive-number exception"
- * @raises "function-disagrees-with-primitive-restriction exception"
- * @raises "local-type-literal-is-not-a-type exception"
- * @raises "outer-type-literal-is-not-a-type exception"
- */
-Primitive "_`#_:_(literals=_,`#locals_,`#outers_,stack depth=_)" is
-[
-	nybblecodes : tuple of nybble,
-	primitiveNumber : unsigned short,
-	aFunctionType : function meta,
-	literals : tuple,
-	localsCount : whole number,
-	outersCount : whole number,
-	maximumStackDepth : whole number
-|
-	Primitive CreateCompiledCode (failureCode : {
-		invalid-primitive-number code,
-		function-disagrees-with-primitive-restriction code,
-		local-type-literal-is-not-a-type code,
-		outer-type-literal-is-not-a-type code}ᵀ);
-	Private invoke _fail_primitive with failureCode
-] : function implementation;
 
 /**
  * Construct and answer a slice (i.e. subtuple) of the specified tuple.

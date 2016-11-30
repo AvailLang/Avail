@@ -62,7 +62,6 @@ import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
 import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
-import com.avail.interpreter.primitive.rawfunctions.P_CreateCompiledCode;
 import com.avail.optimizer.*;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.performance.Statistic;
@@ -202,9 +201,8 @@ implements IntegerEnumSlotDescriptionEnum
 		/**
 		 * The primitive is not exposed to an Avail program. The compiler
 		 * forbids direct compilation of primitive linkages to such primitives.
-		 * {@linkplain P_CreateCompiledCode} also forbids creation of
-		 * {@linkplain CompiledCodeDescriptor compiled code} that links a {@code
-		 * Private} primitive.
+		 * {@link A_RawFunction}-creating primitives also forbid creation of
+		 * code that links a {@code Private} primitive.
 		 */
 		Private,
 

@@ -452,31 +452,6 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct an arity-0 {@linkplain FunctionDescriptor function} that does
-	 * nothing.
-	 *
-	 * @return A function.
-	 */
-	public static A_Function createNoOp ()
-	{
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
-		writer.primitive(P_PushConstant.instance);
-		writer.argumentTypes();
-		writer.returnType(TOP.o());
-		writer.write(
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(NilDescriptor.nil()));
-		final AvailObject code = writer.compiledCode();
-		final A_Function newFunction = FunctionDescriptor.create(
-			code,
-			TupleDescriptor.empty());
-		newFunction.makeShared();
-		return newFunction;
-	}
-
-	/**
 	 * Construct a bootstrapped {@linkplain FunctionDescriptor function} that
 	 * uses the specified primitive.  The primitive failure code should invoke
 	 * the {@link MethodDescriptor#vmCrashAtom}'s bundle with a tuple of passed
