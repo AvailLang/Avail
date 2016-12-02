@@ -622,7 +622,6 @@ extends Descriptor
 			javaContinuation.value(Collections.<String>emptyList());
 			return;
 		}
-		final String[] strings = new String[lines];
 		final List<A_Type> allTypes = new ArrayList<>();
 		for (final A_Continuation frame : frames)
 		{
@@ -634,6 +633,7 @@ extends Descriptor
 				allTypes.add(paramsType.typeAtIndex(i));
 			}
 		}
+		final String[] strings = new String[lines];
 		Interpreter.stringifyThen(
 			runtime,
 			textInterface,

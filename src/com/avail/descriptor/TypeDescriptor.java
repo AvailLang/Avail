@@ -344,7 +344,7 @@ extends AbstractTypeDescriptor
 		/**
 		 * Stash a copy of the array of all {@link Types} enum values.
 		 */
-		private static Types[] all = values();
+		private final static Types[] all = values();
 
 		/**
 		 * Answer the previously stashed copy of the array of all {@link Types}
@@ -438,8 +438,8 @@ extends AbstractTypeDescriptor
 			{
 				if (spec.parent != null)
 				{
-					assert spec.o().isSubtypeOf(spec.parent().o());
-					assert spec.o().isInstanceOfKind(spec.parent().o().kind());
+					assert spec.o().isSubtypeOf(spec.parent.o());
+					assert spec.o().isInstanceOfKind(spec.parent.o().kind());
 				}
 			}
 		}

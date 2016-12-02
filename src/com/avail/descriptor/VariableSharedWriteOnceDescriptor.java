@@ -39,6 +39,7 @@ import java.util.WeakHashMap;
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -212,6 +213,17 @@ extends VariableSharedDescriptor
 			final AvailObject object,
 			final A_Number addend)
 		throws VariableSetException
+	{
+		throw new VariableSetException(
+			AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE);
+	}
+
+	@Override
+	void o_AtomicAddToMap (
+		final AvailObject object,
+		final A_BasicObject key,
+		final A_BasicObject value)
+	throws VariableGetException, VariableSetException
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE);

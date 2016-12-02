@@ -51,13 +51,13 @@ public class Deserializer
 	/**
 	 * The objects that have been assembled so far.
 	 */
-	protected final List<AvailObject> assembledObjects =
+	private final List<AvailObject> assembledObjects =
 		new ArrayList<>(1000);
 
 	/**
-	 * The most recently object produced by deserialization.
+	 * The most recent object produced by deserialization.
 	 */
-	protected @Nullable AvailObject producedObject;
+	private @Nullable AvailObject producedObject;
 
 	/**
 	 * The {@link AvailRuntime} whose scope is used to decode references to
@@ -89,7 +89,7 @@ public class Deserializer
 	 * @param index The special object's ordinal.
 	 * @return The special object known to the virtual machine's runtime.
 	 */
-	protected AvailObject specialObject (final int index)
+	static AvailObject specialObject (final int index)
 	{
 		return AvailRuntime.specialObject(index);
 	}
@@ -100,7 +100,7 @@ public class Deserializer
 	 * @param index The special atom's ordinal.
 	 * @return The special atom known to the virtual machine's runtime.
 	 */
-	protected A_Atom specialAtom (final int index)
+	static A_Atom specialAtom (final int index)
 	{
 		return AvailRuntime.specialAtoms().get(index);
 	}
@@ -112,7 +112,7 @@ public class Deserializer
 	 * @param index The zero-based index at which to fetch the object.
 	 * @return The already constructed object at the specified index.
 	 */
-	protected AvailObject objectFromIndex (final int index)
+	AvailObject objectFromIndex (final int index)
 	{
 		return assembledObjects.get(index);
 	}
@@ -122,7 +122,7 @@ public class Deserializer
 	 *
 	 * @param newObject The object that should be recorded.
 	 */
-	protected void addObject (
+	private void addObject (
 		final AvailObject newObject)
 	{
 		assembledObjects.add(newObject);
@@ -135,7 +135,7 @@ public class Deserializer
 	 * @param moduleName The {@link StringDescriptor name} of the module.
 	 * @return The module with the specified name.
 	 */
-	public A_Module moduleNamed (
+	A_Module moduleNamed (
 		final A_String moduleName)
 	{
 		assert moduleName.isString();
@@ -168,10 +168,27 @@ public class Deserializer
 	 *
 	 * @return The current module.
 	 */
-	public @Nullable A_Module currentModule ()
+	@Nullable A_Module currentModule ()
 	{
 		return currentModule;
 	}
+
+	/** The maximum number of operands of any SerializerOperation. */
+	private static final int maxSubobjects;
+
+	static
+	{
+		int max = 0;
+		for (SerializerOperation operation : SerializerOperation.values())
+		{
+			max = Math.max(max, operation.operands().length);
+		}
+		maxSubobjects = max;
+	}
+
+	/** A reusable buffer of operand objects. */
+	private final AvailObject[] subobjectsBuffer =
+		new AvailObject[maxSubobjects];
 
 	/**
 	 * Deserialize an object from the {@link #input} and return it.  If there
@@ -194,7 +211,18 @@ public class Deserializer
 			}
 			while (producedObject == null)
 			{
-				SerializerOperation.readObject(this);
+				final int ordinal = readByte();
+				final SerializerOperation operation =
+					SerializerOperation.values()[ordinal];
+				final SerializerOperand[] operands = operation.operands();
+				for (int i = 0; i < operands.length; i++)
+				{
+					subobjectsBuffer[i] = operands[i].read(this);
+				}
+				final A_BasicObject newObject =
+					operation.compose(subobjectsBuffer, this);
+				newObject.makeImmutable();
+				addObject((AvailObject) newObject);
 			}
 			final AvailObject temp = producedObject;
 			producedObject = null;
@@ -233,7 +261,7 @@ public class Deserializer
 	 *
 	 * @param object The object that was produced.
 	 */
-	protected void recordProducedObject (
+	void recordProducedObject (
 		final AvailObject object)
 	{
 		assert producedObject == null;
@@ -246,7 +274,7 @@ public class Deserializer
 	 *
 	 * @return An {@code int} containing the unsigned byte (0..255).
 	 */
-	protected int readByte ()
+	int readByte ()
 	{
 		try
 		{
@@ -264,7 +292,7 @@ public class Deserializer
 	 *
 	 * @return An {@code int} containing the unsigned short (0..65535).
 	 */
-	protected int readShort ()
+	int readShort ()
 	{
 		try
 		{
@@ -281,7 +309,7 @@ public class Deserializer
 	 *
 	 * @return An {@code int} extracted from the input.
 	 */
-	protected int readInt ()
+	int readInt ()
 	{
 		try
 		{

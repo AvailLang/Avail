@@ -237,4 +237,34 @@ extends A_ChunkDependable
 	 *        Whether the variable was initialized from a stable computation.
 	 */
 	void valueWasStablyComputed (final boolean wasStablyComputed);
+
+	/**
+	 * Extract the map from this variable, add the key → value binding to it,
+	 * and write it back into the variable.
+	 *
+	 * <p>This is an atomic operation, so the update is serialized with respect
+	 * to other operations on this variable.</p>
+	 *
+	 * @param key The key to add to the map.
+	 * @param value The value to add to the map.
+	 * @throws VariableGetException If the variable does not contain a map.
+	 * @throws VariableSetException If the updated map cannot be written back.
+	 */
+	void atomicAddToMap (
+		final A_BasicObject key,
+		final A_BasicObject value)
+	throws VariableGetException, VariableSetException;
+
+	/**
+	 * Test whether the map in this variable has the specified key.
+	 *
+	 * <p>This is an atomic operation, so the read is serialized with respect
+	 * to other operations on this variable.</p>
+	 *
+	 * @param key The key to look for in the map.
+	 * @throws VariableGetException If the variable is uninitialized.
+	 */
+	boolean variableMapHasKey (
+		final A_BasicObject key)
+	throws VariableGetException;
 }

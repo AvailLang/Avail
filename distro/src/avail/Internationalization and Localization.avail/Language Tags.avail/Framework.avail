@@ -175,7 +175,7 @@ Public method "Language_has code_" is
 |
 	Lock languageLock for
 	[
-		languageMap := languageMap + name → code;
+		↑languageMap [name] := code;
 		languageCodes := languageCodes + code;
 	];
 	After the current module is unloaded, do
@@ -456,7 +456,7 @@ Public method "Script_has code_" is
 |
 	Lock scriptLock for
 	[
-		scriptMap := scriptMap + name → code;
+		↑scriptMap [name] := code;
 		scriptCodes := scriptCodes + code;
 	];
 	After the current module is unloaded, do
@@ -734,7 +734,7 @@ Public method "Region_has code_" is
 |
 	Lock regionLock for
 	[
-		regionMap := regionMap + name → code;
+		↑regionMap [name] := code;
 		regionCodes := regionCodes + code;
 	];
 	After the current module is unloaded, do

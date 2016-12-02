@@ -4940,4 +4940,22 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).equalsIntTuple(anIntTuple);
 	}
+
+	@Override
+	void o_AtomicAddToMap (
+		final AvailObject object,
+		final A_BasicObject key,
+		final A_BasicObject value)
+	throws VariableGetException, VariableSetException
+	{
+		o_Traversed(object).atomicAddToMap(key, value);
+	}
+
+	@Override
+	boolean o_VariableMapHasKey (
+		final AvailObject object, final A_BasicObject key)
+	throws VariableGetException
+	{
+		return o_Traversed(object).variableMapHasKey(key);
+	}
 }

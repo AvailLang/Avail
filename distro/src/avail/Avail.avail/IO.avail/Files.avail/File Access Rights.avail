@@ -38,7 +38,7 @@ Uses
 	"Foundation"
 Names
 	/* File access rights. */
-	"file access right", 
+	"file access right",
 	"group read",
 	"group write",
 	"group execute",
@@ -78,7 +78,7 @@ Names
 	"file access rights summary",
 	"“_”(file access rights summary)",
 	"_→file access rights",
-	
+
 	/* For file opening. */
 	"_→numeric code"
 Body
@@ -206,7 +206,7 @@ Method "“_”" is
 				0 is [owner],
 				1 is [group],
 				2 is [others];
-		perm ::= 
+		perm ::=
 			choose cast (index - 1) mod 3 into [t : {0, 1, 2}ᵀ | t]
 			from {0, 1, 2}ᵀ
 			where
@@ -236,13 +236,13 @@ fileAccessRights ::=
 fileAccessRightsReverseMap : {private file access right → [1..9]|} := {};
 For each right, index of fileAccessRights do
 [
-	fileAccessRightsReverseMap := fileAccessRightsReverseMap + right → index;
+	↑fileAccessRightsReverseMap [right] := index;
 ];
 
 /**
  * Convert a {@type "file access right"} into its numeric code for consumption
  * by the file open primitive.
- * 
+ *
  * @method "_→numeric code"
  * @param "accessRight" "file access right"
  * @returns "[1..9]"

@@ -87,7 +87,7 @@ Private method "Next error code is_(_)" is
 	baseName : string,
 	code : natural number
 |
-	Assert: ¬code ∈ errorCodes ("code " ++ “code” ++ " already in use");
+	Assert: ¬code ∈ ↑errorCodes ("code " ++ “code” ++ " already in use");
 	name ::= baseName ++ " code";
 	/* Strengthen the implementation function's return type to the exact value.
 	 * This involves the construction of a decorator function.
@@ -95,8 +95,7 @@ Private method "Next error code is_(_)" is
 	functionType ::= function accepting <> and returning code's type;
 	implementation ::= new functionType applying [ code ];
 	Method name is implementation;
-	errorCodes := cast eject errorCodes + code→name
-		into [ t : {natural number→string|natural number} | t ];
+	↑errorCodes [code] := name;
 	Export name as a new name;
 ];
 

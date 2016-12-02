@@ -2952,6 +2952,32 @@ public abstract class AbstractDescriptor
 	abstract A_Continuation o_Caller (AvailObject object);
 
 	/**
+	 *
+	 * @param object
+	 * @param key
+	 * @param value
+	 * @throws VariableGetException
+	 * @throws VariableSetException
+	 */
+	abstract void o_AtomicAddToMap (
+		AvailObject object,
+		A_BasicObject key,
+		A_BasicObject value)
+	throws VariableGetException, VariableSetException;
+
+	/**
+	 *
+	 * @param object
+	 * @param key
+	 * @return
+	 * @throws VariableGetException
+	 */
+	abstract boolean o_VariableMapHasKey (
+		AvailObject object,
+		A_BasicObject key)
+	throws VariableGetException;
+
+	/**
 	 * @param object
 	 */
 	abstract void o_ClearValue (AvailObject object);

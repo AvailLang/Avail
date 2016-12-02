@@ -3657,6 +3657,34 @@ Primitive "_'s⁇instances" is
 ] : set;
 
 /**
+ * Atomically add or replace a key → value binding of the map within a variable.
+ *
+ * @category "Primitives"
+ * @method "_[_]:=_"
+ * @param "var" "map variable"
+ *        The variable containing a map.
+ * @param "key" "any"
+ *        The key to add or overwrite.
+ * @param "value" "any"
+ *        The value to store at that key.
+ * @returns "⊤"
+ *    Nothing.
+ * @raises "cannot-read-unassigned-variable exception"
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ */
+Primitive "_[_]:=_" is
+[
+	var : map variable,
+	key : any,
+	value : any
+|
+	Primitive AtomicAddToMap (failureCode : {
+		cannot-read-unassigned-variable code,
+		cannot-store-incorrectly-typed-value code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
  * Answer the value contained within the specified variable.
  *
  * @category "Primitives" "Variables" "Queries"
@@ -3677,4 +3705,27 @@ Primitive "↓_" is
 		Java-marshaling-failed code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : any;
+
+/**
+ * Answer whether the given key is present in the map in the given variable.
+ *
+ * @category "Primitives"
+ * @method "_∈_"
+ * @param "key" "any"
+ *        The key to search for.
+ * @param "mapVariable" "map variable"
+ *        The variable holding a map whose keys are to be searched.
+ * @returns "boolean"
+ *    Whether the key is present in the variables map.
+ * @raises "{6}"
+ */
+Primitive "_∈_" is
+[
+	key : any,
+	mapVariable : map variable
+|
+	Primitive KeyInVariableMap (failureCode : {
+		cannot-read-unassigned-variable code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : boolean;
 

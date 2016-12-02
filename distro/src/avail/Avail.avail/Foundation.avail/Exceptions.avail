@@ -775,7 +775,7 @@ Private method "System exception_(_)extends_" is
 	code : natural number,
 	supertype : exception's type
 |
-	Assert: ¬code ∈ exceptionsByCode ("code " ++ “code” ++ " already in use");
+	Assert: ¬code ∈ ↑exceptionsByCode ("code " ++ “code” ++ " already in use");
 	Assert: ¬exceptionBaseName ends with " exception"
 		(format "\"‘①’\" ends with \" exception\"" with exceptionBaseName);
 	exceptionName ::= exceptionBaseName ++ " exception";
@@ -789,7 +789,7 @@ Private method "System exception_(_)extends_" is
 	implementation ::= cast site's function into [t : []→object meta | t];
 	exceptionType ::= cast implementation()
 		into  [t : system exception's type | t];
-	exceptionsByCode := eject exceptionsByCode + code→exceptionType;
+	↑exceptionsByCode [code] := exceptionType;
 ];
 
 /**

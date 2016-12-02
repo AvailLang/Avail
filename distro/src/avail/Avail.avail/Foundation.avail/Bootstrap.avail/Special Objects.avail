@@ -107,6 +107,7 @@ Names
 	/*  39 */ "map",
 	/* 153 */ "map from string to atom",
 	/*  19 */ "map meta",
+	/* 156 */ "map variable",
 	/*  40 */ "message bundle",
 	/*  41 */ "message bundle tree",
 	/*  42 */ "method",
@@ -2079,4 +2080,13 @@ Special object "macro bundle key" is special object 154;
  * @returns "explicit subclassing key's type"
  */
 Special object "explicit subclassing key" is special object 155;
+
+/**
+ * The type of variables that must contain a map.
+ *
+ * @category "Primitives" "Types"
+ * @type "read map/write ⊥"
+ * @alias "map variable"
+ */
+Special object "map variable" is special object 156;
 

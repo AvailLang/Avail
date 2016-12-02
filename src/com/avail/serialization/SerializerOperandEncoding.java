@@ -32,6 +32,7 @@
 
 package com.avail.serialization;
 
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.utility.*;
 import java.io.*;
@@ -62,10 +63,12 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		A_BasicObject read (
+		AvailObject read (
 			final Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(deserializer.readByte());
+			return
+				(AvailObject) IntegerDescriptor.fromInt(
+					deserializer.readByte());
 		}
 	},
 
@@ -112,7 +115,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		A_BasicObject read (
+		AvailObject read (
 			final Deserializer deserializer)
 		{
 			final int firstByte = deserializer.readByte();
@@ -130,7 +133,7 @@ enum SerializerOperandEncoding
 			{
 				intValue = deserializer.readShort();
 			}
-			return IntegerDescriptor.fromInt(intValue);
+			return (AvailObject) IntegerDescriptor.fromInt(intValue);
 		}
 	},
 
@@ -156,10 +159,11 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		A_BasicObject read (
+		AvailObject read (
 			final Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(deserializer.readShort());
+			return (AvailObject) IntegerDescriptor.fromInt(
+				deserializer.readShort());
 		}
 	},
 
@@ -182,10 +186,11 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		A_BasicObject read (
+		AvailObject read (
 			final Deserializer deserializer)
 		{
-			return IntegerDescriptor.fromInt(deserializer.readInt());
+			return (AvailObject) IntegerDescriptor.fromInt(
+				deserializer.readInt());
 		}
 	},
 
@@ -204,16 +209,16 @@ enum SerializerOperandEncoding
 		{
 			final long longValue = object.extractLong();
 			assert (longValue & 0xFFFFFFFFL) == longValue;
-			serializer.writeInt((int)longValue);
+			serializer.writeInt((int) longValue);
 		}
 
 		@Override
-		A_BasicObject read (
+		AvailObject read (
 			final Deserializer deserializer)
 		{
 			final int intValue = deserializer.readInt();
 			final long longValue = intValue & 0xFFFFFFFFL;
-			return IntegerDescriptor.fromLong(longValue);
+			return (AvailObject) IntegerDescriptor.fromLong(longValue);
 		}
 	},
 
@@ -248,7 +253,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		A_BasicObject read (
+		AvailObject read (
 			final Deserializer deserializer)
 		{
 			final int index = readCompressedPositiveInt(deserializer);
@@ -279,10 +284,10 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final A_BasicObject read (final Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int slotsCount = readCompressedPositiveInt(deserializer);
-			final A_Number newInteger =
+			final AvailObject newInteger =
 				IntegerDescriptor.createUninitialized(slotsCount);
 			for (int i = slotsCount; i >= 1; i--)
 			{
@@ -329,7 +334,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final A_BasicObject read (final Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject newTuple = ObjectTupleDescriptor.generateFrom(
@@ -369,19 +374,20 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final A_BasicObject read (final Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
-			return StringDescriptor.mutableByteStringFromGenerator(
-				tupleSize,
-				new Generator<Character>()
-				{
-					@Override
-					public Character value ()
+			return
+				(AvailObject) StringDescriptor.mutableByteStringFromGenerator(
+					tupleSize,
+					new Generator<Character>()
 					{
-						return (char)deserializer.readByte();
-					}
-				});
+						@Override
+						public Character value ()
+						{
+							return (char) deserializer.readByte();
+						}
+					});
 		}
 	},
 
@@ -415,22 +421,25 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final A_BasicObject read (final Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
-			return StringDescriptor.mutableTwoByteStringFromGenerator(
-				tupleSize,
-				new Generator<Character>()
-				{
-					@Override
-					public Character value ()
-					{
-						final int compressedInt =
-							readCompressedPositiveInt(deserializer);
-						assert (compressedInt & 0xFFFF) == compressedInt;
-						return (char)compressedInt;
-					}
-				});
+			return
+				(AvailObject)
+					StringDescriptor.mutableTwoByteStringFromGenerator(
+						tupleSize,
+						new Generator<Character>()
+						{
+							@Override
+							public Character value ()
+							{
+								final int compressedInt =
+									readCompressedPositiveInt(deserializer);
+								assert (compressedInt & 0xFFFF)
+									== compressedInt;
+								return (char) compressedInt;
+							}
+						});
 		}
 	},
 
@@ -459,16 +468,22 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final A_BasicObject read (final Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
-			final A_Character[] elementsArray = new AvailObject[tupleSize];
-			for (int i = 0; i < tupleSize; i++)
-			{
-				final int codePoint = readCompressedPositiveInt(deserializer);
-				elementsArray[i] = CharacterDescriptor.fromCodePoint(codePoint);
-			}
-			return TupleDescriptor.from(elementsArray);
+			return ObjectTupleDescriptor.generateFrom(
+				tupleSize,
+				new Generator<A_BasicObject>()
+				{
+					@Override
+					public A_BasicObject value ()
+					{
+						final int codePoint =
+							readCompressedPositiveInt(deserializer);
+						return CharacterDescriptor.fromCodePoint(codePoint);
+					}
+				}
+			);
 		}
 	},
 
@@ -492,7 +507,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final A_BasicObject read (final Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject tuple = ByteTupleDescriptor.generateFrom(
@@ -538,7 +553,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		final A_BasicObject read (final Deserializer deserializer)
+		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject tuple = NybbleTupleDescriptor.generateFrom(
@@ -598,7 +613,7 @@ enum SerializerOperandEncoding
 		}
 
 		@Override
-		A_BasicObject read (final Deserializer deserializer)
+		AvailObject read (final Deserializer deserializer)
 		{
 			final int mapSize = readCompressedPositiveInt(deserializer);
 			A_Map map = MapDescriptor.empty();
@@ -611,7 +626,7 @@ enum SerializerOperandEncoding
 						readCompressedPositiveInt(deserializer)),
 					true);
 			}
-			return map;
+			return (AvailObject) map;
 		}
 	}
 	;
@@ -651,17 +666,17 @@ enum SerializerOperandEncoding
 	 * @param deserializer The {@code Deserializer} from which to read.
 	 * @return An AvailObject suitable for this kind of operand.
 	 */
-	abstract A_BasicObject read (
+	abstract AvailObject read (
 		final Deserializer deserializer);
 
 	/**
 	 * Write an unsigned integer in the range 0..2<sup>31</sup>-1.  Use a form
 	 * that uses less than 32 bits for small values.
 	 *
-	 * @param index
-	 * @param serializer
+	 * @param index The integer to write.
+	 * @param serializer Where to write it.
 	 */
-	void writeCompressedPositiveInt (
+	@InnerAccess static void writeCompressedPositiveInt (
 		final int index,
 		final Serializer serializer)
 	{
@@ -707,10 +722,10 @@ enum SerializerOperandEncoding
 	 * <li>0x003f0000..0x7fffffff in five bytes</li>.
 	 * </ul>
 	 *
-	 * @param deserializer
-	 * @return
+	 * @param deserializer Where to read the integer from.
+	 * @return The integer that was read.
 	 */
-	int readCompressedPositiveInt (
+	@InnerAccess static int readCompressedPositiveInt (
 		final Deserializer deserializer)
 	{
 		final int firstByte = deserializer.readByte();

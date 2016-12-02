@@ -171,6 +171,7 @@ extends VariableDescriptor
 	{
 		final AvailLoader loader = Interpreter.current().availLoaderOrNull();
 		if (loader != null
+			&& loader.statementCanBeSummarized()
 			&& !object.slot(VALUE).equalsNil()
 			&& !object.valueWasStablyComputed())
 		{
@@ -221,7 +222,7 @@ extends VariableDescriptor
 	{
 		synchronized (object)
 		{
-			super.o_SetValue(object, newValue.traversed().makeShared());
+			super.o_SetValue(object, newValue.makeShared());
 		}
 		recordWriteToSharedVariable();
 	}
@@ -233,7 +234,7 @@ extends VariableDescriptor
 	{
 		synchronized (object)
 		{
-			super.o_SetValueNoCheck(object, newValue.traversed().makeShared());
+			super.o_SetValueNoCheck(object, newValue.makeShared());
 		}
 		recordWriteToSharedVariable();
 	}
@@ -250,9 +251,7 @@ extends VariableDescriptor
 		{
 			synchronized (object)
 			{
-				return super.o_GetAndSetValue(
-					object,
-					newValue.traversed().makeShared());
+				return super.o_GetAndSetValue(object, newValue.makeShared());
 			}
 		}
 		finally
@@ -275,9 +274,7 @@ extends VariableDescriptor
 			synchronized (object)
 			{
 				return super.o_CompareAndSwapValues(
-					object,
-					reference,
-					newValue.traversed().makeShared());
+					object, reference, newValue.makeShared());
 			}
 		}
 		finally
@@ -298,14 +295,40 @@ extends VariableDescriptor
 		{
 			synchronized (object)
 			{
-				return super.o_FetchAndAddValue(
-					object,
-					addend.traversed().makeShared());
+				return super.o_FetchAndAddValue(object, addend.makeShared());
 			}
 		}
 		finally
 		{
 			recordWriteToSharedVariable();
+		}
+	}
+
+	@Override @AvailMethod
+	void o_AtomicAddToMap (
+		final AvailObject object,
+		final A_BasicObject key,
+		final A_BasicObject value)
+	throws VariableGetException, VariableSetException
+	{
+		// Because the separate read and write operations are all performed
+		// within the critical section, atomicity is ensured.
+		synchronized (object)
+		{
+			super.o_AtomicAddToMap(
+				object, key.makeShared(), value.makeShared());
+		}
+	}
+
+	@Override @AvailMethod
+	boolean o_VariableMapHasKey (
+		final AvailObject object,
+		final A_BasicObject key)
+	throws VariableGetException
+	{
+		synchronized (object)
+		{
+			return super.o_VariableMapHasKey(object, key);
 		}
 	}
 

@@ -291,7 +291,8 @@ extends JFrame
 		StyledDocument d = document;
 		if (d == null)
 		{
-			document = d = transcript.getStyledDocument();
+			d = transcript.getStyledDocument();
+			document = d;
 		}
 		return d;
 	}

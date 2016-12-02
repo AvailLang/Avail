@@ -2737,29 +2737,6 @@ public enum SerializerOperation
 	}
 
 	/**
-	 * Read an {@link AvailObject} from the {@link Deserializer}.  Its
-	 * predecessors must already have been fully assembled.
-	 *
-	 * @param deserializer
-	 *            The {@code Deserializer} from which to read an object.
-	 */
-	static void readObject (final Deserializer deserializer)
-	{
-		final int ordinal = deserializer.readByte();
-		final SerializerOperation operation = values()[ordinal];
-		final SerializerOperand[] operands = operation.operands();
-		final AvailObject[] subobjects = new AvailObject[operands.length];
-		for (int i = 0; i < operands.length; i++)
-		{
-			subobjects[i] = operands[i].read(deserializer);
-		}
-		final A_BasicObject newObject =
-			operation.compose(subobjects, deserializer);
-		newObject.makeImmutable();
-		deserializer.addObject((AvailObject)newObject);
-	}
-
-	/**
 	 * This helper function takes a variable number of arguments as an array,
 	 * and conveniently returns that array.  This is syntactically <em>much</em>
 	 * cleaner than any built-in array building syntax.

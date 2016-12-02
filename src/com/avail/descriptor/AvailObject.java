@@ -7224,4 +7224,20 @@ implements
 	{
 		return descriptor.o_ParsingPlan(this);
 	}
+
+	@Override
+	public void atomicAddToMap (
+		final A_BasicObject key,
+		final A_BasicObject value)
+	throws VariableGetException, VariableSetException
+	{
+		descriptor.o_AtomicAddToMap(this, key, value);
+	}
+
+	@Override
+	public boolean variableMapHasKey (final A_BasicObject key)
+	throws VariableGetException
+	{
+		return descriptor.o_VariableMapHasKey(this, key);
+	}
 }

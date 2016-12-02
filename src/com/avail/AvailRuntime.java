@@ -1731,6 +1731,9 @@ public final class AvailRuntime
 			Types.ATOM.o());
 		specials[154] = AtomDescriptor.macroBundleKey();
 		specials[155] = AtomDescriptor.explicitSubclassingKey();
+		specials[156] = VariableTypeDescriptor.fromReadAndWriteTypes(
+			MapTypeDescriptor.mostGeneralType(),
+			BottomTypeDescriptor.bottom());
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
@@ -1770,6 +1773,7 @@ public final class AvailRuntime
 			MethodDescriptor.vmSealAtom(),
 			MethodDescriptor.vmSemanticRestrictionAtom(),
 			MethodDescriptor.vmVariableGetAtom(),
+			MethodDescriptor.vmAtomicAddToMapAtom(),
 			ObjectTypeDescriptor.exceptionAtom(),
 			ObjectTypeDescriptor.stackDumpAtom(),
 			PojoTypeDescriptor.selfAtom()));

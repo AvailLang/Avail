@@ -438,6 +438,69 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_AtomicAddToMap (
+		final AvailObject object,
+		final A_BasicObject key,
+		final A_BasicObject value)
+	throws VariableGetException, VariableSetException
+	{
+		handleVariableWriteTracing(object);
+		final A_Type outerKind = object.slot(KIND);
+		final A_Type readType = outerKind.readType();
+		assert readType.isMapType();
+		final A_Map oldMap = object.slot(VALUE);
+		if (oldMap.equalsNil())
+		{
+			throw new VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE);
+		}
+		assert oldMap.isMap();
+		if (readType.isMapType())
+		{
+			// Make sure the new map will satisfy the writeType.  We do these
+			// checks before modifying the map, since the new key/value pair can
+			// be added destructively.
+			if (!key.isInstanceOf(readType.keyType())
+				|| !value.isInstanceOf(readType.valueType()))
+			{
+				throw new VariableSetException(
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+			}
+			if (readType.sizeRange().upperBound().equalsInt(oldMap.mapSize()))
+			{
+				// Map is as full as the type will allow.  Ensure we're
+				// replacing a key, not adding one.
+				if (!oldMap.hasKey(key))
+				{
+					throw new VariableSetException(
+						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
+				}
+			}
+		}
+		final A_Map newMap = oldMap.mapAtPuttingCanDestroy(key, value, true);
+		// We already checked the key, value, and resulting size, so we can skip
+		// a separate type check.
+		object.setSlot(VALUE, newMap.makeShared());
+	}
+
+	@Override @AvailMethod
+	boolean o_VariableMapHasKey (
+		final AvailObject object,
+		final A_BasicObject key)
+	throws VariableGetException
+	{
+		handleVariableWriteTracing(object);
+		final A_Type outerKind = object.slot(KIND);
+		final A_Type readType = outerKind.readType();
+		assert readType.isMapType();
+		final A_Map oldMap = object.slot(VALUE);
+		if (oldMap.equalsNil())
+		{
+			throw new VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE);
+		}
+		return oldMap.hasKey(key);
+	}
+
+	@Override @AvailMethod
 	void o_ClearValue (final AvailObject object)
 	{
 		handleVariableWriteTracing(object);

@@ -59,6 +59,7 @@ import com.avail.interpreter.primitive.methods.*;
 import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken;
+import com.avail.interpreter.primitive.variables.P_AtomicAddToMap;
 import com.avail.interpreter.primitive.variables.P_GetValue;
 import com.avail.optimizer.L2Translator;
 import com.avail.serialization.SerializerOperation;
@@ -1300,6 +1301,26 @@ extends Descriptor
 	{
 		return vmContinuationCallerAtom;
 	}
+
+	/**
+	 * The (special) VM-built atom that names the primitive method that
+	 * atomically writes a key/value pair to a map inside a variable.
+	 */
+	private static final A_Atom vmAtomicAddToMapAtom =
+		createSpecialMethodAtom(
+			"vm_↑[_]:=_",
+			P_AtomicAddToMap.instance);
+
+	/**
+	 * Answer the (special) VM-built variable accessor atom.
+	 *
+	 * @return The name of the VM's variable accessor atom.
+	 */
+	public static A_Atom vmAtomicAddToMapAtom ()
+	{
+		return vmAtomicAddToMapAtom;
+	}
+
 
 	/**
 	 * The (special) name of the VM-built variable accessor atom.

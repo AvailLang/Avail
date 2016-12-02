@@ -1549,6 +1549,25 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	void o_AtomicAddToMap (
+		AvailObject object,
+		A_BasicObject key,
+		A_BasicObject value)
+	throws VariableGetException, VariableSetException
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_VariableMapHasKey (
+		AvailObject object,
+		A_BasicObject key)
+	throws VariableGetException
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	void o_ClearValue (final AvailObject object)
 	{
 		throw unsupportedOperationException();

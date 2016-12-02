@@ -2427,7 +2427,7 @@ public final class AvailCompiler
 	 * @return A new continuation. It accepts an argument of some kind, which
 	 *         will be passed forward to the argument continuation.
 	 */
-	private <ArgType> Continuation1<ArgType> workUnitCompletion (
+	@InnerAccess <ArgType> Continuation1<ArgType> workUnitCompletion (
 		final A_Token token,
 		final @Nullable AtomicBoolean optionalSafetyCheck,
 		final Continuation1<ArgType> continuation)
@@ -2504,13 +2504,13 @@ public final class AvailCompiler
 		final ParserState where)
 	{
 		startWorkUnit();
-		final Continuation1<AvailObject> workUnit = workUnitCompletion(
+		final Continuation1<Void> workUnit = workUnitCompletion(
 			where.peekToken(),
 			null,
-			new Continuation1<AvailObject>()
+			new Continuation1<Void>()
 			{
 				@Override
-				public void value (final @Nullable AvailObject ignored)
+				public void value (final @Nullable Void ignored)
 				{
 					continuation.value();
 				}
@@ -3134,7 +3134,10 @@ public final class AvailCompiler
 			// Can't summarize; write the original function.
 			if (AvailLoader.debugUnsummarizedStatements)
 			{
-				System.out.println(module + " -- " + function);
+				System.out.println(
+					module.toString()
+						+ ":" + function.code().startingLineNumber()
+						+ " -- " + function);
 			}
 			serializer.serialize(function);
 		}
@@ -3762,33 +3765,39 @@ public final class AvailCompiler
 			{
 				final A_Number key = entry.key();
 				final int keyInt = key.extractInt();
-				if (skipCheckArgumentAction && decode(keyInt) == CHECK_ARGUMENT)
+				final ParsingOperation op = decode(keyInt);
+				if (skipCheckArgumentAction && op == CHECK_ARGUMENT)
 				{
 					// Skip this action, because the latest argument was a send
 					// that had an entry in the prefilter map, so it has already
 					// been dealt with.
 					continue;
 				}
-				final A_Tuple value = entry.value();
-				workUnitDo(
-					new Continuation0()
-					{
-						@Override
-						public void value ()
+				// Eliminate it before queueing a work unit if it shouldn't run
+				// due to there being a first argument already pre-parsed.
+				if (firstArgOrNull == null || op.canRunIfHasFirstArgument)
+				{
+					final A_Tuple value = entry.value();
+					workUnitDo(
+						new Continuation0()
 						{
-							runParsingInstructionThen(
-								start,
-								keyInt,
-								firstArgOrNull,
-								argsSoFar,
-								marksSoFar,
-								initialTokenPosition,
-								consumedAnything,
-								value,
-								continuation);
-						}
-					},
-					start);
+							@Override
+							public void value ()
+							{
+								runParsingInstructionThen(
+									start,
+									keyInt,
+									firstArgOrNull,
+									argsSoFar,
+									marksSoFar,
+									initialTokenPosition,
+									consumedAnything,
+									value,
+									continuation);
+							}
+						},
+						start);
+				}
 			}
 		}
 	}
