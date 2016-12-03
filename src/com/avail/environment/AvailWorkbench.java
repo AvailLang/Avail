@@ -337,10 +337,6 @@ extends JFrame
 						// Just ignore the failed write.
 					}
 				}
-				final JScrollBar verticalScrollBar =
-					transcriptScrollArea.getVerticalScrollBar();
-				verticalScrollBar.validate();
-				verticalScrollBar.setValue(verticalScrollBar.getMaximum());
 				synchronized (updateQueue)
 				{
 					if (updateQueue.isEmpty())

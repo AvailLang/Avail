@@ -35,7 +35,7 @@ package com.avail.interpreter.effects;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Method;
 import com.avail.descriptor.A_SemanticRestriction;
-import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -79,8 +79,7 @@ public class LoadingEffectToAddSemanticRestriction extends LoadingEffect
 		// Call the semantic restriction defining method.
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(
-				MethodDescriptor.vmSemanticRestrictionAtom().bundleOrNil()),
+			writer.addLiteral(SpecialAtom.SEMANTIC_RESTRICTION.bundle),
 			writer.addLiteral(Types.TOP.o()));
 	}
 }

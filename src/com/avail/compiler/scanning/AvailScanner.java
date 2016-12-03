@@ -1024,7 +1024,7 @@ public class AvailScanner
 			{
 				action = WHITESPACE;
 			}
-			else if (c < 32 || (c > 126 && c < 160) || !Character.isDefined(c))
+			else if (c < 32 || (c < 160 && c > 126) || !Character.isDefined(c))
 			{
 				action = UNKNOWN;
 			}

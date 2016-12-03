@@ -36,7 +36,7 @@ import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.A_Method;
 import com.avail.descriptor.A_String;
-import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -83,8 +83,7 @@ public class LoadingEffectToAddAlias extends LoadingEffect
 		// Call the method that aliases an atom.
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(
-				MethodDescriptor.vmAliasAtom().bundleOrNil()),
+			writer.addLiteral(SpecialAtom.ALIAS.bundle),
 			writer.addLiteral(Types.TOP.o()));
 	}
 }

@@ -35,7 +35,7 @@ package com.avail.interpreter.effects;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Method;
 import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -80,8 +80,7 @@ public class LoadingEffectToAddSeal extends LoadingEffect
 		// Call the sealing method.
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(
-				MethodDescriptor.vmSealAtom().bundleOrNil()),
+			writer.addLiteral(SpecialAtom.SEAL.bundle),
 			writer.addLiteral(Types.TOP.o()));
 	}
 }

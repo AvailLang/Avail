@@ -38,6 +38,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.effects.LoadingEffectToAddUnloadFunction;
 
 /**
  * <strong>Primitive:</strong> Add the specified {@linkplain A_Function
@@ -71,6 +72,8 @@ extends Primitive
 		}
 		final A_Module module = loader.module();
 		module.addUnloadFunction(unloadFunction);
+		loader.recordEffect(
+			new LoadingEffectToAddUnloadFunction(unloadFunction));
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

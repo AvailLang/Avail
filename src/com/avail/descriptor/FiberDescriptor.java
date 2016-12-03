@@ -642,8 +642,12 @@ extends Descriptor
 			return all;
 		}
 
-		/** The valid successor {@linkplain ExecutionState states}. */
-		protected @Nullable Set<ExecutionState> successors = null;
+		/**
+		 * The valid successor {@linkplain ExecutionState states}, encoded as a
+		 * 1-bit for each valid successor's 1<<ordinal().  Supports at most 31
+		 * values, since -1 is used as a lazy-initialization sentinel.
+		 */
+		protected int successors = -1;
 
 		/**
 		 * Determine if this is a valid successor state.
@@ -653,13 +657,17 @@ extends Descriptor
 		 */
 		boolean mayTransitionTo (final ExecutionState newState)
 		{
-			Set<ExecutionState> allowed = successors;
-			if (allowed == null)
+			if (successors == -1)
 			{
-				allowed = privateSuccessors();
-				successors = allowed;
+				// No lock - redundant computation in other threads is stable.
+				int s = 0;
+				for (ExecutionState successor : privateSuccessors())
+				{
+					s |= 1 << successor.ordinal();
+				}
+				successors = s;
 			}
-			return allowed.contains(newState);
+			return ((successors >>> newState.ordinal()) & 1) == 1;
 		}
 
 		/**

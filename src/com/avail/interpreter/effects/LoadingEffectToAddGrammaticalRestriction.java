@@ -33,6 +33,7 @@
 package com.avail.interpreter.effects;
 
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -90,8 +91,7 @@ public class LoadingEffectToAddGrammaticalRestriction extends LoadingEffect
 		// Call the method to add the grammatical restrictions.
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(
-				MethodDescriptor.vmGrammaticalRestrictionsAtom().bundleOrNil()),
+			writer.addLiteral(SpecialAtom.GRAMMATICAL_RESTRICTION.bundle),
 			writer.addLiteral(Types.TOP.o()));
 	}
 }

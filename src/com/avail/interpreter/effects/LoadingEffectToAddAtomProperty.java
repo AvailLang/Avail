@@ -34,7 +34,7 @@ package com.avail.interpreter.effects;
 
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -93,8 +93,7 @@ public class LoadingEffectToAddAtomProperty extends LoadingEffect
 		// Call the property adding method.
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(
-				MethodDescriptor.vmAddAtomPropertyAtom().bundleOrNil()),
+			writer.addLiteral(SpecialAtom.ATOM_PROPERTY.bundle),
 			writer.addLiteral(Types.TOP.o()));
 	}
 }

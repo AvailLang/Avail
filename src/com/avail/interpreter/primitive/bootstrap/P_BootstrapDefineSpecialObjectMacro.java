@@ -38,6 +38,7 @@ import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
@@ -89,7 +90,7 @@ extends Primitive
 		// sent, will produce a method that answers the special object.
 		final A_Phrase defineMethod = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			MethodDescriptor.vmMethodDefinerAtom().bundleOrNil(),
+			SpecialAtom.METHOD_DEFINER.bundle,
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
 					nameLiteral,
@@ -111,7 +112,7 @@ extends Primitive
 			specialObjectLiteral.expressionType());
 		final A_Phrase createLiteralToken = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			MethodDescriptor.vmCreateLiteralTokenAtom().bundleOrNil(),
+			SpecialAtom.CREATE_LITERAL_TOKEN.bundle,
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
 					getValue,
@@ -121,7 +122,7 @@ extends Primitive
 				specialObjectLiteral.expressionType()));
 		final A_Phrase createLiteralNode = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			MethodDescriptor.vmCreateLiteralExpressionAtom().bundleOrNil(),
+			SpecialAtom.CREATE_LITERAL_PHRASE.bundle,
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
 					createLiteralToken)),
@@ -129,7 +130,7 @@ extends Primitive
 				specialObjectLiteral.expressionType()));
 		final A_Phrase defineMacro = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			MethodDescriptor.vmMacroDefinerAtom().bundleOrNil(),
+			SpecialAtom.MACRO_DEFINER.bundle,
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
 					nameLiteral,

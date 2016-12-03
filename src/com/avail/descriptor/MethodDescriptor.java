@@ -48,14 +48,13 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
-import com.avail.interpreter.primitive.atoms.P_CreateAtom;
-import com.avail.interpreter.primitive.atoms.P_CreateExplicitSubclassAtom;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
 import com.avail.interpreter.primitive.general.P_DeclareStringificationAtom;
 import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.methods.*;
+import com.avail.interpreter.primitive.modules.P_AddUnloadFunction;
 import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken;
@@ -980,417 +979,181 @@ extends Descriptor
 		return shared;
 	}
 
-	/**
-	 * Create a new special atom with the given name.  The name is not globally
-	 * unique, but serves to help to visually distinguish atoms.  Also create
-	 * a {@linkplain MessageBundleDescriptor message bundle} within it, with its
-	 * own {@linkplain MethodDescriptor method}.  Add {@linkplain
-	 * MethodDefinitionDescriptor method definitions} implementing the specified
-	 * primitives.
-	 *
-	 * @param name
-	 *        A string used to help identify the new atom.
-	 * @param primitives
-	 *        The {@link Primitive}s to instantiate as method definitions in
-	 *        this atom's message bundle's method.
-	 * @return
-	 *        The new atom, not equal to any object in use before this method
-	 *        was invoked.
-	 */
-	private static A_Atom createSpecialMethodAtom (
-		final String name,
-		final Primitive... primitives)
+	// An enumeration of special atoms that the VM is aware of which name
+	// methods for invoking specific primitives.  Multiple primitives may be
+	// provided to make the method multimorphic.
+	public enum SpecialAtom
 	{
-		final A_Atom atom = AtomDescriptor.createSpecialAtom(name);
-		final A_Bundle bundle;
-		try
+		/** The special atom for failing during bootstrap.  Must be first. */
+		CRASH(
+			"vm crash:_",
+			P_EmergencyExit.instance),
+
+		/** The special atom for defining abstract methods. */
+		ABSTRACT_DEFINER(
+			"vm abstract_for_",
+			P_AbstractMethodDeclarationForAtom.instance),
+
+		/** The special atom for adding to a map inside a variable. */
+		ADD_TO_MAP_VARIABLE(
+			"vm_↑[_]:=_",
+			P_AtomicAddToMap.instance),
+
+		/** The special atom for adding a module unload function. */
+		ADD_UNLOADER(
+			"vm on unload_",
+			P_AddUnloadFunction.instance),
+
+		/** The special atom for creating aliases of atoms. */
+		ALIAS(
+			"vm alias new name_to_",
+			P_Alias.instance),
+
+		/** The special atom for function application. */
+		APPLY(
+			"vm function apply_(«_‡,»)",
+			P_InvokeWithTuple.instance),
+
+		/** The special atom for adding properties to atoms. */
+		ATOM_PROPERTY(
+			"vm atom_at property_put_",
+			P_AtomSetProperty.instance),
+
+		/** The special atom for extracting the caller of a continuation. */
+		CONTINUATION_CALLER(
+			"vm_'s caller",
+			P_ContinuationCaller.instance),
+
+		/** The special atom for creating a literal phrase. */
+		CREATE_LITERAL_PHRASE(
+			"vm create literal phrase_",
+			P_CreateLiteralExpression.instance),
+
+		/** The special atom for creating a literal token. */
+		CREATE_LITERAL_TOKEN(
+			"vm create literal token_,_",
+			P_CreateLiteralToken.instance),
+
+		/** The special atom for declaring the stringifier atom. */
+		DECLARE_STRINGIFIER(
+			"vm stringifier:=_",
+			P_DeclareStringificationAtom.instance),
+
+		/** The special atom for forward-defining methods. */
+		FORWARD_DEFINER(
+			"vm forward_for_",
+			P_ForwardMethodDeclarationForAtom.instance),
+
+		/** The special atom for getting a variable's value. */
+		GET_VARIABLE(
+			"vm↓_",
+			P_GetValue.instance),
+
+		/** The special atom for adding grammatical restrictions. */
+		GRAMMATICAL_RESTRICTION(
+			"vm grammatical restriction_is_",
+			P_GrammaticalRestrictionFromAtoms.instance),
+
+		/** The special atom for defining macros. */
+		MACRO_DEFINER(
+			"vm macro_is«_,»_",
+			P_SimpleMacroDeclaration.instance,
+			P_SimpleMacroDefinitionForAtom.instance),
+
+		/** The special atom for defining methods. */
+		METHOD_DEFINER(
+			"vm method_is_",
+			P_SimpleMethodDeclaration.instance,
+			P_MethodDeclarationFromAtom.instance),
+
+		/** The special atom for publishing atoms. */
+		PUBLISH_ATOMS(
+			"vm publish atom set_(public=_)",
+			P_DeclareAllExportedAtoms.instance),
+
+		/** The special atom for sealing methods. */
+		SEAL(
+			"vm seal_at_",
+			P_SealMethodByAtom.instance),
+
+		/** The special atom for adding semantic restrictions. */
+		SEMANTIC_RESTRICTION(
+			"vm semantic restriction_is_",
+			P_AddSemanticRestrictionForAtom.instance),
+
+		/** The special atom for resuming a continuation. */
+		RESUME_CONTINUATION(
+			"vm resume_",
+			P_ResumeContinuation.instance);
+
+		/** The special atom. */
+		public final A_Atom atom;
+
+		/** The special atom's message bundle. */
+		public final A_Bundle bundle;
+
+		SpecialAtom (final String name, final Primitive... primitives)
 		{
-			bundle = atom.bundleOrCreate();
+			this.atom = createSpecialMethodAtom(name, primitives);
+			this.bundle = atom.bundleOrNil();
 		}
-		catch (final MalformedMessageException e)
+
+		/**
+		 * Create a new special atom with the given name.  The name is not
+		 * globally unique, but serves to help to visually distinguish atoms.
+		 * Also create a {@linkplain MessageBundleDescriptor message bundle}
+		 * within it, with its own {@linkplain MethodDescriptor method}.  Add
+		 * {@linkplain MethodDefinitionDescriptor method definitions}
+		 * implementing the specified primitives.
+		 *
+		 * @param name
+		 *        A string used to help identify the new atom.
+		 * @param primitives
+		 *        The {@link Primitive}s to instantiate as method definitions in
+		 *        this atom's message bundle's method.
+		 * @return
+		 *        The new atom, not equal to any object in use before this
+		 *        method was invoked.
+		 */
+		private static A_Atom createSpecialMethodAtom (
+			final String name,
+			final Primitive... primitives)
 		{
-			assert false : "This should not happen!";
-			throw new RuntimeException(
-				"VM method name is invalid: " + name.toString(), e);
-		}
-		final A_Method method = bundle.bundleMethod();
-		for (final Primitive primitive : primitives)
-		{
-			final A_Function function = FunctionDescriptor.newPrimitiveFunction(
-				primitive, NilDescriptor.nil(), 0);
-			final A_Definition definition = MethodDefinitionDescriptor.create(
-				method,
-				NilDescriptor.nil(),  // System definitions have no module.
-				function);
+			final A_Atom atom = AtomDescriptor.createSpecialAtom(name);
+			final A_Bundle bundle;
 			try
 			{
-				method.methodAddDefinition(definition);
+				bundle = atom.bundleOrCreate();
 			}
-			catch (final SignatureException e)
+			catch (final MalformedMessageException e)
 			{
 				assert false : "This should not happen!";
 				throw new RuntimeException(
 					"VM method name is invalid: " + name, e);
 			}
+			final A_Method method = bundle.bundleMethod();
+			for (final Primitive primitive : primitives)
+			{
+				final A_Function function = FunctionDescriptor.newPrimitiveFunction(
+					primitive, NilDescriptor.nil(), 0);
+				final A_Definition definition = MethodDefinitionDescriptor.create(
+					method,
+					NilDescriptor.nil(),  // System definitions have no module.
+					function);
+				try
+				{
+					method.methodAddDefinition(definition);
+				}
+				catch (final SignatureException e)
+				{
+					assert false : "This should not happen!";
+					throw new RuntimeException(
+						"VM method name is invalid: " + name, e);
+				}
+			}
+			assert atom.descriptor().isShared();
+			assert atom.isAtomSpecial();
+			return atom;
 		}
-		assert atom.descriptor().isShared();
-		assert atom.isAtomSpecial();
-		return atom;
-	}
-
-	/**
-	 * A special {@linkplain AtomDescriptor atom} used to name the VM's method
-	 * to crash during early bootstrapping problems.
-	 */
-	private static final A_Atom vmCrashAtom = createSpecialMethodAtom(
-		"vm crash:_",
-		P_EmergencyExit.instance);
-
-	/**
-	 * Answer the {@linkplain AtomDescriptor atom} used by the VM to name the
-	 * method which is invoked in the event of a bootstrapping problem.
-	 *
-	 * @return The atom.
-	 */
-	public static A_Atom vmCrashAtom ()
-	{
-		return vmCrashAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built pre-bootstrap method-defining method.
-	 */
-	private static final A_Atom vmMethodDefinerAtom = createSpecialMethodAtom(
-		"vm method_is_",
-		P_SimpleMethodDeclaration.instance,
-		P_MethodDeclarationFromAtom.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to bootstrap new methods.
-	 *
-	 * @return The name of the bootstrap method-defining method.
-	 */
-	public static A_Atom vmMethodDefinerAtom ()
-	{
-		return vmMethodDefinerAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built pre-bootstrap macro-defining method.
-	 */
-	private static final A_Atom vmMacroDefinerAtom = createSpecialMethodAtom(
-		"vm macro_is«_,»_",
-		P_SimpleMacroDeclaration.instance,
-		P_SimpleMacroDefinitionForAtom.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to bootstrap new macros.
-	 *
-	 * @return The name of the bootstrap macro-defining method.
-	 */
-	public static A_Atom vmMacroDefinerAtom ()
-	{
-		return vmMacroDefinerAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built method used to load abstract
-	 * definitions.
-	 */
-	private static final A_Atom vmAbstractDefinerAtom = createSpecialMethodAtom(
-		"vm abstract_for_",
-		P_AbstractMethodDeclarationForAtom.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to load abstract definitions.
-	 *
-	 * @return The name of the abstract definer method.
-	 */
-	public static A_Atom vmAbstractDefinerAtom ()
-	{
-		return vmAbstractDefinerAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built method used to load forward
-	 * definitions.
-	 */
-	private static final A_Atom vmForwardDefinerAtom = createSpecialMethodAtom(
-		"vm forward_for_",
-		P_ForwardMethodDeclarationForAtom.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to load forward method definitions.
-	 *
-	 * @return The name of the forward definer method.
-	 */
-	public static A_Atom vmForwardDefinerAtom ()
-	{
-		return vmForwardDefinerAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built method used to define grammatical
-	 * restrictions.
-	 */
-	private static final A_Atom vmGrammaticalRestrictionsAtom =
-		createSpecialMethodAtom(
-			"vm grammatical restriction_is_",
-			P_GrammaticalRestrictionFromAtoms.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to define grammatical restrictions.
-	 *
-	 * @return The name of the grammatical restriction method.
-	 */
-	public static A_Atom vmGrammaticalRestrictionsAtom ()
-	{
-		return vmGrammaticalRestrictionsAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built method used to define semantic
-	 * restrictions.
-	 */
-	private static final A_Atom vmSemanticRestrictionAtom =
-		createSpecialMethodAtom(
-			"vm semantic restriction_is_",
-			P_AddSemanticRestrictionForAtom.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to declare semantic restrictions.
-	 *
-	 * @return The name of the method for adding semantic restrictions.
-	 */
-	public static A_Atom vmSemanticRestrictionAtom ()
-	{
-		return vmSemanticRestrictionAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built method used to define seal methods.
-	 */
-	private static final A_Atom vmSealAtom =
-		createSpecialMethodAtom(
-			"vm seal_at_",
-			P_SealMethodByAtom.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to seal methods.
-	 *
-	 * @return The name of the sealing method.
-	 */
-	public static A_Atom vmSealAtom ()
-	{
-		return vmSealAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built method used to define aliased atoms.
-	 */
-	private static final A_Atom vmAliasAtom =
-		createSpecialMethodAtom(
-			"vm alias new name_to_",
-			P_Alias.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to created aliased atoms.
-	 *
-	 * @return The name of the aliasing method.
-	 */
-	public static A_Atom vmAliasAtom ()
-	{
-		return vmAliasAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built method used to add atom properties.
-	 */
-	private static final A_Atom vmAddAtomPropertyAtom =
-		createSpecialMethodAtom(
-			"vm atom_at property_put_",
-			P_AtomSetProperty.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM method
-	 * used to created add properties to atoms.
-	 *
-	 * @return The name of the method that adds atom properties.
-	 */
-	public static A_Atom vmAddAtomPropertyAtom ()
-	{
-		return vmAddAtomPropertyAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built function application method.
-	 */
-	private static final A_Atom vmFunctionApplyAtom = createSpecialMethodAtom(
-		"vm function apply_(«_‡,»)",
-		P_InvokeWithTuple.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
-	 * function application method.
-	 *
-	 * @return The name of the VM's function application method.
-	 */
-	public static A_Atom vmFunctionApplyAtom ()
-	{
-		return vmFunctionApplyAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built atom-set publication method.
-	 */
-	private static final A_Atom vmPublishAtomsAtom = createSpecialMethodAtom(
-		"vm publish atom set_(public=_)",
-		P_DeclareAllExportedAtoms.instance);
-
-	/**
-	 * Answer the (special) {@linkplain AtomDescriptor name} of the VM's
-	 * function which publishes a set of atoms from the current module.
-	 *
-	 * @return The name of the VM's function application method.
-	 */
-	public static A_Atom vmPublishAtomsAtom ()
-	{
-		return vmPublishAtomsAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built stringifier declaration atom.
-	 */
-	private static final A_Atom vmDeclareStringifierAtom =
-		createSpecialMethodAtom(
-			"vm stringifier:=_",
-			P_DeclareStringificationAtom.instance);
-
-	/**
-	 * Answer the (special) name of the VM-built stringifier declaration atom.
-	 *
-	 * @return The name of the VM's stringifier declaration atom.
-	 */
-	public static A_Atom vmDeclareStringifierAtom ()
-	{
-		return vmDeclareStringifierAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built continuation caller atom.
-	 */
-	private static final A_Atom vmContinuationCallerAtom =
-		createSpecialMethodAtom(
-			"vm_'s caller",
-			P_ContinuationCaller.instance);
-
-	/**
-	 * Answer the (special) name of the VM-built continuation caller atom.
-	 *
-	 * @return The name of the VM's continuation caller atom.
-	 */
-	public static A_Atom vmContinuationCallerAtom ()
-	{
-		return vmContinuationCallerAtom;
-	}
-
-	/**
-	 * The (special) VM-built atom that names the primitive method that
-	 * atomically writes a key/value pair to a map inside a variable.
-	 */
-	private static final A_Atom vmAtomicAddToMapAtom =
-		createSpecialMethodAtom(
-			"vm_↑[_]:=_",
-			P_AtomicAddToMap.instance);
-
-	/**
-	 * Answer the (special) VM-built variable accessor atom.
-	 *
-	 * @return The name of the VM's variable accessor atom.
-	 */
-	public static A_Atom vmAtomicAddToMapAtom ()
-	{
-		return vmAtomicAddToMapAtom;
-	}
-
-
-	/**
-	 * The (special) name of the VM-built variable accessor atom.
-	 */
-	private static final A_Atom vmVariableGetAtom =
-		createSpecialMethodAtom(
-			"vm↓_",
-			P_GetValue.instance);
-
-	/**
-	 * Answer the (special) name of the VM-built variable accessor atom.
-	 *
-	 * @return The name of the VM's variable accessor atom.
-	 */
-	public static A_Atom vmVariableGetAtom ()
-	{
-		return vmVariableGetAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built continuation resumption atom.
-	 */
-	private static final A_Atom vmResumeContinuationAtom =
-		createSpecialMethodAtom(
-			"vm resume_",
-			P_ResumeContinuation.instance);
-
-	/**
-	 * Answer the (special) name of the VM-built continuation resumption atom.
-	 *
-	 * @return The name of the VM's continuation resumption atom.
-	 */
-	public static A_Atom vmResumeContinuationAtom ()
-	{
-		return vmResumeContinuationAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built literal token creation atom.
-	 */
-	private static final A_Atom vmCreateLiteralTokenAtom =
-		createSpecialMethodAtom(
-			"vm create literal token_,_",
-			P_CreateLiteralToken.instance);
-
-	/**
-	 * Answer the (special) name of the VM-built literal token creation atom.
-	 *
-	 * @return The name of the VM's literal token creation method.
-	 */
-	public static A_Atom vmCreateLiteralTokenAtom ()
-	{
-		return vmCreateLiteralTokenAtom;
-	}
-
-	/**
-	 * The (special) name of the VM-built literal phrase creation method.
-	 */
-	private static final A_Atom vmCreateLiteralExpressionAtom =
-		createSpecialMethodAtom(
-			"vm create literal phrase_",
-			P_CreateLiteralExpression.instance);
-
-	/**
-	 * Answer the (special) name of the VM-built literal phrase creation method.
-	 *
-	 * @return The name of the VM's literal phrase creation method.
-	 */
-	public static A_Atom vmCreateLiteralExpressionAtom ()
-	{
-		return vmCreateLiteralExpressionAtom;
 	}
 }

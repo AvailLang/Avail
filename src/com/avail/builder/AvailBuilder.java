@@ -2072,13 +2072,12 @@ public final class AvailBuilder
 				@Override
 				public void value (final @Nullable AvailObject ignored)
 				{
-					A_Function function = null;
+					final A_Function function;
 					try
 					{
-						if (!shouldStopBuild())
-						{
-							function = deserializer.deserialize();
-						}
+						function = !shouldStopBuild()
+							? deserializer.deserialize()
+							: null;
 					}
 					catch (
 						final MalformedSerialStreamException
@@ -2089,7 +2088,6 @@ public final class AvailBuilder
 					}
 					if (function != null)
 					{
-						final A_Function finalFunction = function;
 						final A_Fiber fiber = newLoaderFiber(
 							function.kind().returnType(),
 							availLoader,
@@ -2098,8 +2096,7 @@ public final class AvailBuilder
 								@Override
 								public A_String value ()
 								{
-									final A_RawFunction code =
-										finalFunction.code();
+									final A_RawFunction code = function.code();
 									return StringDescriptor.format(
 										"Load repo module %s, in %s:%d",
 										code.methodName(),
@@ -2122,7 +2119,7 @@ public final class AvailBuilder
 										.recordTopStatementEvaluation(
 											after - before,
 											module,
-											finalFunction.code()
+											function.code()
 												.startingLineNumber());
 									runNext.value().value(ignored2);
 								}

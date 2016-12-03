@@ -67,6 +67,7 @@ import com.avail.builder.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
@@ -1755,25 +1756,26 @@ public final class AvailRuntime
 			AtomDescriptor.trueObject(),
 			CompiledCodeDescriptor.lineNumberKeyAtom(),
 			CompiledCodeDescriptor.methodNameKeyAtom(),
-			MethodDescriptor.vmAbstractDefinerAtom(),
-			MethodDescriptor.vmAddAtomPropertyAtom(),
-			MethodDescriptor.vmAliasAtom(),
-			MethodDescriptor.vmContinuationCallerAtom(),
-			MethodDescriptor.vmCrashAtom(),
-			MethodDescriptor.vmCreateLiteralExpressionAtom(),
-			MethodDescriptor.vmCreateLiteralTokenAtom(),
-			MethodDescriptor.vmDeclareStringifierAtom(),
-			MethodDescriptor.vmForwardDefinerAtom(),
-			MethodDescriptor.vmFunctionApplyAtom(),
-			MethodDescriptor.vmGrammaticalRestrictionsAtom(),
-			MethodDescriptor.vmMacroDefinerAtom(),
-			MethodDescriptor.vmMethodDefinerAtom(),
-			MethodDescriptor.vmPublishAtomsAtom(),
-			MethodDescriptor.vmResumeContinuationAtom(),
-			MethodDescriptor.vmSealAtom(),
-			MethodDescriptor.vmSemanticRestrictionAtom(),
-			MethodDescriptor.vmVariableGetAtom(),
-			MethodDescriptor.vmAtomicAddToMapAtom(),
+			SpecialAtom.ABSTRACT_DEFINER.atom,
+			SpecialAtom.ADD_TO_MAP_VARIABLE.atom,
+			SpecialAtom.ALIAS.atom,
+			SpecialAtom.APPLY.atom,
+			SpecialAtom.ATOM_PROPERTY.atom,
+			SpecialAtom.CONTINUATION_CALLER.atom,
+			SpecialAtom.CRASH.atom,
+			SpecialAtom.CREATE_LITERAL_PHRASE.atom,
+			SpecialAtom.CREATE_LITERAL_TOKEN.atom,
+			SpecialAtom.DECLARE_STRINGIFIER.atom,
+			SpecialAtom.FORWARD_DEFINER.atom,
+			SpecialAtom.GET_VARIABLE.atom,
+			SpecialAtom.GRAMMATICAL_RESTRICTION.atom,
+			SpecialAtom.MACRO_DEFINER.atom,
+			SpecialAtom.METHOD_DEFINER.atom,
+			SpecialAtom.ADD_UNLOADER.atom,
+			SpecialAtom.PUBLISH_ATOMS.atom,
+			SpecialAtom.RESUME_CONTINUATION.atom,
+			SpecialAtom.SEAL.atom,
+			SpecialAtom.SEMANTIC_RESTRICTION.atom,
 			ObjectTypeDescriptor.exceptionAtom(),
 			ObjectTypeDescriptor.stackDumpAtom(),
 			PojoTypeDescriptor.selfAtom()));

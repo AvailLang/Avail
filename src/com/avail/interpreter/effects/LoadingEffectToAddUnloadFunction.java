@@ -1,5 +1,5 @@
 /**
- * LoadingEffectToAddToMap.java
+ * LoadingEffectToAddUnloadFunction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,71 +32,50 @@
 
 package com.avail.interpreter.effects;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.MethodDescriptor;
 import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 
 /**
- * A {@code LoadingEffectToAddToMap} summarizes the addition of a key/value pair
- * to a map within a variable, without looking at anything else inside that
- * variable's map.
+ * A {@code LoadingEffectToAddUnloadFunction} summarizes the addition of a
+ * function to the module's list of functions to be executed upon unload.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class LoadingEffectToAddToMap extends LoadingEffect
+public class LoadingEffectToAddUnloadFunction extends LoadingEffect
 {
-	/** The variable containing the map. */
-	private final A_Variable mapVariable;
-
-	/** The key to add to the variable's map. */
-	private final A_BasicObject key;
-
-	/** The value to store under the key in the variable's map. */
-	private final A_BasicObject value;
+	/** The unload function to add. */
+	private final A_Function unloadFunction;
 
 	/**
-	 * Construct a new {@link LoadingEffectToAddToMap}.
+	 * Construct a new {@link LoadingEffectToAddUnloadFunction}.
 	 *
-	 * @param mapVariable
-	 *        The variable holding the map to be updated.
-	 * @param key
-	 *        The key to update or add.
-	 * @param value
-	 *        The value to record in the map under the given key.
+	 * @param unloadFunction
+	 *        The unload function to add.
 	 */
-	public LoadingEffectToAddToMap (
-		final A_Variable mapVariable,
-		final A_BasicObject key,
-		final A_BasicObject value)
+	public LoadingEffectToAddUnloadFunction (
+		final A_Function unloadFunction)
 	{
-		assert !mapVariable.isInitializedWriteOnceVariable();
-		this.mapVariable = mapVariable;
-		this.key = key;
-		this.value = value;
+		assert unloadFunction.code().numArgs() == 0;
+		this.unloadFunction = unloadFunction;
 	}
 
 	@Override
 	public void writeEffectTo (final L1InstructionWriter writer)
 	{
-		// Push the variable holding the map.
-		writer.write(
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(mapVariable));
-		// Push the key.
-		writer.write(
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(key));
-		// Push the value.
-		writer.write(
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(value));
-		// Call the primitive that adds the key/value to the variable's map.
-		writer.write(
-			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.ADD_TO_MAP_VARIABLE.bundle),
-			writer.addLiteral(Types.TOP.o()));
+		{
+			// Push the unload function.
+			writer.write(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(unloadFunction));
+			// Add the unload function to the module.
+			writer.write(
+				L1Operation.L1_doCall,
+				writer.addLiteral(SpecialAtom.ADD_UNLOADER.bundle),
+				writer.addLiteral(Types.TOP.o()));
+		}
 	}
 }

@@ -40,11 +40,9 @@ import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.exceptions.AvailRuntimeException;
-import com.avail.exceptions.MalformedMessageException;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
-import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -311,11 +309,9 @@ extends Descriptor
 			writer.write(L1Operation.L1_doPushLastLocal, i);
 		}
 		writer.write(L1Operation.L1_doMakeTuple, numArgs);
-		final A_Bundle bundle =
-			MethodDescriptor.vmFunctionApplyAtom().bundleOrNil();
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(bundle),
+			writer.addLiteral(SpecialAtom.APPLY.bundle),
 			writer.addLiteral(returnType));
 		final AvailObject code = writer.compiledCode();
 		final A_Function newFunction = FunctionDescriptor.create(
@@ -359,11 +355,9 @@ extends Descriptor
 		writer.write(
 			L1Operation.L1_doPushLastLocal,
 			1);
-		final A_Bundle bundle =
-			MethodDescriptor.vmFunctionApplyAtom().bundleOrNil();
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(bundle),
+			writer.addLiteral(SpecialAtom.APPLY.bundle),
 			writer.addLiteral(returnType));
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function newFunction = FunctionDescriptor.create(
@@ -498,19 +492,10 @@ extends Descriptor
 			writer.write(L1Operation.L1_doGetLocal, failureLocal);
 			// Put the arguments and failure code into a tuple.
 			writer.write(L1Operation.L1_doMakeTuple, numArgs + 1);
-			try
-			{
-				writer.write(
-					L1Operation.L1_doCall,
-					writer.addLiteral(
-						MethodDescriptor.vmCrashAtom().bundleOrCreate()),
-					writer.addLiteral(BottomTypeDescriptor.bottom()));
-			}
-			catch (final MalformedMessageException e)
-			{
-				assert false : "This should not happen!";
-				throw new AvailRuntimeException(e.errorCode());
-			}
+			writer.write(
+				L1Operation.L1_doCall,
+				writer.addLiteral(SpecialAtom.CRASH.bundle),
+				writer.addLiteral(BottomTypeDescriptor.bottom()));
 		}
 		final A_Function function = FunctionDescriptor.create(
 			writer.compiledCode(),
@@ -551,19 +536,10 @@ extends Descriptor
 		}
 		// Put the error message and arguments into a tuple.
 		writer.write(L1Operation.L1_doMakeTuple, numArgs + 1);
-		try
-		{
-			writer.write(
-				L1Operation.L1_doCall,
-				writer.addLiteral(
-					MethodDescriptor.vmCrashAtom().bundleOrCreate()),
-				writer.addLiteral(BottomTypeDescriptor.bottom()));
-		}
-		catch (final MalformedMessageException e)
-		{
-			assert false : "This should not happen!";
-			throw new AvailRuntimeException(e.errorCode());
-		}
+		writer.write(
+			L1Operation.L1_doCall,
+			writer.addLiteral(SpecialAtom.CRASH.bundle),
+			writer.addLiteral(BottomTypeDescriptor.bottom()));
 		final A_RawFunction code = writer.compiledCode();
 		code.setMethodName(StringDescriptor.from(
 			"VM crash function: " + messageString));

@@ -36,6 +36,7 @@ import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.*;
@@ -6258,7 +6259,7 @@ public final class AvailCompiler
 				token.lineNumber());
 		final A_Phrase send = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			MethodDescriptor.vmMethodDefinerAtom().bundleOrNil(),
+			SpecialAtom.METHOD_DEFINER.bundle,
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
 				LiteralNodeDescriptor.syntheticFrom(function))),
@@ -6342,7 +6343,7 @@ public final class AvailCompiler
 			functionLiterals.remove(functionLiterals.size() - 1);
 		final A_Phrase send = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			MethodDescriptor.vmMacroDefinerAtom().bundleOrNil(),
+			SpecialAtom.MACRO_DEFINER.bundle,
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
 				ListNodeDescriptor.newExpressions(
@@ -6577,7 +6578,7 @@ public final class AvailCompiler
 		final A_Atom atom = atoms.asTuple().tupleAt(1);
 		final A_Phrase send = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			MethodDescriptor.vmDeclareStringifierAtom().bundleOrNil(),
+			SpecialAtom.DECLARE_STRINGIFIER.bundle,
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				LiteralNodeDescriptor.syntheticFrom(atom))),
 			TOP.o());
@@ -7823,7 +7824,7 @@ public final class AvailCompiler
 		}
 		final A_Phrase send = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			MethodDescriptor.vmPublishAtomsAtom().bundleOrNil(),
+			SpecialAtom.PUBLISH_ATOMS.bundle,
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
 					LiteralNodeDescriptor.syntheticFrom(names),
