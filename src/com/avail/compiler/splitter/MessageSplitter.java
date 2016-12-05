@@ -312,7 +312,7 @@ public final class MessageSplitter
 	 */
 	@InnerAccess static int indexForConstant (final A_BasicObject constant)
 	{
-		final AvailObject strongConstant = (AvailObject) constant.makeShared();
+		final AvailObject strongConstant = constant.makeShared();
 		constantsLock.readLock().lock();
 		try
 		{

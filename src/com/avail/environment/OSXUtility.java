@@ -76,19 +76,15 @@ public class OSXUtility
 				Class.forName("com.apple.eawt.ApplicationListener");
 			applicationEventClass =
 				Class.forName("com.apple.eawt.ApplicationEvent");
-			macOSXApplication = applicationClass
-				.getConstructor(new Class[0])
-				.newInstance(new Object[0]);
+			macOSXApplication = applicationClass.getConstructor().newInstance();
 			addListenerMethod = applicationClass.getDeclaredMethod(
-				"addApplicationListener",
-				new Class[] { applicationListenerClass });
+				"addApplicationListener", applicationListenerClass);
 			getFilenameMethod = applicationEventClass.getDeclaredMethod(
-				"getFilename",
-				new Class[] {});
+				"getFilename");
 			enableAboutMethod = applicationClass.getDeclaredMethod(
-				"setEnabledAboutMenu", new Class[] { boolean.class });
+				"setEnabledAboutMenu", boolean.class);
 			enablePrefsMethod = applicationClass.getDeclaredMethod(
-				"setEnabledPreferencesMenu", new Class[] { boolean.class });
+				"setEnabledPreferencesMenu", boolean.class);
 		}
 		catch (
 			final ClassNotFoundException
@@ -132,9 +128,7 @@ public class OSXUtility
 		// com.apple.eawt.Application reflectively.
 		try
 		{
-			enableAboutMethod.invoke(
-				macOSXApplication,
-				new Object[] { Boolean.valueOf(aboutHandler != null) });
+			enableAboutMethod.invoke(macOSXApplication, aboutHandler != null);
 		}
 		catch (final Exception ex)
 		{
@@ -158,9 +152,7 @@ public class OSXUtility
 		// calling com.apple.eawt.Application reflectively.
 		try
 		{
-			enablePrefsMethod.invoke(
-				macOSXApplication,
-				new Object[] { Boolean.valueOf(prefsHandler != null) });
+			enablePrefsMethod.invoke(macOSXApplication, prefsHandler != null);
 		}
 		catch (final Exception ex)
 		{
@@ -190,8 +182,7 @@ public class OSXUtility
 					String filename;
 					try
 					{
-						filename = (String) getFilenameMethod.invoke(
-							event, new Object[0]);
+						filename = (String) getFilenameMethod.invoke(event);
 					}
 					catch (
 						final IllegalAccessException
@@ -249,7 +240,7 @@ public class OSXUtility
 						return success;
 					}
 				});
-			addListenerMethod.invoke(macOSXApplication, new Object[] {proxy});
+			addListenerMethod.invoke(macOSXApplication, proxy);
 		}
 		catch (
 			final IllegalAccessException
@@ -276,11 +267,9 @@ public class OSXUtility
 		try
 		{
 			final Method setHandledMethod =
-				event.getClass().getDeclaredMethod(
-					"setHandled", new Class[] { boolean.class });
+				event.getClass().getDeclaredMethod("setHandled", boolean.class);
 			// If the target method returns a boolean, use that as a hint
-			setHandledMethod.invoke(
-				event, new Object[] { Boolean.valueOf(handled) });
+			setHandledMethod.invoke(event, handled);
 		}
 		catch (final Exception e)
 		{

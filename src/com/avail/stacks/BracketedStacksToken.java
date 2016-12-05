@@ -62,7 +62,7 @@ public class BracketedStacksToken extends RegionStacksToken
 	 * 		The line number where the token occurs/begins
 	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
 	 * @throws StacksScannerException
@@ -71,11 +71,11 @@ public class BracketedStacksToken extends RegionStacksToken
 		final String string,
 		final int lineNumber,
 		final int position,
-		final int startOfTokenLinePostion,
+		final int startOfTokenLinePosition,
 		final String moduleName) throws StacksScannerException
 	{
 		super(string, lineNumber, position,
-			startOfTokenLinePostion, moduleName, '\"', '\"');
+			startOfTokenLinePosition, moduleName, '\"', '\"');
 		this.subTokens = StacksBracketScanner.scanBracketString(this);
 	}
 	/**
@@ -86,7 +86,7 @@ public class BracketedStacksToken extends RegionStacksToken
 	 * 		The line number where the token occurs/begins
 	 * @param position
 	 * 		The absolute start position of the token
-	 * @param startOfTokenLinePostion
+	 * @param startOfTokenLinePosition
 	 * 		The position on the line where the token starts.
 	 * @param moduleName
 	 * 		The name of the module the token is in.
@@ -97,11 +97,11 @@ public class BracketedStacksToken extends RegionStacksToken
 		final String string,
 		final int lineNumber,
 		final int position,
-		final int startOfTokenLinePostion,
+		final int startOfTokenLinePosition,
 		final String moduleName) throws StacksScannerException
 	{
 		return new BracketedStacksToken(
-			string, lineNumber, position, startOfTokenLinePostion, moduleName);
+			string, lineNumber, position, startOfTokenLinePosition, moduleName);
 	}
 
 	@Override
@@ -1011,7 +1011,7 @@ public class BracketedStacksToken extends RegionStacksToken
 				final StacksErrorLog errorLog, JSONWriter jsonWriter);
 
 		 /**
-		  * Create html link that can be imbedded in JSON
+		  * Create html link that can be embedded in JSON
 		  * @param aLexeme the lexeme to get from the
 		  * 	{@linkplain LinkingFileMap linkingFileMap}
 		  * @param linkingFileMap The map containing the links
@@ -1037,7 +1037,7 @@ public class BracketedStacksToken extends RegionStacksToken
 		}
 
 		 /**
-		  * Create html link that can be imbedded in JSON
+		  * Create html link that can be embedded in JSON
 		  * @param aLexeme the lexeme to get from the
 		  * 	{@linkplain LinkingFileMap linkingFileMap}
 		  * @param linkingFileMap The map containing the links

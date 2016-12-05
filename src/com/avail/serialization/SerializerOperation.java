@@ -456,7 +456,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return deserializer.specialObject(subobjects[0].extractInt());
+			return Deserializer.specialObject(subobjects[0].extractInt());
 		}
 	},
 
@@ -479,7 +479,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return deserializer.specialAtom(subobjects[0].extractInt());
+			return Deserializer.specialAtom(subobjects[0].extractInt());
 		}
 	},
 

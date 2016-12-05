@@ -83,8 +83,8 @@ Public "decorated stream|streams" is a new field atom;
 "stream index" is a new field atom;
 
 /**
- * A stream is an immutable lazy list of arbitarily many elements.
- * 
+ * A stream is an immutable lazy list of arbitrarily many elements.
+ *
  * @type "stream"
  * @category "Data Abstractions" "Streams"
  */
@@ -94,7 +94,7 @@ Public explicit class "stream" extends object
 
 /**
  * Construct and answer a stream type that answers values of the specified type.
- * 
+ *
  * @method "stream of_"
  * @category "Data Abstractions" "Streams"
  * @param "elementType" "any's type"
@@ -112,7 +112,7 @@ Public method "stream of_" is
 /**
  * An empty-stream exception is raised when an inappropriate operation, like
  * `_'s⁇head` and `_'s⁇tail`, is performed on an empty stream.
- * 
+ *
  * @type "empty-stream exception"
  * @category "Data Abstractions" "Streams"
  * @supertype "exception"
@@ -121,7 +121,7 @@ Public explicit class "empty-stream exception" extends exception;
 
 /**
  * Is the specified stream empty?
- * 
+ *
  * @method "_is empty"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "stream"
@@ -132,7 +132,7 @@ Abstract method "_is empty" is [stream]→boolean;
 
 /**
  * Answer the first element of the specified nonempty stream.
- * 
+ *
  * @method "private_'s⁇head"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "stream"
@@ -144,7 +144,7 @@ Private abstract method $"private_'s⁇head" is [stream]→any;
 
 /**
  * Ensure that the specified stream is not empty, then answer its first element.
- * 
+ *
  * @method "_'s⁇head"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "stream"
@@ -206,7 +206,7 @@ Public method "_'s⁇head method is_" is
 
 /**
  * Ensure that the implementation function accepts a stream.
- * 
+ *
  * @method "_'s⁇head method is_"
  * @category "Data Abstractions" "Streams"
  * @restricts "stream's type's type"
@@ -237,7 +237,7 @@ Semantic restriction "_'s⁇head method is_" is
 /**
  * Construct and answer a stream that contains all but the first element of the
  * specified nonempty stream.
- * 
+ *
  * @method "private_'s⁇tail"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "stream"
@@ -251,7 +251,7 @@ Private abstract method $"private_'s⁇tail" is [stream]→stream;
  * Ensure that the specified stream is not empty, then construct and answer a
  * stream that contains all but the first element of the specified nonempty
  * stream.
- * 
+ *
  * @method "_'s⁇tail"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "stream"
@@ -289,7 +289,7 @@ Semantic restriction "_'s⁇tail" is
  * private operation to be overridden for specific stream implementations
  * without exposing it for direct use. These mechanisms cooperate to ensure that
  * stream exhaustion checking is never bypassed.
- * 
+ *
  * @method "_'s⁇tail method is_"
  * @category "Data Abstractions" "Streams"
  * @param "streamType" "stream's type"
@@ -308,7 +308,7 @@ Public method "_'s⁇tail method is_" is
 
 /**
  * Ensure that the implementation function accepts a stream.
- * 
+ *
  * @method "_'s⁇tail method is_"
  * @category "Data Abstractions" "Streams"
  * @restricts "stream's type's type"
@@ -338,7 +338,7 @@ Semantic restriction "_'s⁇tail method is_" is
 
 /**
  * An empty stream has ⊥ as its element type.
- * 
+ *
  * @type "empty stream"
  * @category "Data Abstractions" "Streams"
  * @supertype "stream"
@@ -350,10 +350,10 @@ Public explicit class "empty stream" extends stream
 
 /**
  * Answer `true`.
- * 
+ *
  * @method "_is empty"
  * @category "Data Abstractions" "Streams"
- * @param "aStream" "empty stream" 
+ * @param "aStream" "empty stream"
  *        An empty stream.
  * @returns "true's type"
  */
@@ -366,7 +366,7 @@ Method "_is empty" is
 
 /**
  * Raise an `empty-stream exception`.
- * 
+ *
  * @method "_'s⁇head"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "empty stream"
@@ -395,7 +395,7 @@ Semantic restriction "_'s⁇head" is
 
 /**
  * Raise an `empty-stream exception`.
- * 
+ *
  * @method "_'s⁇tail"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "empty stream"
@@ -426,7 +426,7 @@ theEmptyStream ::= an empty stream with element type ::= ⊥;
 
 /**
  * Answer an empty stream.
- * 
+ *
  * @method "an empty stream"
  * @category "Data Abstractions" "Streams"
  * @returns "an empty stream with element type ::= ⊥"
@@ -473,7 +473,7 @@ Method "For each of⁇_do_" is
 /**
  * Helper method for semantic restrictions: If `action` does not accept the
  * element type of `streamType`, then reject the current parse.
- * 
+ *
  * @method "Require:_accepts_"
  * @param "actionType" "[⊥]→⊤'s type"
  *    action - A function type whose sole parameter must correspond to the
@@ -514,7 +514,7 @@ Semantic restriction "For each of⁇_do_" is
  * stream and retains a transformer function. When it is asked for its head,
  * it answers the result of applying the function to the head of the decorated
  * stream.
- * 
+ *
  * @type "mapped stream"
  * @category "Data Abstractions" "Streams"
  * @supertype "stream"
@@ -554,7 +554,7 @@ mapped stream's tail method is
  * Construct and answer a stream that applies `theTransformer` to the
  * consecutive elements of `aStream`. The result is lazy, so `aStream` may be
  * infinite.
- * 
+ *
  * @method "map_through_"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "stream"
@@ -772,7 +772,7 @@ concatenation stream's tail method is
  * Construct and answer a stream that produces values from the specified tuple
  * of streams. The result first produces the values of the first element of the
  * tuple, then the second, etc.
- * 
+ *
  * @method "concatenate_"
  * @category "Data Abstractions" "Streams"
  * @param "streams" "stream*"
@@ -800,7 +800,7 @@ Method "concatenate_" is
  * Construct and answer a stream that produces values from the specified tuple
  * of streams. The result first produces the values of the first lexical
  * argument, then the second, etc.
- * 
+ *
  * @method "«_‡++»"
  * @category "Data Abstractions" "Streams"
  * @param "streams" "<stream…|2..>"
@@ -822,11 +822,11 @@ Public method "«_‡++»" is
 /**
  * Answer a function suitable for use as a semantic restriction for the
  * `concatenate_` and `«_‡++»` methods.
- * 
+ *
  * @method "concatenation semantic restriction"
  * @category "Data Abstractions" "Streams"
  * @returns "[stream*'s type]→concatenation stream"
- *    The requested funcion.
+ *    The requested function.
  */
 Private method "concatenation semantic restriction" is
 [
@@ -893,7 +893,7 @@ zipped stream's tail method is
  * the output is the stream whose i-th element is an n-tuple containing the i-th
  * element from each consecutive input stream. The answer is empty when any of
  * the input streams becomes empty.
- * 
+ *
  * @method "zip_"
  * @category "Data Abstractions" "Streams"
  * @param "streams" "stream+"
@@ -917,7 +917,7 @@ Method "zip_" is
  * the output is the stream whose i-th element is an n-tuple containing the i-th
  * element from each consecutive input stream. The answer is empty when any of
  * the input streams becomes empty.
- * 
+ *
  * @method "«_‡zip»"
  * @category "Data Abstractions" "Streams"
  * @param "streams" "<stream…|2..>"
@@ -939,10 +939,10 @@ Method "«_‡zip»" is
 /**
  * Answer a function suitable for use as a semantic restriction for the `zip_`
  * and `«_‡zip»` methods.
- * 
+ *
  * @method "zip semantic restriction"
  * @returns "[stream+'s type]→zipped stream"
- *    The requested funcion.
+ *    The requested function.
  */
 Private method "zip semantic restriction" is
 [
@@ -969,7 +969,7 @@ Semantic restriction "«_‡zip»" is zip semantic restriction;
 
 /**
  * Answer a tuple containing the first `count` elements of `aStream`.
- * 
+ *
  * @method "take«at most»?_from_"
  * @category "Data Abstractions" "Streams"
  * @param "isLax" "boolean"
@@ -1109,7 +1109,7 @@ Semantic restriction "take from_until_" is
 /**
  * Answer a stream containing every element of `aStream` except for the first
  * `count` elements.
- * 
+ *
  * @method "drop«at most»?_from_"
  * @category "Data Abstractions" "Streams"
  * @param "isLax" "boolean"
@@ -1162,7 +1162,7 @@ Semantic restriction "drop«at most»?_from_" is
 /**
  * Compute and answer the suffix of `aStream` that begins with the element that
  * answers `false` to `predicate`.
- * 
+ *
  * @method "drop from_while_"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "stream"
@@ -1199,7 +1199,7 @@ Semantic restriction "drop from_while_" is
 /**
  * Compute and answer the suffix of `aStream` that begins with the element that
  * answers `true` to `predicate`.
- * 
+ *
  * @method "drop from_until_"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "stream"
@@ -1235,7 +1235,7 @@ Semantic restriction "drop from_until_" is
 
 /**
  * Does `aStream` start with the subsequence `prefix`?
- * 
+ *
  * @method "_starts with_"
  * @category "Data Abstractions" "Streams"
  * @param "aStream" "stream"

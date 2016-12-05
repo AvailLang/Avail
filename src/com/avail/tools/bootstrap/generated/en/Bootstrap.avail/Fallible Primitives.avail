@@ -3716,8 +3716,8 @@ Primitive "↓_" is
  * @param "mapVariable" "map variable"
  *        The variable holding a map whose keys are to be searched.
  * @returns "boolean"
- *    Whether the key is present in the variables map.
- * @raises "{6}"
+ *    Whether the key is present in the variable's map.
+ * @raises "cannot-read-unassigned-variable exception"
  */
 Primitive "_∈_" is
 [

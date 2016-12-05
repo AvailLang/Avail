@@ -66,7 +66,7 @@ Public explicit class "pRNG" extends reader
 /**
  * Construct and answer a {@type "pRNG"} type that answers values of the
  * specified type.
- * 
+ *
  * @method "pRNG of_"
  * @param "elementType" "whole number's type"
  *        The type of value produced by iterators of the answered type.
@@ -105,48 +105,48 @@ Public method "_'s⁇next«value in»⁇_" is
 	If range = ⊥ ∨ ⎡range⎤ = ∞ then
 	[
 		Raise an incorrect-argument-type exception
-	]; 
-	
+	];
+
 	/* The following algorithm is used to uniformally map values from the range
 	 * onto pRNG's element type.  The algorithm
 	 */
 	rangeSize : natural number := cast ⎡range⎤ - ⎣range⎦ + 1
 		into [n : natural number | n];
-	
+
 	rngSize ::= cast ⎡rng's element type⎤ -  ⎣rng's element type⎦ + 1
 		into [n : natural number | n];
-	
+
 	bitCount : whole number:= cast ((log 2 of rngSize)→extended integer)
 		into [w: whole number | w];
 
 	/* Calculate the number of values from pRNG are required to ensure that
-	 * no boundary condition will ever result in more than two values 
-	 * being in contention.  
-	 * m represents the number of times to inflate the bit range.  If 
+	 * no boundary condition will ever result in more than two values
+	 * being in contention.
+	 * m represents the number of times to inflate the bit range.  If
 	 * rng's range represents n bits, then the range required to accomplish
 	 * the task is (2^n)^m.  We will need to acquire m numbers from rng to
 	 * construct our final value through bit shifting.
 	 */
 	requiredValueCount ::= ⎡⎡(log 2 of rangeSize)⎤ ÷ bitCount⎤→extended integer;
-	
+
 	/* There will always be at least 1 roll required.  If the result of
 	 * requiredValueCount is less than 1, we need to choose 1
 	 */
-	requiredValueCounts : <extended integer…| 1..2> := 
+	requiredValueCounts : <extended integer…| 1..2> :=
 		<1> ++ <requiredValueCount>;
-	m ::= cast max requiredValueCounts 
+	m ::= cast max requiredValueCounts
 		into [n : natural number | n];
-	
-	/* Calculate the potential maximum random value that can occur as a result 
+
+	/* Calculate the potential maximum random value that can occur as a result
 	 * of the values obtained from the pRNG.
 	 * The new adjusted rng to map the range on will be
 	 * [0..maxRandomValue]
 	 */
 	maxRandomValue : whole number := rngSize^m - 1;
-	
+
 	/* Acquire all necessary values from rng */
 	generatedNumbers : <whole number…|> := <>;
-	For each i from 1 to m do 
+	For each i from 1 to m do
 	[
 	 	generatedNumbers := generatedNumbers ++ <rng's current element>;
 	 	Advance rng;
@@ -155,10 +155,10 @@ Public method "_'s⁇next«value in»⁇_" is
 	randomValue : whole number := generatedNumbers[1];
 	For each i from 2 to |generatedNumbers| do
 	[
-	 	randomValue := eject randomValue + 
+	 	randomValue := eject randomValue +
 	 		(generatedNumbers[i] << (bitCount  × (i - 1)));
 	];
-	
+
 	/* Calculate the multiplier that indicates where on the newly adjusted
 	 * rng that a boundary condition exists.  This value is a rational number
 	 * @see "rational number" in Rational Number.avail*/
@@ -167,24 +167,24 @@ Public method "_'s⁇next«value in»⁇_" is
 	/*Determine if a boundary condition is reached.  A boundary condition is
 	 * known to have been reached if the following conditions are met:
 	 *
-	 * 		1. (((result + 1) ÷ boundaryMultiple)'s whole number part 
+	 * 		1. (((result + 1) ÷ boundaryMultiple)'s whole number part
 	 * 			-  (result ÷ boundaryMultiple)'s whole number part) > 0
-	 * 
+	 *
 	 * 		2. (result ÷ boundaryMultiple)'s fraction > 0
 	 */
 	resultRangeValue ::= randomValue ÷ boundaryMultiple;
 	incrementedResultRangeValue ::= (randomValue + 1) ÷ boundaryMultiple;
-	wholeNumberDiff ::= incrementedResultRangeValue's whole number part 
+	wholeNumberDiff ::= incrementedResultRangeValue's whole number part
 		- resultRangeValue's whole number part;
 
-	baseResult : integer := if wholeNumberDiff > 0 
+	baseResult : integer := if wholeNumberDiff > 0
 		∧ resultRangeValue's fraction is nonzero then
 	[
 	 	/*TODO Write function to continuously roll till resolved*/
 	 	resolutionReached : boolean := false;
 	 	weightedProbability : fraction :=  resultRangeValue's fraction;
 	 	outcome : integer := -1;
- 	
+
 	 	Do
 	 	[
 	 	 	newBoundary ::= rngSize × weightedProbability;
@@ -203,7 +203,7 @@ Public method "_'s⁇next«value in»⁇_" is
 	 	until resolutionReached;
 	 	outcome
 	] else [resultRangeValue's whole number part];
- 
+
 	/* Adjust the base result to match*/
 	cast baseResult + ⎣range⎦ into [i : integer | i]
 ] : integer;
@@ -219,7 +219,7 @@ Semantic restriction "_'s⁇next«value in»⁇_" is
 /**
  * Consume a pseudorandom value from the specified {@type "pRNG" generator} and
  * use it to select an instance of the specified {@param "enum" enumeration}.
- * 
+ *
  * @method "_'s⁇next«value in»⁇_"
  * @param "rng" "pRNG"
  *        A pseudorandom number generator.
@@ -261,7 +261,7 @@ Semantic restriction "_'s⁇next«value in»⁇_" is
 /**
  * Consume a pseudorandom value from the specified {@type "pRNG" generator} and
  * use it to select an element of the specified tuple.
- * 
+ *
  * @method "_'s⁇next element of_"
  * @param "rng" "pRNG"
  *        A pseudorandom number generator.
@@ -292,7 +292,7 @@ Semantic restriction "_'s⁇next element of_" is
 /**
  * Consume a pseudorandom value from the specified {@type "pRNG" generator} and
  * use it to select an element of the specified set.
- * 
+ *
  * @method "_'s⁇next element of_"
  * @param "rng" "pRNG"
  *        A pseudorandom number generator.
@@ -324,7 +324,7 @@ Semantic restriction "_'s⁇next element of_" is
 /**
  * Consume a pseudorandom value from the specified {@type "pRNG" generator} and
  * use it to select a binding of the specified map.
- * 
+ *
  * @method "_'s⁇next binding of_"
  * @param "rng" "pRNG"
  *        A pseudorandom number generator.
@@ -358,7 +358,7 @@ Semantic restriction "_'s⁇next binding of_" is
  *
  * @method "_'s⁇next shuffling of_"
  * @param "rng" "pRNG"
- *        A pseduorandom number generator.
+ *        A pseudorandom number generator.
  * @param "aTuple" "tuple"
  *        A tuple.
  * @returns "tuple"

@@ -118,10 +118,14 @@ extends TupleDescriptor
 		final boolean canDestroy)
 	{
 		final int originalSize = object.tupleSize();
-		final int intValue;
-		if (originalSize >= maximumCopySize
-			|| !newElement.isInt()
-			|| ((intValue = ((A_Number) newElement).extractInt()) & ~15) != 0)
+		if (originalSize >= maximumCopySize || !newElement.isInt())
+		{
+			// Transition to a tree tuple.
+			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			return object.concatenateWith(singleton, canDestroy);
+		}
+		final int intValue = ((A_Number) newElement).extractInt();
+		if ((intValue & ~15) != 0)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);
@@ -274,7 +278,7 @@ extends TupleDescriptor
 				result = result.tupleAtPuttingCanDestroy(
 					dest,
 					otherTuple.tupleAt(src),
-					canDestroy | src > 1);
+					canDestroy || src > 1);
 			}
 			return result;
 		}
@@ -536,15 +540,9 @@ extends TupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		if (IntegerRangeTypeDescriptor.nybbles().isSubtypeOf(type))
-		{
-			return true;
-		}
-		return super.o_TupleElementsInRangeAreInstancesOf(
-			object,
-			startIndex,
-			endIndex,
-			type);
+		return IntegerRangeTypeDescriptor.nybbles().isSubtypeOf(type)
+			|| super.o_TupleElementsInRangeAreInstancesOf(
+				object, startIndex, endIndex, type);
 	}
 
 	@Override @AvailMethod
@@ -568,7 +566,7 @@ extends TupleDescriptor
 		// Just copy the applicable nybbles out.  In theory we could use
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
-		final AvailObject result = generateFrom(
+		return generateFrom(
 			size,
 			new Generator<Byte>()
 			{
@@ -580,7 +578,6 @@ extends TupleDescriptor
 					return getNybble(object, index--);
 				}
 			});
-		return result;
 	}
 
 	@Override @AvailMethod
@@ -739,7 +736,7 @@ extends TupleDescriptor
 	 *         A new {@linkplain ByteTupleDescriptor byte tuple} with the same
 	 *         sequence of integers as the argument.
 	 */
-	private A_Tuple copyAsMutableByteTuple (final AvailObject object)
+	private static A_Tuple copyAsMutableByteTuple (final AvailObject object)
 	{
 		final AvailObject result = ByteTupleDescriptor.generateFrom(
 			object.tupleSize(),
@@ -767,8 +764,7 @@ extends TupleDescriptor
 	{
 		final NybbleTupleDescriptor d = descriptorFor(MUTABLE, size);
 		assert (size + d.unusedNybblesOfLastLong & 15) == 0;
-		final AvailObject result = d.create((size + 15) >>> 4);
-		return result;
+		return d.create((size + 15) >>> 4);
 	}
 
 	/**

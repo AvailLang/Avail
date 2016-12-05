@@ -165,7 +165,7 @@ Method "Help" is
 		\|root. Simply type the entry point followed by an Avail expression in \
 		\|the Command input section below and press enter. Double-clicking the \
 		\|entry point in the entry pane pastes the entry point into the \
-		\|Commmand text input field.\n\
+		\|Command text input field.\n\
 		\|\n\
 		\|The entry points:\n\
 		\|\t1. \"Help\"\n\

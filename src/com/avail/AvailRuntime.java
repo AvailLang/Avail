@@ -107,9 +107,11 @@ public final class AvailRuntime
 		{
 			if (resourceStream != null)
 			{
-				final Scanner scanner = new Scanner(resourceStream);
-				version = scanner.nextLine();
-				scanner.close();
+				try (final Scanner scanner = new Scanner(resourceStream))
+				{
+					version = scanner.nextLine();
+					scanner.close();
+				}
 			}
 		}
 		catch (final IOException e)

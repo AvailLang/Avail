@@ -1143,7 +1143,7 @@ extends JSONFriendly
 
 	/**
 	 * Answer whether this value equals the given {@linkplain
-	 * ListNodeTypeDescriptor list phrose type}.
+	 * ListNodeTypeDescriptor list phrase type}.
 	 *
 	 * @param listNodeType The list phrase type to compare against.
 	 * @return Whether the receiver equals the given list phrase type.

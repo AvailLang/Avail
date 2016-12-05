@@ -321,7 +321,7 @@ Semantic restriction "an edge from_to_,⁇labeled by_" is
  * @method "|_'s⁇vertices|"
  * @param "aGraph" "graph"
  *        A graph.
- * @returns "{any|}" 
+ * @returns "{any|}"
  * 		The {@type "set"} of vertices.
  * @category "Data Abstractions" "Graphs"
  */
@@ -368,7 +368,7 @@ Semantic restriction "_'s⁇edges" is
 
 
 /**
- * A basic unlabled graph represents its vertices and edges using two maps:
+ * A basic unlabeled graph represents its vertices and edges using two maps:
  * {@field "predecessors"}, a map from vertices to their predecessors, and
  * {@field "successors"}, a map from vertices to their successors.
  *
@@ -404,7 +404,7 @@ Method "_'s⁇edges" is
 |
 	edges : {edge|} := ∅;
 	/* The maps are redundant, so we could traverse either (and adjust the
-	 * algorithm suitably). Arbitrarily travese the map of predecessors.
+	 * algorithm suitably). Arbitrarily traverse the map of predecessors.
 	 */
 	For each aGraph's predecessors do
 	[
@@ -460,7 +460,7 @@ Method "_'s⁇edges" is
 |
 	edges : {edge|} := ∅;
 	/* The maps are redundant, so we could traverse either (and adjust the
-	 * algorithm suitably). Arbitrarily travese the map of predecessors.
+	 * algorithm suitably). Arbitrarily traverse the map of predecessors.
 	 */
 	For each aGraph's predecessors do
 	[

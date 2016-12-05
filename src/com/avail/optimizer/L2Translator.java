@@ -1319,7 +1319,7 @@ public class L2Translator
 				MethodDescriptor.runtimeDispatcher.createRoot(
 					allPossible, argTypes, null);
 			final Mutable<Integer> branchLabelCounter = new Mutable<>(1);
-			tree.<InternalNodeMemento>traverseEntireTree(
+			tree.traverseEntireTree(
 				MethodDescriptor.runtimeDispatcher,
 				null,
 				// preInternalNode

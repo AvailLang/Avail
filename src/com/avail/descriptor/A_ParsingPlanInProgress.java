@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 /**
- * {@code A_ParsingPlanInPrgoress} is an interface that specifies the operations
+ * {@code A_ParsingPlanInProgress} is an interface that specifies the operations
  * that must be implemented by a {@linkplain ParsingPlanInProgressDescriptor
  * parsing-plan-in-progress}.  It's a sub-interface of {@link A_BasicObject},
  * the interface that defines the behavior that all AvailObjects are required to

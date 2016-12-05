@@ -1831,7 +1831,7 @@ extends JFrame
 					setClosedIcon(icon);
 					String html = node.htmlText(selected1);
 					html = "<html>" + html + "</html>";
-					return (JComponent) super.getTreeCellRendererComponent(
+					return super.getTreeCellRendererComponent(
 						tree, html, selected1, expanded, leaf, row, hasFocus1);
 				}
 				return super.getTreeCellRendererComponent(

@@ -164,8 +164,7 @@ public final class XMLDocumentModel<
 		ElementType[] values = null;
 		try
 		{
-			final Method valuesMethod = this.elementClass.getMethod(
-				"values", new Class<?>[0]);
+			final Method valuesMethod = this.elementClass.getMethod("values");
 			assert Modifier.isStatic(valuesMethod.getModifiers());
 			values = (ElementType[]) valuesMethod.invoke(null);
 		}
