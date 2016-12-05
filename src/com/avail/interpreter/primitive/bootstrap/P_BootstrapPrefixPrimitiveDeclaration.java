@@ -37,6 +37,8 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
@@ -46,8 +48,8 @@ import com.avail.interpreter.*;
 /**
  * The {@code P_BootstrapPrefixVariableDeclaration} primitive is used for
  * bootstrapping declaration of a primitive declaration, including an optional
- * {@link #PRIMITIVE_FAILURE_REASON_NODE primitive failure variable} which holds
- * the reason for a primitive's failure.
+ * {@link DeclarationKind#PRIMITIVE_FAILURE_REASON primitive failure variable}
+ * which holds the reason for a primitive's failure.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

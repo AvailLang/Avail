@@ -33,6 +33,8 @@
 package com.avail.interpreter.levelTwo;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
@@ -147,6 +149,9 @@ public abstract class L2Operation
 	 */
 	static final L2Operation[] values = new L2Operation[200];
 
+	/** Synchronization for the values array. */
+	static final ReentrantLock valuesLock = new ReentrantLock();
+
 	/**
 	 * Answer an array of {@linkplain L2Operation operations} which have been
 	 * encountered thus far, indexed by {@link #ordinal}.  It may be padded with
@@ -181,15 +186,22 @@ public abstract class L2Operation
 	 */
 	protected L2Operation ()
 	{
-		synchronized (values)
+		final String className = this.getClass().getSimpleName();
+		name = className;
+		statisticInNanoseconds = new Statistic(
+			className, StatisticReport.L2_OPERATIONS);
+		//noinspection SynchronizationOnStaticField
+		valuesLock.lock();
+		try
 		{
-			final String className = this.getClass().getSimpleName();
-			name = className;
-			statisticInNanoseconds = new Statistic(
-				className, StatisticReport.L2_OPERATIONS);
 			ordinal = numValues;
 			values[ordinal] = this;
+			//noinspection AssignmentToStaticFieldFromInstanceMethod
 			numValues++;
+		}
+		finally
+		{
+			valuesLock.unlock();
 		}
 	}
 
@@ -204,12 +216,16 @@ public abstract class L2Operation
 	{
 		// Static class initialization causes this to happen, and L2Operation
 		// subclasses may be first encountered by separate threads. Therefore we
-		// must synchronize on some common object. I have chosen the values
-		// array.
-		synchronized (values)
+		// must synchronize on the valuesLock.
+		valuesLock.lock();
+		try
 		{
 			assert namedOperandTypes == null;
 			namedOperandTypes = theNamedOperandTypes;
+		}
+		finally
+		{
+			valuesLock.unlock();
 		}
 		return this;
 	}

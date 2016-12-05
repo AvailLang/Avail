@@ -781,7 +781,7 @@ public final class AvailLoader
 		{
 			final A_Bundle bundle = parentAtom.bundleOrCreate();
 			final MessageSplitter splitter = bundle.messageSplitter();
-			final int numArgs = splitter.numberOfUnderscores();
+			final int numArgs = splitter.numberOfLeafArguments();
 			if (illegalArgMsgs.tupleSize() != numArgs)
 			{
 				throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);

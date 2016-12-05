@@ -499,8 +499,7 @@ extends JSONFriendly
 
 	/**
 	 * Answer whether the {@linkplain AvailObject receiver} is an {@linkplain
-	 * InfinityDescriptor infinity} with the specified {@link
-	 * IntegerSlots#SIGN}.
+	 * InfinityDescriptor infinity} with the specified {@link Sign}.
 	 *
 	 * @param sign The type of infinity for comparison.
 	 * @return {@code true} if the receiver is an infinity of the specified

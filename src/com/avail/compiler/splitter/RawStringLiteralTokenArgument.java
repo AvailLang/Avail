@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.LiteralTokenTypeDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TupleTypeDescriptor;
 
@@ -40,14 +40,13 @@ import static com.avail.compiler.ParsingOperation.PARSE_RAW_STRING_LITERAL_TOKEN
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 
 /**
- * A {@linkplain RawStringLiteralTokenArgument} is an occurrence of
- * {@linkplain StringDescriptor#ellipsis() ellipsis} (…) in a message name,
- * followed by a {@linkplain StringDescriptor#dollarSign() dollarSign} ($).
- * It indicates where a raw string literal token argument is expected. Like
- * its superclass, the {@link RawTokenArgument}, the token is captured after
- * being placed in a literal phrase, but in this case the token is
- * restricted to be a {@link TokenType#LITERAL} (currently positive
- * integers, doubles, and strings).
+ * A {@linkplain RawStringLiteralTokenArgument} is an occurrence of {@linkplain
+ * Metacharacter#ELLIPSIS ellipsis} (…) in a message name, followed by a
+ * {@linkplain Metacharacter#DOLLAR_SIGN dollar sign} ($). It indicates where a
+ * raw string literal token argument is expected. Like its superclass, the
+ * {@link RawTokenArgument}, the token is captured after being placed in a
+ * literal phrase, but in this case the token is restricted to be a {@link
+ * TokenType#LITERAL} whose value is a string.
  */
 final class RawStringLiteralTokenArgument
 extends RawTokenArgument

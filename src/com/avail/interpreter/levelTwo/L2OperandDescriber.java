@@ -134,21 +134,18 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 
 
 	@Override
-	@SuppressWarnings("null")
 	public void doConstant()
 	{
 		print("Const(%s)", ((L2ConstantOperand)_operand).object);
 	}
 
 	@Override
-	@SuppressWarnings("null")
 	public void doImmediate()
 	{
 		print("Immediate(%d)", ((L2ImmediateOperand)_operand).value);
 	}
 
 	@Override
-	@SuppressWarnings("null")
 	public void doPC()
 	{
 		final L2Instruction targetLabel = ((L2PcOperand)_operand).targetLabel();
@@ -170,14 +167,12 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	}
 
 	@Override
-	@SuppressWarnings("null")
 	public void doPrimitive()
 	{
 		print("Prim(%s)", ((L2PrimitiveOperand)_operand).primitive.name());
 	}
 
 	@Override
-	@SuppressWarnings("null")
 	public void doSelector()
 	{
 		final A_Bundle bundle = ((L2SelectorOperand)_operand).bundle;
@@ -221,7 +216,6 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	}
 
 	@Override
-	@SuppressWarnings("null")
 	public void doReadVector()
 	{
 		printVector(((L2ReadVectorOperand)_operand).vector);
@@ -229,7 +223,6 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	}
 
 	@Override
-	@SuppressWarnings("null")
 	public void doWriteVector()
 	{
 		printVector(((L2WriteVectorOperand)_operand).vector);
@@ -237,7 +230,6 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	}
 
 	@Override
-	@SuppressWarnings("null")
 	public void doReadWriteVector()
 	{
 		printVector(((L2ReadWriteVectorOperand)_operand).vector);
@@ -245,7 +237,6 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	}
 
 	@Override
-	@SuppressWarnings("null")
 	public void doComment ()
 	{
 		print(String.format(

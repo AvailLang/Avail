@@ -212,6 +212,7 @@
     <inspection_tool class="NestedAssignment" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NestedSynchronizedStatement" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonAtomicOperationOnVolatileField" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="NonFinalUtilityClass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonShortCircuitBoolean" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonSynchronizedMethodOverridesSynchronizedMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="NonThreadSafeLazyInitialization" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -346,7 +347,7 @@
     </inspection_tool>
     <inspection_tool class="UnusedImport" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UpperCaseFieldNameNotConstant" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="UtilityClassCanBeEnum" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="UtilityClassWithPublicConstructor" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UtilityClassWithoutPrivateConstructor" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignorableAnnotations">
         <value />
@@ -360,6 +361,11 @@
     <inspection_tool class="WaitNotInSynchronizedContext" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="WaitWhileHoldingTwoLocks" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="WaitWithoutCorrespondingNotify" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="WeakerAccess" enabled="false" level="WARNING" enabled_by_default="false">
+      <option name="SUGGEST_PACKAGE_LOCAL_FOR_MEMBERS" value="true" />
+      <option name="SUGGEST_PACKAGE_LOCAL_FOR_TOP_CLASSES" value="true" />
+      <option name="SUGGEST_PRIVATE_FOR_INNERS" value="false" />
+    </inspection_tool>
     <inspection_tool class="WhileLoopSpinsOnField" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreNonEmtpyLoops" value="true" />
     </inspection_tool>

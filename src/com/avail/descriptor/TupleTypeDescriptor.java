@@ -183,19 +183,10 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aTupleType)
 	{
-		if (object.sameAddressAs(aTupleType))
-		{
-			return true;
-		}
-		if (!object.slot(SIZE_RANGE).equals(aTupleType.sizeRange()))
-		{
-			return false;
-		}
-		if (!object.slot(DEFAULT_TYPE).equals(aTupleType.defaultType()))
-		{
-			return false;
-		}
-		return object.slot(TYPE_TUPLE).equals(aTupleType.typeTuple());
+		return object.sameAddressAs(aTupleType)
+			|| (object.slot(SIZE_RANGE).equals(aTupleType.sizeRange())
+				&& object.slot(DEFAULT_TYPE).equals(aTupleType.defaultType())
+				&& object.slot(TYPE_TUPLE).equals(aTupleType.typeTuple()));
 	}
 
 	@Override @AvailMethod
@@ -373,7 +364,7 @@ extends TypeDescriptor
 		assert startIndex >= 1;
 		final int size = endIndex - startIndex + 1;
 		assert size >= 0;
-		final A_Tuple result = ObjectTupleDescriptor.generateFrom(
+		return ObjectTupleDescriptor.generateFrom(
 			size,
 			new Generator<A_BasicObject>()
 			{
@@ -387,7 +378,6 @@ extends TypeDescriptor
 						: BottomTypeDescriptor.bottom();
 				}
 			});
-		return result;
 	}
 
 	@Override @AvailMethod
@@ -828,7 +818,7 @@ extends TypeDescriptor
 	 *            The hash of the {@linkplain TupleTypeDescriptor tuple type}
 	 *            whose component hash values were provided.
 	 */
-	static int hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash (
+	private static int hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash (
 		final int sizesHash,
 		final int typeTupleHash,
 		final int defaultTypeHash)

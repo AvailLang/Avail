@@ -679,7 +679,7 @@ extends TypeDescriptor
 	 *        Whether the descriptor's objects include the lower bound.
 	 * @param upperInclusive
 	 *        Whether the descriptor's objects include the upper bound.
-	 * @return
+	 * @return The requested {@link IntegerRangeTypeDescriptor}.
 	 */
 	private static IntegerRangeTypeDescriptor lookupDescriptor (
 		final boolean isMutable,

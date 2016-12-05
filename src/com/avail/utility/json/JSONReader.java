@@ -271,41 +271,31 @@ implements Closeable
 
 	/**
 	 * Peek ahead in the {@linkplain Reader source} in search of the specified
-	 * keyword. If the keyword is found, then consume it from the source and
-	 * {@linkplain StringBuilder#append(String) append} it to the given {@link
-	 * StringBuilder}.
+	 * keyword. If the keyword is found, then consume it from the source.
 	 *
 	 * @param keyword
 	 *        An arbitrary keyword.
-	 * @param builder
-	 *        A {@code StringBuilder}, or {@code null} if the keyword should
-	 *        not be accumulated.
 	 * @return {@code true} if the keyword is the one specified (and was
 	 *         consumed and appended), {@code false} otherwise.
 	 * @throws IOException
 	 *         If an I/O exception occurs.
 	 */
 	private boolean peekForKeyword (
-			final String keyword,
-			final @Nullable StringBuilder builder)
+			final String keyword)
 		throws IOException
 	{
 		final int size = keyword.length();
 		reader.mark(size);
-		for (int i = 0; i < size; )
+		int codePoint;
+		for (int i = 0; i < size; i += Character.charCount(codePoint))
 		{
 			final int expected = keyword.codePointAt(i);
-			final int codePoint = readCodePoint();
+			codePoint = readCodePoint();
 			if (codePoint != expected)
 			{
 				reader.reset();
 				return false;
 			}
-			i += Character.charCount(codePoint);
-		}
-		if (builder != null)
-		{
-			builder.append(keyword);
 		}
 		return true;
 	}
@@ -546,7 +536,7 @@ implements Closeable
 				break;
 			case 'f':
 				// Read a JSON false.
-				if (peekForKeyword("false", null))
+				if (peekForKeyword("false"))
 				{
 					data = JSONValue.jsonFalse();
 				}
@@ -557,7 +547,7 @@ implements Closeable
 				break;
 			case 'n':
 				// Read a JSON value (true, false, or null).
-				if (peekForKeyword("null", null))
+				if (peekForKeyword("null"))
 				{
 					data = JSONData.jsonNull();
 				}
@@ -568,7 +558,7 @@ implements Closeable
 				break;
 			case 't':
 				// Read a JSON true.
-				if (peekForKeyword("true", null))
+				if (peekForKeyword("true"))
 				{
 					data = JSONValue.jsonTrue();
 				}

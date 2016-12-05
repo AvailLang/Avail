@@ -31,12 +31,11 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.descriptor.ListNodeTypeDescriptor;
-import com.avail.descriptor.StringDescriptor;
-import com.avail.exceptions.SignatureException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
@@ -46,7 +45,7 @@ import static com.avail.compiler.ParsingOperation.*;
 
 /**
  * An {@code Alternation} is a special {@linkplain Expression expression}
- * indicated by interleaved {@linkplain StringDescriptor#verticalBar()
+ * indicated by interleaved {@linkplain Metacharacter#VERTICAL_BAR
  * vertical bars} between {@linkplain Simple simples} and {@linkplain
  * Group simple groups}. It may not contain {@linkplain Argument arguments}.
  *
@@ -114,7 +113,6 @@ extends Expression
 	public void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
-	throws SignatureException
 	{
 		assert false :
 			"checkType() should not be called for Alternation expressions";

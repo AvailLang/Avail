@@ -644,7 +644,6 @@ public final class AvailRuntime
 	 * initially.  The client is responsible for reading the actual data that
 	 * should be stored into the {@code MutableOrNull}.</p>
 	 */
-	@SuppressWarnings("javadoc")
 	private final LRUCache<
 			BufferKey,
 			MutableOrNull<A_Tuple>>

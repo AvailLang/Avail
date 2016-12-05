@@ -30,10 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.LiteralTokenTypeDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 
 import static com.avail.compiler.ParsingOperation.PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN;
@@ -41,8 +41,8 @@ import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 
 /**
  * A {@linkplain RawWholeNumberLiteralTokenArgument} is an occurrence of
- * {@linkplain StringDescriptor#ellipsis() ellipsis} (…) in a message name,
- * followed by an {@linkplain StringDescriptor#octothorp() octothorp} (#).
+ * {@linkplain Metacharacter#ELLIPSIS ellipsis} (…) in a message name,
+ * followed by an {@linkplain Metacharacter#OCTOTHORP octothorp} (#).
  * It indicates where a raw whole number literal token argument is expected.
  * Like its superclass, the {@link RawTokenArgument}, the token is captured
  * after being placed in a literal phrase, but in this case the token is

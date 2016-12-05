@@ -75,9 +75,8 @@ extends A_BasicObject
 	 *        The {@link A_DefinitionParsingPlan} along which to update the
 	 *        bundle tree (and extant successors).
 	 * @param treesToVisit
-	 *        A collection of {@link Pair<A_BundleTree,
-	 *        A_ParsingPlanInProgress>} to visit.  Updated to include successors
-	 *        of this <bundle, planInProgress>.
+	 *        A collection of {@link Pair}s to visit.  Updated to include
+	 *        successors of this <bundle, planInProgress>.
 	 */
 	void updateForNewGrammaticalRestriction (
 		final A_ParsingPlanInProgress planInProgress,

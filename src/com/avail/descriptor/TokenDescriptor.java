@@ -40,7 +40,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.Descriptor;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -178,7 +177,7 @@ extends Descriptor
 		COMMENT;
 
 		/** An array of all {@link TokenType} enumeration values. */
-		private static TokenType[] all = values();
+		private final static TokenType[] all = values();
 
 		/**
 		 * Answer an array of all {@link TokenType} enumeration values.

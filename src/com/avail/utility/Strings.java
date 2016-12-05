@@ -53,9 +53,10 @@ public final class Strings
 	{
 		final StringBuilder builder = new StringBuilder(s.length() << 1);
 		builder.append('"');
-		for (int i = 0; i < s.length(); )
+		int codePoint;
+		for (int i = 0; i < s.length(); i += Character.charCount(codePoint))
 		{
-			final int codePoint = s.codePointAt(i);
+			codePoint = s.codePointAt(i);
 			switch (codePoint)
 			{
 				case '\\':
@@ -83,7 +84,6 @@ public final class Strings
 					builder.appendCodePoint(codePoint);
 					break;
 			}
-			i += Character.charCount(codePoint);
 		}
 		builder.append('"');
 		return builder.toString();

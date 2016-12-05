@@ -104,7 +104,7 @@ extends ParseNodeDescriptor
 				types.add(expressionType);
 			}
 			tupleType = TupleTypeDescriptor.forTypes(
-				types.toArray(new AvailObject[types.size()]));
+				types.toArray(new A_Type[types.size()]));
 			if (isShared())
 			{
 				tupleType = tupleType.traversed().makeShared();
@@ -269,6 +269,21 @@ extends ParseNodeDescriptor
 			}
 		}
 		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsInstanceOfKind (
+		final AvailObject object,
+		final A_Type aType)
+	{
+		if (!super.o_IsInstanceOfKind(object, aType))
+		{
+			return false;
+		}
+		// Also check the list node type's subexpressions type.
+		return !aType.isSubtypeOf(LIST_NODE.mostGeneralType())
+			|| object.slot(EXPRESSIONS_TUPLE).isInstanceOf(
+				aType.subexpressionsTupleType());
 	}
 
 	@Override

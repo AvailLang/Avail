@@ -99,6 +99,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.avail.compiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.problems.ProblemType.*;
+import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import static com.avail.descriptor.AtomDescriptor.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
@@ -1312,14 +1313,14 @@ public final class AvailCompiler
 		ParserState state = start;
 		while (true)
 		{
-			A_Token token;
 			if (state.peekToken(ELLIPSIS))
 			{
 				state = state.afterToken();
 				wildcard.value = true;
 				return state;
 			}
-			else if (state.peekToken(MINUS))
+			A_Token token;
+			if (state.peekToken(MINUS))
 			{
 				state = state.afterToken();
 				final A_Token negatedToken = state.peekStringLiteral();
@@ -1390,6 +1391,7 @@ public final class AvailCompiler
 
 			if (state.peekToken(ELLIPSIS))
 			{
+				//noinspection StatementWithEmptyBody
 				// Allow ellipsis with no preceding comma: Fall through without
 				// consuming it and let the start of the loop handle it.
 			}
@@ -4363,8 +4365,6 @@ public final class AvailCompiler
 					continuation);
 				break;
 			}
-
-
 			case BRANCH:
 				// $FALL-THROUGH$
 				// Fall through.  The successorTrees will be different
@@ -4674,6 +4674,11 @@ public final class AvailCompiler
 					append(argsSoFar, literalNode),
 					marksSoFar,
 					continuation);
+				break;
+			}
+			case RESERVED_15:
+			{
+				assert false : "Invalid parsing operation: " + op;
 				break;
 			}
 		}
@@ -6277,7 +6282,7 @@ public final class AvailCompiler
 	 * Create a bootstrap primitive {@linkplain MacroDefinitionDescriptor
 	 * macro}. Use the primitive's type declaration as the argument types.  If
 	 * the primitive is fallible then generate suitable primitive failure code
-	 * (to invoke the {@link MethodDescriptor#vmCrashAtom()}'s bundle).
+	 * (to invoke the {@link SpecialAtom#CRASH}'s bundle).
 	 *
 	 * @param state
 	 *        The {@linkplain ParserState state} following a parse of the
@@ -6292,7 +6297,7 @@ public final class AvailCompiler
 	 * @param primitiveNames
 	 *        The array of {@linkplain String}s that are bootstrap macro names.
 	 *        These correspond to the occurrences of the {@linkplain
-	 *        StringDescriptor #sectionSign() section sign} (§) in the macro
+	 *        Metacharacter#SECTION_SIGN section sign} (§) in the macro
 	 *        name, plus a final body for the complete macro.
 	 * @param success
 	 *        What to do after the macro is defined successfully.
@@ -6316,7 +6321,7 @@ public final class AvailCompiler
 			0,
 			0,
 			-1,
-			TokenType.SYNTHETIC_LITERAL,
+			SYNTHETIC_LITERAL,
 			availName);
 		final A_Phrase nameLiteral =
 			LiteralNodeDescriptor.fromToken(token1);

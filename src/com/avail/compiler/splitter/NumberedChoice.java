@@ -31,6 +31,7 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -39,7 +40,6 @@ import com.avail.descriptor.IntegerDescriptor;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.SignatureException;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,13 +54,13 @@ import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_
 
 /**
  * A {@code NumberedChoice} is a special subgroup (i.e., not a root group)
- * indicated by an {@linkplain StringDescriptor#exclamationMark()
- * exclamation mark} following a {@linkplain Group group}.  It may not
- * contain {@linkplain Argument arguments} or subgroups and it may not
- * contain a {@linkplain StringDescriptor#doubleDagger() double dagger}.
- * The group contains an {@link Alternation}, and parsing the group causes
- * exactly one of the alternatives to be parsed.  The 1-based index of the
- * alternative is produced as a literal constant argument.
+ * indicated by an {@linkplain Metacharacter#EXCLAMATION_MARK exclamation mark}
+ * following a {@linkplain Group group}.  It may not contain {@linkplain
+ * Argument arguments} or subgroups and it may not contain a {@linkplain
+ * Metacharacter#DOUBLE_DAGGER double dagger}.  The group contains an {@link
+ * Alternation}, and parsing the group causes exactly one of the alternatives to
+ * be parsed.  The 1-based index of the alternative is produced as a literal
+ * constant argument.
  *
  * <p>
  * For example, consider parsing a send of the message

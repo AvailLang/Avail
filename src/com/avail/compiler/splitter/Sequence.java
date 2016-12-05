@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
-import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -40,7 +39,6 @@ import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
-import com.avail.server.messages.Message;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Transformer1;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +63,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 final class Sequence
 extends Expression
 {
-	private MessageSplitter messageSplitter;
+	private final MessageSplitter messageSplitter;
 	/**
 	 * The sequence of expressions that I comprise.
 	 */
@@ -229,9 +227,8 @@ extends Expression
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
-		assert phraseType.isSubtypeOf(PARSE_NODE.mostGeneralType());
 		final A_Type tupleType;
-		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
 		{
 			tupleType = phraseType.subexpressionsTupleType();
 		}
@@ -251,13 +248,8 @@ extends Expression
 		}
 		boolean hasWrapped = false;
 		int index = 0;
-		final int expressionsSize = expressions.size();
-		for (
-			int expressionZeroIndex = 0;
-			expressionZeroIndex < expressionsSize;
-			expressionZeroIndex++)
+		for (final Expression expression : expressions)
 		{
-			final Expression expression = expressions.get(expressionZeroIndex);
 			if (!hasWrapped && expression.hasSectionCheckpoints())
 			{
 				generator.flushDelayed();
@@ -288,9 +280,9 @@ extends Expression
 		if (!hasWrapped)
 		{
 			generator.emitWrapped(this, index);
-			hasWrapped = true;
+			//hasWrapped = true;
 		}
-		assert hasWrapped;
+		//assert hasWrapped;
 		assert tupleType.sizeRange().lowerBound().equalsInt(index);
 		assert tupleType.sizeRange().upperBound().equalsInt(index);
 		if (argumentsAreReordered == Boolean.TRUE)
@@ -319,9 +311,8 @@ extends Expression
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
-		assert phraseType.isSubtypeOf(PARSE_NODE.mostGeneralType());
 		final A_Type tupleType;
-		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
 		{
 			tupleType = phraseType.subexpressionsTupleType();
 		}
@@ -478,9 +469,8 @@ extends Expression
 	{
 		assert !hasSectionCheckpoints();
 		assert argumentsAreReordered == Boolean.FALSE;
-		assert phraseType.isSubtypeOf(PARSE_NODE.mostGeneralType());
 		final A_Type tupleType;
-		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
 		{
 			tupleType = phraseType.subexpressionsTupleType();
 		}
@@ -640,7 +630,7 @@ extends Expression
 		final A_Type phraseType)
 	{
 		final A_Type tupleType;
-		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
 		{
 			tupleType = phraseType.subexpressionsTupleType();
 		}

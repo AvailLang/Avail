@@ -39,13 +39,16 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
 
 /**
  * The {@code P_BootstrapPrefixLabelDeclaration} primitive is used
- * for bootstrapping declaration of a {@link #PRIMITIVE_FAILURE_REASON_NODE
- * primitive failure variable} which holds the reason for a primitive's failure.
+ * for bootstrapping declaration of a {@link DeclarationKind#LABEL label}.
+ * The label indicates a way to restart or exit a block, so it's probably best
+ * if Avail's block syntax continues to constrain this to occur at the start of
+ * a block.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

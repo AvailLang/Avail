@@ -31,6 +31,7 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -50,17 +51,17 @@ import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDE
 
 /**
  * A {@code CompletelyOptional} is a special {@linkplain Expression
- * expression} indicated by a {@linkplain
- * StringDescriptor#doubleQuestionMark() double question mark} following a
- * {@linkplain Simple simple} or {@linkplain Group simple group}. It may not
- * contain {@linkplain Argument arguments} or non-simple subgroups and it
- * may not contain a {@linkplain StringDescriptor#doubleDagger() double
- * dagger}. The expression may appear zero or one times.
+ * expression} indicated by a {@linkplain Metacharacter#DOUBLE_QUESTION_MARK
+ * double question mark} (⁇) following a {@linkplain Simple simple} or
+ * {@linkplain Group simple group}. It may not contain {@linkplain Argument
+ * arguments} or non-simple subgroups and it may not contain a {@linkplain
+ * Metacharacter#DOUBLE_DAGGER double dagger}. The expression may appear zero or
+ * one times.
  *
  * <p>A completely optional does not produce any information. No facility is
  * provided to determine whether there was an occurrence of the expression.
- * The message "very??good" accepts no arguments, but may be parsed as
- * either "very good" or "good".</p>
+ * The message "very⁇good" accepts no arguments, but may parse either
+ * "very good" or "good".</p>
  */
 final class CompletelyOptional
 extends Expression

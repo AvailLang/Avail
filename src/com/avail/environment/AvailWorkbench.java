@@ -1592,7 +1592,7 @@ extends JFrame
 	/**
 	 * Information about the window layout.
 	 */
-	private static class LayoutConfiguration
+	@InnerAccess static class LayoutConfiguration
 	{
 		/** The preferred location and size of the window, if specified. */
 		@Nullable Rectangle placement = null;

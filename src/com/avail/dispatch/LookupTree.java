@@ -58,7 +58,7 @@ public abstract class LookupTree<
 {
 	/**
 	 * Answer the index of the given permutation (tuple of integers), adding it
-	 * to the global {@link #permutations} tuple if necessary.
+	 * to the global {@link MessageSplitter#constantsList} if necessary.
 	 *
 	 * @param permutation
 	 *        The permutation whose globally unique one-based index should be

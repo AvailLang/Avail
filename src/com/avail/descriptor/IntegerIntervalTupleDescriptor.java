@@ -46,7 +46,7 @@ import com.avail.annotations.HideFieldInDebugger;
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-public class IntegerIntervalTupleDescriptor
+public final class IntegerIntervalTupleDescriptor
 extends TupleDescriptor
 {
 	/**
@@ -118,7 +118,7 @@ extends TupleDescriptor
 	 * requested below this size will be created as standard tuples or the empty
 	 * tuple.
 	 */
-	private static int maximumCopySize = 4;
+	private final static int maximumCopySize = 4;
 
 	@Override @AvailMethod
 	A_Tuple o_AppendCanDestroy (
@@ -187,11 +187,7 @@ extends TupleDescriptor
 			}
 
 			// If the subranges start at the same place, they are the same.
-			if (startIndex1 == startIndex2)
-			{
-				return true;
-			}
-			return false;
+			return startIndex1 == startIndex2;
 		}
 
 		// Finally, check the subranges.
@@ -231,10 +227,10 @@ extends TupleDescriptor
 		// Ensure parameters are in bounds
 		assert 1 <= start && start <= end + 1;
 		final int oldSize = object.slot(SIZE);
-		final int newSize = end - start + 1;
 		assert 0 <= end && end <= oldSize;
 
 		// If the requested copy is a proper subrange, create it.
+		final int newSize = end - start + 1;
 		if (newSize != oldSize)
 		{
 			final A_Number delta = object.slot(DELTA).makeImmutable();
@@ -465,13 +461,10 @@ extends TupleDescriptor
 			low = end;
 			high = start;
 		}
-		if (type.isSupertypeOfIntegerRangeType(
-			IntegerRangeTypeDescriptor.inclusive(low, high)))
-		{
-			return true;
-		}
-		return super.o_TupleElementsInRangeAreInstancesOf(
-			object, startIndex, endIndex, type);
+		return type.isSupertypeOfIntegerRangeType(
+				IntegerRangeTypeDescriptor.inclusive(low, high))
+			|| super.o_TupleElementsInRangeAreInstancesOf(
+				object, startIndex, endIndex, type);
 	}
 
 	@Override @AvailMethod
@@ -554,7 +547,7 @@ extends TupleDescriptor
 			1 + difference.divideCanDestroy(delta, false).extractInt();
 		if (size < maximumCopySize)
 		{
-			final List<A_Number> members = new ArrayList<A_Number>(size);
+			final List<A_Number> members = new ArrayList<>(size);
 			A_Number newMember = start;
 			for (int i = 0; i < size; i++)
 			{
@@ -641,7 +634,7 @@ extends TupleDescriptor
 	/**
 	 * Construct a new {@link IntegerIntervalTupleDescriptor}.
 	 *
-	 * @param mutability
+	 * @param mutability The mutability of the new descriptor.
 	 */
 	private IntegerIntervalTupleDescriptor (final Mutability mutability)
 	{

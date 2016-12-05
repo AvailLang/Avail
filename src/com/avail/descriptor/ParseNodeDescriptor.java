@@ -36,6 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import java.util.List;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.utility.evaluation.*;
@@ -56,10 +57,10 @@ extends Descriptor
 	}
 
 	/**
-	 * The {@link #o_ApparentSendName(AvailObject) apparentSendName} of
-	 * something that isn't a {@linkplain SendNodeDescriptor send node} or
-	 * {@linkplain MacroSubstitutionNodeDescriptor macro substitution node} is
-	 * always the {@link NilDescriptor#nil() nil} object.
+	 * The {@code apparentSendName} of something that isn't a {@linkplain
+	 * SendNodeDescriptor send node} or {@linkplain
+	 * MacroSubstitutionNodeDescriptor macro substitution node} is always {@link
+	 * NilDescriptor#nil() nil}.
 	 */
 	@Override @AvailMethod
 	A_Atom o_ApparentSendName (final AvailObject object)
@@ -210,12 +211,9 @@ extends Descriptor
 		{
 			return true;
 		}
-		if (aType.isSubtypeOf(PARSE_NODE.mostGeneralType()))
-		{
-			return object.parseNodeKindIsUnder(aType.parseNodeKind())
-				&& object.expressionType().isSubtypeOf(aType.expressionType());
-		}
-		return false;
+		return aType.isSubtypeOf(PARSE_NODE.mostGeneralType())
+			&& object.parseNodeKindIsUnder(aType.parseNodeKind())
+			&& object.expressionType().isSubtypeOf(aType.expressionType());
 	}
 
 	@Override
@@ -309,7 +307,7 @@ extends Descriptor
 	 * @param parentNode
 	 *        This node's parent, or {@code null}.
 	 */
-	public static void treeDoWithParent (
+	@InnerAccess static void treeDoWithParent (
 		final A_Phrase object,
 		final Continuation2<A_Phrase, A_Phrase> aBlock,
 		final @Nullable A_Phrase parentNode)
@@ -322,10 +320,7 @@ extends Descriptor
 				{
 					assert child != null;
 					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
-					treeDoWithParent(
-						child,
-						aBlock,
-						object);
+					treeDoWithParent(child, aBlock, object);
 				}
 			});
 		aBlock.value(object, parentNode);

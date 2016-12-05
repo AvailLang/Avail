@@ -265,7 +265,6 @@ public class Graph<Vertex>
 	 *
 	 * @param vertex The vertex to attempt to remove to the graph.
 	 */
-	@SuppressWarnings("null")
 	public void removeVertex (final Vertex vertex)
 	{
 		final Set<Vertex> outVertices = outEdges.get(vertex);
@@ -357,7 +356,6 @@ public class Graph<Vertex>
 	 * @param sourceVertex The source of the edge to attempt to add.
 	 * @param targetVertex The target of the edge to attempt to add.
 	 */
-	@SuppressWarnings("null")
 	public void addEdge (
 		final Vertex sourceVertex,
 		final Vertex targetVertex)
@@ -382,7 +380,6 @@ public class Graph<Vertex>
 	 * @param sourceVertex The source of the edge to include.
 	 * @param targetVertex The target of the edge to include.
 	 */
-	@SuppressWarnings("null")
 	public void includeEdge (
 		final Vertex sourceVertex,
 		final Vertex targetVertex)
@@ -403,7 +400,6 @@ public class Graph<Vertex>
 	 * @param sourceVertex The source of the edge to remove.
 	 * @param targetVertex The target of the edge to remove.
 	 */
-	@SuppressWarnings("null")
 	public void removeEdge (
 		final Vertex sourceVertex,
 		final Vertex targetVertex)
@@ -425,7 +421,6 @@ public class Graph<Vertex>
 	 * @param sourceVertex The source of the edge to exclude.
 	 * @param targetVertex The target of the edge to exclude.
 	 */
-	@SuppressWarnings("null")
 	public void excludeEdge (
 		final Vertex sourceVertex,
 		final Vertex targetVertex)
@@ -444,7 +439,6 @@ public class Graph<Vertex>
 	 *
 	 * @param sourceVertex The source vertex of the edges to exclude.
 	 */
-	@SuppressWarnings("null")
 	public void excludeEdgesFrom (
 		final Vertex sourceVertex)
 	{
@@ -463,7 +457,6 @@ public class Graph<Vertex>
 	 *
 	 * @param targetVertex The target vertex of the edges to exclude.
 	 */
-	@SuppressWarnings("null")
 	public void excludeEdgesTo (
 		final Vertex targetVertex)
 	{
@@ -484,7 +477,6 @@ public class Graph<Vertex>
 	 * @param targetVertex The vertex which is the target of the purported edge.
 	 * @return Whether the graph contains the specified edge.
 	 */
-	@SuppressWarnings("null")
 	public boolean includesEdge (
 		final Vertex sourceVertex,
 		final Vertex targetVertex)

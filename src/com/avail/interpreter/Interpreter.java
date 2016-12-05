@@ -1536,7 +1536,7 @@ public final class Interpreter
 	 * have already been supplied, and all other data has been wiped. Do not
 	 * tally this as an invocation of the method.
 	 *
-	 * @param continuationToRestart
+	 * @param continuationToRestart The Avail continuation to restart.
 	 */
 	public void prepareToRestartContinuation (
 		final A_Continuation continuationToRestart)

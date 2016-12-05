@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.LiteralTokenTypeDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 
@@ -41,7 +41,7 @@ import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 
 /**
  * A {@linkplain RawKeywordTokenArgument} is an occurrence of {@linkplain
- * StringDescriptor#ellipsis() ellipsis} (…) in a message name. It indicates
+ * Metacharacter#ELLIPSIS ellipsis} (…) in a message name. It indicates
  * where a raw keyword token argument is expected. Like its superclass, the
  * {@link RawTokenArgument}, the token is captured after being placed in a
  * literal phrase, but in this case the token is restricted to be a {@link

@@ -30,17 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.ListNodeDescriptor;
-import com.avail.descriptor.StringDescriptor;
 
 import static com.avail.compiler.ParsingOperation.*;
 
 /**
  * An {@linkplain ArgumentForMacroOnly} is the translation of an {@linkplain
- * StringDescriptor#underscore() underscore} (_) in a message name, followed
- * immediately by an {@linkplain StringDescriptor#exclamationMark()
+ * Metacharacter#UNDERSCORE underscore} (_) in a message name, followed
+ * immediately by an {@linkplain Metacharacter#EXCLAMATION_MARK
  * exclamation mark} (!).  It indicates where an argument is expected – but
  * the argument is allowed to be ⊤-valued or ⊥-valued.  Functions (and
  * therefore method definitions) may not take arguments of type ⊤ or ⊥, so

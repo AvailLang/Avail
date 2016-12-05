@@ -230,9 +230,13 @@ public class Catalog
 				decoded.clear();
 				// Right! We finally have decoded data as a string, so we can
 				// now extract code points and populate the accumulate.
-				for (int i = 0, size = string.length(); i < size; )
+				int codePoint;
+				for (
+					int i = 0, size = string.length();
+					i < size;
+					i += Character.charCount(codePoint))
 				{
-					final int codePoint = string.codePointAt(i);
+					codePoint = string.codePointAt(i);
 					final CharacterInfo info = new CharacterInfo(codePoint);
 					// Don't lose information already accumulated about this
 					// code point. (The equals operation only checks the code
@@ -241,7 +245,6 @@ public class Catalog
 					{
 						codePoints.add(info);
 					}
-					i += Character.charCount(codePoint);
 				}
 			}
 		}

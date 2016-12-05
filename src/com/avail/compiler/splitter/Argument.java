@@ -30,11 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.SignatureException;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +48,7 @@ import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 
 /**
  * An {@linkplain Argument} is an occurrence of {@linkplain
- * StringDescriptor#underscore() underscore} (_) in a message name. It
+ * Metacharacter#UNDERSCORE underscore} (_) in a message name. It
  * indicates where an argument is expected.
  */
 class Argument
@@ -71,8 +71,8 @@ extends Expression
 		final int startTokenIndex)
 	{
 		super(messageSplitter.messagePartPositions.get(startTokenIndex - 1));
-		messageSplitter.underscorePartNumbers.add(startTokenIndex);
-		absoluteUnderscoreIndex = messageSplitter.numberOfUnderscores();
+		messageSplitter.incrementLeafArgumentCount();
+		absoluteUnderscoreIndex = messageSplitter.numberOfLeafArguments();
 	}
 
 	@Override

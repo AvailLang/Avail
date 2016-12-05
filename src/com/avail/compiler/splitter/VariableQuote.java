@@ -30,12 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ReferenceNodeDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.VariableDescriptor;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +48,7 @@ import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 
 /**
  * A {@linkplain VariableQuote} is an occurrence of {@linkplain
- * StringDescriptor#upArrow() up arrow} (↑) after an underscore in a
+ * Metacharacter#UP_ARROW up arrow} (↑) after an underscore in a
  * message name. It indicates that the expression must be the name of a
  * {@linkplain VariableDescriptor variable} that is currently in-scope. It
  * produces a {@linkplain ReferenceNodeDescriptor reference} to the

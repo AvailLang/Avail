@@ -73,7 +73,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class MapDescriptor
+public final class MapDescriptor
 extends Descriptor
 {
 	/**
@@ -669,18 +669,18 @@ extends Descriptor
 		/**
 		 * Update my fields.
 		 *
-		 * @param key The key to set.
-		 * @param keyHash the hash of the key.
-		 * @param value The value to set.
+		 * @param newKey The key to set.
+		 * @param newKeyHash the hash of the key.
+		 * @param newValue The value to set.
 		 */
 		public void setKeyAndHashAndValue (
-			final @Nullable AvailObject key,
-			final int keyHash,
-			final @Nullable AvailObject value)
+			final @Nullable AvailObject newKey,
+			final int newKeyHash,
+			final @Nullable AvailObject newValue)
 		{
-			this.key = key;
-			this.keyHash = keyHash;
-			this.value = value;
+			key = newKey;
+			keyHash = newKeyHash;
+			value = newValue;
 		}
 
 		/**

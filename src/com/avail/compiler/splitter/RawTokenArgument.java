@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.LiteralTokenTypeDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 
 import static com.avail.compiler.ParsingOperation.PARSE_ANY_RAW_TOKEN;
@@ -40,8 +40,8 @@ import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 
 /**
  * A {@linkplain RawTokenArgument} is an occurrence of {@linkplain
- * StringDescriptor#ellipsis() ellipsis} (…) in a message name, followed by
- * an {@linkplain StringDescriptor#exclamationMark() exclamation mark} (!).
+ * Metacharacter#ELLIPSIS ellipsis} (…) in a message name, followed by
+ * an {@linkplain Metacharacter#EXCLAMATION_MARK exclamation mark} (!).
  * It indicates where <em>any</em> raw token is expected, which gets
  * captured as an argument, wrapped in a literal phrase.
  */

@@ -71,14 +71,14 @@ public class L2Register implements Comparable<L2Register>
 	 * interpreter} at runtime to identify the storage location of a {@linkplain
 	 * L2Register register}.
 	 *
-	 * @param finalIndex
+	 * @param theFinalIndex
 	 *        A {@linkplain L2Register register} coloring number.
 	 */
-	public void setFinalIndex (final int finalIndex)
+	public void setFinalIndex (final int theFinalIndex)
 	{
-		assert this.finalIndex == -1
+		assert finalIndex == -1
 			: "Only set the finalIndex of an L2RegisterIdentity once";
-		this.finalIndex = finalIndex;
+		finalIndex = theFinalIndex;
 	}
 
 	/**

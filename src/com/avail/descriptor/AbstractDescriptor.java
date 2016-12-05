@@ -375,7 +375,6 @@ public abstract class AbstractDescriptor
 	 *            IntegerSlotsEnum} and defines this object's object slots
 	 *            layout, or null if there are no integer slots.
 	 */
-	@SuppressWarnings("null")
 	protected AbstractDescriptor (
 		final Mutability mutability,
 		final TypeTag typeTag,
@@ -2081,7 +2080,6 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param argumentList
-	 * @param errorCode
 	 * @return
 	 */
 	abstract A_Definition o_LookupByValuesFromList (
@@ -3065,7 +3063,6 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param module
-	 * @param sampleArgsStack
 	 */
 	abstract void o_Expand (
 		AvailObject object,
@@ -3721,8 +3718,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Answer whether the {@linkplain AvailObject receiver} is an {@linkplain
-	 * InfinityDescriptor infinity} with the specified {@link
-	 * IntegerSlots#SIGN}.
+	 * InfinityDescriptor infinity} with the specified {@link Sign}.
 	 *
 	 * @param object The receiver.
 	 * @param sign The type of infinity for comparison.

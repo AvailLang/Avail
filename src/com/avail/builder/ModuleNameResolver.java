@@ -370,7 +370,7 @@ public final class ModuleNameResolver
 	 * the ModuleNameResolver could bundle information about the different paths
 	 * checked for the missing file into the exception itself.
 	 */
-	private static final class ModuleNameResolutionResult
+	@InnerAccess static final class ModuleNameResolutionResult
 	{
 		/** The module that was successfully resolved, or null if not found. */
 		private final @Nullable ResolvedModuleName resolvedModule;

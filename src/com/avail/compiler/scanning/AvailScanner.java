@@ -562,7 +562,8 @@ public class AvailScanner
 								throw new AvailScannerException(
 									"Backslash escape should be followed by"
 									+ " one of n, r, t, \\, \", (, [, |, or a"
-									+ " line break",
+									+ " line break, not Unicode character "
+									+ c,
 									scanner);
 						}
 						erasurePosition = stringBuilder.length();
@@ -956,7 +957,7 @@ public class AvailScanner
 	 * Scan the already-specified {@link String} to produce {@linkplain
 	 * #outputTokens tokens}.
 	 *
-	 * @throws AvailScannerException
+	 * @throws AvailScannerException If there is a problem scanning.
 	 */
 	private void scan ()
 		throws AvailScannerException

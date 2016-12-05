@@ -448,27 +448,25 @@ extends ParseNodeTypeDescriptor
 		return type;
 	}
 
-	@InnerAccess static class Empty
+	/** A static inner type that delays initialization until first use. */
+	@InnerAccess final static class Empty
 	{
 		/** The empty list phrase's type. */
-		private static final A_Type empty = createListNodeTypeNoCheck(
+		@InnerAccess static final A_Type empty = createListNodeTypeNoCheck(
 				LIST_NODE,
 				TupleTypeDescriptor.forTypes(),
 				TupleTypeDescriptor.forTypes()
 			).makeShared();
+
+		private Empty ()
+		{
+			// Avoid unintentional instantiation.
+		}
 	}
 
 	/** Answer the empty list phrase's type. */
 	public static A_Type empty()
 	{
-		if (Empty.empty == null)
-		{
-			createListNodeTypeNoCheck(
-				LIST_NODE,
-				TupleTypeDescriptor.forTypes(),
-				TupleTypeDescriptor.forTypes()
-			).makeShared();
-		}
 		return Empty.empty;
 	}
 

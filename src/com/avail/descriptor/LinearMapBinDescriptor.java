@@ -72,14 +72,14 @@ extends MapBinDescriptor
 		/**
 		 * The sum of the hashes of the elements recursively within this bin.
 		 */
-		public static BitField KEYS_HASH = bitField(
+		public final static BitField KEYS_HASH = bitField(
 			COMBINED_HASHES, 0, 32);
 
 		/**
 		 * The sum of the hashes of the elements recursively within this bin,
 		 * or zero if not computed.
 		 */
-		public static BitField VALUES_HASH_OR_ZERO = bitField(
+		public final static BitField VALUES_HASH_OR_ZERO = bitField(
 			COMBINED_HASHES, 32, 32);
 
 		static

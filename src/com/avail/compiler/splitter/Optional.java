@@ -31,6 +31,7 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
@@ -38,7 +39,6 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.evaluation.Continuation1;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +54,7 @@ import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_G
  * An {@code Optional} is a {@link Sequence} wrapped in guillemets («»), and
  * followed by a question mark (?).  It may not contain {@link Argument}s or
  * subgroups, and since it is not a group it may not contain a {@linkplain
- * StringDescriptor#doubleDagger() double dagger} (‡).
+ * Metacharacter#DOUBLE_DAGGER double dagger} (‡).
  *
  * <p>At a call site, an optional produces a {@linkplain
  * EnumerationTypeDescriptor#booleanObject() boolean} that indicates whether
@@ -172,20 +172,20 @@ extends Expression
 		final InstructionGenerator generator,
 		Continuation1<Boolean> generateSplit)
 	{
-		/* branch to @absent
+		/* branch to $absent
 		 * push the current parse position on the mark stack
 		 * ...the sequence's expressions...
 		 * check progress and update saved position or abort.
 		 * discard the saved parse position from the mark stack.
-		 * ...generateSplit(true), which have the same effect as pushing the
+		 * ...generateSplit(true), which has the same effect as pushing the
 		 *    literal true, appending it, and pushing and appending anything
 		 *    that the generatorSplit produces...
-		 * jump to @groupSkip
-		 * @absent:
-		 * ...generateSplit(false), which have the same effect as pushing the
+		 * jump to $after
+		 * $absent:
+		 * ...generateSplit(false), which has the same effect as pushing the
 		 *    literal false, appending it, and pushing and appending anything
 		 *    that the generatorSplit produces...
-		 * @groupSkip:
+		 * $after:
 		 */
 		generator.flushDelayed();
 		final boolean needsProgressCheck =

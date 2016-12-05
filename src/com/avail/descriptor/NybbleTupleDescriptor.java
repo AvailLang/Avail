@@ -121,8 +121,7 @@ extends TupleDescriptor
 		final int intValue;
 		if (originalSize >= maximumCopySize
 			|| !newElement.isInt()
-			|| ((intValue = ((A_Number) newElement).extractInt()) & 15)
-				!= intValue)
+			|| ((intValue = ((A_Number) newElement).extractInt()) & ~15) != 0)
 		{
 			// Transition to a tree tuple.
 			final A_Tuple singleton = TupleDescriptor.from(newElement);

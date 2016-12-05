@@ -528,7 +528,7 @@ extends Descriptor
 	 * asked for its {@link AvailObject#iterator()}.  Among other uses, this is
 	 * useful when combined with Java's "foreach" control structure.
 	 */
-	abstract static class SetIterator
+	public abstract static class SetIterator
 	implements Iterator<AvailObject>
 	{
 		@Override

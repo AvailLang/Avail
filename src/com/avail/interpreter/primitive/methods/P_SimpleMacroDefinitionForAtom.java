@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.methods;
 
+import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -43,7 +44,6 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
@@ -53,7 +53,7 @@ import com.avail.utility.evaluation.Continuation0;
  * <strong>Primitive:</strong> Simple macro definition.  The first argument
  * is the macro name, and the second argument is a {@linkplain TupleDescriptor
  * tuple} of {@linkplain FunctionDescriptor functions} returning ⊤, one for each
- * occurrence of a {@linkplain StringDescriptor#sectionSign() section sign} (§)
+ * occurrence of a {@linkplain Metacharacter#SECTION_SIGN section sign} (§)
  * in the macro name.  The third argument is the function to invoke for the
  * complete macro.  It is constrained to answer a {@linkplain
  * ParseNodeDescriptor parse node}.
@@ -122,7 +122,7 @@ extends Primitive
 		if (!kind.returnType().isSubtypeOf(PARSE_NODE.mostGeneralType()))
 		{
 			return interpreter.primitiveFailure(
-				AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE);
+				E_MACRO_MUST_RETURN_A_PARSE_NODE);
 		}
 		final A_Function failureFunction =
 			interpreter.primitiveFunctionBeingAttempted();

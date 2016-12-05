@@ -197,7 +197,7 @@ public class LRUCache<K, V>
 	 * A {@code SoftCacheMap} subclasses {@link LinkedHashMap} to override
 	 * {@link #removeEldestEntry(java.util.Map.Entry) removeEldestEntry}.
 	 */
-	private final class SoftCacheMap
+	@InnerAccess final class SoftCacheMap
 	extends LinkedHashMap<K, SoftReference<V>>
 	{
 		/** The serial version identifier. */

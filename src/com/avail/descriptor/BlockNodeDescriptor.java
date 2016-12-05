@@ -249,12 +249,12 @@ extends ParseNodeDescriptor
 		if (explicitResultType != null)
 		{
 			builder.append(" : ");
-			builder.append(explicitResultType.toString());
+			builder.append(explicitResultType);
 		}
 		if (declaredExceptions != null)
 		{
 			builder.append(" ^ ");
-			builder.append(declaredExceptions.toString());
+			builder.append(declaredExceptions);
 		}
 	}
 
@@ -336,7 +336,7 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		return;
+		// No effect.
 	}
 
 	@Override @AvailMethod
@@ -392,7 +392,7 @@ extends ParseNodeDescriptor
 	@Override
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
-		return ParseNodeKind.BLOCK_NODE;
+		return BLOCK_NODE;
 	}
 
 	@Override @AvailMethod
@@ -730,10 +730,10 @@ extends ParseNodeDescriptor
 	 */
 	private void collectNeededVariablesOfOuterBlocks (final AvailObject object)
 	{
-		final List<A_Phrase> neededDeclarations = new ArrayList<>();
-		final Set<A_Phrase> neededDeclarationsSet = new HashSet<>();
 		final Set<A_Phrase> providedByMe = new HashSet<>();
 		providedByMe.addAll(allLocallyDefinedVariables(object));
+		final Set<A_Phrase> neededDeclarationsSet = new HashSet<>();
+		final List<A_Phrase> neededDeclarations = new ArrayList<>();
 		object.childrenDo(new Continuation1<A_Phrase>()
 		{
 			@Override

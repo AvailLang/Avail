@@ -30,11 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.LiteralNodeDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.IdentityHashMap;
@@ -46,12 +46,12 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESS
 
 /**
  * A {@linkplain ArgumentInModuleScope} is an occurrence of an {@linkplain
- * StringDescriptor#underscore() underscore} (_) in a message name, followed
- * immediately by a {@linkplain StringDescriptor#singleDagger() single
- * dagger} (†). It indicates where an argument is expected, but the argument
- * must not make use of any local declarations. The argument expression will
- * be evaluated at compile time and replaced by a {@linkplain
- * LiteralNodeDescriptor literal} based on the produced value.
+ * Metacharacter#UNDERSCORE underscore} (_) in a message name, followed
+ * immediately by a {@linkplain Metacharacter#SINGLE_DAGGER single dagger} (†).
+ * It indicates where an argument is expected, but the argument must not make
+ * use of any local declarations. The argument expression will be evaluated at
+ * compile time and replaced by a {@linkplain LiteralNodeDescriptor literal}
+ * based on the produced value.
  */
 final class ArgumentInModuleScope
 extends Argument

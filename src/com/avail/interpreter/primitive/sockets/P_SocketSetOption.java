@@ -67,7 +67,6 @@ extends Primitive
 	private static final SocketOption[] socketOptions =
 		{null, SO_RCVBUF, SO_REUSEADDR, SO_SNDBUF, SO_KEEPALIVE, TCP_NODELAY};
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public Result attempt (
 		final List<AvailObject> args,

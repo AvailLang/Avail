@@ -45,7 +45,7 @@ import java.util.IdentityHashMap;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
-final class BitField
+public final class BitField
 implements Comparable<BitField>
 {
 	/**

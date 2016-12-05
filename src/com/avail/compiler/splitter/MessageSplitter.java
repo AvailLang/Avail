@@ -32,7 +32,7 @@
 
 package com.avail.compiler.splitter;
 
-import static com.avail.descriptor.StringDescriptor.*;
+import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -64,6 +64,34 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class MessageSplitter
 {
+	/** The metacharacters used in message names. */
+	public enum Metacharacter
+	{
+		BACK_QUOTE("`"),
+		CLOSE_GUILLEMET("»"),
+		DOLLAR_SIGN("$"),
+		DOUBLE_DAGGER("‡"),
+		DOUBLE_QUESTION_MARK("⁇"),
+		ELLIPSIS("…"),
+		EXCLAMATION_MARK("!"),
+		OCTOTHORP("#"),
+		OPEN_GUILLEMET("«"),
+		SECTION_SIGN("§"),
+		SINGLE_DAGGER("†"),
+		TILDE("~"),
+		QUESTION_MARK("?"),
+		UNDERSCORE("_"),
+		UP_ARROW("↑"),
+		VERTICAL_BAR("|");
+
+		public A_String string;
+
+		Metacharacter (final String javaString)
+		{
+			string = StringDescriptor.from(javaString).makeShared();
+		}
+	}
+
 	/**
 	 * The {@linkplain A_Set set} of all {@linkplain AvailErrorCode errors} that
 	 * can happen during {@linkplain MessageSplitter message splitting}.
@@ -141,53 +169,53 @@ public final class MessageSplitter
 	 * alphanumerics by a single space.</li>
 	 * <li>Operator characters are never beside spaces, and are always parsed as
 	 * individual tokens.</li>
-	 * <li>{@linkplain StringDescriptor#openGuillemet() Open guillemet} («),
-	 * {@linkplain StringDescriptor#doubleDagger() double dagger} (‡), and
-	 * {@linkplain StringDescriptor#closeGuillemet() close guillemet} (») are
+	 * <li>{@linkplain Metacharacter#OPEN_GUILLEMET Open guillemet} («),
+	 * {@linkplain Metacharacter#DOUBLE_DAGGER double dagger} (‡), and
+	 * {@linkplain Metacharacter#CLOSE_GUILLEMET close guillemet} (») are
 	 * used to indicate repeated or optional substructures.</li>
-	 * <li>The characters {@linkplain StringDescriptor#octothorp() octothorp}
-	 * (#) and {@linkplain StringDescriptor#questionMark() question mark} (?)
+	 * <li>The characters {@linkplain Metacharacter#OCTOTHORP octothorp}
+	 * (#) and {@linkplain Metacharacter#QUESTION_MARK question mark} (?)
 	 * modify the output of repeated substructures to produce either a count
 	 * of the repetitions or a boolean indicating whether an optional
 	 * subexpression (expecting no arguments) was present.</li>
-	 * <li>Placing a {@linkplain StringDescriptor#questionMark() question mark}
+	 * <li>Placing a {@linkplain Metacharacter#QUESTION_MARK question mark}
 	 * (?) after a group containing arguments but no {@linkplain
-	 * StringDescriptor#doubleDagger() double-dagger} (‡) will limit the
+	 * Metacharacter#DOUBLE_DAGGER double-dagger} (‡) will limit the
 	 * repetitions of the group to at most one.  Although limiting the method
 	 * definitions to only accept 0..1 occurrences would accomplish the same
 	 * grammatical narrowing, the parser might still attempt to parse more than
 	 * one occurrence, leading to unnecessarily confusing diagnostics.</li>
-	 * <li>An {@linkplain StringDescriptor#exclamationMark() exclamation mark}
+	 * <li>An {@linkplain Metacharacter#EXCLAMATION_MARK exclamation mark}
 	 * (!) can follow a group of alternations to produce the 1-based index of
 	 * the alternative that actually occurred.</li>
-	 * <li>An {@linkplain StringDescriptor#underscore() underscore} (_)
+	 * <li>An {@linkplain Metacharacter#UNDERSCORE underscore} (_)
 	 * indicates where an argument occurs.</li>
-	 * <li>A {@linkplain StringDescriptor#singleDagger() single dagger} (†) may
+	 * <li>A {@linkplain Metacharacter#SINGLE_DAGGER single dagger} (†) may
 	 * occur immediately after an underscore to cause the argument expression to
 	 * be evaluated in the static scope during compilation.  This is applicable
 	 * to both methods and macros.  The expression must yield a type.</li>
-	 * <li>An {@linkplain StringDescriptor#upArrow() up-arrow} (↑) after an
+	 * <li>An {@linkplain Metacharacter#UP_ARROW up-arrow} (↑) after an
 	 * underscore indicates an in-scope variable name is to be parsed.  The
 	 * subexpression causes the variable itself to be provided, rather than its
 	 * value.</li>
-	 * <li>An {@linkplain StringDescriptor#exclamationMark() exclamation mark}
+	 * <li>An {@linkplain Metacharacter#EXCLAMATION_MARK exclamation mark}
 	 * (!) may occur after the underscore instead, to indicate the argument
 	 * expression may be ⊤-valued or ⊥-valued.  Since a function (and therefore
 	 * a method definition) cannot accept a ⊤-valued argument, this mechanism
 	 * only makes sense for macros, since macros bodies are passed phrases,
 	 * which may be typed as <em>yielding</em> a top-valued result.</li>
-	 * <li>An {@linkplain StringDescriptor#ellipsis() ellipsis} (…) matches a
+	 * <li>An {@linkplain Metacharacter#ELLIPSIS ELLIPSIS} (…) matches a
 	 * single {@linkplain TokenDescriptor keyword token}.</li>
-	 * <li>An {@linkplain StringDescriptor#exclamationMark() exclamation mark}
-	 * (!) after an ellipsis indicates <em>any</em> token will be accepted at
+	 * <li>An {@linkplain Metacharacter#EXCLAMATION_MARK exclamation mark}
+	 * (!) after an ELLIPSIS indicates <em>any</em> token will be accepted at
 	 * that position.</li>
-	 * <li>An {@linkplain StringDescriptor#octothorp() octothorp} (#) after an
+	 * <li>An {@linkplain Metacharacter#OCTOTHORP OCTOTHORP} (#) after an
 	 * ellipsis indicates only a <em>literal</em> token will be accepted.</li>
-	 * <li>The N<sup>th</sup> {@linkplain StringDescriptor#sectionSign() section
+	 * <li>The N<sup>th</sup> {@linkplain Metacharacter#SECTION_SIGN section
 	 * sign} (§) in a message name indicates where a macro's N<sup>th</sup>
 	 * {@linkplain A_Definition#prefixFunctions() prefix function} should be
 	 * invoked with the current parse stack up to that point.</li>
-	 * <li>A {@linkplain StringDescriptor#backQuote() backquote} (`) can
+	 * <li>A {@linkplain Metacharacter#BACK_QUOTE backquote} (`) can
 	 * precede any operator character, such as guillemets or double dagger, to
 	 * ensure it is not used in a special way. A backquote may also operate on
 	 * another backquote (to indicate that an actual backquote token will appear
@@ -213,10 +241,10 @@ public final class MessageSplitter
 	@InnerAccess int messagePartPosition;
 
 	/**
-	 * A record of where each "underscore" occurred in the list of {@link
-	 * #messagePartsList}.
+	 * A count of the number of unbackquoted underscores or ellipses in the
+	 * message name.
 	 */
-	@InnerAccess List<Integer> underscorePartNumbers = new ArrayList<>();
+	@InnerAccess int leafArgumentCount = 0;
 
 	/**
 	 * The number of {@link SectionCheckpoint}s encountered so far.
@@ -382,12 +410,12 @@ public final class MessageSplitter
 		{
 			final A_String part = currentMessagePart();
 			String encountered;
-			if (part.equals(closeGuillemet()))
+			if (part.equals(CLOSE_GUILLEMET.string))
 			{
 				encountered =
 					"close guillemet (») with no corresponding open guillemet";
 			}
-			else if (part.equals(doubleDagger()))
+			else if (part.equals(DOUBLE_DAGGER.string))
 			{
 				encountered = "double-dagger (‡) outside of a group";
 			}
@@ -454,17 +482,6 @@ public final class MessageSplitter
 			return messageName().tupleSize();
 		}
 		return messagePartPositions.get(messagePartPosition - 1);
-	}
-
-	/**
-	 * Answer a record of where each "underscore" occurred in the list of {@link
-	 * #messagePartsList}.
-	 *
-	 * @return A {@link List} of one-based {@link Integer}s.
-	 */
-	public List<Integer> underscorePartNumbers ()
-	{
-		return underscorePartNumbers;
 	}
 
 	/**
@@ -642,15 +659,10 @@ public final class MessageSplitter
 						|| isCharacterAnUnderscoreOrSpaceOrOperator(
 							(char) messageName.tupleAt(position).codePoint()))
 				{
-					if ((char) messageName.tupleAt(position).codePoint() == '`'
-						&& position != messageName.tupleSize()
-						&& (char) messageName.tupleAt(position + 1).codePoint()
-							== '_')
-					{
-						// This is legal; we want to be able to parse
-						// expressions like "a _b".
-					}
-					else
+					if ((char) messageName.tupleAt(position).codePoint() != '`'
+						|| position == messageName.tupleSize()
+						|| (char) messageName.tupleAt(position + 1).codePoint()
+							!= '_')
 					{
 						// Problem is after the space.
 						messagePartsList.add(
@@ -662,6 +674,8 @@ public final class MessageSplitter
 							E_METHOD_NAME_IS_NOT_CANONICAL,
 							"Expected alphanumeric character after space");
 					}
+					// This is legal; we want to be able to parse
+					// expressions like "a _b".
 				}
 			}
 			else if (ch == '`')
@@ -823,7 +837,7 @@ public final class MessageSplitter
 	private Sequence parseSequence ()
 		throws MalformedMessageException
 	{
-		List<Expression> alternatives = new ArrayList<Expression>();
+		List<Expression> alternatives = new ArrayList<>();
 		boolean justParsedVerticalBar = false;
 		final Sequence sequence = new Sequence(positionInName(), this);
 		while (true)
@@ -842,11 +856,12 @@ public final class MessageSplitter
 				sequence.checkForConsistentOrdinals();
 				return sequence;
 			}
-			if (token.equals(closeGuillemet()) || token.equals(doubleDagger()))
+			if (token.equals(CLOSE_GUILLEMET.string) || token.equals(
+				DOUBLE_DAGGER.string))
 			{
 				if (justParsedVerticalBar)
 				{
-					final String problem = token.equals(closeGuillemet())
+					final String problem = token.equals(CLOSE_GUILLEMET.string)
 						? "close guillemet (»)"
 						: "double-dagger (‡)";
 					throwMalformedMessageException(
@@ -858,7 +873,7 @@ public final class MessageSplitter
 				sequence.checkForConsistentOrdinals();
 				return sequence;
 			}
-			if (token.equals(underscore()))
+			if (token.equals(UNDERSCORE.string))
 			{
 				// Capture the one-based index.
 				final int argStart = messagePartPosition;
@@ -870,7 +885,6 @@ public final class MessageSplitter
 						"Alternations must not contain arguments");
 				}
 				messagePartPosition++;
-				Expression argument = null;
 				@Nullable A_String nextToken = currentMessagePartOrNull();
 				int ordinal = -1;
 				if (nextToken != null)
@@ -890,19 +904,20 @@ public final class MessageSplitter
 						nextToken = currentMessagePartOrNull();
 					}
 				}
+				Expression argument = null;
 				if (nextToken != null)
 				{
-					if (nextToken.equals(singleDagger()))
+					if (nextToken.equals(SINGLE_DAGGER.string))
 					{
 						messagePartPosition++;
 						argument = new ArgumentInModuleScope(this, argStart);
 					}
-					else if (nextToken.equals(upArrow()))
+					else if (nextToken.equals(UP_ARROW.string))
 					{
 						messagePartPosition++;
 						argument = new VariableQuote(this, argStart);
 					}
-					else if (nextToken.equals(exclamationMark()))
+					else if (nextToken.equals(EXCLAMATION_MARK.string))
 					{
 						messagePartPosition++;
 						argument = new ArgumentForMacroOnly(this, argStart);
@@ -917,7 +932,7 @@ public final class MessageSplitter
 				argument.explicitOrdinal(ordinal);
 				sequence.addExpression(argument);
 			}
-			else if (token.equals(ellipsis()))
+			else if (token.equals(ELLIPSIS.string))
 			{
 				final int ellipsisStart = messagePartPosition;
 				if (alternatives.size() > 0)
@@ -930,20 +945,23 @@ public final class MessageSplitter
 				messagePartPosition++;
 				@Nullable
 				final A_String nextToken = currentMessagePartOrNull();
-				if (nextToken != null && nextToken.equals(exclamationMark()))
+				if (nextToken != null
+					&& nextToken.equals(EXCLAMATION_MARK.string))
 				{
 					sequence.addExpression(
 						new RawTokenArgument(this, ellipsisStart));
 					messagePartPosition++;
 				}
-				else if (nextToken != null && nextToken.equals(octothorp()))
+				else if (nextToken != null
+					&& nextToken.equals(OCTOTHORP.string))
 				{
 					sequence.addExpression(
 						new RawWholeNumberLiteralTokenArgument(
 							this, ellipsisStart));
 					messagePartPosition++;
 				}
-				else if (nextToken != null && nextToken.equals(dollarSign()))
+				else if (nextToken != null
+					&& nextToken.equals(DOLLAR_SIGN.string))
 				{
 					sequence.addExpression(
 						new RawStringLiteralTokenArgument(this, ellipsisStart));
@@ -955,47 +973,47 @@ public final class MessageSplitter
 						new RawKeywordTokenArgument(this, ellipsisStart));
 				}
 			}
-			else if (token.equals(octothorp()))
+			else if (token.equals(OCTOTHORP.string))
 			{
 				throwMalformedMessageException(
 					E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
 					"An octothorp (#) may only follow a simple group («») "
 					+ "or an ellipsis (…)");
 			}
-			else if (token.equals(dollarSign()))
+			else if (token.equals(DOLLAR_SIGN.string))
 			{
 				throwMalformedMessageException(
 					E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
 					"A dollar sign ($) may only follow an ellipsis(…)");
 			}
-			else if (token.equals(questionMark()))
+			else if (token.equals(QUESTION_MARK.string))
 			{
 				throwMalformedMessageException(
 					E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
 					"A question mark (?) may only follow a simple group "
 					+ "(optional) or a group with no double-dagger (‡)");
 			}
-			else if (token.equals(tilde()))
+			else if (token.equals(TILDE.string))
 			{
 				throwMalformedMessageException(
 					E_TILDE_MUST_NOT_FOLLOW_ARGUMENT,
 					"A tilde (~) must not follow an argument");
 			}
-			else if (token.equals(verticalBar()))
+			else if (token.equals(VERTICAL_BAR.string))
 			{
 				throwMalformedMessageException(
 					E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
 					"A vertical bar (|) may only separate tokens or simple "
 					+ "groups");
 			}
-			else if (token.equals(exclamationMark()))
+			else if (token.equals(EXCLAMATION_MARK.string))
 			{
 				throwMalformedMessageException(
 					E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
 					"An exclamation mark (!) may only follow an alternation "
 					+ "group (or follow an underscore for macros)");
 			}
-			else if (token.equals(upArrow()))
+			else if (token.equals(UP_ARROW.string))
 			{
 				throwMalformedMessageException(
 					E_UP_ARROW_MUST_FOLLOW_ARGUMENT,
@@ -1009,20 +1027,20 @@ public final class MessageSplitter
 					"Unquoted circled numbers (⓪-㊿) may only follow an "
 					+ "argument, an ellipsis, or an argument group");
 			}
-			else if (token.equals(openGuillemet()))
+			else if (token.equals(OPEN_GUILLEMET.string))
 			{
 				// Eat the open guillemet, parse a subgroup, eat the (mandatory)
 				// close guillemet, and add the group.
 				final int startOfGroup = positionInName();
 				messagePartPosition++;
 				final Group subgroup = parseGroup(startOfGroup);
-				justParsedVerticalBar = false;
+				//justParsedVerticalBar = false;
 				if (!atEnd())
 				{
 					token = currentMessagePart();
 				}
 				// Otherwise token stays an open guillemet, hence not a close...
-				if (!token.equals(closeGuillemet()))
+				if (!token.equals(CLOSE_GUILLEMET.string))
 				{
 					// Expected matching close guillemet.
 					throwMalformedMessageException(
@@ -1053,7 +1071,7 @@ public final class MessageSplitter
 				if (!atEnd())
 				{
 					token = currentMessagePart();
-					if (token.equals(octothorp()))
+					if (token.equals(OCTOTHORP.string))
 					{
 						if (subgroup.underscoreCount() > 0)
 						{
@@ -1066,7 +1084,7 @@ public final class MessageSplitter
 						subexpression = new Counter(startOfGroup, subgroup);
 						messagePartPosition++;
 					}
-					else if (token.equals(questionMark()))
+					else if (token.equals(QUESTION_MARK.string))
 					{
 						if (subgroup.hasDagger)
 						{
@@ -1093,7 +1111,7 @@ public final class MessageSplitter
 						}
 						messagePartPosition++;
 					}
-					else if (token.equals(doubleQuestionMark()))
+					else if (token.equals(DOUBLE_QUESTION_MARK.string))
 					{
 						if (subgroup.underscoreCount() > 0
 							|| subgroup.hasDagger)
@@ -1110,7 +1128,7 @@ public final class MessageSplitter
 							startOfGroup, this, subgroup.beforeDagger);
 						messagePartPosition++;
 					}
-					else if (token.equals(exclamationMark()))
+					else if (token.equals(EXCLAMATION_MARK.string))
 					{
 						if (subgroup.underscoreCount() > 0
 							|| subgroup.hasDagger
@@ -1138,7 +1156,7 @@ public final class MessageSplitter
 				{
 					token = currentMessagePart();
 					// Try to parse a case-insensitive modifier.
-					if (token.equals(tilde()))
+					if (token.equals(TILDE.string))
 					{
 						if (!subexpression.isLowerCase())
 						{
@@ -1156,14 +1174,15 @@ public final class MessageSplitter
 				// complete an alternation already in progress (including this
 				// most recent expression) or add the subexpression directly to
 				// the group.
-				if (atEnd() || !currentMessagePart().equals(verticalBar()))
+				if (atEnd()
+					|| !currentMessagePart().equals(VERTICAL_BAR.string))
 				{
 					if (alternatives.size() > 0)
 					{
 						alternatives.add(subexpression);
 						subexpression = new Alternation(
 							startOfGroup, alternatives);
-						alternatives = new ArrayList<Expression>();
+						alternatives = new ArrayList<>();
 					}
 					sequence.addExpression(subexpression);
 					justParsedVerticalBar = false;
@@ -1182,7 +1201,7 @@ public final class MessageSplitter
 					justParsedVerticalBar = true;
 				}
 			}
-			else if (token.equals(sectionSign()))
+			else if (token.equals(SECTION_SIGN.string))
 			{
 				if (alternatives.size() > 0)
 				{
@@ -1199,10 +1218,9 @@ public final class MessageSplitter
 			else
 			{
 				// Parse a backquote.
-				if (token.equals(backQuote()))
+				if (token.equals(BACK_QUOTE.string))
 				{
 					// Eat the backquote.
-					justParsedVerticalBar = false;
 					messagePartPosition++;
 					if (atEnd())
 					{
@@ -1225,7 +1243,7 @@ public final class MessageSplitter
 					}
 				}
 				// Parse a regular keyword or operator.
-				justParsedVerticalBar = false;
+				//justParsedVerticalBar = false;
 				Expression subexpression =
 					new Simple(this, messagePartPosition);
 				messagePartPosition++;
@@ -1233,7 +1251,7 @@ public final class MessageSplitter
 				if (!atEnd())
 				{
 					token = currentMessagePart();
-					if (token.equals(doubleQuestionMark()))
+					if (token.equals(DOUBLE_QUESTION_MARK.string))
 					{
 						final Sequence singleSequence =
 							new Sequence(subexpression.positionInName, this);
@@ -1247,7 +1265,7 @@ public final class MessageSplitter
 				if (!atEnd())
 				{
 					token = currentMessagePart();
-					if (token.equals(tilde()))
+					if (token.equals(TILDE.string))
 					{
 						if (!subexpression.isLowerCase())
 						{
@@ -1265,14 +1283,15 @@ public final class MessageSplitter
 				// complete an alternation already in progress (including this
 				// most recent expression) or add the subexpression directly to
 				// the group.
-				if (atEnd() || !currentMessagePart().equals(verticalBar()))
+				if (atEnd()
+					|| !currentMessagePart().equals(VERTICAL_BAR.string))
 				{
 					if (alternatives.size() > 0)
 					{
 						alternatives.add(subexpression);
 						subexpression = new Alternation(
 							alternatives.get(0).positionInName, alternatives);
-						alternatives = new ArrayList<Expression>();
+						alternatives = new ArrayList<>();
 					}
 					sequence.addExpression(subexpression);
 					justParsedVerticalBar = false;
@@ -1291,7 +1310,7 @@ public final class MessageSplitter
 	 * Create a {@linkplain Group group} from the series of tokens describing
 	 * it. This is also used to construct the outermost sequence of {@linkplain
 	 * Expression expressions}, with the restriction that an occurrence of a
-	 * {@linkplain StringDescriptor#doubleDagger() double dagger} in the
+	 * {@linkplain Metacharacter#DOUBLE_DAGGER double dagger} in the
 	 * outermost pseudo-group is an error. Expect the {@linkplain
 	 * #messagePartPosition} to point (via a one-based offset) to the first
 	 * token of the group, or just past the end if the group is empty. Leave the
@@ -1313,11 +1332,11 @@ public final class MessageSplitter
 		throws MalformedMessageException
 	{
 		final Sequence beforeDagger = parseSequence();
-		if (!atEnd() && currentMessagePart().equals(doubleDagger()))
+		if (!atEnd() && currentMessagePart().equals(DOUBLE_DAGGER.string))
 		{
 			messagePartPosition++;
 			final Sequence afterDagger = parseSequence();
-			if (!atEnd() && currentMessagePart().equals(doubleDagger()))
+			if (!atEnd() && currentMessagePart().equals(DOUBLE_DAGGER.string))
 			{
 				// Two daggers were encountered in a group.
 				throwMalformedMessageException(
@@ -1327,6 +1346,15 @@ public final class MessageSplitter
 			return new Group(positionInName, beforeDagger, afterDagger);
 		}
 		return new Group(positionInName, this, beforeDagger);
+	}
+
+	/**
+	 * Increment the number of leaf arguments, which agrees with the number of
+	 * non-backquoted underscores and ellipses.
+	 */
+	void incrementLeafArgumentCount ()
+	{
+		leafArgumentCount++;
 	}
 
 	/**
@@ -1361,9 +1389,9 @@ public final class MessageSplitter
 	 * @return The number of non-backquoted underscores/ellipses within this
 	 *         method name.
 	 */
-	public int numberOfUnderscores ()
+	public int numberOfLeafArguments ()
 	{
-		return underscorePartNumbers.size();
+		return leafArgumentCount;
 	}
 
 	/**
@@ -1479,10 +1507,8 @@ public final class MessageSplitter
 				{
 					final StringBuilder builder = new StringBuilder();
 					builder.append(errorMessage);
-					final String errorIndicator =
-						AvailCompiler.errorIndicatorSymbol;
 					builder.append(". See arrow (");
-					builder.append(errorIndicator);
+					builder.append(AvailCompiler.errorIndicatorSymbol);
 					builder.append(") in: \"");
 					final int characterIndex =
 						messagePartPosition > 0
@@ -1498,7 +1524,7 @@ public final class MessageSplitter
 						(A_String)messageName.copyTupleFromToCanDestroy(
 							characterIndex, messageName.tupleSize(), false);
 					builder.append(before.asNativeString());
-					builder.append(errorIndicator);
+					builder.append(AvailCompiler.errorIndicatorSymbol);
 					builder.append(after.asNativeString());
 					builder.append("\"");
 					return builder.toString();

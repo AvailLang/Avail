@@ -39,6 +39,7 @@ import java.io.Reader;
 import java.nio.charset.MalformedInputException;
 import java.util.Map;
 
+import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 import org.jetbrains.annotations.Nullable;
@@ -163,7 +164,7 @@ public final class RenamesFileParser
 	 * A {@code Token} associates a {@link TokenType} with a {@linkplain String
 	 * lexeme} from the source text of the renames file.
 	 */
-	private static class Token
+	@InnerAccess static class Token
 	{
 		/** The {@link TokenType}. */
 		final TokenType tokenType;

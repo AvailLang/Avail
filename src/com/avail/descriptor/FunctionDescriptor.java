@@ -448,7 +448,7 @@ extends Descriptor
 	/**
 	 * Construct a bootstrapped {@linkplain FunctionDescriptor function} that
 	 * uses the specified primitive.  The primitive failure code should invoke
-	 * the {@link MethodDescriptor#vmCrashAtom}'s bundle with a tuple of passed
+	 * the {@link SpecialAtom#CRASH}'s bundle with a tuple of passed
 	 * arguments followed by the primitive failure value.
 	 *
 	 * @param primitive
@@ -515,7 +515,7 @@ extends Descriptor
 	 *        The {@linkplain TupleDescriptor tuple} of parameter {@linkplain
 	 *        TypeDescriptor types}.
 	 * @return The requested crash function.
-	 * @see MethodDescriptor#vmCrashAtom()
+	 * @see SpecialAtom#CRASH
 	 */
 	public static A_Function newCrashFunction (
 		final String messageString,

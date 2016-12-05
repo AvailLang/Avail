@@ -99,7 +99,7 @@ extends Descriptor
 		 * relationship between the type guaranteed by the function and the type
 		 * expected at the call site.
 		 */
-		public static BitField SKIP_RETURN_CHECK = bitField(
+		public final static BitField SKIP_RETURN_CHECK = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			31,
 			1);
@@ -109,7 +109,7 @@ extends Descriptor
 		 * ObjectSlots#FUNCTION function's} compiled code's tuple of nybblecodes
 		 * at which execution will next occur.
 		 */
-		public static BitField PROGRAM_COUNTER = bitField(
+		public final static BitField PROGRAM_COUNTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			16,
 			15);
@@ -119,7 +119,7 @@ extends Descriptor
 		 * frame slots}.  It grows from the top + 1 (empty stack), and at its
 		 * deepest it just abuts the last local variable.
 		 */
-		public static BitField STACK_POINTER = bitField(
+		public final static BitField STACK_POINTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			0,
 			16);

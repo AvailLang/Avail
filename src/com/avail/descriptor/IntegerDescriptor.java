@@ -1612,7 +1612,8 @@ extends ExtendedIntegerDescriptor
 	 * @param canDestroy
 	 *            Whether it is permitted to alter the original object if it
 	 *            happens to be mutable.
-	 * @return (object × 2<sup>shiftFactor</sup>) mod 2<sup>truncationBits</sup>
+	 * @return &#40;object × 2<sup>shiftFactor</sup>)
+	 *            mod 2<sup>truncationBits</sup>
 	 */
 	@Override @AvailMethod
 	A_Number o_BitShiftLeftTruncatingToBits (
@@ -1668,7 +1669,7 @@ extends ExtendedIntegerDescriptor
 				long resultLong = shiftedLong;
 				if (truncationInt < 64)
 				{
-					resultLong &= (1 << truncationInt) - 1;
+					resultLong &= (1L << truncationInt) - 1;
 				}
 				if (canDestroy && isMutable())
 				{
@@ -1984,7 +1985,8 @@ extends ExtendedIntegerDescriptor
 			return BigInteger.valueOf(object.extractLong());
 		}
 		final byte[] bytes = new byte[integerCount << 2];
-		for (int i = integerCount, b = 0; i > 0; i--)
+		int b = 0;
+		for (int i = integerCount; i > 0; i--)
 		{
 			final int integer = object.intSlot(RAW_LONG_SLOTS_, i);
 			bytes[b++] = (byte) (integer >> 24);

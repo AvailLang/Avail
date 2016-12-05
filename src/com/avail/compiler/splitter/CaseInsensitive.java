@@ -31,9 +31,9 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.ParsingOperation;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.SignatureException;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +45,7 @@ import java.util.List;
  * expression} that causes the decorated expression's keywords to generate
  * {@linkplain ParsingOperation parse instructions} that cause case
  * insensitive parsing. It is indicated by a trailing {@linkplain
- * StringDescriptor#tilde() tilde} ("~").
+ * Metacharacter#TILDE tilde} ("~").
  */
 final class CaseInsensitive
 extends Expression

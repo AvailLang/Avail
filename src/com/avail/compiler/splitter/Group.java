@@ -29,8 +29,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.compiler.splitter;
+
 import com.avail.compiler.splitter.InstructionGenerator.Label;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.*;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.SignatureException;
@@ -52,15 +55,15 @@ import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP;
 
 /**
  * A {@linkplain Group} is delimited by the {@linkplain
- * StringDescriptor#openGuillemet() open guillemet} («) and {@linkplain
- * StringDescriptor#closeGuillemet() close guillemet} (») characters, and
+ * Metacharacter#OPEN_GUILLEMET open guillemet} («) and {@linkplain
+ * Metacharacter#CLOSE_GUILLEMET close guillemet} (») characters, and
  * may contain subgroups and an occurrence of a {@linkplain
- * StringDescriptor#doubleDagger() double dagger} (‡). If no double dagger
+ * Metacharacter#DOUBLE_DAGGER double dagger} (‡). If no double dagger
  * or subgroup is present, the sequence of message parts between the
  * guillemets are allowed to occur zero or more times at a call site
  * (i.e., a send of this message). When the number of {@linkplain
- * StringDescriptor#underscore() underscores} (_) and {@linkplain
- * StringDescriptor#ellipsis() ellipses} (…) plus the number of subgroups is
+ * Metacharacter#UNDERSCORE underscores} (_) and {@linkplain
+ * Metacharacter#ELLIPSIS ellipses} (…) plus the number of subgroups is
  * exactly one, the argument (or subgroup) values are assembled into a
  * {@linkplain TupleDescriptor tuple}. Otherwise the leaf arguments and/or
  * subgroups are assembled into a tuple of fixed-sized tuples, each
@@ -85,21 +88,21 @@ final class Group
 extends Expression
 {
 	/**
-	 * Whether a {@linkplain StringDescriptor#doubleDagger() double dagger}
+	 * Whether a {@linkplain Metacharacter#DOUBLE_DAGGER double dagger}
 	 * (‡) has been encountered in the tokens for this group.
 	 */
 	final boolean hasDagger;
 
 	/**
 	 * The {@link Sequence} of {@link Expression}s that appeared before the
-	 * {@linkplain StringDescriptor#doubleDagger() double dagger}, or in the
+	 * {@linkplain Metacharacter#DOUBLE_DAGGER double dagger}, or in the
 	 * entire subexpression if no double dagger is present.
 	 */
 	final Sequence beforeDagger;
 
 	/**
 	 * The {@link Sequence} of {@link Expression}s that appear after the
-	 * {@linkplain StringDescriptor#doubleDagger() double dagger}, or an
+	 * {@linkplain Metacharacter#DOUBLE_DAGGER double dagger}, or an
 	 * empty sequence if no double dagger is present.
 	 */
 	final Sequence afterDagger;
@@ -319,7 +322,7 @@ extends Expression
 		final A_Type phraseType)
 	{
 		final A_Type subexpressionsTupleType;
-		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
 		{
 			subexpressionsTupleType = phraseType.subexpressionsTupleType();
 		}
@@ -565,8 +568,8 @@ extends Expression
 			final Label $exitCheckMin = new Label();
 			final Label $mergedExit = new Label();
 			final Label $loopStart = new Label();
-			boolean hasWrapped = false;
 			generator.flushDelayed();
+			boolean hasWrapped = false;
 			if (minSize == 0)
 			{
 				// If size zero is valid, branch to the special $skip label that
@@ -675,9 +678,8 @@ extends Expression
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
-		boolean hasWrapped = false;
 		final A_Type subexpressionsTupleType;
-		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
 		{
 			subexpressionsTupleType = phraseType.subexpressionsTupleType();
 		}
@@ -698,6 +700,7 @@ extends Expression
 		}
 		generator.partialListsCount += 2;
 		int index = 0;
+		boolean hasWrapped = false;
 		for (final Expression expression : beforeDagger.expressions)
 		{
 			// In order to ensure section checkpoints see a reasonable view of
@@ -738,7 +741,7 @@ extends Expression
 			// arguments and groups.  Collect them into a single list now.
 			generator.flushDelayed();
 			generator.emitWrapped(this, index);
-			hasWrapped = true;
+			//hasWrapped = true;
 		}
 		generator.partialListsCount -= 2;
 		if (beforeDagger.argumentsAreReordered == Boolean.TRUE)
@@ -771,7 +774,7 @@ extends Expression
 		final A_Type phraseType)
 	{
 		final A_Type subexpressionsTupleType;
-		if (phraseType.isSubtypeOf(LIST_NODE.mostGeneralType()))
+		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
 		{
 			subexpressionsTupleType = phraseType.subexpressionsTupleType();
 		}

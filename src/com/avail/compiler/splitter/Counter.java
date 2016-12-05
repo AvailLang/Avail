@@ -31,13 +31,13 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.SignatureException;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,10 +51,10 @@ import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_
 
 /**
  * A {@code Counter} is a special subgroup (i.e., not a root group)
- * indicated by an {@linkplain StringDescriptor#octothorp() octothorp}
+ * indicated by an {@linkplain Metacharacter#OCTOTHORP octothorp}
  * following a {@linkplain Group group}. It may not contain {@linkplain
  * Argument arguments} or subgroups, though it may contain a {@linkplain
- * StringDescriptor#doubleDagger() double dagger}.
+ * Metacharacter#DOUBLE_DAGGER double dagger}.
  *
  * <p>When a double dagger appears in a counter, the counter produces a
  * {@linkplain IntegerRangeTypeDescriptor#wholeNumbers() whole number} that

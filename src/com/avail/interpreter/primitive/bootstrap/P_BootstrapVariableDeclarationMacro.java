@@ -38,13 +38,14 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
 
 /**
  * The {@code P_BootstrapVariableDeclarationMacro} primitive is used
- * for bootstrapping declaration of a {@link #LOCAL_VARIABLE_NODE local
- * variable} (without an initializing expression).
+ * for bootstrapping declaration of a {@link DeclarationKind#LOCAL_VARIABLE
+ * local variable} (without an initializing expression).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

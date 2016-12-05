@@ -693,9 +693,13 @@ implements AutoCloseable
 			state.writePrologueTo(this);
 			final String value = String.format(pattern, args);
 			privateWrite('"');
-			for (int i = 0, size = value.length(); i < size; )
+			int codePoint;
+			for (
+				int i = 0, size = value.length();
+				i < size;
+				i += Character.charCount(codePoint))
 			{
-				final int codePoint = value.codePointAt(i);
+				codePoint = value.codePointAt(i);
 				if (Character.isISOControl(codePoint))
 				{
 					switch (codePoint)
@@ -755,7 +759,6 @@ implements AutoCloseable
 					// sequences.
 					privateWrite(String.format("\\u%04X", codePoint));
 				}
-				i += Character.charCount(codePoint);
 			}
 			privateWrite('"');
 			stack.addFirst(state.nextStateAfterValue());

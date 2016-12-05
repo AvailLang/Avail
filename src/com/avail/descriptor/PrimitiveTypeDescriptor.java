@@ -380,6 +380,7 @@ extends TypeDescriptor
 					case MODULE:
 					case NONTYPE:
 					case NUMBER:
+					case PARSING_PLAN_IN_PROGRESS:
 					case RAW_POJO:
 					case DEFINITION:
 					case TOKEN:

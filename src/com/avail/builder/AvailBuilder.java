@@ -2662,7 +2662,7 @@ public final class AvailBuilder
 		 * character of the quoted string, so we work around it by appending a
 		 * space in that case, which will generally be close enough.
 		 *
-		 * @return
+		 * @return A {@link String} suitable for use as a label.
 		 */
 		String safeLabel ()
 		{
@@ -2812,9 +2812,13 @@ public final class AvailBuilder
 				// Include successively more context until it works.
 				output.setLength(0);
 				startPosition = input.lastIndexOf('/', startPosition - 2) + 1;
-				for (int i = startPosition; i < input.length(); )
+				int c;
+				for (
+					int i = startPosition;
+					i < input.length();
+					i += Character.charCount(c))
 				{
-					final int c = input.codePointAt(i);
+					c = input.codePointAt(i);
 					if (('a' <= c && c <= 'z')
 						|| ('A' <= c && c <= 'Z')
 						|| (i > startPosition && '0' <= c && c <= '9'))
@@ -2829,7 +2833,6 @@ public final class AvailBuilder
 					{
 						output.append(String.format("_%x_", c));
 					}
-					i += Character.charCount(c);
 				}
 				final String outputString = output.toString();
 				if (!allocatedNames.contains(outputString))
@@ -3250,7 +3253,7 @@ public final class AvailBuilder
 		public final String entryPointName;
 
 		/**
-		 * The compiled {@Linkplain A_Phrase phrase} that sends this entry
+		 * The compiled {@linkplain A_Phrase phrase} that sends this entry
 		 * point.
 		 */
 		public final A_Phrase phrase;
@@ -3271,7 +3274,7 @@ public final class AvailBuilder
 		 * @param entryPointName
 		 *        The name of the entry point.
 		 * @param phrase
-		 *        The compiled {@Linkplain A_Phrase phrase} that sends this
+		 *        The compiled {@linkplain A_Phrase phrase} that sends this
 		 *        entry point.
 		 */
 		@InnerAccess CompiledCommand (

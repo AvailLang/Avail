@@ -3,5 +3,6 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/src/com/avail/compiler/splitter/MessageSplitter.java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/com/avail/descriptor/DefinitionDescriptor.java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/com/avail/descriptor/IntegerDescriptor.java" charset="UTF-8" />
   </component>
 </project>

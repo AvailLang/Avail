@@ -146,7 +146,7 @@ extends Descriptor
 		 * Answer the most extreme {@code double} with this sign.  In
 		 * particular, answer ±infinity, NaN, or zero.
 		 *
-		 * @return
+		 * @return The extreme {@code double}.
 		 */
 		public double limitDouble ()
 		{
@@ -157,7 +157,7 @@ extends Descriptor
 		 * Answer the most extreme {@code float} with this sign.  In
 		 * particular, answer ±infinity, NaN, or zero.
 		 *
-		 * @return
+		 * @return The extreme {@code float}.
 		 */
 		public float limitFloat ()
 		{

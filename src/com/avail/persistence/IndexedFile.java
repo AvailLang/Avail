@@ -178,7 +178,7 @@ extends AbstractList<byte[]>
 	 * {@code ByteArrayOutputStream} provides direct (unsafe) access to the
 	 * backing byte array (without requiring it to be copied).
 	 */
-	private static final class ByteArrayOutputStream
+	@InnerAccess static final class ByteArrayOutputStream
 	extends java.io.ByteArrayOutputStream
 	{
 		/**
@@ -394,7 +394,7 @@ extends AbstractList<byte[]>
 	 * compressed block containing the record. The second axis is the position
 	 * of the record within the <em>uncompressed</em> block.
 	 */
-	private static final class RecordCoordinates
+	@InnerAccess static final class RecordCoordinates
 	extends Pair<Long, Integer>
 	{
 		/**
@@ -421,6 +421,18 @@ extends AbstractList<byte[]>
 			final Integer position = second();
 			assert position != null;
 			return position;
+		}
+
+		@Override
+		public boolean equals (final @Nullable Object other)
+		{
+			if (!(other instanceof RecordCoordinates))
+			{
+				return false;
+			}
+			final RecordCoordinates strongOther = (RecordCoordinates) other;
+			return filePosition() == strongOther.filePosition()
+				&& blockPosition() == strongOther.blockPosition();
 		}
 
 		@Override

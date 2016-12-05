@@ -31,9 +31,9 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.AvailCompiler.ParserState;
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.SignatureException;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +45,7 @@ import static com.avail.compiler.ParsingOperation.RUN_PREFIX_FUNCTION;
 
 /**
  * An {@linkplain SectionCheckpoint} expression is an occurrence of the
- * {@linkplain StringDescriptor#sectionSign() section sign} (§) in a message
+ * {@linkplain Metacharacter#SECTION_SIGN section sign} (§) in a message
  * name.  It indicates a position at which to save the argument expressions
  * for the message <em>up to this point</em>.  This value is captured in the
  * {@link ParserState} for subsequent use by primitive macros that need to

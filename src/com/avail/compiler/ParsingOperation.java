@@ -532,21 +532,6 @@ public enum ParsingOperation
 	}
 
 	/**
-	 * Assume that the instruction encodes an operand which is to be treated as
-	 * an integer to be passed as an argument at an Avail call site.  Answer
-	 * the operand.
-	 *
-	 * @param instruction
-	 *        The instruction from which to extract the immediate integer value
-	 *        to push.
-	 * @return The {@code int} value to push.
-	 */
-	public int integerToPush (final int instruction)
-	{
-		 throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
 	 * Answer the depth to fix the argument stack for preparing a partial parse
 	 * for a prefix function.  Fail here, as it's only applicable for {@link
 	 * #PREPARE_TO_RUN_PREFIX_FUNCTION}.
