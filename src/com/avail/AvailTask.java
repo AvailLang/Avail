@@ -34,6 +34,8 @@ package com.avail;
 
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
+
+import com.avail.exceptions.PrimitiveThrownException;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
@@ -105,11 +107,10 @@ implements Comparable<AvailTask>, Runnable
 				{
 					transformer.value();
 				}
-				catch (final Throwable e)
+				catch (final PrimitiveThrownException e)
 				{
-					// If execution failed for any reason, then terminate
-					// the fiber and invoke its failure continuation with
-					// the throwable.
+					// If execution failed, terminate the fiber and invoke its
+					// failure continuation with the throwable.
 					if (!fiber.executionState().indicatesTermination())
 					{
 						assert interpreter.fiberOrNull() == fiber;
@@ -194,9 +195,9 @@ implements Comparable<AvailTask>, Runnable
 				}
 				catch (final Throwable e)
 				{
-					// If execution failed for any reason, then terminate
-					// the fiber and invoke its failure continuation with
-					// the throwable.
+					// If execution failed for any reason, then terminate the
+					// fiber and invoke its failure continuation with the
+					// throwable.
 					fiber.executionState(ABORTED);
 					fiber.failureContinuation().value(e);
 				}
@@ -233,10 +234,14 @@ implements Comparable<AvailTask>, Runnable
 		{
 			value();
 		}
-		catch (final Throwable e)
+		catch (final RuntimeException e)
 		{
-			// Add a breakpoint here to find misbehaving threads.
-			throw e;
+			// Report the exception immediately, then suppress the error.  If we
+			// allowed the error to propagate, it would cause an Interpreter to
+			// be silently lost, and the next creation could overflow the
+			// maximum number of Interpreters.
+			System.err.println("Unexpected internal failure in AvailTask:");
+			e.printStackTrace();
 		}
 	}
 

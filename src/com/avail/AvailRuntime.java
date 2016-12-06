@@ -1359,31 +1359,12 @@ public final class AvailRuntime
 	 *        The {@linkplain ModuleNameResolver module name resolver} that this
 	 *        {@linkplain AvailRuntime runtime} should use to resolve
 	 *        unqualified {@linkplain ModuleDescriptor module} names.
-	 * @param classLoader
-	 *        The {@linkplain ClassLoader class loader} that should be used to
-	 *        locate and dynamically load Java {@linkplain Class classes}.
-	 */
-	public AvailRuntime (
-		final ModuleNameResolver moduleNameResolver,
-		final ClassLoader classLoader)
-	{
-		this.moduleNameResolver = moduleNameResolver;
-		this.classLoader = classLoader;
-		fiberReaper.start();
-	}
-
-	/**
-	 * Construct a new {@link AvailRuntime}. Use the {@linkplain ClassLoader
-	 * class loader} that loaded this {@linkplain Class class}.
-	 *
-	 * @param moduleNameResolver
-	 *        The {@linkplain ModuleNameResolver module name resolver} that this
-	 *        {@linkplain AvailRuntime runtime} should use to resolve
-	 *        unqualified {@linkplain ModuleDescriptor module} names.
 	 */
 	public AvailRuntime (final ModuleNameResolver moduleNameResolver)
 	{
-		this(moduleNameResolver, AvailRuntime.class.getClassLoader());
+		this.moduleNameResolver = moduleNameResolver;
+		this.classLoader = AvailRuntime.class.getClassLoader();
+		fiberReaper.start();
 	}
 
 	/**

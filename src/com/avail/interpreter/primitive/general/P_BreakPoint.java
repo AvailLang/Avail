@@ -56,10 +56,10 @@ public final class P_BreakPoint extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		// Throw and catch a RuntimeException.  A sensibly configured
-		// debugger will pause during the throw. There are also ample
-		// locations here to insert an explicit breakpoint if you don't want
-		// to pause on caught RuntimeExceptions.
+		// Throw and catch a RuntimeException.  A sensibly configured debugger
+		// will pause during the throw. There are also ample locations here to
+		// insert an explicit breakpoint if you don't want to pause on caught
+		// RuntimeExceptions.
 		try
 		{
 			throw new AvailBreakpointException();
