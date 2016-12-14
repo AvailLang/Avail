@@ -280,7 +280,7 @@ public enum ParsingOperation
 	 * A_BundleTree#expand(A_Module)} operation.  Its successors are separated
 	 * into distinct message bundle trees, one per message bundle.</p>
 	 */
-	PREPARE_TO_RUN_PREFIX_FUNCTION(6, true, true)
+	PREPARE_TO_RUN_PREFIX_FUNCTION(6, false, true)
 	{
 		@Override
 		public int fixupDepth (final int instruction)
@@ -302,7 +302,7 @@ public enum ParsingOperation
 	 * fibers (i.e., parsing can still be done in parallel) and between separate
 	 * linguistic abstractions (the keys are atoms and are therefore modular).
 	 */
-	RUN_PREFIX_FUNCTION(7, true, true)
+	RUN_PREFIX_FUNCTION(7, false, true)
 	{
 		@Override
 		public int prefixFunctionSubscript (final int instruction)
