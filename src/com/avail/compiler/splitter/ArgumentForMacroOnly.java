@@ -74,15 +74,18 @@ extends Argument
 	 * Parse an argument expression which might be top-valued.
 	 */
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
+		generator.flushDelayed();
 		generator.emit(this, PARSE_TOP_VALUED_ARGUMENT);
 		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
 			MessageSplitter.indexForConstant(phraseType));
+		return wrapState;
 	}
 }

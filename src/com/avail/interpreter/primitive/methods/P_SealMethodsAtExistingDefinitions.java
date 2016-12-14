@@ -41,6 +41,7 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader.Phase;
 
 /**
  * <strong>Primitive:</strong> Seal the {@linkplan A_Atom named} {@linkplain
@@ -71,6 +72,11 @@ extends Primitive
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		if (loader.phase() != Phase.EXECUTING)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION);
 		}
 		final AvailRuntime runtime = interpreter.runtime();
 		final A_Module module = interpreter.module();
@@ -128,6 +134,7 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.from(
-				E_LOADING_IS_OVER));
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION));
 	}
 }

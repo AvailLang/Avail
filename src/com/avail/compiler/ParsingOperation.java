@@ -162,17 +162,19 @@ public enum ParsingOperation
 	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(12, false, false),
 
 	/**
-	 * {@code 13} - Swap the most recently pushed two stack entries.
+	 * {@code 13} - Concatenate the two lists that have been pushed previously.
 	 */
-	SWAP(13, false, true),
+	CONCATENATE(13, false, true),
+
+	/** {@code 14} - A list and a value have been pushed; pop them, prepend
+	 * the value on the list, and push the new list.
+	 */
+	PREPEND(14, false, true),
 
 	/**
-	 * {@code 14} - Concatenate the two lists that have been pushed previously.
+	 * {@code 15} - Reserved for future use.
 	 */
-	CONCATENATE(14, false, true),
-
-	/** Reserved for future use. */
-	RESERVED_15(15, false, false),
+	RESERVED_15(15, false, true),
 
 	/*
 	 * Arity one entries:
@@ -406,6 +408,19 @@ public enum ParsingOperation
 		{
 			return operand(instruction);
 		}
+	},
+
+	/**
+	 * {@code 16*N+8} - Reverse the N top elements of the stack.  The new stack
+	 * has the same depth as the old stack.
+	 */
+	REVERSE_STACK(14, true, true)
+	{
+		@Override
+		public int depthToReverse (final int instruction)
+		{
+			return operand(instruction);
+		}
 	};
 
 	/**
@@ -457,6 +472,12 @@ public enum ParsingOperation
 	 *
 	 * @param modulus
 	 *        The modulus that represents the operation uniquely for its arity.
+	 * @param commutesWithParsePart
+	 *        Whether a PARSE_PART instruction can be moved safely leftward over
+	 *        this instruction.
+	 * @param canRunIfHasFirstArgument
+	 *        Whether this instruction can be run if the first argument has been
+	 *        parsed but not yet consumed by a PARSE_ARGUMENT instruction.
 	 */
 	ParsingOperation (
 		final int modulus,
@@ -670,6 +691,18 @@ public enum ParsingOperation
 	 * @return The resulting list size.
 	 */
 	public int listSize (final int instruction)
+	{
+		throw new RuntimeException("Parsing instruction is inappropriate");
+	}
+
+	/**
+	 * Extract the number of arguments to pop, reverse, and push, without
+	 * forming any new lists.
+	 *
+	 * @param instruction A coded instruction.
+	 * @return How many elements on the stack should be reversed.
+	 */
+	public int depthToReverse (final int instruction)
 	{
 		throw new RuntimeException("Parsing instruction is inappropriate");
 	}

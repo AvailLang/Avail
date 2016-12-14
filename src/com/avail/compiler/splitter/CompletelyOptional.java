@@ -32,12 +32,9 @@
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ListNodeDescriptor;
 import com.avail.descriptor.ListNodeTypeDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
@@ -127,9 +124,10 @@ extends Expression
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
 		/* branch to @expressionSkip.
 		 * push current parse position on the mark stack.
@@ -152,12 +150,16 @@ extends Expression
 		// value (argument, counter, etc), there's no problem.
 		for (final Expression expression : sequence.expressions)
 		{
-			expression.emitOn(generator, ListNodeTypeDescriptor.empty());
+			expression.emitOn(
+				ListNodeTypeDescriptor.empty(),
+				generator,
+				WrapState.SHOULD_NOT_HAVE_ARGUMENTS);
 		}
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emitIf(
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 		generator.emit($expressionSkip);
+		return wrapState;
 	}
 
 	@Override

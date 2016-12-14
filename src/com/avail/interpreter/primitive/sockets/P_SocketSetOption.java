@@ -81,9 +81,7 @@ extends Primitive
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				handle.isAtomSpecial()
-				? E_SPECIAL_ATOM
-				: E_INVALID_HANDLE);
+				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
 		final AsynchronousSocketChannel socket =
 			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
@@ -95,24 +93,24 @@ extends Primitive
 				final AvailObject entryValue = entry.value();
 				assert key != null;
 				@SuppressWarnings("rawtypes")
-				final SocketOption option =
-					socketOptions[key.extractInt()];
+				final SocketOption option = socketOptions[key.extractInt()];
 				final Class<?> type = option.type();
-				final Object value;
 				if (type.equals(Boolean.class) && entryValue.isBoolean())
 				{
-					value = entryValue.extractBoolean();
+					final SocketOption<Boolean> booleanOption = option;
+					socket.setOption(
+						booleanOption, entryValue.extractBoolean());
 				}
 				else if (type.equals(Integer.class) && entryValue.isInt())
 				{
-					value = entryValue.extractInt();
+					final Integer value = entryValue.extractInt();
+					socket.<Integer>setOption(option, value);
 				}
 				else
 				{
 					return interpreter.primitiveFailure(
 						E_INCORRECT_ARGUMENT_TYPE);
 				}
-				socket.setOption(option, value);
 			}
 			return interpreter.primitiveSuccess(NilDescriptor.nil());
 		}

@@ -709,6 +709,20 @@ implements A_BasicObject
 	}
 
 	/**
+	 * Extract the {@linkplain AvailObject object} at the specified slot of the
+	 * receiver.  Use volatile semantics for the read.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @return The object found at the specified slot in the receiver.
+	 */
+	public final AvailObject volatileSlot (final ObjectSlotsEnum field)
+	{
+		checkSlot(field);
+		int ignored = dummyVolatile;
+		return objectSlots[field.ordinal()];
+	}
+
+	/**
 	 * Store the {@linkplain AvailObject object} in the specified slot of the
 	 * receiver. If the receiver is {@linkplain Mutability#SHARED shared}, then
 	 * acquire its monitor.
@@ -736,6 +750,36 @@ implements A_BasicObject
 		{
 			objectSlots[field.ordinal()] = (AvailObject)anAvailObject;
 		}
+	}
+
+	/**
+	 * Store the {@linkplain AvailObject object} in the specified slot of the
+	 * receiver.  Use volatile write semantics.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param anAvailObject The object to store at the specified slot.
+	 */
+	final void setVolatileSlot (
+		final ObjectSlotsEnum field,
+		final A_BasicObject anAvailObject)
+	{
+		checkSlot(field);
+		checkWriteForField(field);
+		if (descriptor.isShared())
+		{
+			// If the receiver is shared, then the new value must become shared
+			// before it can be stored.
+			final AvailObject shared = anAvailObject.traversed().makeShared();
+			// Note: Don't acquire the object's monitor for this, since we want
+			// weaker memory semantics.
+			objectSlots[field.ordinal()] = shared;
+		}
+		else
+		{
+			objectSlots[field.ordinal()] = (AvailObject)anAvailObject;
+		}
+		//noinspection AssignmentToStaticFieldFromInstanceMethod
+		dummyVolatile = 0;
 	}
 
 	/**
@@ -1004,6 +1048,11 @@ implements A_BasicObject
 	 * slots.
 	 */
 	private static final long[] emptyIntegerSlots = new long[0];
+
+	/**
+	 * A dummy field used for producing volatile read/write semantics.
+	 */
+	private static volatile int dummyVolatile = 0;
 
 	/**
 	 * {@inheritDoc}

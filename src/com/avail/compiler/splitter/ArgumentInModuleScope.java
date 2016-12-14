@@ -78,10 +78,12 @@ extends Argument
 	 * produced value.
 	 */
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
+		generator.flushDelayed();
 		generator.emit(this, PARSE_ARGUMENT_IN_MODULE_SCOPE);
 		// Check that the expression is syntactically allowed.
 		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
@@ -94,6 +96,7 @@ extends Argument
 			TYPE_CHECK_ARGUMENT,
 			MessageSplitter.indexForConstant(expressionType));
 		generator.emitDelayed(this, CONVERT, EVALUATE_EXPRESSION.number());
+		return wrapState;
 	}
 
 	@Override

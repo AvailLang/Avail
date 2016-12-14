@@ -41,9 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
-import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.PARSE_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 
 /**
@@ -111,16 +109,19 @@ extends Expression
 	 * argument position).
 	 */
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
+		generator.flushDelayed();
 		generator.emit(this, PARSE_ARGUMENT);
 		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex);
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,
 			MessageSplitter.indexForConstant(phraseType));
+		return wrapState.processAfterPushedArgument(this, generator);
 	}
 
 	@Override

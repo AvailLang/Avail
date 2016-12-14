@@ -118,14 +118,17 @@ extends Expression
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
 		final boolean oldInsensitive = generator.caseInsensitive;
 		generator.caseInsensitive = true;
-		expression.emitOn(generator, phraseType);
+		final WrapState newWrapState =
+			expression.emitOn(phraseType, generator, wrapState);
 		generator.caseInsensitive = oldInsensitive;
+		return newWrapState;
 	}
 
 	@Override

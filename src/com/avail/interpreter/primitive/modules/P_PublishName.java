@@ -40,6 +40,7 @@ import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader.Phase;
 
 /**
  * <strong>Primitive:</strong> Publish the {@linkplain AtomDescriptor atom}
@@ -74,6 +75,11 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
+		if (loader.phase() != Phase.EXECUTING)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION);
+		}
 		try
 		{
 			final A_Atom trueName = loader.lookupName(name);
@@ -102,6 +108,7 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.from(
 				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_AMBIGUOUS_NAME));
 	}
 }

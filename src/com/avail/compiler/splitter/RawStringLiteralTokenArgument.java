@@ -64,9 +64,10 @@ extends RawTokenArgument
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_STRING_LITERAL_TOKEN);
@@ -78,5 +79,6 @@ extends RawTokenArgument
 				TYPE_CHECK_ARGUMENT,
 				MessageSplitter.indexForConstant(phraseType));
 		}
+		return wrapState;
 	}
 }

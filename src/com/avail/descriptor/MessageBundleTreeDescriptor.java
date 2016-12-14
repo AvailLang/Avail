@@ -37,6 +37,7 @@ import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 import java.util.*;
+
 import com.avail.AvailRuntime;
 import com.avail.AvailThread;
 import com.avail.annotations.AvailMethod;
@@ -78,7 +79,7 @@ import com.avail.utility.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class MessageBundleTreeDescriptor
+public final class MessageBundleTreeDescriptor
 extends Descriptor
 {
 	/**
@@ -404,7 +405,10 @@ extends Descriptor
 	}
 
 	/**
-	 * Add the plan to this bundle tree.
+	 * Add the plan to this bundle tree.  Use the object as a monitor for mutual
+	 * exclusion to ensure changes from multiple fibers won't interfere, <em>not
+	 * </em> to ensure the mutual safety of {@link #o_Expand(AvailObject,
+	 * A_Module)}.
 	 */
 	@Override
 	void o_AddPlanInProgress (
@@ -473,15 +477,20 @@ extends Descriptor
 		final AvailObject object,
 		final A_Module module)
 	{
+		A_Map unclassified = object.volatileSlot(UNCLASSIFIED);
+		if (unclassified.mapSize() == 0)
+		{
+			return;
+		}
 		synchronized (object)
 		{
-			final A_Map unclassified = object.slot(UNCLASSIFIED);
+			unclassified = object.volatileSlot(UNCLASSIFIED);
 			if (unclassified.mapSize() == 0)
 			{
+				// Someone else expanded it since we checked above, outside the
+				// monitor.
 				return;
 			}
-			// Fail fast if someone messes with this during iteration.
-			object.setSlot(UNCLASSIFIED, NilDescriptor.nil());
 			final Mutable<A_Set> complete = new Mutable<A_Set>(
 				object.slot(LAZY_COMPLETE));
 			final Mutable<A_Map> incomplete = new Mutable<A_Map>(
@@ -501,7 +510,7 @@ extends Descriptor
 				for (final MapDescriptor.Entry entry2
 					: entry.value().mapIterable())
 				{
-					final A_Definition definition = entry2.key();
+					// final A_Definition definition = entry2.key();
 					for (final A_ParsingPlanInProgress planInProgress
 						: entry2.value())
 					{
@@ -542,7 +551,7 @@ extends Descriptor
 					}
 				}
 			}
-			object.setSlot(UNCLASSIFIED, MapDescriptor.empty());
+			object.setVolatileSlot(UNCLASSIFIED, MapDescriptor.empty());
 			object.setSlot(LAZY_COMPLETE, complete.value.makeShared());
 			object.setSlot(LAZY_INCOMPLETE, incomplete.value.makeShared());
 			object.setSlot(
@@ -580,94 +589,101 @@ extends Descriptor
 		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
 			treesToVisit)
 	{
-		final A_DefinitionParsingPlan plan = planInProgress.parsingPlan();
-		if (object.slot(UNCLASSIFIED).hasKey(plan.bundle()))
+		synchronized (object)
 		{
-			// The plan (or another plan with the same bundle) is still
-			// unclassified, so do nothing.
-			return;
-		}
-		final A_Tuple instructions = plan.parsingInstructions();
-		final int pc = planInProgress.parsingPc();
-		if (pc == instructions.tupleSize() + 1)
-		{
-			// We've reached an end-point for parsing this plan.  The
-			// grammatical restriction has no remaining effect.
-			return;
-		}
-		final int instruction = instructions.tupleIntAt(pc);
-		final ParsingOperation op = decode(instruction);
-		switch (op)
-		{
-			case JUMP:
-			case BRANCH:
+			final A_DefinitionParsingPlan plan = planInProgress.parsingPlan();
+			if (object.slot(UNCLASSIFIED).hasKey(plan.bundle()))
 			{
-				// These should have bubbled out of the bundle tree.  Recurse to
-				// get to the affected successor trees.
-				for (final int nextPc : op.successorPcs(instruction, pc))
+				// The plan (or another plan with the same bundle) is still
+				// unclassified, so do nothing.
+				return;
+			}
+			final A_Tuple instructions = plan.parsingInstructions();
+			final Deque<Integer> pcsToVisit = new ArrayDeque<>();
+			pcsToVisit.add(planInProgress.parsingPc());
+			while (!pcsToVisit.isEmpty())
+			{
+				final int pc = pcsToVisit.removeLast();
+				if (pc == instructions.tupleSize() + 1)
 				{
-					o_UpdateForNewGrammaticalRestriction(
-						object,
-						ParsingPlanInProgressDescriptor.create(plan, nextPc),
-						treesToVisit);
+					// We've reached an end-point for parsing this plan.  The
+					// grammatical restriction has no remaining effect.
+					return;
 				}
-				break;
-			}
-			case CHECK_ARGUMENT:
-			{
-				// This is one of the instructions we're interested in.  Let's
-				// keep things simple and invalidate this entire bundle tree.
-				invalidate(object);
-				break;
-			}
-			case TYPE_CHECK_ARGUMENT:
-			{
-				// It might be expensive to visit each relevant successor, so
-				// just invalidate the entire bundle tree.
-				invalidate(object);
-				break;
-			}
-			case PARSE_PART:
-			{
-				// Look it up in LAZY_INCOMPLETE.
-				final int keywordIndex = op.keywordIndex(instruction);
-				final A_String keyword =
-					plan.bundle().messageParts().tupleAt(keywordIndex);
-				final A_BundleTree successor =
-					object.slot(LAZY_INCOMPLETE).mapAt(keyword);
-				treesToVisit.add(
-					new Pair<>(
-						successor,
-						ParsingPlanInProgressDescriptor.create(plan, pc + 1)));
-				break;
-			}
-			case PARSE_PART_CASE_INSENSITIVELY:
-			{
-				// Look it up in LAZY_INCOMPLETE_CASE_INSENSITIVE.
-				final int keywordIndex = op.keywordIndex(instruction);
-				final A_String keyword =
-					plan.bundle().messageParts().tupleAt(keywordIndex);
-				final A_BundleTree successor =
-					object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE).mapAt(keyword);
-				treesToVisit.add(
-					new Pair<>(
-						successor,
-						ParsingPlanInProgressDescriptor.create(plan, pc + 1)));
-				break;
-			}
-			default:
-			{
-				// It's an ordinary action.  JUMPs and BRANCHes were already
-				// dealt with in a previous case.
-				final A_Tuple successors =
-					object.slot(LAZY_ACTIONS).mapAt(instructions.tupleAt(pc));
-				for (final A_BundleTree successor : successors)
+				final int instruction = instructions.tupleIntAt(pc);
+				final ParsingOperation op = decode(instruction);
+				switch (op)
 				{
-					treesToVisit.add(
-						new Pair<>(
-							successor,
-							ParsingPlanInProgressDescriptor.create(
-								plan, pc + 1)));
+					case JUMP:
+					case BRANCH:
+					{
+						// These should have bubbled out of the bundle tree.
+						// Loop to get to the affected successor trees.
+						pcsToVisit.addAll(op.successorPcs(instruction, pc));
+						break;
+					}
+					case CHECK_ARGUMENT:
+					{
+						// This is one of the instructions we're interested in.
+						// Let's keep things simple and invalidate this entire
+						// bundle tree.
+						invalidate(object);
+						break;
+					}
+					case TYPE_CHECK_ARGUMENT:
+					{
+						// It might be expensive to visit each relevant
+						// successor, so just invalidate the entire bundle tree.
+						invalidate(object);
+						break;
+					}
+					case PARSE_PART:
+					{
+						// Look it up in LAZY_INCOMPLETE.
+						final int keywordIndex = op.keywordIndex(instruction);
+						final A_String keyword =
+							plan.bundle().messageParts().tupleAt(keywordIndex);
+						final A_BundleTree successor =
+							object.slot(LAZY_INCOMPLETE).mapAt(keyword);
+						treesToVisit.add(
+							new Pair<>(
+								successor,
+								ParsingPlanInProgressDescriptor.create(
+									plan, pc + 1)));
+						break;
+					}
+					case PARSE_PART_CASE_INSENSITIVELY:
+					{
+						// Look it up in LAZY_INCOMPLETE_CASE_INSENSITIVE.
+						final int keywordIndex = op.keywordIndex(instruction);
+						final A_String keyword =
+							plan.bundle().messageParts().tupleAt(keywordIndex);
+						final A_BundleTree successor =
+							object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE).mapAt(
+								keyword);
+						treesToVisit.add(
+							new Pair<>(
+								successor,
+								ParsingPlanInProgressDescriptor.create(
+									plan, pc + 1)));
+						break;
+					}
+					default:
+					{
+						// It's an ordinary action.  JUMPs and BRANCHes were
+						// already dealt with in a previous case.
+						final A_Tuple successors =
+							object.slot(LAZY_ACTIONS).mapAt(
+								instructions.tupleAt(pc));
+						for (final A_BundleTree successor : successors)
+						{
+							treesToVisit.add(
+								new Pair<>(
+									successor,
+									ParsingPlanInProgressDescriptor.create(
+										plan, pc + 1)));
+						}
+					}
 				}
 			}
 		}
@@ -678,15 +694,19 @@ extends Descriptor
 	 */
 	private static void invalidate (final AvailObject object)
 	{
-		final A_Map emptyMap = MapDescriptor.empty();
-		object.setSlot(LAZY_COMPLETE, SetDescriptor.empty());
-		object.setSlot(LAZY_INCOMPLETE, emptyMap);
-		object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
-		object.setSlot(LAZY_ACTIONS, emptyMap);
-		object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-		object.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.empty());
-		object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
-		object.setSlot(UNCLASSIFIED, object.slot(ALL_PLANS_IN_PROGRESS));
+		synchronized (object)
+		{
+			final A_Map emptyMap = MapDescriptor.empty();
+			object.setSlot(LAZY_COMPLETE, SetDescriptor.empty());
+			object.setSlot(LAZY_INCOMPLETE, emptyMap);
+			object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
+			object.setSlot(LAZY_ACTIONS, emptyMap);
+			object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
+			object.setSlot(
+				LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.empty());
+			object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
+			object.setSlot(UNCLASSIFIED, object.slot(ALL_PLANS_IN_PROGRESS));
+		}
 	}
 
 
@@ -1167,8 +1187,7 @@ extends Descriptor
 		result.setSlot(LAZY_PREFILTER_MAP, emptyMap);
 		result.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.empty());
 		result.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
-		result.makeShared();
-		return result;
+		return result.makeShared();
 	}
 
 	/**

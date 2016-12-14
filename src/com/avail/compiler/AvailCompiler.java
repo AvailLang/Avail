@@ -106,6 +106,7 @@ import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
+import static com.avail.interpreter.AvailLoader.Phase.*;
 import static com.avail.utility.PrefixSharingList.*;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -2580,7 +2581,8 @@ public final class AvailCompiler
 	 * @param afterRollback
 	 *        What to do after rolling back.
 	 */
-	@InnerAccess void rollbackModuleTransaction (final Continuation0 afterRollback)
+	@InnerAccess void rollbackModuleTransaction (
+		final Continuation0 afterRollback)
 	{
 		module.removeFrom(loader(), afterRollback);
 	}
@@ -4017,6 +4019,29 @@ public final class AvailCompiler
 					continuation);
 				break;
 			}
+			case PREPEND:
+			{
+				// Prepend the item that's the last thing onto the list that's
+				// the second last thing. Pop both and push the new list (the
+				// original list must not change), then continue.
+				assert successorTrees.tupleSize() == 1;
+				final A_Phrase value = last(argsSoFar);
+				final List<A_Phrase> poppedOnce = withoutLast(argsSoFar);
+				final A_Phrase oldNode = last(poppedOnce);
+				final A_Phrase listNode = oldNode.prependWith(value);
+				final List<A_Phrase> newArgsSoFar =
+					append(withoutLast(poppedOnce), listNode);
+				eventuallyParseRestOfSendNode(
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					marksSoFar,
+					continuation);
+				break;
+			}
 			case SAVE_PARSE_POSITION:
 			{
 				// Push current parse position on the mark stack.
@@ -4321,26 +4346,6 @@ public final class AvailCompiler
 					continuation);
 				break;
 			}
-			case SWAP:
-			{
-				assert successorTrees.tupleSize() == 1;
-				final A_Phrase top1 = last(argsSoFar);
-				final List<A_Phrase> popped1 = withoutLast(argsSoFar);
-				final A_Phrase top2 = last(popped1);
-				final List<A_Phrase> popped2 = withoutLast(popped1);
-				final List<A_Phrase> newArgsSoFar =
-					append(append(popped2, top1), top2);
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					newArgsSoFar,
-					marksSoFar,
-					continuation);
-				break;
-			}
 			case CONCATENATE:
 			{
 				assert successorTrees.tupleSize() == 1;
@@ -4365,6 +4370,8 @@ public final class AvailCompiler
 					continuation);
 				break;
 			}
+			case RESERVED_15:
+				break;
 			case BRANCH:
 				// $FALL-THROUGH$
 				// Fall through.  The successorTrees will be different
@@ -4676,9 +4683,30 @@ public final class AvailCompiler
 					continuation);
 				break;
 			}
-			case RESERVED_15:
+			case REVERSE_STACK:
 			{
-				assert false : "Invalid parsing operation: " + op;
+				assert successorTrees.tupleSize() == 1;
+				final int depthToReverse = op.depthToReverse(instruction);
+				final int totalSize = argsSoFar.size();
+				final List<A_Phrase> unpopped =
+					argsSoFar.subList(0, totalSize - depthToReverse);
+				final List<A_Phrase> popped =
+					new ArrayList<>(
+						argsSoFar.subList(
+							totalSize - depthToReverse, totalSize));
+				Collections.reverse(popped);
+				final List<A_Phrase> newArgsSoFar =
+					new ArrayList<>(unpopped);
+				newArgsSoFar.addAll(popped);
+				eventuallyParseRestOfSendNode(
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					newArgsSoFar,
+					marksSoFar,
+					continuation);
 				break;
 			}
 		}
@@ -6694,6 +6722,7 @@ public final class AvailCompiler
 				}
 			}
 		};
+		loader().setPhase(EXECUTING);
 		next.value();
 	}
 
@@ -6786,6 +6815,7 @@ public final class AvailCompiler
 		final ParserState start,
 		final Continuation0 afterFail)
 	{
+		loader().setPhase(COMPILING);
 		recordExpectationsRelativeTo(start.position);
 		parseOutermostStatement(
 			start,
@@ -6891,6 +6921,7 @@ public final class AvailCompiler
 					};
 
 					// Kick off execution of these simple statements.
+					loader().setPhase(EXECUTING);
 					executeSimpleStatement.value().value();
 				}
 			},

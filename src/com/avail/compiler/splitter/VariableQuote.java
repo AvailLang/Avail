@@ -70,9 +70,10 @@ extends Argument
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_VARIABLE_REFERENCE);
@@ -85,6 +86,7 @@ extends Argument
 				TYPE_CHECK_ARGUMENT,
 				MessageSplitter.indexForConstant(phraseType));
 		}
+		return wrapState;
 	}
 
 	@Override

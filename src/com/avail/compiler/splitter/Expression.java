@@ -30,6 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeDescriptor;
@@ -201,19 +202,24 @@ abstract class Expression
 	/**
 	 * Write instructions for parsing me to the given list.
 	 *
-	 * @param generator
-	 *        The {@link InstructionGenerator} that accumulates the parsing
-	 *        instructions.
 	 * @param phraseType
 	 *        The type of the phrase being parsed at and inside this parse
 	 *        point.  Note that when this is for a list phrase type, it's
 	 *        used for unrolling leading iterations of loops up to the end
 	 *        of the variation (typically just past the list phrase's tuple
 	 *        type's {@link A_Type#typeTuple()}).
+	 * @param generator
+	 *        The {@link InstructionGenerator} that accumulates the parsing
+	 *        instructions.
+	 * @param wrapState
+	 *        The initial {@link WrapState} that indicates what has been pushed
+	 *        and what the desired stack structure is.
+	 * @return The resulting WrapState, indicating the state of the stack.
 	 */
-	abstract void emitOn (
+	abstract WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType);
+		final WrapState wrapState);
 
 	@Override
 	public String toString ()
@@ -297,7 +303,7 @@ abstract class Expression
 	 * Answer whether this expression might match an empty sequence of tokens.
 	 *
 	 * @return Whether what this expression matches could be empty.
-	 * @param phraseType
+	 * @param phraseType The phrase type for this, if it parses an argument.
 	 */
 	boolean mightBeEmpty (
 		final A_Type phraseType)

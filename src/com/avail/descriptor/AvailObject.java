@@ -4732,6 +4732,16 @@ implements
 	}
 
 	/**
+	 * @param newParseNode
+	 * @return
+	 */
+	@Override
+	public A_Phrase prependWith (final A_Phrase newParseNode)
+	{
+		return descriptor.o_PrependWith(this, newParseNode);
+	}
+
+	/**
 	 * @param isLastUse
 	 */
 	@Override

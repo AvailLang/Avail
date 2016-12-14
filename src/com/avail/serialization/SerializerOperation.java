@@ -2024,34 +2024,24 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
+			final List<AvailObject> processedParameters =
+				new ArrayList<>(subobjects[1].tupleSize());
 			final ClassLoader classLoader =
 				deserializer.runtime().classLoader();
-			Class<?> baseClass;
 			try
 			{
-				baseClass = Class.forName(
-					subobjects[0].asNativeString(),
-					true,
-					classLoader);
-				final List<AvailObject> processedParameters =
-					new ArrayList<>(subobjects[1].tupleSize());
 				for (final AvailObject parameter : subobjects[1])
 				{
-					if (parameter.isTuple())
-					{
-						processedParameters.add(
-							SelfPojoTypeDescriptor.fromSerializationProxy(
-								parameter,
-								classLoader));
-					}
-					else
-					{
-						processedParameters.add(parameter);
-					}
+					processedParameters.add(
+						parameter.isTuple()
+							? SelfPojoTypeDescriptor.fromSerializationProxy(
+								parameter, classLoader)
+							: parameter);
 				}
+				final Class<?> baseClass = Class.forName(
+					subobjects[0].asNativeString(), true, classLoader);
 				return PojoTypeDescriptor.forClassWithTypeArguments(
-					baseClass,
-					TupleDescriptor.fromList(processedParameters));
+					baseClass, TupleDescriptor.fromList(processedParameters));
 			}
 			catch (final ClassNotFoundException e)
 			{

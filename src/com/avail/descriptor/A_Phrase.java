@@ -88,6 +88,12 @@ extends A_BasicObject
 	A_Phrase copyWith (A_Phrase newParseNode);
 
 	/**
+	 * @param newParseNode
+	 * @return
+	 */
+	A_Phrase prependWith (A_Phrase newParseNode);
+
+	/**
 	 * @return
 	 */
 	A_Phrase declaration ();

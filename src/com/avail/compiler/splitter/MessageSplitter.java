@@ -53,9 +53,9 @@ import org.jetbrains.annotations.Nullable;
  * of {@linkplain ParsingOperation instructions} that can be used directly for
  * parsing.
  *
- * <p>Message splitting occurs in two phases.  In the first phase, the
+ * <p>Message splitting occurs in two phases.  In the first setPhase, the
  * message is tokenized and parsed into an abstract {@link Expression} tree.
- * In the second phase, a {@linkplain TupleTypeDescriptor tuple type} of {@link
+ * In the second setPhase, a {@linkplain TupleTypeDescriptor tuple type} of {@link
  * ParseNodeTypeDescriptor phrase types} is supplied, and produces a tuple of
  * integer-encoded {@link ParsingOperation}s.</p>
  *
@@ -556,7 +556,7 @@ public final class MessageSplitter
 	public A_Tuple instructionsTupleFor (final A_Type phraseType)
 	{
 		final InstructionGenerator generator = new InstructionGenerator();
-		rootSequence.emitAppendingOn(generator, phraseType);
+		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST);
 		generator.optimizeInstructions();
 		return generator.instructionsTuple();
 	}
@@ -575,7 +575,7 @@ public final class MessageSplitter
 	private List<Expression> originExpressionsFor (final A_Type phraseType)
 	{
 		final InstructionGenerator generator = new InstructionGenerator();
-		rootSequence.emitOn(generator, phraseType);
+		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST);
 		generator.optimizeInstructions();
 		final List<Expression> expressions = generator.expressionList();
 		assert expressions.size() == generator.instructionsTuple().tupleSize();

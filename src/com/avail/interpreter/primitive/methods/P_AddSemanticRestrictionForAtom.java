@@ -42,6 +42,7 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader.Phase;
 
 /**
  * <strong>Primitive:</strong> Add a type restriction function.
@@ -73,6 +74,11 @@ extends Primitive
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		if (loader.phase() != Phase.EXECUTING)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION);
 		}
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
@@ -121,6 +127,7 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.from(
 					E_LOADING_IS_OVER,
+					E_CANNOT_DEFINE_DURING_COMPILATION,
 					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES,
 					E_INCORRECT_NUMBER_OF_ARGUMENTS)
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));

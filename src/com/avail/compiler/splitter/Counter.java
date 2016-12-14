@@ -45,6 +45,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.compiler.ParsingConversionRule.LIST_TO_SIZE;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP;
@@ -126,30 +127,32 @@ extends Expression
 		{
 			// The declared type for the subexpression must be a subtype of
 			// whole number.
-			MessageSplitter.throwSignatureException(E_INCORRECT_TYPE_FOR_COUNTING_GROUP);
+			MessageSplitter.throwSignatureException(
+				E_INCORRECT_TYPE_FOR_COUNTING_GROUP);
 		}
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
 		/* push current parse position
 		 * push empty list
-		 * branch to @loopSkip
-		 * @loopStart:
+		 * branch to $loopSkip
+		 * $loopStart:
+		 * ...Stuff before dagger.  Must not have arguments or subgroups.
 		 * push empty list (represents group presence)
-		 * ...Stuff before dagger.
 		 * append (add solution)
-		 * branch to @loopExit (even if no dagger)
-		 * ...Stuff after dagger, nothing if dagger is omitted.  Must
-		 * ...follow argument or subgroup with "append" instruction.
+		 * branch to $loopExit (even if no dagger)
+		 * ...Stuff after dagger, nothing if dagger is omitted.  Must not have
+		 * ...arguments or subgroups.
 		 * check progress and update saved position, or abort.
-		 * jump to @loopStart
-		 * @loopExit:
+		 * jump to $loopStart
+		 * $loopExit:
 		 * check progress and update saved position, or abort.
-		 * @loopSkip:
+		 * $loopSkip:
 		 * under-pop parse position (remove 2nd from top of stack)
 		 */
 		generator.flushDelayed();
@@ -162,7 +165,6 @@ extends Expression
 		generator.emit(this, EMPTY_LIST);
 		generator.emit(this, BRANCH, $loopSkip);
 		generator.emit($loopStart);
-		generator.emit(this, EMPTY_LIST);
 		// Note that even though the Counter cannot contain anything that
 		// would push data, the Counter region must not contain a section
 		// checkpoint.  There's no point, since the iteration would not be
@@ -173,14 +175,21 @@ extends Expression
 		{
 			assert !expression.isArgumentOrGroup();
 			generator.partialListsCount = Integer.MIN_VALUE;
-			expression.emitOn(generator, ListNodeTypeDescriptor.empty());
+			expression.emitOn(
+				ListNodeTypeDescriptor.empty(),
+				generator,
+				SHOULD_NOT_HAVE_ARGUMENTS);
 		}
+		generator.emit(this, EMPTY_LIST);
 		generator.emit(this, APPEND_ARGUMENT);
 		generator.emit(this, BRANCH, $loopExit);
 		for (final Expression expression : group.afterDagger.expressions)
 		{
 			assert !expression.isArgumentOrGroup();
-			expression.emitOn(generator, ListNodeTypeDescriptor.empty());
+			expression.emitOn(
+				ListNodeTypeDescriptor.empty(),
+				generator,
+				SHOULD_NOT_HAVE_ARGUMENTS);
 		}
 		generator.partialListsCount = oldPartialListsCount;
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
@@ -191,6 +200,7 @@ extends Expression
 		generator.emitIf(
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 		generator.emit(this, CONVERT, LIST_TO_SIZE.number());
+		return wrapState.processAfterPushedArgument(this, generator);
 	}
 
 	@Override

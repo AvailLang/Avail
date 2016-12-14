@@ -41,6 +41,7 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader.Phase;
 
 /**
  * <strong>Primitive:</strong> Seal the named {@linkplain MethodDescriptor
@@ -72,6 +73,11 @@ extends Primitive
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		if (loader.phase() != Phase.EXECUTING)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION);
 		}
 		try
 		{
@@ -106,6 +112,7 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.from(
 					E_LOADING_IS_OVER,
+					E_CANNOT_DEFINE_DURING_COMPILATION,
 					E_AMBIGUOUS_NAME,
 					E_INCORRECT_NUMBER_OF_ARGUMENTS)
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));

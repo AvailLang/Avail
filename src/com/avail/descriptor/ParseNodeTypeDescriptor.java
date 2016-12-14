@@ -41,7 +41,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
@@ -756,6 +755,23 @@ extends TypeDescriptor
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.PARSE_NODE_TYPE;
+	}
+
+	@Override
+	A_Type o_SubexpressionsTupleType (final AvailObject object)
+	{
+		// Only applicable if the expression type is a tuple type.
+		return TupleTypeDescriptor.mappingElementTypes(
+			object.slot(EXPRESSION_TYPE),
+			new Transformer1<A_Type, A_Type>()
+			{
+				@Override
+				public A_Type value (@Nullable final A_Type arg)
+				{
+					assert arg != null;
+					return PARSE_NODE.create(arg);
+				}
+			});
 	}
 
 	@Override @AvailMethod

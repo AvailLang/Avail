@@ -411,7 +411,12 @@ public enum AvailErrorCode
 
 //	E_??? (61),
 
-//	E_??? (62),
+	/**
+	 * The module is currently in a setPhase where it's compiling (or loading) the
+	 * next statement to execute, and as part of the compilation or loading it
+	 * attempted to execute a primitive that would add a definition.
+	 */
+	E_CANNOT_DEFINE_DURING_COMPILATION (62),
 
 	/**
 	 * An attempt was made to add a prefix {@link A_Function function} to a

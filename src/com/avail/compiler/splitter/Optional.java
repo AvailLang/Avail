@@ -40,7 +40,7 @@ import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
-import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation0;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -48,6 +48,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
 
 /**
@@ -131,9 +132,10 @@ extends Expression
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
 		/* branch to @absent
 		 * push the current parse position on the mark stack
@@ -154,10 +156,11 @@ extends Expression
 		generator.emit(this, BRANCH, $absent);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
-		for (final Expression expression : sequence.expressions)
-		{
-			expression.emitOn(generator, ListNodeTypeDescriptor.empty());
-		}
+		sequence.emitOn(
+			ListNodeTypeDescriptor.empty(),
+			generator,
+			SHOULD_NOT_HAVE_ARGUMENTS);
+		generator.flushDelayed();
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emitIf(
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
@@ -166,49 +169,51 @@ extends Expression
 		generator.emit($absent);
 		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForFalse());
 		generator.emit($after);
+		return wrapState.processAfterPushedArgument(this, generator);
 	}
 
-	void emitWithSplitOn (
+	void emitInRunThen (
 		final InstructionGenerator generator,
-		Continuation1<Boolean> generateSplit)
+		final A_Type phraseType,
+		final Continuation0 continuation)
 	{
-		/* branch to $absent
-		 * push the current parse position on the mark stack
-		 * ...the sequence's expressions...
-		 * check progress and update saved position or abort.
-		 * discard the saved parse position from the mark stack.
-		 * ...generateSplit(true), which has the same effect as pushing the
-		 *    literal true, appending it, and pushing and appending anything
-		 *    that the generatorSplit produces...
-		 * jump to $after
-		 * $absent:
-		 * ...generateSplit(false), which has the same effect as pushing the
-		 *    literal false, appending it, and pushing and appending anything
-		 *    that the generatorSplit produces...
-		 * $after:
-		 */
-		generator.flushDelayed();
+		// emit branch $absent.
+		//    emit the inner sequence, which cannot push arguments.
+		//    run the continuation.
+		//    emit push true.
+		//    emit jump $merge.
+		// emit $absent.
+		//    run the continuation.
+		//    emit push false.
+		// emit $merge.
+		// (the stack now has values pushed by the continuation, followed by the
+		//  new boolean, which will need to be permuted into its correct place)
+		assert !hasSectionCheckpoints();
 		final boolean needsProgressCheck =
 			sequence.mightBeEmpty(ListNodeTypeDescriptor.empty());
+		generator.flushDelayed();
 		final Label $absent = new Label();
-		final Label $after = new Label();
+		final Label $merge = new Label();
 		generator.emit(this, BRANCH, $absent);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
-		for (final Expression expression : sequence.expressions)
-		{
-			expression.emitOn(generator, ListNodeTypeDescriptor.empty());
-		}
+		sequence.emitOn(
+			ListNodeTypeDescriptor.empty(),
+			generator,
+			SHOULD_NOT_HAVE_ARGUMENTS);
+		generator.flushDelayed();
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emitIf(
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
-		generateSplit.value(true);
+		continuation.value();
 		generator.flushDelayed();
-		generator.emit(this, JUMP, $after);
+		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForTrue());
+		generator.emit(this, JUMP, $merge);
 		generator.emit($absent);
-		generateSplit.value(false);
+		continuation.value();
 		generator.flushDelayed();
-		generator.emit($after);
+		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForFalse());
+		generator.emit($merge);
 	}
 
 	@Override

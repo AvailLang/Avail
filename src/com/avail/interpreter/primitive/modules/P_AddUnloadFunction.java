@@ -38,6 +38,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.effects.LoadingEffectToAddUnloadFunction;
 
 /**
@@ -70,6 +71,11 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
+		if (loader.phase() != Phase.EXECUTING)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION);
+		}
 		final A_Module module = loader.module();
 		module.addUnloadFunction(unloadFunction);
 		loader.recordEffect(
@@ -91,6 +97,7 @@ extends Primitive
 	{
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.from(
-				E_LOADING_IS_OVER));
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION));
 	}
 }

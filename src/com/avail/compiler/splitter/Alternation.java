@@ -119,9 +119,10 @@ extends Expression
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
 		/* push current parse position on the mark stack
 		 * branch to @branches[0]
@@ -141,6 +142,7 @@ extends Expression
 			needsProgressCheck |= alternative.mightBeEmpty(
 				BottomTypeDescriptor.bottom());
 		}
+		generator.flushDelayed();
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		for (int i = 0; i < alternatives.size(); i++)
 		{
@@ -157,8 +159,9 @@ extends Expression
 			// only run when that alternative occurs.  Since no alternative
 			// can produce a value (argument, counter, etc), there's no
 			// problem.
-			alternatives.get(i).emitOn(
-				generator, ListNodeTypeDescriptor.empty());
+			final WrapState newWrapState = alternatives.get(i).emitOn(
+				ListNodeTypeDescriptor.empty(), generator, wrapState);
+			assert newWrapState == wrapState;
 			// Generate a jump to the last label unless this is the last
 			// alternative.
 			if (i < alternatives.size() - 1)
@@ -171,6 +174,7 @@ extends Expression
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emitIf(
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
+		return wrapState;
 	}
 
 	@Override

@@ -30,17 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.compiler.splitter;
+import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Transformer1;
+import com.avail.utility.Pair;
+import com.avail.utility.evaluation.Continuation0;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -51,8 +51,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 
 /**
@@ -217,76 +216,228 @@ extends Expression
 		}
 	}
 
+	private volatile @Nullable List<List<Pair<Expression, Integer>>>
+		cachedRunsForCodeSplitting = null;
+
 	/**
-	 * Generate code to parse the sequence.  After parsing, the stack contains
-	 * one new list of parsed expressions for all arguments, ellipses, and
-	 * subgroups that were encountered.
+	 * Analyze the sequence to find the appropriate ranges within which code
+	 * splitting should be performed.  Code splitting allows chains of Optional
+	 * expressions to turn into binary trees, with the non-optional that follows
+	 * at the leaves.  Since the endpoints are unique, we can postpone pushing
+	 * the constant boolean values (that indicate whether on Optional was
+	 * present or not along that path) until just before merging control flow.
+	 *
+	 * <p>Also capture the corresponding indices into the tuple type with each
+	 * expression in each run.  A zero indicates that no type is consumed for
+	 * that expression.</p>
+	 *
+	 * @return The runs of expressions within which to perform code splitting,
+	 *         expressed as a list of lists of &lt;expression, typeIndex> pairs.
+	 */
+	private List<List<Pair<Expression, Integer>>>
+	runsForCodeSplitting ()
+	{
+		if (cachedRunsForCodeSplitting != null)
+		{
+			return cachedRunsForCodeSplitting;
+		}
+		final List<List<Pair<Expression, Integer>>> result = new ArrayList<>();
+		final List<Pair<Expression, Integer>> currentRun = new ArrayList<>();
+		int typeIndex = 0;
+		for (final Expression expression : expressions)
+		{
+			// Put the subexpression into one of the runs.
+			if (expression.hasSectionCheckpoints())
+			{
+				if (!currentRun.isEmpty())
+				{
+					result.add(new ArrayList<>(currentRun));
+					currentRun.clear();
+				}
+				result.add(Collections.singletonList(
+					new Pair<>(
+						expression,
+						expression.isArgumentOrGroup() ? ++typeIndex : 0)));
+			}
+			else
+			{
+				currentRun.add(
+					new Pair<>(
+						expression,
+						expression.isArgumentOrGroup() ? ++typeIndex : 0));
+				if (!(expression instanceof Optional))
+				{
+					result.add(new ArrayList<>(currentRun));
+					currentRun.clear();
+				}
+			}
+		}
+		if (!currentRun.isEmpty())
+		{
+			result.add(currentRun);
+		}
+		cachedRunsForCodeSplitting = result;
+		return result;
+	}
+
+	/**
+	 * Emit code to cause the given run of &lt;expression, tuple-type-index>
+	 * pairs to be emitted, starting at positionInRun.  Note that the arguments
+	 * will initially be written in reverse order, but the outermost call of
+	 * this method will reverse them.
+	 *
+	 * @param run
+	 *        A list of &lt;Expression, type-index> pairs to process together,
+	 *        defining the boundary of code-splitting.
+	 * @param positionInRun
+	 *        Where in the run to start generating code.  Useful for recursive
+	 *        code splitting.  It may be just past the end of the run.
+	 * @param generator
+	 *        Where to emit instructions.
+	 * @param subexpressionsTupleType
+	 *        A tuple type containing the expected phrase types for this entire
+	 *        sequence.  Indexed by the second()s of the run pairs.
+	 */
+	@InnerAccess
+	void emitRunOn (
+		final List<Pair<Expression, Integer>> run,
+		final int positionInRun,
+		final InstructionGenerator generator,
+		final A_Type subexpressionsTupleType)
+	{
+		final int runSize = run.size();
+		final Pair<Expression, Integer> pair = run.get(positionInRun);
+		final Expression expression = pair.first();
+		final int typeIndex = pair.second();
+		final int realTypeIndex =
+			typeIndex != 0 && argumentsAreReordered == Boolean.TRUE
+				? permutedArguments.get(typeIndex - 1)
+				: typeIndex;
+		final A_Type subexpressionType = typeIndex == 0
+			? ListNodeTypeDescriptor.empty()
+			: subexpressionsTupleType.typeAtIndex(realTypeIndex);
+		if (positionInRun == runSize - 1)
+		{
+			// We're on the last element of the run, or it's a singleton run.
+			// Either way, just emit it (ending the recursion).
+			expression.emitOn(
+				subexpressionType, generator, SHOULD_NOT_PUSH_LIST);
+		}
+		else
+		{
+			((Optional)expression).emitInRunThen(
+				generator,
+				subexpressionType,
+				new Continuation0()
+				{
+					@Override
+					public void value ()
+					{
+						emitRunOn(
+							run,
+							positionInRun + 1,
+							generator,
+							subexpressionsTupleType);
+					}
+				});
+			if (positionInRun == 0)
+			{
+				// Do the argument reversal at the outermost recursion.
+				final boolean lastElementPushed =
+					run.get(runSize - 1).first().isArgumentOrGroup();
+				final int permutationSize =
+					runSize + (lastElementPushed ? 0 : -1);
+				generator.emitIf(
+					permutationSize > 1, this, REVERSE_STACK, permutationSize);
+			}
+		}
+	}
+
+	/**
+	 * Generate code to parse the sequence.  Use the passed {@link WrapState} to
+	 * control whether the arguments/groups should be left on the stack
+	 * ({@link WrapState#SHOULD_NOT_PUSH_LIST}), assembled into a list ({@link
+	 * WrapState#NEEDS_TO_PUSH_LIST}), or concatenated onto an existing list
+	 * ({@link WrapState#PUSHED_LIST}).
 	 */
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
-		final A_Type tupleType;
-		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
+		final A_Type subexpressionsTupleType =
+			phraseType.subexpressionsTupleType();
+		int argIndex = 0;
+		int ungroupedArguments = 0;
+		boolean listIsPushed = wrapState == PUSHED_LIST;
+		final List<List<Pair<Expression, Integer>>> allRuns =
+			runsForCodeSplitting();
+		for (final List<Pair<Expression, Integer>> run : allRuns)
 		{
-			tupleType = phraseType.subexpressionsTupleType();
-		}
-		else
-		{
-			tupleType = TupleTypeDescriptor.mappingElementTypes(
-				phraseType.expressionType(),
-				new Transformer1<A_Type, A_Type>()
+			final int runSize = run.size();
+			final Expression lastInRun = run.get(runSize - 1).first();
+			if (lastInRun.hasSectionCheckpoints())
+			{
+				assert runSize == 1;
+				generator.flushDelayed();
+				if (listIsPushed)
 				{
-					@Override
-					public A_Type value (@Nullable final A_Type arg)
+					if (ungroupedArguments == 1)
 					{
-						assert arg != null;
-						return PARSE_NODE.create(arg);
+						generator.emit(this, APPEND_ARGUMENT);
 					}
-				});
-		}
-		boolean hasWrapped = false;
-		int index = 0;
-		for (final Expression expression : expressions)
-		{
-			if (!hasWrapped && expression.hasSectionCheckpoints())
-			{
-				generator.flushDelayed();
-				generator.emitWrapped(this, index);
-				hasWrapped = true;
-			}
-			if (expression.isArgumentOrGroup())
-			{
-				index++;
-				final int realTypeIndex =
-					argumentsAreReordered == Boolean.TRUE
-						? permutedArguments.get(index - 1)
-						: index;
-				final A_Type entryType = tupleType.typeAtIndex(realTypeIndex);
-				generator.flushDelayed();
-				expression.emitOn(generator, entryType);
-				if (hasWrapped)
+					else if (ungroupedArguments > 1)
+					{
+						generator.emitWrapped(this, ungroupedArguments);
+						generator.emit(this, CONCATENATE);
+					}
+					ungroupedArguments = 0;
+				}
+				else if (wrapState == NEEDS_TO_PUSH_LIST)
 				{
-					generator.emitDelayed(this, APPEND_ARGUMENT);
+					generator.emitWrapped(this, ungroupedArguments);
+					listIsPushed = true;
+					ungroupedArguments = 0;
 				}
 			}
-			else
-			{
-				expression.emitOn(generator, ListNodeTypeDescriptor.empty());
-			}
+			emitRunOn(run, 0, generator, subexpressionsTupleType);
+			final int argsInRun = lastInRun.isArgumentOrGroup()
+				? runSize : runSize - 1;
+			ungroupedArguments += argsInRun;
+			argIndex += argsInRun;
 		}
 		generator.flushDelayed();
-		if (!hasWrapped)
+		if (listIsPushed)
 		{
-			generator.emitWrapped(this, index);
-			//hasWrapped = true;
+			if (ungroupedArguments == 1)
+			{
+				generator.emit(this, APPEND_ARGUMENT);
+			}
+			else if (ungroupedArguments > 1)
+			{
+				generator.emitWrapped(this, ungroupedArguments);
+				generator.emit(this, CONCATENATE);
+			}
+			ungroupedArguments = 0;
 		}
-		//assert hasWrapped;
-		assert tupleType.sizeRange().lowerBound().equalsInt(index);
-		assert tupleType.sizeRange().upperBound().equalsInt(index);
+		else if (wrapState == NEEDS_TO_PUSH_LIST)
+		{
+			generator.emitWrapped(this, ungroupedArguments);
+			listIsPushed = true;
+			ungroupedArguments = 0;
+		}
+		assert listIsPushed
+			|| wrapState == SHOULD_NOT_PUSH_LIST
+			|| wrapState == SHOULD_NOT_HAVE_ARGUMENTS;
+		assert arguments.size() == argIndex;
+		assert subexpressionsTupleType.sizeRange().lowerBound().equalsInt(
+			argIndex);
+		assert subexpressionsTupleType.sizeRange().upperBound().equalsInt(
+			argIndex);
 		if (argumentsAreReordered == Boolean.TRUE)
 		{
+			assert listIsPushed;
 			final A_Tuple permutationTuple =
 				TupleDescriptor.fromIntegerList(permutedArguments);
 			final int permutationIndex =
@@ -296,221 +447,7 @@ extends Expression
 			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
 		}
-	}
-
-	/**
-	 * Emit parsing instructions that assume that a list has already been pushed
-	 * and each encountered argument or group should be appended to it.
-	 *
-	 * @param generator
-	 *        The instruction generator with which to emit.
-	 * @param phraseType
-	 *        The {@link A_Type phrase type} for a definition's signature.
-	 */
-	void emitAppendingOn (
-		final InstructionGenerator generator,
-		final A_Type phraseType)
-	{
-		final A_Type tupleType;
-		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
-		{
-			tupleType = phraseType.subexpressionsTupleType();
-		}
-		else
-		{
-			tupleType = TupleTypeDescriptor.mappingElementTypes(
-				phraseType.expressionType(),
-				new Transformer1<A_Type, A_Type>()
-				{
-					@Override
-					public A_Type value (@Nullable final A_Type arg)
-					{
-						assert arg != null;
-						return PARSE_NODE.create(arg);
-					}
-				});
-		}
-		int index = 0;
-		final int expressionsSize = expressions.size();
-		for (
-			int expressionZeroIndex = 0;
-			expressionZeroIndex < expressionsSize;
-			expressionZeroIndex++)
-		{
-			final Expression expression = expressions.get(expressionZeroIndex);
-			if (expression.isArgumentOrGroup())
-			{
-				index++;
-				final int realTypeIndex =
-					argumentsAreReordered == Boolean.TRUE
-						? permutedArguments.get(index - 1)
-						: index;
-				final A_Type entryType =
-					tupleType.typeAtIndex(realTypeIndex);
-				generator.flushDelayed();
-
-				final @Nullable Expression nextExpression =
-					expressionZeroIndex < expressionsSize - 1
-						? expressions.get(expressionZeroIndex + 1)
-						: null;
-				// A non-last expression is Optional.  To avoid polluting the
-				// action map with an early PUSH_FALSE, we keep the control flow
-				// split for a bit and duplicate the expression that follows
-				// along both paths.  This should increase the opportunity for
-				// instruction migration, allowing a PARSE_PART or
-				// PARSE_ARGUMENT to occur before the PUSH_FALSE.
-				if (nextExpression != null
-					&& expression instanceof Optional
-					&& !expression.hasSectionCheckpoints()
-					&& !nextExpression.hasSectionCheckpoints())
-				{
-					final A_Type nextEntryType;
-					if (nextExpression.isArgumentOrGroup())
-					{
-						// Consume the type for nextExpression.
-						index++;
-						final int nextRealTypeIndex =
-							argumentsAreReordered == Boolean.TRUE
-								? permutedArguments.get(index - 1)
-								: index;
-						nextEntryType =
-							tupleType.typeAtIndex(nextRealTypeIndex);
-					}
-					else
-					{
-						nextEntryType = ListNodeTypeDescriptor.empty();
-					}
-					((Optional)expression).emitWithSplitOn(
-						generator,
-						new Continuation1<Boolean>()
-						{
-							@Override
-							public void value (final Boolean whichPath)
-							{
-								if (nextExpression.isArgumentOrGroup())
-								{
-									// Parse the second expression, leaving it
-									// on the stack, push true or false, swap
-									// them, then append them both.
-									nextExpression.emitOn(
-										generator, nextEntryType);
-									generator.flushDelayed();
-									generator.emit(
-										expression,
-										PUSH_LITERAL,
-										whichPath
-											? MessageSplitter.indexForTrue()
-											: MessageSplitter.indexForFalse());
-									generator.emit(nextExpression, SWAP);
-									generator.emit(
-										nextExpression, WRAP_IN_LIST, 2);
-									generator.emit(nextExpression, CONCATENATE);
-								}
-								else
-								{
-									// Parse the second expression, then push
-									// true or false and append it.
-									nextExpression.emitOn(
-										generator, nextEntryType);
-									generator.emit(
-										expression,
-										PUSH_LITERAL,
-										whichPath
-											? MessageSplitter.indexForTrue()
-											: MessageSplitter.indexForFalse());
-									generator.flushDelayed();
-									generator.emit(expression, APPEND_ARGUMENT);
-								}
-							}
-						});
-					// Also consume nextExpression.
-					expressionZeroIndex++;
-				}
-				else
-				{
-					expression.emitOn(generator, entryType);
-					generator.emitDelayed(this, APPEND_ARGUMENT);
-				}
-			}
-			else
-			{
-				expression.emitOn(generator, ListNodeTypeDescriptor.empty());
-			}
-		}
-		generator.flushDelayed();
-		assert tupleType.sizeRange().lowerBound().equalsInt(index);
-		assert tupleType.sizeRange().upperBound().equalsInt(index);
-		if (argumentsAreReordered == Boolean.TRUE)
-		{
-			final A_Tuple permutationTuple =
-				TupleDescriptor.fromIntegerList(permutedArguments);
-			final int permutationIndex =
-				LookupTree.indexForPermutation(permutationTuple);
-			// This sequence was already collected into a list node as the
-			// arguments/groups were parsed.  Permute the list.
-			generator.flushDelayed();
-			generator.emit(this, PERMUTE_LIST, permutationIndex);
-		}
-	}
-
-	/**
-	 * Emit parsing instructions that simply push each encountered argument or
-	 * group.  This must not be used if it contains a section checkpoint or if
-	 * it requires permutation.
-	 *
-	 * @param generator
-	 *        The instruction generator with which to emit.
-	 * @param phraseType
-	 *        The {@link A_Type phrase type} for a definition's signature.
-	 */
-	void emitNoAppendOn (
-		final InstructionGenerator generator,
-		final A_Type phraseType)
-	{
-		assert !hasSectionCheckpoints();
-		assert argumentsAreReordered == Boolean.FALSE;
-		final A_Type tupleType;
-		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
-		{
-			tupleType = phraseType.subexpressionsTupleType();
-		}
-		else
-		{
-			tupleType = TupleTypeDescriptor.mappingElementTypes(
-				phraseType.expressionType(),
-				new Transformer1<A_Type, A_Type>()
-				{
-					@Override
-					public A_Type value (@Nullable final A_Type arg)
-					{
-						assert arg != null;
-						return PARSE_NODE.create(arg);
-					}
-				});
-		}
-		int index = 0;
-		for (final Expression expression : expressions)
-		{
-			if (expression.isArgumentOrGroup())
-			{
-				index++;
-				final int realTypeIndex =
-					argumentsAreReordered == Boolean.TRUE
-						? permutedArguments.get(index - 1)
-						: index;
-				final A_Type entryType =
-					tupleType.typeAtIndex(realTypeIndex);
-				generator.flushDelayed();
-				expression.emitOn(generator, entryType);
-			}
-			else
-			{
-				expression.emitOn(generator, ListNodeTypeDescriptor.empty());
-			}
-		}
-		generator.flushDelayed();
-		assert tupleType.sizeRange().lowerBound().equalsInt(index);
-		assert tupleType.sizeRange().upperBound().equalsInt(index);
+		return wrapState == NEEDS_TO_PUSH_LIST ? PUSHED_LIST : wrapState;
 	}
 
 	@Override
@@ -629,25 +566,8 @@ extends Expression
 	boolean mightBeEmpty (
 		final A_Type phraseType)
 	{
-		final A_Type tupleType;
-		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
-		{
-			tupleType = phraseType.subexpressionsTupleType();
-		}
-		else
-		{
-			tupleType = TupleTypeDescriptor.mappingElementTypes(
-				phraseType.expressionType(),
-				new Transformer1<A_Type, A_Type>()
-				{
-					@Override
-					public A_Type value (@Nullable final A_Type arg)
-					{
-						assert arg != null;
-						return PARSE_NODE.create(arg);
-					}
-				});
-		}
+		final A_Type subexpressionsTupleType =
+			phraseType.subexpressionsTupleType();
 		int index = 0;
 		for (final Expression expression : expressions)
 		{
@@ -658,7 +578,8 @@ extends Expression
 					argumentsAreReordered == Boolean.TRUE
 						? permutedArguments.get(index - 1)
 						: index;
-				final A_Type entryType = tupleType.typeAtIndex(realTypeIndex);
+				final A_Type entryType =
+					subexpressionsTupleType.typeAtIndex(realTypeIndex);
 				if (!expression.mightBeEmpty(entryType))
 				{
 					return false;

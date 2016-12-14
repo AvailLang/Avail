@@ -47,16 +47,15 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.BRANCH;
-import static com.avail.compiler.ParsingOperation.JUMP;
-import static com.avail.compiler.ParsingOperation.PUSH_LITERAL;
+import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
 
 /**
  * A {@code NumberedChoice} is a special subgroup (i.e., not a root group)
  * indicated by an {@linkplain Metacharacter#EXCLAMATION_MARK exclamation mark}
- * following a {@linkplain Group group}.  It may not contain {@linkplain
- * Argument arguments} or subgroups and it may not contain a {@linkplain
+ * following a {@linkplain Group group}.  It must not contain {@linkplain
+ * Argument arguments} or subgroups and it must not contain a {@linkplain
  * Metacharacter#DOUBLE_DAGGER double dagger}.  The group contains an {@link
  * Alternation}, and parsing the group causes exactly one of the alternatives to
  * be parsed.  The 1-based index of the alternative is produced as a literal
@@ -138,9 +137,10 @@ extends Expression
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
 		/* branch to @target1.
 		 * ...do first alternative.
@@ -169,6 +169,7 @@ extends Expression
 		 * @done:
 		 * ...
 		 */
+		generator.flushDelayed();
 		final int numAlternatives = alternation.alternatives().size() - 1;
 		final Label $exit = new Label();
 		for (int index = 0; index <= numAlternatives; index++)
@@ -184,7 +185,10 @@ extends Expression
 			// If a section checkpoint occurs within a numbered choice, we
 			// *do not* pass the choice number as an argument.  Therefore
 			// nothing new has been pushed for us to clean up at this point.
-			alternative.emitOn(generator, ListNodeTypeDescriptor.empty());
+			alternative.emitOn(
+				ListNodeTypeDescriptor.empty(),
+				generator,
+				SHOULD_NOT_HAVE_ARGUMENTS);
 			generator.emit(
 				this, PUSH_LITERAL, MessageSplitter.indexForConstant(
 					IntegerDescriptor.fromInt(index + 1)));
@@ -195,6 +199,11 @@ extends Expression
 			}
 		}
 		generator.emit($exit);
+		generator.emitDelayed(
+			this,
+			TYPE_CHECK_ARGUMENT,
+			MessageSplitter.indexForConstant(phraseType));
+		return wrapState.processAfterPushedArgument(this, generator);
 	}
 
 	@Override

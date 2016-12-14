@@ -113,24 +113,22 @@ public enum ParsingConversionRule
 			final Continuation1<A_Phrase> continuation,
 			final Continuation1<Throwable> onProblem)
 		{
-			if (input.expressionType().isSubtypeOf(
-				InstanceMetaDescriptor.topMeta()))
-			{
-				currentParserState.evaluatePhraseThen(
-					input,
-					new Continuation1<AvailObject>()
+			assert input.expressionType().isSubtypeOf(
+				InstanceMetaDescriptor.topMeta());
+			currentParserState.evaluatePhraseThen(
+				input,
+				new Continuation1<AvailObject>()
+				{
+					@Override
+					public void value (final @Nullable AvailObject value)
 					{
-						@Override
-						public void value (final @Nullable AvailObject value)
-						{
-							// Wrap it as a literal phrase and pass it along.
-							assert value != null;
-							continuation.value(
-								LiteralNodeDescriptor.syntheticFrom(value));
-						}
-					},
-					onProblem);
-			}
+						// Wrap it as a literal phrase and pass it along.
+						assert value != null;
+						continuation.value(
+							LiteralNodeDescriptor.syntheticFrom(value));
+					}
+				},
+				onProblem);
 		}
 	};
 

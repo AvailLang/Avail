@@ -106,28 +106,6 @@ extends ParseNodeDescriptor
 		object.setSlot(EXPRESSION, expression);
 	}
 
-	/**
-	 * Create a new {@code ListNodeDescriptor list node} with one more parse
-	 * node added to the end of the list.
-	 *
-	 * @param object
-	 *        The list node to extend.
-	 * @param newParseNode
-	 *        The parse node to append.
-	 * @return
-	 *         A new {@code ListNodeDescriptor list node} with the parse node
-	 *         appended.
-	 */
-	@Override @AvailMethod
-	A_Phrase o_CopyWith (
-		final AvailObject object,
-		final A_Phrase newParseNode)
-	{
-		final A_Phrase expression = object.slot(EXPRESSION);
-		final A_Type superUnionType = object.slot(TYPE_FOR_LOOKUP);
-		return SuperCastNodeDescriptor.create(expression, superUnionType);
-	}
-
 	@Override @AvailMethod
 	void o_EmitValueOn (
 		final AvailObject object,

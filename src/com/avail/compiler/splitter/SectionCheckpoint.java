@@ -96,9 +96,10 @@ extends Expression
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
 		// Tidy up any partially-constructed groups and invoke the
 		// appropriate prefix function.  Note that the partialListsCount is
@@ -109,6 +110,7 @@ extends Expression
 			PREPARE_TO_RUN_PREFIX_FUNCTION,
 			generator.partialListsCount);
 		generator.emit(this, RUN_PREFIX_FUNCTION, subscript);
+		return wrapState;
 	}
 
 	@Override

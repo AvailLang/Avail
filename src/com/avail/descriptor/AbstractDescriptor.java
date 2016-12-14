@@ -4409,6 +4409,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param newParseNode
+	 * @return
+	 */
+	abstract A_Phrase o_PrependWith (
+		AvailObject object,
+		A_Phrase newParseNode);
+
+	/**
+	 * @param object
 	 * @param isLastUse
 	 */
 	abstract void o_IsLastUse (

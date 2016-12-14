@@ -2896,6 +2896,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Phrase o_PrependWith (
+		final AvailObject object,
+		final A_Phrase newParseNode)
+	{
+		return o_Traversed(object).prependWith(newParseNode);
+	}
+
+	@Override
 	void o_IsLastUse (
 		final AvailObject object,
 		final boolean isLastUse)

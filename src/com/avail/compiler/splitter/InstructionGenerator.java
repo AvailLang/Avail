@@ -46,15 +46,16 @@ import java.util.List;
 import static com.avail.compiler.ParsingOperation.*;
 
 /**
- * {@code InstructionGenerator} is used by {@code MessageSplitter} to
- * accumulate the sequence of {@linkplain ParsingOperation instructions} that
- * can be used directly for parsing.  The instructions are encoded as a tuple
- * of non-negative integers.
+ * {@code InstructionGenerator} is used by {@code MessageSplitter} to accumulate
+ * the sequence of {@linkplain ParsingOperation instructions} that can be used
+ * directly for parsing.  The instructions are encoded as a tuple of
+ * non-negative integers.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class InstructionGenerator
 {
+
 	/**
 	 * A {@code Label} can be created via the default public constructor.
 	 * It can be {@linkplain #emit(Label) emitted} to the

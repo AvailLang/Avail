@@ -67,6 +67,7 @@ import com.avail.compiler.scanning.AvailScannerException;
 import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.*;
@@ -2065,19 +2066,19 @@ public final class AvailBuilder
 			availLoader.createFilteredBundleTree();
 
 			// Run each zero-argument block, one after another.
-			final MutableOrNull<Continuation1<AvailObject>> runNext =
+			final MutableOrNull<Continuation0> runNext =
 				new MutableOrNull<>();
-			runNext.value = new Continuation1<AvailObject>()
+			runNext.value = new Continuation0()
 			{
 				@Override
-				public void value (final @Nullable AvailObject ignored)
+				public void value ()
 				{
+					availLoader.setPhase(Phase.LOADING);
 					final A_Function function;
 					try
 					{
-						function = !shouldStopBuild()
-							? deserializer.deserialize()
-							: null;
+						function = shouldStopBuild()
+							? null : deserializer.deserialize();
 					}
 					catch (
 						final MalformedSerialStreamException
@@ -2112,7 +2113,7 @@ public final class AvailBuilder
 							{
 								@Override
 								public void value (
-									@Nullable final AvailObject ignored2)
+									@Nullable final AvailObject ignored)
 								{
 									final long after = System.nanoTime();
 									Interpreter.current()
@@ -2121,9 +2122,10 @@ public final class AvailBuilder
 											module,
 											function.code()
 												.startingLineNumber());
-									runNext.value().value(ignored2);
+									runNext.value().value();
 								}
 							});
+						availLoader.setPhase(Phase.EXECUTING);
 						Interpreter.runOutermostFunction(
 							runtime,
 							fiber,
@@ -2164,7 +2166,7 @@ public final class AvailBuilder
 			};
 			// The argument is ignored, so it doesn't matter what gets
 			// passed.
-			runNext.value().value(NilDescriptor.nil());
+			runNext.value().value();
 		}
 
 		/**

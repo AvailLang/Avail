@@ -148,14 +148,11 @@ extends Descriptor
 	{
 		final A_DefinitionParsingPlan plan = object.slot(PARSING_PLAN);
 		final int pc = object.slot(PARSING_PC);
-		if (pc == 0)
+		if (pc <= 1)
 		{
 			return "(any method invocation)";
 		}
-		final A_Tuple instructions = plan.parsingInstructions();
-		final A_Bundle bundle = plan.bundle();
-		final MessageSplitter messageSplitter = bundle.messageSplitter();
-		return bundle.messageSplitter().highlightedNameFor(
+		return plan.bundle().messageSplitter().highlightedNameFor(
 			plan.definition().parsingSignature(), pc);
 	}
 

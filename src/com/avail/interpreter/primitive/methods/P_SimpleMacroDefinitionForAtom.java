@@ -47,6 +47,7 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.utility.evaluation.Continuation0;
 
 /**
@@ -86,6 +87,11 @@ extends Primitive
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		if (loader.phase() != Phase.EXECUTING)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION);
 		}
 		for (final A_Function prefixFunction : prefixFunctions)
 		{
@@ -197,6 +203,7 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.from(
 					E_LOADING_IS_OVER,
+					E_CANNOT_DEFINE_DURING_COMPILATION,
 					E_INCORRECT_NUMBER_OF_ARGUMENTS,
 					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,

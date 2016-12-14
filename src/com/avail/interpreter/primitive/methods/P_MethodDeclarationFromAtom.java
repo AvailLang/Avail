@@ -44,6 +44,7 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -75,6 +76,11 @@ extends Primitive
 		if (loader == null || loader.module().equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		if (loader.phase() != Phase.EXECUTING)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION);
 		}
 		final A_Function failureFunction =
 			interpreter.primitiveFunctionBeingAttempted();
@@ -135,6 +141,7 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.from(
 					E_LOADING_IS_OVER,
+					E_CANNOT_DEFINE_DURING_COMPILATION,
 					E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED,
 					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,

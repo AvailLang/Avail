@@ -92,15 +92,17 @@ extends Expression
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
 		// Parse the specific keyword.
 		final ParsingOperation op = generator.caseInsensitive
 			? PARSE_PART_CASE_INSENSITIVELY
 			: PARSE_PART;
 		generator.emit(this, op, tokenIndex);
+		return wrapState;
 	}
 
 	@Override

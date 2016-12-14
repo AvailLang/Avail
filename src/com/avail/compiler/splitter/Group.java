@@ -37,7 +37,6 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.*;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.SignatureException;
-import com.avail.utility.evaluation.Transformer1;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -46,9 +45,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COMPLEX_GROUP;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP;
@@ -317,30 +316,13 @@ extends Expression
 	}
 
 	@Override
-	void emitOn (
+	WrapState emitOn (
+		final A_Type phraseType,
 		final InstructionGenerator generator,
-		final A_Type phraseType)
+		final WrapState wrapState)
 	{
-		final A_Type subexpressionsTupleType;
-		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
-		{
-			subexpressionsTupleType = phraseType.subexpressionsTupleType();
-		}
-		else
-		{
-			subexpressionsTupleType =
-				TupleTypeDescriptor.mappingElementTypes(
-					phraseType.expressionType(),
-					new Transformer1<A_Type, A_Type>()
-					{
-						@Override
-						public A_Type value (
-							@Nullable final A_Type yieldType)
-						{
-							return PARSE_NODE.create(yieldType);
-						}
-					});
-		}
+		final A_Type subexpressionsTupleType =
+			phraseType.subexpressionsTupleType();
 		final A_Type sizeRange = subexpressionsTupleType.sizeRange();
 		final A_Number minInteger = sizeRange.lowerBound();
 		final int minSize = minInteger.isInt()
@@ -431,14 +413,10 @@ extends Expression
 						TupleTypeDescriptor.forTypes(
 							innerPhraseType.expressionType()),
 						TupleTypeDescriptor.forTypes(innerPhraseType));
-				if (hasWrapped)
-				{
-					beforeDagger.emitAppendingOn(generator, singularListType);
-				}
-				else
-				{
-					beforeDagger.emitNoAppendOn(generator, singularListType);
-				}
+				beforeDagger.emitOn(
+					singularListType,
+					generator,
+					hasWrapped ? PUSHED_LIST : SHOULD_NOT_PUSH_LIST);
 				if (index >= minSize)
 				{
 					generator.flushDelayed();
@@ -457,8 +435,8 @@ extends Expression
 					generator.emitWrapped(this, 1);
 					hasWrapped = true;
 				}
-				afterDagger.emitAppendingOn(
-					generator, ListNodeTypeDescriptor.empty());
+				afterDagger.emitOn(
+					ListNodeTypeDescriptor.empty(), generator, PUSHED_LIST);
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 			}
@@ -477,7 +455,7 @@ extends Expression
 					TupleTypeDescriptor.forTypes(
 						innerPhraseType.expressionType()),
 					TupleTypeDescriptor.forTypes(innerPhraseType));
-			beforeDagger.emitAppendingOn(generator, singularListType);
+			beforeDagger.emitOn(singularListType, generator, PUSHED_LIST);
 			if (endOfVariation < maxSize)
 			{
 				generator.flushDelayed();
@@ -489,8 +467,8 @@ extends Expression
 				{
 					generator.emit(this, CHECK_AT_MOST, maxSize - 1);
 				}
-				afterDagger.emitAppendingOn(
-					generator, ListNodeTypeDescriptor.empty());
+				afterDagger.emitOn(
+					ListNodeTypeDescriptor.empty(), generator, PUSHED_LIST);
 				generator.flushDelayed();
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
@@ -659,6 +637,7 @@ extends Expression
 				needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 			generator.emit($skip);
 		}
+		return wrapState.processAfterPushedArgument(this, generator);
 	}
 
 	/**
@@ -678,71 +657,47 @@ extends Expression
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
-		final A_Type subexpressionsTupleType;
-		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
-		{
-			subexpressionsTupleType = phraseType.subexpressionsTupleType();
-		}
-		else
-		{
-			subexpressionsTupleType =
-				TupleTypeDescriptor.mappingElementTypes(
-					phraseType.expressionType(),
-					new Transformer1<A_Type, A_Type>()
-					{
-						@Override
-						public A_Type value (
-							@Nullable final A_Type yieldType)
-						{
-							return PARSE_NODE.create(yieldType);
-						}
-					});
-		}
+		final A_Type subexpressionsTupleType =
+			phraseType.subexpressionsTupleType();
 		generator.partialListsCount += 2;
-		int index = 0;
-		boolean hasWrapped = false;
+		int argIndex = 0;
+		int ungroupedArgCount = 0;
+		boolean listIsPushed = false;
 		for (final Expression expression : beforeDagger.expressions)
 		{
 			// In order to ensure section checkpoints see a reasonable view of
 			// the parse stack, form a list with what has been pushed before any
 			// subexpression that has a section checkpoint, and use appends from
 			// that point onward.
-			if (!hasWrapped && expression.hasSectionCheckpoints())
+			if (expression.hasSectionCheckpoints())
 			{
-				generator.flushDelayed();
-				generator.emitWrapped(expression, index);
-				hasWrapped = true;
+				tidyPushedList(generator, ungroupedArgCount, listIsPushed);
+				ungroupedArgCount = 0;
+				listIsPushed = true;
 			}
 			if (expression.isArgumentOrGroup())
 			{
-				index++;
+				argIndex++;
 				final int realTypeIndex =
 					beforeDagger.argumentsAreReordered == Boolean.TRUE
-						? beforeDagger.permutedArguments.get(index - 1)
-						: index;
+						? beforeDagger.permutedArguments.get(argIndex - 1)
+						: argIndex;
 				final A_Type entryType =
 					subexpressionsTupleType.typeAtIndex(realTypeIndex);
 				generator.flushDelayed();
-				expression.emitOn(generator, entryType);
-				if (hasWrapped)
-				{
-					generator.emitDelayed(this, APPEND_ARGUMENT);
-				}
+				expression.emitOn(entryType, generator, SHOULD_NOT_PUSH_LIST);
+				ungroupedArgCount++;
 			}
 			else
 			{
 				expression.emitOn(
-					generator, ListNodeTypeDescriptor.empty());
+					ListNodeTypeDescriptor.empty(),
+					generator,
+					SHOULD_NOT_HAVE_ARGUMENTS);
 			}
 		}
-		if (!hasWrapped)
-		{
-			// There were no section checkpoints, so we simply pushed the N
-			// arguments and groups.  Collect them into a single list now.
-			generator.flushDelayed();
-			generator.emitWrapped(this, index);
-			//hasWrapped = true;
-		}
+		assert argIndex == beforeDagger.arguments.size();
+		tidyPushedList(generator, ungroupedArgCount, listIsPushed);
 		generator.partialListsCount -= 2;
 		if (beforeDagger.argumentsAreReordered == Boolean.TRUE)
 		{
@@ -755,7 +710,6 @@ extends Expression
 			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
 		}
-		assert index == beforeDagger.arguments.size();
 	}
 
 	/**
@@ -773,49 +727,40 @@ extends Expression
 		final InstructionGenerator generator,
 		final A_Type phraseType)
 	{
-		final A_Type subexpressionsTupleType;
-		if (phraseType.parseNodeKindIsUnder(LIST_NODE))
-		{
-			subexpressionsTupleType = phraseType.subexpressionsTupleType();
-		}
-		else
-		{
-			subexpressionsTupleType =
-				TupleTypeDescriptor.mappingElementTypes(
-					phraseType.expressionType(),
-					new Transformer1<A_Type, A_Type>()
-					{
-						@Override
-						public A_Type value (
-							@Nullable final A_Type yieldType)
-						{
-							return PARSE_NODE.create(yieldType);
-						}
-					});
-		}
+		final A_Type subexpressionsTupleType =
+			phraseType.subexpressionsTupleType();
 		generator.partialListsCount += 2;
-		int index = beforeDagger.arguments.size();
+		int argIndex = beforeDagger.arguments.size();
+		int ungroupedArgCount = 0;
 		for (final Expression expression : afterDagger.expressions)
 		{
+			if (expression.hasSectionCheckpoints())
+			{
+				tidyPushedList(generator, ungroupedArgCount, true);
+				ungroupedArgCount = 0;
+			}
 			if (expression.isArgumentOrGroup())
 			{
-				index++;
+				argIndex++;
 				final int realTypeIndex =
 					afterDagger.argumentsAreReordered == Boolean.TRUE
-						? afterDagger.permutedArguments.get(index - 1)
-						: index;
+						? afterDagger.permutedArguments.get(argIndex - 1)
+						: argIndex;
 				final A_Type entryType =
 					subexpressionsTupleType.typeAtIndex(realTypeIndex);
 				generator.flushDelayed();
-				expression.emitOn(generator, entryType);
-				generator.emitDelayed(this, APPEND_ARGUMENT);
+				expression.emitOn(entryType, generator, PUSHED_LIST);
+				ungroupedArgCount = 0;
 			}
 			else
 			{
 				expression.emitOn(
-					generator, ListNodeTypeDescriptor.empty());
+					ListNodeTypeDescriptor.empty(),
+					generator,
+					SHOULD_NOT_HAVE_ARGUMENTS);
 			}
 		}
+		tidyPushedList(generator, ungroupedArgCount, true);
 		generator.partialListsCount -= 2;
 		if (afterDagger.argumentsAreReordered == Boolean.TRUE)
 		{
@@ -852,7 +797,41 @@ extends Expression
 		}
 		// Ensure the tuple type was consumed up to its upperBound.
 		assert subexpressionsTupleType.sizeRange().upperBound().equalsInt(
-			index);
+			argIndex);
+	}
+
+	/**
+	 * Tidy up the stack, given information about whether a list has already
+	 * been pushed, and how many values have been pushed instead of or in
+	 * addition to that list.  After this call, a list definitely will have been
+	 * pushed, and no additional arguments will be after it on the stack.
+	 *
+	 * @param listIsPushed
+	 *        Whether a list has already been pushed.
+	 * @param ungroupedArgCount
+	 *        The number of arguments that have pushed since the list, if any.
+	 * @param generator
+	 *        Where to generate instructions.
+	 */
+	private void tidyPushedList (
+		final InstructionGenerator generator,
+		final int ungroupedArgCount,
+		final boolean listIsPushed)
+	{
+		generator.flushDelayed();
+		if (!listIsPushed)
+		{
+			generator.emitWrapped(this, ungroupedArgCount);
+		}
+		else if (ungroupedArgCount == 1)
+		{
+			generator.emit(this, APPEND_ARGUMENT);
+		}
+		else if (ungroupedArgCount > 1)
+		{
+			generator.emitWrapped(this, ungroupedArgCount);
+			generator.emit(this, CONCATENATE);
+		}
 	}
 
 	@Override

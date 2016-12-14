@@ -3,6 +3,7 @@
     <words>
       <w>arriaga</w>
       <w>availuator</w>
+      <w>backquoted</w>
       <w>choosable</w>
       <w>codepoints</w>
       <w>contravariance</w>
@@ -10,6 +11,7 @@
       <w>deduplication</w>
       <w>endian</w>
       <w>endianness</w>
+      <w>fixup</w>
       <w>guillemet</w>
       <w>homogenous</w>
       <w>idempotently</w>
@@ -48,6 +50,8 @@
       <w>substrings</w>
       <w>subtuple</w>
       <w>subtuples</w>
+      <w>summarizability</w>
+      <w>summarizable</w>
       <w>summarization</w>
       <w>supercast</w>
       <w>supercasts</w>

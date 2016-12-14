@@ -2904,6 +2904,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Phrase o_PrependWith (
+		final AvailObject object,
+		final A_Phrase newParseNode)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	void o_IsLastUse (final AvailObject object, final boolean isLastUse)
 	{
 		throw unsupportedOperationException();

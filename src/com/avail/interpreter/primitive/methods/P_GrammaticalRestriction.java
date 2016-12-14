@@ -41,6 +41,7 @@ import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
@@ -76,6 +77,11 @@ extends Primitive
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		if (loader.phase() != Phase.EXECUTING)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION);
 		}
 		A_Tuple excludedAtomSets = excludedStringSets.makeShared();
 		for (int i = excludedStringSets.tupleSize(); i >= 1; i--)
@@ -137,6 +143,7 @@ extends Primitive
 		return AbstractEnumerationTypeDescriptor.withInstances(
 			SetDescriptor.from(
 					E_LOADING_IS_OVER,
+					E_CANNOT_DEFINE_DURING_COMPILATION,
 					E_AMBIGUOUS_NAME,
 					E_INCORRECT_NUMBER_OF_ARGUMENTS)
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));

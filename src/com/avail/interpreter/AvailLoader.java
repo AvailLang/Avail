@@ -34,6 +34,8 @@ package com.avail.interpreter;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.AvailLoader.Phase.*;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
@@ -68,6 +70,53 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class AvailLoader
 {
+	/**
+	 * The macro-state of the loader.  During compilation from a file, a loader
+	 * will ratchet between {@link #COMPILING} a top-level statement and {@link
+	 * #EXECUTING} it.  Similarly, when loading from a file, the loader's setPhase
+	 * alternates between {@link #LOADING} and {@link #EXECUTING}.
+	 */
+	public enum Phase
+	{
+		/** No statements have been loaded or compiled yet. */
+		INITIALIZING,
+
+		/** A top-level statement is being compiled. */
+		COMPILING,
+
+		/** A top-level statement is being loaded from a repository. */
+		LOADING,
+
+		/** A top-level statement is being executed. */
+		EXECUTING,
+
+		/** The fully-loaded module is now being unloaded. */
+		UNLOADING;
+	}
+
+	/** The current loading setPhase. */
+	private volatile Phase phase;
+
+	/**
+	 * Get the current loading {@link Phase}.
+	 *
+	 * @return The loader's current setPhase.
+	 */
+	public Phase phase ()
+	{
+		return phase;
+	}
+
+	/**
+	 * Set the current loading {@link Phase}.
+	 *
+	 * @param newPhase The new setPhase.
+	 */
+	public void setPhase (Phase newPhase)
+	{
+		phase = newPhase;
+	}
+
 	/**
 	 * Allow investigation of why a top-level expression is being excluded from
 	 * summarization.
@@ -169,7 +218,7 @@ public final class AvailLoader
 				final Throwable e = new Throwable().fillInStackTrace();
 				final StringWriter sw = new StringWriter();
 				e.printStackTrace(new PrintWriter(sw));
-				System.err.println("Disabled summary:\n" + sw.toString());
+				System.err.println("Disabled summary:\n" + sw);
 			}
 			statementCanBeSummarized = summarizable;
 		}
@@ -191,7 +240,7 @@ public final class AvailLoader
 	 * a module being compiled.
 	 */
 	private final List<LoadingEffect> effectsAddedByTopStatement =
-		new ArrayList<LoadingEffect>();
+		new ArrayList<>();
 
 	/**
 	 * Record a {@link LoadingEffect} to ensure it will be replayed when the
@@ -255,6 +304,7 @@ public final class AvailLoader
 	{
 		this.module = module;
 		this.textInterface = textInterface;
+		this.phase = INITIALIZING;
 	}
 
 	/**
@@ -276,6 +326,7 @@ public final class AvailLoader
 		// We had better not be removing forward declarations from an already
 		// fully-loaded module.
 		loader.pendingForwards = NilDescriptor.nil();
+		loader.phase = UNLOADING;
 		return loader;
 	}
 
