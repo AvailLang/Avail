@@ -35,8 +35,10 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
+import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.exceptions.MalformedPragmaException;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.*;
@@ -45,7 +47,6 @@ import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
-import com.avail.compiler.problems.ProblemType;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.compiler.scanning.AvailScannerException;
 import com.avail.compiler.scanning.AvailScannerResult;
@@ -54,7 +55,6 @@ import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
@@ -63,21 +63,14 @@ import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.effects.LoadingEffect;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.io.TextInterface;
-import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.serialization.Serializer;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Pair;
 import com.avail.utility.PrefixSharingList;
-import com.avail.utility.Strings;
 
-import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
@@ -94,7 +87,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static com.avail.compiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
@@ -120,20 +112,20 @@ import static java.util.Arrays.asList;
  */
 public final class AvailCompiler
 {
+	public final CompilationContext compilationContext;
+
 	/**
-	 * Despite, what, a hundred thousand employees(?), Microsoft seems unable to
-	 * support the simplest things in Windows.  Like including a font that has
-	 * a significant portion of Unicode supported, or devising (or even
-	 * copying!) a mechanism to substitute glyphs from fonts that <em>do</em>
-	 * have those code points.  So if you're doomed to be on Windows you'll get
-	 * an inferior right arrow with hook to indicate the location of errors.
-	 *
-	 * <p>That will teach you.</p>
+	 * The {@link AvailRuntime} for the compiler. Since a compiler cannot
+	 * migrate between two runtime environments, it is safe to cache it for
+	 * efficient access.
 	 */
-	public final static String errorIndicatorSymbol =
-		System.getProperty("os.name").startsWith("Windows")
-			? "↪"
-			: "⤷";
+	@InnerAccess
+	final AvailRuntime runtime = AvailRuntime.current();
+
+	public String source ()
+	{
+		return compilationContext.source();
+	}
 
 	/**
 	 * The {@linkplain AvailCompiler compiler} notifies a {@code
@@ -151,18 +143,6 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * The {@link AvailRuntime} for the compiler. Since a compiler cannot
-	 * migrate between two runtime environments, it is safe to cache it for
-	 * efficient access.
-	 */
-	@InnerAccess final AvailRuntime runtime = AvailRuntime.current();
-
-	/**
-	 * The header information for the current module being parsed.
-	 */
-	private final @Nullable ModuleHeader moduleHeader;
-
-	/**
 	 * Answer the {@linkplain ModuleHeader module header} for the current
 	 * {@linkplain ModuleDescriptor module} being parsed.
 	 *
@@ -170,15 +150,10 @@ public final class AvailCompiler
 	 */
 	@InnerAccess ModuleHeader moduleHeader ()
 	{
-		final ModuleHeader header = moduleHeader;
+		final ModuleHeader header = compilationContext.getModuleHeader();
 		assert header != null;
 		return header;
 	}
-
-	/**
-	 * The Avail {@linkplain ModuleDescriptor module} undergoing compilation.
-	 */
-	@InnerAccess final A_Module module;
 
 	/**
 	 * Answer the fully-qualified name of the {@linkplain ModuleDescriptor
@@ -188,41 +163,9 @@ public final class AvailCompiler
 	 */
 	@InnerAccess ModuleName moduleName ()
 	{
-		return new ModuleName(module.moduleName().asNativeString());
+		return new ModuleName(compilationContext
+			.getModule().moduleName().asNativeString());
 	}
-
-	/**
-	 * The {@linkplain AvailLoader loader} created and operated by this
-	 * {@linkplain AvailCompiler compiler} to facilitate the loading of
-	 * {@linkplain ModuleDescriptor modules}.
-	 */
-	private @Nullable AvailLoader loader;
-
-	/**
-	 * Answer the {@linkplain AvailLoader loader} created and operated by this
-	 * {@linkplain AvailCompiler compiler} to facilitate the loading of
-	 * {@linkplain ModuleDescriptor modules}.
-	 *
-	 * @return A loader.
-	 */
-	@InnerAccess AvailLoader loader ()
-	{
-		final AvailLoader theLoader = loader;
-		assert theLoader != null;
-		return theLoader;
-	}
-
-	/**
-	 * The source text of the Avail {@linkplain ModuleDescriptor module}
-	 * undergoing compilation.
-	 */
-	@InnerAccess final String source;
-
-	/**
-	 * The complete {@linkplain List list} of {@linkplain A_Token tokens}
-	 * extracted from the source text.
-	 */
-	@InnerAccess final List<A_Token> tokens;
 
 	/**
 	 * The complete {@linkplain A_Tuple tuple} of {@linkplain A_Token tokens}
@@ -236,49 +179,9 @@ public final class AvailCompiler
 	 */
 	@InnerAccess final List<A_Token> commentTokens;
 
-	/**
-	 * The position of the rightmost {@linkplain TokenDescriptor token} reached
-	 * by any parsing attempt.
-	 */
-	private int greatestGuess = -1;
-
-	/**
-	 * The number of parse positions to keep prior to the rightmost reached
-	 * point, just to increase available diagnostic information.
-	 */
-	private final int guessWindowSize = 3;
-
-	/**
-	 * The {@linkplain List list} of lists of {@linkplain String} {@linkplain
-	 * Generator generators} that describe what was expected (but not found) at
-	 * each of the positions reached since the {@link
-	 * #firstExpectation}.
-	 */
-	private final List<List<Describer>> greatExpectations =
-		new ArrayList<>();
-
-	/**
-	 * The first token of the snippet of code to regurgitate when reporting a
-	 * parsing error.  This is also the offset to add to token positions to
-	 * index into {@link #greatExpectations}.
-	 */
-	private int firstExpectation = 0;
-
 	/** The memoization of results of previous parsing attempts. */
 	@InnerAccess final AvailCompilerFragmentCache fragmentCache =
 		new AvailCompilerFragmentCache();
-
-	/**
-	 * The {@link ProblemHandler} used for reporting compilation problems.
-	 */
-	@InnerAccess final ProblemHandler problemHandler;
-
-	/**
-	 * The {@linkplain TextInterface text interface} for any {@linkplain
-	 * A_Fiber fibers} started by this {@linkplain AvailCompiler
-	 * compiler}.
-	 */
-	@InnerAccess final TextInterface textInterface;
 
 	/**
 	 * Asynchronously construct a suitable {@linkplain AvailCompiler
@@ -346,7 +249,7 @@ public final class AvailCompiler
 								afterFail.value();
 							}
 						};
-						handleProblem(problem, problemHandler);
+						problemHandler.handle(problem);
 						return;
 					}
 					final AvailCompiler compiler = new AvailCompiler(
@@ -403,16 +306,17 @@ public final class AvailCompiler
 		final CompilerProgressReporter progressReporter,
 		final ProblemHandler problemHandler)
 	{
-		this.moduleHeader = moduleHeader;
-		this.module = module;
-		this.source = scannerResult.source();
-		this.tokens = scannerResult.outputTokens();
+		this.compilationContext = new CompilationContext(
+			moduleHeader,
+			module,
+			scannerResult.source(),
+			textInterface,
+			pollForAbort,
+			progressReporter,
+			problemHandler);
+		final List<A_Token> tokens = scannerResult.outputTokens();
 		this.tokensTuple = TupleDescriptor.fromList(tokens).makeShared();
 		this.commentTokens = scannerResult.commentTokens();
-		this.textInterface = textInterface;
-		this.pollForAbort = pollForAbort;
-		this.progressReporter = progressReporter;
-		this.problemHandler = problemHandler;
 	}
 
 	/**
@@ -547,17 +451,15 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * This is actually a two-argument continuation, but it has only a single
-	 * type parameter because the first one is always the {@linkplain
-	 * ParserState parser state} that indicates where the continuation should
-	 * continue parsing.
+	 * A continuation that takes a {@link Solution} or {@code null}.  It also
+	 * captures a {@link PartialSubexpressionList} for explaining the chain of
+	 * parsing needs that led to this solution.
 	 *
-	 * @param <AnswerType>
-	 *        The type of the second parameter of the {@linkplain
-	 *        #value(ParserState, Object)} method.
+	 * @param <Solution>
+	 *        The kind of {@link AbstractSolution} that this accepts.
 	 */
-	@InnerAccess abstract class ConNullable<AnswerType>
-	implements Continuation2<ParserState, AnswerType>
+	@InnerAccess abstract class ConNullable<Solution extends AbstractSolution>
+	implements Continuation1<Solution>
 	{
 		/**
 		 * A {@link PartialSubexpressionList} containing all enclosing
@@ -593,8 +495,7 @@ public final class AvailCompiler
 
 		@Override
 		public abstract void value (
-			@Nullable ParserState state,
-			@Nullable AnswerType answer);
+			@Nullable Solution solution);
 	}
 
 	/**
@@ -604,10 +505,10 @@ public final class AvailCompiler
 	 * (where it belongs) we wouldn't have to build these kludges just to factor
 	 * out the null safety boilerplate code.
 	 *
-	 * @param <AnswerType> The kind of value produced by this continuation.
+	 * @param <Solution> The kind of solution to feed to this continuation.
 	 */
-	@InnerAccess abstract class Con<AnswerType>
-	extends ConNullable<AnswerType>
+	@InnerAccess abstract class Con<Solution extends AbstractSolution>
+	extends ConNullable<Solution>
 	{
 		/**
 		 * Construct a new {@link Con}.
@@ -625,106 +526,19 @@ public final class AvailCompiler
 		 * The method that will be invoked when a value has been produced.
 		 * Neither the value nor the ParserState may be null.
 		 *
-		 * @param state The parser state after the value was produced.
-		 * @param answer The produced value.
+		 * @param solution The solution that was produced.
 		 */
 		@InnerAccess abstract void valueNotNull (
-			ParserState state,
-			AnswerType answer);
+			Solution solution);
 
 		@Override
 		public final void value (
-			final @Nullable ParserState state,
-			final @Nullable AnswerType answer)
+			final @Nullable Solution solution)
 		{
-			assert state != null;
-			assert answer != null;
-			valueNotNull(state, answer);
+			assert solution != null;
+			valueNotNull(solution);
 		}
 	}
-
-	/**
-	 * A {@link Runnable} which supports a natural ordering (via the {@link
-	 * Comparable} interface) which will favor processing of the leftmost
-	 * available tasks first.
-	 *
-	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
-	 */
-	private static abstract class ParsingTask
-	extends AvailTask
-	{
-		/** The parsing state for this task will operate. */
-		private final ParserState state;
-
-		/**
-		 * Construct a new {@link ParsingTask}.
-		 *
-		 * @param state The {@linkplain ParserState parser state} for this task.
-		 */
-		@InnerAccess ParsingTask (
-			final ParserState state)
-		{
-			super(FiberDescriptor.compilerPriority);
-			this.state = state;
-		}
-
-		@Override
-		public int compareTo (final @Nullable AvailTask o)
-		{
-			assert o != null;
-			final int priorityDelta = Integer.compare(priority, o.priority);
-			if (priorityDelta != 0)
-			{
-				return priorityDelta;
-			}
-			if (o instanceof ParsingTask)
-			{
-				final ParsingTask task = (ParsingTask) o;
-				return Integer.compare(state.position, task.state.position);
-			}
-			return priorityDelta;
-		}
-	}
-
-	/** The number of work units that have been queued. */
-	@InnerAccess AtomicLong workUnitsQueued = new AtomicLong(0);
-
-	/** The number of work units that have been completed. */
-	@InnerAccess AtomicLong workUnitsCompleted = new AtomicLong(0);
-
-	/**
-	 * This {@code boolean} is set when the {@link #problemHandler} decides that
-	 * an encountered {@link Problem} is sufficient to abort compilation of this
-	 * module at the earliest convenience.
-	 */
-	@InnerAccess volatile boolean isShuttingDown = false;
-
-	/** A way to quickly test if the client wishes to shut down prematurely. */
-	@InnerAccess final Generator<Boolean> pollForAbort;
-
-	/**
-	 * This {@code boolean} is set when the {@link #problemHandler} decides that
-	 * an encountered {@link Problem} is serious enough that code generation
-	 * should be suppressed.  In Avail, that means the serialized module should
-	 * not be written to its {@linkplain IndexedRepositoryManager repository}.
-	 */
-	@InnerAccess volatile boolean compilationIsInvalid = false;
-
-	/** The output stream on which the serializer writes. */
-	public final ByteArrayOutputStream serializerOutputStream =
-		new ByteArrayOutputStream(1000);
-
-	/**
-	 * The serializer that captures the sequence of bytes representing the
-	 * module during compilation.
-	 */
-	private final Serializer serializer =
-		new Serializer(serializerOutputStream);
-
-	/**
-	 * What to do when there are no more work units.
-	 */
-	@InnerAccess volatile @Nullable Continuation0 noMoreWorkUnits = null;
 
 	/**
 	 * Execute {@code #tryBlock}, passing a {@linkplain
@@ -745,25 +559,27 @@ public final class AvailCompiler
 	 */
 	private void tryIfUnambiguousThen (
 		final ParserState start,
-		final Con<Con<A_Phrase>> tryBlock,
-		final Con<A_Phrase> supplyAnswer,
+		final Continuation1<Con<CompilerSolution>> tryBlock,
+		final Con<CompilerSolution> supplyAnswer,
 		final Continuation0 afterFail)
 	{
-		assert noMoreWorkUnits == null;
+		assert compilationContext.getNoMoreWorkUnits() == null;
 		// Augment the start position with a variant that incorporates the
 		// solution-accepting continuation.
 		final Mutable<Integer> count = new Mutable<>(0);
 		final MutableOrNull<A_Phrase> solution = new MutableOrNull<>();
 		final MutableOrNull<ParserState> afterStatement = new MutableOrNull<>();
-		noMoreWorkUnits = new Continuation0()
+		compilationContext.setNoMoreWorkUnits(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
 				// The counters must be read in this order for correctness.
-				final long completed = workUnitsCompleted.get();
-				assert completed == workUnitsQueued.get();
-				if (pollForAbort.value())
+				final long completed =
+					compilationContext.getWorkUnitsCompleted().get();
+				assert completed
+					== compilationContext.getWorkUnitsQueued().get();
+				if (compilationContext.diagnostics.pollForAbort.value())
 				{
 					// We may have been asked to abort subtasks by a failure in
 					// another module, so we can't trust the count of solutions.
@@ -775,7 +591,7 @@ public final class AvailCompiler
 				if (count.value == 0)
 				{
 					// No solutions were found.  Report the problems.
-					reportError(afterFail);
+					compilationContext.diagnostics.reportError(afterFail);
 					return;
 				}
 				// If a simple unambiguous solution was found, then answer
@@ -783,22 +599,24 @@ public final class AvailCompiler
 				if (count.value == 1)
 				{
 					assert solution.value != null;
-					supplyAnswer.value(afterStatement.value, solution.value);
+					supplyAnswer.value(
+						new CompilerSolution(
+							afterStatement.value,
+							solution.value));
 				}
 				// Otherwise an ambiguity was already reported when the second
 				// solution arrived (and subsequent solutions may have arrived
 				// and been ignored).  Do nothing.
 			}
-		};
-		attempt(
+		});
+		compilationContext.attempt(
 			start,
 			tryBlock,
-			new Con<A_Phrase>(supplyAnswer.superexpressions)
+			new Con<CompilerSolution>(supplyAnswer.superexpressions)
 			{
 				@Override
 				public void valueNotNull (
-					final ParserState afterSolution,
-					final A_Phrase aSolution)
+					final CompilerSolution aSolution)
 				{
 					synchronized (AvailCompiler.this)
 					{
@@ -811,8 +629,8 @@ public final class AvailCompiler
 						if (myCount == 1)
 						{
 							// Save the first solution to arrive.
-							afterStatement.value = afterSolution;
-							solution.value = aSolution;
+							afterStatement.value = aSolution.endState();
+							solution.value = aSolution.parseNode();
 							return;
 						}
 						if (myCount == 2)
@@ -821,12 +639,15 @@ public final class AvailCompiler
 							// to increment count.value.  Report the ambiguity
 							// between the previously recorded solution and this
 							// one.
+							final A_Token endToken = tokensTuple.tupleAt(
+								max(1, aSolution.endState().tokenIndex));
 							reportAmbiguousInterpretations(
 								new ParserState(
-									afterSolution.position - 1,
-									afterSolution.clientDataMap),
+									endToken.start(),
+									endToken.tokenIndex(),
+									aSolution.endState.clientDataMap),
 								solution.value(),
-								aSolution,
+								aSolution.parseNode(),
 								afterFail);
 							return;
 						}
@@ -848,10 +669,18 @@ public final class AvailCompiler
 	public class ParserState
 	{
 		/**
-		 * The position represented by this {@link ParserState}. In particular,
-		 * it's the (zero-based) index of the current token.
+		 * The position represented by this {@link ParserState}.  In particular,
+		 * it's the (one-based) start of the current token within the source.
 		 */
 		final int position;
+
+		/**
+		 * TEMPORARY COMPATIBILITY - The compiler is being reworked to allow
+		 * incremental lexical scanning, including ambiguous scanning.  This
+		 * will produce a (lazy) directed acyclic graph of tokens, so numbering
+		 * them will clearly not make sense.
+		 */
+		final int tokenIndex;
 
 		/**
 		 * A {@linkplain MapDescriptor map} of interesting information used by
@@ -863,16 +692,18 @@ public final class AvailCompiler
 		 * Construct a new immutable {@link ParserState}.
 		 *
 		 * @param position
-		 *            The index of the current token.
+		 *        The one-based start of the current token in the source.
 		 * @param clientDataMap
-		 *            The {@link MapDescriptor map} of data used by macros while
-		 *            parsing Avail code.
+		 *        The {@link MapDescriptor map} of data used by macros while
+		 *        parsing Avail code.
 		 */
 		ParserState (
 			final int position,
+			final int tokenIndex,  //TODO - TEMPORARY COMPATIBILITY
 			final A_Map clientDataMap)
 		{
 			this.position = position;
+			this.tokenIndex = tokenIndex;
 			// Note that this map *must* be marked as shared, since parsing
 			// proceeds in parallel.
 			this.clientDataMap = clientDataMap.makeShared();
@@ -893,6 +724,7 @@ public final class AvailCompiler
 			}
 			final ParserState anotherState = (ParserState) another;
 			return position == anotherState.position
+				&& tokenIndex == anotherState.tokenIndex
 				&& clientDataMap.equals(anotherState.clientDataMap);
 		}
 
@@ -903,19 +735,19 @@ public final class AvailCompiler
 				"%s%n\tPOSITION = %d%n\tTOKENS = %s %s %s%n\tCLIENT_DATA = %s",
 				getClass().getSimpleName(),
 				position,
-				(position > 0
-					? tokens.get(position - 1).string()
-					: "(start)"),
-				errorIndicatorSymbol,
-				(position < tokens.size()
-					? tokens.get(position).string()
-					: "(end)"),
+				source().substring(
+					max(position - 20, 0),
+					max(position - 1, 0)),
+				CompilerDiagnostics.errorIndicatorSymbol,
+				source().substring(
+					min(position - 1, source().length()),
+					min(position + 20, source().length())),
 				clientDataMap);
 		}
 
 		public String shortString ()
 		{
-			final A_Token token = tokens.get(max(position - 1, 0));
+			final A_Token token = tokensTuple.tupleAt(position);
 			String string = position > 0
 				? token.string().asNativeString()
 				: "(start)";
@@ -936,7 +768,9 @@ public final class AvailCompiler
 		 */
 		public boolean atEnd ()
 		{
-			return this.position == tokens.size() - 1;
+			// Last token is a special end-of-file token.
+			return this.tokenIndex == tokensTuple.tupleSize();
+//			return this.position == source().length() + 1;
 		}
 
 		/**
@@ -947,7 +781,7 @@ public final class AvailCompiler
 		 */
 		public A_Token peekToken ()
 		{
-			return tokens.get(position);
+			return tokensTuple.tupleAt(tokenIndex);
 		}
 
 		/**
@@ -1005,7 +839,7 @@ public final class AvailCompiler
 			final ExpectedToken expectedToken,
 			final String expected)
 		{
-			return peekToken(expectedToken, generate(expected));
+			return peekToken(expectedToken, new SimpleDescriber(expected));
 		}
 
 		/**
@@ -1017,8 +851,10 @@ public final class AvailCompiler
 		ParserState afterToken ()
 		{
 			assert !atEnd();
+			final A_Token nextToken = tokensTuple.tupleAt(tokenIndex + 1);
 			return new ParserState(
-				position + 1,
+				nextToken.start(),
+				nextToken.tokenIndex(),
 				clientDataMap);
 		}
 
@@ -1055,8 +891,8 @@ public final class AvailCompiler
 		A_Tuple upTo (final ParserState after)
 		{
 			return tokensTuple.copyTupleFromToCanDestroy(
-				position + 1,
-				after.position,
+				tokenIndex,
+				after.tokenIndex - 1,
 				false);
 		}
 
@@ -1077,7 +913,8 @@ public final class AvailCompiler
 		 */
 		void expected (final Describer describer)
 		{
-			expectedAt(describer, position);
+			compilationContext.diagnostics.expectedAt(
+				describer, tokensTuple.tupleAt(tokenIndex));
 		}
 
 		/**
@@ -1104,7 +941,7 @@ public final class AvailCompiler
 				{
 					Interpreter.stringifyThen(
 						runtime,
-						textInterface,
+						compilationContext.getTextInterface(),
 						values,
 						new Continuation1<List<String>>()
 						{
@@ -1128,7 +965,7 @@ public final class AvailCompiler
 		 */
 		void expected (final String aString)
 		{
-			expected(generate(aString));
+			expected(new SimpleDescriber(aString));
 		}
 
 		/**
@@ -1148,7 +985,7 @@ public final class AvailCompiler
 			final Continuation1<Throwable> onFailure)
 		{
 			final AvailCompiler compiler = AvailCompiler.this;
-			startWorkUnit();
+			compilationContext.startWorkUnit();
 			final AtomicBoolean hasRunEither = new AtomicBoolean(false);
 			compiler.evaluatePhraseThen(
 				expression,
@@ -1585,8 +1422,9 @@ public final class AvailCompiler
 		{
 			final Problem problem = new Problem(
 				resolvedName,
-				TokenDescriptor.createSyntheticStart(),
-				ProblemType.PARSE,
+				1,
+				0,
+				PARSE,
 				"Unable to open source module \"{0}\" [{1}]: {2}",
 				resolvedName,
 				ref.getAbsolutePath(),
@@ -1598,7 +1436,7 @@ public final class AvailCompiler
 					fail.value();
 				}
 			};
-			handleProblem(problem, problemHandler);
+			problemHandler.handle(problem);
 			return;
 		}
 		final MutableOrNull<CompletionHandler<Integer, Void>> handler =
@@ -1681,8 +1519,9 @@ public final class AvailCompiler
 					e.printStackTrace(new PrintWriter(trace));
 					final Problem problem = new Problem(
 						resolvedName,
-						TokenDescriptor.createSyntheticStart(),
-						ProblemType.PARSE,
+						1,
+						0,
+						PARSE,
 						"Invalid UTF-8 encoding in source module "
 						+ "\"{0}\": {1}\n{2}",
 						resolvedName,
@@ -1695,7 +1534,7 @@ public final class AvailCompiler
 							fail.value();
 						}
 					};
-					handleProblem(problem, problemHandler);
+					problemHandler.handle(problem);
 				}
 			}
 
@@ -1709,8 +1548,9 @@ public final class AvailCompiler
 				e.printStackTrace(new PrintWriter(trace));
 				final Problem problem = new Problem(
 					resolvedName,
-					TokenDescriptor.createSyntheticStart(),
-					ProblemType.EXTERNAL,
+					1,
+					0,
+					EXTERNAL,
 					"Unable to read source module \"{0}\": {1}\n{2}",
 					resolvedName,
 					e.getLocalizedMessage(),
@@ -1722,7 +1562,7 @@ public final class AvailCompiler
 						fail.value();
 					}
 				};
-				handleProblem(problem, problemHandler);
+				problemHandler.handle(problem);
 			}
 		};
 		// Kick off the asynchronous read.
@@ -1807,399 +1647,6 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * Answer a {@link Describer} that will produce the given string.
-	 *
-	 * @param string
-	 *        The exact string to generate.
-	 * @return A generator that produces the string that was provided.
-	 */
-	@InnerAccess Describer generate (final String string)
-	{
-		return new SimpleDescriber(string);
-	}
-
-	/**
-	 * An aggregate of problems at a specific token.  It also includes the
-	 * {@link String} used to mark the location of the problem in the source
-	 * text.
-	 */
-	@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
-	@InnerAccess static final class ProblemsAtToken
-	implements Comparable<ProblemsAtToken>
-	{
-		/** The token at which these problems occurred. */
-		final @InnerAccess A_Token token;
-
-		/**
-		 * The indicator {@link String} that marks the location of the problems
-		 * in the source text.
-		 */
-		final @InnerAccess String indicator;
-
-		/** A list of {@link Describer}s able to describe the problems. */
-		final @InnerAccess List<Describer> describers;
-
-		/**
-		 * Construct a new {@link ProblemsAtToken}.
-		 *
-		 * @param token
-		 *        The token at which the problems occurred.
-		 * @param indicator
-		 *        The {@link String} that marks the problems in the source.
-		 * @param describers
-		 *        The {@link List} of {@link Describer}s that describe the
-		 *        problems at the specified token.
-		 */
-		@InnerAccess ProblemsAtToken (
-			final A_Token token,
-			final String indicator,
-			final List<Describer> describers)
-		{
-			this.token = token;
-			this.indicator = indicator;
-			this.describers = describers;
-		}
-
-		@Override
-		public int compareTo (final @Nullable ProblemsAtToken otherToken)
-		{
-			assert otherToken != null;
-			return Integer.compare(token.start(), otherToken.token.start());
-		}
-	}
-
-	/** A bunch of dash characters, wide enough to catch the eye. */
-	@InnerAccess static final String rowOfDashes =
-		"---------------------------------------------------------------------";
-
-	/** The 26 letters of the English alphabet, inside circles. */
-	private final static String circledLetters =
-		"ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ";
-
-	/**
-	 * Record an expectation at the given parse position, a token index.
-	 *
-	 * @param describer
-	 *        A {@link Describer}, something which can be evaluated (including
-	 *        running Avail code) to produce a String, which is then passed to a
-	 *        provided continuation.
-	 * @param position
-	 *        The index of the token at which the expectation occurred.
-	 */
-	@InnerAccess synchronized void expectedAt (
-		final Describer describer, final int position)
-	{
-		assert greatExpectations.size() ==
-			greatestGuess + 1 - firstExpectation;
-		int toWipe = greatestGuess - guessWindowSize - firstExpectation;
-		while (position > greatestGuess)
-		{
-			if (toWipe >= 0)
-			{
-				greatExpectations.set(
-					toWipe, Collections.<Describer>emptyList());
-			}
-			greatExpectations.add(new ArrayList<Describer>());
-			greatestGuess++;
-			toWipe++;
-		}
-		if (position >= greatestGuess - guessWindowSize)
-		{
-			greatExpectations.get(position - firstExpectation).add(
-				describer);
-		}
-	}
-
-	/**
-	 * Report an error by throwing an {@link AvailCompilerException}. The
-	 * exception encapsulates the {@linkplain ResolvedModuleName module name} of
-	 * the {@linkplain ModuleDescriptor module} undergoing compilation, the
-	 * error string, and the text position. This position is the rightmost
-	 * position encountered during the parse, and the error strings in {@link
-	 * #greatExpectations} are the things that were expected but not found at
-	 * that position. This seems to work very well in practice.
-	 *
-	 * @param afterFail
-	 *        What to do after actually reporting the error.
-	 */
-	@InnerAccess void reportError (
-		final Continuation0 afterFail)
-	{
-		reportError("Expected at %s, line %d...", afterFail);
-	}
-
-	/**
-	 * Report an error by throwing an {@link AvailCompilerException}. The
-	 * exception encapsulates the {@linkplain ResolvedModuleName module name} of
-	 * the {@linkplain ModuleDescriptor module} undergoing compilation, the
-	 * error string, and the text position. This position is the rightmost
-	 * position encountered during the parse, and the lists of error strings in
-	 * {@link #greatExpectations} are the things that were expected but not
-	 * found at those positions. This seems to work very well in practice.
-	 *
-	 * @param headerMessagePattern
-	 *        The message pattern that introduces each group of problems.  The
-	 *        first argument is where the indicator string goes, and the second
-	 *        is for the line number.
-	 * @param afterFail
-	 *        What to do after actually reporting the error.
-	 */
-	private synchronized void reportError (
-		final String headerMessagePattern,
-		final Continuation0 afterFail)
-	{
-		final List<ProblemsAtToken> groupedProblems = new ArrayList<>();
-		int letterOffset = 0;
-		int supplementaryCounter = 0;
-		for (
-			int i = greatestGuess;
-			i >= max(greatestGuess - guessWindowSize, firstExpectation);
-			i--)
-		{
-			final List<Describer> describers =
-				new ArrayList<>(greatExpectations.get(i - firstExpectation));
-			if (!describers.isEmpty())
-			{
-				final int nextLetterOffset =
-					circledLetters.offsetByCodePoints(letterOffset, 1);
-				String indicator = circledLetters.substring(
-					letterOffset, nextLetterOffset);
-				if (supplementaryCounter > 0)
-				{
-					// Follow the circled Z with the value of an increasing
-					// counter, plus a space to visually separate it from any
-					// subsequent token.
-					indicator += Integer.toString(supplementaryCounter) + " ";
-				}
-				// Keep using Ⓩ (circled Z) if we're looking back more than 26
-				// tokens for problems.
-				if (nextLetterOffset < circledLetters.length())
-				{
-					letterOffset = nextLetterOffset;
-				}
-				else
-				{
-					// Start using Ⓩ (circled Z) followed by an increasing
-					// numeric value.
-					supplementaryCounter++;
-				}
-				groupedProblems.add(
-					new ProblemsAtToken(tokens.get(i), indicator, describers));
-			}
-		}
-		assert !groupedProblems.isEmpty();
-		reportError(groupedProblems, headerMessagePattern, afterFail);
-	}
-
-	/**
-	 * Report one specific terminal problem and call the failure continuation to
-	 * abort compilation.
-	 *
-	 * @param token
-	 * @param headerMessagePattern
-	 * @param message
-	 * @param failure
-	 */
-	@InnerAccess synchronized void reportError (
-		final A_Token token,
-		final String headerMessagePattern,
-		final String message,
-		final Continuation0 failure)
-	{
-		final int tokenIndex = token.tokenIndex();
-		while (greatestGuess < tokenIndex)
-		{
-			greatExpectations.add(new ArrayList<Describer>());
-			greatestGuess++;
-		}
-		greatestGuess = tokenIndex;
-		greatExpectations.get(tokenIndex - firstExpectation).add(
-			generate(message));
-		reportError(headerMessagePattern, failure);
-	}
-
-	/**
-	 * Report a parsing problem; after reporting it, execute afterFail.
-	 *
-	 * @param groupedProblems
-	 *        The {@link List} of {@link ProblemsAtToken} to report.  Each
-	 *        {@code ProblemsAtToken} describes the problems that occurred at
-	 *        some token's position.
-	 * @param headerMessagePattern
-	 *        The message pattern to be populated and written before each group
-	 *        of problems.  Its arguments are the group's {@linkplain
-	 *        ProblemsAtToken#indicator} and the problematic token's line
-	 *        number.
-	 * @param afterFail
-	 *        What to do after the problems have actually been reported.
-	 */
-	private void reportError (
-		final List<ProblemsAtToken> groupedProblems,
-		final String headerMessagePattern,
-		final Continuation0 afterFail)
-	{
-		if (pollForAbort.value())
-		{
-			// Never report errors during a client-initiated abort.
-			afterFail.value();
-			return;
-		}
-		final List<ProblemsAtToken> ascending =
-			new ArrayList<>(groupedProblems);
-		Collections.sort(ascending);
-
-		// Figure out where to start showing the file content.  Never show the
-		// content before the line on which firstRelevantTokenIndexOfSection
-		// resides.
-		assert firstExpectation >= 0;
-		final A_Token firstToken = tokens.get(firstExpectation);
-		final int startLineNumber = firstToken.lineNumber();
-		final int startOfFirstLine =
-			source.lastIndexOf('\n', firstToken.start() - 1) + 1;
-
-		// Now figure out the last line to show, which if possible should be the
-		// line after the last problem token.
-		final ProblemsAtToken lastProblem = ascending.get(ascending.size() - 1);
-		final int finalLineNumber = lastProblem.token.lineNumber();
-		int startOfNextLine =
-			source.lastIndexOf('\n', lastProblem.token.start() - 1) + 1;
-		// Eat 1 + the number of embedded line breaks.
-		int lineBreaksToEat =
-			lastProblem.token.string().asNativeString().split("\n").length;
-		while (lineBreaksToEat-- > 0)
-		{
-			startOfNextLine = source.indexOf('\n', startOfNextLine) + 1;
-			startOfNextLine = (startOfNextLine != 0)
-				? startOfNextLine
-				: source.length();
-		}
-		int startOfSecondNextLine = source.indexOf('\n', startOfNextLine) + 1;
-		startOfSecondNextLine = (startOfSecondNextLine != 0)
-			? startOfSecondNextLine
-			: source.length();
-
-		// Insert the problem location indicators...
-		int sourcePosition = startOfFirstLine;
-		final StringBuilder unnumbered = new StringBuilder();
-		for (final ProblemsAtToken eachProblem : ascending)
-		{
-			final int newPosition = eachProblem.token.start();
-			unnumbered.append(source, sourcePosition, newPosition);
-			unnumbered.append(eachProblem.indicator);
-			sourcePosition = newPosition;
-		}
-		unnumbered.append(source, sourcePosition, startOfSecondNextLine);
-		// Ensure the last character is a newline.
-		if (unnumbered.length() == 0 ||
-			unnumbered.codePointBefore(unnumbered.length()) != '\n')
-		{
-			unnumbered.append('\n');
-		}
-
-		// Insert line numbers...
-		final int maxDigits = Integer.toString(finalLineNumber + 1).length();
-		@SuppressWarnings("resource")
-		final Formatter text = new Formatter();
-		text.format(
-			"%s",
-			Strings.addLineNumbers(
-				unnumbered.toString(),
-				">>> %" + maxDigits + "d: %s",
-				startLineNumber));
-		text.format(">>>%s", rowOfDashes);
-
-		// Now output all the problems, in the original group order.  Start off
-		// with an empty problemIterator to keep the code simple.
-		final ModuleName moduleName = moduleName();
-		final Iterator<ProblemsAtToken> groupIterator =
-			groupedProblems.iterator();
-		final Mutable<Iterator<Describer>> problemIterator =
-			new Mutable<>(Collections.<Describer>emptyIterator());
-		final Set<String> alreadySeen = new HashSet<>();
-		final MutableOrNull<Continuation0> continueReport =
-			new MutableOrNull<>();
-		continueReport.value = new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				if (!problemIterator.value.hasNext())
-				{
-					// Start a new problem group...
-					if (!groupIterator.hasNext())
-					{
-						// Done everything.  Pass the complete text forward.
-						compilationIsInvalid = true;
-						// Generate the footer that indicates the module and
-						// line where the last indicator was found.
-						text.format(
-							"%n(file=\"%s\", line=%d)",
-							moduleName.qualifiedName(),
-							lastProblem.token.lineNumber());
-						text.format("%n>>>%s", rowOfDashes);
-						handleProblem(new Problem(
-							moduleName,
-							lastProblem.token,
-							PARSE,
-							"{0}",
-							text.toString())
-						{
-							@Override
-							public void abortCompilation ()
-							{
-								isShuttingDown = true;
-								afterFail.value();
-							}
-						});
-						// Generate the footer that indicates the module and
-						// line where the last indicator was found.
-						return;
-					}
-					// Advance to the next problem group...
-					final ProblemsAtToken newGroup = groupIterator.next();
-					text.format(
-						"%n>>> " + headerMessagePattern,
-						newGroup.indicator,
-						newGroup.token.lineNumber());
-					problemIterator.value = newGroup.describers.iterator();
-					alreadySeen.clear();
-					assert problemIterator.value.hasNext();
-				}
-				problemIterator.value.next().describeThen(
-					new Continuation1<String>()
-					{
-						@Override
-						public void value (final @Nullable String message)
-						{
-							assert message != null;
-							// Suppress duplicate messages.
-							if (!alreadySeen.contains(message))
-							{
-								alreadySeen.add(message);
-								text.format(
-									"%n>>>\t\t%s",
-									message.replace("\n", "\n>>>\t\t"));
-							}
-							// Avoid using direct recursion to keep the stack
-							// from getting too deep.
-							runtime.execute(new AvailTask(
-								FiberDescriptor.compilerPriority)
-							{
-								@Override
-								public void value ()
-								{
-									continueReport.value().value();
-								}
-							});
-						}
-					});
-			}
-		};
-		// Initiate all the grouped error printing.
-		continueReport.value().value();
-	}
-
-	/**
 	 * A statement was parsed correctly in two different ways. There may be more
 	 * ways, but we stop after two as it's already an error. Report the error.
 	 *
@@ -2234,7 +1681,7 @@ public final class AvailCompiler
 						node1.value, node2.value);
 					Interpreter.stringifyThen(
 						runtime,
-						textInterface,
+						compilationContext.getTextInterface(),
 						nodes,
 						new Continuation1<List<String>>()
 						{
@@ -2257,7 +1704,7 @@ public final class AvailCompiler
 						});
 					}
 				});
-		reportError(afterFail);
+		compilationContext.diagnostics.reportError(afterFail);
 	}
 
 	/**
@@ -2389,21 +1836,7 @@ public final class AvailCompiler
 		final A_Token token,
 		final Continuation0 continuation)
 	{
-		runtime.execute(new AvailTask(FiberDescriptor.compilerPriority)
-		{
-			@Override
-			public void value ()
-			{
-				try
-				{
-					continuation.value();
-				}
-				catch (final Exception e)
-				{
-					reportInternalProblem(token, e);
-				}
-			}
-		});
+		compilationContext.eventuallyDo(token, continuation);
 	}
 
 	/**
@@ -2411,7 +1844,7 @@ public final class AvailCompiler
 	 */
 	@InnerAccess void startWorkUnit ()
 	{
-		workUnitsQueued.incrementAndGet();
+		compilationContext.startWorkUnit();
 	}
 
 	/**
@@ -2436,62 +1869,9 @@ public final class AvailCompiler
 		final @Nullable AtomicBoolean optionalSafetyCheck,
 		final Continuation1<ArgType> continuation)
 	{
-		assert noMoreWorkUnits != null;
-		return new Continuation1<ArgType>()
-		{
-			AtomicBoolean hasRunSafetyCheck = optionalSafetyCheck != null
-				? optionalSafetyCheck
-				: new AtomicBoolean(false);
-
-			@Override
-			public void value (final @Nullable ArgType value)
-			{
-				final boolean hadRun = hasRunSafetyCheck.getAndSet(true);
-				assert !hadRun;
-				try
-				{
-					// Don't actually run tasks if canceling.
-					isShuttingDown |= pollForAbort.value();
-					if (!isShuttingDown)
-					{
-						continuation.value(value);
-					}
-				}
-				catch (final Exception e)
-				{
-					reportInternalProblem(token, e);
-				}
-				finally
-				{
-					// We increment and read completed and then read queued.
-					// That's because at every moment completed must always
-					// be <= queued. No matter how many new tasks are being
-					// queued and completed by other threads, that invariant
-					// holds.  The other fact is that the moment the
-					// counters have the same (nonzero) value, they will
-					// forever after have that same value.  Note that we
-					// still have to do the fused incrementAndGet so that we
-					// know if *we* were the (sole) cause of exhaustion.
-					final long completed = workUnitsCompleted.incrementAndGet();
-					final long queued = workUnitsQueued.get();
-					assert completed <= queued;
-					if (completed == queued)
-					{
-						try
-						{
-							final Continuation0 noMore = noMoreWorkUnits;
-							noMoreWorkUnits = null;
-							assert noMore != null;
-							noMore.value();
-						}
-						catch (final Exception e)
-						{
-							reportInternalProblem(token, e);
-						}
-					}
-				}
-			}
-		};
+		return compilationContext.workUnitCompletion(token,
+			optionalSafetyCheck,
+			continuation);
 	}
 
 	/**
@@ -2507,27 +1887,7 @@ public final class AvailCompiler
 		final Continuation0 continuation,
 		final ParserState where)
 	{
-		startWorkUnit();
-		final Continuation1<Void> workUnit = workUnitCompletion(
-			where.peekToken(),
-			null,
-			new Continuation1<Void>()
-			{
-				@Override
-				public void value (final @Nullable Void ignored)
-				{
-					continuation.value();
-				}
-			});
-		runtime.execute(
-			new ParsingTask(where)
-			{
-				@Override
-				public void value ()
-				{
-					workUnit.value(null);
-				}
-			});
+		compilationContext.workUnitDo(continuation, where);
 	}
 
 	/**
@@ -2547,19 +1907,10 @@ public final class AvailCompiler
 	 */
 	@InnerAccess <ArgType> void attempt (
 		final ParserState here,
-		final Con<ArgType> continuation,
+		final Continuation1<ArgType> continuation,
 		final ArgType argument)
 	{
-		workUnitDo(
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					continuation.value(here, argument);
-				}
-			},
-			here);
+		compilationContext.attempt(here, continuation, argument);
 	}
 
 	/**
@@ -2571,7 +1922,9 @@ public final class AvailCompiler
 	 */
 	private void startModuleTransaction ()
 	{
-		loader = new AvailLoader(module, textInterface);
+		compilationContext.setLoader(new AvailLoader(
+			compilationContext.getModule(),
+			compilationContext.getTextInterface()));
 	}
 
 	/**
@@ -2584,7 +1937,9 @@ public final class AvailCompiler
 	@InnerAccess void rollbackModuleTransaction (
 		final Continuation0 afterRollback)
 	{
-		module.removeFrom(loader(), afterRollback);
+		compilationContext
+			.getModule()
+			.removeFrom(compilationContext.loader(), afterRollback);
 	}
 
 	/**
@@ -2593,89 +1948,7 @@ public final class AvailCompiler
 	 */
 	@InnerAccess void commitModuleTransaction ()
 	{
-		runtime.addModule(module);
-	}
-
-	/**
-	 * Evaluate the specified {@linkplain FunctionDescriptor function} in the
-	 * module's context; lexically enclosing variables are not considered in
-	 * scope, but module variables and constants are in scope.
-	 *
-	 * @param function
-	 *        A function.
-	 * @param lineNumber
-	 *        The line number at which this function occurs in the module.
-	 * @param args
-	 *        The arguments to the function.
-	 * @param clientParseData
-	 *        The map to associate with the {@link
-	 *        AtomDescriptor#clientDataGlobalKey()} atom in the fiber.
-	 * @param shouldSerialize
-	 *        {@code true} if the generated function should be serialized,
-	 *        {@code false} otherwise.
-	 * @param onSuccess
-	 *        What to do with the result of the evaluation.
-	 * @param onFailure
-	 *        What to do with a terminal {@link Throwable}.
-	 */
-	@InnerAccess void evaluateFunctionThen (
-		final A_Function function,
-		final int lineNumber,
-		final List<? extends A_BasicObject> args,
-		final A_Map clientParseData,
-		final boolean shouldSerialize,
-		final Continuation1<AvailObject> onSuccess,
-		final Continuation1<Throwable> onFailure)
-	{
-		final A_RawFunction code = function.code();
-		assert code.numArgs() == args.size();
-		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
-			function.kind().returnType(),
-			loader(),
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.format(
-						"Eval fn=%s, in %s:%d",
-						code.methodName(),
-						code.module().moduleName(),
-						code.startingLineNumber());
-				}
-			});
-		A_Map fiberGlobals = fiber.fiberGlobals();
-		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-			clientDataGlobalKey(), clientParseData, true);
-		fiber.fiberGlobals(fiberGlobals);
-		fiber.textInterface(textInterface);
-		if (shouldSerialize)
-		{
-			loader().startRecordingEffects();
-		}
-		final long before = System.nanoTime();
-		final Continuation1<AvailObject> adjustedSuccess =
-			shouldSerialize
-				? new Continuation1<AvailObject>()
-					{
-						@Override
-						public void value (
-							final @Nullable AvailObject successValue)
-						{
-							final long after = System.nanoTime();
-							Interpreter.current().recordTopStatementEvaluation(
-								after - before,
-								module,
-								lineNumber);
-							loader().stopRecordingEffects();
-							serializeAfterRunning(function);
-							onSuccess.value(successValue);
-						}
-					}
-				: onSuccess;
-		fiber.resultContinuation(adjustedSuccess);
-		fiber.failureContinuation(onFailure);
-		Interpreter.runOutermostFunction(runtime, fiber, function, args);
+		runtime.addModule(compilationContext.getModule());
 	}
 
 	/**
@@ -2704,7 +1977,7 @@ public final class AvailCompiler
 		final A_Module mod = code.module();
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
-			loader(),
+			compilationContext.loader(),
 			new Generator<A_String>()
 			{
 				@Override
@@ -2721,7 +1994,7 @@ public final class AvailCompiler
 				}
 			});
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
-		fiber.textInterface(textInterface);
+		fiber.textInterface(compilationContext.getTextInterface());
 		fiber.resultContinuation(onSuccess);
 		fiber.failureContinuation(onFailure);
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
@@ -2764,7 +2037,7 @@ public final class AvailCompiler
 		final A_Module mod = code.module();
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
-			loader(),
+			compilationContext.loader(),
 			new Generator<A_String>()
 			{
 				@Override
@@ -2786,7 +2059,7 @@ public final class AvailCompiler
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataGlobalKey(), clientParseData, true);
 		fiber.fiberGlobals(fiberGlobals);
-		fiber.textInterface(textInterface);
+		fiber.textInterface(compilationContext.getTextInterface());
 		fiber.resultContinuation(new Continuation1<AvailObject>()
 		{
 			@Override
@@ -2828,9 +2101,9 @@ public final class AvailCompiler
 		final Continuation1<AvailObject> onSuccess,
 		final Continuation1<Throwable> onFailure)
 	{
-		evaluateFunctionThen(
+		compilationContext.evaluateFunctionThen(
 			FunctionDescriptor.createFunctionForPhrase(
-				expressionNode, module, lineNumber),
+				expressionNode, compilationContext.getModule(), lineNumber),
 			lineNumber,
 			Collections.<AvailObject>emptyList(),
 			MapDescriptor.empty(),
@@ -2902,17 +2175,17 @@ public final class AvailCompiler
 					final A_Token token = startState.peekToken();
 					if (e instanceof AvailAssertionFailedException)
 					{
-						reportAssertionFailureProblem(
+						compilationContext.reportAssertionFailureProblem(
 							token, (AvailAssertionFailedException) e);
 					}
 					else if (e instanceof AvailEmergencyExitException)
 					{
-						reportEmergencyExitProblem(
+						compilationContext.reportEmergencyExitProblem(
 							token, (AvailEmergencyExitException) e);
 					}
 					else
 					{
-						reportExecutionProblem(token, e);
+						compilationContext.reportExecutionProblem(token, e);
 					}
 					afterFail.value();
 				}
@@ -2942,9 +2215,10 @@ public final class AvailCompiler
 		// was at module scope.
 		final A_String name = replacement.token().string();
 		final @Nullable String shadowProblem =
-			module.variableBindings().hasKey(name)
+			compilationContext.getModule().variableBindings().hasKey(name)
 				? "module variable"
-				: module.constantBindings().hasKey(name)
+				: compilationContext
+					.getModule().constantBindings().hasKey(name)
 					? "module constant"
 					: null;
 		switch (replacement.declarationKind())
@@ -2958,10 +2232,10 @@ public final class AvailCompiler
 						+ name
 						+ " not to have same name as existing "
 						+ shadowProblem);
-					reportError(afterFail);
+					compilationContext.diagnostics.reportError(afterFail);
 					return;
 				}
-				loader().startRecordingEffects();
+				compilationContext.loader().startRecordingEffects();
 				evaluatePhraseThen(
 					replacement.initializationExpression(),
 					replacement.token().lineNumber(),
@@ -2972,7 +2246,7 @@ public final class AvailCompiler
 						public void value (final @Nullable AvailObject val)
 						{
 							assert val != null;
-							loader().stopRecordingEffects();
+							compilationContext.loader().stopRecordingEffects();
 							final A_Type innerType =
 								AbstractEnumerationTypeDescriptor
 									.withInstance(val);
@@ -2981,7 +2255,9 @@ public final class AvailCompiler
 							final A_Variable var =
 								VariableSharedWriteOnceDescriptor
 									.forVariableType(varType);
-							module.addConstantBinding(name, var);
+							compilationContext
+								.getModule()
+								.addConstantBinding(name, var);
 							// Update the map so that the local constant goes to
 							// a module constant.  Then subsequent statements
 							// in this sequence will transform uses of the
@@ -3008,11 +2284,12 @@ public final class AvailCompiler
 							final A_Function function =
 								FunctionDescriptor.createFunctionForPhrase(
 									assign,
-									module,
+									compilationContext.getModule(),
 									replacement.token().lineNumber());
 							final boolean canSummarize =
-								loader().statementCanBeSummarized();
-							serializeAfterRunning(function);
+								compilationContext.loader
+									.statementCanBeSummarized();
+							compilationContext.serializeAfterRunning(function);
 							var.setValue(val);
 							if (canSummarize)
 							{
@@ -3033,12 +2310,12 @@ public final class AvailCompiler
 						+ name
 						+ " not to have same name as existing "
 						+ shadowProblem);
-					reportError(afterFail);
+					compilationContext.diagnostics.reportError(afterFail);
 					return;
 				}
 				final A_Variable var = VariableDescriptor.forContentType(
 					replacement.declaredType());
-				module.addVariableBinding(name, var);
+				compilationContext.getModule().addVariableBinding(name, var);
 				if (!replacement.initializationExpression().equalsNil())
 				{
 					final A_Phrase newDeclaration =
@@ -3055,10 +2332,12 @@ public final class AvailCompiler
 						false);
 					final A_Function function =
 						FunctionDescriptor.createFunctionForPhrase(
-							assign, module, replacement.token().lineNumber());
+							assign,
+							compilationContext.getModule(),
+							replacement.token().lineNumber());
 					synchronized (AvailCompiler.this)
 					{
-						serializer.serialize(function);
+						compilationContext.serializer.serialize(function);
 					}
 					evaluatePhraseThen(
 						replacement.initializationExpression(),
@@ -3086,65 +2365,6 @@ public final class AvailCompiler
 				assert false
 					: "Expected top-level declaration to have been "
 						+ "parsed as local";
-		}
-	}
-
-
-	/**
-	 * Serialize either the given function or something semantically equivalent.
-	 * The equivalent is expected to be faster, but can only be used if no
-	 * triggers had been tripped during execution of the function.  The triggers
-	 * include reading or writing shared variables, or executing certain
-	 * primitives.
-	 *
-	 * @param function The function that has already run.
-	 */
-	@InnerAccess synchronized void serializeAfterRunning (
-		final A_Function function)
-	{
-		if (loader().statementCanBeSummarized())
-		{
-			final List<LoadingEffect> effects = loader().recordedEffects();
-			if (!effects.isEmpty())
-			{
-				// Output summarized functions instead of what ran.
-				final L1InstructionWriter writer =
-					new L1InstructionWriter(
-						module,
-						function.code().startingLineNumber());
-				writer.argumentTypes();
-				writer.returnType(Types.TOP.o());
-				boolean first = true;
-				for (final LoadingEffect effect : effects)
-				{
-					if (first)
-					{
-						first = false;
-					}
-					else
-					{
-						writer.write(L1Operation.L1_doPop);
-					}
-					effect.writeEffectTo(writer);
-				}
-				final A_Function summaryFunction =
-					FunctionDescriptor.create(
-						writer.compiledCode(),
-						TupleDescriptor.empty());
-				serializer.serialize(summaryFunction);
-			}
-		}
-		else
-		{
-			// Can't summarize; write the original function.
-			if (AvailLoader.debugUnsummarizedStatements)
-			{
-				System.out.println(
-					module.toString()
-						+ ":" + function.code().startingLineNumber()
-						+ " -- " + function);
-			}
-			serializer.serialize(function);
 		}
 	}
 
@@ -3184,8 +2404,7 @@ public final class AvailCompiler
 				}
 				else
 				{
-					builder.append(
-						"one of the following tokens:");
+					builder.append("one of the following tokens:");
 				}
 				final List<String> sorted =
 					new ArrayList<>(incomplete.mapSize());
@@ -3288,7 +2507,7 @@ public final class AvailCompiler
 						startOfLine = true;
 					}
 				}
-				eventuallyDo(
+				compilationContext.eventuallyDo(
 					where.peekToken(),
 					new Continuation0()
 					{
@@ -3332,7 +2551,7 @@ public final class AvailCompiler
 	 */
 	private void parseLeadingKeywordSendThen (
 		final ParserState start,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
 		A_Map clientMap = start.clientDataMap;
 		// Start accumulating tokens related to this leading-keyword message
@@ -3340,24 +2559,23 @@ public final class AvailCompiler
 		clientMap = clientMap.mapAtPuttingCanDestroy(
 			allTokensKey(), TupleDescriptor.empty(), false);
 		parseRestOfSendNode(
-			new ParserState(start.position, clientMap),
-			loader().rootBundleTree(),
+			new ParserState(start.position, start.tokenIndex, clientMap),
+			compilationContext.loader().rootBundleTree(),
 			null,
 			start,
 			false,  // Nothing consumed yet.
 			initialParseStack,
 			initialMarkStack,
-			new Con<A_Phrase>(
+			new Con<CompilerSolution>(
 				new PartialSubexpressionList(
-					loader().rootBundleTree(),
+					compilationContext.loader().rootBundleTree(),
 					continuation.superexpressions))
 			{
 				@Override
 				public void valueNotNull(
-					final ParserState after,
-					final A_Phrase send)
+					final CompilerSolution solution)
 				{
-					continuation.value(after, send);
+					continuation.value(solution);
 				}
 			});
 	}
@@ -3378,7 +2596,7 @@ public final class AvailCompiler
 		final ParserState start,
 		final A_Phrase leadingArgument,
 		final ParserState initialTokenPosition,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
 		assert start.position != initialTokenPosition.position;
 		assert leadingArgument != null;
@@ -3388,24 +2606,23 @@ public final class AvailCompiler
 		clientMap = clientMap.mapAtPuttingCanDestroy(
 			allTokensKey(), TupleDescriptor.empty(), false);
 		parseRestOfSendNode(
-			new ParserState(start.position, clientMap),
-			loader().rootBundleTree(),
+			new ParserState(start.position, start.tokenIndex, clientMap),
+			compilationContext.loader().rootBundleTree(),
 			leadingArgument,
 			initialTokenPosition,
 			false,  // Leading argument does not yet count as something parsed.
 			initialParseStack,
 			initialMarkStack,
-			new Con<A_Phrase>(
+			new Con<CompilerSolution>(
 				new PartialSubexpressionList(
-					loader().rootBundleTree(),
+					compilationContext.loader().rootBundleTree(),
 					continuation.superexpressions))
 			{
 				@Override
 				public void valueNotNull(
-					final ParserState after,
-					final A_Phrase send)
+					final CompilerSolution solution)
 				{
-					continuation.value(after, send);
+					continuation.value(solution);
 				}
 			});
 	}
@@ -3429,43 +2646,45 @@ public final class AvailCompiler
 		final ParserState startOfLeadingArgument,
 		final ParserState afterLeadingArgument,
 		final A_Phrase node,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
 		// It's optional, so try it with no wrapping.  We have to try this even
 		// if it's a supercast, since we may be parsing an expression to be a
 		// non-leading argument of some send.
-		attempt(afterLeadingArgument, continuation, node);
-		// Try to wrap it in a leading-argument message send.
-		attempt(
+		compilationContext.attempt(
 			afterLeadingArgument,
-			new Con<A_Phrase>(continuation.superexpressions)
+			continuation,
+			new CompilerSolution(afterLeadingArgument, node));
+		// Try to wrap it in a leading-argument message send.
+		compilationContext.attempt(
+			afterLeadingArgument,
+			new Con<CompilerSolution>(continuation.superexpressions)
 			{
 				@Override
 				public void valueNotNull (
-					final ParserState afterLeadingArgument2,
-					final A_Phrase node2)
+					final CompilerSolution solution2)
 				{
 					parseLeadingArgumentSendAfterThen(
-						afterLeadingArgument2,
-						node2,
+						solution2.endState(),
+						solution2.parseNode(),
 						startOfLeadingArgument,
-						new Con<A_Phrase>(continuation.superexpressions)
+						new Con<CompilerSolution>(
+							continuation.superexpressions)
 						{
 							@Override
 							public void valueNotNull (
-								final ParserState afterSend,
-								final A_Phrase leadingSend)
+								final CompilerSolution solutionAfter)
 							{
 								parseOptionalLeadingArgumentSendAfterThen(
 									startOfLeadingArgument,
-									afterSend,
-									leadingSend,
+									solutionAfter.endState(),
+									solutionAfter.parseNode(),
 									continuation);
 							}
 						});
 				}
 			},
-			node);
+			new CompilerSolution(afterLeadingArgument, node));
 	}
 
 	/** Statistic for matching an exact token. */
@@ -3517,9 +2736,9 @@ public final class AvailCompiler
 		final boolean consumedAnything,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
-		bundleTree.expand(module);
+		bundleTree.expand(compilationContext.getModule());
 		final A_Set complete = bundleTree.lazyComplete();
 		final A_Map incomplete = bundleTree.lazyIncomplete();
 		final A_Map caseInsensitive =
@@ -3580,6 +2799,7 @@ public final class AvailCompiler
 						false);
 					final ParserState afterRecordingToken = new ParserState(
 						start.afterToken().position,
+						start.afterToken().tokenIndex,
 						clientMap);
 					eventuallyParseRestOfSendNode(
 						afterRecordingToken,
@@ -3634,6 +2854,7 @@ public final class AvailCompiler
 						false);
 					final ParserState afterRecordingToken = new ParserState(
 						start.afterToken().position,
+						start.afterToken().tokenIndex,
 						clientMap);
 					eventuallyParseRestOfSendNode(
 						afterRecordingToken,
@@ -3732,7 +2953,7 @@ public final class AvailCompiler
 					{
 						Interpreter.stringifyThen(
 							runtime,
-							textInterface,
+							compilationContext.getTextInterface(),
 							latestPhrase.expressionType(),
 							new Continuation1<String>()
 							{
@@ -3783,7 +3004,7 @@ public final class AvailCompiler
 				if (firstArgOrNull == null || op.canRunIfHasFirstArgument)
 				{
 					final A_Tuple value = entry.value();
-					workUnitDo(
+					compilationContext.workUnitDo(
 						new Continuation0()
 						{
 							@Override
@@ -3848,7 +3069,7 @@ public final class AvailCompiler
 		// Generate the type names in parallel.
 		Interpreter.stringifyThen(
 			runtime,
-			textInterface,
+			compilationContext.getTextInterface(),
 			types,
 			new Continuation1<List<String>>()
 			{
@@ -3947,7 +3168,7 @@ public final class AvailCompiler
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
 		final A_Tuple successorTrees,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
 		final ParsingOperation op = decode(instruction);
 		if (runtime.debugCompilerSteps)
@@ -4123,17 +3344,17 @@ public final class AvailCompiler
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
 					op == PARSE_TOP_VALUED_ARGUMENT,
-					new Con<A_Phrase>(partialSubexpressionList)
+					new Con<CompilerSolution>(
+						partialSubexpressionList)
 					{
 						@Override
 						public void valueNotNull (
-							final ParserState afterArg,
-							final A_Phrase newArg)
+							final CompilerSolution solution)
 						{
 							final List<A_Phrase> newArgsSoFar =
-								append(argsSoFar, newArg);
+								append(argsSoFar, solution.parseNode());
 							eventuallyParseRestOfSendNode(
-								afterArg,
+								solution.endState(),
 								successorTrees.tupleAt(1),
 								null,
 								initialTokenPosition,
@@ -4162,16 +3383,21 @@ public final class AvailCompiler
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
 					false,
-					new Con<A_Phrase>(partialSubexpressionList)
+					new Con<CompilerSolution>(
+						partialSubexpressionList)
 					{
 						@Override
 						public void valueNotNull (
-							final ParserState afterUse,
-							final A_Phrase variableUse)
+							final CompilerSolution
+								variableUseSolution)
 						{
 							assert successorTrees.tupleSize() == 1;
+							final A_Phrase variableUse =
+								variableUseSolution.parseNode();
 							final A_Phrase rawVariableUse =
 								variableUse.stripMacro();
+							final ParserState afterUse =
+								variableUseSolution.endState();
 							if (!rawVariableUse.parseNodeKindIsUnder(
 								VARIABLE_USE_NODE))
 							{
@@ -4239,14 +3465,14 @@ public final class AvailCompiler
 					marksSoFar,
 					initialTokenPosition,
 					successorTrees,
-					new Con<A_Phrase>(continuation.superexpressions)
+					new Con<CompilerSolution>(
+						continuation.superexpressions)
 					{
 						@Override
 						public void valueNotNull(
-							final ParserState state,
-							final A_Phrase answer)
+							final CompilerSolution solution)
 						{
-							continuation.valueNotNull(state, answer);
+							continuation.valueNotNull(solution);
 						}
 					});
 				break;
@@ -4758,16 +3984,16 @@ public final class AvailCompiler
 		final boolean consumedAnything,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
 		if (!prefixFunction.kind().acceptsListOfArgValues(listOfArgs))
 		{
 			return;
 		}
-		startWorkUnit();
+		compilationContext.startWorkUnit();
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			prefixFunction.kind().returnType(),
-			loader(),
+			compilationContext.loader(),
 			new Generator<A_String>()
 			{
 				@Override
@@ -4791,9 +4017,9 @@ public final class AvailCompiler
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataGlobalKey(), withTokens, true);
 		fiber.fiberGlobals(fiberGlobals);
-		fiber.textInterface(textInterface);
+		fiber.textInterface(compilationContext.getTextInterface());
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
-		fiber.resultContinuation(workUnitCompletion(
+		fiber.resultContinuation(compilationContext.workUnitCompletion(
 			start.peekToken(),
 			hasRunEither,
 			new Continuation1<AvailObject>()
@@ -4806,7 +4032,9 @@ public final class AvailCompiler
 					final A_Map replacementClientDataMap =
 						fiber.fiberGlobals().mapAt(clientDataGlobalKey());
 					final ParserState newState = new ParserState(
-						start.position, replacementClientDataMap);
+						start.position,
+						start.tokenIndex,
+						replacementClientDataMap);
 					eventuallyParseRestOfSendNode(
 						newState,
 						successorTree,
@@ -4818,7 +4046,7 @@ public final class AvailCompiler
 						continuation);
 				}
 			}));
-		fiber.failureContinuation(workUnitCompletion(
+		fiber.failureContinuation(compilationContext.workUnitCompletion(
 			start.peekToken(),
 			hasRunEither,
 			new Continuation1<Throwable>()
@@ -4835,7 +4063,9 @@ public final class AvailCompiler
 						final A_Map replacementClientDataMap =
 							fiber.fiberGlobals().mapAt(clientDataGlobalKey());
 						final ParserState newState = new ParserState(
-							start.position, replacementClientDataMap);
+							start.position,
+							start.tokenIndex,
+							replacementClientDataMap);
 						eventuallyParseRestOfSendNode(
 							newState,
 							successorTree,
@@ -4899,12 +4129,14 @@ public final class AvailCompiler
 		final A_Set restrictions = method.semanticRestrictions();
 		// Filter the definitions down to those that are locally most specific.
 		// Fail if more than one survives.
-		startWorkUnit();
+		compilationContext.startWorkUnit();
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
-		final Continuation1<A_Type> onSuccess = workUnitCompletion(
-			state.peekToken(), hasRunEither, originalOnSuccess);
-		final Continuation1<Describer> onFailure = workUnitCompletion(
-			state.peekToken(), hasRunEither, originalOnFailure);
+		final Continuation1<A_Type> onSuccess =
+			compilationContext.workUnitCompletion(
+				state.peekToken(), hasRunEither, originalOnSuccess);
+		final Continuation1<Describer> onFailure =
+			compilationContext.workUnitCompletion(
+				state.peekToken(), hasRunEither, originalOnFailure);
 		if (methodDefinitions.tupleSize() > 0)
 		{
 			// There are method definitions.
@@ -4924,7 +4156,7 @@ public final class AvailCompiler
 						{
 							Interpreter.stringifyThen(
 								runtime,
-								textInterface,
+								compilationContext.getTextInterface(),
 								argTypes.get(finalIndex - 1),
 								new Continuation1<String>()
 								{
@@ -4949,7 +4181,7 @@ public final class AvailCompiler
 		// Find all method definitions that could match the argument types.
 		// Only consider definitions that are defined in the current module or
 		// an ancestor.
-		final A_Set allAncestors = module.allAncestors();
+		final A_Set allAncestors = compilationContext.getModule().allAncestors();
 		final List<A_Definition> filteredByTypes = macroOrNil.equalsNil()
 			? method.filterByTypes(argTypes)
 			: Collections.singletonList(macroOrNil);
@@ -5291,7 +4523,7 @@ public final class AvailCompiler
 				}
 				Interpreter.stringifyThen(
 					runtime,
-					textInterface,
+					compilationContext.getTextInterface(),
 					uniqueValues,
 					new Continuation1<List<String>>()
 					{
@@ -5421,7 +4653,7 @@ public final class AvailCompiler
 		final ParserState stateAfterCall,
 		final A_Phrase argumentsListNode,
 		final A_Bundle bundle,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
 		final Mutable<Boolean> valid = new Mutable<>(true);
 		final A_Method method = bundle.bundleMethod();
@@ -5445,7 +4677,8 @@ public final class AvailCompiler
 			// Find all macro definitions that could match the argument phrases.
 			// Only consider definitions that are defined in the current module
 			// or an ancestor.
-			final A_Set allAncestors = module.allAncestors();
+			final A_Set allAncestors =
+				compilationContext.getModule().allAncestors();
 			final List<A_Definition> visibleDefinitions =
 				new ArrayList<>(macroDefinitionsTuple.tupleSize());
 			for (final A_Definition definition : macroDefinitionsTuple)
@@ -5618,6 +4851,7 @@ public final class AvailCompiler
 		// Parsing a macro send must not affect the scope.
 		final ParserState afterState = new ParserState(
 			stateAfterCall.position,
+			stateAfterCall.tokenIndex,
 			stateBeforeCall.clientDataMap);
 		final A_Definition finalMacro = macro;
 		// Validate the message send before reifying a send phrase.
@@ -5639,7 +4873,11 @@ public final class AvailCompiler
 							bundle,
 							argumentsListNode,
 							expectedYieldType);
-						attempt(afterState, continuation, sendNode);
+						compilationContext.attempt(
+							afterState,
+							continuation,
+							new CompilerSolution(
+								afterState, sendNode));
 						return;
 					}
 					completedSendNodeForMacro(
@@ -5649,15 +4887,16 @@ public final class AvailCompiler
 						bundle,
 						finalMacro,
 						expectedYieldType,
-						new Con<A_Phrase>(continuation.superexpressions)
+						new Con<CompilerSolution>(
+							continuation.superexpressions)
 						{
 							@Override
 							public void valueNotNull(
-								final ParserState afterMacro,
-								final A_Phrase macroResult)
+								final CompilerSolution macroSolution)
 							{
-								assert macroResult.isMacroSubstitutionNode();
-								continuation.value(afterMacro, macroResult);
+								assert macroSolution.parseNode()
+									.isMacroSubstitutionNode();
+								continuation.value(macroSolution);
 							}
 						});
 				}
@@ -5703,7 +4942,7 @@ public final class AvailCompiler
 		final @Nullable A_Phrase firstArgOrNull,
 		final boolean canReallyParse,
 		final boolean wrapInLiteral,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
 		if (firstArgOrNull == null)
 		{
@@ -5715,15 +4954,18 @@ public final class AvailCompiler
 			{
 				parseExpressionThen(
 					start,
-					new Con<A_Phrase>(continuation.superexpressions)
+					new Con<CompilerSolution>(
+						continuation.superexpressions)
 					{
 						@Override
 						public void valueNotNull (
-							final ParserState afterArgument,
-							final A_Phrase argument)
+							CompilerSolution solution)
 						{
 							// Only accept a ⊤-valued or ⊥-valued expression if
 							// wrapInLiteral is true.
+							final A_Phrase argument = solution.parseNode();
+							final ParserState afterArgument =
+								solution.endState();
 							if (!wrapInLiteral)
 							{
 								final A_Type type = argument.expressionType();
@@ -5756,12 +4998,14 @@ public final class AvailCompiler
 									return;
 								}
 							}
-							attempt(
+							compilationContext.attempt(
 								afterArgument,
 								continuation,
-								wrapInLiteral
-									? wrapAsLiteral(argument)
-									: argument);
+								new CompilerSolution(
+									afterArgument,
+									wrapInLiteral
+										? wrapAsLiteral(argument)
+										: argument));
 						}
 					});
 			}
@@ -5777,7 +5021,11 @@ public final class AvailCompiler
 			// are ⊤- or ⊥-valued.
 			if (wrapInLiteral)
 			{
-				attempt(start, continuation, wrapAsLiteral(firstArgOrNull));
+				compilationContext.attempt(
+					start,
+					continuation,
+					new CompilerSolution(
+						start, wrapAsLiteral(firstArgOrNull)));
 				return;
 			}
 			final A_Type expressionType = firstArgOrNull.expressionType();
@@ -5791,7 +5039,11 @@ public final class AvailCompiler
 				start.expected("leading argument not to be ⊥-valued.");
 				return;
 			}
-			attempt(start, continuation, firstArgOrNull);
+			compilationContext.attempt(
+				start,
+				continuation,
+				new CompilerSolution(
+					start, firstArgOrNull));
 		}
 	}
 
@@ -5852,8 +5104,8 @@ public final class AvailCompiler
 	 *            MessageBundleTreeDescriptor message bundle trees} along which
 	 *            to continue parsing if a local solution is found.
 	 * @param continuation
-	 *            What to do once we have a fully parsed send node (of which
-	 *            we are currently parsing an argument).
+	 *            What to do once we have a fully parsed send node (of which we
+	 *            are currently parsing an argument).
 	 */
 	private void parseArgumentInModuleScopeThen (
 		final ParserState start,
@@ -5862,7 +5114,7 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final ParserState initialTokenPosition,
 		final A_Tuple successorTrees,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
 		// Parse an argument in the outermost (module) scope and continue.
 		assert successorTrees.tupleSize() == 1;
@@ -5873,6 +5125,7 @@ public final class AvailCompiler
 				false);
 		final ParserState startInGlobalScope = new ParserState(
 			start.position,
+			start.tokenIndex,
 			clientDataInGlobalScope);
 		parseSendArgumentWithExplanationThen(
 			startInGlobalScope,
@@ -5881,13 +5134,14 @@ public final class AvailCompiler
 			firstArgOrNull == null
 				&& initialTokenPosition.position != start.position,
 			false,  // Static argument can't be top-valued
-			new Con<A_Phrase>(continuation.superexpressions)
+			new Con<CompilerSolution>(continuation.superexpressions)
 			{
 				@Override
 				public void valueNotNull (
-					final ParserState afterArg,
-					final A_Phrase newArg)
+					final CompilerSolution solution)
 				{
+					final A_Phrase newArg = solution.parseNode();
+					final ParserState afterArg = solution.endState();
 					if (newArg.hasSuperCast())
 					{
 						afterArg.expected(
@@ -5938,8 +5192,10 @@ public final class AvailCompiler
 					}
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, newArg);
-					final ParserState afterArgButInScope =
-						new ParserState(afterArg.position, start.clientDataMap);
+					final ParserState afterArgButInScope = new ParserState(
+						afterArg.position,
+						afterArg.tokenIndex,
+						start.clientDataMap);
 					eventuallyParseRestOfSendNode(
 						afterArgButInScope,
 						successorTrees.tupleAt(1),
@@ -5980,7 +5236,7 @@ public final class AvailCompiler
 	 *            although if it's not a send phrase then the resulting phrase
 	 *            is <em>checked</em> against this expected yield type instead.
 	 * @param continuation
-	 *            What to do with the resulting send node.
+	 *            What to do with the resulting send node solution.
 	 */
 	@InnerAccess void completedSendNodeForMacro (
 		final ParserState stateBeforeCall,
@@ -5989,7 +5245,7 @@ public final class AvailCompiler
 		final A_Bundle bundle,
 		final A_Definition macroDefinitionToInvoke,
 		final A_Type expectedYieldType,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
 		final A_Tuple argumentsTuple = argumentsListNode.expressionsTuple();
 		final int argCount = argumentsTuple.tupleSize();
@@ -6010,7 +5266,7 @@ public final class AvailCompiler
 				.mapAtPuttingCanDestroy(
 					macroBundleKey(), bundle, true)
 				.makeShared();
-		startWorkUnit();
+		compilationContext.startWorkUnit();
 		final MutableOrNull<A_Map> clientDataAfterRunning =
 			new MutableOrNull<>();
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
@@ -6031,7 +5287,7 @@ public final class AvailCompiler
 			argumentsList,
 			withTokensAndBundle,
 			clientDataAfterRunning,
-			workUnitCompletion(
+			compilationContext.workUnitCompletion(
 				stateAfterCall.peekToken(),
 				hasRunEither,
 				new Continuation1<AvailObject>()
@@ -6057,7 +5313,7 @@ public final class AvailCompiler
 										assert list != null;
 										return String.format(
 											"Macro body for %s to have "
-											+ "produced a phrase, not %s",
+												+ "produced a phrase, not %s",
 											bundle.message(),
 											list.get(0));
 									}
@@ -6088,19 +5344,20 @@ public final class AvailCompiler
 							// restrictions promised it should be.
 							stateAfterCall.expected(
 								"macro "
-								+ bundle.message().atomName()
-								+ " to produce either a send node to "
-								+ "be strengthened, or a phrase that "
-								+ "yields "
-								+ expectedYieldType
-								+ ", not "
-								+ replacement);
+									+ bundle.message().atomName()
+									+ " to produce either a send node to "
+									+ "be strengthened, or a phrase that "
+									+ "yields "
+									+ expectedYieldType
+									+ ", not "
+									+ replacement);
 							return;
 						}
 						// Continue after this macro invocation with whatever
 						// client data was set up by the macro.
 						final ParserState stateAfter = new ParserState(
 							stateAfterCall.position,
+							stateAfterCall.tokenIndex,
 							clientDataAfterRunning.value());
 						final A_Phrase original = SendNodeDescriptor.from(
 							constituentTokens,
@@ -6122,10 +5379,14 @@ public final class AvailCompiler
 									+ ") "
 									+ substitution);
 						}
-						attempt(stateAfter, continuation, substitution);
+						compilationContext.attempt(
+							stateAfter,
+							continuation,
+							new CompilerSolution(
+								stateAfter, substitution));
 					}
 				}),
-			workUnitCompletion(
+			compilationContext.workUnitCompletion(
 				stateAfterCall.peekToken(),
 				hasRunEither,
 				new Continuation1<Throwable>()
@@ -6138,8 +5399,8 @@ public final class AvailCompiler
 						{
 							stateAfterCall.expected(
 								"macro body to reject the parse or produce "
-								+ "a replacement expression, not merely accept "
-								+ "its phrases like a semantic restriction");
+									+ "a replacement expression, not merely accept "
+									+ "its phrases like a semantic restriction");
 						}
 						else if (e instanceof AvailRejectedParseException)
 						{
@@ -6152,8 +5413,8 @@ public final class AvailCompiler
 						{
 							stateAfterCall.expected(
 								"evaluation of macro body not to raise an "
-								+ "unhandled exception:\n\t"
-								+ e);
+									+ "unhandled exception:\n\t"
+									+ e);
 						}
 					}
 				}));
@@ -6175,6 +5436,8 @@ public final class AvailCompiler
 	 *        What to do after the check completes successfully.
 	 * @param failure
 	 *        What to do after the check completes unsuccessfully.
+	 * @throws MalformedPragmaException
+	 *         If there's a problem with this check pragma.
 	 */
 	private void pragmaCheckThen (
 		final A_Token pragmaToken,
@@ -6183,6 +5446,7 @@ public final class AvailCompiler
 		final String propertyValue,
 		final Continuation0 success,
 		final Continuation0 failure)
+	throws MalformedPragmaException
 	{
 		switch (propertyName)
 		{
@@ -6208,43 +5472,23 @@ public final class AvailCompiler
 				// the virtual machine are incompatible.
 				if (!requiredVersions.setIntersects(activeVersions))
 				{
-					handleProblem(new Problem(
-						moduleName(),
-						pragmaToken,
-						EXECUTION,
-						"Module and virtual machine are not compatible; the "
-						+ "virtual machine guarantees versions {0}, but the "
-						+ "current module requires {1}",
-						activeVersions,
-						requiredVersions)
-					{
-						@Override
-						protected void abortCompilation ()
-						{
-							failure.value();
-						}
-					});
-					return;
+					throw new MalformedPragmaException(
+						String.format(
+							"Module and virtual machine are not compatible; "
+								+ "the virtual machine guarantees versions %s, "
+								+ "but the current module requires %s",
+							activeVersions,
+							requiredVersions));
 				}
 				break;
 			default:
 				final Set<String> viableAssertions = new HashSet<>();
 				viableAssertions.add("version");
-				handleProblem(new Problem(
-					moduleName(),
-					pragmaToken,
-					PARSE,
-					"Expected check pragma to assert one of the following "
-					+ "properties: {0}",
-					viableAssertions)
-				{
-					@Override
-					protected void abortCompilation ()
-					{
-						failure.value();
-					}
-				});
-				return;
+				throw new MalformedPragmaException(
+					String.format(
+						"Expected check pragma to assert one of the following "
+							+ "properties: %s",
+						viableAssertions));
 		}
 		success.value();
 	}
@@ -6288,7 +5532,7 @@ public final class AvailCompiler
 		final A_Function function =
 			FunctionDescriptor.newPrimitiveFunction(
 				primitive,
-				module,
+				compilationContext.getModule(),
 				token.lineNumber());
 		final A_Phrase send = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
@@ -6363,12 +5607,14 @@ public final class AvailCompiler
 				functionLiterals.add(
 					LiteralNodeDescriptor.syntheticFrom(
 						FunctionDescriptor.newPrimitiveFunction(
-							prim, module, token.lineNumber())));
+							prim,
+							compilationContext.getModule(),
+							token.lineNumber())));
 			}
 		}
 		catch (final RuntimeException e)
 		{
-			reportInternalProblem(state.peekToken(), e);
+			compilationContext.reportInternalProblem(state.peekToken(), e);
 			failure.value();
 			return;
 		}
@@ -6382,6 +5628,129 @@ public final class AvailCompiler
 				ListNodeDescriptor.newExpressions(
 					TupleDescriptor.fromList(functionLiterals)),
 				bodyLiteral)),
+			TOP.o());
+		evaluateModuleStatementThen(
+			state,
+			state,
+			send,
+			new HashMap<A_Phrase, A_Phrase>(),
+			success,
+			failure);
+	}
+
+	/**
+	 * Create a bootstrap primitive lexer. Validate the primitive's type
+	 * declaration against what's needed for a lexer function.  If either
+	 * primitive is fallible then generate suitable primitive failure code for
+	 * it (to invoke the {@link MethodDescriptor #vmCrashAtom()}'s bundle).
+	 *
+	 * <p>The filter takes a character and answers a boolean indicating whether
+	 * the lexer should be attempted when that character is next in the source
+	 * file.</p>
+	 *
+	 * <p>The body takes a character (which has already passed the filter), the
+	 * entire source string, and the one-based index of the current character in
+	 * the string.  It returns nothing, but it invokes a success primitive for
+	 * each successful lexing (passing a tuple of tokens and the character
+	 * position after what was lexed), and/or invokes a failure primitive to
+	 * give specific diagnostics about what went wrong.</p>
+	 *
+	 * @param state
+	 *        The {@linkplain ParserState state} following a parse of the
+	 *        {@linkplain ModuleHeader module header}.
+	 * @param token
+	 *        A token with which to associate the definition of the lexer
+	 *        function.  Since this is a bootstrap lexer, it's appropriate to
+	 *        use the string token within the pragma for this purpose.
+	 * @param lexerName
+	 *        The name of the lexer being defined.
+	 * @param filterPrimitiveName
+	 *        The {@linkplain Primitive#name() primitive name} of the filter
+	 *        for the lexer being defined.
+	 * @param bodyPrimitiveName
+	 *        The {@linkplain Primitive#name() primitive name} of the body of
+	 *        the lexer being defined.
+	 * @param success
+	 *        What to do after the method is bootstrapped successfully.
+	 * @param failure
+	 *        What to do if the attempt to bootstrap the method fails.
+	 * @throws MalformedPragmaException
+	 *         If the lexer pragma cannot be created.
+	 */
+	private void bootstrapLexerThen (
+		final ParserState state,
+		final A_Token token,
+		final String lexerName,
+		final String filterPrimitiveName,
+		final String bodyPrimitiveName,
+		final Continuation0 success,
+		final Continuation0 failure)
+	throws MalformedPragmaException
+	{
+		// Process the filter primitive.
+		final Primitive filterPrimitive = Primitive.byName(filterPrimitiveName);
+		if (filterPrimitive == null)
+		{
+			throw new MalformedPragmaException(
+				"Unknown lexer filter primitive name ("
+					+ filterPrimitiveName
+					+ ")");
+		}
+		final A_Type filterFunctionType =
+			filterPrimitive.blockTypeRestriction();
+		if (!filterFunctionType.equals(
+			LexerDescriptor.lexerFilterFunctionType()))
+		{
+			throw new MalformedPragmaException(
+				"Type signature for filter primitive is invalid for lexer. "
+					+ "Primitive has "
+					+ filterFunctionType
+					+ " but a lexer filter needs "
+					+ LexerDescriptor.lexerFilterFunctionType());
+		}
+		final A_Function filterFunction =
+			FunctionDescriptor.newPrimitiveFunction(
+				filterPrimitive,
+				compilationContext.getModule(), token.lineNumber());
+
+		// Process the body primitive.
+		final Primitive bodyPrimitive = Primitive.byName(bodyPrimitiveName);
+		if (bodyPrimitive == null)
+		{
+			throw new MalformedPragmaException(
+				"Unknown lexer body primitive name ("
+					+ bodyPrimitiveName
+					+ ")");
+		}
+		final A_Type bodyFunctionType =
+			bodyPrimitive.blockTypeRestriction();
+		if (!bodyFunctionType.equals(LexerDescriptor.lexerBodyFunctionType()))
+		{
+			throw new MalformedPragmaException(
+				"Type signature for body primitive is invalid for lexer. "
+					+ "Primitive has "
+					+ bodyFunctionType
+					+ " but a lexer body needs "
+					+ LexerDescriptor.lexerBodyFunctionType());
+		}
+		final A_Function bodyFunction =
+			FunctionDescriptor.newPrimitiveFunction(
+				bodyPrimitive,
+				compilationContext.getModule(), token.lineNumber());
+
+		// Process the lexer name.
+		final A_String availName = StringDescriptor.from(lexerName);
+		final A_Phrase nameLiteral =
+			LiteralNodeDescriptor.syntheticFrom(availName);
+
+		// Build a phrase to define the lexer.
+		final A_Phrase send = SendNodeDescriptor.from(
+			TupleDescriptor.empty(),
+			SpecialAtom.LEXER_DEFINER.bundle,
+			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
+				nameLiteral,
+				LiteralNodeDescriptor.syntheticFrom(filterFunction),
+				LiteralNodeDescriptor.syntheticFrom(bodyFunction))),
 			TOP.o());
 		evaluateModuleStatementThen(
 			state,
@@ -6408,6 +5777,7 @@ public final class AvailCompiler
 	 * @param failure
 	 *        What to do if a problem is found with one of the pragma
 	 *        definitions.
+	 * @throws MalformedPragmaException if the pragma is malformed.
 	 */
 	@InnerAccess void applyCheckPragmaThen (
 		final A_Token pragmaToken,
@@ -6415,36 +5785,16 @@ public final class AvailCompiler
 		final ParserState state,
 		final Continuation0 success,
 		final Continuation0 failure)
+	throws MalformedPragmaException
 	{
-		final String propertyName;
-		final String propertyValue;
-		try
+		final String[] parts = pragmaValue.split("=", 2);
+		if (parts.length != 2)
 		{
-			final String[] parts = pragmaValue.split("=", 2);
-			if (parts.length != 2)
-			{
-				throw new IllegalArgumentException();
-			}
-			propertyName = parts[0].trim();
-			propertyValue = parts[1].trim();
+			throw new MalformedPragmaException(
+				"Should have the form 'check=<property>=<value>'.");
 		}
-		catch (final IllegalArgumentException e)
-		{
-			handleProblem(new Problem(
-				moduleName(),
-				pragmaToken,
-				PARSE,
-				"Expected check pragma to have the form {0}=<property>=<value>",
-				PRAGMA_METHOD.lexemeJavaString)
-			{
-				@Override
-				public void abortCompilation ()
-				{
-					failure.value();
-				}
-			});
-			return;
-		}
+		final String propertyName = parts[0].trim();
+		final String propertyValue = parts[1].trim();
 		pragmaCheckThen(
 			pragmaToken, state, propertyName, propertyValue, success, failure);
 	}
@@ -6453,18 +5803,10 @@ public final class AvailCompiler
 	 * Apply a method pragma detected during parse of the {@linkplain
 	 * ModuleHeader module header}.
 	 *
-	 * @param pragmaToken
-	 *        The string literal token specifying the pragma.
 	 * @param pragmaValue
 	 *        The pragma {@link String} after "method=".
-	 * @param state
-	 *        The {@linkplain ParserState parse state} following a parse of the
-	 *        module header.
-	 * @param success
-	 *        What to do after the pragmas have been applied successfully.
-	 * @param failure
-	 *        What to do if a problem is found with one of the pragma
-	 *        definitions.
+	 * @throws MalformedPragmaException
+	 *         If this method-pragma is malformed.
 	 */
 	@InnerAccess void applyMethodPragmaThen (
 		final A_Token pragmaToken,
@@ -6472,36 +5814,19 @@ public final class AvailCompiler
 		final ParserState state,
 		final Continuation0 success,
 		final Continuation0 failure)
+	throws MalformedPragmaException
 	{
-		final String methodName;
-		final String primName;
-		try
+		final String[] parts = pragmaValue.split("=", 2);
+		if (parts.length != 2)
 		{
-			final String[] parts = pragmaValue.split("=", 2);
-			if (parts.length != 2)
-			{
-				throw new IllegalArgumentException();
-			}
-			primName = parts[0].trim();
-			methodName = parts[1].trim();
+			throw new MalformedPragmaException(
+				String.format(
+					"Expected method pragma to have the form "
+						+ "%s=primitiveName=name",
+					PRAGMA_METHOD.lexemeJavaString));
 		}
-		catch (final IllegalArgumentException e)
-		{
-			handleProblem(new Problem(
-				moduleName(),
-				pragmaToken,
-				PARSE,
-				"Expected method pragma to have the form {0}=<digits>=name",
-				PRAGMA_METHOD.lexemeJavaString)
-			{
-				@Override
-				public void abortCompilation ()
-				{
-					failure.value();
-				}
-			});
-			return;
-		}
+		final String primName = parts[0].trim();
+		final String methodName = parts[1].trim();
 		bootstrapMethodThen(
 			state, pragmaToken, methodName, primName, success, failure);
 	}
@@ -6544,7 +5869,7 @@ public final class AvailCompiler
 			final @Nullable Primitive prim = Primitive.byName(primName);
 			if (prim == null)
 			{
-				reportError(
+				compilationContext.diagnostics.reportError(
 					pragmaToken,
 					"Malformed pragma at %s on line %d:",
 					String.format(
@@ -6584,10 +5909,11 @@ public final class AvailCompiler
 		final Continuation0 failure)
 	{
 		final A_String availName = StringDescriptor.from(pragmaValue);
-		final A_Set atoms = module.trueNamesForStringName(availName);
+		final A_Set atoms =
+			compilationContext.getModule().trueNamesForStringName(availName);
 		if (atoms.setSize() == 0)
 		{
-			reportError(
+			compilationContext.diagnostics.reportError(
 				pragmaToken,
 				"Problem in stringification macro at %s on line %d:",
 				String.format(
@@ -6599,7 +5925,7 @@ public final class AvailCompiler
 		}
 		else if (atoms.setSize() > 1)
 		{
-			reportError(
+			compilationContext.diagnostics.reportError(
 				pragmaToken,
 				"Problem in stringification macro at %s on line %d:",
 				String.format(
@@ -6625,6 +5951,98 @@ public final class AvailCompiler
 	}
 
 	/**
+	 * Apply a lexer definition pragma detected during parse of the {@linkplain
+	 * ModuleHeader module header}.
+	 *
+	 * @param pragmaToken
+	 *        The string literal token specifying the pragma.
+	 * @param pragmaValue
+	 *        The pragma {@link String} after "lexer=".
+	 * @param state
+	 *        The {@linkplain ParserState parse state} following a parse of the
+	 *        module header.
+	 * @param success
+	 *        What to do after the lexer is defined successfully.
+	 * @param failure
+	 *        What to do if the attempt to define the lexer fails.
+	 */
+	@InnerAccess void applyLexerPragmaThen (
+		final A_Token pragmaToken,
+		final String pragmaValue,
+		final ParserState state,
+		final Continuation0 success,
+		final Continuation0 failure)
+	{
+		final String lexerName;
+		final String filterPrimitiveName;
+		final String bodyPrimitiveName;
+		try
+		{
+			final String[] parts = pragmaValue.split("=", 2);
+			if (parts.length != 2)
+			{
+				throw new IllegalArgumentException();
+			}
+			final String primNames = parts[0].trim();
+			final String[] primParts = primNames.split(",", 2);
+			if (primParts.length != 2)
+			{
+				throw new IllegalArgumentException();
+			}
+			filterPrimitiveName = primParts[0];
+			bodyPrimitiveName = primParts[1];
+			lexerName = parts[1].trim();
+		}
+		catch (final IllegalArgumentException e)
+		{
+			compilationContext.diagnostics.handleProblem(new Problem(
+					moduleName(),
+					pragmaToken.lineNumber(),
+					pragmaToken.start(),
+					PARSE,
+					"Expected lexer pragma to have the form "
+						+ "{0}=filterPrim,bodyPrim=lexerName",
+					PRAGMA_LEXER.lexemeJavaString)
+				{
+					@Override
+					public void abortCompilation ()
+					{
+						failure.value();
+					}
+				});
+			return;
+		}
+		try
+		{
+			bootstrapLexerThen(
+				state,
+				pragmaToken,
+				lexerName,
+				filterPrimitiveName,
+				bodyPrimitiveName,
+				success,
+				failure);
+		}
+		catch (final MalformedPragmaException e)
+		{
+			compilationContext.diagnostics.handleProblem(new Problem(
+					moduleName(),
+					pragmaToken.lineNumber(),
+					pragmaToken.start(),
+					PARSE,
+					e.problem(),
+					PRAGMA_LEXER.lexemeJavaString)
+				{
+					@Override
+					public void abortCompilation ()
+					{
+						failure.value();
+					}
+				});
+		}
+	}
+
+	/**
 	 * Apply any pragmas detected during the parse of the {@linkplain
 	 * ModuleHeader module header}.
 	 *
@@ -6643,7 +6061,11 @@ public final class AvailCompiler
 		final Continuation0 failure)
 	{
 		// Report pragma installation problems relative to the pragma section.
-		recordExpectationsRelativeTo(moduleHeader().pragmaStart);
+		final A_Token pragmaToken = moduleHeader().pragmaToken;
+		if (pragmaToken != null)
+		{
+			recordExpectationsRelativeTo(pragmaToken.start());
+		}
 		final Iterator<A_Token> iterator = moduleHeader().pragmas.iterator();
 		final MutableOrNull<Continuation0> body = new MutableOrNull<>();
 		final Continuation0 next = new Continuation0()
@@ -6651,7 +6073,9 @@ public final class AvailCompiler
 			@Override
 			public void value ()
 			{
-				eventuallyDo(state.peekToken(), body.value());
+				compilationContext.eventuallyDo(
+					state.peekToken(),
+					body.value());
 			}
 		};
 		body.value = new Continuation0()
@@ -6673,7 +6097,7 @@ public final class AvailCompiler
 				final String[] pragmaParts = nativeString.split("=", 2);
 				if (pragmaParts.length != 2)
 				{
-					reportError(
+					compilationContext.diagnostics.reportError(
 						pragmaToken,
 						"Malformed pragma at %s on line %d:",
 						"Pragma should have the form key=value",
@@ -6682,47 +6106,80 @@ public final class AvailCompiler
 				}
 				final String pragmaKind = pragmaParts[0].trim();
 				final String pragmaValue = pragmaParts[1].trim();
-				switch (pragmaKind)
+				try
 				{
-					case "check":
-						assert pragmaKind.equals(
-							PRAGMA_CHECK.lexemeJavaString);
-						applyCheckPragmaThen(
-							pragmaToken, pragmaValue, state, next, failure);
-						break;
-					case "method":
-						assert pragmaKind.equals(
-							PRAGMA_METHOD.lexemeJavaString);
-						applyMethodPragmaThen(
-							pragmaToken, pragmaValue, state, next, failure);
-						break;
-					case "macro":
-						assert pragmaKind.equals(PRAGMA_MACRO.lexemeJavaString);
-						applyMacroPragmaThen(
-							pragmaToken, pragmaValue, state, next, failure);
-						break;
-					case "stringify":
-						assert pragmaKind.equals(
-							PRAGMA_STRINGIFY.lexemeJavaString);
-						applyStringifyPragmaThen(
-							pragmaToken, pragmaValue, state, next, failure);
-						break;
-					default:
-						reportError(
-							pragmaToken,
-							"Malformed pragma at %s on line %d:",
-							String.format(
-								"Pragma key should be one of %s, %s, %s, or %s",
-								PRAGMA_CHECK.lexemeJavaString,
-								PRAGMA_METHOD.lexemeJavaString,
-								PRAGMA_MACRO.lexemeJavaString,
-								PRAGMA_STRINGIFY.lexemeJavaString),
-							failure);
-						return;
+					switch (pragmaKind)
+					{
+						case "check":
+						{
+							assert pragmaKind.equals(
+								PRAGMA_CHECK.lexemeJavaString);
+							applyCheckPragmaThen(
+								pragmaToken, pragmaValue, state, next, failure);
+							break;
+						}
+						case "method":
+						{
+							assert pragmaKind.equals(
+								PRAGMA_METHOD.lexemeJavaString);
+							applyMethodPragmaThen(
+								pragmaToken, pragmaValue, state, next, failure);
+							break;
+						}
+						case "macro":
+						{
+							assert pragmaKind.equals(
+								PRAGMA_MACRO.lexemeJavaString);
+							applyMacroPragmaThen(
+								pragmaToken, pragmaValue, state, next, failure);
+							break;
+						}
+						case "stringify":
+						{
+							assert pragmaKind.equals(
+								PRAGMA_STRINGIFY.lexemeJavaString);
+							applyStringifyPragmaThen(
+								pragmaToken, pragmaValue, state, next, failure);
+							break;
+						}
+						case "lexer":
+						{
+							assert pragmaKind.equals(
+								PRAGMA_LEXER.lexemeJavaString);
+							applyLexerPragmaThen(
+								pragmaToken, pragmaValue, state, next, failure);
+							break;
+						}
+						default:
+							compilationContext.diagnostics.reportError(
+								pragmaToken,
+								"Malformed pragma at %s on line %d:",
+								String.format(
+									"Pragma key should be one of "
+										+ "%s, %s, %s, %s, or %s",
+									PRAGMA_CHECK.lexemeJavaString,
+									PRAGMA_METHOD.lexemeJavaString,
+									PRAGMA_MACRO.lexemeJavaString,
+									PRAGMA_STRINGIFY.lexemeJavaString,
+									PRAGMA_LEXER.lexemeJavaString),
+								failure);
+							return;
+					}
+				}
+				catch (MalformedPragmaException e)
+				{
+					compilationContext.diagnostics.reportError(
+						pragmaToken,
+						"Malformed pragma at %s on line %d:",
+						String.format(
+							"Malformed pragma: %s",
+							e.problem()),
+						failure);
+					return;
 				}
 			}
 		};
-		loader().setPhase(EXECUTING);
+		compilationContext.loader().setPhase(EXECUTING);
 		next.value();
 	}
 
@@ -6740,33 +6197,35 @@ public final class AvailCompiler
 		final ParserState afterHeader = parseModuleHeader(false);
 		if (afterHeader == null)
 		{
-			reportError(afterFail);
+			compilationContext.diagnostics.reportError(afterFail);
 			return;
 		}
 		// Update the reporter. This condition just prevents the reporter from
 		// being called twice at the end of a file.
 		if (!afterHeader.atEnd())
 		{
-			progressReporter.value(
+			compilationContext.getProgressReporter().value(
 				moduleName(),
-				(long) source.length(),
+				(long) source().length(),
 				(long) afterHeader.peekToken().start());
 		}
 		// Run any side-effects implied by this module header against the
 		// module.
 		final String errorString =
-			moduleHeader().applyToModule(module, runtime);
+			moduleHeader().applyToModule(
+				compilationContext.getModule(),
+				runtime);
 		if (errorString != null)
 		{
-			progressReporter.value(
+			compilationContext.getProgressReporter().value(
 				moduleName(),
-				(long) source.length(),
-				(long) source.length());
+				(long) source().length(),
+				(long) source().length());
 			afterHeader.expected(errorString);
-			reportError(afterFail);
+			compilationContext.diagnostics.reportError(afterFail);
 			return;
 		}
-		loader().createFilteredBundleTree();
+		compilationContext.loader().createFilteredBundleTree();
 		applyPragmasThen(
 			afterHeader,
 			new Continuation0()
@@ -6777,7 +6236,7 @@ public final class AvailCompiler
 					// Parse the body of the module.
 					if (!afterHeader.atEnd())
 					{
-						eventuallyDo(
+						compilationContext.eventuallyDo(
 							afterHeader.peekToken(),
 							new Continuation0()
 							{
@@ -6791,7 +6250,8 @@ public final class AvailCompiler
 					}
 					else
 					{
-						final Continuation0 reporter = successReporter;
+						final Continuation0 reporter =
+							compilationContext.getSuccessReporter();
 						assert reporter != null;
 						reporter.value();
 					}
@@ -6815,22 +6275,23 @@ public final class AvailCompiler
 		final ParserState start,
 		final Continuation0 afterFail)
 	{
-		loader().setPhase(COMPILING);
-		recordExpectationsRelativeTo(start.position);
+		compilationContext.loader().setPhase(COMPILING);
 		parseOutermostStatement(
 			start,
-			new Con<A_Phrase>(null)
+			new Con<CompilerSolution>(null)
 			{
 				@Override
 				public void valueNotNull (
-					final ParserState afterStatement,
-					final A_Phrase unambiguousStatement)
+					final CompilerSolution solution)
 				{
 					// The counters must be read in this order for correctness.
-					assert workUnitsCompleted.get() == workUnitsQueued.get();
+					assert compilationContext.getWorkUnitsCompleted().get()
+						== compilationContext.getWorkUnitsQueued().get();
 
 					// In case the top level statement is compound, process the
 					// base statements individually.
+					final ParserState afterStatement = solution.endState();
+					final A_Phrase unambiguousStatement = solution.parseNode();
 					final List<A_Phrase> simpleStatements = new ArrayList<>();
 					unambiguousStatement.statementsDo(
 						new Continuation1<A_Phrase>()
@@ -6875,11 +6336,11 @@ public final class AvailCompiler
 								return;
 							}
 							// Not the end; report progress.
-							progressReporter.value(
+							compilationContext.getProgressReporter().value(
 								moduleName(),
-								(long) source.length(),
+								(long) source().length(),
 								(long) afterStatement.peekToken().start());
-							eventuallyDo(
+							compilationContext.eventuallyDo(
 								afterStatement.peekToken(),
 								new Continuation0()
 								{
@@ -6889,6 +6350,7 @@ public final class AvailCompiler
 										parseAndExecuteOutermostStatements(
 											new ParserState(
 												afterStatement.position,
+												afterStatement.tokenIndex,
 												start.clientDataMap),
 											afterFail);
 									}
@@ -6921,7 +6383,7 @@ public final class AvailCompiler
 					};
 
 					// Kick off execution of these simple statements.
-					loader().setPhase(EXECUTING);
+					compilationContext.loader().setPhase(EXECUTING);
 					executeSimpleStatement.value().value();
 				}
 			},
@@ -6938,7 +6400,7 @@ public final class AvailCompiler
 		final ParserState afterModule,
 		final Continuation0 afterFail)
 	{
-		final AvailLoader theLoader = loader();
+		final AvailLoader theLoader = compilationContext.loader();
 		if (theLoader.pendingForwards.setSize() != 0)
 		{
 			@SuppressWarnings("resource")
@@ -6949,7 +6411,7 @@ public final class AvailCompiler
 				formatter.format("%n\t%s", forward);
 			}
 			afterModule.expected(formatter.toString());
-			reportError(afterFail);
+			compilationContext.diagnostics.reportError(afterFail);
 			return;
 		}
 		// Clear the section of the fragment cache
@@ -6959,7 +6421,7 @@ public final class AvailCompiler
 		{
 			fragmentCache.clear();
 		}
-		final Continuation0 reporter = successReporter;
+		final Continuation0 reporter = compilationContext.getSuccessReporter();
 		assert reporter != null;
 		reporter.value();
 	}
@@ -6967,35 +6429,17 @@ public final class AvailCompiler
 	/**
 	 * Clear any information about potential problems encountered during
 	 * parsing.  Reset the problem information to record relative to the
-	 * provided zero-based token number.
+	 * provided one-based source position.
 	 *
-	 * @param firstTokenIndex
-	 *        The earliest token index for which we should record problem
+	 * @param positionInSource
+	 *        The earliest source position for which we should record problem
 	 *        information.
 	 */
 	@InnerAccess synchronized void recordExpectationsRelativeTo (
-		final int firstTokenIndex)
+		final int positionInSource)
 	{
-		firstExpectation = firstTokenIndex;
-		greatestGuess = firstTokenIndex - 1;
-		greatExpectations.clear();
+		compilationContext.diagnostics.startParsingAt(positionInSource);
 	}
-
-	/**
-	 * The {@linkplain CompilerProgressReporter} that reports compilation
-	 * progress at various checkpoints. It accepts the {@linkplain
-	 * ResolvedModuleName name} of the {@linkplain ModuleDescriptor module}
-	 * undergoing {@linkplain AvailCompiler compilation}, the line
-	 * number on which the last complete statement concluded, the position of
-	 * the ongoing parse (in bytes), and the size of the module (in bytes).
-	 */
-	@InnerAccess volatile CompilerProgressReporter progressReporter;
-
-	/**
-	 * The {@linkplain Continuation1 continuation} that reports success of
-	 * compilation.
-	 */
-	@InnerAccess volatile @Nullable Continuation0 successReporter;
 
 	/**
 	 * Parse a {@linkplain ModuleHeader module header} from the {@linkplain
@@ -7012,14 +6456,14 @@ public final class AvailCompiler
 		final Continuation1<ModuleHeader> onSuccess,
 		final Continuation0 afterFail)
 	{
-		recordExpectationsRelativeTo(0);
+		recordExpectationsRelativeTo(1);
 		if (parseModuleHeader(true) != null)
 		{
 			onSuccess.value(moduleHeader());
 		}
 		else
 		{
-			reportError(afterFail);
+			compilationContext.diagnostics.reportError(afterFail);
 		}
 	}
 
@@ -7039,7 +6483,7 @@ public final class AvailCompiler
 		final Continuation1<AvailCompilerResult> succeed,
 		final Continuation0 afterFail)
 	{
-		successReporter = new Continuation0()
+		compilationContext.setSuccessReporter(new Continuation0()
 		{
 			@Override
 			public void value ()
@@ -7047,11 +6491,13 @@ public final class AvailCompiler
 				serializePublicationFunction(true);
 				serializePublicationFunction(false);
 				commitModuleTransaction();
-				succeed.value(new AvailCompilerResult(module, commentTokens));
+				succeed.value(new AvailCompilerResult(
+					compilationContext.getModule(),
+					commentTokens));
 			}
-		};
+		});
 		startModuleTransaction();
-		eventuallyDo(
+		compilationContext.eventuallyDo(
 			TokenDescriptor.createSyntheticStart(),
 			new Continuation0()
 			{
@@ -7077,7 +6523,7 @@ public final class AvailCompiler
 	 *
 	 * @param succeed
 	 *        What to do after compilation succeeds. This {@linkplain
-	 *        Continuation1 continuation} is invoked with a {@linkplain List
+	 *        Continuation2 continuation} is invoked with a {@linkplain List
 	 *        list} of {@link A_Phrase phrases} that represent the possible
 	 *        solutions of compiling the command and a {@linkplain Continuation1
 	 *        continuation} that cleans up this compiler and its module (and
@@ -7087,37 +6533,39 @@ public final class AvailCompiler
 	 *        What to do after compilation fails.
 	 */
 	public synchronized void parseCommand (
-		final Continuation2<
-			List<A_Phrase>,
-			Continuation1<Continuation0>> succeed,
+		final Continuation2<List<A_Phrase>, Continuation1<Continuation0>>
+			succeed,
 		final Continuation0 afterFail)
 	{
 		// The counters must be read in this order for correctness.
-		assert workUnitsCompleted.get() == 0 && workUnitsQueued.get() == 0;
+		assert compilationContext.getWorkUnitsCompleted().get() == 0
+			&& compilationContext.getWorkUnitsQueued().get() == 0;
 		// Start a module transaction, just to complete any necessary
 		// initialization. We are going to rollback this transaction no matter
 		// what happens.
 		startModuleTransaction();
-		loader().createFilteredBundleTree();
+		compilationContext.loader().createFilteredBundleTree();
 		final List<A_Phrase> solutions = new ArrayList<>();
-		noMoreWorkUnits = new Continuation0()
+		compilationContext.setNoMoreWorkUnits(new Continuation0()
 		{
 			@Override
 			public void value ()
 			{
 				// The counters must be read in this order for correctness.
-				assert workUnitsCompleted.get() == workUnitsQueued.get();
+				assert compilationContext.getWorkUnitsCompleted().get()
+					== compilationContext.getWorkUnitsQueued().get();
 				// If no solutions were found, then report an error.
 				if (solutions.isEmpty())
 				{
-					reportError(new Continuation0()
-					{
-						@Override
-						public void value ()
+					compilationContext.diagnostics.reportError(
+						new Continuation0()
 						{
-							rollbackModuleTransaction(afterFail);
-						}
-					});
+							@Override
+							public void value ()
+							{
+								rollbackModuleTransaction(afterFail);
+							}
+						});
 					return;
 				}
 				succeed.value(
@@ -7133,8 +6581,9 @@ public final class AvailCompiler
 						}
 					});
 			}
-		};
-		eventuallyDo(
+		});
+		recordExpectationsRelativeTo(1);
+		compilationContext.eventuallyDo(
 			TokenDescriptor.createSyntheticStart(),
 			new Continuation0()
 			{
@@ -7148,14 +6597,17 @@ public final class AvailCompiler
 						allTokensKey(), TupleDescriptor.empty(), true);
 					// Rollback the module transaction no matter what happens.
 					parseExpressionThen(
-						new ParserState(0, clientData),
-						new Con<A_Phrase>(null)
+						new ParserState(1, 1, clientData),
+						new Con<CompilerSolution>(null)
 						{
 							@Override
 							public void valueNotNull (
-								final ParserState afterExpression,
-								final A_Phrase expression)
+								final CompilerSolution solution)
 							{
+								final A_Phrase expression =
+									solution.parseNode();
+								final ParserState afterExpression =
+									solution.endState();
 								if (expression.hasSuperCast())
 								{
 									afterExpression.expected(
@@ -7204,9 +6656,9 @@ public final class AvailCompiler
 			compilerScopeMapKey(), MapDescriptor.empty(), true);
 		clientData = clientData.mapAtPuttingCanDestroy(
 			allTokensKey(), TupleDescriptor.empty(), true);
-		ParserState state = new ParserState(0, clientData);
+		ParserState state = new ParserState(1, 1, clientData);
 
-		recordExpectationsRelativeTo(0);
+		recordExpectationsRelativeTo(1);
 
 		if (!state.peekToken(ExpectedToken.MODULE, "Module keyword"))
 		{
@@ -7347,7 +6799,7 @@ public final class AvailCompiler
 			{
 				// Keep track of where the pragma section starts so that when we
 				// actually perform them, we can report on just that section.
-				moduleHeader().pragmaStart  = firstExpectation;
+				moduleHeader().pragmaToken = token;
 				state = parseStringLiteralTokens(state, moduleHeader().pragmas);
 			}
 			// If the parser state is now null, then fail the parse.
@@ -7379,7 +6831,7 @@ public final class AvailCompiler
 	 */
 	@InnerAccess void parseExpressionThen (
 		final ParserState start,
-		final Con<A_Phrase> originalContinuation)
+		final Con<CompilerSolution> originalContinuation)
 	{
 		synchronized (fragmentCache)
 		{
@@ -7402,43 +6854,49 @@ public final class AvailCompiler
 					}
 				});
 				fragmentCache.indicateParsingHasStartedAt(start);
-				final Con<A_Phrase> action = new Con<A_Phrase>(
-					originalContinuation.superexpressions)
-				{
-					@Override
-					public void valueNotNull (
-						final ParserState afterExpr,
-						final A_Phrase expr)
+				final Con<CompilerSolution> action =
+					new Con<CompilerSolution>(
+						originalContinuation.superexpressions)
 					{
-						try
+						@Override
+						public void valueNotNull (
+							final CompilerSolution solution)
 						{
-							synchronized (fragmentCache)
+							try
 							{
-								fragmentCache.addSolution(
-									start, afterExpr, expr);
+								synchronized (fragmentCache)
+								{
+									fragmentCache.addSolution(
+										start, solution);
+								}
+							}
+							catch (final DuplicateSolutionException e)
+							{
+								final A_Token tokenAfter =
+									solution.endState().peekToken();
+								compilationContext.diagnostics.handleProblem(
+									new Problem(
+										moduleName(),
+										tokenAfter.lineNumber(),
+										tokenAfter.start(),
+										INTERNAL,
+										"Duplicate expressions were parsed at "
+											+ "the same position "
+											+ "(line {0}): {1}",
+										start.peekToken().lineNumber(),
+										solution.parseNode())
+									{
+										@Override
+										public void abortCompilation ()
+										{
+											compilationContext.diagnostics
+												.isShuttingDown = true;
+										}
+									});
 							}
 						}
-						catch (final DuplicateSolutionException e)
-						{
-							handleProblem(new Problem(
-								moduleName(),
-								afterExpr.peekToken(),
-								INTERNAL,
-								"Duplicate expressions were parsed at the same "
-									+ "position (line {0}): {1}",
-								start.peekToken().lineNumber(),
-								expr)
-							{
-								@Override
-								public void abortCompilation ()
-								{
-									isShuttingDown = true;
-								}
-							});
-						}
-					}
-				};
-				workUnitDo(
+					};
+				compilationContext.workUnitDo(
 					new Continuation0()
 					{
 						@Override
@@ -7449,7 +6907,7 @@ public final class AvailCompiler
 					},
 					start);
 			}
-			workUnitDo(
+			compilationContext.workUnitDo(
 				new Continuation0()
 				{
 					@Override
@@ -7482,7 +6940,7 @@ public final class AvailCompiler
 	 */
 	@InnerAccess void parseOutermostStatement (
 		final ParserState start,
-		final Con<A_Phrase> continuation,
+		final Con<CompilerSolution> continuation,
 		final Continuation0 afterFail)
 	{
 		// If a parsing error happens during parsing of this outermost
@@ -7490,27 +6948,30 @@ public final class AvailCompiler
 		recordExpectationsRelativeTo(start.position);
 		tryIfUnambiguousThen(
 			start,
-			new Con<Con<A_Phrase>>(null)
+			new Continuation1<Con<CompilerSolution>>()
 			{
 				@Override
-				public void valueNotNull (
-					final ParserState realStart,
-					final Con<A_Phrase> whenFoundStatement)
+				public void value (
+					final Con<CompilerSolution> whenFoundStatement)
 				{
 					parseExpressionThen(
-						realStart,
-						new Con<A_Phrase>(null)
+						start,
+						new Con<CompilerSolution>(null)
 						{
 							@Override
 							public void valueNotNull (
-								final ParserState afterExpression,
-								final A_Phrase expression)
+								final CompilerSolution solution)
 							{
+								final A_Phrase expression =
+									solution.parseNode();
+								final ParserState afterExpression =
+									solution.endState();
 								if (expression.parseNodeKindIsUnder(
 									STATEMENT_NODE))
 								{
 									whenFoundStatement.value(
-										afterExpression, expression);
+										new CompilerSolution(
+											afterExpression, expression));
 									return;
 								}
 								afterExpression.expected(
@@ -7537,20 +6998,22 @@ public final class AvailCompiler
 	 */
 	@InnerAccess void parseExpressionUncachedThen (
 		final ParserState start,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
-		final Con<A_Phrase> newContinuation = new Con<A_Phrase>(
-			continuation.superexpressions)
-		{
-			@Override
-			public void valueNotNull (
-				final ParserState afterSubexpression,
-				final A_Phrase subexpression)
+		final Con<CompilerSolution> newContinuation =
+			new Con<CompilerSolution>(continuation.superexpressions)
 			{
-				parseOptionalLeadingArgumentSendAfterThen(
-					start, afterSubexpression, subexpression, continuation);
-			}
-		};
+				@Override
+				public void valueNotNull (
+					final CompilerSolution solution)
+				{
+					parseOptionalLeadingArgumentSendAfterThen(
+						start,
+						solution.endState(),
+						solution.parseNode(),
+						continuation);
+				}
+			};
 		parseLeadingKeywordSendThen(start, newContinuation);
 	}
 
@@ -7600,9 +7063,9 @@ public final class AvailCompiler
 		final boolean consumedAnything,
 		final List<A_Phrase> argsSoFar,
 		final List<Integer> marksSoFar,
-		final Con<A_Phrase> continuation)
+		final Con<CompilerSolution> continuation)
 	{
-		workUnitDo(
+		compilationContext.workUnitDo(
 			new Continuation0()
 			{
 				@Override
@@ -7661,185 +7124,6 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * Handle a {@link Problem} via the provided {@link ProblemHandler}.
-	 *
-	 * @param problem The problem to handle.
-	 * @param handler The handler which should handle the problem.
-	 */
-	@InnerAccess static void handleProblem (
-		final Problem problem,
-		final ProblemHandler handler)
-	{
-		handler.handle(problem);
-	}
-
-	/**
-	 * Handle a {@linkplain Problem problem} via the {@linkplain #problemHandler
-	 * problem handler}.
-	 *
-	 * @param problem
-	 *        The problem to handle.
-	 */
-	@InnerAccess void handleProblem (final Problem problem)
-	{
-		handleProblem(problem, problemHandler);
-	}
-
-	/**
-	 * Report an {@linkplain ProblemType#INTERNAL internal} {@linkplain
-	 * Problem problem}.
-	 *
-	 * @param token
-	 *        The {@linkplain A_Token token} that provides context to the
-	 *        problem.
-	 * @param e
-	 *        The unexpected {@linkplain Throwable exception} that is the
-	 *        proximal cause of the problem.
-	 */
-	@InnerAccess void reportInternalProblem (
-		final A_Token token,
-		final Throwable e)
-	{
-		isShuttingDown = true;
-		compilationIsInvalid = true;
-		final CharArrayWriter trace = new CharArrayWriter();
-		e.printStackTrace(new PrintWriter(trace));
-		final Problem problem = new Problem(
-			moduleName(),
-			token.lineNumber(),
-			token.start(),
-			INTERNAL,
-			"Internal error: {0}\n{1}",
-			e.getMessage(),
-			trace)
-		{
-			@Override
-			protected void abortCompilation ()
-			{
-				isShuttingDown = true;
-			}
-		};
-		handleProblem(problem, problemHandler);
-	}
-
-	/**
-	 * Report an {@linkplain ProblemType#EXECUTION execution} {@linkplain
-	 * Problem problem}.
-	 *
-	 * @param token
-	 *        The {@linkplain A_Token token} that provides context to the
-	 *        problem.
-	 * @param e
-	 *        The unexpected {@linkplain Throwable exception} that is the
-	 *        proximal cause of the problem.
-	 */
-	@InnerAccess void reportExecutionProblem (
-		final A_Token token,
-		final Throwable e)
-	{
-		compilationIsInvalid = true;
-		if (e instanceof FiberTerminationException)
-		{
-			handleProblem(new Problem(
-				moduleName(),
-				token.lineNumber(),
-				token.start(),
-				EXECUTION,
-				"Execution error: Avail stack reported above.\n")
-			{
-				@Override
-				public void abortCompilation ()
-				{
-					isShuttingDown = true;
-				}
-			});
-		}
-		else
-		{
-			final CharArrayWriter trace = new CharArrayWriter();
-			e.printStackTrace(new PrintWriter(trace));
-			handleProblem(new Problem(
-				moduleName(),
-				token.lineNumber(),
-				token.start(),
-				EXECUTION,
-				"Execution error: {0}\n{1}",
-				e.getMessage(),
-				trace)
-			{
-				@Override
-				public void abortCompilation ()
-				{
-					isShuttingDown = true;
-				}
-			});
-		}
-	}
-
-	/**
-	 * Report an {@linkplain ProblemType#EXECUTION assertion failure}
-	 * {@linkplain Problem problem}.
-	 *
-	 * @param token
-	 *        The {@linkplain A_Token token} that provides context to the
-	 *        problem.
-	 * @param e
-	 *        The {@linkplain AvailAssertionFailedException assertion failure}.
-	 */
-	@InnerAccess void reportAssertionFailureProblem (
-		final A_Token token,
-		final AvailAssertionFailedException e)
-	{
-		compilationIsInvalid = true;
-		handleProblem(new Problem(
-			moduleName(),
-			token.lineNumber(),
-			token.start(),
-			EXECUTION,
-			"{0}",
-			e.getMessage())
-		{
-			@Override
-			public void abortCompilation ()
-			{
-				isShuttingDown = true;
-			}
-		});
-	}
-
-	/**
-	 * Report an {@linkplain ProblemType#EXECUTION emergency exit}
-	 * {@linkplain Problem problem}.
-	 *
-	 * @param token
-	 *        The {@linkplain A_Token token} that provides context to the
-	 *        problem.
-	 * @param e
-	 *        The {@linkplain AvailEmergencyExitException emergency exit
-	 *        failure}.
-	 */
-	@InnerAccess void reportEmergencyExitProblem (
-		final A_Token token,
-		final AvailEmergencyExitException e)
-	{
-		compilationIsInvalid = true;
-		handleProblem(new Problem(
-			moduleName(),
-			token.lineNumber(),
-			token.start(),
-			EXECUTION,
-			"{0}",
-			e.getMessage())
-		{
-			@Override
-			public void abortCompilation ()
-			{
-				isShuttingDown = true;
-			}
-		});
-	}
-
-	/**
 	 * Serialize a function that will publish all atoms that are currently
 	 * public in the module.
 	 *
@@ -7851,7 +7135,8 @@ public final class AvailCompiler
 	{
 		// Output a function that publishes the initial public set of atoms.
 		final A_Map sourceNames =
-			isPublic ? module.importedNames() : module.privateNames();
+			isPublic ? compilationContext.getModule().importedNames() : compilationContext
+				.getModule().privateNames();
 		A_Set names = SetDescriptor.empty();
 		for (final MapDescriptor.Entry entry : sourceNames.mapIterable())
 		{
@@ -7868,11 +7153,12 @@ public final class AvailCompiler
 						AtomDescriptor.objectFromBoolean(isPublic)))),
 			TOP.o());
 		final A_Function function =
-			FunctionDescriptor.createFunctionForPhrase(send, module, 0);
+			FunctionDescriptor.createFunctionForPhrase(send,
+				compilationContext.getModule(), 0);
 		function.makeImmutable();
 		synchronized (this)
 		{
-			serializer.serialize(function);
+			compilationContext.serializer.serialize(function);
 		}
 	}
 }

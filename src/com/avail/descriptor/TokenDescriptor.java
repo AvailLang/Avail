@@ -360,7 +360,7 @@ extends Descriptor
 	 * @param lineNumber
 	 *        The line number on which the token occurred.
 	 * @param tokenIndex
-	 *        The zero-based token number within the source file.  -1 for
+	 *        The zero-based token number within the source file.  Zero for
 	 *        synthetic tokens.
 	 * @param tokenType
 	 *        The type of token to create.

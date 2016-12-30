@@ -75,6 +75,7 @@ import java.util.WeakHashMap;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.LEXER;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
 
 /**
@@ -206,7 +207,13 @@ extends Descriptor
 		 * supplied argument types.  A {@linkplain NilDescriptor#nil() nil}
 		 * indicates the tree has not yet been constructed.
 		 */
-		MACRO_TESTING_TREE;
+		MACRO_TESTING_TREE,
+
+		/**
+		 * The method's {@linkplain A_Lexer lexer} or {@link NilDescriptor#nil()
+		 * nil}.
+		 */
+		LEXER_OR_NIL;
 	}
 
 	/**
@@ -214,8 +221,8 @@ extends Descriptor
 	 * LookupTree}s that implement runtime dispatching.  Also used for looking
 	 * up macros.
 	 *
-	 * @see MethodDescriptor.ObjectSlots#PRIVATE_TESTING_TREE
-	 * @see MethodDescriptor.ObjectSlots#MACRO_TESTING_TREE
+	 * @see ObjectSlots#PRIVATE_TESTING_TREE
+	 * @see ObjectSlots#MACRO_TESTING_TREE
 	 */
 	public final static LookupTreeAdaptor<A_Definition, A_Tuple, Void>
 		runtimeDispatcher = new LookupTreeAdaptor<A_Definition, A_Tuple, Void>()
@@ -780,6 +787,17 @@ extends Descriptor
 	}
 
 	@Override
+	void o_SetLexer (
+		final AvailObject object, final A_Lexer lexer)
+	{
+		synchronized (object)
+		{
+			object.setSlot(LEXER_OR_NIL, lexer);
+		}
+		super.o_SetLexer(object, lexer);
+	}
+
+	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
@@ -855,6 +873,7 @@ extends Descriptor
 		result.setSlot(
 			MACRO_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(macrosTree).makeShared());
+		result.setSlot(LEXER_OR_NIL, NilDescriptor.nil());
 		result.makeShared();
 		return result;
 	}
@@ -962,7 +981,7 @@ extends Descriptor
 		return mutable;
 	}
 
-	/** The immutable {@link MethodDescriptor}. */
+	/** The shared {@link MethodDescriptor}. */
 	private static final MethodDescriptor shared =
 		new MethodDescriptor(Mutability.SHARED);
 
@@ -1054,6 +1073,11 @@ extends Descriptor
 			"vm grammatical restriction_is_",
 			P_GrammaticalRestrictionFromAtoms.instance),
 
+		/** The special atom for defining lexers. */
+		LEXER_DEFINER(
+			"vm lexer_filter is_body is_",
+			P_SimpleLexerDefinitionForAtom.instance),
+
 		/** The special atom for defining macros. */
 		MACRO_DEFINER(
 			"vm macro_is«_,»_",
@@ -1134,12 +1158,14 @@ extends Descriptor
 			final A_Method method = bundle.bundleMethod();
 			for (final Primitive primitive : primitives)
 			{
-				final A_Function function = FunctionDescriptor.newPrimitiveFunction(
-					primitive, NilDescriptor.nil(), 0);
-				final A_Definition definition = MethodDefinitionDescriptor.create(
-					method,
-					NilDescriptor.nil(),  // System definitions have no module.
-					function);
+				final A_Function function =
+					FunctionDescriptor.newPrimitiveFunction(
+						primitive, NilDescriptor.nil(), 0);
+				final A_Definition definition =
+					MethodDefinitionDescriptor.create(
+						method,
+						NilDescriptor.nil(),  // System defs have no module.
+						function);
 				try
 				{
 					method.methodAddDefinition(definition);

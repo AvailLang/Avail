@@ -142,37 +142,6 @@ public abstract class Problem
 	}
 
 	/**
-	 * Construct a new {@link Problem}.
-	 *
-	 * @param moduleName
-	 *        The name of the module in which the problem was encountered.
-	 * @param token
-	 *        The {@linkplain TokenDescriptor token} at or near which the
-	 *        problem occurred.
-	 * @param type
-	 *        The {@link ProblemType} that classifies this problem.
-	 * @param messagePattern
-	 *        A {@link String} complying with the {@link MessageFormat}
-	 *        pattern specification.
-	 * @param arguments
-	 *        The arguments with which to parameterize the messagePattern.
-	 */
-	public Problem (
-		final ModuleName moduleName,
-		final A_Token token,
-		final ProblemType type,
-		final String messagePattern,
-		final Object... arguments)
-	{
-		this.moduleName = moduleName;
-		this.lineNumber = token.lineNumber();
-		this.characterInFile = token.start();
-		this.type = type;
-		this.messagePattern = messagePattern;
-		this.arguments = arguments;
-	}
-
-	/**
 	 * Report this problem to the {@link ProblemHandler handler}. Answer
 	 * whether an attempt should be made to continue parsing past this problem.
 	 *

@@ -16,6 +16,7 @@
       <w>homogenous</w>
       <w>idempotently</w>
       <w>iterable</w>
+      <w>lexing</w>
       <w>metacharacter</w>
       <w>metatype</w>
       <w>multimethods</w>
@@ -27,6 +28,7 @@
       <w>opcode</w>
       <w>parameterized</w>
       <w>pojo</w>
+      <w>pragmas</w>
       <w>prefilter</w>
       <w>prequalified</w>
       <w>pseudorandom</w>
@@ -38,6 +40,7 @@
       <w>reoptimize</w>
       <w>reoptimizing</w>
       <w>shareds</w>
+      <w>stringified</w>
       <w>stringifier</w>
       <w>subclassing</w>
       <w>subcomponents</w>
@@ -56,8 +59,10 @@
       <w>supercast</w>
       <w>supercasts</w>
       <w>superexpressions</w>
+      <w>tokenization</w>
       <w>tokenized</w>
       <w>tuples</w>
+      <w>uncached</w>
       <w>unregister</w>
       <w>unsummarized</w>
     </words>

@@ -48,11 +48,194 @@ public interface A_Module
 extends A_BasicObject
 {
 	/**
+	 * @param moreAncestors
+	 */
+	void addAncestors (A_Set moreAncestors);
+
+	/**
+	 * @param name
+	 * @param constantBinding
+	 */
+	void addConstantBinding (
+		A_String name,
+		A_Variable constantBinding);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void addEntryPoint (A_String stringName, A_Atom trueName);
+
+	/**
+	 * @param trueName
+	 */
+	void addImportedName (A_Atom trueName);
+
+	/**
+	 * @param lexer
+	 */
+	void addLexer (A_Lexer lexer);
+
+	/**
+	 * @param trueName
+	 */
+	void addPrivateName (A_Atom trueName);
+
+	/**
+	 * @param trueNames
+	 */
+	void addPrivateNames (A_Set trueNames);
+
+	/**
+	 * @param methodName
+	 * @param sealSignature
+	 */
+	void addSeal (
+		A_Atom methodName,
+		A_Tuple sealSignature);
+
+	/**
+	 * Add the specified {@linkplain A_Function function} to the {@linkplain
+	 * A_Tuple tuple} of functions that should be applied when the {@linkplain
+	 * A_Module module} is unloaded.
+	 *
+	 * @param unloadFunction
+	 *        A function.
+	 */
+	void addUnloadFunction (A_Function unloadFunction);
+
+	/**
+	 * @param name
+	 * @param variableBinding
+	 */
+	void addVariableBinding (
+		A_String name,
+		A_Variable variableBinding);
+
+	/**
+	 * Return the set of all ancestor modules of this module.  Include this
+	 * module in the set.
+	 *
+	 * @return The set of all ancestors of this module, including itself.
+	 */
+	A_Set allAncestors ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_BundleTree buildFilteredBundleTree ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Map constantBindings ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Map entryPoints ();
+
+	/**
+	 * Answer the {@linkplain A_Set set} of all {@linkplain A_Atom names}
+	 * exported by this {@linkplain A_Module module}.
+	 *
+	 * @return The set of exported names.
+	 */
+	A_Set exportedNames ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Map importedNames ();
+
+	/**
+	 * @param trueName
+	 */
+	void introduceNewName (A_Atom trueName);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Set methodDefinitions ();
+
+	/**
+	 * @param definition
+	 */
+	void moduleAddDefinition (A_BasicObject definition);
+
+	/**
+	 * @param grammaticalRestriction
+	 */
+	void moduleAddGrammaticalRestriction (
+		A_GrammaticalRestriction grammaticalRestriction);
+
+	/**
+	 * @param semanticRestriction
+	 */
+	void moduleAddSemanticRestriction (
+		A_SemanticRestriction semanticRestriction);
+
+	/**
 	 * Answer the name of this module.
 	 *
 	 * @return A {@linkplain StringDescriptor string} naming this module.
 	 */
 	A_String moduleName ();
+
+	/**
+	 * Answer this {@link A_Module}'s {@linkplain A_Set} of {@link
+	 * A_GrammaticalRestriction}s.
+	 *
+	 * @returns The set of grammatical restrictions defined by this module.
+	 */
+	A_Set moduleGrammaticalRestrictions ();
+
+	/**
+	 * Answer this {@link A_Module}'s {@linkplain A_Set} of {@linkplain
+	 * A_SemanticRestriction}s.
+	 *
+	 * @returns The set of semantic restrictions defined by this module.
+	 */
+	A_Set moduleSemanticRestrictions ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	boolean nameVisible (A_Atom trueName);
+
+	/**
+	 * Answer a {@linkplain A_Map map} from {@linkplain A_String strings} to
+	 * {@linkplain A_Atom atoms}. These atoms prevent or at least clarify name
+	 * conflicts. These names are those introduced by the {@linkplain A_Module
+	 * module}'s {@code "Names"} section or {@link P_PublishName}.
+	 *
+	 * @return The map of new names.
+	 */
+	A_Map newNames ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Map privateNames ();
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void removeFrom (AvailLoader aLoader, Continuation0 afterRemoval);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	void resolveForward (A_BasicObject forwardDefinition);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Set trueNamesForStringName (A_String stringName);
+
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	A_Map variableBindings ();
 
 	/**
 	 * Answer the {@linkplain SetDescriptor set} of acceptable version
@@ -73,185 +256,7 @@ extends A_BasicObject
 	void versions (A_Set versionStrings);
 
 	/**
-	 * Answer a {@linkplain A_Map map} from {@linkplain A_String strings} to
-	 * {@linkplain A_Atom atoms}. These atoms prevent or at least clarify name
-	 * conflicts. These names are those introduced by the {@linkplain A_Module
-	 * module}'s {@code "Names"} section or {@link P_PublishName}.
-	 *
-	 * @return The map of new names.
-	 */
-	A_Map newNames ();
-
-	/**
-	 * @param trueName
-	 */
-	void introduceNewName (A_Atom trueName);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map importedNames ();
-
-	/**
-	 * @param trueName
-	 */
-	void addImportedName (A_Atom trueName);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map privateNames ();
-
-	/**
-	 * @param trueName
-	 */
-	void addPrivateName (A_Atom trueName);
-
-	/**
-	 * @param trueNames
-	 */
-	void addPrivateNames (A_Set trueNames);
-
-	/**
 	 * Dispatch to the descriptor.
 	 */
 	A_Set visibleNames ();
-
-	/**
-	 * Answer the {@linkplain A_Set set} of all {@linkplain A_Atom names}
-	 * exported by this {@linkplain A_Module module}.
-	 *
-	 * @return The set of exported names.
-	 */
-	A_Set exportedNames ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Set methodDefinitions ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map variableBindings ();
-
-	/**
-	 * @param semanticRestriction
-	 */
-	void moduleAddSemanticRestriction (
-		A_SemanticRestriction semanticRestriction);
-
-	/**
-	 * Answer this {@link A_Module}'s {@linkplain A_Set} of {@linkplain
-	 * A_SemanticRestriction}s.
-	 *
-	 * @returns The set of semantic restrictions defined by this module.
-	 */
-	A_Set moduleSemanticRestrictions ();
-
-	/**
-	 * @param name
-	 * @param constantBinding
-	 */
-	void addConstantBinding (
-		A_String name,
-		A_Variable constantBinding);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map constantBindings ();
-
-	/**
-	 * @param grammaticalRestriction
-	 */
-	void moduleAddGrammaticalRestriction (
-		A_GrammaticalRestriction grammaticalRestriction);
-
-	/**
-	 * Answer this {@link A_Module}'s {@linkplain A_Set} of {@link
-	 * A_GrammaticalRestriction}s.
-	 *
-	 * @returns The set of grammatical restrictions defined by this module.
-	 */
-	A_Set moduleGrammaticalRestrictions ();
-
-	/**
-	 * @param definition
-	 */
-	void moduleAddDefinition (A_BasicObject definition);
-
-	/**
-	 * @param methodName
-	 * @param sealSignature
-	 */
-	void addSeal (
-		A_Atom methodName,
-		A_Tuple sealSignature);
-
-	/**
-	 * @param name
-	 * @param variableBinding
-	 */
-	void addVariableBinding (
-		A_String name,
-		A_Variable variableBinding);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_BundleTree buildFilteredBundleTree ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	boolean nameVisible (A_Atom trueName);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void resolveForward (A_BasicObject forwardDefinition);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void removeFrom (AvailLoader aLoader, Continuation0 afterRemoval);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Set trueNamesForStringName (A_String stringName);
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	A_Map entryPoints ();
-
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	void addEntryPoint (A_String stringName, A_Atom trueName);
-
-	/**
-	 * Return the set of all ancestor modules of this module.  Include this
-	 * module in the set.
-	 *
-	 * @return The set of all ancestors of this module, including itself.
-	 */
-	A_Set allAncestors ();
-
-	/**
-	 * @param moreAncestors
-	 */
-	void addAncestors (A_Set moreAncestors);
-
-	/**
-	 * Add the specified {@linkplain A_Function function} to the {@linkplain
-	 * A_Tuple tuple} of functions that should be applied when the {@linkplain
-	 * A_Module module} is unloaded.
-	 *
-	 * @param unloadFunction
-	 *        A function.
-	 */
-	void addUnloadFunction (A_Function unloadFunction);
 }

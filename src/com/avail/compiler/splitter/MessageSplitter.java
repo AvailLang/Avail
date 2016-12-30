@@ -40,8 +40,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.compiler.AvailCompiler;
+import com.avail.compiler.CompilationContext;
 import com.avail.compiler.ParsingOperation;
+import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
@@ -399,7 +400,7 @@ public final class MessageSplitter
 	 *         If the message name is malformed.
 	 */
 	public MessageSplitter (final A_String messageName)
-		throws MalformedMessageException
+	throws MalformedMessageException
 	{
 		this.messageName = messageName;
 		messageName.makeImmutable();
@@ -611,7 +612,7 @@ public final class MessageSplitter
 		}
 		final String annotatedString =
 			string.substring(0, zeroBasedPosition)
-				+ AvailCompiler.errorIndicatorSymbol
+				+ CompilerDiagnostics.errorIndicatorSymbol
 				+ string.substring(zeroBasedPosition);
 		return StringDescriptor.from(annotatedString).toString();
 	}
@@ -1508,7 +1509,7 @@ public final class MessageSplitter
 					final StringBuilder builder = new StringBuilder();
 					builder.append(errorMessage);
 					builder.append(". See arrow (");
-					builder.append(AvailCompiler.errorIndicatorSymbol);
+					builder.append(CompilerDiagnostics.errorIndicatorSymbol);
 					builder.append(") in: \"");
 					final int characterIndex =
 						messagePartPosition > 0
@@ -1524,7 +1525,7 @@ public final class MessageSplitter
 						(A_String)messageName.copyTupleFromToCanDestroy(
 							characterIndex, messageName.tupleSize(), false);
 					builder.append(before.asNativeString());
-					builder.append(AvailCompiler.errorIndicatorSymbol);
+					builder.append(CompilerDiagnostics.errorIndicatorSymbol);
 					builder.append(after.asNativeString());
 					builder.append("\"");
 					return builder.toString();

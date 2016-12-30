@@ -58,40 +58,38 @@ import com.avail.descriptor.*;
  * strings.  It also allows parallel execution of the parser (in theory).
  * </p>
  *
+ * <p>
+ * This class is parametric in its {@link Solution} type, allowing it to be used
+ * for both parsing and lexical scanning.
+ * </p>
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailCompilerBipartiteRendezvous
+public class AvailCompilerBipartiteRendezvous<Solution extends AbstractSolution>
 {
 
 	/**
 	 * The solutions that have been encountered so far, and will be passed to
 	 * new actions when they arrive.
 	 */
-	private final List<AvailCompilerCachedSolution> solutions =
+	private final List<Solution> solutions =
 		new ArrayList<>(3);
 
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
 	 */
-	private final List<Con<A_Phrase>> actions = new ArrayList<>(3);
+	private final List<Con<Solution>> actions = new ArrayList<>(3);
 
 	/**
 	 * Record a new solution, and also run any waiting actions with it.
 	 *
-	 * @param endState The parse position after the parseNode.
-	 * @param parseNode The parse node that was parsed.
+	 * @param solution The new solution to record.
 	 * @throws DuplicateSolutionException
-	 *         If the parse node and end state are equal to a solution already
-	 *         recorded.
+	 *         If the solution is equal to a solution already recorded.
 	 */
-	void addSolution (
-		final ParserState endState,
-		final A_Phrase parseNode)
+	void addSolution (final Solution solution)
 	throws DuplicateSolutionException
 	{
-		final AvailCompilerCachedSolution solution =
-			new AvailCompilerCachedSolution(
-				endState, parseNode.makeShared());
 		if (solutions.contains(solution))
 		{
 			// TODO(MvG) - Should throw DuplicateSolutionException.
@@ -108,9 +106,9 @@ public class AvailCompilerBipartiteRendezvous
 			// throw new DuplicateSolutionException();
 		}
 		solutions.add(solution);
-		for (final Con<A_Phrase> action : actions)
+		for (final Con<Solution> action : actions)
 		{
-			action.value(endState, parseNode);
+			action.value(solution);
 		}
 	}
 
@@ -119,12 +117,12 @@ public class AvailCompilerBipartiteRendezvous
 	 *
 	 * @param action The new action.
 	 */
-	void addAction (final Con<A_Phrase> action)
+	void addAction (final Con<Solution> action)
 	{
 		actions.add(action);
-		for (final AvailCompilerCachedSolution solution : solutions)
+		for (final Solution solution : solutions)
 		{
-			action.value(solution.endState(), solution.parseNode());
+			action.value(solution);
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * AvailCompilerCachedSolution.java
+ * CompilerSolution.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -37,14 +37,14 @@ import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.descriptor.*;
 
 /**
- * An {@code AvailCompilerCachedSolution} is a record of having parsed some
+ * An {@code CompilerSolution} is a record of having parsed some
  * {@linkplain ParseNodeDescriptor parse node} from a stream of tokens,
  * combined with the {@linkplain ParserState position and state} of the parser
  * after the parse node was parsed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class AvailCompilerCachedSolution
+final class CompilerSolution implements AbstractSolution
 {
 
 	/**
@@ -83,12 +83,12 @@ final class AvailCompilerCachedSolution
 	@Override
 	public boolean equals (final @Nullable Object obj)
 	{
-		if (!(obj instanceof AvailCompilerCachedSolution))
+		if (!(obj instanceof CompilerSolution))
 		{
 			return false;
 		}
-		final AvailCompilerCachedSolution other =
-			(AvailCompilerCachedSolution)obj;
+		final CompilerSolution other =
+			(CompilerSolution)obj;
 		return endState.equals(other.endState)
 			&& parseNode.equals(other.parseNode);
 	}
@@ -113,7 +113,7 @@ final class AvailCompilerCachedSolution
 	}
 
 	/**
-	 * Construct a new {@link AvailCompilerCachedSolution}.
+	 * Construct a new {@link CompilerSolution}.
 	 *
 	 * @param endState
 	 *            The {@link ParserState} after the specified parse node's
@@ -122,7 +122,7 @@ final class AvailCompilerCachedSolution
 	 *            The {@linkplain ParseNodeDescriptor parse node} that ends at
 	 *            the specified endState.
 	 */
-	AvailCompilerCachedSolution (
+	CompilerSolution (
 		final ParserState endState,
 		final A_Phrase parseNode)
 	{

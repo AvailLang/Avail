@@ -40,10 +40,19 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import com.avail.AvailRuntime;
+import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
@@ -70,11 +79,352 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class AvailLoader
 {
+	public static class LexicalScanner
+	{
+		final AvailLoader loader;
+
+		/**
+		 * The {@link List} of all {@link A_Lexer lexers} which are visible
+		 * within the module being compiled.
+		 */
+		final List<A_Lexer> allVisibleLexers = new ArrayList<>();
+
+		/** A volatile for coordinating memory coherence in Latin-1 case. */
+		volatile int dummyVolatile = 0;
+
+		/**
+		 * A 256-way dispatch table that takes a Latin-1 character's Unicode
+		 * codepoint (which is in [0..255]) to a {@link A_Tuple tuple} of
+		 * {@link A_Lexer lexers}.  Non-Latin1 characters (i.e., with codepoints
+		 * ≥ 256) are tracked separately in {@link #nonLatin1Lexers}.
+		 *
+		 * <p>This array is populated lazily and incrementally, so if an entry
+		 * is nil, it should be constructed by testing the character against all
+		 * visible lexers' filter functions.  Place the ones that pass into a
+		 * set, then normalize it by looking up that set in a map from such sets
+		 * to tuples.  This causes two equal sets of lexers to be canonicalized
+		 * to the same tuple, thereby reusing it.</p>
+		 *
+		 * <p>When a new lexer is defined, we null all entries of this dispatch
+		 * table and clear the supplementary map, allowing the entries to be
+		 * incrementally constructed.  We also clear the map from lexer sets to
+		 * canonical tuples.</p>
+		 */
+		final A_Tuple[] latin1ApplicableLexers = new A_Tuple[256];
+
+		/**
+		 * A map from non-Latin-1 codepoint (i.e., ≥ 256) to the tuple of lexers
+		 * that should run when that character is encountered at a lexing point.
+		 * Should only be accessed within {@link #nonLatin1Lock}.
+		 */
+		final Map<Integer, A_Tuple> nonLatin1Lexers = new HashMap<>();
+
+		/** A lock to protect {@link #nonLatin1Lexers}. */
+		final ReentrantReadWriteLock nonLatin1Lock =
+			new ReentrantReadWriteLock();
+
+		/**
+		 * The canonical mapping from each set of lexers to a tuple of lexers.
+		 */
+		final Map<A_Set, A_Tuple> canonicalLexerTuples = new HashMap<>();
+
+		LexicalScanner (final AvailLoader loader)
+		{
+			this.loader = loader;
+		}
+
+		/**
+		 * Add a lexer constructed from the given parts.  Update not just the
+		 * current lexing information for this loader, but also the specified
+		 * atom's bundle's method and the current module.
+		 *
+		 * <p>This must be called as an L1-safe task, which precludes execution
+		 * of Avail code while it's running.  That does not preclude other
+		 * non-Avail code from running (i.e., other L1-safe tasks), so this
+		 * method is synchronized to achieve that.</p>
+		 *
+		 * @param atom
+		 *        The {@link AtomDescriptor atom} that names the {@link A_Bundle
+		 *        bundle} whose {@link A_Method method} will hold the new lexer.
+		 * @param lexerFilterFunction
+		 *        The {@linkplain FunctionDescriptor function} used to filter
+		 *        lexers by the leading character.
+		 * @param lexerBodyFunction
+		 *        The {@linkplain FunctionDescriptor function} used to scan
+		 *        nearby characters to generate tuples of tokens.
+		 * @throws MalformedMessageException
+		 *         If the message name is malformed.
+		 * @throws SignatureException
+		 *         If the signature is invalid.
+		 */
+		public synchronized void addLexer (
+			final A_Lexer lexer)
+		{
+			lexer.lexerMethod().setLexer(lexer);
+			lexer.definitionModule().addLexer(lexer);
+			// Update the loader's lexing tables...
+			allVisibleLexers.add(lexer);
+			// Since the existence of at least one non-null entry in the Latin-1
+			// or non-Latin-1 tables implies there must be at least one
+			// canonical tuple of lexers, we can skip clearing the tables if the
+			// canonical map is empty.
+			if (!canonicalLexerTuples.isEmpty())
+			{
+				Arrays.fill(latin1ApplicableLexers, null);
+				nonLatin1Lexers.clear();
+				canonicalLexerTuples.clear();
+			}
+		}
+
+		/**
+		 * Collect the lexers should run when we encounter a character with the
+		 * given (int) code point, then pass this tuple of lexers to the
+		 * supplied {@link Continuation1}.
+		 *
+		 * <p>We pass it forward rather than return it, since sometimes this
+		 * requires lexer filter functions to run, which we must not do
+		 * synchronously.  However, if the lexer filters have already run for
+		 * this code point, we <em>may</em> invoke the continuation
+		 * synchronously for performance.</p>
+		 *
+		 * @param codePoint
+		 *        The full Unicode code point in the range 0..1114111.
+		 * @param continuation
+		 *        What to invoke with the tuple of
+		 */
+		public void getLexersForCodePointThen (
+			final int codePoint,
+			final Continuation1<A_Tuple> continuation)
+		{
+			if ((codePoint & ~255) == 0)
+			{
+				A_Tuple tuple = latin1ApplicableLexers[codePoint];
+				// The tuple was initialized before a write barrier and stored
+				// in the array after that barrier.  This read barrier ensures
+				// we can't see a partially initialized tuple after it.
+				int ignored = dummyVolatile;  // read barrier
+				if (tuple != null)
+				{
+					continuation.value(tuple);
+					return;
+				}
+				// Run the filters to produce the set of applicable lexers, then
+				// use the canonical map to make it a tuple, then invoke the
+				// continuation with it.
+				selectLexersPassingFilterThen(
+					codePoint,
+					new Continuation1<A_Set>()
+					{
+						@Override
+						public void value (
+							@Nullable final A_Set applicableLexers)
+						{
+							A_Tuple tuple;
+							synchronized (canonicalLexerTuples)
+							{
+								tuple = canonicalLexerTuples.get(
+									applicableLexers);
+								if (tuple == null)
+								{
+									tuple = applicableLexers.asTuple();
+									canonicalLexerTuples.put(
+										applicableLexers, tuple);
+								}
+								// Just replace it, even if another thread beat
+								// us to the punch, since it's semantically
+								// idempotent.  Use a write barrier *first*, to
+								// ensure readers don't see a half-initialized
+								// tuple.
+								dummyVolatile = 0;   // write barrier
+								latin1ApplicableLexers[codePoint] = tuple;
+							}
+							continuation.value(tuple);
+						}
+					});
+			}
+			else
+			{
+				// It's non-Latin1.
+				A_Tuple tuple;
+				nonLatin1Lock.readLock().lock();
+				try
+				{
+					tuple = nonLatin1Lexers.get(codePoint);
+				}
+				finally
+				{
+					nonLatin1Lock.readLock().unlock();
+				}
+				if (tuple != null)
+				{
+					continuation.value(tuple);
+					return;
+				}
+				// Run the filters to produce the set of applicable lexers, then
+				// use the canonical map to make it a tuple, then invoke the
+				// continuation with it.
+				selectLexersPassingFilterThen(
+					codePoint,
+					new Continuation1<A_Set>()
+					{
+						@Override
+						public void value (@Nullable final A_Set applicableLexers)
+						{
+							A_Tuple tuple;
+							synchronized (canonicalLexerTuples)
+							{
+								tuple = canonicalLexerTuples.get(
+									applicableLexers);
+								if (tuple == null)
+								{
+									tuple = applicableLexers.asTuple();
+									canonicalLexerTuples.put(
+										applicableLexers, tuple);
+								}
+								// Just replace it, even if another thread beat
+								// us to the punch, since it's semantically
+								// idempotent.
+								nonLatin1Lock.writeLock().lock();
+								try
+								{
+									nonLatin1Lexers.put(codePoint, tuple);
+								}
+								finally
+								{
+									nonLatin1Lock.writeLock().unlock();
+								}
+							}
+							continuation.value(tuple);
+						}
+					});
+			}
+		}
+
+		/**
+		 * Collect the lexers should run when we encounter a character with the
+		 * given (int) code point, then pass this set of lexers to the supplied
+		 * {@link Continuation1}.
+		 *
+		 * <p>We pass it forward rather than return it, since sometimes this
+		 * requires lexer filter functions to run, which we must not do
+		 * synchronously.  However, if the lexer filters have already run for
+		 * this code point, we <em>may</em> invoke the continuation
+		 * synchronously for performance.</p>
+		 *
+		 * @param codePoint
+		 *        The full Unicode code point in the range 0..1114111.
+		 * @param continuation
+		 *        What to invoke with the {@link A_Tuple} of {@link A_Lexer}s.
+		 */
+		private void selectLexersPassingFilterThen (
+			final int codePoint,
+			final Continuation1<A_Set> continueWithSet)
+		{
+			final Mutable<Integer> countdown =
+				new Mutable<>(allVisibleLexers.size());
+			if (countdown.value == 0)
+			{
+				continueWithSet.value(SetDescriptor.empty());
+				return;
+			}
+			final List<A_Number> argsList = Collections.singletonList(
+				IntegerDescriptor.fromInt(codePoint));
+			final Object joinLock = new Object();
+			final List<A_Lexer> applicableLexers = new ArrayList<>();
+			for (final A_Lexer lexer : allVisibleLexers)
+			{
+				final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
+					EnumerationTypeDescriptor.booleanObject(),
+					loader,
+					new Generator<A_String>()
+					{
+						@Override
+						public A_String value ()
+						{
+							return StringDescriptor.format(
+								"Check lexer filter %s for U+%x",
+								lexer.lexerMethod().chooseBundle().message()
+									.atomName(),
+								codePoint);
+						}
+					});
+				final Continuation1<AvailObject> fiberSuccess =
+					new Continuation1<AvailObject>()
+					{
+						@Override
+						public void value (
+							@Nullable final AvailObject boolValue)
+						{
+							assert boolValue.isBoolean();
+							if (boolValue.extractBoolean())
+							{
+								final boolean countdownHitZero;
+								synchronized (joinLock)
+								{
+									applicableLexers.add(lexer);
+									countdown.value--;
+									assert countdown.value >= 0;
+									countdownHitZero = countdown.value == 0;
+								}
+								if (countdownHitZero)
+								{
+									// This was the fiber reporting the last
+									// result.
+									continueWithSet.value(
+										SetDescriptor.fromCollection(
+											applicableLexers));
+								}
+							}
+						}
+					};
+				final Continuation1<Throwable> fiberFailure =
+					new Continuation1<Throwable>()
+					{
+						@Override
+						public void value (@Nullable final Throwable throwable)
+						{
+							// TODO MvG - We should pass a failContinuation to
+							// make this work sensibly.
+//						assert boolValue.isBoolean();
+//						if (boolValue.extractBoolean())
+//						{
+//							final boolean countdownHitZero;
+//							synchronized (joinLock)
+//							{
+//								applicableLexers.add(lexer);
+//								countdown.value--;
+//								assert countdown.value >= 0;
+//								countdownHitZero = countdown.value == 0;
+//							}
+//							if (countdownHitZero)
+//							{
+//								// This was the fiber reporting the last result.
+//								continueWithSet.value(
+//									SetDescriptor.fromCollection(
+//										applicableLexers));
+//							}
+//						}
+						}
+					};
+				fiber.textInterface(loader.textInterface);
+				fiber.resultContinuation(fiberSuccess);
+				fiber.failureContinuation(fiberFailure);
+				Interpreter.runOutermostFunction(
+					loader.runtime,
+					fiber,
+					lexer.lexerFilterFunction(),
+					argsList);
+			}
+		}
+
+
+	}
+
 	/**
 	 * The macro-state of the loader.  During compilation from a file, a loader
 	 * will ratchet between {@link #COMPILING} a top-level statement and {@link
-	 * #EXECUTING} it.  Similarly, when loading from a file, the loader's setPhase
-	 * alternates between {@link #LOADING} and {@link #EXECUTING}.
+	 * #EXECUTING} it.  Similarly, when loading from a file, the loader's
+	 * setPhase alternates between {@link #LOADING} and {@link #EXECUTING}.
 	 */
 	public enum Phase
 	{
@@ -155,6 +505,18 @@ public final class AvailLoader
 	public A_Module module ()
 	{
 		return module;
+	}
+
+	/** Used for extracting tokens from the source text. */
+	final LexicalScanner lexicalScanner;
+
+	/**
+	 * Answer the {@link LexicalScanner} used for creating tokens from source
+	 * code for this {@link AvailLoader}.
+	 */
+	public LexicalScanner lexicalScanner ()
+	{
+		return lexicalScanner;
 	}
 
 	/**
@@ -303,6 +665,7 @@ public final class AvailLoader
 		final TextInterface textInterface)
 	{
 		this.module = module;
+		this.lexicalScanner = new LexicalScanner(this);
 		this.textInterface = textInterface;
 		this.phase = INITIALIZING;
 	}
@@ -1072,27 +1435,25 @@ public final class AvailLoader
 	{
 		assert stringName.isString();
 		final MutableOrNull<A_Set> who = new MutableOrNull<>();
-		final A_Module theModule = module;
-		theModule.lock(
+		module.lock(
 			new Continuation0()
 			{
 				@Override
 				public void value ()
 				{
 					final A_Set newNames =
-						theModule.newNames().hasKey(stringName)
-						? SetDescriptor.empty().setWithElementCanDestroy(
-							theModule.newNames().mapAt(stringName),
-							true)
-						: SetDescriptor.empty();
+						module.newNames().hasKey(stringName)
+							? SetDescriptor.empty().setWithElementCanDestroy(
+								module.newNames().mapAt(stringName), true)
+							: SetDescriptor.empty();
 					final A_Set publics =
-						theModule.importedNames().hasKey(stringName)
-						? theModule.importedNames().mapAt(stringName)
-						: SetDescriptor.empty();
+						module.importedNames().hasKey(stringName)
+							? module.importedNames().mapAt(stringName)
+							: SetDescriptor.empty();
 					final A_Set privates =
-						theModule.privateNames().hasKey(stringName)
-						? theModule.privateNames().mapAt(stringName)
-						: SetDescriptor.empty();
+						module.privateNames().hasKey(stringName)
+							? module.privateNames().mapAt(stringName)
+							: SetDescriptor.empty();
 					who.value = newNames
 						.setUnionCanDestroy(publics, true)
 						.setUnionCanDestroy(privates, true);

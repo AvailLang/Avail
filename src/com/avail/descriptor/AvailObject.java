@@ -91,6 +91,7 @@ implements
 		A_Fiber,
 		A_Function,
 		A_GrammaticalRestriction,
+		A_Lexer,
 		A_Map,
 		A_Method,
 		A_Module,
@@ -7249,5 +7250,35 @@ implements
 	throws VariableGetException
 	{
 		return descriptor.o_VariableMapHasKey(this, key);
+	}
+
+	@Override
+	public A_Method lexerMethod ()
+	{
+		return descriptor.o_LexerMethod(this);
+	}
+
+	@Override
+	public A_Function lexerFilterFunction ()
+	{
+		return descriptor.o_LexerFilterFunction(this);
+	}
+
+	@Override
+	public A_Function lexerBodyFunction ()
+	{
+		return descriptor.o_LexerBodyFunction(this);
+	}
+
+	@Override
+	public void setLexer (final A_Lexer lexer)
+	{
+		descriptor.o_SetLexer(this, lexer);
+	}
+
+	@Override
+	public void addLexer (final A_Lexer lexer)
+	{
+		descriptor.o_AddLexer(this, lexer);
 	}
 }

@@ -80,7 +80,8 @@ public class AvailScanner
 	private final List<A_Token> commentTokens;
 
 	/**
-	 * The current position in the input string.
+	 * The zero-based position in the input string.  Must be converted to a
+	 * one-based index when creating tokens.
 	 */
 	private int position;
 
@@ -161,7 +162,7 @@ public class AvailScanner
 	 * </ul>
 	 *
 	 * @param tokenType
-	 *        The {@link TokenType enumeration value} to set in the token.
+	 *        The {@link TokenType} enumeration value to set in the token.
 	 * @return The newly added token.
 	 */
 	@InnerAccess A_Token addCurrentToken (
@@ -171,9 +172,9 @@ public class AvailScanner
 			StringDescriptor.from(currentTokenString()),
 			previousWhitespace,
 			TupleDescriptor.empty(),
-			startOfToken,
+			startOfToken + 1,
 			lineNumber,
-			outputTokens.size(),
+			outputTokens.size() + 1,
 			tokenType);
 		token.makeShared();
 		outputTokens.add(token);
@@ -197,9 +198,9 @@ public class AvailScanner
 			StringDescriptor.from(currentTokenString()),
 			previousWhitespace,
 			TupleDescriptor.empty(),
-			startOfToken,
+			startOfToken + 1,
 			lineNumber,
-			outputTokens.size(),
+			outputTokens.size() + 1,
 			TokenType.LITERAL,
 			anAvailObject);
 		token.makeShared();
@@ -222,9 +223,9 @@ public class AvailScanner
 			StringDescriptor.from(currentTokenString()),
 			previousWhitespace,
 			TupleDescriptor.empty(),
-			startOfToken,
+			startOfToken + 1,
 			startLine,
-			outputTokens.size());  // The index it would have if it were normal.
+			outputTokens.size() + 1);  // The index it would have if it were normal.
 		token.makeShared();
 		commentTokens.add(token);
 		previousToken = null;

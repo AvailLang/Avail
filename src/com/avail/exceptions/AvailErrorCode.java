@@ -407,7 +407,11 @@ public enum AvailErrorCode
 	 */
 	E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP (59),
 
-//	E_??? (60),
+	/**
+	 * An attempt was made to create a {@link LexerDescriptor lexer} with an
+	 * inappropriate signature.
+	 */
+	E_WRONG_SIGNATURE_FOR_LEXER_FUNCTION (60),
 
 //	E_??? (61),
 

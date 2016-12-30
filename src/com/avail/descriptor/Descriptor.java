@@ -4762,11 +4762,43 @@ extends AbstractDescriptor
 
 	@Override
 	boolean o_CompareFromToWithIntTupleStartingAt (
-		final AvailObject availObject,
+		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
 		final A_Tuple anIntTuple,
 		final int startIndex2)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Method o_LexerMethod (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Function o_LexerFilterFunction (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Function o_LexerBodyFunction (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SetLexer (
+		final AvailObject object, final A_Lexer lexer)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_AddLexer (
+		final AvailObject object, final A_Lexer lexer)
 	{
 		throw unsupportedOperationException();
 	}

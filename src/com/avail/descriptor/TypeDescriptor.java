@@ -144,6 +144,11 @@ extends AbstractTypeDescriptor
 		FLOAT(NUMBER, TypeTag.NUMBER_TYPE_TAG),
 
 		/**
+		 * All {@linkplain LexerDescriptor lexers} are of this kind.
+		 */
+		LEXER(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
+
+		/**
 		 * All {@linkplain MethodDescriptor methods} are of this kind.
 		 */
 		METHOD(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),
@@ -243,7 +248,7 @@ extends AbstractTypeDescriptor
 		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG);
 
 		/** The total count of {@link Types} enum values. */
-		public static final int enumCount = 21;
+		public static final int enumCount = 22;
 
 		static
 		{

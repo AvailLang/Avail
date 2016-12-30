@@ -79,6 +79,11 @@ public enum ExpectedToken
 	PRAGMA_STRINGIFY("stringify", KEYWORD),
 
 	/**
+	 * Module header token: Occurs in a pragma string to define a lexer.
+	 */
+	PRAGMA_LEXER("lexer", KEYWORD),
+
+	/**
 	 * Module header token: Precedes the list of imported modules whose
 	 * (filtered) names should be re-exported to clients of the defined
 	 * module.

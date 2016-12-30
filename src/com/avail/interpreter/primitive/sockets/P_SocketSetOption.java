@@ -97,6 +97,7 @@ extends Primitive
 				final Class<?> type = option.type();
 				if (type.equals(Boolean.class) && entryValue.isBoolean())
 				{
+					@SuppressWarnings("unchecked")
 					final SocketOption<Boolean> booleanOption = option;
 					socket.setOption(
 						booleanOption, entryValue.extractBoolean());
@@ -104,7 +105,9 @@ extends Primitive
 				else if (type.equals(Integer.class) && entryValue.isInt())
 				{
 					final Integer value = entryValue.extractInt();
-					socket.<Integer>setOption(option, value);
+					@SuppressWarnings("unchecked")
+					final SocketOption<Integer> intOption = option;
+					socket.setOption(intOption, value);
 				}
 				else
 				{

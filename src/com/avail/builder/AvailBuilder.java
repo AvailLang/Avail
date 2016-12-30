@@ -1411,7 +1411,8 @@ public final class AvailBuilder
 								resolvedSuccessor != null
 									? resolvedSuccessor
 									: qualifiedName,
-								TokenDescriptor.createSyntheticStart(),
+								1,
+								0,
 								ProblemType.TRACE,
 								"Module resolution problem:\n{0}",
 								e)
@@ -1470,7 +1471,8 @@ public final class AvailBuilder
 			{
 				final Problem problem = new Problem(
 					resolvedName,
-					TokenDescriptor.createSyntheticStart(),
+					1,
+					0,
 					ProblemType.TRACE,
 					"Recursive module dependency:\n\t{0}",
 					recursionSet)
@@ -2006,7 +2008,8 @@ public final class AvailBuilder
 									postLoad(moduleName, 0L);
 									final Problem problem = new Problem(
 										moduleName,
-										fakeStartToken,
+										fakeStartToken.lineNumber(),
+										fakeStartToken.start(),
 										ProblemType.EXECUTION,
 										"Problem loading module: {0}",
 										e.getLocalizedMessage())
@@ -2221,7 +2224,8 @@ public final class AvailBuilder
 								{
 									assert result != null;
 									final ByteArrayOutputStream stream =
-										compiler.serializerOutputStream;
+										compiler.compilationContext
+											.serializerOutputStream;
 									// This is the moment of compilation.
 									final long compilationTime =
 										System.currentTimeMillis();
@@ -2438,7 +2442,8 @@ public final class AvailBuilder
 			{
 				final Problem problem = new Problem(
 					moduleName,
-					TokenDescriptor.createSyntheticStart(),
+					1,
+					0,
 					ProblemType.TRACE,
 					"Module \"{0}\" should have been compiled already",
 					moduleName)
@@ -2469,7 +2474,8 @@ public final class AvailBuilder
 			{
 				final Problem problem = new Problem(
 					moduleName,
-					TokenDescriptor.createSyntheticStart(),
+					1,
+					0,
 					ProblemType.INTERNAL,
 					"Couldn''t deserialize comment tuple for module \"{0}\"",
 					moduleName)
@@ -2497,7 +2503,8 @@ public final class AvailBuilder
 			{
 				final Problem problem = new Problem(
 					moduleName,
-					TokenDescriptor.createSyntheticStart(),
+					1,
+					0,
 					ProblemType.INTERNAL,
 					"Couldn''t deserialize header for module \"{0}\"",
 					moduleName)
@@ -2597,7 +2604,8 @@ public final class AvailBuilder
 			{
 				final Problem problem = new Problem(
 					target,
-					TokenDescriptor.createSyntheticStart(),
+					1,
+					0,
 					ProblemType.TRACE,
 					"Could not generate Stacks documentation: {0}",
 					e.getLocalizedMessage())

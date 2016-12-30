@@ -135,10 +135,9 @@ public class ModuleHeader
 	public final List<A_Token> pragmas = new ArrayList<>();
 
 	/**
-	 * The token index at which the pragma section starts, if any, otherwise
-	 * zero.
+	 * The token "Pragma" which the pragma section, if any, otherwise null.
 	 */
-	public int pragmaStart = 0;
+	public A_Token pragmaToken = null;
 
 	/**
 	 * Construct a new {@link ModuleHeader}.

@@ -283,4 +283,13 @@ extends A_ChunkDependable
 	 * @return One of this method's {@link A_Bundle bundles}.
 	 */
 	A_Bundle chooseBundle ();
+
+	/**
+	 * Set this method's lexer to the given lexer or nil.
+	 *
+	 * @param lexer
+	 *        Either a {@linkplain LexerDescriptor lexer} or {@link
+	 *        NilDescriptor#nil() nil}.
+	 */
+	void setLexer (final A_Lexer lexer);
 }

@@ -4966,4 +4966,36 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).variableMapHasKey(key);
 	}
+
+	@Override
+	A_Method o_LexerMethod (final AvailObject object)
+	{
+		return o_Traversed(object).lexerMethod();
+	}
+
+	@Override
+	A_Function o_LexerFilterFunction (final AvailObject object)
+	{
+		return o_Traversed(object).lexerFilterFunction();
+	}
+
+	@Override
+	A_Function o_LexerBodyFunction (final AvailObject object)
+	{
+		return o_Traversed(object).lexerBodyFunction();
+	}
+
+	@Override
+	void o_SetLexer (
+		final AvailObject object, final A_Lexer lexer)
+	{
+		o_Traversed(object).setLexer(lexer);
+	}
+
+	@Override
+	void o_AddLexer (
+		final AvailObject object, final A_Lexer lexer)
+	{
+		o_Traversed(object).addLexer(lexer);
+	}
 }

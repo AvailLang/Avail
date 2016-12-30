@@ -186,7 +186,12 @@ extends Descriptor
 		 * FunctionDescriptor functions} that should be applied when this
 		 * {@linkplain ModuleDescriptor module} is unloaded.
 		 */
-		UNLOAD_FUNCTIONS;
+		UNLOAD_FUNCTIONS,
+
+		/**
+		 * The {@link A_Set} of {@link A_Lexer}s defined by this module.
+		 */
+		LEXERS;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -205,7 +210,8 @@ extends Descriptor
 			|| e == SEMANTIC_RESTRICTIONS
 			|| e == SEALS
 			|| e == ENTRY_POINTS
-			|| e == UNLOAD_FUNCTIONS;
+			|| e == UNLOAD_FUNCTIONS
+			|| e == LEXERS;
 	}
 
 	@Override
@@ -697,6 +703,15 @@ extends Descriptor
 									}
 								}
 							}
+							// Remove lexers.  Don't bother adjusting the
+							// loader, since it's not going to parse anything
+							// again.  Don't even bother removing it from the
+							// module, since that's being unloaded.
+							for (final A_Lexer lexer : object.slot(LEXERS))
+							{
+								lexer.lexerMethod().setLexer(
+									NilDescriptor.nil());
+							}
 						}
 						afterRemoval.value();
 					}
@@ -913,6 +928,7 @@ extends Descriptor
 		module.setSlot(SEALS, emptyMap);
 		module.setSlot(ENTRY_POINTS, emptyMap);
 		module.setSlot(UNLOAD_FUNCTIONS, emptyTuple);
+		module.setSlot(LEXERS, emptySet);
 		// Adding the module to its ancestors set will cause recursive scanning
 		// to mark everything as shared, so it's essential that all fields have
 		// been initialized to *something* by now.

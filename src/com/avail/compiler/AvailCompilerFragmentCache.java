@@ -35,7 +35,6 @@ package com.avail.compiler;
 import java.util.*;
 import com.avail.compiler.AvailCompiler.Con;
 import com.avail.compiler.AvailCompiler.ParserState;
-import com.avail.descriptor.A_Phrase;
 
 /**
  * An {@code AvailCompilerFragmentCache} implements a memoization mechanism for
@@ -48,21 +47,23 @@ import com.avail.descriptor.A_Phrase;
 public class AvailCompilerFragmentCache
 {
 	/**
-	 * Keeps track of the {@link AvailCompilerCachedSolution solutions} that
+	 * Keeps track of the {@link CompilerSolution solutions} that
 	 * have been found at various positions.  Technically at various {@linkplain
 	 * ParserState parser states}, since we must take into account which
 	 * variable declarations are in scope when looking for subexpressions.
 	 */
-	private final Map<ParserState, AvailCompilerBipartiteRendezvous> solutions =
-		new HashMap<>(100);
+	private final Map<
+			ParserState,
+			AvailCompilerBipartiteRendezvous<CompilerSolution>>
+		solutions = new HashMap<>(100);
 
 	/**
 	 * Answer whether expression parsing has started at this position.
 	 *
 	 * @param state
-	 *            The {@linkplain ParserState} at which parsing may have started
+	 *        The {@linkplain ParserState} at which parsing may have started
 	 * @return
-	 *            Whether parsing has started at that position.
+	 *         Whether parsing has started at that position.
 	 */
 	boolean hasStartedParsingAt (
 		final ParserState state)
@@ -75,14 +76,15 @@ public class AvailCompilerFragmentCache
 	 * Indicate that parsing has started at this position.
 	 *
 	 * @param state
-	 *            The {@linkplain ParserState} at which parsing has started.
+	 *        The {@linkplain ParserState} at which parsing has started.
 	 */
 	void indicateParsingHasStartedAt (
 		final ParserState state)
 	{
 		assert Thread.holdsLock(this);
 		assert !hasStartedParsingAt(state);
-		solutions.put(state, new AvailCompilerBipartiteRendezvous());
+		solutions.put(
+			state, new AvailCompilerBipartiteRendezvous<CompilerSolution>());
 		assert hasStartedParsingAt(state);
 	}
 
@@ -92,22 +94,19 @@ public class AvailCompilerFragmentCache
 	 *
 	 * @param state
 	 *        The {@link ParserState} at which parsing took place.
-	 * @param endState
-	 *        The parse position after the parseNode.
-	 * @param parseNode
-	 *        The parse node that was parsed.
+	 * @param solution
+	 *        The {@link CompilerSolution} to record.
 	 * @throws DuplicateSolutionException
 	 *         If the parse node and end state are equal to a solution already
 	 *         recorded.
 	 */
 	void addSolution (
 		final ParserState state,
-		final ParserState endState,
-		final A_Phrase parseNode)
+		final CompilerSolution solution)
 	throws DuplicateSolutionException
 	{
 		assert Thread.holdsLock(this);
-		solutions.get(state).addSolution(endState, parseNode);
+		solutions.get(state).addSolution(solution);
 	}
 
 	/**
@@ -123,7 +122,7 @@ public class AvailCompilerFragmentCache
 	 */
 	void addAction (
 		final ParserState state,
-		final Con<A_Phrase> action)
+		final Con<CompilerSolution> action)
 	{
 		assert Thread.holdsLock(this);
 		solutions.get(state).addAction(action);

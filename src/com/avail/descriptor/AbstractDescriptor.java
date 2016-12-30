@@ -6533,4 +6533,38 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsIntTuple (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Method o_LexerMethod (final AvailObject object);
+
+	/**
+	 *
+	 * @param object
+	 * @return
+	 */
+	abstract A_Function o_LexerFilterFunction (final AvailObject object);
+
+	/**
+	 *
+	 * @param object
+	 * @return
+	 */
+	abstract A_Function o_LexerBodyFunction (final AvailObject object);
+
+	/**
+	 *
+	 * @param object
+	 * @param lexer
+	 */
+	abstract void o_SetLexer (final AvailObject object, final A_Lexer lexer);
+
+	/**
+	 *
+	 * @param object
+	 * @param lexer
+	 */
+	abstract void o_AddLexer (final AvailObject object, final A_Lexer lexer);
 }
