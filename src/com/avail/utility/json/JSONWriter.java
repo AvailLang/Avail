@@ -42,6 +42,7 @@ import java.util.Deque;
 import java.util.Formatter;
 import java.util.LinkedList;
 import com.avail.annotations.InnerAccess;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.avail.utility.evaluation.Continuation0;
 
@@ -1118,8 +1119,21 @@ implements AutoCloseable
 	@Override
 	public String toString () throws IllegalStateException
 	{
-		final JSONState state = stack.peekFirst();
-		state.checkCanEndDocument();
-		return writer.toString();
+		try
+		{
+			final JSONState state = stack.peekFirst();
+			state.checkCanEndDocument();
+			return writer.toString();
+		}
+		catch (final @NotNull Throwable e)
+		{
+			// Do not allow an exception of any stripe to derail the
+			// stringification operation.
+			return String.format(
+				"BROKEN: %s <%s>: %s",
+				e.getClass().getName(),
+				e.getMessage(),
+				writer.toString());
+		}
 	}
 }
