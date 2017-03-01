@@ -37,6 +37,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.utility.Generator;
 
+import java.util.IdentityHashMap;
+
 /**
  * {@code SmallIntegerIntervalTupleDescriptor} represents an {@linkplain
  * IntegerIntervalTupleDescriptor integer interval tuple} whose slots are all
@@ -97,6 +99,24 @@ extends TupleDescriptor
 				== HASH_AND_MORE.ordinal();
 			assert TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 				HASH_OR_ZERO);
+		}
+	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder aStream,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
+		final int indent)
+	{
+		aStream.append(object.slot(START));
+		aStream.append(" to ");
+		aStream.append(object.slot(END));
+		final long delta = object.slot(DELTA);
+		if (delta != 1L)
+		{
+			aStream.append(" by ");
+			aStream.append(delta);
 		}
 	}
 

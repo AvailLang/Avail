@@ -32,13 +32,17 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.*;
-import java.util.ArrayList;
-import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.SIZE;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.*;
 
 /**
  * {@code IntegerIntervalTupleDescriptor} represents an ordered tuple of
@@ -111,6 +115,24 @@ extends TupleDescriptor
 		 * tuple.
 		 */
 		DELTA
+	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder aStream,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
+		final int indent)
+	{
+		object.slot(START).printOnAvoidingIndent(aStream, recursionMap, indent);
+		aStream.append(" to ");
+		object.slot(END).printOnAvoidingIndent(aStream, recursionMap, indent);
+		final A_Number delta = object.slot(DELTA);
+		if (!delta.equalsInt(1))
+		{
+			aStream.append(" by ");
+			delta.printOnAvoidingIndent(aStream, recursionMap, indent);
+		}
 	}
 
 	/**
@@ -586,7 +608,7 @@ extends TupleDescriptor
 	 * @param size The size of the interval, in number of elements.
 	 * @return The new interval.
 	 */
-	static A_Tuple forceCreate (
+	private static A_Tuple forceCreate (
 		final A_Number start,
 		final A_Number normalizedEnd,
 		final A_Number delta,

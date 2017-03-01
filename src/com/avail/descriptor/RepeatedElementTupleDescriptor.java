@@ -36,6 +36,8 @@ import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.RepeatedElementTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.RepeatedElementTupleDescriptor.ObjectSlots.*;
 import java.util.Collections;
+import java.util.IdentityHashMap;
+
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.utility.Generator;
@@ -114,6 +116,33 @@ extends TupleDescriptor
 	public boolean o_IsRepeatedElementTuple(final AvailObject object)
 	{
 		return true;
+	}
+
+	@Override
+	public void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder aStream,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
+		final int indent)
+	{
+		final int size = object.slot(SIZE);
+		if (size < minimumRepeatSize)
+		{
+			super.printObjectOnAvoidingIndent(
+				object,
+				aStream,
+				recursionMap,
+				indent);
+		}
+		else
+		{
+			aStream.append(size);
+			aStream.append(" of ");
+			object.slot(ELEMENT).printOnAvoidingIndent(
+				aStream,
+				recursionMap,
+				indent + 1);
+		}
 	}
 
 	@Override @AvailMethod
