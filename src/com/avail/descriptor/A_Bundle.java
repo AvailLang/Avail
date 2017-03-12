@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.performance.Statistic;
 
 /**
  * {@code A_Bundle} is an interface that specifies the {@linkplain
@@ -89,6 +90,14 @@ extends A_BasicObject
 	 * @return The map of definition parsing plans.
 	 */
 	A_Map definitionParsingPlans ();
+
+	/**
+	 * Answer the {@link Statistic} used for recording dynamic lookups of this
+	 * bundle.
+	 *
+	 * @return The {@link Statistic}.
+	 */
+	Statistic dynamicLookupStatistic ();
 
 	/**
 	 * Answer the set of {@linkplain GrammaticalRestrictionDescriptor

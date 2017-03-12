@@ -64,6 +64,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
+import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.Pair;
@@ -4997,5 +4998,11 @@ extends AbstractDescriptor
 		final AvailObject object, final A_Lexer lexer)
 	{
 		o_Traversed(object).addLexer(lexer);
+	}
+
+	@Override
+	Statistic o_DynamicLookupStatistic (final AvailObject object)
+	{
+		return o_Traversed(object).dynamicLookupStatistic();
 	}
 }

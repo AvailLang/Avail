@@ -2433,27 +2433,6 @@ public final class Interpreter
 	}
 
 	/**
-	 * Statistics about dynamic lookups, keyed by the message bundle's message's
-	 * print representation (an Avail string).
-	 */
-	private static final Map<A_String, Statistic>
-		dynamicLookupStatsByString = new HashMap<>();
-
-	/**
-	 * Statistics about dynamic lookups, keyed by message bundle.  It's a
-	 * <em>weak</em> keyed collection, so it doesn't force the bundles to stick
-	 * around.  That's ok, since subsequent runs will produce the same names for
-	 * the statistics that should be aggregated with data from previous runs,
-	 * which can be found in the {@link #dynamicLookupStatsByString}.
-	 *
-	 * <p>We don't need to worry about indirection objects here, because a lost
-	 * entry just means we'll find it by name in the {@link
-	 * #dynamicLookupStatsByString} map.</p>
-	 */
-	private static final Map<A_Bundle, Statistic>
-		dynamicLookupStatsByBundle = new WeakHashMap<>();
-
-	/**
 	 * Record the fact that a lookup in the specified {@link
 	 * MessageBundleDescriptor message bundle} has just taken place, and that it
 	 * took the given time in nanoseconds.
@@ -2472,26 +2451,7 @@ public final class Interpreter
 		final A_Bundle bundle,
 		final double nanos)
 	{
-		Statistic stat = dynamicLookupStatsByBundle.get(bundle);
-		if (stat == null)
-		{
-			// Instead, look it up by name.  Every statistic is stored under
-			// both its bundle (for speed) and its bundle's message's print
-			// representation (for aggregating between runs).
-			final String nameString = bundle.message().toString();
-			final A_String name = StringDescriptor.from(nameString);
-			stat = dynamicLookupStatsByString.get(name);
-			if (stat == null)
-			{
-				// First time -- create a new statistic.
-				stat = new Statistic(
-					"Lookup " + nameString,
-					StatisticReport.DYNAMIC_LOOKUPS);
-				dynamicLookupStatsByString.put(name, stat);
-			}
-			// Reuse the statistic from a previous run (or just created).
-			dynamicLookupStatsByBundle.put(bundle, stat);
-		}
+		Statistic stat = bundle.dynamicLookupStatistic();
 		stat.record(nanos, interpreterIndex);
 	}
 
@@ -2517,8 +2477,7 @@ public final class Interpreter
 	{
 		for (int i = 0; i < AvailRuntime.maxInterpreters; i++)
 		{
-			checkedReturnMaps[i] = new WeakHashMap<
-				A_RawFunction, Map<A_RawFunction,PerInterpreterStatistic>>();
+			checkedReturnMaps[i] = new WeakHashMap<>();
 		}
 	}
 

@@ -55,6 +55,7 @@ import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
+import com.avail.performance.Statistic;
 import com.avail.serialization.*;
 import com.avail.utility.Generator;
 import com.avail.utility.Pair;
@@ -7164,6 +7165,12 @@ implements
 	public A_Map definitionParsingPlans ()
 	{
 		return descriptor.o_DefinitionParsingPlans(this);
+	}
+
+	@Override
+	public Statistic dynamicLookupStatistic ()
+	{
+		return descriptor.o_DynamicLookupStatistic(this);
 	}
 
 	@Override

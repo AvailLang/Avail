@@ -61,6 +61,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
+import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.Pair;
@@ -4799,6 +4800,12 @@ extends AbstractDescriptor
 	@Override
 	void o_AddLexer (
 		final AvailObject object, final A_Lexer lexer)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	Statistic o_DynamicLookupStatistic (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
