@@ -33,10 +33,10 @@
 package com.avail.test;
 
 import org.jetbrains.annotations.Nullable;
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static java.lang.Math.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.io.*;
 import java.util.*;
 import com.avail.AvailRuntime;
@@ -46,6 +46,7 @@ import com.avail.interpreter.levelOne.*;
 import com.avail.interpreter.primitive.floats.P_FloatFloor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.serialization.*;
+import org.junit.jupiter.api.*;
 
 /**
  * Unit tests for object serialization.
@@ -77,7 +78,7 @@ public final class SerializerTest
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void initializeAllWellKnownObjects () throws IOException
 	{
 		final IndexedRepositoryManager repository =
@@ -106,7 +107,7 @@ public final class SerializerTest
 	/**
 	 * Test fixture: clear all special objects.
 	 */
-	@AfterClass
+	@AfterAll
 	public static void clearAllWellKnownObjects ()
 	{
 		final AvailRuntime theRuntime = runtime;

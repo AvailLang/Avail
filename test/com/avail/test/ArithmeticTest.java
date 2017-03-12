@@ -32,8 +32,9 @@
 
 package com.avail.test;
 
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.math.BigInteger;
 import com.avail.descriptor.*;
 
@@ -121,7 +122,10 @@ public final class ArithmeticTest
 		assertEquals(Float.isNaN(a), Float.isNaN(b));
 		if (!Float.isNaN(a))
 		{
-			assertEquals(a, b, Math.abs(b * FloatEpsilon));
+			if (Float.floatToRawIntBits(a) != Float.floatToRawIntBits(b))
+			{
+				assertEquals(a, b, Math.abs(b * FloatEpsilon));
+			}
 		}
 	}
 

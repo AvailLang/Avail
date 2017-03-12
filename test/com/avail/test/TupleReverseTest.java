@@ -32,11 +32,12 @@
 
 package com.avail.test;
 
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
 import java.nio.ByteBuffer;
 import com.avail.descriptor.*;
 import com.avail.utility.Generator;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * A test of TupleReverseDescriptor as it is implemented on all other

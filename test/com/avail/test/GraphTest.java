@@ -32,8 +32,6 @@
 
 package com.avail.test;
 
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -44,6 +42,10 @@ import com.avail.utility.*;
 import com.avail.utility.Graph.GraphPreconditionFailure;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation2;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Basic functionality test of {@link Graph}s.
@@ -98,12 +100,22 @@ public class GraphTest
 	/**
 	 * Test: Check invalid addVertex().
 	 */
-	@Test(expectedExceptions = GraphPreconditionFailure.class)
+	@Test
 	public void testInvalidAddVertex ()
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();
 		tinyGraph.addVertex(5);
-		tinyGraph.addVertex(5);
+		assertThrows(
+			GraphPreconditionFailure.class,
+			new Executable()
+			{
+				@Override
+				public void execute ()
+				throws Throwable
+				{
+					tinyGraph.addVertex(5);
+				}
+			});
 	}
 
 	/**
@@ -143,45 +155,85 @@ public class GraphTest
 	/**
 	 * Test: Check invalid removeEdge() when neither vertex is present.
 	 */
-	@Test(expectedExceptions = GraphPreconditionFailure.class)
+	@Test
 	public void testInvalidRemoveEdgeWithNeitherVertexPresent ()
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();
-		tinyGraph.removeEdge(5, 6);
+		assertThrows(
+			GraphPreconditionFailure.class,
+			new Executable()
+			{
+				@Override
+				public void execute ()
+				throws Throwable
+				{
+					tinyGraph.removeEdge(5, 6);
+				}
+			});
 	}
 
 	/**
 	 * Test: Check invalid removeEdge() when only the source vertex is present.
 	 */
-	@Test(expectedExceptions = GraphPreconditionFailure.class)
+	@Test
 	public void testInvalidRemoveEdgeWithOnlySourceVertexPresent ()
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();
 		tinyGraph.addVertex(5);
-		tinyGraph.removeEdge(5, 6);
+		assertThrows(
+			GraphPreconditionFailure.class,
+			new Executable()
+			{
+				@Override
+				public void execute ()
+				throws Throwable
+				{
+					tinyGraph.removeEdge(5, 6);
+				}
+			});
 	}
 
 	/**
 	 * Test: Check invalid removeEdge() when only the target vertex is present.
 	 */
-	@Test(expectedExceptions = GraphPreconditionFailure.class)
+	@Test
 	public void testInvalidRemoveEdgeWithOnlyTargetVertexPresent ()
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();
 		tinyGraph.addVertex(6);
-		tinyGraph.removeEdge(5, 6);
+		assertThrows(
+			GraphPreconditionFailure.class,
+			new Executable()
+			{
+				@Override
+				public void execute ()
+				throws Throwable
+				{
+					tinyGraph.removeEdge(5, 6);
+				}
+			});
 	}
 
 	/**
 	 * Test: Check invalid removeEdge() when both vertices are present.
 	 */
-	@Test(expectedExceptions = GraphPreconditionFailure.class)
+	@Test
 	public void testInvalidRemoveEdgeWithBothVerticesPresent ()
 	{
 		final Graph<Integer> tinyGraph = new Graph<>();
 		tinyGraph.addVertex(5);
 		tinyGraph.addVertex(6);
-		tinyGraph.removeEdge(5, 6);
+		assertThrows(
+			GraphPreconditionFailure.class,
+			new Executable()
+			{
+				@Override
+				public void execute ()
+				throws Throwable
+				{
+					tinyGraph.removeEdge(5, 6);
+				}
+			});
 	}
 
 	/**

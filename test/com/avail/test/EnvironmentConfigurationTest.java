@@ -32,9 +32,10 @@
 
 package com.avail.test;
 
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
 
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Check that the development environment is configured correctly.

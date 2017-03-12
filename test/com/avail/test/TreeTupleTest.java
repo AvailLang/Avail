@@ -32,11 +32,12 @@
 
 package com.avail.test;
 
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.nio.ByteBuffer;
 import com.avail.descriptor.*;
 import com.avail.utility.Generator;
+import org.junit.jupiter.api.Test;
 
 /**
  * A test of TreeTupleDescriptor.

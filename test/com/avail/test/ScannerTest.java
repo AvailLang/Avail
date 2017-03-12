@@ -32,8 +32,9 @@
 
 package com.avail.test;
 
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.test.ScannerTest.Case.C;
@@ -355,7 +356,7 @@ public final class ScannerTest
 
 		// Reals and such:
 		C(".", O(".")),
-		C("..", O("."), O(".",1)),
+		C("", O("."), O(".",1)),
 		C(".f", O("."), K("f",1)),
 		C(".e5", O("."), K("e5",1)),
 		C("5.", L(5,"5"), O(".",1)),
@@ -433,17 +434,17 @@ public final class ScannerTest
 						+ " tokens");
 				}
 				assertEquals(
-					TokenDescriptor.create(
-										TupleDescriptor.empty(),
-										TupleDescriptor.empty(),
-										TupleDescriptor.empty(),
-										input.length(),
-										1,
-										-1,
-										END_OF_FILE),
 					scannedTokens.get(scannedTokens.size() - 1),
+					TokenDescriptor.create(
+						TupleDescriptor.empty(),
+						TupleDescriptor.empty(),
+						TupleDescriptor.empty(),
+						input.length() + 1,
+						1,
+						scannedTokens.size() + 1,
+						END_OF_FILE),
 					c + ": Expected scanner to have produced the"
-									+ " end-of-file token.");
+						+ " end-of-file token.");
 				scannedTokens = scannedTokens.subList(
 					0,
 					scannedTokens.size() - 1);

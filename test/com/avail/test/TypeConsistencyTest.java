@@ -33,9 +33,9 @@
 package com.avail.test;
 
 import org.jetbrains.annotations.Nullable;
-import org.testng.annotations.*;
-import static org.testng.Assert.*;
 import static com.avail.descriptor.TypeDescriptor.Types;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -44,6 +44,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
 import com.avail.utility.evaluation.Transformer1;
+import org.junit.jupiter.api.*;
 
 
 /**
@@ -132,9 +133,9 @@ public class TypeConsistencyTest
 	 * {@linkplain TypeConsistencyTest consistency checks}.
 	 *
 	 * <p>
-	 * All {@link com.avail.descriptor.TypeDescriptor.Types} are included, as
-	 * well as a few simple representative samples, such as the one-element
-	 * string type and the type of whole numbers.
+	 * All {@link Types} are included, as well as a few simple representative
+	 * samples, such as the one-element string type and the type of whole
+	 * numbers.
 	 * </p>
 	 */
 	public abstract static class Node
@@ -145,8 +146,7 @@ public class TypeConsistencyTest
 		static final List<Node> values = new ArrayList<>();
 
 		/**
-		 * A mapping from {@link com.avail.descriptor.TypeDescriptor.Types} to
-		 * their corresponding {@link Node}s.
+		 * A mapping from {@link Types} to their corresponding {@link Node}s.
 		 */
 		private static final EnumMap<Types, Node> primitiveTypes =
 			new EnumMap<>(Types.class);
@@ -1136,6 +1136,7 @@ public class TypeConsistencyTest
 							SET,
 							STRING,
 							EXTENDED_INTEGER,
+							WHOLE_NUMBER,
 							ROOT_VARIABLE,
 							INT_VARIABLE,
 							SOME_ATOM_VARIABLE,
@@ -1179,6 +1180,7 @@ public class TypeConsistencyTest
 							SET,
 							STRING,
 							EXTENDED_INTEGER,
+							WHOLE_NUMBER,
 							ROOT_VARIABLE,
 							INT_VARIABLE,
 							SOME_ATOM_VARIABLE,
@@ -1485,7 +1487,7 @@ public class TypeConsistencyTest
 	 * Test fixture: clear and then create all special objects well-known to the
 	 * Avail runtime, then set up the graph of types.
 	 */
-	@BeforeClass
+	@BeforeAll
 	public static void initializeAllWellKnownObjects ()
 	{
 		// Force early initialization of the Avail runtime in order to prevent
@@ -1584,7 +1586,7 @@ public class TypeConsistencyTest
 	/**
 	 * Test fixture: clear all special objects, wiping each {@link Node}'s type.
 	 */
-	@AfterClass
+	@AfterAll
 	public static void clearAllWellKnownObjects ()
 	{
 		Node.eraseTypes();
