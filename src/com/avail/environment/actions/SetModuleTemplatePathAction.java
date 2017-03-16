@@ -55,27 +55,14 @@ extends AbstractWorkbenchAction
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
 		final JFileChooser chooser = new JFileChooser();
-		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		chooser.setCurrentDirectory(workbench.moduleTemplatePath.toFile());
+		chooser.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter =
 			new FileNameExtensionFilter(
-				"Template Files", "txt", "tmpl");
+				"Template Files (.txt .tmpl)", "txt", "tmpl");
 		chooser.setFileFilter(filter);
-		chooser.addChoosableFileFilter(new FileFilter()
-		{
-			@Override
-			public String getDescription ()
-			{
-				return "Directories";
-			}
 
-			@Override
-			public boolean accept (final @Nullable File f)
-			{
-				assert f != null;
-				return filter.accept(f);
-			}
-		});
 		final int result = chooser.showDialog(
 			workbench, "Set Module Template Path");
 		if (result == JFileChooser.APPROVE_OPTION)

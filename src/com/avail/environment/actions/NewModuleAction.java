@@ -32,7 +32,6 @@
 
 package com.avail.environment.actions;
 
-import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +47,6 @@ import java.nio.file.Files;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,29 +63,22 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
+//		JCheckBox field1 = new JCheckBox("Local Avail root"); TODO get check box working so can create root module
+//		JPanel accessory = new JPanel();
+//		accessory.setLayout(new BoxLayout(accessory, BoxLayout.X_AXIS));
+//		accessory.add(field1);
 		final JFileChooser chooser = new JFileChooser();
-		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+//		chooser.setAccessory(accessory);
+		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		chooser.setAcceptAllFileFilterUsed(false);
 		chooser.setCurrentDirectory(new File("distro/src"));
 		chooser.setFileFilter(
 			new FileNameExtensionFilter(
-				"avail file","avail"));
-		chooser.addChoosableFileFilter(new FileFilter()
-		{
-			@Override
-			public String getDescription ()
-			{
-				return "Files";
-			}
+				".avail","avail"));
 
-			@Override
-			public boolean accept (final @Nullable File f)
-			{
-				assert f != null;
-				return f.isFile() && f.canWrite();
-			}
-		});
 		final int result = chooser.showDialog(
 			workbench, "Create");
+
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
 			try
