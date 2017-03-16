@@ -169,9 +169,12 @@ implements WindowListener
 		final Preferences preferences =
 			workbench.placementPreferencesNodeForScreenNames(
 				AvailWorkbench.allScreenNames());
-		final LayoutConfiguration saveConfiguration =
+		final LayoutConfiguration savedConfiguration =
 			new LayoutConfiguration(
 				preferences.get(AvailWorkbench.placementLeafKeyString, ""));
-		frame.setBounds(saveConfiguration.moduleViewerPlacement);
+		if (savedConfiguration.moduleViewerPlacement != null)
+		{
+			frame.setBounds(savedConfiguration.moduleViewerPlacement);
+		}
 	}
 }

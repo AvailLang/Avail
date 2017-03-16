@@ -1688,6 +1688,10 @@ extends JFrame
 		 */
 		@Nullable Integer leftSectionWidth = null;
 
+		/**
+		 * The preferred location and size of the module editor window,
+		 * if specified.
+		 */
 		public @Nullable Rectangle moduleViewerPlacement = null;
 
 		/**
@@ -1738,7 +1742,7 @@ extends JFrame
 		 */
 		public String stringToStore ()
 		{
-			final String [] strings = new String [6];
+			final String [] strings = new String [10];
 			final Rectangle p = placement;
 			if (p != null)
 			{
@@ -1746,15 +1750,6 @@ extends JFrame
 				strings[1] = Integer.toString(p.y);
 				strings[2] = Integer.toString(p.width);
 				strings[3] = Integer.toString(p.height);
-			}
-
-			final Rectangle mvp = moduleViewerPlacement;
-			if (mvp != null)
-			{
-				strings[0] = Integer.toString(mvp.x);
-				strings[1] = Integer.toString(mvp.y);
-				strings[2] = Integer.toString(mvp.width);
-				strings[3] = Integer.toString(mvp.height);
 			}
 
 			final Integer w = leftSectionWidth;
@@ -1767,6 +1762,16 @@ extends JFrame
 			{
 				strings[5] = Double.toString(h);
 			}
+
+			final Rectangle mvp = moduleViewerPlacement;
+			if (mvp != null)
+			{
+				strings[6] = Integer.toString(mvp.x);
+				strings[7] = Integer.toString(mvp.y);
+				strings[8] = Integer.toString(mvp.width);
+				strings[9] = Integer.toString(mvp.height);
+			}
+
 			final StringBuilder builder = new StringBuilder();
 			boolean first = true;
 			for (final String string : strings)
@@ -1823,21 +1828,6 @@ extends JFrame
 
 			try
 			{
-				if (substrings.length >= 4)
-				{
-					final int x = Integer.parseInt(substrings[0]);
-					final int y = Integer.parseInt(substrings[1]);
-					final int w = Integer.parseInt(substrings[2]);
-					final int h = Integer.parseInt(substrings[3]);
-					moduleViewerPlacement = new Rectangle(x, y, w, h);
-				}
-			}
-			catch (final NumberFormatException e)
-			{
-				// ignore
-			}
-			try
-			{
 				if (substrings.length >= 5)
 				{
 					leftSectionWidth = Integer.parseInt(substrings[4]);
@@ -1853,6 +1843,22 @@ extends JFrame
 				{
 					moduleVerticalProportion =
 						Double.parseDouble(substrings[5]);
+				}
+			}
+			catch (final NumberFormatException e)
+			{
+				// ignore
+			}
+
+			try
+			{
+				if (substrings.length >= 9)
+				{
+					final int x = Integer.parseInt(substrings[6]);
+					final int y = Integer.parseInt(substrings[7]);
+					final int w = Integer.parseInt(substrings[8]);
+					final int h = Integer.parseInt(substrings[9]);
+					moduleViewerPlacement = new Rectangle(x, y, w, h);
 				}
 			}
 			catch (final NumberFormatException e)
@@ -2351,8 +2357,17 @@ extends JFrame
 				final Preferences preferences =
 					placementPreferencesNodeForScreenNames(
 						allScreenNames());
+				final LayoutConfiguration prevConfiguration =
+					new LayoutConfiguration(
+						preferences.get(placementLeafKeyString, ""));
 				final LayoutConfiguration saveConfiguration =
 					new LayoutConfiguration();
+				if (prevConfiguration.moduleViewerPlacement != null)
+				{
+					saveConfiguration.moduleViewerPlacement =
+						prevConfiguration.moduleViewerPlacement;
+				}
+
 				saveConfiguration.placement = getBounds();
 				saveConfiguration.leftSectionWidth =
 					mainSplit.getDividerLocation();
