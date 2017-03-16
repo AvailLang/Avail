@@ -34,15 +34,18 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
+import com.avail.environment.AvailWorkbench.LayoutConfiguration;
 import com.avail.environment.viewer.ModuleViewer;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.prefs.Preferences;
 
 /**
  * A {@code EditModuleTask} is a {@link AbstractWorkbenchTask} used to open
@@ -54,6 +57,8 @@ public class EditModuleTask
 extends AbstractWorkbenchTask
 implements WindowListener
 {
+	private final @NotNull JFrame frame;
+
 	@Override
 	protected void executeTask () throws Exception
 	{
@@ -61,7 +66,6 @@ implements WindowListener
 		{
 			//JFXPanel must be created before scene due to initialization issues
 			final JFXPanel fxPanel = new JFXPanel();
-			JFrame frame = new JFrame(targetModuleName.localName());
 			final ModuleViewer viewer =
 				ModuleViewer.moduleViewer(targetModuleName(), workbench);
 			fxPanel.setScene(viewer);
@@ -105,7 +109,16 @@ implements WindowListener
 	@Override
 	public void windowClosing (final WindowEvent e)
 	{
-		//Do Nothing
+		final Preferences preferences =
+			workbench.placementPreferencesNodeForScreenNames(
+				AvailWorkbench.allScreenNames());
+		final LayoutConfiguration saveConfiguration =
+			new LayoutConfiguration(
+				preferences.get(AvailWorkbench.placementLeafKeyString, ""));
+		saveConfiguration.moduleViewerPlacement = frame.getBounds();
+		preferences.put(
+			AvailWorkbench.placementLeafKeyString,
+			saveConfiguration.stringToStore());
 	}
 
 	@Override
@@ -152,5 +165,13 @@ implements WindowListener
 		final @Nullable ResolvedModuleName targetModuleName)
 	{
 		super(workbench, targetModuleName);
+		this.frame = new JFrame(this.targetModuleName.localName());
+		final Preferences preferences =
+			workbench.placementPreferencesNodeForScreenNames(
+				AvailWorkbench.allScreenNames());
+		final LayoutConfiguration saveConfiguration =
+			new LayoutConfiguration(
+				preferences.get(AvailWorkbench.placementLeafKeyString, ""));
+		frame.setBounds(saveConfiguration.moduleViewerPlacement);
 	}
 }

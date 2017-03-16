@@ -876,7 +876,7 @@ extends JFrame
 	/**
 	 * The {@linkplain NewPackageAction new module path dialog action}.
 	 */
-	@InnerAccess final NewPackageAction newRootModuleAction =
+	@InnerAccess final NewPackageAction newPackageAction =
 		new NewPackageAction(this);
 
 	/**
@@ -978,6 +978,9 @@ extends JFrame
 			!busy && selectedEntryPointModule() != null);
 		editModuleAction.setEnabled(
 			!busy && selectedModuleIsLoaded());
+		newModuleAction.setEnabled(!busy);
+		newPackageAction.setEnabled(!busy);
+		setModuleTemplatePathAction.setEnabled(!busy);
 		inputLabel.setText(isRunning
 			? "Console Input:"
 			: "Command:");
@@ -1626,7 +1629,7 @@ extends JFrame
 		"placementByMonitorNames";
 
 	/** The leaf key under which to store a single window placement. */
-	private final static String placementLeafKeyString = "placement";
+	public final static String placementLeafKeyString = "placement";
 
 	/**
 	 * Answer a {@link List} of {@link Rectangle}s corresponding with the
@@ -1634,7 +1637,7 @@ extends JFrame
 	 *
 	 * @return The list of rectangles to which physical screens are mapped.
 	 */
-	@InnerAccess static List<String> allScreenNames ()
+	public static List<String> allScreenNames ()
 	{
 		final GraphicsEnvironment graphicsEnvironment =
 			GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -1657,8 +1660,7 @@ extends JFrame
 	 * @return The {@code Preferences} node in which placement information for
 	 *         the current monitor configuration can be stored and retrieved.
 	 */
-	@InnerAccess
-	Preferences placementPreferencesNodeForScreenNames (
+	public Preferences placementPreferencesNodeForScreenNames (
 		final List<String> screenNames)
 	{
 		final StringBuilder allNamesString = new StringBuilder();
@@ -1674,7 +1676,8 @@ extends JFrame
 	/**
 	 * Information about the window layout.
 	 */
-	@InnerAccess static class LayoutConfiguration
+	@InnerAccess
+	public static class LayoutConfiguration
 	{
 		/** The preferred location and size of the window, if specified. */
 		@Nullable Rectangle placement = null;
@@ -1684,6 +1687,8 @@ extends JFrame
 		 * specified
 		 */
 		@Nullable Integer leftSectionWidth = null;
+
+		public @Nullable Rectangle moduleViewerPlacement = null;
 
 		/**
 		 * Answer this configuration's recommended width in pixels for the left
@@ -1742,6 +1747,16 @@ extends JFrame
 				strings[2] = Integer.toString(p.width);
 				strings[3] = Integer.toString(p.height);
 			}
+
+			final Rectangle mvp = moduleViewerPlacement;
+			if (mvp != null)
+			{
+				strings[0] = Integer.toString(mvp.x);
+				strings[1] = Integer.toString(mvp.y);
+				strings[2] = Integer.toString(mvp.width);
+				strings[3] = Integer.toString(mvp.height);
+			}
+
 			final Integer w = leftSectionWidth;
 			if (w != null)
 			{
@@ -1799,6 +1814,22 @@ extends JFrame
 					final int w = Integer.parseInt(substrings[2]);
 					final int h = Integer.parseInt(substrings[3]);
 					placement = new Rectangle(x, y, w, h);
+				}
+			}
+			catch (final NumberFormatException e)
+			{
+				// ignore
+			}
+
+			try
+			{
+				if (substrings.length >= 4)
+				{
+					final int x = Integer.parseInt(substrings[0]);
+					final int y = Integer.parseInt(substrings[1]);
+					final int w = Integer.parseInt(substrings[2]);
+					final int h = Integer.parseInt(substrings[3]);
+					moduleViewerPlacement = new Rectangle(x, y, w, h);
 				}
 			}
 			catch (final NumberFormatException e)
@@ -1965,7 +1996,7 @@ extends JFrame
 		menuBar.add(
 			menu(
 				"Module",
-				newRootModuleAction, newModuleAction,
+				newPackageAction, newModuleAction,
 					editModuleAction, null,
 				setModuleTemplatePathAction));
 		menuBar.add(
