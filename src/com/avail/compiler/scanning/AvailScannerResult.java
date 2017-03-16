@@ -34,6 +34,8 @@ package com.avail.compiler.scanning;
 
 import java.util.Collections;
 import java.util.List;
+
+import com.avail.compiler.scanning.AvailScanner.BasicCommentPosition;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
@@ -104,6 +106,22 @@ public final class AvailScannerResult
 	}
 
 	/**
+	 * A {@link List} of the positions of {@linkplain BasicCommentPosition
+	 * basic comments}.
+	 */
+	private final List<BasicCommentPosition> basicCommentPositions;
+
+	/**
+	 * Answer the {@link #basicCommentPositions}.
+	 *
+	 * @return A {@link BasicCommentPosition} {@link List}.
+	 */
+	public List <BasicCommentPosition> basicCommentPositions ()
+	{
+		return basicCommentPositions;
+	}
+
+	/**
 	 * Construct a new {@link AvailScannerResult}.
 	 *
 	 * @param source
@@ -116,14 +134,19 @@ public final class AvailScannerResult
 	 *        The complete collection of {@linkplain CommentTokenDescriptor
 	 *        comment tokens} that were produced by the {@linkplain AvailScanner
 	 *        scanner}.
+	 * @param basicCommentPositions
+	 *        A {@link List} of the positions of {@linkplain
+	 *        BasicCommentPosition basic comments}.
 	 */
 	AvailScannerResult (
 		final String source,
 		final List<A_Token> outputTokens,
-		final List<A_Token> commentTokens)
+		final List<A_Token> commentTokens,
+		final List<BasicCommentPosition> basicCommentPositions)
 	{
 		this.source = source;
 		this.outputTokens = Collections.unmodifiableList(outputTokens);
 		this.commentTokens = Collections.unmodifiableList(commentTokens);
+		this.basicCommentPositions = basicCommentPositions;
 	}
 }

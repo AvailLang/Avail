@@ -2,6 +2,7 @@ package com.avail.environment.viewer;
 
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.scanning.AvailScanner;
+import com.avail.compiler.scanning.AvailScanner.BasicCommentPosition;
 import com.avail.compiler.scanning.AvailScannerException;
 import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.A_Token;
@@ -251,7 +252,7 @@ extends Scene
 				resolvedModuleName.localName(),
 				false);
 
-			List<A_Token> outputTokens = scannerResult.outputTokens();
+			final List<A_Token> outputTokens = scannerResult.outputTokens();
 			for (int i = 0; i < outputTokens.size(); i++)
 			{
 				final A_Token token = outputTokens.get(i);
@@ -267,7 +268,7 @@ extends Scene
 				}
 			}
 
-			List<A_Token> commentTokens = scannerResult.commentTokens();
+			final List<A_Token> commentTokens = scannerResult.commentTokens();
 			for (int i = 0; i < commentTokens.size(); i++)
 			{
 				final A_Token token = commentTokens.get(i);
@@ -276,6 +277,18 @@ extends Scene
 					token.start() + token.string().tupleSize() - 1,
 					"stacks-comment");
 
+			}
+
+			final List<BasicCommentPosition> positions =
+				scannerResult.basicCommentPositions();
+
+			for (int i = 0; i < positions.size(); i++)
+			{
+				final BasicCommentPosition position = positions.get(i);
+				codeArea.setStyleClass(
+					position.start(),
+					position.start() + position.length(),
+					"comment");
 			}
 		}
 		catch (AvailScannerException e)

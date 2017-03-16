@@ -3,6 +3,11 @@
 	-fx-fill: green;
 }
 
+.comment
+{
+	-fx-fill: #999999;
+}
+
 .text
 {
 	-fx-font-family: 'Deja Vu Sans Mono' Monaco;

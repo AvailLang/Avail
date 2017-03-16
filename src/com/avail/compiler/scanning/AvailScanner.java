@@ -234,6 +234,23 @@ public class AvailScanner
 	}
 
 	/**
+	 * A {@link List} of the positions of {@linkplain BasicCommentPosition
+	 * basic comments}.
+	 */
+	private final List<BasicCommentPosition> basicCommentPositions =
+		new ArrayList<>();
+
+	/**
+	 * Add a {@link BasicCommentPosition} to the {@linkplain
+	 * #basicCommentPositions basic comments list}.
+	 */
+	void logBasicCommentPosition ()
+	{
+		basicCommentPositions.add(new BasicCommentPosition(
+			startOfToken, currentTokenString().length()));
+	}
+
+	/**
 	 * Answer whether we have exhausted the input string.
 	 *
 	 * @return Whether we are finished scanning.
@@ -785,6 +802,7 @@ public class AvailScanner
 							}
 							else
 							{
+								scanner.logBasicCommentPosition();
 								scanner.forgetWhitespace();
 							}
 							break;
@@ -927,7 +945,10 @@ public class AvailScanner
 				stopAfterBodyTokenFlag);
 		scanner.scan();
 		return new AvailScannerResult(
-			string, scanner.outputTokens, scanner.commentTokens);
+			string,
+			scanner.outputTokens,
+			scanner.commentTokens,
+			scanner.basicCommentPositions);
 	}
 
 	/**
@@ -1043,5 +1064,58 @@ public class AvailScanner
 		// at the start of a file as a hint about the file's endianness. Treat
 		// it as whitespace even though Unicode says it isn't.
 		dispatchTable['\uFEFF'] = (byte) WHITESPACE.ordinal();
+	}
+
+	/**
+	 * A {@code BasicCommentPosition} is a holder for the position and length
+	 * of an untokenized comment in the source module.
+	 */
+	public static class BasicCommentPosition
+	{
+		/**
+		 * The start position of this comment in the source module.
+		 */
+		final int start;
+
+		/**
+		 * Answer the start position of this comment in the source module.
+		 *
+		 * @return An int.
+		 */
+		public int start ()
+		{
+			return start;
+		}
+
+		/**
+		 * The length of the comment.
+		 */
+		final int length;
+
+		/**
+		 * Answer the length of the comment.
+		 *
+		 * @return An int.
+		 */
+		public int length ()
+		{
+			return length;
+		}
+
+		/**
+		 * Construct a {@link BasicCommentPosition}.
+		 *
+		 * @param start
+		 *        The start position of this comment in the source module.
+		 * @param length
+		 *        The length of the comment.
+		 */
+		BasicCommentPosition (
+			final int start,
+			final int length)
+		{
+			this.start = start;
+			this.length = length;
+		}
 	}
 }
