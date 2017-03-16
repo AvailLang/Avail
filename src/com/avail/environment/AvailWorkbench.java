@@ -851,6 +851,13 @@ extends JFrame
 	@InnerAccess final NewModuleAction newModuleAction =
 		new NewModuleAction(this);
 
+	/**
+	 * The {@linkplain SetModuleTemplatePathAction module template path dialog
+	 * action}.
+	 */
+	@InnerAccess final SetModuleTemplatePathAction setModuleTemplatePathAction =
+		new SetModuleTemplatePathAction(this);
+
 	/** The {@linkplain ShowVMReportAction show VM report action}. */
 	@InnerAccess final ShowVMReportAction showVMReportAction =
 		new ShowVMReportAction(this);
@@ -1930,7 +1937,8 @@ extends JFrame
 		menuBar.add(
 			menu(
 				"Module",
-				newModuleAction, null, viewModuleAction));
+				newModuleAction, viewModuleAction, null,
+				setModuleTemplatePathAction));
 		menuBar.add(
 			menu(
 				"Document",

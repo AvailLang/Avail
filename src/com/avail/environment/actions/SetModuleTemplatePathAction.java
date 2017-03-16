@@ -32,7 +32,6 @@
 
 package com.avail.environment.actions;
 
-import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import org.jetbrains.annotations.Nullable;
@@ -42,24 +41,14 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoField;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * A {@code SetDocumentationPathAction} displays a {@linkplain
- * JOptionPane modal dialog} that prompts the user for the Stacks
- * documentation path.
+ * A {@code SetModuleTemplatePathAction} displays a {@linkplain
+ * JOptionPane modal dialog} that prompts the user for the new source module
+ * template path.
  */
 @SuppressWarnings("serial")
-public final class NewModuleAction
+public final class SetModuleTemplatePathAction
 extends AbstractWorkbenchAction
 {
 	@Override
@@ -67,85 +56,45 @@ extends AbstractWorkbenchAction
 	{
 		final JFileChooser chooser = new JFileChooser();
 		chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		chooser.setCurrentDirectory(new File("distro/src"));
-		chooser.setFileFilter(
+		chooser.setCurrentDirectory(workbench.moduleTemplatePath.toFile());
+		FileNameExtensionFilter filter =
 			new FileNameExtensionFilter(
-				"avail file","avail"));
+				"Template Files", "txt", "tmpl");
+		chooser.setFileFilter(filter);
 		chooser.addChoosableFileFilter(new FileFilter()
 		{
 			@Override
 			public String getDescription ()
 			{
-				return "Files";
+				return "Directories";
 			}
 
 			@Override
 			public boolean accept (final @Nullable File f)
 			{
 				assert f != null;
-				return f.isFile() && f.canWrite();
+				return filter.accept(f);
 			}
 		});
 		final int result = chooser.showDialog(
-			workbench, "Create");
+			workbench, "Set Module Template Path");
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			try
-			{
-				String fileName = chooser.getSelectedFile().toString();
-				String[] split = fileName.split(".+?/(?=[^/]+$)");
-				String moduleName = split.length == 2 ? split[1] : fileName;
-
-				File file = new File(fileName + ".avail");
-				file.createNewFile();
-				file.canWrite();
-
-				StringBuilder sb = new StringBuilder();
-				List<String> lines = Files.lines(workbench.moduleTemplatePath)
-					.collect(Collectors.toList());
-
-				int size = lines.size();
-
-				for (int i = 0; i < size - 1; i++)
-				{
-					sb.append(lines.get(i));
-					sb.append('\n');
-				}
-
-				sb.append(lines.get(size - 1));
-
-				final String year = Integer.toString(LocalDateTime.ofInstant(
-					Instant.now(), ZoneOffset.UTC).getYear());
-
-				final List<String> input = new ArrayList<>();
-				input.add(sb.toString()
-					.replace("${MODULE}", moduleName)
-					.replace("${YEAR}", year));
-				Files.write(
-					file.toPath(),
-					input,
-					StandardCharsets.UTF_8);
-				new RefreshAction(workbench).actionPerformed(event);
-			}
-			catch (IOException e)
-			{
-				System.err.println("Failed to create file: "
-					+ chooser.getSelectedFile().toPath());
-			}
+			workbench.moduleTemplatePath = chooser.getSelectedFile().toPath();
 		}
 	}
 
 	/**
-	 * Construct a new {@link NewModuleAction}.
+	 * Construct a new {@link SetModuleTemplatePathAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
 	 */
-	public NewModuleAction (final AvailWorkbench workbench)
+	public SetModuleTemplatePathAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "New Module…");
+		super(workbench, "Set Module Template Path…");
 		putValue(
 			SHORT_DESCRIPTION,
-			"Create a new source module");
+			"Set the path for new module's template.");
 	}
 }
