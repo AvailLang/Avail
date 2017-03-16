@@ -874,6 +874,12 @@ extends JFrame
 		new NewModuleAction(this);
 
 	/**
+	 * The {@linkplain NewRootModuleAction new module path dialog action}.
+	 */
+	@InnerAccess final NewRootModuleAction newRootModuleAction =
+		new NewRootModuleAction(this);
+
+	/**
 	 * The {@linkplain SetModuleTemplatePathAction module template path dialog
 	 * action}.
 	 */
@@ -1959,7 +1965,8 @@ extends JFrame
 		menuBar.add(
 			menu(
 				"Module",
-				newModuleAction, editModuleAction, null,
+				newRootModuleAction, newModuleAction,
+					editModuleAction, null,
 				setModuleTemplatePathAction));
 		menuBar.add(
 			menu(

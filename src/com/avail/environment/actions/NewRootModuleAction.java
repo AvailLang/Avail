@@ -1,5 +1,5 @@
 /**
- * NewModuleAction.java
+ * NewRootModuleAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -44,7 +44,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
@@ -55,11 +54,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A {@code NewModuleAction} displays a {@linkplain
- * JOptionPane modal dialog} that prompts the user to create a new Avail module.
+ * A {@code NewRootModuleAction} displays a {@linkplain
+ * JOptionPane modal dialog} a user to create a new Avail root module.
  */
 @SuppressWarnings("serial")
-public final class NewModuleAction
+public final class NewRootModuleAction
 extends AbstractWorkbenchAction
 {
 	@Override
@@ -99,7 +98,14 @@ extends AbstractWorkbenchAction
 
 				final String fileName = chooser.getSelectedFile().toString();
 				final String moduleName = new File(fileName).getName();
-				final File file = new File(fileName + ".avail");
+				final String localName = moduleName + ".avail";
+				final File dir = new File(fileName + ".avail");
+				if (!dir.exists())
+				{
+					dir.mkdir();
+				}
+				final File file =
+					new File(fileName + ".avail/" + localName);
 				file.createNewFile();
 
 				final String year = Integer.toString(LocalDateTime.ofInstant(
@@ -123,16 +129,16 @@ extends AbstractWorkbenchAction
 	}
 
 	/**
-	 * Construct a new {@link NewModuleAction}.
+	 * Construct a new {@link NewRootModuleAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
 	 */
-	public NewModuleAction (final AvailWorkbench workbench)
+	public NewRootModuleAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "New Module…");
+		super(workbench, "New Root Module…");
 		putValue(
 			SHORT_DESCRIPTION,
-			"Create a new source module");
+			"Create a new root source module");
 	}
 }
