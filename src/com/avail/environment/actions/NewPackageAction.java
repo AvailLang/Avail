@@ -1,5 +1,5 @@
 /**
- * NewRootModuleAction.java
+ * NewPackageAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -54,11 +54,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * A {@code NewRootModuleAction} displays a {@linkplain
+ * A {@code NewPackageAction} displays a {@linkplain
  * JOptionPane modal dialog} a user to create a new Avail root module.
  */
 @SuppressWarnings("serial")
-public final class NewRootModuleAction
+public final class NewPackageAction
 extends AbstractWorkbenchAction
 {
 	@Override
@@ -129,16 +129,16 @@ extends AbstractWorkbenchAction
 	}
 
 	/**
-	 * Construct a new {@link NewRootModuleAction}.
+	 * Construct a new {@link NewPackageAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
 	 */
-	public NewRootModuleAction (final AvailWorkbench workbench)
+	public NewPackageAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "New Root Module…");
+		super(workbench, "New Package…");
 		putValue(
 			SHORT_DESCRIPTION,
-			"Create a new root source module");
+			"Create a new module package");
 	}
 }

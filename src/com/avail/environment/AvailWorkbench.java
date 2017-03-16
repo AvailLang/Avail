@@ -874,10 +874,10 @@ extends JFrame
 		new NewModuleAction(this);
 
 	/**
-	 * The {@linkplain NewRootModuleAction new module path dialog action}.
+	 * The {@linkplain NewPackageAction new module path dialog action}.
 	 */
-	@InnerAccess final NewRootModuleAction newRootModuleAction =
-		new NewRootModuleAction(this);
+	@InnerAccess final NewPackageAction newRootModuleAction =
+		new NewPackageAction(this);
 
 	/**
 	 * The {@linkplain SetModuleTemplatePathAction module template path dialog
