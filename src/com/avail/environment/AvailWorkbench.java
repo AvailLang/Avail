@@ -74,18 +74,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.prefs.Preferences;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
@@ -119,6 +114,33 @@ extends JFrame
 	 */
 	public static final int menuShortcutMask =
 		Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
+	/**
+	 * The current working directory of the Avail virtual machine. Because Java
+	 * does not permit the current working directory to be changed, it is safe
+	 * to cache the answer at class-loading time.
+	 */
+	public static final @NotNull File currentWorkingDirectory;
+
+	// Obtain the current working directory. Try to resolve this location to its
+	// real path. If resolution fails, then just use the value of the "user.dir"
+	// system property.
+	static
+	{
+		final String userDir = System.getProperty("user.dir");
+		final FileSystem fileSystem = FileSystems.getDefault();
+		final Path path = fileSystem.getPath(userDir);
+		String realPathString;
+		try
+		{
+			realPathString = path.toRealPath().toString();
+		}
+		catch (final IOException|SecurityException e)
+		{
+			realPathString = userDir;
+		}
+		currentWorkingDirectory = new File(realPathString);
+	}
 
 	/**
 	 * An abstraction for all the workbench's actions.
@@ -673,15 +695,15 @@ extends JFrame
 	 * The documentation {@linkplain Path path} for the {@linkplain
 	 * StacksGenerator Stacks generator}.
 	 */
-	public Path documentationPath =
+	public @NotNull Path documentationPath =
 		StacksGenerator.defaultDocumentationPath;
 
 	/**
 	 * The {@linkplain Path path} for the new module template.
 	 */
-	public Path moduleTemplatePath =
-		Paths.get("./resources/workbench/new-module.tmpl");
-
+	public @NotNull URL moduleTemplateURL =
+		AvailWorkbench.class.getResource(
+			"/workbench/new-module.tmpl");
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
 	private @Nullable BuildInputStream inputStream;
@@ -896,9 +918,9 @@ extends JFrame
 	@InnerAccess final BuildAction buildEntryPointModuleAction =
 		new BuildAction(this, true);
 
-	/** The {@linkplain ViewModuleAction action to open a source module}. */
-	@InnerAccess final ViewModuleAction viewModuleAction =
-		new ViewModuleAction(this, true);
+	/** The {@linkplain EditModuleAction action to open a source module}. */
+	@InnerAccess final EditModuleAction editModuleAction =
+		new EditModuleAction(this);
 
 	/**
 	 * The {@linkplain DisplayCodeCoverageReport action to display the current
@@ -948,7 +970,7 @@ extends JFrame
 					!= null);
 		buildEntryPointModuleAction.setEnabled(
 			!busy && selectedEntryPointModule() != null);
-		viewModuleAction.setEnabled(
+		editModuleAction.setEnabled(
 			!busy && selectedModuleIsLoaded());
 		inputLabel.setText(isRunning
 			? "Console Input:"
@@ -1937,7 +1959,7 @@ extends JFrame
 		menuBar.add(
 			menu(
 				"Module",
-				newModuleAction, viewModuleAction, null,
+				newModuleAction, editModuleAction, null,
 				setModuleTemplatePathAction));
 		menuBar.add(
 			menu(
@@ -1976,7 +1998,7 @@ extends JFrame
 		final JMenu buildPopup = menu(
 			"Modules",
 			buildAction,
-			viewModuleAction,
+			editModuleAction,
 			documentAction,
 			null,
 			unloadAction,
@@ -1992,7 +2014,7 @@ extends JFrame
 		final JMenu entryPointsPopup = menu(
 			"Entry points",
 			buildEntryPointModuleAction, null,
-			viewModuleAction, null,
+			editModuleAction, null,
 			insertEntryPointAction, null,
 			createProgramAction, null,
 			refreshAction);
@@ -2045,7 +2067,7 @@ extends JFrame
 		actionMap = moduleTree.getActionMap();
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build");
 		actionMap.put("build", buildAction);
-		actionMap.put("view", viewModuleAction);
+		actionMap.put("view", editModuleAction);
 		// Expand rows bottom-to-top to expand only the root nodes.
 		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 		{

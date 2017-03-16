@@ -34,13 +34,13 @@ package com.avail.environment.actions;
 
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.ActionEvent;
-import java.io.File;
+import java.io.IOException;
 
 /**
  * A {@code SetModuleTemplatePathAction} displays a {@linkplain
@@ -56,7 +56,7 @@ extends AbstractWorkbenchAction
 	{
 		final JFileChooser chooser = new JFileChooser();
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		chooser.setCurrentDirectory(workbench.moduleTemplatePath.toFile());
+		chooser.setCurrentDirectory(AvailWorkbench.currentWorkingDirectory);
 		chooser.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter =
 			new FileNameExtensionFilter(
@@ -67,7 +67,15 @@ extends AbstractWorkbenchAction
 			workbench, "Set Module Template Path");
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			workbench.moduleTemplatePath = chooser.getSelectedFile().toPath();
+			try
+			{
+				workbench.moduleTemplateURL =
+					chooser.getSelectedFile().toURI().toURL();
+			}
+			catch (final @NotNull IOException e)
+			{
+				throw new RuntimeException(e);
+			}
 		}
 	}
 

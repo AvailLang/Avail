@@ -1,12 +1,46 @@
+/**
+ * AvailCompiler.java
+ * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package com.avail.environment.viewer;
 
 import com.avail.builder.ResolvedModuleName;
+import com.avail.compiler.ExpectedToken;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.compiler.scanning.AvailScanner.BasicCommentPosition;
 import com.avail.compiler.scanning.AvailScannerException;
 import com.avail.compiler.scanning.AvailScannerResult;
+import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.actions.BuildAction;
 import com.avail.environment.tasks.ViewModuleTask;
@@ -35,6 +69,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * A {@code ModuleViewer} is a {@link Scene} used to open a source module for
@@ -239,6 +274,23 @@ extends Scene
 	}
 
 	/**
+	 * Style the specified {@linkplain A_Token} by giving it the provided
+	 * style class.
+	 *
+	 * @param token
+	 *        The token to style
+	 * @param styleClass
+	 *        The style class.
+	 */
+	private void styleToken (final A_Token token, final String styleClass)
+	{
+		codeArea.setStyleClass(
+			token.start() - 1,
+			token.start() + token.string().tupleSize() - 1,
+			styleClass);
+	}
+
+	/**
 	 * Scan the text in the {@link #codeArea} and style the document
 	 * appropriately.
 	 */
@@ -252,19 +304,76 @@ extends Scene
 				resolvedModuleName.localName(),
 				false);
 
+			// Identify the position of the "Body" token. We want to give all
+			// keyword tokens up to this one (inclusive) the style
+			// "header-keyword".
 			final List<A_Token> outputTokens = scannerResult.outputTokens();
+			final int outputTokenCount = outputTokens.size();
+			final int bodyIndex = IntStream.range(0, outputTokenCount)
+				.filter(i ->
+				{
+					final A_Token token = outputTokens.get(i);
+					final A_String body = ExpectedToken.BODY.lexeme();
+					return token.tokenType() == TokenType.KEYWORD
+						&& token.string().equals(body);
+				})
+				.findAny()
+				.orElseThrow(() ->
+				{
+					// We presuppose that the module is well-formed, otherwise
+					// the AvailScanner should not have supplied a token stream.
+					// This may need to change if/when AvailScanner can produce
+					// a partial result (and an error code in the
+					// AvailScannerResult to indicate this).
+					assert false : "No Body keyword!";
+					throw new RuntimeException("No Body keyword!");
+				});
+
+			// Identify the position of the "Entries" token, if present. We
+			// want to give all entry point names the style "entry-point".
+			final int entriesIndex = IntStream.range(0, outputTokenCount)
+				.filter(i ->
+				{
+					final A_Token token = outputTokens.get(i);
+					final A_String entries = ExpectedToken.ENTRIES.lexeme();
+					return token.tokenType() == TokenType.KEYWORD
+						&& token.string().equals(entries);
+				})
+				.findAny()
+				.orElse(bodyIndex + 1);
+
+			codeArea.setStyleClass(
+				0,
+				source.length(),
+				"general");
+
 			for (int i = 0; i < outputTokens.size(); i++)
 			{
 				final A_Token token = outputTokens.get(i);
-				if (token.isLiteralToken())
+				if (
+					i <= bodyIndex
+					&& token.tokenType() == TokenType.KEYWORD)
 				{
-					//There has to be a better way to do this for numbers
-					AvailObject availObject = token.literal();
-
-					codeArea.setStyleClass(
-						token.start() - 1,
-						token.start() + token.string().tupleSize() - 1,
-						availObject.isExtendedInteger() ? "number" : "literal");
+					styleToken(token, "header-keyword");
+				}
+				else if (token.isLiteralToken())
+				{
+					// Give entry points a special style.
+					if (i >= entriesIndex && i <= bodyIndex
+						&& token.literal().isString())
+					{
+						styleToken(token, "entry-point");
+					}
+					// Give all other literals the appropriate style.
+					else
+					{
+						AvailObject availObject = token.literal();
+						styleToken(
+							token,
+							availObject.isExtendedInteger()
+								? "number"
+								: "literal");
+					}
 				}
 			}
 
@@ -272,11 +381,7 @@ extends Scene
 			for (int i = 0; i < commentTokens.size(); i++)
 			{
 				final A_Token token = commentTokens.get(i);
-				codeArea.setStyleClass(
-					token.start() - 1,
-					token.start() + token.string().tupleSize() - 1,
-					"stacks-comment");
-
+				styleToken(token, "stacks-comment");
 			}
 
 			final List<BasicCommentPosition> positions =

@@ -34,14 +34,17 @@ package com.avail.environment.actions;
 
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.ActionEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
@@ -63,51 +66,45 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-//		JCheckBox field1 = new JCheckBox("Local Avail root"); TODO get check box working so can create root module
-//		JPanel accessory = new JPanel();
-//		accessory.setLayout(new BoxLayout(accessory, BoxLayout.X_AXIS));
-//		accessory.add(field1);
 		final JFileChooser chooser = new JFileChooser();
-//		chooser.setAccessory(accessory);
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		chooser.setAcceptAllFileFilterUsed(false);
-		chooser.setCurrentDirectory(new File("distro/src"));
+		chooser.setCurrentDirectory(AvailWorkbench.currentWorkingDirectory);
 		chooser.setFileFilter(
 			new FileNameExtensionFilter(
 				".avail","avail"));
 
 		final int result = chooser.showDialog(
 			workbench, "Create");
-
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
 			try
 			{
-				String fileName = chooser.getSelectedFile().toString();
-				String[] split = fileName.split(".+?/(?=[^/]+$)");
-				String moduleName = split.length == 2 ? split[1] : fileName;
+				final StringBuilder sb = new StringBuilder();
+				final List<String> lines;
+				try (
+					final @NotNull BufferedReader reader =
+					     new BufferedReader(new FileReader(
+					     	workbench.moduleTemplateURL.getFile())))
+			    {
+			        lines = reader.lines().collect(Collectors.toList());
+			    }
 
-				File file = new File(fileName + ".avail");
-				file.createNewFile();
-				file.canWrite();
-
-				StringBuilder sb = new StringBuilder();
-				List<String> lines = Files.lines(workbench.moduleTemplatePath)
-					.collect(Collectors.toList());
-
-				int size = lines.size();
-
+				final int size = lines.size();
 				for (int i = 0; i < size - 1; i++)
 				{
 					sb.append(lines.get(i));
 					sb.append('\n');
 				}
-
 				sb.append(lines.get(size - 1));
+
+				final String fileName = chooser.getSelectedFile().toString();
+				final String moduleName = new File(fileName).getName();
+				final File file = new File(fileName + ".avail");
+				file.createNewFile();
 
 				final String year = Integer.toString(LocalDateTime.ofInstant(
 					Instant.now(), ZoneOffset.UTC).getYear());
-
 				final List<String> input = new ArrayList<>();
 				input.add(sb.toString()
 					.replace("${MODULE}", moduleName)

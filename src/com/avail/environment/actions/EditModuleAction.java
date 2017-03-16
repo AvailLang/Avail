@@ -44,28 +44,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 /**
- * A {@code ViewModuleAction} launches a {@linkplain ModuleViewer module viewer}
+ * A {@code EditModuleAction} launches a {@linkplain ModuleViewer module viewer}
  * in a Swing worker thread.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
 @SuppressWarnings("serial")
-public final class ViewModuleAction
+public final class EditModuleAction
 extends AbstractWorkbenchAction
 {
-	/**
-	 * Whether this action is for building the currently selected entry
-	 * point module rather than the current selection in the module area.
-	 */
-	final boolean forEntryPointModule;
-
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
 		assert workbench.backgroundTask == null;
 
 		final ResolvedModuleName selectedModule = workbench.selectedModule();
-
 		assert selectedModule != null;
 
 		final JFrame frame = workbench.openedSourceModules.get(selectedModule);
@@ -88,31 +81,19 @@ extends AbstractWorkbenchAction
 	}
 
 	/**
-	 * Construct a new {@link ViewModuleAction}.
+	 * Construct a new {@link EditModuleAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
-	 * @param forEntryPointModule
-	 *        Whether this action is for the currently selected entry point
-	 *        module rather than for the module tree's selection.
 	 */
-	public ViewModuleAction (
-		final AvailWorkbench workbench,
-		final boolean forEntryPointModule)
+	public EditModuleAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "View");
-		this.forEntryPointModule = forEntryPointModule;
-
+		super(workbench, "Edit");
 		putValue(
 			SHORT_DESCRIPTION,
-			"View the selected module");
-		if (!forEntryPointModule)
-		{
-			putValue(
-				ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(
-					KeyEvent.VK_ENTER,
-					AvailWorkbench.menuShortcutMask));
-		}
+			"Edit the selected module");
+		putValue(
+			ACCELERATOR_KEY,
+			KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0));
 	}
 }

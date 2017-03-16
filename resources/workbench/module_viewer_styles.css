@@ -1,57 +1,88 @@
+.general
+{
+	-fx-font-family: Menlo;
+}
+
+.header-keyword
+{
+	-fx-font-family: Menlo;
+	-fx-font-weight: bold;
+}
+
+.entry-point
+{
+	-fx-fill: red;
+	-fx-font-family: Menlo;
+	-fx-font-weight: bold;
+}
+
 .stacks-comment
 {
 	-fx-fill: green;
+	-fx-font-family: Menlo;
 }
 
 .comment
 {
 	-fx-fill: #999999;
-}
-
-.text
-{
-	-fx-font-family: 'Deja Vu Sans Mono' Monaco;
+	-fx-font-family: Menlo;
+	-fx-font-style: italic;
 }
 
 /* String literal style */
 .literal
 {
 	-fx-fill: blue;
+	-fx-font-family: Menlo;
 }
 
 .number
 {
 	-fx-fill: #9b2814;
+	-fx-font-family: Menlo;
 	-fx-font-weight: 900;
 }
 
 /* Gives line caret is at a little style to distinguish it*/
 .paragraph-box:has-caret
 {
-    -fx-background-color: #f2f9fc;
+	-fx-background-color: #f2f9fc;
 }
 
 /* Line number styles */
 .lineno
 {
+	-fx-font-family: monospace;
 	-fx-background-color: #f2f2f2;
+	-fx-font-size: 8;
+}
+
+.menu-bar
+{
+	-fx-font-family: Helvetica;
+	-fx-font-size: 14;
+}
+
+.menu-item
+{
+	-fx-font-family: Helvetica;
+	-fx-font-size: 14;
 }
 
 .menu-item:focused
 {
-     -fx-background-color: darkgray;
+	-fx-background-color: darkgray;
 }
 
 .menu-item:focused .label
 {
-    -fx-text-fill: #f2f9fc;;
+	-fx-text-fill: #f2f9fc;;
 }
 
 .context-menu
 {
-    -fx-skin: "com.sun.javafx.scene.control.skin.ContextMenuSkin";
-    -fx-background-insets: 0, 1, 2;
-    -fx-background-radius: 0 6 6 6, 0 5 5 5, 0 4 4 4;
-/*    -fx-padding: 0.666667em 0.083333em 0.666667em 0.083333em;  8 1 8 1 */
-    -fx-padding: 0.333333em 0.083333em 0.666667em 0.083333em; /* 4 1 8 1 */
+	-fx-skin: "com.sun.javafx.scene.control.skin.ContextMenuSkin";
+	-fx-background-insets: 0, 1, 2;
+	-fx-background-radius: 0 6 6 6, 0 5 5 5, 0 4 4 4;
+	-fx-padding: 0.333333em 0.083333em 0.666667em 0.083333em; /* 4 1 8 1 */
 }
