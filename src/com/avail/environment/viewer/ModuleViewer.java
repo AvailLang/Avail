@@ -43,7 +43,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.actions.BuildAction;
-import com.avail.environment.tasks.ViewModuleTask;
+import com.avail.environment.tasks.EditModuleTask;
 import javafx.beans.NamedArg;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -161,7 +161,7 @@ extends Scene
 		{
 			frame.setVisible(false);
 			frame.dispose();
-			new ViewModuleTask(workbench, resolvedModuleName)
+			new EditModuleTask(workbench, resolvedModuleName)
 				.execute();
 		}
 	}

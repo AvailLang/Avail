@@ -1,5 +1,5 @@
 /**
- * SetDocumentationPathAction.java
+ * SetModuleTemplatePathAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *

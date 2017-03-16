@@ -1,6 +1,6 @@
 /**
- * BuildAction.java
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * EditModuleAction.java
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ package com.avail.environment.actions;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
-import com.avail.environment.tasks.ViewModuleTask;
+import com.avail.environment.tasks.EditModuleTask;
 import com.avail.environment.viewer.ModuleViewer;
 import org.jetbrains.annotations.Nullable;
 
@@ -71,8 +71,8 @@ extends AbstractWorkbenchAction
 		else
 		{
 			// Build the target module in a Swing worker thread.
-			final ViewModuleTask task =
-				new ViewModuleTask(workbench, selectedModule);
+			final EditModuleTask task =
+				new EditModuleTask(workbench, selectedModule);
 			workbench.backgroundTask = task;
 			workbench.availBuilder.checkStableInvariants();
 			workbench.setEnablements();
