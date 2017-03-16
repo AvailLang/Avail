@@ -61,6 +61,7 @@ import org.fxmisc.richtext.model.StyledText;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -182,7 +183,8 @@ extends Scene
 	 */
 	public static ModuleViewer moduleViewer (
 		final ResolvedModuleName module,
-		final AvailWorkbench workbench)
+		final AvailWorkbench workbench,
+		final Rectangle dimensions)
 	{
 		final CodeArea codeArea = new CodeArea();
 		codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
@@ -193,7 +195,12 @@ extends Scene
 		MenuBar menuBar = new MenuBar();
 		VBox vbox = new VBox(menuBar, vsp);
 		ModuleViewer viewer = new ModuleViewer(
-			vbox, 1000, 600, workbench, module, codeArea);
+			vbox,
+			dimensions.width,
+			dimensions.height,
+			workbench,
+			module,
+			codeArea);
 
 		viewer.enableScanOnChange();
 

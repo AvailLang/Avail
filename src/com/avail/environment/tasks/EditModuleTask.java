@@ -64,10 +64,21 @@ implements WindowListener
 	{
 		EventQueue.invokeLater(() ->
 		{
+			final Preferences preferences =
+				workbench.placementPreferencesNodeForScreenNames(
+					AvailWorkbench.allScreenNames());
+			final LayoutConfiguration savedConfiguration =
+				new LayoutConfiguration(
+					preferences.get(AvailWorkbench.placementLeafKeyString, ""));
+			if (savedConfiguration.moduleViewerPlacement != null)
+			{
+				frame.setBounds(savedConfiguration.moduleViewerPlacement);
+			}
 			//JFXPanel must be created before scene due to initialization issues
 			final JFXPanel fxPanel = new JFXPanel();
 			final ModuleViewer viewer =
-				ModuleViewer.moduleViewer(targetModuleName(), workbench);
+				ModuleViewer.moduleViewer(
+					targetModuleName(), workbench, frame.getBounds());
 			fxPanel.setScene(viewer);
 			//This must be called to circumvent a bug that won't be fixed
 			//See https://bugs.openjdk.java.net/browse/JDK-8090517
@@ -84,7 +95,17 @@ implements WindowListener
 			frame.setVisible(true);
 			frame.setResizable(true);
 			frame.add(fxPanel);
-			frame.setSize(1000, 600);
+			if (savedConfiguration.moduleViewerPlacement != null)
+			{
+				frame.setSize(
+					savedConfiguration.moduleViewerPlacement.width,
+					savedConfiguration.moduleViewerPlacement.height);
+			}
+			else
+			{
+				frame.setSize(800, 600);
+			}
+
 			workbench.openedSourceModules.put(targetModuleName, frame);
 			frame.addWindowListener(this);
 		});
@@ -172,9 +193,5 @@ implements WindowListener
 		final LayoutConfiguration savedConfiguration =
 			new LayoutConfiguration(
 				preferences.get(AvailWorkbench.placementLeafKeyString, ""));
-		if (savedConfiguration.moduleViewerPlacement != null)
-		{
-			frame.setBounds(savedConfiguration.moduleViewerPlacement);
-		}
 	}
 }
