@@ -1,5 +1,5 @@
 /**
- * AvailCompiler.java
+ * ModuleViewer.java
  * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.actions.BuildAction;
 import com.avail.environment.tasks.EditModuleTask;
+
 import javafx.beans.NamedArg;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -57,6 +58,7 @@ import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.RichTextChange;
 import org.fxmisc.richtext.model.StyledText;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.File;
@@ -65,11 +67,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+
+import static com.avail.environment.viewer.ModuleViewerStyle.*;
 
 /**
  * A {@code ModuleViewer} is a {@link Scene} used to open a source module for
@@ -274,21 +281,58 @@ extends Scene
 	}
 
 	/**
+	 * A {@linkplain Map map} from Avail header keywords to the associated
+	 * {@link ExpectedToken}s.
+	 */
+	private static final @NotNull Map<A_String, ExpectedToken> headerKeywords;
+
+	static
+	{
+		final ExpectedToken[] tokens =
+		{
+			ExpectedToken.MODULE,
+			ExpectedToken.VERSIONS,
+			ExpectedToken.PRAGMA,
+			ExpectedToken.EXTENDS,
+			ExpectedToken.USES,
+			ExpectedToken.NAMES,
+			ExpectedToken.ENTRIES,
+			ExpectedToken.BODY,
+			ExpectedToken.OPEN_PARENTHESIS,
+			ExpectedToken.CLOSE_PARENTHESIS
+		};
+		final Map<A_String, ExpectedToken> map = new HashMap<>();
+		for (final ExpectedToken t : tokens)
+		{
+			map.put(t.lexeme().makeShared(), t);
+		}
+		headerKeywords = map;
+	}
+
+	/**
 	 * Style the specified {@linkplain A_Token} by giving it the provided
 	 * style class.
 	 *
 	 * @param token
-	 *        The token to style
-	 * @param styleClass
-	 *        The style class.
+	 *        The token to style.
+	 * @param style
+	 *        The {@linkplain ModuleViewerStyle style}.
 	 */
-	private void styleToken (final A_Token token, final String styleClass)
+	private void styleToken (
+		final A_Token token,
+		final ModuleViewerStyle style)
 	{
 		codeArea.setStyleClass(
 			token.start() - 1,
 			token.start() + token.string().tupleSize() - 1,
-			styleClass);
+			style.styleClass);
 	}
+
+	/**
+	 * The {@linkplain Pattern pattern} that describes Stacks keywords.
+	 */
+	private static final @NotNull Pattern stacksKeywordPattern =
+		Pattern.compile("@\\w+");
 
 	/**
 	 * Scan the text in the {@link #codeArea} and style the document
@@ -299,104 +343,180 @@ extends Scene
 		final String source = codeArea.getText();
 		try
 		{
+			// Scan the source module to produce all tokens.
 			scannerResult = AvailScanner.scanString(
 				source.toString(),
 				resolvedModuleName.localName(),
 				false);
 
-			// Identify the position of the "Body" token. We want to give all
-			// keyword tokens up to this one (inclusive) the style
-			// "header-keyword".
+			// Tag each token of the header with the appropriate style.
 			final List<A_Token> outputTokens = scannerResult.outputTokens();
 			final int outputTokenCount = outputTokens.size();
-			final int bodyIndex = IntStream.range(0, outputTokenCount)
-				.filter(i ->
-				{
-					final A_Token token = outputTokens.get(i);
-					final A_String body = ExpectedToken.BODY.lexeme();
-					return token.tokenType() == TokenType.KEYWORD
-						&& token.string().equals(body);
-				})
-				.findAny()
-				.orElseThrow(() ->
-				{
-					// We presuppose that the module is well-formed, otherwise
-					// the AvailScanner should not have supplied a token stream.
-					// This may need to change if/when AvailScanner can produce
-					// a partial result (and an error code in the
-					// AvailScannerResult to indicate this).
-					assert false : "No Body keyword!";
-					throw new RuntimeException("No Body keyword!");
-				});
-
-			// Identify the position of the "Entries" token, if present. We
-			// want to give all entry point names the style "entry-point".
-			final int entriesIndex = IntStream.range(0, outputTokenCount)
-				.filter(i ->
-				{
-					final A_Token token = outputTokens.get(i);
-					final A_String entries = ExpectedToken.ENTRIES.lexeme();
-					return token.tokenType() == TokenType.KEYWORD
-						&& token.string().equals(entries);
-				})
-				.findAny()
-				.orElse(bodyIndex + 1);
-
-			codeArea.setStyleClass(
-				0,
-				source.length(),
-				"general");
-
-			for (int i = 0; i < outputTokens.size(); i++)
+			final Map<A_Token, ModuleViewerStyle> tokenStyles =	new HashMap<>();
+			final Map<A_String, ModuleViewerStyle> nameStyles = new HashMap<>();
+			ModuleViewerStyle activeStyle = null;
+			for (int i = 0; i < outputTokenCount; i++)
 			{
 				final A_Token token = outputTokens.get(i);
-				if (
-					i <= bodyIndex
-					&& token.tokenType() == TokenType.KEYWORD)
+				final A_String lexeme = token.string().makeShared();
+				final ExpectedToken expected = headerKeywords.get(lexeme);
+				if (expected != null && token.tokenType() == TokenType.KEYWORD)
 				{
-					styleToken(token, "header-keyword");
+					// This is a header keyword, so set its own style and
+					// establish a new active style appropriate for its section.
+					tokenStyles.put(token, HEADER_KEYWORD);
+					activeStyle = styleFor(expected);
+					// There are guaranteed not to be any header keywords after
+					// "Body", so stop looking!
+					if (expected == ExpectedToken.BODY)
+					{
+						assert activeStyle == null;
+						break;
+					}
+				}
+				else if (expected == ExpectedToken.OPEN_PARENTHESIS)
+				{
+					// Activate the subsection style.
+					activeStyle = activeStyle.subsectionStyleClass;
+				}
+				else if (expected == ExpectedToken.CLOSE_PARENTHESIS)
+				{
+					// Deactivate the subsection style.
+					activeStyle = activeStyle.supersectionStyleClass;
 				}
 				else if (token.isLiteralToken())
 				{
-					// Give entry points a special style.
-					if (i >= entriesIndex && i <= bodyIndex
-						&& token.literal().isString())
+					// This is a literal token, so give it the active style for
+					// its section.
+					assert token.literal().isString();
+					if (activeStyle != null)
 					{
-						styleToken(token, "entry-point");
+						tokenStyles.put(token, activeStyle);
+						if (activeStyle.denotesName())
+						{
+							// Since this is a name visible in the module
+							// header, associate the active style with the
+							// lexeme, not just the token. This will give the
+							// lexeme the same appearance in the body as in the
+							// header. There may be some false positives, but
+							// relatively few.
+							nameStyles.put(lexeme, activeStyle);
+						}
 					}
-					// Give all other literals the appropriate style.
-					else
+				}
+			}
+
+			// Apply the general style broadly.
+			codeArea.setStyleClass(
+				0,
+				source.length(),
+				GENERAL.styleClass);
+
+			// Override the general style for each ordinary token.
+			for (int i = 0; i < outputTokens.size(); i++)
+			{
+				final A_Token token = outputTokens.get(i);
+				final ModuleViewerStyle tokenStyle = tokenStyles.get(token);
+				if (tokenStyle != null)
+				{
+					styleToken(token, tokenStyle);
+				}
+				else
+				{
+					final ModuleViewerStyle nameStyle =
+						nameStyles.get(token.string().makeShared());
+					if (nameStyle != null)
+					{
+						styleToken(token, nameStyle);
+					}
+					else if (token.isLiteralToken())
 					{
 						AvailObject availObject = token.literal();
 						styleToken(
 							token,
 							availObject.isExtendedInteger()
-								? "number"
-								: "literal");
+								? NUMBER
+								: availObject.isString()
+									? STRING
+									: LITERAL);
 					}
 				}
 			}
 
+			// Override the general style for each Stacks comment token.
 			final List<A_Token> commentTokens = scannerResult.commentTokens();
 			for (int i = 0; i < commentTokens.size(); i++)
 			{
 				final A_Token token = commentTokens.get(i);
-				styleToken(token, "stacks-comment");
+				styleToken(token, STACKS_COMMENT);
+				final Matcher matcher = stacksKeywordPattern.matcher(
+					token.string().asNativeString());
+				while (matcher.find())
+				{
+					codeArea.setStyleClass(
+						token.start() + matcher.start() - 1,
+						token.start() + matcher.end() - 1,
+						STACKS_KEYWORD.styleClass);
+				}
+				// TODO: [RAA] I had to disable this because the performance of
+				// scanning Stacks comments was way too slow — multi-second
+				// delays.
+//				final StacksScanner stacksScanner = new StacksScanner(
+//					token, resolvedModuleName.qualifiedName());
+//				try
+//				{
+//					stacksScanner.scan();
+//					styleToken(token, STACKS_COMMENT);
+//					if (stacksScanner.sectionStartLocations.isEmpty())
+//					{
+//  					// This comment is busted — style it appropriately.
+//  					styleToken(token, MALFORMED_STACKS_COMMENT);
+//  					continue;
+//					}
+//				}
+//				catch (final @NotNull StacksScannerException e)
+//				{
+//					// This comment is busted — style it appropriately.
+//					styleToken(token, MALFORMED_STACKS_COMMENT);
+//					continue;
+//				}
+//				for (final AbstractStacksToken t : stacksScanner.outputTokens)
+//				{
+//					if (t instanceof SectionKeywordStacksToken)
+//					{
+//						// TODO: [RAA] It appears that these tokens are using
+//						// line number to record the position.
+//						final int position =
+//							t.lineNumber() - t.lexeme().length();
+//						codeArea.setStyleClass(
+//							position - 1,
+//							t.lineNumber() - 1,
+//							STACKS_KEYWORD.styleClass);
+//					}
+//					else if (t instanceof BracketedStacksToken)
+//					{
+//						final int position = t.position() - t.lexeme().length();
+//						codeArea.setStyleClass(
+//							position,
+//							t.position() - 1,
+//							STACKS_KEYWORD.styleClass);
+//					}
+//				}
 			}
 
+			// Override the general style for each ordinary comment.
 			final List<BasicCommentPosition> positions =
 				scannerResult.basicCommentPositions();
-
 			for (int i = 0; i < positions.size(); i++)
 			{
 				final BasicCommentPosition position = positions.get(i);
 				codeArea.setStyleClass(
 					position.start(),
 					position.start() + position.length(),
-					"comment");
+					COMMENT.styleClass);
 			}
 		}
-		catch (AvailScannerException e)
+		catch (final @NotNull AvailScannerException e)
 		{
 			scannerResult = null;
 		}

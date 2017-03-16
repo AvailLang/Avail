@@ -57,7 +57,7 @@ public abstract class AbstractStacksScanner
 	/**
 	 * The tokens that have been parsed so far.
 	 */
-	ArrayList<AbstractStacksToken> outputTokens;
+	public ArrayList<AbstractStacksToken> outputTokens;
 
 	/**
 	 * The current position in the input string.

@@ -175,14 +175,14 @@ public class StacksScanner extends AbstractStacksScanner
 
 	/**
 	 * Construct a new {@link StacksScanner}.
+	 *
 	 * @param commentToken
 	 * 		the {@link CommentTokenDescriptor comment token} to be scanned and
 	 * 		tokenized.
 	 * @param moduleName
 	 *		The name of the module the comment is in.
 	 */
-	private StacksScanner (final A_Token commentToken,
-		final String moduleName)
+	public StacksScanner (final A_Token commentToken, final String moduleName)
 	{
 		resetNewlineCount();
 		hasHTMLTagFalse();
@@ -230,8 +230,7 @@ public class StacksScanner extends AbstractStacksScanner
 	 *
 	 * @throws StacksScannerException
 	 */
-	private void scan ()
-		throws StacksScannerException
+	public void scan () throws StacksScannerException
 	{
 		if (commentStartsStandardly)
 		{
@@ -916,8 +915,9 @@ public class StacksScanner extends AbstractStacksScanner
 	 * @throws StacksCommentBuilderException
 	 */
 	public static AbstractCommentImplementation processCommentString (
-		final A_Token commentToken, final String moduleName,
-		final LinkingFileMap linkingFileMap)
+			final A_Token commentToken,
+			final String moduleName,
+			final LinkingFileMap linkingFileMap)
 		throws StacksScannerException, StacksCommentBuilderException
 	{
 		final StacksScanner scanner =

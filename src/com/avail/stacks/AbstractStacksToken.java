@@ -88,7 +88,7 @@ public abstract class AbstractStacksToken
 	 * 		The string to be tokenized.
 	 * @param lineNumber
 	 * 		The line number where the token occurs/begins
-	 * @param postion
+	 * @param position
 	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
@@ -98,13 +98,13 @@ public abstract class AbstractStacksToken
 	public AbstractStacksToken (
 		final String string,
 		final int lineNumber,
-		final int postion,
+		final int position,
 		final int startOfTokenLinePostion,
 		final String moduleName)
 	{
 		this.lexeme = string;
 		this.lineNumber = lineNumber;
-		this.position = postion;
+		this.position = position;
 		this.startOfTokenLinePostion = startOfTokenLinePostion;
 		this.moduleName = moduleName;
 		this.isSectionToken = false;

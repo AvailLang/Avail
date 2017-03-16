@@ -50,7 +50,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 	 * 		The string to be tokenized.
 	 * @param lineNumber
 	 * 		The line number where the token occurs/begins
-	 * @param postion
+	 * @param position
 	 * 		The absolute start position of the token
 	 * @param startOfTokenLinePostion
 	 * 		The position on the line where the token starts.
@@ -60,11 +60,11 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 	public KeywordStacksToken (
 		final String string,
 		final int lineNumber,
-		final int postion,
+		final int position,
 		final int startOfTokenLinePostion,
 		final String moduleName)
 	{
-		super(string, lineNumber, postion, startOfTokenLinePostion, moduleName);
+		super(string, lineNumber, position, startOfTokenLinePostion, moduleName);
 	}
 
 

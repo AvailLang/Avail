@@ -9,6 +9,62 @@
 	-fx-font-weight: bold;
 }
 
+.module-name
+{
+	-fx-fill: brown;
+	-fx-font-family: Menlo;
+	-fx-font-style: italic;
+	-fx-font-weight: bold;
+}
+
+.pragma
+{
+	-fx-fill: orange;
+	-fx-font-family: Menlo;
+	-fx-font-style: italic;
+	-fx-font-weight: bold;
+}
+
+.version
+{
+	-fx-fill: brown;
+	-fx-font-family: Menlo;
+	-fx-font-style: italic;
+}
+
+.private-module-import
+{
+	-fx-fill: blue;
+	-fx-font-family: Menlo;
+	-fx-font-weight: bold;
+}
+
+.private-name-import
+{
+	-fx-fill: blue;
+	-fx-font-family: Menlo;
+}
+
+.public-module-import
+{
+	-fx-fill: blue;
+	-fx-font-family: Menlo;
+	-fx-font-weight: bolder;
+}
+
+.public-name-import
+{
+	-fx-fill: green;
+	-fx-font-family: Menlo;
+}
+
+.new-name
+{
+	-fx-fill: green;
+	-fx-font-family: Menlo;
+	-fx-font-weight: bold;
+}
+
 .entry-point
 {
 	-fx-fill: red;
@@ -18,18 +74,39 @@
 
 .stacks-comment
 {
-	-fx-fill: green;
-	-fx-font-family: Menlo;
-}
-
-.comment
-{
-	-fx-fill: #999999;
+	-fx-fill: #777777;
 	-fx-font-family: Menlo;
 	-fx-font-style: italic;
 }
 
-/* String literal style */
+.stacks-keyword
+{
+	-fx-fill: #7ec0ee;
+	-fx-font-family: Menlo;
+	-fx-font-weight: bold;
+}
+
+.malformed-stacks-comment
+{
+	-fx-fill: red;
+	-fx-font-family: Menlo;
+	-fx-font-style: italic;
+	-fx-font-weight: bold;
+}
+
+.comment
+{
+	-fx-fill: #aaaaaa;
+	-fx-font-family: Menlo;
+	-fx-font-style: italic;
+}
+
+.string
+{
+	-fx-fill: blue;
+	-fx-font-family: Menlo;
+}
+
 .literal
 {
 	-fx-fill: blue;
