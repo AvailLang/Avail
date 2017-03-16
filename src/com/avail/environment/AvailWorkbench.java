@@ -670,17 +670,18 @@ extends JFrame
 	public volatile @Nullable AbstractWorkbenchTask backgroundTask;
 
 	/**
-	 * TODO RAA currently open modules
-	 */
-	public ConcurrentHashMap<ResolvedModuleName, ViewModuleAction>
-		modluleViewMap = new ConcurrentHashMap<>();
-
-	/**
 	 * The documentation {@linkplain Path path} for the {@linkplain
 	 * StacksGenerator Stacks generator}.
 	 */
 	public Path documentationPath =
 		StacksGenerator.defaultDocumentationPath;
+
+	/**
+	 * The {@linkplain Path path} for the new module template.
+	 */
+	public Path moduleTemplatePath =
+		Paths.get("./resources/workbench/new-module.tmpl");
+
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
 	private @Nullable BuildInputStream inputStream;
@@ -843,6 +844,12 @@ extends JFrame
 	 */
 	@InnerAccess final SetDocumentationPathAction setDocumentationPathAction =
 		new SetDocumentationPathAction(this);
+
+	/**
+	 * The {@linkplain NewModuleAction new module path dialog action}.
+	 */
+	@InnerAccess final NewModuleAction newModuleAction =
+		new NewModuleAction(this);
 
 	/** The {@linkplain ShowVMReportAction show VM report action}. */
 	@InnerAccess final ShowVMReportAction showVMReportAction =
@@ -1920,6 +1927,10 @@ extends JFrame
 			unloadAction, unloadAllAction, cleanAction, null,
 			refreshAction);
 		menuBar.add(buildMenu);
+		menuBar.add(
+			menu(
+				"Module",
+				newModuleAction, null, viewModuleAction));
 		menuBar.add(
 			menu(
 				"Document",

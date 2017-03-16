@@ -190,7 +190,7 @@ extends Scene
 		try
 		{
 			semaphore.acquireUninterruptibly();
-			List<String> input = new ArrayList<>();
+			final List<String> input = new ArrayList<>();
 			input.add(codeArea.getText());
 			File file = resolvedModuleName.sourceReference();
 			file.canWrite();

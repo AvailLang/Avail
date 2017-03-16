@@ -37,7 +37,7 @@ implements WindowListener
 			//This must be called to circumvent a bug that won't be fixed
 			//See https://bugs.openjdk.java.net/browse/JDK-8090517
 			Platform.setImplicitExit(false);
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
 			JPanel panel = new JPanel();
 			panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
