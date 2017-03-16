@@ -1,0 +1,52 @@
+.stacks-comment
+{
+	-fx-fill: green;
+}
+
+.text
+{
+	-fx-font-family: 'Deja Vu Sans Mono' Monaco;
+}
+
+/* String literal style */
+.literal
+{
+	-fx-fill: blue;
+}
+
+.number
+{
+	-fx-fill: #9b2814;
+	-fx-font-weight: 900;
+}
+
+/* Gives line caret is at a little style to distinguish it*/
+.paragraph-box:has-caret
+{
+    -fx-background-color: #f2f9fc;
+}
+
+/* Line number styles */
+.lineno
+{
+	-fx-background-color: #f2f2f2;
+}
+
+.menu-item:focused
+{
+     -fx-background-color: darkgray;
+}
+
+.menu-item:focused .label
+{
+    -fx-text-fill: #f2f9fc;;
+}
+
+.context-menu
+{
+    -fx-skin: "com.sun.javafx.scene.control.skin.ContextMenuSkin";
+    -fx-background-insets: 0, 1, 2;
+    -fx-background-radius: 0 6 6 6, 0 5 5 5, 0 4 4 4;
+/*    -fx-padding: 0.666667em 0.083333em 0.666667em 0.083333em;  8 1 8 1 */
+    -fx-padding: 0.333333em 0.083333em 0.666667em 0.083333em; /* 4 1 8 1 */
+}

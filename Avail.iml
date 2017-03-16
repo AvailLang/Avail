@@ -42,5 +42,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="richtextfx-fat-1.0.0-SNAPSHOT" level="application" />
   </component>
 </module>

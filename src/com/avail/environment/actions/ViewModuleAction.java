@@ -32,22 +32,25 @@
 
 package com.avail.environment.actions;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import com.avail.builder.*;
+import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
-import com.avail.environment.tasks.BuildTask;
+import com.avail.environment.tasks.ViewModuleTask;
 import com.avail.environment.viewer.ModuleViewer;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+
 /**
- * A {@code BuildAction} launches a {@linkplain BuildTask build task} in a
- * Swing worker thread.
+ * A {@code ViewModuleAction} launches a {@linkplain ModuleViewer module viewer}
+ * in a Swing worker thread.
+ *
+ * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
 @SuppressWarnings("serial")
-public final class BuildAction
+public final class ViewModuleAction
 extends AbstractWorkbenchAction
 {
 	/**
@@ -60,59 +63,23 @@ extends AbstractWorkbenchAction
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
 		assert workbench.backgroundTask == null;
-		final ResolvedModuleName selectedModule =
-			forEntryPointModule
-				? workbench.selectedEntryPointModule()
-				: workbench.selectedModule();
+
+		final ResolvedModuleName selectedModule = workbench.selectedModule();
+
 		assert selectedModule != null;
 
-		// Update the UI.
-		workbench.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		workbench.buildProgress.setValue(0);
-		workbench.inputField.requestFocusInWindow();
-		workbench.clearTranscript();
-
-		// Clear the build input stream.
-		workbench.inputStream().clear();
-
-		// Build the target module in a Swing worker thread.
-		final BuildTask task = new BuildTask(workbench, selectedModule);
-		workbench.backgroundTask = task;
-		workbench.availBuilder.checkStableInvariants();
-		workbench.setEnablements();
-		task.execute();
-	}
-
-	/**
-	 * Effectively perform {@link BuildAction#actionPerformed(ActionEvent)}
-	 * for the given {@link ResolvedModuleName} and {@link AvailWorkbench}.
-	 *
-	 * <p>This is to enable building from the {@link ModuleViewer}.</p>
-	 *
-	 * @param resolvedModuleName
-	 *        The {@code ResolvedModuleName} to build.
-	 * @param workbench
-	 *        The target {@code AvailWorkbench}.
-	 */
-	public static void build (
-		final ResolvedModuleName resolvedModuleName,
-		final AvailWorkbench workbench)
-	{
-		if (workbench.backgroundTask == null)
+		final JFrame frame = workbench.openedSourceModules.get(selectedModule);
+		if (frame != null)
 		{
-			assert resolvedModuleName != null;
-
-			// Update the UI.
-			workbench.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			workbench.buildProgress.setValue(0);
-			workbench.inputField.requestFocusInWindow();
-			workbench.clearTranscript();
-
-			// Clear the build input stream.
-			workbench.inputStream().clear();
-
+			frame.setVisible(true);
+			frame.toFront();
+			frame.requestFocus();
+		}
+		else
+		{
 			// Build the target module in a Swing worker thread.
-			final BuildTask task = new BuildTask(workbench, resolvedModuleName);
+			final ViewModuleTask task =
+				new ViewModuleTask(workbench, selectedModule);
 			workbench.backgroundTask = task;
 			workbench.availBuilder.checkStableInvariants();
 			workbench.setEnablements();
@@ -121,7 +88,7 @@ extends AbstractWorkbenchAction
 	}
 
 	/**
-	 * Construct a new {@link BuildAction}.
+	 * Construct a new {@link ViewModuleAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
@@ -129,15 +96,16 @@ extends AbstractWorkbenchAction
 	 *        Whether this action is for the currently selected entry point
 	 *        module rather than for the module tree's selection.
 	 */
-	public BuildAction (
+	public ViewModuleAction (
 		final AvailWorkbench workbench,
 		final boolean forEntryPointModule)
 	{
-		super(workbench, "Build");
+		super(workbench, "View");
 		this.forEntryPointModule = forEntryPointModule;
+
 		putValue(
 			SHORT_DESCRIPTION,
-			"Build the selected module.");
+			"View the selected module");
 		if (!forEntryPointModule)
 		{
 			putValue(

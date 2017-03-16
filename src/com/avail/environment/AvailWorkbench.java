@@ -32,13 +32,47 @@
 
 package com.avail.environment;
 
-import static java.lang.Math.*;
-import static java.lang.System.arraycopy;
-import static javax.swing.SwingUtilities.*;
-import static javax.swing.JScrollPane.*;
-import static com.avail.environment.AvailWorkbench.StreamStyle.*;
+import com.avail.AvailRuntime;
+import com.avail.annotations.InnerAccess;
+import com.avail.builder.*;
+import com.avail.builder.AvailBuilder.LoadedModule;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.environment.actions.*;
+import com.avail.environment.nodes.AbstractBuilderFrameTreeNode;
+import com.avail.environment.nodes.EntryPointModuleNode;
+import com.avail.environment.nodes.EntryPointNode;
+import com.avail.environment.nodes.ModuleOrPackageNode;
+import com.avail.environment.nodes.ModuleRootNode;
+import com.avail.environment.tasks.BuildTask;
+import com.avail.io.ConsoleInputChannel;
+import com.avail.io.ConsoleOutputChannel;
+import com.avail.io.TextInterface;
+import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
+import com.avail.stacks.StacksGenerator;
+import com.avail.utility.Mutable;
+import com.avail.utility.Pair;
+import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Transformer1;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.text.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitOption;
@@ -51,29 +85,16 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.prefs.Preferences;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
-import javax.swing.tree.*;
-import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
-import com.avail.builder.*;
-import com.avail.builder.AvailBuilder.LoadedModule;
-import com.avail.descriptor.*;
-import com.avail.environment.actions.*;
-import com.avail.environment.nodes.*;
-import com.avail.environment.tasks.*;
-import com.avail.io.ConsoleInputChannel;
-import com.avail.io.ConsoleOutputChannel;
-import com.avail.io.TextInterface;
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
-import com.avail.stacks.StacksGenerator;
-import com.avail.utility.Mutable;
-import com.avail.utility.Pair;
-import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.avail.environment.AvailWorkbench.StreamStyle.*;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.lang.System.arraycopy;
+import static javax.swing.JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED;
+import static javax.swing.SwingUtilities.invokeLater;
 
 /**
  * {@code AvailWorkbench} is a simple user interface for the {@linkplain
@@ -649,6 +670,12 @@ extends JFrame
 	public volatile @Nullable AbstractWorkbenchTask backgroundTask;
 
 	/**
+	 * TODO RAA currently open modules
+	 */
+	public ConcurrentHashMap<ResolvedModuleName, ViewModuleAction>
+		modluleViewMap = new ConcurrentHashMap<>();
+
+	/**
 	 * The documentation {@linkplain Path path} for the {@linkplain
 	 * StacksGenerator Stacks generator}.
 	 */
@@ -713,6 +740,13 @@ extends JFrame
 	 * The {@link AvailBuilder} used by this user interface.
 	 */
 	public final AvailBuilder availBuilder;
+
+	/**
+	 * A {@link Map} from a {@link ResolvedModuleName} to the open {@link
+	 * JFrame} displaying the corresponding source module.
+	 */
+	public final Map<ResolvedModuleName, JFrame> openedSourceModules =
+		new HashMap<>();
 
 	/**
 	 * The {@linkplain JProgressBar progress bar} that displays the overall
@@ -848,6 +882,10 @@ extends JFrame
 	@InnerAccess final BuildAction buildEntryPointModuleAction =
 		new BuildAction(this, true);
 
+	/** The {@linkplain ViewModuleAction action to open a source module}. */
+	@InnerAccess final ViewModuleAction viewModuleAction =
+		new ViewModuleAction(this, true);
+
 	/**
 	 * The {@linkplain DisplayCodeCoverageReport action to display the current
 	 * code coverage session's report data}.
@@ -896,6 +934,8 @@ extends JFrame
 					!= null);
 		buildEntryPointModuleAction.setEnabled(
 			!busy && selectedEntryPointModule() != null);
+		viewModuleAction.setEnabled(
+			!busy && selectedModuleIsLoaded());
 		inputLabel.setText(isRunning
 			? "Console Input:"
 			: "Command:");
@@ -1916,8 +1956,12 @@ extends JFrame
 
 		final JMenu buildPopup = menu(
 			"Modules",
-			buildAction, documentAction, null,
-			unloadAction, null,
+			buildAction,
+			viewModuleAction,
+			documentAction,
+			null,
+			unloadAction,
+			null,
 			refreshAction);
 		// The refresh item needs a little help ...
 		InputMap inputMap = getRootPane().getInputMap(
@@ -1929,6 +1973,7 @@ extends JFrame
 		final JMenu entryPointsPopup = menu(
 			"Entry points",
 			buildEntryPointModuleAction, null,
+			viewModuleAction, null,
 			insertEntryPointAction, null,
 			createProgramAction, null,
 			refreshAction);
@@ -1981,6 +2026,7 @@ extends JFrame
 		actionMap = moduleTree.getActionMap();
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build");
 		actionMap.put("build", buildAction);
+		actionMap.put("view", viewModuleAction);
 		// Expand rows bottom-to-top to expand only the root nodes.
 		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
 		{
