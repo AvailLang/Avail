@@ -39,7 +39,7 @@ import com.avail.descriptor.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import com.avail.utility.evaluation.*;
-import com.sun.istack.internal.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code BuildTask} launches the actual build of the target {@linkplain

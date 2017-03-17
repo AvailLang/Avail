@@ -38,7 +38,7 @@ import java.io.IOException;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
-import com.sun.istack.internal.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code GenericHelpOption} provides an application help message that

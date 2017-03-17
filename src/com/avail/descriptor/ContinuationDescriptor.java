@@ -48,7 +48,7 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
-import com.sun.istack.internal.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
