@@ -84,11 +84,12 @@ POSSIBILITY OF SUCH DAMAGE.
 		<mkdir dir="${path.avail.bin}"/>
 		<javac
 				destdir="${path.avail.bin}"
-				source="1.7"
-				target="1.7"
+				source="1.8"
+				target="1.8"
 				encoding="UTF-8"
 				includeantruntime="true"
 				includejavaruntime="true"
+				classpath="${path.avail}/libraries/richtextfx-fat-1.0.0-SNAPSHOT.jar"
 				debug="true"
 				optimize="true"
 				deprecation="true">
@@ -106,8 +107,8 @@ POSSIBILITY OF SUCH DAMAGE.
 		<mkdir dir="${path.avail.bin}"/>
 		<javac
 				destdir="${path.avail.bin}"
-				source="1.7"
-				target="1.7"
+				source="1.8"
+				target="1.8"
 				encoding="UTF-8"
 				includeantruntime="true"
 				includejavaruntime="true"
@@ -322,6 +323,9 @@ POSSIBILITY OF SUCH DAMAGE.
 			<fileset
 				dir="${path.avail}"
 				includes="resources/**"/>
+			<zipgroupfileset
+					dir="${path.avail}/libraries"
+					includes="richtextfx-fat-1.0.0-SNAPSHOT.jar"/>
 		</jar>
 	</target>
 
