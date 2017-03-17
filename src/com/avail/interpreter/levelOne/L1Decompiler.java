@@ -40,7 +40,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.evaluation.*;
-import com.sun.istack.internal.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * The {@link L1Decompiler} converts a {@linkplain CompiledCodeDescriptor
