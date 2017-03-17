@@ -3344,8 +3344,7 @@ public final class AvailCompiler
 					firstArgOrNull == null
 						&& initialTokenPosition.position != start.position,
 					op == PARSE_TOP_VALUED_ARGUMENT,
-					new Con<CompilerSolution>(
-						partialSubexpressionList)
+					new Con<CompilerSolution>(partialSubexpressionList)
 					{
 						@Override
 						public void valueNotNull (

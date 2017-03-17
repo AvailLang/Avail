@@ -48,6 +48,8 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.dispatch.TypeComparison;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 import com.avail.utility.*;
 
 /**
@@ -689,11 +691,15 @@ extends Descriptor
 		}
 	}
 
+	private final static Statistic invalidationsStat = new Statistic(
+		"(invalidations)", StatisticReport.EXPANDING_PARSING_INSTRUCTIONS);
+
 	/**
 	 * Invalidate the internal expansion of the given bundle tree.
 	 */
 	private static void invalidate (final AvailObject object)
 	{
+		final long timeBefore = System.nanoTime();
 		synchronized (object)
 		{
 			final A_Map emptyMap = MapDescriptor.empty();
@@ -707,6 +713,10 @@ extends Descriptor
 			object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
 			object.setSlot(UNCLASSIFIED, object.slot(ALL_PLANS_IN_PROGRESS));
 		}
+		final long timeAfter = System.nanoTime();
+		final AvailThread thread = (AvailThread) Thread.currentThread();
+		invalidationsStat.record(
+			timeAfter - timeBefore, thread.interpreter.interpreterIndex);
 	}
 
 

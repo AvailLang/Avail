@@ -36,6 +36,8 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
+
+import com.avail.utility.Generator;
 import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
@@ -332,8 +334,7 @@ public class AvailCodeGenerator
 				&& ((AvailGetLiteralVariable)onlyInstruction).index() == 1
 				&& literals.get(0).isInitializedWriteOnceVariable())
 			{
-				primitive(
-					P_GetGlobalVariableValue.instance);
+				primitive(P_GetGlobalVariableValue.instance);
 			}
 		}
 		// Make sure we're not closing over variables that don't get used.
@@ -361,14 +362,20 @@ public class AvailCodeGenerator
 			assert false
 				: "Some outers were unused: " + unusedOuterDeclarations;
 		}
-		final List<Integer> nybblesArray = new ArrayList<>();
-		for (final byte nybble : nybbles.toByteArray())
-		{
-			nybblesArray.add(Integer.valueOf(nybble));
-		}
-		final A_Tuple nybbleTuple = TupleDescriptor.fromIntegerList(
-			nybblesArray);
-		nybbleTuple.makeShared();
+		final byte[] nybblesArray = nybbles.toByteArray();
+		final A_Tuple nybbleTuple = NybbleTupleDescriptor.generateFrom(
+			nybblesArray.length,
+			new Generator<Byte>()
+			{
+				int i = 0;
+
+				@Override
+				public Byte value ()
+				{
+					return nybblesArray[i++];
+				}
+			}
+		);
 		assert resultType.isType();
 		final A_Type[] argsArray = new A_Type[numArgs];
 		final A_Type[] localsArray =
@@ -411,7 +418,7 @@ public class AvailCodeGenerator
 		final A_Type functionType =
 			FunctionTypeDescriptor.create(argsTuple, resultType, exceptionSet);
 		final A_RawFunction code = CompiledCodeDescriptor.create(
-			nybbleTuple,
+			nybbleTuple.makeShared(),
 			varMap.size() - numArgs,
 			maxDepth,
 			functionType,
