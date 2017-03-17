@@ -1305,6 +1305,46 @@ extends JFrame
 	}
 
 	/**
+	 * Answer the currently selected {@linkplain ModuleRootNode module root
+	 * node}, or null.
+	 *
+	 * @return A {@link ModuleRootNode}, or {@code null} if no module root is
+	 *         selected.
+	 */
+	@InnerAccess @Nullable ModuleRootNode selectedModuleRootNode ()
+	{
+		final TreePath path = moduleTree.getSelectionPath();
+		if (path == null)
+		{
+			return null;
+		}
+		final DefaultMutableTreeNode selection =
+			(DefaultMutableTreeNode) path.getLastPathComponent();
+		if (selection instanceof ModuleRootNode)
+		{
+			return (ModuleRootNode) selection;
+		}
+		return null;
+	}
+
+	/**
+	 * Answer the {@linkplain ModuleRoot} that is currently selected, otherwise
+	 * {@code null}.
+	 *
+	 * @return A {@link ModuleRoot}, or {@code null} if no module root is
+	 *         selected.
+	 */
+	public @Nullable ModuleRoot selectedModuleRoot ()
+	{
+		final ModuleRootNode node = selectedModuleRootNode();
+		if (node == null)
+		{
+			return null;
+		}
+		return node.moduleRoot();
+	}
+
+	/**
 	 * Answer the currently selected {@linkplain ModuleOrPackageNode module
 	 * node}.
 	 *
