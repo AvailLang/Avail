@@ -1037,8 +1037,10 @@ extends JFrame
 			!busy && selectedEntryPointModule() != null);
 		editModuleAction.setEnabled(
 			!busy && selectedModuleIsLoaded());
-		newModuleAction.setEnabled(!busy);
-		newPackageAction.setEnabled(!busy);
+		newModuleAction.setEnabled(!busy &&
+			(selectedModule() != null || selectedModuleRoot() != null));
+		newPackageAction.setEnabled(!busy &&
+			(selectedModule() != null || selectedModuleRoot() != null));
 		addModuleTemplateAction.setEnabled(!busy);
 		inputLabel.setText(isRunning
 			? "Console Input:"
