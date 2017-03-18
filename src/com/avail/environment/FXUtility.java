@@ -40,6 +40,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
@@ -397,6 +399,16 @@ public class FXUtility
 		choiceBox.setPadding(new Insets(top, right, bottom, left));
 		choiceBox.setPrefWidth(prefWidth);
 		choiceBox.setPrefHeight(prefHeight);
+		choiceBox.addEventFilter(
+			KeyEvent.KEY_PRESSED,
+			event ->
+			{
+				if (event.getCode() == KeyCode.UP
+					|| event.getCode() == KeyCode.DOWN)
+				{
+					event.consume();
+				}
+			});
 		return choiceBox;
 	}
 
@@ -439,6 +451,16 @@ public class FXUtility
 		choiceBox.setPrefWidth(prefWidth);
 		choiceBox.setPrefHeight(prefHeight);
 		choiceBox.setStyle(style);
+		choiceBox.addEventFilter(
+			KeyEvent.KEY_PRESSED,
+			event ->
+			{
+				if (event.getCode() == KeyCode.UP
+					|| event.getCode() == KeyCode.DOWN)
+				{
+					event.consume();
+				}
+			});
 		return choiceBox;
 	}
 

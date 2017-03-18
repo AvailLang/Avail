@@ -105,6 +105,14 @@ implements WindowListener
 	public abstract @NotNull Scene newScene ();
 
 	/**
+	 * A method that positions the {@link #frame} appropriately at creation.
+	 *
+	 * @param frame
+	 *        The frame to position.
+	 */
+	public abstract void positionFrame (final @NotNull JFrame frame);
+
+	/**
 	 * The task that is run when the close method is fired. Override this
 	 * for special functionality.
 	 */
@@ -153,10 +161,7 @@ implements WindowListener
 			frame.setLocationByPlatform(true);
 			frame.add(fxPanel);
 			frame.setSize(width, height);
-			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-			frame.setLocation(
-				dim.width/2-this.frame.getSize().width/2,
-				dim.height/2-frame.getSize().height/2);
+			positionFrame(frame);
 			frame.setVisible(true);
 			frame.addWindowListener(this);
 		});

@@ -38,9 +38,11 @@ import com.avail.environment.viewer.NewPackageWindow;
 import javafx.scene.Scene;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.io.File;
 
 /**
@@ -66,6 +68,15 @@ extends FXWindowTask
 			directory,
 			workbench,
 			this);
+	}
+
+	@Override
+	public void positionFrame (final @NotNull JFrame frame)
+	{
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		frame.setLocation(
+			dim.width/2-frame.getSize().width/2,
+			dim.height/2-frame.getSize().height/2);
 	}
 
 	@Override

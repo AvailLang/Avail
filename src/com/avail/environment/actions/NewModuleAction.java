@@ -36,6 +36,7 @@ import com.avail.builder.ModuleRoot;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import com.avail.environment.nodes.ModuleRootNode;
 import com.avail.environment.tasks.NewModuleTask;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,16 +60,27 @@ extends AbstractWorkbenchAction
 		assert workbench.backgroundTask == null;
 
 		final ResolvedModuleName selectedModule = workbench.selectedModule();
-		final ModuleRoot moduleRoot = workbench.selectedModuleRoot();
+		final ModuleRootNode moduleRootNode =
+			workbench.selectedModuleRootNode();
 
-		assert selectedModule != null || moduleRoot != null;
+		assert selectedModule != null || moduleRootNode != null;
 
 		String dirName = System.getProperty("user.dir");
 
-		final File directory = new File(dirName + "/distro/src/" +
+		File directory = new File(
 			(selectedModule != null
-				? selectedModule.packageName() + ".avail"
-				: moduleRoot.sourceDirectory().getPath()));
+				? dirName + "/distro/src/" + selectedModule.packageName()
+					+ ".avail"
+				: moduleRootNode.moduleRoot().sourceDirectory().getPath()));
+
+		if (!directory.exists())
+		{
+			directory = new File(dirName + "/distro/src/" +
+				(selectedModule != null
+					? dirName + "/distro/src/" + selectedModule.packageName()
+					: moduleRootNode.moduleRoot().sourceDirectory().getPath()));
+			assert directory.exists();
+		}
 
 		final NewModuleTask task =
 			new NewModuleTask(workbench, directory, 310, 135);

@@ -1365,7 +1365,7 @@ extends JFrame
 	 * @return A {@link ModuleRootNode}, or {@code null} if no module root is
 	 *         selected.
 	 */
-	@InnerAccess @Nullable ModuleRootNode selectedModuleRootNode ()
+	public @Nullable ModuleRootNode selectedModuleRootNode ()
 	{
 		final TreePath path = moduleTree.getSelectionPath();
 		if (path == null)

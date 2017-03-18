@@ -4,16 +4,20 @@ import com.avail.environment.FXUtility;
 import com.avail.environment.tasks.NewModuleTask;
 import javafx.beans.NamedArg;
 import javafx.beans.binding.Bindings;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.*;
 import org.jetbrains.annotations.NotNull;
+
+import javafx.scene.input.KeyEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -99,7 +103,7 @@ extends Scene
 			220,
 			27,
 			workbench.templateOptions());
-		templateChoices.getSelectionModel().selectFirst();
+//		templateChoices.getSelectionModel().selectFirst();
 
 		final HBox templateRow = FXUtility.hbox(
 			5, templateLabel, templateChoices);
