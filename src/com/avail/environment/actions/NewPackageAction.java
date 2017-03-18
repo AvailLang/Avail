@@ -77,25 +77,27 @@ extends AbstractWorkbenchAction
 
 		assert selectedModule != null || moduleRootNode != null;
 
-		String dirName = System.getProperty("user.dir");
+		String baseQualifiedName = (selectedModule != null
+			? selectedModule.packageName()
+			: "/" + moduleRootNode.moduleRoot().name()) + "/";
 
 		File directory = new File(
 			(selectedModule != null
-				? dirName + "/distro/src/" + selectedModule.packageName()
-				+ ".avail"
+				? selectedModule.sourceReference().getParentFile().toString()
 				: moduleRootNode.moduleRoot().sourceDirectory().getPath()));
 
 		if (!directory.exists())
 		{
-			directory = new File(dirName + "/distro/src/" +
+			directory = new File(
 				(selectedModule != null
-					? dirName + "/distro/src/" + selectedModule.packageName()
+					? selectedModule.sourceReference().getParentFile()
+						.toString()
 					: moduleRootNode.moduleRoot().sourceDirectory().getPath()));
 			assert directory.exists();
 		}
 
-		final NewPackageTask task =
-			new NewPackageTask(workbench, directory, 310, 135);
+		final NewPackageTask task = new NewPackageTask(
+			workbench, directory, baseQualifiedName, 310, 135);
 		workbench.backgroundTask = task;
 		workbench.availBuilder.checkStableInvariants();
 		workbench.setEnablements();

@@ -125,6 +125,7 @@ extends Scene
 		{
 			final String moduleName = moduleNameField.getText();
 			final String leafFileName = moduleName + ".avail";
+			task.setQualifiedName(moduleName);
 			final File newPackage = new File(
 				directory.getAbsolutePath() + "/" + leafFileName);
 

@@ -81,6 +81,20 @@ implements WindowListener
 	private boolean isCleanClose = true;
 
 	/**
+	 * Indicates a cancellation of the task is requested.
+	 */
+	private boolean canceled = false;
+
+	/**
+	 * Cancel this {@link FXWindowTask}.
+	 */
+	public void cancelTask ()
+	{
+		canceled = true;
+		closeCleanly();
+	}
+
+	/**
 	 * A message to go with the close if {@link #isCleanClose} is {@code false}.
 	 */
 	private @Nullable String closeMessage = null;
@@ -253,7 +267,11 @@ implements WindowListener
 	@Override
 	public void windowClosed (final WindowEvent e)
 	{
-		if (isCleanClose)
+		if (canceled)
+		{
+			//Do nothing
+		}
+		else if (isCleanClose)
 		{
 			cleanCloseTask();
 		}

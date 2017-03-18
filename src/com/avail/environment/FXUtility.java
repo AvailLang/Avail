@@ -289,8 +289,7 @@ public class FXUtility
 		final double left,
 		final @NotNull String style)
 	{
-		final Label label = new Label(text);
-		label.setPadding(new Insets(top, right, bottom, left));
+		final Label label = label(text, top, right, bottom, left);
 		label.setStyle(style);
 		return label;
 	}
@@ -356,10 +355,8 @@ public class FXUtility
 		final double prefHeight,
 		final @NotNull String style)
 	{
-		TextField textField = new TextField();
-		textField.setPadding(new Insets(top, right, bottom, left));
-		textField.setPrefWidth(prefWidth);
-		textField.setPrefHeight(prefHeight);
+		TextField textField =
+			textField(top, right, bottom, left, prefWidth, prefHeight);
 		textField.setStyle(style);
 		return textField;
 	}
@@ -445,22 +442,9 @@ public class FXUtility
 		final @NotNull String style,
 		final @NotNull T... choices)
 	{
-		final ChoiceBox<T> choiceBox = new ChoiceBox<>(
-			FXCollections.observableArrayList(choices));
-		choiceBox.setPadding(new Insets(top, right, bottom, left));
-		choiceBox.setPrefWidth(prefWidth);
-		choiceBox.setPrefHeight(prefHeight);
+		final ChoiceBox<T> choiceBox =
+			choiceBox(top, right, bottom, left, prefWidth, prefHeight, choices);
 		choiceBox.setStyle(style);
-		choiceBox.addEventFilter(
-			KeyEvent.KEY_PRESSED,
-			event ->
-			{
-				if (event.getCode() == KeyCode.UP
-					|| event.getCode() == KeyCode.DOWN)
-				{
-					event.consume();
-				}
-			});
 		return choiceBox;
 	}
 
@@ -498,8 +482,7 @@ public class FXUtility
 		final double spacing,
 		final @NotNull Node... nodes)
 	{
-		final HBox hBox = new HBox(nodes);
-		hBox.setSpacing(spacing);
+		final HBox hBox = hbox(spacing, nodes);
 		hBox.setStyle(style);
 		return hBox;
 	}
@@ -521,8 +504,7 @@ public class FXUtility
 		final double spacing,
 		final @NotNull Node... nodes)
 	{
-		final VBox vBox = new VBox(nodes);
-		vBox.setSpacing(spacing);
+		final VBox vBox = vbox(spacing, nodes);
 		vBox.setPadding(new Insets(top, right, bottom, left));
 		return vBox;
 	}
@@ -561,8 +543,7 @@ public class FXUtility
 		final double spacing,
 		final @NotNull Node... nodes)
 	{
-		final VBox vBox = new VBox(nodes);
-		vBox.setSpacing(spacing);
+		final VBox vBox = vbox(spacing, nodes);
 		vBox.setStyle(style);
 		return vBox;
 	}

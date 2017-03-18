@@ -122,12 +122,13 @@ extends Scene
 			FXUtility.hbox(5, errorLabel, create, cancel);
 		buttonRow.setAlignment(Pos.CENTER_RIGHT);
 
-		cancel.setOnAction(evt -> task.closeCleanly());
+		cancel.setOnAction(evt -> task.cancelTask());
 
 		create.setOnAction(evt ->
 		{
 			final String moduleName = moduleNameField.getText();
 			final String leafFileName = moduleName + ".avail";
+			task.setQualifiedName(moduleName);
 			final File newModule = new File(
 				directory.getAbsolutePath() + "/" + leafFileName);
 			if (newModule.exists())

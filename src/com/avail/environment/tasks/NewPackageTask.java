@@ -30,7 +30,9 @@
  */
 
 package com.avail.environment.tasks;
+import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.UnresolvedDependencyException;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import com.avail.environment.viewer.NewModuleWindow;
@@ -58,6 +60,27 @@ extends FXWindowTask
 	 * The {@link File} directory this new package will be placed in.
 	 */
 	private final @NotNull File directory;
+
+	/**
+	 * The base portion of the qualified name.
+	 */
+	private final @NotNull String baseQualifiedName;
+
+	/**
+	 * The {@link ModuleName#qualifiedName} of the new module.
+	 */
+	private String qualifiedName;
+
+	/**
+	 * Create the {@link ModuleName#qualifiedName} of the new module.
+	 *
+	 * @param leaf
+	 *        The name of the module.
+	 */
+	public void setQualifiedName (final @NotNull String leaf)
+	{
+		qualifiedName = baseQualifiedName + leaf;
+	}
 
 	@Override
 	public @NotNull Scene newScene ()
@@ -105,6 +128,29 @@ extends FXWindowTask
 		{
 			workbench.entryPointsTree.expandRow(i);
 		}
+
+		EventQueue.invokeLater(() ->
+		{
+			try
+			{
+				ResolvedModuleName resolvedModuleName =
+					workbench.availBuilder.runtime.moduleNameResolver()
+						.resolve(new ModuleName(qualifiedName), null);
+				try
+				{
+					new EditModuleTask(workbench, resolvedModuleName)
+						.executeTask();
+				}
+				catch (Exception e)
+				{
+					//We tried...
+				}
+			}
+			catch (UnresolvedDependencyException e)
+			{
+				//Don't bother opening it.
+			}
+		});
 	}
 
 	/**
@@ -114,6 +160,8 @@ extends FXWindowTask
 	 *        The owning {@link AvailWorkbench}.
 	 * @param directory
 	 *        The {@link File} directory this new module will be placed in.
+	 * @param baseQualifiedName
+	 *        The base portion of the qualified name.
 	 * @param width
 	 *        The width of the JFrame.
 	 * @param height
@@ -122,11 +170,13 @@ extends FXWindowTask
 	public NewPackageTask (
 		final AvailWorkbench workbench,
 		final @NotNull File directory,
+		final @NotNull String baseQualifiedName,
 		final int width,
 		final int height)
 	{
 		super(workbench, "Create New Module", false, width, height);
 		this.directory = directory;
+		this.baseQualifiedName = baseQualifiedName;
 
 	}
 }
