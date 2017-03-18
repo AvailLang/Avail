@@ -704,13 +704,6 @@ extends JFrame
 		StacksGenerator.defaultDocumentationPath;
 
 	/**
-	 * The {@linkplain Path path} for the new module template.
-	 */
-	public @NotNull URL moduleTemplateURL =
-		AvailWorkbench.class.getResource(
-			"/workbench/new-module.tmpl");
-
-	/**
 	 * A {@link Map} from a module template name to a module template.
 	 */
 	public @NotNull ModuleTemplates moduleTemplates;
