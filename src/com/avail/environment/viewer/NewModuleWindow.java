@@ -103,62 +103,63 @@ extends Scene
 			220,
 			27,
 			workbench.templateOptions());
-//		templateChoices.getSelectionModel().selectFirst();
+		templateChoices.getSelectionModel().selectFirst();
 
 		final HBox templateRow = FXUtility.hbox(
 			5, templateLabel, templateChoices);
 
-		final Button create = new Button("Create");
-		final Button cancel = new Button("Cancel");
 		final Label errorLabel = FXUtility.label(
 			"", 5.0, 0, 0, 0);
 		errorLabel.setTextFill(Paint.valueOf("red"));
 
-		create.disableProperty().bind(Bindings.createBooleanBinding(
-			() -> moduleNameField.getText().isEmpty(),
-			moduleNameField.textProperty()));
+		final Button create = FXUtility.button(
+			"Create",
+			evt ->
+			{
+				final String moduleName = moduleNameField.getText();
+				final String leafFileName = moduleName + ".avail";
+				task.setQualifiedName(moduleName);
+				final File newModule = new File(
+					directory.getAbsolutePath() + "/" + leafFileName);
+				if (newModule.exists())
+				{
+					errorLabel.setText("Module Already Exists!");
+				}
+				else
+				{
+					final String choice = templateChoices.getValue();
+					final String contents = choice != null && !choice.isEmpty()
+						? workbench.moduleTemplates
+						.createNewModuleFromTemplate(choice, moduleName)
+						: "";
+					try
+					{
+						newModule.createNewFile();
+						final List<String> input = new ArrayList<>();
+						input.add(contents);
+						Files.write(
+							newModule.toPath(),
+							input,
+							StandardCharsets.UTF_8);
+						task.closeCleanly();
+					}
+					catch (IOException e)
+					{
+						task.erroredClose("Module Creation Failed!");
+					}
+				}
+			},
+			Bindings.createBooleanBinding(
+				() -> moduleNameField.getText().isEmpty(),
+				moduleNameField.textProperty()));
+
+		final Button cancel = FXUtility.button(
+			"Cancel",
+			evt -> task.cancelTask());
 
 		final HBox buttonRow =
 			FXUtility.hbox(5, errorLabel, create, cancel);
 		buttonRow.setAlignment(Pos.CENTER_RIGHT);
-
-		cancel.setOnAction(evt -> task.cancelTask());
-
-		create.setOnAction(evt ->
-		{
-			final String moduleName = moduleNameField.getText();
-			final String leafFileName = moduleName + ".avail";
-			task.setQualifiedName(moduleName);
-			final File newModule = new File(
-				directory.getAbsolutePath() + "/" + leafFileName);
-			if (newModule.exists())
-			{
-				errorLabel.setText("Module Already Exists!");
-			}
-			else
-			{
-				final String choice = templateChoices.getValue();
-				final String contents = choice != null && !choice.isEmpty()
-					? workbench.moduleTemplates
-					.createNewModuleFromTemplate(choice, moduleName)
-					: "";
-				try
-				{
-					newModule.createNewFile();
-					final List<String> input = new ArrayList<>();
-					input.add(contents);
-					Files.write(
-						newModule.toPath(),
-						input,
-						StandardCharsets.UTF_8);
-					task.closeCleanly();
-				}
-				catch (IOException e)
-				{
-					task.erroredClose("Module Creation Failed!");
-				}
-			}
-		});
 
 		return FXUtility.vbox(
 			10,

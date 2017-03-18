@@ -32,11 +32,15 @@
 
 package com.avail.environment;
 import javafx.application.Platform;
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
 import javafx.embed.swing.JFXPanel;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -60,6 +64,51 @@ import java.awt.Component;
  */
 public class FXUtility
 {
+	/**
+	 * Create a new {@link Button} with attached action.
+	 *
+	 * @param name
+	 *        The button label.
+	 * @param eventHandler
+	 *        The {@link EventHandler} parameterized on an {@link ActionEvent}
+	 *        that performs an action when the button is clicked.
+	 * @return A button.
+	 */
+	public static @NotNull Button button (
+		final @NotNull String name,
+		final @NotNull EventHandler<ActionEvent> eventHandler)
+	{
+		final Button btn = new Button(name);
+		btn.defaultButtonProperty().bind(btn.focusedProperty());
+		btn.setOnAction(eventHandler);
+		return btn;
+	}
+
+	/**
+	 * Create a new {@link Button} with attached action.
+	 *
+	 * @param name
+	 *        The button label.
+	 * @param eventHandler
+	 *        The {@link EventHandler} parameterized on an {@link ActionEvent}
+	 *        that performs an action when the button is clicked.
+	 * @param booleanBinding
+	 *        The {@link BooleanBinding} that indicates a condition, when {@code
+	 *        true}, the button is disabled.
+	 * @return A button.
+	 */
+	public static @NotNull Button button (
+		final @NotNull String name,
+		final @NotNull EventHandler<ActionEvent> eventHandler,
+		final @NotNull BooleanBinding booleanBinding)
+	{
+		final Button btn = new Button(name);
+		btn.defaultButtonProperty().bind(btn.focusedProperty());
+		btn.setOnAction(eventHandler);
+		btn.disableProperty().bind(booleanBinding);
+		return btn;
+	}
+
 	/**
 	 * Answer a {@link JFXPanel} with the provided {@link Scene}.
 	 *
