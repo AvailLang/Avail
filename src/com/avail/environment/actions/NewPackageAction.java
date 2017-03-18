@@ -32,8 +32,12 @@
 
 package com.avail.environment.actions;
 
+import com.avail.builder.ModuleRoot;
+import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import com.avail.environment.tasks.NewModuleTask;
+import com.avail.environment.tasks.NewPackageTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,68 +68,27 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		final JFileChooser chooser = new JFileChooser();
-		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		chooser.setAcceptAllFileFilterUsed(false);
-		chooser.setCurrentDirectory(AvailWorkbench.currentWorkingDirectory);
-		chooser.setFileFilter(
-			new FileNameExtensionFilter(
-				".avail","avail"));
+		assert workbench.backgroundTask == null;
 
-		final int result = chooser.showDialog(
-			workbench, "Create");
-		if (result == JFileChooser.APPROVE_OPTION)
-		{
-			try
-			{
-				final StringBuilder sb = new StringBuilder();
-				final List<String> lines;
-				try (
-					final @NotNull BufferedReader reader =
-					     new BufferedReader(new FileReader(
-					     	workbench.moduleTemplateURL.getFile())))
-			    {
-			        lines = reader.lines().collect(Collectors.toList());
-			    }
+		final ResolvedModuleName selectedModule = workbench.selectedModule();
+		final ModuleRoot moduleRoot = workbench.selectedModuleRoot();
 
-				final int size = lines.size();
-				for (int i = 0; i < size - 1; i++)
-				{
-					sb.append(lines.get(i));
-					sb.append('\n');
-				}
-				sb.append(lines.get(size - 1));
+		assert selectedModule != null || moduleRoot != null;
 
-				final String fileName = chooser.getSelectedFile().toString();
-				final String moduleName = new File(fileName).getName();
-				final String localName = moduleName + ".avail";
-				final File dir = new File(fileName + ".avail");
-				if (!dir.exists())
-				{
-					dir.mkdir();
-				}
-				final File file =
-					new File(fileName + ".avail/" + localName);
-				file.createNewFile();
+		String dirName = System.getProperty("user.dir");
 
-				final String year = Integer.toString(LocalDateTime.ofInstant(
-					Instant.now(), ZoneOffset.UTC).getYear());
-				final List<String> input = new ArrayList<>();
-				input.add(sb.toString()
-					.replace("${MODULE}", moduleName)
-					.replace("${YEAR}", year));
-				Files.write(
-					file.toPath(),
-					input,
-					StandardCharsets.UTF_8);
-				new RefreshAction(workbench).actionPerformed(event);
-			}
-			catch (IOException e)
-			{
-				System.err.println("Failed to create file: "
-					+ chooser.getSelectedFile().toPath());
-			}
-		}
+		final File directory = new File(dirName + "/distro/src/" +
+			(selectedModule != null
+				? selectedModule.packageName()
+				: moduleRoot.sourceDirectory().getPath()));
+
+		final NewPackageTask task =
+			new NewPackageTask(workbench, directory, 310, 135);
+		workbench.backgroundTask = task;
+		workbench.availBuilder.checkStableInvariants();
+		workbench.setEnablements();
+
+		task.execute();
 	}
 
 	/**
