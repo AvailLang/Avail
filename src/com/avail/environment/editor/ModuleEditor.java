@@ -193,23 +193,11 @@ extends Scene
 		final Rectangle dimensions)
 	{
 		final AvailArea availArea = new AvailArea(workbench);
-
-		availArea.addEventFilter(
-			KeyEvent.KEY_PRESSED,
-			event ->
-			{
-				if (event.getCode() == KeyCode.BACK_SLASH)
-				{
-					event.consume();
-					int pos = availArea.getCaretPosition();
-					availArea.replaceText(pos - 3, pos, "~");
-					availArea.moveTo(pos - 3, SelectionPolicy.ADJUST);
-				}
-			});
 		availArea.setParagraphGraphicFactory(LineNumberFactory.get(availArea));
 		availArea.getStyle();
 
-		final VirtualizedScrollPane vsp = new VirtualizedScrollPane<>(availArea);
+		final VirtualizedScrollPane vsp =
+			new VirtualizedScrollPane<>(availArea);
 		VBox.setVgrow(vsp, Priority.ALWAYS);
 		MenuBar menuBar = new MenuBar();
 		VBox vbox = new VBox(menuBar, vsp);
