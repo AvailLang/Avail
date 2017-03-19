@@ -173,7 +173,7 @@ extends FXWindowTask
 		final int width,
 		final int height)
 	{
-		super(workbench, "Create New Module", false, width, height);
+		super(workbench, "Create New Package", false, width, height);
 		this.directory = directory;
 		this.baseQualifiedName = baseQualifiedName;
 

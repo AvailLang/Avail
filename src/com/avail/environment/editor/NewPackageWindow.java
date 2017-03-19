@@ -59,7 +59,7 @@ extends Scene
 			height);
 		getStylesheets().add(ModuleEditor.class.getResource(
 			AvailWorkbench.resourcePrefix +
-				"module_viewer_styles.css").toExternalForm());
+				"module_editor_styles.css").toExternalForm());
 	}
 
 	/**
