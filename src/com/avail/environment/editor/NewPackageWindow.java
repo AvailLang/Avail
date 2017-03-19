@@ -58,7 +58,8 @@ extends Scene
 			width,
 			height);
 		getStylesheets().add(ModuleEditor.class.getResource(
-			"/workbench/module_viewer_styles.css").toExternalForm());
+			AvailWorkbench.resourcePrefix +
+				"module_viewer_styles.css").toExternalForm());
 	}
 
 	/**

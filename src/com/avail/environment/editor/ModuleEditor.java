@@ -239,7 +239,8 @@ extends Scene
 		menuBar.getMenus().addAll(fileMenu);
 
 		viewer.getStylesheets().add(ModuleEditor.class.getResource(
-			"/workbench/module_viewer_styles.css").toExternalForm());
+			AvailWorkbench.resourcePrefix +
+				"module_viewer_styles.css").toExternalForm());
 		viewer.readFile();
 
 		return viewer;
