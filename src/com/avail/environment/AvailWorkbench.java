@@ -108,6 +108,11 @@ import static javax.swing.SwingUtilities.invokeLater;
 public class AvailWorkbench
 extends JFrame
 {
+	/**
+	 * The prefix string for resources related to the workbench.
+	 */
+	public static @NotNull String resourcePrefix = "/resources/workbench/";
+
 	/** Determine at startup whether we're on a Mac. */
 	public static final boolean runningOnMac =
 		System.getProperty("os.name").toLowerCase().matches("mac os x.*");
@@ -1940,7 +1945,6 @@ extends JFrame
 					final int w = max(50, Integer.parseInt(substrings[2]));
 					final int h = max(50, Integer.parseInt(substrings[3]));
 					placement = new Rectangle(x, y, w, h);
-
 				}
 				catch (final NumberFormatException e)
 				{
@@ -2818,7 +2822,7 @@ extends JFrame
 			final Object application =
 				appClass.getMethod("getApplication").invoke(null);
 			final Image image =
-				new ImageIcon("resources/workbench/AvailHammer.png").getImage();
+				new ImageIcon(resourcePrefix + "AvailHammer.png").getImage();
 			appClass.getMethod("setDockIconImage", Image.class).invoke(
 				application,
 				image);
