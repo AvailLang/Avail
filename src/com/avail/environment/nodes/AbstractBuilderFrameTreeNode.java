@@ -125,7 +125,7 @@ extends DefaultMutableTreeNode
 				{
 					assert key != null;
 					final String iconResourceName = key.first();
-					final String path = "/workbench/"
+					final String path = AvailWorkbench.resourcePrefix
 						+ iconResourceName + ".png";
 					final Class<?> thisClass = this.getClass();
 					final URL resource = thisClass.getResource(path);
