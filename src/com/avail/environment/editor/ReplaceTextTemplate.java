@@ -31,6 +31,7 @@
  */
 
 package com.avail.environment.editor;
+import com.avail.environment.editor.fx.FilterDropDownDialog;
 import javafx.scene.control.ChoiceDialog;
 import org.jetbrains.annotations.NotNull;
 
@@ -135,9 +136,14 @@ public class ReplaceTextTemplate
 	 *
 	 * @return A {@link ChoiceDialog}.
 	 */
-	public @NotNull ChoiceDialog<String> dialog ()
+	public @NotNull FilterDropDownDialog<String> dialog ()
 	{
-		ChoiceDialog<String> dialog = new ChoiceDialog<>("", choiceList);
+		FilterDropDownDialog<String> dialog = new FilterDropDownDialog<>(
+			"",
+			choiceList,
+			(typedText, itemToCompare) ->
+				itemToCompare.toLowerCase().contains(typedText.toLowerCase())
+					|| itemToCompare.equals(typedText));
 		dialog.setTitle("Choose Template");
 		dialog.setContentText(null);
 		dialog.setHeaderText(null);

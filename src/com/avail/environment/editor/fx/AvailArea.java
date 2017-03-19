@@ -95,7 +95,7 @@ extends CodeArea
 		keyComboActions.add(FXUtility.createKeyCombo(
 			() ->
 			{
-				ChoiceDialog<String> dialog =
+				FilterDropDownDialog<String> dialog =
 					workbench.replaceTextTemplate.dialog();
 				// Traditional way to get the response value.
 				Optional<String> result = dialog.showAndWait();

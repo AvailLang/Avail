@@ -703,11 +703,29 @@ public class FXUtility
 
 	//BELOW IS ATTEMPT AT AUTOFILTER COMBO BOX
 	//GOT FROM: http://stackoverflow.com/questions/19924852/autocomplete-combobox-in-javafx
+
+	/**
+	 * An {@code AutoCompleteComparator} is a simple interface for comparing
+	 * objects.
+	 *
+	 * @param <T>
+	 *        The types of objects to compare.
+	 */
 	public interface AutoCompleteComparator<T>
 	{
 		boolean matches(String typedText, T objectToCompare);
 	}
 
+	/**
+	 * Add auto-complete functionality to the provided combo box.
+	 *
+	 * @param comboBox
+	 *        The {@link ComboBox} to add auto-complete to.
+	 * @param comparatorMethod
+	 *        The {@link AutoCompleteComparator} that does the comparison.
+	 * @param <T>
+	 *        The type of the item in the list.
+	 */
 	public static<T> void autoCompleteComboBoxPlus(
 		final @NotNull ComboBox<T> comboBox,
 		final @NotNull AutoCompleteComparator<T> comparatorMethod)
@@ -820,6 +838,15 @@ public class FXUtility
 			});
 	}
 
+	/**
+	 * Answer the selected {@link ComboBox} value.
+	 *
+	 * @param comboBox
+	 *        The targeted {@link ComboBox}.
+	 * @param <T>
+	 *        The type of object expected.
+	 * @return The selected object
+	 */
 	public static<T> T getComboBoxValue(final @NotNull ComboBox<T> comboBox)
 	{
 		if (comboBox.getSelectionModel().getSelectedIndex() < 0)
