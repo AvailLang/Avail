@@ -150,7 +150,7 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 			Bindings.createBooleanBinding(() ->
 				comboBox.getSelectionModel().isEmpty()));
 		updateGrid();
-
+		setGraphic(null);
 		setResultConverter((dialogButton) ->
 		{
 			ButtonData data = dialogButton == null
