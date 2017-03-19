@@ -52,16 +52,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.fxmisc.flowless.VirtualizedScrollPane;
-import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.model.NavigationActions.SelectionPolicy;
 import org.fxmisc.richtext.model.RichTextChange;
 import org.fxmisc.richtext.model.StyledText;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +77,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.avail.environment.editor.ModuleViewerStyle.*;
+import static com.avail.environment.editor.ModuleEditorStyle.*;
 
 /**
  * A {@code ModuleEditor} is a {@link Scene} used to open a source module for
@@ -193,7 +187,8 @@ extends Scene
 		final Rectangle dimensions)
 	{
 		final AvailArea availArea = new AvailArea(workbench);
-		availArea.setParagraphGraphicFactory(LineNumberFactory.get(availArea));
+		availArea.setParagraphGraphicFactory(
+			LineNumberFactory.get(availArea, digits -> "%1$" + digits + "s"));
 		availArea.getStyle();
 
 		final VirtualizedScrollPane vsp =
@@ -226,9 +221,7 @@ extends Scene
 			saveMenuItem, saveAndBuildMenuItem, reloadhMenuItem);
 		menuBar.getMenus().addAll(fileMenu);
 
-		viewer.getStylesheets().add(ModuleEditor.class.getResource(
-			AvailWorkbench.resourcePrefix +
-				"module_editor_styles.css").toExternalForm());
+		viewer.getStylesheets().add(editorStyleSheet);
 		viewer.readFile();
 
 		return viewer;
@@ -331,11 +324,11 @@ extends Scene
 	 * @param token
 	 *        The token to style.
 	 * @param style
-	 *        The {@linkplain ModuleViewerStyle style}.
+	 *        The {@linkplain ModuleEditorStyle style}.
 	 */
 	private void styleToken (
 		final A_Token token,
-		final ModuleViewerStyle style)
+		final ModuleEditorStyle style)
 	{
 		codeArea.setStyleClass(
 			token.start() - 1,
@@ -367,9 +360,9 @@ extends Scene
 			// Tag each token of the header with the appropriate style.
 			final List<A_Token> outputTokens = scannerResult.outputTokens();
 			final int outputTokenCount = outputTokens.size();
-			final Map<A_Token, ModuleViewerStyle> tokenStyles =	new HashMap<>();
-			final Map<A_String, ModuleViewerStyle> nameStyles = new HashMap<>();
-			ModuleViewerStyle activeStyle = null;
+			final Map<A_Token, ModuleEditorStyle> tokenStyles =	new HashMap<>();
+			final Map<A_String, ModuleEditorStyle> nameStyles = new HashMap<>();
+			ModuleEditorStyle activeStyle = null;
 			for (int i = 0; i < outputTokenCount; i++)
 			{
 				final A_Token token = outputTokens.get(i);
@@ -431,14 +424,14 @@ extends Scene
 			for (int i = 0; i < outputTokens.size(); i++)
 			{
 				final A_Token token = outputTokens.get(i);
-				final ModuleViewerStyle tokenStyle = tokenStyles.get(token);
+				final ModuleEditorStyle tokenStyle = tokenStyles.get(token);
 				if (tokenStyle != null)
 				{
 					styleToken(token, tokenStyle);
 				}
 				else
 				{
-					final ModuleViewerStyle nameStyle =
+					final ModuleEditorStyle nameStyle =
 						nameStyles.get(token.string().makeShared());
 					if (nameStyle != null)
 					{

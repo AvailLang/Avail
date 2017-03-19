@@ -78,7 +78,7 @@ implements WindowListener
 	/**
 	 * Indicates a cancellation of the task is requested.
 	 */
-	private boolean canceled = false;
+	private boolean canceled = true;
 
 	/**
 	 * Cancel this {@link FXWindowTask}.
@@ -87,6 +87,14 @@ implements WindowListener
 	{
 		canceled = true;
 		closeCleanly();
+	}
+
+	/**
+	 * Clear the cancel flag.
+	 */
+	public void clearCanceTask ()
+	{
+		canceled = false;
 	}
 
 	/**

@@ -56,9 +56,7 @@ extends Scene
 			createWindowContent(task, directory, workbench),
 			width,
 			height);
-		getStylesheets().add(ModuleEditor.class.getResource(
-			AvailWorkbench.resourcePrefix +
-				"module_editor_styles.css").toExternalForm());
+		getStylesheets().add(ModuleEditorStyle.editorStyleSheet);
 	}
 
 	/**
@@ -138,10 +136,12 @@ extends Scene
 							newModule.toPath(),
 							input,
 							StandardCharsets.UTF_8);
+						task.clearCanceTask();
 						task.closeCleanly();
 					}
 					catch (IOException e)
 					{
+						task.clearCanceTask();
 						task.erroredClose("Module Creation Failed!");
 					}
 				}

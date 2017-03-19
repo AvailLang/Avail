@@ -32,6 +32,7 @@
 package com.avail.environment.editor;
 
 import com.avail.compiler.ExpectedToken;
+import com.avail.environment.AvailWorkbench;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,12 +40,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * {@code ModuleViewerStyle} enumerates the allowed styles for a {@link
+ * {@code ModuleEditorStyle} enumerates the allowed styles for a {@link
  * ModuleEditor}.
  *
  * @author Todd L Smith &lt;tsmith@safetyweb.org&gt;
  */
-public enum ModuleViewerStyle
+public enum ModuleEditorStyle
 {
 	/** This is the general style for arbitrary text. */
 	GENERAL,
@@ -74,7 +75,7 @@ public enum ModuleViewerStyle
 	/** This is the style for privately imported modules. */
 	PRIVATE_MODULE_IMPORT (
 		ExpectedToken.USES,
-		ModuleViewerStyle.PRIVATE_NAME_IMPORT),
+		ModuleEditorStyle.PRIVATE_NAME_IMPORT),
 
 	/** This is the style for publicly imported names. */
 	PUBLIC_NAME_IMPORT
@@ -89,7 +90,7 @@ public enum ModuleViewerStyle
 	/** This is the style for publicly imported modules. */
 	PUBLIC_MODULE_IMPORT (
 		ExpectedToken.EXTENDS,
-		ModuleViewerStyle.PUBLIC_NAME_IMPORT),
+		ModuleEditorStyle.PUBLIC_NAME_IMPORT),
 
 	/** This is the style for new names. */
 	NEW_NAME (ExpectedToken.NAMES)
@@ -133,17 +134,17 @@ public enum ModuleViewerStyle
 	COMMENT;
 
 	/**
-	 * The {@linkplain ModuleViewerStyle styles} associated with module header
+	 * The {@linkplain ModuleEditorStyle styles} associated with module header
 	 * sections, as a {@linkplain Map map} from {@link ExpectedToken}s to
-	 * {@link ModuleViewerStyle}s.
+	 * {@link ModuleEditorStyle}s.
 	 */
 	private static final @NotNull
-	Map<ExpectedToken, ModuleViewerStyle> stylesByExpectedToken =
+	Map<ExpectedToken, ModuleEditorStyle> stylesByExpectedToken =
 		new HashMap<>();
 
 	static
 	{
-		for (final ModuleViewerStyle style : values())
+		for (final ModuleEditorStyle style : values())
 		{
 			final ExpectedToken token = style.expectedToken;
 			if (token != null)
@@ -154,16 +155,16 @@ public enum ModuleViewerStyle
 	}
 
 	/**
-	 * Answer the {@linkplain ModuleViewerStyle style} associated with the
+	 * Answer the {@linkplain ModuleEditorStyle style} associated with the
 	 * module header section initiated by the specified {@linkplain
 	 * ExpectedToken token}.
 	 *
 	 * @param token
 	 *        An {@code ExpectedToken}.
-	 * @return The appropriate {@code ModuleViewerStyle}, or {@code null} if
+	 * @return The appropriate {@code ModuleEditorStyle}, or {@code null} if
 	 *         none is appropriate.
 	 */
-	public static @Nullable ModuleViewerStyle styleFor (
+	public static @Nullable ModuleEditorStyle styleFor (
 		final @NotNull ExpectedToken token)
 	{
 		return stylesByExpectedToken.get(token);
@@ -176,24 +177,24 @@ public enum ModuleViewerStyle
 
 	/**
 	 * The {@link ExpectedToken} that governs the section associated with this
-	 * {@link ModuleViewerStyle}, if any.
+	 * {@link ModuleEditorStyle}, if any.
 	 */
 	public final @Nullable ExpectedToken expectedToken;
 
 	/**
-	 * The {@link ModuleViewerStyle} that governs the supersection associated
-	 * with this {@link ModuleViewerStyle}.
+	 * The {@link ModuleEditorStyle} that governs the supersection associated
+	 * with this {@link ModuleEditorStyle}.
 	 */
-	public @NotNull ModuleViewerStyle supersectionStyleClass;
+	public @NotNull ModuleEditorStyle supersectionStyleClass;
 
 	/**
-	 * The {@link ModuleViewerStyle} that governs the subsection associated
-	 * with this {@link ModuleViewerStyle}.
+	 * The {@link ModuleEditorStyle} that governs the subsection associated
+	 * with this {@link ModuleEditorStyle}.
 	 */
-	public final @NotNull ModuleViewerStyle subsectionStyleClass;
+	public final @NotNull ModuleEditorStyle subsectionStyleClass;
 
 	/**
-	 * Does the {@link ModuleViewerStyle} correspond to either an imported name
+	 * Does the {@link ModuleEditorStyle} correspond to either an imported name
 	 * or a new name?
 	 *
 	 * @return {@code true} if the receiver denotes a name, {@code false}
@@ -205,9 +206,17 @@ public enum ModuleViewerStyle
 	}
 
 	/**
-	 * Construct a {@link ModuleViewerStyle}.
+	 * The {@link}
 	 */
-	ModuleViewerStyle ()
+	public static final @NotNull String editorStyleSheet =
+		ModuleEditor.class.getResource(
+			AvailWorkbench.resourcePrefix +
+				"module_editor_styles.css").toExternalForm();
+
+	/**
+	 * Construct a {@link ModuleEditorStyle}.
+	 */
+	ModuleEditorStyle ()
 	{
 		this.styleClass = this.name().replace('_', '-').toLowerCase();
 		this.expectedToken = null;
@@ -216,13 +225,13 @@ public enum ModuleViewerStyle
 	}
 
 	/**
-	 * Construct a {@link ModuleViewerStyle} that is associated with the
+	 * Construct a {@link ModuleEditorStyle} that is associated with the
 	 * section governed by the specified {@link ExpectedToken}.
 	 *
 	 * @param expectedToken
 	 *        The appropriate {@code ExpectedToken}.
 	 */
-	ModuleViewerStyle (final @NotNull ExpectedToken expectedToken)
+	ModuleEditorStyle (final @NotNull ExpectedToken expectedToken)
 	{
 		this.styleClass = this.name().replace('_', '-').toLowerCase();
 		this.expectedToken = expectedToken;
@@ -231,18 +240,18 @@ public enum ModuleViewerStyle
 	}
 
 	/**
-	 * Construct a {@link ModuleViewerStyle} that is associated with the
+	 * Construct a {@link ModuleEditorStyle} that is associated with the
 	 * section governed by the specified {@link ExpectedToken} and uses the
-	 * specified {@code ModuleViewerStyle} for subsections.
+	 * specified {@code ModuleEditorStyle} for subsections.
 	 *
 	 * @param expectedToken
 	 *        The appropriate {@code ExpectedToken}.
 	 * @param subsectionStyleClass
-	 *        The {@code ModuleViewerStyle} for subsections.
+	 *        The {@code ModuleEditorStyle} for subsections.
 	 */
-	ModuleViewerStyle (
+	ModuleEditorStyle (
 		final @NotNull ExpectedToken expectedToken,
-		final @NotNull ModuleViewerStyle subsectionStyleClass)
+		final @NotNull ModuleEditorStyle subsectionStyleClass)
 	{
 		this.styleClass = this.name().replace('_', '-').toLowerCase();
 		this.expectedToken = expectedToken;
