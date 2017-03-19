@@ -215,7 +215,7 @@ extends CodeArea
 					find.value();
 				}
 			},
-			KeyCode.N,
+			KeyCode.G,
 			KeyCombination.META_DOWN));
 	}
 }
