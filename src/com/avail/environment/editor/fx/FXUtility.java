@@ -30,8 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.environment;
+package com.avail.environment.editor.fx;
+import com.avail.utility.evaluation.Continuation0;
 import javafx.application.Platform;
+import javafx.beans.NamedArg;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
 import javafx.embed.swing.JFXPanel;
@@ -41,10 +43,16 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyCombination.Modifier;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -481,7 +489,7 @@ public class FXUtility
 	 *        The type of item held in the choice box.
 	 * @return A {@code ChoiceBox}.
 	 */
-	public <T> @NotNull ChoiceBox<T> choiceBox (
+	public static <T> @NotNull ChoiceBox<T> choiceBox (
 		final double top,
 		final double right,
 		final double bottom,
@@ -595,5 +603,105 @@ public class FXUtility
 		final VBox vBox = vbox(spacing, nodes);
 		vBox.setStyle(style);
 		return vBox;
+	}
+
+	/**
+	 * Answer a {@link KeyComboAction}.
+	 *
+	 * <p>
+	 * An example usage for pressing down CONTROL + SPACE keys would be:
+	 * </p>
+	 *
+	 * <pre>
+	 * {@code FXUtility.createKeyCombo(
+	 *      () -> System.out.println("I'm Pressed!"),
+	 *      KeyCode.SPACE,
+	 *      KeyCombination.CONTROL_DOWN);}
+	 * </pre>
+	 *
+	 * @param action
+	 *        The {@link Continuation0} action to take on event occurrence.
+	 * @param keyCode
+	 *        The {@link KeyCode} in the combination.
+	 * @param modifiers
+	 *        An array of {@link Modifier}s.
+	 */
+	public static @NotNull KeyComboAction createKeyCombo (
+		final @NotNull Continuation0 action,
+		final @NotNull KeyCode keyCode,
+		final @NotNull Modifier... modifiers)
+	{
+		return new KeyComboAction(
+			new KeyCodeCombination(keyCode, modifiers), action);
+	}
+
+	/**
+	 * A {@code KeyComboAction} is a pairing of a {@link KeyCombination} and
+	 * a {@link Continuation0} that occurs when the key combination occurs.
+	 */
+	public static class KeyComboAction
+	{
+		/**
+		 * The {@link KeyCombination}.
+		 */
+		private final @NotNull KeyCombination keyCombination;
+
+		/**
+		 * The {@link Continuation0} to perform.
+		 */
+		private final @NotNull Continuation0 action;
+
+		/**
+		 * Perform the {@link #action} if the given {@link KeyEvent} matches
+		 * the {@link #keyCombination}.
+		 *
+		 * @param event
+		 *        The event to check.
+		 */
+		public void event (final KeyEvent event)
+		{
+			if (keyCombination.match(event))
+			{
+				action.value();
+			}
+		}
+
+		/**
+		 * Construct a {@link KeyComboAction}
+		 *
+		 * @param keyCombination
+		 *        The {@link KeyCombination}.
+		 * @param action
+		 *        The {@link Continuation0} to perform.
+		 */
+		public KeyComboAction (
+			final @NotNull KeyCombination keyCombination,
+			final @NotNull Continuation0 action)
+		{
+			this.keyCombination = keyCombination;
+			this.action = action;
+		}
+	}
+
+	/**
+	 * Create a {@link TextInputDialog}.
+	 *
+	 * @param title
+	 *        The dialog {@link TextInputDialog#setTitle(String) title}.
+	 * @return A {@code TextInputDialog}.
+	 */
+	public static TextInputDialog textInputDialog(
+		final @NotNull String title)
+	{
+		TextInputDialog textInputDialog = new TextInputDialog();
+		textInputDialog.setTitle(title);
+		textInputDialog.setHeaderText(null);
+		ButtonType ok = new ButtonType("OK",
+			ButtonData.OK_DONE);
+		ButtonType cancel = new ButtonType("Cancel",
+			ButtonData.CANCEL_CLOSE);
+		textInputDialog.getDialogPane().getButtonTypes().setAll(ok, cancel);
+		textInputDialog.setGraphic(null);
+		return textInputDialog;
 	}
 }

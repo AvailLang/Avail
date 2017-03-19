@@ -35,7 +35,7 @@ import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import com.avail.environment.AvailWorkbench.LayoutConfiguration;
-import com.avail.environment.viewer.ModuleViewer;
+import com.avail.environment.editor.ModuleEditor;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import org.jetbrains.annotations.NotNull;
@@ -76,8 +76,8 @@ implements WindowListener
 			}
 			//JFXPanel must be created before scene due to initialization issues
 			final JFXPanel fxPanel = new JFXPanel();
-			final ModuleViewer viewer =
-				ModuleViewer.moduleViewer(
+			final ModuleEditor viewer =
+				ModuleEditor.moduleViewer(
 					targetModuleName(), workbench, frame.getBounds());
 			fxPanel.setScene(viewer);
 			//This must be called to circumvent a bug that won't be fixed

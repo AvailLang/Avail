@@ -33,7 +33,6 @@ package com.avail.environment.tasks;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
-import com.avail.environment.viewer.NewModuleWindow;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -41,13 +40,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.File;
 
 /**
  * An {@code FXWindowTask} is a an abstract extension of {@link

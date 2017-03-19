@@ -35,8 +35,7 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
-import com.avail.environment.viewer.NewModuleWindow;
-import com.avail.environment.viewer.NewPackageWindow;
+import com.avail.environment.editor.NewPackageWindow;
 import javafx.scene.Scene;
 import org.jetbrains.annotations.NotNull;
 

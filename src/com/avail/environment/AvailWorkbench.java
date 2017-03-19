@@ -39,6 +39,8 @@ import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.actions.*;
+import com.avail.environment.editor.ModuleEditor;
+import com.avail.environment.editor.ReplaceTextTemplate;
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode;
 import com.avail.environment.nodes.EntryPointModuleNode;
 import com.avail.environment.nodes.EntryPointNode;
@@ -707,6 +709,12 @@ extends JFrame
 	 * A {@link Map} from a module template name to a module template.
 	 */
 	public @NotNull ModuleTemplates moduleTemplates;
+
+	/**
+	 * The {@link ReplaceTextTemplate} for the {@link ModuleEditor}.
+	 */
+	public final @NotNull ReplaceTextTemplate replaceTextTemplate =
+		new ReplaceTextTemplate();
 
 	/**
 	 * Answer an array of {@link #moduleTemplates} names.

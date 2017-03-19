@@ -1,23 +1,20 @@
-package com.avail.environment.viewer;
+package com.avail.environment.editor;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.FXUtility;
+import com.avail.environment.editor.fx.FXUtility;
 import com.avail.environment.tasks.NewModuleTask;
+import com.avail.environment.tasks.NewPackageTask;
 import javafx.beans.NamedArg;
 import javafx.beans.binding.Bindings;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.*;
+import javafx.scene.paint.Paint;
 import org.jetbrains.annotations.NotNull;
-
-import javafx.scene.input.KeyEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,11 +28,11 @@ import java.util.List;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class NewModuleWindow
+public class NewPackageWindow
 extends Scene
 {
 	/**
-	 * Construct a {@link NewModuleWindow}.
+	 * Construct a {@link NewPackageWindow}.
 	 *
 	 * @param width
 	 *        The width of the {@code Scene}.
@@ -49,18 +46,18 @@ extends Scene
 	 *        The {@link NewModuleTask} that spawned this
 	 *        {@code NewModuleWindow}.
 	 */
-	public NewModuleWindow (
+	public NewPackageWindow (
 		@NamedArg("width") final double width,
 		@NamedArg("height") final double height,
 		final @NotNull File directory,
 		final @NotNull AvailWorkbench workbench,
-		final @NotNull NewModuleTask task)
+		final @NotNull NewPackageTask task)
 	{
 		super(
 			createWindowContent(task, directory, workbench),
 			width,
 			height);
-		getStylesheets().add(ModuleViewer.class.getResource(
+		getStylesheets().add(ModuleEditor.class.getResource(
 			"/workbench/module_viewer_styles.css").toExternalForm());
 	}
 
@@ -77,17 +74,17 @@ extends Scene
 	 * @return A {@code VBox}.
 	 */
 	private static @NotNull VBox createWindowContent (
-		final @NotNull NewModuleTask task,
+		final @NotNull NewPackageTask task,
 		final @NotNull File directory,
 		final @NotNull AvailWorkbench workbench)
 	{
 		final Label moduleNameLabel = FXUtility.label(
-			"Module Name", 5.0, 0, 0, 0);
+			"Package Name", 5.0, 0, 0, 0);
 
 		final TextField moduleNameField = FXUtility.textField(
 			0, 0, 0, 2, 189, 27);
 
-		moduleNameField.setPromptText("Enter Module Name");
+		moduleNameField.setPromptText("Enter Package Name");
 
 		final HBox nameRow = FXUtility.hbox(
 			5, moduleNameLabel, moduleNameField);
@@ -119,33 +116,45 @@ extends Scene
 				final String moduleName = moduleNameField.getText();
 				final String leafFileName = moduleName + ".avail";
 				task.setQualifiedName(moduleName);
-				final File newModule = new File(
+				final File newPackage = new File(
 					directory.getAbsolutePath() + "/" + leafFileName);
-				if (newModule.exists())
+
+				if (newPackage.exists())
 				{
-					errorLabel.setText("Module Already Exists!");
+					errorLabel.setText("Package Already Exists!");
 				}
 				else
 				{
-					final String choice = templateChoices.getValue();
-					final String contents = choice != null && !choice.isEmpty()
-						? workbench.moduleTemplates
-						.createNewModuleFromTemplate(choice, moduleName)
-						: "";
-					try
+					newPackage.mkdir();
+					final File newModule = new File(
+						newPackage.getAbsolutePath() + "/" + leafFileName);
+					if (newModule.exists())
 					{
-						newModule.createNewFile();
-						final List<String> input = new ArrayList<>();
-						input.add(contents);
-						Files.write(
-							newModule.toPath(),
-							input,
-							StandardCharsets.UTF_8);
-						task.closeCleanly();
+						newPackage.delete();
+						errorLabel.setText("Package-Module Already Exists!");
 					}
-					catch (IOException e)
+					else
 					{
-						task.erroredClose("Module Creation Failed!");
+						final String choice = templateChoices.getValue();
+						final String contents = choice != null && !choice.isEmpty()
+							? workbench.moduleTemplates
+							.createNewModuleFromTemplate(choice, moduleName)
+							: "";
+						try
+						{
+							newModule.createNewFile();
+							final List<String> input = new ArrayList<>();
+							input.add(contents);
+							Files.write(
+								newModule.toPath(),
+								input,
+								StandardCharsets.UTF_8);
+							task.closeCleanly();
+						}
+						catch (IOException e)
+						{
+							task.erroredClose("Package Creation Failed!");
+						}
 					}
 				}
 			},
@@ -156,6 +165,7 @@ extends Scene
 		final Button cancel = FXUtility.button(
 			"Cancel",
 			evt -> task.cancelTask());
+
 
 		final HBox buttonRow =
 			FXUtility.hbox(5, errorLabel, create, cancel);

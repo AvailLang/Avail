@@ -29,7 +29,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.environment.viewer;
+package com.avail.environment.editor;
 
 import com.avail.compiler.ExpectedToken;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +40,7 @@ import java.util.Map;
 
 /**
  * {@code ModuleViewerStyle} enumerates the allowed styles for a {@link
- * ModuleViewer}.
+ * ModuleEditor}.
  *
  * @author Todd L Smith &lt;tsmith@safetyweb.org&gt;
  */
