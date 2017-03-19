@@ -36,7 +36,7 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.environment.tasks.EditModuleTask;
-import com.avail.environment.viewer.ModuleViewer;
+import com.avail.environment.editor.ModuleEditor;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -44,7 +44,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
 /**
- * A {@code EditModuleAction} launches a {@linkplain ModuleViewer module viewer}
+ * A {@code EditModuleAction} launches a {@linkplain ModuleEditor module viewer}
  * in a Swing worker thread.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;

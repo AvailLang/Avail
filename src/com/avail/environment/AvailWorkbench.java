@@ -39,6 +39,8 @@ import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.actions.*;
+import com.avail.environment.editor.ModuleEditor;
+import com.avail.environment.editor.ReplaceTextTemplate;
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode;
 import com.avail.environment.nodes.EntryPointModuleNode;
 import com.avail.environment.nodes.EntryPointNode;
@@ -54,6 +56,7 @@ import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation2;
 import com.avail.utility.evaluation.Transformer1;
+import com.sun.javafx.application.PlatformImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,10 +81,14 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.prefs.Preferences;
+import java.util.stream.Collectors;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import static java.lang.Math.max;
@@ -704,10 +711,64 @@ extends JFrame
 		StacksGenerator.defaultDocumentationPath;
 
 	/**
-	 * The {@linkplain Path path} for the new module template.
+	 * A {@link Map} from a module template name to a module template.
 	 */
-	public @NotNull URL moduleTemplateURL =
-		AvailWorkbench.class.getResource(resourcePrefix + "new-module.tmpl");
+	public @NotNull ModuleTemplates moduleTemplates;
+
+	/**
+	 * The {@link ReplaceTextTemplate} for the {@link ModuleEditor}.
+	 */
+	public final @NotNull ReplaceTextTemplate replaceTextTemplate =
+		new ReplaceTextTemplate();
+
+	/**
+	 * Answer an array of {@link #moduleTemplates} names.
+	 *
+	 * @return An array of strings.
+	 */
+	public String[] templateOptions ()
+	{
+		return moduleTemplates.moduleTemplates.keySet().
+			toArray(new String[moduleTemplates.moduleTemplates.size()]);
+	}
+
+	/**
+	 * Add a template to the {@linkplain #moduleTemplates}.
+	 *
+	 * @param templateName
+	 *        The new template name.
+	 * @param file
+	 *        The template file.
+	 */
+	public void addModuleTemplate (
+		final @NotNull String templateName,
+		final @NotNull File file)
+	{
+		assert file.exists();
+		try
+		{
+			StringBuilder sb = new StringBuilder();
+			List<String> lines =
+				Files.lines(file.toPath()).collect(Collectors.toList());
+
+			int size = lines.size();
+
+			for (int i = 0; i < size - 1; i++)
+			{
+				sb.append(lines.get(i));
+				sb.append('\n');
+			}
+
+			sb.append(lines.get(size - 1));
+
+			moduleTemplates.moduleTemplates.put(templateName, sb.toString());
+		}
+		catch (IOException e)
+		{
+			System.err.println("Failed to read file");
+		}
+
+	}
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
 	private @Nullable BuildInputStream inputStream;
@@ -884,11 +945,11 @@ extends JFrame
 		new NewPackageAction(this);
 
 	/**
-	 * The {@linkplain SetModuleTemplatePathAction module template path dialog
+	 * The {@linkplain AddModuleTemplateAction module template path dialog
 	 * action}.
 	 */
-	@InnerAccess final SetModuleTemplatePathAction setModuleTemplatePathAction =
-		new SetModuleTemplatePathAction(this);
+	@InnerAccess final AddModuleTemplateAction addModuleTemplateAction =
+		new AddModuleTemplateAction(this);
 
 	/** The {@linkplain ShowVMReportAction show VM report action}. */
 	@InnerAccess final ShowVMReportAction showVMReportAction =
@@ -982,9 +1043,11 @@ extends JFrame
 			!busy && selectedEntryPointModule() != null);
 		editModuleAction.setEnabled(
 			!busy && selectedModuleIsLoaded());
-		newModuleAction.setEnabled(!busy);
-		newPackageAction.setEnabled(!busy);
-		setModuleTemplatePathAction.setEnabled(!busy);
+		newModuleAction.setEnabled(!busy &&
+			(selectedModule() != null || selectedModuleRoot() != null));
+		newPackageAction.setEnabled(!busy &&
+			(selectedModule() != null || selectedModuleRoot() != null));
+		addModuleTemplateAction.setEnabled(!busy);
 		inputLabel.setText(isRunning
 			? "Console Input:"
 			: "Command:");
@@ -1315,7 +1378,7 @@ extends JFrame
 	 * @return A {@link ModuleRootNode}, or {@code null} if no module root is
 	 *         selected.
 	 */
-	@InnerAccess @Nullable ModuleRootNode selectedModuleRootNode ()
+	public @Nullable ModuleRootNode selectedModuleRootNode ()
 	{
 		final TreePath path = moduleTree.getSelectionPath();
 		if (path == null)
@@ -1675,6 +1738,13 @@ extends JFrame
 	/** The leaf key under which to store a single window placement. */
 	public final static String placementLeafKeyString = "placement";
 
+	/** The key under which to organize all templates */
+	private final static String templatePreferenceString =
+		"templates";
+
+	/** The leaf key under which to store the module template string. */
+	public final static String moduleLeafKeyString = "module";
+
 	/**
 	 * Answer a {@link List} of {@link Rectangle}s corresponding with the
 	 * physical monitors into which {@link Frame}s may be positioned.
@@ -1715,6 +1785,17 @@ extends JFrame
 		}
 		return basePreferences.node(
 			placementByMonitorNamesString + "/" + allNamesString);
+	}
+
+	/**
+	 * Answer the {@link Preferences} node responsible for holding templates.
+	 *
+	 * @return The {@code Preferences} node in which template information can be
+	 *         stored and retrieved.
+	 */
+	public Preferences templatePreferences ()
+	{
+		return basePreferences.node(templatePreferenceString);
 	}
 
 	/**
@@ -1853,61 +1934,55 @@ extends JFrame
 		 */
 		public LayoutConfiguration (final String input)
 		{
-			final String [] substrings = input.split(",");
-			try
+			if (!input.isEmpty())
 			{
-				if (substrings.length >= 4)
+				final String[] substrings = input.split(",");
+				try
 				{
-					final int x = Integer.parseInt(substrings[0]);
-					final int y = Integer.parseInt(substrings[1]);
-					final int w = Integer.parseInt(substrings[2]);
-					final int h = Integer.parseInt(substrings[3]);
+
+					final int x = max(0, Integer.parseInt(substrings[0]));
+					final int y = max(0, Integer.parseInt(substrings[1]));
+					final int w = max(50, Integer.parseInt(substrings[2]));
+					final int h = max(50, Integer.parseInt(substrings[3]));
 					placement = new Rectangle(x, y, w, h);
 				}
-			}
-			catch (final NumberFormatException e)
-			{
-				// ignore
-			}
+				catch (final NumberFormatException e)
+				{
+					// ignore
+				}
 
-			try
-			{
-				if (substrings.length >= 5)
+				try
 				{
-					leftSectionWidth = Integer.parseInt(substrings[4]);
+					leftSectionWidth = max(0, Integer.parseInt(substrings[4]));
 				}
-			}
-			catch (final NumberFormatException e)
-			{
-				// ignore
-			}
-			try
-			{
-				if (substrings.length >= 6)
+				catch (final NumberFormatException e)
 				{
-					moduleVerticalProportion =
-						Double.parseDouble(substrings[5]);
+					// ignore
 				}
-			}
-			catch (final NumberFormatException e)
-			{
-				// ignore
-			}
+				try
+				{
+					moduleVerticalProportion = Double.parseDouble(substrings[5]);
+				}
+				catch (final NumberFormatException e)
+				{
+					// ignore
+				}
 
-			try
-			{
-				if (substrings.length >= 9)
+				try
 				{
-					final int x = Integer.parseInt(substrings[6]);
-					final int y = Integer.parseInt(substrings[7]);
-					final int w = Integer.parseInt(substrings[8]);
-					final int h = Integer.parseInt(substrings[9]);
-					moduleViewerPlacement = new Rectangle(x, y, w, h);
+					if (substrings.length >= 9)
+					{
+						final int x = max(0, Integer.parseInt(substrings[6]));
+						final int y = max(0, Integer.parseInt(substrings[7]));
+						final int w = max(50, Integer.parseInt(substrings[8]));
+						final int h = max(50, Integer.parseInt(substrings[9]));
+						moduleViewerPlacement = new Rectangle(x, y, w, h);
+					}
 				}
-			}
-			catch (final NumberFormatException e)
-			{
-				// ignore
+				catch (final NumberFormatException e)
+				{
+					// ignore
+				}
 			}
 		}
 	}
@@ -1931,6 +2006,189 @@ extends JFrame
 		}
 		return new LayoutConfiguration(configurationString);
 	}
+
+	/**
+	 * The module templates.
+	 */
+	@InnerAccess
+	public static class ModuleTemplates
+	{
+		/**
+		 * A {@link Map} representing module template name - template pairs.
+		 */
+		public @Nullable Map<String, String> moduleTemplates = new HashMap<>();
+
+		/**
+		 * Answer the requested template or an empty string if none found.
+		 *
+		 * @param templateName
+		 *        The name of the template.
+		 * @return The requested template or an empty string.
+		 */
+		public String get (final @NotNull String templateName)
+		{
+			return moduleTemplates.getOrDefault(templateName, "");
+		}
+
+		/**
+		 * Answer the result of a filled out template.
+		 *
+		 * @param templateName
+		 *        The template to fill out.
+		 * @param moduleName
+		 *        The name of the module being created.
+		 * @return A string containing filled out template.
+		 */
+		public String createNewModuleFromTemplate (
+			final @NotNull String templateName,
+			final @NotNull String moduleName)
+		{
+			final String year = Integer.toString(LocalDateTime.ofInstant(
+				Instant.now(), ZoneOffset.UTC).getYear());
+
+			return Replaceable.replace(get(templateName), moduleName, year);
+		}
+
+		/**
+		 * An enum of the patterns that are replaceable in a {@link
+		 * ModuleTemplates}.
+		 */
+		enum Replaceable
+		{
+
+			MODULE ("${MODULE}"),
+			YEAR ("${YEAR}");
+
+			/**
+			 * The pattern that can be replaced in the template.
+			 */
+			private final @NotNull String pattern;
+
+			/**
+			 * Answer the result of a filled out template.
+			 *
+			 * @param template
+			 *        The template to fill out.
+			 * @param replacements
+			 *        The replacement values for the template.
+			 * @return A filled out template.
+			 */
+			static String replace (
+				final @NotNull String template,
+				final @NotNull String... replacements)
+			{
+				String result = template;
+				Replaceable[] replaceables = Replaceable.values();
+
+				assert replaceables.length == replacements.length;
+
+				for (int i = 0; i < replacements.length; i++)
+				{
+					result = result.replace(
+						replaceables[i].pattern, replacements[i]);
+				}
+				return result;
+			}
+
+			/**
+			 * Construct a {@link Replaceable}.
+			 *
+			 * @param pattern
+			 *        The replacement pattern.
+			 */
+			Replaceable (final @NotNull String pattern)
+			{
+				this.pattern = pattern;
+			}
+		}
+
+		/**
+		 * Answer a string representation of this template store that is
+		 * suitable for being stored and restored via the {@link
+		 * ModuleTemplates#ModuleTemplates(String)} constructor.
+		 *
+		 * @return A string.
+		 */
+		public String stringToStore ()
+		{
+			final String [] strings = new String [moduleTemplates.size()];
+			int index = 0;
+			for (String templateName : moduleTemplates.keySet())
+			{
+				strings[index] = templateName + '\0' +
+					moduleTemplates.get(templateName);
+			}
+
+			final StringBuilder builder = new StringBuilder();
+			boolean first = true;
+			for (final String string : strings)
+			{
+				if (!first)
+				{
+					builder.append(0x1e);
+				}
+				if (string != null)
+				{
+					builder.append(string);
+				}
+				first = false;
+			}
+			return builder.toString();
+		}
+
+		/**
+		 * Construct a new {@link ModuleTemplates} with no templates specified.
+		 */
+		public ModuleTemplates ()
+		{
+			// no templates
+		}
+
+		/**
+		 * Construct a new {@link ModuleTemplates} with preferences specified by
+		 * some private encoding in the provided {@link String}.
+		 *
+		 * @param input
+		 *        A string in some encoding compatible with that produced
+		 *        by {@link #stringToStore()}.
+		 */
+		public ModuleTemplates (final String input)
+		{
+			if (!input.isEmpty())
+			{
+				String pairSpliter = "" + '\0';
+				String recordSpliter  = "" + 0x1e;
+				final String[] substrings = input.split(recordSpliter);
+				for (String template : substrings)
+				{
+					String[] pair = template.split(pairSpliter);
+					assert  pair.length == 2;
+					moduleTemplates.put(pair[0], pair[1]);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Figure out how to initially lay out the frame, based on previously saved
+	 * preference information.
+	 *
+	 * @return The initial {@link LayoutConfiguration}.
+	 */
+	@InnerAccess
+	ModuleTemplates getInitialModuleTemplate ()
+	{
+		final Preferences preferences = templatePreferences();
+		final String templateString = preferences.get(
+			moduleLeafKeyString,
+			null);
+		if (templateString == null)
+		{
+			return new ModuleTemplates();
+		}
+		return new ModuleTemplates(templateString);
+	}
+
 
 	/**
 	 * Write text to the transcript with the given {@link StreamStyle}.
@@ -2015,6 +2273,11 @@ extends JFrame
 		final ModuleNameResolver resolver,
 		final String initialTarget)
 	{
+		//This must be called to circumvent a bug that won't be fixed for swing
+		//and JavaFx interaction
+		//See https://bugs.openjdk.java.net/browse/JDK-8090517
+		PlatformImpl.startup(() -> {});
+
 		// Set module components.
 		this.resolver = resolver;
 		final AvailRuntime runtime = new AvailRuntime(resolver);
@@ -2023,6 +2286,7 @@ extends JFrame
 		// Get the existing preferences early for plugging in at the right
 		// times during construction.
 		final LayoutConfiguration configuration = getInitialConfiguration();
+		this.moduleTemplates = getInitialModuleTemplate();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -2048,7 +2312,7 @@ extends JFrame
 				"Module",
 				newPackageAction, newModuleAction,
 					editModuleAction, null,
-				setModuleTemplatePathAction));
+				addModuleTemplateAction));
 		menuBar.add(
 			menu(
 				"Document",
@@ -2421,6 +2685,9 @@ extends JFrame
 				preferences.put(
 					placementLeafKeyString,
 					saveConfiguration.stringToStore());
+				templatePreferences().put(
+					moduleLeafKeyString,
+					moduleTemplates.stringToStore());
 				super.windowClosing(e);
 			}
 		});

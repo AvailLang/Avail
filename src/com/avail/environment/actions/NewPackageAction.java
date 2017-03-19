@@ -32,8 +32,13 @@
 
 package com.avail.environment.actions;
 
+import com.avail.builder.ModuleRoot;
+import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
+import com.avail.environment.nodes.ModuleRootNode;
+import com.avail.environment.tasks.NewModuleTask;
+import com.avail.environment.tasks.NewPackageTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,68 +69,40 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		final JFileChooser chooser = new JFileChooser();
-		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		chooser.setAcceptAllFileFilterUsed(false);
-		chooser.setCurrentDirectory(AvailWorkbench.currentWorkingDirectory);
-		chooser.setFileFilter(
-			new FileNameExtensionFilter(
-				".avail","avail"));
+		assert workbench.backgroundTask == null;
 
-		final int result = chooser.showDialog(
-			workbench, "Create");
-		if (result == JFileChooser.APPROVE_OPTION)
+		final ResolvedModuleName selectedModule = workbench.selectedModule();
+		final ModuleRootNode moduleRootNode =
+			workbench.selectedModuleRootNode();
+
+		assert selectedModule != null || moduleRootNode != null;
+
+		String baseQualifiedName = (selectedModule != null
+			? selectedModule.packageName()
+			: "/" + moduleRootNode.moduleRoot().name()) + "/";
+
+		File directory = new File(
+			(selectedModule != null
+				? selectedModule.sourceReference().getParentFile().toString()
+				: moduleRootNode.moduleRoot().sourceDirectory().getPath()));
+
+		if (!directory.exists())
 		{
-			try
-			{
-				final StringBuilder sb = new StringBuilder();
-				final List<String> lines;
-				try (
-					final @NotNull BufferedReader reader =
-					     new BufferedReader(new FileReader(
-					     	workbench.moduleTemplateURL.getFile())))
-			    {
-			        lines = reader.lines().collect(Collectors.toList());
-			    }
-
-				final int size = lines.size();
-				for (int i = 0; i < size - 1; i++)
-				{
-					sb.append(lines.get(i));
-					sb.append('\n');
-				}
-				sb.append(lines.get(size - 1));
-
-				final String fileName = chooser.getSelectedFile().toString();
-				final String moduleName = new File(fileName).getName();
-				final String localName = moduleName + ".avail";
-				final File dir = new File(fileName + ".avail");
-				if (!dir.exists())
-				{
-					dir.mkdir();
-				}
-				final File file =
-					new File(fileName + ".avail/" + localName);
-				file.createNewFile();
-
-				final String year = Integer.toString(LocalDateTime.ofInstant(
-					Instant.now(), ZoneOffset.UTC).getYear());
-				final List<String> input = new ArrayList<>();
-				input.add(sb.toString()
-					.replace("${MODULE}", moduleName)
-					.replace("${YEAR}", year));
-				Files.write(
-					file.toPath(),
-					input,
-					StandardCharsets.UTF_8);
-				new RefreshAction(workbench).actionPerformed(event);
-			}
-			catch (IOException e)
-			{
-				System.err.println("Failed to create file: "
-					+ chooser.getSelectedFile().toPath());
-			}
+			directory = new File(
+				(selectedModule != null
+					? selectedModule.sourceReference().getParentFile()
+						.toString()
+					: moduleRootNode.moduleRoot().sourceDirectory().getPath()));
+			assert directory.exists();
 		}
+
+		final NewPackageTask task = new NewPackageTask(
+			workbench, directory, baseQualifiedName, 310, 135);
+		workbench.backgroundTask = task;
+		workbench.availBuilder.checkStableInvariants();
+		workbench.setEnablements();
+
+		task.execute();
 	}
 
 	/**

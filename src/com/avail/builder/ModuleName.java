@@ -43,7 +43,7 @@ import org.jetbrains.annotations.Nullable;
  * Avail module path, <strong>X</strong> is a package within
  * <strong>R</strong>, <strong>Y</strong> is a package within
  * <strong>X</strong>, and <strong>Z</strong> is a module or package within
- * </strong>Y</strong>.
+ * <strong>Y</strong>.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

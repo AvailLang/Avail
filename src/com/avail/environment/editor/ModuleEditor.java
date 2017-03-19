@@ -1,5 +1,5 @@
 /**
- * ModuleViewer.java
+ * ModuleEditor.java
  * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.environment.viewer;
+package com.avail.environment.editor;
 
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.ExpectedToken;
@@ -43,6 +43,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.actions.BuildAction;
+import com.avail.environment.editor.fx.AvailArea;
 import com.avail.environment.tasks.EditModuleTask;
 
 import javafx.beans.NamedArg;
@@ -51,11 +52,16 @@ import javafx.scene.Scene;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import org.fxmisc.richtext.model.NavigationActions.SelectionPolicy;
 import org.fxmisc.richtext.model.RichTextChange;
 import org.fxmisc.richtext.model.StyledText;
 import org.jetbrains.annotations.NotNull;
@@ -77,15 +83,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.avail.environment.viewer.ModuleViewerStyle.*;
+import static com.avail.environment.editor.ModuleViewerStyle.*;
 
 /**
- * A {@code ModuleViewer} is a {@link Scene} used to open a source module for
+ * A {@code ModuleEditor} is a {@link Scene} used to open a source module for
  * viewing and editing.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class ModuleViewer
+public class ModuleEditor
 extends Scene
 {
 	/**
@@ -94,7 +100,7 @@ extends Scene
 	private AvailScannerResult scannerResult;
 
 	/**
-	 * A reference to the workbench.
+	 * A reference to the {@link AvailWorkbench}..
 	 */
 	private final AvailWorkbench workbench;
 
@@ -134,9 +140,9 @@ extends Scene
 	private final ResolvedModuleName resolvedModuleName;
 
 	/**
-	 * The {@link CodeArea} where code is displayed.
+	 * The {@link AvailArea} where code is displayed.
 	 */
-	private final CodeArea codeArea;
+	private final AvailArea codeArea;
 
 	/**
 	 * Enable the {@link #changeTracker} on {@link RichTextChange text changes}.
@@ -158,7 +164,7 @@ extends Scene
 	}
 
 	/**
-	 * Close this {@link ModuleViewer}, throwing away any changes, and open a
+	 * Close this {@link ModuleEditor}, throwing away any changes, and open a
 	 * fresh copy from the file system.
 	 */
 	private void reloadModule ()
@@ -175,32 +181,45 @@ extends Scene
 	}
 
 	/**
-	 * Answer a new {@link ModuleViewer}.
+	 * Answer a new {@link ModuleEditor}.
 	 *
 	 * @param module
 	 *        The {@link ResolvedModuleName} that represents the module to open.
-	 * @return A {@code ModuleViewer}.
+	 * @return A {@code ModuleEditor}.
 	 */
-	public static ModuleViewer moduleViewer (
+	public static ModuleEditor moduleViewer (
 		final ResolvedModuleName module,
 		final AvailWorkbench workbench,
 		final Rectangle dimensions)
 	{
-		final CodeArea codeArea = new CodeArea();
-		codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-		codeArea.getStyle();
+		final AvailArea availArea = new AvailArea(workbench);
 
-		final VirtualizedScrollPane vsp = new VirtualizedScrollPane<>(codeArea);
+		availArea.addEventFilter(
+			KeyEvent.KEY_PRESSED,
+			event ->
+			{
+				if (event.getCode() == KeyCode.BACK_SLASH)
+				{
+					event.consume();
+					int pos = availArea.getCaretPosition();
+					availArea.replaceText(pos - 3, pos, "~");
+					availArea.moveTo(pos - 3, SelectionPolicy.ADJUST);
+				}
+			});
+		availArea.setParagraphGraphicFactory(LineNumberFactory.get(availArea));
+		availArea.getStyle();
+
+		final VirtualizedScrollPane vsp = new VirtualizedScrollPane<>(availArea);
 		VBox.setVgrow(vsp, Priority.ALWAYS);
 		MenuBar menuBar = new MenuBar();
 		VBox vbox = new VBox(menuBar, vsp);
-		ModuleViewer viewer = new ModuleViewer(
+		ModuleEditor viewer = new ModuleEditor(
 			vbox,
 			dimensions.width,
 			dimensions.height,
 			workbench,
 			module,
-			codeArea);
+			availArea);
 
 		viewer.enableScanOnChange();
 
@@ -219,7 +238,7 @@ extends Scene
 			saveMenuItem, saveAndBuildMenuItem, reloadhMenuItem);
 		menuBar.getMenus().addAll(fileMenu);
 
-		viewer.getStylesheets().add(ModuleViewer.class.getResource(
+		viewer.getStylesheets().add(ModuleEditor.class.getResource(
 			"/workbench/module_viewer_styles.css").toExternalForm());
 		viewer.readFile();
 
@@ -227,7 +246,7 @@ extends Scene
 	}
 
 	/**
-	 * Write the contents of the {@link ModuleViewer} to disk.
+	 * Write the contents of the {@link ModuleEditor} to disk.
 	 *
 	 * <p>
 	 * This operation blocks until it can acquire the {@link #semaphore}. This
@@ -530,7 +549,7 @@ extends Scene
 	}
 
 	/**
-	 * Construct a {@link ModuleViewer}.
+	 * Construct a {@link ModuleEditor}.
 	 *
 	 * @param root
 	 *        The root node of the {@link Scene} graph.
@@ -538,14 +557,20 @@ extends Scene
 	 *        The width of the {@code Scene}.
 	 * @param height
 	 *        The height of the {@code Scene}.
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
+	 * @param resolvedModuleName
+	 *        The {@link ResolvedModuleName} of the module displayed.
+	 * @param codeArea
+	 *        The
 	 */
-	private ModuleViewer (
+	private ModuleEditor (
 		@NamedArg("root") final Parent root,
 		@NamedArg("width") final double width,
 		@NamedArg("height") final double height,
 		final AvailWorkbench workbench,
 		final ResolvedModuleName resolvedModuleName,
-		final CodeArea codeArea)
+		final AvailArea codeArea)
 	{
 		super(root, width, height);
 		this.resolvedModuleName = resolvedModuleName;

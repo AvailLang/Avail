@@ -1,5 +1,5 @@
 /**
- * SetModuleTemplatePathAction.java
+ * AddModuleTemplateAction.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -43,12 +43,12 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 
 /**
- * A {@code SetModuleTemplatePathAction} displays a {@linkplain
+ * A {@code AddModuleTemplateAction} displays a {@linkplain
  * JOptionPane modal dialog} that prompts the user for the new source module
  * template path.
  */
 @SuppressWarnings("serial")
-public final class SetModuleTemplatePathAction
+public final class AddModuleTemplateAction
 extends AbstractWorkbenchAction
 {
 	@Override
@@ -67,29 +67,24 @@ extends AbstractWorkbenchAction
 			workbench, "Set Module Template Path");
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			try
-			{
-				workbench.moduleTemplateURL =
-					chooser.getSelectedFile().toURI().toURL();
-			}
-			catch (final @NotNull IOException e)
-			{
-				throw new RuntimeException(e);
-			}
+			String name = JOptionPane.showInputDialog(workbench,
+				"Enter template name", null);
+			workbench.addModuleTemplate(name, chooser.getSelectedFile());
 		}
 	}
 
 	/**
-	 * Construct a new {@link SetModuleTemplatePathAction}.
+	 * Construct a new {@link AddModuleTemplateAction}.
 	 *
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
 	 */
-	public SetModuleTemplatePathAction (final AvailWorkbench workbench)
+	public AddModuleTemplateAction (final AvailWorkbench workbench)
 	{
-		super(workbench, "Set Module Template Path…");
+		super(workbench, "Add Module Creation Template…");
 		putValue(
 			SHORT_DESCRIPTION,
-			"Set the path for new module's template.");
+			"Add a new template that can be used when creating a new"
+				+ " module.");
 	}
 }

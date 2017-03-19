@@ -39,7 +39,7 @@ import com.avail.builder.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.environment.tasks.BuildTask;
-import com.avail.environment.viewer.ModuleViewer;
+import com.avail.environment.editor.ModuleEditor;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -87,7 +87,7 @@ extends AbstractWorkbenchAction
 	 * Effectively perform {@link BuildAction#actionPerformed(ActionEvent)}
 	 * for the given {@link ResolvedModuleName} and {@link AvailWorkbench}.
 	 *
-	 * <p>This is to enable building from the {@link ModuleViewer}.</p>
+	 * <p>This is to enable building from the {@link ModuleEditor}.</p>
 	 *
 	 * @param resolvedModuleName
 	 *        The {@code ResolvedModuleName} to build.
