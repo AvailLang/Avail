@@ -144,6 +144,11 @@ extends CodeArea
 					{
 						//Just don't do anything
 					}
+					catch (IndexOutOfBoundsException e)
+					{
+						moveTo(getText().length());
+						requestFollowCaret();
+					}
 				}
 			},
 			KeyCode.L,
