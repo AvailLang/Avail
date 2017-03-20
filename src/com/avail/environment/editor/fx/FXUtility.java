@@ -756,7 +756,11 @@ public class FXUtility
 					if (event.getCode() == KeyCode.UP)
 					{
 						caretPos = -1;
-						moveCaret(comboBox.getEditor().getText().length());
+						String selection = comboBox.getEditor().getText();
+						if (selection != null)
+						{
+							moveCaret(selection.length());
+						}
 						return;
 					}
 					else if (event.getCode() == KeyCode.DOWN)
@@ -766,7 +770,11 @@ public class FXUtility
 							comboBox.show();
 						}
 						caretPos = -1;
-						moveCaret(comboBox.getEditor().getText().length());
+						String selection = comboBox.getEditor().getText();
+						if (selection != null)
+						{
+							moveCaret(selection.length());
+						}
 						return;
 					}
 					else if (event.getCode() == KeyCode.BACK_SPACE)

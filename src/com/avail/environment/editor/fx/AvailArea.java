@@ -78,20 +78,38 @@ extends CodeArea
 	public AvailArea (final @NotNull AvailWorkbench workbench)
 	{
 		this.workbench = workbench;
-		addGotoLine();
-		addFind();
-		addTextTemplate();
+		addKeyCombos(
+			textTemplateAction(),
+			gotoLineAction(),
+			findAction(),
+			findNextAction());
+	}
+
+	/**
+	 * Add the array of {@link KeyComboAction}s to this {@link AvailArea}.
+	 *
+	 * @param actions
+	 *        The array of {@code KeyComboAction}s to add.
+	 */
+	private void addKeyCombos (final @NotNull KeyComboAction... actions)
+	{
+		for (KeyComboAction action : actions)
+		{
+			keyComboActions.add(action);
+		}
 		setOnKeyPressed(event ->
 			keyComboActions.forEach(a -> a.event(event)));
 	}
 
 	/**
-	 * Add functionality to replace text with a template.
+	 * Answer a {@link KeyComboAction} functionality to replace text with a
+	 * template.
+	 *
+	 * @return A {@code KeyComboAction}.
 	 */
-	private void addTextTemplate ()
+	public @NotNull KeyComboAction textTemplateAction ()
 	{
-		//Template text replacement
-		keyComboActions.add(FXUtility.createKeyCombo(
+		return FXUtility.createKeyCombo(
 			() ->
 			{
 				FilterDropDownDialog<String> dialog =
@@ -113,18 +131,20 @@ extends CodeArea
 					});
 			},
 			KeyCode.SPACE,
-			KeyCombination.CONTROL_DOWN));
+			KeyCombination.CONTROL_DOWN);
 	}
 
 	/**
-	 * Add functionality to goto another line.
+	 *  Answer a {@link KeyComboAction} functionality to goto another line.
+	 *
+	 * @return A {@code KeyComboAction}.
 	 */
-	private void addGotoLine ()
+	private @NotNull KeyComboAction gotoLineAction ()
 	{
 		Function<Integer, Integer> clamp =
 			i -> Math.max(0, Math.min(i, getLength() - 1));
 
-		keyComboActions.add(FXUtility.createKeyCombo(
+		return FXUtility.createKeyCombo(
 			() ->
 			{
 				TextInputDialog dialog =
@@ -152,15 +172,18 @@ extends CodeArea
 				}
 			},
 			KeyCode.L,
-			KeyCombination.META_DOWN));
+			KeyCombination.META_DOWN);
 	}
 
 	/**
-	 * Add functionality to goto another line.
+	 * Answer a {@link Continuation0} that finds in the {@link AvailArea}'s text
+	 * the string in the {@link #findBuffer}.
+	 *
+	 * @return A {@code Continuation0}.
 	 */
-	private void addFind ()
+	private @NotNull Continuation0 finder ()
 	{
-		final Continuation0 find = () ->
+		return () ->
 		{
 			int carret = getCaretPosition();
 			final String text = getText();
@@ -171,10 +194,10 @@ extends CodeArea
 				moveTo(position + carret + findBuffer.length());
 				requestFollowCaret();
 				caretPositionProperty().getValue();
-				selectRange(position + carret,
+				selectRange(
+					position + carret,
 					position + carret + findBuffer.length());
-			}
-			else
+			} else
 			{
 				Alert alert = new Alert(AlertType.INFORMATION);
 				alert.setTitle("Find Result");
@@ -183,8 +206,17 @@ extends CodeArea
 				alert.showAndWait();
 			}
 		};
+	}
 
-		keyComboActions.add(FXUtility.createKeyCombo(
+	/**
+	 * Answer a {@link KeyComboAction} functionality to find text in the
+	 * {@link AvailArea}.
+	 *
+	 * @return A {@code KeyComboAction}.
+	 */
+	private @NotNull KeyComboAction findAction ()
+	{
+		return FXUtility.createKeyCombo(
 			() ->
 			{
 				TextInputDialog dialog =
@@ -197,7 +229,7 @@ extends CodeArea
 						findBuffer = result.get();
 						if (findBuffer.length() > 0)
 						{
-							find.value();
+							finder().value();
 						}
 						else
 						{
@@ -211,18 +243,26 @@ extends CodeArea
 				}
 			},
 			KeyCode.F,
-			KeyCombination.META_DOWN));
+			KeyCombination.META_DOWN);
+	}
 
-		//Repeat previous search from current position.
-		keyComboActions.add(FXUtility.createKeyCombo(
+	/**
+	 * Answer a {@link KeyComboAction} functionality to find the next occurrence
+	 * of {@link #findBuffer} in the {@link AvailArea}.
+	 *
+	 * @return A {@code KeyComboAction}.
+	 */
+	private @NotNull KeyComboAction findNextAction ()
+	{
+		return FXUtility.createKeyCombo(
 			() ->
 			{
 				if (findBuffer != null)
 				{
-					find.value();
+					finder().value();
 				}
 			},
 			KeyCode.G,
-			KeyCombination.META_DOWN));
+			KeyCombination.META_DOWN);
 	}
 }
