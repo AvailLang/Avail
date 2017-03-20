@@ -1745,6 +1745,9 @@ extends JFrame
 	/** The leaf key under which to store the module template string. */
 	public final static String moduleLeafKeyString = "module";
 
+	/** The leaf key under which to store the module template string. */
+	public final static String textLeafKeyString = "text template";
+
 	/**
 	 * Answer a {@link List} of {@link Rectangle}s corresponding with the
 	 * physical monitors into which {@link Frame}s may be positioned.
@@ -2008,6 +2011,21 @@ extends JFrame
 	}
 
 	/**
+	 * Establish the {@link ReplaceTextTemplate#prefixTrie}.
+	 *
+	 * @return The initial {@link ReplaceTextTemplate}.
+	 */
+	@InnerAccess void initialReplaceTextTemplate ()
+	{
+		final String configurationString =
+			templatePreferences().get(
+				textLeafKeyString,
+			"");
+
+		replaceTextTemplate.setPrefixTrie(configurationString);
+	}
+
+	/**
 	 * The module templates.
 	 */
 	@InnerAccess
@@ -2152,7 +2170,7 @@ extends JFrame
 		 *        A string in some encoding compatible with that produced
 		 *        by {@link #stringToStore()}.
 		 */
-		public ModuleTemplates (final String input)
+		public ModuleTemplates (final @NotNull String input)
 		{
 			if (!input.isEmpty())
 			{
@@ -2287,6 +2305,7 @@ extends JFrame
 		// times during construction.
 		final LayoutConfiguration configuration = getInitialConfiguration();
 		this.moduleTemplates = getInitialModuleTemplate();
+		initialReplaceTextTemplate();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -2688,6 +2707,9 @@ extends JFrame
 				templatePreferences().put(
 					moduleLeafKeyString,
 					moduleTemplates.stringToStore());
+				templatePreferences().put(
+					textLeafKeyString,
+					replaceTextTemplate.stringToStore());
 				super.windowClosing(e);
 			}
 		});

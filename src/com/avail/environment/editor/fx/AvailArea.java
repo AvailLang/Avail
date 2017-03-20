@@ -36,7 +36,6 @@ import com.avail.environment.editor.fx.FXUtility.KeyComboAction;
 import com.avail.utility.evaluation.Continuation0;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
