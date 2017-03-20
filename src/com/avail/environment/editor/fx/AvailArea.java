@@ -102,11 +102,14 @@ extends CodeArea
 				// The Java 8 way to get the response value (with lambda expression).
 				result.ifPresent(choice ->
 					{
-						final String template =
-							workbench.replaceTextTemplate.get(choice);
-						int carret = getCaretPosition();
-						insertText(carret, template);
-						requestFollowCaret();
+						if (choice != null || !choice.isEmpty())
+						{
+							final String template =
+								workbench.replaceTextTemplate.get(choice);
+							int carret = getCaretPosition();
+							insertText(carret, template);
+							requestFollowCaret();
+						}
 					});
 			},
 			KeyCode.SPACE,

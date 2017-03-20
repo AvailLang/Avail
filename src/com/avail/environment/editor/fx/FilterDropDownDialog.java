@@ -146,9 +146,9 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 			comboBox.getSelectionModel().select(defaultChoice);
 		}
 
-		dialogPane.lookupButton(ButtonType.OK).disableProperty().bind(
-			Bindings.createBooleanBinding(() ->
-				comboBox.getSelectionModel().isEmpty()));
+//		dialogPane.lookupButton(ButtonType.OK).disableProperty().bind(
+//			Bindings.createBooleanBinding(() ->
+//				comboBox.getSelectionModel().isEmpty()));
 		updateGrid();
 		setGraphic(null);
 		setResultConverter((dialogButton) ->
@@ -162,7 +162,7 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 	/**
 	 * Answer the currently selected item in the dialog.
 	 */
-	public final @NotNull T getSelectedItem()
+	public final @Nullable T getSelectedItem()
 	{
 		return FXUtility.getComboBoxValue(comboBox);
 	}
