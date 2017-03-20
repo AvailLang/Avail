@@ -61,6 +61,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.JOptionPane;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.*;
@@ -744,30 +745,38 @@ extends JFrame
 		final @NotNull String templateName,
 		final @NotNull File file)
 	{
-		assert file.exists();
-		try
+		if (!file.exists())
 		{
-			StringBuilder sb = new StringBuilder();
-			List<String> lines =
-				Files.lines(file.toPath()).collect(Collectors.toList());
-
-			int size = lines.size();
-
-			for (int i = 0; i < size - 1; i++)
+			final String message = file.toString() + " not found!";
+				JOptionPane.showMessageDialog(this, message);
+		}
+		else
+		{
+			try
 			{
-				sb.append(lines.get(i));
-				sb.append('\n');
+				StringBuilder sb = new StringBuilder();
+				List<String> lines =
+					Files.lines(file.toPath()).collect(Collectors.toList());
+
+				int size = lines.size();
+
+				for (int i = 0; i < size - 1; i++)
+				{
+					sb.append(lines.get(i));
+					sb.append('\n');
+				}
+
+				sb.append(lines.get(size - 1));
+
+				moduleTemplates.moduleTemplates.put(
+					templateName,
+					sb.toString());
 			}
-
-			sb.append(lines.get(size - 1));
-
-			moduleTemplates.moduleTemplates.put(templateName, sb.toString());
+			catch (IOException e)
+			{
+				System.err.println("Failed to read file");
+			}
 		}
-		catch (IOException e)
-		{
-			System.err.println("Failed to read file");
-		}
-
 	}
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
