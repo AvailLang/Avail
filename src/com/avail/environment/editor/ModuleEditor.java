@@ -396,7 +396,6 @@ extends Scene
 				{
 					// This is a literal token, so give it the active style for
 					// its section.
-					assert token.literal().isString();
 					if (activeStyle != null)
 					{
 						tokenStyles.put(token, activeStyle);

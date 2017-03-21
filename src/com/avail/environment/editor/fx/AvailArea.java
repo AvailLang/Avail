@@ -33,7 +33,10 @@
 package com.avail.environment.editor.fx;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.editor.fx.FXUtility.KeyComboAction;
+import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Bounds;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -44,6 +47,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import org.fxmisc.richtext.CodeArea;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,7 +88,7 @@ extends CodeArea
 	{
 		this.workbench = workbench;
 		addKeyCombos(
-			textTemplateAction(),
+			codeCompletionAction(),
 			gotoLineAction(),
 			findAction(),
 			findNextAction());
@@ -103,51 +107,112 @@ extends CodeArea
 	}
 
 	/**
-	 * Answer a {@link KeyComboAction} functionality to replace text with a
-	 * template.
+	 * Answer the prefix at the current caret.
+	 *
+	 * @param prefixStartHolder
+	 *        If provided, then the prefix start position will be written into
+	 *        it.
+	 * @return The prefix at the current caret.
+	 */
+	private @NotNull String prefixAtCaret (
+		final @Nullable Mutable<Integer> prefixStartHolder)
+	{
+		// Determine the intended prefix for filtering the code completion
+		// list by scanning backward from the caret to the nearest word
+		// boundary.
+		final int caretPosition = getCaretPosition();
+		final String text = getText();
+		int start = 0;
+		for (
+			int i = caretPosition - 1, cp = text.codePointAt(i);
+			i >= 0;
+			i -= Character.charCount(cp), cp = text.codePointAt(i))
+		{
+			if (!Character.isLetterOrDigit(cp))
+			{
+				start = i + Character.charCount(cp);
+				break;
+			}
+		}
+		if (prefixStartHolder != null)
+		{
+			prefixStartHolder.value = start;
+		}
+		return text.substring(start, caretPosition);
+	}
+
+	/**
+	 * Answer the templates that begin with the specified prefix.
+	 *
+	 * @param prefix
+	 *        The prefix.
+	 * @return The requested templates.
+	 */
+	private @NotNull List<String> templateMatchesFor (
+		final @NotNull String prefix)
+	{
+		return workbench.replaceTextTemplate.choiceList.stream()
+			.filter(s -> s.startsWith(prefix))
+			.collect(Collectors.toList());
+	}
+
+	/**
+	 * Answer {@linkplain MenuItem menu items} that represent the specified
+	 * templates.
+	 *
+	 * @param templates
+	 *        The templates to present.
+	 * @param prefixStart
+	 *        The prefix start, for configuring template expansion.
+	 * @return The requested menu items.
+	 */
+	private @NotNull List<MenuItem> templateMenuItemsFor (
+		final @NotNull List<String> templates,
+		final @NotNull int prefixStart)
+	{
+		return templates.stream()
+			.map(s ->
+			{
+				final MenuItem item = new MenuItem(s);
+				item.setOnAction(
+					event ->
+					{
+						final String choice = item.getText();
+						final String template =
+							workbench.replaceTextTemplate.get(
+								choice);
+						replaceText(
+							prefixStart,
+							getCaretPosition(),
+							template);
+						requestFollowCaret();
+					});
+				return item;
+			})
+			.collect(Collectors.toList());
+	}
+
+	/**
+	 * Answer a {@link KeyComboAction} functionality to perform code completion.
 	 *
 	 * @return A {@code KeyComboAction}.
 	 */
-	public @NotNull KeyComboAction textTemplateAction ()
+	public @NotNull KeyComboAction codeCompletionAction ()
 	{
 		return FXUtility.createKeyCombo(
 			() ->
 			{
-				// Determine the intended prefix for filtering the template
-				// list by scanning backward from the caret to the nearest word
-				// boundary.
-				final int caretPosition = getCaretPosition();
-				final int prefixStart;
-				final String prefix;
-				{
-					final String text = getText();
-					int start = 0;
-					for (
-						int i = caretPosition - 1, cp = text.codePointAt(i);
-						i >= 0;
-						i -= Character.charCount(cp), cp = text.codePointAt(i))
-					{
-						if (!Character.isLetterOrDigit(cp))
-						{
-							start = i + Character.charCount(cp);
-							break;
-						}
-					}
-					prefixStart = start;
-					prefix = text.substring(start, caretPosition);
-				}
+				final Mutable<Integer> prefixStart = new Mutable<>(0);
+				final String prefix = prefixAtCaret(prefixStart);
 				// Determine which templates match the prefix.
-				final List<String> matches =
-					workbench.replaceTextTemplate.choiceList.stream()
-						.filter(s -> s.startsWith(prefix))
-						.collect(Collectors.toList());
+				final List<String> matches = templateMatchesFor(prefix);
 				if (matches.size() == 1)
 				{
 					// If there is only one possible choice, then execute it
 					// immediately.
 					replaceText(
-						prefixStart,
-						caretPosition,
+						prefixStart.value,
+						getCaretPosition(),
 						workbench.replaceTextTemplate.get(matches.get(0)));
 				}
 				else
@@ -155,33 +220,48 @@ extends CodeArea
 					// Otherwise build an appropriate context menu to contain
 					// the filtered templates.
 					final ContextMenu menu = new ContextMenu();
-					menu.getItems().addAll(matches.stream()
-						.map(s ->
-						{
-							final MenuItem item = new MenuItem(s);
-							item.setOnAction(
-								event ->
-								{
-									final String choice = item.getText();
-									final String template =
-										workbench.replaceTextTemplate.get(
-											choice);
-									replaceText(
-										prefixStart,
-										caretPosition,
-										template);
-									requestFollowCaret();
-								});
-							return item;
-						})
-						.collect(Collectors.toList()));
+					menu.getItems().addAll(templateMenuItemsFor(
+						matches, prefixStart.value));
 					final Optional<Bounds> caretBounds = getCaretBounds();
 					caretBounds.ifPresent(
 						bounds ->
+						{
+							final ChangeListener<Integer> caretListener =
+								new ChangeListener<Integer>()
+								{
+									@Override
+									public void changed (
+										final ObservableValue<? extends Integer>
+											observable,
+										final Integer oldValue,
+										final Integer newValue)
+									{
+										if (Math.abs(newValue - oldValue) > 1)
+										{
+											caretPositionProperty()
+												.removeListener(
+												this);
+											menu.hide();
+										}
+										else
+										{
+											menu.getItems().clear();
+											menu.getItems().addAll(
+												templateMenuItemsFor(
+													templateMatchesFor(
+														prefixAtCaret(
+															null)),
+													prefixStart.value));
+										}
+									}
+								};
+							caretPositionProperty().addListener(caretListener);
 							menu.show(
 								this,
 								bounds.getMaxX(),
-								bounds.getMaxY()));
+								bounds.getMaxY());
+
+						});
 				}
 			},
 			KeyCode.SPACE,
