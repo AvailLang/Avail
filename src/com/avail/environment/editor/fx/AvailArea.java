@@ -442,7 +442,8 @@ extends CodeArea
 		if (prefix.length() > 0)
 		{
 			final AtomicBoolean nodeFound = new AtomicBoolean(false);
-			currentNode().searchTrie(prefix, node ->
+			workbench.replaceTextTemplate.prefixTrie().root()
+			.searchTrie(prefix, node ->
 			{
 				if (node != null)
 				{
