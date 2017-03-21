@@ -4,13 +4,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * A {@code PrefixNode} is a node in a {@link PrefixTrie}.
@@ -28,12 +26,6 @@ public class PrefixNode<T>
 		new HashMap<>();
 
 	/**
-	 * A {@link Function} that accepts the {@link #indexList} and returns a
-	 * {@link List} of word options from {@link PrefixTrie#branches}.
-	 */
-	private final @NotNull Function<List<Integer>, List<String>> listGetter;
-
-	/**
 	 * The target content of this node if any exist, otherwise {@code null}.
 	 */
 	private @Nullable T content;
@@ -49,11 +41,6 @@ public class PrefixNode<T>
 	private final @NotNull Object lock = new Object();
 
 	/**
-	 * The ordered integer list.
-	 */
-	private List<Integer> indexList = new ArrayList<>();
-
-	/**
 	 * Answer the {@link #content}.
 	 *
 	 * @return A String.
@@ -64,49 +51,64 @@ public class PrefixNode<T>
 	}
 
 	/**
-	 * Answer the options from this node.
-	 *
-	 * @return A {@link List}.
+	 * The list of viable complete prefix word from this point in the
+	 * {@link PrefixTrie}.
 	 */
-	public final @NotNull List<String> wordList ()
-	{
-		return listGetter.apply(indexList);
-	}
+	private @NotNull List<String> words = new ArrayList<>();
 
 	/**
-	 * Add a branch to this {@link PrefixNode}.
+	 * Add a word to this {@link PrefixNode}.
 	 *
 	 * @param word
-	 *        The word branch to add.
-	 * @param wordIndex
-	 *        The index of word into {@link PrefixTrie#branches}.
-	 * @param contents
-	 *        The target content of the target node if any exist, otherwise
-	 *        {@code null}.
-	 * @param sortedListGetter
-	 *        A function that accepts {@link #indexList} and returns the list
-	 *        in sorted order according to the natural ordering of the
-	 *        corresponding string words in {@link PrefixTrie#branches}.
+	 *        The word to add.
 	 */
-	public void addWord (
-		final @NotNull String word,
-		final int wordIndex,
-		final @NotNull T contents,
-		final @NotNull Function<List<Integer>, List<Integer>> sortedListGetter)
+	private void addWord (final @NotNull String word)
 	{
 		synchronized (lock)
 		{
-			indexList.add(wordIndex);
-			indexList = sortedListGetter.apply(indexList);
+			TreeSet<String> set = new TreeSet<>(words);
+			set.add(word);
+			words = new ArrayList<>(set);
 		}
+	}
+
+	/**
+	 * Answer the {@link #words} from this {@link PrefixNode}.
+	 *
+	 * @return A {@link List}.
+	 */
+	public final @NotNull List<String> words ()
+	{
+		return words;
+	}
+
+	/**
+	 * Add a word to this {@link PrefixNode}.
+	 *
+	 * @param word
+	 *        The word branch to add.
+	 * @param contents
+	 *        The target content of the target node if any exist, otherwise
+	 *        {@code null}.
+	 */
+	public void addWord (
+		final @NotNull String word,
+		final @NotNull T contents)
+	{
+
+		addWord(word);
 
 		if (word.length() - 1 > depth)
 		{
 			final Character next = word.charAt(depth + 1);
-			final PrefixNode<T> nextNode = children.computeIfAbsent(
-				next,
-				key -> new PrefixNode(depth + 1, listGetter));
-			nextNode.addWord(word, wordIndex, contents, sortedListGetter);
+			PrefixNode<T> nextNode;
+			synchronized (lock)
+			{
+				nextNode = children.computeIfAbsent(
+					next,
+					key -> new PrefixNode(depth + 1));
+			}
+			nextNode.addWord(word, contents);
 		}
 		else
 		{
@@ -115,7 +117,7 @@ public class PrefixNode<T>
 	}
 
 	/**
-	 * Add a branch to this {@link PrefixNode}.
+	 * Search the {@link PrefixTrie} starting at this {@link PrefixNode}.
 	 *
 	 * @param word
 	 *        The word to search.
@@ -137,8 +139,8 @@ public class PrefixNode<T>
 	}
 
 	/**
-	 * Add a branch to this {@link PrefixNode} passing each node on that path
-	 * to the provided {@link Consumer}.
+	 * Search the {@link PrefixTrie} starting at this {@link PrefixNode}. Add
+	 * visited nodes to the consumer.
 	 *
 	 * @param word
 	 *        The word to search.
@@ -178,13 +180,13 @@ public class PrefixNode<T>
 
 	/**
 	 * Construct an empty {@link PrefixNode}.
+	 *
+	 * @param depth
+	 *        Record its depth in the trie.
 	 */
 	public PrefixNode (
-		final int depth,
-		final @NotNull Function<List<Integer>, List<String>> listGetter)
+		final int depth)
 	{
 		this.depth = depth;
-		this.listGetter = listGetter;
-
 	}
 }

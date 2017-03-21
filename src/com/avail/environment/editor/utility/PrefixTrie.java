@@ -16,25 +16,10 @@ import java.util.function.Consumer;
  */
 public class PrefixTrie<T>
 {
-	//TODO write remove logic
-	/**
-	 * An array of all the branches in this {@link PrefixTrie}
-	 */
-	private ArrayList<String> branches = new ArrayList<>();
-
 	/**
 	 * The root {@link PrefixNode}.
 	 */
-	private final @NotNull PrefixNode<T> root =
-		new PrefixNode<>(-1, indices ->
-		{
-			final List<String> words = new ArrayList<>();
-			for (int i = 0; i < indices.size(); i++)
-			{
-				words.add(branches.get(indices.get(i)));
-			}
-			return words;
-		});
+	private final @NotNull PrefixNode<T> root = new PrefixNode<>(-1);
 
 	/**
 	 * Answer the {@link #root}.
@@ -65,45 +50,20 @@ public class PrefixTrie<T>
 		final @NotNull T content)
 	{
 		boolean addWord = false;
-		int index = -1;
 		synchronized (lock)
 		{
-			final Set<String> currentBranches =
-				new HashSet<>(branches);
-			final int startSize = currentBranches.size();
-			currentBranches.add(word);
-			if (currentBranches.size() > startSize)
+			final Set<String> currentWords =
+				new HashSet<>(root.words());
+			final int startSize = currentWords.size();
+			currentWords.add(word.toLowerCase());
+			if (currentWords.size() > startSize)
 			{
 				addWord = true;
-				branches.add(word);
-				index = branches.size() - 1;
 			}
 		}
 		if (addWord)
 		{
-			root.addWord(
-				word.toLowerCase(),
-				index,
-				content,
-				indices ->
-				{
-					final Map<String, Integer> textToId = new HashMap<>();
-					List<String> words = new ArrayList<>();
-					for (int i = 0; i < indices.size(); i++)
-					{
-						int idx = indices.get(i);
-						String w = branches.get(idx);
-						textToId.put(w, idx);
-						words.add(w);
-					}
-					Collections.sort(words);
-					final List<Integer> sortedInts = new ArrayList<>();
-					for (int i = 0; i < indices.size(); i++)
-					{
-						sortedInts.add(textToId.get(words.get(i)));
-					}
-					return sortedInts;
-				});
+			root.addWord(word.toLowerCase(), content);
 		}
 	}
 
@@ -144,7 +104,7 @@ public class PrefixTrie<T>
 	public @NotNull List<NodeContent<T>> wordContent ()
 	{
 		final List<NodeContent<T>> wordTemplates = new ArrayList<>();
-		root.wordList().forEach(word ->
+		root.words().forEach(word ->
 			{
 				final T nodeContent = searchNode(word).content();
 				if (nodeContent != null)

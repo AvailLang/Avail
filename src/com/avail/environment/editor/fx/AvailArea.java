@@ -165,7 +165,7 @@ extends CodeArea
 	{
 		final PrefixNode<String> node = getNode(prefix);
 
-		return node != null ? node.wordList() : Collections.emptyList();
+		return node != null ? node.words() : Collections.emptyList();
 	}
 
 	/**
@@ -180,7 +180,7 @@ extends CodeArea
 	 */
 	@NotNull List<MenuItem> templateMenuItemsFor (
 		final @NotNull List<String> templates,
-		final @NotNull int prefixStart)
+		final int prefixStart)
 	{
 		return templates.stream()
 			.map(s ->

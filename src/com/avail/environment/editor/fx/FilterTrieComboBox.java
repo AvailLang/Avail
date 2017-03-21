@@ -123,7 +123,7 @@ extends FilterComboBox<String>
 				if (node != null)
 				{
 					addNode(node);
-					visibleWordList = node.wordList();
+					visibleWordList = node.words();
 				}
 				else
 				{
@@ -133,7 +133,7 @@ extends FilterComboBox<String>
 		}
 		else
 		{
-			visibleWordList = prefixTrie.root().wordList();
+			visibleWordList = prefixTrie.root().words();
 		}
 	}
 
@@ -148,7 +148,7 @@ extends FilterComboBox<String>
 				if (node != null)
 				{
 					addNode(node);
-					visibleWordList = node.wordList();
+					visibleWordList = node.words();
 				}
 				else
 				{
@@ -171,7 +171,7 @@ extends FilterComboBox<String>
 				if (node != null)
 				{
 					addNode(node);
-					visibleWordList = node.wordList();
+					visibleWordList = node.words();
 				}
 				else
 				{
@@ -181,7 +181,7 @@ extends FilterComboBox<String>
 		}
 		else
 		{
-			visibleWordList = prefixTrie.root().wordList();
+			visibleWordList = prefixTrie.root().words();
 		}
 	}
 
@@ -198,7 +198,7 @@ extends FilterComboBox<String>
 				if (node != null)
 				{
 					addNode(node);
-					visibleWordList = node.wordList();
+					visibleWordList = node.words();
 				}
 				else
 				{
@@ -208,7 +208,7 @@ extends FilterComboBox<String>
 		}
 		else
 		{
-			visibleWordList = prefixTrie.root().wordList();
+			visibleWordList = prefixTrie.root().words();
 		}
 	}
 
@@ -229,7 +229,7 @@ extends FilterComboBox<String>
 		final @NotNull Continuation0 enterBehavior,
 		final @NotNull PrefixTrie<T> prefixTrie)
 	{
-		super(prefixTrie.root().wordList(), matcher, enterBehavior);
+		super(prefixTrie.root().words(), matcher, enterBehavior);
 		this.prefixTrie = prefixTrie;
 		this.path.add(prefixTrie.root());
 	}
@@ -246,7 +246,7 @@ extends FilterComboBox<String>
 		final @NotNull BiFunction<String, String, Boolean> matcher,
 		final @NotNull PrefixTrie<T> prefixTrie)
 	{
-		super(prefixTrie.root().wordList(), matcher);
+		super(prefixTrie.root().words(), matcher);
 		this.prefixTrie = prefixTrie;
 		this.path.add(prefixTrie.root());
 	}

@@ -66,14 +66,6 @@ public class ReplaceTextTemplate
 		return prefixTrie;
 	}
 
-	public @NotNull List<String> searchTrie (final @NotNull String word)
-	{
-		final PrefixNode<String> foundNode = prefixTrie.searchNode(word);
-
-		return foundNode != null
-			? foundNode.wordList() : new ArrayList<>();
-	}
-
 	/**
 	 * Populate the {@link ReplaceTextTemplate#prefixTrie} from the input from
 	 * the preferences.
@@ -181,28 +173,5 @@ public class ReplaceTextTemplate
 		return sb.append(finalNodeContent.word)
 			.append('\0')
 			.append(finalNodeContent.content).toString();
-	}
-
-	/**
-	 * Answer a {@link ChoiceDialog} with the templates.
-	 *
-	 * @return A {@link ChoiceDialog}.
-	 */
-	public @NotNull
-	FilterDropDownDialog<FilterTrieComboBox<String>, String> dialog ()
-	{
-		FilterDropDownDialog<FilterTrieComboBox<String>, String> dialog =
-			new FilterDropDownDialog<>(
-			"",
-			prefixTrie.root().wordList(),
-			new FilterTrieComboBox<>(
-				(typedText, itemToCompare) ->
-					itemToCompare.toLowerCase().contains(typedText.toLowerCase())
-						|| itemToCompare.equals(typedText),
-				prefixTrie));
-		dialog.setTitle("Choose Template");
-		dialog.setContentText(null);
-		dialog.setHeaderText(null);
-		return dialog;
 	}
 }
