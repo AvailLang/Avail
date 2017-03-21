@@ -85,7 +85,7 @@ import static com.avail.environment.editor.ModuleEditorStyle.*;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class ModuleEditor
+public final class ModuleEditor
 extends Scene
 {
 	/**
@@ -179,23 +179,28 @@ extends Scene
 	 *
 	 * @param module
 	 *        The {@link ResolvedModuleName} that represents the module to open.
+	 * @param workbench
+	 *        The {@link AvailWorkbench} that is opening the editor.
+	 * @param frame
+	 *        The {@link JFrame} that the editor is in.
 	 * @return A {@code ModuleEditor}.
 	 */
 	public static ModuleEditor moduleViewer (
-		final ResolvedModuleName module,
-		final AvailWorkbench workbench,
-		final Rectangle dimensions)
+		final @NotNull ResolvedModuleName module,
+		final @NotNull AvailWorkbench workbench,
+		final @NotNull JFrame frame)
 	{
-		final AvailArea availArea = new AvailArea(workbench);
+		final AvailArea availArea = new AvailArea(workbench, frame);
 		availArea.setParagraphGraphicFactory(
 			LineNumberFactory.get(availArea, digits -> "%1$" + digits + "s"));
 		availArea.getStyle();
-
-		final VirtualizedScrollPane vsp =
+		availArea.requestFollowCaret();
+		final VirtualizedScrollPane<AvailArea> vsp =
 			new VirtualizedScrollPane<>(availArea);
 		VBox.setVgrow(vsp, Priority.ALWAYS);
 		MenuBar menuBar = new MenuBar();
 		VBox vbox = new VBox(menuBar, vsp);
+		final Rectangle dimensions = frame.getBounds();
 		ModuleEditor viewer = new ModuleEditor(
 			vbox,
 			dimensions.width,
@@ -228,7 +233,7 @@ extends Scene
 	}
 
 	/**
-	 * Write the contents of the {@link ModuleEditor} to disk.
+	 * Write the content of the {@link ModuleEditor} to disk.
 	 *
 	 * <p>
 	 * This operation blocks until it can acquire the {@link #semaphore}. This
@@ -259,6 +264,10 @@ extends Scene
 	/**
 	 * Read the {@link #resolvedModuleName} {@linkplain File file} from disk
 	 * and {@linkplain #scanAndStyle() style} it.
+	 *
+	 * <p>
+	 * This wipes the undo history.
+	 * </p>
 	 */
 	private void readFile ()
 	{
@@ -281,6 +290,7 @@ extends Scene
 			sb.append(lines.get(size - 1));
 
 			codeArea.replaceText(0, 0, sb.toString());
+			codeArea.getUndoManager().forgetHistory();
 		}
 		catch (IOException e)
 		{
@@ -353,7 +363,7 @@ extends Scene
 		{
 			// Scan the source module to produce all tokens.
 			scannerResult = AvailScanner.scanString(
-				source.toString(),
+				source,
 				resolvedModuleName.localName(),
 				false);
 
@@ -544,7 +554,7 @@ extends Scene
 	 * @param resolvedModuleName
 	 *        The {@link ResolvedModuleName} of the module displayed.
 	 * @param codeArea
-	 *        The
+	 *        The {@link AvailArea} where code is displayed/edited.
 	 */
 	private ModuleEditor (
 		@NamedArg("root") final Parent root,

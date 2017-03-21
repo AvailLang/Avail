@@ -579,7 +579,7 @@ extends JFrame
 		}
 
 		/**
-		 * Update the contents of the {@linkplain BuildInputStream stream} with
+		 * Update the content of the {@linkplain BuildInputStream stream} with
 		 * data from the {@linkplain #inputField input field}.
 		 */
 		public synchronized void update ()

@@ -33,6 +33,7 @@
 package com.avail.environment.editor.fx;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.editor.fx.FXUtility.KeyComboAction;
+import com.avail.environment.editor.utility.PrefixNode;
 import com.avail.utility.evaluation.Continuation0;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -42,6 +43,7 @@ import javafx.scene.input.KeyCombination;
 import org.fxmisc.richtext.CodeArea;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -66,6 +68,12 @@ extends CodeArea
 	 */
 	private String findBuffer;
 
+	private final @NotNull JFrame frame;
+
+	/**
+	 * A {@link List} of {@link KeyComboAction}s to be performed on various
+	 * key presses.
+	 */
 	private final @NotNull List<KeyComboAction> keyComboActions =
 		new ArrayList<>();
 
@@ -74,10 +82,15 @@ extends CodeArea
 	 *
 	 * @param workbench
 	 *        A reference to the {@link AvailWorkbench}.
+	 * @param frame
+	 *        The {@link JFrame} the {@code AvailArea} is in.
 	 */
-	public AvailArea (final @NotNull AvailWorkbench workbench)
+	public AvailArea (
+		final @NotNull AvailWorkbench workbench,
+		final @NotNull JFrame frame)
 	{
 		this.workbench = workbench;
+		this.frame = frame;
 		addKeyCombos(
 			textTemplateAction(),
 			gotoLineAction(),
@@ -107,28 +120,29 @@ extends CodeArea
 	 *
 	 * @return A {@code KeyComboAction}.
 	 */
-	public @NotNull KeyComboAction textTemplateAction ()
+	private @NotNull KeyComboAction textTemplateAction ()
 	{
 		return FXUtility.createKeyCombo(
 			() ->
 			{
-				FilterDropDownDialog<String> dialog =
-					workbench.replaceTextTemplate.dialog();
-				// Traditional way to get the response value.
+				FilterDropDownDialog<FilterTrieComboBox<String>, String>
+					dialog = workbench.replaceTextTemplate.dialog();
+
 				Optional<String> result = dialog.showAndWait();
 
 				// The Java 8 way to get the response value (with lambda expression).
 				result.ifPresent(choice ->
+				{
+					if (choice != null || !choice.isEmpty())
 					{
-						if (choice != null || !choice.isEmpty())
-						{
-							final String template =
-								workbench.replaceTextTemplate.get(choice);
-							int carret = getCaretPosition();
-							insertText(carret, template);
-							requestFollowCaret();
-						}
-					});
+						final PrefixNode<String> node =
+							dialog.getComboBox().getNode();
+
+						int carret = getCaretPosition();
+						insertText(carret, node.content());
+						requestFollowCaret();
+					}
+				});
 			},
 			KeyCode.SPACE,
 			KeyCombination.CONTROL_DOWN);
