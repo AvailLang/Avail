@@ -118,9 +118,9 @@ extends Scene
 			Collection<String>>>
 	changeTracker = change ->
 	{
-		//We only want to scan one at a time, but we don't care about
-		//losing opportunities to scan if a lot of typing is happening;
-		//we just want to do our best to scan on the last change.
+		// We only want to scan one at a time, but we don't care about
+		// losing opportunities to scan if a lot of typing is happening;
+		// we just want to do our best to scan on the last change.
 		if (semaphore.tryAcquire())
 		{
 			scanAndStyle();
@@ -214,8 +214,8 @@ extends Scene
 		// File menu - new, save, exit
 		Menu fileMenu = new Menu("File");
 //		MenuItem newMenuItem = new MenuItem("New");
-		MenuItem reloadhMenuItem = new MenuItem("Reload");
-		reloadhMenuItem.setOnAction(actionEvent -> viewer.reloadModule());
+		MenuItem reloadMenuItem = new MenuItem("Reload");
+		reloadMenuItem.setOnAction(actionEvent -> viewer.reloadModule());
 		MenuItem saveMenuItem = new MenuItem("Save");
 		saveMenuItem.setOnAction(actionEvent -> viewer.writeFile());
 
@@ -223,7 +223,7 @@ extends Scene
 		saveAndBuildMenuItem.setOnAction(actionEvent -> viewer.saveAndBuild());
 
 		fileMenu.getItems().addAll(
-			saveMenuItem, saveAndBuildMenuItem, reloadhMenuItem);
+			saveMenuItem, saveAndBuildMenuItem, reloadMenuItem);
 		menuBar.getMenus().addAll(fileMenu);
 
 		viewer.getStylesheets().add(editorStyleSheet);

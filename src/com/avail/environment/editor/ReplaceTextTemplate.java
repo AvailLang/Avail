@@ -37,11 +37,14 @@ import com.avail.environment.editor.fx.FilterTrieComboBox;
 import com.avail.environment.editor.utility.PrefixTrie;
 import com.avail.environment.editor.utility.PrefixTrie.NodeContent;
 import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A {@code ReplaceTextTemplate} is a holder of replacement text for a given

@@ -35,7 +35,6 @@ package com.avail.environment;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.*;
-import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.actions.*;
@@ -61,7 +60,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.JOptionPane;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.*;
@@ -78,8 +76,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.*;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
@@ -366,45 +364,41 @@ extends JFrame
 		assert Thread.holdsLock(updateQueue);
 		assert updatingTranscript;
 		assert !updateQueue.isEmpty();
-		invokeLater(new Runnable()
+		invokeLater(() ->
 		{
-			@Override
-			public void run ()
+			final List<Pair<StreamStyle, StringBuilder>> allPairs;
+			synchronized (updateQueue)
 			{
-				final List<Pair<StreamStyle, StringBuilder>> allPairs;
-				synchronized (updateQueue)
+				allPairs = new ArrayList<>(updateQueue);
+				updateQueue.clear();
+			}
+			assert !allPairs.isEmpty();
+			final StyledDocument doc = document();
+			for (final Pair<StreamStyle, StringBuilder> pair : allPairs)
+			{
+				try
 				{
-					allPairs = new ArrayList<>(updateQueue);
-					updateQueue.clear();
+					doc.insertString(
+						doc.getLength(),
+						pair.second().toString(),
+						pair.first().styleIn(doc));
 				}
-				assert !allPairs.isEmpty();
-				final StyledDocument doc = document();
-				for (final Pair<StreamStyle, StringBuilder> pair : allPairs)
+				catch (final BadLocationException e)
 				{
-					try
-					{
-						doc.insertString(
-							doc.getLength(),
-							pair.second().toString(),
-							pair.first().styleIn(doc));
-					}
-					catch (final BadLocationException e)
-					{
-						// Just ignore the failed write.
-					}
+					// Just ignore the failed write.
 				}
-				synchronized (updateQueue)
+			}
+			synchronized (updateQueue)
+			{
+				if (updateQueue.isEmpty())
 				{
-					if (updateQueue.isEmpty())
-					{
-						updatingTranscript = false;
-					}
-					else
-					{
-						// Queue another task to update the transcript, to
-						// avoid starving other UI interactions.
-						updateTranscript();
-					}
+					updatingTranscript = false;
+				}
+				else
+				{
+					// Queue another task to update the transcript, to
+					// avoid starving other UI interactions.
+					updateTranscript();
 				}
 			}
 		});
@@ -757,22 +751,18 @@ extends JFrame
 				StringBuilder sb = new StringBuilder();
 				List<String> lines =
 					Files.lines(file.toPath()).collect(Collectors.toList());
-
 				int size = lines.size();
-
 				for (int i = 0; i < size - 1; i++)
 				{
 					sb.append(lines.get(i));
 					sb.append('\n');
 				}
-
 				sb.append(lines.get(size - 1));
-
 				moduleTemplates.moduleTemplates.put(
 					templateName,
 					sb.toString());
 			}
-			catch (IOException e)
+			catch (final IOException e)
 			{
 				System.err.println("Failed to read file");
 			}
@@ -829,8 +819,10 @@ extends JFrame
 	/** The {@linkplain ModuleDescriptor module} {@linkplain JTree tree}. */
 	public final JTree moduleTree;
 
-	/** The {@linkplain JTree tree} of module {@linkplain A_Module#entryPoints()
-	 * entry points}. */
+	/**
+	 * The {@linkplain JTree tree} of module {@linkplain A_Module#entryPoints()
+	 * entry points}.
+	 */
 	public final JTree entryPointsTree;
 
 	/**
@@ -1303,34 +1295,28 @@ extends JFrame
 		final Object mutex = new Object();
 		final Map<String, DefaultMutableTreeNode> moduleNodes = new HashMap<>();
 		availBuilder.traceDirectories(
-			new Continuation2<ResolvedModuleName, ModuleVersion>()
+			(resolvedName, moduleVersion) ->
 			{
-				@Override
-				public void value (
-					final @Nullable ResolvedModuleName resolvedName,
-					final @Nullable ModuleVersion moduleVersion)
+				assert resolvedName != null;
+				assert moduleVersion != null;
+				final List<String> entryPoints =
+					moduleVersion.getEntryPoints();
+				if (!entryPoints.isEmpty())
 				{
-					assert resolvedName != null;
-					assert moduleVersion != null;
-					final List<String> entryPoints =
-						moduleVersion.getEntryPoints();
-					if (!entryPoints.isEmpty())
+					final EntryPointModuleNode moduleNode =
+						new EntryPointModuleNode(
+							availBuilder, resolvedName);
+					for (final String entryPoint : entryPoints)
 					{
-						final EntryPointModuleNode moduleNode =
-							new EntryPointModuleNode(
-								availBuilder, resolvedName);
-						for (final String entryPoint : entryPoints)
-						{
-							final EntryPointNode entryPointNode =
-								new EntryPointNode(
-									availBuilder, resolvedName, entryPoint);
-							moduleNode.add(entryPointNode);
-						}
-						synchronized (mutex)
-						{
-							moduleNodes.put(
-								resolvedName.qualifiedName(), moduleNode);
-						}
+						final EntryPointNode entryPointNode =
+							new EntryPointNode(
+								availBuilder, resolvedName, entryPoint);
+						moduleNode.add(entryPointNode);
+					}
+					synchronized (mutex)
+					{
+						moduleNodes.put(
+							resolvedName.qualifiedName(), moduleNode);
 					}
 				}
 			});
@@ -1575,14 +1561,7 @@ extends JFrame
 						@Override
 						public void run ()
 						{
-							invokeLater(new Runnable()
-							{
-								@Override
-								public void run ()
-								{
-									updateBuildProgress();
-								}
-							});
+							invokeLater(() -> updateBuildProgress());
 						}
 					},
 					100);
@@ -1667,14 +1646,7 @@ extends JFrame
 						@Override
 						public void run ()
 						{
-							invokeLater(new Runnable()
-							{
-								@Override
-								public void run ()
-								{
-									updatePerModuleProgress();
-								}
-							});
+							invokeLater(() -> updatePerModuleProgress());
 						}
 					},
 					100);
@@ -1693,17 +1665,7 @@ extends JFrame
 		}
 		Collections.sort(
 			progress,
-			new Comparator<Entry<ModuleName, Pair<Long, Long>>>()
-			{
-				@Override
-				public int compare (
-					final Entry<ModuleName, Pair<Long, Long>> entry1,
-					final Entry<ModuleName, Pair<Long, Long>> entry2)
-				{
-					return entry1.getKey().qualifiedName().compareTo(
-						entry2.getKey().qualifiedName());
-				}
-			});
+			Comparator.comparing(entry -> entry.getKey().qualifiedName()));
 		final StringBuilder builder = new StringBuilder(100);
 		for (final Entry<ModuleName, Pair<Long, Long>> entry : progress)
 		{
@@ -2082,7 +2044,6 @@ extends JFrame
 		 */
 		enum Replaceable
 		{
-
 			MODULE ("${MODULE}"),
 			YEAR ("${YEAR}");
 
@@ -2417,14 +2378,7 @@ extends JFrame
 		moduleTree.setToggleClickCount(0);
 		moduleTree.setShowsRootHandles(true);
 		moduleTree.setRootVisible(false);
-		moduleTree.addTreeSelectionListener(new TreeSelectionListener()
-		{
-			@Override
-			public void valueChanged (final @Nullable TreeSelectionEvent event)
-			{
-				setEnablements();
-			}
-		});
+		moduleTree.addTreeSelectionListener(event -> setEnablements());
 		moduleTree.setCellRenderer(treeRenderer);
 		moduleTree.addMouseListener(new MouseAdapter()
 		{
@@ -2467,14 +2421,7 @@ extends JFrame
 		entryPointsTree.setToggleClickCount(0);
 		entryPointsTree.setShowsRootHandles(true);
 		entryPointsTree.setRootVisible(false);
-		entryPointsTree.addTreeSelectionListener(new TreeSelectionListener()
-		{
-			@Override
-			public void valueChanged (final @Nullable TreeSelectionEvent event)
-			{
-				setEnablements();
-			}
-		});
+		entryPointsTree.addTreeSelectionListener(event -> setEnablements());
 		entryPointsTree.setCellRenderer(treeRenderer);
 		entryPointsTree.addMouseListener(new MouseAdapter()
 		{
@@ -2564,19 +2511,13 @@ extends JFrame
 
 		// Subscribe to module loading events.
 		availBuilder.subscribeToModuleLoading(
-			new Continuation2<LoadedModule, Boolean>()
+			(loadedModule, loaded) ->
 			{
-				@Override
-				public void value (
-					@Nullable final LoadedModule loadedModule,
-					@Nullable final Boolean loaded)
+				assert loadedModule != null;
+				moduleTree.repaint();
+				if (loadedModule.entryPoints().size() > 0)
 				{
-					assert loadedModule != null;
-					moduleTree.repaint();
-					if (loadedModule.entryPoints().size() > 0)
-					{
-						entryPointsTree.repaint();
-					}
+					entryPointsTree.repaint();
 				}
 			});
 
@@ -2911,22 +2852,18 @@ extends JFrame
 		final ModuleNameResolver resolver = renameParser.parse();
 
 		// Display the UI.
-		invokeLater(new Runnable()
+		invokeLater(() ->
 		{
-			@Override
-			public void run ()
+			final AvailWorkbench frame =
+				new AvailWorkbench(resolver, initial);
+			frame.setVisible(true);
+			if (!initial.isEmpty())
 			{
-				final AvailWorkbench frame =
-					new AvailWorkbench(resolver, initial);
-				frame.setVisible(true);
-				if (!initial.isEmpty())
+				final TreePath path = frame.modulePath(initial);
+				if (path != null)
 				{
-					final TreePath path = frame.modulePath(initial);
-					if (path != null)
-					{
-						frame.moduleTree.setSelectionPath(path);
-						frame.moduleTree.scrollPathToVisible(path);
-					}
+					frame.moduleTree.setSelectionPath(path);
+					frame.moduleTree.scrollPathToVisible(path);
 				}
 			}
 		});
