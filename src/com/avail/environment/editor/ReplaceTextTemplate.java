@@ -34,6 +34,7 @@ package com.avail.environment.editor;
 
 import com.avail.environment.editor.fx.FilterDropDownDialog;
 import com.avail.environment.editor.fx.FilterTrieComboBox;
+import com.avail.environment.editor.utility.PrefixNode;
 import com.avail.environment.editor.utility.PrefixTrie;
 import com.avail.environment.editor.utility.PrefixTrie.NodeContent;
 import javafx.scene.control.ChoiceDialog;
@@ -41,6 +42,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +60,19 @@ public class ReplaceTextTemplate
 	 * The {@link PrefixTrie} that contains the templates.
 	 */
 	private final @NotNull PrefixTrie<String> prefixTrie = new PrefixTrie<>();
+
+	public @NotNull PrefixTrie<String> prefixTrie ()
+	{
+		return prefixTrie;
+	}
+
+	public @NotNull List<String> searchTrie (final @NotNull String word)
+	{
+		final PrefixNode<String> foundNode = prefixTrie.searchNode(word);
+
+		return foundNode != null
+			? foundNode.wordList() : new ArrayList<>();
+	}
 
 	/**
 	 * Populate the {@link ReplaceTextTemplate#prefixTrie} from the input from

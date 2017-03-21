@@ -68,7 +68,7 @@ public class PrefixNode<T>
 	 *
 	 * @return A {@link List}.
 	 */
-	public final @NotNull Collection<String> wordList ()
+	public final @NotNull List<String> wordList ()
 	{
 		return listGetter.apply(indexList);
 	}

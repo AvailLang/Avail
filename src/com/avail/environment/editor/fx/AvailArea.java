@@ -32,6 +32,7 @@
 
 package com.avail.environment.editor.fx;
 import com.avail.environment.AvailWorkbench;
+import com.avail.environment.editor.ReplaceTextTemplate;
 import com.avail.environment.editor.fx.FXUtility.KeyComboAction;
 import com.avail.environment.editor.utility.PrefixNode;
 import com.avail.utility.Mutable;
@@ -50,11 +51,8 @@ import org.fxmisc.richtext.CodeArea;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -77,7 +75,11 @@ extends CodeArea
 	 */
 	private String findBuffer;
 
-	private final @NotNull JFrame frame;
+	/**
+	 * An {@link ArrayDeque} that represents the currently navigated path on
+	 * the {@link ReplaceTextTemplate#prefixTrie}.
+	 */
+	private @NotNull ArrayDeque<PrefixNode<String>> path = new ArrayDeque<>();
 
 	/**
 	 * A {@link List} of {@link KeyComboAction}s to be performed on various
@@ -91,15 +93,12 @@ extends CodeArea
 	 *
 	 * @param workbench
 	 *        A reference to the {@link AvailWorkbench}.
-	 * @param frame
-	 *        The {@link JFrame} the {@code AvailArea} is in.
 	 */
 	public AvailArea (
-		final @NotNull AvailWorkbench workbench,
-		final @NotNull JFrame frame)
+		final @NotNull AvailWorkbench workbench)
 	{
 		this.workbench = workbench;
-		this.frame = frame;
+		addNode(workbench.replaceTextTemplate.prefixTrie().root());
 		addKeyCombos(
 			codeCompletionAction(),
 			gotoLineAction(),
@@ -127,7 +126,7 @@ extends CodeArea
 	 *        it.
 	 * @return The prefix at the current caret.
 	 */
-	private @NotNull String prefixAtCaret (
+	@NotNull String prefixAtCaret (
 		final @Nullable Mutable<Integer> prefixStartHolder)
 	{
 		// Determine the intended prefix for filtering the code completion
@@ -161,12 +160,12 @@ extends CodeArea
 	 *        The prefix.
 	 * @return The requested templates.
 	 */
-	private @NotNull List<String> templateMatchesFor (
+	@NotNull List<String> templateMatchesFor (
 		final @NotNull String prefix)
 	{
-		return workbench.replaceTextTemplate.choiceList.stream()
-			.filter(s -> s.startsWith(prefix))
-			.collect(Collectors.toList());
+		final PrefixNode<String> node = getNode(prefix);
+
+		return node != null ? node.wordList() : Collections.emptyList();
 	}
 
 	/**
@@ -179,7 +178,7 @@ extends CodeArea
 	 *        The prefix start, for configuring template expansion.
 	 * @return The requested menu items.
 	 */
-	private @NotNull List<MenuItem> templateMenuItemsFor (
+	@NotNull List<MenuItem> templateMenuItemsFor (
 		final @NotNull List<String> templates,
 		final @NotNull int prefixStart)
 	{
@@ -191,9 +190,9 @@ extends CodeArea
 					event ->
 					{
 						final String choice = item.getText();
-						final String template =
-							workbench.replaceTextTemplate.get(
-								choice);
+						//Since this is pulling from the list, getNode
+						//should never be null.
+						final String template = getNode(choice).content();
 						replaceText(
 							prefixStart,
 							getCaretPosition(),
@@ -226,7 +225,7 @@ extends CodeArea
 					replaceText(
 						prefixStart.value,
 						getCaretPosition(),
-						workbench.replaceTextTemplate.get(matches.get(0)));
+						currentNode().content());
 				}
 				else
 				{
@@ -413,5 +412,55 @@ extends CodeArea
 			},
 			KeyCode.G,
 			KeyCombination.META_DOWN);
+	}
+
+	/**
+	 * Add a {@link PrefixNode} to the {@link #path}.
+	 *
+	 * @param node
+	 *        The {@code PrefixNode} to add,
+	 */
+	private void addNode (PrefixNode<String> node)
+	{
+		path.add(node);
+	}
+
+	/**
+	 * The {@link PrefixNode} to the {@link #path} that is last and currently
+	 * filtering the options.
+	 *
+	 * @return A {@code PrefixNode}.
+	 */
+	private @NotNull PrefixNode<String> currentNode ()
+	{
+		return path.getLast();
+	}
+
+
+	private @Nullable PrefixNode<String> getNode (final @NotNull String prefix)
+	{
+		if (prefix.length() > 0)
+		{
+			final AtomicBoolean nodeFound = new AtomicBoolean(false);
+			currentNode().searchTrie(prefix, node ->
+			{
+				if (node != null)
+				{
+					addNode(node);
+					nodeFound.set(true);
+				}
+				else
+				{
+					nodeFound.set(false);
+				}
+			});
+			return nodeFound.get() ? currentNode() : null;
+		}
+		else
+		{
+			path.clear();
+			addNode(workbench.replaceTextTemplate.prefixTrie().root());
+			return currentNode();
+		}
 	}
 }

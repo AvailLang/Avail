@@ -190,7 +190,7 @@ extends Scene
 		final @NotNull AvailWorkbench workbench,
 		final @NotNull JFrame frame)
 	{
-		final AvailArea availArea = new AvailArea(workbench, frame);
+		final AvailArea availArea = new AvailArea(workbench);
 		availArea.setParagraphGraphicFactory(
 			LineNumberFactory.get(availArea, digits -> "%1$" + digits + "s"));
 		availArea.getStyle();
