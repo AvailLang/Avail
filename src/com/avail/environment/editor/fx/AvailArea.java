@@ -34,8 +34,11 @@ package com.avail.environment.editor.fx;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.editor.fx.FXUtility.KeyComboAction;
 import com.avail.utility.evaluation.Continuation0;
+import javafx.geometry.Bounds;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
@@ -43,9 +46,11 @@ import org.fxmisc.richtext.CodeArea;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * An {@code AvailArea} is a {@link CodeArea} where Avail code is displayed and
@@ -93,12 +98,8 @@ extends CodeArea
 	 */
 	private void addKeyCombos (final @NotNull KeyComboAction... actions)
 	{
-		for (KeyComboAction action : actions)
-		{
-			keyComboActions.add(action);
-		}
-		setOnKeyPressed(event ->
-			keyComboActions.forEach(a -> a.event(event)));
+		keyComboActions.addAll(Arrays.asList(actions));
+		setOnKeyPressed(event -> keyComboActions.forEach(a -> a.event(event)));
 	}
 
 	/**
@@ -112,23 +113,76 @@ extends CodeArea
 		return FXUtility.createKeyCombo(
 			() ->
 			{
-				FilterDropDownDialog<String> dialog =
-					workbench.replaceTextTemplate.dialog();
-				// Traditional way to get the response value.
-				Optional<String> result = dialog.showAndWait();
-
-				// The Java 8 way to get the response value (with lambda expression).
-				result.ifPresent(choice ->
+				// Determine the intended prefix for filtering the template
+				// list by scanning backward from the caret to the nearest word
+				// boundary.
+				final int caretPosition = getCaretPosition();
+				final int prefixStart;
+				final String prefix;
+				{
+					final String text = getText();
+					int start = 0;
+					for (
+						int i = caretPosition - 1, cp = text.codePointAt(i);
+						i >= 0;
+						i -= Character.charCount(cp), cp = text.codePointAt(i))
 					{
-						if (choice != null || !choice.isEmpty())
+						if (!Character.isLetterOrDigit(cp))
 						{
-							final String template =
-								workbench.replaceTextTemplate.get(choice);
-							int carret = getCaretPosition();
-							insertText(carret, template);
-							requestFollowCaret();
+							start = i + Character.charCount(cp);
+							break;
 						}
-					});
+					}
+					prefixStart = start;
+					prefix = text.substring(start, caretPosition);
+				}
+				// Determine which templates match the prefix.
+				final List<String> matches =
+					workbench.replaceTextTemplate.choiceList.stream()
+						.filter(s -> s.startsWith(prefix))
+						.collect(Collectors.toList());
+				if (matches.size() == 1)
+				{
+					// If there is only one possible choice, then execute it
+					// immediately.
+					replaceText(
+						prefixStart,
+						caretPosition,
+						workbench.replaceTextTemplate.get(matches.get(0)));
+				}
+				else
+				{
+					// Otherwise build an appropriate context menu to contain
+					// the filtered templates.
+					final ContextMenu menu = new ContextMenu();
+					menu.getItems().addAll(matches.stream()
+						.map(s ->
+						{
+							final MenuItem item = new MenuItem(s);
+							item.setOnAction(
+								event ->
+								{
+									final String choice = item.getText();
+									final String template =
+										workbench.replaceTextTemplate.get(
+											choice);
+									replaceText(
+										prefixStart,
+										caretPosition,
+										template);
+									requestFollowCaret();
+								});
+							return item;
+						})
+						.collect(Collectors.toList()));
+					final Optional<Bounds> caretBounds = getCaretBounds();
+					caretBounds.ifPresent(
+						bounds ->
+							menu.show(
+								this,
+								bounds.getMaxX(),
+								bounds.getMaxY()));
+				}
 			},
 			KeyCode.SPACE,
 			KeyCombination.CONTROL_DOWN);
@@ -185,19 +239,21 @@ extends CodeArea
 	{
 		return () ->
 		{
-			int carret = getCaretPosition();
+			int caret = getCaretPosition();
 			final String text = getText();
-			int position = text.substring(carret, text.length())
+			int position = text
+				.substring(caret, text.length())
 				.indexOf(findBuffer);
 			if (position > -1)
 			{
-				moveTo(position + carret + findBuffer.length());
+				moveTo(position + caret + findBuffer.length());
 				requestFollowCaret();
 				caretPositionProperty().getValue();
 				selectRange(
-					position + carret,
-					position + carret + findBuffer.length());
-			} else
+					position + caret,
+					position + caret + findBuffer.length());
+			}
+			else
 			{
 				Alert alert = new Alert(AlertType.INFORMATION);
 				alert.setTitle("Find Result");

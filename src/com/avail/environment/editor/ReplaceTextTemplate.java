@@ -34,7 +34,11 @@ package com.avail.environment.editor;
 
 import com.avail.environment.editor.fx.FilterDropDownDialog;
 import com.avail.utility.Pair;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +47,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A {@code ReplaceTextTemplate} is a holder of replacement text for a given
@@ -69,7 +74,7 @@ public class ReplaceTextTemplate
 	 *        The template key.
 	 * @return A template.
 	 */
-	public String get(final @NotNull String template)
+	public String get (final @NotNull String template)
 	{
 		return templateMap.get(template);
 	}
@@ -190,25 +195,6 @@ public class ReplaceTextTemplate
 		return sb.append(finalPair.first())
 			.append('\0')
 			.append(finalPair.second()).toString();
-	}
-
-	/**
-	 * Answer a {@link ChoiceDialog} with the templates.
-	 *
-	 * @return A {@link ChoiceDialog}.
-	 */
-	public @NotNull FilterDropDownDialog<String> dialog ()
-	{
-		FilterDropDownDialog<String> dialog = new FilterDropDownDialog<>(
-			"",
-			choiceList,
-			(typedText, itemToCompare) ->
-				itemToCompare.toLowerCase().contains(typedText.toLowerCase())
-					|| itemToCompare.equals(typedText));
-		dialog.setTitle("Choose Template");
-		dialog.setContentText(null);
-		dialog.setHeaderText(null);
-		return dialog;
 	}
 
 	/**
