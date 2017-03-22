@@ -1,4 +1,4 @@
-/**
+/*
  * AvailArea.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
 public class AvailArea
-extends CodeArea
+	extends CodeArea
 {
 	/**
 	 * A reference to the {@link AvailWorkbench}.
@@ -191,14 +191,13 @@ extends CodeArea
 					event ->
 					{
 						final String choice = item.getText();
-						//Since this is pulling from the list, getNode
-						//should never be null.
+						// Since this is pulling from the list, getNode
+						// should never be null.
 						final String template = getNode(choice).content();
 						replaceText(
 							prefixStart,
 							getCaretPosition(),
 							template);
-						requestFollowCaret();
 					});
 				return item;
 			})
@@ -253,7 +252,7 @@ extends CodeArea
 										{
 											caretPositionProperty()
 												.removeListener(
-												this);
+													this);
 											menu.hide();
 										}
 										else
@@ -435,25 +434,25 @@ extends CodeArea
 		return path.getLast();
 	}
 
-
 	private @Nullable PrefixNode<String> getNode (final @NotNull String prefix)
 	{
 		if (prefix.length() > 0)
 		{
 			final AtomicBoolean nodeFound = new AtomicBoolean(false);
-			workbench.replaceTextTemplate.prefixTrie().root()
-			.searchTrie(prefix, node ->
-			{
-				if (node != null)
+			workbench.replaceTextTemplate.prefixTrie().root().searchTrie(
+				prefix,
+				node ->
 				{
-					addNode(node);
-					nodeFound.set(true);
-				}
-				else
-				{
-					nodeFound.set(false);
-				}
-			});
+					if (node != null)
+					{
+						addNode(node);
+						nodeFound.set(true);
+					}
+					else
+					{
+						nodeFound.set(false);
+					}
+				});
 			return nodeFound.get() ? currentNode() : null;
 		}
 		else

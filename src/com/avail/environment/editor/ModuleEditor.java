@@ -1,4 +1,4 @@
-/**
+/*
  * ModuleEditor.java
  * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
  *
@@ -45,7 +45,8 @@ import com.avail.environment.AvailWorkbench;
 import com.avail.environment.actions.BuildAction;
 import com.avail.environment.editor.fx.AvailArea;
 import com.avail.environment.tasks.EditModuleTask;
-
+import com.avail.utility.Pair;
+import javafx.application.Platform;
 import javafx.beans.NamedArg;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -69,8 +70,10 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -86,7 +89,7 @@ import static com.avail.environment.editor.ModuleEditorStyle.*;
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
 public final class ModuleEditor
-extends Scene
+	extends Scene
 {
 	/**
 	 * An {@link AvailScannerResult} from scanning the file.
@@ -107,26 +110,7 @@ extends Scene
 	 * all of them, we just want to try our best to only do the last one.
 	 * </p>
 	 */
-	private final Semaphore semaphore = new Semaphore(1);
-
-	/**
-	 * The {@link Consumer} run in the event of a {@link RichTextChange}.
-	 */
-	private final Consumer<RichTextChange<
-			Collection<String>,
-			StyledText<Collection<String>>,
-			Collection<String>>>
-	changeTracker = change ->
-	{
-		// We only want to scan one at a time, but we don't care about
-		// losing opportunities to scan if a lot of typing is happening;
-		// we just want to do our best to scan on the last change.
-		if (semaphore.tryAcquire())
-		{
-			scanAndStyle();
-			semaphore.release();
-		}
-	};
+	private final Semaphore stylingSemaphore = new Semaphore(1);
 
 	/**
 	 * The {@link ResolvedModuleName} for the module being viewed.
@@ -137,6 +121,29 @@ extends Scene
 	 * The {@link AvailArea} where code is displayed.
 	 */
 	private final AvailArea codeArea;
+
+	/**
+	 * The {@link Consumer} run in the event of a {@link RichTextChange}.
+	 */
+	private final Consumer<RichTextChange<
+		Collection<String>,
+		StyledText<Collection<String>>,
+		Collection<String>>>
+		changeTracker =
+		change ->
+		{
+			// We only want to scan one at a time, but we don't care about
+			// losing opportunities to scan if a lot of typing is happening;
+			// we just want to do our best to scan on the last change.
+			if (stylingSemaphore.tryAcquire())
+			{
+				ForkJoinPool.commonPool().execute(() ->
+				{
+					scanAndStyle();
+					stylingSemaphore.release();
+				});
+			}
+		};
 
 	/**
 	 * Enable the {@link #changeTracker} on {@link RichTextChange text changes}.
@@ -194,14 +201,13 @@ extends Scene
 		availArea.setParagraphGraphicFactory(
 			LineNumberFactory.get(availArea, digits -> "%1$" + digits + "s"));
 		availArea.getStyle();
-		availArea.requestFollowCaret();
 		final VirtualizedScrollPane<AvailArea> vsp =
 			new VirtualizedScrollPane<>(availArea);
 		VBox.setVgrow(vsp, Priority.ALWAYS);
-		MenuBar menuBar = new MenuBar();
-		VBox vbox = new VBox(menuBar, vsp);
+		final MenuBar menuBar = new MenuBar();
+		final VBox vbox = new VBox(menuBar, vsp);
 		final Rectangle dimensions = frame.getBounds();
-		ModuleEditor viewer = new ModuleEditor(
+		final ModuleEditor viewer = new ModuleEditor(
 			vbox,
 			dimensions.width,
 			dimensions.height,
@@ -211,15 +217,14 @@ extends Scene
 
 		viewer.enableScanOnChange();
 
-		// File menu - new, save, exit
-		Menu fileMenu = new Menu("File");
-//		MenuItem newMenuItem = new MenuItem("New");
-		MenuItem reloadMenuItem = new MenuItem("Reload");
+		// File menu - save, exit
+		final Menu fileMenu = new Menu("File");
+		final MenuItem reloadMenuItem = new MenuItem("Reload");
 		reloadMenuItem.setOnAction(actionEvent -> viewer.reloadModule());
-		MenuItem saveMenuItem = new MenuItem("Save");
+		final MenuItem saveMenuItem = new MenuItem("Save");
 		saveMenuItem.setOnAction(actionEvent -> viewer.writeFile());
 
-		MenuItem saveAndBuildMenuItem = new MenuItem("Save & Build");
+		final MenuItem saveAndBuildMenuItem = new MenuItem("Save & Build");
 		saveAndBuildMenuItem.setOnAction(actionEvent -> viewer.saveAndBuild());
 
 		fileMenu.getItems().addAll(
@@ -236,7 +241,7 @@ extends Scene
 	 * Write the content of the {@link ModuleEditor} to disk.
 	 *
 	 * <p>
-	 * This operation blocks until it can acquire the {@link #semaphore}. This
+	 * This operation blocks until it can acquire the {@link #stylingSemaphore}. This
 	 * prevents styling during save.
 	 * </p>
 	 */
@@ -244,16 +249,16 @@ extends Scene
 	{
 		try
 		{
-			semaphore.acquireUninterruptibly();
+			stylingSemaphore.acquireUninterruptibly();
 			final List<String> input = new ArrayList<>();
 			input.add(codeArea.getText());
-			File file = resolvedModuleName.sourceReference();
+			final File file = resolvedModuleName.sourceReference();
 			file.canWrite();
 			Files.write(
 				file.toPath(),
 				input,
 				StandardCharsets.UTF_8);
-			semaphore.release();
+			stylingSemaphore.release();
 		}
 		catch (IOException e)
 		{
@@ -307,18 +312,18 @@ extends Scene
 	static
 	{
 		final ExpectedToken[] tokens =
-		{
-			ExpectedToken.MODULE,
-			ExpectedToken.VERSIONS,
-			ExpectedToken.PRAGMA,
-			ExpectedToken.EXTENDS,
-			ExpectedToken.USES,
-			ExpectedToken.NAMES,
-			ExpectedToken.ENTRIES,
-			ExpectedToken.BODY,
-			ExpectedToken.OPEN_PARENTHESIS,
-			ExpectedToken.CLOSE_PARENTHESIS
-		};
+			{
+				ExpectedToken.MODULE,
+				ExpectedToken.VERSIONS,
+				ExpectedToken.PRAGMA,
+				ExpectedToken.EXTENDS,
+				ExpectedToken.USES,
+				ExpectedToken.NAMES,
+				ExpectedToken.ENTRIES,
+				ExpectedToken.BODY,
+				ExpectedToken.OPEN_PARENTHESIS,
+				ExpectedToken.CLOSE_PARENTHESIS
+			};
 		final Map<A_String, ExpectedToken> map = new HashMap<>();
 		for (final ExpectedToken t : tokens)
 		{
@@ -344,6 +349,196 @@ extends Scene
 			token.start() - 1,
 			token.start() + token.string().tupleSize() - 1,
 			style.styleClass);
+	}
+
+	/**
+	 * Asynchronously style the specified {@linkplain A_Token} by giving it the
+	 * provided style class.
+	 *
+	 * @param token
+	 *        The token to style.
+	 * @param style
+	 *        The {@linkplain ModuleEditorStyle style}.
+	 * @param semaphore
+	 *        The stylingSemaphore to signal when styling is complete.
+	 */
+	private void asyncStyleToken  (
+		final A_Token token,
+		final ModuleEditorStyle style,
+		final Semaphore semaphore)
+	{
+		Platform.runLater(() ->
+		{
+			styleToken(token, style);
+			semaphore.release();
+		});
+	}
+
+	/**
+	 * Asynchronously style the specified {@linkplain
+	 * AvailScannerResult#outputTokens() output tokens}, signaling the provided
+	 * {@linkplain Semaphore stylingSemaphore} when each styling is complete.
+	 *
+	 * @param outputTokens
+	 *        The output tokens to style.
+	 * @param tokenStyles
+	 *        The general token styles, as a {@linkplain Map map} from tokens to
+	 *        {@linkplain ModuleEditorStyle styles}.
+	 * @param nameStyles
+	 *        The name token styles, as a map from lexemes to styles.
+	 * @param semaphore
+	 *        The stylingSemaphore to {@linkplain Semaphore#release() signal} whenever
+	 *        a styling operation completes.
+	 */
+	private void asyncStyleOutputTokens (
+		final @NotNull List<A_Token> outputTokens,
+		final @NotNull Map<A_Token, ModuleEditorStyle> tokenStyles,
+		final @NotNull Map<A_String, ModuleEditorStyle> nameStyles,
+		final @NotNull Semaphore semaphore)
+	{
+		// Override the general style for each ordinary token.
+		outputTokens.parallelStream().forEach(token ->
+		{
+			final ModuleEditorStyle tokenStyle = tokenStyles.get(token);
+			if (tokenStyle != null)
+			{
+				asyncStyleToken(token, tokenStyle, semaphore);
+			}
+			else
+			{
+				final ModuleEditorStyle nameStyle =
+					nameStyles.get(token.string().makeShared());
+				if (nameStyle != null)
+				{
+					asyncStyleToken(token, nameStyle, semaphore);
+				}
+				else if (token.isLiteralToken())
+				{
+					final AvailObject availObject = token.literal();
+					asyncStyleToken(
+						token,
+						availObject.isExtendedInteger()
+							? NUMBER
+							: availObject.isString()
+								? STRING
+								: LITERAL,
+						semaphore);
+				}
+				else
+				{
+					// No styling should be applied, but we must still release
+					// the stylingSemaphore!
+					semaphore.release();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Asynchronously style the specified {@linkplain
+	 * AvailScannerResult#commentTokens() comment tokens}, signaling the
+	 * provided {@linkplain Semaphore stylingSemaphore} when each styling is complete.
+	 *
+	 * @param commentTokens
+	 *        The output tokens to style.
+	 * @param semaphore
+	 *        The stylingSemaphore to {@linkplain Semaphore#release() signal} whenever
+	 *        a styling operation completes.
+	 */
+	private void asyncStyleCommentTokens (
+		final List<A_Token> commentTokens,
+		final Semaphore semaphore)
+	{
+		commentTokens.parallelStream().forEach(token ->
+		{
+			final Matcher matcher = stacksKeywordPattern.matcher(
+				token.string().asNativeString());
+			final List<Pair<Integer, Integer>> ranges = new LinkedList<>();
+			while (matcher.find())
+			{
+				ranges.add(new Pair<>(matcher.start(), matcher.end()));
+			}
+			Platform.runLater(() ->
+			{
+				styleToken(token, STACKS_COMMENT);
+				ranges.forEach(range ->
+					codeArea.setStyleClass(
+						token.start() + range.first() - 1,
+						token.start() + range.second() - 1,
+						STACKS_KEYWORD.styleClass));
+				semaphore.release();
+			});
+			// TODO: [RAA] I had to disable this because the performance of
+			// scanning Stacks comments was way too slow — multi-second
+			// delays.
+//			final StacksScanner stacksScanner = new StacksScanner(
+//				token, resolvedModuleName.qualifiedName());
+//			try
+//			{
+//				stacksScanner.scan();
+//				styleToken(token, STACKS_COMMENT);
+//				if (stacksScanner.sectionStartLocations.isEmpty())
+//				{
+//                // This comment is busted — style it appropriately.
+//                styleToken(token, MALFORMED_STACKS_COMMENT);
+//                continue;
+//				}
+//			}
+//			catch (final @NotNull StacksScannerException e)
+//			{
+//				// This comment is busted — style it appropriately.
+//				styleToken(token, MALFORMED_STACKS_COMMENT);
+//				continue;
+//			}
+//			for (final AbstractStacksToken t : stacksScanner.outputTokens)
+//			{
+//				if (t instanceof SectionKeywordStacksToken)
+//				{
+//					// TODO: [RAA] It appears that these tokens are using
+//					// line number to record the position.
+//					final int position =
+//						t.lineNumber() - t.lexeme().length();
+//					codeArea.setStyleClass(
+//						position - 1,
+//						t.lineNumber() - 1,
+//						STACKS_KEYWORD.styleClass);
+//				}
+//				else if (t instanceof BracketedStacksToken)
+//				{
+//					final int position = t.position() - t.lexeme().length();
+//					codeArea.setStyleClass(
+//						position,
+//						t.position() - 1,
+//						STACKS_KEYWORD.styleClass);
+//				}
+//			}
+		});
+	}
+
+	/**
+	 * Asynchronously style the ordinary comments at the specified {@linkplain
+	 * AvailScannerResult#basicCommentPositions() positions}, signaling the
+	 * provided {@linkplain Semaphore stylingSemaphore} when each styling is complete.
+	 *
+	 * @param positions
+	 *        The start positions of the ordinary comments to style.
+	 * @param semaphore
+	 *        The stylingSemaphore to {@linkplain Semaphore#release() signal} whenever
+	 *        a styling operation completes.
+	 */
+	private void asyncStyleOrdinaryComments (
+		final @NotNull List<BasicCommentPosition> positions,
+		final @NotNull Semaphore semaphore)
+	{
+		positions.forEach(position ->
+			Platform.runLater(() ->
+			{
+				codeArea.setStyleClass(
+					position.start(),
+					position.start() + position.length(),
+					COMMENT.styleClass);
+				semaphore.release();
+			}));
 	}
 
 	/**
@@ -423,117 +618,30 @@ extends Scene
 				}
 			}
 
-			// Apply the general style broadly.
-			codeArea.setStyleClass(
-				0,
-				source.length(),
-				GENERAL.styleClass);
-
 			// Override the general style for each ordinary token.
-			for (int i = 0; i < outputTokens.size(); i++)
-			{
-				final A_Token token = outputTokens.get(i);
-				final ModuleEditorStyle tokenStyle = tokenStyles.get(token);
-				if (tokenStyle != null)
-				{
-					styleToken(token, tokenStyle);
-				}
-				else
-				{
-					final ModuleEditorStyle nameStyle =
-						nameStyles.get(token.string().makeShared());
-					if (nameStyle != null)
-					{
-						styleToken(token, nameStyle);
-					}
-					else if (token.isLiteralToken())
-					{
-						AvailObject availObject = token.literal();
-						styleToken(
-							token,
-							availObject.isExtendedInteger()
-								? NUMBER
-								: availObject.isString()
-									? STRING
-									: LITERAL);
-					}
-				}
-			}
-
-			// Override the general style for each Stacks comment token.
 			final List<A_Token> commentTokens = scannerResult.commentTokens();
-			for (int i = 0; i < commentTokens.size(); i++)
-			{
-				final A_Token token = commentTokens.get(i);
-				styleToken(token, STACKS_COMMENT);
-				final Matcher matcher = stacksKeywordPattern.matcher(
-					token.string().asNativeString());
-				while (matcher.find())
-				{
-					codeArea.setStyleClass(
-						token.start() + matcher.start() - 1,
-						token.start() + matcher.end() - 1,
-						STACKS_KEYWORD.styleClass);
-				}
-				// TODO: [RAA] I had to disable this because the performance of
-				// scanning Stacks comments was way too slow — multi-second
-				// delays.
-//				final StacksScanner stacksScanner = new StacksScanner(
-//					token, resolvedModuleName.qualifiedName());
-//				try
-//				{
-//					stacksScanner.scan();
-//					styleToken(token, STACKS_COMMENT);
-//					if (stacksScanner.sectionStartLocations.isEmpty())
-//					{
-//  					// This comment is busted — style it appropriately.
-//  					styleToken(token, MALFORMED_STACKS_COMMENT);
-//  					continue;
-//					}
-//				}
-//				catch (final @NotNull StacksScannerException e)
-//				{
-//					// This comment is busted — style it appropriately.
-//					styleToken(token, MALFORMED_STACKS_COMMENT);
-//					continue;
-//				}
-//				for (final AbstractStacksToken t : stacksScanner.outputTokens)
-//				{
-//					if (t instanceof SectionKeywordStacksToken)
-//					{
-//						// TODO: [RAA] It appears that these tokens are using
-//						// line number to record the position.
-//						final int position =
-//							t.lineNumber() - t.lexeme().length();
-//						codeArea.setStyleClass(
-//							position - 1,
-//							t.lineNumber() - 1,
-//							STACKS_KEYWORD.styleClass);
-//					}
-//					else if (t instanceof BracketedStacksToken)
-//					{
-//						final int position = t.position() - t.lexeme().length();
-//						codeArea.setStyleClass(
-//							position,
-//							t.position() - 1,
-//							STACKS_KEYWORD.styleClass);
-//					}
-//				}
-			}
-
-			// Override the general style for each ordinary comment.
+			final int commentTokenCount = commentTokens.size();
 			final List<BasicCommentPosition> positions =
 				scannerResult.basicCommentPositions();
-			for (int i = 0; i < positions.size(); i++)
+			final int positionCount = positions.size();
+			final Semaphore semaphore = new Semaphore(
+				-outputTokenCount - positionCount - commentTokenCount);
+			Platform.runLater(() ->
 			{
-				final BasicCommentPosition position = positions.get(i);
 				codeArea.setStyleClass(
-					position.start(),
-					position.start() + position.length(),
-					COMMENT.styleClass);
-			}
+					0,
+					source.length(),
+					GENERAL.styleClass);
+				semaphore.release();
+			});
+			asyncStyleOutputTokens(
+				outputTokens, tokenStyles, nameStyles, semaphore);
+			asyncStyleCommentTokens(commentTokens, semaphore);
+			asyncStyleOrdinaryComments(positions, semaphore);
+			semaphore.acquire();
+			Platform.runLater(() -> codeArea.requestFollowCaret());
 		}
-		catch (final @NotNull AvailScannerException e)
+		catch (final @NotNull AvailScannerException|InterruptedException e)
 		{
 			scannerResult = null;
 		}
