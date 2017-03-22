@@ -435,6 +435,12 @@ public final class ModuleEditor
 	}
 
 	/**
+	 * The {@linkplain Pattern pattern} that describes Stacks keywords.
+	 */
+	private static final @NotNull Pattern stacksKeywordPattern =
+		Pattern.compile("@\\w+");
+
+	/**
 	 * Asynchronously style the specified {@linkplain
 	 * AvailScannerResult#commentTokens() comment tokens}, signaling the
 	 * provided {@linkplain Semaphore stylingSemaphore} when each styling is complete.
@@ -542,12 +548,6 @@ public final class ModuleEditor
 	}
 
 	/**
-	 * The {@linkplain Pattern pattern} that describes Stacks keywords.
-	 */
-	private static final @NotNull Pattern stacksKeywordPattern =
-		Pattern.compile("@\\w+");
-
-	/**
 	 * Scan the text in the {@link #codeArea} and style the document
 	 * appropriately.
 	 */
@@ -618,7 +618,11 @@ public final class ModuleEditor
 				}
 			}
 
-			// Override the general style for each ordinary token.
+			// Use a semaphore to synchronize the requesting thread with the
+			// UI thread. Give the semaphore a deficit equal to the number of
+			// regions to style in parallel; only when every work unit has
+			// executed and released the semaphore is the requesting thread
+			// eligible to return control to its caller.
 			final List<A_Token> commentTokens = scannerResult.commentTokens();
 			final int commentTokenCount = commentTokens.size();
 			final List<BasicCommentPosition> positions =
@@ -628,6 +632,12 @@ public final class ModuleEditor
 				-outputTokenCount - positionCount - commentTokenCount);
 			Platform.runLater(() ->
 			{
+				// Apply the general style. Because the UI thread maintains a
+				// queue of pending rendezvouses, even though this is
+				// asynchronous to the requesting thread it is still guaranteed
+				// to happen before any of the other styling requests. This is
+				// essential, because this style must be applied first in order
+				// to be properly overridden for select regions.
 				codeArea.setStyleClass(
 					0,
 					source.length(),
@@ -639,7 +649,6 @@ public final class ModuleEditor
 			asyncStyleCommentTokens(commentTokens, semaphore);
 			asyncStyleOrdinaryComments(positions, semaphore);
 			semaphore.acquire();
-			Platform.runLater(() -> codeArea.requestFollowCaret());
 		}
 		catch (final @NotNull AvailScannerException|InterruptedException e)
 		{
