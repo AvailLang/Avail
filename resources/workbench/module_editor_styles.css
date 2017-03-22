@@ -134,6 +134,13 @@
 	-fx-font-size: 8;
 }
 
+/* Change the color of the caret */
+.caret
+{
+	-fx-fill: #2f2f30;
+	-fx-stroke: #2f2f30;
+}
+
 .menu-bar
 {
 	-fx-font-family: Helvetica;
