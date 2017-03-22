@@ -49,19 +49,15 @@ import com.avail.environment.tasks.BuildTask;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
-import com.avail.utility.evaluation.Continuation2;
 import com.avail.utility.evaluation.Transformer1;
 import com.sun.javafx.application.PlatformImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
 import javax.swing.text.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -1982,21 +1978,6 @@ extends JFrame
 	}
 
 	/**
-	 * Establish the {@link ReplaceTextTemplate#prefixTrie}.
-	 *
-	 * @return The initial {@link ReplaceTextTemplate}.
-	 */
-	@InnerAccess void initialReplaceTextTemplate ()
-	{
-		final String configurationString =
-			templatePreferences().get(
-				textLeafKeyString,
-			"");
-
-		replaceTextTemplate.setPrefixTrie(configurationString);
-	}
-
-	/**
 	 * The module templates.
 	 */
 	@InnerAccess
@@ -2275,7 +2256,7 @@ extends JFrame
 		// times during construction.
 		final LayoutConfiguration configuration = getInitialConfiguration();
 		this.moduleTemplates = getInitialModuleTemplate();
-		initialReplaceTextTemplate();
+		replaceTextTemplate.initializeTemplatesFromPropertiesFile();
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -2657,9 +2638,9 @@ extends JFrame
 				templatePreferences().put(
 					moduleLeafKeyString,
 					moduleTemplates.stringToStore());
-				templatePreferences().put(
-					textLeafKeyString,
-					replaceTextTemplate.stringToStore());
+//				templatePreferences().put(
+//					textLeafKeyString,
+//					replaceTextTemplate.stringToStore());
 				super.windowClosing(e);
 			}
 		});

@@ -45,7 +45,7 @@ public class PrefixTrie<T>
 	 * @param content
 	 *        The {@link PrefixNode#content}.
 	 */
-	public void addBranch (
+	public void addWord (
 		final @NotNull String word,
 		final @NotNull T content)
 	{
@@ -143,7 +143,7 @@ public class PrefixTrie<T>
 		 * @param content
 		 *        The {@link PrefixNode#content}.
 		 */
-		public NodeContent (
+		NodeContent (
 			final @NotNull String word,
 			final @NotNull T content)
 		{

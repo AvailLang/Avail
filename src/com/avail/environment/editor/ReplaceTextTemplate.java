@@ -1,4 +1,4 @@
-/**
+/*
  * ReplaceTextTemplate.java
  * Copyright © 1993-2015, The Avail Foundation, LLC.
  * All rights reserved.
@@ -32,21 +32,16 @@
 
 package com.avail.environment.editor;
 
-import com.avail.environment.editor.fx.FilterDropDownDialog;
-import com.avail.environment.editor.fx.FilterTrieComboBox;
-import com.avail.environment.editor.utility.PrefixNode;
+import com.avail.environment.AvailWorkbench;
 import com.avail.environment.editor.utility.PrefixTrie;
-import com.avail.environment.editor.utility.PrefixTrie.NodeContent;
-import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Properties;
 
 /**
  * A {@code ReplaceTextTemplate} is a holder of replacement text for a given
@@ -61,117 +56,136 @@ public class ReplaceTextTemplate
 	 */
 	private final @NotNull PrefixTrie<String> prefixTrie = new PrefixTrie<>();
 
+	/**
+	 * Answer the {@link PrefixTrie} that contains the templates.
+	 *
+	 * @return A {@code PrefixTrie}.
+	 */
 	public @NotNull PrefixTrie<String> prefixTrie ()
 	{
 		return prefixTrie;
 	}
 
 	/**
-	 * Populate the {@link ReplaceTextTemplate#prefixTrie} from the input from
-	 * the preferences.
-	 *
-	 * @param input
-	 *        The stored preference.
+	 * The {@link Properties} where the templates are stored.
 	 */
-	public void setPrefixTrie (final @NotNull String input)
-	{
-		if (!input.isEmpty())
-		{
-			String pairSpliter = "" + '\0';
-			String recordSpliter = "" + 0x1e;
-			final String[] substrings = input.split(recordSpliter);
-			for (String template : substrings)
-			{
-				String[] pair = template.split(pairSpliter);
-				assert pair.length == 2;
-				prefixTrie.addBranch(pair[0], pair[1]);
-			}
-		}
-		else
-		{
-			final Map<String, String> templateMap = new HashMap<>();
-			templateMap.put("top", "⊤");
-			templateMap.put("bottom", "⊥");
-			templateMap.put("o1", "①");
-			templateMap.put("o2", "②");
-			templateMap.put("o3", "③");
-			templateMap.put("o4", "④");
-			templateMap.put("o5", "⑤");
-			templateMap.put("o6", "⑥");
-			templateMap.put("o7", "⑦");
-			templateMap.put("o8", "⑧");
-			templateMap.put("o9", "⑨");
-			templateMap.put("union", "∪");
-			templateMap.put("uparrow", "↑");
-			templateMap.put("yields", "⇒");
-			templateMap.put("times", "×");
-			templateMap.put("divide", "÷");
-			templateMap.put("ceiling", "⎡$EXPR$⎤");
-			templateMap.put("floor", "⎣$EXPR$⎦");
-			templateMap.put("conjunction", "∧");
-			templateMap.put("debugprint",
-				"Print: format \"$EXPR$=“①”\n\" with $EXPR$;");
-			templateMap.put("disjunction", "∨");
-			templateMap.put("doublequestion", "⁇");
-			templateMap.put("downarrow", "↓");
-			templateMap.put("earlydebugprint",
-				"Print: \"$EXPR$=\";\nPrint: “$EXPR$”;\nPrint:\"\n\";");
-			templateMap.put("elementof", "∈");
-			templateMap.put("emptyset", "∅");
-			templateMap.put("enumerationtype", "{$VALUES$}ᵀ");
-			templateMap.put("intersection", "∩");
-			templateMap.put("leftarrow", "←");
-			templateMap.put("rightarrow", "→");
-			templateMap.put("subset", "⊆");
-			templateMap.put("superset", "⊇");
-			templateMap.put("leftguillemet","«");
-			templateMap.put("rightguillemet","»");
-			templateMap.put("doubledagger","‡");
-			templateMap.put("lessthanequal", "≤");
-			templateMap.put("greaterthanequal", "≥");
-			templateMap.put("leftdoublesmartquote", "“");
-			templateMap.put("rightdoublesmartquote", "”");
-			templateMap.put("leftsinglesmartquote", "‘");
-			templateMap.put("rightsinglesmartquote", "’");
-			templateMap.put("sum", "∑");
-			templateMap.put("product", "∏");
-			templateMap.put("negation", "¬");
-			templateMap.put("notequals", "≠");
-			templateMap.put("inf", "∞");
-			templateMap.put("...", "…");
-			templateMap.put("section", "§");
+	private final @NotNull Properties properties = new Properties();
 
-			templateMap.forEach((k, v) -> prefixTrie.addBranch(k, v));
+	/**
+	 * The name of the {@link Properties} {@link File} where the templates are
+	 * stored.
+	 */
+	private static final @NotNull String propertiesFileName =
+		AvailWorkbench.resourcePrefix + "template.properties";
+
+	/**
+	 * Populate the {@link ReplaceTextTemplate#prefixTrie} from the {@link
+	 * Properties} file referenced by {@link #propertiesFileName}.
+	 */
+	public void initializeTemplatesFromPropertiesFile ()
+	{
+		try
+		{
+			final InputStream inputStream = ReplaceTextTemplate.class
+				.getResourceAsStream(propertiesFileName);
+			if (inputStream != null)
+			{
+				properties.load(inputStream);
+			}
+			populatePrefixTrie();
+		}
+		catch (IOException e)
+		{
+			System.err.println(
+				"Failed To Load Template Properties File; File Not Found");
 		}
 	}
 
 	/**
-	 * Answer a string representation of this {@link ReplaceTextTemplate} store
-	 * that is suitable for being stored and restored via the {@link
-	 * ReplaceTextTemplate} constructor.
-	 *
-	 * @return A string.
+	 * Populate the {@link ReplaceTextTemplate#prefixTrie} from {@link
+	 * #properties}.
 	 */
-	public String stringToStore ()
+	private void populatePrefixTrie ()
 	{
-		final StringBuilder sb = new StringBuilder("");
-		final List<NodeContent<String>> wordTemplates =
-			prefixTrie.wordContent();
-
-		int size = wordTemplates.size();
-		for (int i = 0; i < size - 1; i++)
+		properties.keySet().parallelStream().forEach((k ->
 		{
-			final NodeContent<String> nodeContent = wordTemplates.get(i);
-			sb.append(nodeContent.word)
-				.append('\0')
-				.append(nodeContent.content)
-				.append(0x1e);
-		}
+			final String key = (String) k;
+			prefixTrie.addWord(key, properties.getProperty(key));
+		}));
+	}
 
-		final NodeContent<String> finalNodeContent =
-			wordTemplates.get(size - 1);
-		return sb.append(finalNodeContent.word)
-			.append('\0')
-			.append(finalNodeContent.content).toString();
+	/**
+	 * Write the properties file to disk.
+	 */
+	public void savePropertiesToFile ()
+	{
+		try
+		{
+			OutputStream output = new FileOutputStream(propertiesFileName);
+			properties.store(output, "Inline code replace templates");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Add a template to the {@link ReplaceTextTemplate}.
+	 *
+	 * @param key
+	 *        The key value to appear in the drop down.
+	 * @param value
+	 *        The replacement text.
+	 * @return {@code true} if added; {@code false} otherwise.
+	 */
+	public boolean addTemplate (
+		final @NotNull String key,
+		final @NotNull String value)
+	{
+		if (properties.containsKey(key))
+		{
+			return false;
+		}
+		properties.setProperty(key, value);
+		prefixTrie.addWord(key, value);
+		return true;
+	}
+
+	/**
+	 * Edit the template in {@link ReplaceTextTemplate}.
+	 *
+	 * @param key
+	 *        The key value to change the template for.
+	 * @param value
+	 *        The new replacement text.
+	 * @return {@code true} if changed; {@code false} otherwise.
+	 */
+	public boolean editTemplate (
+		final @NotNull String key,
+		final @NotNull String value)
+	{
+		if (!properties.containsKey(key))
+		{
+			return false;
+		}
+		properties.setProperty(key, value);
+		populatePrefixTrie();
+		return true;
+	}
+
+	/**
+	 * Remove the indicated template from {@link ReplaceTextTemplate}.
+	 *
+	 * @param key
+	 *        The property name to remove.
+	 */
+	public void removeTemplate (
+		final @NotNull String key)
+	{
+		if (properties.remove(key) != null)
+		{
+			populatePrefixTrie();
+		}
 	}
 }
