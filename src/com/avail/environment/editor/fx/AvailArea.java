@@ -44,6 +44,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.PopupControl;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
@@ -287,15 +288,14 @@ extends CodeArea
 	 */
 	private @NotNull KeyComboAction gotoLineAction ()
 	{
-		Function<Integer, Integer> clamp =
+		final Function<Integer, Integer> clamp =
 			i -> Math.max(0, Math.min(i, getLength() - 1));
-
 		return FXUtility.createKeyCombo(
 			() ->
 			{
-				TextInputDialog dialog =
+				final TextInputDialog dialog =
 					FXUtility.textInputDialog("Go to Line");
-				Optional<String> result = dialog.showAndWait();
+				final Optional<String> result = dialog.showAndWait();
 				if (result.isPresent())
 				{
 					try
@@ -331,11 +331,10 @@ extends CodeArea
 	{
 		return () ->
 		{
-			int caret = getCaretPosition();
+			final int caret = getCaretPosition();
 			final String text = getText();
-			int position = text
-				.substring(caret, text.length())
-				.indexOf(findBuffer);
+			final int position =
+				text.substring(caret, text.length()).indexOf(findBuffer);
 			if (position > -1)
 			{
 				moveTo(position + caret + findBuffer.length());
@@ -347,7 +346,7 @@ extends CodeArea
 			}
 			else
 			{
-				Alert alert = new Alert(AlertType.INFORMATION);
+				final Alert alert = new Alert(AlertType.INFORMATION);
 				alert.setTitle("Find Result");
 				alert.setHeaderText(null);
 				alert.setContentText("No results!");
@@ -367,9 +366,9 @@ extends CodeArea
 		return FXUtility.createKeyCombo(
 			() ->
 			{
-				TextInputDialog dialog =
+				final TextInputDialog dialog =
 					FXUtility.textInputDialog("Find");
-				Optional<String> result = dialog.showAndWait();
+				final Optional<String> result = dialog.showAndWait();
 				if (result.isPresent())
 				{
 					try
