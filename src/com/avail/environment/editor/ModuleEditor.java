@@ -649,6 +649,7 @@ public final class ModuleEditor
 			asyncStyleCommentTokens(commentTokens, semaphore);
 			asyncStyleOrdinaryComments(positions, semaphore);
 			semaphore.acquire();
+			codeArea.requestFollowCaret();
 		}
 		catch (final @NotNull AvailScannerException|InterruptedException e)
 		{
