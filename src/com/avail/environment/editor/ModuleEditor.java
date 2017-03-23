@@ -349,6 +349,7 @@ public final class ModuleEditor
 			token.start() - 1,
 			token.start() + token.string().tupleSize() - 1,
 			style.styleClass);
+		resetView();
 	}
 
 	/**
@@ -472,6 +473,7 @@ public final class ModuleEditor
 						token.start() + range.first() - 1,
 						token.start() + range.second() - 1,
 						STACKS_KEYWORD.styleClass));
+				codeArea.setEstimatedScrollY(scrollBefore);
 				semaphore.release();
 			});
 			// TODO: [RAA] I had to disable this because the performance of
@@ -543,8 +545,16 @@ public final class ModuleEditor
 					position.start(),
 					position.start() + position.length(),
 					COMMENT.styleClass);
+				codeArea.setEstimatedScrollY(scrollBefore);
 				semaphore.release();
 			}));
+	}
+
+	Double scrollBefore = 0.0;
+
+	void resetView ()
+	{
+		Platform.runLater(() -> codeArea.setEstimatedScrollY(scrollBefore));
 	}
 
 	/**
@@ -554,6 +564,7 @@ public final class ModuleEditor
 	private void scanAndStyle ()
 	{
 		final String source = codeArea.getText();
+		scrollBefore = codeArea.getEstimatedScrollY();
 		try
 		{
 			// Scan the source module to produce all tokens.
@@ -642,6 +653,7 @@ public final class ModuleEditor
 					0,
 					source.length(),
 					GENERAL.styleClass);
+
 				semaphore.release();
 			});
 			asyncStyleOutputTokens(
@@ -649,7 +661,7 @@ public final class ModuleEditor
 			asyncStyleCommentTokens(commentTokens, semaphore);
 			asyncStyleOrdinaryComments(positions, semaphore);
 			semaphore.acquire();
-			codeArea.requestFollowCaret();
+//			codeArea.requestFollowCaret();
 		}
 		catch (final @NotNull AvailScannerException|InterruptedException e)
 		{
