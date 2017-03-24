@@ -40,6 +40,7 @@ import com.avail.environment.editor.ModuleEditor;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -94,6 +95,7 @@ extends AbstractWorkbenchAction
 			"Edit the selected module");
 		putValue(
 			ACCELERATOR_KEY,
-			KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0));
+			KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,
+				Event.CTRL_MASK));
 	}
 }

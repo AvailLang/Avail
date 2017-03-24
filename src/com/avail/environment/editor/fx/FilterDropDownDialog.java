@@ -34,10 +34,10 @@ package com.avail.environment.editor.fx;
 
 import com.sun.javafx.scene.control.skin.resources.ControlResources;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
@@ -58,7 +58,8 @@ import java.util.Collection;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class FilterDropDownDialog<T> extends Dialog<T>
+public class FilterDropDownDialog<
+	T extends FilterComboBox<S>, S> extends Dialog<S>
 {
 	/**
 	 * The {@link GridPane} the {@link FilterDropDownDialog} displayed on.
@@ -73,12 +74,17 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 	/**
 	 * The main {@link ComboBox}.
 	 */
-	private final @NotNull ComboBox<T> comboBox;
+	private final @NotNull T comboBox;
+
+	public @NotNull T getComboBox ()
+	{
+		return comboBox;
+	}
 
 	/**
 	 * The default choice when dialog is opened.
 	 */
-	private final @Nullable T defaultChoice;
+	private final @Nullable S defaultChoice;
 
 	/**
 	 * Construct a {@link FilterDropDownDialog}.
@@ -88,13 +94,13 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 	 *        This item must be contained within the choices array.
 	 * @param choices
 	 *        The {@link Collection} of choices for the {@link ComboBox}.
-	 * @param comparatorMethod
-	 *        The {@link FXUtility.AutoCompleteComparator}.
+	 * @param comboBox
+	 *        The {@link FilterComboBox} used in this dialog.
 	 */
-	public FilterDropDownDialog(
-		final @NotNull T defaultChoice,
-		final @NotNull Collection<T> choices,
-		final @NotNull FXUtility.AutoCompleteComparator<T> comparatorMethod)
+	public FilterDropDownDialog (
+		final @NotNull S defaultChoice,
+		final @NotNull Collection<S> choices,
+		final @NotNull T comboBox)
 	{
 		final DialogPane dialogPane = getDialogPane();
 
@@ -121,37 +127,35 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 			.getString("Dialog.confirm.header"));
 		dialogPane.getStyleClass().add("choice-dialog");
 		dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+		Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
 
 		final double MIN_WIDTH = 150;
-		comboBox = new ComboBox<>();
-		FXUtility.autoCompleteComboBoxPlus(comboBox, comparatorMethod);
-		comboBox.setMinWidth(MIN_WIDTH);
+		this.comboBox = comboBox;
+		this.comboBox.enterBehavior(okButton::fire);
+		this.comboBox.setMinWidth(MIN_WIDTH);
 		if (choices != null)
 		{
-			comboBox.getItems().addAll(choices);
+			this.comboBox.addOptions(choices);
 		}
-		comboBox.setMaxWidth(Double.MAX_VALUE);
-		GridPane.setHgrow(comboBox, Priority.ALWAYS);
-		GridPane.setFillWidth(comboBox, true);
+		this.comboBox.setMaxWidth(Double.MAX_VALUE);
+		GridPane.setHgrow(this.comboBox, Priority.ALWAYS);
+		GridPane.setFillWidth(this.comboBox, true);
 
-		this.defaultChoice = comboBox.getItems().contains(defaultChoice)
+		this.defaultChoice = this.comboBox.getItems().contains(defaultChoice)
 			? defaultChoice : null;
 
 		if (defaultChoice == null)
 		{
-			comboBox.getSelectionModel().selectFirst();
+			this.comboBox.getSelectionModel().selectFirst();
 		}
 		else
 		{
-			comboBox.getSelectionModel().select(defaultChoice);
+			this.comboBox.getSelectionModel().select(defaultChoice);
 		}
 
-		dialogPane.lookupButton(ButtonType.OK).disableProperty().bind(
-			Bindings.createBooleanBinding(() ->
-				comboBox.getSelectionModel().isEmpty()));
 		updateGrid();
 		setGraphic(null);
-		setResultConverter((dialogButton) ->
+		setResultConverter(dialogButton ->
 		{
 			ButtonData data = dialogButton == null
 				? null : dialogButton.getButtonData();
@@ -162,16 +166,16 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 	/**
 	 * Answer the currently selected item in the dialog.
 	 */
-	public final @NotNull T getSelectedItem()
+	public final @Nullable S getSelectedItem()
 	{
-		return FXUtility.getComboBoxValue(comboBox);
+		return comboBox.getSelection();
 	}
 
 	/**
 	 * Answer the property representing the currently selected item in the
 	 * dialog.
 	 */
-	public final @NotNull ReadOnlyObjectProperty<T> selectedItemProperty()
+	public final @NotNull ReadOnlyObjectProperty<S> selectedItemProperty()
 	{
 		return comboBox.getSelectionModel().selectedItemProperty();
 	}
@@ -182,7 +186,7 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 	 * @param item
 	 *        The item to select in the dialog.
 	 */
-	public final void setSelectedItem(final @NotNull T item)
+	public final void setSelectedItem(final @NotNull S item)
 	{
 		comboBox.getSelectionModel().select(item);
 	}
@@ -192,7 +196,7 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 	 * can be modified by the developer to add, remove, or reorder the items
 	 * to present to the user.
 	 */
-	public final @NotNull ObservableList<T> getItems()
+	public final @NotNull ObservableList<S> getItems()
 	{
 		return comboBox.getItems();
 	}
@@ -200,7 +204,7 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 	/**
 	 * Answers the default choice that was specified in the constructor.
 	 */
-	public final @NotNull T getDefaultChoice()
+	public final @Nullable S getDefaultChoice()
 	{
 		return defaultChoice;
 	}
@@ -216,6 +220,6 @@ public class FilterDropDownDialog<T> extends Dialog<T>
 		grid.add(comboBox, 1, 0);
 		getDialogPane().setContent(grid);
 
-		Platform.runLater(() -> comboBox.requestFocus());
+		Platform.runLater(comboBox::requestFocus);
 	}
 }

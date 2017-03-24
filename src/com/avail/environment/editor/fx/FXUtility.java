@@ -35,7 +35,6 @@ import com.avail.utility.evaluation.Continuation0;
 import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.embed.swing.JFXPanel;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -65,7 +64,7 @@ import java.awt.Component;
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */
-public class FXUtility
+public final class FXUtility
 {
 	/**
 	 * Create a new {@link Button} with attached action.
@@ -507,7 +506,7 @@ public class FXUtility
 	 *        The {@link HBox#spacing}.
 	 * @param nodes
 	 *        The {@linkplain Node Nodes} to add.
-	 * @return An {@HBox}.
+	 * @return An {@link HBox}.
 	 */
 	public static @NotNull HBox hbox (
 		final double spacing,
@@ -527,7 +526,7 @@ public class FXUtility
 	 *        The {@link HBox#spacing}.
 	 * @param nodes
 	 *        The {@linkplain Node Nodes} to add.
-	 * @return An {@HBox}.
+	 * @return An {@link HBox}.
 	 */
 	public static @NotNull HBox hbox (
 		final @NotNull String style,
@@ -546,7 +545,7 @@ public class FXUtility
 	 *        The {@link VBox#spacing}.
 	 * @param nodes
 	 *        The {@linkplain Node Nodes} to add.
-	 * @return An {@HBox}.
+	 * @return An {@link VBox}.
 	 */
 	public static @NotNull VBox vbox (
 		final double top,
@@ -568,7 +567,7 @@ public class FXUtility
 	 *        The {@link VBox#spacing}.
 	 * @param nodes
 	 *        The {@linkplain Node Nodes} to add.
-	 * @return An {@HBox}.
+	 * @return An {@link VBox}.
 	 */
 	public static @NotNull VBox vbox (
 		final double spacing,
@@ -588,7 +587,7 @@ public class FXUtility
 	 *        The {@link VBox#spacing}.
 	 * @param nodes
 	 *        The {@linkplain Node Nodes} to add.
-	 * @return An {@HBox}.
+	 * @return An {@link VBox}.
 	 */
 	public static @NotNull VBox vbox (
 		final @NotNull String style,
@@ -700,163 +699,6 @@ public class FXUtility
 		return textInputDialog;
 	}
 
-
-	//BELOW IS ATTEMPT AT AUTOFILTER COMBO BOX
-	//GOT FROM: http://stackoverflow.com/questions/19924852/autocomplete-combobox-in-javafx
-
-	/**
-	 * An {@code AutoCompleteComparator} is a simple interface for comparing
-	 * objects.
-	 *
-	 * @param <T>
-	 *        The types of objects to compare.
-	 */
-	public interface AutoCompleteComparator<T>
-	{
-		boolean matches(String typedText, T objectToCompare);
-	}
-
-	/**
-	 * Add auto-complete functionality to the provided combo box.
-	 *
-	 * @param comboBox
-	 *        The {@link ComboBox} to add auto-complete to.
-	 * @param comparatorMethod
-	 *        The {@link AutoCompleteComparator} that does the comparison.
-	 * @param <T>
-	 *        The type of the item in the list.
-	 */
-	public static<T> void autoCompleteComboBoxPlus(
-		final @NotNull ComboBox<T> comboBox,
-		final @NotNull AutoCompleteComparator<T> comparatorMethod)
-	{
-		ObservableList<T> data = comboBox.getItems();
-
-		comboBox.setEditable(true);
-		comboBox.getEditor().focusedProperty().addListener(observable ->
-		{
-			if (comboBox.getSelectionModel().getSelectedIndex() < 0)
-			{
-				comboBox.getEditor().setText(null);
-			}
-		});
-		comboBox.addEventHandler(
-			KeyEvent.KEY_PRESSED,
-			t -> comboBox.hide());
-		comboBox.addEventHandler(
-			KeyEvent.KEY_RELEASED,
-			new EventHandler<KeyEvent>()
-			{
-				private boolean moveCaretToPos = false;
-				private int caretPos;
-
-				@Override
-				public void handle(KeyEvent event)
-				{
-					if (event.getCode() == KeyCode.UP)
-					{
-						caretPos = -1;
-						moveCaret(comboBox.getEditor().getText().length());
-						return;
-					}
-					else if (event.getCode() == KeyCode.DOWN)
-					{
-						if (!comboBox.isShowing())
-						{
-							comboBox.show();
-						}
-						caretPos = -1;
-						moveCaret(comboBox.getEditor().getText().length());
-						return;
-					}
-					else if (event.getCode() == KeyCode.BACK_SPACE)
-					{
-						moveCaretToPos = true;
-						caretPos = comboBox.getEditor().getCaretPosition();
-					}
-					else if (event.getCode() == KeyCode.DELETE)
-					{
-						moveCaretToPos = true;
-						caretPos = comboBox.getEditor().getCaretPosition();
-					}
-					else if (event.getCode() == KeyCode.ENTER)
-					{
-						return;
-					}
-
-					if (event.getCode() == KeyCode.RIGHT
-							|| event.getCode() == KeyCode.LEFT
-							|| event.getCode().equals(KeyCode.SHIFT)
-							|| event.getCode().equals(KeyCode.CONTROL)
-						|| event.isControlDown()
-						|| event.getCode() == KeyCode.HOME
-						|| event.getCode() == KeyCode.END
-						|| event.getCode() == KeyCode.TAB)
-					{
-						return;
-					}
-
-					final ObservableList<T> list =
-						FXCollections.observableArrayList();
-					for (T aData : data)
-					{
-						if (aData != null
-							&& comboBox.getEditor().getText() != null
-							&& comparatorMethod.matches(
-								comboBox.getEditor().getText(), aData))
-						{
-							list.add(aData);
-						}
-					}
-					String t = comboBox.getEditor().getText();
-
-					comboBox.setItems(list);
-					comboBox.getEditor().setText(t);
-					if (!moveCaretToPos)
-					{
-						caretPos = -1;
-					}
-					moveCaret(t.length());
-					if (!list.isEmpty())
-					{
-						comboBox.show();
-					}
-				}
-
-				private void moveCaret(final int textLength)
-				{
-					if (caretPos == -1)
-					{
-						comboBox.getEditor().positionCaret(textLength);
-					}
-					else
-					{
-						comboBox.getEditor().positionCaret(caretPos);
-					}
-					moveCaretToPos = false;
-				}
-			});
-	}
-
-	/**
-	 * Answer the selected {@link ComboBox} value.
-	 *
-	 * @param comboBox
-	 *        The targeted {@link ComboBox}.
-	 * @param <T>
-	 *        The type of object expected.
-	 * @return The selected object
-	 */
-	public static<T> T getComboBoxValue(final @NotNull ComboBox<T> comboBox)
-	{
-		if (comboBox.getSelectionModel().getSelectedIndex() < 0)
-		{
-			return null;
-		}
-		else
-		{
-			return comboBox.getItems()
-				.get(comboBox.getSelectionModel().getSelectedIndex());
-		}
-	}
+	//Shouldn't be built
+	private FXUtility () {}
 }

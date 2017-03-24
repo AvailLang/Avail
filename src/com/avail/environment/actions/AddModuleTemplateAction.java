@@ -60,11 +60,11 @@ extends AbstractWorkbenchAction
 		chooser.setAcceptAllFileFilterUsed(false);
 		FileNameExtensionFilter filter =
 			new FileNameExtensionFilter(
-				"Template Files (.txt .tmpl)", "txt", "tmpl");
+				"Template Files (.tmpl)","tmpl");
 		chooser.setFileFilter(filter);
 
 		final int result = chooser.showDialog(
-			workbench, "Set Module Template Path");
+			workbench, "Add Module Template");
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
 			String name = JOptionPane.showInputDialog(workbench,

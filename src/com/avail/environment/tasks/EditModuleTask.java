@@ -78,7 +78,9 @@ implements WindowListener
 			final JFXPanel fxPanel = new JFXPanel();
 			final ModuleEditor viewer =
 				ModuleEditor.moduleViewer(
-					targetModuleName(), workbench, frame.getBounds());
+					targetModuleName(),
+					workbench,
+					frame);
 			fxPanel.setScene(viewer);
 			//This must be called to circumvent a bug that won't be fixed
 			//See https://bugs.openjdk.java.net/browse/JDK-8090517
