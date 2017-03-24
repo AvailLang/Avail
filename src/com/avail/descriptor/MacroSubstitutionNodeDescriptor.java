@@ -40,6 +40,7 @@ import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -54,8 +55,8 @@ import org.jetbrains.annotations.Nullable;
  * It's kept around specifically to allow grammatical restrictions to operate on
  * the actual occurring macro (and method) names, not what they've turned into.
  * As such, the macro substitution node should be {@linkplain
- * #o_StripMacro(AvailObject) stripped off} prior to being composed into a larger
- * parse tree, whether a send node, another macro invocation, or direct
+ * #o_StripMacro(AvailObject) stripped off} prior to being composed into a
+ * larger parse tree, whether a send node, another macro invocation, or direct
  * embedding within an assignment statement, variable reference, or any other
  * hierarchical parsing structure.
  * </p>
@@ -230,6 +231,12 @@ extends ParseNodeDescriptor
 		final @Nullable A_Phrase parent)
 	{
 		// Do nothing.
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.MACRO_DEFINITION;
 	}
 
 	@Override

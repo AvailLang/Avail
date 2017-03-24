@@ -38,6 +38,7 @@ import static com.avail.descriptor.FirstOfSequenceNodeDescriptor.ObjectSlots.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -229,6 +230,12 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return FIRST_OF_SEQUENCE_NODE;
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.FIRST_OF_SEQUENCE_PHRASE;
 	}
 
 	@Override

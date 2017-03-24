@@ -77,8 +77,7 @@ extends Primitive
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
+			NilDescriptor.nil(), 0, NilDescriptor.nil());
 		writer.argumentTypes(
 			FunctionTypeDescriptor.mostGeneralType(),
 			TupleTypeDescriptor.mostGeneralType());

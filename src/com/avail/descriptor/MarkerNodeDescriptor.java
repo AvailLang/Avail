@@ -40,6 +40,7 @@ import java.util.IdentityHashMap;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -134,6 +135,14 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Continuation1<A_Phrase> aBlock)
 	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		// There's currently no reason to serialize a marker phrase.  This may
+		// change at some point.
 		throw unsupportedOperationException();
 	}
 

@@ -40,6 +40,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -112,9 +113,8 @@ extends ParseNodeDescriptor
 				adjustedTypes[permutation.tupleIntAt(i) - 1] =
 					originalTupleType.typeAtIndex(i);
 			}
-			expressionType =
-				TupleTypeDescriptor.forTypes(adjustedTypes).makeShared();
-			object.setMutableSlot(EXPRESSION_TYPE, expressionType);
+			expressionType = TupleTypeDescriptor.forTypes(adjustedTypes);
+			object.setMutableSlot(EXPRESSION_TYPE, expressionType.makeShared());
 		}
 		return expressionType;
 	}
@@ -241,6 +241,12 @@ extends ParseNodeDescriptor
 	A_Tuple o_Permutation (final AvailObject object)
 	{
 		return object.slot(PERMUTATION);
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.PERMUTED_LIST_PHRASE;
 	}
 
 	@Override

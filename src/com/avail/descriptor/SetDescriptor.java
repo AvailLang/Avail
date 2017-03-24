@@ -547,6 +547,11 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Tuple o_AsTuple (final AvailObject object)
 	{
+		final int size = object.setSize();
+		if (size == 0)
+		{
+			return TupleDescriptor.empty();
+		}
 		final Iterator<AvailObject> iterator = object.iterator();
 		return ObjectTupleDescriptor.generateFrom(
 			object.setSize(),

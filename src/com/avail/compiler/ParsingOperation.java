@@ -85,8 +85,7 @@ public enum ParsingOperation
 	APPEND_ARGUMENT(1, true, true),
 
 	/**
-	 * {@code 2} - Push a {@linkplain MarkerNodeDescriptor marker} representing
-	 * the current parse position onto the mark stack.
+	 * {@code 2} - Push the current parse position onto the mark stack.
 	 */
 	SAVE_PARSE_POSITION(2, false, true),
 

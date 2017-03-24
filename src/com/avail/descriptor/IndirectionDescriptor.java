@@ -5005,4 +5005,10 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).dynamicLookupStatistic();
 	}
+
+	@Override @AvailMethod
+	A_Phrase o_OriginatingPhrase (final AvailObject object)
+	{
+		return o_Traversed(object).originatingPhrase();
+	}
 }

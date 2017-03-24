@@ -42,6 +42,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -123,7 +124,7 @@ extends ParseNodeDescriptor
 	 * @return {@code true} if the object represents an inline assignment,
 	 *         {@code false} otherwise.
 	 */
-	private boolean isInline (final AvailObject object)
+	public static boolean isInline (final AvailObject object)
 	{
 		return object.slot(IS_INLINE) != 0;
 	}
@@ -252,6 +253,12 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return ParseNodeKind.ASSIGNMENT_NODE;
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.ASSIGNMENT_PHRASE;
 	}
 
 	@Override

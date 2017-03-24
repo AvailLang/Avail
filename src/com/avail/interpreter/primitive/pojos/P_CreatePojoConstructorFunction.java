@@ -119,8 +119,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) constructor pojo.
 		L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
+			NilDescriptor.nil(), 0, NilDescriptor.nil());
 		writer.primitive(P_InvokePojoConstructor.instance);
 		writer.argumentTypes(
 			RAW_POJO.o(),
@@ -147,7 +146,8 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		// the constructor invocation primitive. Various objects that we do
 		// not want to expose to the Avail program are embedded in this
 		// function as literals.
-		writer = new L1InstructionWriter(NilDescriptor.nil(), 0);
+		writer = new L1InstructionWriter(
+			NilDescriptor.nil(), 0, NilDescriptor.nil());
 		writer.argumentTypesTuple(paramTypes);
 		writer.returnType(pojoType);
 		writer.write(

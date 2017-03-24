@@ -449,8 +449,7 @@ public final class SerializerTest
 	throws MalformedSerialStreamException
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
+			NilDescriptor.nil(), 0, NilDescriptor.nil());
 		writer.argumentTypes(FLOAT.o());
 		writer.primitive(P_FloatFloor.instance);
 		writer.returnType(FLOAT.o());

@@ -250,8 +250,7 @@ extends Descriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == STARTING_CHUNK
-			|| e == PROPERTY_ATOM;
+		return e == STARTING_CHUNK;
 	}
 
 	/**
@@ -773,6 +772,13 @@ extends Descriptor
 			: lineInteger.extractInt();
 	}
 
+	@Override @AvailMethod
+	A_Phrase o_OriginatingPhrase (final AvailObject object)
+	{
+		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
+		return properties.getAtomProperty(originatingPhraseKeyAtom());
+	}
+
 	/**
 	 * Answer the module in which this code occurs.
 	 */
@@ -987,7 +993,8 @@ extends Descriptor
 		final A_Tuple localTypes,
 		final A_Tuple outerTypes,
 		final A_Module module,
-		final int lineNumber)
+		final int lineNumber,
+		final A_Phrase originatingPhrase)
 	{
 		if (primitive != null)
 		{
@@ -1023,8 +1030,7 @@ extends Descriptor
 		final AvailObject code = mutable.create(
 			literalsSize + outersSize + locals);
 
-		final InvocationStatistic statistic =
-			new InvocationStatistic();
+		final InvocationStatistic statistic = new InvocationStatistic();
 		statistic.countdownToReoptimize.set(L2Chunk.countdownForNewCode());
 		final AvailObject statisticPojo =
 			RawPojoDescriptor.identityWrap(statistic);
@@ -1034,8 +1040,7 @@ extends Descriptor
 		code.setSlot(FRAME_SLOTS, slotCount);
 		code.setSlot(NUM_OUTERS, outersSize);
 		code.setSlot(
-			PRIMITIVE,
-			primitive == null ? 0 : primitive.primitiveNumber);
+			PRIMITIVE, primitive == null ? 0 : primitive.primitiveNumber);
 		code.setSlot(NYBBLES, nybbles.makeShared());
 		code.setSlot(FUNCTION_TYPE, functionType.makeShared());
 		code.setSlot(PROPERTY_ATOM, NilDescriptor.nil());
@@ -1062,11 +1067,14 @@ extends Descriptor
 		assert dest == literalsSize + outersSize + locals + 1;
 
 		final A_Atom propertyAtom = AtomWithPropertiesDescriptor.create(
-			TupleDescriptor.empty(),
-			module);
+			TupleDescriptor.empty(), module);
 		propertyAtom.setAtomProperty(
-			lineNumberKeyAtom(),
-			IntegerDescriptor.fromInt(lineNumber));
+			lineNumberKeyAtom(), IntegerDescriptor.fromInt(lineNumber));
+		if (!originatingPhrase.equalsNil())
+		{
+			propertyAtom.setAtomProperty(
+				originatingPhraseKeyAtom(), originatingPhrase);
+		}
 		code.setSlot(PROPERTY_ATOM, propertyAtom.makeShared());
 		final int hash = propertyAtom.hash() ^ -0x3087B215;
 		code.setSlot(HASH, hash);
@@ -1158,5 +1166,23 @@ extends Descriptor
 	public static A_Atom lineNumberKeyAtom ()
 	{
 		return lineNumberKeyAtom;
+	}
+
+	/**
+	 * The key used to track the {@link ParseNodeDescriptor phrase} that a raw
+	 * function was created from.
+	 */
+	private static final A_Atom originatingPhraseKeyAtom =
+		AtomDescriptor.createSpecialAtom("originating phrase key");
+
+	/**
+	 * Answer the key used to track the {@link ParseNodeDescriptor phrase} that
+	 * a raw function was created from.
+	 *
+	 * @return A special atom.
+	 */
+	public static A_Atom originatingPhraseKeyAtom ()
+	{
+		return originatingPhraseKeyAtom;
 	}
 }

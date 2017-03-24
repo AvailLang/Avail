@@ -298,7 +298,8 @@ extends Descriptor
 		final A_Type returnType = functionType.returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
-			0);
+			0,
+			NilDescriptor.nil());
 		writer.argumentTypes(argTypesArray);
 		writer.returnType(returnType);
 		writer.write(
@@ -346,7 +347,8 @@ extends Descriptor
 		final A_Type returnType = function.kind().returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
-			0);
+			0,
+			NilDescriptor.nil());
 		writer.argumentTypes(tupleType);
 		writer.returnType(returnType);
 		writer.write(
@@ -465,7 +467,7 @@ extends Descriptor
 		final int lineNumber)
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			module, lineNumber);
+			module, lineNumber, NilDescriptor.nil());
 		writer.primitive(primitive);
 		final A_Type functionType = primitive.blockTypeRestriction();
 		final A_Type argsTupleType = functionType.argsTupleType();
@@ -522,8 +524,7 @@ extends Descriptor
 		final A_Tuple paramTypes)
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
+			NilDescriptor.nil(), 0, NilDescriptor.nil());
 		writer.argumentTypesTuple(paramTypes);
 		writer.returnType(BottomTypeDescriptor.bottom());
 		writer.write(

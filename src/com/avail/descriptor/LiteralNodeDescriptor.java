@@ -39,6 +39,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -156,6 +157,12 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.LITERAL_PHRASE;
+	}
+
+	@Override
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return ParseNodeKind.LITERAL_NODE;
@@ -182,8 +189,8 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain LiteralNodeDescriptor literal node} from a {@linkplain
-	 * LiteralTokenDescriptor literal token}.
+	 * Create a {@linkplain LiteralNodeDescriptor literal phrase} from a
+	 * {@linkplain LiteralTokenDescriptor literal token}.
 	 *
 	 * @param token The token that describes the literal.
 	 * @return The new literal node.
@@ -192,8 +199,7 @@ extends ParseNodeDescriptor
 	{
 		final AvailObject node = mutable.create();
 		node.setSlot(TOKEN, token);
-		node.makeShared();
-		return node;
+		return node.makeShared();
 	}
 
 	/**
@@ -209,8 +215,7 @@ extends ParseNodeDescriptor
 			LiteralTokenTypeDescriptor.mostGeneralType());
 		final AvailObject node = mutable.create();
 		node.setSlot(TOKEN, token);
-		node.makeShared();
-		return node;
+		return node.makeShared();
 	}
 
 	/**

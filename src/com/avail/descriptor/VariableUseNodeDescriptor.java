@@ -42,6 +42,7 @@ import java.util.IdentityHashMap;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -66,7 +67,6 @@ extends ParseNodeDescriptor
 		 */
 		FLAGS;
 
-
 		/**
 		 * Whether this is the last use of the mentioned entity.
 		 */
@@ -74,7 +74,6 @@ extends ParseNodeDescriptor
 			FLAGS,
 			0,
 			1);
-
 	}
 
 	/**
@@ -220,6 +219,12 @@ extends ParseNodeDescriptor
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
 		return VARIABLE_USE_NODE;
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.VARIABLE_USE_PHRASE;
 	}
 
 	@Override

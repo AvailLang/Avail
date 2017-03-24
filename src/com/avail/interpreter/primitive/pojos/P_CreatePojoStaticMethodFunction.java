@@ -153,8 +153,7 @@ extends Primitive
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) method pojo.
 		L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
+			NilDescriptor.nil(), 0, NilDescriptor.nil());
 		writer.primitive(P_InvokeStaticPojoMethod.instance);
 		writer.argumentTypes(
 			RAW_POJO.o(),
@@ -183,8 +182,7 @@ extends Primitive
 		// not want to expose to the Avail program are embedded in this
 		// function as literals.
 		writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
+			NilDescriptor.nil(), 0, NilDescriptor.nil());
 		writer.argumentTypesTuple(paramTypes);
 		final A_Type returnType = PojoTypeDescriptor.resolve(
 			method.getGenericReturnType(),

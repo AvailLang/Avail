@@ -612,10 +612,15 @@ public class CompilationContext
 			final List<LoadingEffect> effects = loader.recordedEffects();
 			if (!effects.isEmpty())
 			{
-				// Output summarized functions instead of what ran.
+				// Output summarized functions instead of what ran.  Associate
+				// the original phrase with it, which allows the subphrases to
+				// be marked up in an editor and stepped in a debugger, even
+				// though the top-level phrase itself will be invalid.
 				final L1InstructionWriter writer =
 					new L1InstructionWriter(
-						module, function.code().startingLineNumber());
+						module,
+						function.code().startingLineNumber(),
+						function.code().originatingPhrase());
 				writer.argumentTypes();
 				writer.returnType(Types.TOP.o());
 				boolean first = true;

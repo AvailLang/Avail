@@ -7288,4 +7288,10 @@ implements
 	{
 		descriptor.o_AddLexer(this, lexer);
 	}
+
+	@Override
+	public A_Phrase originatingPhrase ()
+	{
+		return descriptor.o_OriginatingPhrase(this);
+	}
 }

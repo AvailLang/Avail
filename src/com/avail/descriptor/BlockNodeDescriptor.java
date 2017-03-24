@@ -45,6 +45,7 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
@@ -471,17 +472,13 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final A_Module module)
 	{
-		return AvailCodeGenerator.generateFunction(
-			module,
-			object.argumentsTuple(),
-			object.primitive(),
-			BlockNodeDescriptor.locals(object),
-			labels(object),
-			object.neededVariables(),
-			object.statementsTuple(),
-			object.resultType(),
-			object.declaredExceptions(),
-			object.slot(STARTING_LINE_NUMBER));
+		return AvailCodeGenerator.generateFunction(module, object);
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.BLOCK_PHRASE;
 	}
 
 	@Override
@@ -560,7 +557,7 @@ extends ParseNodeDescriptor
 	 * @param object The block node to examine.
 	 * @return A list of between zero and one labels.
 	 */
-	private static List<A_Phrase> labels (final A_Phrase object)
+	public static List<A_Phrase> labels (final A_Phrase object)
 	{
 		final List<A_Phrase> labels = new ArrayList<>(1);
 		for (final AvailObject maybeLabel : object.statementsTuple())
@@ -580,7 +577,7 @@ extends ParseNodeDescriptor
 	 * @param object The block node to examine.
 	 * @return This block's local variable declarations.
 	 */
-	private static List<A_Phrase> locals (final A_Phrase object)
+	public static List<A_Phrase> locals (final A_Phrase object)
 	{
 		final List<A_Phrase> locals = new ArrayList<>(5);
 		for (final A_Phrase maybeLocal : object.statementsTuple())
@@ -700,25 +697,12 @@ extends ParseNodeDescriptor
 	 * Throw an appropriate exception if it is not.
 	 *
 	 * @param blockNode
-	 *            The {@linkplain BlockNodeDescriptor block node} to validate.
+	 *        The {@linkplain BlockNodeDescriptor block phrase} to validate.
 	 */
 	public static void recursivelyValidate (
 		final A_Phrase blockNode)
 	{
-		treeDoWithParent(
-			blockNode,
-			new Continuation2<A_Phrase, A_Phrase>()
-			{
-				@Override
-				public void value (
-					final @Nullable A_Phrase node,
-					final @Nullable A_Phrase parent)
-				{
-					assert node != null;
-					node.validateLocally(parent);
-				}
-			},
-			null);
+		treeDoWithParent(blockNode, A_Phrase::validateLocally, null);
 		assert blockNode.neededVariables().tupleSize() == 0;
 	}
 

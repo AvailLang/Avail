@@ -55,7 +55,7 @@ public class ReplaceTextTemplate
 	/**
 	 * The map with the options.
 	 */
-	private final @NotNull Map<String, String> templateMap = new HashMap();
+	private final @NotNull Map<String, String> templateMap = new HashMap<>();
 
 	/**
 	 * The {@link PrefixTrie} that contains the templates.
@@ -158,7 +158,7 @@ public class ReplaceTextTemplate
 		templateMap.put("...", "…");
 		templateMap.put("section", "§");
 
-		templateMap.forEach((k, v) -> prefixTrie.addTemplate(k, v));
+		templateMap.forEach(prefixTrie::addTemplate);
 		choiceList = new ArrayList<>(templateMap.keySet());
 		Collections.sort(choiceList);
 	}

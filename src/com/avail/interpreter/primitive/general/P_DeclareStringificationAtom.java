@@ -71,8 +71,7 @@ extends Primitive
 		// Generate a function that will invoke the stringifier method for
 		// the specified value.
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(),
-			0);
+			NilDescriptor.nil(), 0, NilDescriptor.nil());
 		writer.argumentTypes(ANY.o());
 		writer.returnType(TupleTypeDescriptor.stringType());
 		writer.write(L1Operation.L1_doPushLocal, 1);

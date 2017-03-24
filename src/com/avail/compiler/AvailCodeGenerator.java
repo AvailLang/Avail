@@ -177,43 +177,29 @@ public class AvailCodeGenerator
 	 * Generate a {@linkplain FunctionDescriptor function} with the supplied
 	 * properties.
 	 *
-	 * @param module The module in which the function is defined.
-	 * @param argumentsTuple The tuple of argument declarations.
-	 * @param primitive The {@link Primitive} or {@code null}.
-	 * @param locals The list of local declarations.
-	 * @param labels The list of (zero or one) label declarations.
-	 * @param outerVariables Any needed outer variable declarations.
-	 * @param statementsTuple A tuple of statement phrases.
-	 * @param resultType The return type of the function.
-	 * @param declaredExceptions The declared exception set of the function.
-	 * @param startingLineNumber The line number of the module at which the
-	 *                           function is purported to begin.
-	 * @return A function.
+	 * @param module
+	 *        The module in which the code occurs.
+	 * @param blockPhrase
+	 *        The block phrase from which the raw function is being generated.
+	 * @return A raw function.
 	 */
 	public static A_RawFunction generateFunction (
 		final A_Module module,
-		final A_Tuple argumentsTuple,
-		final @Nullable Primitive primitive,
-		final List<? extends A_Phrase> locals,
-		final List<? extends A_Phrase> labels,
-		final A_Tuple outerVariables,
-		final A_Tuple statementsTuple,
-		final A_Type resultType,
-		final A_Set declaredExceptions,
-		final int startingLineNumber)
+		final A_Phrase blockPhrase)
 	{
+		final @Nullable Primitive primitive = blockPhrase.primitive();
 		final AvailCodeGenerator generator = new AvailCodeGenerator(
 			module,
-			argumentsTuple,
+			blockPhrase.argumentsTuple(),
 			primitive,
-			locals,
-			labels,
-			outerVariables,
-			statementsTuple,
-			resultType,
-			declaredExceptions,
-			startingLineNumber);
+			BlockNodeDescriptor.locals(blockPhrase),
+			BlockNodeDescriptor.labels(blockPhrase),
+			blockPhrase.neededVariables(),
+			blockPhrase.resultType(),
+			blockPhrase.declaredExceptions(),
+			blockPhrase.startingLineNumber());
 		generator.stackShouldBeEmpty();
+		final A_Tuple statementsTuple = blockPhrase.statementsTuple();
 		final int statementsCount = statementsTuple.tupleSize();
 		if (statementsCount == 0
 			&& (primitive == null || primitive.canHaveNybblecodes()))
@@ -247,7 +233,7 @@ public class AvailCodeGenerator
 				}
 			}
 		}
-		return generator.endBlock();
+		return generator.endBlock(blockPhrase);
 	}
 
 	/**
@@ -259,7 +245,6 @@ public class AvailCodeGenerator
 	 * @param locals The list of local declarations.
 	 * @param labels The list of (zero or one) label declarations.
 	 * @param outerVariables Any needed outer variable declarations.
-	 * @param statementsTuple A tuple of statement phrases.
 	 * @param resultType The return type of the function.
 	 * @param declaredException The declared exception set of the function.
 	 * @param startingLineNumber The line number of the module at which the
@@ -272,7 +257,6 @@ public class AvailCodeGenerator
 		final List<? extends A_Phrase> locals,
 		final List<? extends A_Phrase> labels,
 		final A_Tuple outerVariables,
-		final A_Tuple statementsTuple,
 		final A_Type resultType,
 		final A_Set declaredException,
 		final int startingLineNumber)
@@ -305,9 +289,11 @@ public class AvailCodeGenerator
 	 * Finish compilation of the block, answering the resulting compiledCode
 	 * object.
 	 *
+	 * @param originatingBlockPhrase
+	 *        The block phrase from which the raw function is created.
 	 * @return A {@linkplain CompiledCodeDescriptor compiled code} object.
 	 */
-	private A_RawFunction endBlock ()
+	private A_RawFunction endBlock (final A_Phrase originatingBlockPhrase)
 	{
 		fixFinalUses();
 		final ByteArrayOutputStream nybbles = new ByteArrayOutputStream(50);
@@ -427,9 +413,9 @@ public class AvailCodeGenerator
 			localsTuple,
 			outerTuple,
 			module,
-			lineNumber);
-		code.makeImmutable();
-		return code;
+			lineNumber,
+			originatingBlockPhrase);
+		return code.makeShared();
 	}
 
 	/**

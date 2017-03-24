@@ -5401,6 +5401,14 @@ public abstract class AbstractDescriptor
 		final AvailObject object);
 
 	/**
+	 *
+	 * @param object
+	 * @return
+	 */
+	abstract A_Phrase o_OriginatingPhrase (
+		final AvailObject object);
+
+	/**
 	 * @param object
 	 * @return
 	 */

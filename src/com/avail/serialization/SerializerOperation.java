@@ -35,6 +35,7 @@ package com.avail.serialization;
 import static com.avail.serialization.SerializerOperandEncoding.*;
 import java.util.*;
 import com.avail.AvailRuntime;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -936,7 +937,8 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("Local types"),
 		TUPLE_OF_OBJECTS.as("Outer types"),
 		OBJECT_REFERENCE.as("Module name"),
-		UNSIGNED_INT.as("Line number"))
+		UNSIGNED_INT.as("Line number"),
+		OBJECT_REFERENCE.as("Originating phrase"))
 	{
 
 		@Override
@@ -1005,7 +1007,8 @@ public enum SerializerOperation
 				localTypes,
 				outerTypes,
 				moduleName,
-				IntegerDescriptor.fromInt(object.startingLineNumber()));
+				IntegerDescriptor.fromInt(object.startingLineNumber()),
+				object.originatingPhrase());
 		}
 
 		@Override
@@ -1022,6 +1025,7 @@ public enum SerializerOperation
 			final A_Tuple outerTypes = subobjects[6];
 			final A_String moduleName = subobjects[7];
 			final A_Number lineNumberInteger = subobjects[8];
+			final A_Phrase originatingPhrase = subobjects[9];
 
 			final A_Type numArgsRange =
 				functionType.argsTupleType().sizeRange();
@@ -1041,7 +1045,8 @@ public enum SerializerOperation
 				localTypes,
 				outerTypes,
 				module,
-				lineNumberInteger.extractInt());
+				lineNumberInteger.extractInt(),
+				originatingPhrase);
 		}
 	},
 
@@ -1826,9 +1831,573 @@ public enum SerializerOperation
 	},
 
 	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_59 (59)
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * An {@link AssignmentNodeDescriptor assignment phrase}.
+	 */
+	ASSIGNMENT_PHRASE (60,
+		BYTE.as("flags"),
+		OBJECT_REFERENCE.as("variable"),
+		OBJECT_REFERENCE.as("expression"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			final boolean isInline =
+				AssignmentNodeDescriptor.isInline(object);
+			return array(
+				IntegerDescriptor.fromInt(isInline ? 1 : 0),
+				object.variable(),
+				object.expression());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Number isInline = subobjects[0];
+			final A_Phrase variableUse = subobjects[1];
+			final A_Phrase expression = subobjects[2];
+			return AssignmentNodeDescriptor.from(
+				variableUse, expression, !isInline.equalsInt(0));
+		}
+	},
+
+	/**
+	 * A {@link BlockNodeDescriptor block phrase}.
+	 */
+	BLOCK_PHRASE (61,
+		TUPLE_OF_OBJECTS.as("arguments tuple"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("primitive name"),
+		TUPLE_OF_OBJECTS.as("statements tuple"),
+		OBJECT_REFERENCE.as("result type"),
+		TUPLE_OF_OBJECTS.as("declared exceptions"),
+		UNSIGNED_INT.as("starting line number"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			final @Nullable Primitive primitive = object.primitive();
+			final A_String primitiveName =
+				primitive == null
+					? TupleDescriptor.empty()
+					: StringDescriptor.from(primitive.name());
+			return array(
+				object.argumentsTuple(),
+				primitiveName,
+				object.statementsTuple(),
+				object.resultType(),
+				object.declaredExceptions().asTuple(),
+				IntegerDescriptor.fromInt(object.startingLineNumber()));
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Tuple argumentsTuple = subobjects[0];
+			final A_String primitiveName = subobjects[1];
+			final A_Tuple statementsTuple = subobjects[2];
+			final A_Type resultType = subobjects[3];
+			final A_Tuple declaredExceptionsTuple = subobjects[4];
+			final A_Number startingLineNumber = subobjects[5];
+			final int primitiveNumber;
+			if (primitiveName.tupleSize() == 0)
+			{
+				primitiveNumber = 0;
+			}
+			else
+			{
+				final @Nullable Primitive primitive = Primitive.byName(
+					primitiveName.asNativeString());
+				assert primitive != null;
+				primitiveNumber = primitive.primitiveNumber;
+			}
+			return BlockNodeDescriptor.newBlockNode(
+				argumentsTuple,
+				primitiveNumber,
+				statementsTuple,
+				resultType,
+				declaredExceptionsTuple.asSet(),
+				startingLineNumber.extractInt());
+		}
+	},
+
+	/**
+	 * A {@link DeclarationNodeDescriptor declaration phrase}.
+	 */
+	DECLARATION_PHRASE (62,
+		BYTE.as("declaration kind ordinal"),
+		OBJECT_REFERENCE.as("token"),
+		OBJECT_REFERENCE.as("declared type"),
+		OBJECT_REFERENCE.as("initialization expression"),
+		OBJECT_REFERENCE.as("literal object"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			final DeclarationKind kind = object.declarationKind();
+			final A_Token token = object.token();
+			final A_Type declaredType = object.declaredType();
+			final A_Phrase initializationExpression =
+				object.initializationExpression();
+			final AvailObject literalObject = object.literalObject();
+			return array(
+				IntegerDescriptor.fromInt(kind.ordinal()),
+				token,
+				declaredType,
+				initializationExpression,
+				literalObject);
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Number declarationKindNumber = subobjects[0];
+			final A_Token token = subobjects[1];
+			final A_Type declaredType = subobjects[2];
+			final A_Phrase initializationExpression = subobjects[3];
+			final AvailObject literalObject = subobjects[4];
+
+			final DeclarationKind declarationKind =
+				DeclarationKind.all()[declarationKindNumber.extractInt()];
+			return DeclarationNodeDescriptor.newDeclaration(
+				declarationKind,
+				token,
+				declaredType,
+				initializationExpression,
+				literalObject);
+		}
+	},
+
+	/**
+	 * An {@link ExpressionAsStatementNodeDescriptor expression-as-statement
+	 * phrase}.
+	 */
+	EXPRESSION_AS_STATEMENT_PHRASE (63,
+		OBJECT_REFERENCE.as("expression"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.expression());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Phrase epression = subobjects[0];
+			return ExpressionAsStatementNodeDescriptor.fromExpression(
+				epression);
+		}
+	},
+
+	/**
+	 * A {@link FirstOfSequenceNodeDescriptor first-of-sequence phrase}.
+	 */
+	FIRST_OF_SEQUENCE_PHRASE (64,
+		TUPLE_OF_OBJECTS.as("statements"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.statements());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Tuple statements = subobjects[0];
+			return FirstOfSequenceNodeDescriptor.newStatements(statements);
+		}
+	},
+
+	/**
+	 * A {@link ListNodeDescriptor list phrase}.
+	 */
+	LIST_PHRASE (65,
+		TUPLE_OF_OBJECTS.as("expressions"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.expressionsTuple());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Tuple expressionsTuple = subobjects[0];
+			return ListNodeDescriptor.newExpressions(expressionsTuple);
+		}
+	},
+
+	/**
+	 * A {@link LiteralNodeDescriptor literal phrase}.
+	 */
+	LITERAL_PHRASE (66,
+		OBJECT_REFERENCE.as("literal token"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.token());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Token literalToken = subobjects[0];
+			return LiteralNodeDescriptor.fromToken(literalToken);
+		}
+	},
+
+	/**
+	 * A {@link MacroSubstitutionNodeDescriptor macro substitution phrase}.
+	 */
+	MACRO_SUBSTITITION_PHRASE (67,
+		OBJECT_REFERENCE.as("original phrase"),
+		OBJECT_REFERENCE.as("output phrase"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.macroOriginalSendNode(),
+				object.outputParseNode());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Phrase macroOriginalSendPhrase = subobjects[0];
+			final A_Phrase outputPhrase = subobjects[0];
+			return MacroSubstitutionNodeDescriptor
+				.fromOriginalSendAndReplacement(
+					macroOriginalSendPhrase, outputPhrase);
+		}
+	},
+
+	/**
+	 * A {@link PermutedListNodeDescriptor permuted list phrase}.
+	 */
+	PERMUTED_LIST_PHRASE (68,
+		OBJECT_REFERENCE.as("list phrase"),
+		TUPLE_OF_OBJECTS.as("permutation"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.list(),
+				object.permutation());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Phrase list = subobjects[0];
+			final A_Tuple permutation = subobjects[1];
+			return PermutedListNodeDescriptor.fromListAndPermutation(
+				list, permutation);
+		}
+	},
+
+	/**
+	 * A {@link PermutedListNodeDescriptor permuted list phrase}.
+	 */
+	REFERENCE_PHRASE (69,
+		OBJECT_REFERENCE.as("variable use"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.variable());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Phrase variableUse = subobjects[0];
+			return ReferenceNodeDescriptor.fromUse(variableUse);
+		}
+	},
+
+	/**
+	 * A {@link SendNodeDescriptor send phrase}.
+	 */
+	SEND_PHRASE (70,
+		OBJECT_REFERENCE.as("bundle"),
+		OBJECT_REFERENCE.as("arguments list phrase"),
+		OBJECT_REFERENCE.as("return type"),
+		TUPLE_OF_OBJECTS.as("tokens"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.bundle(),
+				object.argumentsListNode(),
+				object.expressionType(),
+				object.tokens());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Bundle bundle = subobjects[0];
+			final A_Phrase argsListNode = subobjects[1];
+			final A_Type returnType = subobjects[2];
+			final A_Tuple tokens = subobjects[3];
+			return SendNodeDescriptor.from(
+				tokens, bundle, argsListNode, returnType);
+		}
+	},
+
+	/**
+	 * A {@link SequenceNodeDescriptor sequence phrase}.
+	 */
+	SEQUENCE_PHRASE (71,
+		TUPLE_OF_OBJECTS.as("statements"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.statements());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Tuple statements = subobjects[0];
+			return SequenceNodeDescriptor.newStatements(statements);
+		}
+	},
+
+	/**
+	 * A {@link SuperCastNodeDescriptor super cast phrase}.
+	 */
+	SUPER_CAST_PHRASE (72,
+		OBJECT_REFERENCE.as("expression"),
+		OBJECT_REFERENCE.as("type for lookup"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.expression(),
+				object.superUnionType());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Phrase expression = subobjects[0];
+			final A_Type superUnionType = subobjects[1];
+			return SuperCastNodeDescriptor.create(
+				expression, superUnionType);
+		}
+	},
+
+	/**
+	 * A {@link VariableUseNodeDescriptor variable use phrase}.
+	 */
+	VARIABLE_USE_PHRASE (73,
+		OBJECT_REFERENCE.as("use token"),
+		OBJECT_REFERENCE.as("declaration"))
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			return array(
+				object.token(),
+				object.declaration());
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			final A_Token token = subobjects[0];
+			final A_Phrase declaration = subobjects[1];
+			return VariableUseNodeDescriptor.newUse(
+				token, declaration);
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_74 (74)
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_75 (75)
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_76 (76)
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_77 (77)
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_78 (78)
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
+	 * Reserved for future use.
+	 */
+	RESERVED_79 (79)
+	{
+		@Override
+		A_BasicObject[] decompose (final AvailObject object)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+
+		@Override
+		A_BasicObject compose (
+			final AvailObject[] subobjects,
+			final Deserializer deserializer)
+		{
+			throw new RuntimeException("Reserved serializer operation");
+		}
+	},
+
+	/**
 	 * A {@linkplain FiberTypeDescriptor fiber type}.
 	 */
-	FIBER_TYPE (59,
+	FIBER_TYPE (80,
 		OBJECT_REFERENCE.as("Result type"))
 	{
 		@Override
@@ -1850,7 +2419,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	FUNCTION_TYPE (60,
+	FUNCTION_TYPE (81,
 		OBJECT_REFERENCE.as("Arguments tuple type"),
 		OBJECT_REFERENCE.as("Return type"),
 		TUPLE_OF_OBJECTS.as("Checked exceptions"))
@@ -1882,7 +2451,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain TupleTypeDescriptor tuple type}.
 	 */
-	TUPLE_TYPE (61,
+	TUPLE_TYPE (82,
 		OBJECT_REFERENCE.as("Tuple sizes"),
 		TUPLE_OF_OBJECTS.as("Leading types"),
 		OBJECT_REFERENCE.as("Default type"))
@@ -1914,7 +2483,7 @@ public enum SerializerOperation
 	/**
 	 * An {@linkplain IntegerRangeTypeDescriptor integer range type}.
 	 */
-	INTEGER_RANGE_TYPE (62,
+	INTEGER_RANGE_TYPE (83,
 		BYTE.as("Inclusive flags"),
 		OBJECT_REFERENCE.as("Lower bound"),
 		OBJECT_REFERENCE.as("Upper bound"))
@@ -1949,26 +2518,6 @@ public enum SerializerOperation
 	},
 
 	/**
-	 * Reserved for future use.
-	 */
-	RESERVED_63 (63)
-	{
-		@Override
-		A_BasicObject[] decompose (final AvailObject object)
-		{
-			throw new RuntimeException("Reserved serializer operation");
-		}
-
-		@Override
-		A_BasicObject compose (
-			final AvailObject[] subobjects,
-			final Deserializer deserializer)
-		{
-			throw new RuntimeException("Reserved serializer operation");
-		}
-	},
-
-	/**
 	 * A {@linkplain PojoTypeDescriptor pojo type} for which {@linkplain
 	 * AvailObject#isPojoFusedType()} is false.  This indicates a representation
 	 * with a juicy class filling, which allows a particularly compact
@@ -1983,7 +2532,7 @@ public enum SerializerOperation
 	 * encountering the self type during tracing.
 	 * </p>
 	 */
-	UNFUSED_POJO_TYPE (64,
+	UNFUSED_POJO_TYPE (84,
 		OBJECT_REFERENCE.as("class name"),
 		TUPLE_OF_OBJECTS.as("class parameterization"))
 	{
@@ -2067,7 +2616,7 @@ public enum SerializerOperation
 	 * interface name.  This is enough to reconstruct the self pojo type.
 	 * </p>
 	 */
-	FUSED_POJO_TYPE (65,
+	FUSED_POJO_TYPE (85,
 		GENERAL_MAP.as("ancestor parameterizations map"))
 	{
 		@Override
@@ -2163,7 +2712,7 @@ public enum SerializerOperation
 	 * range of allowable sizes (a much stronger model than Java itself
 	 * supports).
 	 */
-	ARRAY_POJO_TYPE (66,
+	ARRAY_POJO_TYPE (86,
 		OBJECT_REFERENCE.as("content type"),
 		OBJECT_REFERENCE.as("size range"))
 	{
@@ -2198,7 +2747,7 @@ public enum SerializerOperation
 	 * such a self type.  To reconstruct a self type all we need is a way to get
 	 * to the raw Java classes involved, so we serialize their names.
 	 */
-	SELF_POJO_TYPE_REPRESENTATIVE (67,
+	SELF_POJO_TYPE_REPRESENTATIVE (87,
 		TUPLE_OF_OBJECTS.as("class names"))
 	{
 		@Override
@@ -2222,7 +2771,7 @@ public enum SerializerOperation
 	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
 	 * the most specific type of pojo.
 	 */
-	BOTTOM_POJO_TYPE (68)
+	BOTTOM_POJO_TYPE (88)
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)
@@ -2243,7 +2792,7 @@ public enum SerializerOperation
 	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
 	 * the most specific type of pojo.
 	 */
-	COMPILED_CODE_TYPE (69,
+	COMPILED_CODE_TYPE (89,
 		OBJECT_REFERENCE.as("function type for code type"))
 	{
 		@Override
@@ -2265,7 +2814,7 @@ public enum SerializerOperation
 	 * The bottom {@linkplain PojoTypeDescriptor pojo type}, representing
 	 * the most specific type of pojo.
 	 */
-	CONTINUATION_TYPE (70,
+	CONTINUATION_TYPE (90,
 		OBJECT_REFERENCE.as("function type for continuation type"))
 	{
 		@Override
@@ -2287,7 +2836,7 @@ public enum SerializerOperation
 	 * An Avail {@link EnumerationTypeDescriptor enumeration}, a type that has
 	 * an explicit finite list of its instances.
 	 */
-	ENUMERATION_TYPE (71,
+	ENUMERATION_TYPE (91,
 		TUPLE_OF_OBJECTS.as("set of instances"))
 	{
 		@Override
@@ -2310,7 +2859,7 @@ public enum SerializerOperation
 	 * An Avail {@link InstanceTypeDescriptor singular enumeration}, a type that
 	 * has a single (non-type) instance.
 	 */
-	INSTANCE_TYPE (72,
+	INSTANCE_TYPE (92,
 		OBJECT_REFERENCE.as("type's instance"))
 	{
 		@Override
@@ -2333,7 +2882,7 @@ public enum SerializerOperation
 	 * has an instance i, which is itself a type.  Subtypes of type i are also
 	 * considered instances of this instance meta.
 	 */
-	INSTANCE_META (73,
+	INSTANCE_META (93,
 		OBJECT_REFERENCE.as("meta's instance"))
 	{
 		@Override
@@ -2354,7 +2903,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain SetTypeDescriptor set type}.
 	 */
-	SET_TYPE (74,
+	SET_TYPE (94,
 		OBJECT_REFERENCE.as("size range"),
 		OBJECT_REFERENCE.as("element type"))
 	{
@@ -2382,7 +2931,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain MapTypeDescriptor map type}.
 	 */
-	MAP_TYPE (75,
+	MAP_TYPE (95,
 		OBJECT_REFERENCE.as("size range"),
 		OBJECT_REFERENCE.as("key type"),
 		OBJECT_REFERENCE.as("value type"))
@@ -2414,7 +2963,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain LiteralTokenTypeDescriptor literal token type}.
 	 */
-	LITERAL_TOKEN_TYPE (76,
+	LITERAL_TOKEN_TYPE (96,
 		OBJECT_REFERENCE.as("literal type"))
 	{
 		@Override
@@ -2436,7 +2985,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain ParseNodeTypeDescriptor parse phrase type}.
 	 */
-	PARSE_NODE_TYPE (77,
+	PARSE_NODE_TYPE (97,
 		BYTE.as("kind"),
 		OBJECT_REFERENCE.as("expression type"))
 	{
@@ -2464,7 +3013,7 @@ public enum SerializerOperation
 	/**
 	 * A {@linkplain ListNodeTypeDescriptor list phrase type}.
 	 */
-	LIST_NODE_TYPE (78,
+	LIST_NODE_TYPE (98,
 		BYTE.as("list phrase kind"),
 		OBJECT_REFERENCE.as("expression type"),
 		OBJECT_REFERENCE.as("subexpressions tuple type"))
@@ -2497,7 +3046,7 @@ public enum SerializerOperation
 	 * A {@linkplain VariableTypeDescriptor variable type} for which the read
 	 * type and write type are equal.
 	 */
-	SIMPLE_VARIABLE_TYPE (79,
+	SIMPLE_VARIABLE_TYPE (99,
 		OBJECT_REFERENCE.as("content type"))
 	{
 		@Override
@@ -2522,7 +3071,7 @@ public enum SerializerOperation
 	 * A {@linkplain ReadWriteVariableTypeDescriptor variable type} for which
 	 * the read type and write type are (actually) unequal.
 	 */
-	READ_WRITE_VARIABLE_TYPE (80,
+	READ_WRITE_VARIABLE_TYPE (100,
 		OBJECT_REFERENCE.as("read type"),
 		OBJECT_REFERENCE.as("write type"))
 	{
@@ -2552,7 +3101,7 @@ public enum SerializerOperation
 	 * The {@linkplain BottomTypeDescriptor bottom type}, more specific than all
 	 * other types.
 	 */
-	BOTTOM_TYPE (81)
+	BOTTOM_TYPE (101)
 	{
 		@Override
 		A_BasicObject[] decompose (final AvailObject object)

@@ -39,6 +39,7 @@ import java.util.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -70,7 +71,7 @@ extends ParseNodeDescriptor
 		/**
 		 * The static type of the tuple that will be generated.
 		 */
-		TUPLE_TYPE
+		TUPLE_TYPE;
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -88,7 +89,7 @@ extends ParseNodeDescriptor
 	 */
 	private A_Type expressionType (final AvailObject object)
 	{
-		A_Type tupleType = object.slot(TUPLE_TYPE);
+		A_Type tupleType = object.mutableSlot(TUPLE_TYPE);
 		if (tupleType.equalsNil())
 		{
 			final A_Tuple expressionsTuple = object.expressionsTuple();
@@ -104,12 +105,8 @@ extends ParseNodeDescriptor
 				types.add(expressionType);
 			}
 			tupleType = TupleTypeDescriptor.forTypes(
-				types.toArray(new A_Type[types.size()]));
-			if (isShared())
-			{
-				tupleType = tupleType.traversed().makeShared();
-			}
-			object.setSlot(TUPLE_TYPE, tupleType);
+					types.toArray(new A_Type[types.size()]));
+			object.setMutableSlot(TUPLE_TYPE, tupleType.makeShared());
 		}
 		return tupleType;
 	}
@@ -382,6 +379,12 @@ extends ParseNodeDescriptor
 		final @Nullable A_Phrase parent)
 	{
 		// Do nothing.
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.LIST_PHRASE;
 	}
 
 	@Override

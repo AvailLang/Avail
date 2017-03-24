@@ -58,32 +58,6 @@ extends A_BasicObject
 	void countdownToReoptimize (int value);
 
 	/**
-	 * Answer the total number of invocations of this {@linkplain A_RawFunction
-	 * function implementation}.
-	 *
-	 * @return The total number of invocations of this function implementation.
-	 */
-	long totalInvocations ();
-
-	/**
-	 * Answer the {@code index}-th literal value of this {@linkplain
-	 * A_RawFunction function implementation}.
-	 *
-	 * @param index
-	 *        The one-based ordinal of the desired literal value.
-	 * @return The requested literal value.
-	 */
-	AvailObject literalAt (int index);
-
-	/**
-	 * Answer the {@linkplain FunctionTypeDescriptor function type} associated
-	 * with this {@linkplain A_RawFunction function implementation}.
-	 *
-	 * @return The function type associated with this function implementation.
-	 */
-	A_Type functionType ();
-
-	/**
 	 * Atomically decrement the countdown to reoptimization by the {@linkplain
 	 * L2Translator Level Two translator}. If the count reaches zero
 	 * ({@code 0}), then lock this {@linkplain A_RawFunction function
@@ -99,12 +73,22 @@ extends A_BasicObject
 	void decrementCountdownToReoptimize (Continuation0 continuation);
 
 	/**
-	 * Answer the {@linkplain A_Tuple tuple} of nybblecodes that implements this
-	 * {@linkplain A_RawFunction function implementation}.
+	 * Answer the {@linkplain FunctionTypeDescriptor function type} associated
+	 * with this {@linkplain A_RawFunction function implementation}.
 	 *
-	 * @return The instruction tuple for this function implementation.
+	 * @return The function type associated with this function implementation.
 	 */
-	A_Tuple nybbles ();
+	A_Type functionType ();
+
+	/**
+	 * Answer the {@code index}-th literal value of this {@linkplain
+	 * A_RawFunction function implementation}.
+	 *
+	 * @param index
+	 *        The one-based ordinal of the desired literal value.
+	 * @return The requested literal value.
+	 */
+	AvailObject literalAt (int index);
 
 	/**
 	 * Answer the {@linkplain A_Type type} of the {@code index}-th local
@@ -117,31 +101,6 @@ extends A_BasicObject
 	A_Type localTypeAt (int index);
 
 	/**
-	 * Answer the {@linkplain A_Type type} of the {@code index}-th outer
-	 * variable.
-	 *
-	 * @param index
-	 *        The one-based ordinal of the desired outer variable.
-	 * @return The requested type.
-	 */
-	A_Type outerTypeAt (int index);
-
-	/**
-	 * Set the {@linkplain L2Chunk chunk} that implements this {@linkplain
-	 * A_RawFunction function implementation} and the countdown to
-	 * reoptimization by the {@linkplain L2Translator Level Two translator}.
-	 *
-	 * @param chunk
-	 *        The chunk to invoke whenever the {@linkplain Interpreter
-	 *        interpreter} starts execution of this function implementation}.
-	 * @param countdown
-	 *        The countdown to reoptimization by the Level Two translator.
-	 */
-	void setStartingChunkAndReoptimizationCountdown (
-		L2Chunk chunk,
-		long countdown);
-
-	/**
 	 * Answer the maximum depth of the stack needed by a {@linkplain
 	 * A_Continuation continuation} based on this {@linkplain A_Function
 	 * function implementation}.
@@ -149,6 +108,27 @@ extends A_BasicObject
 	 * @return The maximum stack depth for this function implementation.
 	 */
 	int maxStackDepth ();
+
+	/**
+	 * Answer the name of the {@linkplain A_Method method} associated with this
+	 * {@linkplain A_RawFunction function implementation}.
+	 *
+	 * @return The method name associated with this function implementation, or
+	 *         a {@linkplain A_String string} that indicates that the provenance
+	 *         of the function implementation is not known.
+	 * @see #setMethodName(A_String)
+	 */
+	A_String methodName ();
+
+	/**
+	 * Answer the {@linkplain A_Module module} that contains the {@linkplain
+	 * BlockNodeDescriptor block} that defines this {@linkplain A_RawFunction
+	 * function implementation}.
+	 *
+	 * @return The module, or {@linkplain NilDescriptor#nil() nil} for synthetic
+	 *         function implementations.
+	 */
+	A_Module module ();
 
 	/**
 	 * Answer the arity of this {@linkplain A_RawFunction function
@@ -194,6 +174,40 @@ extends A_BasicObject
 	int numOuters ();
 
 	/**
+	 * Answer the {@linkplain A_Tuple tuple} of nybblecodes that implements this
+	 * {@linkplain A_RawFunction function implementation}.
+	 *
+	 * @return The instruction tuple for this function implementation.
+	 */
+	A_Tuple nybbles ();
+
+	/**
+	 * Answer the block {@link A_Phrase phrase} from which this raw function was
+	 * constructed.  Answer {@link NilDescriptor#nil() nil} if this information
+	 * is not available.
+	 *
+	 * @return The phrase or nil from which this raw function was created.
+	 */
+	A_Phrase originatingPhrase ();
+
+	/**
+	 * Answer the {@linkplain A_Type type} of the {@code index}-th outer
+	 * variable.
+	 *
+	 * @param index
+	 *        The one-based ordinal of the desired outer variable.
+	 * @return The requested type.
+	 */
+	A_Type outerTypeAt (int index);
+
+	/**
+	 * Answer this raw function's {@link Primitive} or {@code null}.
+	 *
+	 * @return The Primitive, or null if this raw function is not primitive.
+	 */
+	@Nullable Primitive primitive ();
+
+	/**
 	 * Answer the {@linkplain Primitive primitive} {@linkplain
 	 * Primitive#primitiveNumber number} associated with this {@linkplain
 	 * A_RawFunction function implementation}. The {@linkplain Interpreter
@@ -206,11 +220,29 @@ extends A_BasicObject
 	int primitiveNumber();
 
 	/**
-	 * Answer this raw function's {@link Primitive} or {@code null}.
+	 * Specify that a {@linkplain A_Method method} with the given name includes
+	 * a {@linkplain A_Definition definition} that (indirectly) includes this
+	 * {@linkplain A_RawFunction function implementation}.
 	 *
-	 * @return The Primitive, or null if this raw function is not primitive.
+	 * @param methodName
+	 *        The method name to associate with this function implementation.
 	 */
-	@Nullable Primitive primitive ();
+	void setMethodName (A_String methodName);
+
+	/**
+	 * Set the {@linkplain L2Chunk chunk} that implements this {@linkplain
+	 * A_RawFunction function implementation} and the countdown to
+	 * reoptimization by the {@linkplain L2Translator Level Two translator}.
+	 *
+	 * @param chunk
+	 *        The chunk to invoke whenever the {@linkplain Interpreter
+	 *        interpreter} starts execution of this function implementation}.
+	 * @param countdown
+	 *        The countdown to reoptimization by the Level Two translator.
+	 */
+	void setStartingChunkAndReoptimizationCountdown (
+		L2Chunk chunk,
+		long countdown);
 
 	/**
 	 * Answer the {@linkplain L2Chunk chunk} that the {@linkplain Interpreter
@@ -225,13 +257,6 @@ extends A_BasicObject
 	L2Chunk startingChunk ();
 
 	/**
-	 * Atomically increment the total number of invocations of {@linkplain
-	 * A_Function functions} based on this {@linkplain A_RawFunction function
-	 * implementation}.
-	 */
-	void tallyInvocation ();
-
-	/**
 	 * Answer the starting line number for the {@linkplain BlockNodeDescriptor
 	 * block} that defines this {@linkplain A_RawFunction function
 	 * implementation}.
@@ -242,33 +267,17 @@ extends A_BasicObject
 	int startingLineNumber ();
 
 	/**
-	 * Answer the {@linkplain A_Module module} that contains the {@linkplain
-	 * BlockNodeDescriptor block} that defines this {@linkplain A_RawFunction
+	 * Atomically increment the total number of invocations of {@linkplain
+	 * A_Function functions} based on this {@linkplain A_RawFunction function
+	 * implementation}.
+	 */
+	void tallyInvocation ();
+
+	/**
+	 * Answer the total number of invocations of this {@linkplain A_RawFunction
 	 * function implementation}.
 	 *
-	 * @return The module, or {@linkplain NilDescriptor#nil() nil} for synthetic
-	 *         function implementations.
+	 * @return The total number of invocations of this function implementation.
 	 */
-	A_Module module ();
-
-	/**
-	 * Specify that a {@linkplain A_Method method} with the given name includes
-	 * a {@linkplain A_Definition definition} that (indirectly) includes this
-	 * {@linkplain A_RawFunction function implementation}.
-	 *
-	 * @param methodName
-	 *        The method name to associate with this function implementation.
-	 */
-	void setMethodName (A_String methodName);
-
-	/**
-	 * Answer the name of the {@linkplain A_Method method} associated with this
-	 * {@linkplain A_RawFunction function implementation}.
-	 *
-	 * @return The method name associated with this function implementation, or
-	 *         a {@linkplain A_String string} that indicates that the provenance
-	 *         of the function implementation is not known.
-	 * @see #setMethodName(A_String)
-	 */
-	A_String methodName ();
+	long totalInvocations ();
 }

@@ -42,6 +42,7 @@ import java.util.IdentityHashMap;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -764,6 +765,12 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.DECLARATION_PHRASE;
+	}
+
+	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
@@ -825,18 +832,21 @@ extends ParseNodeDescriptor
 	 *        object} if none.
 	 * @return The new {@linkplain DeclarationNodeDescriptor declaration}.
 	 */
-	private static A_Phrase newDeclaration (
+	public static A_Phrase newDeclaration (
 		final DeclarationKind declarationKind,
 		final A_Token token,
 		final A_Type declaredType,
 		final A_Phrase initializationExpression,
 		final A_BasicObject literalObject)
 	{
-		assert token.isInstanceOf(Types.TOKEN.o());
 		assert declaredType.isType();
+		assert token.isInstanceOf(Types.TOKEN.o());
 		assert initializationExpression.equalsNil()
 			|| initializationExpression.isInstanceOfKind(
 				ParseNodeKind.EXPRESSION_NODE.create(Types.ANY.o()));
+		assert literalObject.equalsNil()
+			|| declarationKind == MODULE_VARIABLE
+			|| declarationKind == MODULE_CONSTANT;
 
 		final AvailObject declaration =
 			mutables[declarationKind.ordinal()].create();

@@ -228,17 +228,30 @@ public class L1InstructionWriter
 	final int startingLineNumber;
 
 	/**
+	 * The phrase that should be captured for this raw function.  {@link
+	 * NilDescriptor#nil() nil} is also valid.
+	 */
+	final A_Phrase phrase;
+
+	/**
 	 * Create a new {@link L1InstructionWriter Level One instruction writer}.
 	 *
-	 * @param module The module containing this code.
-	 * @param startingLineNumber Where this code starts in the module.
+	 * @param module
+	 *        The module containing this code.
+	 * @param startingLineNumber
+	 *        Where this code starts in the module.
+	 * @param phrase
+	 *        The phrase that should be captured for this raw function.  {@link
+	 *        NilDescriptor#nil() nil} is also valid, but less informative.
 	 */
 	public L1InstructionWriter (
 		final A_Module module,
-		final int startingLineNumber)
+		final int startingLineNumber,
+		final A_Phrase phrase)
 	{
 		this.module = module;
 		this.startingLineNumber = startingLineNumber;
+		this.phrase = phrase;
 	}
 
 	/**
@@ -401,6 +414,7 @@ public class L1InstructionWriter
 			TupleDescriptor.fromList(localTypes),
 			TupleDescriptor.fromList(outerTypes),
 			module,
-			startingLineNumber);
+			startingLineNumber,
+			phrase);
 	}
 }
