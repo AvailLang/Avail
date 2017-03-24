@@ -32,17 +32,16 @@
 
 package com.avail.environment.editor;
 
-import com.avail.environment.editor.fx.FilterDropDownDialog;
-import com.avail.utility.Pair;
-import javafx.scene.control.ChoiceDialog;
+import com.avail.environment.AvailWorkbench;
+import com.avail.environment.editor.utility.PrefixTrie;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Properties;
 
 /**
  * A {@code ReplaceTextTemplate} is a holder of replacement text for a given
@@ -53,325 +52,140 @@ import java.util.Map;
 public class ReplaceTextTemplate
 {
 	/**
-	 * The map with the options.
-	 */
-	private final @NotNull Map<String, String> templateMap = new HashMap<>();
-
-	/**
 	 * The {@link PrefixTrie} that contains the templates.
 	 */
-	private final @NotNull PrefixTrie prefixTrie = new PrefixTrie();
+	private final @NotNull PrefixTrie<String> prefixTrie = new PrefixTrie<>();
 
 	/**
-	 * Answer the template string for the given key.
+	 * Answer the {@link PrefixTrie} that contains the templates.
 	 *
-	 * @param template
-	 *        The template key.
-	 * @return A template.
+	 * @return A {@code PrefixTrie}.
 	 */
-	public String get(final @NotNull String template)
+	public @NotNull PrefixTrie<String> prefixTrie ()
 	{
-		return templateMap.get(template);
+		return prefixTrie;
 	}
 
 	/**
-	 * The list of choices.
+	 * The {@link Properties} where the templates are stored.
 	 */
-	public final @NotNull List<String> choiceList;
+	private final @NotNull Properties properties = new Properties();
 
 	/**
-	 * Populate the {@link ReplaceTextTemplate#prefixTrie} from the input from
-	 * the preferences.
+	 * The name of the {@link Properties} {@link File} where the templates are
+	 * stored.
+	 */
+	private static final @NotNull String propertiesFileName =
+		AvailWorkbench.resourcePrefix + "template.properties";
+
+	/**
+	 * Populate the {@link ReplaceTextTemplate#prefixTrie} from the {@link
+	 * Properties} file referenced by {@link #propertiesFileName}.
+	 */
+	public void initializeTemplatesFromPropertiesFile ()
+	{
+		try
+		{
+			final InputStream inputStream = ReplaceTextTemplate.class
+				.getResourceAsStream(propertiesFileName);
+			if (inputStream != null)
+			{
+				properties.load(inputStream);
+			}
+			populatePrefixTrie();
+		}
+		catch (IOException e)
+		{
+			System.err.println(
+				"Failed To Load Template Properties File; File Not Found");
+		}
+	}
+
+	/**
+	 * Populate the {@link ReplaceTextTemplate#prefixTrie} from {@link
+	 * #properties}.
+	 */
+	private void populatePrefixTrie ()
+	{
+		properties.keySet().parallelStream().forEach((k ->
+		{
+			final String key = (String) k;
+			prefixTrie.addWord(key, properties.getProperty(key));
+		}));
+	}
+
+	/**
+	 * Write the properties file to disk.
+	 */
+	public void savePropertiesToFile ()
+	{
+		try
+		{
+			OutputStream output = new FileOutputStream(propertiesFileName);
+			properties.store(output, "Inline code replace templates");
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Add a template to the {@link ReplaceTextTemplate}.
 	 *
-	 * @param input
-	 *        The stored preference.
+	 * @param key
+	 *        The key value to appear in the drop down.
+	 * @param value
+	 *        The replacement text.
+	 * @return {@code true} if added; {@code false} otherwise.
 	 */
-	public void setPrefixTrie (final @NotNull String input)
+	public boolean addTemplate (
+		final @NotNull String key,
+		final @NotNull String value)
 	{
-		if (!input.isEmpty())
+		if (properties.containsKey(key))
 		{
-			String pairSpliter = "" + '\0';
-			String recordSpliter = "" + 0x1e;
-			final String[] substrings = input.split(recordSpliter);
-			for (String template : substrings)
-			{
-				String[] pair = template.split(pairSpliter);
-				assert pair.length == 2;
-				prefixTrie.addTemplate(pair[0], pair[1]);
-			}
+			return false;
 		}
+		properties.setProperty(key, value);
+		prefixTrie.addWord(key, value);
+		return true;
 	}
 
 	/**
-	 * Construct a {@link ReplaceTextTemplate}.
-	 */
-	public ReplaceTextTemplate ()
-	{
-		templateMap.put("top", "⊤");
-		templateMap.put("bottom", "⊥");
-		templateMap.put("o1", "①");
-		templateMap.put("o2", "②");
-		templateMap.put("o3", "③");
-		templateMap.put("o4", "④");
-		templateMap.put("o5", "⑤");
-		templateMap.put("o6", "⑥");
-		templateMap.put("o7", "⑦");
-		templateMap.put("o8", "⑧");
-		templateMap.put("o9", "⑨");
-		templateMap.put("union", "∪");
-		templateMap.put("uparrow", "↑");
-		templateMap.put("yields", "⇒");
-		templateMap.put("times", "×");
-		templateMap.put("divide", "÷");
-		templateMap.put("ceiling", "⎡$EXPR$⎤");
-		templateMap.put("floor", "⎣$EXPR$⎦");
-		templateMap.put("conjunction", "∧");
-		templateMap.put("debugprint",
-			"Print: format \"$EXPR$=“①”\n\" with $EXPR$;");
-		templateMap.put("disjunction", "∨");
-		templateMap.put("doublequestion", "⁇");
-		templateMap.put("downarrow", "↓");
-		templateMap.put("earlydebugprint",
-			"Print: \"$EXPR$=\";\nPrint: “$EXPR$”;\nPrint:\"\n\";");
-		templateMap.put("elementof", "∈");
-		templateMap.put("emptyset", "∅");
-		templateMap.put("enumerationtype", "{$VALUES$}ᵀ");
-		templateMap.put("intersection", "∩");
-		templateMap.put("leftarrow", "←");
-		templateMap.put("rightarrow", "→");
-		templateMap.put("subset", "⊆");
-		templateMap.put("superset", "⊇");
-		templateMap.put("leftguillemet","«");
-		templateMap.put("rightguillemet","»");
-		templateMap.put("doubledagger","‡");
-		templateMap.put("lessthanequal", "≤");
-		templateMap.put("greaterthanequal", "≥");
-		templateMap.put("leftdoublesmartquote", "“");
-		templateMap.put("rightdoublesmartquote", "”");
-		templateMap.put("leftsinglesmartquote", "‘");
-		templateMap.put("rightsinglesmartquote", "’");
-		templateMap.put("sum", "∑");
-		templateMap.put("product", "∏");
-		templateMap.put("negation", "¬");
-		templateMap.put("notequals", "≠");
-		templateMap.put("inf", "∞");
-		templateMap.put("...", "…");
-		templateMap.put("section", "§");
-
-		templateMap.forEach(prefixTrie::addTemplate);
-		choiceList = new ArrayList<>(templateMap.keySet());
-		Collections.sort(choiceList);
-	}
-
-	/**
-	 * Answer a string representation of this {@link ReplaceTextTemplate} store
-	 * that is suitable for being stored and restored via the {@link
-	 * ReplaceTextTemplate} constructor.
+	 * Edit the template in {@link ReplaceTextTemplate}.
 	 *
-	 * @return A string.
+	 * @param key
+	 *        The key value to change the template for.
+	 * @param value
+	 *        The new replacement text.
+	 * @return {@code true} if changed; {@code false} otherwise.
 	 */
-	public String stringToStore ()
+	public boolean editTemplate (
+		final @NotNull String key,
+		final @NotNull String value)
 	{
-		final StringBuilder sb = new StringBuilder("");
-		final List<Pair<String, String>> wordTemplates =
-			prefixTrie.wordTemplates();
-
-		int size = wordTemplates.size();
-		for (int i = 0; i < size - 1; i++)
+		if (!properties.containsKey(key))
 		{
-			final Pair<String, String> pair = wordTemplates.get(i);
-			sb.append(pair.first())
-				.append('\0')
-				.append(pair.second())
-				.append(0x1e);
+			return false;
 		}
-
-		final Pair<String, String> finalPair = wordTemplates.get(size - 1);
-		return sb.append(finalPair.first())
-			.append('\0')
-			.append(finalPair.second()).toString();
+		properties.setProperty(key, value);
+		populatePrefixTrie();
+		return true;
 	}
 
 	/**
-	 * Answer a {@link ChoiceDialog} with the templates.
+	 * Remove the indicated template from {@link ReplaceTextTemplate}.
 	 *
-	 * @return A {@link ChoiceDialog}.
+	 * @param key
+	 *        The property name to remove.
 	 */
-	public @NotNull FilterDropDownDialog<String> dialog ()
+	public void removeTemplate (
+		final @NotNull String key)
 	{
-		FilterDropDownDialog<String> dialog = new FilterDropDownDialog<>(
-			"",
-			choiceList,
-			(typedText, itemToCompare) ->
-				itemToCompare.toLowerCase().contains(typedText.toLowerCase())
-					|| itemToCompare.equals(typedText));
-		dialog.setTitle("Choose Template");
-		dialog.setContentText(null);
-		dialog.setHeaderText(null);
-		return dialog;
-	}
-
-	/**
-	 * A {@code PrefixNode} is a node in a {@link PrefixTrie}.
-	 */
-	public static class PrefixNode
-	{
-		/**
-		 * The {@link Map} that holds the next nodes in the trie.
-		 */
-		private final @NotNull Map<Character, PrefixNode> children =
-			new HashMap<>();
-
-		/**
-		 * The target template of this node.
-		 */
-		private @NotNull String template = "";
-
-		/**
-		 * Answer the {@link #template}.
-		 *
-		 * @return A String.
-		 */
-		public @NotNull String template ()
+		if (properties.remove(key) != null)
 		{
-			return template;
-		}
-
-		/**
-		 * The list of viable complete word branches from this point in the
-		 * {@link PrefixTrie}.
-		 */
-		private final @NotNull List<String> wordList = new ArrayList<>();
-
-		/**
-		 * Answer the {@link #wordList}.
-		 *
-		 * @return A {@link List}.
-		 */
-		public final @NotNull List<String> wordList ()
-		{
-			return wordList;
-		}
-
-		/**
-		 * Add a branch to this {@link PrefixNode}.
-		 *
-		 * @param word
-		 *        The word branch to add.
-		 * @param nodeDepth
-		 *        The height position presently in the {@link PrefixTrie} that
-		 *        this node is at.
-		 */
-		public void addWord (
-			final @NotNull String word,
-			final int nodeDepth,
-			final @NotNull String template)
-		{
-			wordList.add(word);
-			Collections.sort(wordList);
-			if (word.length() - 1 > nodeDepth)
-			{
-				final int newDepth = nodeDepth + 1;
-				final Character next = word.charAt(newDepth);
-				final PrefixNode nextNode = children.computeIfAbsent(
-					next,
-					key -> new PrefixNode());
-				nextNode.addWord(word, newDepth, template);
-			}
-			else
-			{
-				this.template = template;
-			}
-		}
-
-		/**
-		 * Add a branch to this {@link PrefixNode}.
-		 *
-		 * @param word
-		 *        The word to search.
-		 * @param nodeDepth
-		 *        The height position presently in the {@link PrefixTrie} that
-		 *        this node is at.
-		 */
-		public @Nullable PrefixNode searchTrie (
-			final @NotNull String word,
-			final int nodeDepth)
-		{
-			if (word.length() - 1 > nodeDepth)
-			{
-				final int newDepth = nodeDepth + 1;
-				final Character next = word.charAt(newDepth);
-				final PrefixNode nextNode =
-					children.getOrDefault(next, null);
-				return nextNode != null
-					? nextNode.searchTrie(word, newDepth)
-					: null;
-			}
-			else
-			{
-				return this;
-			}
-		}
-
-		/**
-		 * Construct an empty {@link PrefixNode}.
-		 */
-		public PrefixNode () {}
-	}
-
-	/**
-	 * A {@code PrefixTrie} is trie of {@linkplain PrefixNode PrefixNodes}
-	 * that represent a path of words made up by characters.
-	 */
-	public static class PrefixTrie
-	{
-		/**
-		 * The root {@link PrefixNode}.
-		 */
-		private final @NotNull PrefixNode root = new PrefixNode();
-
-		/**
-		 * Add a template to this {@link PrefixTrie}.
-		 *
-		 * @param searchText
-		 *        The search text, the characters that will create the {@link
-		 *        PrefixNode}s.
-		 * @param template
-		 *        The {@link PrefixNode#template}.
-		 */
-		public void addTemplate (
-			final @NotNull String searchText,
-			final @NotNull String template)
-		{
-			root.addWord(searchText.toLowerCase(), 0, template);
-		}
-
-		/**
-		 * Answer the {@link PrefixNode} for the given String.
-		 *
-		 * @param word
-		 *        The String to find.
-		 * @return A {@code PrefixNode} if one exists; {@code null} otherwise.
-		 */
-		public @Nullable PrefixNode searchNode (final @NotNull String word)
-		{
-			return root.searchTrie(word, 0);
-		}
-
-		/**
-		 * Answer a {@link List} of {@link Pair}s of word and corresponding
-		 * {@link PrefixNode#template} in this {@link PrefixTrie}.
-		 *
-		 * @return A list.
-		 */
-		public @NotNull List<Pair<String, String>> wordTemplates ()
-		{
-			final List<Pair<String, String>> wordTemplates = new ArrayList<>();
-			root.wordList().forEach(word ->
-				wordTemplates.add(
-					new Pair<>(word, searchNode(word).template())));
-
-			return wordTemplates;
+			populatePrefixTrie();
 		}
 	}
 }
