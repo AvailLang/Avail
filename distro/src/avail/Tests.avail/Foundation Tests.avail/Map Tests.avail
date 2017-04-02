@@ -1,6 +1,6 @@
 /*
  * Map Tests.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,12 +100,12 @@ Test "map through (macro)" in map test suite is
 Test "map and filter" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
- 	b ::= map and filter a by 
+ 	b ::= map and filter a by
  	[
  	 	s : string,
  	 	n : natural number,
  	 	accept : [natural number]→⊤
- 	 | 
+ 	 |
  	 	m ::= n + 2;
  		If m mod 2 = 0 then
  		[
@@ -177,9 +177,9 @@ Test "each of satisfies" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
 	counter : whole number := 0;
- 	b ::= each s→n of a satisfies 
+ 	b ::= each s→n of a satisfies
  	[
-		counter := counter +1; 
+		counter := counter +1;
  		n ≤ 2
  	];
  	c ::= each s→n of a satisfies [n > 0];
@@ -220,14 +220,14 @@ Test "group by (tuples)" in map test suite is
 [
  	/* Group by values */
  	a ::= <1,2,3,4,5>;
- 	b ::= group a by [n: natural number | n is even]; 	
+ 	b ::= group a by [n: natural number | n is even];
  	Require: b = {false→<1, 3, 5>, true→<2, 4>};
- 	
+
  	/*Group by types*/
  	c ::= <whole number, string, natural number, boolean, 5's type>;
  	d ::= group c by [t : type | t ⊆ number];
- 	Require: d = 
- 		{true→<whole number, natural number, 5's type>, 
+ 	Require: d =
+ 		{true→<whole number, natural number, 5's type>,
  		false→<string, boolean>};
 ];
 
@@ -235,14 +235,14 @@ Test "group by (sets)" in map test suite is
 [
  	/* Group by values */
  	a ::= {1,2,3,4,5};
- 	b ::= group a by [n: natural number | n is even]; 	
+ 	b ::= group a by [n: natural number | n is even];
  	Require: b = {false→{1, 3, 5}, true→{2, 4}};
- 	
+
  	/*Group by types*/
  	c ::= {whole number, string, natural number, boolean, 5's type};
  	d ::= group c by [t : type | t ⊆ number];
- 	Require: d = 
- 		{true→{whole number, natural number, 5's type}, 
+ 	Require: d =
+ 		{true→{whole number, natural number, 5's type},
  		false→{string, boolean}};
 ];
 
@@ -250,14 +250,14 @@ Test "macro group by (tuples)" in map test suite is
 [
  	/* Group by values */
  	a ::= <1,2,3,4,5>;
- 	b ::= group each n in a by [n is even]; 	
+ 	b ::= group each n in a by [n is even];
  	Require: b = {false→<1, 3, 5>, true→<2, 4>};
- 	
+
  	/*Group by types*/
  	c ::= <whole number, string, natural number, boolean, 5's type>;
  	d ::= group each t in c by [t ⊆ number];
- 	Require: d = 
- 		{true→<whole number, natural number, 5's type>, 
+ 	Require: d =
+ 		{true→<whole number, natural number, 5's type>,
  		false→<string, boolean>};
 ];
 
@@ -265,14 +265,14 @@ Test "macro group by (sets)" in map test suite is
 [
  	/* Group by values */
  	a ::= {1,2,3,4,5};
- 	b ::= group each n in a by [n is even]; 	
+ 	b ::= group each n in a by [n is even];
  	Require: b = {false→{1, 3, 5}, true→{2, 4}};
- 	
+
  	/*Group by types*/
  	c ::= {whole number, string, natural number, boolean, 5's type};
  	d ::= group each t in c by [t ⊆ number];
- 	Require: d = 
- 		{true→{whole number, natural number, 5's type}, 
+ 	Require: d =
+ 		{true→{whole number, natural number, 5's type},
  		false→{string, boolean}};
 ];
 
@@ -292,7 +292,7 @@ Test "integrate maps" in map test suite is
 		k : string,
 		v : natural number
 	|
-		chosenValue ::= if m[k] > v then [m[k]] else [v]; 
+		chosenValue ::= if m[k] > v then [m[k]] else [v];
 		m + k → chosenValue
 	];
 	Require: {"foo"→9,"bar"→2,"frog"→3,"prince"→4,"sharks are awesome!"→40} = c;
@@ -304,7 +304,7 @@ Test "integrate maps" in map test suite is
 		k : string,
 		v : whole number
 	|
-		chosenValue ::= if m[k] > v then [m[k]] else [v]; 
+		chosenValue ::= if m[k] > v then [m[k]] else [v];
 		m + k → chosenValue
 	];
 	Require: {"laser"→9000,"foo"→9,"bar"→2,"frog"→3,"prince"→4,
@@ -320,7 +320,7 @@ Test "quasi-destructive simple map at key replace" in map test suite is
 
 Test "quasi-destructive n-ary complex map update" in map test suite is
 [
-	t : {string→<{string→<string…|2>|2},natural number…|2>|} := 
+	t : {string→<{string→<string…|2>|2},natural number…|2>|} :=
 		{
 			"foo"→<
 				{"hippo"→<"submarine","bunnies">,
@@ -347,7 +347,7 @@ Test "quasi-destructive n-ary complex map update" in map test suite is
 
 Test "quasi-destructive n-ary very complex map update" in map test suite is
 [
-	t : {string→<{string→<string…|2>|2},natural number…|2>|} := 
+	t : {string→<{string→<string…|2>|2},natural number…|2>|} :=
 		{
 			"foo"→<
 				{"hippo"→<"submarine","bunnies">,
@@ -378,7 +378,7 @@ Test "tuple range replacement" in map test suite is
  	m3 ::= m1["3"]["boo"](1..3)→<9,9>;
  	Require: m3 = m2;
  	Require: [m1["boo"][2](1..3)→<9,9>] raises key-not-found exception;
- 	Require: [m1["3"]["boo"](1..5)→<9,9,9>] 
+ 	Require: [m1["3"]["boo"](1..5)→<9,9,9>]
  		raises subscript-out-of-bounds exception;
 	Require: [m1["3"]["boo"](10..5)→<9,9,9>] raises negative-size exception;
 ];

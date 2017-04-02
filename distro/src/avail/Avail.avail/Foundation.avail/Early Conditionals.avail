@@ -1,6 +1,6 @@
 /*
  * Early Conditionals.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ Body
 /**
  * Declare the one-branch conditional evaluation method that does nothing.  It
  * will be overridden for a true first argument.
- * 
+ *
  * @method "If_then_"
  * @param "predicate" "boolean"
  *        The boolean that will be tested.
@@ -66,7 +66,7 @@ Method "If_then_" is
 
 /**
  * Define the one-branch conditional evaluation method for a true condition.
- * 
+ *
  * @method "If_then_"
  * @param "predicate" "boolean"
  *        The boolean, which in this case is true.
@@ -89,7 +89,7 @@ Method "If_then_" is
  * that the semantic restrictions are defined in a downstream module, so until
  * that point, the conditional method will be top-valued and can only be used as
  * a statement.
- * 
+ *
  * @method "If|if_then_else_"
  * @param "predicate" "boolean"
  *        The boolean value, which is false for this method definition, assuming
@@ -112,7 +112,7 @@ Method "If|if_then_else_" is
 
 /**
  * Define the two-branch conditional evaluation method for a true condition.
- * 
+ *
  * @method "If|if_then_else_"
  * @param "predicate" "true's type"
  *        The boolean value, which is true for this method definition.
@@ -136,7 +136,7 @@ Method "If|if_then_else_" is
 /**
  * Declare the one-branch negative conditional evaluation method that does
  * nothing.  It will be overridden for a false first argument.
- * 
+ *
  * @method "Unless_then_"
  * @param "predicate" "boolean"
  *        The boolean that will be tested.
@@ -156,7 +156,7 @@ Method "Unless_then_" is
 /**
  * Define the one-branch negative conditional evaluation method for a false
  * condition.
- * 
+ *
  * @method "Unless_then_"
  * @param "predicate" "false's type"
  *        The boolean, which in this case is false.
@@ -179,7 +179,7 @@ Method "Unless_then_" is
  * Note that the semantic restrictions are defined in a downstream module, so
  * until that point, the conditional method will be top-valued and can only be
  * used as a statement.
- * 
+ *
  * @method "Unless|unless_then_else_"
  * @param "predicate" "boolean"
  *        The boolean value, which is true for this method definition, assuming
@@ -203,7 +203,7 @@ Method "Unless|unless_then_else_" is
 /**
  * Define the two-branch negative conditional evaluation method for a false
  * condition.
- * 
+ *
  * @method "Unless|unless_then_else_"
  * @param "predicate" "false's type"
  *        The boolean value, which is false for this method definition.

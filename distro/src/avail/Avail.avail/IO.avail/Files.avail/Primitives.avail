@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -175,7 +175,7 @@ _default_access_rights ::= "rw-r--r--" → file access rights;
 /**
  * Answer the default {@type "file access right"}s with which files should be
  * created.
- * 
+ *
  * @method "default file access rights"
  * @returns "{file access right|}"
  * @category "Files"
@@ -235,7 +235,7 @@ Public method
 /**
  * Strengthen the type with the file name and whether {@code "read"} and/or
  * {@code "write"} are specified.
- * 
+ *
  * @method "_opened with options_«with file access rights_»"
  * @restricts "file name's type"
  * @restricts "{open option|}'s type"
@@ -534,7 +534,7 @@ Public method
  * thread just to wait for previously handed-off buffered write operations to
  * physically complete, defeating half of the purpose of asynchronous writes.
  * Sigh.
- * 
+ *
  * Fortunately, we have the "fileExecutor" pool of threads in the VM for just
  * that purpose – synchronous I/O operations.  We accomodate opening files,
  * renaming files and directories, and other similarly synchronous operations by
@@ -585,14 +585,14 @@ Private method "private refresh_with file system" is
  * Clear all buffers associated with the specified {@type "file"}.  Subsequent
  * reads from the file are guaranteed to fetch data at least as new as any
  * synchronize operations occurring prior to this refresh.
- * 
+ *
  * @method "Refresh_with file system"
  * @param "f" "readable file"
  *        The file whose buffers should be discarded.
  * @returns "⊤"
  * @category "Files"
  * @raises "invalid-handle code"
- * 
+ *
  */
 Public method "Refresh_with file system" is
 [
@@ -665,7 +665,7 @@ _default_directory_access_rights ::= "rwxr-xr-x"→file access rights;
 /**
  * Answer the default {@type "file access right"}s with which directories should
  * be created.
- * 
+ *
  * @method "default directory access rights"
  * @returns "{file access right|}"
  * @category "Files"
@@ -681,7 +681,7 @@ Public method "default directory access rights" is
  * operation fails, then eventually apply {@param "fail"} to the error code in
  * the answered {@type "fiber"}.
  *
- * @method 
+ * @method
  *   "a fiber creating a directory named_\
  *      \|«with file access rights_,⁇»\
  *      \|then_,⁇\
@@ -778,7 +778,7 @@ Public method "Create a directory named_«with file access rights_»" is
 
 /**
  * Disallow the general object constructor for file-related types.
- * 
+ *
  * @method "a|an_«with«_«:»?:=_‡,»»"
  * @forbids "1" "file name" "file" "readable file" "writable file"
  *          "readable,⁇writable file"

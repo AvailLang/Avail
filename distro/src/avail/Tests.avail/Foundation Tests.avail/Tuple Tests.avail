@@ -1,6 +1,6 @@
 /*
  * Tuple Tests.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,7 @@ Test "map through (macro)" in tuple test suite is
 Test "map and filter" in tuple test suite is
 [
 	a ::= <1,2,3,4>;
-	b ::= map and filter a by 
+	b ::= map and filter a by
 	[
 		n : natural number,
 		accept : [natural number]→⊤
@@ -136,15 +136,15 @@ Test "for each of do" in tuple test suite is
 	b : tuple := <>;
 	For each of a do [n : natural number | b ++= <n>;];
 	Require: b = a;
-	
+
 	c : tuple := <>;
 	For each of a do [
 		n : natural number,
 		index : [1..4]
-	| 
+	|
 		c ++= <n>;
 		c ++= <index>;
-		
+
 	];
 	Require: c = <1,1,2,2,3,3,4,4>;
 ];
@@ -160,7 +160,7 @@ Test "macro for each of do" in tuple test suite is
 	Require: b = <2,4>;
 
 	c : natural number* := <>;
-	For each element, i of a do 
+	For each element, i of a do
 	[
 		If element is odd then [
 			c ++= <element>;
@@ -196,7 +196,7 @@ Test "each of satisfies" in tuple test suite is
 	[
 		n : natural number
 	|
-		counter := counter +1; 
+		counter := counter +1;
 		n ≤ 2
 	];
 	c ::= each of a satisfies [n : natural number | n > 0];
@@ -211,7 +211,7 @@ Test "each of satisfies (macro)" in tuple test suite is
 	counter : whole number := 0;
 	b ::= each n of a satisfies
 	[
-		counter := counter +1; 
+		counter := counter +1;
 		n ≤ 2
 	];
 	c ::= each n of a satisfies [n > 0];
@@ -308,13 +308,13 @@ Test "subtuple replace" in tuple test suite is
 	b ::= <1,2,3,4,6,2,3>;
 	c ::= "We know the truth; yes, know indeed";
 	Require: replace all occurrences of <2,3,4> in <> with <9> = <>;
-	Require: replace all occurrences of "\t" in "afb	c" with " " = "afb c"; 
-	Require: replace all occurrences of "feet" in a with "people" = 
+	Require: replace all occurrences of "\t" in "afb	c" with " " = "afb c";
+	Require: replace all occurrences of "feet" in a with "people" =
 		"purple people on fire";
-	Require: replace all occurrences of "know" in c with "hide" = 
+	Require: replace all occurrences of "know" in c with "hide" =
 		"We hide the truth; yes, hide indeed";
 	Require: replace all occurrences of "pickles" in c with "hide" = c;
-	Require: replace all occurrences of <2,3> in b with <9,8,7> = 
+	Require: replace all occurrences of <2,3> in b with <9,8,7> =
 		<1,9,8,7,4,6,9,8,7>;
 	Require: replace all occurrences of <2,3> in b with <> = <1,4,6>;
 	Require: replace all occurrences of <2,3> in <2> with <> = <2>;
@@ -322,7 +322,7 @@ Test "subtuple replace" in tuple test suite is
 	Require: replace the first occurrence of <2,3,4> in <> with <9> = <>;
 	Require: replace the first occurrence of "know" in c with "fabricate" =
 		"We fabricate the truth; yes, know indeed";
-	Require: replace the first occurrence of <2,3> in b with <9,8,7> = 
+	Require: replace the first occurrence of <2,3> in b with <9,8,7> =
 		<1,9,8,7,4,6,2,3>;
 	Require: replace the first occurrence of <2,3> in b with <> = <1,4,6,2,3>;
 	Require: replace the first occurrence of <2,3> in <2> with <> = <2>;
@@ -338,7 +338,7 @@ Test "drop from tuple" in tuple test suite is
 	Require: drop from a until [n : natural number | n > 3] = <4,5,6>;
 	Require: drop from a until [n : natural number | n > 6] = <>;
 	Require: drop from a while [n : natural number | n < 3] = <3,2,1,4,5,6>;
-	Require: drop from a while [n : natural number | n < 7] = <>;	
+	Require: drop from a while [n : natural number | n < 7] = <>;
 ];
 
 Test "take from tuple" in tuple test suite is
@@ -362,7 +362,7 @@ Test "drop from tuple (macro)" in tuple test suite is
 	Require: drop n from a until [n > 3] = <4,5,6>;
 	Require: drop n from a until [n > 6] = <>;
 	Require: drop n from a while [n < 3] = <3,2,1,4,5,6>;
-	Require: drop n from a while [n < 7] = <>;	
+	Require: drop n from a while [n < 7] = <>;
 ];
 
 Test "take from tuple (macro)" in tuple test suite is
@@ -419,7 +419,7 @@ Test "suffixes and prefixes" in tuple test suite is
 Test "slice replacement" in tuple test suite is
 [
 	a ::= <1,2,3,2,1,4,5,6>;
-	Require: a[2..4] → <"foo",¢w,∅> = <1,"foo",¢w,∅,1,4,5,6>; 
+	Require: a[2..4] → <"foo",¢w,∅> = <1,"foo",¢w,∅,1,4,5,6>;
 ];
 
 Test "fold" in tuple test suite is
@@ -480,13 +480,13 @@ Test "random merge- and quicksort should be equal" in tuple test suite is
 [
 	rng : pRNG := a pRNG;
 	ref : <[-50..50]…|> := <>;
-	
-	Repeat 
-	[ 
+
+	Repeat
+	[
 		v ::= rng's next value in [-50..50];
 		ref := ref ++ <v>;
 	] 100 times;
-	
+
 	Require: merge sort ref = quicksort ref;
 ];
 
@@ -500,7 +500,7 @@ Test "merge sort" in tuple test suite is
 Test "small merge sort with" in tuple test suite is
 [
 	ref : <natural number…|>;
-	ref := merge sort <4,6,1> with 
+	ref := merge sort <4,6,1> with
 		[n : natural number, m : natural number | n ≥ m];
 	Require: <6,4,1> = ref;
 ];
@@ -518,8 +518,8 @@ Test "complex merge sort with" in tuple test suite is
 	ref : <natural number…|>;
 	ref := merge sort <14,4,6,1,2,3,20,18,19,17,16,15,12,13,5,7,8,9,10,11> with
 		[
-			n : natural number, 
-			m : natural number 
+			n : natural number,
+			m : natural number
 		|
 			(n is odd ∧ m is even)
 				∨ (n is odd ∧ m is odd ∧ n ≤ m)
@@ -538,7 +538,7 @@ Test "small merge sort macro" in tuple test suite is
 Test "merge sort macro" in tuple test suite is
 [
 	ref : <natural number…|>;
-	ref := merge sort n, m in 
+	ref := merge sort n, m in
 		<14,4,6,1,2,3,20,18,19,17,16,15,12,13,5,7,8,9,10,11> by [n ≥ m];
 	Require: <20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1> = ref;
 ];
@@ -546,7 +546,7 @@ Test "merge sort macro" in tuple test suite is
 Test "complex merge sort macro" in tuple test suite is
 [
 	ref : <natural number…|>;
-	ref := merge sort n, m in 
+	ref := merge sort n, m in
 		<14,4,6,1,2,3,20,18,19,17,16,15,12,13,5,7,8,9,10,11> by
 		[
 			(n is odd ∧ m is even)
@@ -588,7 +588,7 @@ Test "quicksort" in tuple test suite is
 Test "small quicksort with" in tuple test suite is
 [
 	ref : <natural number…|>;
-	ref := quicksort <4,6,1> with 
+	ref := quicksort <4,6,1> with
 		[n : natural number, m : natural number | n ≥ m];
 	Require: <6,4,1> = ref;
 ];
@@ -596,7 +596,7 @@ Test "small quicksort with" in tuple test suite is
 Test "quicksort with" in tuple test suite is
 [
 	ref : <natural number…|>;
-	ref := quicksort <14,4,6,1,2,3,20,18,19,17,16,15,12,13,5,7,8,9,10,11> with 
+	ref := quicksort <14,4,6,1,2,3,20,18,19,17,16,15,12,13,5,7,8,9,10,11> with
 		[n : natural number, m : natural number | n ≥ m];
 	Require: <20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1> = ref;
 ];
@@ -606,8 +606,8 @@ Test "complex quicksort with" in tuple test suite is
 	ref : <natural number…|>;
 	ref := quicksort <14,4,6,1,2,3,20,18,19,17,16,15,12,13,5,7,8,9,10,11> with
 		[
-			n : natural number, 
-			m : natural number 
+			n : natural number,
+			m : natural number
 		|
 			(n is odd ∧ m is even)
 				∨ (n is odd ∧ m is odd ∧ n ≤ m)
@@ -634,7 +634,7 @@ Test "quicksort macro" in tuple test suite is
 Test "complex quicksort macro" in tuple test suite is
 [
 	ref : <natural number…|>;
-	ref := quicksort n, m in 
+	ref := quicksort n, m in
 		<14,4,6,1,2,3,20,18,19,17,16,15,12,13,5,7,8,9,10,11> by
 		[
 		 	(n is odd ∧ m is even)
@@ -660,7 +660,7 @@ Test "quasi-destructive n-ary tuple update" in tuple test suite is
 
 Test "quasi-destructive n-ary complex tuple update" in tuple test suite is
 [
-	t : <<natural number,{string→natural number|1},natural number…|3>…|> := 
+	t : <<natural number,{string→natural number|1},natural number…|3>…|> :=
 		<<1,{"foo"→2},3>,<4,{"boo"→5},6>>;
 	n ::= t[1][2]["foo"] → 7;
 	Require: <<1,{"foo"→7},3>,<4,{"boo"→5},6>> = n;
@@ -668,7 +668,7 @@ Test "quasi-destructive n-ary complex tuple update" in tuple test suite is
 
 Test "quasi-destructive n-ary very complex tuple update" in tuple test suite is
 [
-	t : <<natural number,{string→<string…|2>|1},natural number…|3>…|> := 
+	t : <<natural number,{string→<string…|2>|1},natural number…|3>…|> :=
 		<<1,{"foo"→<"cheese","apples">},3>,<4,{"boo"→<"purple","chariots">},6>>;
 	n ::= t[1][2]["foo"][2] → "motor torpedo boat";
 	Require: <<1,{"foo"→<"cheese","motor torpedo boat">},3>,
@@ -728,10 +728,10 @@ Test "integer interval tuple" in tuple test suite is
 	 */
 	tinyTuple ::= 1 to 10 by 1;
 	concatOne ::= tinyTuple ++ expected;
-	Require: <1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12345678901, 12345678903, 
+	Require: <1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12345678901, 12345678903,
 		12345678905, 12345678907> = concatOne;
 
-	/* 
+	/*
 	 * Test the edges of small integer interval tuples and regular ones.
 	 */
 	intMaxInterval ::= 2147483640 to 2147483647 by 1;
@@ -739,7 +739,7 @@ Test "integer interval tuple" in tuple test suite is
 	concatTwo ::= intMaxInterval ++ tooBigInterval;
 	Require: 2147483640 to 2147483655 by 1 = concatTwo;
 
-	/* 
+	/*
 	 * Test concatenation of two small integer interval tuples.
 	 */
 	left ::= 1 to 5 by 1;
@@ -949,12 +949,12 @@ Test "tuple range replacement" in tuple test suite is
 	Require: t3 = t2;
 	Require: [t1[4][3](1..5)→<9,9,9>] raises subscript-out-of-bounds exception;
 	Require: [t1[4][3](4..1)→<9,9,9>] raises negative-size exception;
-	
+
 	t4 ::= <1,2,3,{"foo"→<4,<5,5,5,5>,6>},7,8>;
 	t5 ::= <1,2,3,{"foo"→<4,<5,9,9,5,5>,6>},7,8>;
 	t6 ::= t4[4]["foo"][2](1..3)→<9,9>;
 	Require: t6 = t5;
 	Require: [t4[4]["boo"][2](1..3)→<9,9>] raises key-not-found exception;
-	Require: [t4[4](2..4)→<9,9>] 
+	Require: [t4[4](2..4)→<9,9>]
 		raises incorrect-argument-type exception;
 ];

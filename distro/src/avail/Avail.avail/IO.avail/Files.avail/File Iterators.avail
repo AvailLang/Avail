@@ -1,6 +1,6 @@
 /*
  * File Iterators.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,7 @@ Body
 /* File iterators provide buffered random access to external files.  Buffer
  * management is a collaboration between the Avail library and the virtual
  * machine.
- * 
+ *
  * The parent random access buffered iterator abstraction defines the ability
  * to position the iterator at any natural number position.  Unaligned reads and
  * writes are then supported for the subtypes file reader and file writer,
@@ -93,19 +93,19 @@ Body
  * the operating system is unable to supply such buffers readily, an unaligned
  * write will simply take longer as the OS must first fetch any pages being
  * partially written.
- * 
+ *
  * To mitigate this cost, a best effort is made to perform aligned writes any
  * time this is possible.  Some libraries might read buffers premptively when
  * starting to write to a page, but Avail does not, under the assumption that by
  * the time the buffer is ready to be flushed, it is likely that the entire page
  * will be overwritten anyhow.
- * 
+ *
  * A file writer may be created with a maximum buffer amount, which determines
  * how big a dirty buffer may be before being evicted to disk.  Since the buffer
  * need not be aligned (at either end), the dirty buffer is only flushed up to
  * the last alignment boundary, leaving just the residue, if any, in the buffer
  * (clearing the dirty flag only if there is no residue).
- * 
+ *
  * As for reading, the buffer will be opportunistically populated:  If the
  * initial buffer being requested is in the cache, then as many cached buffers
  * up to the requested read size will be (efficiently) concatenated and
@@ -114,7 +114,7 @@ Body
  * requested range or the maximum allowed VM read size or the start of the next
  * buffer that is actually in the cache.  This avoids reading cached pages while
  * still providing efficient bulk transfers for cold data.
- * 
+ *
  * Cache coherence is explicitly maintained via "Refresh_" (a read barrier) and
  * "Synchronize_" (a write barrier).  Note that all writes first modify the
  * cache, and then the underlying file.  The LRUCache of pages is global,
@@ -291,7 +291,7 @@ file writer's exit buffer method is _privateWriteBuffer;
  *        nor overlapping the existing buffer).
  * @param "optionSet" "{open option|}?"
  *        The optional set of {@type "open option" options} with which to open
- *        the file handle.  The subtype of file iterator type that is 
+ *        the file handle.  The subtype of file iterator type that is
  * @param "optionalAccessRights" "{file access right|}?"
  *        The optional {@type "set"} of {@type "file access right"}s to supply
  *        at file handle opening time, which controls the initial access rights
@@ -485,7 +485,7 @@ Semantic restriction "Using|using_,⁇do_" is
  * Write the elements of the specified {@type "tuple"} to the supplied {@type
  * "buffered writer"}. This operation should be more efficient than repeatedly
  * sending {@method "_'s⁇current element:=_"} and {@method "Advance_"}.
- * 
+ *
  * <p>
  * After the write to the buffer, we only flush it if it crosses an alignment
  * boundary; in that case, we flush up to the <em>last</em> alignment boundary
@@ -601,7 +601,7 @@ _superRefresh ::= (method definition
  * by the writer and Refresh by the reader are not performed.  Note that
  * closing a writable file implicitly synchronizes it, and opening a file for
  * reading starts with an implicit Refresh.
- * 
+ *
  * @method "Refresh_"
  * @param "aReader" "file reader"
  * @returns "⊤"
@@ -624,7 +624,7 @@ _superSynchronize ::= (method definition
 /**
  * Wait for all outstanding writes on this iterator to complete writing to the
  * physical medium associated with the file's filesystem.
- * 
+ *
  * @method "Synchronize_"
  * @param "anIterator" "file writer"
  * @returns "⊤"
@@ -663,7 +663,7 @@ Method "Synchronize_" is
 /**
  * Shorten the {@type "file writer"} to the given size.  If the file is already
  * that size or smaller, do nothing.
- * 
+ *
  * @method "Truncate_to_bytes⁇"
  * @param "anIterator" "file writer"
  * @param "newSize" "whole number"

@@ -1,6 +1,6 @@
 /*
  * Streams.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,10 +87,10 @@ Extends
 Uses
 	"Foundation"
 Body
-	
+
 /**
  * Answer a function that computes a prefix function.
- * 
+ *
  * @method "a stream prefix function"
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ stream]→⊤"
  *          The requested function.
@@ -111,12 +111,12 @@ Private method "a stream prefix function" is
 
 /**
  * Answer a function that computes a body function.
- * 
+ *
  * @method "body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
- * @returns "[literal phrase ⇒ token, expression phrase ⇒ stream, 
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ stream,
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
@@ -135,38 +135,38 @@ Private method "body function(_,_)" is
 		Undeclare name;
 		aStreamType ::= aStream's semantic type;
 		elementType ::= aStreamType's element type's instance;
-		blockType ::= 
+		blockType ::=
 			[elementType]→(action's semantic type's return type);
-		returnType ::= strengthen baseReturnType for call of anAtom 
+		returnType ::= strengthen baseReturnType for call of anAtom
 			using <aStreamType, blockType>;
-		
+
 		statements ::= action's statements;
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t's last's semantic type]
 			else [⊤];
 		restricted send anAtom with
 		«<
-			aStream, 
+			aStream,
 			«[
 			  	<cast declaration into [d : argument phrase | d]>
-			 | 
+			 |
 			 	statements
 			 ] : blockReturnType»
 		>» : returnType
 	] : send phrase ⇒ ⊤
-] : [literal phrase ⇒ token, expression phrase ⇒ stream, 
+] : [literal phrase ⇒ token, expression phrase ⇒ stream,
      block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
 
 /**
  * Stream iterating-loop that invokes {@param "action"} once for every
- * {@param "elementPhrase"} in {@param "aStream"} 
- * 
+ * {@param "elementPhrase"} in {@param "aStream"}
+ *
  * @macro "For each…in|of_§do_"
  * @category "Data Abstractions" "Streams"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
+ *        variable is given the strongest possible type based on of
  *        {@param "aStream"}'s element type.
  * @param "aStream" "expression phrase ⇒ stream"
  *        An {@type "expression phrase"} that yields the stream to iterate over
@@ -182,12 +182,12 @@ Private method "body function(_,_)" is
 /**
  * Answer a tuple containing the prefix of {@param "aStream"} that answered
  * {@method "true"} to {@param "predicateBlock"}.
- * 
+ *
  * @macro "take…from_§while_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
+ *        variable is given the strongest possible type based on of
  *        {@param "aStream"}'s element type.
  * @param "aStream" "expression phrase ⇒ stream"
  *        An {@type "expression phrase"} that yields the stream to iterate over
@@ -204,12 +204,12 @@ Macro "take…from_§while_" is a stream prefix function,
 /**
  * Answer a tuple containing the prefix of {@param "aStream"} that answered
  * {@method "false"} to {@param "predicateBlock"}.
- * 
+ *
  * @macro "take…from_§until_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
+ *        variable is given the strongest possible type based on of
  *        {@param "aStream"}'s element type.
  * @param "aStream" "expression phrase ⇒ stream"
  *        An {@type "expression phrase"} that yields the stream to iterate over
@@ -227,13 +227,13 @@ Macro "take…from_§until_" is a stream prefix function,
  * Construct and answer a stream that applies `theTransformer` to the
  * consecutive elements of `aStream`. The result is lazy, so `aStream` may be
  * infinite.
- * 
+ *
  * @macro "map each…in|of_§through_"
  * @category "Data Abstractions" "Streams"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
+ *        variable is given the strongest possible type based on of
  *        {@param "aStream"}'s element type.
  * @param "aStream" "expression phrase ⇒ reader"
  *        An {@type "expression phrase"} that yields the reader to iterate over
@@ -247,11 +247,11 @@ Macro "map each…in|of_§through_" is a stream prefix function,
 	body function($"map_§through_", stream);
 
 /**
- * Iteratively apply {@param "predicate"} to each consecutive element of 
- * {@param "aStream"}, collecting those elements for which {@param "predicate"} 
- * answers {@method "true"} into a new stream (and preserving ordering). Answer 
+ * Iteratively apply {@param "predicate"} to each consecutive element of
+ * {@param "aStream"}, collecting those elements for which {@param "predicate"}
+ * answers {@method "true"} into a new stream (and preserving ordering). Answer
  * the new stream.
- * 
+ *
  * @macro "select each…from_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -270,11 +270,11 @@ Macro "select each…from_§where_" is a stream prefix function,
 	body function($"filter_by_",stream);
 
 /**
- * Iteratively apply {@param "predicate"} to each consecutive element of 
- * {@param "aStream"}, rejecting those elements for which {@param "predicate"} 
- * answers {@method "true"} into a new stream (and preserving ordering). Answer 
+ * Iteratively apply {@param "predicate"} to each consecutive element of
+ * {@param "aStream"}, rejecting those elements for which {@param "predicate"}
+ * answers {@method "true"} into a new stream (and preserving ordering). Answer
  * the new stream.
- * 
+ *
  * @macro "reject each…from_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -298,17 +298,17 @@ Macro "reject each…from_§where_" is a stream prefix function,
 	name ::= elementPhrase's token's lexeme;
 	aStreamType ::= aStream's semantic type;
 	blockType ::= [⊥]→(predicateBlock's semantic type's return type);
-	returnType ::= strengthen stream for call of $"filter_by_" 
-		using <aStreamType, blockType>; 		
+	returnType ::= strengthen stream for call of $"filter_by_"
+		using <aStreamType, blockType>;
 	statements ::= predicateBlock's statements;
 
 	size ::= |statements|;
 
-	newStatements ::= if size = 0 then [<>] else 
+	newStatements ::= if size = 0 then [<>] else
 	[
 	 	end : whole number := cast size-1 into [w : whole number | w];
 	 	i : natural number := cast size into [n : natural number | n];
-	 	c : expression phrase⇒any := cast statements[i] into 
+	 	c : expression phrase⇒any := cast statements[i] into
 		 	[e : expression phrase⇒any | e];
 	 	statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
 	];
@@ -321,10 +321,10 @@ Macro "reject each…from_§where_" is a stream prefix function,
 
 	restricted send $"filter_by_" with
 		«<
-			aStream, 
+			aStream,
 			«[
 			  	<cast declaration into [d : argument phrase | d]>
-			| 
+			|
 				newStatements
 			] : blockReturnType»
 		>» : returnType

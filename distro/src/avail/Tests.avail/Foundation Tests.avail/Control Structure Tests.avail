@@ -1,6 +1,6 @@
 /*
  * Control Structure Tests.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,7 @@ Test "continuations" in control structure test suite is
 	] : ⊤ ();
 	Require: value = 4;
 
-	locate : [⊥,⊥]→boolean := 
+	locate : [⊥,⊥]→boolean :=
 	[
 		queryValue : integer,
 		t : <integer…|3..>
@@ -90,7 +90,7 @@ Test "continuations" in control structure test suite is
 		If checkValue = 2 then [Exit check with true]
 		else [Restart check with <2>]
 	]:boolean;
-	Require: checkFunction(1);	
+	Require: checkFunction(1);
 ];
 
 Test "if then else" in control structure test suite is
@@ -105,7 +105,7 @@ Test "if then else" in control structure test suite is
 	Require: c = 7;
 
 	d : integer := 0;
-	If 5 > 6 then [d:= 8;]; 
+	If 5 > 6 then [d:= 8;];
 	Require: d = 0;
 
 	If 5 > 6 then [d := 9;] else [d := 10;];
@@ -118,16 +118,16 @@ Test "if then else" in control structure test suite is
 	Require: d = 15;
 
 	e ::=
-		if 5 > 6 then [16] 
-		else if [100 < 50] then [17] 
+		if 5 > 6 then [16]
+		else if [100 < 50] then [17]
 		else if [false] then [18]
 		else if [9 > 1000] then [19]
 		else [20];
 	Require: e = 20;
 
 	f ::=
-		if 5 > 6 then [21] 
-		else if [100 < 50] then [22] 
+		if 5 > 6 then [21]
+		else if [100 < 50] then [22]
 		else if [false] then [23]
 		else if [9 > 1] then [24]
 		else [25];
@@ -144,24 +144,24 @@ Test "if then else macro" in control structure test suite is
 	Require: d = 15;
 
 	e ::=
-		if 5 > 6 then [16] 
-		else if 100 < 50 then [17] 
+		if 5 > 6 then [16]
+		else if 100 < 50 then [17]
 		else if false then [18]
 		else if 9 > 1000 then [19]
 		else [20];
 	Require: e = 20;
 
 	f ::=
-		if 5 > 6 then [21] 
-		else if 100 < 50 then [22] 
+		if 5 > 6 then [21]
+		else if 100 < 50 then [22]
 		else if false then [23]
 		else if 9 > 1 then [24]
 		else [25];
 	Require: f = 24;
-	
+
 	g ::=
-		if 5 > 6 then [21] 
-		else if 100 < 50 then [22] 
+		if 5 > 6 then [21]
+		else if 100 < 50 then [22]
 		else if false then [23]
 		else if 9 > 1 ∧ 10 > 2 + 3 then [24]
 		else [25];
@@ -189,13 +189,13 @@ Test "unless then else" in control structure test suite is
 	Unless 5 < 6 then [d := 11;] else [d := 12;];
 	Require: d = 12;
 
-	Unless 5 < 6 then [d := 13;] else unless [100 > 50] then [d := 14;] 
+	Unless 5 < 6 then [d := 13;] else unless [100 > 50] then [d := 14;]
 		else [d := 15;];
 	Require: d = 15;
 
 	e ::=
-		unless 5 < 6 then [16] 
-		else unless [100 > 50] then [17] 
+		unless 5 < 6 then [16]
+		else unless [100 > 50] then [17]
 		else unless [true] then [18]
 		else unless [9 < 1000] then [19]
 		else [20];
@@ -216,13 +216,13 @@ Test "unless then else (macro)" in control structure test suite is
 	Require: c = 6;
 
 	d : integer := 0;
-	Unless 5 < 6 then [d := 13;] else unless 100 > 50 then [d := 14;] 
+	Unless 5 < 6 then [d := 13;] else unless 100 > 50 then [d := 14;]
 		else [d := 15;];
 	Require: d = 15;
 
 	e ::=
-		unless 5 < 6 then [16] 
-		else unless 100 > 50 then [17] 
+		unless 5 < 6 then [16]
+		else unless 100 > 50 then [17]
 		else unless true then [18]
 		else unless 9 < 1000 then [19]
 		else [20];
@@ -235,7 +235,7 @@ Test "unless then else (macro)" in control structure test suite is
 		else unless 9 < 1 + 3 then [24]
 		else [25];
 	Require: f = 24;
-		
+
 	pred ::= [a : integer | a < 50];
 	thenBlock ::= [24];
 	q ::=
@@ -273,7 +273,7 @@ Test "while loops" in control structure test suite is
 ];
 
 Test "while loops (macros)" in control structure test suite is
-[	
+[
 	i : whole number := 0;
 	While i < 6 do [i += 1;];
 	Require: i = 6;
@@ -290,7 +290,7 @@ Test "while loops (macros)" in control structure test suite is
 	m : integer := 10;
 	n : integer := -2;
 	Do [m -= 1;] while m ≥ 3 ∨ n < 12 alternate with [n += 1;];
-	Require: m = -5 ∧ n = 12;	
+	Require: m = -5 ∧ n = 12;
 ];
 
 Test "until loops" in control structure test suite is
@@ -303,7 +303,7 @@ Test "until loops" in control structure test suite is
 	c : integer := 11;
 	Do [d += 2;] until [d ≥ 7 ∧ c < 10] alternate with [c -= 4;];
 	Require: d = 8 ∧ c = -1;
-	
+
 	a : whole number := 0;
 	Until [a += 1; a > 6];
 	Require: a = 7;
@@ -311,7 +311,7 @@ Test "until loops" in control structure test suite is
 	b : whole number := 0;
 	Until [b > 10] do [b += 5;];
 	Require: b = 15;
-	
+
 	f : whole number := 0;
 	g : integer := 8;
 	Until [f > 10 ∧ g ≤ 0] do [f += 10;] alternate with [g -= 1;];
@@ -323,7 +323,7 @@ Test "until loops (macro)" in control structure test suite is
 	h : integer := 0;
 	Do [h := h + 2;] until h ≥ 5;
 	Require: h = 6;
-	
+
 	i : integer := 0;
 	j : integer := 11;
 	Do [i += 2;] until i ≥ 7 ∧ j < 10 alternate with [j -= 4;];
@@ -358,7 +358,7 @@ Test "choose from where" in control structure test suite is
 		¢e is [false];
 	Require: result1;
 
-	choice2 ::= ¢e; 
+	choice2 ::= ¢e;
 	result2 : boolean := choose choice2 from enumList where
 		¢a is [false],
 		¢b is [false],

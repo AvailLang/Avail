@@ -1,6 +1,6 @@
 /*
  * Definers.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -506,7 +506,7 @@ is
 
 /**
  * Reject the current parse if the test's return type is not exactly ⊤.
- * 
+ *
  * @method "Test_in_is_«must raise_»"
  * @restricts "string's type"
  * @restricts "atom's type"

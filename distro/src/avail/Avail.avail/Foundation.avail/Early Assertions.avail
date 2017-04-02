@@ -1,6 +1,6 @@
 /*
  * Early Assertions.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ Body
 /**
  * Early assertion mechanism. This is obsolete once exceptions are available,
  * and should not be exported beyond this package.
- * 
+ *
  * @method "Assert:_"
  * @param "predicate" "boolean"
  *        {@method "true"}.
@@ -62,7 +62,7 @@ Public method "Assert:_" is
 /**
  * Strengthen the return type to ⊥ iff the assertion statement is statically
  * identifiable as a contradiction.
- * 
+ *
  * @method "Assert:_"
  * @restricts "false's type's type"
  */
@@ -76,7 +76,7 @@ Semantic restriction "Assert:_" is
 /**
  * Strengthen the return type to ⊥ iff the assertion statement is statically
  * identifiable as a contradiction.
- * 
+ *
  * @method "Assert:_(_)"
  * @restricts "false's type's type"
  * @restricts "string's type"
@@ -93,7 +93,7 @@ Semantic restriction "Assert:_(_)" is
  * Declare that the code path that called this method should never be executed.
  * It results in an assertion failure. This is obsolete once exceptions are
  * available, and should not be exported beyond this package.
- * 
+ *
  * @method "Shouldn't happen"
  * @returns "⊥"
  * @category "Bootstrap" "Assertions"

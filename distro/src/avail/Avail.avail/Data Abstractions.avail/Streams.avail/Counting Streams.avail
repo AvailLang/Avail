@@ -1,6 +1,6 @@
 /*
  * Counting Streams.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -149,7 +149,7 @@ Semantic restriction "For each of⁇_do_" is
 			]
 		];
 	/* These are four circumstances which lead to non-termination:
-	 * 
+	 *
 	 * 1. The step is 0.
 	 * 2. The step is positive, the end is ∞, and the action answers `true`.
 	 * 3. The step is negative, the end is -∞, and the action answers `true`.
@@ -166,7 +166,7 @@ Semantic restriction "For each of⁇_do_" is
 /**
  * Construct and answer a stream that lazily produces all consecutive values
  * between `start` and `end`.
- * 
+ *
  * @method "a counting stream from_to_"
  * @param "start" "integer"
  *    start - The start value, inclusive. This is the first value that will be
@@ -216,7 +216,7 @@ Semantic restriction "a counting stream from_to_" is
  * Note that `end` is not guaranteed to be the last value produced by the
  * stream. It is only guaranteed that no larger values than `end` will be
  * answered.
- * 
+ *
  * @method "a counting stream from_to_by_"
  * @param "start" "number"
  *    start - The start value, inclusive. This is the first value that will be
@@ -282,7 +282,7 @@ Semantic restriction "a counting stream from_to_by_" is
  * Note that `end` is not guaranteed to be the last value produced by the
  * stream. It is only guaranteed that no larger values than `end` will be
  * answered.
- * 
+ *
  * @method "a counting stream from_to_by_"
  * @param "start" "integer"
  *    start - The start value, inclusive. This is the first value that will be

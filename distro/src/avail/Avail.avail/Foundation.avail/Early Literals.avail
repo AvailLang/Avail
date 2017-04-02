@@ -1,6 +1,6 @@
 /*
  * Early Literals.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ Body
 
 /**
  * Produce a description of the argument. The default implementation uses
- * {@method "primitive description of_"} to obtain a mechanically constructed 
+ * {@method "primitive description of_"} to obtain a mechanically constructed
  * description from the Avail virtual machine. Overrides should provide semantic
  * information that is appropriately localized for the default locale.
  *
@@ -95,11 +95,11 @@ Method "<«_‡,»>" is
 ] : tuple;
 
 /**
- * Strengthen the type of {@method "<«_‡,»>"} to the most exact possible. The 
- * hard work here is done automatically by the Avail compiler, which examines 
- * the lexical arguments and produces instance types for literals and applies 
+ * Strengthen the type of {@method "<«_‡,»>"} to the most exact possible. The
+ * hard work here is done automatically by the Avail compiler, which examines
+ * the lexical arguments and produces instance types for literals and applies
  * semantic restrictions to any method sends.
- * 
+ *
  * @method "<«_‡,»>"
  * @restricts "tuple meta"
  */

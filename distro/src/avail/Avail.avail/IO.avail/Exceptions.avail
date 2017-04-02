@@ -1,6 +1,6 @@
 /*
  * Exceptions.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,8 @@ Body
 /**
  * A data-validation exception is raised when an I/O operation fails to produce
  * a data item that conforms to imposed semantic rules.
- * 
- * @type "data-validation exception" 
+ *
+ * @type "data-validation exception"
  * @supertype "exception"
  * @category "Networking" "Exceptions" "IO"
  */

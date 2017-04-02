@@ -1,6 +1,6 @@
 /*
  * Positionable Iterators.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ Body
  * querying} and {@method "_'s⁇position:=_" setting} the current position.
  * Specific subtypes may support random access, but all subtypes should support
  * setting the current position to a previous position.
- * 
+ *
  * Since the position can be read, it covaries with respect to the positionable
  * iterator hierarchy.  Similarly, it can be written, so it must behave
  * covariantly.  In order for there to be any usable abstraction, we use
@@ -74,7 +74,7 @@ Public class "positionable iterator" extends iterator
 /**
  * Construct and answer a {@type "positionable iterator"} type from the
  * specified {@type "iterator"} type and statically computed position type.
- * 
+ *
  * We statically compute the position type, since passing something more
  * specific than the static type would lead to a violation of intravariance of
  * the position type (technically just the contravariance aspect due to the need
@@ -172,7 +172,7 @@ Semantic restriction "_'s⁇position" is
 
 /**
  * Set the current position of the {@type "positionable iterator"}.
- * 
+ *
  * @method "_'s⁇position:=_"
  * @param "anIterator" "positionable iterator"
  *        A {@type "positionable iterator"}.
@@ -193,7 +193,7 @@ Public method "_'s⁇position:=_" is
 
 /**
  * Ensure the new position is suitable.
- * 
+ *
  * @method "_'s⁇position:=_"
  * @restricts "positionable iterator's type's type"
  * @restricts "any's type"

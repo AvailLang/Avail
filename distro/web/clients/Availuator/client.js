@@ -1,6 +1,6 @@
 /*
  * client.js
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -167,7 +167,7 @@ function clearUI ()
 function presentUI ()
 {
 	var main = $("#client-ui");
-	
+
 	var div0 = document.createElement('div');
 	div0.className = 'title';
 	var title = document.createElement('p');
@@ -194,25 +194,25 @@ function presentUI ()
 	//Set up unicode palette
 	var divTop = document.createElement('div');
 	main.append(divTop);
-	
+
 	var divClose = document.createElement ('div');
 	divClose.id = 'closediv';
 
 	var divOpen = document.createElement('div');
 	divOpen.id='opendiv';
-	
+
 	var divPalette = document.createElement('div');
 	divPalette.id = 'palette';
-	
+
 	var populateFromPallete = function(content) {
 		var cursor = expression.get(0).selectionStart;
 		expression.val(expression.val().slice(0,cursor)
-			+ this.innerHTML 
+			+ this.innerHTML
 			+ expression.val().slice(cursor));
 		placeCursor(expression, cursor + 1);
 		//expression.get(0).selectionStart = cursor + 1;
 	}
-	
+
 	var unicodeSize = unicode.length;
 	var i = 0;
 	for (i = 0; i < unicodeSize; i++)
@@ -224,42 +224,42 @@ function presentUI ()
 		uniButton.addEventListener("click", populateFromPallete);
 		divPalette.appendChild(uniButton);
 	}
-	
+
 	var openButton = document.createElement('button');
 	openButton.innerHTML = "Open Unicode Palette";
 	openButton.addEventListener("click", function() {
 		divOpen.parentNode.removeChild(divOpen);
 		divTop.appendChild(divClose);
 	});
-	
+
 	var closeButton = document.createElement('button');
 	closeButton.innerHTML = "Close Unicode Palette";
 	closeButton.addEventListener("click", function() {
 		divClose.parentNode.removeChild(divClose);
 		divTop.appendChild(divOpen);
 	});
-	
+
 	divClose.appendChild(closeButton);
 	divClose.appendChild(divPalette);
 	divOpen.appendChild(openButton);
 	divTop.appendChild(divOpen);
-	
+
 	main.append(div0);
 	main.append(div1);
 	main.append(div2);
-	
+
 	//Add line numbers to the input area
 	$('textarea').numberedtextarea();
 	var lineNumbers = $('.numberedtextarea-line-numbers');
-	
+
 	var expression = $("#expression");
-	
+
 	//turn off word wrap so as to keep line numbers accurate
 	expression.attr('wrap','off');
-	
+
 	var historyStack = [];
 	var historyIndex = historyStack.length - 1;
-	
+
 	$("#expression-form").submit(function (event)
 	{
 		return false;
@@ -279,7 +279,7 @@ function presentUI ()
 				});
 			historyStack.push(expression.val());
 			historyIndex = historyStack.length - 1;
-		} 
+		}
 		else if (event.shiftKey && event.keyCode == 112)
 		{
 			event.preventDefault();
@@ -335,13 +335,13 @@ function presentUI ()
 				var tabs = "";
 				var index = 1;
 				var size = textToSearch.length;
-				while (index < size && textToSearch.charAt(index) == "\t") 
+				while (index < size && textToSearch.charAt(index) == "\t")
 				{
 					tabs = tabs + "\t";
 					index++;
 				}
 
-				expression.val(allText.slice(0,start) + "\n" + tabs 
+				expression.val(allText.slice(0,start) + "\n" + tabs
 					+ allText.slice(start));
 				var newTextLength = expression.val().length;
 				var shift = newTextLength - textSize;
@@ -355,37 +355,37 @@ function presentUI ()
 		if (event.keyCode === 27)
 		{
 			avail.close();
-		} 
-		else 
+		}
+		else
 		{
 			if (event.shiftKey && event.keyCode == 9)
 			{
-				event.preventDefault(); 
+				event.preventDefault();
 				var start = expression.get(0).selectionStart;
 				var end = expression.get(0).selectionEnd;
 				var allText = expression.val();
 				var textSize = allText.length;
 				var startLineIndex = beginningOfCurrentLineIndex();
 				var startText = expression.val().substring(0, start);
-				var selectedText = 
+				var selectedText =
 			    	allText.slice(startLineIndex,end);
 
 
 				if (startLineIndex == 0 &&
 					selectedText.charAt(startLineIndex) == "\t")
 				{
-					selectedText = 
+					selectedText =
 						selectedText.replace(/\t/,"");
 				}
 				selectedText = selectedText.replace(/\n\t/g,"\n");
 
-			    expression.val(expression.val().substring(0, startLineIndex) 
-					+ selectedText 
+			    expression.val(expression.val().substring(0, startLineIndex)
+					+ selectedText
 					+ expression.val().substring(end));
 
 			    var newTextLength = expression.val().length;
 			    var shift = 0;
-			    if (newTextLength != textSize && startText.slice(-1) != "\n") 
+			    if (newTextLength != textSize && startText.slice(-1) != "\n")
 			    {
 			    	shift = -1;
 			    }
@@ -394,30 +394,30 @@ function presentUI ()
 			}
 			else
 			{
-				if (event.keyCode == 9) 
-				{ 
+				if (event.keyCode == 9)
+				{
 					event.preventDefault();
 					var start = expression.get(0).selectionStart;
 					var end = expression.get(0).selectionEnd;
 					var allText = expression.val();
-					
+
 					if (end > start)
 					{
 						var textSize = allText.length;
 						var startLineIndex = beginningOfCurrentLineIndex();
-						var selectedText = 
+						var selectedText =
 					    	allText.slice(startLineIndex,end);
-	
-						if (startLineIndex == 0 && 
+
+						if (startLineIndex == 0 &&
 							selectedText.charAt(startLineIndex) != "\n")
 						{
 							selectedText = "\t" + selectedText;
 						}
-						
-						if (selectedText.length > 1 
+
+						if (selectedText.length > 1
 							&& selectedText.slice(-1) == "\n")
 						{
-							selectedText = 
+							selectedText =
 								selectedText.slice(0, selectedText.length - 1);
 							selectedText = selectedText.replace(/\n/g,"\n\t");
 							selectedText = selectedText + "\n";
@@ -426,21 +426,21 @@ function presentUI ()
 						{
 							selectedText = selectedText.replace(/\n/g,"\n\t");
 						}
-	
+
 						expression.val(allText.substring(0, startLineIndex)
 							+ selectedText
 							+ expression.val().substring(end));
-	
+
 						var newTextLength = expression.val().length;
-						resetSelectedText(textSize, newTextLength, start, 
+						resetSelectedText(textSize, newTextLength, start,
 							end, 1);
-					} 
+					}
 					else
 					{
 						expression.val(allText.substring(0, start)
 							+ "\t"
 							+ expression.val().substring(start));
-						
+
 						placeCursor(expression, start + 1);
 					}
 				}
@@ -466,13 +466,13 @@ function presentResult (result)
  *
  * @returns {string}
  */
-function beginningOfCurrentLineIndex() 
+function beginningOfCurrentLineIndex()
 {
     var expression = $("#expression");
     var allText = expression.val();
     var start = expression.get(0).selectionStart;
     var i = start;
-    while (i > 0 && allText.charAt(i) != "\n") 
+    while (i > 0 && allText.charAt(i) != "\n")
     {
     	i--;
     }
@@ -484,7 +484,7 @@ function beginningOfCurrentLineIndex()
  * @param textArea
  * @param index
  */
-function placeCursor(textArea, index) 
+function placeCursor(textArea, index)
 {
 	textArea.focus();
 	textArea.get(0).selectionStart = index;
@@ -493,17 +493,17 @@ function placeCursor(textArea, index)
 
 /**
  * Apply selection to text in textarea
- * @param initialSize 
+ * @param initialSize
  * @param newSize
  * @param start
  * @param end
  * @param shift
  */
-function resetSelectedText(initialSize, newSize, start, end, shift) 
+function resetSelectedText(initialSize, newSize, start, end, shift)
 {
 	 var carretOffset = initialSize - newSize;
 	 var expression = $("#expression");
-	 
+
 	 // put caret at right position again
 	 expression.get(0).selectionStart = start + shift;
 	 expression.get(0).selectionEnd = end - carretOffset;

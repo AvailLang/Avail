@@ -1,6 +1,6 @@
 /*
  * Strings.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,7 +122,7 @@ interpolationMode ::= enumeration of {description, text, escape};
  *     escaped metacharacter at the format site that should be copied,
  *     unescaped, into the result.</li>
  * <ul>
- * 
+ *
  * @method "interpolation mode"
  * @returns "{description, text, escape}ᵀ"
  */
@@ -138,7 +138,7 @@ Private method "interpolation mode" is [interpolationMode];
  * <li>The start subscript of the site.</li>
  * <li>The end subscript of the site.</li>
  * </ol>
- * 
+ *
  * @method "format site"
  * @returns "<string, interpolation mode, natural number, natural number…|4>"
  *          The tuple type described above.
@@ -176,7 +176,7 @@ Private method "format metacharacters" is
 
 /**
  * Compute and answer the tuple of format sites for the specified template.
- * 
+ *
  * @method "format sites for_"
  * @param "template" "string"
  *        A template.
@@ -275,7 +275,7 @@ Private stable method "format sites for_" is
  * metacharacter, precede it immediately by ¢`.
  *
  * For example:
- * 
+ *
  *    {@code Assert:
  *        partially format "‘greeting’, ‘recipient’!\n"
  *            with {"greeting"→"Hello"}
@@ -341,7 +341,7 @@ Public stable method "partially format_with_" is
 /**
  * Compute and answer the minimum size of the result of formatting the specified
  * template.
- * 
+ *
  * @method "minimum`|_after formatting`|"
  * @param "template" "string"
  *        A template.
@@ -399,7 +399,7 @@ Semantic restriction "partially format_with_" is
  * metacharacter, precede it immediately by ¢`.
  *
  * For example:
- * 
+ *
  *    {@code Assert:
  *        format "‘greeting’, ‘recipient’!\n"
  *            with {"greeting"→"Hello", "recipient"→"world"}
@@ -480,7 +480,7 @@ Semantic restriction "format_with_" is
 /**
  * Answer the name of the format variable that should be derived from the
  * specified token.
- * 
+ *
  * @method "format variable for_"
  * @param "aToken" "token"
  * @returns "string"
@@ -523,7 +523,7 @@ Private method "format variable for_" is
  * metacharacter, precede it immediately by ¢`.
  *
  * For example:
- * 
+ *
  *    {@code Assert:
  *        (partially format "‘greeting’, ‘recipient’!\n"
  *            with greeting ::= "Hello")
@@ -562,7 +562,7 @@ Public stable method "partially format_with«…::=_‡,»" is
  * If the template is statically known, then ensure that 1) each lexical binding
  * references a valid format variable and 2) each format variable that uses
  * the $text interpolation mode is actually bound to a string.
- * 
+ *
  * @method "partially format_with«…::=_‡,»"
  * @restricts "string's type"
  * @restricts "<<token, any…|2>…|1..>'s type"
@@ -627,7 +627,7 @@ Semantic restriction "partially format_with«…::=_‡,»" is
  * metacharacter, precede it immediately by ¢`.
  *
  * For example:
- * 
+ *
  *    {@code Assert:
  *        (format "‘greeting’, ‘recipient’!\n"
  *            with "greeting" ::= "Hello", "recipient" ::= "world")
@@ -657,7 +657,7 @@ Public stable method "format_with«…!::=_‡,»" is
  * references a valid format variable, 2) each format variable is bound, and
  * 3) each format variable that uses the $text interpolation mode is actually
  * bound to a string.
- * 
+ *
  * @method "format_with«…!::=_‡,»"
  * @restricts "string's type"
  * @restricts "<<token, any…|2>…|1..>'s type"
@@ -730,7 +730,7 @@ Semantic restriction "format_with«…!::=_‡,»" is
  * into the result. To escape a metacharacter, precede it immediately by ¢`.
  *
  * For example:
- * 
+ *
  *    {@code Assert:
  *        format "‘①’, ‘②’!\n" with unchecked <"Hello", "world">
  *        = "Hello, world!\n";}
@@ -834,7 +834,7 @@ Semantic restriction "format_with unchecked_" is
  * into the result. To escape a metacharacter, precede it immediately by ¢`.
  *
  * For example:
- * 
+ *
  *    {@code Assert:
  *        format "‘①’, ‘②’!\n" with "Hello", "world"
  *        = "Hello, world!\n";}
@@ -863,7 +863,7 @@ Public stable method "format_with«_‡,»" is
  * references a valid format variable, 2) each format variable is bound, and
  * 3) each format variable that uses the $text interpolation mode is actually
  * bound to a string.
- * 
+ *
  * @method "format_with«_‡,»"
  * @restricts "string's type"
  * @restricts "<any…|1..50>'s type"
@@ -990,7 +990,7 @@ Public stable method "_(base_)" is
 
 /**
  * Convert the specified string to an integer.
- * 
+ *
  * @method "_→_"
  * @param "str" "string"
  *        A string of base-10 digits.
@@ -1110,7 +1110,7 @@ Method "_>_" is
 
 /**
  * Quicksort a tuple of strings in ascending order.
- * 
+ *
  * @method "quicksort_"
  * @param "strings" "string*" The {@type "tuple"} of strings to sort
  * @returns "string*" A sorted {@type "tuple"} of strings
@@ -1125,7 +1125,7 @@ Method "quicksort_" is
 
 /**
  * Merge sort a tuple of strings in ascending order.
- * 
+ *
  * @method "merge sort_"
  * @param "strings" "string*" The {@type "tuple"} of strings to sort
  * @returns "string*" A sorted {@type "tuple"} of strings
@@ -1140,7 +1140,7 @@ Method "merge sort_" is
 
 /**
  * Stringify the argument.
- * 
+ *
  * @method "“_”"
  * @param "aTuple" "tuple"
  * @returns "string"
@@ -1210,7 +1210,7 @@ Public method "“_”«else_»(as simple list)" is
 
 /**
  * Stringify the argument.
- * 
+ *
  * @method "“_”"
  * @param "aSet" "set"
  * @returns "string"
@@ -1265,7 +1265,7 @@ Public method "“_”«else_»(as simple list)" is
 
 /**
  * Stringify the argument.
- * 
+ *
  * @method "“_”"
  * @param "aMap" "map"
  * @returns "string"
@@ -1800,7 +1800,7 @@ Public method "(The)“_”«else_»" is
 
 /**
  * Print object types more neatly.
- * 
+ *
  * @method "“_”"
  * @param "anObjectType" "object's type"
  * @returns "string"
@@ -1816,7 +1816,7 @@ Method "“_”" is
 
 /**
  * Print object types more neatly.
- * 
+ *
  * @method "“_”"
  * @param "anObject" "object"
  * @returns "string"
@@ -1931,7 +1931,7 @@ Semantic restriction "“_”(UUID)" is
  * @method "_→code points"
  * @param "s" "string"
  * @returns "code point*"
- * @category "Tuples" "Strings" "Transformers" 
+ * @category "Tuples" "Strings" "Transformers"
  */
 Public stable method "_→code points" is
 [

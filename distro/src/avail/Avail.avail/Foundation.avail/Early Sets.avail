@@ -1,6 +1,6 @@
 /*
  * Early Sets.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,7 @@ Semantic restriction "_∪_" is
 
 /**
  * Make union left associate.
- * 
+ *
  * @method "_∪_"
  * @forbids 2 "_∪_"
  */
@@ -182,7 +182,7 @@ Method "_\\_" is stable at [set, set]→set;
  * If the subtrahend definitely can't contain any of the same elements as the
  * minuend, then the size of the subtrahend can't be affected (because the
  * asymmetric difference won't remove any elements).
- * 
+ *
  * @method "_\\_"
  * @restricts "set meta"
  * @restricts "set meta"
@@ -192,7 +192,7 @@ Semantic restriction "_\\_" is
 	minuendType : set meta,
 	subtrahendType : set meta
 |
-	subtrahendUpper ::= 
+	subtrahendUpper ::=
 		if minuendType's element type ∩ (subtrahendType's element type) = ⊥
 		then [ 0 ]
 		else [ ⎡subtrahendType⎤ ];
@@ -203,7 +203,7 @@ Semantic restriction "_\\_" is
 
 /**
  * Make asymmetric set difference left-associate.
- * 
+ *
  * @method "_\\_"
  * @forbids 2 "_\\_"
  */
@@ -218,14 +218,14 @@ Grammatical restriction "_→_" is <∅, {"set"}>;
 /**
  * Make various boolean-valued set (and type) operations bind more tightly than
  * logical negation.
- * 
+ *
  * @method "_∈_"
  * @forbids 1 "¬_"
  */
 /**
  * Make various boolean-valued set (and type) operations bind more tightly than
  * logical negation.
- * 
+ *
  * @method "_⊆_"
  * @forbids 1 "¬_"
  */

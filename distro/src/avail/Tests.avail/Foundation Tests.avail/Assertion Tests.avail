@@ -1,6 +1,6 @@
 /*
  * Assertion Tests.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ New test suite assertion test suite extends foundation test suite;
 
 Test "basic assertions" in assertion test suite is
 [
-	Guard 
+	Guard
 	[
 	 	Assert: 5 = 5;
 		Assert: "foo" = "foo";
@@ -57,7 +57,7 @@ Test "basic assertions" in assertion test suite is
 
 Test "assertion failed exception" in assertion test suite is
 [
- 	Require: 
+ 	Require:
  	[
  	 	func :: =
  	 	[
@@ -69,7 +69,7 @@ Test "assertion failed exception" in assertion test suite is
  	 	Assert: func(5,6);
  	] raises assertion-failed exception;
 
-	Require: 
+	Require:
  	[
 	 	func :: =
 	 	[
@@ -81,7 +81,7 @@ Test "assertion failed exception" in assertion test suite is
 	 	Assert: func(true,false);
  	] raises assertion-failed exception;
 
-	Require: 
+	Require:
  	[
 	 	func :: =
  	 	[
@@ -89,11 +89,11 @@ Test "assertion failed exception" in assertion test suite is
  	 	 	b : integer
  	 	 |
  	 	 	a ≥ b
- 	 	]; 
+ 	 	];
  	 	Assert: func(-10,62);
  	] raises assertion-failed exception;
 
-	Require: 
+	Require:
  	[
 	 	func :: =
  	 	[
@@ -101,7 +101,7 @@ Test "assertion failed exception" in assertion test suite is
  	 	 	b : extended integer
  	 	 |
  	 	 	a ≥ b
- 	 	]; 
+ 	 	];
  	 	Assert: func(-∞,∞);
  	] raises assertion-failed exception;
-]; 
+];

@@ -1,6 +1,6 @@
 /*
  * Early Maps.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ Method "{_→_`|}" is stable at [any meta, any meta]→map meta;
 /**
  * If the exact map is known, then answer the enumeration of its keys.
  * Otherwise, just answer the key type.
- * 
+ *
  * @method "_'s⁇key type"
  * @restricts "map meta's type"
  */
@@ -86,7 +86,7 @@ Semantic restriction "_'s⁇key type" is
 /**
  * If the exact map is known, then answer the enumeration of its values.
  * Otherwise, just answer the value type.
- * 
+ *
  * @method "_'s⁇value type"
  * @restricts "map meta's type"
  */
@@ -113,7 +113,7 @@ Method "_∈_" is stable at [any, map]→boolean;
  * Use type intersection to determine whether the map could possibly contain
  * the specified key. In some rare circumstances, it is even possible to
  * determine if the map *must* contain the key.
- * 
+ *
  * @method "_∈_"
  * @restricts "any meta"
  * @restricts "map meta"
@@ -136,7 +136,7 @@ Method "_[_]" is stable at [map, any]→any;
 
 /**
  * Answer the map's value type.
- * 
+ *
  * @method "_[_]"
  * @restricts "map meta"
  * @restricts "any meta"
@@ -178,7 +178,7 @@ Semantic restriction "_'s⁇keys" is
 /**
  * Note that the values of a map are arbitrarily ordered (by hashing), and no
  * two invocations on the same map are guaranteed to produce the same tuple.
- * 
+ *
  * @method "_'s⁇values"
  * @restricts "map meta"
  */
@@ -192,7 +192,7 @@ Semantic restriction "_'s⁇values" is
 Method "_+_→_" is stable at [map, any, any]→map;
 
 /**
- * 
+ *
  * @method "_+_→_"
  * @restricts "map meta"
  * @restricts "any meta"
@@ -212,7 +212,7 @@ Semantic restriction "_+_→_" is
 	/* If the type intersection of the key type and the new key type is
 	 * ⊥, then the new key cannot be present in the map. Adjust the
 	 * cardinality accordingly.
-	 */ 
+	 */
 	if oldKeyType ∩ keyType = ⊥ then
 	[
 		lower := eject lower + 1;
@@ -264,14 +264,14 @@ Semantic restriction "_-_" is
 /**
  * If {@param "key"} is a key of {@param "aMap"}, then answer its associated
  * value. Otherwise, invoke {@param "else"} and answer its return value.
- * 
+ *
  * @method "_[_]else_"
  * @param "aMap" "map"
  *        A map.
  * @param "key" "any"
  *        A key.
  * @param "default" "[]→any"
- *        A function that answers the 
+ *        A function that answers the
  * @returns "any"
  * @category "Maps" "Queries"
  */

@@ -1,6 +1,6 @@
 /*
  * Filtered Readers.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,7 @@ Class "filtered reader" extends decorated reader
 /**
  * Determine if the {@type "filtered reader"} is exhausted.  This may cause the
  * decorated reader to be advanced multiple times.
- * 
+ *
  * @category "Data Abstractions" "Readers"
  * @method "_is exhausted"
  * @param "aReader" "filtered reader"
@@ -162,7 +162,7 @@ Method "filter_by_" is
  * Ensure the predicate will accept the inner reader's elements.  Also
  * strengthen the result to be a {@type "reader"} whose elements are the same as
  * those of the inner reader.
- * 
+ *
  * @category "Data Abstractions" "Readers"
  * @method "filter_by_"
  * @restricts "readerType" "reader's type"

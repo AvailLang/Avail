@@ -1,6 +1,6 @@
 /*
  * Concurrency Tests.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -444,7 +444,7 @@ Test "macro for-each in parallel (small window)" in concurrency test suite is
 	 * that we don't need a mutex.
 	 */
 	For each i of 1 to |ref| in parallel 1-way do [s ++= ref[i..i];];
-	
+
 	s2 : string := "";
 	For each n,i of 1 to |ref| in parallel 1-way do [s2 ++= ref[i..n];];
 	Require: s = ref;
@@ -605,7 +605,7 @@ Test "filter in parallel (tuple)" in concurrency test suite is
 Test "select in parallel (tuple macro)" in concurrency test suite is
 [
 
-	result ::= select each i from 1 to 10 in parallel where [i is odd]; 
+	result ::= select each i from 1 to 10 in parallel where [i is odd];
 	expected ::= select each i from 1 to 10 where [i is odd];
 	Require: result = expected;
 ];
@@ -613,7 +613,7 @@ Test "select in parallel (tuple macro)" in concurrency test suite is
 Test "reject in parallel (tuple macro)" in concurrency test suite is
 [
 
-	result ::= reject each i from 1 to 10 in parallel where [i is odd]; 
+	result ::= reject each i from 1 to 10 in parallel where [i is odd];
 	expected ::= reject each i from 1 to 10 where [i is odd];
 	Require: result = expected;
 ];
@@ -621,9 +621,9 @@ Test "reject in parallel (tuple macro)" in concurrency test suite is
 Test "select in parallel (tuple macro 2 input)" in concurrency test suite is
 [
 
-	result ::= select each i, j from 1 to 10 in parallel 
-		where [i is odd  ∧ ¬j is even]; 
-	expected ::= select each i, j from 1 to 10 
+	result ::= select each i, j from 1 to 10 in parallel
+		where [i is odd  ∧ ¬j is even];
+	expected ::= select each i, j from 1 to 10
 		where [i is odd  ∧ ¬j is even];
 	Require: result = expected;
 ];
@@ -631,9 +631,9 @@ Test "select in parallel (tuple macro 2 input)" in concurrency test suite is
 Test "reject in parallel (tuple macro 2 input)" in concurrency test suite is
 [
 
-	result ::= reject each i, j from 1 to 10 in parallel 
-		where [i is odd  ∧ ¬j is even]; 
-	expected ::= reject each i, j from 1 to 10 
+	result ::= reject each i, j from 1 to 10 in parallel
+		where [i is odd  ∧ ¬j is even];
+	expected ::= reject each i, j from 1 to 10
 		where [i is odd  ∧ ¬j is even];
 	Require: result = expected;
 ];
@@ -669,7 +669,7 @@ Test "filter in parallel (set)" in concurrency test suite is
 Test "select in parallel (set macro)" in concurrency test suite is
 [
 
-	result ::= select each i from 1 to 10→set in parallel where [i is odd]; 
+	result ::= select each i from 1 to 10→set in parallel where [i is odd];
 	expected ::= select each i from 1 to 10→set where [i is odd];
 	Require: result = expected;
 ];
@@ -677,7 +677,7 @@ Test "select in parallel (set macro)" in concurrency test suite is
 Test "reject in parallel (set macro)" in concurrency test suite is
 [
 
-	result ::= reject each i from {1,2,3,4,5,6,7,8,9,10} in parallel where [i is odd]; 
+	result ::= reject each i from {1,2,3,4,5,6,7,8,9,10} in parallel where [i is odd];
 	expected ::= reject each i from 1 to 10→set where [i is odd];
 	Require: result = expected;
 ];

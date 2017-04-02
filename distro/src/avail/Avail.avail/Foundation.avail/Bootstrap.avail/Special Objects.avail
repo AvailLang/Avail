@@ -1,6 +1,6 @@
 /*
  * Special Objects.avail
- * Copyright © 1993-2016, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -259,7 +259,7 @@ Special object "any" is special object 1;
  *
  * Note that values may be instances of many enumerations. This means that Avail
  * directly supports other logical systems, such as Kleene's three-valued logic
- * of indeterminacy, whose truth values are {@code "true"}, {@code "false"}, 
+ * of indeterminacy, whose truth values are {@code "true"}, {@code "false"},
  * and {@code "unknown"}. Implementation of this system would proceed directly
  * from creation of an atom to represent {@code "unknown"} and the formation of
  * a new enumeration that contained the standard {@method "true"} and {@method

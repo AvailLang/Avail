@@ -1,6 +1,6 @@
 /*
  * Abstract Iterators.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,9 +92,9 @@ Public explicit class "iterator" extends object
 		element type : any's type;
 
 /**
- * A reader is an {@type "iterator"} through which reading may happen, via the 
+ * A reader is an {@type "iterator"} through which reading may happen, via the
  * method {@method "_'s⁇current element"}.
- * 
+ *
  * @category "Data Abstractions" "Readers"
  * @type "reader"
  * @supertype "iterator"
@@ -123,7 +123,7 @@ Public explicit class "exhausted-iterator exception" extends exception;
 
 /**
  * Is the specified iterator exhausted?
- * 
+ *
  * @category "Data Abstractions" "Iterators"
  * @method "_is exhausted"
  * @param "anIterator" "iterator"
@@ -391,7 +391,7 @@ Public method "writer of_" is
 
 /**
  * Set the specified writer's current element without advancing.
- * 
+ *
  * @category "Data Abstractions" "Writers"
  * @method "_'s⁇current element:=_"
  * @param "aWriter" "writer"
@@ -732,7 +732,7 @@ Method "Drop«at most»?_from_" is
 /**
  * Forward the specified {@type "reader"} past the prefix of elements that
  * answer {@code true} to {@param "predicate"}.
- * 
+ *
  * @category "Data Abstractions" "Readers"
  * @method "Drop from_while_"
  * @param "aReader" "reader"
@@ -748,7 +748,7 @@ Method "Drop from_while_" is
 	aReader : reader,
 	predicate : [⊥]→boolean
 |
-	While aReader is not exhausted ∧ predicate(aReader's current element) 
+	While aReader is not exhausted ∧ predicate(aReader's current element)
 		do [Advance aReader;];
 ] : ⊤;
 

@@ -1,6 +1,6 @@
 /*
  * Mapped Readers.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ Body
  * another reader and retains a transformer function. When it is asked for its
  * current element, it answers the result of applying the function to the
  * current element of the decorated reader.
- * 
+ *
  * @category "Data Abstractions" "Readers"
  * @type "mapped reader"
  * @supertype "reader"
@@ -73,7 +73,7 @@ Class "mapped reader" extends decorated reader
 
 /**
  * A mapped reader is exhausted when its component reader is exhausted.
- * 
+ *
  * @category "Data Abstractions" "Readers"
  * @method "_is exhausted"
  * @restricts "aReader" "mapped reader"
@@ -109,7 +109,7 @@ mapped reader's advance method is
  * Construct and answer an reader that applies {@param "theTransformer"} to
  * the consecutive elements of {@param "aReader"}. The result is lazy, so
  * {@param "aReader"} may be infinite.
- * 
+ *
  * @category "Data Abstractions" "Readers"
  * @method "map_through_"
  * @param "aReader" "reader"
@@ -136,7 +136,7 @@ Method "map_through_" is
  * Ensure the transformer will accept the supplied reader's elements, and
  * strengthen the resulting type to be a reader that produces elements whose
  * type is the transformer's return type.
- * 
+ *
  * @category "Data Abstractions" "Readers"
  * @method "map_through_"
  * @restricts "readerType" "reader's type"

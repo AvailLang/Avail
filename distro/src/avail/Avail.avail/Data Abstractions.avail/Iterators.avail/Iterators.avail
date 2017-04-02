@@ -1,6 +1,6 @@
 /*
  * Iterators.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ Body
 
 /**
  * Answer a function that computes a prefix function.
- * 
+ *
  * @method "a reader prefix function"
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ reader]→⊤"
  *          The requested function.
@@ -104,8 +104,8 @@ Private method "body function(_,_)" is
 		name ::= elementPhrase's token's lexeme;
 		aReaderType ::= aReader's semantic type;
 		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
-		returnType ::= strengthen baseReturnType for call of anAtom 
-			using <aReaderType, blockType>; 		
+		returnType ::= strengthen baseReturnType for call of anAtom
+			using <aReaderType, blockType>;
 		statements ::= predicateBlock's statements;
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t's last's semantic type]
@@ -131,14 +131,14 @@ Private method "body function(_,_)" is
 
 /**
  * Reader iterating-loop that invokes {@param "action"} once for every
- * {@param "elementPhrase"} in {@param "aReader"} 
- * 
+ * {@param "elementPhrase"} in {@param "aReader"}
+ *
  * @macro "For each…in|of_§do_"
  * @category "Data Abstractions" "Readers"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
+ *        variable is given the strongest possible type based on of
  *        {@param "aReader"}'s element type.
  * @param "aReader" "expression phrase ⇒ reader"
  *        An {@type "expression phrase"} that yields the reader to iterate over
@@ -154,12 +154,12 @@ Macro "For each…in|of_§do_" is a reader prefix function,
 /**
  * Answer a tuple containing the prefix of {@param "aReader"} that answered
  * {@method "true"} to {@param "predicateBlock"}.
- * 
+ *
  * @macro "take…from_§while_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
+ *        variable is given the strongest possible type based on of
  *        {@param "aReader"}'s element type.
  * @param "aReader" "expression phrase ⇒ reader"
  *        An {@type "expression phrase"} that yields the reader to iterate over
@@ -176,12 +176,12 @@ Macro "take…from_§while_" is a reader prefix function,
 /**
  * Answer a tuple containing the prefix of {@param "aReader"} that answered
  * {@method "false"} to {@param "predicateBlock"}.
- * 
+ *
  * @macro "take…from_§until_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
+ *        variable is given the strongest possible type based on of
  *        {@param "aReader"}'s element type.
  * @param "aReader" "expression phrase ⇒ reader"
  *        An {@type "expression phrase"} that yields the reader to iterate over
@@ -198,12 +198,12 @@ Macro "take…from_§until_" is a reader prefix function,
 /**
  * Forward the specified {@type "reader"} past the prefix of elements that
  * answer {@code false} to {@param "predicateBlock"}.
- * 
+ *
  * @macro "Drop…from_§until_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
+ *        variable is given the strongest possible type based on of
  *        {@param "aReader"}'s element type.
  * @param "aReader" "expression phrase ⇒ reader"
  *        An {@type "expression phrase"} that yields the reader to iterate over
@@ -220,12 +220,12 @@ Public macro "Drop…from_§until_" is a reader prefix function,
 /**
  * Forward the specified {@type "reader"} past the prefix of elements that
  * answer {@code true} to {@param "predicateBlock"}.
- * 
+ *
  * @macro "Drop…from_§while_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
+ *        variable is given the strongest possible type based on of
  *        {@param "aReader"}'s element type.
  * @param "aReader" "expression phrase ⇒ reader"
  *        An {@type "expression phrase"} that yields the reader to iterate over
@@ -243,12 +243,12 @@ Public macro "Drop…from_§while_" is a reader prefix function,
  * Construct and answer a reader that applies {@param "action"} to
  * the consecutive elements of {@param "aReader"}. The result is lazy, so
  * {@param "aReader"} may be infinite.
- * 
+ *
  * @macro "map each…in|of_§through_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable. The generated loop
- *        variable is given the strongest possible type based on of 
+ *        variable is given the strongest possible type based on of
  *        {@param "aReader"}'s element type.
  * @param "aReader" "expression phrase ⇒ reader"
  *        An {@type "expression phrase"} that yields the reader to iterate over
@@ -262,11 +262,11 @@ Macro "map each…in|of_§through_" is a reader prefix function,
 	body function($"map_through_", reader);
 
 /**
- * Iteratively apply {@param "predicate"} to each consecutive element of 
- * {@param "aReader"}, collecting those elements for which {@param "predicate"} 
- * answers {@method "true"} into a new reader (and preserving ordering). Answer 
+ * Iteratively apply {@param "predicate"} to each consecutive element of
+ * {@param "aReader"}, collecting those elements for which {@param "predicate"}
+ * answers {@method "true"} into a new reader (and preserving ordering). Answer
  * the new reader.
- * 
+ *
  * @macro "select each…from_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -285,11 +285,11 @@ Macro "select each…from_§where_" is a reader prefix function,
 	body function($"filter_by_",reader);
 
 /**
- * Iteratively apply {@param "predicate"} to each consecutive element of 
- * {@param "aReader"}, rejecting those elements for which {@param "predicate"} 
- * answers {@method "true"} into a new reader (and preserving ordering). Answer 
+ * Iteratively apply {@param "predicate"} to each consecutive element of
+ * {@param "aReader"}, rejecting those elements for which {@param "predicate"}
+ * answers {@method "true"} into a new reader (and preserving ordering). Answer
  * the new reader.
- * 
+ *
  * @macro "reject each…from_§where_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
@@ -313,17 +313,17 @@ Macro "reject each…from_§where_" is a reader prefix function,
 	name ::= elementPhrase's token's lexeme;
 	aReaderType ::= aReader's semantic type;
 	blockType ::= [⊥]→(predicateBlock's semantic type's return type);
-	returnType ::= strengthen reader for call of $"filter_by_" 
+	returnType ::= strengthen reader for call of $"filter_by_"
 		using <aReaderType, blockType>;
 	statements ::= predicateBlock's statements;
 
 	size ::= |statements|;
 
-	newStatements ::= if size = 0 then [<>] else 
+	newStatements ::= if size = 0 then [<>] else
 	[
 		end : whole number := cast size-1 into [w : whole number | w];
 		i : natural number := cast size into [n : natural number | n];
-		c : expression phrase⇒any := cast statements[i] into 
+		c : expression phrase⇒any := cast statements[i] into
 			[e : expression phrase⇒any | e];
 		statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
 	];
@@ -336,7 +336,7 @@ Macro "reject each…from_§where_" is a reader prefix function,
 
 	restricted send $"filter_by_" with
 	«<
-		aReader, 
+		aReader,
 		«[
 			<cast declaration into [d : argument phrase | d]>
 		|

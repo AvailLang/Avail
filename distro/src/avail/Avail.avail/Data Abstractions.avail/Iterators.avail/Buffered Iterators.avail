@@ -1,6 +1,6 @@
 /*
  * Buffered Iterators.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,12 +77,12 @@ Body
  * Buffered iterator is an abstraction that maintains a buffer and a current
  * position within it, independently of being able to do anything <em>with</em>
  * the buffer, such as reading or writing elements.
- * 
+ *
  * Note that the {@code "position in buffer"} can be any {@type "integer"},
  * since we don't exit the buffer upon advancing (or generally positioning in
  * some subclasses), only upon subsequently attempting to read, write, or test
  * for exhaustion.
- * 
+ *
  * @type "buffered iterator"
  * @supertype "iterator"
  * @category "Data Abstractions" "Iterators"
@@ -311,7 +311,7 @@ buffered iterator's advance method is
 /**
  * Answer a tuple containing (at most) the first {@param "count"} elements of
  * {@param "aReader"}.  Take advantage of the buffering for performance.
- * 
+ *
  * @category "Data Abstractions"
  * @method "take«at most»?_from_"
  * @param "isLax" "boolean"
@@ -412,7 +412,7 @@ Method "Write_to_" is
  * Overwriting the current element with {@method "_'s⁇current element:=_"}
  * probably won't happen much for buffered iterators, but here's the inefficient
  * implementation in terms of {@method "Write_to_"}.
- * 
+ *
  * @method "_'s⁇current element:=_"
  * @param "aWriter" "buffered writer"
  * @param "element" "any"

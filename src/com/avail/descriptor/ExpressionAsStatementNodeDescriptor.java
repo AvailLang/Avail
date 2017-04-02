@@ -1,6 +1,6 @@
 /**
  * ExpressionAsStatementNodeDescriptor.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

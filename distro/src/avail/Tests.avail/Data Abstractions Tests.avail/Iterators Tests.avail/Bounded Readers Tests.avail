@@ -1,6 +1,6 @@
 /*
  * Bounded Readers Tests.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ Test "bounded reader (map - macro)" in bounded reader test suite is
 [
 	ref ::= <1, 4, 9, 16, 25, 36, 49, 64, 81, 100>;
 	index : natural number := 1;
-	iter ::= map each i in a counting reader from 
+	iter ::= map each i in a counting reader from
 		1 to 100 limited to 10 elements through [i × i];
 	For each element of iter do
 	[

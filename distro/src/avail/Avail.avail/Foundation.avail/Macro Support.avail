@@ -1,6 +1,6 @@
 /*
  * Macro Support.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ Public method "_has|have internal whitespace" is
 ] : boolean;
 
 /*
- * This is a bootstrap function invoker, needed by "Declare loop variable_as_" 
+ * This is a bootstrap function invoker, needed by "Declare loop variable_as_"
  * in order to procure a result from a function application.
  */
 Private method "private invoke_with_" is
@@ -137,7 +137,7 @@ Public macro "Require:macro send has no internal whitespace(_)" is
 
 /**
  * Create a local variable in a macro and add to the scope.
- * 
+ *
  * @method "Declare loop variable_as_"
  * @category "Macros"
  * @param "varNamePhrase" "literal phrase ⇒ token" The name of the variable
@@ -161,7 +161,7 @@ Public method "Declare loop variable_as_" is
 
 /**
  * Remove a declaration from the scope.
- * 
+ *
  * @method "Undeclare_"
  * @category "Macros"
  * @param "declarationName" "nonempty string"
@@ -179,7 +179,7 @@ Public method "Undeclare_" is
 /**
  * A return type strengthening method that accepts a base return type, an
  * atom representing the method to lookup, and a tuple of input types for the
- *  method.  It returns the strengthened type. 
+ *  method.  It returns the strengthened type.
  *
  * @method "strengthen_for call of_using_"
  * @category "Macros"

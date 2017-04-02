@@ -1,6 +1,6 @@
 /*
  * Early Control Structures.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ Body
 /**
  * Ignore the specified value. This allows the return value of an expression to
  * be discarded, effectively converting it into a statement.
- * 
+ *
  * @method "Ignore:_"
  * @param "value" "any"
  *        An arbitrary value which will be ignored.
@@ -92,7 +92,7 @@ Public macro "(_)" is
 /**
  * Establish a conditional expression whose static return type is the type union
  * of its two possible functions' return types.
- * 
+ *
  * @method "If|if_then_else_"
  * @restricts "boolean's type"
  * @restricts "nullary procedure's type"
@@ -110,7 +110,7 @@ Semantic restriction "If|if_then_else_" is
 /**
  * Strengthen the static return type to that of the function to invoke when the
  * predicate is true (which it is).
- * 
+ *
  * @method "If|if_then_else_"
  * @restricts "true's type's type"
  * @restricts "nullary procedure's type"
@@ -128,7 +128,7 @@ Semantic restriction "If|if_then_else_" is
 /**
  * Strengthen the static return type to that of the function to invoke when the
  * predicate is false (which it is).
- * 
+ *
  * @method "If|if_then_else_"
  * @restricts "false's type's type"
  * @restricts "nullary procedure's type"
@@ -144,16 +144,16 @@ Semantic restriction "If|if_then_else_" is
 ];
 
 /**
- * If the function {@param "accept"} accepts {@param "value"} as an argument 
- * (based on its runtime type), then invoke {@param "accept"} with {@param 
- * "value"}. Otherwise, cause an assertion failure. This is obsolete once 
+ * If the function {@param "accept"} accepts {@param "value"} as an argument
+ * (based on its runtime type), then invoke {@param "accept"} with {@param
+ * "value"}. Otherwise, cause an assertion failure. This is obsolete once
  * exceptions are available, and should not be exported beyond this package.
  *
  * @method "Cast|cast_into_"
  * @param "value" "any"
  *        A value.
  * @param "accept" "function accepting <⊥> and returning ⊤"
- *        The function to invoke if {@param "value"} is a subtype of the its 
+ *        The function to invoke if {@param "value"} is a subtype of the its
  *        parameter type.
  * @returns "⊤"
  * @category "Bootstrap" "Casts" "Conditionals"
@@ -183,10 +183,10 @@ Public method "Cast|cast_into_" is
 ] : ⊤;
 
 /**
- * Strengthen the return type of {@method "Cast|cast_into_else"} so that it may 
- * be used as a value-producing expression. If the type cast is unnecessary, 
+ * Strengthen the return type of {@method "Cast|cast_into_else"} so that it may
+ * be used as a value-producing expression. If the type cast is unnecessary,
  * then reject the current parse.
- * 
+ *
  * @method "Cast|cast_into_else_"
  * @restricts "any meta"
  * @restricts "(function accepting <⊥> and returning ⊤)'s type"
@@ -231,10 +231,10 @@ Semantic restriction "Cast|cast_into_else_" is
 ];
 
 /**
- * Strengthen the return type of {@method "Cast|cast_into_"} so that it may be 
- * used as a value-producing expression. If the type cast is unnecessary or 
+ * Strengthen the return type of {@method "Cast|cast_into_"} so that it may be
+ * used as a value-producing expression. If the type cast is unnecessary or
  * invalid, then reject the current parse.
- * 
+ *
  * @method "Cast|cast_into_"
  * @restricts "any meta"
  * @restricts "(function accepting <⊥> and returning ⊤)'s type"
@@ -290,7 +290,7 @@ with <>;
  * dealt with by a grammatical restriction.  However, this can lead to confusing
  * diagnostics, since attempted grammatical restriction violations are never
  * reported as compilation errors – they're simply rejected.
- * 
+ *
  * @macro "((_))"
  * @param "expr" "expression phrase" An expression.
  * @returns "⊥" Because it always rejects its invocations.
@@ -305,7 +305,7 @@ Public macro "((_))" is
 
 /**
  * The cardinality of ⊥ is also ⊥. This is supplied to disambiguate "`|`|_`|`|".
- * 
+ *
  * @method "`|`|_`|`|"
  * @param "bottomMeta" "⊥'s type"
  * @returns "⊥"
@@ -319,9 +319,9 @@ Method "`|`|_`|`|" is
 ];
 
 /**
- * Strengthen {@method "Invoke|invoke_with_"} to the invoked function's return 
+ * Strengthen {@method "Invoke|invoke_with_"} to the invoked function's return
  * type.
- * 
+ *
  * @method "Invoke|invoke_with_"
  * @restricts "function meta"
  * @restricts "tuple meta"
@@ -335,10 +335,10 @@ Semantic restriction "Invoke|invoke_with_" is
 ];
 
 /**
- * Basic counting loop with early exit support. Invoke {@param "action"} once 
+ * Basic counting loop with early exit support. Invoke {@param "action"} once
  * with each consecutive number in the range established by {@param "start"} and
  * {@param "end"}.
- * 
+ *
  * @method "From_to_do_"
  * @param "start" "natural number"
  *        The start value, inclusive.
@@ -346,7 +346,7 @@ Semantic restriction "Invoke|invoke_with_" is
  *        The end value, inclusive.
  * @param "action" "function accepting <⊥> and returning boolean"
  *        A function that accepts a value in the specified range. If it answers
- *        {@method "true"}, then continue to iterate; if it answers {@method 
+ *        {@method "true"}, then continue to iterate; if it answers {@method
  *        "false"}, then terminate iteration early.
  * @returns "⊤"
  * @category "Bootstrap" "Control Structures" "Loops"
@@ -376,7 +376,7 @@ Public method "From_to_do_" is
 
 /**
  * Sanity check the function's arguments against the implied range of iteration.
- * 
+ *
  * @method "From_to_do_"
  * @restricts "natural number's type"
  * @restricts "(integer range from 0 (inclusive=true) to

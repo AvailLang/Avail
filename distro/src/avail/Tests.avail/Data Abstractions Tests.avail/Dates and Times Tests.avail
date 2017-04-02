@@ -1,6 +1,6 @@
 /*
  * Dates and Times Tests.avail
- * Copyright © 1993-2016, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ Test "timestamp creation" in dates and times test suite is
 [
 	Require: timestamp March 29, 1985 = timestamp March 29, 1985 0:0:0.0;
 	Require: timestamp 1985/3/29 = timestamp March 29, 1985 0:0:0.0;
-	Require: timestamp 1985/3/29 23:23:23.55 = 
+	Require: timestamp 1985/3/29 23:23:23.55 =
 		timestamp March 29, 1985 23:23:23.55;
 
 ];
@@ -61,15 +61,15 @@ Test "timestamp arithmetic" in dates and times test suite is
 [
  	/* Denominations of Milliseconds */
  	oneMillisecond ::= 1;
- 	oneSecond ::= 1000; 
+ 	oneSecond ::= 1000;
  	oneMinute ::= 60000;
  	oneHour ::= 3600000;
  	oneDay ::= 86400000;
  	oneWeek ::= 604800000;
- 	
+
  	/* Base test timestamp*/
 	tsBase ::= timestamp January 24, 2016 13:25:58.903;
-	
+
 	/* Forward in time */
 	tsForwardMillisecond ::= timestamp January 24, 2016 13:25:58.904;
 	tsForwardSecond ::= timestamp January 24, 2016 13:25:59.903;
@@ -77,7 +77,7 @@ Test "timestamp arithmetic" in dates and times test suite is
 	tsForwardHour ::= timestamp January 24, 2016 14:25:58.903;
 	tsForwardDay ::= timestamp January 25, 2016 13:25:58.903;
 	tsForwardWeek ::= timestamp January 31, 2016 13:25:58.903;
-	
+
 	/* Back in time*/
 	tsBackMillisecond ::= timestamp January 24, 2016 13:25:58.902;
 	tsBackSecond ::= timestamp January 24, 2016 13:25:57.903;
@@ -85,13 +85,13 @@ Test "timestamp arithmetic" in dates and times test suite is
 	tsBackHour ::= timestamp January 24, 2016 12:25:58.903;
 	tsBackDay ::= timestamp January 23, 2016 13:25:58.903;
 	tsBackWeek ::= timestamp January 17, 2016 13:25:58.903;
-	
+
 	/* With leap implications */
 	tsFeb292016 ::= timestamp February 29, 2016 13:25:58.903;
 	tsMar012016 ::= timestamp March 1, 2016 13:25:58.903;
 	tsFeb292012 ::= timestamp February 29, 2012 13:25:58.903;
 	tsFeb282012 ::= timestamp February 28, 2012 13:25:58.903;
-	
+
 	/* Forward */
 	Require: tsBase + oneMillisecond = tsForwardMillisecond;
 	Require: tsBase + oneSecond = tsForwardSecond;
@@ -99,7 +99,7 @@ Test "timestamp arithmetic" in dates and times test suite is
 	Require: tsBase + oneHour = tsForwardHour;
 	Require: tsBase + oneDay = tsForwardDay;
 	Require: tsBase + oneWeek = tsForwardWeek;
-	
+
 	/* Back */
 	Require: tsBase - oneMillisecond = tsBackMillisecond;
 	Require: tsBase - oneSecond = tsBackSecond;
@@ -107,13 +107,13 @@ Test "timestamp arithmetic" in dates and times test suite is
 	Require: tsBase - oneHour = tsBackHour;
 	Require: tsBase - oneDay = tsBackDay;
 	Require: tsBase - oneWeek = tsBackWeek;
-	
+
 	/* Leap */
 	Require: tsBase + oneDay × 36 = tsFeb292016;
 	Require: tsBase + oneDay × 37 = tsMar012016;
 	Require: tsBase - oneDay × 1425 = tsFeb292012;
 	Require: tsBase - oneDay × 1426 = tsFeb282012;
-	
+
 	/* Big Year */
 	tsAlongTimeAway ::= timestamp May 5, 4519850233267232 17:40:57.435;
 	tsJan012016 ::= (timestamp January 1, 2016);
@@ -122,58 +122,58 @@ Test "timestamp arithmetic" in dates and times test suite is
 
 Test "timestamp leap year" in dates and times test suite is
 [
-	leapYearsStarting1983 ::= <false, true, false, false, false, true, false, 
-		false, false, true, false, false, false, true, false, false, false, 
-		true, false, false, false, true, false, false, false, true, false, 
+	leapYearsStarting1983 ::= <false, true, false, false, false, true, false,
+		false, false, true, false, false, false, true, false, false, false,
+		true, false, false, false, true, false, false, false, true, false,
 		false, false, true, false, false, false, true, false>;
-	
-	Require: map each year of 1983 to 2017 through [year is leap year] = 
+
+	Require: map each year of 1983 to 2017 through [year is leap year] =
 		leapYearsStarting1983;
-	
-	Require: map each year of 1983 to 2017 through [year is common year] = 
+
+	Require: map each year of 1983 to 2017 through [year is common year] =
 		map each bool of leapYearsStarting1983 through [¬bool];
-		
+
 	Require: map each year of 1983 to 2017 through [|February's days in year|]
-	    = map each bool of leapYearsStarting1983 through 
+	    = map each bool of leapYearsStarting1983 through
 	    [if bool then [29] else [28]];
 
 ];
 
 Test "timestamp months" in dates and times test suite is
 [
- 	Require: January's ordinal = 1 ∧ February's ordinal = 2 
+ 	Require: January's ordinal = 1 ∧ February's ordinal = 2
  		∧ March's ordinal = 3 ∧ April's ordinal = 4 ∧ May's ordinal = 5
  		∧ June's ordinal = 6 ∧ July's ordinal = 7 ∧ August's ordinal = 8
  		∧ September's ordinal = 9 ∧ October's ordinal = 10
  		∧ November's ordinal = 11 ∧ December's ordinal = 12;
 
-	Require: months = <January, February, March, April, May, June, July, August, 
+	Require: months = <January, February, March, April, May, June, July, August,
 		September, October, November, December>;
- 	
+
 	Require: January's previous month = December
 		∧ December's next month = January;
-		
+
 	Require: March + 15 = June;
 	Require: March - 14 = January;
-	
-	Require: map each month of months through [|month's days in common year|] 
+
+	Require: map each month of months through [|month's days in common year|]
 		= <31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31>;
-		
-	Require: map each month of months through [|month's days in leap year|] 
+
+	Require: map each month of months through [|month's days in leap year|]
 		= <31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31>;
-		
-	Require: [Check: 31 is valid day of 2017/2;] 
+
+	Require: [Check: 31 is valid day of 2017/2;]
 		raises no-such-day-in-month exception;
 ];
-		
+
 Test "timestamp days of week" in dates and times test suite is
 [
- 	Require: Sunday's ordinal = 1 ∧ Monday's ordinal = 2 
- 		∧ Tuesday's ordinal = 3 ∧ Wednesday's ordinal = 4 
- 		∧ Thursday's ordinal = 5 ∧ Friday's ordinal = 6 
+ 	Require: Sunday's ordinal = 1 ∧ Monday's ordinal = 2
+ 		∧ Tuesday's ordinal = 3 ∧ Wednesday's ordinal = 4
+ 		∧ Thursday's ordinal = 5 ∧ Friday's ordinal = 6
  		∧ Saturday's ordinal = 7;
 
-	Require: days of week = <Sunday, Monday, Tuesday, Wednesday, Thursday, 
+	Require: days of week = <Sunday, Monday, Tuesday, Wednesday, Thursday,
 		Friday, Saturday>;
 
 	Require: Sunday's previous day of week = Saturday
@@ -181,18 +181,18 @@ Test "timestamp days of week" in dates and times test suite is
 
 	Require: Monday + 15 = Tuesday;
 	Require: Wednesday - 10 = Sunday;
-	
-	Require: map each month of months through [|month's days in common year|] 
+
+	Require: map each month of months through [|month's days in common year|]
 		= <31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31>;
-		
-	Require: map each month of months through [|month's days in leap year|] 
+
+	Require: map each month of months through [|month's days in leap year|]
 		= <31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31>;
 ];
-		
+
 Test "timestamp fields" in dates and times test suite is
 [
  	theOneTrueDate ::= timestamp March 29, 1979 11:25:42.13;
- 	
+
  	Require: theOneTrueDate's year = 1979;
  	Require: theOneTrueDate's month = March;
  	Require: theOneTrueDate's day in month = 29;

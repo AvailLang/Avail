@@ -1,6 +1,6 @@
 /*
  * Synchronization.avail
- * Copyright © 1993-2015, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -391,7 +391,7 @@ Public method "_'s⁇owner's name" is
 
 /**
  * Always give preference to the specialized method "_'s⁇owner's name".
- * 
+ *
  * @method "_'s⁇name"
  * @forbids "1" "_'s⁇owner"
  */
@@ -1329,7 +1329,7 @@ Method "Lock|lock_for_" is
 
 /**
  * @method "a|an_«with«_«:»?:=_‡,»»"
- * @forbids "1" "binary semaphore" "condition" "counting semaphore" "monitor" 
+ * @forbids "1" "binary semaphore" "condition" "counting semaphore" "monitor"
  *              "non-reentrant mutex" "reentrant mutex" "semaphore"
  */
 Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
