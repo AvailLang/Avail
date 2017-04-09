@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import java.io.*;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -63,6 +62,8 @@ import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.*;
 import org.jetbrains.annotations.Nullable;
+
+import static com.avail.utility.StackPrinter.trace;
 
 /**
  * {@code AvailObject} is the fully realized, and mostly machine generated,
@@ -187,18 +188,12 @@ implements
 		catch (final Exception e)
 		{
 			builder.append("EXCEPTION while printing.");
-			final CharArrayWriter inner = new CharArrayWriter();
-			final PrintWriter outer = new PrintWriter(inner);
-			e.printStackTrace(outer);
-			builder.append(inner);
+			builder.append(trace(e));
 		}
 		catch (final AssertionError e)
 		{
 			builder.append("ASSERTION ERROR while printing.");
-			final CharArrayWriter inner = new CharArrayWriter();
-			final PrintWriter outer = new PrintWriter(inner);
-			e.printStackTrace(outer);
-			builder.append(inner);
+			builder.append(trace(e));
 		}
 	}
 
@@ -7293,5 +7288,11 @@ implements
 	public A_Phrase originatingPhrase ()
 	{
 		return descriptor.o_OriginatingPhrase(this);
+	}
+
+	@Override
+	public A_Phrase typeExpression ()
+	{
+		return descriptor.o_TypeExpression(this);
 	}
 }

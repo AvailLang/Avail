@@ -40,6 +40,7 @@ import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.interpreter.Primitive;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
@@ -95,27 +96,34 @@ extends ParseNodeDescriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		final A_Phrase original = object.slot(MACRO_ORIGINAL_SEND);
-		final A_Phrase replacement = object.slot(OUTPUT_PARSE_NODE);
-		builder.append("MACRO ");
-		builder.append(original.apparentSendName().atomName());
-		builder.append(" (");
-		original.printOnAvoidingIndent(
+		object.slot(MACRO_ORIGINAL_SEND).printOnAvoidingIndent(
 			builder, recursionMap, indent);
-		builder.append(")[");
-		builder.append(original.expressionType());
-		builder.append("]  ➔  (");
-		replacement.printOnAvoidingIndent(
-			builder, recursionMap, indent);
-		builder.append(")[");
-		builder.append(replacement.expressionType());
-		builder.append("]");
 	}
 
 	@Override @AvailMethod
 	A_Atom o_ApparentSendName (final AvailObject object)
 	{
 		return object.slot(MACRO_ORIGINAL_SEND).apparentSendName();
+	}
+
+	@Override
+	A_Phrase o_ArgumentsListNode (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).argumentsListNode();
+	}
+
+	@Override
+	A_Tuple o_ArgumentsTuple (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).argumentsTuple();
+	}
+
+	@Override
+	A_Bundle o_Bundle (final AvailObject object)
+	{
+		// Reach into the output node.  If you want the macro name, use the
+		// apparentSendName instead.
+		return object.slot(OUTPUT_PARSE_NODE).bundle();
 	}
 
 	@Override @AvailMethod
@@ -131,9 +139,43 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
+		// Don't transform the original phrase, just the output phrase.
 		object.setSlot(
 			OUTPUT_PARSE_NODE,
 			aBlock.valueNotNull(object.slot(OUTPUT_PARSE_NODE)));
+	}
+
+	@Override
+	A_Phrase o_CopyWith (
+		final AvailObject object, final A_Phrase newParseNode)
+	{
+		// Create a copy the list, not this macro substitution.
+		return object.slot(OUTPUT_PARSE_NODE).copyWith(newParseNode);
+	}
+
+	@Override
+	A_Phrase o_Declaration (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).declaration();
+	}
+
+	@Override
+	A_Set o_DeclaredExceptions (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).declaredExceptions();
+	}
+
+	@Override
+	AvailObject o_DeclaredType (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).declaredType();
+	}
+
+	@Override
+	void o_EmitAllValuesOn (
+		final AvailObject object, final AvailCodeGenerator codeGenerator)
+	{
+		object.slot(OUTPUT_PARSE_NODE).emitAllValuesOn(codeGenerator);
 	}
 
 	@Override @AvailMethod
@@ -164,6 +206,30 @@ extends ParseNodeDescriptor
 				aParseNode.outputParseNode());
 	}
 
+	@Override
+	A_Phrase o_Expression (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).expression();
+	}
+
+	@Override
+	A_Phrase o_ExpressionAt (final AvailObject object, final int index)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).expressionAt(index);
+	}
+
+	@Override
+	int o_ExpressionsSize (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).expressionsSize();
+	}
+
+	@Override
+	A_Tuple o_ExpressionsTuple (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).expressionsTuple();
+	}
+
 	@Override @AvailMethod
 	A_Type o_ExpressionType (final AvailObject object)
 	{
@@ -179,12 +245,43 @@ extends ParseNodeDescriptor
 			accumulatedStatements);
 	}
 
+	@Override
+	A_RawFunction o_GenerateInModule (
+		final AvailObject object, final A_Module module)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).generateInModule(module);
+	}
+
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
 		return
 			object.slot(MACRO_ORIGINAL_SEND).hash() * multiplier
-			+ (object.slot(OUTPUT_PARSE_NODE).hash() ^ 0x1d50d7f9);
+				+ (object.slot(OUTPUT_PARSE_NODE).hash() ^ 0x1d50d7f9);
+	}
+
+	@Override
+	boolean o_HasSuperCast (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).hasSuperCast();
+	}
+
+	@Override
+	AvailObject o_InitializationExpression (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).initializationExpression();
+	}
+
+	@Override
+	void o_IsLastUse (final AvailObject object, final boolean isLastUse)
+	{
+		object.slot(OUTPUT_PARSE_NODE).isLastUse(isLastUse);
+	}
+
+	@Override
+	boolean o_IsLastUse (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).isLastUse();
 	}
 
 	@Override
@@ -194,9 +291,40 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
+	A_Phrase o_List (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).list();
+	}
+
+	@Override
+	AvailObject o_LiteralObject (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).literalObject();
+	}
+
+	@Override
 	A_Phrase o_MacroOriginalSendNode (final AvailObject object)
 	{
 		return object.slot(MACRO_ORIGINAL_SEND);
+	}
+
+	@Override
+	AvailObject o_MarkerValue (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).markerValue();
+	}
+
+	@Override
+	A_Tuple o_NeededVariables (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).neededVariables();
+	}
+
+	@Override
+	void o_NeededVariables (
+		final AvailObject object, final A_Tuple neededVariables)
+	{
+		object.slot(OUTPUT_PARSE_NODE).neededVariables(neededVariables);
 	}
 
 	@Override @AvailMethod
@@ -208,7 +336,55 @@ extends ParseNodeDescriptor
 	@Override
 	ParseNodeKind o_ParseNodeKind (final AvailObject object)
 	{
+		// Answer the output phrase's kind, not this macro substitution's kind.
 		return object.slot(OUTPUT_PARSE_NODE).parseNodeKind();
+	}
+
+	@Override
+	boolean o_ParseNodeKindIsUnder (
+		final AvailObject object, final ParseNodeKind expectedParseNodeKind)
+	{
+		// Use the output phrase's kind, not this macro substitution's kind.
+		return object.slot(OUTPUT_PARSE_NODE).parseNodeKindIsUnder(
+			expectedParseNodeKind);
+	}
+
+	@Override
+	A_Tuple o_Permutation (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).permutation();
+	}
+
+	@Override
+	A_Phrase o_PrependWith (
+		final AvailObject object, final A_Phrase newParseNode)
+	{
+		// Don't copy the macro substitution, just the output phrase.
+		return object.slot(OUTPUT_PARSE_NODE).prependWith(newParseNode);
+	}
+
+	@Override
+	@Nullable Primitive o_Primitive (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).primitive();
+	}
+
+	@Override
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.MACRO_SUBSTITITION_PHRASE;
+	}
+
+	@Override
+	int o_StartingLineNumber (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).startingLineNumber();
+	}
+
+	@Override
+	A_Tuple o_Statements (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).statements();
 	}
 
 	@Override
@@ -220,9 +396,39 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
+	A_Tuple o_StatementsTuple (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).statementsTuple();
+	}
+
+	@Override
 	A_Phrase o_StripMacro (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE);
+	}
+
+	@Override
+	A_Type o_SuperUnionType (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).superUnionType();
+	}
+
+	@Override
+	A_Token o_Token (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).token();
+	}
+
+	@Override
+	A_Tuple o_Tokens (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).tokens();
+	}
+
+	@Override
+	A_Phrase o_TypeExpression (final AvailObject object)
+	{
+		return object.slot(OUTPUT_PARSE_NODE).typeExpression();
 	}
 
 	@Override @AvailMethod
@@ -230,13 +436,13 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final @Nullable A_Phrase parent)
 	{
-		// Do nothing.
+		object.slot(OUTPUT_PARSE_NODE).validateLocally(parent);
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	A_Phrase o_Variable (final AvailObject object)
 	{
-		return SerializerOperation.MACRO_DEFINITION;
+		return object.slot(OUTPUT_PARSE_NODE).variable();
 	}
 
 	@Override

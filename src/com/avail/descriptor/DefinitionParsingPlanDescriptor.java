@@ -35,9 +35,8 @@ package com.avail.descriptor;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION_PARSING_PLAN;
+import static com.avail.utility.StackPrinter.trace;
 
-import java.io.CharArrayWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
@@ -204,9 +203,7 @@ extends Descriptor
 		}
 		catch (Exception e)
 		{
-			final CharArrayWriter trace = new CharArrayWriter();
-			e.printStackTrace(new PrintWriter(trace));
-			final String[] stackStrings = trace.toString().split("\\n");
+			final String[] stackStrings = trace(e).split("\\n");
 			int lineNumber = 0;
 			for (final String line : stackStrings)
 			{

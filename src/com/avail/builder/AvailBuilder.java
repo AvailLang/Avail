@@ -36,6 +36,7 @@ import static java.nio.file.FileVisitResult.*;
 import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.utility.StackPrinter.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
@@ -58,7 +59,6 @@ import com.avail.*;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.*;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
-import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
@@ -3820,9 +3820,6 @@ public final class AvailBuilder
 							assert e != null;
 							if (!(e instanceof FiberTerminationException))
 							{
-								final CharArrayWriter trace =
-									new CharArrayWriter();
-								e.printStackTrace(new PrintWriter(trace));
 								final Problem problem = new Problem(
 									null,
 									1,
@@ -3832,7 +3829,7 @@ public final class AvailBuilder
 									e.getMessage() != null
 										? " " + e.getMessage()
 										: "",
-									trace)
+									trace(e))
 								{
 									@Override
 									public void abortCompilation ()

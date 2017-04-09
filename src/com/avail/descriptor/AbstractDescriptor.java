@@ -4301,6 +4301,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
+	abstract A_Phrase o_TypeExpression (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
 	abstract AvailObject o_InitializationExpression (AvailObject object);
 
 	/**

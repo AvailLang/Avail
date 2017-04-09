@@ -34,8 +34,7 @@ package com.avail.descriptor;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import static com.avail.utility.StackPrinter.trace;
 
 /**
  * This class assists with the presentation of {@link AvailObject}s in the
@@ -193,12 +192,9 @@ public class AvailObjectFieldHelper
 				}
 				catch (RuntimeException e)
 				{
-					final StringWriter stringWriter = new StringWriter();
-					stringWriter.append(
+					builder.append(
 						"PROBLEM DESCRIBING INTEGER FIELD:\n");
-					e.printStackTrace(
-						new PrintWriter(stringWriter));
-					builder.append(stringWriter);
+					builder.append(trace(e));
 				}
 			}
 			else if (value instanceof String)

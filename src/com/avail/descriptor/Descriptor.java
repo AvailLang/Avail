@@ -2796,6 +2796,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Phrase o_TypeExpression (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	AvailObject o_InitializationExpression (final AvailObject object)
 	{
 		throw unsupportedOperationException();

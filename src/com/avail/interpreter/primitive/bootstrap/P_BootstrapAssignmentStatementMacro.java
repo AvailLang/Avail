@@ -106,6 +106,7 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 			declaration = DeclarationNodeDescriptor.newModuleVariable(
 				actualToken,
 				variableObject,
+				NilDescriptor.nil(),
 				NilDescriptor.nil());
 		}
 		else if (module.constantBindings().hasKey(variableNameString))

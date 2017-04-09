@@ -84,7 +84,8 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 				type);
 		}
 		final A_Phrase variableDeclaration =
-			DeclarationNodeDescriptor.newVariable(nameToken, type);
+			DeclarationNodeDescriptor.newVariable(
+				nameToken, type, typeLiteral, NilDescriptor.nil());
 		final A_Phrase conflictingDeclaration =
 			FiberDescriptor.addDeclaration(variableDeclaration);
 		if (conflictingDeclaration != null)

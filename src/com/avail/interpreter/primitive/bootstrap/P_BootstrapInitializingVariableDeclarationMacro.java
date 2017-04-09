@@ -104,7 +104,7 @@ extends Primitive
 		}
 		final A_Phrase variableDeclaration =
 			DeclarationNodeDescriptor.newVariable(
-				nameToken, type, initializationExpression);
+				nameToken, type, typeLiteral, initializationExpression);
 		final A_Phrase conflictingDeclaration =
 			FiberDescriptor.addDeclaration(variableDeclaration);
 		if (conflictingDeclaration != null)

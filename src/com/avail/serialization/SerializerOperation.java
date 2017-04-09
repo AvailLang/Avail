@@ -1950,6 +1950,7 @@ public enum SerializerOperation
 		BYTE.as("declaration kind ordinal"),
 		OBJECT_REFERENCE.as("token"),
 		OBJECT_REFERENCE.as("declared type"),
+		OBJECT_REFERENCE.as("type expression"),
 		OBJECT_REFERENCE.as("initialization expression"),
 		OBJECT_REFERENCE.as("literal object"))
 	{
@@ -1959,6 +1960,7 @@ public enum SerializerOperation
 			final DeclarationKind kind = object.declarationKind();
 			final A_Token token = object.token();
 			final A_Type declaredType = object.declaredType();
+			final A_Phrase typeExpression = object.typeExpression();
 			final A_Phrase initializationExpression =
 				object.initializationExpression();
 			final AvailObject literalObject = object.literalObject();
@@ -1966,6 +1968,7 @@ public enum SerializerOperation
 				IntegerDescriptor.fromInt(kind.ordinal()),
 				token,
 				declaredType,
+				typeExpression,
 				initializationExpression,
 				literalObject);
 		}
@@ -1978,8 +1981,9 @@ public enum SerializerOperation
 			final A_Number declarationKindNumber = subobjects[0];
 			final A_Token token = subobjects[1];
 			final A_Type declaredType = subobjects[2];
-			final A_Phrase initializationExpression = subobjects[3];
-			final AvailObject literalObject = subobjects[4];
+			final A_Phrase typeExpression = subobjects[3];
+			final A_Phrase initializationExpression = subobjects[4];
+			final AvailObject literalObject = subobjects[5];
 
 			final DeclarationKind declarationKind =
 				DeclarationKind.all()[declarationKindNumber.extractInt()];
@@ -1987,6 +1991,7 @@ public enum SerializerOperation
 				declarationKind,
 				token,
 				declaredType,
+				typeExpression,
 				initializationExpression,
 				literalObject);
 		}

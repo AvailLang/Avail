@@ -66,6 +66,14 @@ extends A_BasicObject
 	A_Tuple argumentsTuple ();
 
 	/**
+	 * Answer this send node's {@linkplain MessageBundleDescriptor message
+	 * bundle}.
+	 *
+	 * @return The message bundle.
+	 */
+	A_Bundle bundle ();
+
+	/**
 	 * @param aBlock
 	 */
 	void childrenDo (Continuation1<A_Phrase> aBlock);
@@ -88,12 +96,6 @@ extends A_BasicObject
 	A_Phrase copyWith (A_Phrase newParseNode);
 
 	/**
-	 * @param newParseNode
-	 * @return
-	 */
-	A_Phrase prependWith (A_Phrase newParseNode);
-
-	/**
 	 * @return
 	 */
 	A_Phrase declaration ();
@@ -112,6 +114,15 @@ extends A_BasicObject
 	AvailObject declaredType ();
 
 	/**
+	 * Emit code to push each value produced by the expressions of a {@linkplain
+	 * ListNodeDescriptor list node} or {@linkplain PermutedListNodeDescriptor
+	 * permuted list node}.
+	 *
+	 * @param codeGenerator Where to write the L1 instructions.
+	 */
+	void emitAllValuesOn (AvailCodeGenerator codeGenerator);
+
+	/**
 	 * @param codeGenerator
 	 */
 	void emitEffectOn (AvailCodeGenerator codeGenerator);
@@ -128,17 +139,24 @@ extends A_BasicObject
 	A_Phrase expression ();
 
 	/**
-	 * @return
-	 */
-	A_Tuple expressionsTuple ();
-
-	/**
 	 * Extract the N<sup>th</sup> expression.
 	 *
 	 * @param index Which expression to extract.
 	 * @return The chosen phrase.
 	 */
 	A_Phrase expressionAt (int index);
+
+	/**
+	 * Answer the number of expressions in this list phrase.
+	 *
+	 * @return The list's size.
+	 */
+	int expressionsSize ();
+
+	/**
+	 * @return
+	 */
+	A_Tuple expressionsTuple ();
 
 	/**
 	 * Return the parse node's expression type, which is the type of object that
@@ -164,6 +182,24 @@ extends A_BasicObject
 	A_RawFunction generateInModule (A_Module module);
 
 	/**
+	 * This is an expression acting as an argument, a recursive {@linkplain
+	 * ListNodeDescriptor list node} of arguments, a recursive {@linkplain
+	 * PermutedListNodeDescriptor permuted list node} of arguments, or a
+	 * {@linkplain SuperCastNodeDescriptor super-cast node}.  Answer whether it
+	 * either is or contains (within the recursive list structure) a super-cast
+	 * node.
+	 *
+	 * @return Whether this is a super-cast node or a recursive list or permuted
+	 *         list containing one.
+	 */
+	boolean hasSuperCast ();
+
+	/**
+	 * @return
+	 */
+	AvailObject initializationExpression ();
+
+	/**
 	 * @param isLastUse
 	 */
 	void isLastUse (boolean isLastUse);
@@ -176,15 +212,31 @@ extends A_BasicObject
 	/**
 	 * @return
 	 */
-	A_BasicObject markerValue ();
+	boolean isMacroSubstitutionNode ();
 
 	/**
-	 * Answer this send node's {@linkplain MessageBundleDescriptor message
-	 * bundle}.
-	 *
-	 * @return The message bundle.
+	 * @return
 	 */
-	A_Bundle bundle ();
+	A_Phrase list ();
+
+	/**
+	 * @return
+	 */
+	A_BasicObject literalObject ();
+
+	/**
+	 * The receiver is a {@link ParseNodeKind#MACRO_SUBSTITUTION macro
+	 * substitution phrase}.  Answer the {@link ParseNodeKind#SEND_NODE send
+	 * phrase} that was transformed by the macro body.
+	 *
+	 * @return The original send phrase of this macro substitution.
+	 */
+	A_Phrase macroOriginalSendNode ();
+
+	/**
+	 * @return
+	 */
+	A_BasicObject markerValue ();
 
 	/**
 	 * @return
@@ -210,6 +262,30 @@ extends A_BasicObject
 	ParseNodeKind parseNodeKind ();
 
 	/**
+	 * Also declared in A_Type, so the same operation applies both to phrases
+	 * and to phrase types.
+	 *
+	 * @param expectedParseNodeKind
+	 *        The {@link ParseNodeKind} to test this phrase for.
+	 * @return Whether the receiver, a phrase, has a type whose {@link
+	 *         #parseNodeKind()} is at or below the specified {@link
+	 *         ParseNodeKind}.
+	 */
+	boolean parseNodeKindIsUnder (
+		ParseNodeKind expectedParseNodeKind);
+
+	/**
+	 * @return
+	 */
+	A_Tuple permutation ();
+
+	/**
+	 * @param newParseNode
+	 * @return
+	 */
+	A_Phrase prependWith (A_Phrase newParseNode);
+
+	/**
 	 * @return
 	 */
 	@Nullable Primitive primitive ();
@@ -220,12 +296,22 @@ extends A_BasicObject
 	 * @return The source code line number on which this {@linkplain
 	 * BlockNodeDescriptor block} begins.
 	 */
-	public int startingLineNumber ();
+	int startingLineNumber ();
 
 	/**
 	 * @return
 	 */
 	A_Tuple statements ();
+
+	/**
+	 * Iterate through each {@linkplain ParseNodeKind#SEQUENCE_NODE statement
+	 * phrase} recursively within the receiver, applying the {@linkplain
+	 * Continuation1 continuation} to each.
+	 *
+	 * @param continuation
+	 *        A continuation.
+	 */
+	void statementsDo (Continuation1<A_Phrase> continuation);
 
 	/**
 	 * @return
@@ -236,54 +322,6 @@ extends A_BasicObject
 	 * @return
 	 */
 	A_Phrase stripMacro ();
-
-	/**
-	 * @return
-	 */
-	A_Token token ();
-
-	/**
-	 * @param parent
-	 */
-	void validateLocally (@Nullable A_Phrase parent);
-
-	/**
-	 * Answer the {@linkplain DeclarationNodeDescriptor variable declaration}
-	 * being used by this {@linkplain ReferenceNodeDescriptor reference} or
-	 * {@linkplain AssignmentNodeDescriptor assignment}.
-	 *
-	 * @return The variable.
-	 */
-	A_Phrase variable ();
-
-	/**
-	 * @return
-	 */
-	AvailObject initializationExpression ();
-
-	/**
-	 * @return
-	 */
-	A_BasicObject literalObject ();
-
-	/**
-	 * @return
-	 */
-	A_Phrase list ();
-
-	/**
-	 * @return
-	 */
-	A_Tuple permutation ();
-
-	/**
-	 * Emit code to push each value produced by the expressions of a {@linkplain
-	 * ListNodeDescriptor list node} or {@linkplain PermutedListNodeDescriptor
-	 * permuted list node}.
-	 *
-	 * @param codeGenerator Where to write the L1 instructions.
-	 */
-	void emitAllValuesOn (AvailCodeGenerator codeGenerator);
 
 	/**
 	 * If this is a {@link SuperCastNodeDescriptor super cast node}, then answer
@@ -300,61 +338,9 @@ extends A_BasicObject
 	A_Type superUnionType ();
 
 	/**
-	 * This is an expression acting as an argument, a recursive {@linkplain
-	 * ListNodeDescriptor list node} of arguments, a recursive {@linkplain
-	 * PermutedListNodeDescriptor permuted list node} of arguments, or a
-	 * {@linkplain SuperCastNodeDescriptor super-cast node}.  Answer whether it
-	 * either is or contains (within the recursive list structure) a super-cast
-	 * node.
-	 *
-	 * @return Whether this is a super-cast node or a recursive list or permuted
-	 *         list containing one.
-	 */
-	boolean hasSuperCast ();
-
-	/**
-	 * Answer the number of expressions in this list phrase.
-	 *
-	 * @return The list's size.
-	 */
-	int expressionsSize ();
-
-	/**
 	 * @return
 	 */
-	boolean isMacroSubstitutionNode ();
-
-	/**
-	 * Iterate through each {@linkplain ParseNodeKind#SEQUENCE_NODE statement
-	 * phrase} recursively within the receiver, applying the {@linkplain
-	 * Continuation1 continuation} to each.
-	 *
-	 * @param continuation
-	 *        A continuation.
-	 */
-	void statementsDo (Continuation1<A_Phrase> continuation);
-
-	/**
-	 * Also declared in A_Type, so the same operation applies both to phrases
-	 * and to phrase types.
-	 *
-	 * @param expectedParseNodeKind
-	 *        The {@link ParseNodeKind} to test this phrase for.
-	 * @return Whether the receiver, a phrase, has a type whose {@link
-	 *         #parseNodeKind()} is at or below the specified {@link
-	 *         ParseNodeKind}.
-	 */
-	boolean parseNodeKindIsUnder (
-		ParseNodeKind expectedParseNodeKind);
-
-	/**
-	 * The receiver is a {@link ParseNodeKind#MACRO_SUBSTITUTION macro
-	 * substitution phrase}.  Answer the {@link ParseNodeKind#SEND_NODE send
-	 * phrase} that was transformed by the macro body.
-	 *
-	 * @return The original send phrase of this macro substitution.
-	 */
-	A_Phrase macroOriginalSendNode ();
+	A_Token token ();
 
 	/**
 	 * Answer the {@linkplain A_Token tuple} of {@linkplain A_Token tokens} that
@@ -363,4 +349,27 @@ extends A_BasicObject
 	 * @return The requested {@linkplain A_Token tokens}.
 	 */
 	A_Tuple tokens ();
+
+	/**
+	 * Answer the {@linkplain A_Phrase phrase} that produced the type of the
+	 * declaration.  Answer {@link NilDescriptor#nil() nil} if there was no such
+	 * phrase.
+	 *
+	 * @return The requested {@linkplain A_Phrase phrase} or nil.
+	 */
+	A_Phrase typeExpression ();
+
+	/**
+	 * @param parent
+	 */
+	void validateLocally (@Nullable A_Phrase parent);
+
+	/**
+	 * Answer the {@linkplain DeclarationNodeDescriptor variable declaration}
+	 * being used by this {@linkplain ReferenceNodeDescriptor reference} or
+	 * {@linkplain AssignmentNodeDescriptor assignment}.
+	 *
+	 * @return The variable.
+	 */
+	A_Phrase variable ();
 }

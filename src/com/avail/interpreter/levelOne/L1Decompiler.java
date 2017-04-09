@@ -158,7 +158,8 @@ public class L1Decompiler
 				TokenType.KEYWORD);
 			final A_Phrase decl = DeclarationNodeDescriptor.newArgument(
 				token,
-				tupleType.typeAtIndex(i));
+				tupleType.typeAtIndex(i),
+				NilDescriptor.nil());
 			args.add(decl);
 		}
 		for (int i = 1, end = code.numLocals(); i <= end; i++)
@@ -174,7 +175,9 @@ public class L1Decompiler
 				TokenType.KEYWORD);
 			final A_Phrase decl = DeclarationNodeDescriptor.newVariable(
 				token,
-				code.localTypeAt(i).writeType());
+				code.localTypeAt(i).writeType(),
+				NilDescriptor.nil(),
+				NilDescriptor.nil());
 			locals.add(decl);
 		}
 		statements.addAll(locals);
@@ -597,7 +600,10 @@ public class L1Decompiler
 				assert variableObject.isInstanceOfKind(
 					VariableTypeDescriptor.mostGeneralType());
 				outerDecl = DeclarationNodeDescriptor.newModuleVariable(
-					token, variableObject, NilDescriptor.nil());
+					token,
+					variableObject,
+					NilDescriptor.nil(),
+					NilDescriptor.nil());
 			}
 			else
 			{
@@ -711,6 +717,7 @@ public class L1Decompiler
 					TokenType.KEYWORD);
 				label = DeclarationNodeDescriptor.newLabel(
 					labelToken,
+					NilDescriptor.nil(),
 					ContinuationTypeDescriptor.forFunctionType(
 						code.functionType()));
 				statements.add(0, label);
@@ -737,7 +744,10 @@ public class L1Decompiler
 
 			final A_Phrase decl =
 				DeclarationNodeDescriptor.newModuleVariable(
-					globalToken, globalVar, NilDescriptor.nil());
+					globalToken,
+					globalVar,
+					NilDescriptor.nil(),
+					NilDescriptor.nil());
 			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
 				globalToken, decl);
 			pushExpression(varUse);
@@ -759,6 +769,7 @@ public class L1Decompiler
 				DeclarationNodeDescriptor.newModuleVariable(
 					globalToken,
 					globalVar,
+					NilDescriptor.nil(),
 					NilDescriptor.nil());
 			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
 				globalToken, declaration);

@@ -35,6 +35,7 @@ package com.avail.interpreter;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.AvailLoader.Phase.*;
+import static com.avail.utility.StackPrinter.trace;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -578,9 +579,7 @@ public final class AvailLoader
 				// Here's a good place for a breakpoint, to see why an
 				// expression couldn't be summarized.
 				final Throwable e = new Throwable().fillInStackTrace();
-				final StringWriter sw = new StringWriter();
-				e.printStackTrace(new PrintWriter(sw));
-				System.err.println("Disabled summary:\n" + sw);
+				System.err.println("Disabled summary:\n" + trace(e));
 			}
 			statementCanBeSummarized = summarizable;
 		}

@@ -2786,6 +2786,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Phrase o_TypeExpression (final AvailObject object)
+	{
+		return o_Traversed(object).typeExpression();
+	}
+
+	@Override
 	AvailObject o_InitializationExpression (final AvailObject object)
 	{
 		return o_Traversed(object).initializationExpression();

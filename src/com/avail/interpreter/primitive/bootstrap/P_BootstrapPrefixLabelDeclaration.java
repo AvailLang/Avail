@@ -94,10 +94,11 @@ extends Primitive
 		}
 		final A_Phrase optionalLabelReturnTypePhrase =
 			labelPairPhrase.expressionAt(2);
+		final A_Phrase labelReturnTypePhrase;
 		final A_Type labelReturnType;
 		if (optionalLabelReturnTypePhrase.expressionsSize() == 1)
 		{
-			final A_Phrase labelReturnTypePhrase =
+			labelReturnTypePhrase =
 				optionalLabelReturnTypePhrase.expressionAt(1);
 			assert labelReturnTypePhrase.parseNodeKindIsUnder(
 				LITERAL_NODE);
@@ -108,6 +109,7 @@ extends Primitive
 			// If the label doesn't specify a return type, use bottom.  Because
 			// of continuation return type contravariance, this is the most
 			// general answer.
+			labelReturnTypePhrase = NilDescriptor.nil();
 			labelReturnType = BottomTypeDescriptor.bottom();
 		}
 
@@ -137,7 +139,8 @@ extends Primitive
 		final A_Type continuationType =
 			ContinuationTypeDescriptor.forFunctionType(functionType);
 		final A_Phrase labelDeclaration =
-			DeclarationNodeDescriptor.newLabel(labelName, continuationType);
+			DeclarationNodeDescriptor.newLabel(
+				labelName, labelReturnTypePhrase, continuationType);
 		final A_Phrase conflictingDeclaration =
 			FiberDescriptor.addDeclaration(labelDeclaration);
 		if (conflictingDeclaration != null)

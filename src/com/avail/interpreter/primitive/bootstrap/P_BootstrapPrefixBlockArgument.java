@@ -108,7 +108,8 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 		}
 
 		final A_Phrase argDeclaration =
-			DeclarationNodeDescriptor.newArgument(argToken, argType);
+			DeclarationNodeDescriptor.newArgument(
+				argToken, argType, typePhrase);
 		// Add the binding and we're done.
 		final A_Phrase conflictingDeclaration =
 			FiberDescriptor.addDeclaration(argDeclaration);

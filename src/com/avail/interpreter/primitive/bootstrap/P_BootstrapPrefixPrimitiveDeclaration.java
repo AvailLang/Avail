@@ -155,7 +155,7 @@ extends Primitive
 			}
 			final A_Phrase failureDeclaration =
 				DeclarationNodeDescriptor.newPrimitiveFailureVariable(
-					failureName, failureType);
+					failureName, failureTypePhrase, failureType);
 			final A_Phrase conflictingDeclaration =
 				FiberDescriptor.addDeclaration(failureDeclaration);
 			if (conflictingDeclaration != null)

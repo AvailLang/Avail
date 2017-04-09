@@ -1,5 +1,5 @@
 /**
- * P_CreateModuleVariableDeclaration.java
+ * StackPrtinter.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,55 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.phrases;
+package com.avail.utility;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.interpreter.*;
+import java.io.CharArrayWriter;
+import java.io.PrintWriter;
 
 /**
- * <strong>Primitive:</strong> Create a new {@linkplain
- * ParseNodeKind#MODULE_VARIABLE_NODE module variable declaration} from the
- * specified {@linkplain TokenDescriptor token} and actual {@linkplain
- * A_Variable variable}.
+ * I provide a static method for extracting a stack trace from an exception,
+ * something <em>REALLY OBVIOUSLY</em> omitted by the Java library writers.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_CreateModuleVariableDeclaration
-extends Primitive
+public enum StackPrinter
 {
-	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
-	 */
-	public final static Primitive instance =
-		new P_CreateModuleVariableDeclaration().init(
-			2, CanInline, CannotFail);
+	// No instances of this enum, just using it to store static methods.
+	;
 
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
+	public static String trace (final Throwable t)
 	{
-		assert args.size() == 2;
-		final A_Variable variable = args.get(0);
-		final A_Token token = args.get(1);
-		return interpreter.primitiveSuccess(
-			DeclarationNodeDescriptor.newModuleVariable(
-				token, variable, NilDescriptor.nil(), NilDescriptor.nil()));
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VariableTypeDescriptor.mostGeneralType(),
-				TOKEN.o()),
-			MODULE_VARIABLE_NODE.mostGeneralType());
+		final CharArrayWriter inner = new CharArrayWriter();
+		final PrintWriter outer = new PrintWriter(inner);
+		t.printStackTrace(outer);
+		return inner.toString();
 	}
 }

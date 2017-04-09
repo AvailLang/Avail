@@ -40,6 +40,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
@@ -75,6 +76,13 @@ extends ParseNodeDescriptor
 		 * The {@linkplain TypeDescriptor type} of the variable being declared.
 		 */
 		DECLARED_TYPE,
+
+		/**
+		 * The {@link ParseNodeDescriptor expression} that produced the type for
+		 * the entity being declared, or {@link NilDescriptor#nil() nil} if
+		 * there was no such expression.
+		 */
+		TYPE_EXPRESSION,
 
 		/**
 		 * The optional {@linkplain ParseNodeDescriptor initialization
@@ -122,10 +130,7 @@ extends ParseNodeDescriptor
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" : ");
-				object.declaredType().printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 1);
+				printTypePartOf(object, builder, recursionMap, indent + 1);
 			}
 		},
 
@@ -164,12 +169,21 @@ extends ParseNodeDescriptor
 				builder.append('$');
 				builder.append(object.token().string().asNativeString());
 				builder.append(" : ");
-				final A_Type functionType =
-					object.declaredType().functionType();
-				functionType.returnType().printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 1);
+				A_BasicObject typeExpression = object.typeExpression();
+				if (!typeExpression.equalsNil())
+				{
+					typeExpression.printOnAvoidingIndent(
+						builder, recursionMap, indent + 1);
+				}
+				else
+				{
+					// Output the continuation type's return type, since that's
+					// what get specified syntactically.
+					final A_Type functionType =
+						object.declaredType().functionType();
+					functionType.returnType().printOnAvoidingIndent(
+						builder, recursionMap, indent + 1);
+				}
 			}
 		},
 
@@ -226,17 +240,12 @@ extends ParseNodeDescriptor
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" : ");
-				object.declaredType().printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 1);
+				printTypePartOf(object, builder, recursionMap, indent + 1);
 				if (!object.initializationExpression().equalsNil())
 				{
 					builder.append(" := ");
 					object.initializationExpression().printOnAvoidingIndent(
-						builder,
-						recursionMap,
-						indent + 1);
+						builder, recursionMap, indent + 1);
 				}
 			}
 		},
@@ -275,9 +284,7 @@ extends ParseNodeDescriptor
 				builder.append(object.token().string().asNativeString());
 				builder.append(" ::= ");
 				object.initializationExpression().printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 1);
+					builder, recursionMap, indent + 1);
 			}
 		},
 
@@ -320,17 +327,12 @@ extends ParseNodeDescriptor
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" : ");
-				object.declaredType().printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 1);
+				printTypePartOf(object, builder, recursionMap, indent + 1);
 				if (!object.initializationExpression().equalsNil())
 				{
 					builder.append(" := ");
 					object.initializationExpression().printOnAvoidingIndent(
-						builder,
-						recursionMap,
-						indent + 1);
+						builder, recursionMap, indent + 1);
 				}
 			}
 		},
@@ -359,9 +361,7 @@ extends ParseNodeDescriptor
 				builder.append(object.token().string().asNativeString());
 				builder.append(" ::= ");
 				object.initializationExpression().printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 1);
+					builder, recursionMap, indent + 1);
 			}
 		},
 
@@ -374,14 +374,6 @@ extends ParseNodeDescriptor
 			false,
 			ParseNodeKind.PRIMITIVE_FAILURE_REASON_NODE)
 		{
-			@Override
-			public void emitEffectForOn (
-				final A_Phrase declarationNode,
-				final AvailCodeGenerator codeGenerator)
-			{
-				// Handled automatically by the primitive attempt.
-			}
-
 			@Override
 			public void emitVariableValueForOn (
 				final A_Phrase declarationNode,
@@ -399,10 +391,7 @@ extends ParseNodeDescriptor
 			{
 				builder.append(object.token().string().asNativeString());
 				builder.append(" : ");
-				object.declaredType().printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 1);
+				printTypePartOf(object, builder, recursionMap, indent + 1);
 			}
 		};
 
@@ -439,10 +428,10 @@ extends ParseNodeDescriptor
 		 * @param isModuleScoped
 		 *        Whether declarations of this kind have module scope.
 		 * @param kindEnumeration
-		 *        The enumeration instance of {@link TypeDescriptor.Types} that
-		 *        is associated with this kind of declaration.
+		 *        The enumeration instance of {@link Types} that is associated
+		 *        with this kind of declaration.
 		 */
-		private DeclarationKind (
+		DeclarationKind (
 			final String nativeKindName,
 			final boolean isVariable,
 			final boolean isModuleScoped,
@@ -458,7 +447,7 @@ extends ParseNodeDescriptor
 		/**
 		 * Stash a copy of the array of all {@link DeclarationKind} enum values.
 		 */
-		private static DeclarationKind[] all = values();
+		private final static DeclarationKind[] all = values();
 
 		/**
 		 * Answer the previously stashed copy of the array of all {@link
@@ -525,23 +514,6 @@ extends ParseNodeDescriptor
 		}
 
 		/**
-		 * Return the {@linkplain PrimitiveTypeDescriptor primitive type}
-		 * associated with this kind of entity.
-		 *
-		 * @param expressionType
-		 *            The type of object produced by some parse node's
-		 *            expression.
-		 * @return The Avail {@linkplain TypeDescriptor type} associated with
-		 *         this kind of entity.
-		 */
-		public A_BasicObject parseNodeTypeFor (
-			final AvailObject expressionType)
-		{
-			return kindEnumeration.create(expressionType);
-		}
-
-
-		/**
 		 * Emit an assignment to this variable.
 		 *
 		 * @param declarationNode The declaration that has this declarationKind.
@@ -591,7 +563,7 @@ extends ParseNodeDescriptor
 			final A_Phrase object,
 			final AvailCodeGenerator codeGenerator)
 		{
-			return;
+			// Declarations emit no instructions.
 		}
 
 		/**
@@ -612,6 +584,39 @@ extends ParseNodeDescriptor
 			final StringBuilder builder,
 			final IdentityHashMap<A_BasicObject, Void> recursionMap,
 			final int indent);
+
+		/**
+		 * Print the part of the given declaration of this kind which indicates
+		 * the content type of the entity that is being declared.
+		 *
+		 * @param object
+		 *        The declaration.
+		 * @param builder
+		 *        Where to print.
+		 * @param recursionMap
+		 *        An {@link IdentityHashMap} of parent objects that are
+		 *        printing.
+		 * @param indent
+		 *        The indentation depth.
+		 */
+		@InnerAccess static void printTypePartOf (
+			final A_Phrase object,
+			final StringBuilder builder,
+			final IdentityHashMap<A_BasicObject, Void> recursionMap,
+			final int indent)
+		{
+			A_BasicObject typeExpression = object.typeExpression();
+			if (!typeExpression.equalsNil())
+			{
+				typeExpression.printOnAvoidingIndent(
+					builder, recursionMap, indent);
+			}
+			else
+			{
+				object.declaredType().printOnAvoidingIndent(
+					builder, recursionMap, indent);
+			}
+		}
 	}
 
 	/**
@@ -632,6 +637,16 @@ extends ParseNodeDescriptor
 		final AvailObject object)
 	{
 		return object.slot(DECLARED_TYPE);
+	}
+
+	/**
+	 * Getter for field typeExpression.
+	 */
+	@Override @AvailMethod
+	A_Phrase o_TypeExpression (
+		final AvailObject object)
+	{
+		return object.slot(TYPE_EXPRESSION);
 	}
 
 	/**
@@ -699,7 +714,8 @@ extends ParseNodeDescriptor
 	int o_Hash (final AvailObject object)
 	{
 		return
-			(((object.token().hash() * multiplier
+			((((object.token().hash() * multiplier
+				+ object.typeExpression().hash()) * multiplier
 				+ object.declaredType().hash()) * multiplier
 				+ object.initializationExpression().hash()) * multiplier
 				+ object.literalObject().hash()) * multiplier
@@ -720,6 +736,12 @@ extends ParseNodeDescriptor
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
+		final A_Phrase typeExpression = object.typeExpression();
+		if (!typeExpression.equalsNil())
+		{
+			object.setSlot(
+				TYPE_EXPRESSION, aBlock.valueNotNull(typeExpression));
+		}
 		final A_Phrase expression = object.initializationExpression();
 		if (!expression.equalsNil())
 		{
@@ -780,6 +802,12 @@ extends ParseNodeDescriptor
 		object.slot(TOKEN).writeTo(writer);
 		writer.write("declared type");
 		object.slot(DECLARED_TYPE).writeTo(writer);
+		final AvailObject typeExpression = object.slot(TYPE_EXPRESSION);
+		if (!typeExpression.equalsNil())
+		{
+			writer.write("type expression");
+			typeExpression.writeTo(writer);
+		}
 		final AvailObject initializationExpression =
 			object.slot(INITIALIZATION_EXPRESSION);
 		if (!initializationExpression.equalsNil())
@@ -803,11 +831,7 @@ extends ParseNodeDescriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		object.declarationKind().print(
-			object,
-			builder,
-			recursionMap,
-			indent);
+		object.declarationKind().print(object, builder, recursionMap, indent);
 	}
 
 	/**
@@ -822,20 +846,24 @@ extends ParseNodeDescriptor
 	 *        occurrence of the name of the entity being declared.
 	 * @param declaredType
 	 *        The {@linkplain TypeDescriptor type} of the entity being declared.
+	 * @param typeExpression
+	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        if there was no such expression.
 	 * @param initializationExpression
 	 *        An {@linkplain ParseNodeDescriptor expression} used for
 	 *        initializing the entity being declared, or {@linkplain
 	 *        NilDescriptor#nil() nil} if none.
 	 * @param literalObject
 	 *        An {@link AvailObject} that is the actual variable or constant
-	 *        being defined, or {@linkplain NilDescriptor#nil() the top
-	 *        object} if none.
+	 *        being defined, or {@linkplain NilDescriptor#nil() nil} if none.
 	 * @return The new {@linkplain DeclarationNodeDescriptor declaration}.
 	 */
 	public static A_Phrase newDeclaration (
 		final DeclarationKind declarationKind,
 		final A_Token token,
 		final A_Type declaredType,
+		final A_Phrase typeExpression,
 		final A_Phrase initializationExpression,
 		final A_BasicObject literalObject)
 	{
@@ -852,9 +880,9 @@ extends ParseNodeDescriptor
 			mutables[declarationKind.ordinal()].create();
 		declaration.setSlot(TOKEN, token);
 		declaration.setSlot(DECLARED_TYPE, declaredType);
+		declaration.setSlot(TYPE_EXPRESSION, typeExpression);
 		declaration.setSlot(
-			INITIALIZATION_EXPRESSION,
-			initializationExpression);
+			INITIALIZATION_EXPRESSION, initializationExpression);
 		declaration.setSlot(LITERAL_OBJECT, literalObject);
 		declaration.makeShared();
 		return declaration;
@@ -869,16 +897,22 @@ extends ParseNodeDescriptor
 	 *        occurrence of the name of the entity being declared.
 	 * @param declaredType
 	 *        The {@linkplain TypeDescriptor type} of the entity being declared.
+	 * @param typeExpression
+	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        if there was no such expression.
 	 * @return The argument declaration.
 	 */
 	public static A_Phrase newArgument (
 		final A_Token token,
-		final A_Type declaredType)
+		final A_Type declaredType,
+		final A_Phrase typeExpression)
 	{
 		return newDeclaration(
 			ARGUMENT,
 			token,
 			declaredType,
+			typeExpression,
 			NilDescriptor.nil(),
 			NilDescriptor.nil());
 	}
@@ -893,6 +927,10 @@ extends ParseNodeDescriptor
 	 * @param declaredType
 	 *        The {@linkplain TypeDescriptor type} of the local variable being
 	 *        declared.
+	 * @param typeExpression
+	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        if there was no such expression.
 	 * @param initializationExpression
 	 *        An {@linkplain ParseNodeDescriptor expression} used for
 	 *        initializing the local variable, or {@linkplain
@@ -902,38 +940,15 @@ extends ParseNodeDescriptor
 	public static A_Phrase newVariable (
 		final A_Token token,
 		final A_Type declaredType,
+		final A_Phrase typeExpression,
 		final A_Phrase initializationExpression)
 	{
 		return newDeclaration(
 			LOCAL_VARIABLE,
 			token,
 			declaredType,
+			typeExpression,
 			initializationExpression,
-			NilDescriptor.nil());
-	}
-
-	/**
-	 * Construct a new {@linkplain DeclarationNodeDescriptor declaration} of a
-	 * {@linkplain DeclarationKind#LOCAL_VARIABLE local variable} without an
-	 * initialization expression.
-	 *
-	 * @param token
-	 *        The {@linkplain TokenDescriptor token} that is the defining
-	 *        occurrence of the name of the local variable being declared.
-	 * @param declaredType
-	 *        The {@linkplain TypeDescriptor type} of the local variable being
-	 *        declared.
-	 * @return The new local variable declaration.
-	 */
-	public static A_Phrase newVariable (
-		final A_Token token,
-		final A_Type declaredType)
-	{
-		return newDeclaration(
-			LOCAL_VARIABLE,
-			token,
-			declaredType,
-			NilDescriptor.nil(),
 			NilDescriptor.nil());
 	}
 
@@ -957,6 +972,7 @@ extends ParseNodeDescriptor
 			LOCAL_CONSTANT,
 			token,
 			initializationExpression.expressionType(),
+			NilDescriptor.nil(),
 			initializationExpression,
 			NilDescriptor.nil());
 	}
@@ -970,20 +986,25 @@ extends ParseNodeDescriptor
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
 	 *        occurrence of the name of the local constant being declared.
+	 * @param typeExpression
+	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        if there was no such expression.
 	 * @param type
-	 *        The type
-	 *        An {@linkplain ParseNodeDescriptor expression} used to
-	 *        provide the value of the local constant.
+	 *        The {@linkplain TypeDescriptor type} of the primitive failure
+	 *        variable being declared.
 	 * @return The new local constant declaration.
 	 */
 	public static A_Phrase newPrimitiveFailureVariable (
 		final A_Token token,
+		final A_Phrase typeExpression,
 		final A_Type type)
 	{
 		return newDeclaration(
 			PRIMITIVE_FAILURE_REASON,
 			token,
 			type,
+			typeExpression,
 			NilDescriptor.nil(),
 			NilDescriptor.nil());
 	}
@@ -995,6 +1016,12 @@ extends ParseNodeDescriptor
 	 * @param token
 	 *        The {@linkplain TokenDescriptor token} that is the defining
 	 *        occurrence of the name of the label being declared.
+	 * @param returnTypeExpression
+	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        if there was no such expression.  Note that this expression
+	 *        produced the return type of the continuation type, not the
+	 *        continuation type itself.
 	 * @param declaredType
 	 *        The {@linkplain TypeDescriptor type} of the label being declared,
 	 *        which must be a {@linkplain ContinuationTypeDescriptor
@@ -1005,12 +1032,14 @@ extends ParseNodeDescriptor
 	 */
 	public static A_Phrase newLabel (
 		final A_Token token,
+		final A_Phrase returnTypeExpression,
 		final A_Type declaredType)
 	{
 		return newDeclaration(
 			LABEL,
 			token,
 			declaredType,
+			returnTypeExpression,
 			NilDescriptor.nil(),
 			NilDescriptor.nil());
 	}
@@ -1026,6 +1055,10 @@ extends ParseNodeDescriptor
 	 * @param literalVariable
 	 *        The actual {@linkplain VariableDescriptor variable} to be used
 	 *        as a module variable.
+	 * @param typeExpression
+	 *        The {@link ParseNodeDescriptor expression} that produced the type
+	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        if there was no such expression.
 	 * @param initializationExpression
 	 *        The expression (or {@linkplain NilDescriptor#nil() nil}) used to
 	 *        initialize this module variable.
@@ -1034,12 +1067,14 @@ extends ParseNodeDescriptor
 	public static A_Phrase newModuleVariable(
 		final A_Token token,
 		final A_BasicObject literalVariable,
+		final A_Phrase typeExpression,
 		final A_Phrase initializationExpression)
 	{
 		return newDeclaration(
 			MODULE_VARIABLE,
 			token,
 			literalVariable.kind().readType(),
+			typeExpression,
 			initializationExpression,
 			literalVariable);
 	}
@@ -1067,6 +1102,7 @@ extends ParseNodeDescriptor
 			MODULE_CONSTANT,
 			token,
 			literalVariable.kind().readType(),
+			NilDescriptor.nil(),
 			initializationExpression,
 			literalVariable);
 	}

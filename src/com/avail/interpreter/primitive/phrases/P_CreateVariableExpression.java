@@ -67,7 +67,8 @@ extends Primitive
 		final A_Token token = args.get(0);
 		final A_Type type = args.get(1);
 		return interpreter.primitiveSuccess(
-			DeclarationNodeDescriptor.newVariable(token, type));
+			DeclarationNodeDescriptor.newVariable(
+				token, type, NilDescriptor.nil(), NilDescriptor.nil()));
 	}
 
 	@Override

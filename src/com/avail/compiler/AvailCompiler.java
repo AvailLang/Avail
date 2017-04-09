@@ -71,11 +71,8 @@ import com.avail.utility.MutableOrNull;
 import com.avail.utility.Pair;
 import com.avail.utility.PrefixSharingList;
 
-import java.io.CharArrayWriter;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousFileChannel;
@@ -100,6 +97,7 @@ import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 import static com.avail.interpreter.AvailLoader.Phase.*;
 import static com.avail.utility.PrefixSharingList.*;
+import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
@@ -541,10 +539,9 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * Execute {@code #tryBlock}, passing a {@linkplain
-	 * AvailCompiler.Con continuation} that it should run upon finding
-	 * exactly one local {@linkplain ParseNodeDescriptor solution}. Report
-	 * ambiguity as an error.
+	 * Execute {@code #tryBlock}, passing a {@linkplain Con continuation} that
+	 * it should run upon finding exactly one local {@linkplain CompilerSolution
+	 * solution}.  Report ambiguity as an error.
 	 *
 	 * @param start
 	 *        Where to start parsing.
@@ -1515,8 +1512,6 @@ public final class AvailCompiler
 				}
 				catch (final IOException e)
 				{
-					final CharArrayWriter trace = new CharArrayWriter();
-					e.printStackTrace(new PrintWriter(trace));
 					final Problem problem = new Problem(
 						resolvedName,
 						1,
@@ -1526,7 +1521,7 @@ public final class AvailCompiler
 						+ "\"{0}\": {1}\n{2}",
 						resolvedName,
 						e.getLocalizedMessage(),
-						trace)
+						trace(e))
 					{
 						@Override
 						public void abortCompilation ()
@@ -1544,8 +1539,6 @@ public final class AvailCompiler
 				@Nullable final Void attachment)
 			{
 				assert e != null;
-				final CharArrayWriter trace = new CharArrayWriter();
-				e.printStackTrace(new PrintWriter(trace));
 				final Problem problem = new Problem(
 					resolvedName,
 					1,
@@ -1554,7 +1547,7 @@ public final class AvailCompiler
 					"Unable to read source module \"{0}\": {1}\n{2}",
 					resolvedName,
 					e.getLocalizedMessage(),
-					trace)
+					trace(e))
 				{
 					@Override
 					public void abortCompilation ()
@@ -1818,40 +1811,11 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * Attempt the {@linkplain Continuation0 zero-argument continuation}. The
-	 * implementation is free to execute it now or to put it in a bag of
-	 * continuations to run later <em>in an arbitrary order</em>. There may be
-	 * performance and/or scale benefits to processing entries in FIFO, LIFO, or
-	 * some hybrid order, but the correctness is not affected by a choice of
-	 * order. The implementation may run the expression in parallel with the
-	 * invoking thread and other such expressions.
-	 *
-	 * @param token
-	 *        The {@linkplain TokenDescriptor token} that provides context for
-	 *        the continuation.
-	 * @param continuation
-	 *        What to do at some point in the future.
-	 */
-	@InnerAccess void eventuallyDo (
-		final A_Token token,
-		final Continuation0 continuation)
-	{
-		compilationContext.eventuallyDo(token, continuation);
-	}
-
-	/**
-	 * Start a work unit.
-	 */
-	@InnerAccess void startWorkUnit ()
-	{
-		compilationContext.startWorkUnit();
-	}
-
-	/**
 	 * Construct and answer a {@linkplain Continuation1 continuation} that
 	 * wraps the specified continuation in logic that will increment the
-	 * {@linkplain #workUnitsCompleted count of completed work units} and
-	 * potentially call the {@linkplain #noMoreWorkUnits unambiguous statement}.
+	 * {@linkplain CompilationContext#workUnitsCompleted count of completed work
+	 * units} and potentially call the {@linkplain
+	 * CompilationContext#noMoreWorkUnits unambiguous statement}.
 	 *
 	 * @param token
 	 *        The {@linkplain A_Token token} that provides context for the
@@ -1869,9 +1833,8 @@ public final class AvailCompiler
 		final @Nullable AtomicBoolean optionalSafetyCheck,
 		final Continuation1<ArgType> continuation)
 	{
-		return compilationContext.workUnitCompletion(token,
-			optionalSafetyCheck,
-			continuation);
+		return compilationContext.workUnitCompletion(
+			token, optionalSafetyCheck, continuation);
 	}
 
 	/**
@@ -2146,7 +2109,7 @@ public final class AvailCompiler
 		final Continuation0 afterFail)
 	{
 		assert !expression.isMacroSubstitutionNode();
-		final A_Phrase replacement = treeMapWithParent (
+		final A_Phrase replacement = treeMapWithParent(
 			expression,
 			new Transformer3<A_Phrase, A_Phrase, List<A_Phrase>, A_Phrase>()
 			{
@@ -2274,6 +2237,7 @@ public final class AvailCompiler
 								DeclarationNodeDescriptor.newModuleVariable(
 									replacement.token(),
 									var,
+									NilDescriptor.nil(),
 									replacement.initializationExpression());
 							final A_Phrase assign =
 								AssignmentNodeDescriptor.from(
@@ -2322,6 +2286,7 @@ public final class AvailCompiler
 						DeclarationNodeDescriptor.newModuleVariable(
 							replacement.token(),
 							var,
+							replacement.typeExpression(),
 							replacement.initializationExpression());
 					declarationRemap.put(expression, newDeclaration);
 					final A_Phrase assign = AssignmentNodeDescriptor.from(
@@ -2756,7 +2721,7 @@ public final class AvailCompiler
 			// send does not consist of exactly zero tokens).
 			assert marksSoFar.isEmpty();
 			assert argsSoFar.size() == 1;
-			final A_Phrase args = argsSoFar.get(0).stripMacro();
+			final A_Phrase args = argsSoFar.get(0);
 			for (final A_Bundle bundle : complete)
 			{
 				if (runtime.debugCompilerSteps)
@@ -3695,14 +3660,10 @@ public final class AvailCompiler
 								public void describeThen (
 									final Continuation1<String> withString)
 								{
-									final StringWriter stringWriter =
-										new StringWriter();
-									stringWriter.append(
+									withString.value(
 										"evaluation of expression not to have "
-										+ "thrown Java exception:\n");
-									e.printStackTrace(
-										new PrintWriter(stringWriter));
-									withString.value(stringWriter.toString());
+											+ "thrown Java exception:\n"
+											+ trace(e));
 								}
 							});
 						}
@@ -3785,7 +3746,7 @@ public final class AvailCompiler
 				final List<A_Phrase> withoutPrefixArguments =
 					withoutLast(argsSoFar);
 				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
-					prefixArgumentsList.stripMacro().expressionsTuple());
+					prefixArgumentsList.expressionsTuple());
 				runPrefixFunctionThen(
 					start,
 					successorTree,
@@ -5068,7 +5029,7 @@ public final class AvailCompiler
 			return MacroSubstitutionNodeDescriptor
 				.fromOriginalSendAndReplacement(
 					phrase.macroOriginalSendNode(),
-					LiteralNodeDescriptor.syntheticFrom(phrase.stripMacro()));
+					LiteralNodeDescriptor.syntheticFrom(phrase));
 		}
 		return LiteralNodeDescriptor.syntheticFrom(phrase);
 	}
@@ -5253,7 +5214,7 @@ public final class AvailCompiler
 		final List<A_Phrase> argumentsList = new ArrayList<>(argCount);
 		for (final A_Phrase argument : argumentsTuple)
 		{
-			argumentsList.add(argument.stripMacro());
+			argumentsList.add(argument);
 		}
 		// Capture all of the tokens that comprised the entire macro send.
 		final A_Tuple constituentTokens = stateBeforeCall.upTo(stateAfterCall);
@@ -6302,8 +6263,7 @@ public final class AvailCompiler
 								assert simpleStatement != null;
 								assert simpleStatement.parseNodeKindIsUnder(
 									STATEMENT_NODE);
-								simpleStatements.add(
-									simpleStatement.stripMacro());
+								simpleStatements.add(simpleStatement);
 							}
 						});
 

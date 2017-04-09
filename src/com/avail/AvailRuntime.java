@@ -36,6 +36,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.utility.StackPrinter.trace;
 import static java.nio.file.attribute.PosixFilePermission.*;
 import java.io.*;
 import java.lang.ref.PhantomReference;
@@ -2095,7 +2096,7 @@ public final class AvailRuntime
 	 * Level Two chunk. These two activities are mutually exclusive.</p>
 	 */
 	@InnerAccess Queue<AvailTask> levelOneSafeTasks =
-		new ArrayDeque<AvailTask>();
+		new ArrayDeque<>();
 
 	/**
 	 * The {@linkplain Queue queue} of Level One-unsafe {@linkplain
@@ -2103,7 +2104,7 @@ public final class AvailRuntime
 	 * {@linkplain #levelOneSafeTasks Level One-safe tasks} are running.
 	 */
 	@InnerAccess Queue<AvailTask> levelOneUnsafeTasks =
-		new ArrayDeque<AvailTask>();
+		new ArrayDeque<>();
 
 	/**
 	 * The number of {@linkplain #levelOneSafeTasks Level One-safe tasks} that
@@ -2155,6 +2156,12 @@ public final class AvailRuntime
 				try
 				{
 					unsafeTask.run();
+				}
+				catch (Exception e)
+				{
+					System.err.println(
+						"Exception in level-one-unsafe task:\n"
+							+ trace(e));
 				}
 				finally
 				{
@@ -2223,6 +2230,12 @@ public final class AvailRuntime
 				try
 				{
 					safeTask.run();
+				}
+				catch (Exception e)
+				{
+					System.err.println(
+						"Exception in level-one-safe task:\n"
+							+ trace(e));
 				}
 				finally
 				{

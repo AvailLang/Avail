@@ -37,7 +37,6 @@ import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
-import com.avail.compiler.AvailCompiler.Con;
 import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.problems.Problem;
@@ -60,10 +59,9 @@ import com.avail.utility.evaluation.Continuation1;
 import org.jetbrains.annotations.Nullable;
 
 import static com.avail.compiler.problems.ProblemType.*;
+import static com.avail.utility.StackPrinter.trace;
 
 import java.io.ByteArrayOutputStream;
-import java.io.CharArrayWriter;
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -675,8 +673,6 @@ public class CompilationContext
 	{
 		diagnostics.isShuttingDown = true;
 		diagnostics.compilationIsInvalid = true;
-		final CharArrayWriter trace = new CharArrayWriter();
-		e.printStackTrace(new PrintWriter(trace));
 		final Problem problem = new Problem(
 			moduleName(),
 			token.lineNumber(),
@@ -684,7 +680,7 @@ public class CompilationContext
 			INTERNAL,
 			"Internal error: {0}\n{1}",
 			e.getMessage(),
-			trace)
+			trace(e))
 		{
 			@Override
 			protected void abortCompilation ()
@@ -730,16 +726,14 @@ public class CompilationContext
 		}
 		else
 		{
-			final CharArrayWriter trace = new CharArrayWriter();
-			e.printStackTrace(new PrintWriter(trace));
-			diagnostics.handleProblem(new Problem(
+		diagnostics.handleProblem(new Problem(
 					moduleName(),
 					token.lineNumber(),
 					token.start(),
 					EXECUTION,
 					"Execution error: {0}\n{1}",
 					e.getMessage(),
-					trace)
+					trace(e))
 				{
 					@Override
 					public void abortCompilation ()

@@ -109,6 +109,7 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 				DeclarationNodeDescriptor.newModuleVariable(
 					actualToken,
 					variableObject,
+					NilDescriptor.nil(),
 					NilDescriptor.nil());
 			final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
 				actualToken,

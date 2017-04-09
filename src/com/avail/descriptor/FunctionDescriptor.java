@@ -78,10 +78,14 @@ extends Descriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		L1Decompiler.parse(object).printOnAvoidingIndent(
-			aStream,
-			recursionMap,
-			indent + 1);
+		final A_RawFunction code = object.code();
+		A_Phrase phrase = code.originatingPhrase();
+		if (phrase.equalsNil())
+		{
+			phrase = L1Decompiler.parse(object);
+		}
+		phrase.printOnAvoidingIndent(
+			aStream, recursionMap, indent + 1);
 	}
 
 	@Override

@@ -117,17 +117,11 @@ public enum ParsingConversionRule
 				InstanceMetaDescriptor.topMeta());
 			currentParserState.evaluatePhraseThen(
 				input,
-				new Continuation1<AvailObject>()
-				{
-					@Override
-					public void value (final @Nullable AvailObject value)
-					{
-						// Wrap it as a literal phrase and pass it along.
-						assert value != null;
-						continuation.value(
-							LiteralNodeDescriptor.syntheticFrom(value));
-					}
-				},
+				value -> continuation.value(
+					MacroSubstitutionNodeDescriptor
+						.fromOriginalSendAndReplacement(
+							input,
+							LiteralNodeDescriptor.syntheticFrom(value))),
 				onProblem);
 		}
 	};
@@ -177,6 +171,9 @@ public enum ParsingConversionRule
 		this.number = number;
 	}
 
+	/** An array of all {@link ParsingConversionRule}s. */
+	private final static ParsingConversionRule[] all = values();
+
 	/**
 	 * Lookup the specified {@linkplain ParsingConversionRule conversion rule}
 	 * by number.
@@ -186,9 +183,9 @@ public enum ParsingConversionRule
 	 */
 	public static ParsingConversionRule ruleNumber (final int number)
 	{
-		if (number < values().length)
+		if (number < all.length)
 		{
-			return values()[number];
+			return all[number];
 		}
 		throw new RuntimeException("reserved conversion rule number");
 	}
