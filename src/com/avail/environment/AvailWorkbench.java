@@ -2772,16 +2772,18 @@ extends JFrame
 				"com.apple.eawt.Application",
 				true,
 				AvailWorkbench.class.getClassLoader());
-			final Object application =
-				appClass.getMethod("getApplication").invoke(null);
-			final Image image =
-				new ImageIcon(resourcePrefix + "AvailHammer.png").getImage();
-			appClass.getMethod("setDockIconImage", Image.class).invoke(
-				application,
-				image);
-			appClass.getMethod("setDockIconBadge", String.class).invoke(
-				application,
-				"DEV");
+			// TODO: [MvG] Investigate why this doesn't work anymore, at least
+			// on Sierra.
+//			final Object application =
+//				appClass.getMethod("getApplication").invoke(null);
+//			final Image image =
+//				new ImageIcon(resourcePrefix + "AvailHammer.png").getImage();
+//			appClass.getMethod("setDockIconImage", Image.class).invoke(
+//				application,
+//				image);
+//			appClass.getMethod("setDockIconBadge", String.class).invoke(
+//				application,
+//				"DEV");
 		}
 		catch (final Exception e)
 		{
