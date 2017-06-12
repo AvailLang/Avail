@@ -90,6 +90,7 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import static com.avail.descriptor.AtomDescriptor.*;
+import static com.avail.descriptor.LiteralNodeDescriptor.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -162,7 +163,7 @@ public final class AvailCompiler
 	@InnerAccess ModuleName moduleName ()
 	{
 		return new ModuleName(compilationContext
-			.getModule().moduleName().asNativeString());
+			.module().moduleName().asNativeString());
 	}
 
 	/**
@@ -1886,7 +1887,7 @@ public final class AvailCompiler
 	private void startModuleTransaction ()
 	{
 		compilationContext.setLoader(new AvailLoader(
-			compilationContext.getModule(),
+			compilationContext.module(),
 			compilationContext.getTextInterface()));
 	}
 
@@ -1901,7 +1902,7 @@ public final class AvailCompiler
 		final Continuation0 afterRollback)
 	{
 		compilationContext
-			.getModule()
+			.module()
 			.removeFrom(compilationContext.loader(), afterRollback);
 	}
 
@@ -1911,7 +1912,7 @@ public final class AvailCompiler
 	 */
 	@InnerAccess void commitModuleTransaction ()
 	{
-		runtime.addModule(compilationContext.getModule());
+		runtime.addModule(compilationContext.module());
 	}
 
 	/**
@@ -2066,7 +2067,7 @@ public final class AvailCompiler
 	{
 		compilationContext.evaluateFunctionThen(
 			FunctionDescriptor.createFunctionForPhrase(
-				expressionNode, compilationContext.getModule(), lineNumber),
+				expressionNode, compilationContext.module(), lineNumber),
 			lineNumber,
 			Collections.<AvailObject>emptyList(),
 			MapDescriptor.empty(),
@@ -2125,33 +2126,29 @@ public final class AvailCompiler
 				}
 			},
 			NilDescriptor.nil(),
-			new ArrayList<A_Phrase>(),
+			new ArrayList<>(),
 			declarationRemap);
 
 		final Continuation1<Throwable> phraseFailure =
-			new Continuation1<Throwable>()
+			e ->
 			{
-				@Override
-				public void value (final @Nullable Throwable e)
+				assert e != null;
+				final A_Token token = startState.peekToken();
+				if (e instanceof AvailAssertionFailedException)
 				{
-					assert e != null;
-					final A_Token token = startState.peekToken();
-					if (e instanceof AvailAssertionFailedException)
-					{
-						compilationContext.reportAssertionFailureProblem(
-							token, (AvailAssertionFailedException) e);
-					}
-					else if (e instanceof AvailEmergencyExitException)
-					{
-						compilationContext.reportEmergencyExitProblem(
-							token, (AvailEmergencyExitException) e);
-					}
-					else
-					{
-						compilationContext.reportExecutionProblem(token, e);
-					}
-					afterFail.value();
+					compilationContext.reportAssertionFailureProblem(
+						token, (AvailAssertionFailedException) e);
 				}
+				else if (e instanceof AvailEmergencyExitException)
+				{
+					compilationContext.reportEmergencyExitProblem(
+						token, (AvailEmergencyExitException) e);
+				}
+				else
+				{
+					compilationContext.reportExecutionProblem(token, e);
+				}
+				afterFail.value();
 			};
 
 		if (!replacement.parseNodeKindIsUnder(DECLARATION_NODE))
@@ -2163,25 +2160,22 @@ public final class AvailCompiler
 				replacement,
 				startState.peekToken().lineNumber(),
 				true,
-				new Continuation1<AvailObject>()
-				{
-					@Override
-					public void value (final @Nullable AvailObject ignored)
-					{
-						onSuccess.value();
-					}
-				},
+				ignored -> onSuccess.value(),
 				phraseFailure);
 			return;
 		}
 		// It's a declaration, but the parser couldn't previously tell that it
-		// was at module scope.
+		// was at module scope.  Serialize a function that will cause the
+		// declaration to happen, so that references to the global
+		// variable/constant from a subsequent module will be able to find it by
+		// name.
+		final A_Module module = compilationContext.module();
+		final AvailLoader loader = compilationContext.loader();
 		final A_String name = replacement.token().string();
 		final @Nullable String shadowProblem =
-			compilationContext.getModule().variableBindings().hasKey(name)
+			module.variableBindings().hasKey(name)
 				? "module variable"
-				: compilationContext
-					.getModule().constantBindings().hasKey(name)
+				: module.constantBindings().hasKey(name)
 					? "module constant"
 					: null;
 		switch (replacement.declarationKind())
@@ -2198,69 +2192,82 @@ public final class AvailCompiler
 					compilationContext.diagnostics.reportError(afterFail);
 					return;
 				}
-				compilationContext.loader().startRecordingEffects();
+				loader.startRecordingEffects();
 				evaluatePhraseThen(
 					replacement.initializationExpression(),
 					replacement.token().lineNumber(),
 					false,
-					new Continuation1<AvailObject>()
+					val ->
 					{
-						@Override
-						public void value (final @Nullable AvailObject val)
-						{
-							assert val != null;
-							compilationContext.loader().stopRecordingEffects();
-							final A_Type innerType =
-								AbstractEnumerationTypeDescriptor
-									.withInstance(val);
-							final A_Type varType =
-								VariableTypeDescriptor.wrapInnerType(innerType);
-							final A_Variable var =
-								VariableSharedWriteOnceDescriptor
-									.forVariableType(varType);
-							compilationContext
-								.getModule()
-								.addConstantBinding(name, var);
-							// Update the map so that the local constant goes to
-							// a module constant.  Then subsequent statements
-							// in this sequence will transform uses of the
-							// constant appropriately.
-							final A_Phrase newConstant =
-								DeclarationNodeDescriptor.newModuleConstant(
-									replacement.token(),
-									var,
-									replacement.initializationExpression());
-							declarationRemap.put(expression, newConstant);
-							// Now create a module variable declaration (i.e.,
-							// cheat) JUST for this initializing assignment.
-							final A_Phrase newDeclaration =
-								DeclarationNodeDescriptor.newModuleVariable(
-									replacement.token(),
-									var,
-									NilDescriptor.nil(),
-									replacement.initializationExpression());
-							final A_Phrase assign =
-								AssignmentNodeDescriptor.from(
-									VariableUseNodeDescriptor.newUse(
-										replacement.token(), newDeclaration),
-									LiteralNodeDescriptor.syntheticFrom(val),
-									false);
-							final A_Function function =
-								FunctionDescriptor.createFunctionForPhrase(
-									assign,
-									compilationContext.getModule(),
-									replacement.token().lineNumber());
-							final boolean canSummarize =
-								compilationContext.loader
-									.statementCanBeSummarized();
-							compilationContext.serializeAfterRunning(function);
-							var.setValue(val);
-							if (canSummarize)
-							{
-								var.valueWasStablyComputed(true);
-							}
-							onSuccess.value();
-						}
+						assert val != null;
+						loader.stopRecordingEffects();
+						final boolean canSummarize =
+							loader.statementCanBeSummarized();
+						final A_Type innerType =
+							AbstractEnumerationTypeDescriptor
+								.withInstance(val);
+						final A_Type varType =
+							VariableTypeDescriptor.wrapInnerType(innerType);
+						final A_Phrase creationSend = SendNodeDescriptor.from(
+							TupleDescriptor.empty(),
+							SpecialAtom.CREATE_MODULE_VARIABLE.bundle,
+							ListNodeDescriptor.newExpressions(
+								TupleDescriptor.from(
+									syntheticFrom(module),
+									syntheticFrom(name),
+									syntheticFrom(varType),
+									syntheticFrom(
+										AtomDescriptor.trueObject()),
+									syntheticFrom(
+										AtomDescriptor.objectFromBoolean(
+											canSummarize)))),
+							TOP.o());
+						final A_Function creationFunction =
+							FunctionDescriptor.createFunctionForPhrase(
+								creationSend,
+								module,
+								replacement.token().lineNumber());
+						// Force the declaration to be serialized.
+						compilationContext.serializeWithoutSummary(
+							creationFunction);
+						final A_Variable var =
+							VariableSharedGlobalDescriptor.createGlobal(
+								varType, module, name, true);
+						var.valueWasStablyComputed(canSummarize);
+						module.addConstantBinding(name, var);
+						// Update the map so that the local constant goes to
+						// a module constant.  Then subsequent statements in
+						// this sequence will transform uses of the constant
+						// appropriately.
+						final A_Phrase newConstant =
+							DeclarationNodeDescriptor.newModuleConstant(
+								replacement.token(),
+								var,
+								replacement.initializationExpression());
+						declarationRemap.put(expression, newConstant);
+						// Now create a module variable declaration (i.e.,
+						// cheat) JUST for this initializing assignment.
+						final A_Phrase newDeclaration =
+							DeclarationNodeDescriptor.newModuleVariable(
+								replacement.token(),
+								var,
+								NilDescriptor.nil(),
+								replacement.initializationExpression());
+						final A_Phrase assign =
+							AssignmentNodeDescriptor.from(
+								VariableUseNodeDescriptor.newUse(
+									replacement.token(), newDeclaration),
+								syntheticFrom(val),
+								false);
+						final A_Function assignFunction =
+							FunctionDescriptor.createFunctionForPhrase(
+								assign,
+								module,
+								replacement.token().lineNumber());
+						compilationContext.serializeWithoutSummary(
+							assignFunction);
+						var.setValue(val);
+						onSuccess.value();
 					},
 					phraseFailure);
 				break;
@@ -2277,9 +2284,31 @@ public final class AvailCompiler
 					compilationContext.diagnostics.reportError(afterFail);
 					return;
 				}
-				final A_Variable var = VariableDescriptor.forContentType(
+				final A_Type varType = VariableTypeDescriptor.wrapInnerType(
 					replacement.declaredType());
-				compilationContext.getModule().addVariableBinding(name, var);
+				final A_Phrase creationSend = SendNodeDescriptor.from(
+					TupleDescriptor.empty(),
+					SpecialAtom.CREATE_MODULE_VARIABLE.bundle,
+					ListNodeDescriptor.newExpressions(
+						TupleDescriptor.from(
+							syntheticFrom(module),
+							syntheticFrom(name),
+							syntheticFrom(varType),
+							syntheticFrom(AtomDescriptor.falseObject()),
+							syntheticFrom(AtomDescriptor.falseObject()))),
+					TOP.o());
+				final A_Function creationFunction =
+					FunctionDescriptor.createFunctionForPhrase(
+						creationSend,
+						module,
+						replacement.token().lineNumber());
+				creationFunction.makeImmutable();
+				// Force the declaration to be serialized.
+				compilationContext.serializeWithoutSummary(creationFunction);
+				final A_Variable var =
+					VariableSharedGlobalDescriptor.createGlobal(
+						varType, module, name, false);
+				module.addVariableBinding(name, var);
 				if (!replacement.initializationExpression().equalsNil())
 				{
 					final A_Phrase newDeclaration =
@@ -2295,28 +2324,20 @@ public final class AvailCompiler
 							newDeclaration),
 							replacement.initializationExpression(),
 						false);
-					final A_Function function =
+					final A_Function assignFunction =
 						FunctionDescriptor.createFunctionForPhrase(
-							assign,
-							compilationContext.getModule(),
-							replacement.token().lineNumber());
-					synchronized (AvailCompiler.this)
-					{
-						compilationContext.serializer.serialize(function);
-					}
+							assign, module, replacement.token().lineNumber());
 					evaluatePhraseThen(
 						replacement.initializationExpression(),
 						replacement.token().lineNumber(),
 						false,
-						new Continuation1<AvailObject>()
+						val ->
 						{
-							@Override
-							public void value (final @Nullable AvailObject val)
-							{
-								assert val != null;
-								var.setValue(val);
-								onSuccess.value();
-							}
+							assert val != null;
+							var.setValue(val);
+							compilationContext.serializeWithoutSummary(
+								assignFunction);
+							onSuccess.value();
 						},
 						phraseFailure);
 				}
@@ -2703,7 +2724,7 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final Con<CompilerSolution> continuation)
 	{
-		bundleTree.expand(compilationContext.getModule());
+		bundleTree.expand(compilationContext.module());
 		final A_Set complete = bundleTree.lazyComplete();
 		final A_Map incomplete = bundleTree.lazyIncomplete();
 		final A_Map caseInsensitive =
@@ -2724,7 +2745,7 @@ public final class AvailCompiler
 			final A_Phrase args = argsSoFar.get(0);
 			for (final A_Bundle bundle : complete)
 			{
-				if (runtime.debugCompilerSteps)
+				if (AvailRuntime.debugCompilerSteps)
 				{
 					System.out.println(
 						"Completed send/macro: "
@@ -2747,7 +2768,7 @@ public final class AvailCompiler
 					final long timeBefore = System.nanoTime();
 					final A_BundleTree successor =
 						incomplete.mapAt(keywordString);
-					if (runtime.debugCompilerSteps)
+					if (AvailRuntime.debugCompilerSteps)
 					{
 						System.out.println(
 							"Matched token: " + keywordString
@@ -2801,7 +2822,7 @@ public final class AvailCompiler
 					final long timeBefore = System.nanoTime();
 					final A_BundleTree successor =
 						caseInsensitive.mapAt(lowercaseString);
-					if (runtime.debugCompilerSteps)
+					if (AvailRuntime.debugCompilerSteps)
 					{
 						System.out.println(
 							"Matched insensitive token: "
@@ -2859,7 +2880,7 @@ public final class AvailCompiler
 				{
 					final A_BundleTree successor =
 						prefilter.mapAt(argumentBundle);
-					if (runtime.debugCompilerSteps)
+					if (AvailRuntime.debugCompilerSteps)
 					{
 						System.out.println(
 							"Grammatical prefilter: " + argumentBundle
@@ -2899,7 +2920,7 @@ public final class AvailCompiler
 			final A_BundleTree successor =
 				MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(
 					typeFilterTree, latestPhrase, null);
-			if (runtime.debugCompilerSteps)
+			if (AvailRuntime.debugCompilerSteps)
 			{
 				System.out.println(
 					"Type filter: " + latestPhrase
@@ -3136,7 +3157,7 @@ public final class AvailCompiler
 		final Con<CompilerSolution> continuation)
 	{
 		final ParsingOperation op = decode(instruction);
-		if (runtime.debugCompilerSteps)
+		if (AvailRuntime.debugCompilerSteps)
 		{
 			if (op.ordinal() >= ParsingOperation.distinctInstructions)
 			{
@@ -3522,7 +3543,7 @@ public final class AvailCompiler
 					SYNTHETIC_LITERAL,
 					newToken);
 				final A_Phrase literalNode =
-					LiteralNodeDescriptor.fromToken(syntheticToken);
+					fromToken(syntheticToken);
 				final List<A_Phrase> newArgsSoFar =
 					append(argsSoFar, literalNode);
 				eventuallyParseRestOfSendNode(
@@ -3857,7 +3878,7 @@ public final class AvailCompiler
 					LITERAL,
 					constant);
 				final A_Phrase literalNode =
-					LiteralNodeDescriptor.fromToken(token);
+					fromToken(token);
 				eventuallyParseRestOfSendNode(
 					start,
 					successorTrees.tupleAt(1),
@@ -4141,7 +4162,7 @@ public final class AvailCompiler
 		// Find all method definitions that could match the argument types.
 		// Only consider definitions that are defined in the current module or
 		// an ancestor.
-		final A_Set allAncestors = compilationContext.getModule().allAncestors();
+		final A_Set allAncestors = compilationContext.module().allAncestors();
 		final List<A_Definition> filteredByTypes = macroOrNil.equalsNil()
 			? method.filterByTypes(argTypes)
 			: Collections.singletonList(macroOrNil);
@@ -4638,7 +4659,7 @@ public final class AvailCompiler
 			// Only consider definitions that are defined in the current module
 			// or an ancestor.
 			final A_Set allAncestors =
-				compilationContext.getModule().allAncestors();
+				compilationContext.module().allAncestors();
 			final List<A_Definition> visibleDefinitions =
 				new ArrayList<>(macroDefinitionsTuple.tupleSize());
 			for (final A_Definition definition : macroDefinitionsTuple)
@@ -5029,9 +5050,9 @@ public final class AvailCompiler
 			return MacroSubstitutionNodeDescriptor
 				.fromOriginalSendAndReplacement(
 					phrase.macroOriginalSendNode(),
-					LiteralNodeDescriptor.syntheticFrom(phrase));
+					syntheticFrom(phrase));
 		}
-		return LiteralNodeDescriptor.syntheticFrom(phrase);
+		return syntheticFrom(phrase);
 	}
 
 	/**
@@ -5230,7 +5251,7 @@ public final class AvailCompiler
 		final MutableOrNull<A_Map> clientDataAfterRunning =
 			new MutableOrNull<>();
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
-		if (runtime.debugMacroExpansions)
+		if (AvailRuntime.debugMacroExpansions)
 		{
 			System.out.println(
 				"PRE-EVAL:"
@@ -5329,7 +5350,7 @@ public final class AvailCompiler
 							MacroSubstitutionNodeDescriptor
 								.fromOriginalSendAndReplacement(
 									original, adjustedReplacement);
-						if (runtime.debugMacroExpansions)
+						if (AvailRuntime.debugMacroExpansions)
 						{
 							System.out.println(
 								":"
@@ -5486,20 +5507,20 @@ public final class AvailCompiler
 	{
 		final A_String availName = StringDescriptor.from(methodName);
 		final A_Phrase nameLiteral =
-			LiteralNodeDescriptor.syntheticFrom(availName);
+			syntheticFrom(availName);
 		final Primitive primitive = Primitive.byName(primitiveName);
 		assert primitive != null;
 		final A_Function function =
 			FunctionDescriptor.newPrimitiveFunction(
 				primitive,
-				compilationContext.getModule(),
+				compilationContext.module(),
 				token.lineNumber());
 		final A_Phrase send = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
 			SpecialAtom.METHOD_DEFINER.bundle,
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
-				LiteralNodeDescriptor.syntheticFrom(function))),
+				syntheticFrom(function))),
 			TOP.o());
 		evaluateModuleStatementThen(
 			state,
@@ -5556,7 +5577,7 @@ public final class AvailCompiler
 			SYNTHETIC_LITERAL,
 			availName);
 		final A_Phrase nameLiteral =
-			LiteralNodeDescriptor.fromToken(token1);
+			fromToken(token1);
 		final List<A_Phrase> functionLiterals = new ArrayList<>();
 		try
 		{
@@ -5565,10 +5586,10 @@ public final class AvailCompiler
 				final Primitive prim = Primitive.byName(primitiveName);
 				assert prim != null : "Invalid bootstrap macro primitive name";
 				functionLiterals.add(
-					LiteralNodeDescriptor.syntheticFrom(
+					syntheticFrom(
 						FunctionDescriptor.newPrimitiveFunction(
 							prim,
-							compilationContext.getModule(),
+							compilationContext.module(),
 							token.lineNumber())));
 			}
 		}
@@ -5671,7 +5692,7 @@ public final class AvailCompiler
 		final A_Function filterFunction =
 			FunctionDescriptor.newPrimitiveFunction(
 				filterPrimitive,
-				compilationContext.getModule(), token.lineNumber());
+				compilationContext.module(), token.lineNumber());
 
 		// Process the body primitive.
 		final Primitive bodyPrimitive = Primitive.byName(bodyPrimitiveName);
@@ -5696,12 +5717,12 @@ public final class AvailCompiler
 		final A_Function bodyFunction =
 			FunctionDescriptor.newPrimitiveFunction(
 				bodyPrimitive,
-				compilationContext.getModule(), token.lineNumber());
+				compilationContext.module(), token.lineNumber());
 
 		// Process the lexer name.
 		final A_String availName = StringDescriptor.from(lexerName);
 		final A_Phrase nameLiteral =
-			LiteralNodeDescriptor.syntheticFrom(availName);
+			syntheticFrom(availName);
 
 		// Build a phrase to define the lexer.
 		final A_Phrase send = SendNodeDescriptor.from(
@@ -5709,8 +5730,8 @@ public final class AvailCompiler
 			SpecialAtom.LEXER_DEFINER.bundle,
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
 				nameLiteral,
-				LiteralNodeDescriptor.syntheticFrom(filterFunction),
-				LiteralNodeDescriptor.syntheticFrom(bodyFunction))),
+				syntheticFrom(filterFunction),
+				syntheticFrom(bodyFunction))),
 			TOP.o());
 		evaluateModuleStatementThen(
 			state,
@@ -5870,7 +5891,7 @@ public final class AvailCompiler
 	{
 		final A_String availName = StringDescriptor.from(pragmaValue);
 		final A_Set atoms =
-			compilationContext.getModule().trueNamesForStringName(availName);
+			compilationContext.module().trueNamesForStringName(availName);
 		if (atoms.setSize() == 0)
 		{
 			compilationContext.diagnostics.reportError(
@@ -5899,7 +5920,7 @@ public final class AvailCompiler
 			TupleDescriptor.empty(),
 			SpecialAtom.DECLARE_STRINGIFIER.bundle,
 			ListNodeDescriptor.newExpressions(TupleDescriptor.from(
-				LiteralNodeDescriptor.syntheticFrom(atom))),
+				syntheticFrom(atom))),
 			TOP.o());
 		evaluateModuleStatementThen(
 			state,
@@ -6173,7 +6194,7 @@ public final class AvailCompiler
 		// module.
 		final String errorString =
 			moduleHeader().applyToModule(
-				compilationContext.getModule(),
+				compilationContext.module(),
 				runtime);
 		if (errorString != null)
 		{
@@ -6331,10 +6352,19 @@ public final class AvailCompiler
 								resumeParsing.value();
 								return;
 							}
+							final A_Phrase statement =
+								simpleStatementIterator.next();
+							if (AvailLoader.debugLoadedStatements)
+							{
+								System.out.println(
+									moduleName().qualifiedName()
+										+ ":" + start.peekToken().lineNumber()
+										+ " Running statement:\n" + statement);
+							}
 							evaluateModuleStatementThen(
 								start,
 								afterStatement,
-								simpleStatementIterator.next(),
+								statement,
 								declarationRemap,
 								executeSimpleStatement.value(),
 								afterFail);
@@ -6451,7 +6481,7 @@ public final class AvailCompiler
 				serializePublicationFunction(false);
 				commitModuleTransaction();
 				succeed.value(new AvailCompilerResult(
-					compilationContext.getModule(),
+					compilationContext.module(),
 					commentTokens));
 			}
 		});
@@ -7094,8 +7124,9 @@ public final class AvailCompiler
 	{
 		// Output a function that publishes the initial public set of atoms.
 		final A_Map sourceNames =
-			isPublic ? compilationContext.getModule().importedNames() : compilationContext
-				.getModule().privateNames();
+			isPublic
+				? compilationContext.module().importedNames()
+				: compilationContext.module().privateNames();
 		A_Set names = SetDescriptor.empty();
 		for (final MapDescriptor.Entry entry : sourceNames.mapIterable())
 		{
@@ -7107,13 +7138,13 @@ public final class AvailCompiler
 			SpecialAtom.PUBLISH_ATOMS.bundle,
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
-					LiteralNodeDescriptor.syntheticFrom(names),
-					LiteralNodeDescriptor.syntheticFrom(
+					syntheticFrom(names),
+					syntheticFrom(
 						AtomDescriptor.objectFromBoolean(isPublic)))),
 			TOP.o());
 		final A_Function function =
 			FunctionDescriptor.createFunctionForPhrase(send,
-				compilationContext.getModule(), 0);
+				compilationContext.module(), 0);
 		function.makeImmutable();
 		synchronized (this)
 		{
