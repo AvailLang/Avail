@@ -39,11 +39,12 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
-import com.avail.interpreter.effects.LoadingEffectToAddAlias;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 import com.avail.utility.evaluation.Continuation0;
 
 /**
@@ -106,7 +107,8 @@ extends Primitive
 			newBundle = MessageBundleDescriptor.newBundle(
 				newAtom, method, new MessageSplitter(newString));
 			loader.recordEffect(
-				new LoadingEffectToAddAlias(newString, oldAtom));
+				new LoadingEffectToRunPrimitive(
+					SpecialAtom.ALIAS.bundle, newString, oldAtom));
 		}
 		catch (final MalformedMessageException e)
 		{

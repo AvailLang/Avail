@@ -37,8 +37,6 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.AvailLoader.Phase.*;
 import static com.avail.utility.StackPrinter.trace;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,24 +45,19 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.avail.AvailRuntime;
-import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.effects.LoadingEffectToAddDefinition;
-import com.avail.interpreter.effects.LoadingEffectToAddGrammaticalRestriction;
-import com.avail.interpreter.effects.LoadingEffectToAddSeal;
-import com.avail.interpreter.effects.LoadingEffectToAddSemanticRestriction;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 import com.avail.io.TextInterface;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
@@ -475,6 +468,18 @@ public final class AvailLoader
 	public static boolean debugUnsummarizedStatements = false;
 
 	/**
+	 * Show the top-level statements that are executed during loading or
+	 * compilation.
+	 */
+	public static boolean debugLoadedStatements = false;
+
+	/**
+	 * A flag that controls whether compilation attempts to use the fast-loader
+	 * to rewrite some top-level statements into a faster form.
+	 */
+	public static boolean enableFastLoader = true;
+
+	/**
 	 * The {@link AvailRuntime} for the loader. Since a {@linkplain AvailLoader
 	 * loader} cannot migrate between two {@linkplain AvailRuntime runtimes}, it
 	 * is safe to cache it for efficient access.
@@ -625,7 +630,7 @@ public final class AvailLoader
 	{
 		assert !determiningSummarizability;
 		determiningSummarizability = true;
-		statementCanBeSummarized = true;
+		statementCanBeSummarized = enableFastLoader;
 		effectsAddedByTopStatement.clear();
 	}
 
@@ -982,7 +987,8 @@ public final class AvailLoader
 					assert false : "Signature was already vetted";
 					return;
 				}
-				recordEffect(new LoadingEffectToAddDefinition(newDefinition));
+				recordEffect(
+					new LoadingEffectToAddDefinition(newDefinition));
 				for (final A_Bundle bundle : method.bundles())
 				{
 					if (ancestorModules.hasElement(
@@ -1101,7 +1107,11 @@ public final class AvailLoader
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		runtime.addSemanticRestriction(restriction);
-		recordEffect(new LoadingEffectToAddSemanticRestriction(restriction));
+		recordEffect(
+			new LoadingEffectToRunPrimitive(
+				SpecialAtom.SEMANTIC_RESTRICTION.bundle,
+				method.chooseBundle().message(),
+				restriction.function()));
 		final A_Module theModule = module;
 		theModule.lock(new Continuation0()
 		{
@@ -1142,7 +1152,9 @@ public final class AvailLoader
 		seal.makeShared();
 		runtime.addSeal(methodName, seal);
 		module.addSeal(methodName, seal);
-		recordEffect(new LoadingEffectToAddSeal(methodName, seal));
+		recordEffect(
+			new LoadingEffectToRunPrimitive(
+				SpecialAtom.SEAL.bundle, methodName, seal));
 	}
 
 	/**
@@ -1240,8 +1252,10 @@ public final class AvailLoader
 			});
 		}
 		recordEffect(
-			new LoadingEffectToAddGrammaticalRestriction(
-				parentAtoms, illegalArgMsgs));
+			new LoadingEffectToRunPrimitive(
+				SpecialAtom.GRAMMATICAL_RESTRICTION.bundle,
+				parentAtoms,
+				illegalArgMsgs));
 	}
 
 	/**

@@ -67,6 +67,10 @@ public class OSXUtility
 	/** The method Application#setEnabledPreferencesMenu(boolean). */
 	@InnerAccess static final Method enablePrefsMethod;
 
+	/** The method Application.setDockIconBadge(String). */
+	@InnerAccess static final Method setDockIconBadgeMethod;
+
+
 	static
 	{
 		try
@@ -85,6 +89,8 @@ public class OSXUtility
 				"setEnabledAboutMenu", boolean.class);
 			enablePrefsMethod = applicationClass.getDeclaredMethod(
 				"setEnabledPreferencesMenu", boolean.class);
+			setDockIconBadgeMethod = applicationClass.getDeclaredMethod(
+				"setDockIconBadge", String.class);
 		}
 		catch (
 			final ClassNotFoundException

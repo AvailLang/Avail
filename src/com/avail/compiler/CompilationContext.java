@@ -141,7 +141,7 @@ public class CompilationContext
 	@InnerAccess
 	final A_Module module;
 
-	public A_Module getModule ()
+	public A_Module module ()
 	{
 		return module;
 	}
@@ -154,7 +154,7 @@ public class CompilationContext
 	 */
 	@InnerAccess ModuleName moduleName ()
 	{
-		return new ModuleName(getModule().moduleName().asNativeString());
+		return new ModuleName(module().moduleName().asNativeString());
 	}
 
 	/**
@@ -164,14 +164,24 @@ public class CompilationContext
 	 */
 	@Nullable AvailLoader loader = null;
 
-	public AvailLoader getLoader ()
-	{
-		return loader;
-	}
-
 	public void setLoader (AvailLoader loader)
 	{
 		this.loader = loader;
+	}
+
+	/**
+	 * Answer the {@linkplain AvailLoader loader} created and operated by this
+	 * {@linkplain AvailCompiler compiler} to facilitate the loading of
+	 * {@linkplain ModuleDescriptor modules}.
+	 *
+	 * @return A loader.
+	 */
+	@InnerAccess
+	AvailLoader loader ()
+	{
+		final AvailLoader theLoader = loader;
+		assert theLoader != null;
+		return theLoader;
 	}
 
 	/**
@@ -296,21 +306,6 @@ public class CompilationContext
 		this.progressReporter = progressReporter;
 		this.diagnostics = new CompilerDiagnostics(
 			source, moduleName(), pollForAbort, problemHandler);
-	}
-
-	/**
-	 * Answer the {@linkplain AvailLoader loader} created and operated by this
-	 * {@linkplain AvailCompiler compiler} to facilitate the loading of
-	 * {@linkplain ModuleDescriptor modules}.
-	 *
-	 * @return A loader.
-	 */
-	@InnerAccess
-	AvailLoader loader ()
-	{
-		final AvailLoader theLoader = loader;
-		assert theLoader != null;
-		return theLoader;
 	}
 
 	/**
@@ -638,6 +633,13 @@ public class CompilationContext
 					FunctionDescriptor.create(
 						writer.compiledCode(),
 						TupleDescriptor.empty());
+				if (AvailLoader.debugUnsummarizedStatements)
+				{
+					System.out.println(
+						module.moduleName().asNativeString()
+							+ ":" + function.code().startingLineNumber()
+							+ " Summary -- " + function);
+				}
 				serializer.serialize(summaryFunction);
 			}
 		}
@@ -649,10 +651,29 @@ public class CompilationContext
 				System.out.println(
 					module.toString()
 						+ ":" + function.code().startingLineNumber()
-						+ " -- " + function);
+						+ " Unsummarized -- " + function);
 			}
 			serializer.serialize(function);
 		}
+	}
+
+	/**
+	 * Serialize the given function without attempting to summarize it into
+	 * equivalent statements.
+	 *
+	 * @param function The function that has already run.
+	 */
+	@InnerAccess synchronized void serializeWithoutSummary (
+		final A_Function function)
+	{
+		if (AvailLoader.debugUnsummarizedStatements)
+		{
+			System.out.println(
+				module.toString()
+					+ ":" + function.code().startingLineNumber()
+					+ " Forced -- " + function);
+		}
+		serializer.serialize(function);
 	}
 
 	/**

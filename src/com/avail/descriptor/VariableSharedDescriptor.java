@@ -42,7 +42,6 @@ import java.util.WeakHashMap;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
@@ -115,6 +114,7 @@ extends VariableDescriptor
 		 * {@linkplain VariableAccessReactor writer reactors} that respond to
 		 * writes of the {@linkplain VariableDescriptor variable}.
 		 */
+		@HideFieldInDebugger
 		WRITE_REACTORS,
 
 		/**
@@ -125,6 +125,7 @@ extends VariableDescriptor
 		 * chunks.  This field holds the {@linkplain NilDescriptor#nil() nil}
 		 * object initially.
 		 */
+		@HideFieldInDebugger
 		DEPENDENT_CHUNKS_WEAK_SET_POJO;
 
 		static
@@ -144,14 +145,15 @@ extends VariableDescriptor
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == VALUE
 			|| e == WRITE_REACTORS
-			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO;
+			|| e == DEPENDENT_CHUNKS_WEAK_SET_POJO
+			|| e == HASH_AND_MORE;  // only for flags.
 	}
 
 	/**
 	 * Indicate in the current fiber's {@link Interpreter#availLoader()
 	 * availLoader} that a shared variable has just been modified.
 	 */
-	private static void recordWriteToSharedVariable ()
+	protected static void recordWriteToSharedVariable ()
 	{
 		final AvailLoader loader = Interpreter.current().availLoaderOrNull();
 		if (loader != null)
@@ -227,6 +229,12 @@ extends VariableDescriptor
 		recordWriteToSharedVariable();
 	}
 
+	protected void bypass_VariableDescriptor_SetValue (
+		final AvailObject object, final A_BasicObject newValue)
+	{
+		super.o_SetValue(object, newValue);
+	}
+
 	@Override @AvailMethod
 	void o_SetValueNoCheck (
 		final AvailObject object,
@@ -237,6 +245,12 @@ extends VariableDescriptor
 			super.o_SetValueNoCheck(object, newValue.makeShared());
 		}
 		recordWriteToSharedVariable();
+	}
+
+	protected void bypass_VariableDescriptor_SetValueNoCheck (
+		final AvailObject object, final A_BasicObject newValue)
+	{
+		super.o_SetValueNoCheck(object, newValue);
 	}
 
 	@Override @AvailMethod
@@ -262,10 +276,10 @@ extends VariableDescriptor
 
 	@Override @AvailMethod
 	boolean o_CompareAndSwapValues (
-			final AvailObject object,
-			final A_BasicObject reference,
-			final A_BasicObject newValue)
-		throws VariableGetException, VariableSetException
+		final AvailObject object,
+		final A_BasicObject reference,
+		final A_BasicObject newValue)
+	throws VariableGetException, VariableSetException
 	{
 		// Because the separate read, compare, and write operations are all
 		// performed within the critical section, atomicity is ensured.
@@ -285,9 +299,9 @@ extends VariableDescriptor
 
 	@Override @AvailMethod
 	A_Number o_FetchAndAddValue (
-			final AvailObject object,
-			final A_Number addend)
-		throws VariableGetException, VariableSetException
+		final AvailObject object,
+		final A_Number addend)
+	throws VariableGetException, VariableSetException
 	{
 		// Because the separate read and write operations are all performed
 		// within the critical section, atomicity is ensured.
@@ -455,6 +469,13 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
+	boolean o_IsGlobal(
+		final AvailObject object)
+	{
+		return false;
+	}
+
+	@Override @AvailMethod
 	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		// Do nothing; just answer the (shared) receiver.
@@ -551,8 +572,7 @@ extends VariableDescriptor
 	}
 
 	/**
-	 * Construct a new {@link VariableDescriptor}.  Only provided for use by
-	 * {@link VariableSharedWriteOnceDescriptor}.
+	 * Construct a new {@link VariableSharedDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

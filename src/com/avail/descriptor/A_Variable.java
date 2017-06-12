@@ -267,4 +267,27 @@ extends A_ChunkDependable
 	boolean variableMapHasKey (
 		final A_BasicObject key)
 	throws VariableGetException;
+
+	/**
+	 * Answer whether this variable is a module-scoped global.
+	 *
+	 * @return
+	 */
+	boolean isGlobal ();
+
+	/**
+	 * Only applicable to {@link VariableSharedGlobalDescriptor global
+	 * variables}.  Answer the {@link A_Module module} in which it's defined.
+	 *
+	 * @return The module in which this global variable/constant is defined.
+	 */
+	A_Module globalModule ();
+
+	/**
+	 * Only applicable to {@link VariableSharedGlobalDescriptor global
+	 * variables}.  Answer the name of this global variable or constant.
+	 *
+	 * @return The name of this global variable/constant.
+	 */
+	A_String globalName ();
 }

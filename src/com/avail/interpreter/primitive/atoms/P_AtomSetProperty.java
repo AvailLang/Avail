@@ -36,8 +36,9 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.interpreter.*;
-import com.avail.interpreter.effects.LoadingEffectToAddAtomProperty;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
 /**
  * <strong>Primitive:</strong> Within the first {@linkplain
@@ -73,8 +74,11 @@ public final class P_AtomSetProperty extends Primitive
 		if (loader != null)
 		{
 			loader.recordEffect(
-				new LoadingEffectToAddAtomProperty(
-					atom, propertyKey, propertyValue));
+				new LoadingEffectToRunPrimitive(
+					SpecialAtom.ATOM_PROPERTY.bundle,
+					atom,
+					propertyKey,
+					propertyValue));
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

@@ -7295,4 +7295,23 @@ implements
 	{
 		return descriptor.o_TypeExpression(this);
 	}
+
+	@Override
+	public boolean isGlobal ()
+	{
+		return descriptor.o_IsGlobal(this);
+	}
+
+	@Override
+	public A_Module globalModule ()
+	{
+		return descriptor.o_GlobalModule(this);
+	}
+
+	@Override
+	public A_String globalName ()
+	{
+		return descriptor.o_GlobalName(this);
+	}
+
 }

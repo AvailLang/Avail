@@ -154,6 +154,7 @@ extends Descriptor
 		 * {@linkplain VariableAccessReactor writer reactors} that respond to
 		 * writes of the {@linkplain VariableDescriptor variable}.
 		 */
+		@HideFieldInDebugger
 		WRITE_REACTORS
 	}
 
@@ -239,6 +240,12 @@ extends Descriptor
 		}
 		final AvailObject value = object.slot(VALUE);
 		return !value.equalsNil();
+	}
+
+	@Override @AvailMethod
+	SerializerOperation o_SerializerOperation (final AvailObject object)
+	{
+		return SerializerOperation.LOCAL_VARIABLE;
 	}
 
 	/**
@@ -641,10 +648,17 @@ extends Descriptor
 			object.slot(KIND), object.hash(), object.slot(VALUE), object);
 	}
 
-	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	@Override
+	boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
 	{
-		return SerializerOperation.VARIABLE;
+		return false;
+	}
+
+	@Override @AvailMethod
+	boolean o_IsGlobal(
+		final AvailObject object)
+	{
+		return false;
 	}
 
 	@Override @AvailMethod

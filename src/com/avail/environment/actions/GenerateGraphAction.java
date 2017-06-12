@@ -37,7 +37,6 @@ import java.awt.event.*;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.environment.tasks.GraphTask;
 import org.jetbrains.annotations.Nullable;
 

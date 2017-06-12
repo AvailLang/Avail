@@ -35,7 +35,6 @@ package com.avail.environment.actions;
 import java.awt.event.*;
 import com.avail.AvailRuntime;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -49,8 +48,7 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		final AvailRuntime runtime = workbench.availBuilder.runtime;
-		runtime.debugMacroExpansions = !runtime.debugMacroExpansions;
+		AvailRuntime.debugMacroExpansions ^= true;
 	}
 
 	/**
@@ -65,5 +63,7 @@ extends AbstractWorkbenchAction
 		putValue(
 			SHORT_DESCRIPTION,
 			"Show expansions of macros that run during compilation.");
+		putValue(
+			SELECTED_KEY, AvailRuntime.debugMacroExpansions);
 	}
 }

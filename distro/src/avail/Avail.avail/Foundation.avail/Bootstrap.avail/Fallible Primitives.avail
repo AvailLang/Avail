@@ -199,7 +199,7 @@ Primitive "Private semantic restriction_is_" is
 	Private fail primitive with failureCode
 ] : ⊤;
 
-Private semantic restriction "Private invoke_with«_‡,»" is
+Private semantic restriction "Private invoke_with«_‡,»" is 
 [
 	aFunction : function meta,
 	arguments : tuple meta
@@ -1178,8 +1178,8 @@ Primitive "_«[_]»→_" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
- * @raises "method-is-sealed exception"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1209,6 +1209,7 @@ Primitive "Abstract method_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
 		loading-is-over code,
 		method-is-sealed code,
 		up-arrow-must-follow-argument code,
@@ -1252,8 +1253,8 @@ Primitive "Abstract method_is_" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
- * @raises "method-is-sealed exception"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1282,6 +1283,7 @@ Primitive "Abstract method_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
 		loading-is-over code,
 		method-is-sealed code,
 		up-arrow-must-follow-argument code,
@@ -1360,6 +1362,7 @@ Primitive "Semantic restriction_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -1436,6 +1439,7 @@ Primitive "Semantic restriction_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -1474,8 +1478,8 @@ Primitive "Semantic restriction_is_" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
- * @raises "atom-already-exists exception"
  */
 Primitive "Alias_to_" is
 [
@@ -1504,6 +1508,7 @@ Primitive "Alias_to_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
 		loading-is-over code,
 		atom-already-exists code,
 		up-arrow-must-follow-argument code,
@@ -1612,8 +1617,8 @@ Primitive "method definition of_for_" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
- * @raises "method-is-sealed exception"
  */
 Primitive "Forward method_is_" is
 [
@@ -1643,6 +1648,7 @@ Primitive "Forward method_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
 		loading-is-over code,
 		method-is-sealed code,
 		up-arrow-must-follow-argument code,
@@ -1721,6 +1727,7 @@ Primitive "Grammatical restriction_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -1797,6 +1804,7 @@ Primitive "Grammatical restriction_is_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -2001,6 +2009,7 @@ Primitive "Seal method_at_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -2067,6 +2076,7 @@ Primitive "Seal method_at_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
@@ -2082,13 +2092,14 @@ Primitive "Seal method_at_" is
  * @param "methodNames" "set of atom"
  *        A set of atoms that serve as method names.
  * @returns "⊤"
- * @raises "loading-is-over exception"
+ * @raises "cannot-define-during-compilation exception"
  */
 Primitive "Seal method|methods_at existing definitions" is
 [
 	methodNames : set of atom
 |
 	Primitive SealMethodsAtExistingDefinitions (failureCode : {
+		cannot-define-during-compilation code,
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -2168,6 +2179,7 @@ Primitive "semantic restrictions for_given_" is
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "macro-prefix-functions-must-return-top exception"
+ * @raises "cannot-define-during-compilation exception"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -2200,6 +2212,8 @@ Primitive "Macro_is«_,»_" is
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
 		macro-prefix-functions-must-return-top code,
+		cannot-define-during-compilation code,
+		macro-prefix-function-index-out-of-bounds code,
 		macro-prefix-function-argument-must-be-a-parse-node code,
 		macro-must-return-a-parse-node code,
 		loading-is-over code,
@@ -2258,10 +2272,11 @@ Primitive "Macro_is«_,»_" is
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "macro-prefix-functions-must-return-top exception"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "macro-prefix-function-index-out-of-bounds exception"
  * @raises "macro-prefix-function-argument-must-be-a-parse-node exception"
  * @raises "macro-must-return-a-parse-node exception"
  * @raises "loading-is-over exception"
- * @raises "up-arrow-must-follow-argument exception"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -2293,6 +2308,8 @@ Primitive "Macro_is«_,»_" is
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
 		macro-prefix-functions-must-return-top code,
+		cannot-define-during-compilation code,
+		macro-prefix-function-index-out-of-bounds code,
 		macro-prefix-function-argument-must-be-a-parse-node code,
 		macro-must-return-a-parse-node code,
 		loading-is-over code,
@@ -2310,13 +2327,14 @@ Primitive "Macro_is«_,»_" is
  * @param "aFunction" "function"
  *        The post-unload function.
  * @returns "⊤"
- * @raises "loading-is-over exception"
+ * @raises "cannot-define-during-compilation exception"
  */
 Primitive "After the current module is unloaded,⁇do_" is
 [
 	aFunction : function
 |
 	Primitive AddUnloadFunction (failureCode : {
+		cannot-define-during-compilation code,
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
@@ -2392,7 +2410,7 @@ Primitive "atom for_" is
  *        The name that should be introduced.
  * @returns "⊤"
  * @raises "ambiguous-name exception"
- * @raises "loading-is-over exception"
+ * @raises "cannot-define-during-compilation exception"
  */
 Primitive "Export_as a new name" is
 [
@@ -2400,6 +2418,7 @@ Primitive "Export_as a new name" is
 |
 	Primitive PublishName (failureCode : {
 		ambiguous-name code,
+		cannot-define-during-compilation code,
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;

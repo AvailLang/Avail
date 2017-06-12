@@ -58,6 +58,8 @@ import javafx.scene.layout.VBox;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.richtext.model.RichTextChange;
+import org.fxmisc.richtext.model.StyleSpan;
+import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.StyledText;
 import org.jetbrains.annotations.NotNull;
 
@@ -545,7 +547,7 @@ public final class ModuleEditor
 					position.start(),
 					position.start() + position.length(),
 					COMMENT.styleClass);
-				codeArea.setEstimatedScrollY(scrollBefore);
+//				codeArea.setEstimatedScrollY(scrollBefore);
 				semaphore.release();
 			}));
 	}
@@ -555,6 +557,31 @@ public final class ModuleEditor
 	void resetView ()
 	{
 		Platform.runLater(() -> codeArea.setEstimatedScrollY(scrollBefore));
+	}
+
+	/** Accumulate a sequence of styles as tokens are processed. */
+	private class StyleSpansAccumulator
+	{
+		StyleSpansBuilder spansBuilder = new StyleSpansBuilder(1000);
+
+		int lastPosition = 0;
+
+		void setToken (final A_Token token, final ModuleEditorStyle style)
+		{
+			final int tokenStart = token.start();
+			// Probably not right with Java's crazy UTF-16 encoding.
+			final int tokenEnd = tokenStart + token.string().tupleSize();
+			if (tokenStart != lastPosition)
+			{
+				assert tokenStart > lastPosition;
+				spansBuilder.add(
+					new StyleSpan(
+						GENERAL.styleClass, tokenStart - lastPosition));
+				lastPosition = tokenStart;
+			}
+			spansBuilder.add(new StyleSpan(style, tokenEnd - tokenStart));
+			lastPosition = tokenEnd;
+		}
 	}
 
 	/**

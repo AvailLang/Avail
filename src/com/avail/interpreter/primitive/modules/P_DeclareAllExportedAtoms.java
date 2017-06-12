@@ -42,12 +42,10 @@ import com.avail.interpreter.*;
  * <strong>Primitive:</strong> This private primitive is used to ensure that
  * a module can deserialize correctly. It forces the given set of atoms to be
  * included in the current module's {@linkplain
- * com.avail.descriptor.ModuleDescriptor.ObjectSlots#IMPORTED_NAMES
- * public names} or
- * {@linkplain com.avail.descriptor.ModuleDescriptor.ObjectSlots#PRIVATE_NAMES
- * private names}, depending on the value of the supplied {@linkplain
- * EnumerationTypeDescriptor#booleanObject() boolean} ({@link
- * AtomDescriptor#trueObject() true} for public, {@link
+ * ModuleDescriptor.ObjectSlots#IMPORTED_NAMES public names} or {@linkplain
+ * ModuleDescriptor.ObjectSlots#PRIVATE_NAMES private names}, depending on the
+ * value of the supplied {@linkplain EnumerationTypeDescriptor#booleanObject()
+ * boolean} ({@link AtomDescriptor#trueObject() true} for public, {@link
  * AtomDescriptor#falseObject() false} for private).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

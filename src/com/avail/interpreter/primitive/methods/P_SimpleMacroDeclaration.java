@@ -108,6 +108,20 @@ extends Primitive
 					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP);
 			}
 		}
+		try
+		{
+			final MessageSplitter splitter = new MessageSplitter(string);
+			if (prefixFunctions.tupleSize()
+				!= splitter.numberOfSectionCheckpoints)
+			{
+				return interpreter.primitiveFailure(
+					E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS);
+			}
+		}
+		catch (MalformedMessageException e)
+		{
+			return interpreter.primitiveFailure(e.errorCode());
+		}
 		final int numArgs = function.code().numArgs();
 		final A_Type kind = function.kind();
 		final A_Type argsKind = kind.argsTupleType();
@@ -207,7 +221,8 @@ extends Primitive
 					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
 					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
 					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
-					E_MACRO_MUST_RETURN_A_PARSE_NODE)
+					E_MACRO_MUST_RETURN_A_PARSE_NODE,
+					E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
 	}
 }

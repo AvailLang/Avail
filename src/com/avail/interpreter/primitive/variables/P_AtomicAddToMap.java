@@ -33,12 +33,13 @@
 package com.avail.interpreter.primitive.variables;
 
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.effects.LoadingEffectToAddToMap;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
 import java.util.List;
 
@@ -88,7 +89,11 @@ extends Primitive
 		if (loader != null)
 		{
 			loader.recordEffect(
-				new LoadingEffectToAddToMap(variable, key, value));
+				new LoadingEffectToRunPrimitive(
+					SpecialAtom.ADD_TO_MAP_VARIABLE.bundle,
+					variable,
+					key,
+					value));
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

@@ -35,16 +35,11 @@ package com.avail.environment.actions;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.compiler.AvailCompiler;
-import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
-import com.avail.utility.evaluation.Continuation0;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionEvent;
-
-import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 
 /**
  * A {@code ParserIntegrityCheckAction} checks critical data structures used by

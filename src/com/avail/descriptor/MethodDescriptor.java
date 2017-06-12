@@ -47,6 +47,7 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
@@ -56,6 +57,8 @@ import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.methods.*;
 import com.avail.interpreter.primitive.modules.P_AddUnloadFunction;
 import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
+import com.avail.interpreter.primitive.modules.P_PrivateCreateModuleVariable;
+import com.avail.interpreter.primitive.objects.P_RecordNewTypeName;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken;
 import com.avail.interpreter.primitive.variables.P_AtomicAddToMap;
@@ -75,7 +78,6 @@ import java.util.WeakHashMap;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.LEXER;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
 
 /**
@@ -1038,6 +1040,11 @@ extends Descriptor
 			"vm atom_at property_put_",
 			P_AtomSetProperty.instance),
 
+		/** The special atom for removing properties from atoms. */
+		ATOM_REMOVE_PROPERTY(
+			"vm atom_remove property_",
+			P_AtomRemoveProperty.instance),
+
 		/** The special atom for extracting the caller of a continuation. */
 		CONTINUATION_CALLER(
 			"vm_'s caller",
@@ -1094,6 +1101,16 @@ extends Descriptor
 		PUBLISH_ATOMS(
 			"vm publish atom set_(public=_)",
 			P_DeclareAllExportedAtoms.instance),
+
+		/** The special atom for recording a type's name. */
+		RECORD_TYPE_NAME(
+			"vm record type_name_",
+			P_RecordNewTypeName.instance),
+
+		/** The special atom for creating a module variable/constant. */
+		CREATE_MODULE_VARIABLE(
+			"vm in module_create_with variable type_«constant»?«stably computed»?",
+			P_PrivateCreateModuleVariable.instance),
 
 		/** The special atom for sealing methods. */
 		SEAL(

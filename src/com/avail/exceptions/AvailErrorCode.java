@@ -493,7 +493,7 @@ public enum AvailErrorCode
 
 	/**
 	 * Cannot overwrite or clear an initialized {@linkplain
-	 * VariableSharedWriteOnceDescriptor write-once variable}.
+	 * VariableSharedGlobalDescriptor write-once variable}.
 	 */
 	E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE (73),
 

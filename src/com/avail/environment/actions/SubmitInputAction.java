@@ -41,7 +41,6 @@ import javax.swing.*;
 import com.avail.builder.AvailBuilder.CompiledCommand;
 import com.avail.descriptor.AvailObject;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.interpreter.Interpreter;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;

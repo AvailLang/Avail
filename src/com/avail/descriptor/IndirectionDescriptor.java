@@ -5017,4 +5017,22 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).originatingPhrase();
 	}
+
+	@Override
+	boolean o_IsGlobal (final AvailObject object)
+	{
+		return o_Traversed(object).isGlobal();
+	}
+
+	@Override
+	A_Module o_GlobalModule (final AvailObject object)
+	{
+		return o_Traversed(object).globalModule();
+	}
+
+	@Override
+	A_String o_GlobalName (final AvailObject object)
+	{
+		return o_Traversed(object).globalName();
+	}
 }

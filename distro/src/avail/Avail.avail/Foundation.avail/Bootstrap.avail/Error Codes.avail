@@ -65,6 +65,7 @@ Names
 	/*   1 */ "cannot-add-unlike-infinities code",
 	/*  56 */ "cannot-convert-not-a-number-to-integer code",
 	/*  76 */ "cannot-create-continuation-for-infallible-primitive-function code",
+	/*  62 */ "cannot-define-during-compilation code",
 	/*   4 */ "cannot-divide-by-zero code",
 	/*   5 */ "cannot-divide-infinities code",
 	/*  81 */ "cannot-mark-handler-frame code",
@@ -161,7 +162,8 @@ Names
 	/*  83 */ "unwind-sentinel code",
 	/*  78 */ "up-arrow-must-follow-argument code",
 	/*  55 */ "vertical-bar-must-separate-tokens-or-simple-groups code",
-	/*  20 */ "wrong-outers code"
+	/*  20 */ "wrong-outers code",
+	/*  60 */ "wrong-signature-for-lexer-function code"
 Body
 
 Primitive "cannot-add-unlike-infinities code" is
@@ -452,6 +454,16 @@ Primitive "dollar-sign-must-follow-an-ellipsis code" is
 Primitive "macro-prefix-functions-must-return-top code" is
 [
 	59
+];
+
+Primitive "wrong-signature-for-lexer-function code" is
+[
+	60
+];
+
+Primitive "cannot-define-during-compilation code" is
+[
+	62
 ];
 
 Primitive "macro-prefix-function-index-out-of-bounds code" is

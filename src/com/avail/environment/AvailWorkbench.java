@@ -46,6 +46,7 @@ import com.avail.environment.nodes.EntryPointNode;
 import com.avail.environment.nodes.ModuleOrPackageNode;
 import com.avail.environment.nodes.ModuleRootNode;
 import com.avail.environment.tasks.BuildTask;
+import com.avail.interpreter.AvailLoader;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
@@ -147,30 +148,6 @@ extends JFrame
 			realPathString = userDir;
 		}
 		currentWorkingDirectory = new File(realPathString);
-	}
-
-	/**
-	 * An abstraction for all the workbench's actions.
-	 */
-	public abstract static class AbstractWorkbenchAction
-	extends AbstractAction
-	{
-		/** The owning {@link AvailWorkbench}. */
-		public final AvailWorkbench workbench;
-
-		/**
-		 * Construct a new {@link AbstractWorkbenchAction}.
-		 *
-		 * @param workbench The owning {@link AvailWorkbench}.
-		 * @param name The action's name.
-		 */
-		public AbstractWorkbenchAction (
-			final AvailWorkbench workbench,
-			final String name)
-		{
-			super(name);
-			this.workbench = workbench;
-		}
 	}
 
 	/**
@@ -891,6 +868,10 @@ extends JFrame
 	/** The {@linkplain AboutAction "about Avail" action}. */
 	@InnerAccess final AboutAction aboutAction = new AboutAction(this);
 
+	/** The {@linkplain PreferencesAction "Preferences..." action}. */
+	@InnerAccess final PreferencesAction preferencesAction =
+		new PreferencesAction(this);
+
 	/** The {@linkplain BuildAction build action}. */
 	@InnerAccess final BuildAction buildAction = new BuildAction(this, false);
 
@@ -906,6 +887,10 @@ extends JFrame
 
 	/** The {@linkplain CleanAction clean action}. */
 	@InnerAccess final CleanAction cleanAction = new CleanAction(this);
+
+	/** The {@linkplain CleanModuleAction clean module action}. */
+	@InnerAccess final CleanModuleAction cleanModuleAction =
+		new CleanModuleAction(this);
 
 	/** The {@linkplain CreateProgramAction create program action}. */
 	@InnerAccess final CreateProgramAction createProgramAction =
@@ -971,6 +956,25 @@ extends JFrame
 	@InnerAccess final TraceCompilerAction debugCompilerAction =
 		new TraceCompilerAction(this);
 
+	/** The {@linkplain ToggleFastLoaderAction toggle fast-loader action}. */
+	@InnerAccess final ToggleFastLoaderAction toggleFastLoaderAction =
+		new ToggleFastLoaderAction(this);
+
+	/**
+	 * The {@linkplain TraceSummarizeStatementsAction toggle fast-loader
+	 * summarization action}.
+	 */
+	@InnerAccess final TraceSummarizeStatementsAction
+		traceSummarizeStatementsAction =
+			new TraceSummarizeStatementsAction(this);
+
+	/**
+	 * The {@linkplain TraceLoadedStatementsAction toggle load-tracing action}.
+	 */
+	@InnerAccess final TraceLoadedStatementsAction
+		traceLoadedStatementsAction =
+		new TraceLoadedStatementsAction(this);
+
 	/** The {@linkplain ParserIntegrityCheckAction}. */
 	@InnerAccess final ParserIntegrityCheckAction parserIntegrityCheckAction;
 
@@ -1023,6 +1027,9 @@ extends JFrame
 		unloadAction.setEnabled(!busy && selectedModuleIsLoaded());
 		unloadAllAction.setEnabled(!busy);
 		cleanAction.setEnabled(!busy);
+		cleanModuleAction.setEnabled(
+			!busy
+				&& (selectedModuleRoot() != null || selectedModule() != null));
 		refreshAction.setEnabled(!busy);
 		setDocumentationPathAction.setEnabled(!busy);
 		documentAction.setEnabled(!busy && selectedModule() != null);
@@ -2274,14 +2281,15 @@ extends JFrame
 		augment(
 			buildMenu,
 			buildAction, cancelAction, null,
-			unloadAction, unloadAllAction, cleanAction, null,
+			unloadAction, unloadAllAction, cleanAction,
+//	    		cleanModuleAction,  //TODO MvG Fix implementation and enable.
+				null,
 			refreshAction);
 		menuBar.add(buildMenu);
 		menuBar.add(
 			menu(
 				"Module",
-				newPackageAction, newModuleAction,
-					editModuleAction, null,
+				newPackageAction, newModuleAction, editModuleAction, null,
 				addModuleTemplateAction));
 		menuBar.add(
 			menu(
@@ -2305,7 +2313,12 @@ extends JFrame
 					"Developer",
 					showVMReportAction, resetVMReportDataAction, null,
 					showCCReportAction, resetCCReportDataAction, null,
-					debugMacroExpansionsAction, debugCompilerAction, null,
+						new JCheckBoxMenuItem(debugMacroExpansionsAction),
+						new JCheckBoxMenuItem(debugCompilerAction),
+						new JCheckBoxMenuItem(traceSummarizeStatementsAction),
+						new JCheckBoxMenuItem(traceLoadedStatementsAction),
+						new JCheckBoxMenuItem(toggleFastLoaderAction),
+						null,
 					parserIntegrityCheckAction, null,
 					graphAction));
 		}
@@ -2324,6 +2337,7 @@ extends JFrame
 			documentAction,
 			null,
 			unloadAction,
+//			cleanModuleAction,  //TODO MvG Fix implementation and enable.
 			null,
 			refreshAction);
 		// The refresh item needs a little help ...
@@ -2754,12 +2768,6 @@ extends JFrame
 		assert runningOnMac;
 		try
 		{
-
-//			OSXUtility.setPreferencesHandler(
-//				this, getClass().getDeclaredMethod("preferences", (Class[])null));
-//			OSXUtility.setFileHandler(
-//				this, getClass().getDeclaredMethod("loadImageFile", new Class[] { String.class }));
-
 			System.setProperty("apple.laf.useScreenMenuBar", "true");
 			System.setProperty(
 				"com.apple.mrj.application.apple.menu.about.name",
@@ -2768,20 +2776,43 @@ extends JFrame
 				"com.apple.awt.graphics.UseQuartz",
 				"true");
 
-			final Class<?> appClass = Class.forName(
-				"com.apple.eawt.Application",
-				true,
-				AvailWorkbench.class.getClassLoader());
-			final Object application =
-				appClass.getMethod("getApplication").invoke(null);
-			final Image image =
-				new ImageIcon(resourcePrefix + "AvailHammer.png").getImage();
-			appClass.getMethod("setDockIconImage", Image.class).invoke(
-				application,
-				image);
-			appClass.getMethod("setDockIconBadge", String.class).invoke(
-				application,
-				"DEV");
+			final Class<?> appClass = OSXUtility.applicationClass;
+			final Object application = OSXUtility.macOSXApplication;
+//			final Image image =
+//				new ImageIcon(resourcePrefix + "AvailHammer.png").getImage();
+//			appClass.getMethod("setDockIconImage", Image.class).invoke(
+//				application,
+//				image);
+			OSXUtility.setDockIconBadgeMethod.invoke(application, "DEV");
+//			application.setDockIconBadge("DEV");
+		}
+		catch (final Exception e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * Make the workbench instance behave more like a Mac application.
+	 */
+	private void setUpInstanceForMac ()
+	{
+		assert runningOnMac;
+		try
+		{
+			// Read Mac-specific preferences files...
+			//TODO MvG - Finish the preferences dialog and enable this.
+//			OSXUtility.setPreferencesHandler(
+//				new Transformer1<Object, Boolean> ()
+//				{
+//					@Override
+//					public @Nullable Boolean value (
+//						@Nullable final Object event)
+//					{
+//						preferencesAction.actionPerformed(null);
+//						return true;
+//					}
+//				});
 		}
 		catch (final Exception e)
 		{
@@ -2805,8 +2836,16 @@ extends JFrame
 			setUpForMac();
 		}
 
+		String rootsString = System.getProperty("availRoots");
+//		if (rootsString == null)
+//		{
+//			File rootsFile = runningOnMac
+//				?
+//				: rootsfile
+//
+//		}
 		final ModuleRoots roots = new ModuleRoots(
-			System.getProperty("availRoots", ""));
+			System.getProperty("availRoots", null));
 		final String renames = System.getProperty("availRenames");
 		final String initial;
 		if (args.length > 0)
@@ -2835,8 +2874,11 @@ extends JFrame
 		// Display the UI.
 		invokeLater(() ->
 		{
-			final AvailWorkbench frame =
-				new AvailWorkbench(resolver, initial);
+			final AvailWorkbench frame = new AvailWorkbench(resolver, initial);
+			if (runningOnMac)
+			{
+				frame.setUpInstanceForMac();
+			}
 			frame.setVisible(true);
 			if (!initial.isEmpty())
 			{

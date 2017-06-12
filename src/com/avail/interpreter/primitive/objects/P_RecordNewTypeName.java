@@ -35,7 +35,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.interpreter.*;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
 /**
  * <strong>Primitive:</strong> Assign a name to a {@linkplain
@@ -64,6 +66,13 @@ public final class P_RecordNewTypeName extends Primitive
 		userType.makeImmutable();
 		name.makeImmutable();
 		ObjectTypeDescriptor.setNameForType(userType, name, false);
+		final AvailLoader loader = interpreter.fiber().availLoader();
+		if (loader != null)
+		{
+			loader.recordEffect(
+				new LoadingEffectToRunPrimitive(
+					SpecialAtom.RECORD_TYPE_NAME.bundle, userType, name));
+		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

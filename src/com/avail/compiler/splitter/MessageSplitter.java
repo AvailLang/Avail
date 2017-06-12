@@ -250,7 +250,7 @@ public final class MessageSplitter
 	/**
 	 * The number of {@link SectionCheckpoint}s encountered so far.
 	 */
-	@InnerAccess int numberOfSectionCheckpoints;
+	public int numberOfSectionCheckpoints;
 
 	/** The top-most {@linkplain Sequence sequence}. */
 	final Sequence rootSequence;

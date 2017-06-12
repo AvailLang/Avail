@@ -1,5 +1,5 @@
 /**
- * LoadingEffectToAddSeal.java
+ * TraceSummarizeStatementsAction.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,57 +30,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.effects;
+package com.avail.environment.actions;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.environment.AvailWorkbench;
+import com.avail.interpreter.AvailLoader;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.event.ActionEvent;
 
 /**
- * A {@code LoadingEffectToAddSeal} summarizes the addition of a seal to a
- * {@link A_Method method}.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * A {@code TraceSummarizeStatementsAction} toggles the flag that indicates
+ * whether to show information about how statements are rewritten as fast-load
+ * summaries.
  */
-public class LoadingEffectToAddSeal extends LoadingEffect
+@SuppressWarnings("serial")
+public final class TraceSummarizeStatementsAction
+extends AbstractWorkbenchAction
 {
-	/** The name of the method having a seal added. */
-	final A_Atom methodName;
-
-	/** The tuple of argument types at which to place the seal. */
-	final A_Tuple seal;
-
-	/**
-	 * Construct a new {@link LoadingEffectToAddSeal}.
-	 *
-	 * @param methodName The name of the method having a seal added.
-	 * @param seal The tuple of argument types at which to place a seal.
-	 */
-	public LoadingEffectToAddSeal (final A_Atom methodName, final A_Tuple seal)
+	@Override
+	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		this.methodName = methodName;
-		this.seal = seal;
+		AvailLoader.debugUnsummarizedStatements ^= true;
 	}
 
-	@Override
-	public void writeEffectTo (final L1InstructionWriter writer)
+	/**
+	 * Construct a new {@link TraceSummarizeStatementsAction}.
+	 *
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
+	 */
+	public TraceSummarizeStatementsAction (final AvailWorkbench workbench)
 	{
-		// Push the (atom) name of the method to seal.
-		writer.write(
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(methodName));
-		// Push the tuple of types.
-		writer.write(
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(seal));
-		// Call the sealing method.
-		writer.write(
-			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.SEAL.bundle),
-			writer.addLiteral(Types.TOP.o()));
+		super(workbench, "Trace statement summarizations");
+		putValue(
+			SHORT_DESCRIPTION,
+			"Show each statement's summarization for fast-loading.");
+		putValue(SELECTED_KEY, AvailLoader.debugUnsummarizedStatements);
 	}
 }

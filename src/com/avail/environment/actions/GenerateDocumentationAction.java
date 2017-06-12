@@ -38,7 +38,6 @@ import javax.swing.KeyStroke;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.environment.tasks.DocumentationTask;
 import com.avail.stacks.StacksGenerator;
 import org.jetbrains.annotations.Nullable;

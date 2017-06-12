@@ -34,7 +34,6 @@ package com.avail.environment.actions;
 
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.environment.nodes.ModuleRootNode;
 import com.avail.environment.tasks.NewModuleTask;
 import org.jetbrains.annotations.Nullable;

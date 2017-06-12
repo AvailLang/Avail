@@ -37,7 +37,6 @@ import java.io.File;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import org.jetbrains.annotations.Nullable;
 
 /**

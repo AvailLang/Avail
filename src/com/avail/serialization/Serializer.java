@@ -314,7 +314,7 @@ public class Serializer
 			});
 			// Push actions for the subcomponents in reverse order to make the
 			// serialized file slightly easier to debug.  Any order is correct.
-			final A_BasicObject[] subobjects = instruction.decomposed();
+			final A_BasicObject[] subobjects = instruction.decomposed(this);
 			final SerializerOperand[] operands =
 				instruction.operation().operands();
 			assert subobjects.length == operands.length;
@@ -338,7 +338,7 @@ public class Serializer
 					}
 				});
 			}
-			if (instruction.operation.isVariable())
+			if (instruction.operation.isVariableCreation())
 			{
 				final A_Variable variable = (A_Variable)object;
 				if (!variable.value().equalsNil())

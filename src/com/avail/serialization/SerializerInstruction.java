@@ -116,15 +116,16 @@ final class SerializerInstruction
 	/**
 	 * Answer an array of {@link AvailObject}s that correspond with my
 	 * operation's {@link SerializerOperand operands}.  These may contain
-	 * subobjects that must be serialized before me, but its up to each operand
+	 * subobjects that must be serialized before me, but it's up to each operand
 	 * to determine that, as well as the encoding mechanism.
 	 *
+	 * @param serializer The serializer requesting decomposition.
 	 * @return The array of {@code AvailObject}s for my operation's operands to
 	 *         interpret.
 	 */
-	A_BasicObject[] decomposed ()
+	A_BasicObject[] decomposed (final Serializer serializer)
 	{
-		return operation.decompose(object);
+		return operation.decompose(object, serializer);
 	}
 
 	/**

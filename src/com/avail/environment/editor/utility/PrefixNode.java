@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 
 /**
  * A {@code PrefixNode} is a node in a {@link PrefixTrie}.
- * 
+ *
  * @param <T>
  *        The type of object held at the {@code PrefixNode}.
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
@@ -106,7 +106,7 @@ public class PrefixNode<T>
 			{
 				nextNode = children.computeIfAbsent(
 					next,
-					key -> new PrefixNode(depth + 1));
+					key -> new PrefixNode<>(depth + 1));
 			}
 			nextNode.addWord(word, contents);
 		}

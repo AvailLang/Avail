@@ -42,6 +42,8 @@ POSSIBILITY OF SUCH DAMAGE.
 	<property name="path.jar.avail" value="${path.avail.jar}/${jar.avail}"/>
 	<property name="path.jar.dev" value="${path.avail.jar}/AvailDev.jar"/>
 	<property name="path.jar.server" value="${path.avail.jar}/AvailServer.jar"/>
+	<property name="path.osx.app" value="${path.avail.distro}/Apps"/>
+	<property name="osx.app.name" value="AvailWorkbench"/>
 
 	<property
 		name="path.build-time"
@@ -333,6 +335,60 @@ POSSIBILITY OF SUCH DAMAGE.
                     dir="${path.avail.distro}/lib"
                     includes="annotations-java8.jar"/>
 		</jar>
+		<copy todir="${path.avail.bin}/resources">
+			<fileset dir="${path.avail.resources}"/>
+		</copy>
+	</target>
+
+	<!--
+		Note that this requires the jarbundler jar to be on the ant lib path,
+		which on OS X conveniently includes "~/.ant/lib/".
+	-->
+	<taskdef name="bundleapp"
+			 classname="com.oracle.appbundler.AppBundlerTask"
+			 classpath="lib/appbundler-1.0.jar" />
+
+	<!--
+		Find the path to the current Java runtime.
+	-->
+	<target name="find-Java">
+		<exec
+				executable="/usr/libpath/java_home"
+				outputproperty="path.java.exec"/>
+	</target>
+
+
+	<!--
+		Build the OS X application bundled development environment.
+	-->
+	<target
+			name="avail-osx"
+			depends="avail-vm, avail-dev"
+			description="Build the OS X Avail development app.">
+		<mkdir dir="${path.osx.app}" />
+		<exec
+				executable="/usr/libexec/java_home"
+				outputproperty="path.java.exec"/>
+		<bundleapp
+				outputdirectory="${path.osx.app}"
+				name="${osx.app.name}"
+				displayname="Workbench"
+				identifier="com.avail.AvailWorkbench"
+				shortversion="2014.04.28"
+				icon="resources/workbench/AvailHammer.icns"
+				copyright="Copyright © 1993-2017, The Avail Foundation, LLC."
+				mainclassname="com.avail.environment.AvailWorkbench">
+			<runtime dir="${path.java.exec}" />
+			<option value="-Dapple.laf.useScreenMenuBar=true"/>
+			<librarypath dir="distro/lib" includes="*.jar" />
+		</bundleapp>
+		<!-- Delete the JavaApplicationStub and replace it with a symbolic
+		     link, which should work on older and future versions of OS X. -->
+		<!--<delete file="${path.osx.app}/${osx.app.name}.app/Contents/MacOS/JavaApplicationStub"/>-->
+		<!--<exec executable="ln">-->
+			<!--<arg line="-s /System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub"/>-->
+			<!--<arg value="${path.osx.app}/${osx.app.name}.app/Contents/MacOS/JavaApplicationStub"/>-->
+		<!--</exec>-->
 	</target>
 
 	<!--

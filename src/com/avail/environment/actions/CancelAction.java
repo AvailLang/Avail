@@ -36,7 +36,6 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import com.avail.environment.tasks.BuildTask;
 import org.jetbrains.annotations.Nullable;

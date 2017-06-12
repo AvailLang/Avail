@@ -37,9 +37,10 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialAtom;
 import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
-import com.avail.interpreter.effects.LoadingEffectToAddUnloadFunction;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
 /**
  * <strong>Primitive:</strong> Add the specified {@linkplain A_Function
@@ -79,7 +80,8 @@ extends Primitive
 		final A_Module module = loader.module();
 		module.addUnloadFunction(unloadFunction);
 		loader.recordEffect(
-			new LoadingEffectToAddUnloadFunction(unloadFunction));
+			new LoadingEffectToRunPrimitive(
+				SpecialAtom.ADD_UNLOADER.bundle, unloadFunction));
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

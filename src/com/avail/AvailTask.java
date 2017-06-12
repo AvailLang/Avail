@@ -234,7 +234,7 @@ implements Comparable<AvailTask>, Runnable
 		{
 			value();
 		}
-		catch (final RuntimeException e)
+		catch (final Throwable e)
 		{
 			// Report the exception immediately, then suppress the error.  If we
 			// allowed the error to propagate, it would cause an Interpreter to

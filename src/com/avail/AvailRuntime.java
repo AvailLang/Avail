@@ -814,12 +814,12 @@ public final class AvailRuntime
 	 * Whether to show all {@link MacroDefinitionDescriptor macro} expansions as
 	 * they happen.
 	 */
-	public boolean debugMacroExpansions = false;
+	public static boolean debugMacroExpansions = false;
 
 	/**
 	 * Whether to show detailed compiler trace information.
 	 */
-	public boolean debugCompilerSteps = false;
+	public static boolean debugCompilerSteps = false;
 
 	/**
 	 * Perform an integrity check on the parser data structures.  Report the
@@ -1757,6 +1757,8 @@ public final class AvailRuntime
 			SpecialAtom.ADD_UNLOADER.atom,
 			SpecialAtom.PUBLISH_ATOMS.atom,
 			SpecialAtom.RESUME_CONTINUATION.atom,
+			SpecialAtom.RECORD_TYPE_NAME.atom,
+			SpecialAtom.CREATE_MODULE_VARIABLE.atom,
 			SpecialAtom.SEAL.atom,
 			SpecialAtom.SEMANTIC_RESTRICTION.atom,
 			ObjectTypeDescriptor.exceptionAtom(),

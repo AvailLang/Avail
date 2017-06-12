@@ -40,8 +40,9 @@ import javax.swing.border.EmptyBorder;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_String;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
 import org.jetbrains.annotations.Nullable;
+
+import static com.avail.environment.AvailWorkbench.resourcePrefix;
 
 /**
  * An {@code AboutAction} presents the "About Avail" dialog.
@@ -68,7 +69,8 @@ extends AbstractWorkbenchAction
 		panel.setBorder(new EmptyBorder(30, 50, 30, 50));
 
 		final ImageIcon logo = new ImageIcon(
-			this.getClass().getResource("/workbench/Avail-logo-about.png"));
+			this.getClass().getResource(
+				resourcePrefix + "Avail-logo-about.png"));
 		panel.add(new JLabel(logo));
 
 		final StringBuilder builder = new StringBuilder(200);

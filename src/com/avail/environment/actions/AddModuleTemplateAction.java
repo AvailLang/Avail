@@ -33,14 +33,11 @@
 package com.avail.environment.actions;
 
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchAction;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 
 /**
  * A {@code AddModuleTemplateAction} displays a {@linkplain

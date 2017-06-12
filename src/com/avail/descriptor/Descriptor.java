@@ -4425,7 +4425,7 @@ extends AbstractDescriptor
 	@Override
 	boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
 	{
-		return false;
+		throw unsupportedOperationException();
 	}
 
 	@Override
@@ -4818,6 +4818,25 @@ extends AbstractDescriptor
 
 	@Override
 	Statistic o_DynamicLookupStatistic (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsGlobal(
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Module o_GlobalModule (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_String o_GlobalName (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

@@ -77,7 +77,6 @@ extends ParseNodeDescriptor
 			builder,
 			recursionMap,
 			indent);
-		builder.append(";");
 	}
 
 	@Override @AvailMethod

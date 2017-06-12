@@ -1,5 +1,5 @@
 /**
- * LoadingEffectToAddGrammaticalRestriction.java
+ * LoadingEffectToRunPrimitive.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,66 +32,55 @@
 
 package com.avail.interpreter.effects;
 
-import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 
 /**
- * A {@code LoadingEffectToAddGrammaticalRestriction} summarizes the addition of
- * a {@link A_GrammaticalRestriction grammatical restriction} syntactic rule.
+ * A {@code LoadingEffectToRunPrimitive} summarizes the execution of some
+ * primitive, with literal arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class LoadingEffectToAddGrammaticalRestriction extends LoadingEffect
+public class LoadingEffectToRunPrimitive extends LoadingEffect
 {
-	/**
-	 * The {@link A_Atom atoms} naming {@link A_Bundle message bundles} whose
-	 * invocations should have their child phrases restricted grammatically.
-	 */
-	final A_Set parentAtoms;
+	/** The primitive to run. */
+	final A_Bundle primitiveBundle;
+
+	/** The array of arguments to pass to the primitive. */
+	final A_BasicObject[] arguments;
 
 	/**
-	 * A tuple of sets of atoms.  Each tuple position corresponds with one
-	 * argument slot position (not necessarily a top-level argument) of the
-	 * parentAtoms' message bundles.  The elements of the set are the atoms that
-	 * name message bundles that must not be the message of a {@link
-	 * SendNodeDescriptor send phrase} occupying that argument position.
-	 */
-	final A_Tuple childAtomSets;
-
-	/**
-	 * Construct a new {@link LoadingEffectToAddGrammaticalRestriction}.
+	 * Construct a new {@link LoadingEffectToRunPrimitive}.
 	 *
-	 * @param parentAtoms
-	 *        The atoms whose sends are to have their arguments restricted.
-	 * @param childAtomSets
-	 *        The restrictions to be applied to each argument position.
+	 * @param primitiveBundle The primitive {@link A_Bundle} to invoke.
+	 * @param arguments The argument values for the primitive.
 	 */
-	public LoadingEffectToAddGrammaticalRestriction (
-		final A_Set parentAtoms,
-		final A_Tuple childAtomSets)
+	public LoadingEffectToRunPrimitive (
+		final A_Bundle primitiveBundle,
+		final A_BasicObject... arguments)
 	{
-		this.parentAtoms = parentAtoms;
-		this.childAtomSets = childAtomSets;
+		assert primitiveBundle.bundleMethod().numArgs() == arguments.length;
+		this.primitiveBundle = primitiveBundle;
+		this.arguments = arguments;
 	}
 
 	@Override
 	public void writeEffectTo (final L1InstructionWriter writer)
 	{
-		// Push the set of parent atoms.
-		writer.write(
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(parentAtoms));
-		// Push the tuple of sets of atoms to forbid as sends in arguments.
-		writer.write(
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(childAtomSets));
-		// Call the method to add the grammatical restrictions.
+		// Push each argument.
+		for (A_BasicObject argument : arguments)
+		{
+			writer.write(
+				L1Operation.L1_doPushLiteral,
+				writer.addLiteral(argument));
+		}
+		// Call the primitive, leaving the return value on the stack.
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.GRAMMATICAL_RESTRICTION.bundle),
+			writer.addLiteral(primitiveBundle),
 			writer.addLiteral(Types.TOP.o()));
 	}
 }

@@ -42,8 +42,6 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.MalformedMessageException;
-import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.Generator;
@@ -70,7 +68,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -92,7 +91,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -114,7 +114,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -136,7 +137,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -158,7 +160,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -180,7 +183,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -202,7 +206,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -224,7 +229,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -246,7 +252,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -268,7 +275,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -290,7 +298,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -312,7 +321,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -335,7 +345,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -357,7 +368,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -378,7 +390,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -400,7 +413,9 @@ public enum SerializerOperation
 	NIL (15)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -421,7 +436,9 @@ public enum SerializerOperation
 	CHECKPOINT (16, OBJECT_REFERENCE.as("object to checkpoint"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			// Make sure the function actually gets written out.
 			return array(object);
@@ -445,7 +462,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				IntegerDescriptor.fromInt(
@@ -468,7 +486,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				IntegerDescriptor.fromInt(
@@ -492,7 +511,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				IntegerDescriptor.fromInt(object.codePoint()));
@@ -517,7 +537,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				IntegerDescriptor.fromInt(object.codePoint()));
@@ -544,7 +565,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int codePoint = object.codePoint();
 			return array(
@@ -573,7 +595,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final float floatValue = object.extractFloat();
 			final int floatBits = Float.floatToRawIntBits(floatValue);
@@ -602,7 +625,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final double doubleValue = object.extractDouble();
 			final long doubleBits = Double.doubleToRawLongBits(doubleValue);
@@ -634,7 +658,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -658,7 +683,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -682,7 +708,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -706,7 +733,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -728,7 +756,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -750,7 +779,8 @@ public enum SerializerOperation
 	{
 		@Override
 		A_BasicObject[] decompose (
-			final AvailObject object)
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -771,7 +801,9 @@ public enum SerializerOperation
 	SET(30, TUPLE_OF_OBJECTS.as("tuple of objects"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object.asTuple());
 		}
@@ -793,7 +825,9 @@ public enum SerializerOperation
 	MAP(31, GENERAL_MAP.as("map contents"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object);
 		}
@@ -815,7 +849,9 @@ public enum SerializerOperation
 	OBJECT(32, GENERAL_MAP.as("field map"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object.fieldMap());
 		}
@@ -837,7 +873,9 @@ public enum SerializerOperation
 	OBJECT_TYPE(33, GENERAL_MAP.as("field type map"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object.fieldTypeMap());
 		}
@@ -862,7 +900,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("module name"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.getAtomProperty(AtomDescriptor.heritableKey())
 				.equalsNil();
@@ -897,7 +937,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("module name"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.getAtomProperty(AtomDescriptor.heritableKey()).equals(
 				AtomDescriptor.trueObject());
@@ -942,7 +984,9 @@ public enum SerializerOperation
 	{
 
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int numLocals = object.numLocals();
 			final int numOuters = object.numOuters();
@@ -1058,7 +1102,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("Compiled code"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.numOuterVars() == 0;
 			return array(
@@ -1084,7 +1130,9 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("Outer values"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final A_Tuple outers = ObjectTupleDescriptor.generateFrom(
 				object.numOuterVars(),
@@ -1110,23 +1158,24 @@ public enum SerializerOperation
 		{
 			final AvailObject code = subobjects[0];
 			final A_Tuple outers = subobjects[1];
-			return FunctionDescriptor.create(
-				code,
-				outers);
+			return FunctionDescriptor.create(code, outers);
 		}
 	},
 
 	/**
-	 * A {@linkplain VariableDescriptor variable}.  Always reconstructed, since
-	 * there is no mechanism for determining to which existing variable it might
-	 * be referring.  The variable is reconstructed in an unassigned state.
+	 * A non-global {@linkplain VariableDescriptor variable}.  Deserialization
+	 * reconstructs a new one, since there's no way to know where the original
+	 * one came from.
 	 */
-	VARIABLE (39,
+	LOCAL_VARIABLE (39,
 		OBJECT_REFERENCE.as("variable type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
+			assert !object.isGlobal();
 			return array(
 				object.kind());
 		}
@@ -1140,31 +1189,55 @@ public enum SerializerOperation
 		}
 
 		@Override
-		boolean isVariable ()
+		boolean isVariableCreation ()
 		{
+			// This was a local variable, so answer true, indicating that we
+			// also need to serialize the content.  If the variable had instead
+			// been looked up (as for a GLOBAL_VARIABLE), we would answer false
+			// to indicate that the variable had already been initialized
+			// elsewhere.
 			return true;
 		}
 	},
 
 	/**
-	 * A {@linkplain VariableSharedWriteOnceDescriptor write-once variable}.
-	 * Always reconstructed, since there is no mechanism for determining to
-	 * which existing variable it might be referring.  The variable is
-	 * reconstructed in an unassigned state, and is expected to be initialized
-	 * exactly once at some future time.
+	 * A global variable.  It's serialized as the type, the module that defined
+	 * it, the variable's name within that module, and a flag byte.
 	 *
-	 * <p>This variant is for a write-once variable that is going to hold a
-	 * value computed by a stable process; i.e., instructions that will produce
-	 * an equivalent value upon subsequent module loading.</p>
+	 * <p>The flag byte has these fields:</p>
+	 * <ol>
+	 *     <li value="1">Whether this is a write-once variable.</li>
+	 *     <li value="2">Whether the write-once variable's value was computed
+	 *     by a stable computation.</li>
+	 * </ol>
+	 *
+	 * <p>A global variable is marked as such when constructed by the compiler.
+	 * The write-once flag is also specified at that time as well.  To
+	 * reconstruct a global variable, it's simply looked up by name in its
+	 * defining module.  The variable must exist (or the serialization is
+	 * malformed), so modules must ensure all their global variables and
+	 * constants are reconstructed when loading from serialized form.</p>
 	 */
-	WRITE_ONCE_VARIABLE_STABLE (40,
-		OBJECT_REFERENCE.as("variable type"))
+	GLOBAL_VARIABLE (40,
+		OBJECT_REFERENCE.as("variable type"),
+		OBJECT_REFERENCE.as("module name"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("variable name"),
+		BYTE.as("flags"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
+			assert object.isGlobal();
+			final int flags =
+				(object.isInitializedWriteOnceVariable() ? 1 : 0)
+				+ (object.valueWasStablyComputed() ? 2 : 0);
 			return array(
-				object.kind());
+				object.kind(),
+				object.globalModule(),
+				object.globalName(),
+				IntegerDescriptor.fromInt(flags));
 		}
 
 		@Override
@@ -1172,39 +1245,43 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final A_Variable var =
-				VariableSharedWriteOnceDescriptor.forVariableType(
-					subobjects[0]);
-			var.valueWasStablyComputed(true);
-			return var;
-		}
+			final A_Type varType = subobjects[0];
+			final A_Module module = subobjects[1];
+			final A_String varName = subobjects[2];
+			final int flags = subobjects[3].extractInt();
 
-		@Override
-		boolean isVariable ()
-		{
-			return true;
+			final boolean writeOnce = (flags & 1) != 0;
+			final boolean stablyComputed = (flags & 2) != 0;
+			final A_Variable variable =
+				writeOnce
+					? module.constantBindings().mapAt(varName)
+					: module.variableBindings().mapAt(varName);
+			if (stablyComputed != variable.valueWasStablyComputed())
+			{
+				throw new RuntimeException(
+					"Disagreement about whether a module constant was stably"
+						+ " computed.");
+			}
+			if (!varType.equals(variable.kind()))
+			{
+				throw new RuntimeException(
+					"Disagreement about global variable's type.");
+			}
+			return variable;
 		}
 	},
 
 	/**
-	 * A {@linkplain VariableSharedWriteOnceDescriptor write-once variable}.
-	 * Always reconstructed, since there is no mechanism for determining to
-	 * which existing variable it might be referring.  The variable is
-	 * reconstructed in an unassigned state, and is expected to be initialized
-	 * exactly once at some future time.
-	 *
-	 * <p>This variant is for a write-once variable that may be initialized to
-	 * a value computed by an unstable process; i.e., code that may query the
-	 * current time, interact with the user, read from files, etc.</p>
+	 * Reserved for future use.
 	 */
-	WRITE_ONCE_VARIABLE_UNSTABLE (41,
-		OBJECT_REFERENCE.as("variable type"))
+	RESERVED_41 (41)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
-			return array(
-				object.kind());
+			throw new RuntimeException("Reserved serializer operation");
 		}
 
 		@Override
@@ -1212,17 +1289,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final A_Variable var =
-				VariableSharedWriteOnceDescriptor.forVariableType(
-					subobjects[0]);
-			var.valueWasStablyComputed(false);
-			return var;
-		}
-
-		@Override
-		boolean isVariable ()
-		{
-			return true;
+			throw new RuntimeException("Reserved serializer operation");
 		}
 	},
 
@@ -1239,7 +1306,9 @@ public enum SerializerOperation
 		BYTE.as("token type code"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.string(),
@@ -1288,7 +1357,9 @@ public enum SerializerOperation
 		BYTE.as("token type code"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.string(),
@@ -1338,7 +1409,9 @@ public enum SerializerOperation
 		SIGNED_INT.as("token index"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.string(),
@@ -1380,7 +1453,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("value to assign"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object,
@@ -1410,7 +1485,9 @@ public enum SerializerOperation
 		COMPRESSED_SHORT.as("stack pointer"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int frameSlotCount = object.numArgsAndLocalsAndStack();
 			final List<AvailObject> frameSlotsList =
@@ -1466,7 +1543,9 @@ public enum SerializerOperation
 	METHOD (47, OBJECT_REFERENCE.as("arbitrary method bundle"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.isInstanceOf(Types.METHOD.o());
 			return array(object.chooseBundle());
@@ -1491,7 +1570,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.isMethodDefinition();
 			return array(
@@ -1531,7 +1612,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.isMacroDefinition();
 			return array(
@@ -1571,7 +1654,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.isAbstractDefinition();
 			return array(
@@ -1611,7 +1696,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("signature"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.isForwardDefinition();
 			return array(
@@ -1650,7 +1737,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("message atom"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.message());
@@ -1682,7 +1771,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("module name"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.moduleName());
@@ -1694,14 +1785,12 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_String moduleName = subobjects[0];
-			final AvailLoader loader = Interpreter.current().availLoader();
-			final A_Module currentModule = loader.module();
+			final A_Module currentModule = deserializer.currentModule();
 			if (currentModule.moduleName().equals(moduleName))
 			{
 				return currentModule;
 			}
-			final AvailRuntime runtime = Interpreter.current().runtime();
-			return runtime.moduleAt(moduleName);
+			return deserializer.runtime().moduleAt(moduleName);
 		}
 	},
 
@@ -1720,7 +1809,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("module name"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.getAtomProperty(AtomDescriptor.heritableKey())
 				.equalsNil();
@@ -1756,7 +1847,9 @@ public enum SerializerOperation
 	RESERVED_55 (55)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -1776,7 +1869,9 @@ public enum SerializerOperation
 	RESERVED_56 (56)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -1796,7 +1891,9 @@ public enum SerializerOperation
 	RESERVED_57 (57)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -1816,7 +1913,9 @@ public enum SerializerOperation
 	RESERVED_58 (58)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -1836,7 +1935,9 @@ public enum SerializerOperation
 	RESERVED_59 (59)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -1859,7 +1960,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("expression"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final boolean isInline =
 				AssignmentNodeDescriptor.isInline(object);
@@ -1894,7 +1997,9 @@ public enum SerializerOperation
 		UNSIGNED_INT.as("starting line number"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final @Nullable Primitive primitive = object.primitive();
 			final A_String primitiveName =
@@ -1955,7 +2060,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("literal object"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final DeclarationKind kind = object.declarationKind();
 			final A_Token token = object.token();
@@ -2005,7 +2112,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("expression"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.expression());
@@ -2029,7 +2138,9 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("statements"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.statements());
@@ -2052,7 +2163,9 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("expressions"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.expressionsTuple());
@@ -2075,7 +2188,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("literal token"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.token());
@@ -2099,7 +2214,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("output phrase"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.macroOriginalSendNode(),
@@ -2127,7 +2244,9 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("permutation"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.list(),
@@ -2153,7 +2272,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("variable use"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.variable());
@@ -2179,7 +2300,9 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("tokens"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.bundle(),
@@ -2209,7 +2332,9 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("statements"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.statements());
@@ -2233,7 +2358,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("type for lookup"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.expression(),
@@ -2260,7 +2387,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("declaration"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.token(),
@@ -2285,7 +2414,9 @@ public enum SerializerOperation
 	RESERVED_74 (74)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -2305,7 +2436,9 @@ public enum SerializerOperation
 	RESERVED_75 (75)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -2325,7 +2458,9 @@ public enum SerializerOperation
 	RESERVED_76 (76)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -2345,7 +2480,9 @@ public enum SerializerOperation
 	RESERVED_77 (77)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -2365,7 +2502,9 @@ public enum SerializerOperation
 	RESERVED_78 (78)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -2385,7 +2524,9 @@ public enum SerializerOperation
 	RESERVED_79 (79)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException("Reserved serializer operation");
 		}
@@ -2406,7 +2547,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("Result type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object.resultType());
 		}
@@ -2430,7 +2573,9 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("Checked exceptions"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(
 				object.argsTupleType(),
@@ -2462,7 +2607,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("Default type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array (
 				object.sizeRange(),
@@ -2494,7 +2641,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("Upper bound"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final int flags = (object.lowerInclusive() ? 1 : 0)
 				+ (object.upperInclusive() ? 2 : 0);
@@ -2542,7 +2691,9 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("class parameterization"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.isPojoType();
 			assert !object.isPojoFusedType();
@@ -2625,7 +2776,9 @@ public enum SerializerOperation
 		GENERAL_MAP.as("ancestor parameterizations map"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.isPojoType();
 			assert object.isPojoFusedType();
@@ -2722,7 +2875,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("size range"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			assert object.isPojoArrayType();
 			final A_Type contentType = object.contentType();
@@ -2756,7 +2911,9 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("class names"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			throw new RuntimeException(
 				"Can't serialize a self pojo type directly");
@@ -2779,7 +2936,9 @@ public enum SerializerOperation
 	BOTTOM_POJO_TYPE (88)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -2801,7 +2960,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("function type for code type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object.functionType());
 		}
@@ -2823,7 +2984,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("function type for continuation type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object.functionType());
 		}
@@ -2845,7 +3008,9 @@ public enum SerializerOperation
 		TUPLE_OF_OBJECTS.as("set of instances"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object.instances().asTuple());
 		}
@@ -2868,7 +3033,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("type's instance"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object.instance());
 		}
@@ -2891,7 +3058,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("meta's instance"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array(object.instance());
 		}
@@ -2913,7 +3082,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("element type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array (
 				object.sizeRange(),
@@ -2942,7 +3113,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("value type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array (
 				object.sizeRange(),
@@ -2972,7 +3145,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("literal type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array (
 				object.literalType());
@@ -2995,7 +3170,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("expression type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array (
 				IntegerDescriptor.fromInt(object.parseNodeKind().ordinal()),
@@ -3024,7 +3201,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("subexpressions tuple type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array (
 				IntegerDescriptor.fromInt(object.parseNodeKind().ordinal()),
@@ -3055,7 +3234,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("content type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final A_Type readType = object.readType();
 			assert readType.equals(object.writeType());
@@ -3081,7 +3262,9 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("write type"))
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			final A_Type readType = object.readType();
 			final A_Type writeType = object.writeType();
@@ -3109,7 +3292,9 @@ public enum SerializerOperation
 	BOTTOM_TYPE (101)
 	{
 		@Override
-		A_BasicObject[] decompose (final AvailObject object)
+		A_BasicObject[] decompose (
+			final AvailObject object,
+			final Serializer serializer)
 		{
 			return array();
 		}
@@ -3144,7 +3329,7 @@ public enum SerializerOperation
 	 *
 	 * @return false (true in the relevant enumeration values).
 	 */
-	boolean isVariable ()
+	boolean isVariableCreation ()
 	{
 		return false;
 	}
@@ -3160,7 +3345,7 @@ public enum SerializerOperation
 	 *            The list of operands that describe the interpretation of a
 	 *            stream of bytes written with this {@code SerializerOperation}.
 	 */
-	private SerializerOperation (
+	SerializerOperation (
 		final int ordinal,
 		final SerializerOperand... operands)
 	{
@@ -3175,12 +3360,15 @@ public enum SerializerOperation
 	 *
 	 * @param object
 	 *            The object to decompose.
+	 * @param serializer
+	 *            The serializer requesting decomposition.
 	 * @return
 	 *            An array of {@code AvailObject}s whose entries agree with this
 	 *            {@link SerializerOperation}'s operands.
 	 */
 	abstract A_BasicObject[] decompose (
-		final AvailObject object);
+		final AvailObject object,
+		final Serializer serializer);
 
 	/**
 	 * Reconstruct the given {@link AvailObject} from an array of {@code
@@ -3211,7 +3399,7 @@ public enum SerializerOperation
 		final Serializer serializer)
 	{
 		serializer.writeByte(ordinal());
-		final A_BasicObject[] decomposed = decompose(object);
+		final A_BasicObject[] decomposed = decompose(object, serializer);
 		assert decomposed.length == operands.length;
 		for (int i = 0; i < decomposed.length; i++)
 		{

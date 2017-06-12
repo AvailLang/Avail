@@ -42,6 +42,7 @@ import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
@@ -6589,4 +6590,23 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract Statistic o_DynamicLookupStatistic (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsGlobal(
+		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Module o_GlobalModule (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_String o_GlobalName (final AvailObject object);
 }

@@ -1,5 +1,5 @@
 /**
- * LoadingEffectToAddUnloadFunction.java
+ * ToggleFastLoaderAction.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,52 +30,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.effects;
+package com.avail.environment.actions;
 
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.environment.AvailWorkbench;
+import com.avail.interpreter.AvailLoader;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.event.ActionEvent;
 
 /**
- * A {@code LoadingEffectToAddUnloadFunction} summarizes the addition of a
- * function to the module's list of functions to be executed upon unload.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * A {@code ToggleFastLoaderAction} toggles the flag that indicates whether to
+ * attempt to rewrite some top-level statements into a faster form during module
+ * compilation.
  */
-public class LoadingEffectToAddUnloadFunction extends LoadingEffect
+@SuppressWarnings("serial")
+public final class ToggleFastLoaderAction
+extends AbstractWorkbenchAction
 {
-	/** The unload function to add. */
-	private final A_Function unloadFunction;
-
-	/**
-	 * Construct a new {@link LoadingEffectToAddUnloadFunction}.
-	 *
-	 * @param unloadFunction
-	 *        The unload function to add.
-	 */
-	public LoadingEffectToAddUnloadFunction (
-		final A_Function unloadFunction)
+	@Override
+	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		assert unloadFunction.code().numArgs() == 0;
-		this.unloadFunction = unloadFunction;
+		AvailLoader.enableFastLoader ^= true;
 	}
 
-	@Override
-	public void writeEffectTo (final L1InstructionWriter writer)
+	/**
+	 * Construct a new {@link ToggleFastLoaderAction}.
+	 *
+	 * @param workbench
+	 *        The owning {@link AvailWorkbench}.
+	 */
+	public ToggleFastLoaderAction (final AvailWorkbench workbench)
 	{
-		{
-			// Push the unload function.
-			writer.write(
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(unloadFunction));
-			// Add the unload function to the module.
-			writer.write(
-				L1Operation.L1_doCall,
-				writer.addLiteral(SpecialAtom.ADD_UNLOADER.bundle),
-				writer.addLiteral(Types.TOP.o()));
-		}
+		super(workbench, "Use fast-loading");
+		putValue(
+			SHORT_DESCRIPTION,
+			"Toggle fast-loading, which rewrites some top-level statements"
+				+ " during compilation for performance.");
+		putValue(
+			SELECTED_KEY, AvailLoader.enableFastLoader);
 	}
 }

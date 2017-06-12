@@ -528,6 +528,17 @@ public class IndexedRepositoryManager
 				lock.unlock();
 			}
 		}
+
+		/**
+		 * Delete all compiled versions of this module.  Don't remove the cached
+		 * file digests.  Note that the compiled versions are still in the
+		 * repository, they're just not reachable from the root metadata any
+		 * longer.
+		 */
+		public void cleanCompilations ()
+		{
+			versions.clear();
+		}
 	}
 
 	/**
@@ -1235,6 +1246,35 @@ public class IndexedRepositoryManager
 			catch (final Exception e)
 			{
 				throw new IndexedFileException(e);
+			}
+		}
+		finally
+		{
+			lock.unlock();
+		}
+	}
+
+	/**
+	 * Remove all compilations of the specified module.  If it's a package,
+	 * remove all compilations of any contained modules.
+	 *
+	 * @param rootRelativePath The root-relative path of the module or package.
+	 */
+	public void cleanModulesUnder (String rootRelativePath)
+	{
+		lock.lock();
+		try
+		{
+			for (final Map.Entry<String, ModuleArchive> entry
+				: moduleMap.entrySet())
+			{
+				final String moduleKey = entry.getKey();
+				if (moduleKey.equals(rootRelativePath)
+					|| moduleKey.startsWith(rootRelativePath + "/"))
+				{
+					final ModuleArchive archive = entry.getValue();
+					archive.cleanCompilations();
+				}
 			}
 		}
 		finally
