@@ -43,7 +43,7 @@ POSSIBILITY OF SUCH DAMAGE.
 	<property name="path.jar.dev" value="${path.avail.jar}/AvailDev.jar"/>
 	<property name="path.jar.server" value="${path.avail.jar}/AvailServer.jar"/>
 	<property name="path.osx.app" value="${path.avail.distro}/Apps"/>
-	<property name="osx.app.name" value="AvailWorkbench"/>
+	<property name="osx.app.name" value="AvailWorkbench.app"/>
 
 	<property
 		name="path.build-time"
@@ -349,6 +349,71 @@ POSSIBILITY OF SUCH DAMAGE.
 				outputproperty="path.java.exec"/>
 	</target>
 
+
+	<!--
+		Build the OS X application bundled development environment.
+	-->
+	<target
+			name="avail-osx"
+			depends="avail-vm, avail-dev"
+			description="Build the OS X Avail development app.">
+		<property name="app.base" value="${path.osx.app}/${osx.app.name}" />
+		<mkdir dir="${app.base}/Contents" />
+		<mkdir dir="${app.base}/Contents/Java" />
+		<mkdir dir="${app.base}/Contents/MacOS" />
+		<mkdir dir="${app.base}/Contents/Resources" />
+		<mkdir dir="${app.base}/Contents/Resources/en.lproj" />
+		<copy todir="${app.base}/Contents/" flatten="true">
+			<fileset dir="${path.avail.resources}/workbench/osx"
+					 includes="Info.plist,PkgInfo" />
+		</copy>
+		<!-- Find Java, and create a symbolic link to its launcher. -->
+		<copy todir="${app.base}/Contents/MacOS" flatten="true">
+			<fileset dir="${path.avail.resources}/workbench/osx"
+					 includes="JavaAppLauncher" />
+		</copy>
+		<copy todir="${app.base}/Contents/Resources" flatten="true">
+			<fileset dir="${path.avail.resources}/workbench/"
+					 includes="AvailHammer.icns" />
+		</copy>
+		<copy todir="${app.base}/Contents/Resources/en.lproj" flatten="true">
+			<fileset dir="${path.avail.resources}/workbench/osx/en.lproj"
+					 includes="*" />
+		</copy>
+		<copy todir="${app.base}/Contents/Java" flatten="true">
+			<fileset dir="${path.avail.jar}"
+					 includes="*.jar"
+					 excludes="junit.jar" />
+		</copy>
+		<!-- Make the java app launcher executable... -->
+		<chmod file="${app.base}/Contents/MacOs/JavaAppLauncher" perm="+x"/>
+		<!-- Finally, set the bundle bit... -->
+		<exec executable="setfile">
+			<arg value="-a" />
+			<arg value="B" />
+			<arg file="${app.base}" />
+		</exec>
+		<!--<bundleapp-->
+				<!--outputdirectory="${path.osx.app}"-->
+				<!--name="${osx.app.name}"-->
+				<!--displayname="Workbench"-->
+				<!--identifier="com.avail.AvailWorkbench"-->
+				<!--shortversion="2014.04.28"-->
+				<!--icon="resources/workbench/AvailHammer.icns"-->
+				<!--copyright="Copyright © 1993-2017, The Avail Foundation, LLC."-->
+				<!--mainclassname="com.avail.environment.AvailWorkbench">-->
+			<!--<runtime dir="${path.java.exec}" />-->
+			<!--<option value="-Dapple.laf.useScreenMenuBar=true"/>-->
+			<!--<librarypath dir="distro/lib" includes="*.jar" />-->
+		<!--</bundleapp>-->
+		<!-- Delete the JavaApplicationStub and replace it with a symbolic
+		     link, which should work on older and future versions of OS X. -->
+		<!--<delete file="${app.base}.app/Contents/MacOS/JavaApplicationStub"/>-->
+		<!--<exec executable="ln">-->
+			<!--<arg line="-s /System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub"/>-->
+			<!--<arg value="${app.base}.app/Contents/MacOS/JavaApplicationStub"/>-->
+		<!--</exec>-->
+	</target>
 
 	<!--
 		Build the Avail server.

@@ -1522,7 +1522,7 @@ extends JFrame
 	/**
 	 * The position up to which the current build has completed.  Protected by
 	 * {@link #buildGlobalUpdateMonitor}.
-	 */
+	 *//**/
 	private long latestGlobalBuildPosition = -1;
 
 	/**
@@ -2836,17 +2836,9 @@ extends JFrame
 			setUpForMac();
 		}
 
-		String rootsString = System.getProperty("availRoots");
-//		if (rootsString == null)
-//		{
-//			File rootsFile = runningOnMac
-//				?
-//				: rootsfile
-//
-//		}
-		final ModuleRoots roots = new ModuleRoots(
-			System.getProperty("availRoots", null));
-		final String renames = System.getProperty("availRenames");
+		String rootsString = System.getProperty("availRoots", "");
+		final ModuleRoots roots = new ModuleRoots(rootsString);
+		final String renames = System.getProperty("availRenames", null);
 		final String initial;
 		if (args.length > 0)
 		{
