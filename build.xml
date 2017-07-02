@@ -341,16 +341,6 @@ POSSIBILITY OF SUCH DAMAGE.
 	</target>
 
 	<!--
-		Find the path to the current Java runtime.
-	-->
-	<target name="find-Java">
-		<exec
-				executable="/usr/libpath/java_home"
-				outputproperty="path.java.exec"/>
-	</target>
-
-
-	<!--
 		Build the OS X application bundled development environment.
 	-->
 	<target
@@ -387,32 +377,12 @@ POSSIBILITY OF SUCH DAMAGE.
 		</copy>
 		<!-- Make the java app launcher executable... -->
 		<chmod file="${app.base}/Contents/MacOs/JavaAppLauncher" perm="+x"/>
-		<!-- Finally, set the bundle bit... -->
+		<!-- Finally, set the app's bundle bit... -->
 		<exec executable="setfile">
 			<arg value="-a" />
 			<arg value="B" />
 			<arg file="${app.base}" />
 		</exec>
-		<!--<bundleapp-->
-				<!--outputdirectory="${path.osx.app}"-->
-				<!--name="${osx.app.name}"-->
-				<!--displayname="Workbench"-->
-				<!--identifier="com.avail.AvailWorkbench"-->
-				<!--shortversion="2014.04.28"-->
-				<!--icon="resources/workbench/AvailHammer.icns"-->
-				<!--copyright="Copyright © 1993-2017, The Avail Foundation, LLC."-->
-				<!--mainclassname="com.avail.environment.AvailWorkbench">-->
-			<!--<runtime dir="${path.java.exec}" />-->
-			<!--<option value="-Dapple.laf.useScreenMenuBar=true"/>-->
-			<!--<librarypath dir="distro/lib" includes="*.jar" />-->
-		<!--</bundleapp>-->
-		<!-- Delete the JavaApplicationStub and replace it with a symbolic
-		     link, which should work on older and future versions of OS X. -->
-		<!--<delete file="${app.base}.app/Contents/MacOS/JavaApplicationStub"/>-->
-		<!--<exec executable="ln">-->
-			<!--<arg line="-s /System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub"/>-->
-			<!--<arg value="${app.base}.app/Contents/MacOS/JavaApplicationStub"/>-->
-		<!--</exec>-->
 	</target>
 
 	<!--

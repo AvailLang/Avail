@@ -52,29 +52,7 @@ extends AbstractWorkbenchAction
 	@Override
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
-		final ResolvedModuleName selection = workbench.selectedModule();
-		final TreeNode modules = workbench.newModuleTree();
-		workbench.moduleTree.setModel(new DefaultTreeModel(modules));
-		for (int i = workbench.moduleTree.getRowCount() - 1; i >= 0; i--)
-		{
-			workbench.moduleTree.expandRow(i);
-		}
-		if (selection != null)
-		{
-			final TreePath path = workbench.modulePath(
-				selection.qualifiedName());
-			if (path != null)
-			{
-				workbench.moduleTree.setSelectionPath(path);
-			}
-		}
-
-		final TreeNode entryPoints = workbench.newEntryPointsTree();
-		workbench.entryPointsTree.setModel(new DefaultTreeModel(entryPoints));
-		for (int i = workbench.entryPointsTree.getRowCount() - 1; i >= 0; i--)
-		{
-			workbench.entryPointsTree.expandRow(i);
-		}
+		workbench.refresh();
 	}
 
 	/**

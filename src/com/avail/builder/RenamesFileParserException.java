@@ -60,7 +60,7 @@ extends Exception
 	 * @param cause The original {@link Throwable} that caused this {@linkplain
 	 *              RenamesFileParserException exception}.
 	 */
-	RenamesFileParserException (final Throwable cause)
+	public RenamesFileParserException (final Throwable cause)
 	{
 		super(cause);
 	}

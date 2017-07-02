@@ -53,6 +53,7 @@ import java.util.*;
 import java.util.concurrent.atomic.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 import com.avail.*;
@@ -755,8 +756,7 @@ public final class AvailBuilder
 									new ModuleName(builder.toString());
 								final ResolvedModuleName resolved =
 									new ResolvedModuleName(
-										moduleName,
-										moduleRoot);
+										moduleName, moduleRoots, false);
 								traceOneModuleHeader(resolved, moduleAction);
 							}
 						});
@@ -1743,8 +1743,8 @@ public final class AvailBuilder
 			final Continuation0 completionAction)
 		{
 			globalTracker.value(bytesCompiled.get(), globalCodeSize());
-			// If the module is already loaded into the runtime, then we
-			// must not reload it.
+			// If the module is already loaded into the runtime, then we must
+			// not reload it.
 			final boolean isLoaded;
 			synchronized (AvailBuilder.this)
 			{
@@ -1774,24 +1774,45 @@ public final class AvailBuilder
 				final ModuleVersion version = archive.getVersion(versionKey);
 				assert version != null
 					: "Version should have been populated during tracing";
+				final Map<String, ResolvedModuleName> predecessorsByName =
+					moduleGraph.predecessorsOf(moduleName).stream().collect(
+						Collectors.toMap(ModuleName::qualifiedName, m -> m));
+				final List<String> imports = version.getImports();
+				final ModuleNameResolver resolver =
+					runtime.moduleNameResolver();
 				final Map<String, LoadedModule> loadedModulesByName =
 					new HashMap<>();
-				for (final ResolvedModuleName predecessorName :
-					moduleGraph.predecessorsOf(moduleName))
+				for (final String localName : imports)
 				{
-					final String localName = predecessorName.localName();
+					final ResolvedModuleName resolvedName;
+					try
+					{
+						resolvedName = resolver.resolve(
+							moduleName.asSibling(localName), moduleName);
+					}
+					catch (final UnresolvedDependencyException e)
+					{
+						stopBuildReason(
+							String.format(
+								"A module predecessor was malformed or "
+									+ "absent: %s -> %s\n",
+								moduleName.qualifiedName(),
+								localName));
+						completionAction.value();
+						return;
+					}
 					final LoadedModule loadedPredecessor =
-						getLoadedModule(predecessorName);
+						getLoadedModule(resolvedName);
 					assert loadedPredecessor != null;
 					loadedModulesByName.put(localName, loadedPredecessor);
 				}
-				final List<String> imports = version.getImports();
 				final long [] predecessorCompilationTimes =
 					new long [imports.size()];
 				for (int i = 0; i < predecessorCompilationTimes.length; i++)
 				{
 					final LoadedModule loadedPredecessor =
 						loadedModulesByName.get(imports.get(i));
+					assert loadedPredecessor != null;
 					predecessorCompilationTimes[i] =
 						loadedPredecessor.compilation.compilationTime;
 				}

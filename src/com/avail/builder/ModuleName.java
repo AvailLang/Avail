@@ -148,6 +148,21 @@ public class ModuleName
 	}
 
 	/**
+	 * Whether this module name was transformed via a rename rule.
+	 */
+	private final boolean isRename;
+
+	/**
+	 * Answer whether this module name was transformed via a rename rule.
+	 *
+	 * @return True if the module was renamed, otherwise false.
+	 */
+	public boolean isRename ()
+	{
+		return isRename;
+	}
+
+	/**
 	 * Construct a new {@link ModuleName} from the specified fully-qualified
 	 * module name.
 	 *
@@ -156,9 +171,25 @@ public class ModuleName
 	 *         If the argument was malformed.
 	 */
 	public ModuleName (final String qualifiedName)
+	throws IllegalArgumentException
+	{
+		this(qualifiedName, false);
+	}
+
+	/**
+	 * Construct a new {@link ModuleName} from the specified fully-qualified
+	 * module name.
+	 *
+	 * @param qualifiedName A fully-qualified module name.
+	 * @param isRename Whether module resolution followed a renaming rule.
+	 * @throws IllegalArgumentException
+	 *         If the argument was malformed.
+	 */
+	public ModuleName (final String qualifiedName, final boolean isRename)
 		throws IllegalArgumentException
 	{
 		this.qualifiedName = qualifiedName;
+		this.isRename = isRename;
 
 		final String[] components = qualifiedName.split("/");
 		if (components.length < 3 || !components[0].isEmpty())
@@ -191,11 +222,30 @@ public class ModuleName
 	 *         If the argument was malformed.
 	 */
 	public ModuleName (
-			final String packageName,
-			final String localName)
-		throws IllegalArgumentException
+		final String packageName,
+		final String localName)
+	throws IllegalArgumentException
 	{
-		this(packageName + "/" + localName);
+		this(packageName, localName, false);
+	}
+
+	/**
+	 * Construct a new {@link ModuleName} from the specified canonical module
+	 * group name and local name.
+	 *
+	 * @param packageName A canonical package name.
+	 * @param localName A local module name.
+	 * @param isRename Whether module resolution followed a renaming rule.
+	 * @throws IllegalArgumentException
+	 *         If the argument was malformed.
+	 */
+	public ModuleName (
+		final String packageName,
+		final String localName,
+		final boolean isRename)
+	throws IllegalArgumentException
+	{
+		this(packageName + "/" + localName, isRename);
 	}
 
 	@Override

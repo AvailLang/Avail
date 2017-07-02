@@ -71,9 +71,6 @@ import org.jetbrains.annotations.Nullable;
 public final class ModuleRoots
 implements Iterable<ModuleRoot>
 {
-	/** The Avail {@linkplain ModuleDescriptor module} path. */
-	private final String modulePath;
-
 	/**
 	 * Answer the Avail {@linkplain ModuleDescriptor module} path.
 	 *
@@ -81,27 +78,45 @@ implements Iterable<ModuleRoot>
 	 */
 	public String modulePath ()
 	{
-		return modulePath;
+		final StringBuilder builder = new StringBuilder(200);
+		boolean first = true;
+		for (Map.Entry<String, ModuleRoot> entry : rootMap.entrySet())
+		{
+			final ModuleRoot root = entry.getValue();
+			if (!first)
+			{
+				builder.append(";");
+			}
+			builder.append(root.name());
+			builder.append("=");
+			builder.append(root.repository().fileName().getPath());
+			builder.append(",");
+			builder.append(root.sourceDirectory().getPath());
+			first = false;
+		}
+		return builder.toString();
 	}
 
 	/**
 	 * A {@linkplain Map map} from logical root names to {@linkplain ModuleRoot
 	 * module root}s.
 	 */
-	private final Map<String, ModuleRoot> rootMap =
-		new LinkedHashMap<>();
+	private final Map<String, ModuleRoot> rootMap = new LinkedHashMap<>();
 
 	/**
 	 * Parse the Avail {@linkplain ModuleDescriptor module} path into a
 	 * {@linkplain Map map} of logical root names to {@linkplain ModuleRoot
 	 * module root}s.
 	 *
+	 * @param modulePath The module roots path string.
 	 * @throws IllegalArgumentException
 	 *         If any component of the Avail {@linkplain ModuleDescriptor
 	 *         module} path is invalid.
 	 */
-	private void parseAvailModulePath () throws IllegalArgumentException
+	private void parseAvailModulePath (final String modulePath)
+	throws IllegalArgumentException
 	{
+		clearRoots();
 		// Root definitions are separated by semicolons.
 		String [] components = modulePath.split(";");
 		if (modulePath.isEmpty())
@@ -164,10 +179,18 @@ implements Iterable<ModuleRoot>
 				throw new IllegalArgumentException();
 			}
 
-			rootMap.put(
-				rootName,
-				new ModuleRoot(rootName, repositoryFile, sourceDirectory));
+			addRoot(new ModuleRoot(rootName, repositoryFile, sourceDirectory));
 		}
+	}
+
+	public void clearRoots ()
+	{
+		rootMap.clear();
+	}
+
+	public void addRoot (final ModuleRoot root)
+	{
+		rootMap.put(root.name(), root);
 	}
 
 	/**
@@ -194,7 +217,7 @@ implements Iterable<ModuleRoot>
 		{
 			roots.add(entry.getValue());
 		}
-		return roots;
+		return Collections.unmodifiableSet(roots);
 	}
 
 	@Override
@@ -229,8 +252,7 @@ implements Iterable<ModuleRoot>
 	 */
 	public ModuleRoots (final String modulePath)
 	{
-		this.modulePath = modulePath;
-		parseAvailModulePath();
+		parseAvailModulePath(modulePath);
 	}
 
 	/**

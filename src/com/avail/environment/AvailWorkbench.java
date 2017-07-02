@@ -46,7 +46,6 @@ import com.avail.environment.nodes.EntryPointNode;
 import com.avail.environment.nodes.ModuleOrPackageNode;
 import com.avail.environment.nodes.ModuleRootNode;
 import com.avail.environment.tasks.BuildTask;
-import com.avail.interpreter.AvailLoader;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
@@ -62,6 +61,7 @@ import javax.swing.*;
 import javax.swing.text.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -83,6 +83,7 @@ import java.time.ZoneOffset;
 import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
@@ -1078,6 +1079,36 @@ extends JFrame
 	}
 
 	/**
+	 * Re-parse the package structure from scratch.
+	 */
+	public void refresh ()
+	{
+		resolver.clearCache();
+		final ResolvedModuleName selection = selectedModule();
+		final TreeNode modules = newModuleTree();
+		moduleTree.setModel(new DefaultTreeModel(modules));
+		for (int i = moduleTree.getRowCount() - 1; i >= 0; i--)
+		{
+			moduleTree.expandRow(i);
+		}
+		if (selection != null)
+		{
+			final TreePath path = modulePath(selection.qualifiedName());
+			if (path != null)
+			{
+				moduleTree.setSelectionPath(path);
+			}
+		}
+
+		final TreeNode entryPoints = newEntryPointsTree();
+		entryPointsTree.setModel(new DefaultTreeModel(entryPoints));
+		for (int i = entryPointsTree.getRowCount() - 1; i >= 0; i--)
+		{
+			entryPointsTree.expandRow(i);
+		}
+	}
+
+	/**
 	 * Answer a {@link FileVisitor} suitable for recursively exploring an
 	 * Avail root. A new {@code FileVisitor} should be obtained for each Avail
 	 * root.
@@ -1141,8 +1172,10 @@ extends JFrame
 						assert strongParentNode.isPackage();
 						final ResolvedModuleName parentModuleName =
 							strongParentNode.resolvedModuleName();
+						// The (resolved) parent is a package representative
+						// module, so use its parent, the package itself.
 						moduleName = new ModuleName(
-							parentModuleName.qualifiedName(), localName);
+							parentModuleName.packageName(), localName);
 					}
 					final ResolvedModuleName resolved;
 					try
@@ -1155,9 +1188,16 @@ extends JFrame
 						// representative, so simply skip the whole directory.
 						return FileVisitResult.SKIP_SUBTREE;
 					}
-					final ModuleOrPackageNode node =
-						new ModuleOrPackageNode(availBuilder, resolved, true);
+					final ModuleOrPackageNode node = new ModuleOrPackageNode(
+						availBuilder, moduleName, resolved, true);
 					parentNode.add(node);
+					if (resolved.isRename())
+					{
+						// Don't examine modules inside a package which is the
+						// source of a rename.  They wouldn't have resolvable
+						// dependencies anyhow.
+						return FileVisitResult.SKIP_SUBTREE;
+					}
 					stack.addFirst(node);
 					return FileVisitResult.CONTINUE;
 				}
@@ -1215,22 +1255,25 @@ extends JFrame
 						final ResolvedModuleName parentModuleName =
 							strongParentNode.resolvedModuleName();
 						moduleName = new ModuleName(
-							parentModuleName.qualifiedName(), localName);
+							parentModuleName.packageName(), localName);
 					}
 					final ResolvedModuleName resolved;
 					try
 					{
 						resolved = resolver.resolve(moduleName, null);
+						final ModuleOrPackageNode node =
+							new ModuleOrPackageNode(
+								availBuilder, moduleName, resolved, false);
+						if (resolved.isRename() || !resolved.isPackage())
+						{
+							parentNode.add(node);
+						}
 					}
 					catch (final UnresolvedDependencyException e)
 					{
+						// TODO MvG - Find a better way of reporting broken
+						// dependencies. Ignore for now (during directory scan).
 						throw new RuntimeException(e);
-					}
-					final ModuleOrPackageNode node =
-						new ModuleOrPackageNode(availBuilder, resolved, false);
-					if (!resolved.isPackage())
-					{
-						parentNode.add(node);
 					}
 				}
 				return FileVisitResult.CONTINUE;
@@ -1702,8 +1745,8 @@ extends JFrame
 	}
 
 	/** The user-specific {@link Preferences} for this application to use. */
-	private final Preferences basePreferences =
-		Preferences.userNodeForPackage(getClass());
+	private final static Preferences basePreferences =
+		Preferences.userNodeForPackage(AvailWorkbench.class);
 
 	/** The key under which to organize all placement information. */
 	private final static String placementByMonitorNamesString =
@@ -1719,8 +1762,26 @@ extends JFrame
 	/** The leaf key under which to store the module template string. */
 	public final static String moduleLeafKeyString = "module";
 
-	/** The leaf key under which to store the module template string. */
+	/** The leaf key under which to store the text template string. */
 	public final static String textLeafKeyString = "text template";
+
+	/** The key under which to store the {@link ModuleRoots}. */
+	public final static String moduleRootsKeyString = "module roots";
+
+	/** The subkey that holds a root's repository name. */
+	public final static String moduleRootsRepoSubkeyString = "repository";
+
+	/** The subkey that holds a root's source directory name. */
+	public final static String moduleRootsSourceSubkeyString = "source";
+
+	/** The key under which to store the module rename rules. */
+	public final static String moduleRenamesKeyString = "module renames";
+
+	/** The subkey that holds a rename rule's source module name. */
+	public final static String moduleRenameSourceSubkeyString = "source";
+
+	/** The subkey that holds a rename rule's replacement module name. */
+	public final static String moduleRenameTargetSubkeyString = "target";
 
 	/**
 	 * Answer a {@link List} of {@link Rectangle}s corresponding with the
@@ -1762,6 +1823,148 @@ extends JFrame
 		}
 		return basePreferences.node(
 			placementByMonitorNamesString + "/" + allNamesString);
+	}
+
+	/**
+	 * Parse the {@link ModuleRoots} from the module roots preferences node.
+	 *
+	 * @return The {@code ModuleRoots} constructed from the preferences node.
+	 */
+	public static ModuleRoots loadModuleRoots ()
+	{
+		ModuleRoots roots = new ModuleRoots("");
+		roots.clearRoots();
+		Preferences node = basePreferences.node(moduleRootsKeyString);
+		try
+		{
+			final String[] childNames = node.childrenNames();
+			for (String childName : childNames)
+			{
+				final Preferences childNode = node.node(childName);
+				String repoName = childNode.get(
+					moduleRootsRepoSubkeyString, "");
+				String sourceName = childNode.get(
+					moduleRootsSourceSubkeyString, "");
+				roots.addRoot(
+					new ModuleRoot(
+						childName,
+						new File(repoName),
+						new File(sourceName)));
+			}
+		}
+		catch (BackingStoreException e)
+		{
+			System.err.println(
+				"Unable to read Avail roots preferences.");
+		}
+		return roots;
+	}
+
+
+	/**
+	 * Parse the {@link ModuleRoots} from the module roots preferences node.
+	 *
+	 * @return The {@code ModuleRoots} constructed from the preferences node.
+	 */
+	public static void loadRenameRulesInto (final ModuleNameResolver resolver)
+	{
+		resolver.clearRenameRules();
+		Preferences node = basePreferences.node(moduleRenamesKeyString);
+		try
+		{
+			final String[] childNames = node.childrenNames();
+			for (String childName : childNames)
+			{
+				final Preferences childNode = node.node(childName);
+				String source = childNode.get(
+					moduleRenameSourceSubkeyString, "");
+				String target = childNode.get(
+					moduleRenameTargetSubkeyString, "");
+				// Ignore empty sources and targets, although they shouldn't
+				// occur.
+				if (!source.isEmpty() && !target.isEmpty())
+				{
+					resolver.addRenameRule(source, target);
+				}
+			}
+		}
+		catch (BackingStoreException e)
+		{
+			System.err.println(
+				"Unable to read Avail rename rule preferences.");
+		}
+	}
+
+
+
+	/**
+	 * Save the current {@link ModuleRoots} and rename rules to the preferences
+	 * storage.
+	 */
+	public void saveModuleConfiguration ()
+	{
+		try
+		{
+			Preferences rootsNode = basePreferences.node(moduleRootsKeyString);
+			final ModuleRoots roots = resolver.moduleRoots();
+			for (final String oldChildName : rootsNode.childrenNames())
+			{
+				if (roots.moduleRootFor(oldChildName) == null)
+				{
+					rootsNode.node(oldChildName).removeNode();
+				}
+			}
+			for (final ModuleRoot root : roots)
+			{
+				final Preferences childNode = rootsNode.node(root.name());
+				childNode.put(
+					moduleRootsRepoSubkeyString,
+					root.repository().fileName().getPath());
+				childNode.put(
+					moduleRootsSourceSubkeyString,
+					root.sourceDirectory().getPath());
+			}
+
+			Preferences renamesNode =
+				basePreferences.node(moduleRenamesKeyString);
+			final Map<String, String> renames = resolver.renameRules();
+			for (final String oldChildName : renamesNode.childrenNames())
+			{
+				int nameInt;
+				try
+				{
+					nameInt = Integer.valueOf(oldChildName);
+				}
+				catch (NumberFormatException e)
+				{
+					nameInt = -1;
+				}
+				if (!oldChildName.equals(Integer.toString(nameInt))
+					|| nameInt < 0
+					|| nameInt >= renames.size())
+				{
+					renamesNode.node(oldChildName).removeNode();
+				}
+			}
+			int rowCounter = 0;
+			for (final Map.Entry<String, String> rename : renames.entrySet())
+			{
+				final Preferences childNode = renamesNode.node(
+					Integer.toString(rowCounter));
+				childNode.put(
+					moduleRenameSourceSubkeyString, rename.getKey());
+				childNode.put(
+					moduleRenameTargetSubkeyString, rename.getValue());
+				rowCounter++;
+			}
+
+			basePreferences.flush();
+		}
+		catch (BackingStoreException e)
+		{
+			System.err.println(
+				"Unable to write Avail roots/renames preferences.");
+		}
 	}
 
 	/**
@@ -2265,7 +2468,7 @@ extends JFrame
 		this.moduleTemplates = getInitialModuleTemplate();
 		replaceTextTemplate.initializeTemplatesFromPropertiesFile();
 
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 		// Set *just* the window title...
 		setTitle("Avail Workbench");
@@ -2286,11 +2489,15 @@ extends JFrame
 				null,
 			refreshAction);
 		menuBar.add(buildMenu);
-		menuBar.add(
-			menu(
-				"Module",
-				newPackageAction, newModuleAction, editModuleAction, null,
-				addModuleTemplateAction));
+		final JMenu moduleMenu = menu(
+			"Module",
+			newPackageAction, newModuleAction, editModuleAction, null,
+			addModuleTemplateAction);
+		menuBar.add(moduleMenu);
+		if (!runningOnMac)
+		{
+			augment(buildMenu, null, preferencesAction);
+		}
 		menuBar.add(
 			menu(
 				"Document",
@@ -2800,19 +3007,18 @@ extends JFrame
 		assert runningOnMac;
 		try
 		{
-			// Read Mac-specific preferences files...
-			//TODO MvG - Finish the preferences dialog and enable this.
-//			OSXUtility.setPreferencesHandler(
-//				new Transformer1<Object, Boolean> ()
-//				{
-//					@Override
-//					public @Nullable Boolean value (
-//						@Nullable final Object event)
-//					{
-//						preferencesAction.actionPerformed(null);
-//						return true;
-//					}
-//				});
+			// Set up Mac-specific preferences menu handler...
+			OSXUtility.setPreferencesHandler(
+				new Transformer1<Object, Boolean> ()
+				{
+					@Override
+					public @Nullable Boolean value (
+						@Nullable final Object event)
+					{
+						preferencesAction.actionPerformed(null);
+						return true;
+					}
+				});
 		}
 		catch (final Exception e)
 		{
@@ -2836,9 +3042,43 @@ extends JFrame
 			setUpForMac();
 		}
 
-		String rootsString = System.getProperty("availRoots", "");
-		final ModuleRoots roots = new ModuleRoots(rootsString);
+		final String rootsString = System.getProperty("availRoots", "");
+		final ModuleRoots roots;
+		if (rootsString.isEmpty())
+		{
+			// Read the persistent preferences file...
+			roots = loadModuleRoots();
+		}
+		else
+		{
+			// Providing availRoots on the command line overrides preferences...
+			roots = new ModuleRoots(rootsString);
+		}
+
 		final String renames = System.getProperty("availRenames", null);
+		final Reader reader;
+		if (renames == null)
+		{
+			// Load the renames from preferences further down.
+			reader = new StringReader("");
+		}
+		else
+		{
+			// Load the renames from the file specified on the command line...
+			final File renamesFile = new File(renames);
+			reader = new BufferedReader(new InputStreamReader(
+				new FileInputStream(renamesFile), StandardCharsets.UTF_8));
+		}
+		final RenamesFileParser renameParser = new RenamesFileParser(
+			reader, roots);
+		final ModuleNameResolver resolver = renameParser.parse();
+		if (renames == null)
+		{
+			// Now load the rename rules from preferences.
+			loadRenameRulesInto(resolver);
+		}
+
+		// The first application argument, if any, says which module to select.
 		final String initial;
 		if (args.length > 0)
 		{
@@ -2848,20 +3088,6 @@ extends JFrame
 		{
 			initial = "";
 		}
-		final Reader reader;
-		if (renames == null)
-		{
-			reader = new StringReader("");
-		}
-		else
-		{
-			final File renamesFile = new File(renames);
-			reader = new BufferedReader(new InputStreamReader(
-				new FileInputStream(renamesFile), StandardCharsets.UTF_8));
-		}
-		final RenamesFileParser renameParser = new RenamesFileParser(
-			reader, roots);
-		final ModuleNameResolver resolver = renameParser.parse();
 
 		// Display the UI.
 		invokeLater(() ->
@@ -2872,15 +3098,6 @@ extends JFrame
 				frame.setUpInstanceForMac();
 			}
 			frame.setVisible(true);
-			if (!initial.isEmpty())
-			{
-				final TreePath path = frame.modulePath(initial);
-				if (path != null)
-				{
-					frame.moduleTree.setSelectionPath(path);
-					frame.moduleTree.scrollPathToVisible(path);
-				}
-			}
 		});
 	}
 }

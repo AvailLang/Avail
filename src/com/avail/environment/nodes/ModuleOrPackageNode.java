@@ -32,6 +32,7 @@
 
 package com.avail.environment.nodes;
 
+import com.avail.builder.ModuleName;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
@@ -45,6 +46,9 @@ import com.avail.builder.ResolvedModuleName;
 public class ModuleOrPackageNode
 extends AbstractBuilderFrameTreeNode
 {
+	/** The local name of this module, prior to renames and resolution. */
+	final ModuleName originalModuleName;
+
 	/** The resolved name of the module. */
 	final ResolvedModuleName resolvedModuleName;
 
@@ -74,16 +78,23 @@ extends AbstractBuilderFrameTreeNode
 	/**
 	 * Construct a new {@link ModuleOrPackageNode}.
 	 *
-	 * @param builder The builder for which this node is being built.
-	 * @param resolvedModuleName The name of the module or package.
-	 * @param isPackage Whether it's a package.
+	 * @param builder
+	 *        The builder for which this node is being built.
+	 * @param originalModuleName
+	 *        The name of the module/package prior to resolution (renames).
+	 * @param resolvedModuleName
+	 *        The resolved name of the module or package.
+	 * @param isPackage
+	 *        Whether it's a package.
 	 */
 	public ModuleOrPackageNode (
 		final AvailBuilder builder,
+		final ModuleName originalModuleName,
 		final ResolvedModuleName resolvedModuleName,
 		final boolean isPackage)
 	{
 		super(builder);
+		this.originalModuleName = originalModuleName;
 		this.resolvedModuleName = resolvedModuleName;
 		this.isPackage = isPackage;
 	}
@@ -97,7 +108,16 @@ extends AbstractBuilderFrameTreeNode
 	@Override
 	String text (final boolean selected)
 	{
-		return resolvedModuleName.localName();
+		if (isRenamedSource())
+		{
+			return originalModuleName.localName()
+				+ " → "
+				+ resolvedModuleName.qualifiedName();
+		}
+		else
+		{
+			return resolvedModuleName.localName();
+		}
 	}
 
 	/**
@@ -114,20 +134,36 @@ extends AbstractBuilderFrameTreeNode
 		}
 	}
 
+	/**
+	 * Answer whether this is a module that's the subject (source) of a rename
+	 * rule.
+	 *
+	 * @return If this is a renamed module or package.
+	 */
+	public boolean isRenamedSource ()
+	{
+		return resolvedModuleName.isRename();
+	}
+
 	@Override
 	String htmlStyle (final boolean selected)
 	{
 		String base = super.htmlStyle(selected);
+		final boolean renamed = isRenamedSource();
+		if (renamed)
+		{
+			base += ";color:orange";
+		}
 		if (isPackage)
 		{
-			base = base + ";font-weight:bold";
+			base += ";font-weight:bold";
 		}
 		if (!isLoaded())
 		{
-			base = base + ";font-style:italic";
-			if (!selected)
+			base += ";font-style:italic";
+			if (!selected && !renamed)
 			{
-				base = base + ";color:gray";
+				base += ";color:gray";
 			}
 		}
 		return base;

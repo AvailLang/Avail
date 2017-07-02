@@ -162,8 +162,8 @@ public final class AvailCompiler
 	 */
 	@InnerAccess ModuleName moduleName ()
 	{
-		return new ModuleName(compilationContext
-			.module().moduleName().asNativeString());
+		return new ModuleName(
+			compilationContext.module().moduleName().asNativeString());
 	}
 
 	/**

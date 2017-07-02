@@ -3,8 +3,8 @@ OVERVIEW
 
 This document describes the entire process of obtaining, installing,
 configuring, and running the Avail development workbench. Depending on how you
-obtained Avail, whether it is a first time installation, and what utilities are 
-already installed on your system, you may be able to skip some of the sections 
+obtained Avail, whether it is a first time installation, and what utilities are
+already installed on your system, you may be able to skip some of the sections
 of this document.
 
 
@@ -47,8 +47,8 @@ public repository. This repository is located at:
 
 	https://github.com/AvailLang/Avail.git
 
-Choose the directory where you would like the local copy of the Avail repository 
-to reside (the path to which is hereafter denoted as $PROJ). Clone the official 
+Choose the directory where you would like the local copy of the Avail repository
+to reside (the path to which is hereafter denoted as $PROJ). Clone the official
 public repository into it like this:
 
 	$ git clone https://github.com/AvailLang/Avail.git $PROJ
@@ -64,7 +64,7 @@ BEFORE INSTALLING
 Before installing Avail, you will need to make sure that you have obtained and
 installed the prerequisite software:
 
-1) Java: You will need version 1.7, or later, of the Java Development Kit (JDK)
+1) Java: You will need version 1.8, or later, of the Java Development Kit (JDK)
 Standard Edition (SE). Many modern systems already have some version of the JDK,
 so you should check your JDK version before obtaining and installing it from
 Oracle (or some other vendor). You can do so like this:
@@ -73,7 +73,7 @@ Oracle (or some other vendor). You can do so like this:
 
 And hopefully you get back something like this:
 
-	javac 1.7.0_55
+	javac 1.8.0_131
 
 Otherwise, the latest version of the JDK can be obtained at:
 
@@ -124,7 +124,7 @@ build Avail:
 	$ cd $PROJ
 	$ ant
 
-(When no arguments are provided, Ant will search the current directory for a 
+(When no arguments are provided, Ant will search the current directory for a
 "build.xml" and, if one was found, run its default target. If you are invoking
 Ant from a different directory than $PROJ, your invocation should read
 "ant -f $PROJ/build.xml".)
@@ -191,39 +191,39 @@ Your transcript should look similar to this:
 
 	install:
 		[copy] Copying 229 files to $INSTALL
-		[echo] 
+		[echo]
 		[echo] ATTENTION =======================================================
 		[echo] Be sure to set AVAIL_HOME to:
-		[echo] 
+		[echo]
 		[echo]   $INSTALL
-		[echo] 
+		[echo]
 		[echo] And update your path to include:
-		[echo] 
+		[echo]
 		[echo]   $INSTALL/bin
-		[echo] 
+		[echo]
 		[echo] For example, a user of bash might include something like the
 		[echo] following in the appropriate shell config file:
-		[echo] 
+		[echo]
 		[echo]   export AVAIL_HOME=$INSTALL
 		[echo]   export PATH=$PATH:$INSTALL/bin
-		[echo] 
+		[echo]
 		[echo] Once your path has been updated, from any directory you can
 		[echo] launch the Avail workbench like this:
-		[echo] 
+		[echo]
 		[echo]   avail-dev
-		[echo] 
+		[echo]
 		[echo] To develop Avail code, you will also need to set AVAIL_ROOTS to a
 		[echo] valid module root path. If AVAIL_ROOTS is not set, then avail-dev
 		[echo] temporarily sets it to:
-		[echo] 
+		[echo]
 		[echo]   avail=$HOME/.avail/repos/avail.repo,$INSTALL/src/avail;\
 		[echo]   examples=$HOME/.avail/repos/examples.repo,$INSTALL/src/examples
-		[echo] 
+		[echo]
 		[echo] This is convenient for experimenting with Avail, but must be
-		[echo] extended with custom module roots as you develop your own 
+		[echo] extended with custom module roots as you develop your own
 		[echo] modules.
 		[echo] =================================================================
-		[echo] 
+		[echo]
 
 	BUILD SUCCESSFUL
 	Total time: 3 seconds
@@ -250,7 +250,7 @@ development:
 without AVAIL_HOME being set.
 
 2) Update your path to include $INSTALL/bin. This is where "avail-dev" is
-located. This enables your shell to find the command without the user needing to 
+located. This enables your shell to find the command without the user needing to
 prefix its exact path or change the working directory.
 
 3) Set the AVAIL_ROOTS environment variable to a valid module roots path so
@@ -263,7 +263,7 @@ you will need to quote each semicolon, in order to hide it from the shell's
 command parser.)
 
 Each module root specification comprises a "module root name", which is just a
-unique logical identifier, and a module root path. A module root name usually 
+unique logical identifier, and a module root path. A module root name usually
 denotes a vendor or a project, and does not need to have any relationship to the
 file system. By convention, the module root name of the Avail standard library
 is "avail", and the official collection of examples supported by The Avail
@@ -280,7 +280,7 @@ repository path does not refer to an existing file, then "avail-dev" will create
 and populate this file as needed. A source path must always refer to an existing
 directory that is readable by the user running "avail-dev".
 
-If AVAIL_ROOTS is not defined, then "avail-dev" will use the following module 
+If AVAIL_ROOTS is not defined, then "avail-dev" will use the following module
 roots path by default:
 
 	avail=$HOME/.avail/repos/avail.repo,$INSTALL/src/avail;

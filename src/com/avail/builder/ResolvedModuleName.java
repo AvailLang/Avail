@@ -47,9 +47,14 @@ public final class ResolvedModuleName
 extends ModuleName
 {
 	/**
-	 * The {@link ModuleRoot} within which this module occurs.
+	 * The {@link ModuleRoots} in which to look up the root name.
 	 */
-	private final ModuleRoot moduleRoot;
+	private final ModuleRoots moduleRoots;
+
+	private ModuleRoot moduleRoot ()
+	{
+		return moduleRoots.moduleRootFor(rootName());
+	}
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName,
@@ -60,19 +65,7 @@ extends ModuleName
 	 */
 	public IndexedRepositoryManager repository ()
 	{
-		return moduleRoot.repository();
-	}
-
-	/**
-	 * Answer the {@linkplain ModuleNameResolver#resolve(ModuleName,
-	 * ResolvedModuleName) resolved} {@linkplain IndexedRepositoryManager
-	 * repository}'s file reference.
-	 *
-	 * @return The resolved repository's file reference.
-	 */
-	public File repositoryReference ()
-	{
-		return repository().fileName();
+		return moduleRoot().repository();
 	}
 
 	/**
@@ -84,9 +77,9 @@ extends ModuleName
 	public File sourceReference ()
 	{
 		final StringBuilder builder = new StringBuilder(100);
-		final File sourceDirectory = moduleRoot.sourceDirectory();
+		final File sourceDirectory = moduleRoot().sourceDirectory();
 		assert sourceDirectory != null;
-		builder.append(sourceDirectory.toString());
+		builder.append(sourceDirectory);
 		for (final String part : rootRelativeName().split("/"))
 		{
 			builder.append('/');
@@ -133,15 +126,18 @@ extends ModuleName
 	 *
 	 * @param qualifiedName
 	 *        The just-resolved {@linkplain ModuleName module name}.
-	 * @param moduleRoot
-	 *        The {@linkplain ModuleRoot} within which this module occurs.
+	 * @param moduleRoots
+	 *        The {@linkplain ModuleRoots} with which to look up the module.
+	 * @param isRename
+	 *        Whether module resolution followed a renaming rule.
 	 */
 	ResolvedModuleName (
 		final ModuleName qualifiedName,
-		final ModuleRoot moduleRoot)
+		final ModuleRoots moduleRoots,
+		final boolean isRename)
 	{
-		super(qualifiedName.qualifiedName());
-		this.moduleRoot = moduleRoot;
+		super(qualifiedName.qualifiedName(), isRename);
+		this.moduleRoots = moduleRoots;
 		final File ref = sourceReference();
 		assert ref.isFile();
 		final String fileName = ref.getName();

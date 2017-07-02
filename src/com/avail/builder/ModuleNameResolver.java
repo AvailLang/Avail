@@ -34,8 +34,11 @@ package com.avail.builder;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -121,7 +124,17 @@ public final class ModuleNameResolver
 	 * A {@linkplain Map map} from fully-qualified module names to their
 	 * canonical names.
 	 */
-	private final Map<String, String> renames = new HashMap<>();
+	private final Map<String, String> renames = new LinkedHashMap<>();
+
+	/**
+	 * Answer an immutable {@link Map} of all the module path renames.
+	 *
+	 * @return A non-modifiable map.
+	 */
+	public Map<String, String> renameRules ()
+	{
+		return Collections.unmodifiableMap(renames);
+	}
 
 	/**
 	 * Does the {@linkplain ModuleNameResolver resolver} have a transformation
@@ -138,6 +151,14 @@ public final class ModuleNameResolver
 	}
 
 	/**
+	 * Remove all rename rules.
+	 */
+	public void clearRenameRules ()
+	{
+		renames.clear();
+	}
+
+	/**
 	 * Add a rule to translate the specified fully-qualified module name.
 	 *
 	 * @param modulePath
@@ -145,7 +166,7 @@ public final class ModuleNameResolver
 	 * @param substitutePath
 	 *        The canonical name.
 	 */
-	void addRenameRule (
+	public void addRenameRule (
 		final String modulePath,
 		final String substitutePath)
 	{
@@ -184,9 +205,8 @@ public final class ModuleNameResolver
 		final String substitute = renames.get(qualifiedName.qualifiedName());
 		if (substitute != null)
 		{
-			return new ModuleName(substitute);
+			return new ModuleName(substitute, true);
 		}
-
 		return qualifiedName;
 	}
 
@@ -209,6 +229,18 @@ public final class ModuleNameResolver
 					return privateResolve(qualifiedName);
 				}
 			});
+
+	public void clearCache ()
+	{
+		try
+		{
+			resolutionCache.clear();
+		}
+		catch (final InterruptedException e)
+		{
+			// Do nothing.
+		}
+	}
 
 	/**
 	 * Actually resolve the qualified module name.  This is @{@link InnerAccess}
@@ -249,11 +281,11 @@ public final class ModuleNameResolver
 
 		final Deque<String> nameStack = new LinkedList<>();
 		nameStack.addLast("/" + enclosingRoot);
-		Deque<File> pathStack = null;
+		@Nullable Deque<File> pathStack = null;
 
 		// If the source directory is available, then build a search stack of
 		// trials at ascending tiers of enclosing packages.
-		File sourceDirectory = root.sourceDirectory();
+		@Nullable File sourceDirectory = root.sourceDirectory();
 		if (sourceDirectory != null)
 		{
 			pathStack = new LinkedList<File>();
@@ -281,12 +313,13 @@ public final class ModuleNameResolver
 			assert pathStack != null;
 			assert !pathStack.isEmpty();
 			// Explore the search stack from most enclosing package to least
-			//enclosing.
+			// enclosing.
 			while (!pathStack.isEmpty())
 			{
 				canonicalName = new ModuleName(
 					nameStack.removeLast(),
-					canonicalName.localName());
+					canonicalName.localName(),
+					canonicalName.isRename());
 				checkedPaths.add(canonicalName);
 				final File trial = new File(filenameFor(
 					pathStack.removeLast().getPath(),
@@ -308,8 +341,10 @@ public final class ModuleNameResolver
 			{
 				if (!rootName.equals(enclosingRoot))
 				{
-					canonicalName = new ModuleName(String.format(
-						"/%s/%s", rootName, canonicalName.localName()));
+					canonicalName = new ModuleName(
+						String.format(
+							"/%s/%s", rootName, canonicalName.localName()),
+						canonicalName.isRename());
 					checkedPaths.add(canonicalName);
 					root = moduleRoots.moduleRootFor(rootName);
 					assert root != null;
@@ -333,7 +368,6 @@ public final class ModuleNameResolver
 		// We found a candidate.
 		if (repository != null)
 		{
-			assert repository != null;
 			if (sourceFile != null)
 			{
 				// If the candidate is a package, then substitute
@@ -345,7 +379,8 @@ public final class ModuleNameResolver
 						canonicalName.localName() + availExtension);
 					canonicalName = new ModuleName(
 						canonicalName.qualifiedName(),
-						canonicalName.localName());
+						canonicalName.localName(),
+						canonicalName.isRename());
 					if (!sourceFile.isFile())
 					{
 						// Alas, the package representative did not exist.
@@ -356,7 +391,8 @@ public final class ModuleNameResolver
 				}
 			}
 			return new ModuleNameResolutionResult(
-				new ResolvedModuleName(canonicalName, root));
+				new ResolvedModuleName(
+					canonicalName, moduleRoots(), canonicalName.isRename()));
 		}
 
 		// Resolution failed.
@@ -384,7 +420,7 @@ public final class ModuleNameResolver
 		 *
 		 * @return whether the resolution was successful.
 		 */
-		public final boolean isResolved ()
+		public boolean isResolved ()
 		{
 			return resolvedModule != null;
 		}
@@ -433,6 +469,8 @@ public final class ModuleNameResolver
 		 * did not have the missing module.
 		 *
 		 * @param e
+		 *        The {@link UnresolvedDependencyException} that was thrown
+		 *        while resolving a module.
 		 */
 		public ModuleNameResolutionResult (
 			final UnresolvedDependencyException e)

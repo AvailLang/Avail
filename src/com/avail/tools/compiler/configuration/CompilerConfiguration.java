@@ -37,6 +37,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
@@ -172,6 +173,14 @@ implements Configuration
 			final RenamesFileParser renameParser = new RenamesFileParser(
 				reader, availRoots());
 			resolver = renameParser.parse();
+			try
+			{
+				reader.close();
+			}
+			catch (IOException e)
+			{
+				throw new RenamesFileParserException(e);
+			}
 			moduleNameResolver = resolver;
 		}
 		return resolver;
