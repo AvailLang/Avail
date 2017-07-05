@@ -254,9 +254,6 @@ public final class ModuleNameResolver
 	@InnerAccess ModuleNameResolutionResult privateResolve (
 		final ModuleName qualifiedName)
 	{
-		IndexedRepositoryManager repository = null;
-		File sourceFile = null;
-
 		// Attempt to look up the fully-qualified name in the map of renaming
 		// rules. Apply the rule if it exists.
 		ModuleName canonicalName = canonicalNameFor(qualifiedName);
@@ -300,7 +297,6 @@ public final class ModuleNameResolver
 				components[index]));
 			if (sourceDirectory != null)
 			{
-				assert pathStack != null;
 				pathStack.addLast(new File(
 					pathStack.peekLast(),
 					components[index] + availExtension));
@@ -308,9 +304,10 @@ public final class ModuleNameResolver
 		}
 
 		// If the source directory is available, then search the file system.
+		IndexedRepositoryManager repository = null;
+		File sourceFile = null;
 		if (sourceDirectory != null)
 		{
-			assert pathStack != null;
 			assert !pathStack.isEmpty();
 			// Explore the search stack from most enclosing package to least
 			// enclosing.

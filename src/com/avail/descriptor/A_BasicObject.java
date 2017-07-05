@@ -241,11 +241,12 @@ extends JSONFriendly
 	 * We mark it as deprecated to ensure we don't accidentally invoke
 	 * this method when we really mean the version that takes an {@code
 	 * AvailObject} as an argument.  Eclipse conveniently shows such invocations
-	 * with a <strike>strike-out</strike>.  That's a convenient warning for the
-	 * programmer, but we also fail if this method actually gets invoked AND
-	 * the argument is not an {@code AvailObject}.  That means we don't allow
-	 * AvailObjects to be added to Java {@linkplain Set sets} and such, at least
-	 * when they're intermixed with things that are not AvailObjects.
+	 * with a <span style="text-decoration: line-through">strike-out</span>.
+	 * That's a convenient warning for the programmer, but we also fail if this
+	 * method actually gets invoked AND the argument is not an {@code
+	 * AvailObject}.  That means we don't allow AvailObjects to be added to Java
+	 * {@linkplain Set sets} and such, at least when they're intermixed with
+	 * things that are not AvailObjects.
 	 * </p>
 	 */
 	@Override
