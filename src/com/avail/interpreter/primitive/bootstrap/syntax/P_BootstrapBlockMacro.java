@@ -30,8 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.syntax;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -85,16 +86,16 @@ public final class P_BootstrapBlockMacro extends Primitive
 			7, Unknown, Bootstrap);
 
 	/** The key to the client parsing data in the fiber's environment. */
-	final A_Atom clientDataKey = AtomDescriptor.clientDataGlobalKey();
+	final A_Atom clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom;
 
 	/** The key to the variable scope map in the client parsing data. */
-	final A_Atom scopeMapKey = AtomDescriptor.compilerScopeMapKey();
+	final A_Atom scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom;
 
 	/** The key to the tuple of scopes to pop as blocks complete parsing. */
-	final A_Atom scopeStackKey = AtomDescriptor.compilerScopeStackKey();
+	final A_Atom scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom;
 
 	/** The key to the all tokens tuple in the fiber's environment. */
-	final A_Atom allTokensKey = AtomDescriptor.allTokensKey();
+	final A_Atom allTokensKey = ALL_TOKENS_KEY.atom;
 
 	@Override
 	public Result attempt (

@@ -174,7 +174,6 @@ public class AvailScanner
 			TupleDescriptor.empty(),
 			startOfToken + 1,
 			lineNumber,
-			outputTokens.size() + 1,
 			tokenType);
 		token.makeShared();
 		outputTokens.add(token);
@@ -200,7 +199,6 @@ public class AvailScanner
 			TupleDescriptor.empty(),
 			startOfToken + 1,
 			lineNumber,
-			outputTokens.size() + 1,
 			TokenType.LITERAL,
 			anAvailObject);
 		token.makeShared();
@@ -224,8 +222,7 @@ public class AvailScanner
 			previousWhitespace,
 			TupleDescriptor.empty(),
 			startOfToken + 1,
-			startLine,
-			outputTokens.size() + 1);  // The index it would have if it were normal.
+			startLine);
 		token.makeShared();
 		commentTokens.add(token);
 		previousToken = null;
@@ -353,13 +350,10 @@ public class AvailScanner
 	@InnerAccess boolean peekForLetterOrAlphaNumeric ()
 		throws AvailScannerException
 	{
-		if (!atEnd())
+		if (!atEnd() && Character.isUnicodeIdentifierPart(peek()))
 		{
-			if (Character.isUnicodeIdentifierPart(peek()))
-			{
-				next();
-				return true;
-			}
+			next();
+			return true;
 		}
 		return false;
 	}
@@ -379,12 +373,14 @@ public class AvailScanner
 	}
 
 	/**
-	 * Move the current {@link #position} back by one character.
+	 * Move the current {@link #position} back by one character.  The previous
+	 * character must not be part of a surrogate pair.
 	 */
 	@InnerAccess void backUp ()
 	{
 		position--;
 		assert 0 <= position && position <= inputString.length();
+		assert !Character.isSurrogate(inputString.charAt(position));
 	}
 
 	/**

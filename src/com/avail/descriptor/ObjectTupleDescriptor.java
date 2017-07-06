@@ -505,13 +505,6 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
-	{
-		// Answer the integer element at the given index in the tuple object.
-		return object.tupleAt(index).extractInt();
-	}
-
-	@Override @AvailMethod
 	A_Tuple o_TupleReverse (final AvailObject object)
 	{
 		final int size = object.tupleSize();

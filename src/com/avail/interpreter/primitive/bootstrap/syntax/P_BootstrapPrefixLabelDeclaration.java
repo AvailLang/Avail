@@ -1,5 +1,5 @@
 /**
- * P_BootstrapPrefixPostStatement.java
+ * P_BootstrapPrefixLabelDeclaration.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
@@ -39,22 +39,28 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_BootstrapPrefixPostStatement} primitive is used for
- * ensuring that statements are top-valued before over-parsing.
+ * The {@code P_BootstrapPrefixLabelDeclaration} primitive is used
+ * for bootstrapping declaration of a {@link DeclarationKind#LABEL label}.
+ * The label indicates a way to restart or exit a block, so it's probably best
+ * if Avail's block syntax continues to constrain this to occur at the start of
+ * a block.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapPrefixPostStatement extends Primitive
+public final class P_BootstrapPrefixLabelDeclaration
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_BootstrapPrefixPostStatement().init(
-			4, Unknown, Bootstrap);
+		new P_BootstrapPrefixLabelDeclaration().init(
+			3, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -62,11 +68,10 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 4;
-//		final A_Phrase blockArgumentsPhrase = args.get(0);
+		assert args.size() == 3;
+		final A_Phrase optionalBlockArgumentsList = args.get(0);
 //		final A_Phrase optionalPrimFailurePhrase = args.get(1);
-//		final A_Phrase optionalLabelPhrase = args.get(2);
-		final A_Phrase statementsPhrase = args.get(3);
+		final A_Phrase optionalLabelPhrase = args.get(2);
 
 		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
@@ -74,19 +79,78 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 
-		// At this point the statements so far are a list node – not a sequence.
-		final int statementCountSoFar = statementsPhrase.expressionsSize();
-		// The section marker is inside the repetition, so this primitive could
-		// only be invoked if there is at least one statement.
-		assert statementCountSoFar > 0;
-		final A_Phrase latestStatementLiteral =
-			statementsPhrase.expressionAt(statementCountSoFar);
-		final A_Phrase latestStatement =
-			latestStatementLiteral.token().literal();
-		if (!latestStatement.expressionType().equals(TOP.o()))
+		// Note that because the section marker occurs inside the optionality
+		// of the label declaration, this function will only be invoked when
+		// there truly is a label declaration.
+		assert optionalLabelPhrase.expressionsSize() == 1;
+		final A_Phrase labelPairPhrase = optionalLabelPhrase.expressionAt(1);
+		assert labelPairPhrase.expressionsSize() == 2;
+		final A_Phrase labelNamePhrase = labelPairPhrase.expressionAt(1);
+		final A_Token labelName = labelNamePhrase.token().literal();
+		if (labelName.tokenType() != TokenType.KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				"statement to have type ⊤");
+				"label name to be alphanumeric");
+		}
+		final A_Phrase optionalLabelReturnTypePhrase =
+			labelPairPhrase.expressionAt(2);
+		final A_Phrase labelReturnTypePhrase;
+		final A_Type labelReturnType;
+		if (optionalLabelReturnTypePhrase.expressionsSize() == 1)
+		{
+			labelReturnTypePhrase =
+				optionalLabelReturnTypePhrase.expressionAt(1);
+			assert labelReturnTypePhrase.parseNodeKindIsUnder(
+				LITERAL_NODE);
+			labelReturnType = labelReturnTypePhrase.token().literal();
+		}
+		else
+		{
+			// If the label doesn't specify a return type, use bottom.  Because
+			// of continuation return type contravariance, this is the most
+			// general answer.
+			labelReturnTypePhrase = NilDescriptor.nil();
+			labelReturnType = BottomTypeDescriptor.bottom();
+		}
+
+		// Re-extract all the argument types so we can specify the exact type of
+		// the continuation.
+		final List<A_Type> blockArgumentTypes = new ArrayList<>();
+		if (optionalBlockArgumentsList.expressionsSize() > 0)
+		{
+			assert optionalBlockArgumentsList.expressionsSize() == 1;
+			final A_Phrase blockArgumentsList =
+				optionalBlockArgumentsList.expressionAt(1);
+			assert blockArgumentsList.expressionsSize() >= 1;
+			for (final A_Phrase argumentPair :
+				blockArgumentsList.expressionsTuple())
+			{
+				assert argumentPair.expressionsSize() == 2;
+				final A_Phrase typePhrase = argumentPair.expressionAt(2);
+				assert typePhrase.isInstanceOfKind(
+					LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()));
+				final A_Type argType = typePhrase.token().literal();
+				assert argType.isType();
+				blockArgumentTypes.add(argType);
+			}
+		}
+		final A_Type functionType = FunctionTypeDescriptor.create(
+			TupleDescriptor.fromList(blockArgumentTypes), labelReturnType);
+		final A_Type continuationType =
+			ContinuationTypeDescriptor.forFunctionType(functionType);
+		final A_Phrase labelDeclaration =
+			DeclarationNodeDescriptor.newLabel(
+				labelName, labelReturnTypePhrase, continuationType);
+		final A_Phrase conflictingDeclaration =
+			FiberDescriptor.addDeclaration(labelDeclaration);
+		if (conflictingDeclaration != null)
+		{
+			throw new AvailRejectedParseException(
+				"label declaration %s to have a name that doesn't "
+				+ "shadow an existing %s (from line %d)",
+				labelName.string(),
+				conflictingDeclaration.declarationKind().nativeKindName(),
+				conflictingDeclaration.token().lineNumber());
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
@@ -135,16 +199,7 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 							/* Optional label return type. */
 							TupleTypeDescriptor.zeroOrOneOf(
 								/* Label return type. */
-								InstanceMetaDescriptor.topMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
-					/* Statements and declarations so far. */
-					TupleTypeDescriptor.zeroOrMoreOf(
-						/* The "_!" mechanism wrapped each statement or
-						 * declaration inside a literal phrase, so expect a
-						 * phrase here instead of TOP.o().
-						 */
-						STATEMENT_NODE.mostGeneralType()))),
+								InstanceMetaDescriptor.topMeta()))))),
 			TOP.o());
 	}
 }

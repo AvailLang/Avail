@@ -48,6 +48,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.*;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
@@ -6583,6 +6584,36 @@ public abstract class AbstractDescriptor
 	 * @param lexer
 	 */
 	abstract void o_AddLexer (final AvailObject object, final A_Lexer lexer);
+
+	/**
+	 *
+	 * @param object
+	 */
+	abstract void o_ClearNextLexingState (final AvailObject object);
+
+	/**
+	 *
+	 * @param object
+	 * @return
+	 */
+	abstract LexingState o_NextLexingState (final AvailObject object);
+
+	/**
+	 *
+	 * @param object
+	 * @param lexingState
+	 */
+	abstract void o_NextLexingState (
+		final AvailObject object,
+		final LexingState lexingState);
+
+	/**
+	 *
+	 * @param object
+	 * @param index
+	 * @return
+	 */
+	abstract int o_TupleCodePointAt (final AvailObject object, final int index);
 
 	/**
 	 *

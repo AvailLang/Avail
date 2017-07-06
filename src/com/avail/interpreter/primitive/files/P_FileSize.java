@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.files;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -66,7 +67,7 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Atom atom = args.get(0);
 		final A_BasicObject pojo =
-			atom.getAtomProperty(AtomDescriptor.fileKey());
+			atom.getAtomProperty(FILE_KEY.atom);
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);

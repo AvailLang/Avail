@@ -51,7 +51,7 @@ import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.*;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 public final class IntegerIntervalTupleDescriptor
-extends TupleDescriptor
+extends NumericTupleDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.

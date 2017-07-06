@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.files;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
 import static java.nio.file.StandardOpenOption.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -210,7 +211,7 @@ extends Primitive
 			fileOptions.contains(WRITE),
 			channel);
 		final AvailObject pojo = RawPojoDescriptor.identityWrap(fileHandle);
-		atom.setAtomProperty(AtomDescriptor.fileKey(), pojo);
+		atom.setAtomProperty(FILE_KEY.atom, pojo);
 		return interpreter.primitiveSuccess(atom);
 	}
 

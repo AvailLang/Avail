@@ -32,13 +32,15 @@
 
 package com.avail.interpreter.primitive.fibers;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME;
 import static com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.Arrays;
+
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
@@ -47,7 +49,7 @@ import com.avail.utility.evaluation.*;
 /**
  * <strong>Primitive:</strong> Create a new {@linkplain AtomDescriptor atom}
  * with the given name that represents a {@linkplain
- * AtomDescriptor#heritableKey() heritable} {@linkplain FiberDescriptor fiber}
+ * SpecialAtom#HERITABLE_KEY heritable} {@linkplain FiberDescriptor fiber}
  * variable.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -90,7 +92,7 @@ extends Primitive
 							final A_Atom newName = AtomDescriptor.create(
 								name, module);
 							newName.setAtomProperty(
-								AtomDescriptor.heritableKey(),
+								HERITABLE_KEY.atom,
 								AtomDescriptor.trueObject());
 							module.addPrivateName(newName);
 							trueName.value = newName;
@@ -111,7 +113,7 @@ extends Primitive
 			final A_Atom newName =
 				AtomDescriptor.create(name, NilDescriptor.nil());
 			newName.setAtomProperty(
-				AtomDescriptor.heritableKey(),
+				HERITABLE_KEY.atom,
 				AtomDescriptor.trueObject());
 			trueName.value = newName;
 		}

@@ -40,6 +40,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -60,21 +61,30 @@ extends Descriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * {@link BitField}s for the token type code and the starting byte
-		 * position.
+		 * {@link BitField}s for the token type code, the starting byte
+		 * position, and the line number.
 		 */
-		TOKEN_TYPE_AND_START,
+		TOKEN_TYPE_AND_START_AND_LINE,
 
-		/** {@link BitField}s for the line number and token index. */
-		LINE_AND_TOKEN_INDEX;
+		/** One-base index into the obsolete list of tokens. */
+		@Deprecated
+		TOKEN_INDEX;
 
 		/**
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
-		 * indicates what basic kind of token this is.
+		 * indicates what basic kind of token this is.  Currently four bits are
+		 * reserved for this purpose.
 		 */
-		@EnumField(describedBy=TokenType.class)
+		@EnumField(describedBy = TokenType.class)
 		final static BitField TOKEN_TYPE_CODE =
-			bitField(TOKEN_TYPE_AND_START, 0, 32);
+			bitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4);
+
+		/**
+		 * The line number in the source file. Currently signed 28 bits, which
+		 * should be plenty.
+		 */
+		final static BitField LINE_NUMBER =
+			bitField(TOKEN_TYPE_AND_START_AND_LINE, 4, 28);
 
 		/**
 		 * The starting position in the source file. Currently signed 32 bits,
@@ -83,21 +93,7 @@ extends Descriptor
 		 * syntax.
 		 */
 		final static BitField START =
-			bitField(TOKEN_TYPE_AND_START, 32, 32);
-
-		/**
-		 * The line number in the source file. Currently signed 32 bits, which
-		 * should be plenty.
-		 */
-		final static BitField LINE_NUMBER =
-			bitField(LINE_AND_TOKEN_INDEX, 0, 32);
-
-		/**
-		 * The zero-based token number within the source file's tokenization.
-		 * Currently signed 32 bits, which should be plenty.
-		 */
-		final static BitField TOKEN_INDEX =
-			bitField(LINE_AND_TOKEN_INDEX, 32, 32);
+			bitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
 	}
 
 	/**
@@ -125,7 +121,14 @@ extends Descriptor
 
 		/** The {@linkplain A_String trailing whitespace}. */
 		@HideFieldInDebugger
-		TRAILING_WHITESPACE
+		TRAILING_WHITESPACE,
+
+		/**
+		 * A {@link RawPojoDescriptor raw pojo} holding the {@link LexingState}
+		 * after this token.  This field is cleared after the top-level
+		 * statement containing it has been parsed.
+		 */
+		NEXT_LEXING_STATE_POJO;
 	}
 
 	/**
@@ -224,6 +227,13 @@ extends Descriptor
 		return lowerCase;
 	}
 
+	@Override
+	void o_ClearNextLexingState (
+		final AvailObject object)
+	{
+		object.setSlot(NEXT_LEXING_STATE_POJO, NilDescriptor.nil());
+	}
+
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
@@ -283,6 +293,22 @@ extends Descriptor
 	}
 
 	@Override
+	LexingState o_NextLexingState (final AvailObject object)
+	{
+		final AvailObject pojo = object.slot(NEXT_LEXING_STATE_POJO);
+		return (LexingState) pojo.javaObjectNotNull();
+	}
+
+	@Override
+	void o_NextLexingState (
+		final AvailObject object,
+		final LexingState lexingState)
+	{
+		final AvailObject pojo = RawPojoDescriptor.identityWrap(lexingState);
+		object.setSlot(NEXT_LEXING_STATE_POJO, pojo);
+	}
+
+	@Override
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.TOKEN;
@@ -317,7 +343,7 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_TokenIndex (final AvailObject object)
 	{
-		return object.slot(TOKEN_INDEX);
+		return (int)object.slot(TOKEN_INDEX);
 	}
 
 	@Override @AvailMethod
@@ -347,7 +373,9 @@ extends Descriptor
 	}
 
 	/**
-	 * Create and initialize a new {@linkplain TokenDescriptor token}.
+	 * Create and initialize a new {@linkplain TokenDescriptor token}.  The
+	 * {@link ObjectSlots#NEXT_LEXING_STATE_POJO} is initially set to {@link
+	 * NilDescriptor#nil()}.
 	 *
 	 * @param string
 	 *        The token text.
@@ -359,9 +387,6 @@ extends Descriptor
 	 *        The token's starting character position in the file.
 	 * @param lineNumber
 	 *        The line number on which the token occurred.
-	 * @param tokenIndex
-	 *        The zero-based token number within the source file.  Zero for
-	 *        synthetic tokens.
 	 * @param tokenType
 	 *        The type of token to create.
 	 * @return The new token.
@@ -372,7 +397,6 @@ extends Descriptor
 		final A_String trailingWhitespace,
 		final int start,
 		final int lineNumber,
-		final int tokenIndex,
 		final TokenType tokenType)
 	{
 		final AvailObject instance = mutable.create();
@@ -382,8 +406,8 @@ extends Descriptor
 		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
-		instance.setSlot(TOKEN_INDEX, tokenIndex);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
+		instance.setSlot(NEXT_LEXING_STATE_POJO, NilDescriptor.nil());
 		return instance;
 	}
 
@@ -400,9 +424,8 @@ extends Descriptor
 			StringDescriptor.from("start of module"),
 			TupleDescriptor.empty(),
 			TupleDescriptor.empty(),
-			0,
 			1,
-			0,
+			1,
 			TokenType.END_OF_FILE);
 	}
 

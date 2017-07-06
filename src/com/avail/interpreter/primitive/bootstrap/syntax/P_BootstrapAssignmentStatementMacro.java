@@ -30,8 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.syntax;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
@@ -90,9 +92,9 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		}
 		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
 		final A_Map clientData = fiberGlobals.mapAt(
-			AtomDescriptor.clientDataGlobalKey());
+			CLIENT_DATA_GLOBAL_KEY.atom);
 		final A_Map scopeMap =
-			clientData.mapAt(AtomDescriptor.compilerScopeMapKey());
+			clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom);
 		final A_Module module = loader.module();
 		A_Phrase declaration = null;
 		if (scopeMap.hasKey(variableNameString))

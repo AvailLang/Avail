@@ -1,5 +1,5 @@
 /**
- * P_BootstrapVariableDeclarationMacro.java
+ * P_BootstrapConstantDeclarationMacro.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,32 +30,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
+
+import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_BootstrapVariableDeclarationMacro} primitive is used
- * for bootstrapping declaration of a {@link DeclarationKind#LOCAL_VARIABLE
- * local variable} (without an initializing expression).
+ * The {@code P_BootstrapConstantDeclarationMacro} primitive is used for
+ * bootstrapping declaration of a {@link ParseNodeKind#LOCAL_CONSTANT_NODE local
+ * constant declaration}.  Constant declarations that occur at the outermost
+ * scope are rewritten by the {@link AvailCompiler} as a {@link ParseNodeKind
+ * #MODULE_CONSTANT_NODE}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapVariableDeclarationMacro extends Primitive
+public final class P_BootstrapConstantDeclarationMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_BootstrapVariableDeclarationMacro().init(
+		new P_BootstrapConstantDeclarationMacro().init(
 			2, CannotFail, Bootstrap);
 
 	@Override
@@ -65,39 +69,41 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_Phrase variableNameLiteral = args.get(0);
-		final A_Phrase typeLiteral = args.get(1);
+		final A_Phrase constantNameLiteral = args.get(0);
+		final A_Phrase initializationExpression = args.get(1);
 
-		final A_Token nameToken = variableNameLiteral.token().literal();
+		final A_Token nameToken = constantNameLiteral.token().literal();
 		final A_String nameString = nameToken.string();
-		if (nameToken.tokenType() != TokenType.KEYWORD)
+		if (nameToken.tokenType() != KEYWORD)
 		{
 			throw new AvailRejectedParseException(
-				"new variable name to be alphanumeric, not %s",
+				"new constant name to be alphanumeric, not %s",
 				nameString);
 		}
-		final A_Type type = typeLiteral.token().literal();
-		if (type.isTop() || type.isBottom())
+		final A_Type initializationType =
+			initializationExpression.expressionType();
+		if (initializationType.isTop() || initializationType.isBottom())
 		{
 			throw new AvailRejectedParseException(
-				"variable's declared type to be something other than %s",
-				type);
+				"constant initialization expression to have a type other "
+				+ "than %s",
+				initializationType);
 		}
-		final A_Phrase variableDeclaration =
-			DeclarationNodeDescriptor.newVariable(
-				nameToken, type, typeLiteral, NilDescriptor.nil());
+		final A_Phrase constantDeclaration =
+			DeclarationNodeDescriptor.newConstant(
+				nameToken, initializationExpression);
 		final A_Phrase conflictingDeclaration =
-			FiberDescriptor.addDeclaration(variableDeclaration);
+			FiberDescriptor.addDeclaration(constantDeclaration);
 		if (conflictingDeclaration != null)
 		{
 			throw new AvailRejectedParseException(
-				"local variable %s to have a name that doesn't shadow an "
+				"local constant %s to have a name that doesn't shadow an "
 				+ "existing %s (from line %d)",
 				nameString,
 				conflictingDeclaration.declarationKind().nativeKindName(),
 				conflictingDeclaration.token().lineNumber());
 		}
-		return interpreter.primitiveSuccess(variableDeclaration);
+		return interpreter.primitiveSuccess(constantDeclaration);
 	}
 
 	@Override
@@ -105,10 +111,10 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Variable name phrase. */
+				/* Constant name token as a literal node */
 				LITERAL_NODE.create(TOKEN.o()),
-				/* Variable type's literal phrase. */
-				LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta())),
-			DECLARATION_NODE.mostGeneralType());
+				/* Initialization expression */
+				EXPRESSION_NODE.create(ANY.o())),
+			LOCAL_CONSTANT_NODE.mostGeneralType());
 	}
 }

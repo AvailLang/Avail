@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.methods;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -39,7 +40,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
@@ -108,13 +109,13 @@ extends Primitive
 				newAtom, method, new MessageSplitter(newString));
 			loader.recordEffect(
 				new LoadingEffectToRunPrimitive(
-					SpecialAtom.ALIAS.bundle, newString, oldAtom));
+					SpecialMethodAtom.ALIAS.bundle, newString, oldAtom));
 		}
 		catch (final MalformedMessageException e)
 		{
 			return interpreter.primitiveFailure(e.errorCode());
 		}
-		newAtom.setAtomProperty(AtomDescriptor.messageBundleKey(), newBundle);
+		newAtom.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, newBundle);
 		final A_BundleTree root = loader.rootBundleTree();
 		loader.module().lock(new Continuation0()
 		{

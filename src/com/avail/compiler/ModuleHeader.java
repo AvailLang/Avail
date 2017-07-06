@@ -32,6 +32,7 @@
 
 package com.avail.compiler;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -247,7 +248,6 @@ public class ModuleHeader
 				TupleDescriptor.empty(),
 				0,
 				0,
-				-1,
 				LITERAL,
 				pragmaString));
 		}
@@ -411,7 +411,7 @@ public class ModuleHeader
 						+ "\"";
 				}
 				newAtom.setAtomProperty(
-					AtomDescriptor.messageBundleKey(), newBundle);
+					MESSAGE_BUNDLE_KEY.atom, newBundle);
 				atomsToImport = atomsToImport.setWithElementCanDestroy(
 					newAtom, true);
 			}

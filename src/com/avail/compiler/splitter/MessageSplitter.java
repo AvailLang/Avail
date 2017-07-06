@@ -636,12 +636,12 @@ public final class MessageSplitter
 		int position = 1;
 		while (position <= messageName.tupleSize())
 		{
-			final char ch = (char) messageName.tupleAt(position).codePoint();
+			final char ch = (char) messageName.tupleCodePointAt(position);
 			if (ch == ' ')
 			{
 				if (messagePartsList.size() == 0
 					|| isCharacterAnUnderscoreOrSpaceOrOperator(
-						(char) messageName.tupleAt(position - 1).codePoint()))
+						(char) messageName.tupleCodePointAt(position - 1)))
 				{
 					// Problem is before the space.  Stuff the rest of the input
 					// in as a final token to make diagnostics look right.
@@ -658,11 +658,11 @@ public final class MessageSplitter
 				position++;
 				if (position > messageName.tupleSize()
 						|| isCharacterAnUnderscoreOrSpaceOrOperator(
-							(char) messageName.tupleAt(position).codePoint()))
+							(char) messageName.tupleCodePointAt(position)))
 				{
-					if ((char) messageName.tupleAt(position).codePoint() != '`'
+					if ((char) messageName.tupleCodePointAt(position) != '`'
 						|| position == messageName.tupleSize()
-						|| (char) messageName.tupleAt(position + 1).codePoint()
+						|| (char) messageName.tupleCodePointAt(position + 1)
 							!= '_')
 					{
 						// Problem is after the space.
@@ -686,7 +686,7 @@ public final class MessageSplitter
 				// identifiers containing (escaped) underscores can be treated
 				// as a single token. Otherwise, they are unparseable.
 				if (position == messageName.tupleSize()
-					|| messageName.tupleAt(position + 1).codePoint() != '_')
+					|| messageName.tupleCodePointAt(position + 1) != '_')
 				{
 					// We didn't find an underscore, so we need to deal with the
 					// backquote in the usual way.
@@ -705,15 +705,15 @@ public final class MessageSplitter
 					while (position <= messageName.tupleSize())
 					{
 						if (!isCharacterAnUnderscoreOrSpaceOrOperator(
-							(char) messageName.tupleAt(position).codePoint()))
+							(char) messageName.tupleCodePointAt(position)))
 						{
 							sawRegular = true;
 							position++;
 						}
 						else if (
-							messageName.tupleAt(position).codePoint() == '`'
+							messageName.tupleCodePointAt(position) == '`'
 							&& position + 1 <= messageName.tupleSize()
-							&& messageName.tupleAt(position + 1).codePoint()
+							&& messageName.tupleCodePointAt(position + 1)
 								== '_')
 						{
 							position += 2;
@@ -733,7 +733,7 @@ public final class MessageSplitter
 							i <= limit;
 							i++)
 						{
-							final int cp = messageName.tupleAt(i).codePoint();
+							final int cp = messageName.tupleCodePointAt(i);
 							if (cp != '`')
 							{
 								builder.appendCodePoint(cp);
@@ -779,13 +779,13 @@ public final class MessageSplitter
 				while (position <= messageName.tupleSize())
 				{
 					if (!isCharacterAnUnderscoreOrSpaceOrOperator(
-						(char) messageName.tupleAt(position).codePoint()))
+						(char) messageName.tupleCodePointAt(position)))
 					{
 						position++;
 					}
-					else if (messageName.tupleAt(position).codePoint() == '`'
+					else if (messageName.tupleCodePointAt(position) == '`'
 						&& position + 1 <= messageName.tupleSize()
-						&& messageName.tupleAt(position + 1).codePoint() == '_')
+						&& messageName.tupleCodePointAt(position + 1) == '_')
 					{
 						sawIdentifierUnderscore = true;
 						position += 2;
@@ -800,7 +800,7 @@ public final class MessageSplitter
 					final StringBuilder builder = new StringBuilder();
 					for (int i = start, limit = position - 1; i <= limit; i++)
 					{
-						final int cp = messageName.tupleAt(i).codePoint();
+						final int cp = messageName.tupleCodePointAt(i);
 						if (cp != '`')
 						{
 							builder.appendCodePoint(cp);
@@ -893,7 +893,7 @@ public final class MessageSplitter
 					// Just ate the underscore, so immediately after is where
 					// we expect an optional circled number to indicate argument
 					// reordering.
-					final int codePoint = nextToken.tupleAt(1).codePoint();
+					final int codePoint = nextToken.tupleCodePointAt(1);
 					if (circledNumbersMap.containsKey(codePoint))
 					{
 						// In theory we could allow messages to go past ㊿ by
@@ -1021,7 +1021,7 @@ public final class MessageSplitter
 					"An up-arrow (↑) may only follow an argument");
 			}
 			else if (circledNumbersMap.containsKey(
-				token.tupleAt(1).codePoint()))
+				token.tupleCodePointAt(1)))
 			{
 				throwMalformedMessageException(
 					E_INCONSISTENT_ARGUMENT_REORDERING,
@@ -1055,7 +1055,7 @@ public final class MessageSplitter
 				if (!atEnd())
 				{
 					token = currentMessagePart();
-					final int codePoint = token.tupleAt(1).codePoint();
+					final int codePoint = token.tupleCodePointAt(1);
 					if (circledNumbersMap.containsKey(codePoint))
 					{
 						// In theory we could allow messages to go past ㊿ by
@@ -1234,7 +1234,7 @@ public final class MessageSplitter
 					token = currentMessagePart();
 					if (token.tupleSize() != 1
 						|| !isCharacterAnUnderscoreOrSpaceOrOperator(
-							(char)token.tupleAt(1).codePoint()))
+							(char)token.tupleCodePointAt(1)))
 					{
 						// Expected operator character after backquote.
 						throwMalformedMessageException(

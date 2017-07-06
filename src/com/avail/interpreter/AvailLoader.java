@@ -32,6 +32,7 @@
 
 package com.avail.interpreter;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.AvailLoader.Phase.*;
@@ -51,7 +52,8 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.*;
@@ -188,7 +190,8 @@ public final class AvailLoader
 		 */
 		public void getLexersForCodePointThen (
 			final int codePoint,
-			final Continuation1<A_Tuple> continuation)
+			final Continuation1<A_Tuple> continuation,
+			final Continuation1<Map<A_Lexer, Throwable>> onFailure)
 		{
 			if ((codePoint & ~255) == 0)
 			{
@@ -207,12 +210,22 @@ public final class AvailLoader
 				// continuation with it.
 				selectLexersPassingFilterThen(
 					codePoint,
-					new Continuation1<A_Set>()
+					new Continuation2<A_Set, Map<A_Lexer, Throwable>>()
 					{
 						@Override
 						public void value (
-							@Nullable final A_Set applicableLexers)
+							@Nullable final A_Set applicableLexers,
+							@Nullable final Map<A_Lexer, Throwable> failures)
 						{
+							if (!failures.isEmpty())
+							{
+								onFailure.value(failures);
+								// Don't cache the successful lexer filter
+								// results, because we shouldn't continue and
+								// neither should lexing of any codePoint
+								// equal to the one that caused this trouble.
+								return;
+							}
 							A_Tuple tuple;
 							synchronized (canonicalLexerTuples)
 							{
@@ -259,11 +272,22 @@ public final class AvailLoader
 				// continuation with it.
 				selectLexersPassingFilterThen(
 					codePoint,
-					new Continuation1<A_Set>()
+					new Continuation2<A_Set, Map<A_Lexer, Throwable>>()
 					{
 						@Override
-						public void value (@Nullable final A_Set applicableLexers)
+						public void value (
+							@Nullable final A_Set applicableLexers,
+							@Nullable final Map<A_Lexer, Throwable> failures)
 						{
+							if (!failures.isEmpty())
+							{
+								onFailure.value(failures);
+								// Don't cache the successful lexer filter
+								// results, because we shouldn't continue and
+								// neither should lexing of any codePoint
+								// equal to the one that caused this trouble.
+								return;
+							}
 							A_Tuple tuple;
 							synchronized (canonicalLexerTuples)
 							{
@@ -308,19 +332,29 @@ public final class AvailLoader
 		 * @param codePoint
 		 *        The full Unicode code point in the range 0..1114111.
 		 * @param continuation
-		 *        What to invoke with the {@link A_Tuple} of {@link A_Lexer}s.
+		 *        What to invoke with the {@link A_Tuple tuple} of {@link
+		 *        A_Lexer lexers} and a (normally empty) map from lexer to
+		 *        throwable, indicating lexer filter invocations that raised
+		 *        exceptions.
 		 */
 		private void selectLexersPassingFilterThen (
 			final int codePoint,
-			final Continuation1<A_Set> continueWithSet)
+			final Continuation2<A_Set, Map<A_Lexer, Throwable>>
+				continuation)
 		{
 			final Mutable<Integer> countdown =
 				new Mutable<>(allVisibleLexers.size());
 			if (countdown.value == 0)
 			{
-				continueWithSet.value(SetDescriptor.empty());
+				continuation.value(
+					SetDescriptor.empty(),
+					Collections.<A_Lexer, Throwable>emptyMap());
 				return;
 			}
+			// Initially use the immutable emptyMap for the failureMap, but
+			// replace it if/when the first error happens.
+			final Mutable<Map<A_Lexer, Throwable>> failureMap =
+				new Mutable<>(Collections.<A_Lexer, Throwable>emptyMap());
 			final List<A_Number> argsList = Collections.singletonList(
 				IntegerDescriptor.fromInt(codePoint));
 			final Object joinLock = new Object();
@@ -350,24 +384,25 @@ public final class AvailLoader
 							@Nullable final AvailObject boolValue)
 						{
 							assert boolValue.isBoolean();
-							if (boolValue.extractBoolean())
+							final boolean countdownHitZero;
+							synchronized (joinLock)
 							{
-								final boolean countdownHitZero;
-								synchronized (joinLock)
+								if (boolValue.extractBoolean())
 								{
 									applicableLexers.add(lexer);
-									countdown.value--;
-									assert countdown.value >= 0;
-									countdownHitZero = countdown.value == 0;
 								}
-								if (countdownHitZero)
-								{
-									// This was the fiber reporting the last
-									// result.
-									continueWithSet.value(
-										SetDescriptor.fromCollection(
-											applicableLexers));
-								}
+								countdown.value--;
+								assert countdown.value >= 0;
+								countdownHitZero = countdown.value == 0;
+							}
+							if (countdownHitZero)
+							{
+								// This was the fiber reporting the last
+								// result.
+								continuation.value(
+									SetDescriptor.fromCollection(
+										applicableLexers),
+									failureMap.value);
 							}
 						}
 					};
@@ -377,27 +412,27 @@ public final class AvailLoader
 						@Override
 						public void value (@Nullable final Throwable throwable)
 						{
-							// TODO MvG - We should pass a failContinuation to
-							// make this work sensibly.
-//						assert boolValue.isBoolean();
-//						if (boolValue.extractBoolean())
-//						{
-//							final boolean countdownHitZero;
-//							synchronized (joinLock)
-//							{
-//								applicableLexers.add(lexer);
-//								countdown.value--;
-//								assert countdown.value >= 0;
-//								countdownHitZero = countdown.value == 0;
-//							}
-//							if (countdownHitZero)
-//							{
-//								// This was the fiber reporting the last result.
-//								continueWithSet.value(
-//									SetDescriptor.fromCollection(
-//										applicableLexers));
-//							}
-//						}
+							final boolean countdownHitZero;
+							synchronized (joinLock)
+							{
+								if (failureMap.value.isEmpty())
+								{
+									failureMap.value = new HashMap<>();
+								}
+								failureMap.value.put(lexer, throwable);
+								countdown.value--;
+								assert countdown.value >= 0;
+								countdownHitZero = countdown.value == 0;
+							}
+							if (countdownHitZero)
+							{
+								// This was the fiber reporting the last
+								// result (a fiber failure).
+								continuation.value(
+									SetDescriptor.fromCollection(
+										applicableLexers),
+									failureMap.value);
+							}
 						}
 					};
 				fiber.textInterface(loader.textInterface);
@@ -1109,7 +1144,7 @@ public final class AvailLoader
 		runtime.addSemanticRestriction(restriction);
 		recordEffect(
 			new LoadingEffectToRunPrimitive(
-				SpecialAtom.SEMANTIC_RESTRICTION.bundle,
+				SpecialMethodAtom.SEMANTIC_RESTRICTION.bundle,
 				method.chooseBundle().message(),
 				restriction.function()));
 		final A_Module theModule = module;
@@ -1154,7 +1189,7 @@ public final class AvailLoader
 		module.addSeal(methodName, seal);
 		recordEffect(
 			new LoadingEffectToRunPrimitive(
-				SpecialAtom.SEAL.bundle, methodName, seal));
+				SpecialMethodAtom.SEAL.bundle, methodName, seal));
 	}
 
 	/**
@@ -1253,7 +1288,7 @@ public final class AvailLoader
 		}
 		recordEffect(
 			new LoadingEffectToRunPrimitive(
-				SpecialAtom.GRAMMATICAL_RESTRICTION.bundle,
+				SpecialMethodAtom.GRAMMATICAL_RESTRICTION.bundle,
 				parentAtoms,
 				illegalArgMsgs));
 	}
@@ -1380,7 +1415,7 @@ public final class AvailLoader
 	 * {@linkplain AtomDescriptor true name} associated with the string,
 	 * creating the true name if necessary. A local true name always hides other
 	 * true names.  If #isExplicitSubclassAtom is true and we're creating a new
-	 * atom, add the {@link AtomDescriptor#explicitSubclassingKey()} property.
+	 * atom, add the {@link SpecialAtom#EXPLICIT_SUBCLASSING_KEY} property.
 	 *
 	 * @param stringName
 	 *        An Avail {@linkplain TupleDescriptor string}.
@@ -1413,8 +1448,8 @@ public final class AvailLoader
 						if (isExplicitSubclassAtom)
 						{
 							trueName.setAtomProperty(
-								AtomDescriptor.explicitSubclassingKey(),
-								AtomDescriptor.explicitSubclassingKey());
+								EXPLICIT_SUBCLASSING_KEY.atom,
+								EXPLICIT_SUBCLASSING_KEY.atom);
 						}
 						trueName.makeImmutable();
 						module.addPrivateName(trueName);

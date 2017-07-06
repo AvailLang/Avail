@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.sockets;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -72,7 +73,7 @@ extends Primitive
 		final AvailObject addressTuple = args.get(1);
 		final AvailObject port = args.get(2);
 		final AvailObject pojo =
-			handle.getAtomProperty(AtomDescriptor.socketKey());
+			handle.getAtomProperty(SOCKET_KEY.atom);
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(

@@ -33,7 +33,6 @@
 package com.avail.compiler;
 
 import org.jetbrains.annotations.Nullable;
-import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.descriptor.*;
 
 /**
@@ -104,7 +103,7 @@ final class CompilerSolution implements AbstractSolution
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append("Solution(@");
-		builder.append(endState.position);
+		builder.append(endState.lexingState.position);
 		builder.append(": ");
 		builder.append(endState.clientDataMap);
 		builder.append(") = ");

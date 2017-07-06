@@ -59,21 +59,26 @@ extends TokenDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * {@link BitField}s for the token type code and the starting byte
-		 * position.
+		 * {@link BitField}s for the token type code, the starting byte
+		 * position, and the line number.
 		 */
-		TOKEN_TYPE_AND_START,
-
-		/** {@link BitField}s for the line number and token index. */
-		LINE_AND_TOKEN_INDEX;
+		TOKEN_TYPE_AND_START_AND_LINE;
 
 		/**
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
-		 * indicates what basic kind of token this is.
+		 * indicates what basic kind of token this is.  Currently four bits are
+		 * reserved for this purpose.
 		 */
-		@EnumField(describedBy=TokenType.class)
+		@EnumField(describedBy = TokenType.class)
 		final static BitField TOKEN_TYPE_CODE =
-			bitField(TOKEN_TYPE_AND_START, 0, 32);
+			bitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4);
+
+		/**
+		 * The line number in the source file. Currently signed 28 bits, which
+		 * should be plenty.
+		 */
+		final static BitField LINE_NUMBER =
+			bitField(TOKEN_TYPE_AND_START_AND_LINE, 4, 28);
 
 		/**
 		 * The starting position in the source file. Currently signed 32 bits,
@@ -82,36 +87,19 @@ extends TokenDescriptor
 		 * syntax.
 		 */
 		final static BitField START =
-			bitField(TOKEN_TYPE_AND_START, 32, 32);
-
-		/**
-		 * The line number in the source file. Currently signed 32 bits, which
-		 * should be plenty.
-		 */
-		final static BitField LINE_NUMBER =
-			bitField(LINE_AND_TOKEN_INDEX, 0, 32);
-
-		/**
-		 * The zero-based token number within the source file's tokenization.
-		 * Currently signed 32 bits, which should be plenty.
-		 */
-		final static BitField TOKEN_INDEX =
-			bitField(LINE_AND_TOKEN_INDEX, 32, 32);
+			bitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
 
 		static
 		{
-			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_AND_START.ordinal()
-				== TOKEN_TYPE_AND_START.ordinal();
-			assert TokenDescriptor.IntegerSlots.LINE_AND_TOKEN_INDEX.ordinal()
-				== LINE_AND_TOKEN_INDEX.ordinal();
+			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_AND_START_AND_LINE
+				.ordinal()
+				== TOKEN_TYPE_AND_START_AND_LINE.ordinal();
 			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.isSamePlaceAs(
 				TOKEN_TYPE_CODE);
 			assert TokenDescriptor.IntegerSlots.START.isSamePlaceAs(
 				START);
 			assert TokenDescriptor.IntegerSlots.LINE_NUMBER.isSamePlaceAs(
 				LINE_NUMBER);
-			assert TokenDescriptor.IntegerSlots.TOKEN_INDEX.isSamePlaceAs(
-				TOKEN_INDEX);
 		}
 	}
 
@@ -176,18 +164,14 @@ extends TokenDescriptor
 	 *        The token's starting character position in the file.
 	 * @param lineNumber
 	 *        The line number on which the token occurred.
-	 * @param tokenIndex
-	 *        The zero-based token number within the source file.  -1 for
-	 *        synthetic tokens.
 	 * @return The new comment token.
 	 */
-	public static AvailObject create (
+	public static A_Token create (
 		final A_String string,
 		final A_String leadingWhitespace,
 		final A_String trailingWhitespace,
 		final int start,
-		final int lineNumber,
-		final int tokenIndex)
+		final int lineNumber)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STRING, string);
@@ -196,7 +180,6 @@ extends TokenDescriptor
 		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
-		instance.setSlot(TOKEN_INDEX, tokenIndex);
 		instance.setSlot(TOKEN_TYPE_CODE, TokenType.COMMENT.ordinal());
 		return instance;
 	}

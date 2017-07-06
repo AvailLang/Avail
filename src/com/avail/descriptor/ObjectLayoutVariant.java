@@ -32,8 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.utility.LRUCache;
-
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -41,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 
 /**
  * The {@link ObjectLayoutVariant}s capture field layouts for objects and object
@@ -124,8 +124,7 @@ public class ObjectLayoutVariant
 	private ObjectLayoutVariant (final A_Set allFields, final int variantId)
 	{
 		this.allFields = allFields.makeShared();
-		final A_Atom explicitSubclassingKey =
-			AtomDescriptor.explicitSubclassingKey();
+		final A_Atom explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom;
 		// Alphabetize the fields to make debugging nice.  Note that field names
 		// don't have to be lexicographically unique.
 		final List<A_Atom> sortedFields =

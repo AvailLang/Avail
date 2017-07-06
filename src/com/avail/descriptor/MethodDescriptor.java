@@ -49,6 +49,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
+import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
@@ -1003,7 +1004,7 @@ extends Descriptor
 	// An enumeration of special atoms that the VM is aware of which name
 	// methods for invoking specific primitives.  Multiple primitives may be
 	// provided to make the method multimorphic.
-	public enum SpecialAtom
+	public enum SpecialMethodAtom
 	{
 		/** The special atom for failing during bootstrap.  Must be first. */
 		CRASH(
@@ -1125,7 +1126,24 @@ extends Descriptor
 		/** The special atom for resuming a continuation. */
 		RESUME_CONTINUATION(
 			"vm resume_",
-			P_ResumeContinuation.instance);
+			P_ResumeContinuation.instance),
+
+		MODULE_HEADER_MACRO(
+			"Module…$"
+				+ "«Versions«…$‡,»»?"
+				+ "«"
+					+ "«Extends|Uses»#"
+					+ "«"
+						+ "…$"
+						+ "«(«…$‡,»)»?"
+						+ "«=(«-?…$«→…$»?‡,»,⁇`…?)»?"
+						+ "‡,"
+					+ "»"
+				+ "»"
+				+ "«Names«…$‡,»»?"
+				+ "«Pragma«…$‡,»»?"
+				+ "Body",
+			P_ModuleHeaderPseudoMacro.instance);
 
 		/** The special atom. */
 		public final A_Atom atom;
@@ -1133,7 +1151,7 @@ extends Descriptor
 		/** The special atom's message bundle. */
 		public final A_Bundle bundle;
 
-		SpecialAtom (final String name, final Primitive... primitives)
+		SpecialMethodAtom (final String name, final Primitive... primitives)
 		{
 			this.atom = createSpecialMethodAtom(name, primitives);
 			this.bundle = atom.bundleOrNil();

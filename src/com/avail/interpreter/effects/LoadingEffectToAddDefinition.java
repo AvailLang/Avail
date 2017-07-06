@@ -36,7 +36,7 @@ import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Method;
 import com.avail.descriptor.DefinitionDescriptor;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -80,7 +80,7 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 			// Call the abstract definition loading method.
 			writer.write(
 				L1Operation.L1_doCall,
-				writer.addLiteral(SpecialAtom.ABSTRACT_DEFINER.bundle),
+				writer.addLiteral(SpecialMethodAtom.ABSTRACT_DEFINER.bundle),
 				writer.addLiteral(Types.TOP.o()));
 			return;
 		}
@@ -97,7 +97,7 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 			// Call the forward definition loading method.
 			writer.write(
 				L1Operation.L1_doCall,
-				writer.addLiteral(SpecialAtom.FORWARD_DEFINER.bundle),
+				writer.addLiteral(SpecialMethodAtom.FORWARD_DEFINER.bundle),
 				writer.addLiteral(Types.TOP.o()));
 			return;
 		}
@@ -119,7 +119,7 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 			// Call the macro definition method.
 			writer.write(
 				L1Operation.L1_doCall,
-				writer.addLiteral(SpecialAtom.MACRO_DEFINER.bundle),
+				writer.addLiteral(SpecialMethodAtom.MACRO_DEFINER.bundle),
 				writer.addLiteral(Types.TOP.o()));
 			return;
 		}
@@ -135,7 +135,7 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 		// Call the definition loading method.
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.METHOD_DEFINER.bundle),
+			writer.addLiteral(SpecialMethodAtom.METHOD_DEFINER.bundle),
 			writer.addLiteral(Types.TOP.o()));
 	}
 }

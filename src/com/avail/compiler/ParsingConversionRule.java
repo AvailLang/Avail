@@ -33,8 +33,9 @@
 package com.avail.compiler;
 
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
+
+import com.avail.compiler.scanning.LexingState;
 import org.jetbrains.annotations.Nullable;
-import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.descriptor.*;
 import com.avail.utility.evaluation.*;
 
@@ -54,11 +55,11 @@ public enum ParsingConversionRule
 	{
 		@Override
 		public void convert (
+			final CompilationContext compilationContext,
+			final LexingState lexingState,
 			final A_Phrase input,
-			final ParserState currentParserState,
-			final ParserState initialParserState,
 			final Continuation1<A_Phrase> continuation,
-			final Continuation1<Throwable> onFailure)
+			final Continuation1<Throwable> onProblem)
 		{
 			continuation.value(input);
 		}
@@ -74,24 +75,22 @@ public enum ParsingConversionRule
 	{
 		@Override
 		public void convert (
+			final CompilationContext compilationContext,
+			final LexingState lexingState,
 			final A_Phrase input,
-			final ParserState currentParserState,
-			final ParserState initialParserState,
 			final Continuation1<A_Phrase> continuation,
-			final Continuation1<Throwable> onFailure)
+			final Continuation1<Throwable> onProblem)
 		{
 			final A_Tuple expressions = input.expressionsTuple();
 			final A_Number count = IntegerDescriptor.fromInt(
 				expressions.tupleSize());
-			final A_Token innerToken = currentParserState.peekToken();
 			final AvailObject token =
 				LiteralTokenDescriptor.create(
 					StringDescriptor.from(count.toString()),
-					innerToken.leadingWhitespace(),
-					innerToken.trailingWhitespace(),
-					innerToken.start(),
-					innerToken.lineNumber(),
-					innerToken.tokenIndex(),
+					TupleDescriptor.empty(),
+					TupleDescriptor.empty(),
+					lexingState.position,
+					lexingState.lineNumber,
 					LITERAL,
 					count);
 			continuation.value(LiteralNodeDescriptor.fromToken(token));
@@ -107,15 +106,16 @@ public enum ParsingConversionRule
 	{
 		@Override
 		public void convert (
+			final CompilationContext compilationContext,
+			final LexingState lexingState,
 			final A_Phrase input,
-			final ParserState currentParserState,
-			final ParserState initialParserState,
 			final Continuation1<A_Phrase> continuation,
 			final Continuation1<Throwable> onProblem)
 		{
 			assert input.expressionType().isSubtypeOf(
 				InstanceMetaDescriptor.topMeta());
-			currentParserState.evaluatePhraseThen(
+			compilationContext.evaluatePhraseAtThen(
+				lexingState,
 				input,
 				value -> continuation.value(
 					MacroSubstitutionNodeDescriptor
@@ -143,23 +143,24 @@ public enum ParsingConversionRule
 	 * Convert an input {@link AvailObject} into an output AvailObject, using
 	 * the specific conversion rule's implementation.
 	 *
+	 * @param compilationContext
+	 *        The {@link CompilationContext} to use during conversion, if
+	 *        needed.
+	 * @param lexingState
+	 *        The {@link LexingState} after the phrase.
 	 * @param input
-	 *            The parse node to be converted.
-	 * @param currentParserState
-	 *            The parser state at which the conversion takes place.
-	 * @param startingParserState
-	 *            The parser state at which the provided parse node started.
+	 *        The parse node to be converted.
 	 * @param continuation
-	 *            What to do with the replacement parse node.
-	 * @param onFailure
-	 *            What to do if a problem happens during conversion.
+	 *        What to do with the replacement parse node.
+	 * @param onProblem
+	 *        What to do if a problem happens during conversion.
 	 */
 	public abstract void convert (
+		final CompilationContext compilationContext,
+		final LexingState lexingState,
 		final A_Phrase input,
-		final ParserState currentParserState,
-		final ParserState startingParserState,
 		final Continuation1<A_Phrase> continuation,
-		final Continuation1<Throwable> onFailure);
+		final Continuation1<Throwable> onProblem);
 
 	/**
 	 * Construct a new {@link ParsingConversionRule}.

@@ -34,8 +34,8 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.AtomDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AtomDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.io.RandomAccessFile;
 import java.nio.channels.*;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -45,10 +45,11 @@ import com.avail.AvailRuntime.FileHandle;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.compiler.AvailCompiler.ParserState;
+import com.avail.compiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.*;
+import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
 
@@ -323,11 +324,11 @@ extends Descriptor
 	@AvailMethod @ThreadSafe
 	final SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
-		if (!object.getAtomProperty(heritableKey).equalsNil())
+		if (!object.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
 		{
 			return SerializerOperation.HERITABLE_ATOM;
 		}
-		if (!object.getAtomProperty(explicitSubclassingKey).equalsNil())
+		if (!object.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).equalsNil())
 		{
 			return SerializerOperation.EXPLICIT_SUBCLASS_ATOM;
 		}
@@ -367,7 +368,7 @@ extends Descriptor
 	A_Bundle o_BundleOrCreate (final AvailObject object)
 		throws MalformedMessageException
 	{
-		A_Bundle bundle = object.getAtomProperty(messageBundleKey);
+		A_Bundle bundle = object.getAtomProperty(MESSAGE_BUNDLE_KEY.atom);
 		if (bundle.equalsNil())
 		{
 			final A_String name = object.slot(NAME);
@@ -376,7 +377,7 @@ extends Descriptor
 				splitter.numberOfArguments());
 			bundle =
 				MessageBundleDescriptor.newBundle(object, method, splitter);
-			object.setAtomProperty(messageBundleKey, bundle);
+			object.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, bundle);
 		}
 		return bundle;
 	}
@@ -384,7 +385,7 @@ extends Descriptor
 	@Override
 	A_Bundle o_BundleOrNil (final AvailObject object)
 	{
-		return object.getAtomProperty(messageBundleKey);
+		return object.getAtomProperty(MESSAGE_BUNDLE_KEY.atom);
 	}
 
 	@Override
@@ -536,18 +537,6 @@ extends Descriptor
 	}
 
 	/**
-	 * The atom representing the Avail concept "true".
-	 */
-	private static final A_Atom trueObject =
-		createSpecialBooleanAtom("true", true);
-
-	/**
-	 * The atom representing the Avail concept "false".
-	 */
-	private static final A_Atom falseObject =
-		createSpecialBooleanAtom("false", false);
-
-	/**
 	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are
 	 * exactly two Avail booleans, which are just ordinary atoms ({@link
 	 * #trueObject} and {@link #falseObject}) which are known by the Avail
@@ -558,98 +547,8 @@ extends Descriptor
 	 */
 	public static A_Atom objectFromBoolean (final boolean aBoolean)
 	{
-		return aBoolean ? trueObject : falseObject;
+		return aBoolean ? TRUE.atom : FALSE.atom;
 	}
-
-	/**
-	 * The atom used as a property key under which to store information about
-	 * object type names.
-	 */
-	private static final A_Atom objectTypeNamePropertyKey =
-		createSpecialAtom("object names");
-
-	/**
-	 * The atom used as a key in a {@link ParserState}'s {@linkplain
-	 * ParserState#clientDataMap} to store the current map of declarations that
-	 * are in scope.
-	 */
-	private static final A_Atom compilerScopeMapKey =
-		createSpecialAtom("Compilation scope");
-
-	/**
-	 * The atom used as a key in a {@link ParserState}'s {@linkplain
-	 * ParserState#clientDataMap} to store a tuple of maps to restore as the
-	 * blocks that are being parsed are completed.
-	 */
-	private static final A_Atom compilerScopeStackKey =
-		createSpecialAtom("Compilation scope stack");
-
-	/**
-	 * The atom used as a key in a {@link ParserState}'s {@linkplain
-	 * ParserState#clientDataMap} to accumulate the tuple of tokens that have
-	 * been parsed so far for the current method/macro site.
-	 */
-	private static final A_Atom allTokensKey =
-		createSpecialAtom("All tokens");
-
-	/**
-	 * The atom used to identify the entry in a {@linkplain ParserState}'s
-	 * {@linkplain ParserState#clientDataMap client data map} containing the
-	 * bundle of the macro send for which the current fiber is computing a
-	 * replacement phrase.
-	 */
-	private static final A_Atom macroBundleKey =
-		createSpecialAtom("Macro bundle");
-
-	/**
-	 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s global
-	 * map to extract the current {@link ParserState}'s {@linkplain
-	 * ParserState#clientDataMap}.
-	 */
-	private static final A_Atom clientDataGlobalKey =
-		createSpecialAtom("Compiler client data");
-
-	/**
-	 * The atom used as a property key under which to store an {@link
-	 * FileHandle}.
-	 */
-	private static final A_Atom fileKey =
-		createSpecialAtom("file key");
-
-	/**
-	 * The atom used as a property key under which to store an {@link
-	 * AsynchronousServerSocketChannel asynchronous server socket channel}.
-	 */
-	private static final A_Atom serverSocketKey =
-		createSpecialAtom("server socket key");
-
-	/**
-	 * The atom used as a property key under which to store an {@link
-	 * AsynchronousSocketChannel asynchronous socket channel}.
-	 */
-	private static final A_Atom socketKey =
-		createSpecialAtom("socket key");
-
-	/**
-	 * The property key that indicates that a {@linkplain FiberDescriptor fiber}
-	 * global is inheritable.
-	 */
-	private static final A_Atom heritableKey =
-		createSpecialAtom("heritability");
-
-	/**
-	 * The property key from which to extract an atom's {@linkplain
-	 * MessageBundleDescriptor message bundle}, if any.
-	 */
-	private static final A_Atom messageBundleKey =
-		createSpecialAtom("message bundle");
-
-	/**
-	 * The property key whose presence indicates an atom is for explicit
-	 * subclassing of object types.
-	 */
-	private static final A_Atom explicitSubclassingKey =
-		createSpecialAtom("explicit subclassing");
 
 	/**
 	 * Answer the atom representing the Avail concept "true".
@@ -658,7 +557,7 @@ extends Descriptor
 	 */
 	public static A_Atom trueObject ()
 	{
-		return trueObject;
+		return TRUE.atom;
 	}
 
 	/**
@@ -668,161 +567,131 @@ extends Descriptor
 	 */
 	public static A_Atom falseObject ()
 	{
-		return falseObject;
+		return FALSE.atom;
 	}
 
-	/**
-	 * Answer the atom used as a property key to name {@linkplain
-	 * ObjectTypeDescriptor object types}.  This property occurs within each
-	 * atom which occurs as a field type key of the object type.  The value is a
-	 * map from object type to the set of names of that exact type (typically
-	 * just one).  The naming information is set up via {@link
-	 * ObjectTypeDescriptor#setNameForType(A_Type, A_String, boolean)}, and
-	 * removed by {@link ObjectTypeDescriptor#removeNameFromType(A_String,
-	 * A_Type)}.
-	 *
-	 * @return An atom that's special because it's known by the virtual machine.
-	 */
-	public static A_Atom objectTypeNamePropertyKey ()
-	{
-		return objectTypeNamePropertyKey;
-	}
 
-	/**
-	 * Answer the atom used to identify the entry in a {@linkplain
-	 * ParserState}'s {@linkplain ParserState#clientDataMap client data map}
-	 * which holds the current map of declarations that are currently in scope.
-	 *
-	 * @return An atom to use as a key in a ParserState's client data map.
-	 */
-	public static A_Atom compilerScopeMapKey ()
+	// An enumeration of special atoms that the VM is aware of which name
+	// methods for invoking specific primitives.  Multiple primitives may be
+	// provided to make the method multimorphic.
+	public enum SpecialAtom
 	{
-		return compilerScopeMapKey;
-	}
+		/**
+		 * The atom representing the Avail concept "true".
+		 */
+		TRUE(createSpecialBooleanAtom("true", true)),
 
-	/**
-	 * Answer the atom used to identify the entry in a {@linkplain
-	 * ParserState}'s {@linkplain ParserState#clientDataMap client data map}
-	 * which holds the tuple of prior scopes.  This should get appended when
-	 * starting work on a block, and popped when the block is completed.
-	 *
-	 * @return An atom to use as a key in a ParserState's client data map.
-	 */
-	public static A_Atom compilerScopeStackKey ()
-	{
-		return compilerScopeStackKey;
-	}
+		/**
+		 * The atom representing the Avail concept "false".
+		 */
+		FALSE(createSpecialBooleanAtom("false", false)),
 
-	/**
-	 * Answer the atom used to identify the entry in a {@linkplain
-	 * ParserState}'s {@linkplain ParserState#clientDataMap client data map}
-	 * which holds the current tuple of encountered tokens.
-	 *
-	 * @return The special atom used as a key into the client data map to get
-	 *         tuple of tokens that have matched so far with the current
-	 *         method/macro site's tokens (as determined by the {@link
-	 *         MessageSplitter}).
-	 */
-	public static A_Atom allTokensKey ()
-	{
-		return allTokensKey;
-	}
+		/**
+		 * The atom used as a property key to name {@linkplain
+		 * ObjectTypeDescriptor object types}.  This property occurs within each
+		 * atom which occurs as a field type key of the object type.  The value
+		 * is a map from object type to the set of names of that exact type
+		 * (typically just one).  The naming information is set up via {@link
+		 * ObjectTypeDescriptor#setNameForType(A_Type, A_String, boolean)}, and
+		 * removed by {@link ObjectTypeDescriptor#removeNameFromType(A_String,
+		 * A_Type)}.
+		 */
+		OBJECT_TYPE_NAME_PROPERTY_KEY("object names"),
 
-	/**
-	 * Answer the atom used to identify the entry in a {@linkplain
-	 * ParserState}'s {@linkplain ParserState#clientDataMap client data map}
-	 * which holds the bundle of the macro send for which the current fiber is
-	 * computing a replacement phrase.
-	 *
-	 * @return The special atom used as a key into the client data map to get
-	 *         the {@link A_Bundle} of the macro send being transformed.
-	 */
-	public static A_Atom macroBundleKey ()
-	{
-		return macroBundleKey;
-	}
+		/**
+		 * The atom used as a key in a {@link ParserState}'s {@linkplain
+		 * ParserState#clientDataMap} to store the current map of declarations
+		 * that are in scope.
+		 */
+		COMPILER_SCOPE_MAP_KEY("Compilation scope"),
 
-	/**
-	 * Answer the atom used to locate the compiler's {@linkplain
-	 * ParserState#clientDataMap client data map} within the current fiber's
-	 * {@linkplain FiberDescriptor.ObjectSlots#FIBER_GLOBALS global map}.
-	 * Among other things, the client data map contains another map under the
-	 * key {@link #compilerScopeMapKey()} which holds the current declarations
-	 * that are in scope.
-	 *
-	 * @return An atom to use as a key in a fiber's global map to extract the
-	 *         current ParserState's client data map.
-	 */
-	public static A_Atom clientDataGlobalKey ()
-	{
-		return clientDataGlobalKey;
-	}
+		/**
+		 * The atom used as a key in a {@link ParserState}'s {@linkplain
+		 * ParserState#clientDataMap} to store a tuple of maps to restore as the
+		 * blocks that are being parsed are completed.
+		 */
+		COMPILER_SCOPE_STACK_KEY("Compilation scope stack"),
 
-	/**
-	 * Answer the atom used as a property key under which to store a {@link
-	 * RandomAccessFile}.
-	 *
-	 * @return An atom that's special because it's known by the virtual machine.
-	 */
-	public static A_Atom fileKey ()
-	{
-		return fileKey;
-	}
+		/**
+		 * The atom used as a key in a {@link ParserState}'s {@linkplain
+		 * ParserState#clientDataMap} to accumulate the tuple of tokens that
+		 * have been parsed so far for the current method/macro site.
+		 */
+		ALL_TOKENS_KEY("All tokens"),
 
-	/**
-	 * Answer the atom used as a property key under which to store an {@link
-	 * AsynchronousServerSocketChannel asynchronous server socket channel}.
-	 *
-	 * @return An atom that's special because it's known by the virtual machine.
-	 */
-	public static A_Atom serverSocketKey ()
-	{
-		return serverSocketKey;
-	}
+		/**
+		 * The atom used to identify the entry in a {@linkplain ParserState}'s
+		 * {@linkplain ParserState#clientDataMap client data map} containing the
+		 * bundle of the macro send for which the current fiber is computing a
+		 * replacement phrase.
+		 */
+		MACRO_BUNDLE_KEY("Macro bundle"),
 
-	/**
-	 * Answer the atom used as a property key under which to store an {@link
-	 * AsynchronousSocketChannel asynchronous socket channel}.
-	 *
-	 * @return An atom that's special because it's known by the virtual machine.
-	 */
-	public static A_Atom socketKey ()
-	{
-		return socketKey;
-	}
+		/**
+		 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s
+		 * global map to extract the current {@link ParserState}'s {@linkplain
+		 * ParserState#clientDataMap}.
+		 */
+		CLIENT_DATA_GLOBAL_KEY("Compiler client data"),
 
-	/**
-	 * Answer the property key that indicates that a {@linkplain FiberDescriptor
-	 * fiber} global is inheritable.
-	 *
-	 * @return An atom that's special because it's known by the virtual machine.
-	 */
-	public static A_Atom heritableKey ()
-	{
-		return heritableKey;
-	}
+		/**
+		 * The atom used as a property key under which to store an {@link
+		 * FileHandle}.
+		 */
+		FILE_KEY("file key"),
 
-	/**
-	 * Answer the property key under which this atom's {@linkplain
-	 * MessageBundleDescriptor message bundle}, if any, is stored.
-	 *
-	 * @return An atom held by the VM, used to extract an atom's message bundle.
-	 */
-	public static A_Atom messageBundleKey ()
-	{
-		return messageBundleKey;
-	}
+		/**
+		 * The atom used as a property key under which to store an {@link
+		 * AsynchronousServerSocketChannel asynchronous server socket channel}.
+		 */
+		SERVER_SOCKET_KEY("server socket key"),
 
-	/**
-	 * Answer the property key whose presence indicates that an atom was created
-	 * for explicit subclassing of object types.
-	 *
-	 * @return An atom held by the VM, used to indicate that an atom having this
-	 *         as a property key means the atom is used for explicit subclassing
-	 *         of object types.
-	 */
-	public static A_Atom explicitSubclassingKey ()
-	{
-		return explicitSubclassingKey;
+		/**
+		 * The atom used as a property key under which to store an {@link
+		 * AsynchronousSocketChannel asynchronous socket channel}.
+		 */
+		SOCKET_KEY("socket key"),
+
+		/**
+		 * The property key that indicates that a {@linkplain FiberDescriptor
+		 * fiber} global is inheritable.
+		 */
+		HERITABLE_KEY("heritability"),
+
+		/**
+		 * The property key from which to extract an atom's {@linkplain
+		 * MessageBundleDescriptor message bundle}, if any.
+		 */
+		MESSAGE_BUNDLE_KEY("message bundle"),
+
+		/**
+		 * The property key whose presence indicates an atom is for explicit
+		 * subclassing of object types.
+		 */
+		EXPLICIT_SUBCLASSING_KEY("explicit subclassing");
+
+		/** The special atom. */
+		public final A_Atom atom;
+
+		/**
+		 * Create a {@link SpecialAtom} with the given name.
+		 *
+		 * @param name The name of the atom to be created.
+		 */
+		SpecialAtom (final String name)
+		{
+			this.atom = createSpecialAtom(name);
+		}
+
+		/**
+		 * Create a {@link SpecialAtom} to hold the given already constructed
+		 * {@link A_Atom}.
+		 *
+		 * @param atom The actual atom to be held by this {@link SpecialAtom}.
+		 */
+		SpecialAtom (final A_Atom atom)
+		{
+			this.atom = atom;
+		}
 	}
 }

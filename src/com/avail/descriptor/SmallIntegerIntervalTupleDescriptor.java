@@ -47,7 +47,7 @@ import java.util.IdentityHashMap;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 public class SmallIntegerIntervalTupleDescriptor
-extends TupleDescriptor
+extends NumericTupleDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.

@@ -72,7 +72,6 @@ extends Primitive
 				TupleDescriptor.empty(),
 				0,
 				0,
-				-1,
 				TokenType.SYNTHETIC_LITERAL,
 				value));
 	}

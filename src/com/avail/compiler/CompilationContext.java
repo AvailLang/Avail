@@ -37,12 +37,13 @@ import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
-import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.*;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
@@ -59,9 +60,11 @@ import com.avail.utility.evaluation.Continuation1;
 import org.jetbrains.annotations.Nullable;
 
 import static com.avail.compiler.problems.ProblemType.*;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.utility.StackPrinter.trace;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -78,19 +81,20 @@ public class CompilationContext
 	static abstract class ParsingTask
 		extends AvailTask
 	{
-		/** The parsing state for this task will operate. */
-		private final ParserState state;
+		/** The one-based source position with which this task is associated. */
+		private final int position;
 
 		/**
 		 * Construct a new {@link ParsingTask}.
 		 *
-		 * @param state The {@linkplain ParserState parser state} for this task.
+		 * @param position
+		 *        The source position with which this task is associated.
 		 */
 		@InnerAccess ParsingTask (
-			final ParserState state)
+			final int position)
 		{
 			super(FiberDescriptor.compilerPriority);
-			this.state = state;
+			this.position = position;
 		}
 
 		@Override
@@ -105,7 +109,7 @@ public class CompilationContext
 			if (o instanceof ParsingTask)
 			{
 				final ParsingTask task = (ParsingTask) o;
-				return Integer.compare(state.position, task.state.position);
+				return Integer.compare(position, task.position);
 			}
 			return priorityDelta;
 		}
@@ -115,7 +119,7 @@ public class CompilationContext
 	 * The {@link CompilerDiagnostics} that tracks potential errors during
 	 * compilation.
 	 */
-	final CompilerDiagnostics diagnostics;
+	public final CompilerDiagnostics diagnostics;
 
 	/**
 	 * The {@link AvailRuntime} for the compiler. Since a compiler cannot
@@ -177,7 +181,7 @@ public class CompilationContext
 	 * @return A loader.
 	 */
 	@InnerAccess
-	AvailLoader loader ()
+	public AvailLoader loader ()
 	{
 		final AvailLoader theLoader = loader;
 		assert theLoader != null;
@@ -188,9 +192,9 @@ public class CompilationContext
 	 * The source text of the Avail {@linkplain ModuleDescriptor module}
 	 * undergoing compilation.
 	 */
-	@InnerAccess final String source;
+	@InnerAccess final A_String source;
 
-	String source ()
+	public A_String source ()
 	{
 		return source;
 	}
@@ -264,7 +268,7 @@ public class CompilationContext
 	}
 
 	/**
-	 * The {@linkplain Continuation1 continuation} that reports success of
+	 * The {@linkplain Continuation0 continuation} that reports success of
 	 * compilation.
 	 */
 	@InnerAccess
@@ -293,7 +297,7 @@ public class CompilationContext
 	public CompilationContext (
 		final @Nullable ModuleHeader moduleHeader,
 		final A_Module module,
-		final String source,
+		final A_String source,
 		final TextInterface textInterface,
 		final Generator<Boolean> pollForAbort,
 		final CompilerProgressReporter progressReporter,
@@ -317,15 +321,13 @@ public class CompilationContext
 	 * order. The implementation may run the expression in parallel with the
 	 * invoking thread and other such expressions.
 	 *
-	 * @param token
-	 *        The {@linkplain TokenDescriptor token} that provides context for
-	 *        the continuation.
+	 * @param lexingState
+	 *        The {@link LexingState} for which to report problems.
 	 * @param continuation
 	 *        What to do at some point in the future.
 	 */
-	@InnerAccess
-	void eventuallyDo (
-		final A_Token token,
+	public void eventuallyDo (
+		final LexingState lexingState,
 		final Continuation0 continuation)
 	{
 		runtime.execute(new AvailTask(FiberDescriptor.compilerPriority)
@@ -339,7 +341,8 @@ public class CompilationContext
 				}
 				catch (final Exception e)
 				{
-					reportInternalProblem(token, e);
+					reportInternalProblem(
+						lexingState.lineNumber, lexingState.position, e);
 				}
 			}
 		});
@@ -360,9 +363,8 @@ public class CompilationContext
 	 * {@linkplain #workUnitsCompleted count of completed work units} and
 	 * potentially call the {@linkplain #noMoreWorkUnits unambiguous statement}.
 	 *
-	 * @param token
-	 *        The {@linkplain A_Token token} that provides context for the
-	 *        work unit completion.
+	 * @param lexingState
+	 *        The {@link LexingState} for which to report problems.
 	 * @param optionalSafetyCheck
 	 *        Either {@code null} or an {@link AtomicBoolean} which must
 	 *        transition from false to true only once.
@@ -373,7 +375,7 @@ public class CompilationContext
 	 */
 	@InnerAccess
 	<ArgType> Continuation1<ArgType> workUnitCompletion (
-		final A_Token token,
+		final LexingState lexingState,
 		final @Nullable AtomicBoolean optionalSafetyCheck,
 		final Continuation1<ArgType> continuation)
 	{
@@ -401,7 +403,10 @@ public class CompilationContext
 				}
 				catch (final Exception e)
 				{
-					reportInternalProblem(token, e);
+					reportInternalProblem(
+						lexingState.lineNumber,
+						lexingState.position,
+						e);
 				}
 				finally
 				{
@@ -428,7 +433,10 @@ public class CompilationContext
 						}
 						catch (final Exception e)
 						{
-							reportInternalProblem(token, e);
+							reportInternalProblem(
+								lexingState.lineNumber,
+								lexingState.position,
+								e);
 						}
 					}
 				}
@@ -442,16 +450,16 @@ public class CompilationContext
 	 *
 	 * @param continuation
 	 *        What to do at some point in the future.
-	 * @param where
-	 *        Where the parse is happening.
+	 * @param lexingState
+	 *        The {@link LexingState} for which to report problems.
 	 */
 	void workUnitDo (
 		final Continuation0 continuation,
-		final ParserState where)
+		final LexingState lexingState)
 	{
 		startWorkUnit();
 		final Continuation1<Void> workUnit = workUnitCompletion(
-			where.peekToken(),
+			lexingState,
 			null,
 			new Continuation1<Void>()
 			{
@@ -462,7 +470,7 @@ public class CompilationContext
 				}
 			});
 		runtime.execute(
-			new ParsingTask(where)
+			new ParsingTask(lexingState.position)
 			{
 				@Override
 				public void value ()
@@ -475,21 +483,21 @@ public class CompilationContext
 	/**
 	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
 	 * {@linkplain Continuation0 continuation of zero arguments} and record that
-	 * as per {@linkplain #workUnitDo(Continuation0, ParserState)}.
+	 * as per {@linkplain #workUnitDo(Continuation0, LexingState)}.
 	 *
 	 * @param <ArgType>
 	 *        The type of argument to the given continuation.
-	 * @param here
-	 *        Where to start parsing when the continuation runs.
 	 * @param continuation
 	 *        What to execute with the passed argument.
+	 * @param lexingState
+	 *        The {@link LexingState} for which to report problems.
 	 * @param argument
 	 *        What to pass as an argument to the provided {@linkplain
 	 *        Continuation1 one-argument continuation}.
 	 */
 	@InnerAccess
 	<ArgType> void attempt (
-		final ParserState here,
+		final LexingState lexingState,
 		final Continuation1<ArgType> continuation,
 		final ArgType argument)
 	{
@@ -502,7 +510,7 @@ public class CompilationContext
 					continuation.value(argument);
 				}
 			},
-			here);
+			lexingState);
 	}
 
 	/**
@@ -518,7 +526,7 @@ public class CompilationContext
 	 *        The arguments to the function.
 	 * @param clientParseData
 	 *        The map to associate with the {@link
-	 *        AtomDescriptor#clientDataGlobalKey()} atom in the fiber.
+	 *        SpecialAtom#CLIENT_DATA_GLOBAL_KEY} atom in the fiber.
 	 * @param shouldSerialize
 	 *        {@code true} if the generated function should be serialized,
 	 *        {@code false} otherwise.
@@ -556,7 +564,7 @@ public class CompilationContext
 			});
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-			AtomDescriptor.clientDataGlobalKey(), clientParseData, true);
+			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
 		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(textInterface);
 		if (shouldSerialize)
@@ -586,6 +594,71 @@ public class CompilationContext
 		fiber.resultContinuation(adjustedSuccess);
 		fiber.failureContinuation(onFailure);
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
+	}
+
+	/**
+	 * Generate a {@linkplain FunctionDescriptor function} from the specified
+	 * {@linkplain ParseNodeDescriptor phrase} and evaluate it in the module's
+	 * context; lexically enclosing variables are not considered in scope, but
+	 * module variables and constants are in scope.
+	 *
+	 * @param expressionNode
+	 *        A {@linkplain ParseNodeDescriptor parse node}.
+	 * @param lineNumber
+	 *        The line number on which the expression starts.
+	 * @param shouldSerialize
+	 *        {@code true} if the generated function should be serialized,
+	 *        {@code false} otherwise.
+	 * @param onSuccess
+	 *        What to do with the result of the evaluation.
+	 * @param onFailure
+	 *        What to do after a failure.
+	 */
+	public void evaluatePhraseThen (
+		final A_Phrase expressionNode,
+		final int lineNumber,
+		final boolean shouldSerialize,
+		final Continuation1<AvailObject> onSuccess,
+		final Continuation1<Throwable> onFailure)
+	{
+		evaluateFunctionThen(
+			FunctionDescriptor.createFunctionForPhrase(
+				expressionNode, getModule(), lineNumber),
+			lineNumber,
+			Collections.<AvailObject>emptyList(),
+			MapDescriptor.empty(),
+			shouldSerialize,
+			onSuccess,
+			onFailure);
+	}
+
+	/**
+	 * Evaluate the given parse node.  Pass the result to the continuation,
+	 * or if it fails pass the exception to the failure continuation.
+	 *
+	 * @param lexingState
+	 *        The {@link LexingState} at which the phrase starts.
+	 * @param expression
+	 *        The phrase to evaluate.
+	 * @param continuation
+	 *        What to do with the result of evaluation.
+	 * @param onFailure
+	 *        What to do after a failure.
+	 */
+	void evaluatePhraseAtThen (
+		final LexingState lexingState,
+		final A_Phrase expression,
+		final Continuation1<AvailObject> continuation,
+		final Continuation1<Throwable> onFailure)
+	{
+		startWorkUnit();
+		final AtomicBoolean hasRunEither = new AtomicBoolean(false);
+		evaluatePhraseThen(
+			expression,
+			lexingState.lineNumber,
+			false,
+			workUnitCompletion(lexingState, hasRunEither, continuation),
+			workUnitCompletion(lexingState, hasRunEither, onFailure));
 	}
 
 	/**
@@ -680,24 +753,26 @@ public class CompilationContext
 	 * Report an {@linkplain ProblemType#INTERNAL internal} {@linkplain
 	 * Problem problem}.
 	 *
-	 * @param token
-	 *        The {@linkplain A_Token token} that provides context to the
-	 *        problem.
+	 * @param lineNumber
+	 *        The one-based line number on which the problem occurs.
+	 * @param position
+	 *        The one-based position in the source at which the problem occurs.
 	 * @param e
 	 *        The unexpected {@linkplain Throwable exception} that is the
 	 *        proximal cause of the problem.
 	 */
 	@InnerAccess
 	void reportInternalProblem (
-		final A_Token token,
+		final int lineNumber,
+		final int position,
 		final Throwable e)
 	{
 		diagnostics.isShuttingDown = true;
 		diagnostics.compilationIsInvalid = true;
 		final Problem problem = new Problem(
 			moduleName(),
-			token.lineNumber(),
-			token.start(),
+			lineNumber,
+			position,
 			INTERNAL,
 			"Internal error: {0}\n{1}",
 			e.getMessage(),
@@ -716,16 +791,18 @@ public class CompilationContext
 	 * Report an {@linkplain ProblemType#EXECUTION execution} {@linkplain
 	 * Problem problem}.
 	 *
-	 * @param token
-	 *        The {@linkplain A_Token token} that provides context to the
-	 *        problem.
+	 * @param lineNumber
+	 *        The one-based line number on which the problem occurs.
+	 * @param position
+	 *        The one-based position in the source at which the problem occurs.
 	 * @param e
 	 *        The unexpected {@linkplain Throwable exception} that is the
 	 *        proximal cause of the problem.
 	 */
 	@InnerAccess
 	void reportExecutionProblem (
-		final A_Token token,
+		final int lineNumber,
+		final int position,
 		final Throwable e)
 	{
 		diagnostics.compilationIsInvalid = true;
@@ -733,8 +810,8 @@ public class CompilationContext
 		{
 			diagnostics.handleProblem(new Problem(
 					moduleName(),
-					token.lineNumber(),
-					token.start(),
+					lineNumber,
+					position,
 					EXECUTION,
 					"Execution error: Avail stack reported above.\n")
 				{
@@ -749,8 +826,8 @@ public class CompilationContext
 		{
 		diagnostics.handleProblem(new Problem(
 					moduleName(),
-					token.lineNumber(),
-					token.start(),
+					lineNumber,
+					position,
 					EXECUTION,
 					"Execution error: {0}\n{1}",
 					e.getMessage(),
@@ -769,22 +846,24 @@ public class CompilationContext
 	 * Report an {@linkplain ProblemType#EXECUTION assertion failure}
 	 * {@linkplain Problem problem}.
 	 *
-	 * @param token
-	 *        The {@linkplain A_Token token} that provides context to the
-	 *        problem.
+	 * @param lineNumber
+	 *        The one-based line number on which the problem occurs.
+	 * @param position
+	 *        The one-based position in the source at which the problem occurs.
 	 * @param e
 	 *        The {@linkplain AvailAssertionFailedException assertion failure}.
 	 */
 	@InnerAccess
 	void reportAssertionFailureProblem (
-		final A_Token token,
+		final int lineNumber,
+		final int position,
 		final AvailAssertionFailedException e)
 	{
 		diagnostics.compilationIsInvalid = true;
 		diagnostics.handleProblem(new Problem(
 			moduleName(),
-			token.lineNumber(),
-			token.start(),
+			lineNumber,
+			position,
 			EXECUTION,
 			"{0}",
 			e.getMessage())
@@ -801,23 +880,25 @@ public class CompilationContext
 	 * Report an {@linkplain ProblemType#EXECUTION emergency exit}
 	 * {@linkplain Problem problem}.
 	 *
-	 * @param token
-	 *        The {@linkplain A_Token token} that provides context to the
-	 *        problem.
+	 * @param lineNumber
+	 *        The one-based line number on which the problem occurs.
+	 * @param position
+	 *        The one-based position in the source at which the problem occurs.
 	 * @param e
 	 *        The {@linkplain AvailEmergencyExitException emergency exit
 	 *        failure}.
 	 */
 	@InnerAccess
 	void reportEmergencyExitProblem (
-		final A_Token token,
+		final int lineNumber,
+		final int position,
 		final AvailEmergencyExitException e)
 	{
 		diagnostics.compilationIsInvalid = true;
 		diagnostics.handleProblem(new Problem(
 			moduleName(),
-			token.lineNumber(),
-			token.start(),
+			lineNumber,
+			position,
 			EXECUTION,
 			"{0}",
 			e.getMessage())

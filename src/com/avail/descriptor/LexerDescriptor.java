@@ -109,9 +109,14 @@ extends Descriptor
 
 		/**
 		 * The function to run (as the base call of a fiber) to generate some
-		 * tokens from the source string and position.  The tuples of tokens are
-		 * yielded via {@link P_YieldTokensForLexer}, which takes a non-empty
-		 * tuple of tokens and a position at which to continue parsing.
+		 * tokens from the source string and position.  The function should
+		 * produce a tuple of solutions, where each solution is a pair
+		 * consisting of:
+		 *
+		 * <ol>
+		 *     <li>a tuple of successive tokens, and</li>
+		 *     <li>the source position after these tokens.</li>
+		 * </ol>
 		 */
 		LEXER_BODY_FUNCTION;
 	}
@@ -131,10 +136,10 @@ extends Descriptor
 	private static final A_Type lexerBodyFunctionType =
 		FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				Types.CHARACTER.o(),
 				TupleTypeDescriptor.stringType(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),
-			EnumerationTypeDescriptor.booleanObject()
+			TupleTypeDescriptor.zeroOrMoreOf(
+				Types.TOKEN.o())
 		).makeShared();
 
 	public static A_Type lexerBodyFunctionType ()

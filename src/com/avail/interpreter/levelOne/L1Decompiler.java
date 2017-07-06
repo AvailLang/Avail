@@ -67,15 +67,13 @@ public class L1Decompiler
 	@InnerAccess List<A_Phrase> outers;
 
 	/**
-	 * The {@linkplain
-	 * com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind#ARGUMENT
+	 * The {@linkplain DeclarationNodeDescriptor.DeclarationKind#ARGUMENT
 	 * arguments declarations} for this code.
 	 */
 	@InnerAccess List<A_Phrase> args;
 
 	/**
-	 * The {@linkplain
-	 * com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind#
+	 * The {@linkplain DeclarationNodeDescriptor.DeclarationKind#
 	 * LOCAL_VARIABLE local variables} defined by this code.
 	 */
 	@InnerAccess List<A_Phrase> locals;
@@ -100,8 +98,7 @@ public class L1Decompiler
 	 * The stack of expressions roughly corresponding to the subexpressions that
 	 * have been parsed but not yet integrated into their parent expressions.
 	 */
-	@InnerAccess List<A_Phrase> expressionStack =
-		new ArrayList<A_Phrase>();
+	@InnerAccess List<A_Phrase> expressionStack = new ArrayList<>();
 
 	/**
 	 * The list of completely decompiled {@linkplain ParseNodeDescriptor
@@ -142,8 +139,8 @@ public class L1Decompiler
 		nybbles = code.nybbles();
 		outers = outerVars;
 		tempGenerator = tempBlock;
-		args = new ArrayList<A_Phrase>(code.numArgs());
-		locals = new ArrayList<A_Phrase>(code.numLocals());
+		args = new ArrayList<>(code.numArgs());
+		locals = new ArrayList<>(code.numLocals());
 		final A_Type tupleType = code.functionType().argsTupleType();
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
@@ -154,7 +151,6 @@ public class L1Decompiler
 				TupleDescriptor.empty(),
 				0,
 				0,
-				-1,
 				TokenType.KEYWORD);
 			final A_Phrase decl = DeclarationNodeDescriptor.newArgument(
 				token,
@@ -171,7 +167,6 @@ public class L1Decompiler
 				TupleDescriptor.empty(),
 				0,
 				0,
-				-1,
 				TokenType.KEYWORD);
 			final A_Phrase decl = DeclarationNodeDescriptor.newVariable(
 				token,
@@ -387,13 +382,12 @@ public class L1Decompiler
 								"OuterOfUncleanConstantFunction#"
 								+ i
 								+ " (with value "
-								+ varObject.toString()
+								+ varObject
 								+ ")"),
 							TupleDescriptor.empty(),
 							TupleDescriptor.empty(),
 							0,
 							0,
-							-1,
 							TokenType.LITERAL,
 							varObject);
 					final A_Phrase literalNode =
@@ -429,7 +423,6 @@ public class L1Decompiler
 							TupleDescriptor.empty(),
 							0,
 							0,
-							-1,
 							TokenType.LITERAL,
 							value);
 					final AvailObject literalNode =
@@ -713,7 +706,6 @@ public class L1Decompiler
 					TupleDescriptor.empty(),
 					0,
 					0,
-					-1,
 					TokenType.KEYWORD);
 				label = DeclarationNodeDescriptor.newLabel(
 					labelToken,
@@ -738,7 +730,6 @@ public class L1Decompiler
 				TupleDescriptor.empty(),
 				0,
 				0,
-				-1,
 				TokenType.KEYWORD);
 			final A_BasicObject globalVar = code.literalAt(getInteger());
 
@@ -762,7 +753,6 @@ public class L1Decompiler
 				TupleDescriptor.empty(),
 				0,
 				0,
-				-1,
 				TokenType.KEYWORD);
 			final AvailObject globalVar = code.literalAt(getInteger());
 			final A_Phrase declaration =
@@ -996,7 +986,6 @@ public class L1Decompiler
 				TupleDescriptor.empty(),
 				0,
 				0,
-				-1,
 				TokenType.SYNTHETIC_LITERAL,
 				outerObject);
 			final A_Phrase literalNode =

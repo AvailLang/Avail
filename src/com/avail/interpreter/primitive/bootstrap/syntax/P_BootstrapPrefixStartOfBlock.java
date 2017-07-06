@@ -30,8 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.syntax;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -70,10 +73,10 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		final A_Atom clientDataGlobalKey = AtomDescriptor.clientDataGlobalKey();
-		final A_Atom compilerScopeMapKey = AtomDescriptor.compilerScopeMapKey();
+		final A_Atom clientDataGlobalKey = CLIENT_DATA_GLOBAL_KEY.atom;
+		final A_Atom compilerScopeMapKey = COMPILER_SCOPE_MAP_KEY.atom;
 		final A_Atom compilerScopeStackKey =
-			AtomDescriptor.compilerScopeStackKey();
+			COMPILER_SCOPE_STACK_KEY.atom;
 		final A_Fiber fiber = interpreter.fiber();
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);

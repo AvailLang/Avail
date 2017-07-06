@@ -52,7 +52,7 @@ import com.avail.utility.json.JSONWriter;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class ByteTupleDescriptor
-extends TupleDescriptor
+extends NumericTupleDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.

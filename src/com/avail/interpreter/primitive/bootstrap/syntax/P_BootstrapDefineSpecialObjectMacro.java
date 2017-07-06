@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -38,7 +38,7 @@ import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
@@ -90,7 +90,7 @@ extends Primitive
 		// sent, will produce a method that answers the special object.
 		final A_Phrase defineMethod = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			SpecialAtom.METHOD_DEFINER.bundle,
+			SpecialMethodAtom.METHOD_DEFINER.bundle,
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
 					nameLiteral,
@@ -112,7 +112,7 @@ extends Primitive
 			specialObjectLiteral.expressionType());
 		final A_Phrase createLiteralToken = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			SpecialAtom.CREATE_LITERAL_TOKEN.bundle,
+			SpecialMethodAtom.CREATE_LITERAL_TOKEN.bundle,
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
 					getValue,
@@ -122,7 +122,7 @@ extends Primitive
 				specialObjectLiteral.expressionType()));
 		final A_Phrase createLiteralNode = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			SpecialAtom.CREATE_LITERAL_PHRASE.bundle,
+			SpecialMethodAtom.CREATE_LITERAL_PHRASE.bundle,
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
 					createLiteralToken)),
@@ -130,7 +130,7 @@ extends Primitive
 				specialObjectLiteral.expressionType()));
 		final A_Phrase defineMacro = SendNodeDescriptor.from(
 			TupleDescriptor.empty(),
-			SpecialAtom.MACRO_DEFINER.bundle,
+			SpecialMethodAtom.MACRO_DEFINER.bundle,
 			ListNodeDescriptor.newExpressions(
 				TupleDescriptor.from(
 					nameLiteral,

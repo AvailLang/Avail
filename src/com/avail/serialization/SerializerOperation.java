@@ -32,9 +32,12 @@
 
 package com.avail.serialization;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.serialization.SerializerOperandEncoding.*;
 import java.util.*;
 import com.avail.AvailRuntime;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
@@ -904,7 +907,7 @@ public enum SerializerOperation
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			assert object.getAtomProperty(AtomDescriptor.heritableKey())
+			assert object.getAtomProperty(HERITABLE_KEY.atom)
 				.equalsNil();
 			final A_Module module = object.issuingModule();
 			if (module.equalsNil())
@@ -941,7 +944,7 @@ public enum SerializerOperation
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			assert object.getAtomProperty(AtomDescriptor.heritableKey()).equals(
+			assert object.getAtomProperty(HERITABLE_KEY.atom).equals(
 				AtomDescriptor.trueObject());
 			final A_Module module = object.issuingModule();
 			if (module.equalsNil())
@@ -960,7 +963,7 @@ public enum SerializerOperation
 			final AvailObject moduleName = subobjects[1];
 			final A_Atom atom = lookupAtom(atomName, moduleName, deserializer);
 			atom.setAtomProperty(
-				AtomDescriptor.heritableKey(),
+				HERITABLE_KEY.atom,
 				AtomDescriptor.trueObject());
 			return atom.makeShared();
 		}
@@ -1302,7 +1305,6 @@ public enum SerializerOperation
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"),
-		SIGNED_INT.as("token index"),
 		BYTE.as("token type code"))
 	{
 		@Override
@@ -1316,7 +1318,6 @@ public enum SerializerOperation
 				object.trailingWhitespace(),
 				IntegerDescriptor.fromInt(object.start()),
 				IntegerDescriptor.fromInt(object.lineNumber()),
-				IntegerDescriptor.fromInt(object.tokenIndex()),
 				IntegerDescriptor.fromInt(object.tokenType().ordinal()));
 		}
 
@@ -1330,15 +1331,13 @@ public enum SerializerOperation
 			final A_String trailingWhitespace = subobjects[2];
 			final int start = subobjects[3].extractInt();
 			final int lineNumber = subobjects[4].extractInt();
-			final int tokenIndex = subobjects[5].extractInt();
-			final int tokenTypeOrdinal = subobjects[6].extractInt();
+			final int tokenTypeOrdinal = subobjects[5].extractInt();
 			return TokenDescriptor.create(
 				string,
 				leadingWhitespace,
 				trailingWhitespace,
 				start,
 				lineNumber,
-				tokenIndex,
 				TokenType.all()[tokenTypeOrdinal]);
 		}
 	},
@@ -1353,7 +1352,6 @@ public enum SerializerOperation
 		OBJECT_REFERENCE.as("literal value"),
 		SIGNED_INT.as("start position"),
 		SIGNED_INT.as("line number"),
-		SIGNED_INT.as("token index"),
 		BYTE.as("token type code"))
 	{
 		@Override
@@ -1368,7 +1366,6 @@ public enum SerializerOperation
 				object.literal(),
 				IntegerDescriptor.fromInt(object.start()),
 				IntegerDescriptor.fromInt(object.lineNumber()),
-				IntegerDescriptor.fromInt(object.tokenIndex()),
 				IntegerDescriptor.fromInt(object.tokenType().ordinal()));
 		}
 
@@ -1383,15 +1380,13 @@ public enum SerializerOperation
 			final AvailObject literal = subobjects[3];
 			final int start = subobjects[4].extractInt();
 			final int lineNumber = subobjects[5].extractInt();
-			final int tokenIndex = subobjects[6].extractInt();
-			final int tokenTypeOrdinal = subobjects[7].extractInt();
+			final int tokenTypeOrdinal = subobjects[6].extractInt();
 			return LiteralTokenDescriptor.create(
 				string,
 				leadingWhitespace,
 				trailingWhitespace,
 				start,
 				lineNumber,
-				tokenIndex,
 				TokenType.all()[tokenTypeOrdinal],
 				literal);
 		}
@@ -1405,8 +1400,7 @@ public enum SerializerOperation
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("leading whitespace"),
 		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.as("trailing whitespace"),
 		SIGNED_INT.as("start position"),
-		SIGNED_INT.as("line number"),
-		SIGNED_INT.as("token index"))
+		SIGNED_INT.as("line number"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -1418,8 +1412,7 @@ public enum SerializerOperation
 				object.leadingWhitespace(),
 				object.trailingWhitespace(),
 				IntegerDescriptor.fromInt(object.start()),
-				IntegerDescriptor.fromInt(object.lineNumber()),
-				IntegerDescriptor.fromInt(object.tokenIndex()));
+				IntegerDescriptor.fromInt(object.lineNumber()));
 		}
 
 		@Override
@@ -1432,14 +1425,12 @@ public enum SerializerOperation
 			final A_String trailing = subobjects[2];
 			final int start = subobjects[3].extractInt();
 			final int lineNumber = subobjects[4].extractInt();
-			final int tokenIndex = subobjects[5].extractInt();
 			return CommentTokenDescriptor.create(
 				string,
 				leading,
 				trailing,
 				start,
-				lineNumber,
-				tokenIndex);
+				lineNumber);
 		}
 	},
 
@@ -1802,7 +1793,7 @@ public enum SerializerOperation
 	 * module.
 	 *
 	 * <P>This should be the same as {@link #ATOM}, other than adding the
-	 * special {@link AtomDescriptor#explicitSubclassingKey()} property.</P>
+	 * special {@link SpecialAtom#EXPLICIT_SUBCLASSING_KEY} property.</P>
 	 */
 	EXPLICIT_SUBCLASS_ATOM(54,
 		OBJECT_REFERENCE.as("atom name"),
@@ -1813,11 +1804,11 @@ public enum SerializerOperation
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			assert object.getAtomProperty(AtomDescriptor.heritableKey())
+			assert object.getAtomProperty(HERITABLE_KEY.atom)
 				.equalsNil();
 			assert object.getAtomProperty(
-					AtomDescriptor.explicitSubclassingKey())
-				.equals(AtomDescriptor.explicitSubclassingKey());
+				EXPLICIT_SUBCLASSING_KEY.atom)
+				.equals(EXPLICIT_SUBCLASSING_KEY.atom);
 			final A_Module module = object.issuingModule();
 			if (module.equalsNil())
 			{
@@ -1835,8 +1826,8 @@ public enum SerializerOperation
 			final AvailObject moduleName = subobjects[1];
 			final A_Atom atom = lookupAtom(atomName, moduleName, deserializer);
 			atom.setAtomProperty(
-				AtomDescriptor.explicitSubclassingKey(),
-				AtomDescriptor.explicitSubclassingKey());
+				EXPLICIT_SUBCLASSING_KEY.atom,
+				EXPLICIT_SUBCLASSING_KEY.atom);
 			return atom.makeShared();
 		}
 	},

@@ -58,7 +58,7 @@ import com.avail.utility.Generator;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class NybbleTupleDescriptor
-extends TupleDescriptor
+extends NumericTupleDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.

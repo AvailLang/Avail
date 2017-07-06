@@ -34,10 +34,14 @@ package com.avail.compiler.problems;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.builder.ModuleName;
-import com.avail.builder.ResolvedModuleName;
+import com.avail.compiler.scanning.LexingState;
+import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
@@ -47,6 +51,7 @@ import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -63,7 +68,7 @@ public class CompilerDiagnostics
 	 *        The source code of the module.
 	 */
 	public CompilerDiagnostics (
-		final String source,
+		final A_String source,
 		final ModuleName moduleName,
 		final Generator<Boolean> pollForAbort,
 		final ProblemHandler problemHandler)
@@ -74,8 +79,8 @@ public class CompilerDiagnostics
 		this.problemHandler = problemHandler;
 	}
 
-	/** The source text of the module being compiled. */
-	final String source;
+	/** The source text as an Avail {@link A_String}. */
+	final A_String source;
 
 	/** The name of the module being compiled. */
 	final ModuleName moduleName;
@@ -101,9 +106,10 @@ public class CompilerDiagnostics
 	 * indicate problems encountered at that token.
 	 *
 	 * <p>Lexing problems are recorded here as well, although a suitable invalid
-	 * token is created for this purpose.</p>
+	 * token is created for this purpose.  This allows positioning the problem
+	 * at an exact character position.</p>
 	 */
-	final Map<Integer, Map<A_Token, List<Describer>>> expectations =
+	final Map<Integer, Map<LexingState, List<Describer>>> expectations =
 		new HashMap<>();
 
 	/**
@@ -195,15 +201,15 @@ public class CompilerDiagnostics
 	 *        A {@link Describer}, something which can be evaluated (including
 	 *        running Avail code) to produce a String, which is then passed to a
 	 *        provided continuation.
-	 * @param token
-	 *        The token at which the expectation occurred.
+	 * @param lexingState
+	 *        The {@link LexingState} at which the expectation occurred.
 	 */
 	public synchronized void expectedAt (
 		final Describer describer,
-		final A_Token token)
+		final LexingState lexingState)
 	{
-		final Integer position = token.start();
-		Map<A_Token, List<Describer>> innerMap = expectations.get(position);
+		final Integer position = lexingState.position;
+		Map<LexingState, List<Describer>> innerMap = expectations.get(position);
 		if (innerMap == null)
 		{
 			if (expectationsIndexHeap.size() == expectationsCountToTrack
@@ -222,11 +228,11 @@ public class CompilerDiagnostics
 				expectationsIndexHeap.remove();
 			}
 		}
-		List<Describer> innerList = innerMap.get(token);
+		List<Describer> innerList = innerMap.get(lexingState);
 		if (innerList == null)
 		{
 			innerList = new ArrayList<>();
-			innerMap.put(token, innerList);
+			innerMap.put(lexingState, innerList);
 		}
 		innerList.add(describer);
 	}
@@ -244,6 +250,71 @@ public class CompilerDiagnostics
 	}
 
 	/**
+	 * An {@code IndicatorGenerator} creates successive circled letters via its
+	 * {@link #next()} method.  When it hits circled-Z, it stays at that letter
+	 * and starts suffixing consecutive integers and a space.
+	 */
+	class IndicatorGenerator
+	{
+		int letterOffset = 0;
+
+		int supplementaryCounter = 0;
+
+		@NotNull
+		private String next ()
+		{
+			final int nextLetterOffset =
+				circledLetters.offsetByCodePoints(letterOffset, 1);
+			String indicator = circledLetters.substring(
+				letterOffset, nextLetterOffset);
+			if (supplementaryCounter > 0)
+			{
+				// Follow the circled Z with the value of an
+				// increasing counter, plus a space to visually
+				// separate it from any subsequent token.
+				indicator += Integer.toString(supplementaryCounter) + " ";
+			}
+			// Keep using Ⓩ (circled Z) if we're looking back
+			// more than 26 tokens for problems.
+			if (nextLetterOffset < circledLetters.length())
+			{
+				letterOffset = nextLetterOffset;
+			}
+			else
+			{
+				// Start using Ⓩ (circled Z) followed by an
+				// increasing numeric value.
+				supplementaryCounter++;
+			}
+			return indicator;
+		}
+	}
+
+	/**
+	 * Given a collection of {@link LexingState}s, examine the tokens starting
+	 * at each lexing state, choosing the longest one.  Invoke the passed
+	 * continuation with that longest token.
+	 *
+	 * <p>This should only be used during final reporting of errors, so don't
+	 * attempt to run the lexers, or they might produce additional problems at
+	 * further positions than appropriate.  Instead, use whatever tokens have
+	 * been accumulated so far, ignoring whether this is a complete list or not,
+	 * and synthesizing an empty token if necessary.</p>
+	 *
+	 * @param startLexingState
+	 *        The starting {@link LexingState}.
+	 * @param continuation
+	 *        What to do when the longest {@link A_Token} has been found.
+	 */
+	void findLongestTokenThen (
+		final Collection<LexingState> startLexingState,
+		Continuation1<A_Token> continuation)
+	{
+
+		//TODO MvG - write it!!!
+	}
+
+	/**
 	 * Report the rightmost accumulated errors, then invoke {@code afterFail}.
 	 *
 	 * @param headerMessagePattern
@@ -257,78 +328,74 @@ public class CompilerDiagnostics
 		final String headerMessagePattern,
 		final Continuation0 afterFail)
 	{
-		final List<ProblemsAtPosition> groupedProblems = new ArrayList<>();
 		final List<Integer> descendingIndices =
 			new ArrayList<>(expectationsIndexHeap);
 		Collections.sort(
 			descendingIndices, Collections.<Integer>reverseOrder());
-		int letterOffset = 0;
-		int supplementaryCounter = 0;
-		for (final Integer sourcePosition : descendingIndices)
+		final Iterator<Integer> descendingIterator =
+			descendingIndices.iterator();
+		final IndicatorGenerator indicatorGenerator = new IndicatorGenerator();
+		final List<ProblemsAtPosition> groupedProblems = new ArrayList<>();
+		final MutableOrNull<Continuation0> writeAnotherThen =
+			new MutableOrNull<>();
+		writeAnotherThen.value = new Continuation0()
 		{
-			final Map<A_Token, List<Describer>> innerMap =
-				expectations.get(sourcePosition);
-			assert !innerMap.isEmpty();
-			// Due to local lexer ambiguity, there may be multiple possible
-			// tokens at this position.  Choose the largest for the purpose of
-			// displaying the diagnostics.
-			A_Token longestToken = null;
-			for (final A_Token eachToken : innerMap.keySet())
+			@Override
+			public void value ()
 			{
-				if (longestToken == null
-					|| eachToken.string().tupleSize()
-						> longestToken.string().tupleSize())
+				if (!descendingIterator.hasNext())
 				{
-					longestToken = eachToken;
+					// Done assembling each of the problems.  Report them.
+					assert !groupedProblems.isEmpty();
+					reportError(
+						groupedProblems, headerMessagePattern, afterFail);
+					return;
 				}
+				final int sourcePosition = descendingIterator.next();
+				final Map<LexingState, List<Describer>> innerMap =
+					expectations.get(sourcePosition);
+				assert !innerMap.isEmpty();
+				// Due to local lexer ambiguity, there may be multiple possible
+				// tokens at this position.  Choose the longest for the purpose
+				// of displaying the diagnostics.  We only care about the tokens
+				// that have already been formed, not ones in progress.
+				findLongestTokenThen(
+					innerMap.keySet(),
+					new Continuation1<A_Token>()
+					{
+						@Override
+						public void value (@Nullable final A_Token longestToken)
+						{
+							assert longestToken != null;
+							final List<Describer> describers =
+								new ArrayList<>();
+							for (final List<Describer> eachDescriberList
+								: innerMap.values())
+							{
+								describers.addAll(eachDescriberList);
+							}
+
+							groupedProblems.add(
+								new ProblemsAtPosition(
+									innerMap.keySet().iterator().next(),
+									longestToken.nextLexingState(),
+									indicatorGenerator.next(),
+									describers));
+							writeAnotherThen.value().value();
+						}
+					});
 			}
-			assert longestToken != null;
-			final int nextLetterOffset =
-				circledLetters.offsetByCodePoints(letterOffset, 1);
-			String indicator = circledLetters.substring(
-				letterOffset, nextLetterOffset);
-			if (supplementaryCounter > 0)
-			{
-				// Follow the circled Z with the value of an increasing
-				// counter, plus a space to visually separate it from any
-				// subsequent token.
-				indicator += Integer.toString(supplementaryCounter) + " ";
-			}
-			// Keep using Ⓩ (circled Z) if we're looking back more than 26
-			// tokens for problems.
-			if (nextLetterOffset < circledLetters.length())
-			{
-				letterOffset = nextLetterOffset;
-			}
-			else
-			{
-				// Start using Ⓩ (circled Z) followed by an increasing
-				// numeric value.
-				supplementaryCounter++;
-			}
-			final List<Describer> describers = new ArrayList<>();
-			for (final List<Describer> eachDescriberList : innerMap.values())
-			{
-				describers.addAll(eachDescriberList);
-			}
-			groupedProblems.add(
-				new ProblemsAtPosition(
-					sourcePosition,
-					longestToken.lineNumber(),
-					longestToken.string(),
-					indicator,
-					describers));
-		}
-		assert !groupedProblems.isEmpty();
-		reportError(groupedProblems, headerMessagePattern, afterFail);
+
+		};
+		writeAnotherThen.value().value();
 	}
 
 	/**
 	 * Report one specific terminal problem and call the failure continuation to
 	 * abort compilation.
 	 *
-	 * @param token
-	 *        The token at which to report this problem.
+	 * @param lexingState
+	 *        The position at which to report the problem.
 	 * @param headerMessagePattern
 	 *        The problem header pattern, where the first pattern argument is
 	 *        the indicator string (e.g., circled-A), and the second pattern
@@ -339,21 +406,154 @@ public class CompilerDiagnostics
 	 *        What to do after displaying the error message.
 	 */
 	public synchronized void reportError (
+		final LexingState lexingState,
+		final String headerMessagePattern,
+		final String message,
+		final Continuation0 failure)
+	{
+		final int startPosition = lexingState.position;
+		expectations.clear();
+		expectationsIndexHeap.clear();
+		final Map<LexingState, List<Describer>> innerMap = new HashMap<>();
+		innerMap.put(
+			lexingState,
+			Collections.<Describer>singletonList(new SimpleDescriber(message)));
+		expectations.put(startPosition, innerMap);
+		expectationsIndexHeap.add(startPosition);
+		reportError(headerMessagePattern, failure);
+	}
+
+	/**
+	 * Report one specific terminal problem and call the failure continuation to
+	 * abort compilation.
+	 *
+	 * @param token
+	 *        The token at which to report the problem.
+	 * @param headerMessagePattern
+	 *        The problem header pattern, where the first pattern argument is
+	 *        the indicator string (e.g., circled-A), and the second pattern
+	 *        argument is the line number.
+	 * @param message
+	 *        The message text for this problem.
+	 * @param failure
+	 *        What to do after displaying the error message.
+	 */
+	public void reportError (
 		final A_Token token,
 		final String headerMessagePattern,
 		final String message,
 		final Continuation0 failure)
 	{
-		final int startPosition = token.start();
-		expectations.clear();
-		expectationsIndexHeap.clear();
-		final Map<A_Token, List<Describer>> innerMap = new HashMap<>();
-		innerMap.put(
-			token,
-			Collections.<Describer>singletonList(new SimpleDescriber(message)));
-		expectations.put(startPosition, innerMap);
-		expectationsIndexHeap.add(startPosition);
-		reportError(headerMessagePattern, failure);
+		final LexingState after = token.nextLexingState();
+		reportError(
+			new LexingState(
+				after.compilationContext,
+				token.start(),
+				token.lineNumber()),
+			headerMessagePattern,
+			message,
+			failure);
+	}
+
+	/**
+	 * Search for a particular code point in the Avail string, starting at the
+	 * given index and working foreward.
+	 *
+	 * @param string
+	 *        The string in which to search.
+	 * @param codePoint
+	 *        The code point to search for.
+	 * @param startIndex
+	 *        The position at which to start scanning.
+	 * @param endIndex
+	 *        The position at which to stop scanning, which should be &ge; the
+	 *        startIndex for a non-empty range.
+	 * @return
+	 *         The first encountered index of the code point when scanning
+	 *         backward from the given initial index.  If the code point is not
+	 *         found, answer 0.
+	 */
+	static int firstIndexOf (
+		final A_String string,
+		final int codePoint,
+		final int startIndex,
+		final int endIndex)
+	{
+		for (int i = startIndex; i <= endIndex; i++)
+		{
+			if (string.tupleCodePointAt(i) == codePoint)
+			{
+				return i;
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * Search for a particular code point in the Avail string, starting at the
+	 * given one-based index and working backward.
+	 *
+	 * @param string
+	 *        The string in which to search.
+	 * @param codePoint
+	 *        The code point to search for.
+	 * @param startIndex
+	 *        The position at which to start scanning backward.
+	 * @param endIndex
+	 *        The position at which to stop scanning; should be &le; the
+	 *        startIndex for a non-empty range.
+	 * @return
+	 *         The first encountered index of the code point when scanning
+	 *         backward from the given initial index.  If the code point is not
+	 *         found, answer 0.
+	 */
+	static int lastIndexOf (
+		final A_String string,
+		final int codePoint,
+		final int startIndex,
+		final int endIndex)
+	{
+		for (int i = startIndex; i >= endIndex; i--)
+		{
+			if (string.tupleCodePointAt(i) == codePoint)
+			{
+				return i;
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * Search for a particular code point in the given range of the Avail
+	 * string, answering how many occurrences were found.
+	 *
+	 * @param string
+	 *        The string in which to search.
+	 * @param codePoint
+	 *        The code point to search for.
+	 * @param startIndex
+	 *        The position at which to start scanning.
+	 * @param endIndex
+	 *        The position at which to stop scanning.
+	 * @return
+	 *         The number of occurrences of the codePoint in the specified range
+	 *         of the {@link A_String}.
+	 */
+	static int occurrencesInRange (
+		final A_String string,
+		final int codePoint,
+		final int startIndex,
+		final int endIndex)
+	{
+		int count = 0;
+		for (int i = startIndex; i <= endIndex; i++)
+		{
+			if (string.tupleCodePointAt(i) == codePoint)
+			{
+				count++;
+			}
+		}
+		return count;
 	}
 
 	/**
@@ -389,50 +589,49 @@ public class CompilerDiagnostics
 		// Figure out where to start showing the file content.  Never show the
 		// content before the line on which startOfStatement resides.
 		final int startOfFirstLine =
-			source.lastIndexOf('\n', startOfStatement - 1) + 1;
+			lastIndexOf(source, '\n', startOfStatement, 1) + 1;
 		final int initialLineNumber =
-			source.substring(0, startOfFirstLine).split("\n").length;
+			occurrencesInRange(source, '\n', 1, startOfFirstLine);
 		// Now figure out the last line to show, which if possible should be the
 		// line after the *end* of the last problem token.
 		final ProblemsAtPosition lastProblem =
 			ascending.get(ascending.size() - 1);
-		final int finalLineNumber = lastProblem.lineNumber;
-		int startOfNextLine =
-			source.lastIndexOf('\n', lastProblem.tokenStart - 1) + 1;
-		// Eat 1 + the number of embedded line breaks.
-		int lineBreaksToEat =
-			lastProblem.tokenString.asNativeString().split("\n").length;
-		while (lineBreaksToEat-- > 0)
-		{
-			startOfNextLine = source.indexOf('\n', startOfNextLine) + 1;
-			startOfNextLine = (startOfNextLine != 0)
-				? startOfNextLine
-				: source.length();
-		}
-		int startOfSecondNextLine = source.indexOf('\n', startOfNextLine) + 1;
-		startOfSecondNextLine = (startOfSecondNextLine != 0)
+		final int finalLineNumber = lastProblem.lexingState.lineNumber;
+		int startOfNextLine = 1 + firstIndexOf(
+			source,
+			'\n',
+			lastProblem.lexingStateAfterToken.position,
+			source.tupleSize());
+		int startOfSecondNextLine = 1 + firstIndexOf(
+			source, '\n', startOfNextLine, source.tupleSize());
+		startOfSecondNextLine = startOfSecondNextLine != 1
 			? startOfSecondNextLine
-			: source.length();
+			: source.tupleSize() + 1;
 
 		// Insert the problem location indicators...
 		int sourcePosition = startOfFirstLine + 1;
-		final StringBuilder unnumbered = new StringBuilder();
+		final List<A_Tuple> parts = new ArrayList<>(10);
 		for (final ProblemsAtPosition eachProblem : ascending)
 		{
-			final int newPosition = eachProblem.tokenStart;
-			unnumbered.append(
-				source,
-				sourcePosition - 1,
-				newPosition - 1);
-			unnumbered.append(eachProblem.indicator);
+			final int newPosition = eachProblem.lexingState.position;
+			parts.add(
+				source.copyTupleFromToCanDestroy(
+					sourcePosition, newPosition - 1, false));
+			parts.add(StringDescriptor.from(eachProblem.indicator));
 			sourcePosition = newPosition;
 		}
-		unnumbered.append(source, sourcePosition - 1, startOfSecondNextLine);
+		parts.add(
+			source.copyTupleFromToCanDestroy(
+				sourcePosition, startOfSecondNextLine - 1, false));
 		// Ensure the last character is a newline.
-		if (unnumbered.length() == 0 ||
-			unnumbered.codePointBefore(unnumbered.length()) != '\n')
+		A_Tuple unnumbered =
+			TupleDescriptor.fromList(parts).concatenateTuplesCanDestroy(true);
+		if (unnumbered.tupleSize() == 0
+			|| unnumbered.tupleCodePointAt(unnumbered.tupleSize()) != '\n')
 		{
-			unnumbered.append('\n');
+			unnumbered = unnumbered.appendCanDestroy(
+				CharacterDescriptor.fromCodePoint('\n'),
+				true);
 		}
 
 		// Insert line numbers...
@@ -473,12 +672,12 @@ public class CompilerDiagnostics
 						text.format(
 							"%n(file=\"%s\", line=%d)",
 							moduleName.qualifiedName(),
-							lastProblem.lineNumber);
+							lastProblem.lexingState.lineNumber);
 						text.format("%n>>>%s", rowOfDashes);
 						handleProblem(new Problem(
 							moduleName,
-							lastProblem.lineNumber,
-							lastProblem.tokenStart,
+							lastProblem.lexingState.lineNumber,
+							lastProblem.lexingState.position,
 							PARSE,
 							"{0}",
 							text.toString())
@@ -499,7 +698,7 @@ public class CompilerDiagnostics
 					text.format(
 						"%n>>> " + headerMessagePattern,
 						newGroup.indicator,
-						newGroup.lineNumber);
+						newGroup.lexingState.lineNumber);
 					problemIterator.value = newGroup.describers.iterator();
 					alreadySeen.clear();
 					assert problemIterator.value.hasNext();

@@ -39,7 +39,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.compiler.ParserState;
+import com.avail.descriptor.TokenDescriptor.IntegerSlots;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -61,21 +62,26 @@ extends TokenDescriptor
 	implements IntegerSlotsEnum
 	{
 		/**
-		 * {@link BitField}s for the token type code and the starting byte
-		 * position.
+		 * {@link BitField}s for the token type code, the starting byte
+		 * position, and the line number.
 		 */
-		TOKEN_TYPE_AND_START,
-
-		/** {@link BitField}s for the line number and token index. */
-		LINE_AND_TOKEN_INDEX;
+		TOKEN_TYPE_AND_START_AND_LINE;
 
 		/**
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
-		 * indicates what basic kind of token this is.
+		 * indicates what basic kind of token this is.  Currently four bits are
+		 * reserved for this purpose.
 		 */
-		@EnumField(describedBy=TokenType.class)
+		@EnumField(describedBy = TokenType.class)
 		final static BitField TOKEN_TYPE_CODE =
-			bitField(TOKEN_TYPE_AND_START, 0, 32);
+			bitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4);
+
+		/**
+		 * The line number in the source file. Currently signed 28 bits, which
+		 * should be plenty.
+		 */
+		final static BitField LINE_NUMBER =
+			bitField(TOKEN_TYPE_AND_START_AND_LINE, 4, 28);
 
 		/**
 		 * The starting position in the source file. Currently signed 32 bits,
@@ -84,36 +90,19 @@ extends TokenDescriptor
 		 * syntax.
 		 */
 		final static BitField START =
-			bitField(TOKEN_TYPE_AND_START, 32, 32);
-
-		/**
-		 * The line number in the source file. Currently signed 32 bits, which
-		 * should be plenty.
-		 */
-		final static BitField LINE_NUMBER =
-			bitField(LINE_AND_TOKEN_INDEX, 0, 32);
-
-		/**
-		 * The zero-based token number within the source file's tokenization.
-		 * Currently signed 32 bits, which should be plenty.
-		 */
-		final static BitField TOKEN_INDEX =
-			bitField(LINE_AND_TOKEN_INDEX, 32, 32);
+			bitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
 
 		static
 		{
-			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_AND_START.ordinal()
-				== TOKEN_TYPE_AND_START.ordinal();
-			assert TokenDescriptor.IntegerSlots.LINE_AND_TOKEN_INDEX.ordinal()
-				== LINE_AND_TOKEN_INDEX.ordinal();
+			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_AND_START_AND_LINE
+					.ordinal()
+				== TOKEN_TYPE_AND_START_AND_LINE.ordinal();
 			assert TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE.isSamePlaceAs(
 				TOKEN_TYPE_CODE);
 			assert TokenDescriptor.IntegerSlots.START.isSamePlaceAs(
 				START);
 			assert TokenDescriptor.IntegerSlots.LINE_NUMBER.isSamePlaceAs(
 				LINE_NUMBER);
-			assert TokenDescriptor.IntegerSlots.TOKEN_INDEX.isSamePlaceAs(
-				TOKEN_INDEX);
 		}
 	}
 
@@ -145,10 +134,15 @@ extends TokenDescriptor
 		@HideFieldInDebugger
 		TRAILING_WHITESPACE,
 
+		/** The actual {@link AvailObject} wrapped by this token. */
+		LITERAL,
+
 		/**
-		 * The actual {@link AvailObject} wrapped by this token.
+		 * A {@link RawPojoDescriptor raw pojo} holding the {@link ParserState}
+		 * after this token.  This field is cleared after the top-level
+		 * statement containing it has been parsed.
 		 */
-		LITERAL;
+		NEXT_PARSER_STATE_POJO;
 
 		static
 		{
@@ -160,6 +154,8 @@ extends TokenDescriptor
 				== LEADING_WHITESPACE.ordinal();
 			assert TokenDescriptor.ObjectSlots.TRAILING_WHITESPACE.ordinal()
 				== TRAILING_WHITESPACE.ordinal();
+			assert TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal()
+				== NEXT_PARSER_STATE_POJO.ordinal();
 		}
 	}
 
@@ -260,9 +256,6 @@ extends TokenDescriptor
 	 *        The token's starting character position in the file.
 	 * @param lineNumber
 	 *        The line number on which the token occurred.
-	 * @param tokenIndex
-	 *        The zero-based token number within the source file.  -1 for
-	 *        synthetic tokens.
 	 * @param tokenType
 	 *        The type of token to create.
 	 * @param literal The literal value.
@@ -274,7 +267,6 @@ extends TokenDescriptor
 		final A_String trailingWhitespace,
 		final int start,
 		final int lineNumber,
-		final int tokenIndex,
 		final TokenType tokenType,
 		final A_BasicObject literal)
 	{
@@ -285,9 +277,9 @@ extends TokenDescriptor
 		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
-		instance.setSlot(TOKEN_INDEX, tokenIndex);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
 		instance.setSlot(LITERAL, literal);
+		instance.setSlot(NEXT_PARSER_STATE_POJO, NilDescriptor.nil());
 		return instance;
 	}
 

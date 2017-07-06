@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
 import static com.avail.descriptor.TypeDescriptor.Types.*;

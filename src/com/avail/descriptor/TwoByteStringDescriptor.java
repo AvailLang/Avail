@@ -321,10 +321,11 @@ extends StringDescriptor
 			index, newValueObject, true);
 	}
 
-	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
+	@Override
+	int o_TupleCodePointAt (final AvailObject object, final int index)
 	{
-		throw unsupportedOperationException();
+		assert index >= 1 && index <= object.tupleSize();
+		return object.shortSlot(RAW_LONGS_, index);
 	}
 
 	@Override @AvailMethod
@@ -336,7 +337,7 @@ extends StringDescriptor
 			return super.o_TupleReverse(object);
 		}
 
-		// It's not empty, it's not a total copy, and it's reasonably small.
+		// It's reasonably small, so just copy the characters.
 		// Just copy the applicable two-byte characters in reverse.
 		return generateTwoByteString(
 			size,

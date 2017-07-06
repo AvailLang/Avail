@@ -1,5 +1,5 @@
 /**
- * P_BootstrapConstantDeclarationMacro.java
+ * P_BootstrapSendAsStatementMacro.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,37 +30,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
-
-import com.avail.compiler.AvailCompiler;
+import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.*;
 
 /**
- * The {@code P_BootstrapConstantDeclarationMacro} primitive is used for
- * bootstrapping declaration of a {@link ParseNodeKind#LOCAL_CONSTANT_NODE local
- * constant declaration}.  Constant declarations that occur at the outermost
- * scope are rewritten by the {@link AvailCompiler} as a {@link ParseNodeKind
- * #MODULE_CONSTANT_NODE}.
+ * The {@code P_BootstrapSendAsStatementMacro} primitive is used to allow
+ * message sends producing ⊤ to be used as statements, by wrapping them inside
+ * {@linkplain ExpressionAsStatementNodeDescriptor expression-as-statement
+ * phrases}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapConstantDeclarationMacro extends Primitive
+public final class P_BootstrapSendAsStatementMacro
+extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_BootstrapConstantDeclarationMacro().init(
-			2, CannotFail, Bootstrap);
+		new P_BootstrapSendAsStatementMacro().init(
+			1, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -68,42 +65,32 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Phrase constantNameLiteral = args.get(0);
-		final A_Phrase initializationExpression = args.get(1);
+		assert args.size() == 1;
+		final A_Phrase sendPhraseInLiteral = args.get(0);
 
-		final A_Token nameToken = constantNameLiteral.token().literal();
-		final A_String nameString = nameToken.string();
-		if (nameToken.tokenType() != KEYWORD)
+		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		final A_Phrase sendPhrase = sendPhraseInLiteral.token().literal();
+		if (!sendPhrase.parseNodeKindIsUnder(SEND_NODE))
 		{
 			throw new AvailRejectedParseException(
-				"new constant name to be alphanumeric, not %s",
-				nameString);
+				"statement to be a ⊤-valued send node, not a %s: %s",
+				sendPhrase.parseNodeKind().name(),
+				sendPhrase);
 		}
-		final A_Type initializationType =
-			initializationExpression.expressionType();
-		if (initializationType.isTop() || initializationType.isBottom())
+		if (!sendPhrase.expressionType().isTop())
 		{
 			throw new AvailRejectedParseException(
-				"constant initialization expression to have a type other "
-				+ "than %s",
-				initializationType);
+				"statement's type to be ⊤, but it was %s.  Expression is: %s",
+				sendPhrase.expressionType(),
+				sendPhrase);
 		}
-		final A_Phrase constantDeclaration =
-			DeclarationNodeDescriptor.newConstant(
-				nameToken, initializationExpression);
-		final A_Phrase conflictingDeclaration =
-			FiberDescriptor.addDeclaration(constantDeclaration);
-		if (conflictingDeclaration != null)
-		{
-			throw new AvailRejectedParseException(
-				"local constant %s to have a name that doesn't shadow an "
-				+ "existing %s (from line %d)",
-				nameString,
-				conflictingDeclaration.declarationKind().nativeKindName(),
-				conflictingDeclaration.token().lineNumber());
-		}
-		return interpreter.primitiveSuccess(constantDeclaration);
+		final A_Phrase sendAsStatement =
+			ExpressionAsStatementNodeDescriptor.fromExpression(sendPhrase);
+		return interpreter.primitiveSuccess(sendAsStatement);
 	}
 
 	@Override
@@ -111,10 +98,16 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* Constant name token as a literal node */
-				LITERAL_NODE.create(TOKEN.o()),
-				/* Initialization expression */
-				EXPRESSION_NODE.create(ANY.o())),
-			LOCAL_CONSTANT_NODE.mostGeneralType());
+				/* The send node to treat as a statement */
+				LITERAL_NODE.create(SEND_NODE.mostGeneralType())),
+			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
+	}
+
+	@Override
+	protected A_Type privateFailureVariableType ()
+	{
+		return AbstractEnumerationTypeDescriptor.withInstances(
+			SetDescriptor.from(
+				E_LOADING_IS_OVER));
 	}
 }

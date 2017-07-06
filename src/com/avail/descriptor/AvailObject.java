@@ -36,6 +36,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
 import com.avail.compiler.*;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
@@ -7314,4 +7315,28 @@ implements
 		return descriptor.o_GlobalName(this);
 	}
 
+
+	@Override
+	public void clearLexingState ()
+	{
+		descriptor.o_ClearNextLexingState(this);
+	}
+
+	@Override
+	public void nextLexingState (final LexingState lexingState)
+	{
+		descriptor.o_NextLexingState(this, lexingState);
+	}
+
+	@Override
+	public LexingState nextLexingState ()
+	{
+		return descriptor.o_NextLexingState(this);
+	}
+
+	@Override
+	public int tupleCodePointAt (final int index)
+	{
+		return descriptor.o_TupleCodePointAt(this, index);
+	}
 }

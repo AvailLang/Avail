@@ -59,8 +59,7 @@ public final class P_CharacterCodePoint extends Primitive
 		assert args.size() == 1;
 		final A_Character character = args.get(0);
 		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(
-				character.codePoint()));
+			IntegerDescriptor.fromInt(character.codePoint()));
 	}
 
 	@Override

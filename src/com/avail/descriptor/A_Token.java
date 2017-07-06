@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.compiler.scanning.AvailScanner;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 
 
@@ -48,11 +49,9 @@ public interface A_Token
 extends A_BasicObject
 {
 	/**
-	 * Answer the {@linkplain TokenType} of this token.
-	 *
-	 * @return A TokenType.
+	 * Clear the next lexing state to {@link NilDescriptor#nil()}.
 	 */
-	TokenType tokenType ();
+	void clearLexingState ();
 
 	/**
 	 * Answer whether this token is a {@linkplain LiteralTokenDescriptor literal
@@ -63,6 +62,63 @@ extends A_BasicObject
 	boolean isLiteralToken ();
 
 	/**
+	 * Answer this token's exact leading whitespace as it appeared in the source
+	 * code.
+	 *
+	 * @return The token's leading whitespace.
+	 */
+	A_String leadingWhitespace ();
+
+	/**
+	 * The line number of this token in the source file.
+	 *
+	 * @return the token's line number.
+	 */
+	int lineNumber ();
+
+	/**
+	 * Extract the literal value from this token.  It must be a literal token.
+	 *
+	 * @return The value of the literal token.
+	 */
+	AvailObject literal ();
+
+	/**
+	 * Answer this token's string representation converted to lower case.
+	 *
+	 * @return The token's lowercase representation.
+	 */
+	A_String lowerCaseString ();
+
+	/**
+	 * Answer this token's module of origin.
+	 *
+	 * @return The module this token appears in
+	 */
+	A_String moduleName ();
+
+	/**
+	 * Answer the {@link LexingState} that follows this token.
+	 *
+	 * @return The next {@link LexingState}.
+	 */
+	LexingState nextLexingState ();
+
+	/**
+	 * Set this token's next {@link LexingState}.
+	 *
+	 * @param lexingState The lexing state after this token.
+	 */
+	void nextLexingState (final LexingState lexingState);
+
+	/**
+	 * Answer this token's initial character position in the source file.
+	 *
+	 * @return The token's source position.
+	 */
+	int start ();
+
+	/**
 	 * Answer this token's exact string representation as it appeared in the
 	 * source code.
 	 *
@@ -71,12 +127,19 @@ extends A_BasicObject
 	A_String string ();
 
 	/**
-	 * Answer this token's exact leading whitespace as it appeared in the source
-	 * code.
+	 * Answer the zero-based index of this token within the list of this
+	 * module's tokenized source.
 	 *
-	 * @return The token's leading whitespace.
+	 * @return The zero-based subscript of this token.
 	 */
-	A_String leadingWhitespace ();
+	int tokenIndex ();
+
+	/**
+	 * Answer the {@linkplain TokenType} of this token.
+	 *
+	 * @return A TokenType.
+	 */
+	TokenType tokenType ();
 
 	/**
 	 * Answer this token's exact trailing whitespace as it appeared in the
@@ -94,47 +157,4 @@ extends A_BasicObject
 	 * @param trailingWhitespace A string.
 	 */
 	void trailingWhitespace (A_String trailingWhitespace);
-
-	/**
-	 * Answer this token's string representation converted to lower case.
-	 *
-	 * @return The token's lowercase representation.
-	 */
-	A_String lowerCaseString();
-
-	/**
-	 * Answer this token's initial character position in the source file.
-	 *
-	 * @return The token's source position.
-	 */
-	int start ();
-
-	/**
-	 * The line number of this token in the source file.
-	 *
-	 * @return the token's line number.
-	 */
-	int lineNumber ();
-
-	/**
-	 * Extract the literal value from this token.  It must be a literal token.
-	 *
-	 * @return The value of the literal token.
-	 */
-	AvailObject literal ();
-
-	/**
-	 * Answer this token's module of origin.
-	 *
-	 * @return The module this token appears in
-	 */
-	A_String moduleName ();
-
-	/**
-	 * Answer the zero-based index of this token within the list of this
-	 * module's tokenized source.
-	 *
-	 * @return The zero-based subscript of this token.
-	 */
-	int tokenIndex ();
 }

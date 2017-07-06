@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -447,8 +448,14 @@ extends Descriptor
 		final A_Set names = pair.tupleAt(1);
 		final A_Set baseTypes = pair.tupleAt(2);
 		builder.append("a/an ");
-		boolean first = true;
+		final List<String> sortedNames = new ArrayList<>(names.setSize());
 		for (final A_String name : names)
+		{
+			sortedNames.add(name.asNativeString());
+		}
+		Collections.sort(sortedNames);
+		boolean first = true;
+		for (final String name : sortedNames)
 		{
 			if (!first)
 			{
@@ -458,24 +465,24 @@ extends Descriptor
 			{
 				first = false;
 			}
-			builder.append(name.asNativeString());
+			builder.append(name);
 		}
 		if (first)
 		{
 			builder.append("object");
 		}
+		final A_Atom explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom;
 		A_Set ignoreKeys = SetDescriptor.empty();
 		for (final A_Type baseType : baseTypes)
 		{
 			final A_Map fieldTypes = baseType.fieldTypeMap();
 			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
 			{
-				if (InstanceTypeDescriptor.on(entry.key()).equals(
-					entry.value()))
+				if (!entry.key().getAtomProperty(explicitSubclassingKey)
+					.equalsNil())
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
-						entry.key(),
-						true);
+						entry.key(), true);
 				}
 			}
 		}
@@ -497,9 +504,7 @@ extends Descriptor
 				builder.append(entry.key().atomName().asNativeString());
 				builder.append(" = ");
 				entry.value().printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 1);
+					builder, recursionMap, indent + 1);
 			}
 		}
 	}

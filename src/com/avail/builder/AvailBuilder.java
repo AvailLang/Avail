@@ -32,6 +32,7 @@
 
 package com.avail.builder;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static java.nio.file.FileVisitResult.*;
 import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.FiberDescriptor.*;
@@ -889,11 +890,13 @@ public final class AvailBuilder
 					{
 						assert compiler != null;
 						compiler.parseModuleHeader(
-							new Continuation1<ModuleHeader>()
+							true,
+							new Continuation2<ModuleHeader, ParserState>()
 							{
 								@Override
 								public void value (
-									final @Nullable ModuleHeader header)
+									final @Nullable ModuleHeader header,
+									final ParserState afterHeader)
 								{
 									assert header != null;
 									final List<String> importNames =
@@ -906,9 +909,7 @@ public final class AvailBuilder
 											importNames,
 											entryPoints);
 									serialize(header, newVersion);
-									archive.putVersion(
-										versionKey,
-										newVersion);
+									archive.putVersion(versionKey, newVersion);
 									action.value(resolvedName, newVersion);
 									indicateTraceCompleted();
 								}
@@ -1426,13 +1427,16 @@ public final class AvailBuilder
 					{
 						assert compiler != null;
 						compiler.parseModuleHeader(
-							new Continuation1<ModuleHeader>()
+							true,
+							new Continuation2<ModuleHeader, ParserState>()
 							{
 								@Override
 								public void value (
-									final @Nullable ModuleHeader header)
+									final @Nullable ModuleHeader header,
+									final @Nullable ParserState afterHeader)
 								{
 									assert header != null;
+									assert afterHeader != null;
 									final List<String> importNames =
 										header.importedModuleNames();
 									final List<String> entryPoints =
@@ -2116,13 +2120,13 @@ public final class AvailBuilder
 					{
 						assert compiler != null;
 						compiler.parseModule(
-							new Continuation1<AvailCompilerResult>()
+							new Continuation1<A_Module>()
 							{
 								@Override
 								public void value (
-									final @Nullable AvailCompilerResult result)
+									final @Nullable A_Module module)
 								{
-									assert result != null;
+									assert module != null;
 									final ByteArrayOutputStream stream =
 										compiler.compilationContext
 											.serializerOutputStream;
@@ -2161,7 +2165,7 @@ public final class AvailBuilder
 										new LoadedModule(
 											moduleName,
 											versionKey.sourceDigest,
-											result.module(),
+											module,
 											version,
 											compilation));
 									completionAction.value();
@@ -3307,34 +3311,6 @@ public final class AvailBuilder
 			return;
 		}
 
-		final AvailScannerResult scanResult;
-		try
-		{
-			scanResult = AvailScanner.scanString(
-				command,
-				"synthetic module for commands",
-				false);
-		}
-		catch (final AvailScannerException e)
-		{
-			final Problem problem = new Problem(
-				null,
-				e.failureLineNumber(),
-				e.failurePosition(),
-				PARSE,
-				"Scanner error: {0}",
-				e.getMessage())
-			{
-				@Override
-				public void abortCompilation ()
-				{
-					onFailure.value();
-				}
-			};
-			commandProblemHandler.handle(problem);
-			return;
-		}
-
 		final Map<LoadedModule, List<A_Phrase>> allSolutions = new HashMap<>();
 		final List<Continuation1<Continuation0>> allCleanups =
 			new ArrayList<>();
@@ -3377,8 +3353,9 @@ public final class AvailBuilder
 			}
 			final AvailCompiler compiler = new AvailCompiler(
 				header,
+				false,
 				module,
-				scanResult,
+				StringDescriptor.from(command),
 				textInterface,
 				pollForAbort,
 				new CompilerProgressReporter()
@@ -3696,7 +3673,7 @@ public final class AvailBuilder
 						});
 					A_Map fiberGlobals = fiber.fiberGlobals();
 					fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-						AtomDescriptor.clientDataGlobalKey(),
+						CLIENT_DATA_GLOBAL_KEY.atom,
 						MapDescriptor.empty(),
 						true);
 					fiber.fiberGlobals(fiberGlobals);

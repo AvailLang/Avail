@@ -37,7 +37,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.*;
@@ -137,7 +137,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		writer.write(L1Operation.L1_doMakeTuple, 1);
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.APPLY.bundle),
+			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(BottomTypeDescriptor.bottom()));
 		final A_Function innerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),
@@ -169,7 +169,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		writer.write(L1Operation.L1_doMakeTuple, 4);
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.APPLY.bundle),
+			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(pojoType));
 		final A_Function outerFunction = FunctionDescriptor.create(
 			writer.compiledCode(),

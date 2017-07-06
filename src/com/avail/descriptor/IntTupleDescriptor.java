@@ -56,7 +56,7 @@ import static java.lang.Math.min;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class IntTupleDescriptor
-extends TupleDescriptor
+extends NumericTupleDescriptor
 {
 	/**
 	 * The layout of integer slots for my instances.

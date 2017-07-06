@@ -979,7 +979,7 @@ extends Descriptor
 	 * @param literals A tuple of literals.
 	 * @param localTypes A tuple of types of local variables.
 	 * @param outerTypes A tuple of types of outer (captured) variables.
-	 * @param module The module in which the code, or nil.
+	 * @param module The module in which the code occurs, or nil.
 	 * @param lineNumber The module line number on which this code starts.
 	 * @return The new compiled code object.
 	 */

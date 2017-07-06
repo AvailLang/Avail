@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.sockets;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -74,7 +75,7 @@ extends Primitive
 			final AsynchronousServerSocketChannel channel =
 				AvailRuntime.current().openServerSocket();
 			final AvailObject pojo = RawPojoDescriptor.identityWrap(channel);
-			handle.setAtomProperty(AtomDescriptor.serverSocketKey(), pojo);
+			handle.setAtomProperty(SERVER_SOCKET_KEY.atom, pojo);
 			return interpreter.primitiveSuccess(handle);
 		}
 		catch (final IOException e)

@@ -34,6 +34,10 @@ package com.avail.interpreter.effects;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;

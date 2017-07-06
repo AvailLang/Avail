@@ -369,7 +369,7 @@ enum SerializerOperandEncoding
 			writeCompressedPositiveInt(tupleSize, serializer);
 			for (int i = 1; i <= tupleSize; i++)
 			{
-				serializer.writeByte(object.tupleAt(i).codePoint());
+				serializer.writeByte(object.tupleCodePointAt(i));
 			}
 		}
 
@@ -415,7 +415,7 @@ enum SerializerOperandEncoding
 			for (int i = 1; i <= tupleSize; i++)
 			{
 				writeCompressedPositiveInt(
-					object.tupleAt(i).codePoint(),
+					object.tupleCodePointAt(i),
 					serializer);
 			}
 		}
@@ -462,7 +462,7 @@ enum SerializerOperandEncoding
 			for (int i = 1; i <= tupleSize; i++)
 			{
 				writeCompressedPositiveInt(
-					object.tupleAt(i).codePoint(),
+					object.tupleCodePointAt(i),
 					serializer);
 			}
 		}

@@ -1,5 +1,5 @@
 /**
- * P_BootstrapPrefixBlockArgument.java
+ * P_BootstrapPrefixPostStatement.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,36 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import java.util.Arrays;
-import java.util.List;
+import static com.avail.interpreter.Primitive.Flag.*;
+import java.util.*;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
+import com.avail.interpreter.*;
 
 /**
- * The {@code P_BootstrapPrefixBlockArgument} primitive is used as a prefix
- * function for bootstrapping argument declarations within a {@link
- * P_BootstrapBlockMacro block}.
+ * The {@code P_BootstrapPrefixPostStatement} primitive is used for
+ * ensuring that statements are top-valued before over-parsing.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapPrefixBlockArgument extends Primitive
+public final class P_BootstrapPrefixPostStatement extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_BootstrapPrefixBlockArgument().init(
-			1, Bootstrap);
+		new P_BootstrapPrefixPostStatement().init(
+			4, Unknown, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -67,8 +62,11 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_Phrase optionalBlockArgumentsList = args.get(0);
+		assert args.size() == 4;
+//		final A_Phrase blockArgumentsPhrase = args.get(0);
+//		final A_Phrase optionalPrimFailurePhrase = args.get(1);
+//		final A_Phrase optionalLabelPhrase = args.get(2);
+		final A_Phrase statementsPhrase = args.get(3);
 
 		final AvailLoader loader = interpreter.fiber().availLoader();
 		if (loader == null)
@@ -76,51 +74,19 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
 
-		assert optionalBlockArgumentsList.expressionsSize() == 1;
-		final A_Phrase blockArgumentsList =
-			optionalBlockArgumentsList.expressionAt(1);
-		assert blockArgumentsList.expressionsSize() >= 1;
-		final A_Phrase lastPair = blockArgumentsList.expressionAt(
-			blockArgumentsList.expressionsSize());
-		assert lastPair.expressionsSize() == 2;
-		final A_Phrase namePhrase = lastPair.expressionAt(1);
-		final A_Phrase typePhrase = lastPair.expressionAt(2);
-
-		assert namePhrase.isInstanceOfKind(LITERAL_NODE.create(TOKEN.o()));
-		assert typePhrase.isInstanceOfKind(
-			LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()));
-		final A_Token outerArgToken = namePhrase.token();
-		final A_Token argToken = outerArgToken.literal();
-		final A_String argName = argToken.string();
-
-		if (argToken.tokenType() != TokenType.KEYWORD)
+		// At this point the statements so far are a list node – not a sequence.
+		final int statementCountSoFar = statementsPhrase.expressionsSize();
+		// The section marker is inside the repetition, so this primitive could
+		// only be invoked if there is at least one statement.
+		assert statementCountSoFar > 0;
+		final A_Phrase latestStatementLiteral =
+			statementsPhrase.expressionAt(statementCountSoFar);
+		final A_Phrase latestStatement =
+			latestStatementLiteral.token().literal();
+		if (!latestStatement.expressionType().equals(TOP.o()))
 		{
 			throw new AvailRejectedParseException(
-				"argument name to be alphanumeric, not %s",
-				argName);
-		}
-		final A_Type argType = typePhrase.token().literal();
-		assert argType.isType();
-		if (argType.isBottom())
-		{
-			throw new AvailRejectedParseException(
-				"block parameter type not to be ⊥");
-		}
-
-		final A_Phrase argDeclaration =
-			DeclarationNodeDescriptor.newArgument(
-				argToken, argType, typePhrase);
-		// Add the binding and we're done.
-		final A_Phrase conflictingDeclaration =
-			FiberDescriptor.addDeclaration(argDeclaration);
-		if (conflictingDeclaration != null)
-		{
-			throw new AvailRejectedParseException(
-				"block argument declaration %s to have a name that doesn't "
-				+ "shadow an existing %s (from line %d)",
-				argName,
-				conflictingDeclaration.declarationKind().nativeKindName(),
-				conflictingDeclaration.token().lineNumber());
+				"statement to have type ⊤");
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
@@ -141,15 +107,44 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 								/* Argument name, a token. */
 								TOKEN.o(),
 								/* Argument type. */
-								InstanceMetaDescriptor.anyMeta()))))),
+								InstanceMetaDescriptor.anyMeta())))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional primitive declaration. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Primitive declaration */
+						TupleTypeDescriptor.forTypes(
+							/* Primitive name. */
+							TOKEN.o(),
+							/* Optional failure variable declaration. */
+							TupleTypeDescriptor.zeroOrOneOf(
+								/* Primitive failure variable parts. */
+								TupleTypeDescriptor.forTypes(
+									/* Primitive failure variable name token */
+									TOKEN.o(),
+									/* Primitive failure variable type */
+									InstanceMetaDescriptor.anyMeta()))))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional label declaration. */
+					TupleTypeDescriptor.zeroOrOneOf(
+						/* Label parts. */
+						TupleTypeDescriptor.forTypes(
+							/* Label name */
+							TOKEN.o(),
+							/* Optional label return type. */
+							TupleTypeDescriptor.zeroOrOneOf(
+								/* Label return type. */
+								InstanceMetaDescriptor.topMeta())))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Statements and declarations so far. */
+					TupleTypeDescriptor.zeroOrMoreOf(
+						/* The "_!" mechanism wrapped each statement or
+						 * declaration inside a literal phrase, so expect a
+						 * phrase here instead of TOP.o().
+						 */
+						STATEMENT_NODE.mostGeneralType()))),
 			TOP.o());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_LOADING_IS_OVER));
 	}
 }

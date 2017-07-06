@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots.*;
@@ -109,8 +111,14 @@ extends TypeDescriptor
 		final A_Tuple pair = namesAndBaseTypesForType(object);
 		final A_Set names = pair.tupleAt(1);
 		final A_Set baseTypes = pair.tupleAt(2);
-		boolean first = true;
+		final List<String> sortedNames = new ArrayList<>(names.setSize());
 		for (final A_String name : names)
+		{
+			sortedNames.add(name.asNativeString());
+		}
+		Collections.sort(sortedNames);
+		boolean first = true;
+		for (final String name : sortedNames)
 		{
 			if (!first)
 			{
@@ -120,12 +128,13 @@ extends TypeDescriptor
 			{
 				first = false;
 			}
-			builder.append(name.asNativeString());
+			builder.append(name);
 		}
 		if (first)
 		{
 			builder.append("object");
 		}
+		final A_Atom explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom;
 		A_Set ignoreKeys = SetDescriptor.empty();
 		for (final A_Type baseType : baseTypes)
 		{
@@ -134,9 +143,7 @@ extends TypeDescriptor
 			{
 				final A_Atom atom = entry.key();
 				final A_Type type = entry.value();
-				if (type.isEnumeration()
-					&& type.instanceCount().equalsInt(1)
-					&& type.instance().equals(atom))
+				if (!atom.getAtomProperty(explicitSubclassingKey).equalsNil())
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
 						atom, true);
@@ -692,6 +699,12 @@ extends TypeDescriptor
 		writer.endObject();
 	}
 
+	@Override
+	void o_ClearNextLexingState (final AvailObject object)
+	{
+		//TODO JUNK!!!!
+	}
+
 	/**
 	 * Create an {@linkplain ObjectTypeDescriptor object type} using the given
 	 * {@linkplain MapDescriptor map} from {@linkplain AtomDescriptor
@@ -791,7 +804,7 @@ extends TypeDescriptor
 		final boolean allowSpecialAtomsToHoldName)
 	{
 		assert aString.isString();
-		final A_Atom propertyKey = AtomDescriptor.objectTypeNamePropertyKey();
+		final A_Atom propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom;
 		synchronized (propertyKey)
 		{
 			int leastNames = Integer.MAX_VALUE;
@@ -850,7 +863,7 @@ extends TypeDescriptor
 		final A_Type anObjectType)
 	{
 		assert aString.isString();
-		final A_Atom propertyKey = AtomDescriptor.objectTypeNamePropertyKey();
+		final A_Atom propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom;
 		synchronized (propertyKey)
 		{
 			for (final MapDescriptor.Entry entry
@@ -898,7 +911,7 @@ extends TypeDescriptor
 	public static A_Tuple namesAndBaseTypesForType (
 		final A_Type anObjectType)
 	{
-		final A_Atom propertyKey = AtomDescriptor.objectTypeNamePropertyKey();
+		final A_Atom propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom;
 		A_Map applicableTypesAndNames = MapDescriptor.empty();
 		synchronized (propertyKey)
 		{
@@ -1074,7 +1087,7 @@ extends TypeDescriptor
 	static
 	{
 		exceptionAtom.setAtomProperty(
-			AtomDescriptor.explicitSubclassingKey(),
+			EXPLICIT_SUBCLASSING_KEY.atom,
 			AtomDescriptor.trueObject());
 	}
 

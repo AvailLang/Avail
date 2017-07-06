@@ -60,10 +60,11 @@ extends A_BasicObject
 	A_Function lexerFilterFunction ();
 
 	/**
-	 * Answer the function to run (as the base call of a fiber) to generate
-	 * tokens from the source string and position.  The tuples of tokens are
-	 * yielded via {@link P_YieldTokensForLexer}, which takes a non-empty tuple
-	 * of tokens and a position at which to continue parsing.
+	 * Answer the function to run (as the base call of a fiber) to generate some
+	 * tokens from the source string and position.  The function should produce
+	 * a tuple of potential next tokens, which may or may not have additional
+	 * tokens explicitly chained onto them via their {@link
+	 * A_Token#nextLexingState()}.
 	 *
 	 * @return The lexer's body function.
 	 */

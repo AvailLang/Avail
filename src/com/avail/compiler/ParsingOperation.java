@@ -35,7 +35,6 @@ package com.avail.compiler;
 import static com.avail.compiler.ParsingConversionRule.*;
 import java.util.*;
 
-import com.avail.compiler.AvailCompiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_BundleTree;
 import com.avail.descriptor.A_Module;

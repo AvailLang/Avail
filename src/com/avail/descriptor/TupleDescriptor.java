@@ -148,8 +148,7 @@ extends Descriptor
 			aStream.append('"');
 			for (int i = 1; i <= size; i++)
 			{
-				final A_Character availChar = object.tupleAt(i);
-				final int c = availChar.codePoint();
+				final int c = object.tupleCodePointAt(i);
 				if (c == '\"' || c == '\\')
 				{
 					aStream.appendCodePoint('\\');
@@ -801,7 +800,16 @@ extends Descriptor
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract int o_TupleIntAt (final AvailObject object, final int index);
+	int o_TupleCodePointAt (final AvailObject object, final int index)
+	{
+		return object.tupleAt(index).codePoint();
+	}
+
+	@Override @AvailMethod
+	int o_TupleIntAt (final AvailObject object, final int index)
+	{
+		return object.tupleAt(index).extractInt();
+	}
 
 	@Override @AvailMethod
 	A_Set o_AsSet (final AvailObject object)
@@ -1042,7 +1050,7 @@ extends Descriptor
 		final StringBuilder builder = new StringBuilder(size);
 		for (int i = 1; i <= size; i++)
 		{
-			builder.appendCodePoint(object.tupleAt(i).codePoint());
+			builder.appendCodePoint(object.tupleCodePointAt(i));
 		}
 		return builder.toString();
 	}

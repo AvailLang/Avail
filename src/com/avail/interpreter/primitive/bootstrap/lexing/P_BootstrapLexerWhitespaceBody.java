@@ -1,6 +1,6 @@
 /**
- * P_BootstrapIntegerLiteral.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * P_BootstrapLexerKeywordBody.java
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,39 +29,34 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.bootstrap;
 
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.LiteralNodeDescriptor;
-import com.avail.descriptor.LiteralTokenTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
+package com.avail.interpreter.primitive.bootstrap.lexing;
+
+import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * <strong>Primitive:</strong> Create a non-negative integer literal phrase from
- * a non-negative integer literal constant token (already wrapped as a literal
- * phrase).  This is a bootstrapped macro because not all subsets of the core
- * Avail syntax should allow non-negative integer literal phrases.
+ * The {@code P_BootstrapLexerKeywordBody} primitive is used for parsing keyword
+ * tokens.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapIntegerLiteral extends Primitive
+public final class P_BootstrapLexerWhitespaceBody extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_BootstrapIntegerLiteral().init(1, CannotFail, Bootstrap);
+		new P_BootstrapLexerWhitespaceBody().init(
+			2, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -69,16 +64,31 @@ public final class P_BootstrapIntegerLiteral extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 1;
-		final A_Phrase integerTokenLiteral = args.get(0);
+		assert args.size() == 2;
+		final A_String source = args.get(0);
+		final A_Number sourcePositionInteger = args.get(1);
 
-		final A_Token outerToken = integerTokenLiteral.token();
-		final A_Token innerToken = outerToken.literal();
-		assert innerToken.literal().isInstanceOfKind(
-			IntegerRangeTypeDescriptor.wholeNumbers());
-		final A_Phrase integerLiteral = LiteralNodeDescriptor.fromToken(
-			innerToken);
-		return interpreter.primitiveSuccess(integerLiteral);
+		final int sourceSize = source.tupleSize();
+		final int startPosition = sourcePositionInteger.extractInt();
+		int position = startPosition;
+
+		while (position <= sourceSize
+			&& Character.isUnicodeIdentifierPart(
+				source.tupleCodePointAt(position)))
+		{
+			position++;
+		}
+		final A_Token token = TokenDescriptor.create(
+			(A_String)source.copyTupleFromToCanDestroy(
+				startPosition, position - 1, false),
+			TupleDescriptor.empty(),
+			TupleDescriptor.empty(),
+			startPosition,
+			-1,  // TODO MvG - This should get a fix-up *after* the primitive
+			TokenType.KEYWORD);
+		token.makeShared();
+		return interpreter.primitiveSuccess(
+			TupleDescriptor.from(token));
 	}
 
 	@Override
@@ -86,9 +96,9 @@ public final class P_BootstrapIntegerLiteral extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				LITERAL_NODE.create(
-					LiteralTokenTypeDescriptor.create(
-						IntegerRangeTypeDescriptor.wholeNumbers()))),
-			LITERAL_NODE.create(IntegerRangeTypeDescriptor.wholeNumbers()));
+				TupleTypeDescriptor.stringType(),
+				IntegerRangeTypeDescriptor.naturalNumbers()),
+			TupleTypeDescriptor.zeroOrMoreOf(
+				Types.TOKEN.o()));
 	}
 }

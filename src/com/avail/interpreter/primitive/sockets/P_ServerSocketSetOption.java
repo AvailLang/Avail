@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.sockets;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
 import static java.net.StandardSocketOptions.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -77,7 +78,7 @@ extends Primitive
 		final AvailObject handle = args.get(0);
 		final AvailObject options = args.get(1);
 		final AvailObject pojo =
-			handle.getAtomProperty(AtomDescriptor.serverSocketKey());
+			handle.getAtomProperty(SERVER_SOCKET_KEY.atom);
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(

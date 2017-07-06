@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
@@ -1519,9 +1521,9 @@ extends Descriptor
 		final A_Fiber fiber = current();
 		final A_Map fiberGlobals = fiber.fiberGlobals();
 		final A_Map clientData = fiberGlobals.mapAt(
-			AtomDescriptor.clientDataGlobalKey());
+			CLIENT_DATA_GLOBAL_KEY.atom);
 		final A_Map bindings = clientData.mapAt(
-			AtomDescriptor.compilerScopeMapKey());
+			COMPILER_SCOPE_MAP_KEY.atom);
 		if (bindings.hasKey(name))
 		{
 			return bindings.mapAt(name);
@@ -1542,9 +1544,9 @@ extends Descriptor
 		final A_Phrase declaration)
 	{
 		final A_Atom clientDataGlobalKey =
-			AtomDescriptor.clientDataGlobalKey();
+			CLIENT_DATA_GLOBAL_KEY.atom;
 		final A_Atom compilerScopeMapKey =
-			AtomDescriptor.compilerScopeMapKey();
+			COMPILER_SCOPE_MAP_KEY.atom;
 		final A_Fiber fiber = current();
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);

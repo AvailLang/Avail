@@ -66,9 +66,10 @@ import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.builder.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
@@ -559,7 +560,7 @@ public final class AvailRuntime
 	 * A {@code FileHandle} is an abstraction which wraps an {@link
 	 * AsynchronousFileChannel} with some additional information like filename
 	 * and buffer alignment.  It gets stuffed in a {@linkplain PojoDescriptor
-	 * pojo} in a {@linkplain AtomDescriptor#fileKey() property} of the
+	 * pojo} in a {@linkplain SpecialAtom#FILE_KEY property} of the
 	 * {@linkplain AtomDescriptor atom} that serves as Avail's most basic view
 	 * of a file handle.  Sockets use a substantially similar technique.
 	 *
@@ -1698,13 +1699,13 @@ public final class AvailRuntime
 		specials[140] = FIRST_OF_SEQUENCE_NODE.mostGeneralType();
 		specials[141] = PERMUTED_LIST_NODE.mostGeneralType();
 		specials[142] = SUPER_CAST_NODE.mostGeneralType();
-		specials[143] = AtomDescriptor.clientDataGlobalKey();
-		specials[144] = AtomDescriptor.compilerScopeMapKey();
-		specials[145] = AtomDescriptor.allTokensKey();
+		specials[143] = SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom;
+		specials[144] = SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom;
+		specials[145] = SpecialAtom.ALL_TOKENS_KEY.atom;
 		specials[146] = IntegerRangeTypeDescriptor.int32();
 		specials[147] = IntegerRangeTypeDescriptor.int64();
 		specials[148] = STATEMENT_NODE.mostGeneralType();
-		specials[149] = AtomDescriptor.compilerScopeStackKey();
+		specials[149] = SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom;
 		specials[150] = EXPRESSION_AS_STATEMENT_NODE.mostGeneralType();
 		specials[151] = TupleTypeDescriptor.oneOrMoreOf(
 			IntegerRangeTypeDescriptor.naturalNumbers());
@@ -1713,8 +1714,8 @@ public final class AvailRuntime
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			TupleTypeDescriptor.stringType(),
 			Types.ATOM.o());
-		specials[154] = AtomDescriptor.macroBundleKey();
-		specials[155] = AtomDescriptor.explicitSubclassingKey();
+		specials[154] = SpecialAtom.MACRO_BUNDLE_KEY.atom;
+		specials[155] = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom;
 		specials[156] = VariableTypeDescriptor.fromReadAndWriteTypes(
 			MapTypeDescriptor.mostGeneralType(),
 			BottomTypeDescriptor.bottom());
@@ -1723,44 +1724,44 @@ public final class AvailRuntime
 		// depends on the order of this list.
 		assert specialAtomsList.isEmpty();
 		specialAtomsList.addAll(Arrays.asList(
-			AtomDescriptor.allTokensKey(),
-			AtomDescriptor.clientDataGlobalKey(),
-			AtomDescriptor.compilerScopeMapKey(),
-			AtomDescriptor.compilerScopeStackKey(),
-			AtomDescriptor.explicitSubclassingKey(),
-			AtomDescriptor.falseObject(),
-			AtomDescriptor.fileKey(),
-			AtomDescriptor.heritableKey(),
-			AtomDescriptor.macroBundleKey(),
-			AtomDescriptor.messageBundleKey(),
-			AtomDescriptor.objectTypeNamePropertyKey(),
-			AtomDescriptor.serverSocketKey(),
-			AtomDescriptor.socketKey(),
-			AtomDescriptor.trueObject(),
+			SpecialAtom.ALL_TOKENS_KEY.atom,
+			SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom,
+			SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom,
+			SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom,
+			SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom,
+			SpecialAtom.FALSE.atom,
+			SpecialAtom.FILE_KEY.atom,
+			SpecialAtom.HERITABLE_KEY.atom,
+			SpecialAtom.MACRO_BUNDLE_KEY.atom,
+			SpecialAtom.MESSAGE_BUNDLE_KEY.atom,
+			SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY.atom,
+			SpecialAtom.SERVER_SOCKET_KEY.atom,
+			SpecialAtom.SOCKET_KEY.atom,
+			SpecialAtom.TRUE.atom,
 			CompiledCodeDescriptor.lineNumberKeyAtom(),
 			CompiledCodeDescriptor.methodNameKeyAtom(),
-			SpecialAtom.ABSTRACT_DEFINER.atom,
-			SpecialAtom.ADD_TO_MAP_VARIABLE.atom,
-			SpecialAtom.ALIAS.atom,
-			SpecialAtom.APPLY.atom,
-			SpecialAtom.ATOM_PROPERTY.atom,
-			SpecialAtom.CONTINUATION_CALLER.atom,
-			SpecialAtom.CRASH.atom,
-			SpecialAtom.CREATE_LITERAL_PHRASE.atom,
-			SpecialAtom.CREATE_LITERAL_TOKEN.atom,
-			SpecialAtom.DECLARE_STRINGIFIER.atom,
-			SpecialAtom.FORWARD_DEFINER.atom,
-			SpecialAtom.GET_VARIABLE.atom,
-			SpecialAtom.GRAMMATICAL_RESTRICTION.atom,
-			SpecialAtom.MACRO_DEFINER.atom,
-			SpecialAtom.METHOD_DEFINER.atom,
-			SpecialAtom.ADD_UNLOADER.atom,
-			SpecialAtom.PUBLISH_ATOMS.atom,
-			SpecialAtom.RESUME_CONTINUATION.atom,
-			SpecialAtom.RECORD_TYPE_NAME.atom,
-			SpecialAtom.CREATE_MODULE_VARIABLE.atom,
-			SpecialAtom.SEAL.atom,
-			SpecialAtom.SEMANTIC_RESTRICTION.atom,
+			SpecialMethodAtom.ABSTRACT_DEFINER.atom,
+			SpecialMethodAtom.ADD_TO_MAP_VARIABLE.atom,
+			SpecialMethodAtom.ALIAS.atom,
+			SpecialMethodAtom.APPLY.atom,
+			SpecialMethodAtom.ATOM_PROPERTY.atom,
+			SpecialMethodAtom.CONTINUATION_CALLER.atom,
+			SpecialMethodAtom.CRASH.atom,
+			SpecialMethodAtom.CREATE_LITERAL_PHRASE.atom,
+			SpecialMethodAtom.CREATE_LITERAL_TOKEN.atom,
+			SpecialMethodAtom.DECLARE_STRINGIFIER.atom,
+			SpecialMethodAtom.FORWARD_DEFINER.atom,
+			SpecialMethodAtom.GET_VARIABLE.atom,
+			SpecialMethodAtom.GRAMMATICAL_RESTRICTION.atom,
+			SpecialMethodAtom.MACRO_DEFINER.atom,
+			SpecialMethodAtom.METHOD_DEFINER.atom,
+			SpecialMethodAtom.ADD_UNLOADER.atom,
+			SpecialMethodAtom.PUBLISH_ATOMS.atom,
+			SpecialMethodAtom.RESUME_CONTINUATION.atom,
+			SpecialMethodAtom.RECORD_TYPE_NAME.atom,
+			SpecialMethodAtom.CREATE_MODULE_VARIABLE.atom,
+			SpecialMethodAtom.SEAL.atom,
+			SpecialMethodAtom.SEMANTIC_RESTRICTION.atom,
 			ObjectTypeDescriptor.exceptionAtom(),
 			ObjectTypeDescriptor.stackDumpAtom(),
 			PojoTypeDescriptor.selfAtom()));
@@ -1932,7 +1933,7 @@ public final class AvailRuntime
 					// Remove the desiccated message bundle from its atom.
 					final A_Atom atom = bundle.message();
 					atom.setAtomProperty(
-						AtomDescriptor.messageBundleKey(),
+						SpecialAtom.MESSAGE_BUNDLE_KEY.atom,
 						NilDescriptor.nil());
 				}
 			}

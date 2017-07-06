@@ -35,7 +35,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.*;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
@@ -71,7 +71,7 @@ public final class P_RecordNewTypeName extends Primitive
 		{
 			loader.recordEffect(
 				new LoadingEffectToRunPrimitive(
-					SpecialAtom.RECORD_TYPE_NAME.bundle, userType, name));
+					SpecialMethodAtom.RECORD_TYPE_NAME.bundle, userType, name));
 		}
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}

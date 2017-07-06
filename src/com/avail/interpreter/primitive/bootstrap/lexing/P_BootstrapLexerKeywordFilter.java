@@ -1,6 +1,6 @@
 /**
- * P_BootstrapSendAsStatementMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * P_BootstrapLexerKeywordFilter.java
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import org.jetbrains.annotations.Nullable;
-import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * The {@code P_BootstrapSendAsStatementMacro} primitive is used to allow
- * message sends producing ⊤ to be used as statements, by wrapping them inside
- * {@linkplain ExpressionAsStatementNodeDescriptor expression-as-statement
- * phrases}.
+ * The {@code P_BootstrapLexerKeywordFilter} primitive is used for deciding
+ * whether a particular Unicode character is suitable as the start of a keyword
+ * token.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapSendAsStatementMacro
-extends Primitive
+public final class P_BootstrapLexerKeywordFilter extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_BootstrapSendAsStatementMacro().init(
-			1, Bootstrap);
+		new P_BootstrapLexerKeywordFilter().init(
+			1, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -66,31 +65,14 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Phrase sendPhraseInLiteral = args.get(0);
+		final A_Character character = args.get(0);
 
-		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
-		if (loader == null)
-		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
-		}
-		final A_Phrase sendPhrase = sendPhraseInLiteral.token().literal();
-		if (!sendPhrase.parseNodeKindIsUnder(SEND_NODE))
-		{
-			throw new AvailRejectedParseException(
-				"statement to be a ⊤-valued send node, not a %s: %s",
-				sendPhrase.parseNodeKind().name(),
-				sendPhrase);
-		}
-		if (!sendPhrase.expressionType().isTop())
-		{
-			throw new AvailRejectedParseException(
-				"statement's type to be ⊤, but it was %s.  Expression is: %s",
-				sendPhrase.expressionType(),
-				sendPhrase);
-		}
-		final A_Phrase sendAsStatement =
-			ExpressionAsStatementNodeDescriptor.fromExpression(sendPhrase);
-		return interpreter.primitiveSuccess(sendAsStatement);
+		final int codePoint = character.codePoint();
+		final boolean isIdentifierStart =
+			Character.isUnicodeIdentifierStart(codePoint)
+				|| codePoint == '_';
+		return interpreter.primitiveSuccess(
+			AtomDescriptor.objectFromBoolean(isIdentifierStart));
 	}
 
 	@Override
@@ -98,16 +80,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				/* The send node to treat as a statement */
-				LITERAL_NODE.create(SEND_NODE.mostGeneralType())),
-			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_LOADING_IS_OVER));
+				Types.CHARACTER.o()),
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }

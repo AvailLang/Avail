@@ -356,7 +356,7 @@ public final class ScannerTest
 
 		// Reals and such:
 		C(".", O(".")),
-		C("", O("."), O(".",1)),
+		C("..", O("."), O(".",1)),
 		C(".f", O("."), K("f",1)),
 		C(".e5", O("."), K("e5",1)),
 		C("5.", L(5,"5"), O(".",1)),

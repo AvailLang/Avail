@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.fibers;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -70,7 +71,7 @@ extends Primitive
 		final A_Fiber fiber = interpreter.fiber();
 		// Choose the correct map based on the heritability of the key.
 		final A_Map globals =
-			key.getAtomProperty(AtomDescriptor.heritableKey()).equalsNil()
+			key.getAtomProperty(HERITABLE_KEY.atom).equalsNil()
 			? fiber.fiberGlobals()
 			: fiber.heritableFiberGlobals();
 		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(

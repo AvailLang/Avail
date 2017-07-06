@@ -37,7 +37,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
@@ -81,7 +81,7 @@ extends Primitive
 		module.addUnloadFunction(unloadFunction);
 		loader.recordEffect(
 			new LoadingEffectToRunPrimitive(
-				SpecialAtom.ADD_UNLOADER.bundle, unloadFunction));
+				SpecialMethodAtom.ADD_UNLOADER.bundle, unloadFunction));
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

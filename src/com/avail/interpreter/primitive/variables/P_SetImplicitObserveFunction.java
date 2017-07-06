@@ -38,9 +38,8 @@ import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -88,23 +87,23 @@ extends Primitive
 		writer.write(L1Operation.L1_doMakeTuple, 2);
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.APPLY.bundle),
+			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(TOP.o()));
 		writer.write(L1Operation.L1_doPop);
 		writer.write(L1Operation.L1Ext_doPushLabel);
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.CONTINUATION_CALLER.bundle),
+			writer.addLiteral(SpecialMethodAtom.CONTINUATION_CALLER.bundle),
 			writer.addLiteral(
 				VariableTypeDescriptor.wrapInnerType(
 					ContinuationTypeDescriptor.mostGeneralType())));
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.GET_VARIABLE.bundle),
+			writer.addLiteral(SpecialMethodAtom.GET_VARIABLE.bundle),
 			writer.addLiteral(ContinuationTypeDescriptor.mostGeneralType()));
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.RESUME_CONTINUATION.bundle),
+			writer.addLiteral(SpecialMethodAtom.RESUME_CONTINUATION.bundle),
 			writer.addLiteral(BottomTypeDescriptor.bottom()));
 		final A_Function wrapper = FunctionDescriptor.create(
 			writer.compiledCode(),

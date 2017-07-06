@@ -36,6 +36,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
 import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.*;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
@@ -100,7 +101,7 @@ extends DefinitionDescriptor
 		 * message name.  Each function takes the collected argument phrases
 		 * thus far, and has the opportunity to reject the parse or read/write
 		 * parse-specific information in a fiber-specific variable with the key
-		 * {@link AtomDescriptor#clientDataGlobalKey()}.
+		 * {@link SpecialAtom#CLIENT_DATA_GLOBAL_KEY}.
 		 */
 		MACRO_PREFIX_FUNCTIONS;
 
@@ -257,8 +258,7 @@ extends DefinitionDescriptor
 		instance.setSlot(MODULE, definitionModule);
 		instance.setSlot(BODY_BLOCK, bodyBlock);
 		instance.setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions);
-		instance.makeShared();
-		return instance;
+		return instance.makeShared();
 	}
 
 	/**

@@ -606,6 +606,17 @@ extends A_BasicObject, Iterable<AvailObject>
 		boolean canDestroy);
 
 	/**
+	 * Answer the code point of the character at the given one-based index in
+	 * this tuple.  The tuple doesn't have to be a string, but the requested
+	 * element must be a character.
+	 *
+	 * @param index
+	 * @return
+	 */
+	int tupleCodePointAt (
+		int index);
+
+	/**
 	 * Determine whether the specified elements of this tuple each conform to
 	 * the specified {@linkplain TypeDescriptor type}.
 	 *

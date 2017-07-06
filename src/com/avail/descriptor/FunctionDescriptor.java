@@ -40,7 +40,7 @@ import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.*;
 import com.avail.serialization.SerializerOperation;
@@ -316,7 +316,7 @@ extends Descriptor
 		writer.write(L1Operation.L1_doMakeTuple, numArgs);
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.APPLY.bundle),
+			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(returnType));
 		final AvailObject code = writer.compiledCode();
 		final A_Function newFunction = FunctionDescriptor.create(
@@ -363,7 +363,7 @@ extends Descriptor
 			1);
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.APPLY.bundle),
+			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(returnType));
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function newFunction = FunctionDescriptor.create(
@@ -454,7 +454,7 @@ extends Descriptor
 	/**
 	 * Construct a bootstrapped {@linkplain FunctionDescriptor function} that
 	 * uses the specified primitive.  The primitive failure code should invoke
-	 * the {@link SpecialAtom#CRASH}'s bundle with a tuple of passed
+	 * the {@link SpecialMethodAtom#CRASH}'s bundle with a tuple of passed
 	 * arguments followed by the primitive failure value.
 	 *
 	 * @param primitive
@@ -500,7 +500,7 @@ extends Descriptor
 			writer.write(L1Operation.L1_doMakeTuple, numArgs + 1);
 			writer.write(
 				L1Operation.L1_doCall,
-				writer.addLiteral(SpecialAtom.CRASH.bundle),
+				writer.addLiteral(SpecialMethodAtom.CRASH.bundle),
 				writer.addLiteral(BottomTypeDescriptor.bottom()));
 		}
 		final A_Function function = FunctionDescriptor.create(
@@ -521,7 +521,7 @@ extends Descriptor
 	 *        The {@linkplain TupleDescriptor tuple} of parameter {@linkplain
 	 *        TypeDescriptor types}.
 	 * @return The requested crash function.
-	 * @see SpecialAtom#CRASH
+	 * @see SpecialMethodAtom#CRASH
 	 */
 	public static A_Function newCrashFunction (
 		final String messageString,
@@ -543,7 +543,7 @@ extends Descriptor
 		writer.write(L1Operation.L1_doMakeTuple, numArgs + 1);
 		writer.write(
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialAtom.CRASH.bundle),
+			writer.addLiteral(SpecialMethodAtom.CRASH.bundle),
 			writer.addLiteral(BottomTypeDescriptor.bottom()));
 		final A_RawFunction code = writer.compiledCode();
 		code.setMethodName(StringDescriptor.from(

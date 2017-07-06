@@ -74,6 +74,9 @@ extends TupleDescriptor
 	}
 
 	@Override
+	abstract int o_TupleCodePointAt (final AvailObject object, final int index);
+
+	@Override
 	boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
@@ -83,6 +86,12 @@ extends TupleDescriptor
 		return Types.CHARACTER.o().isSubtypeOf(type)
 			|| super.o_TupleElementsInRangeAreInstancesOf(
 				object, startIndex, endIndex, type);
+	}
+
+	@Override @AvailMethod
+	final int o_TupleIntAt (final AvailObject object, final int index)
+	{
+		throw unsupportedOperationException();
 	}
 
 	@Override

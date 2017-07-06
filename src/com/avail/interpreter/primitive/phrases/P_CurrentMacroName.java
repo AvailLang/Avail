@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.primitive.phrases;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY;
 import static com.avail.descriptor.FiberDescriptor.GeneralFlag.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -71,9 +73,9 @@ extends Primitive
 			: "Macro expansion shouldn't be possible after loading";
 		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
 		final A_Map clientData = fiberGlobals.mapAt(
-			AtomDescriptor.clientDataGlobalKey());
+			CLIENT_DATA_GLOBAL_KEY.atom);
 		final A_Bundle currentMacroBundle = clientData.mapAt(
-			AtomDescriptor.macroBundleKey());
+			MACRO_BUNDLE_KEY.atom);
 		return interpreter.primitiveSuccess(currentMacroBundle.message());
 	}
 

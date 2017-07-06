@@ -40,6 +40,7 @@ import java.util.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.*;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
@@ -5004,6 +5005,31 @@ extends AbstractDescriptor
 		final AvailObject object, final A_Lexer lexer)
 	{
 		o_Traversed(object).addLexer(lexer);
+	}
+
+	@Override
+	void o_ClearNextLexingState (final AvailObject object)
+	{
+		o_Traversed(object).clearLexingState();
+	}
+
+	@Override
+	LexingState o_NextLexingState (final AvailObject object)
+	{
+		return o_Traversed(object).nextLexingState();
+	}
+
+	@Override
+	void o_NextLexingState (
+		final AvailObject object, final LexingState lexingState)
+	{
+		o_Traversed(object).nextLexingState(lexingState);
+	}
+
+	@Override
+	int o_TupleCodePointAt (final AvailObject object, final int index)
+	{
+		o_Traversed(object).tupleCodePointAt(index);
 	}
 
 	@Override

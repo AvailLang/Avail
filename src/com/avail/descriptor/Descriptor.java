@@ -38,6 +38,7 @@ import java.util.*;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.*;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -4804,14 +4805,42 @@ extends AbstractDescriptor
 
 	@Override
 	void o_SetLexer (
-		final AvailObject object, final A_Lexer lexer)
+		final AvailObject object,
+		final A_Lexer lexer)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
 	void o_AddLexer (
-		final AvailObject object, final A_Lexer lexer)
+		final AvailObject object,
+		final A_Lexer lexer)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_ClearNextLexingState (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	LexingState o_NextLexingState (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_NextLexingState (
+		final AvailObject object,
+		final LexingState lexingState)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_TupleCodePointAt (final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();
 	}

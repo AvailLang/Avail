@@ -32,20 +32,15 @@
 
 package com.avail.descriptor;
 
-import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.PARSING_PLAN_IN_PROGRESS;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailCompilerFragmentCache;
-import com.avail.compiler.ParsingOperation;
-import com.avail.compiler.splitter.MessageSplitter;
 
 import java.util.IdentityHashMap;
-import java.util.List;
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that

@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.atoms;
 
 import com.avail.descriptor.*;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.AvailLoader;
@@ -40,13 +41,14 @@ import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a new {@linkplain AtomDescriptor
  * atom} with the given name.  Add the {@link
- * AtomDescriptor#explicitSubclassingKey()} as a property to indicate this atom
+ * SpecialAtom#EXPLICIT_SUBCLASSING_KEY} as a property to indicate this atom
  * will be used for explicitly subclassing object types.
  *
  * <p>If this method is executed outside the scope of compiling or loading, a
@@ -75,8 +77,8 @@ public final class P_CreateExplicitSubclassAtom extends Primitive
 		{
 			atom = AtomDescriptor.create(name, NilDescriptor.nil());
 			atom.setAtomProperty(
-				AtomDescriptor.explicitSubclassingKey(),
-				AtomDescriptor.explicitSubclassingKey());
+				EXPLICIT_SUBCLASSING_KEY.atom,
+				EXPLICIT_SUBCLASSING_KEY.atom);
 		}
 		else
 		{

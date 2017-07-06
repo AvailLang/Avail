@@ -313,10 +313,11 @@ extends StringDescriptor
 			index, newValueObject, true);
 	}
 
-	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
+	@Override
+	int o_TupleCodePointAt (final AvailObject object, final int index)
 	{
-		throw unsupportedOperationException();
+		assert index >= 1 && index <= object.tupleSize();
+		return object.byteSlot(RAW_LONGS_, index);
 	}
 
 	@Override @AvailMethod

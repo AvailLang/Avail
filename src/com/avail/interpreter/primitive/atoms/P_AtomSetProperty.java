@@ -36,7 +36,7 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.*;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
@@ -75,7 +75,7 @@ public final class P_AtomSetProperty extends Primitive
 		{
 			loader.recordEffect(
 				new LoadingEffectToRunPrimitive(
-					SpecialAtom.ATOM_PROPERTY.bundle,
+					SpecialMethodAtom.ATOM_PROPERTY.bundle,
 					atom,
 					propertyKey,
 					propertyValue));

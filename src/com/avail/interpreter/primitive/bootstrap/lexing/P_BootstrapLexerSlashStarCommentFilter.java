@@ -1,6 +1,6 @@
 /**
- * P_BootstrapSuperCastMacro.java
- * Copyright © 1993-2017, The Avail Foundation, LLC.
+ * P_BootstrapLexerKeywordFilter.java
+ * Copyright © 1993-2014, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,32 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.bootstrap;
+package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Character;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.EnumerationTypeDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * The {@code P_BootstrapSuperCastMacro} primitive is used to create a
- * {@linkplain SuperCastNodeDescriptor super-cast phrase}.  This is used to
- * control method lookup, and is a generalization of the concept of {@code
- * super} found in some object-oriented languages.
+ * The {@code P_BootstrapLexerKeywordFilter} primitive is used for deciding
+ * whether a particular Unicode character is suitable as the start of a keyword
+ * token.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapSuperCastMacro extends Primitive
+public final class P_BootstrapLexerSlashStarCommentFilter extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_BootstrapSuperCastMacro().init(
-			2, CannotFail, Bootstrap);
+		new P_BootstrapLexerSlashStarCommentFilter().init(
+			1, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -63,30 +70,15 @@ public final class P_BootstrapSuperCastMacro extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
-		final A_Phrase expressionNode = args.get(0);
-		final A_Phrase typeLiteral = args.get(1);
+		assert args.size() == 1;
+		final A_Character character = args.get(0);
 
-		final A_Type type = typeLiteral.token().literal();
-		if (type.isTop() || type.isBottom())
-		{
-			throw new AvailRejectedParseException(
-				"supercast type to be something other than %s",
-				type);
-		}
-		final A_Type expressionType = expressionNode.expressionType();
-		if (!expressionType.isSubtypeOf(type))
-		{
-			throw new AvailRejectedParseException(
-				"supercast type (%s) to be a supertype of the "
-					+ "expression's type (%s)",
-				type,
-				expressionType);
-		}
-		final A_Phrase superCast =
-			SuperCastNodeDescriptor.create(expressionNode, type);
-		superCast.makeImmutable();
-		return interpreter.primitiveSuccess(superCast);
+		final int codePoint = character.codePoint();
+		final boolean isIdentifierStart =
+			Character.isUnicodeIdentifierStart(codePoint)
+				|| codePoint == '_';
+		return interpreter.primitiveSuccess(
+			AtomDescriptor.objectFromBoolean(isIdentifierStart));
 	}
 
 	@Override
@@ -94,8 +86,7 @@ public final class P_BootstrapSuperCastMacro extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				EXPRESSION_NODE.create(ANY.o()),
-				LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta())),
-			SUPER_CAST_NODE.mostGeneralType());
+				Types.CHARACTER.o()),
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }

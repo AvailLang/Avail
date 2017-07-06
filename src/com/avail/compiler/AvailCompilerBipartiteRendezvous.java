@@ -34,8 +34,6 @@ package com.avail.compiler;
 
 import java.util.*;
 import com.avail.compiler.AvailCompiler.Con;
-import com.avail.compiler.AvailCompiler.ParserState;
-import com.avail.descriptor.*;
 
 /**
  * An {@code AvailCompilerBipartiteRendezvous} comes at parsing from both sides
@@ -72,8 +70,7 @@ public class AvailCompilerBipartiteRendezvous<Solution extends AbstractSolution>
 	 * The solutions that have been encountered so far, and will be passed to
 	 * new actions when they arrive.
 	 */
-	private final List<Solution> solutions =
-		new ArrayList<>(3);
+	private final List<Solution> solutions = new ArrayList<>(3);
 
 	/**
 	 * The actions that are waiting to run when new solutions arrive.

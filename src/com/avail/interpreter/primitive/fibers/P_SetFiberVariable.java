@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.fibers;
 
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -62,7 +63,7 @@ extends Primitive
 		final A_Atom key = args.get(0);
 		final A_BasicObject value = args.get(1);
 		final A_Fiber fiber = interpreter.fiber();
-		if (key.getAtomProperty(AtomDescriptor.heritableKey()).equalsNil())
+		if (key.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
 		{
 			fiber.fiberGlobals(
 				fiber.fiberGlobals().mapAtPuttingCanDestroy(

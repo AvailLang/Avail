@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.variables;
 
 import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialAtom;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
@@ -90,7 +90,7 @@ extends Primitive
 		{
 			loader.recordEffect(
 				new LoadingEffectToRunPrimitive(
-					SpecialAtom.ADD_TO_MAP_VARIABLE.bundle,
+					SpecialMethodAtom.ADD_TO_MAP_VARIABLE.bundle,
 					variable,
 					key,
 					value));
