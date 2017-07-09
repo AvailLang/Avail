@@ -46,7 +46,8 @@ import org.jetbrains.annotations.Nullable;
  * @param <Y> The type of the third argument to the operation.
  * @param <Z> The type of value produced by the operation.
  */
-public abstract class Transformer3 <W,X,Y,Z>
+@FunctionalInterface
+public interface Transformer3 <W,X,Y,Z>
 {
 	/**
 	 * Perform the operation.
@@ -55,7 +56,7 @@ public abstract class Transformer3 <W,X,Y,Z>
 	 * @param arg3 The third argument to the operation.
 	 * @return The result of performing the operation.
 	 */
-	public abstract @Nullable Z value (
+	@Nullable Z value (
 		@Nullable W arg1,
 		@Nullable X arg2,
 		@Nullable Y arg3);
@@ -69,7 +70,7 @@ public abstract class Transformer3 <W,X,Y,Z>
 	 * @param arg3 The third argument to the operation.
 	 * @return The non-null transformed value.
 	 */
-	public final Z valueNotNull (
+	default Z valueNotNull (
 		final @Nullable W arg1,
 		final @Nullable X arg2,
 		final @Nullable Y arg3)

@@ -94,7 +94,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	 *
 	 * @return The receiver's {@link ByteBuffer}.
 	 */
-	public ByteBuffer byteBuffer ();
+	ByteBuffer byteBuffer ();
 
 	/**
 	 * Answer the N<sup>th</sup> child of this {@linkplain TreeTupleDescriptor
@@ -495,6 +495,8 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * second one?
 	 *
 	 * @param anotherObject
+	 *        An object equal to this, but perhaps in a better or worse
+	 *        representation.
 	 * @return Whether the receiver has a representation that is superior (less
 	 *         space, faster access) to the argument.
 	 */
@@ -611,7 +613,8 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * element must be a character.
 	 *
 	 * @param index
-	 * @return
+	 *        The one-based subscript into this tuple.
+	 * @return The code point of the {@link A_Character} at the specified index.
 	 */
 	int tupleCodePointAt (
 		int index);

@@ -866,13 +866,13 @@ extends Descriptor
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
 		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
 			runtimeDispatcher.createRoot(
-				Collections.<A_Definition>emptyList(), initialTypes, null);
+				Collections.emptyList(), initialTypes, null);
 		result.setSlot(
 			PRIVATE_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
 		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
 			runtimeDispatcher.createRoot(
-				Collections.<A_Definition>emptyList(), initialTypes, null);
+				Collections.emptyList(), initialTypes, null);
 		result.setSlot(
 			MACRO_TESTING_TREE,
 			RawPojoDescriptor.identityWrap(macrosTree).makeShared());
@@ -892,7 +892,7 @@ extends Descriptor
 		listsOfAny = new ArrayList<>(sizeOfListsOfAny);
 		for (int i = 0; i < sizeOfListsOfAny; i++)
 		{
-			listsOfAny.add(Collections.<A_Type>nCopies(i, ANY.o()));
+			listsOfAny.add(Collections.nCopies(i, ANY.o()));
 		}
 	}
 
@@ -908,7 +908,7 @@ extends Descriptor
 		{
 			return listsOfAny.get(n);
 		}
-		return Collections.<A_Type>nCopies(n, ANY.o());
+		return Collections.nCopies(n, ANY.o());
 	}
 
 	/**
@@ -941,7 +941,7 @@ extends Descriptor
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
 		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
 			runtimeDispatcher.createRoot(
-				TupleDescriptor.<A_Definition>toList(
+				TupleDescriptor.toList(
 					object.slot(DEFINITIONS_TUPLE)),
 				initialTypes,
 				null);
@@ -950,7 +950,7 @@ extends Descriptor
 			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
 		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
 			runtimeDispatcher.createRoot(
-				TupleDescriptor.<A_Definition>toList(
+				TupleDescriptor.toList(
 					object.slot(MACRO_DEFINITIONS_TUPLE)),
 				initialTypes,
 				null);

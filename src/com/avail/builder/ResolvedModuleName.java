@@ -150,14 +150,14 @@ extends ModuleName
 	 * Answer the local module name as a sibling of the {@linkplain
 	 * ResolvedModuleName receiver}.
 	 *
-	 * @param localName A local module name.
+	 * @param theLocalName A local module name.
 	 * @return A {@linkplain ModuleName module name}.
 	 */
-	public ModuleName asSibling (final String localName)
+	public ModuleName asSibling (final String theLocalName)
 	{
 		final String packageName = isPackage()
 			? qualifiedName()
 			: packageName();
-		return new ModuleName(packageName, localName);
+		return new ModuleName(packageName, theLocalName);
 	}
 }

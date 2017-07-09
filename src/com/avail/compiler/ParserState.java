@@ -45,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * {@link ParserState} instances are immutable and keep track of a current
@@ -115,33 +116,49 @@ public class ParserState
 	@Override
 	public String toString ()
 	{
-		final String source = compilationContext.source();
+		final A_String source = compilationContext.source();
 		return String.format(
 			"%s%n\tPOSITION = %d%n\tTOKENS = %s %s %s%n\tCLIENT_DATA = %s",
 			getClass().getSimpleName(),
 			lexingState.position,
-			source.substring(
-				max(lexingState.position - 20, 0),
-				max(lexingState.position - 1, 0)),
+			((A_String)source.copyTupleFromToCanDestroy(
+				max(lexingState.position - 20, 1),
+				max(lexingState.position - 1, 0),
+				false)).asNativeString(),
 			CompilerDiagnostics.errorIndicatorSymbol,
-			source.substring(
-				Math.min(lexingState.position - 1, source.length()),
-				Math.min(lexingState.position + 20, source.length())),
+			((A_String)source.copyTupleFromToCanDestroy(
+				min(lexingState.position, source.tupleSize() + 1),
+				min(lexingState.position + 20, source.tupleSize()),
+				false)).asNativeString(),
 			clientDataMap);
 	}
 
 	public String shortString ()
 	{
-		final A_Token token = tokensTuple.tupleAt(tokenIndex);
-		String string = lexingState.position > 1
-			? token.string().asNativeString()
-			: "(start)";
-		if (string.length() > 20)
+		final A_String source = compilationContext.source();
+		if (lexingState.position == 1)
 		{
-			string = string.substring(0, 10) + " … "
-				+ string.substring(string.length() - 10);
+			return "(start)";
 		}
-		return token.lineNumber() + "(" + string + ")";
+		if (lexingState.position == source.tupleSize() + 1)
+		{
+			return "(end)";
+		}
+		final A_String nearbyText = (A_String)source.copyTupleFromToCanDestroy(
+			lexingState.position,
+			min(lexingState.position + 20, source.tupleSize()),
+			false);
+		return lexingState.lineNumber + ":" + nearbyText.asNativeString() + "…";
+	}
+
+	/**
+	 * Answer this state's position in the source.
+	 *
+	 * @return The one-based index into the source.
+	 */
+	public int position ()
+	{
+		return lexingState.position;
 	}
 
 	/**
@@ -151,7 +168,8 @@ public class ParserState
 	 */
 	public boolean atEnd ()
 	{
-		return lexingState.position == compilationContext.source().length() + 1;
+		return lexingState.position ==
+			compilationContext.source().tupleSize() + 1;
 	}
 
 	/**
@@ -163,88 +181,7 @@ public class ParserState
 	@Deprecated
 	public A_Token peekToken ()
 	{
-		return tokensTuple.tupleAt(tokenIndex);
-	}
-
-	/**
-	 * Answer whether the current token has the specified type and content.
-	 *
-	 * @param expectedToken
-	 *        The {@linkplain ExpectedToken expected token} to look for.
-	 * @return Whether the specified token was found.
-	 */
-	@Deprecated
-	boolean peekToken (final ExpectedToken expectedToken)
-	{
-		if (atEnd())
-		{
-			return false;
-		}
-		final A_Token token = peekToken();
-		return token.tokenType() == expectedToken.tokenType()
-			&& token.string().equals(expectedToken.lexeme());
-	}
-
-	/**
-	 * Answer whether the current token has the specified type and content.
-	 *
-	 * @param expectedToken
-	 *        The {@linkplain ExpectedToken expected token} to look for.
-	 * @param expected
-	 *        A {@linkplain Describer describer} of a message to record if
-	 *        the specified token is not present.
-	 * @return Whether the specified token is present.
-	 */
-	@Deprecated
-	boolean peekToken (
-		final ExpectedToken expectedToken,
-		final Describer expected)
-	{
-		final A_Token token = peekToken();
-		final boolean found = token.tokenType() == expectedToken.tokenType()
-				&& token.string().equals(expectedToken.lexeme());
-		if (!found)
-		{
-			expected(expected);
-		}
-		return found;
-	}
-
-	/**
-	 * Answer whether the current token has the specified type and content.
-	 *
-	 * @param expectedToken
-	 *        The {@linkplain ExpectedToken expected token} to look for.
-	 * @param expected
-	 *        A message to record if the specified token is not present.
-	 * @return Whether the specified token is present.
-	 */
-	@Deprecated
-	boolean peekToken (
-		final ExpectedToken expectedToken,
-		final String expected)
-	{
-		return peekToken(expectedToken, new SimpleDescriber(expected));
-	}
-
-	/**
-	 * Parse a string literal. Answer the {@linkplain LiteralTokenDescriptor
-	 * string literal token} if found, otherwise answer {@code null}.
-	 *
-	 * @return The actual {@linkplain LiteralTokenDescriptor literal token}
-	 *         or {@code null}.
-	 */
-	@Deprecated
-	@Nullable A_Token peekStringLiteral ()
-	{
-		final A_Token token = peekToken();
-		if (token.isInstanceOfKind(
-			LiteralTokenTypeDescriptor.create(
-				TupleTypeDescriptor.stringType())))
-		{
-			return token;
-		}
-		return null;
+		throw new UnsupportedOperationException("DEPRECATED");
 	}
 
 	/**
@@ -258,13 +195,14 @@ public class ParserState
 	 *        tuple}.
 	 * @return The requested {@linkplain A_Tuple tuple}.
 	 */
-	@Deprecated // Maybe do a backward scan from the end-point instead?
+	@Deprecated // Collect tokens during parsing instead.
 	A_Tuple upTo (final ParserState after)
 	{
-		return tokensTuple.copyTupleFromToCanDestroy(
-			tokenIndex,
-			after.tokenIndex - 1,
-			false);
+		throw new UnsupportedOperationException();
+//		return tokensTuple.copyTupleFromToCanDestroy(
+//			tokenIndex,
+//			after.tokenIndex - 1,
+//			false);
 	}
 
 	/**
@@ -284,8 +222,7 @@ public class ParserState
 	 */
 	void expected (final Describer describer)
 	{
-		compilationContext.diagnostics.expectedAt(
-			describer, tokensTuple.tupleAt(tokenIndex));
+		compilationContext.diagnostics.expectedAt(describer, lexingState);
 	}
 
 	/**
@@ -314,15 +251,7 @@ public class ParserState
 					AvailRuntime.current(),
 					compilationContext.getTextInterface(),
 					values,
-					new Continuation1<List<String>>()
-					{
-						@Override
-						public void value (
-							final @Nullable List<String> list)
-						{
-							continuation.value(transformer.value(list));
-						}
-					});
+					list -> continuation.value(transformer.value(list)));
 			}
 		});
 	}

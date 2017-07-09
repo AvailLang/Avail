@@ -279,9 +279,9 @@ public class CompilationContext
 		return successReporter;
 	}
 
-	public void setSuccessReporter (Continuation0 successReporter)
+	public void setSuccessReporter (Continuation0 theSuccessReporter)
 	{
-		this.successReporter = successReporter;
+		this.successReporter = theSuccessReporter;
 	}
 
 	/** The output stream on which the serializer writes. */
@@ -380,64 +380,59 @@ public class CompilationContext
 		final Continuation1<ArgType> continuation)
 	{
 		assert noMoreWorkUnits != null;
-		return new Continuation1<ArgType>()
+		final AtomicBoolean hasRunSafetyCheck = optionalSafetyCheck != null
+			? optionalSafetyCheck
+			: new AtomicBoolean(false);
+		return value ->
 		{
-			AtomicBoolean hasRunSafetyCheck = optionalSafetyCheck != null
-				? optionalSafetyCheck
-				: new AtomicBoolean(false);
-
-			@Override
-			public void value (final @Nullable ArgType value)
+			final boolean hadRun = hasRunSafetyCheck.getAndSet(true);
+			assert !hadRun;
+			try
 			{
-				final boolean hadRun = hasRunSafetyCheck.getAndSet(true);
-				assert !hadRun;
-				try
+				// Don't actually run tasks if canceling.
+				diagnostics.isShuttingDown |=
+					diagnostics.pollForAbort.value();
+				if (!diagnostics.isShuttingDown)
 				{
-					// Don't actually run tasks if canceling.
-					diagnostics.isShuttingDown |=
-						diagnostics.pollForAbort.value();
-					if (!diagnostics.isShuttingDown)
+					continuation.value(value);
+				}
+			}
+			catch (final Exception e)
+			{
+				reportInternalProblem(
+					lexingState.lineNumber,
+					lexingState.position,
+					e);
+			}
+			finally
+			{
+				// We increment and read completed and then read queued.
+				// That's because at every moment completed must always
+				// be <= queued. No matter how many new tasks are being
+				// queued and completed by other threads, that invariant
+				// holds.  The other fact is that the moment the
+				// counters have the same (nonzero) value, they will
+				// forever after have that same value.  Note that we
+				// still have to do the fused incrementAndGet so that we
+				// know if *we* were the (sole) cause of exhaustion.
+				final long completed = workUnitsCompleted.incrementAndGet();
+				final long queued = workUnitsQueued.get();
+				assert completed <= queued;
+				if (completed == queued)
+				{
+					try
 					{
-						continuation.value(value);
+						final Continuation0 noMore = noMoreWorkUnits;
+						noMoreWorkUnits = null;
+						assert noMore != null;
+						noMore.value();
 					}
-				}
-				catch (final Exception e)
-				{
-					reportInternalProblem(
-						lexingState.lineNumber,
-						lexingState.position,
-						e);
-				}
-				finally
-				{
-					// We increment and read completed and then read queued.
-					// That's because at every moment completed must always
-					// be <= queued. No matter how many new tasks are being
-					// queued and completed by other threads, that invariant
-					// holds.  The other fact is that the moment the
-					// counters have the same (nonzero) value, they will
-					// forever after have that same value.  Note that we
-					// still have to do the fused incrementAndGet so that we
-					// know if *we* were the (sole) cause of exhaustion.
-					final long completed = workUnitsCompleted.incrementAndGet();
-					final long queued = workUnitsQueued.get();
-					assert completed <= queued;
-					if (completed == queued)
+					catch (final Exception e)
 					{
-						try
-						{
-							final Continuation0 noMore = noMoreWorkUnits;
-							noMoreWorkUnits = null;
-							assert noMore != null;
-							noMore.value();
-						}
-						catch (final Exception e)
-						{
-							reportInternalProblem(
-								lexingState.lineNumber,
-								lexingState.position,
-								e);
-						}
+						reportInternalProblem(
+							lexingState.lineNumber,
+							lexingState.position,
+							e);
 					}
 				}
 			}
@@ -461,14 +456,7 @@ public class CompilationContext
 		final Continuation1<Void> workUnit = workUnitCompletion(
 			lexingState,
 			null,
-			new Continuation1<Void>()
-			{
-				@Override
-				public void value (final @Nullable Void ignored)
-				{
-					continuation.value();
-				}
-			});
+			ignored -> continuation.value());
 		runtime.execute(
 			new ParsingTask(lexingState.position)
 			{
@@ -502,14 +490,7 @@ public class CompilationContext
 		final ArgType argument)
 	{
 		workUnitDo(
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					continuation.value(argument);
-				}
-			},
+			() -> continuation.value(argument),
 			lexingState);
 	}
 
@@ -574,22 +555,17 @@ public class CompilationContext
 		final long before = System.nanoTime();
 		final Continuation1<AvailObject> adjustedSuccess =
 			shouldSerialize
-				? new Continuation1<AvailObject>()
-			{
-				@Override
-				public void value (
-					final @Nullable AvailObject successValue)
-				{
-					final long after = System.nanoTime();
-					Interpreter.current().recordTopStatementEvaluation(
-						after - before,
-						module,
-						lineNumber);
-					loader().stopRecordingEffects();
-					serializeAfterRunning(function);
-					onSuccess.value(successValue);
-				}
-			}
+				? successValue ->
+					{
+						final long after = System.nanoTime();
+						Interpreter.current().recordTopStatementEvaluation(
+							after - before,
+							module,
+							lineNumber);
+						loader().stopRecordingEffects();
+						serializeAfterRunning(function);
+						onSuccess.value(successValue);
+					}
 				: onSuccess;
 		fiber.resultContinuation(adjustedSuccess);
 		fiber.failureContinuation(onFailure);
@@ -623,7 +599,7 @@ public class CompilationContext
 	{
 		evaluateFunctionThen(
 			FunctionDescriptor.createFunctionForPhrase(
-				expressionNode, getModule(), lineNumber),
+				expressionNode, module(), lineNumber),
 			lineNumber,
 			Collections.<AvailObject>emptyList(),
 			MapDescriptor.empty(),

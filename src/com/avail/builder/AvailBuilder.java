@@ -64,9 +64,6 @@ import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
-import com.avail.compiler.scanning.AvailScanner;
-import com.avail.compiler.scanning.AvailScannerException;
-import com.avail.compiler.scanning.AvailScannerResult;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
@@ -617,7 +614,7 @@ public final class AvailBuilder
 		}
 
 		/**
-		 * Construct a new {@link AvailBuilder.LoadedModule} to represent
+		 * Construct a new {@link LoadedModule} to represent
 		 * information about an Avail module that has been loaded.
 		 *
 		 * @param name The {@linkplain ResolvedModuleName name} of the module.
@@ -871,67 +868,37 @@ public final class AvailBuilder
 				true,
 				textInterface,
 				pollForAbort,
-				new CompilerProgressReporter()
+				(moduleName, moduleSize, position) ->
 				{
-					@Override
-					public void value (
-						@Nullable final ModuleName moduleName,
-						@Nullable final Long moduleSize,
-						@Nullable final Long position)
-					{
-						// do nothing.
-					}
+					// do nothing.
 				},
-				new Continuation1<AvailCompiler>()
+				compiler ->
 				{
-					@Override
-					public void value (
-						final @Nullable AvailCompiler compiler)
-					{
-						assert compiler != null;
-						compiler.parseModuleHeader(
-							true,
-							new Continuation2<ModuleHeader, ParserState>()
-							{
-								@Override
-								public void value (
-									final @Nullable ModuleHeader header,
-									final ParserState afterHeader)
-								{
-									assert header != null;
-									final List<String> importNames =
-										header.importedModuleNames();
-									final List<String> entryPoints =
-										header.entryPointNames();
-									final ModuleVersion newVersion =
-										repository.new ModuleVersion(
-											sourceFile.length(),
-											importNames,
-											entryPoints);
-									serialize(header, newVersion);
-									archive.putVersion(versionKey, newVersion);
-									action.value(resolvedName, newVersion);
-									indicateTraceCompleted();
-								}
-							},
-							new Continuation0()
-							{
-								@Override
-								public void value ()
-								{
-									indicateTraceCompleted();
-								}
-							});
-					}
+					assert compiler != null;
+					compiler.parseModuleHeader(
+						true,
+						afterHeader ->
+						{
+							final ModuleHeader header =
+								compiler.compilationContext.getModuleHeader();
+							assert header != null;
+							final List<String> importNames =
+								header.importedModuleNames();
+							final List<String> entryPoints =
+								header.entryPointNames();
+							final ModuleVersion newVersion =
+								repository.new ModuleVersion(
+									sourceFile.length(),
+									importNames,
+									entryPoints);
+							serialize(header, newVersion);
+							archive.putVersion(versionKey, newVersion);
+							action.value(resolvedName, newVersion);
+							indicateTraceCompleted();
+						},
+						this::indicateTraceCompleted);
 				},
-				new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						indicateTraceCompleted();
-					}
-				},
+				this::indicateTraceCompleted,
 				new BuilderProblemHandler("")
 				{
 					@Override
@@ -1085,18 +1052,14 @@ public final class AvailBuilder
 						// forwards to remove.
 						module.removeFrom(
 							AvailLoader.forUnloading(module, textInterface),
-							new Continuation0()
+							() ->
 							{
-								@Override
-								public void value ()
-								{
-									runtime.unlinkModule(module);
-									log(
-										Level.FINER,
-										"Finised unload of: %s",
-										moduleName);
-									completionAction.value();
-								}
+								runtime.unlinkModule(module);
+								log(
+									Level.FINER,
+									"Finised unload of: %s",
+									moduleName);
+								completionAction.value();
 							});
 					}
 				});
@@ -1286,7 +1249,7 @@ public final class AvailBuilder
 									: qualifiedName,
 								1,
 								0,
-								ProblemType.TRACE,
+								TRACE,
 								"Module resolution problem:\n{0}",
 								e)
 							{
@@ -1346,7 +1309,7 @@ public final class AvailBuilder
 					resolvedName,
 					1,
 					0,
-					ProblemType.TRACE,
+					TRACE,
 					"Recursive module dependency:\n\t{0}",
 					recursionSet)
 				{
@@ -1408,71 +1371,41 @@ public final class AvailBuilder
 				true,
 				textInterface,
 				pollForAbort,
-				new CompilerProgressReporter()
+				(moduleName, moduleSize, position) ->
 				{
-					@Override
-					public void value (
-						@Nullable final ModuleName moduleName,
-						@Nullable final Long moduleSize,
-						@Nullable final Long position)
-					{
-						// do nothing
-					}
+					// do nothing
 				},
-				new Continuation1<AvailCompiler>()
+				compiler ->
 				{
-					@Override
-					public void value (
-						final @Nullable AvailCompiler compiler)
-					{
-						assert compiler != null;
-						compiler.parseModuleHeader(
-							true,
-							new Continuation2<ModuleHeader, ParserState>()
-							{
-								@Override
-								public void value (
-									final @Nullable ModuleHeader header,
-									final @Nullable ParserState afterHeader)
-								{
-									assert header != null;
-									assert afterHeader != null;
-									final List<String> importNames =
-										header.importedModuleNames();
-									final List<String> entryPoints =
-										header.entryPointNames();
-									final ModuleVersion newVersion =
-										repository.new ModuleVersion(
-											sourceFile.length(),
-											importNames,
-											entryPoints);
-									serialize(header, newVersion);
-									archive.putVersion(versionKey, newVersion);
-									traceModuleNames(
-										resolvedName,
-										importNames,
-										recursionSet);
-									indicateTraceCompleted();
-								}
-							},
-							new Continuation0()
-							{
-								@Override
-								public void value ()
-								{
-									indicateTraceCompleted();
-								}
-							});
-					}
+					assert compiler != null;
+					compiler.parseModuleHeader(
+						true,
+						afterHeader ->
+						{
+							final ModuleHeader header =
+								compiler.compilationContext.getModuleHeader();
+							assert header != null;
+							assert afterHeader != null;
+							final List<String> importNames =
+								header. importedModuleNames();
+							final List<String> entryPoints =
+								header.entryPointNames();
+							final ModuleVersion newVersion =
+								repository.new ModuleVersion(
+									sourceFile.length(),
+									importNames,
+									entryPoints);
+							serialize(header, newVersion);
+							archive.putVersion(versionKey, newVersion);
+							traceModuleNames(
+								resolvedName,
+								importNames,
+								recursionSet);
+							indicateTraceCompleted();
+						},
+						this::indicateTraceCompleted);
 				},
-				new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						indicateTraceCompleted();
-					}
-				},
+				this::indicateTraceCompleted,
 				buildProblemHandler);
 		}
 
@@ -1838,10 +1771,7 @@ public final class AvailBuilder
 				else
 				{
 					// Compile the module and cache its compiled form.
-					compileModule(
-						moduleName,
-						compilationKey,
-						completionAction);
+					compileModule(moduleName, compilationKey, completionAction);
 				}
 			}
 		}
@@ -1889,40 +1819,31 @@ public final class AvailBuilder
 			final AvailLoader availLoader =
 				new AvailLoader(module, textInterface);
 			final Continuation1<Throwable> fail =
-				new Continuation1<Throwable>()
+				e ->
 				{
-					@Override
-					public void value (final @Nullable Throwable e)
-					{
-						assert e != null;
-						module.removeFrom(
-							availLoader,
-							new Continuation0()
+					assert e != null;
+					module.removeFrom(
+						availLoader,
+						() ->
+						{
+							postLoad(moduleName, 0L);
+							final Problem problem = new Problem(
+								moduleName,
+								fakeStartToken.lineNumber(),
+								fakeStartToken.start(),
+								EXECUTION,
+								"Problem loading module: {0}",
+								e.getLocalizedMessage())
 							{
 								@Override
-								public void value ()
+								public void abortCompilation ()
 								{
-									postLoad(moduleName, 0L);
-									final Problem problem = new Problem(
-										moduleName,
-										fakeStartToken.lineNumber(),
-										fakeStartToken.start(),
-										ProblemType.EXECUTION,
-										"Problem loading module: {0}",
-										e.getLocalizedMessage())
-									{
-										@Override
-										public void abortCompilation ()
-										{
-											stopBuildReason(
-												"Problem loading module");
-											completionAction.value();
-										}
-									};
-									buildProblemHandler.handle(problem);
+									stopBuildReason("Problem loading module");
+									completionAction.value();
 								}
-							});
-					}
+							};
+							buildProblemHandler.handle(problem);
+						});
 				};
 			// Read the module header from the repository.
 			try
@@ -1966,109 +1887,95 @@ public final class AvailBuilder
 			availLoader.createFilteredBundleTree();
 
 			// Run each zero-argument block, one after another.
-			final MutableOrNull<Continuation0> runNext =
-				new MutableOrNull<>();
-			runNext.value = new Continuation0()
+			final MutableOrNull<Continuation0> runNext = new MutableOrNull<>();
+			runNext.value = () ->
 			{
-				@Override
-				public void value ()
+				availLoader.setPhase(Phase.LOADING);
+				final A_Function function;
+				try
 				{
-					availLoader.setPhase(Phase.LOADING);
-					final A_Function function;
-					try
-					{
-						function = shouldStopBuild()
-							? null : deserializer.deserialize();
-					}
-					catch (
-						final MalformedSerialStreamException
-							| RuntimeException e)
-					{
-						fail.value(e);
-						return;
-					}
-					if (function != null)
-					{
-						final A_Fiber fiber = newLoaderFiber(
-							function.kind().returnType(),
-							availLoader,
-							new Generator<A_String>()
-							{
-								@Override
-								public A_String value ()
-								{
-									final A_RawFunction code = function.code();
-									return StringDescriptor.format(
-										"Load repo module %s, in %s:%d",
-										code.methodName(),
-										code.module().moduleName(),
-										code.startingLineNumber());
-								}
-							});
-						fiber.textInterface(textInterface);
-						fiber.failureContinuation(fail);
-						final long before = System.nanoTime();
-						fiber.resultContinuation(
-							new Continuation1<AvailObject>()
-							{
-								@Override
-								public void value (
-									@Nullable final AvailObject ignored)
-								{
-									final long after = System.nanoTime();
-									Interpreter.current()
-										.recordTopStatementEvaluation(
-											after - before,
-											module,
-											function.code()
-												.startingLineNumber());
-									runNext.value().value();
-								}
-							});
-						availLoader.setPhase(Phase.EXECUTING);
-						if (AvailLoader.debugLoadedStatements)
+					function = shouldStopBuild()
+						? null : deserializer.deserialize();
+				}
+				catch (
+					final MalformedSerialStreamException
+						| RuntimeException e)
+				{
+					fail.value(e);
+					return;
+				}
+				if (function != null)
+				{
+					final A_Fiber fiber = newLoaderFiber(
+						function.kind().returnType(),
+						availLoader,
+						new Generator<A_String>()
 						{
-							System.out.println(
-								module.toString()
-									+ ":" + function.code().startingLineNumber()
-									+ " Running precompiled -- " + function);
-						}
-						Interpreter.runOutermostFunction(
-							runtime,
-							fiber,
-							function,
-							Collections.<AvailObject>emptyList());
-					}
-					else if (shouldStopBuild())
-					{
-						module.removeFrom(
-							availLoader,
-							new Continuation0()
+							@Override
+							public A_String value ()
 							{
-								@Override
-								public void value ()
-								{
-									postLoad(moduleName, 0L);
-									completionAction.value();
-								}
-							});
-					}
-					else
-					{
-						runtime.addModule(module);
-						synchronized (AvailBuilder.this)
+								final A_RawFunction code = function.code();
+								return StringDescriptor.format(
+									"Load repo module %s, in %s:%d",
+									code.methodName(),
+									code.module().moduleName(),
+									code.startingLineNumber());
+							}
+						});
+					fiber.textInterface(textInterface);
+					fiber.failureContinuation(fail);
+					final long before = System.nanoTime();
+					fiber.resultContinuation(
+						ignored ->
 						{
-							final LoadedModule loadedModule = new LoadedModule(
-								moduleName,
-								sourceDigest,
-								module,
-								version,
-								compilation);
-							putLoadedModule(moduleName, loadedModule);
-						}
-						postLoad(moduleName, 0L);
-						completionAction.value();
+							final long after = System.nanoTime();
+							Interpreter.current()
+								.recordTopStatementEvaluation(
+									after - before,
+									module,
+									function.code()
+										.startingLineNumber());
+							runNext.value().value();
+						});
+					availLoader.setPhase(Phase.EXECUTING);
+					if (AvailLoader.debugLoadedStatements)
+					{
+						System.out.println(
+							module.toString()
+								+ ":" + function.code().startingLineNumber()
+								+ " Running precompiled -- " + function);
 					}
+					Interpreter.runOutermostFunction(
+						runtime,
+						fiber,
+						function,
+						Collections.<AvailObject>emptyList());
+				}
+				else if (shouldStopBuild())
+				{
+					module.removeFrom(
+						availLoader,
+						() ->
+						{
+							postLoad(moduleName, 0L);
+							completionAction.value();
+						});
+				}
+				else
+				{
+					runtime.addModule(module);
+					synchronized (AvailBuilder.this)
+					{
+						final LoadedModule loadedModule = new LoadedModule(
+							moduleName,
+							sourceDigest,
+							module,
+							version,
+							compilation);
+						putLoadedModule(moduleName, loadedModule);
+					}
+					postLoad(moduleName, 0L);
+					completionAction.value();
 				}
 			};
 			// The argument is ignored, so it doesn't matter what gets
@@ -2112,110 +2019,81 @@ public final class AvailBuilder
 				new ModuleVersionKey(moduleName, digest);
 			final Mutable<Long> lastPosition = new Mutable<>(0L);
 			final Continuation1<AvailCompiler> continuation =
-				new Continuation1<AvailCompiler>()
+				compiler ->
 				{
-					@Override
-					public void value (
-						final @Nullable AvailCompiler compiler)
-					{
-						assert compiler != null;
-						compiler.parseModule(
-							new Continuation1<A_Module>()
-							{
-								@Override
-								public void value (
-									final @Nullable A_Module module)
-								{
-									assert module != null;
-									final ByteArrayOutputStream stream =
-										compiler.compilationContext
-											.serializerOutputStream;
-									// This is the moment of compilation.
-									final long compilationTime =
-										System.currentTimeMillis();
-									final ModuleCompilation compilation =
-										repository.new ModuleCompilation(
-											compilationTime,
-											appendCRC(stream.toByteArray()));
-									archive.putCompilation(
-										versionKey,
-										compilationKey,
-										compilation);
+					assert compiler != null;
+					compiler.parseModule(
+						module ->
+						{
+							assert module != null;
+							final ByteArrayOutputStream stream =
+								compiler.compilationContext
+									.serializerOutputStream;
+							// This is the moment of compilation.
+							final long compilationTime =
+								System.currentTimeMillis();
+							final ModuleCompilation compilation =
+								repository.new ModuleCompilation(
+									compilationTime,
+									appendCRC(stream.toByteArray()));
+							archive.putCompilation(
+								versionKey, compilationKey, compilation);
 
-									// Serialize the Stacks comments.
-									final ByteArrayOutputStream out =
-										new ByteArrayOutputStream(5000);
-									final Serializer serializer =
-										new Serializer(out);
-									final A_Tuple comments =
-										TupleDescriptor.fromList(
-											result.commentTokens());
-									serializer.serialize(comments);
-									final ModuleVersion version =
-										archive.getVersion(versionKey);
-									assert version != null;
-									version.putComments(appendCRC(
-										out.toByteArray()));
+							// Serialize the Stacks comments.
+							final ByteArrayOutputStream out =
+								new ByteArrayOutputStream(5000);
+							final Serializer serializer =
+								new Serializer(out);
+							final A_Tuple comments = TupleDescriptor.fromList(
+								module.commentTokens());
+							serializer.serialize(comments);
+							final ModuleVersion version =
+								archive.getVersion(versionKey);
+							assert version != null;
+							version.putComments(appendCRC(out.toByteArray()));
 
-									repository.commitIfStaleChanges(
-										maximumStaleRepositoryMs);
-									postLoad(moduleName, lastPosition.value);
-									putLoadedModule(
-										moduleName,
-										new LoadedModule(
-											moduleName,
-											versionKey.sourceDigest,
-											module,
-											version,
-											compilation));
-									completionAction.value();
-								}
-							},
-							new Continuation0()
-							{
-								@Override
-								public void value ()
-								{
-									postLoad(moduleName, lastPosition.value);
-									completionAction.value();
-								}
-							});
-					}
+							repository.commitIfStaleChanges(
+								maximumStaleRepositoryMs);
+							postLoad(moduleName, lastPosition.value);
+							putLoadedModule(
+								moduleName,
+								new LoadedModule(
+									moduleName,
+									versionKey.sourceDigest,
+									module,
+									version,
+									compilation));
+							completionAction.value();
+						},
+						() ->
+						{
+							postLoad(moduleName, lastPosition.value);
+							completionAction.value();
+						});
 				};
 			AvailCompiler.create(
 				moduleName,
 				false,
 				textInterface,
 				pollForAbort,
-				new CompilerProgressReporter()
+				(moduleName2, moduleSize, position) ->
 				{
-					@Override
-					public void value (
-						final @Nullable ModuleName moduleName2,
-						final @Nullable Long moduleSize,
-						final @Nullable Long position)
-					{
-						assert moduleName.equals(moduleName2);
-						assert moduleSize != null;
-						assert position != null;
-						localTracker.value(
-							moduleName, moduleSize, position);
-						globalTracker.value(
-							bytesCompiled.addAndGet(
-								position - lastPosition.value),
-							globalCodeSize());
-						lastPosition.value = position;
-					}
+					assert moduleName.equals(moduleName2);
+					assert moduleSize != null;
+					assert position != null;
+					localTracker.value(
+						moduleName, moduleSize, position);
+					globalTracker.value(
+						bytesCompiled.addAndGet(
+							position - lastPosition.value),
+						globalCodeSize());
+					lastPosition.value = position;
 				},
 				continuation,
-				new Continuation0()
+				() ->
 				{
-					@Override
-					public void value ()
-					{
-						postLoad(moduleName, lastPosition.value);
-						completionAction.value();
-					}
+					postLoad(moduleName, lastPosition.value);
+					completionAction.value();
 				},
 				buildProblemHandler);
 		}
@@ -2255,17 +2133,11 @@ public final class AvailBuilder
 			bytesCompiled.set(0L);
 			final int vertexCountBefore = moduleGraph.vertexCount();
 			moduleGraph.parallelVisit(
-				new Continuation2<ResolvedModuleName, Continuation0>()
+				(moduleName, completionAction) ->
 				{
-					@Override
-					public void value (
-						final @Nullable ResolvedModuleName moduleName,
-						final @Nullable Continuation0 completionAction)
-					{
-						assert moduleName != null;
-						assert completionAction != null;
-						scheduleLoadModule(moduleName, completionAction);
-					}
+					assert moduleName != null;
+					assert completionAction != null;
+					scheduleLoadModule(moduleName, completionAction);
 				});
 			assert moduleGraph.vertexCount() == vertexCountBefore;
 			runtime.moduleNameResolver().commitRepositories();
@@ -2348,7 +2220,7 @@ public final class AvailBuilder
 					moduleName,
 					1,
 					0,
-					ProblemType.TRACE,
+					TRACE,
 					"Module \"{0}\" should have been compiled already",
 					moduleName)
 				{
@@ -2380,7 +2252,7 @@ public final class AvailBuilder
 					moduleName,
 					1,
 					0,
-					ProblemType.INTERNAL,
+					INTERNAL,
 					"Couldn''t deserialize comment tuple for module \"{0}\"",
 					moduleName)
 				{
@@ -2409,7 +2281,7 @@ public final class AvailBuilder
 					moduleName,
 					1,
 					0,
-					ProblemType.INTERNAL,
+					INTERNAL,
 					"Couldn''t deserialize header for module \"{0}\"",
 					moduleName)
 				{
@@ -2477,17 +2349,11 @@ public final class AvailBuilder
 		void load ()
 		{
 			moduleGraph.parallelVisit(
-				new Continuation2<ResolvedModuleName, Continuation0>()
+				(moduleName, completionAction) ->
 				{
-					@Override
-					public void value (
-						final @Nullable ResolvedModuleName moduleName,
-						final @Nullable Continuation0 completionAction)
-					{
-						assert moduleName != null;
-						assert completionAction != null;
-						scheduleLoadComments(moduleName, completionAction);
-					}
+					assert moduleName != null;
+					assert completionAction != null;
+					scheduleLoadComments(moduleName, completionAction);
 				});
 		}
 
@@ -2510,7 +2376,7 @@ public final class AvailBuilder
 					target,
 					1,
 					0,
-					ProblemType.TRACE,
+					TRACE,
 					"Could not generate Stacks documentation: {0}",
 					e.getLocalizedMessage())
 				{
@@ -2821,134 +2687,117 @@ public final class AvailBuilder
 			}
 
 			final StringBuilder out = new StringBuilder();
-			final Continuation1<Integer> tab = new Continuation1<Integer>()
+			final Continuation1<Integer> tab = count ->
 			{
-				@Override
-				public void value (final @Nullable Integer count)
-				{
-					assert count != null;
-					Strings.tab(out, count);
-				}
+				assert count != null;
+				Strings.tab(out, count);
 			};
 			root.recursiveDo(
-				new Continuation2<ModuleTree, Integer>()
+				(node, depth) ->
 				{
-					@Override
-					public void value (
-						final @Nullable ModuleTree node,
-						final @Nullable Integer depth)
+					assert node != null;
+					assert depth != null;
+					tab.value(depth);
+					if (node == root)
 					{
-						assert node != null;
-						assert depth != null;
+						out.append("digraph ");
+						out.append(node.node);
+						out.append("\n");
 						tab.value(depth);
-						if (node == root)
-						{
-							out.append("digraph ");
-							out.append(node.node);
-							out.append("\n");
-							tab.value(depth);
-							out.append("{\n");
-							tab.value(depth + 1);
-							out.append("compound = true;\n");
-							tab.value(depth + 1);
-							out.append("splines = compound;\n");
-							tab.value(depth + 1);
-							out.append(
-								"node ["
-								+ "shape=box, "
-								+ "margin=\"0.1,0.1\", "
-								+ "width=0, "
-								+ "height=0, "
-								+ "style=filled, "
-								+ "fillcolor=moccasin "
-								+ "];\n");
-							tab.value(depth + 1);
-							out.append("edge [color=grey];\n");
-							tab.value(depth + 1);
-							out.append("label = ");
-							out.append(node.safeLabel());
-							out.append(";\n\n");
-						}
-						else if (node.resolvedModuleName == null)
-						{
-							out.append("subgraph cluster_");
-							out.append(node.node);
-							out.append('\n');
-							tab.value(depth);
-							out.append("{\n");
-							tab.value(depth + 1);
-							out.append("label = ");
-							out.append(node.safeLabel());
-							out.append(";\n");
-							tab.value(depth + 1);
-							out.append("penwidth = 2.0;\n");
-							tab.value(depth + 1);
-							out.append("fontsize = 18;\n");
-						}
-						else
-						{
-							out.append(node.node);
-							out.append(" [label=");
-							out.append(node.safeLabel());
-							out.append("];\n");
-						}
+						out.append("{\n");
+						tab.value(depth + 1);
+						out.append("compound = true;\n");
+						tab.value(depth + 1);
+						out.append("splines = compound;\n");
+						tab.value(depth + 1);
+						out.append(
+							"node ["
+							+ "shape=box, "
+							+ "margin=\"0.1,0.1\", "
+							+ "width=0, "
+							+ "height=0, "
+							+ "style=filled, "
+							+ "fillcolor=moccasin "
+							+ "];\n");
+						tab.value(depth + 1);
+						out.append("edge [color=grey];\n");
+						tab.value(depth + 1);
+						out.append("label = ");
+						out.append(node.safeLabel());
+						out.append(";\n\n");
+					}
+					else if (node.resolvedModuleName == null)
+					{
+						out.append("subgraph cluster_");
+						out.append(node.node);
+						out.append('\n');
+						tab.value(depth);
+						out.append("{\n");
+						tab.value(depth + 1);
+						out.append("label = ");
+						out.append(node.safeLabel());
+						out.append(";\n");
+						tab.value(depth + 1);
+						out.append("penwidth = 2.0;\n");
+						tab.value(depth + 1);
+						out.append("fontsize = 18;\n");
+					}
+					else
+					{
+						out.append(node.node);
+						out.append(" [label=");
+						out.append(node.safeLabel());
+						out.append("];\n");
 					}
 				},
-				new Continuation2<ModuleTree, Integer>()
+				(node, depth) ->
 				{
-					@Override
-					public void value (
-						final @Nullable ModuleTree node,
-						final @Nullable Integer depth)
+					assert node != null;
+					assert depth != null;
+					if (node == root)
 					{
-						assert node != null;
-						assert depth != null;
-						if (node == root)
+						out.append("\n");
+						// Output *all* the edges.
+						for (final ResolvedModuleName from :
+							ancestry.vertices())
 						{
-							out.append("\n");
-							// Output *all* the edges.
-							for (final ResolvedModuleName from :
-								ancestry.vertices())
+							final String qualified = from.qualifiedName();
+							final ModuleTree fromNode = trees.get(qualified);
+							final String [] parts = qualified.split("/");
+							final boolean fromPackage =
+								parts[parts.length - 2].equals(
+									parts[parts.length - 1]);
+							final String fromName = fromNode.node;
+							for (final ResolvedModuleName to :
+								ancestry.successorsOf(from))
 							{
-								final String qualified = from.qualifiedName();
-								final ModuleTree fromNode = trees.get(qualified);
-								final String [] parts = qualified.split("/");
-								final boolean fromPackage =
-									parts[parts.length - 2].equals(
-										parts[parts.length - 1]);
-								final String fromName;
-								fromName = fromNode.node;
-								for (final ResolvedModuleName to :
-									ancestry.successorsOf(from))
+								final String toName =
+									asNodeName(to.qualifiedName());
+								tab.value(depth + 1);
+								out.append(fromName);
+								out.append(" -> ");
+								out.append(toName);
+								if (fromPackage)
 								{
-									final String toName =
-										asNodeName(to.qualifiedName());
-									tab.value(depth + 1);
-									out.append(fromName);
-									out.append(" -> ");
-									out.append(toName);
-									if (fromPackage)
-									{
-										final ModuleTree parent =
-											fromNode.parent();
-										assert parent != null;
-										final String parentName =
-											"cluster_" + parent.node;
-										out.append("[ltail=");
-										out.append(parentName);
-										out.append("]");
-									}
-									out.append(";\n");
+									final ModuleTree parent =
+										fromNode.parent();
+									assert parent != null;
+									final String parentName =
+										"cluster_" + parent.node;
+									out.append("[ltail=");
+									out.append(parentName);
+									out.append("]");
 								}
+								out.append(";\n");
 							}
-							tab.value(depth);
-							out.append("}\n");
 						}
-						else if (node.resolvedModuleName == null)
-						{
-							tab.value(depth);
-							out.append("}\n");
-						}
+						tab.value(depth);
+						out.append("}\n");
+					}
+					else if (node.resolvedModuleName == null)
+					{
+						tab.value(depth);
+						out.append("}\n");
 					}
 				},
 				0);
@@ -2976,7 +2825,7 @@ public final class AvailBuilder
 						if (buffer.hasRemaining())
 						{
 							channel.write(
-								buffer, position.value.intValue(), null, this);
+								buffer, position.value, null, this);
 						}
 					}
 
@@ -3298,7 +3147,7 @@ public final class AvailBuilder
 				null,
 				1,
 				1,
-				ProblemType.EXECUTION,
+				EXECUTION,
 				"No entry points are defined by loaded modules")
 			{
 				@Override

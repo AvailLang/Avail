@@ -136,6 +136,7 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 			declaration = DeclarationNodeDescriptor.newModuleVariable(
 				actualToken,
 				variableObject,
+				NilDescriptor.nil(),
 				NilDescriptor.nil());
 		}
 		else if (module.constantBindings().hasKey(variableNameString))
