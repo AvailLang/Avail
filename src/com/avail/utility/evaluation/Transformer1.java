@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <X> The type of the sole argument to the operation.
  * @param <Y> The type of value produced by the operation.
  */
-public abstract class Transformer1 <X,Y>
+public interface Transformer1 <X,Y>
 {
 	/**
 	 * Perform the operation.
@@ -52,7 +52,7 @@ public abstract class Transformer1 <X,Y>
 	 * @param arg The argument to the operation.
 	 * @return The result of performing the operation.
 	 */
-	public abstract @Nullable Y value (@Nullable X arg);
+	@Nullable Y value (@Nullable X arg);
 
 	/**
 	 * Perform the operation, then assert a {@link NotNull} condition for the
@@ -61,7 +61,7 @@ public abstract class Transformer1 <X,Y>
 	 * @param arg The argument to transform.
 	 * @return The non-null transformed value.
 	 */
-	public final Y valueNotNull (final @Nullable X arg)
+	default Y valueNotNull (final @Nullable X arg)
 	{
 		final Y result = value(arg);
 		assert result != null;

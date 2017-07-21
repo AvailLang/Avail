@@ -42,8 +42,8 @@ import java.util.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
@@ -139,7 +139,7 @@ extends TypeDescriptor
 		for (final A_Type baseType : baseTypes)
 		{
 			final A_Map fieldTypes = baseType.fieldTypeMap();
-			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
+			for (final Entry entry : fieldTypes.mapIterable())
 			{
 				final A_Atom atom = entry.key();
 				final A_Type type = entry.value();
@@ -158,7 +158,7 @@ extends TypeDescriptor
 			}
 		}
 		first = true;
-		for (final MapDescriptor.Entry entry
+		for (final Entry entry
 			: object.fieldTypeMap().mapIterable())
 		{
 			if (!ignoreKeys.hasElement(entry.key()))
@@ -275,21 +275,17 @@ extends TypeDescriptor
 			variant.fieldToSlotIndex.entrySet().iterator();
 		final A_Tuple resultTuple = ObjectTupleDescriptor.generateFrom(
 			variant.fieldToSlotIndex.size(),
-			new Generator<A_BasicObject>()
+			() ->
 			{
-				@Override
-				public A_BasicObject value ()
-				{
-					final Map.Entry<A_Atom, Integer> entry =
-						fieldIterator.next();
-					final A_Atom field = entry.getKey();
-					final int slotIndex = entry.getValue();
-					return TupleDescriptor.from(
-						field,
-						slotIndex == 0
-							? InstanceTypeDescriptor.on(field)
-							: object.slot(FIELD_TYPES_, slotIndex));
-				}
+				final Map.Entry<A_Atom, Integer> entry =
+					fieldIterator.next();
+				final A_Atom field = entry.getKey();
+				final int slotIndex = entry.getValue();
+				return TupleDescriptor.from(
+					field,
+					slotIndex == 0
+						? InstanceTypeDescriptor.on(field)
+						: object.slot(FIELD_TYPES_, slotIndex));
 			});
 		assert !fieldIterator.hasNext();
 		return resultTuple;
@@ -675,7 +671,7 @@ extends TypeDescriptor
 		writer.startObject();
 		writer.write("kind");
 		writer.write("object type");
-		for (final MapDescriptor.Entry entry :
+		for (final Entry entry :
 			object.fieldTypeMap().mapIterable())
 		{
 			entry.key().atomName().writeTo(writer);
@@ -690,19 +686,13 @@ extends TypeDescriptor
 		writer.startObject();
 		writer.write("kind");
 		writer.write("object type");
-		for (final MapDescriptor.Entry entry :
+		for (final Entry entry :
 			object.fieldTypeMap().mapIterable())
 		{
 			entry.key().atomName().writeTo(writer);
 			entry.value().writeSummaryTo(writer);
 		}
 		writer.endObject();
-	}
-
-	@Override
-	void o_ClearNextLexingState (final AvailObject object)
-	{
-		//TODO JUNK!!!!
 	}
 
 	/**
@@ -722,7 +712,7 @@ extends TypeDescriptor
 		final Map<A_Atom, Integer> slotMap = variant.fieldToSlotIndex;
 		final AvailObject result =
 			mutableDescriptor.create(variant.realSlotCount);
-		for (MapDescriptor.Entry entry : map.mapIterable())
+		for (Entry entry : map.mapIterable())
 		{
 			final int slotIndex = slotMap.get(entry.key());
 			if (slotIndex > 0)
@@ -810,7 +800,7 @@ extends TypeDescriptor
 			int leastNames = Integer.MAX_VALUE;
 			A_Atom keyAtomWithLeastNames = null;
 			A_Map keyAtomNamesMap = null;
-			for (final MapDescriptor.Entry entry
+			for (final Entry entry
 				: anObjectType.fieldTypeMap().mapIterable())
 			{
 				final A_Atom atom = entry.key();
@@ -821,7 +811,6 @@ extends TypeDescriptor
 					{
 						keyAtomWithLeastNames = atom;
 						keyAtomNamesMap = MapDescriptor.empty();
-						leastNames = 0;
 						break;
 					}
 					final int mapSize = namesMap.mapSize();
@@ -866,7 +855,7 @@ extends TypeDescriptor
 		final A_Atom propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom;
 		synchronized (propertyKey)
 		{
-			for (final MapDescriptor.Entry entry
+			for (final Entry entry
 				: anObjectType.fieldTypeMap().mapIterable())
 			{
 				final A_Atom atom = entry.key();
@@ -915,13 +904,13 @@ extends TypeDescriptor
 		A_Map applicableTypesAndNames = MapDescriptor.empty();
 		synchronized (propertyKey)
 		{
-			for (final MapDescriptor.Entry entry
+			for (final Entry entry
 				: anObjectType.fieldTypeMap().mapIterable())
 			{
 				final A_Map map = entry.key().getAtomProperty(propertyKey);
 				if (!map.equalsNil())
 				{
-					for (final MapDescriptor.Entry innerEntry :
+					for (final Entry innerEntry :
 						map.mapIterable())
 					{
 						final A_Type namedType = innerEntry.key();
@@ -944,11 +933,11 @@ extends TypeDescriptor
 			applicableTypesAndNames.makeImmutable();
 		}
 		A_Map filtered = applicableTypesAndNames;
-		for (final MapDescriptor.Entry childEntry
+		for (final Entry childEntry
 			: applicableTypesAndNames.mapIterable())
 		{
 			final A_Type childType = childEntry.key();
-			for (final MapDescriptor.Entry parentEntry
+			for (final Entry parentEntry
 				: applicableTypesAndNames.mapIterable())
 			{
 				final A_Type parentType = parentEntry.key();
@@ -962,7 +951,7 @@ extends TypeDescriptor
 		}
 		A_Set names = SetDescriptor.empty();
 		A_Set baseTypes = SetDescriptor.empty();
-		for (final MapDescriptor.Entry entry : filtered.mapIterable())
+		for (final Entry entry : filtered.mapIterable())
 		{
 			names = names.setUnionCanDestroy(entry.value(), true);
 			baseTypes = baseTypes.setWithElementCanDestroy(entry.key(), true);

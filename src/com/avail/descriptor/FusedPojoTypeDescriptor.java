@@ -42,6 +42,7 @@ import java.util.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -174,7 +175,7 @@ extends PojoTypeDescriptor
 	 * @param object An object.
 	 * @return The hash.
 	 */
-	private int hash (final AvailObject object)
+	private static int hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -421,7 +422,7 @@ extends PojoTypeDescriptor
 		if (typeVars.equalsNil())
 		{
 			typeVars = MapDescriptor.empty();
-			for (final MapDescriptor.Entry entry
+			for (final Entry entry
 				: object.slot(JAVA_ANCESTORS).mapIterable())
 			{
 				final Class<?> ancestor =
@@ -470,22 +471,14 @@ extends PojoTypeDescriptor
 		final A_Map ancestors = object.slot(JAVA_ANCESTORS);
 		final List<AvailObject> childless = new ArrayList<>(
 			childlessAmong(ancestors.keysAsSet()));
-		Collections.sort(
-			childless,
-			new Comparator<AvailObject>()
-			{
-				@Override
-				public int compare (
-					final @Nullable AvailObject o1,
-					final @Nullable AvailObject o2)
-				{
-					assert o1 != null;
-					assert o2 != null;
-					final Class<?> c1 = (Class<?>) o1.javaObjectNotNull();
-					final Class<?> c2 = (Class<?>) o2.javaObjectNotNull();
-					return c1.getName().compareTo(c2.getName());
-				}
-			});
+		childless.sort((o1, o2) ->
+		{
+			assert o1 != null;
+			assert o2 != null;
+			final Class<?> c1 = (Class<?>) o1.javaObjectNotNull();
+			final Class<?> c2 = (Class<?>) o2.javaObjectNotNull();
+			return c1.getName().compareTo(c2.getName());
+		});
 		boolean firstChildless = true;
 		for (final AvailObject javaClass : childless)
 		{

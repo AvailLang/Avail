@@ -191,7 +191,7 @@ public abstract class AbstractCommentImplementation
 	 */
 	public HashSet<String> getCategorySet()
 	{
-		final HashSet<String> categorySet = new HashSet<String>();
+		final HashSet<String> categorySet = new HashSet<>();
 		for (final StacksCategoryTag aTag : categories)
 		{
 			categorySet.addAll(aTag.getCategorySet());

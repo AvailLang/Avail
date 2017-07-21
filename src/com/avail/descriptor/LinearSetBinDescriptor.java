@@ -42,6 +42,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 
+import java.util.NoSuchElementException;
+
 /**
  * A {@code LinearSetBinDescriptor} is a leaf bin in a {@link SetDescriptor
  * set}'s hierarchy of bins.  It consists of a small number of distinct elements
@@ -365,7 +367,10 @@ extends SetBinDescriptor
 			@Override
 			public AvailObject next ()
 			{
-				assert index <= limit;
+				if (index > limit)
+				{
+					throw new NoSuchElementException();
+				}
 				return object.slot(BIN_ELEMENT_AT_, index++);
 			}
 

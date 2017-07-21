@@ -48,7 +48,6 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -619,7 +618,7 @@ extends Descriptor
 		final int lines = frames.size();
 		if (lines == 0)
 		{
-			javaContinuation.value(Collections.<String>emptyList());
+			javaContinuation.value(Collections.emptyList());
 			return;
 		}
 		final List<A_Type> allTypes = new ArrayList<>();
@@ -638,46 +637,42 @@ extends Descriptor
 			runtime,
 			textInterface,
 			allTypes,
-			new Continuation1<List<String>>()
+			allTypeNames ->
 			{
-				@Override
-				public void value (final @Nullable List<String> allTypeNames)
+				assert allTypeNames != null;
+				int allTypesIndex = 0;
+				for (
+					int frameIndex = 0, end = frames.size();
+					frameIndex < end;
+					frameIndex++)
 				{
-					assert allTypeNames != null;
-					int allTypesIndex = 0;
-					for (
-						int frameIndex = 0, end = frames.size();
-						frameIndex < end;
-						frameIndex++)
+					final A_Continuation frame = frames.get(frameIndex);
+					final A_RawFunction code = frame.function().code();
+					final StringBuilder signatureBuilder =
+						new StringBuilder(1000);
+					for (int i = 1, limit = code.numArgs(); i <= limit; i++)
 					{
-						final A_Continuation frame = frames.get(frameIndex);
-						final A_RawFunction code = frame.function().code();
-						final StringBuilder signatureBuilder =
-							new StringBuilder(1000);
-						for (int i = 1, limit = code.numArgs(); i <= limit; i++)
+						if (i != 1)
 						{
-							if (i != 1)
-							{
-								signatureBuilder.append(", ");
-							}
-							signatureBuilder.append(
-								allTypeNames.get(allTypesIndex++));
+							signatureBuilder.append(", ");
 						}
-						final A_Module module = code.module();
-						strings[frameIndex] = String.format(
-							"#%d%s: %s [%s] (%s:%d)",
-							lines - frameIndex,
-							frame.skipReturnFlag() ? "(*)" : "",
-							code.methodName().asNativeString(),
-							signatureBuilder.toString(),
-							module.equalsNil()
-								? "?"
-								: module.moduleName().asNativeString(),
-							code.startingLineNumber());
+						signatureBuilder.append(
+							allTypeNames.get(allTypesIndex++));
 					}
-					assert allTypesIndex == allTypeNames.size();
-					javaContinuation.value(Arrays.asList(strings));
+					final A_Module module = code.module();
+					strings[frameIndex] = String.format(
+						"#%d%s: %s [%s] (%s:%d)",
+						lines - frameIndex,
+						frame.skipReturnFlag() ? "(*)" : "",
+						code.methodName().asNativeString(),
+						signatureBuilder.toString(),
+						module.equalsNil()
+							? "?"
+							: module.moduleName().asNativeString(),
+						code.startingLineNumber());
 				}
+				assert allTypesIndex == allTypeNames.size();
+				javaContinuation.value(Arrays.asList(strings));
 			});
 	}
 }

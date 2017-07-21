@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
@@ -132,7 +133,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			instruction);
 		registerSet.typeAtPut(targetFunctionReg, functionType, instruction);
 		final List<L2ObjectRegister> slotRegs = explodedSlotsVector.registers();
-		for (final MapDescriptor.Entry entry : slotTypes.mapIterable())
+		for (final Entry entry : slotTypes.mapIterable())
 		{
 			final int slotIndex = entry.key().extractInt();
 			final A_Type slotType = entry.value();
@@ -141,7 +142,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 				slotType,
 				instruction);
 		}
-		for (final MapDescriptor.Entry entry : slotConstants.mapIterable())
+		for (final Entry entry : slotConstants.mapIterable())
 		{
 			final int slotIndex = entry.key().extractInt();
 			final AvailObject slotValue = entry.value();

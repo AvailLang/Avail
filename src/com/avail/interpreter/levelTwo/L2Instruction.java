@@ -45,7 +45,6 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
@@ -142,21 +141,12 @@ public final class L2Instruction
 			if (operand.operandType().isSource)
 			{
 				operand.transformRegisters(
-					new Transformer2<
-						L2Register,
-						L2OperandType,
-						L2Register>()
+					(register, operandType) ->
 					{
-						@Override
-						public L2Register value (
-							final @Nullable L2Register register,
-							final @Nullable L2OperandType operandType)
-						{
-							assert register != null;
-							assert operandType != null;
-							sourceRegisters.add(register);
-							return register;
-						}
+						assert register != null;
+						assert operandType != null;
+						sourceRegisters.add(register);
+						return register;
 					});
 			}
 		}
@@ -178,21 +168,12 @@ public final class L2Instruction
 			if (operand.operandType().isDestination)
 			{
 				operand.transformRegisters(
-					new Transformer2<
-						L2Register,
-						L2OperandType,
-						L2Register>()
+					(register, operandType) ->
 					{
-						@Override
-						public L2Register value (
-							final @Nullable L2Register register,
-							final @Nullable L2OperandType operandType)
-						{
-							assert register != null;
-							assert operandType != null;
-							destinationRegisters.add(register);
-							return register;
-						}
+						assert register != null;
+						assert operandType != null;
+						destinationRegisters.add(register);
+						return register;
 					});
 			}
 		}
@@ -217,7 +198,7 @@ public final class L2Instruction
 			{
 				if (labels.size() == 0)
 				{
-					labels = new ArrayList<L2Instruction>();
+					labels = new ArrayList<>();
 				}
 				labels.add(((L2PcOperand)operand).targetLabel());
 			}

@@ -37,6 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -45,7 +46,7 @@ import com.avail.utility.json.JSONWriter;
  * Like any object, a particular literal token has an exact {@link
  * InstanceTypeDescriptor instance type}, and {@link TokenDescriptor tokens} in
  * general have a simple {@link PrimitiveTypeDescriptor primitive type} of
- * {@link TypeDescriptor.Types#TOKEN}, but {@code LiteralTokenTypeDescriptor}
+ * {@link Types#TOKEN}, but {@code LiteralTokenTypeDescriptor}
  * covariantly constraints a literal token's type with the type of the value it
  * contains.
  *
@@ -297,7 +298,7 @@ extends TypeDescriptor
 	/**
 	 * Answer the most general literal token type, specifically the literal
 	 * token type whose literal tokens' literal values are constrained by
-	 * {@link TypeDescriptor.Types#ANY any}.
+	 * {@link Types#ANY any}.
 	 *
 	 * @return The most general literal token type.
 	 */

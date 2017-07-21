@@ -35,6 +35,7 @@ package com.avail.builder;
 import static com.avail.persistence.IndexedRepositoryManager.isIndexedRepositoryFile;
 import java.io.*;
 import java.util.*;
+import java.util.Map.Entry;
 
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
@@ -80,7 +81,7 @@ implements Iterable<ModuleRoot>
 	{
 		final StringBuilder builder = new StringBuilder(200);
 		boolean first = true;
-		for (Map.Entry<String, ModuleRoot> entry : rootMap.entrySet())
+		for (Entry<String, ModuleRoot> entry : rootMap.entrySet())
 		{
 			final ModuleRoot root = entry.getValue();
 			if (!first)
@@ -213,7 +214,7 @@ implements Iterable<ModuleRoot>
 	public Set<ModuleRoot> roots ()
 	{
 		final Set<ModuleRoot> roots = new LinkedHashSet<>();
-		for (final Map.Entry<String, ModuleRoot> entry : rootMap.entrySet())
+		for (final Entry<String, ModuleRoot> entry : rootMap.entrySet())
 		{
 			roots.add(entry.getValue());
 		}

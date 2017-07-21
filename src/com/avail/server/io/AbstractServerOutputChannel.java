@@ -38,7 +38,6 @@ import java.nio.channels.CompletionHandler;
 import org.jetbrains.annotations.Nullable;
 import com.avail.io.TextOutputChannel;
 import com.avail.server.messages.Message;
-import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -123,14 +122,7 @@ implements TextOutputChannel
 		final Message message = newMessage(buffer.toString());
 		channel.enqueueMessageThen(
 			message,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					handler.completed(limit, attachment);
-				}
-			});
+			() -> handler.completed(limit, attachment));
 	}
 
 	@Override
@@ -154,14 +146,7 @@ implements TextOutputChannel
 		final Message message = newMessage(data);
 		channel.enqueueMessageThen(
 			message,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					handler.completed(data.length(), attachment);
-				}
-			});
+			() -> handler.completed(data.length(), attachment));
 	}
 
 	@Override

@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.maps;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.Arrays;
+
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailException;
@@ -88,9 +88,8 @@ extends Primitive
 		}
 		if (pathIndex == pathTuple.tupleSize())
 		{
-			final A_Tuple newTuple = targetTuple.tupleAtPuttingCanDestroy(
+			return targetTuple.tupleAtPuttingCanDestroy(
 				targetIndex, newValue, true);
-			return newTuple;
 		}
 
 		final AvailObject subtuple = targetTuple.tupleAt(targetIndex);
@@ -99,18 +98,16 @@ extends Primitive
 			final A_BasicObject newTuple = recursivelyUpdateTuple(
 				subtuple, pathTuple, pathIndex + 1,
 				newValue);
-			final A_Tuple resultTuple = targetTuple.tupleAtPuttingCanDestroy(
+			return targetTuple.tupleAtPuttingCanDestroy(
 				targetIndex, newTuple, true);
-			return resultTuple;
 		}
 		else if (subtuple.isMap())
 		{
 			final A_BasicObject newMap = recursivelyUpdateMap(
 				subtuple, pathTuple, pathIndex + 1,
 				newValue);
-			final A_Tuple resultTuple = targetTuple.tupleAtPuttingCanDestroy(
+			return targetTuple.tupleAtPuttingCanDestroy(
 				targetIndex, newMap, true);
-			return resultTuple;
 		}
 		else
 		{
@@ -148,27 +145,24 @@ extends Primitive
 		}
 		if (pathIndex == pathTuple.tupleSize())
 		{
-			final A_Map newMap = targetMap.mapAtPuttingCanDestroy(
+			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newValue, true);
-			return newMap;
 		}
 		final A_BasicObject targetElement = targetMap.mapAt(targetIndex);
 		if (targetElement.isInstanceOf(TupleTypeDescriptor.mostGeneralType()))
 		{
 			final A_BasicObject newTuple = recursivelyUpdateTuple(
 				(A_Tuple)targetElement, pathTuple, pathIndex + 1, newValue);
-			final A_Map resultMap = targetMap.mapAtPuttingCanDestroy(
+			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newTuple, true);
-			return resultMap;
 		}
 		else if (targetElement.isInstanceOf(
 			MapTypeDescriptor.mostGeneralType()))
 		{
 			final A_BasicObject newMap = recursivelyUpdateMap(
 				(A_Map)targetElement, pathTuple, pathIndex + 1, newValue);
-			final A_Map resultMap = targetMap.mapAtPuttingCanDestroy(
+			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newMap, true);
-			return resultMap;
 		}
 		else
 		{

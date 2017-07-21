@@ -194,7 +194,7 @@ extends VariableSharedDescriptor
 	{
 		synchronized (object)
 		{
-			if (writeOnce & object.hasValue())
+			if (writeOnce && object.hasValue())
 			{
 				throw new VariableSetException(
 					AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE);
@@ -211,7 +211,7 @@ extends VariableSharedDescriptor
 	{
 		synchronized (object)
 		{
-			if (writeOnce & object.hasValue())
+			if (writeOnce && object.hasValue())
 			{
 				throw new VariableSetException(
 					AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE);

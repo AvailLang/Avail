@@ -210,7 +210,7 @@ implements Comparable<PerInterpreterStatistic>
 		min = Math.min(sample, min);
 		max = Math.max(sample, max);
 		final double delta = sample - mean;
-		mean = mean + delta / count;
+		mean += delta / count;
 		sumOfDeltaSquares += delta * (sample - mean);
 	}
 

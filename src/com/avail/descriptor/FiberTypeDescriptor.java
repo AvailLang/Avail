@@ -37,6 +37,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import java.util.IdentityHashMap;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -48,7 +49,7 @@ import com.avail.utility.json.JSONWriter;
  * a fiber's {@linkplain ContinuationDescriptor continuation} to one whose base
  * function's return type is incompatible with the fiber's type is a runtime
  * error, and will be detected and reported when such a ({@linkplain
- * FiberDescriptor.ExecutionState#TERMINATED terminated}) fiber's result is
+ * ExecutionState#TERMINATED terminated}) fiber's result is
  * requested.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -273,7 +274,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most general fiber type.
 	 */
-	public static final A_Type mostGeneralType ()
+	public static A_Type mostGeneralType ()
 	{
 		return mostGeneralType;
 	}
@@ -289,7 +290,7 @@ extends TypeDescriptor
 	 *
 	 * @return The metatype for all fiber types.
 	 */
-	public static final A_Type meta ()
+	public static A_Type meta ()
 	{
 		return meta;
 	}

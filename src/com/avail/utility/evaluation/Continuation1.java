@@ -42,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @param <X> The type of the argument.
  */
+@FunctionalInterface
 public interface Continuation1<X>
 {
 	/**
@@ -49,5 +50,5 @@ public interface Continuation1<X>
 	 *
 	 * @param arg The first argument.
 	 */
-	public void value (@Nullable X arg);
+	void value (@Nullable X arg);
 }

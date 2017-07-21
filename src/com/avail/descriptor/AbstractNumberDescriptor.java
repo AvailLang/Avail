@@ -98,7 +98,7 @@ extends Descriptor
 		/**
 		 * The {@link #limitDouble} as an Avail object.
 		 */
-		protected final A_Number limitDoubleObject;
+		private final A_Number limitDoubleObject;
 
 		/**
 		 *  Answer the Avail {@link DoubleDescriptor double-precision} value
@@ -114,7 +114,7 @@ extends Descriptor
 		/**
 		 * The {@link #limitFloat} as an Avail object.
 		 */
-		protected final A_Number limitFloatObject;
+		private final A_Number limitFloatObject;
 
 		/**
 		 *  Answer the Avail {@link FloatDescriptor single-precision} value
@@ -122,7 +122,7 @@ extends Descriptor
 		 *
 		 * @return An Avail float.
 		 */
-		protected A_Number limitFloatObject ()
+		A_Number limitFloatObject ()
 		{
 			return limitFloatObject;
 		}
@@ -132,7 +132,7 @@ extends Descriptor
 		 *
 		 * @param limitDouble The most extreme {@code double} with this sign.
 		 */
-		private Sign (final double limitDouble)
+		Sign (final double limitDouble)
 		{
 			this.limitDouble = limitDouble;
 			this.limitDoubleObject =
@@ -378,25 +378,19 @@ extends Descriptor
 	 * at least those which are comparable.
 	 */
 	final static Comparator<A_Number> numericComparator =
-		new Comparator<A_Number>()
+		(n1, n2) ->
 		{
-			@Override
-			public int compare (
-				final @Nullable A_Number n1,
-				final @Nullable A_Number n2)
+			assert n1 != null;
+			assert n2 != null;
+			switch (n1.numericCompare(n2))
 			{
-				assert n1 != null;
-				assert n2 != null;
-				switch (n1.numericCompare(n2))
+				case LESS: return -1;
+				case MORE: return 1;
+				case EQUAL: return 0;
+				default:
 				{
-					case LESS: return -1;
-					case MORE: return 1;
-					case EQUAL: return 0;
-					default:
-					{
-						assert false;
-						return 0;
-					}
+					assert false;
+					return 0;
 				}
 			}
 		};
@@ -475,8 +469,8 @@ extends Descriptor
 			// They're both actual enumerations.  Determine whether they can
 			// ever be equal by iterating through both comparables lists in
 			// numeric order, looking for corresponding equal values.
-			Collections.sort(firstComparablesList, numericComparator);
-			Collections.sort(secondComparablesList, numericComparator);
+			firstComparablesList.sort(numericComparator);
+			secondComparablesList.sort(numericComparator);
 			int firstIndex = 0;
 			int secondIndex = 0;
 			while (true)
@@ -718,7 +712,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract Order o_NumericCompareToInfinity (
 		final AvailObject object,
-		final InfinityDescriptor.Sign sign);
+		final Sign sign);
 
 	@Override @AvailMethod
 	abstract Order o_NumericCompareToDouble (

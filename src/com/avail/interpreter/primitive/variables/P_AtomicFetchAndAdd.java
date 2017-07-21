@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.variables;
 
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.Arrays;
+
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
@@ -74,11 +74,8 @@ extends Primitive
 		}
 		catch (
 			final VariableGetException
-				| VariableSetException e)
-		{
-			return interpreter.primitiveFailure(e);
-		}
-		catch (final ArithmeticException e)
+				| VariableSetException
+				| ArithmeticException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}

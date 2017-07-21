@@ -30,4 +30,5 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.utility.visitor;
+@NotNullByDefault package com.avail.utility.visitor;
+import com.avail.annotations.NotNullByDefault;

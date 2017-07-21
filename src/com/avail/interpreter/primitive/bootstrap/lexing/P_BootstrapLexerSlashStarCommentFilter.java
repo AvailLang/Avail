@@ -1,6 +1,6 @@
 /**
  * P_BootstrapLexerKeywordFilter.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,11 +74,8 @@ public final class P_BootstrapLexerSlashStarCommentFilter extends Primitive
 		final A_Character character = args.get(0);
 
 		final int codePoint = character.codePoint();
-		final boolean isIdentifierStart =
-			Character.isUnicodeIdentifierStart(codePoint)
-				|| codePoint == '_';
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(isIdentifierStart));
+			AtomDescriptor.objectFromBoolean(codePoint == '/'));
 	}
 
 	@Override

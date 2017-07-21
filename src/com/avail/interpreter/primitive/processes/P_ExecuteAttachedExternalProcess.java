@@ -40,13 +40,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.avail.AvailRuntime;
-import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.exceptions.AvailErrorCode;
@@ -54,7 +52,6 @@ import com.avail.interpreter.*;
 import com.avail.io.ProcessInputChannel;
 import com.avail.io.ProcessOutputChannel;
 import com.avail.io.TextInterface;
-import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive</strong>: Execute an attached external {@linkplain Process
@@ -122,14 +119,7 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			TOP.o(),
 			priority.extractInt(),
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.from("External process execution");
-				}
-			});
+			() -> StringDescriptor.from("External process execution"));
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());

@@ -39,6 +39,7 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.MapDescriptor.Entry;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -2774,7 +2775,7 @@ public enum SerializerOperation
 			assert object.isPojoType();
 			assert object.isPojoFusedType();
 			A_Map symbolicMap = MapDescriptor.empty();
-			for (final MapDescriptor.Entry entry
+			for (final Entry entry
 				: object.javaAncestors().mapIterable())
 			{
 				final Class<?> baseClass =
@@ -2815,7 +2816,7 @@ public enum SerializerOperation
 			A_Map ancestorMap = MapDescriptor.empty();
 			try
 			{
-				for (final MapDescriptor.Entry entry
+				for (final Entry entry
 					: subobjects[0].mapIterable())
 				{
 					final Class<?> baseClass = Class.forName(

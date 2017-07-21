@@ -276,7 +276,7 @@ extends A_BasicObject
 	boolean isSupertypeOfPojoBottomType (A_Type aPojoType);
 
 	/**
-	 * Answer whether this type is ⊤ ({@link TypeDescriptor.Types#TOP top}), the
+	 * Answer whether this type is ⊤ ({@link Types#TOP top}), the
 	 * most general type.
 	 *
 	 * @return Whether the type is type.

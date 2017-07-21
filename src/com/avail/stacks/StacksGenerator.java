@@ -153,7 +153,7 @@ public class StacksGenerator
 		this.providedDocumentPath = outputPath;
 
 		this.moduleToComments =
-			new HashMap<String,StacksCommentsModule>(50);
+			new HashMap<>(50);
 	}
 
 	/**
@@ -171,8 +171,7 @@ public class StacksGenerator
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
 	{
-		StacksCommentsModule commentsModule = null;
-		commentsModule = new StacksCommentsModule(
+		StacksCommentsModule commentsModule = new StacksCommentsModule(
 			header,commentTokens,errorLog, resolver,
 			moduleToComments,linkingFileMap,
 			linkPrefix);
@@ -296,9 +295,8 @@ public class StacksGenerator
 						StandardOpenOption.TRUNCATE_EXISTING));
 			try
 			{
-				final String decodedTemplate =
+				String newFileContent =
 					StacksGenerator.getOuterTemplate(templateFilePath);
-				String newFileContent = decodedTemplate;
 				for (final Pair<CharSequence,CharSequence> pair :
 					replacementPairs)
 				{

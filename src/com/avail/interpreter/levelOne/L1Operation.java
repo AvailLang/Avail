@@ -443,7 +443,7 @@ public enum L1Operation
 	};
 
 	/** An array of all {@link L1Operation} enumeration values. */
-	private static L1Operation[] all = values();
+	private static final L1Operation[] all = values();
 
 	/**
 	 * Answer an array of all {@link L1Operation} enumeration values.

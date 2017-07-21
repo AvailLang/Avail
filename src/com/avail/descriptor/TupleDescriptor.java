@@ -447,7 +447,7 @@ extends Descriptor
 	 * @param object An object.
 	 * @return The hash.
 	 */
-	private final int hash (final A_Tuple object)
+	private static int hash (final A_Tuple object)
 	{
 		int hash = object.hashOrZero();
 		if (hash == 0 && object.tupleSize() > 0)
@@ -1279,24 +1279,30 @@ extends Descriptor
 		}
 	}
 
-	/** The empty tuple. */
-	private static final AvailObject emptyTuple;
-
-	static
+	/** A static inner type that delays initialization until first use. */
+	private final static class Empty
 	{
-		final A_Tuple tuple = NybbleTupleDescriptor.generateFrom(
-			0,
-			new Generator<Byte>()
-			{
-				@Override
-				public Byte value ()
+		/** The empty tuple. */
+		public static final AvailObject emptyTuple;
+
+		/** Create the empty tuple. */
+		static
+		{
+			final A_Tuple t = NybbleTupleDescriptor.generateFrom(
+				0,
+				() ->
 				{
 					assert false : "This should be an empty nybble tuple";
-					return 0;
-				}
-			});
-		tuple.hash();
-		emptyTuple = tuple.makeShared();
+					return (byte)0;
+				});
+			t.hash();
+			emptyTuple = t.makeShared();
+		}
+
+		private Empty ()
+		{
+			// Avoid unintentional instantiation.
+		}
 	}
 
 	/**
@@ -1308,7 +1314,7 @@ extends Descriptor
 	 */
 	public static AvailObject empty ()
 	{
-		return emptyTuple;
+		return Empty.emptyTuple;
 	}
 
 	/**

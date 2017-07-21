@@ -31,7 +31,6 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -99,7 +98,7 @@ extends Argument
 		// Describe the variable reference that was parsed as this argument.
 		arguments.next().printOnAvoidingIndent(
 			builder,
-			new IdentityHashMap<A_BasicObject, Void>(),
+			new IdentityHashMap<>(),
 			indent + 1);
 		builder.append("↑");
 	}

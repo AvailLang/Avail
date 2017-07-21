@@ -35,12 +35,11 @@ package com.avail.interpreter.primitive.fibers;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.Arrays;
+
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Answer the result of the specified
@@ -67,30 +66,26 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
 		final MutableOrNull<Result> result = new MutableOrNull<>();
-		fiber.lock(new Continuation0()
+		fiber.lock(() ->
 		{
-			@Override
-			public void value ()
+			if (!fiber.executionState().indicatesTermination()
+				|| fiber.fiberResult().equalsNil())
 			{
-				if (!fiber.executionState().indicatesTermination()
-					|| fiber.fiberResult().equalsNil())
+				result.value = interpreter.primitiveFailure(
+					E_FIBER_RESULT_UNAVAILABLE);
+			}
+			else
+			{
+				final AvailObject fiberResult = fiber.fiberResult();
+				if (!fiberResult.isInstanceOf(fiber.kind().resultType()))
 				{
 					result.value = interpreter.primitiveFailure(
-						E_FIBER_RESULT_UNAVAILABLE);
+						E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT);
 				}
 				else
 				{
-					final AvailObject fiberResult = fiber.fiberResult();
-					if (!fiberResult.isInstanceOf(fiber.kind().resultType()))
-					{
-						result.value = interpreter.primitiveFailure(
-							E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT);
-					}
-					else
-					{
-						result.value = interpreter.primitiveSuccess(
-							fiber.fiberResult());
-					}
+					result.value = interpreter.primitiveSuccess(
+						fiber.fiberResult());
 				}
 			}
 		});

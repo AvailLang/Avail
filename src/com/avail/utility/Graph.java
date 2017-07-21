@@ -33,11 +33,11 @@
 package com.avail.utility;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.avail.annotations.InnerAccess;
-import org.jetbrains.annotations.Nullable;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation2;
@@ -152,7 +152,8 @@ public class Graph<Vertex>
 	 * @param message A description of the failed precondition.
 	 * @throws GraphPreconditionFailure If the condition was false.
 	 */
-	@InnerAccess final void ensure (
+	@InnerAccess
+	static void ensure (
 		final boolean condition,
 		final String message)
 	throws GraphPreconditionFailure
@@ -203,8 +204,8 @@ public class Graph<Vertex>
 	public void addVertex (final Vertex vertex)
 	{
 		ensure(!outEdges.containsKey(vertex), "vertex is already in graph");
-		outEdges.put(vertex, new HashSet<Vertex>());
-		inEdges.put(vertex, new HashSet<Vertex>());
+		outEdges.put(vertex, new HashSet<>());
+		inEdges.put(vertex, new HashSet<>());
 	}
 
 	/**
@@ -219,8 +220,8 @@ public class Graph<Vertex>
 		for (final Vertex vertex : vertices)
 		{
 			ensure(!outEdges.containsKey(vertex), "vertex is already in graph");
-			outEdges.put(vertex, new HashSet<Vertex>());
-			inEdges.put(vertex, new HashSet<Vertex>());
+			outEdges.put(vertex, new HashSet<>());
+			inEdges.put(vertex, new HashSet<>());
 		}
 	}
 
@@ -235,8 +236,8 @@ public class Graph<Vertex>
 	{
 		if (!outEdges.containsKey(vertex))
 		{
-			outEdges.put(vertex, new HashSet<Vertex>());
-			inEdges.put(vertex, new HashSet<Vertex>());
+			outEdges.put(vertex, new HashSet<>());
+			inEdges.put(vertex, new HashSet<>());
 		}
 	}
 
@@ -253,8 +254,8 @@ public class Graph<Vertex>
 		{
 			if (!outEdges.containsKey(vertex))
 			{
-				outEdges.put(vertex, new HashSet<Vertex>());
-				inEdges.put(vertex, new HashSet<Vertex>());
+				outEdges.put(vertex, new HashSet<>());
+				inEdges.put(vertex, new HashSet<>());
 			}
 		}
 	}
@@ -566,7 +567,7 @@ public class Graph<Vertex>
 	public Set<Vertex> roots ()
 	{
 		final Set<Vertex> roots = new HashSet<>();
-		for (final Map.Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
+		for (final Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
 		{
 			if (entry.getValue().isEmpty())
 			{
@@ -586,7 +587,7 @@ public class Graph<Vertex>
 		final Map<Vertex, Integer> predecessorCountdowns =
 			new HashMap<>(outEdges.size());
 		final Deque<Vertex> stack = new ArrayDeque<>();
-		for (final Map.Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
+		for (final Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
 		{
 			final Vertex vertex = entry.getKey();
 			final int predecessorsSize = entry.getValue().size();
@@ -632,12 +633,12 @@ public class Graph<Vertex>
 	public Graph<Vertex> reverse ()
 	{
 		final Graph<Vertex> result = new Graph<>();
-		for (final Map.Entry<Vertex, Set<Vertex>> entry : outEdges.entrySet())
+		for (final Entry<Vertex, Set<Vertex>> entry : outEdges.entrySet())
 		{
 			result.inEdges.put(
 				entry.getKey(), new HashSet<>(entry.getValue()));
 		}
-		for (final Map.Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
+		for (final Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
 		{
 			result.outEdges.put(
 				entry.getKey(), new HashSet<>(entry.getValue()));
@@ -747,7 +748,7 @@ public class Graph<Vertex>
 		{
 			assert predecessorCountdowns.isEmpty();
 			assert stack.isEmpty();
-			for (final Map.Entry<Vertex, Set<Vertex>> entry
+			for (final Entry<Vertex, Set<Vertex>> entry
 				: inEdges.entrySet())
 			{
 				final Vertex vertex = entry.getKey();
@@ -791,51 +792,44 @@ public class Graph<Vertex>
 				if (countdown == 1)
 				{
 					log(Level.FINE, "Visiting %s%n", vertex);
-					process.value(new Continuation0()
-					{
-						@Override
-						public void value ()
+					process.value(() -> visitAction.value(
+						vertex,
+						new Continuation0()
 						{
-							visitAction.value(
-								vertex,
-								new Continuation0()
-								{
-									/**
-									 * Whether this completion action has run.
-									 */
-									private boolean alreadyRan;
+							/**
+							 * Whether this completion action has run.
+							 */
+							private boolean alreadyRan;
 
-									@Override
-									public void value ()
-									{
-										// At this point the client code is
-										// finished with this vertex and is
-										// explicitly allowing any successors to
-										// run if they have no unfinished
-										// predecessors.
-										synchronized (ParallelVisitor.this)
-										{
-											ensure(
-												!alreadyRan,
-												"Invoked completion action "
-												+ "twice for vertex");
-											alreadyRan = true;
-											predecessorCountdowns.remove(
-												vertex);
-											final Set<Vertex> successors =
-												successorsOf(vertex);
-											stack.addAll(successors);
-											log(
-												Level.FINE,
-												"Completed %s%n",
-												vertex);
-											visitRemainingVertices(
-												process, done);
-										}
-									}
-								});
-						}
-					});
+							@Override
+							public void value ()
+							{
+								// At this point the client code is
+								// finished with this vertex and is
+								// explicitly allowing any successors to
+								// run if they have no unfinished
+								// predecessors.
+								synchronized (ParallelVisitor.this)
+								{
+									ensure(
+										!alreadyRan,
+										"Invoked completion action "
+										+ "twice for vertex");
+									alreadyRan = true;
+									predecessorCountdowns.remove(
+										vertex);
+									final Set<Vertex> successors =
+										successorsOf(vertex);
+									stack.addAll(successors);
+									log(
+										Level.FINE,
+										"Completed %s%n",
+										vertex);
+									visitRemainingVertices(
+										process, done);
+								}
+							}
+						}));
 				}
 				else
 				{
@@ -868,24 +862,20 @@ public class Graph<Vertex>
 			final Continuation1<Continuation0> process,
 			final Continuation0 done)
 		{
-			process.value(new Continuation0()
+			process.value(() ->
 			{
-				@Override
-				public void value ()
+				synchronized (ParallelVisitor.this)
 				{
-					synchronized (ParallelVisitor.this)
+					// If all vertices have been visited, then invoke the
+					// appropriate continuation and abort the algorithm.
+					if (predecessorCountdowns.isEmpty())
 					{
-						// If all vertices have been visited, then invoke the
-						// appropriate continuation and abort the algorithm.
-						if (predecessorCountdowns.isEmpty())
-						{
-							done.value();
-						}
-						// Otherwise, visit another vertex.
-						else
-						{
-							exhaustStack(process, done);
-						}
+						done.value();
+					}
+					// Otherwise, visit another vertex.
+					else
+					{
+						exhaustStack(process, done);
 					}
 				}
 			});
@@ -922,23 +912,12 @@ public class Graph<Vertex>
 			computePredecessorCountdowns();
 			final Semaphore semaphore = new Semaphore(0);
 			visitRemainingVertices(
-				new Continuation1<Continuation0>()
+				executeOne ->
 				{
-					@Override
-					public void value (final @Nullable Continuation0 executeOne)
-					{
-						assert executeOne != null;
-						executeOne.value();
-					}
+					assert executeOne != null;
+					executeOne.value();
 				},
-				new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						semaphore.release();
-					}
-				});
+				semaphore::release);
 			semaphore.acquireUninterruptibly();
 		}
 	}
@@ -955,25 +934,19 @@ public class Graph<Vertex>
 		final Graph<Vertex> ancestry = new Graph<>();
 		ancestry.addVertices(seeds);
 		reverse().parallelVisit(
-			new Continuation2<Vertex, Continuation0>()
+			(vertex, completionAction) ->
 			{
-				@Override
-				public void value (
-					final @Nullable Vertex vertex,
-					final @Nullable Continuation0 completionAction)
+				assert vertex != null;
+				assert completionAction != null;
+				for (final Vertex successor : successorsOf(vertex))
 				{
-					assert vertex != null;
-					assert completionAction != null;
-					for (final Vertex successor : successorsOf(vertex))
+					if (ancestry.includesVertex(successor))
 					{
-						if (ancestry.includesVertex(successor))
-						{
-							ancestry.includeVertex(vertex);
-							ancestry.addEdge(vertex, successor);
-						}
+						ancestry.includeVertex(vertex);
+						ancestry.addEdge(vertex, successor);
 					}
-					completionAction.value();
 				}
+				completionAction.value();
 			});
 		return ancestry;
 	}
@@ -988,39 +961,33 @@ public class Graph<Vertex>
 	{
 		assert !isCyclic();
 		final Map<Vertex, Set<Vertex>> ancestorSets = new HashMap<>();
-		parallelVisit(new Continuation2<Vertex, Continuation0>()
+		parallelVisit((vertex, completionAction) ->
 		{
-			@Override
-			public void value (
-				final @Nullable Vertex vertex,
-				final @Nullable Continuation0 completionAction)
+			assert vertex != null;
+			assert completionAction != null;
+			final Set<Vertex> ancestorSet;
+			final Set<Vertex> predecessors = predecessorsOf(vertex);
+			if (predecessors.size() == 0)
 			{
-				assert vertex != null;
-				assert completionAction != null;
-				final Set<Vertex> ancestorSet;
-				final Set<Vertex> predecessors = predecessorsOf(vertex);
-				if (predecessors.size() == 0)
+				ancestorSet = Collections.emptySet();
+			}
+			else if (predecessors.size() == 1)
+			{
+				final Vertex predecessor = predecessors.iterator().next();
+				ancestorSet = new HashSet<>(ancestorSets.get(predecessor));
+				ancestorSet.add(predecessor);
+			}
+			else
+			{
+				ancestorSet = new HashSet<>(predecessors.size() * 3);
+				for (final Vertex predecessor : predecessors)
 				{
-					ancestorSet = Collections.emptySet();
-				}
-				else if (predecessors.size() == 1)
-				{
-					final Vertex predecessor = predecessors.iterator().next();
-					ancestorSet = new HashSet<>(ancestorSets.get(predecessor));
+					ancestorSet.addAll(ancestorSets.get(predecessor));
 					ancestorSet.add(predecessor);
 				}
-				else
-				{
-					ancestorSet = new HashSet<>(predecessors.size() * 3);
-					for (final Vertex predecessor : predecessors)
-					{
-						ancestorSet.addAll(ancestorSets.get(predecessor));
-						ancestorSet.add(predecessor);
-					}
-				}
-				ancestorSets.put(vertex, ancestorSet);
-				completionAction.value();
 			}
+			ancestorSets.put(vertex, ancestorSet);
+			completionAction.value();
 		});
 		final Graph<Vertex> result = new Graph<>();
 		result.addVertices(vertices());
@@ -1029,7 +996,7 @@ public class Graph<Vertex>
 		// this edge is redundant.  We detect such a path by checking if any of
 		// the destination's predecessors have the source in their sets of
 		// (proper) ancestors.
-		for (final Map.Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
+		for (final Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
 		{
 			final Vertex destination = entry.getKey();
 			final Set<Vertex> destinationPredecessors = entry.getValue();

@@ -96,7 +96,7 @@ public class LRUCache<K, V>
 
 	/**
 	 * A {@code StrongCacheMap} subclasses {@link LinkedHashMap} to override
-	 * {@link #removeEldestEntry(java.util.Map.Entry) removeEldestEntry}.
+	 * {@link #removeEldestEntry(Entry) removeEldestEntry}.
 	 */
 	private final class StrongCacheMap
 	extends LinkedHashMap<K, V>
@@ -104,15 +104,15 @@ public class LRUCache<K, V>
 		/** The serial version identifier. */
 		private static final long serialVersionUID = 5184227991121201660L;
 
-		/** The capacity of the {@linkplain LRUCache.StrongCacheMap map}. */
+		/** The capacity of the {@linkplain StrongCacheMap map}. */
 		private final int capacity;
 
 		/**
-		 * Construct a new {@link LRUCache.StrongCacheMap} with the specified
+		 * Construct a new {@link StrongCacheMap} with the specified
 		 * capacity.
 		 *
 		 * @param capacity The capacity of the {@linkplain
-		 *                 LRUCache.StrongCacheMap map}.
+		 *                 StrongCacheMap map}.
 		 */
 		public StrongCacheMap (final int capacity)
 		{
@@ -122,7 +122,7 @@ public class LRUCache<K, V>
 
 		@Override
 		protected boolean removeEldestEntry (
-			final @Nullable Map.Entry<K, V> eldest)
+			final @Nullable Entry<K, V> eldest)
 		{
 			// size() is potentially ambiguous (StrongCacheMap vs. LRUCache),
 			// but using super forces it to be about the StrongCacheMap.
@@ -176,7 +176,7 @@ public class LRUCache<K, V>
 			assert strongMap.size() <= strongCapacity;
 			assert softMap.size() == keysBySoftReference.size();
 			assert softMap.size() <= softCapacity;
-			for (final Map.Entry<K, SoftReference<V>> entry
+			for (final Entry<K, SoftReference<V>> entry
 					: softMap.entrySet())
 			{
 				assert entry.getKey() != null;
@@ -185,7 +185,7 @@ public class LRUCache<K, V>
 				assert
 					keysBySoftReference.get(entry.getValue()) == entry.getKey();
 			}
-			for (final Map.Entry<K, V> entry : strongMap.entrySet())
+			for (final Entry<K, V> entry : strongMap.entrySet())
 			{
 				assert entry.getKey() != null;
 				assert entry.getValue() != null;
@@ -195,7 +195,7 @@ public class LRUCache<K, V>
 
 	/**
 	 * A {@code SoftCacheMap} subclasses {@link LinkedHashMap} to override
-	 * {@link #removeEldestEntry(java.util.Map.Entry) removeEldestEntry}.
+	 * {@link #removeEldestEntry(Entry) removeEldestEntry}.
 	 */
 	@InnerAccess final class SoftCacheMap
 	extends LinkedHashMap<K, SoftReference<V>>
@@ -203,15 +203,15 @@ public class LRUCache<K, V>
 		/** The serial version identifier. */
 		private static final long serialVersionUID = 9157534562182014165L;
 
-		/** The capacity of the {@linkplain LRUCache.StrongCacheMap map}. */
+		/** The capacity of the {@linkplain StrongCacheMap map}. */
 		private final int capacity;
 
 		/**
-		 * Construct a new {@link LRUCache.StrongCacheMap} with the specified
+		 * Construct a new {@link StrongCacheMap} with the specified
 		 * capacity.
 		 *
 		 * @param capacity The capacity of the {@linkplain
-		 *                 LRUCache.StrongCacheMap map}.
+		 *                 StrongCacheMap map}.
 		 */
 		public SoftCacheMap (final int capacity)
 		{
@@ -221,7 +221,7 @@ public class LRUCache<K, V>
 
 		@Override
 		protected boolean removeEldestEntry (
-			final @Nullable Map.Entry<K, SoftReference<V>> eldest)
+			final @Nullable Entry<K, SoftReference<V>> eldest)
 		{
 			assert lock.isHeldByCurrentThread();
 			assert this == softMap;
@@ -383,7 +383,7 @@ public class LRUCache<K, V>
 
 		/**
 		 * The result of the computation of the {@linkplain
-		 * LRUCache.ValueFuture future}.
+		 * ValueFuture future}.
 		 */
 		private @Nullable V result;
 
@@ -523,7 +523,7 @@ public class LRUCache<K, V>
 
 		softMap   = new SoftCacheMap(softCapacity);
 		strongMap = new StrongCacheMap(strongCapacity);
-		futures   = new HashMap<K, ValueFuture>();
+		futures   = new HashMap<>();
 	}
 
 	/**
@@ -790,7 +790,7 @@ public class LRUCache<K, V>
 					// attempting to retrieve the result from the future will
 					// throw a CacheException.
 					result = future.get();
-					reference = new SoftReference<V>(
+					reference = new SoftReference<>(
 						result, defunctReferences);
 
 					// Establish a binding between the key and its value in the

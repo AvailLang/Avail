@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static java.lang.Math.min;
 
@@ -273,7 +274,7 @@ extends AbstractWorkbenchAction
 		panel.add(renamesLabel);
 
 		renamesTableModel.rows().clear();
-		for (final Map.Entry<String, String> rename
+		for (final Entry<String, String> rename
 			: workbench.resolver.renameRules().entrySet())
 		{
 			final List<String> pair = new ArrayList<>(2);

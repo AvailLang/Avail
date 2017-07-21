@@ -292,16 +292,15 @@ public abstract class AbstractStacksScanner
 	 * @return The newly added token.
 	 */
 	@InnerAccess
-	StacksToken addCurrentToken ()
+	void addCurrentToken ()
 	{
 		final StacksToken token = StacksToken.create(
 			currentTokenString(),
 			position () + filePosition(),
 			lineNumber(),
 			startOfTokenLinePostion(),
-			moduleName.toString());
+			moduleName);
 		outputTokens.add(token);
-		return token;
 	}
 
 	/**
@@ -312,16 +311,15 @@ public abstract class AbstractStacksScanner
 	 * @throws StacksScannerException
 	 */
 	@InnerAccess
-	BracketedStacksToken addBracketedToken () throws StacksScannerException
+	void addBracketedToken () throws StacksScannerException
 	{
 		final BracketedStacksToken token = BracketedStacksToken.create(
 			currentTokenString(),
 			lineNumber(),
 			position () + filePosition(),
 			startOfTokenLinePostion(),
-			moduleName.toString());
+			moduleName);
 		outputTokens.add(token);
-		return token;
 	}
 
 	/**
@@ -331,16 +329,15 @@ public abstract class AbstractStacksScanner
 	 * @return The newly added token.
 	 */
 	@InnerAccess
-	QuotedStacksToken addQuotedToken ()
+	void addQuotedToken ()
 	{
 		final QuotedStacksToken token = QuotedStacksToken.create(
 			currentTokenString(),
 			position () + filePosition(),
 			lineNumber(),
 			startOfTokenLinePostion(),
-			moduleName.toString());
+			moduleName);
 		outputTokens.add(token);
-		return token;
 	}
 
 	/**
@@ -357,7 +354,7 @@ public abstract class AbstractStacksScanner
 			position () + filePosition(),
 			lineNumber(),
 			startOfTokenLinePostion(),
-			moduleName.toString());
+			moduleName);
 		outputTokens.add(token);
 		return token;
 	}
@@ -593,7 +590,7 @@ public abstract class AbstractStacksScanner
 					{
 						// Just like a regular character, but limit how much
 						// can be removed by a subsequent '\|'.
-						scanner.beingTokenized().appendCodePoint(c);
+						scanner.beingTokenized().appendCodePoint('\n');
 						canErase = true;
 						erasurePosition = scanner.beingTokenized().length();
 					}
@@ -603,7 +600,7 @@ public abstract class AbstractStacksScanner
 						// can be removed by a subsequent '\|'.
 						if (!canErase)
 						{
-							scanner.beingTokenized().appendCodePoint(c);
+							scanner.beingTokenized().appendCodePoint('*');
 							erasurePosition = scanner.beingTokenized().length();
 						}
 					}
@@ -1002,7 +999,7 @@ public abstract class AbstractStacksScanner
 	 * A table whose indices are Unicode code points (up to 65535) and whose
 	 * values are {@link StacksScanner.ScannerAction scanner actions}.
 	 */
-	static byte[] dispatchTable = new byte[65536];
+	static final byte[] dispatchTable = new byte[65536];
 
 	/**
 	 * Statically initialize the {@link dispatchTable} with suitable
@@ -1014,7 +1011,7 @@ public abstract class AbstractStacksScanner
 		for (int i = 0; i < 65536; i++)
 		{
 			final char c = (char) i;
-			AbstractStacksScanner.ScannerAction action;
+			ScannerAction action;
 			if (Character.isSpaceChar(c) || Character.isWhitespace(c))
 			{
 				action = ScannerAction.WHITESPACE;

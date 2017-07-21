@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.objects;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.Arrays;
+
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
@@ -69,7 +69,7 @@ public final class P_ObjectTypeToMap extends Primitive
 			// and ⊥ as every corresponding value.  It's easier to just fail
 			// dynamically for this unrepresentable singularity.
 			return interpreter.primitiveFailure(
-				AvailErrorCode.E_NO_SUCH_FIELD);
+				E_NO_SUCH_FIELD);
 		}
 		return interpreter.primitiveSuccess(objectType.fieldTypeMap());
 	}

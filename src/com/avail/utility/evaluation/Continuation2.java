@@ -42,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <X> The type of the first argument.
  * @param <Y> The type of the second argument.
  */
+@FunctionalInterface
 public interface Continuation2<X, Y>
 {
 	/**
@@ -50,5 +51,5 @@ public interface Continuation2<X, Y>
 	 * @param arg1 The first argument.
 	 * @param arg2 The second argument.
 	 */
-	public void value (@Nullable X arg1, @Nullable Y arg2);
+	void value (@Nullable X arg1, @Nullable Y arg2);
 }

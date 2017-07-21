@@ -42,6 +42,7 @@ import java.net.SocketOption;
 import java.nio.channels.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.interpreter.*;
 
 /**
@@ -88,7 +89,7 @@ extends Primitive
 			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
 		try
 		{
-			for (final MapDescriptor.Entry entry : options.mapIterable())
+			for (final Entry entry : options.mapIterable())
 			{
 				final AvailObject key = entry.key();
 				final AvailObject entryValue = entry.value();
@@ -136,11 +137,9 @@ extends Primitive
 				ATOM.o(),
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.zero(),
-						IntegerDescriptor.fromInt(socketOptions.length - 1)),
+						0, socketOptions.length - 1),
 					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.one(),
-						IntegerDescriptor.fromInt(socketOptions.length - 1)),
+						1, socketOptions.length - 1),
 					ANY.o())),
 			TOP.o());
 	}

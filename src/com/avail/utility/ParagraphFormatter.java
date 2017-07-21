@@ -182,14 +182,14 @@ public class ParagraphFormatter
 					{
 						// determine where the cutoff should be.
 						int cutoff =
-							paragraph.substring(0, lastIndex).lastIndexOf(" ");
+							paragraph.substring(0, lastIndex).lastIndexOf(' ');
 
 						// If there was no space, this line is a truncated,
 						// single long word. Adjust the cutoff position to the
 						// end of that word, even though it is too long.
 						if (cutoff < 0)
 						{
-							cutoff = paragraph.indexOf(" ");
+							cutoff = paragraph.indexOf(' ');
 						}
 
 						currentLine = paragraph.substring(0, cutoff);

@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <Y> The type of the second argument to the operation.
  * @param <Z> The type of value produced by the operation.
  */
-public abstract class Transformer2 <X,Y,Z>
+public interface Transformer2 <X,Y,Z>
 {
 	/**
 	 * Perform the operation.
@@ -53,7 +53,7 @@ public abstract class Transformer2 <X,Y,Z>
 	 * @param arg2 The second argument to the operation.
 	 * @return The result of performing the operation.
 	 */
-	public abstract @Nullable Z value (
+	@Nullable Z value (
 		@Nullable X arg1,
 		@Nullable Y arg2);
 
@@ -65,7 +65,7 @@ public abstract class Transformer2 <X,Y,Z>
 	 * @param arg2 The second argument to the operation.
 	 * @return The non-null transformed value.
 	 */
-	public final Z valueNotNull (
+	default Z valueNotNull (
 		final @Nullable X arg1,
 		final @Nullable Y arg2)
 	{

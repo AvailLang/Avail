@@ -44,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Initiate an asynchronous write from the
@@ -113,16 +112,9 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.format(
-						"Socket write, %s",
-						handle.atomName());
-				}
-			});
+			() -> StringDescriptor.format(
+				"Socket write, %s",
+				handle.atomName()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());

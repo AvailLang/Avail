@@ -341,7 +341,7 @@ public class StacksParser
 		};
 
 		/** An array of all {@link StacksTagKeyword} enumeration values. */
-		private static StacksTagKeyword[] all = values();
+		private static final StacksTagKeyword[] all = values();
 
 		/**
 		 * Answer an array of all {@link StacksTagKeyword} enumeration values.
@@ -362,7 +362,7 @@ public class StacksParser
 		 * @param lexeme
 		 * 		{@link String} String representation of the keyword.
 		 */
-		private StacksTagKeyword(final String lexeme) {
+		StacksTagKeyword (final String lexeme) {
 			this.lexeme = lexeme;
 		}
 
@@ -371,7 +371,7 @@ public class StacksParser
 		 * the {@link Enum StacksKeywords}
 		 */
 		static final Map<String, StacksTagKeyword> keywordTable =
-			new HashMap<String, StacksTagKeyword>();
+			new HashMap<>();
 
 		// Learn the lexeme's of the keywords.
 		static
@@ -516,15 +516,15 @@ public class StacksParser
 		if (sectionStartLocations.get(0) != 0)
 		{
 			final ArrayList<AbstractStacksToken> description =
-				new ArrayList<AbstractStacksToken>(tokens()
+				new ArrayList<>(tokens()
 					.subList(0, sectionStartLocations
 						.get(currentSectionStartLocationsIndex)));
 			builder.addStacksCommentDescription(description);
 		}
 
-		int getDataStartingFrom = 0;
+		int getDataStartingFrom;
 
-		int getDataUntil = 0;
+		int getDataUntil;
 
 		while (nextSectionStartLocationsIndex < sectionStartLocations.size())
 		{
@@ -538,24 +538,23 @@ public class StacksParser
 			getDataStartingFrom = sectionStartLocations
 				.get(currentSectionStartLocationsIndex) + 1;
 
-			getDataUntil = 0;
 			if (nextSectionStartLocationsIndex >
-				sectionStartLocations.size()-1)
+				sectionStartLocations.size() - 1)
 			{
 				getDataUntil = tokens().size();
 			}
 			else
 			{
-				getDataUntil = sectionStartLocations
-					.get(nextSectionStartLocationsIndex);
+				getDataUntil = sectionStartLocations.get(
+					nextSectionStartLocationsIndex);
 			}
 
 			//Add the new tag section to the map.
-			StacksTagKeyword.keywordTable.get(key)
-				.addTokensToBuilder(builder,
-					new ArrayList<AbstractStacksToken>(tokens()
-						.subList(getDataStartingFrom,getDataUntil)),
-							linkingFileMap);
+			StacksTagKeyword.keywordTable.get(key).addTokensToBuilder(
+				builder,
+				new ArrayList<>(
+					tokens().subList(getDataStartingFrom, getDataUntil)),
+				linkingFileMap);
 			currentSectionStartLocationsIndex = nextSectionStartLocationsIndex;
 		}
 

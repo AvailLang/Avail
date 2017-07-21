@@ -41,6 +41,7 @@ import java.util.IdentityHashMap;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -176,7 +177,7 @@ extends PojoTypeDescriptor
 	 * @param object An object.
 	 * @return The hash.
 	 */
-	private int hash (final AvailObject object)
+	private static int hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -208,7 +209,7 @@ extends PojoTypeDescriptor
 	{
 		final Class<?> javaClass =
 			(Class<?>) object.slot(JAVA_CLASS).javaObjectNotNull();
-		return Modifier.isAbstract(javaClass.getModifiers());
+		return isAbstract(javaClass.getModifiers());
 	}
 
 	@Override @AvailMethod
@@ -443,7 +444,7 @@ extends PojoTypeDescriptor
 		if (typeVars.equalsNil())
 		{
 			typeVars = MapDescriptor.empty();
-			for (final MapDescriptor.Entry entry
+			for (final Entry entry
 				: object.slot(JAVA_ANCESTORS).mapIterable())
 			{
 				final Class<?> ancestor =

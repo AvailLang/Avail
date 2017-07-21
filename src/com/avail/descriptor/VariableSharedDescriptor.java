@@ -469,13 +469,6 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsGlobal(
-		final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override @AvailMethod
 	AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		// Do nothing; just answer the (shared) receiver.

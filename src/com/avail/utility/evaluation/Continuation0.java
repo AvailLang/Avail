@@ -38,10 +38,11 @@ package com.avail.utility.evaluation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@FunctionalInterface
 public interface Continuation0
 {
 	/**
 	 * Perform the operation.
 	 */
-	public void value ();
+	void value ();
 }

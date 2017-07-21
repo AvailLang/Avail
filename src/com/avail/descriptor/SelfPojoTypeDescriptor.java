@@ -38,6 +38,7 @@ import java.util.*;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.ArrayPojoTypeDescriptor.PojoArray;
 import com.avail.serialization.SerializerOperation;
 import org.jetbrains.annotations.Nullable;
 
@@ -126,7 +127,7 @@ extends PojoTypeDescriptor
 	{
 		return object.slot(JAVA_CLASS).equals(
 			RawPojoDescriptor.equalityWrap(
-				ArrayPojoTypeDescriptor.PojoArray.class));
+				PojoArray.class));
 	}
 
 	@Override @AvailMethod
@@ -291,22 +292,14 @@ extends PojoTypeDescriptor
 			final A_Set ancestors = object.slot(JAVA_ANCESTORS);
 			final List<AvailObject> childless = new ArrayList<>(
 				childlessAmong(ancestors));
-			Collections.sort(
-				childless,
-				new Comparator<AvailObject>()
-				{
-					@Override
-					public int compare (
-						final @Nullable AvailObject o1,
-						final @Nullable AvailObject o2)
-					{
-						assert o1 != null;
-						assert o2 != null;
-						final Class<?> c1 = (Class<?>) o1.javaObjectNotNull();
-						final Class<?> c2 = (Class<?>) o2.javaObjectNotNull();
-						return c1.getName().compareTo(c2.getName());
-					}
-				});
+			childless.sort((o1, o2) ->
+			{
+				assert o1 != null;
+				assert o2 != null;
+				final Class<?> c1 = (Class<?>) o1.javaObjectNotNull();
+				final Class<?> c2 = (Class<?>) o2.javaObjectNotNull();
+				return c1.getName().compareTo(c2.getName());
+			});
 			builder.append('(');
 			boolean first = true;
 			for (final A_BasicObject aClass : childless)

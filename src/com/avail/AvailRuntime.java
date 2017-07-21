@@ -57,6 +57,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -69,8 +71,8 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
@@ -146,7 +148,7 @@ public final class AvailRuntime
 	 *
 	 * @return The active versions.
 	 */
-	public static final A_Set activeVersions ()
+	public static A_Set activeVersions ()
 	{
 		A_Set versions = SetDescriptor.empty();
 		for (final String version : activeVersions)
@@ -212,16 +214,9 @@ public final class AvailRuntime
 	 * The {@linkplain ThreadFactory thread factory} for creating {@link
 	 * AvailThread}s on behalf of this {@linkplain AvailRuntime Avail runtime}.
 	 */
-	private final ThreadFactory executorThreadFactory = new ThreadFactory()
-	{
-		@Override
-		public AvailThread newThread (final Runnable runnable)
-		{
-			return new AvailThread(
-				runnable,
-				new Interpreter(AvailRuntime.this));
-		}
-	};
+	private final ThreadFactory executorThreadFactory = runnable -> new AvailThread(
+		runnable,
+		new Interpreter(AvailRuntime.this));
 
 	/**
 	 * The {@linkplain ThreadFactory thread factory} for creating {@link
@@ -230,7 +225,7 @@ public final class AvailRuntime
 	 */
 	private final ThreadFactory fileThreadFactory = new ThreadFactory()
 	{
-		AtomicInteger counter = new AtomicInteger();
+		final AtomicInteger counter = new AtomicInteger();
 
 		@Override
 		public Thread newThread (final Runnable runnable)
@@ -247,7 +242,7 @@ public final class AvailRuntime
 	 */
 	private final ThreadFactory socketThreadFactory = new ThreadFactory()
 	{
-		AtomicInteger counter = new AtomicInteger();
+		final AtomicInteger counter = new AtomicInteger();
 
 		@Override
 		public Thread newThread (final Runnable runnable)
@@ -271,7 +266,7 @@ public final class AvailRuntime
 	 * A counter from which unique interpreter indices in [0..maxInterpreters)
 	 * are allotted.
 	 */
-	private AtomicInteger nextInterpreterIndex = new AtomicInteger(0);
+	private final AtomicInteger nextInterpreterIndex = new AtomicInteger(0);
 
 	/**
 	 * Allocate the next interpreter index in [0..maxInterpreters)
@@ -296,9 +291,9 @@ public final class AvailRuntime
 			maxInterpreters,
 			10L,
 			TimeUnit.SECONDS,
-			new PriorityBlockingQueue<Runnable>(100),
+			new PriorityBlockingQueue<>(100),
 			executorThreadFactory,
-			new ThreadPoolExecutor.AbortPolicy());
+			new AbortPolicy());
 
 	/**
 	 * Schedule the specified {@linkplain AvailTask task} for eventual
@@ -324,9 +319,9 @@ public final class AvailRuntime
 			availableProcessors << 2,
 			10L,
 			TimeUnit.SECONDS,
-			new LinkedBlockingQueue<Runnable>(10),
+			new LinkedBlockingQueue<>(10),
 			fileThreadFactory,
-			new ThreadPoolExecutor.CallerRunsPolicy());
+			new CallerRunsPolicy());
 
 	/**
 	 * Schedule the specified {@linkplain AvailTask task} for eventual execution
@@ -353,9 +348,9 @@ public final class AvailRuntime
 			availableProcessors << 2,
 			10L,
 			TimeUnit.SECONDS,
-			new LinkedBlockingQueue<Runnable>(),
+			new LinkedBlockingQueue<>(),
 			socketThreadFactory,
-			new ThreadPoolExecutor.CallerRunsPolicy());
+			new CallerRunsPolicy());
 
 	/**
 	 * The {@linkplain AsynchronousChannelGroup asynchronous channel group}
@@ -434,7 +429,7 @@ public final class AvailRuntime
 	 *
 	 * @return The default file system.
 	 */
-	public FileSystem fileSystem ()
+	public static FileSystem fileSystem ()
 	{
 		return fileSystem;
 	}
@@ -613,7 +608,7 @@ public final class AvailRuntime
 			new WeakHashMap<>();
 
 		/**
-		 * Construct a new {@link AvailRuntime.FileHandle}.
+		 * Construct a new {@link FileHandle}.
 		 *
 		 * @param filename The {@link A_String name} of the file.
 		 * @param alignment The alignment by which to access the file.
@@ -654,33 +649,18 @@ public final class AvailRuntime
 		cachedBuffers = new LRUCache<>(
 			10000,
 			10,
-			new Transformer1<
-				BufferKey,
-				MutableOrNull<A_Tuple>>()
-			{
-				@Override
-				public MutableOrNull<A_Tuple> value (
-					final @Nullable BufferKey key)
-				{
-					assert key != null;
-					return new MutableOrNull<>();
-				}
-			},
-			new Continuation2<
-				BufferKey,
-				MutableOrNull<A_Tuple>>()
-			{
-				@Override
-				public void value (
-					final @Nullable BufferKey key,
-					final @Nullable MutableOrNull<A_Tuple> value)
-				{
-					assert value != null;
-					// Just clear the mutable's value slot, freeing the actual
-					// buffer.
-					value.value = null;
-				}
-			});
+		key ->
+		{
+			assert key != null;
+			return new MutableOrNull<>();
+		},
+		(key, value) ->
+		{
+			assert value != null;
+			// Just clear the mutable's value slot, freeing the actual
+			// buffer.
+			value.value = null;
+		});
 
 	/**
 	 * Answer the {@linkplain MutableOrNull container} responsible for the
@@ -708,9 +688,9 @@ public final class AvailRuntime
 	 * @return A container for the associated buffer, or {@code null} if the
 	 *         buffer is no longer valid.
 	 */
-	public @Nullable MutableOrNull<A_Tuple> discardBuffer (final BufferKey key)
+	public void discardBuffer (final BufferKey key)
 	{
-		return cachedBuffers.remove(key);
+		cachedBuffers.remove(key);
 	}
 
 	/**
@@ -815,12 +795,12 @@ public final class AvailRuntime
 	 * Whether to show all {@link MacroDefinitionDescriptor macro} expansions as
 	 * they happen.
 	 */
-	public static boolean debugMacroExpansions = false;
+	public static boolean debugMacroExpansions = true;
 
 	/**
 	 * Whether to show detailed compiler trace information.
 	 */
-	public static boolean debugCompilerSteps = false;
+	public static boolean debugCompilerSteps = true;
 
 	/**
 	 * Perform an integrity check on the parser data structures.  Report the
@@ -834,14 +814,14 @@ public final class AvailRuntime
 		{
 			Set<A_Atom> atoms = new HashSet<>();
 			Set<A_Definition> definitions = new HashSet<>();
-			for (final MapDescriptor.Entry moduleEntry : modules.mapIterable())
+			for (final Entry moduleEntry : modules.mapIterable())
 			{
 				final A_Module module = moduleEntry.value();
 				atoms.addAll(
-					TupleDescriptor.<A_Atom>toList(
+					TupleDescriptor.toList(
 						module.newNames().valuesAsTuple()));
 				atoms.addAll(
-					TupleDescriptor.<A_Atom>toList(
+					TupleDescriptor.toList(
 						module.visibleNames().asTuple()));
 				A_Tuple atomSets = module.importedNames().valuesAsTuple();
 				atomSets = atomSets.concatenateWith(
@@ -849,7 +829,7 @@ public final class AvailRuntime
 				for (A_Set atomSet : atomSets)
 				{
 					atoms.addAll(
-						TupleDescriptor.<A_Atom>toList(atomSet.asTuple()));
+						TupleDescriptor.toList(atomSet.asTuple()));
 				}
 				for (A_Definition definition : module.methodDefinitions())
 				{
@@ -876,7 +856,7 @@ public final class AvailRuntime
 					TupleDescriptor.<A_Definition>toList(
 						method.definitionsTuple()));
 				bundleDefinitions.addAll(
-					TupleDescriptor.<A_Definition>toList(
+					TupleDescriptor.toList(
 						method.macroDefinitionsTuple()));
 				for (final A_Bundle bundle : method.bundles())
 				{
@@ -1329,26 +1309,22 @@ public final class AvailRuntime
 	 * The reaper {@linkplain Thread thread} that cleans up {@link #allFibers}.
 	 */
 	private final Thread fiberReaper = new Thread(
-		new Runnable()
+		() ->
 		{
-			@Override
-			public void run ()
+			while (true)
 			{
-				while (true)
+				try
 				{
-					try
+					final FiberReference ref =
+						(FiberReference) fiberQueue.remove();
+					synchronized (allFibers)
 					{
-						final FiberReference ref =
-							(FiberReference) fiberQueue.remove();
-						synchronized (allFibers)
-						{
-							allFibers.remove(ref.id);
-						}
+						allFibers.remove(ref.id);
 					}
-					catch (final InterruptedException e)
-					{
-						// Ignore the interrupt.
-					}
+				}
+				catch (final InterruptedException e)
+				{
+					// Ignore the interrupt.
 				}
 			}
 		},
@@ -1467,7 +1443,7 @@ public final class AvailRuntime
 		specials[19] = MapTypeDescriptor.meta();
 		specials[20] = MODULE.o();
 		specials[21] = TupleDescriptor.fromIntegerList(
-			AvailErrorCode.allNumericCodes());
+			allNumericCodes());
 		specials[22] = ObjectTypeDescriptor.mostGeneralType();
 		specials[23] = ObjectTypeDescriptor.meta();
 		specials[24] = ObjectTypeDescriptor.exceptionType();
@@ -1713,7 +1689,7 @@ public final class AvailRuntime
 		specials[153] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
 			TupleTypeDescriptor.stringType(),
-			Types.ATOM.o());
+			ATOM.o());
 		specials[154] = SpecialAtom.MACRO_BUNDLE_KEY.atom;
 		specials[155] = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom;
 		specials[156] = VariableTypeDescriptor.fromReadAndWriteTypes(
@@ -2098,7 +2074,8 @@ public final class AvailRuntime
 	 * FiberDescriptor fiber} is {@linkplain ExecutionState#RUNNING running} a
 	 * Level Two chunk. These two activities are mutually exclusive.</p>
 	 */
-	@InnerAccess Queue<AvailTask> levelOneSafeTasks =
+	@InnerAccess
+	final Queue<AvailTask> levelOneSafeTasks =
 		new ArrayDeque<>();
 
 	/**
@@ -2106,7 +2083,8 @@ public final class AvailRuntime
 	 * Runnable tasks}. A Level One-unsafe task requires that no
 	 * {@linkplain #levelOneSafeTasks Level One-safe tasks} are running.
 	 */
-	@InnerAccess Queue<AvailTask> levelOneUnsafeTasks =
+	@InnerAccess
+	final Queue<AvailTask> levelOneUnsafeTasks =
 		new ArrayDeque<>();
 
 	/**

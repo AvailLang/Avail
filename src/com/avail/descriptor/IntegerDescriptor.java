@@ -291,7 +291,7 @@ extends ExtendedIntegerDescriptor
 		{
 			return true;
 		}
-		else if (!aType.isIntegerRangeType())
+		if (!aType.isIntegerRangeType())
 		{
 			return false;
 		}
@@ -649,7 +649,7 @@ extends ExtendedIntegerDescriptor
 	{
 		final int objectSize = intCount(object);
 		final int anIntegerSize = intCount(another);
-		AvailObject output = null;
+		AvailObject output;
 		if (objectSize == anIntegerSize)
 		{
 			output =
@@ -1065,12 +1065,12 @@ extends ExtendedIntegerDescriptor
 		// that is still in range.  Avoid the overflow in that case by working
 		// with a scaled down version of the integer: target a "significand"
 		// below about 2^96.
-		final int scale = Math.max(intCount(object) - 4, 0) * 32;
+		final int scale = max(intCount(object) - 4, 0) * 32;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledQuotient =
 			doubleObject.extractDouble() / scaledIntAsDouble;
-		final double quotient = Math.scalb(scaledQuotient, scale);
+		final double quotient = scalb(scaledQuotient, scale);
 		return DoubleDescriptor.objectFromDoubleRecycling(
 			quotient,
 			doubleObject,
@@ -1089,12 +1089,12 @@ extends ExtendedIntegerDescriptor
 		// possible, but it's easier to just make it match the double case.
 		// Avoid the overflow by working with a scaled down version of the
 		// integer: target a "significand" below about 2^96.
-		final int scale = Math.max(intCount(object) - 4, 0) * 32;
+		final int scale = max(intCount(object) - 4, 0) * 32;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledQuotient =
 			floatObject.extractDouble() / scaledIntAsDouble;
-		final double quotient = Math.scalb(scaledQuotient, scale);
+		final double quotient = scalb(scaledQuotient, scale);
 		return FloatDescriptor.objectFromFloatRecycling(
 			(float)quotient,
 			floatObject,
@@ -1123,7 +1123,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		A_Number output = null;
+		A_Number output;
 		if (object.isInt() && anInteger.isInt())
 		{
 			// See if the (signed) product will fit in 32 bits, the most common
@@ -1222,12 +1222,12 @@ extends ExtendedIntegerDescriptor
 		// that is still in range.  Avoid the overflow in that case by working
 		// with a scaled down version of the integer: target a "significand"
 		// below about 2^96.
-		final int scale = Math.max(intCount(object) - 4, 0) * 32;
+		final int scale = max(intCount(object) - 4, 0) * 32;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledProduct =
 			doubleObject.extractDouble() * scaledIntAsDouble;
-		final double product = Math.scalb(scaledProduct, scale);
+		final double product = scalb(scaledProduct, scale);
 		return DoubleDescriptor.objectFromDoubleRecycling(
 			product, doubleObject, canDestroy);
 	}
@@ -1244,12 +1244,12 @@ extends ExtendedIntegerDescriptor
 		// possible, but it's easier to just make it match the double case.
 		// Avoid the overflow by working with a scaled down version of the
 		// integer: target a "significand" below about 2^96.
-		final int scale = Math.max(intCount(object) - 4, 0) * 32;
+		final int scale = max(intCount(object) - 4, 0) * 32;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledProduct =
 			floatObject.extractDouble() * scaledIntAsDouble;
-		final double product = Math.scalb(scaledProduct, scale);
+		final double product = scalb(scaledProduct, scale);
 		return FloatDescriptor.objectFromFloatRecycling(
 			(float)product, floatObject, canDestroy);
 	}
@@ -1641,7 +1641,7 @@ extends ExtendedIntegerDescriptor
 		}
 		if (sign == EQUAL)
 		{
-			if (!canDestroy & isMutable())
+			if (!canDestroy || isMutable())
 			{
 				object.makeImmutable();
 			}
@@ -1719,7 +1719,7 @@ extends ExtendedIntegerDescriptor
 					? object.rawSignedIntegerAt(sourceIndex)
 					: 0;
 			accumulator <<= 32;
-			accumulator |= nextWord << shortShift;
+			accumulator |= (long) nextWord << shortShift;
 			if (destIndex <= slotCount)
 			{
 				result.rawSignedIntegerAtPut(
@@ -1768,7 +1768,7 @@ extends ExtendedIntegerDescriptor
 	{
 		if (object.equals(zero()))
 		{
-			if (!canDestroy & isMutable())
+			if (!canDestroy || isMutable())
 			{
 				object.makeImmutable();
 			}
@@ -1801,15 +1801,14 @@ extends ExtendedIntegerDescriptor
 			{
 				// Either a right shift, or a left shift that didn't lose bits.
 				// In these cases the result will still be a long.
-				final long resultLong = shiftedLong;
 				if (canDestroy && isMutable())
 				{
-					if (resultLong == (int)resultLong)
+					if (shiftedLong == (int) shiftedLong)
 					{
 						// Fits in an int.  Try to recycle.
 						if (intCount(object) == 1)
 						{
-							object.rawSignedIntegerAtPut(1, (int)resultLong);
+							object.rawSignedIntegerAtPut(1, (int) shiftedLong);
 							return object;
 						}
 					}
@@ -1820,16 +1819,16 @@ extends ExtendedIntegerDescriptor
 						{
 							object.rawSignedIntegerAtPut(
 								1,
-								(int)resultLong);
+								(int) shiftedLong);
 							object.rawSignedIntegerAtPut(
 								2,
-								(int)(resultLong >> 32L));
+								(int)(shiftedLong >> 32L));
 							return object;
 						}
 					}
 				}
 				// Fall back and create a new integer object.
-				return fromLong(resultLong);
+				return fromLong(shiftedLong);
 			}
 		}
 		// Answer doesn't (necessarily) fit in a long.
@@ -1916,7 +1915,7 @@ extends ExtendedIntegerDescriptor
 			return object.asBigInteger();
 		}
 		// Force marshaling to Java's primitive long type.
-		else if (Long.TYPE.equals(classHint))
+		if (Long.TYPE.equals(classHint))
 		{
 			if (!object.isLong())
 			{
@@ -1925,7 +1924,7 @@ extends ExtendedIntegerDescriptor
 			return Long.valueOf(object.extractLong());
 		}
 		// Force marshaling to Java's primitive int type.
-		else if (Integer.TYPE.equals(classHint))
+		if (Integer.TYPE.equals(classHint))
 		{
 			if (!object.isInt())
 			{
@@ -1934,7 +1933,7 @@ extends ExtendedIntegerDescriptor
 			return Integer.valueOf(object.extractInt());
 		}
 		// Force marshaling to Java's primitive short type.
-		else if (Short.TYPE.equals(classHint))
+		if (Short.TYPE.equals(classHint))
 		{
 			if (!object.isSignedShort())
 			{
@@ -1943,7 +1942,7 @@ extends ExtendedIntegerDescriptor
 			return Short.valueOf(object.extractSignedShort());
 		}
 		// Force marshaling to Java's primitive byte type.
-		else if (Byte.TYPE.equals(classHint))
+		if (Byte.TYPE.equals(classHint))
 		{
 			if (!object.isSignedByte())
 			{
@@ -2179,21 +2178,21 @@ extends ExtendedIntegerDescriptor
 		// available), which is better than a double can represent.
 		final int slotsCount = intCount(object);
 		final long high = object.rawSignedIntegerAt(slotsCount);
-		double d = Math.scalb(
+		double d = scalb(
 			(double)high,
 			((slotsCount - 1) << 5) - exponentBias);
 		if (slotsCount > 1)
 		{
 			final long med = (high & ~0xFFFFFFFFL)
 				+ object.rawUnsignedIntegerAt(slotsCount - 1);
-			d += Math.scalb(
+			d += scalb(
 				(double)med,
 				((slotsCount - 2) << 5) - exponentBias);
 			if (slotsCount > 2)
 			{
 				final long low = (high & ~0xFFFFFFFFL)
 					+ object.rawUnsignedIntegerAt(slotsCount - 2);
-				d += Math.scalb(
+				d += scalb(
 					(double)low,
 					((slotsCount - 3) << 5) - exponentBias);
 			}
@@ -2404,31 +2403,29 @@ extends ExtendedIntegerDescriptor
 	 * of calculations much more efficient than naively constructing a fresh
 	 * {@link AvailObject} unconditionally.
 	 */
-	private static final A_Number[] immutableByteObjects;
+	private static final A_Number[] immutableByteObjects = new A_Number[256];
 
 	static
 	{
-		final AvailObject[] bytes = new AvailObject [256];
 		for (int i = 0; i <= 255; i++)
 		{
 			final AvailObject object = createUninitialized(1);
 			object.rawSignedIntegerAtPut(1, i);
-			bytes[i] = object.makeShared();
+			immutableByteObjects[i] = object.makeShared();
 		}
-		immutableByteObjects = bytes;
 	}
 
 	/** An Avail integer representing zero (0). */
-	private static A_Number zero = immutableByteObjects[0];
+	private static final A_Number zero = immutableByteObjects[0];
 
 	/** An Avail integer representing one (1). */
-	private static A_Number one = immutableByteObjects[1];
+	private static final A_Number one = immutableByteObjects[1];
 
 	/** An Avail integer representing two (2). */
-	private static A_Number two = immutableByteObjects[2];
+	private static final A_Number two = immutableByteObjects[2];
 
 	/** An Avail integer representing ten (10). */
-	private static A_Number ten = immutableByteObjects[10];
+	private static final A_Number ten = immutableByteObjects[10];
 
 	/** The Avail integer negative one (-1). */
 	private static final A_Number negativeOne;

@@ -39,8 +39,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.compiler.ParserState;
-import com.avail.descriptor.TokenDescriptor.IntegerSlots;
+import com.avail.compiler.CompilationContext;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -134,15 +134,19 @@ extends TokenDescriptor
 		@HideFieldInDebugger
 		TRAILING_WHITESPACE,
 
-		/** The actual {@link AvailObject} wrapped by this token. */
-		LITERAL,
-
 		/**
-		 * A {@link RawPojoDescriptor raw pojo} holding the {@link ParserState}
-		 * after this token.  This field is cleared after the top-level
-		 * statement containing it has been parsed.
+		 * A {@link RawPojoDescriptor raw pojo} holding the {@link LexingState}
+		 * after this token.
+		 *
+		 * <p>The field is typically {@link NilDescriptor#nil() nil}, to
+		 * indicate the {@link LexingState} should be looked up by position (and
+		 * line number) via {@link CompilationContext#lexingStateAt(int, int)}.
+		 * </p>
 		 */
-		NEXT_PARSER_STATE_POJO;
+		NEXT_LEXING_STATE_POJO,
+
+		/** The actual {@link AvailObject} wrapped by this token. */
+		LITERAL;
 
 		static
 		{
@@ -155,7 +159,7 @@ extends TokenDescriptor
 			assert TokenDescriptor.ObjectSlots.TRAILING_WHITESPACE.ordinal()
 				== TRAILING_WHITESPACE.ordinal();
 			assert TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal()
-				== NEXT_PARSER_STATE_POJO.ordinal();
+				== NEXT_LEXING_STATE_POJO.ordinal();
 		}
 	}
 
@@ -279,7 +283,7 @@ extends TokenDescriptor
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
 		instance.setSlot(LITERAL, literal);
-		instance.setSlot(NEXT_PARSER_STATE_POJO, NilDescriptor.nil());
+		instance.setSlot(NEXT_LEXING_STATE_POJO, NilDescriptor.nil());
 		return instance;
 	}
 

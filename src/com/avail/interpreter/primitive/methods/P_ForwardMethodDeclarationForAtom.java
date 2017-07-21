@@ -43,7 +43,6 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Forward declare a method (for recursion
@@ -87,32 +86,28 @@ extends Primitive
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
-				new Continuation0()
+				() ->
 				{
-					@Override
-					public void value ()
+					try
 					{
-						try
-						{
-							loader.addForwardStub(atom, blockSignature);
-							Interpreter.resumeFromSuccessfulPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								NilDescriptor.nil(),
-								skipReturnCheck);
-						}
-						catch (
-							final MalformedMessageException
-								| SignatureException e)
-						{
-							Interpreter.resumeFromFailedPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								e.numericCode(),
-								failureFunction,
-								copiedArgs,
-								skipReturnCheck);
-						}
+						loader.addForwardStub(atom, blockSignature);
+						Interpreter.resumeFromSuccessfulPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							NilDescriptor.nil(),
+							skipReturnCheck);
+					}
+					catch (
+						final MalformedMessageException
+							| SignatureException e)
+					{
+						Interpreter.resumeFromFailedPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							e.numericCode(),
+							failureFunction,
+							copiedArgs,
+							skipReturnCheck);
 					}
 				}));
 		return FIBER_SUSPENDED;

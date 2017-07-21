@@ -44,7 +44,6 @@ import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * The {@code P_BootstrapVariableUseMacro} primitive is used to create
@@ -122,46 +121,34 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 		if (!module.constantBindings().hasKey(variableNameString))
 		{
 			throw new AvailRejectedParseException(
-				new Generator<A_String>()
+				() ->
 				{
-					@Override
-					public A_String value ()
+					final StringBuilder builder = new StringBuilder();
+					builder.append("variable ");
+					builder.append(variableNameString);
+					builder.append(" to be in scope (local scope is: ");
+					final List<A_String> scope = new ArrayList<>();
+					scope.addAll(
+						TupleDescriptor.toList(
+							scopeMap.keysAsSet().asTuple()));
+					scope.sort((s1, s2) ->
 					{
-						final StringBuilder builder = new StringBuilder();
-						builder.append("variable ");
-						builder.append(variableNameString);
-						builder.append(" to be in scope (local scope is: ");
-						final List<A_String> scope = new ArrayList<>();
-						scope.addAll(
-							TupleDescriptor.<A_String>toList(
-								scopeMap.keysAsSet().asTuple()));
-						Collections.sort(
-							scope,
-							new Comparator<A_String>()
-							{
-								@Override
-								public int compare(
-									final @Nullable A_String s1,
-									final @Nullable A_String s2)
-								{
-									assert s1 != null && s2 != null;
-									return s1.asNativeString().compareTo(
-										s2.asNativeString());
-								}
-							});
-						boolean first = true;
-						for (final A_String eachVar : scope)
+						assert s1 != null && s2 != null;
+						return s1.asNativeString().compareTo(
+							s2.asNativeString());
+					});
+					boolean first = true;
+					for (final A_String eachVar : scope)
+					{
+						if (!first)
 						{
-							if (!first)
-							{
-								builder.append(", ");
-							}
-							builder.append(eachVar.asNativeString());
-							first = false;
+							builder.append(", ");
 						}
-						builder.append(")");
-						return StringDescriptor.from(builder.toString());
+						builder.append(eachVar.asNativeString());
+						first = false;
 					}
+					builder.append(")");
+					return StringDescriptor.from(builder.toString());
 				});
 		}
 		final A_BasicObject variableObject =

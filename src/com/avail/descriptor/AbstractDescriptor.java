@@ -42,7 +42,6 @@ import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
@@ -61,6 +60,7 @@ import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
@@ -772,7 +772,7 @@ public abstract class AbstractDescriptor
 		int fieldCount = 0;
 		final List<Class<?>> supers = new ArrayList<>();
 		for (
-			Class<? extends Object> cls = thisClass;
+			Class<?> cls = thisClass;
 			cls != Object.class;
 			cls = cls.getSuperclass())
 		{
@@ -3453,7 +3453,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract TokenDescriptor.TokenType o_TokenType (
+	abstract TokenType o_TokenType (
 		AvailObject object);
 
 	/**
@@ -4512,7 +4512,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract MapDescriptor.MapIterable o_MapIterable (
+	abstract MapIterable o_MapIterable (
 		AvailObject object);
 
 	/**
@@ -4561,12 +4561,9 @@ public abstract class AbstractDescriptor
 	 * @param aSet
 	 * @return
 	 */
-	boolean o_EqualsEnumerationWithSet (
+	abstract boolean o_EqualsEnumerationWithSet (
 		final AvailObject object,
-		final A_Set aSet)
-	{
-		return false;
-	}
+		final A_Set aSet);
 
 	/**
 	 * @param object
@@ -6345,12 +6342,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @return
-	 */
-	abstract int o_TokenIndex (AvailObject object);
-
-	/**
-	 * @param object
 	 * @param continuation
 	 */
 	abstract void o_StatementsDo (
@@ -6588,24 +6579,21 @@ public abstract class AbstractDescriptor
 	/**
 	 *
 	 * @param object
-	 */
-	abstract void o_ClearNextLexingState (final AvailObject object);
-
-	/**
-	 *
-	 * @param object
+	 * @param compilationContext
 	 * @return
 	 */
-	abstract LexingState o_NextLexingState (final AvailObject object);
+	abstract LexingState o_NextLexingStateIn (
+		final AvailObject object,
+		final CompilationContext compilationContext);
 
 	/**
 	 *
 	 * @param object
 	 * @param lexingState
 	 */
-	abstract void o_NextLexingState (
+	abstract void o_SetNextLexingState (
 		final AvailObject object,
-		final LexingState lexingState);
+		final @Nullable LexingState lexingState);
 
 	/**
 	 *

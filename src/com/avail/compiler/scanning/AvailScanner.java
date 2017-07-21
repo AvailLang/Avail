@@ -41,7 +41,6 @@ import com.avail.compiler.ExpectedToken;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.LRUCache;
-import com.avail.utility.evaluation.Transformer1;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -166,7 +165,7 @@ public class AvailScanner
 	 * @return The newly added token.
 	 */
 	@InnerAccess A_Token addCurrentToken (
-		final TokenDescriptor.TokenType tokenType)
+		final TokenType tokenType)
 	{
 		final A_Token token = TokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
@@ -190,7 +189,8 @@ public class AvailScanner
 	 *            A {@linkplain LiteralTokenDescriptor literal token}.
 	 * @return The newly added token.
 	 */
-	@InnerAccess A_Token addCurrentLiteralToken (
+	@InnerAccess
+	void addCurrentLiteralToken (
 		final A_BasicObject anAvailObject)
 	{
 		final A_Token token = LiteralTokenDescriptor.create(
@@ -205,7 +205,6 @@ public class AvailScanner
 		outputTokens.add(token);
 		previousToken = token;
 		forgetWhitespace();
-		return token;
 	}
 
 	/**
@@ -215,7 +214,8 @@ public class AvailScanner
 	 * @param startLine The line the token started.
 	 * @return The newly added token.
 	 */
-	@InnerAccess A_Token addCurrentCommentToken (final int startLine)
+	@InnerAccess
+	void addCurrentCommentToken (final int startLine)
 	{
 		final A_Token token = CommentTokenDescriptor.create(
 			StringDescriptor.from(currentTokenString()),
@@ -227,7 +227,6 @@ public class AvailScanner
 		commentTokens.add(token);
 		previousToken = null;
 		forgetWhitespace();
-		return token;
 	}
 
 	/**
@@ -391,15 +390,10 @@ public class AvailScanner
 		new LRUCache<>(
 			100,
 			0,
-			new Transformer1<String, A_String>()
+			whitespace ->
 			{
-				@Override
-				public @Nullable A_String value (
-					final @Nullable String whitespace)
-				{
-					assert whitespace != null;
-					return StringDescriptor.from(whitespace).makeShared();
-				}
+				assert whitespace != null;
+				return StringDescriptor.from(whitespace).makeShared();
 			});
 
 	/**
@@ -597,7 +591,7 @@ public class AvailScanner
 					{
 						// Just like a regular character, but limit how much
 						// can be removed by a subsequent '\|'.
-						stringBuilder.appendCodePoint(c);
+						stringBuilder.appendCodePoint('\n');
 						canErase = true;
 						erasurePosition = stringBuilder.length();
 					}
@@ -726,6 +720,7 @@ public class AvailScanner
 			void scan (final AvailScanner scanner)
 				throws AvailScannerException
 			{
+				//noinspection StatementWithEmptyBody
 				while (scanner.peekForLetterOrAlphaNumeric())
 				{
 					// no body
@@ -967,8 +962,8 @@ public class AvailScanner
 		this.inputString = inputString;
 		this.moduleName = moduleName;
 		this.stopAfterBodyToken = stopAfterBodyToken;
-		this.outputTokens = new ArrayList<A_Token>(inputString.length() / 20);
-		this.commentTokens = new ArrayList<A_Token>(10);
+		this.outputTokens = new ArrayList<>(inputString.length() / 20);
+		this.commentTokens = new ArrayList<>(10);
 	}
 
 	/**
@@ -987,7 +982,7 @@ public class AvailScanner
 			while (!encounteredBodyToken && !atEnd())
 			{
 				startOfToken = position;
-				ScannerAction.forCodePoint(next()).scan(this);
+				forCodePoint(next()).scan(this);
 			}
 		}
 		else
@@ -995,7 +990,7 @@ public class AvailScanner
 			while (!atEnd())
 			{
 				startOfToken = position;
-				ScannerAction.forCodePoint(next()).scan(this);
+				forCodePoint(next()).scan(this);
 			}
 		}
 		startOfToken = position;
@@ -1016,13 +1011,13 @@ public class AvailScanner
 
 	/**
 	 * A table whose indices are Unicode code points (up to 65535) and whose
-	 * values are {@link AvailScanner.ScannerAction scanner actions}.
+	 * values are {@link ScannerAction scanner actions}.
 	 */
-	static byte[] dispatchTable = new byte[65536];
+	static final byte[] dispatchTable = new byte[65536];
 
 	/**
 	 * Statically initialize the {@link dispatchTable} with suitable
-	 * {@link AvailScanner.ScannerAction scanner actions}. Note that this
+	 * {@link ScannerAction scanner actions}. Note that this
 	 * happens as part of class loading.
 	 */
 	static
@@ -1030,7 +1025,7 @@ public class AvailScanner
 		for (int i = 0; i < 65536; i++)
 		{
 			final char c = (char) i;
-			AvailScanner.ScannerAction action;
+			ScannerAction action;
 			if (Character.isDigit(c))
 			{
 				action = DIGIT;

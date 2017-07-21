@@ -35,7 +35,6 @@ package com.avail.compiler;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 
 import com.avail.compiler.scanning.LexingState;
-import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.utility.evaluation.*;
 

@@ -39,6 +39,7 @@ import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
 
 /**
  * A {@code AvailCompilerResult} holds the results of {@linkplain
@@ -72,7 +73,7 @@ public final class AvailCompilerResult
 	/**
 	 * The complete collection {@linkplain Collections#unmodifiableList(List)
 	 * unmodifiable} of {@linkplain CommentTokenDescriptor comment tokens} that
-	 * were produced by the {@linkplain AvailScanner scanner}.
+	 * were produced by the {@linkplain LexicalScanner scanner}.
 	 */
 	private final List<A_Token> commentTokens;
 

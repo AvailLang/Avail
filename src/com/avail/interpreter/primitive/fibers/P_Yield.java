@@ -38,7 +38,6 @@ import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Yield the current {@linkplain FiberDescriptor
@@ -65,18 +64,11 @@ extends Primitive
 		assert args.size() == 0;
 		final A_Fiber fiber = interpreter.fiber();
 		final Result suspended = interpreter.primitiveSuspend();
-		interpreter.postExitContinuation(new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				Interpreter.resumeFromSuccessfulPrimitive(
-					AvailRuntime.current(),
-					fiber,
-					NilDescriptor.nil(),
-					true);
-			}
-		});
+		interpreter.postExitContinuation(() -> Interpreter.resumeFromSuccessfulPrimitive(
+			AvailRuntime.current(),
+			fiber,
+			NilDescriptor.nil(),
+			true));
 		return suspended;
 	}
 

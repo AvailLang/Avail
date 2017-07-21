@@ -42,7 +42,6 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
 
@@ -380,39 +379,64 @@ extends ParseNodeTypeDescriptor
 		final A_Type yieldTypesAsPhrases =
 			TupleTypeDescriptor.mappingElementTypes(
 				yieldType,
-				new Transformer1<A_Type, A_Type>()
+				elementType ->
 				{
-					@Override
-					public @Nullable A_Type value (
-						final @Nullable A_Type elementType)
-					{
-						assert elementType != null;
-						return PARSE_NODE.create(elementType);
-					}
+					assert elementType != null;
+					return PARSE_NODE.create(elementType);
 				});
 		final A_Type phraseTypesAsYields =
 			TupleTypeDescriptor.mappingElementTypes(
 				subexpressionsTupleType,
-				new Transformer1<A_Type, A_Type>()
+				subexpressionType ->
 				{
-					@Override
-					public @Nullable A_Type value (
-						final @Nullable A_Type subexpressionType)
-					{
-						assert subexpressionType != null;
-						final AbstractDescriptor descriptorTraversed =
-							subexpressionType.traversed().descriptor;
-						assert descriptorTraversed
-								instanceof ParseNodeTypeDescriptor
-							|| descriptorTraversed
-								instanceof BottomTypeDescriptor;
-						return subexpressionType.expressionType();
-					}
+					assert subexpressionType != null;
+					final AbstractDescriptor descriptorTraversed =
+						subexpressionType.traversed().descriptor;
+					assert descriptorTraversed
+							instanceof ParseNodeTypeDescriptor
+						|| descriptorTraversed
+							instanceof BottomTypeDescriptor;
+					return subexpressionType.expressionType();
 				});
 		return createListNodeTypeNoCheck(
 			kind,
 			yieldType.typeIntersection(phraseTypesAsYields),
 			subexpressionsTupleType.typeIntersection(yieldTypesAsPhrases));
+	}
+
+	/**
+	 * Create a list phrase type with the given tuple type of expression types.
+	 *
+	 * @param kind
+	 *        The {@link ParseNodeKind} to instantiate.  This must be {@link
+	 *        ParseNodeKind#LIST_NODE} or a subkind.
+	 * @param subexpressionsTupleType
+	 *        The tuple type of types of expression phrases that are the
+	 *        sub-phrases of the list phrase type.
+	 * @return A canonized list phrase type.
+	 */
+	public static A_Type createListNodeType (
+		final ParseNodeKind kind,
+		final A_Type subexpressionsTupleType)
+	{
+		assert kind.isSubkindOf(LIST_NODE);
+		assert subexpressionsTupleType.isTupleType();
+		final A_Type phraseTypesAsYields =
+			TupleTypeDescriptor.mappingElementTypes(
+				subexpressionsTupleType,
+				subexpressionType ->
+				{
+					assert subexpressionType != null;
+					final AbstractDescriptor descriptorTraversed =
+						subexpressionType.traversed().descriptor;
+					assert descriptorTraversed
+						instanceof ParseNodeTypeDescriptor
+						|| descriptorTraversed
+						instanceof BottomTypeDescriptor;
+					return subexpressionType.expressionType();
+				});
+		return createListNodeTypeNoCheck(
+			kind, phraseTypesAsYields, subexpressionsTupleType);
 	}
 
 	/**

@@ -36,7 +36,6 @@ import com.avail.compiler.splitter.MessageSplitter;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.utility.MutableOrNull;
@@ -207,73 +206,33 @@ public abstract class LookupTree<
 		final MutableOrNull<
 				Continuation1<LookupTree<Element, Result, Memento>>>
 			visit = new MutableOrNull<>();
-		visit.value = new Continuation1<LookupTree<Element, Result, Memento>>()
+		visit.value = node ->
 		{
-			@Override
-			public void value (
-				final @Nullable LookupTree<Element, Result, Memento> node)
+			assert node != null;
+			final @Nullable Result solution = node.solutionOrNull();
+			if (solution != null)
 			{
-				assert node != null;
-				final @Nullable Result solution = node.solutionOrNull();
-				if (solution != null)
-				{
-					forEachLeafNode.value(solution);
-				}
-				else
-				{
-					final InternalLookupTree<Element, Result, Memento>
-						internalNode =
-							(InternalLookupTree<Element, Result, Memento>) node;
-					internalNode.expandIfNecessary(adaptor, adaptorMemento);
-					final MutableOrNull<M> memento =
-						new MutableOrNull<>();
-					// Push some actions in *reverse* order of their
-					// execution.
-					actionStack.add(new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							postInternalNode.value(memento.value());
-						}
-					});
-					actionStack.add(new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							visit.value().value(
-								internalNode.ifCheckFails());
-						}
-					});
-					actionStack.add(new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							intraInternalNode.value(memento.value());
-						}
-					});
-					actionStack.add(new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							visit.value().value(
-								internalNode.ifCheckHolds());
-						}
-					});
-					actionStack.add(new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							memento.value = preInternalNode.value(
-								internalNode.argumentPositionToTest,
-								internalNode.argumentTypeToTest());
-						}
-					});
-				}
+				forEachLeafNode.value(solution);
+			}
+			else
+			{
+				final InternalLookupTree<Element, Result, Memento>
+					internalNode =
+						(InternalLookupTree<Element, Result, Memento>) node;
+				internalNode.expandIfNecessary(adaptor, adaptorMemento);
+				final MutableOrNull<M> memento =
+					new MutableOrNull<>();
+				// Push some actions in *reverse* order of their
+				// execution.
+				actionStack.add(() -> postInternalNode.value(memento.value()));
+				actionStack.add(() -> visit.value().value(
+					internalNode.ifCheckFails()));
+				actionStack.add(() -> intraInternalNode.value(memento.value()));
+				actionStack.add(() -> visit.value().value(
+					internalNode.ifCheckHolds()));
+				actionStack.add(() -> memento.value = preInternalNode.value(
+					internalNode.argumentPositionToTest,
+					internalNode.argumentTypeToTest()));
 			}
 		};
 		visit.value().value(this);

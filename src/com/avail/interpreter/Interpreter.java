@@ -42,6 +42,7 @@ import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static java.lang.Math.*;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.*;
 import com.avail.AvailRuntime;
@@ -254,7 +255,7 @@ public final class Interpreter
 					? String.format(
 						"%6d ",
 						runningFiber.traversed().slot(
-							FiberDescriptor.IntegerSlots.DEBUG_UNIQUE_ID))
+							IntegerSlots.DEBUG_UNIQUE_ID))
 					: "?????? ");
 			builder.append('→');
 			builder.append(
@@ -262,9 +263,9 @@ public final class Interpreter
 					? String.format(
 						"%6d ",
 						affectedFiber.traversed().slot(
-							FiberDescriptor.IntegerSlots.DEBUG_UNIQUE_ID))
+							IntegerSlots.DEBUG_UNIQUE_ID))
 					: "?????? ");
-			logger.log(level, builder.toString() + message, arguments);
+			logger.log(level, builder + message, arguments);
 		}
 	}
 
@@ -833,19 +834,15 @@ public final class Interpreter
 		assert !exitNow;
 		assert state.indicatesSuspension();
 		final A_Fiber aFiber = fiber();
-		aFiber.lock(new Continuation0()
+		aFiber.lock(() ->
 		{
-			@Override
-			public void value ()
-			{
-				assert aFiber.executionState() == RUNNING;
-				aFiber.executionState(state);
-				aFiber.continuation(pointerAt(CALLER));
-				final boolean bound = aFiber.getAndSetSynchronizationFlag(
-					BOUND, false);
-				assert bound;
-				fiber = null;
-			}
+			assert aFiber.executionState() == RUNNING;
+			aFiber.executionState(state);
+			aFiber.continuation(pointerAt(CALLER));
+			final boolean bound = aFiber.getAndSetSynchronizationFlag(
+				BOUND, false);
+			assert bound;
+			fiber = null;
 		});
 		exitNow = true;
 		startTick = -1L;
@@ -925,57 +922,45 @@ public final class Interpreter
 		assert finalObject != null;
 		assert state.indicatesTermination();
 		final A_Fiber aFiber = fiber();
-		aFiber.lock(new Continuation0()
+		aFiber.lock(() ->
 		{
-			@Override
-			public void value ()
-			{
-				assert aFiber.executionState() == RUNNING;
-				aFiber.executionState(state);
-				aFiber.continuation(NilDescriptor.nil());
-				aFiber.fiberResult(finalObject);
-				final boolean bound = aFiber.getAndSetSynchronizationFlag(
-					BOUND, false);
-				assert bound;
-				fiber = null;
-			}
+			assert aFiber.executionState() == RUNNING;
+			aFiber.executionState(state);
+			aFiber.continuation(NilDescriptor.nil());
+			aFiber.fiberResult(finalObject);
+			final boolean bound = aFiber.getAndSetSynchronizationFlag(
+				BOUND, false);
+			assert bound;
+			fiber = null;
 		});
 		exitNow = true;
 		startTick = -1L;
 		latestResult = null;
 		wipeObjectRegisters();
-		postExitContinuation(new Continuation0()
+		postExitContinuation(() ->
 		{
-			@Override
-			public void value ()
+			final A_Set joining = aFiber.joiningFibers().makeShared();
+			aFiber.joiningFibers(NilDescriptor.nil());
+			// Wake up all fibers trying to join this one.
+			for (final A_Fiber joiner : joining)
 			{
-				final A_Set joining = aFiber.joiningFibers().makeShared();
-				aFiber.joiningFibers(NilDescriptor.nil());
-				// Wake up all fibers trying to join this one.
-				for (final A_Fiber joiner : joining)
+				joiner.lock(() ->
 				{
-					joiner.lock(new Continuation0()
+					// Restore the permit. Resume the fiber if it was
+					// parked.
+					joiner.getAndSetSynchronizationFlag(
+						PERMIT_UNAVAILABLE, false);
+					if (joiner.executionState() == PARKED)
 					{
-						@Override
-						public void value ()
-						{
-							// Restore the permit. Resume the fiber if it was
-							// parked.
-							joiner.getAndSetSynchronizationFlag(
-								PERMIT_UNAVAILABLE, false);
-							if (joiner.executionState() == PARKED)
-							{
-								// Wake it up.
-								joiner.executionState(SUSPENDED);
-								Interpreter.resumeFromSuccessfulPrimitive(
-									AvailRuntime.current(),
-									joiner,
-									NilDescriptor.nil(),
-									true);
-							}
-						}
-					});
-				}
+						// Wake it up.
+						joiner.executionState(SUSPENDED);
+						Interpreter.resumeFromSuccessfulPrimitive(
+							AvailRuntime.current(),
+							joiner,
+							NilDescriptor.nil(),
+							true);
+					}
+				});
 			}
 		});
 	}
@@ -1069,7 +1054,7 @@ public final class Interpreter
 				if (latestResult().isInt())
 				{
 					final int errorInt = latestResult().extractInt();
-					errorCode = AvailErrorCode.byNumericCode(errorInt);
+					errorCode = byNumericCode(errorInt);
 				}
 			}
 			final String failPart = errorCode != null
@@ -1398,52 +1383,44 @@ public final class Interpreter
 		assert !exitNow;
 		final A_Fiber aFiber = fiber();
 		final MutableOrNull<A_Set> waiters = new MutableOrNull<>();
-		aFiber.lock(new Continuation0()
+		aFiber.lock(() ->
 		{
-			@Override
-			public void value ()
+			synchronized (aFiber)
 			{
-				synchronized (aFiber)
+				assert aFiber.executionState() == RUNNING;
+				aFiber.executionState(INTERRUPTED);
+				aFiber.continuation(continuation);
+				if (aFiber.getAndClearInterruptRequestFlag(
+					REIFICATION_REQUESTED))
 				{
-					assert aFiber.executionState() == RUNNING;
-					aFiber.executionState(INTERRUPTED);
-					aFiber.continuation(continuation);
-					if (aFiber.getAndClearInterruptRequestFlag(
-						REIFICATION_REQUESTED))
-					{
-						continuation.makeShared();
-						waiters.value = aFiber.getAndClearReificationWaiters();
-						assert waiters.value().setSize() > 0;
-					}
-					final boolean bound = fiber().getAndSetSynchronizationFlag(
-						BOUND, false);
-					assert bound;
-					fiber = null;
+					continuation.makeShared();
+					waiters.value = aFiber.getAndClearReificationWaiters();
+					assert waiters.value().setSize() > 0;
 				}
+				final boolean bound = fiber().getAndSetSynchronizationFlag(
+					BOUND, false);
+				assert bound;
+				fiber = null;
 			}
 		});
 		exitNow = true;
 		startTick = -1L;
 		latestResult = null;
 		wipeObjectRegisters();
-		postExitContinuation(new Continuation0()
+		postExitContinuation(() ->
 		{
-			@Override
-			public void value ()
+			if (waiters.value != null)
 			{
-				if (waiters.value != null)
+				for (final A_BasicObject pojo : waiters.value())
 				{
-					for (final A_BasicObject pojo : waiters.value())
-					{
-						@SuppressWarnings("unchecked")
-						final Continuation1<A_Continuation> waiter =
-							(Continuation1<A_Continuation>)
-								(pojo.javaObjectNotNull());
-						waiter.value(continuation);
-					}
+					@SuppressWarnings("unchecked")
+					final Continuation1<A_Continuation> waiter =
+						(Continuation1<A_Continuation>)
+							(pojo.javaObjectNotNull());
+					waiter.value(continuation);
 				}
-				resumeFromInterrupt(aFiber);
 			}
+			resumeFromInterrupt(aFiber);
 		});
 	}
 
@@ -1484,7 +1461,7 @@ public final class Interpreter
 			final A_Type expectedType = caller.stackAt(stackp);
 			if (!value.isInstanceOf(expectedType))
 			{
-				final A_Function callee = pointerAt(FixedRegister.FUNCTION);
+				final A_Function callee = pointerAt(FUNCTION);
 				final A_Variable reportedResult =
 					VariableDescriptor.forContentType(Types.ANY.o());
 				reportedResult.setValueNoCheck(value);
@@ -1690,7 +1667,7 @@ public final class Interpreter
 				{
 					return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME);
 				}
-				else if (
+				if (
 					marker.equals(
 						E_UNWIND_SENTINEL.numericCode())
 					&& !failureVariable.value().equals(
@@ -1996,20 +1973,16 @@ public final class Interpreter
 		runtime.whenLevelOneUnsafeDo(
 			AvailTask.forFiberResumption(
 				aFiber,
-				new Transformer0<ExecutionState>()
+				() ->
 				{
-					@Override
-					public ExecutionState value ()
-					{
-						final Interpreter interpreter = current();
-						assert aFiber == interpreter.fiberOrNull();
-						assert aFiber.executionState() == RUNNING;
-						// Set up the interpreter.
-						continuation.value(interpreter);
-						// Run the interpreter for a while.
-						interpreter.run();
-						return aFiber.executionState();
-					}
+					final Interpreter interpreter = current();
+					assert aFiber == interpreter.fiberOrNull();
+					assert aFiber.executionState() == RUNNING;
+					// Set up the interpreter.
+					continuation.value(interpreter);
+					// Run the interpreter for a while.
+					interpreter.run();
+					return aFiber.executionState();
 				}));
 	}
 
@@ -2045,48 +2018,40 @@ public final class Interpreter
 	{
 		assert aFiber.executionState() == UNSTARTED;
 		aFiber.fiberNameGenerator(
-			new Generator<A_String>()
+			() ->
 			{
-				@Override
-				public A_String value ()
-				{
-					final A_RawFunction code = function.code();
-					return StringDescriptor.format(
-						"Outermost %s @ %s:%d",
-						code.methodName().asNativeString(),
-						code.module().equalsNil()
-							? "«vm»"
-							: code.module().moduleName().asNativeString(),
-						code.startingLineNumber());
-				}
+				final A_RawFunction code = function.code();
+				return StringDescriptor.format(
+					"Outermost %s @ %s:%d",
+					code.methodName().asNativeString(),
+					code.module().equalsNil()
+						? "«vm»"
+						: code.module().moduleName().asNativeString(),
+					code.startingLineNumber());
 			});
 		executeFiber(
 			runtime,
 			aFiber,
-			new Continuation1<Interpreter>()
+			interpreter ->
 			{
-				@Override
-				public void value (final @Nullable Interpreter interpreter)
+				assert interpreter != null;
+				assert aFiber == interpreter.fiberOrNull();
+				assert aFiber.executionState() == RUNNING;
+				assert aFiber.continuation().equalsNil();
+				// Invoke the function. If it's a primitive and it
+				// succeeds, then immediately invoke the fiber's
+				// result continuation with the primitive's result.
+				interpreter.exitNow = false;
+				interpreter.pointerAtPut(CALLER, NilDescriptor.nil());
+				interpreter.clearPointerAt(FUNCTION.ordinal());
+				// Always check the type of the outermost continuation's
+				// return value.
+				final Result result =
+					interpreter.invokeFunction(function, arguments, false);
+				if (result == SUCCESS)
 				{
-					assert interpreter != null;
-					assert aFiber == interpreter.fiberOrNull();
-					assert aFiber.executionState() == RUNNING;
-					assert aFiber.continuation().equalsNil();
-					// Invoke the function. If it's a primitive and it
-					// succeeds, then immediately invoke the fiber's
-					// result continuation with the primitive's result.
-					interpreter.exitNow = false;
-					interpreter.pointerAtPut(CALLER, NilDescriptor.nil());
-					interpreter.clearPointerAt(FUNCTION.ordinal());
-					// Always check the type of the outermost continuation's
-					// return value.
-					final Result result =
-						interpreter.invokeFunction(function, arguments, false);
-					if (result == SUCCESS)
-					{
-						interpreter.terminateFiber(interpreter.latestResult());
-						assert interpreter.exitNow;
-					}
+					interpreter.terminateFiber(interpreter.latestResult());
+					assert interpreter.exitNow;
 				}
 			});
 	}
@@ -2113,20 +2078,16 @@ public final class Interpreter
 		executeFiber(
 			AvailRuntime.current(),
 			aFiber,
-			new Continuation1<Interpreter>()
+			interpreter ->
 			{
-				@Override
-				public void value (final @Nullable Interpreter interpreter)
-				{
-					assert interpreter != null;
-					assert aFiber == interpreter.fiberOrNull();
-					assert aFiber.executionState() == RUNNING;
-					assert !aFiber.continuation().equalsNil();
-					interpreter.prepareToResumeContinuation(
-						aFiber.continuation());
-					aFiber.continuation(NilDescriptor.nil());
-					interpreter.exitNow = false;
-				}
+				assert interpreter != null;
+				assert aFiber == interpreter.fiberOrNull();
+				assert aFiber.executionState() == RUNNING;
+				assert !aFiber.continuation().equalsNil();
+				interpreter.prepareToResumeContinuation(
+					aFiber.continuation());
+				aFiber.continuation(NilDescriptor.nil());
+				interpreter.exitNow = false;
 			});
 	}
 
@@ -2158,39 +2119,35 @@ public final class Interpreter
 		executeFiber(
 			runtime,
 			aFiber,
-			new Continuation1<Interpreter>()
+			interpreter ->
 			{
-				@Override
-				public void value (final @Nullable Interpreter interpreter)
+				assert interpreter != null;
+				assert aFiber == interpreter.fiberOrNull();
+				assert aFiber.executionState() == RUNNING;
+				assert !aFiber.continuation().equalsNil();
+				final A_Continuation updatedCaller =
+					aFiber.continuation().ensureMutable();
+				final int stackp = updatedCaller.stackp();
+				if (!skipReturnCheck)
 				{
-					assert interpreter != null;
-					assert aFiber == interpreter.fiberOrNull();
-					assert aFiber.executionState() == RUNNING;
-					assert !aFiber.continuation().equalsNil();
-					final A_Continuation updatedCaller =
-						aFiber.continuation().ensureMutable();
-					final int stackp = updatedCaller.stackp();
-					if (!skipReturnCheck)
+					final A_Type expectedType =
+						updatedCaller.stackAt(stackp);
+					if (!result.isInstanceOf(expectedType))
 					{
-						final A_Type expectedType =
-							updatedCaller.stackAt(stackp);
-						if (!result.isInstanceOf(expectedType))
-						{
-							// Breakpoint this to trace the failed type test.
-							result.isInstanceOf(expectedType);
-							error(String.format(
-								"Return value (%s) does not agree with "
-								+ "expected type (%s)",
-								result,
-								expectedType));
-						}
+						// Breakpoint this to trace the failed type test.
+						result.isInstanceOf(expectedType);
+						error(String.format(
+							"Return value (%s) does not agree with "
+							+ "expected type (%s)",
+							result,
+							expectedType));
 					}
-					updatedCaller.stackAtPut(stackp, result);
-					interpreter.prepareToResumeContinuation(
-						updatedCaller);
-					aFiber.continuation(NilDescriptor.nil());
-					interpreter.exitNow = false;
 				}
+				updatedCaller.stackAtPut(stackp, result);
+				interpreter.prepareToResumeContinuation(
+					updatedCaller);
+				aFiber.continuation(NilDescriptor.nil());
+				interpreter.exitNow = false;
 			});
 	}
 
@@ -2229,23 +2186,19 @@ public final class Interpreter
 		executeFiber(
 			runtime,
 			aFiber,
-			new Continuation1<Interpreter>()
+			interpreter ->
 			{
-				@Override
-				public void value (final @Nullable Interpreter interpreter)
-				{
-					assert interpreter != null;
-					interpreter.pointerAtPut(
-						PRIMITIVE_FAILURE,
-						failureValue);
-					interpreter.invokeWithoutPrimitiveFunctionArguments(
-						failureFunction,
-						args,
-						aFiber.continuation(),
-						skipReturnCheck);
-					aFiber.continuation(NilDescriptor.nil());
-					interpreter.exitNow = false;
-				}
+				assert interpreter != null;
+				interpreter.pointerAtPut(
+					PRIMITIVE_FAILURE,
+					failureValue);
+				interpreter.invokeWithoutPrimitiveFunctionArguments(
+					failureFunction,
+					args,
+					aFiber.continuation(),
+					skipReturnCheck);
+				aFiber.continuation(NilDescriptor.nil());
+				interpreter.exitNow = false;
 			});
 	}
 
@@ -2291,35 +2244,20 @@ public final class Interpreter
 		final A_Fiber fiber = FiberDescriptor.newFiber(
 			TupleTypeDescriptor.stringType(),
 			FiberDescriptor.stringificationPriority,
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.from("Stringification");
-				}
-			});
+			() -> StringDescriptor.from("Stringification"));
 		fiber.textInterface(textInterface);
-		fiber.resultContinuation(new Continuation1<AvailObject>()
+		fiber.resultContinuation(string ->
 		{
-			@Override
-			public void value (final @Nullable AvailObject string)
-			{
-				assert string != null;
-				continuation.value(string.asNativeString());
-			}
+			assert string != null;
+			continuation.value(string.asNativeString());
 		});
-		fiber.failureContinuation(new Continuation1<Throwable>()
+		fiber.failureContinuation(e ->
 		{
-			@Override
-			public void value (final @Nullable Throwable e)
-			{
-				assert e != null;
-				continuation.value(String.format(
-					"(stringification failed [%s]) %s",
-					e.getClass().getSimpleName(),
-					value.toString()));
-			}
+			assert e != null;
+			continuation.value(String.format(
+				"(stringification failed [%s]) %s",
+				e.getClass().getSimpleName(),
+				value.toString()));
 		});
 		// Stringify!
 		Interpreter.runOutermostFunction(
@@ -2361,7 +2299,7 @@ public final class Interpreter
 		final int valuesCount = values.size();
 		if (valuesCount == 0)
 		{
-			continuation.value(Collections.<String>emptyList());
+			continuation.value(Collections.emptyList());
 			return;
 		}
 		// Deduplicate the list of values for performance…
@@ -2380,7 +2318,7 @@ public final class Interpreter
 		}
 		final AtomicInteger outstanding = new AtomicInteger(map.size());
 		final String[] strings = new String[valuesCount];
-		for (final Map.Entry<A_BasicObject, List<Integer>> entry
+		for (final Entry<A_BasicObject, List<Integer>> entry
 			: map.entrySet())
 		{
 			final List<Integer> indicesToWrite = entry.getValue();
@@ -2388,22 +2326,18 @@ public final class Interpreter
 				runtime,
 				textInterface,
 				entry.getKey(),
-				new Continuation1<String>()
+				arg ->
 				{
-					@Override
-					public void value (final @Nullable String arg)
+					assert arg != null;
+					for (final int indexToWrite : indicesToWrite)
 					{
-						assert arg != null;
-						for (final int indexToWrite : indicesToWrite)
-						{
-							strings[indexToWrite] = arg;
-						}
-						if (outstanding.decrementAndGet() == 0)
-						{
-							final List<String> stringList =
-								Arrays.asList(strings);
-							continuation.value(stringList);
-						}
+						strings[indexToWrite] = arg;
+					}
+					if (outstanding.decrementAndGet() == 0)
+					{
+						final List<String> stringList =
+							Arrays.asList(strings);
+						continuation.value(stringList);
 					}
 				});
 		}
@@ -2514,8 +2448,7 @@ public final class Interpreter
 			outerMap.get(returner);
 		if (submap == null)
 		{
-			submap = new WeakHashMap<
-				A_RawFunction, PerInterpreterStatistic>();
+			submap = new WeakHashMap<>();
 			outerMap.put(returner, submap);
 		}
 		PerInterpreterStatistic perInterpreterStatistic = submap.get(returnee);
@@ -2611,7 +2544,7 @@ public final class Interpreter
 	 *
 	 * @return The assignment function.
 	 */
-	public static final A_Function assignmentFunction ()
+	public static A_Function assignmentFunction ()
 	{
 		return assignmentFunction;
 	}

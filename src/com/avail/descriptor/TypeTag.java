@@ -189,7 +189,7 @@ enum TypeTag
 		return metaTag;
 	}
 
-	private List<TypeTag> descendants = new ArrayList<>();
+	private final List<TypeTag> descendants = new ArrayList<>();
 
 	private int highOrdinal;
 

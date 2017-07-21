@@ -83,7 +83,7 @@ public class AvailCompilerFragmentCache
 		assert Thread.holdsLock(this);
 		assert !hasStartedParsingAt(state);
 		solutions.put(
-			state, new AvailCompilerBipartiteRendezvous<CompilerSolution>());
+			state, new AvailCompilerBipartiteRendezvous<>());
 		assert hasStartedParsingAt(state);
 	}
 

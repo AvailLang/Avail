@@ -44,7 +44,6 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
 import com.avail.io.TextInterface;
-import com.avail.utility.evaluation.Continuation0;
 
 /**
  * <strong>Primitive:</strong> Read one character from the standard input
@@ -76,45 +75,38 @@ extends Primitive
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		final CharBuffer buffer = CharBuffer.allocate(1);
 		interpreter.primitiveSuspend();
-		interpreter.postExitContinuation(new Continuation0()
-		{
-			@Override
-			public void value ()
+		interpreter.postExitContinuation(() -> textInterface.inputChannel().read(
+			buffer,
+			fiber,
+			new CompletionHandler<Integer, A_Fiber>()
 			{
-				textInterface.inputChannel().read(
-					buffer,
-					fiber,
-					new CompletionHandler<Integer, A_Fiber>()
-					{
-						@Override
-						public void completed (
-							final @Nullable Integer result,
-							final @Nullable A_Fiber unused)
-						{
-							Interpreter.resumeFromSuccessfulPrimitive(
-								runtime,
-								fiber,
-								CharacterDescriptor.fromCodePoint(
-									buffer.get(0)),
-								skipReturnCheck);
-						}
+				@Override
+				public void completed (
+					final @Nullable Integer result,
+					final @Nullable A_Fiber unused)
+				{
+					Interpreter.resumeFromSuccessfulPrimitive(
+						runtime,
+						fiber,
+						CharacterDescriptor.fromCodePoint(
+							buffer.get(0)),
+						skipReturnCheck);
+				}
 
-						@Override
-						public void failed (
-							final @Nullable Throwable exc,
-							final @Nullable A_Fiber unused)
-						{
-							Interpreter.resumeFromFailedPrimitive(
-								runtime,
-								fiber,
-								E_IO_ERROR.numericCode(),
-								failureFunction,
-								copiedArgs,
-								skipReturnCheck);
-						}
-					});
-			}
-		});
+				@Override
+				public void failed (
+					final @Nullable Throwable exc,
+					final @Nullable A_Fiber unused)
+				{
+					Interpreter.resumeFromFailedPrimitive(
+						runtime,
+						fiber,
+						E_IO_ERROR.numericCode(),
+						failureFunction,
+						copiedArgs,
+						skipReturnCheck);
+				}
+			}));
 		return Result.FIBER_SUSPENDED;
 	}
 

@@ -40,6 +40,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.MapDescriptor.*;
 
+import java.util.NoSuchElementException;
+
 /**
  * A {@code LinearMapBinDescriptor} is a leaf bin in a {@link MapDescriptor
  * map}'s hierarchy of bins.  It consists of a (usually) small number of keys
@@ -558,7 +560,7 @@ extends MapBinDescriptor
 	 * @param object An object.
 	 * @return A hash.
 	 */
-	private int mapBinValuesHash (final AvailObject object)
+	private static int mapBinValuesHash (final AvailObject object)
 	{
 		int valuesHash = object.slot(VALUES_HASH_OR_ZERO);
 		if (valuesHash == 0)
@@ -595,8 +597,12 @@ extends MapBinDescriptor
 			int nextIndex = 1;
 
 			@Override
-			public final Entry next ()
+			public Entry next ()
 			{
+				if (nextIndex > limit)
+				{
+					throw new NoSuchElementException();
+				}
 				entry.setKeyAndHashAndValue(
 					object.slot(BIN_SLOT_AT_, nextIndex * 2 - 1),
 					object.intSlot(KEY_HASHES_AREA_, nextIndex),
@@ -606,7 +612,7 @@ extends MapBinDescriptor
 			}
 
 			@Override
-			public final boolean hasNext ()
+			public boolean hasNext ()
 			{
 				return nextIndex <= limit;
 			}

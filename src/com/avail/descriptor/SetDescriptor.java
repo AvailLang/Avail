@@ -40,7 +40,6 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -422,13 +421,13 @@ extends Descriptor
 		}
 		if (smaller.setSize() == 0)
 		{
-			if (larger.descriptor().isMutable() & !canDestroy)
+			if (larger.descriptor().isMutable() && !canDestroy)
 			{
 				larger.makeImmutable();
 			}
 			return larger;
 		}
-		if (larger.descriptor().isMutable() & !canDestroy)
+		if (larger.descriptor().isMutable() && !canDestroy)
 		{
 			larger.makeImmutable();
 		}
@@ -458,7 +457,7 @@ extends Descriptor
 				newElementObject,
 				elementHash,
 				(byte)0,
-				canDestroy & isMutable());
+				canDestroy && isMutable());
 		if (newRootBin.binSize() == oldSize)
 		{
 			if (!canDestroy)
@@ -495,7 +494,7 @@ extends Descriptor
 			elementObjectToExclude,
 			elementObjectToExclude.hash(),
 			(byte) 0,
-			(canDestroy & isMutable()));
+			(canDestroy && isMutable()));
 		if (newRootBin.binSize() == oldSize)
 		{
 			if (!canDestroy)
@@ -555,14 +554,7 @@ extends Descriptor
 		final Iterator<AvailObject> iterator = object.iterator();
 		return ObjectTupleDescriptor.generateFrom(
 			object.setSize(),
-			new Generator<A_BasicObject>()
-			{
-				@Override
-				public A_BasicObject value ()
-				{
-					return iterator.next().makeImmutable();
-				}
-			});
+			() -> iterator.next().makeImmutable());
 	}
 
 	@Override @AvailMethod

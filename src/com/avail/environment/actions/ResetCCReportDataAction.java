@@ -39,7 +39,6 @@ import com.avail.AvailTask;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
-import com.avail.utility.evaluation.Continuation0;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -62,14 +61,7 @@ extends AbstractWorkbenchAction
 			public void value ()
 			{
 				CompiledCodeDescriptor.ResetCodeCoverageDetailsThen(
-					new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						workbench.writeText("Code coverage data reset.\n", INFO);
-					}
-				});
+					() -> workbench.writeText("Code coverage data reset.\n", INFO));
 			}
 		});
 	}

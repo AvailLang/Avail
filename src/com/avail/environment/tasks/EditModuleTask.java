@@ -65,7 +65,7 @@ implements WindowListener
 		EventQueue.invokeLater(() ->
 		{
 			final Preferences preferences =
-				workbench.placementPreferencesNodeForScreenNames(
+				AvailWorkbench.placementPreferencesNodeForScreenNames(
 					AvailWorkbench.allScreenNames());
 			final LayoutConfiguration savedConfiguration =
 				new LayoutConfiguration(
@@ -133,7 +133,7 @@ implements WindowListener
 	public void windowClosing (final WindowEvent e)
 	{
 		final Preferences preferences =
-			workbench.placementPreferencesNodeForScreenNames(
+			AvailWorkbench.placementPreferencesNodeForScreenNames(
 				AvailWorkbench.allScreenNames());
 		final LayoutConfiguration saveConfiguration =
 			new LayoutConfiguration(
@@ -190,7 +190,7 @@ implements WindowListener
 		super(workbench, targetModuleName);
 		this.frame = new JFrame(this.targetModuleName.localName());
 		final Preferences preferences =
-			workbench.placementPreferencesNodeForScreenNames(
+			AvailWorkbench.placementPreferencesNodeForScreenNames(
 				AvailWorkbench.allScreenNames());
 		final LayoutConfiguration savedConfiguration =
 			new LayoutConfiguration(

@@ -45,7 +45,6 @@ import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Declare method as {@linkplain
@@ -92,32 +91,28 @@ extends Primitive
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
-				new Continuation0()
+				() ->
 				{
-					@Override
-					public void value ()
+					try
 					{
-						try
-						{
-							loader.addAbstractSignature(atom, blockSignature);
-							Interpreter.resumeFromSuccessfulPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								NilDescriptor.nil(),
-								skipReturnCheck);
-						}
-						catch (
-							final MalformedMessageException
-								| SignatureException e)
-						{
-							Interpreter.resumeFromFailedPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								e.numericCode(),
-								failureFunction,
-								copiedArgs,
-								skipReturnCheck);
-						}
+						loader.addAbstractSignature(atom, blockSignature);
+						Interpreter.resumeFromSuccessfulPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							NilDescriptor.nil(),
+							skipReturnCheck);
+					}
+					catch (
+						final MalformedMessageException
+							| SignatureException e)
+					{
+						Interpreter.resumeFromFailedPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							e.numericCode(),
+							failureFunction,
+							copiedArgs,
+							skipReturnCheck);
 					}
 				}));
 		return FIBER_SUSPENDED;

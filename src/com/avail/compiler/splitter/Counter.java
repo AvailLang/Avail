@@ -227,7 +227,7 @@ extends Expression
 				builder.append(" ");
 			}
 			group.printGroupOccurrence(
-				Collections.<AvailObject>emptyIterator(),
+				Collections.emptyIterator(),
 				builder,
 				indent,
 				isArgumentOrGroup());

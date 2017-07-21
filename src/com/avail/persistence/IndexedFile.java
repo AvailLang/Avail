@@ -243,7 +243,7 @@ extends AbstractList<byte[]>
 		byte[] lastPartialBuffer;
 
 		/**
-		 * Construct a new {@link IndexedFile.MasterNode}.
+		 * Construct a new {@link MasterNode}.
 		 *
 		 * @param serialNumber
 		 *        The serial number.
@@ -258,7 +258,7 @@ extends AbstractList<byte[]>
 				compressionBlockSize * 3 / 2);
 			this.uncompressedData = new DataOutputStream(rawBytes);
 			this.lastPartialBuffer = new byte[pageSize];
-			this.orphansByLevel = new ArrayList<List<RecordCoordinates>>();
+			this.orphansByLevel = new ArrayList<>();
 			this.metaDataLocation = RecordCoordinates.origin();
 		}
 
@@ -482,13 +482,13 @@ extends AbstractList<byte[]>
 	 * {@link #DEFAULT_STRONG_CACHE_SIZE} will be discarded from the cache by
 	 * the garbage collector when a low-water mark is passed.
 	 */
-	private static int DEFAULT_SOFT_CACHE_SIZE = 200;
+	private static final int DEFAULT_SOFT_CACHE_SIZE = 200;
 
 	/**
 	 * The memory-insensitive capacity of the {@linkplain LRUCache cache} of
 	 * uncompressed records.
 	 */
-	private static int DEFAULT_STRONG_CACHE_SIZE = 100;
+	private static final int DEFAULT_STRONG_CACHE_SIZE = 100;
 
 	/**
 	 * A {@linkplain LRUCache cache} of uncompressed records.
@@ -591,7 +591,7 @@ extends AbstractList<byte[]>
 		final MasterNode m = master();
 		if (level >= m.orphansByLevel.size())
 		{
-			m.orphansByLevel.add(new ArrayList<RecordCoordinates>(fanout));
+			m.orphansByLevel.add(new ArrayList<>(fanout));
 		}
 		final List<RecordCoordinates> orphans = m.orphansByLevel.get(level);
 		orphans.add(orphanLocation);
@@ -601,9 +601,9 @@ extends AbstractList<byte[]>
 				m.fileLimit,
 				m.rawBytes.size());
 			RecordCoordinates orphan;
-			for (int i = 0; i < orphans.size(); i++)
+			for (RecordCoordinates orphan1 : orphans)
 			{
-				orphan = orphans.get(i);
+				orphan = orphan1;
 				m.uncompressedData.writeLong(orphan.filePosition());
 				m.uncompressedData.writeInt(orphan.blockPosition());
 			}
@@ -887,7 +887,7 @@ extends AbstractList<byte[]>
 				b.getInt());
 			while (level >= orphans.size())
 			{
-				orphans.add(new ArrayList<RecordCoordinates>(fanout));
+				orphans.add(new ArrayList<>(fanout));
 			}
 			orphans.get(level).add(orphan);
 		}
@@ -1575,7 +1575,6 @@ extends AbstractList<byte[]>
 				if (previous != null && !Integer.valueOf(1).equals(delta))
 				{
 					final MasterNode tempNode = previous;
-					previous = current;
 					current = tempNode;
 					final long tempPos = previousMasterPosition;
 					previousMasterPosition = masterPosition;
@@ -1696,22 +1695,18 @@ extends AbstractList<byte[]>
 		indexedFile.fanout = DEFAULT_FANOUT;
 		indexedFile.masterNodeBuffer = ByteBuffer.allocate(
 			indexedFile.masterNodeSize());
-		indexedFile.createFile(new Continuation0()
+		indexedFile.createFile(() ->
 		{
-			@Override
-			public void value ()
+			if (initialMetaData != null)
 			{
-				if (initialMetaData != null)
+				try
 				{
-					try
-					{
-						indexedFile.metaData(initialMetaData);
-						indexedFile.commit();
-					}
-					catch (final IOException e)
-					{
-						throw new IndexedFileException(e);
-					}
+					indexedFile.metaData(initialMetaData);
+					indexedFile.commit();
+				}
+				catch (final IOException e)
+				{
+					throw new IndexedFileException(e);
 				}
 			}
 		});
@@ -1807,7 +1802,7 @@ extends AbstractList<byte[]>
 			throw new IndexedFileException("No such index file");
 		}
 		indexedFile.file = new RandomAccessFile(
-			fileReference, "r" + (forWriting ? "w" : ""));
+			fileReference, forWriting ? "rw" : "r");
 		if (fileReference.length() == 0)
 		{
 			throw new IndexedFileException(

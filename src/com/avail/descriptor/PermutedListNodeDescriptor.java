@@ -97,7 +97,7 @@ extends ParseNodeDescriptor
 	 * @param object An object.
 	 * @return A type.
 	 */
-	private A_Type expressionType (final AvailObject object)
+	private static A_Type expressionType (final AvailObject object)
 	{
 		A_Type expressionType = object.mutableSlot(EXPRESSION_TYPE);
 		if (expressionType.equalsNil())

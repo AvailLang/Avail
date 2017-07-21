@@ -141,12 +141,11 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 		final L2PrimitiveOperand primitiveOperand =
 			(L2PrimitiveOperand) instruction.operands[0];
 		final Primitive primitive = primitiveOperand.primitive;
-		final boolean mustKeep = primitive.hasFlag(Flag.HasSideEffect)
+		return primitive.hasFlag(Flag.HasSideEffect)
 			|| primitive.hasFlag(Flag.CatchException)
 			|| primitive.hasFlag(Flag.Invokes)
 			|| primitive.hasFlag(Flag.SwitchesContinuation)
 			|| primitive.hasFlag(Flag.Unknown);
-		return mustKeep;
 	}
 
 	@Override

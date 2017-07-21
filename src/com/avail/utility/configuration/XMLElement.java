@@ -62,14 +62,14 @@ public interface XMLElement<
 	 *
 	 * @return The qualified name of the element.
 	 */
-	public String qName ();
+	String qName ();
 
 	/**
 	 * Answer the allowed parent elements of the receiver element.
 	 *
 	 * @return The allowed parent elements.
 	 */
-	public Set<ElementType> allowedParents ();
+	Set<ElementType> allowedParents ();
 
 	/**
 	 * Receive notification of the start of an element.
@@ -81,9 +81,9 @@ public interface XMLElement<
 	 * @throws SAXException
 	 *         If something goes wrong.
 	 */
-	public void startElement (
-			final StateType state,
-			final Attributes attributes)
+	void startElement (
+		final StateType state,
+		final Attributes attributes)
 		throws SAXException;
 
 	/**
@@ -94,6 +94,6 @@ public interface XMLElement<
 	 * @throws SAXException
 	 *         If something goes wrong.
 	 */
-	public void endElement (final StateType state)
+	void endElement (final StateType state)
 		throws SAXException;
 }

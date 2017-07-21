@@ -313,15 +313,11 @@ extends Descriptor
 		final @Nullable A_Phrase parentNode)
 	{
 		object.childrenDo(
-			new Continuation1<A_Phrase>()
+			child ->
 			{
-				@Override
-				public void value (final @Nullable A_Phrase child)
-				{
-					assert child != null;
-					assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
-					treeDoWithParent(child, aBlock, object);
-				}
+				assert child != null;
+				assert child.isInstanceOfKind(PARSE_NODE.mostGeneralType());
+				treeDoWithParent(child, aBlock, object);
 			});
 		aBlock.value(object, parentNode);
 	}

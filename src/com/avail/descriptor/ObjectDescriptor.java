@@ -43,8 +43,8 @@ import java.util.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
@@ -293,21 +293,17 @@ extends Descriptor
 			variant.fieldToSlotIndex.entrySet().iterator();
 		final A_Tuple resultTuple = ObjectTupleDescriptor.generateFrom(
 			variant.fieldToSlotIndex.size(),
-			new Generator<A_BasicObject>()
+			() ->
 			{
-				@Override
-				public A_BasicObject value ()
-				{
-					final Map.Entry<A_Atom, Integer> entry =
-						fieldIterator.next();
-					final A_Atom field = entry.getKey();
-					final int slotIndex = entry.getValue();
-					return TupleDescriptor.from(
-						field,
-						slotIndex == 0
-							? field
-							: object.slot(FIELD_VALUES_, slotIndex));
-				}
+				final Map.Entry<A_Atom, Integer> entry =
+					fieldIterator.next();
+				final A_Atom field = entry.getKey();
+				final int slotIndex = entry.getValue();
+				return TupleDescriptor.from(
+					field,
+					slotIndex == 0
+						? field
+						: object.slot(FIELD_VALUES_, slotIndex));
 			});
 		assert !fieldIterator.hasNext();
 		return resultTuple;
@@ -476,7 +472,7 @@ extends Descriptor
 		for (final A_Type baseType : baseTypes)
 		{
 			final A_Map fieldTypes = baseType.fieldTypeMap();
-			for (final MapDescriptor.Entry entry : fieldTypes.mapIterable())
+			for (final Entry entry : fieldTypes.mapIterable())
 			{
 				if (!entry.key().getAtomProperty(explicitSubclassingKey)
 					.equalsNil())
@@ -487,7 +483,7 @@ extends Descriptor
 			}
 		}
 		first = true;
-		for (final MapDescriptor.Entry entry : object.fieldMap().mapIterable())
+		for (final Entry entry : object.fieldMap().mapIterable())
 		{
 			if (!ignoreKeys.hasElement(entry.key()))
 			{
@@ -526,7 +522,7 @@ extends Descriptor
 		final Map<A_Atom, Integer> slotMap = variant.fieldToSlotIndex;
 		final AvailObject result =
 			mutableDescriptor.create(variant.realSlotCount);
-		for (MapDescriptor.Entry entry : map.mapIterable())
+		for (Entry entry : map.mapIterable())
 		{
 			final int slotIndex = slotMap.get(entry.key());
 			if (slotIndex > 0)

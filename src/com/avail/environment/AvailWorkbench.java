@@ -52,7 +52,6 @@ import com.avail.io.TextInterface;
 import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
-import com.avail.utility.evaluation.Transformer1;
 import com.sun.javafx.application.PlatformImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -108,7 +107,8 @@ extends JFrame
 	/**
 	 * The prefix string for resources related to the workbench.
 	 */
-	public static @NotNull String resourcePrefix = "/resources/workbench/";
+	public static @NotNull
+	final String resourcePrefix = "/resources/workbench/";
 
 	/** Determine at startup whether we're on a Mac. */
 	public static final boolean runningOnMac =
@@ -298,7 +298,8 @@ extends JFrame
 	 * to either output stream, and to transfer from the queue to the output
 	 * transcript (a {@link StyledDocument}).
 	 */
-	@InnerAccess Deque<Pair<StreamStyle, StringBuilder>> updateQueue =
+	@InnerAccess
+	final Deque<Pair<StreamStyle, StringBuilder>> updateQueue =
 		new ArrayDeque<>();
 
 	/**
@@ -744,7 +745,8 @@ extends JFrame
 	}
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
-	private @Nullable BuildInputStream inputStream;
+	private @Nullable
+	final BuildInputStream inputStream;
 
 	/**
 	 * Answer the {@linkplain BuildInputStream standard input stream}.
@@ -759,7 +761,8 @@ extends JFrame
 	}
 
 	/** The {@linkplain PrintStream standard error stream}. */
-	private @Nullable PrintStream errorStream;
+	private @Nullable
+	final PrintStream errorStream;
 
 	/**
 	 * Answer the {@linkplain PrintStream standard error stream}.
@@ -774,7 +777,8 @@ extends JFrame
 	}
 
 	/** The {@linkplain PrintStream standard output stream}. */
-	private @Nullable PrintStream outputStream;
+	private @Nullable
+	final PrintStream outputStream;
 
 	/**
 	 * Answer the {@linkplain PrintStream standard output stream}.
@@ -1124,7 +1128,7 @@ extends JFrame
 		final ModuleRoot moduleRoot)
 	{
 		final String extension = ModuleNameResolver.availExtension;
-		final Mutable<Boolean> isRoot = new Mutable<Boolean>(true);
+		final Mutable<Boolean> isRoot = new Mutable<>(true);
 		final FileVisitor<Path> visitor = new FileVisitor<Path>()
 		{
 			@Override
@@ -1681,7 +1685,7 @@ extends JFrame
 			else
 			{
 				perModuleProgress.put(
-					moduleName, new Pair<Long, Long>(position, moduleSize));
+					moduleName, new Pair<>(position, moduleSize));
 			}
 			if (!hasQueuedPerModuleBuildUpdate)
 			{
@@ -1702,16 +1706,16 @@ extends JFrame
 
 	@InnerAccess void updatePerModuleProgress ()
 	{
-		final List<Map.Entry<ModuleName, Pair<Long, Long>>> progress;
+		final List<Entry<ModuleName, Pair<Long, Long>>> progress;
 		synchronized (perModuleProgressMonitor)
 		{
 			assert hasQueuedPerModuleBuildUpdate;
 			progress = new ArrayList<>(perModuleProgress.entrySet());
 			hasQueuedPerModuleBuildUpdate = false;
 		}
-		Collections.sort(
-			progress,
-			Comparator.comparing(entry -> entry.getKey().qualifiedName()));
+		progress.sort(Comparator.comparing(entry -> entry
+			.getKey()
+			.qualifiedName()));
 		final StringBuilder builder = new StringBuilder(100);
 		for (final Entry<ModuleName, Pair<Long, Long>> entry : progress)
 		{
@@ -1812,7 +1816,7 @@ extends JFrame
 	 * @return The {@code Preferences} node in which placement information for
 	 *         the current monitor configuration can be stored and retrieved.
 	 */
-	public Preferences placementPreferencesNodeForScreenNames (
+	public static Preferences placementPreferencesNodeForScreenNames (
 		final List<String> screenNames)
 	{
 		final StringBuilder allNamesString = new StringBuilder();
@@ -1947,7 +1951,7 @@ extends JFrame
 				}
 			}
 			int rowCounter = 0;
-			for (final Map.Entry<String, String> rename : renames.entrySet())
+			for (final Entry<String, String> rename : renames.entrySet())
 			{
 				final Preferences childNode = renamesNode.node(
 					Integer.toString(rowCounter));
@@ -1973,7 +1977,7 @@ extends JFrame
 	 * @return The {@code Preferences} node in which template information can be
 	 *         stored and retrieved.
 	 */
-	public Preferences templatePreferences ()
+	public static Preferences templatePreferences ()
 	{
 		return basePreferences.node(templatePreferenceString);
 	}
@@ -2095,7 +2099,7 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link AvailWorkbench.LayoutConfiguration} with
+		 * Construct a new {@link LayoutConfiguration} with
 		 * no preferences specified.
 		 */
 		public LayoutConfiguration ()
@@ -2104,7 +2108,7 @@ extends JFrame
 		}
 
 		/**
-		 * Construct a new {@link AvailWorkbench.LayoutConfiguration} with
+		 * Construct a new {@link LayoutConfiguration} with
 		 * preferences specified by some private encoding in the provided {@link
 		 * String}.
 		 *
@@ -2196,7 +2200,8 @@ extends JFrame
 		/**
 		 * A {@link Map} representing module template name - template pairs.
 		 */
-		public @Nullable Map<String, String> moduleTemplates = new HashMap<>();
+		public @Nullable
+		final Map<String, String> moduleTemplates = new HashMap<>();
 
 		/**
 		 * Answer the requested template or an empty string if none found.
@@ -2292,10 +2297,10 @@ extends JFrame
 		{
 			final String [] strings = new String [moduleTemplates.size()];
 			int index = 0;
-			for (String templateName : moduleTemplates.keySet())
+			for (final Entry<String, String> entry : moduleTemplates.entrySet())
 			{
-				strings[index] = templateName + '\0' +
-					moduleTemplates.get(templateName);
+				strings[index] = entry.getKey() + '\0' +
+					entry.getValue();
 			}
 
 			final StringBuilder builder = new StringBuilder();
@@ -2742,7 +2747,7 @@ extends JFrame
 				StyleContext.DEFAULT_STYLE);
 		defaultStyle.addAttributes(attributes);
 		StyleConstants.setFontFamily(defaultStyle, "Monospaced");
-		for (final StreamStyle style : StreamStyle.values())
+		for (final StreamStyle style : values())
 		{
 			style.defineStyleIn(doc);
 		}
@@ -2868,36 +2873,26 @@ extends JFrame
 		if (runningOnMac)
 		{
 			OSXUtility.setQuitHandler(
-				new Transformer1<Object, Boolean>()
+				event ->
 				{
-					@Override
-					public @Nullable Boolean value (
-						final @Nullable Object event)
-					{
-						// Quit was pressed.  Close the workbench, which should
-						// save window position state then exit.
-						// Apple's apple.eawt.quitStrategy has never worked, to
-						// the best of my knowledge.  It's a trick.  We must
-						// close the workbench window explicitly to give it a
-						// chance to save.
-						final WindowEvent closeEvent =
-							new WindowEvent(
-								AvailWorkbench.this,
-								WindowEvent.WINDOW_CLOSING);
-						dispatchEvent(closeEvent);
-						return true;
-					}
+					// Quit was pressed.  Close the workbench, which should
+					// save window position state then exit.
+					// Apple's apple.eawt.quitStrategy has never worked, to
+					// the best of my knowledge.  It's a trick.  We must
+					// close the workbench window explicitly to give it a
+					// chance to save.
+					final WindowEvent closeEvent =
+						new WindowEvent(
+							AvailWorkbench.this,
+							WindowEvent.WINDOW_CLOSING);
+					dispatchEvent(closeEvent);
+					return true;
 				});
 			OSXUtility.setAboutHandler(
-				new Transformer1<Object, Boolean>()
+				event ->
 				{
-					@Override
-					public @Nullable Boolean value (
-						@Nullable final Object event)
-					{
-						aboutAction.showDialog();
-						return true;
-					}
+					aboutAction.showDialog();
+					return true;
 				});
 		}
 
@@ -3009,15 +3004,10 @@ extends JFrame
 		{
 			// Set up Mac-specific preferences menu handler...
 			OSXUtility.setPreferencesHandler(
-				new Transformer1<Object, Boolean> ()
+				event ->
 				{
-					@Override
-					public @Nullable Boolean value (
-						@Nullable final Object event)
-					{
-						preferencesAction.actionPerformed(null);
-						return true;
-					}
+					preferencesAction.actionPerformed(null);
+					return true;
 				});
 		}
 		catch (final Exception e)

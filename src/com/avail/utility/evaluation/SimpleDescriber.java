@@ -38,7 +38,7 @@ package com.avail.utility.evaluation;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class SimpleDescriber extends Describer
+public final class SimpleDescriber implements Describer
 {
 	/** The string provided at construction time. */
 	final String string;

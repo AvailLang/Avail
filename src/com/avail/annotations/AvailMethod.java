@@ -44,7 +44,7 @@ import com.avail.descriptor.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Retention(RetentionPolicy.CLASS)
-@Target({ ElementType.METHOD })
+@Target(ElementType.METHOD)
 public @interface AvailMethod
 {
 	/**
@@ -54,5 +54,5 @@ public @interface AvailMethod
 	 * @return The canonical name of the method, or the empty string if the name
 	 *         should be inferred directly from the annotated method.
 	 */
-	public String value () default "";
+	String value () default "";
 }

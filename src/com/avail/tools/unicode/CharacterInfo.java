@@ -90,7 +90,7 @@ implements Comparable<CharacterInfo>, JSONFriendly
 	public int compareTo (final @Nullable CharacterInfo o)
 	{
 		assert o != null;
-		return codePoint - o.codePoint;
+		return Integer.compare(codePoint, o.codePoint);
 	}
 
 	/**

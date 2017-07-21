@@ -180,9 +180,9 @@ public final class XMLDocumentModel<
 		assert values != null;
 		elements = values;
 		// Initialize other data structures.
-		elementsByQName = new HashMap<String, ElementType>(elements.length);
+		elementsByQName = new HashMap<>(elements.length);
 		allowedChildren =
-			new HashMap<ElementType, Set<ElementType>>(elements.length);
+			new HashMap<>(elements.length);
 		ElementType root = null;
 		for (final ElementType element : elements)
 		{
@@ -192,7 +192,7 @@ public final class XMLDocumentModel<
 				assert root == null;
 				root = element;
 			}
-			final Set<ElementType> children = new HashSet<ElementType>();
+			final Set<ElementType> children = new HashSet<>();
 			for (final ElementType child : elements)
 			{
 				if (child.allowedParents().contains(element))

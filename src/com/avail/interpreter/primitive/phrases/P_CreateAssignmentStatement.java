@@ -37,13 +37,14 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Transform a variable reference and an
  * expression into an {@linkplain AssignmentNodeDescriptor assignment}
  * statement. Such a node has type {@linkplain
- * com.avail.descriptor.TypeDescriptor.Types#TOP top} and cannot be embedded
+ * Types#TOP top} and cannot be embedded
  * as a subexpression.
  *
  * <p>Note that because we can have "inner" assignment nodes (i.e.,

@@ -40,13 +40,11 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.compiler.CompilationContext;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
-import com.avail.utility.Generator;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -85,7 +83,7 @@ public final class MessageSplitter
 		UP_ARROW("↑"),
 		VERTICAL_BAR("|");
 
-		public A_String string;
+		public final A_String string;
 
 		Metacharacter (final String javaString)
 		{
@@ -265,15 +263,15 @@ public final class MessageSplitter
 	 * wait-free way with compare-and-set and retry.  The tuple itself should
 	 * always be marked as shared.  This mechanism is thread-safe.</p>
 	 */
-	public static AtomicReference<A_Tuple> permutations =
-		new AtomicReference<A_Tuple>(TupleDescriptor.empty());
+	public static final AtomicReference<A_Tuple> permutations =
+		new AtomicReference<>(TupleDescriptor.empty());
 
 	/**
 	 * A statically-scoped {@link List} of unique constants needed as operands
 	 * of some {@link ParsingOperation}s.  The inverse {@link Map} (but
 	 * containing one-based indices) is kept in #constantsMap}.
 	 */
-	private static List<AvailObject> constantsList = new ArrayList<>(100);
+	private static final List<AvailObject> constantsList = new ArrayList<>(100);
 
 	/**
 	 * A statically-scoped map from Avail object to one-based index (into
@@ -281,7 +279,7 @@ public final class MessageSplitter
 	 * for which some {@link ParsingOperation} needed to hold that constant as
 	 * an operand.
 	 */
-	private static Map<AvailObject, Integer> constantsMap = new HashMap<>(100);
+	private static final Map<AvailObject, Integer> constantsMap = new HashMap<>(100);
 
 	/**
 	 * A lock to protect {@link #constantsList} and {@link #constantsMap}.
@@ -1501,35 +1499,31 @@ public final class MessageSplitter
 	{
 		throw new MalformedMessageException(
 			errorCode,
-			new Generator<String>()
+			() ->
 			{
-				@Override
-				public String value ()
-				{
-					final StringBuilder builder = new StringBuilder();
-					builder.append(errorMessage);
-					builder.append(". See arrow (");
-					builder.append(CompilerDiagnostics.errorIndicatorSymbol);
-					builder.append(") in: \"");
-					final int characterIndex =
-						messagePartPosition > 0
-							? messagePartPosition <= messagePartPositions.size()
-								? messagePartPositions.get(
-									messagePartPosition - 1)
-								: messageName.tupleSize() + 1
-							: 0;
-					final A_String before =
-						(A_String)messageName.copyTupleFromToCanDestroy(
-							1, characterIndex - 1, false);
-					final A_String after =
-						(A_String)messageName.copyTupleFromToCanDestroy(
-							characterIndex, messageName.tupleSize(), false);
-					builder.append(before.asNativeString());
-					builder.append(CompilerDiagnostics.errorIndicatorSymbol);
-					builder.append(after.asNativeString());
-					builder.append("\"");
-					return builder.toString();
-				}
+				final StringBuilder builder = new StringBuilder();
+				builder.append(errorMessage);
+				builder.append(". See arrow (");
+				builder.append(CompilerDiagnostics.errorIndicatorSymbol);
+				builder.append(") in: \"");
+				final int characterIndex =
+					messagePartPosition > 0
+						? messagePartPosition <= messagePartPositions.size()
+							? messagePartPositions.get(
+								messagePartPosition - 1)
+							: messageName.tupleSize() + 1
+						: 0;
+				final A_String before =
+					(A_String)messageName.copyTupleFromToCanDestroy(
+						1, characterIndex - 1, false);
+				final A_String after =
+					(A_String)messageName.copyTupleFromToCanDestroy(
+						characterIndex, messageName.tupleSize(), false);
+				builder.append(before.asNativeString());
+				builder.append(CompilerDiagnostics.errorIndicatorSymbol);
+				builder.append(after.asNativeString());
+				builder.append("\"");
+				return builder.toString();
 			});
 	}
 

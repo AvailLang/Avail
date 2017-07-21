@@ -46,7 +46,7 @@ import java.util.Map.Entry;
  */
 public final class JSONObject
 extends JSONData
-implements Iterable<Map.Entry<String, JSONData>>
+implements Iterable<Entry<String, JSONData>>
 {
 	/**
 	 * The field assignments of the {@link JSONObject} as a {@linkplain Map map}
@@ -70,7 +70,7 @@ implements Iterable<Map.Entry<String, JSONData>>
 
 	/** The sole empty {@code JSONObject}. */
 	private static final JSONObject empty =
-		new JSONObject(Collections.<String, JSONData>emptyMap());
+		new JSONObject(Collections.emptyMap());
 
 	/**
 	 * Answer the sole empty {@link JSONObject}.
@@ -220,7 +220,7 @@ implements Iterable<Map.Entry<String, JSONData>>
 	public void writeTo (final JSONWriter writer)
 	{
 		writer.startObject();
-		for (final Map.Entry<String, JSONData> entry : map.entrySet())
+		for (final Entry<String, JSONData> entry : map.entrySet())
 		{
 			writer.write(entry.getKey());
 			entry.getValue().writeTo(writer);

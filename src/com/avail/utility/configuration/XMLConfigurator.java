@@ -32,6 +32,8 @@
 
 package com.avail.utility.configuration;
 
+import org.xml.sax.Attributes;
+
 import java.io.InputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -51,7 +53,7 @@ import javax.xml.parsers.SAXParserFactory;
  * XMLElement#qName() qualified name} and immediate {@linkplain
  * XMLElement#allowedParents() parentage}. Members are also responsible for
  * their own processing (see {@link XMLElement#startElement(
- * XMLConfiguratorState, org.xml.sax.Attributes) startElement} and {@link
+ * XMLConfiguratorState, Attributes) startElement} and {@link
  * XMLElement#endElement(XMLConfiguratorState) endElement}.</li>
  * <li>An {@link XMLConfiguratorState} that maintains any state required by the
  * {@link XMLConfigurator} during the processing of an XML document. This state
@@ -105,8 +107,7 @@ implements Configurator<ConfigurationType>
 	{
 		this.configuration = configuration;
 		this.documentStream = documentStream;
-		this.model = new XMLDocumentModel<
-			ConfigurationType, ElementType, StateType>(elementClass);
+		this.model = new XMLDocumentModel<>(elementClass);
 		state.setDocumentModel(model);
 		this.state = state;
 	}
@@ -145,9 +146,8 @@ implements Configurator<ConfigurationType>
 				final SAXParser parser = factory.newSAXParser();
 				parser.parse(
 					documentStream,
-					new XMLEventHandler<
-						ConfigurationType, ElementType, StateType>(
-							model, state));
+					new XMLEventHandler<>(
+						model, state));
 				isConfigured = true;
 			}
 			catch (final Exception e)

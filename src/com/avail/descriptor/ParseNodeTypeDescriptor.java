@@ -44,7 +44,6 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
 
@@ -165,7 +164,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return Types.ANY.o();
+				return ANY.o();
 			}
 		},
 
@@ -197,15 +196,10 @@ extends TypeDescriptor
 				final A_Type subexpressionsTupleType =
 					TupleTypeDescriptor.mappingElementTypes(
 						yieldType,
-						new Transformer1<A_Type, A_Type>()
+						argYieldType ->
 						{
-							@Override
-							public @Nullable A_Type value (
-								final @Nullable A_Type argYieldType)
-							{
-								assert argYieldType != null;
-								return PARSE_NODE.create(argYieldType);
-							}
+							assert argYieldType != null;
+							return PARSE_NODE.create(argYieldType);
 						});
 				return ListNodeTypeDescriptor.createListNodeTypeNoCheck(
 					listNodeKind, yieldType, subexpressionsTupleType);
@@ -242,15 +236,10 @@ extends TypeDescriptor
 				final A_Type subexpressionsTupleType =
 					TupleTypeDescriptor.mappingElementTypes(
 						yieldType,
-						new Transformer1<A_Type, A_Type>()
+						argYieldType ->
 						{
-							@Override
-							public @Nullable A_Type value (
-								final @Nullable A_Type argYieldType)
-							{
-								assert argYieldType != null;
-								return PARSE_NODE.create(argYieldType);
-							}
+							assert argYieldType != null;
+							return PARSE_NODE.create(argYieldType);
 						});
 				return ListNodeTypeDescriptor.createListNodeTypeNoCheck(
 					listNodeKind, yieldType, subexpressionsTupleType);
@@ -267,7 +256,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return Types.ANY.o();
+				return ANY.o();
 			}
 		},
 
@@ -763,14 +752,10 @@ extends TypeDescriptor
 		// Only applicable if the expression type is a tuple type.
 		return TupleTypeDescriptor.mappingElementTypes(
 			object.slot(EXPRESSION_TYPE),
-			new Transformer1<A_Type, A_Type>()
+			arg ->
 			{
-				@Override
-				public A_Type value (@Nullable final A_Type arg)
-				{
-					assert arg != null;
-					return PARSE_NODE.create(arg);
-				}
+				assert arg != null;
+				return PARSE_NODE.create(arg);
 			});
 	}
 
@@ -837,11 +822,9 @@ extends TypeDescriptor
 	{
 		// Union of a non-list parse node type and a list node type is a
 		// non-list parse node type.
-		final ParseNodeKind objectKind = kind;
 		final ParseNodeKind otherKind = aListNodeType.parseNodeKind();
 		assert otherKind.isSubkindOf(LIST_NODE);
-		final ParseNodeKind unionKind = objectKind.commonAncestorWith(
-			otherKind);
+		final ParseNodeKind unionKind = kind.commonAncestorWith(otherKind);
 		assert !unionKind.isSubkindOf(LIST_NODE);
 		return unionKind.create(
 			object.expressionType().typeUnion(aListNodeType.expressionType()));

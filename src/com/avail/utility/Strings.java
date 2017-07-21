@@ -126,7 +126,7 @@ public final class Strings
 	}
 
 	/** Strings containing a reasonably small number of tabs. */
-	private final static String tabs[] = new String[10];
+	private final static String[] tabs = new String[10];
 
 	static
 	{
@@ -199,13 +199,13 @@ public final class Strings
 	 * @param builder The {@link StringBuilder}.
 	 * @param strings The vararg array of strings to append.
 	 */
-	public void appendAll (
+	public static void appendAll (
 		final StringBuilder builder,
 		final String... strings)
 	{
-		for (int i = 0; i < strings.length; i++)
+		for (final String string : strings)
 		{
-			builder.append(strings[i]);
+			builder.append(string);
 		}
 	}
 }

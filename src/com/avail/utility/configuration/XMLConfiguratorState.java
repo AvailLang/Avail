@@ -165,7 +165,7 @@ public class XMLConfiguratorState<
 
 	/** The parse {@linkplain Deque stack}. */
 	private final Deque<ElementType> stack =
-		new ArrayDeque<ElementType>(5);
+		new ArrayDeque<>(5);
 
 	/**
 	 * Push the specified {@linkplain XMLElement element} onto the parse stack.
@@ -195,9 +195,9 @@ public class XMLConfiguratorState<
 	 *
 	 * @return The top of the parse stack.
 	 */
-	public final ElementType pop ()
+	public final void pop ()
 	{
-		return stack.pop();
+		stack.pop();
 	}
 
 	/**

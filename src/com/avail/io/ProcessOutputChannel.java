@@ -48,7 +48,6 @@ import com.avail.annotations.InnerAccess;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.FiberDescriptor;
-import com.avail.utility.evaluation.Continuation0;
 
 /**
  * A {@code ProcessInputChannel} provides a faux {@linkplain
@@ -97,23 +96,19 @@ implements TextOutputChannel
 		final A_Fiber fiber = (A_Fiber) attachment;
 		runtime.executeFileTask(AvailTask.forUnboundFiber(
 			fiber,
-			new Continuation0()
+			() ->
 			{
-				@Override
-				public void value ()
+				try
 				{
-					try
-					{
-						out.write(buffer.toString());
-						out.flush();
-					}
-					catch (final IOException e)
-					{
-						handler.failed(e, attachment);
-						return;
-					}
-					handler.completed(buffer.limit(), attachment);
+					out.write(buffer.toString());
+					out.flush();
 				}
+				catch (final IOException e)
+				{
+					handler.failed(e, attachment);
+					return;
+				}
+				handler.completed(buffer.limit(), attachment);
 			}));
 	}
 
@@ -127,23 +122,19 @@ implements TextOutputChannel
 		final A_Fiber fiber = FiberDescriptor.current();
 		runtime.executeFileTask(AvailTask.forUnboundFiber(
 			fiber,
-			new Continuation0()
+			() ->
 			{
-				@Override
-				public void value ()
+				try
 				{
-					try
-					{
-						out.write(data);
-						out.flush();
-					}
-					catch (final IOException e)
-					{
-						handler.failed(e, attachment);
-						return;
-					}
-					handler.completed(data.length(), attachment);
+					out.write(data);
+					out.flush();
 				}
+				catch (final IOException e)
+				{
+					handler.failed(e, attachment);
+					return;
+				}
+				handler.completed(data.length(), attachment);
 			}));
 	}
 

@@ -237,7 +237,7 @@ public final class P_CastIntoElse extends Primitive
 			new L2ReadPointerOperand(elseBlockReg),
 			new L2ReadVectorOperand(
 				naiveTranslator.createVector(
-					Collections.<L2ObjectRegister>emptyList())),
+					Collections.emptyList())),
 			new L2ImmediateOperand(0));
 		naiveTranslator.unreachableCode(
 			naiveTranslator.newLabel("unreachable after else call of cast"));

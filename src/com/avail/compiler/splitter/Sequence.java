@@ -40,7 +40,6 @@ import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.Pair;
-import com.avail.utility.evaluation.Continuation0;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -328,18 +327,11 @@ extends Expression
 			((Optional)expression).emitInRunThen(
 				generator,
 				subexpressionType,
-				new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						emitRunOn(
-							run,
-							positionInRun + 1,
-							generator,
-							subexpressionsTupleType);
-					}
-				});
+				() -> emitRunOn(
+					run,
+					positionInRun + 1,
+					generator,
+					subexpressionsTupleType));
 			if (positionInRun == 0)
 			{
 				// Do the argument reversal at the outermost recursion.
@@ -419,13 +411,11 @@ extends Expression
 				generator.emitWrapped(this, ungroupedArguments);
 				generator.emit(this, CONCATENATE);
 			}
-			ungroupedArguments = 0;
 		}
 		else if (wrapState == NEEDS_TO_PUSH_LIST)
 		{
 			generator.emitWrapped(this, ungroupedArguments);
 			listIsPushed = true;
-			ungroupedArguments = 0;
 		}
 		assert listIsPushed
 			|| wrapState == SHOULD_NOT_PUSH_LIST

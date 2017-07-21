@@ -34,10 +34,7 @@ package com.avail.environment.actions;
 
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import com.avail.builder.ResolvedModuleName;
+
 import com.avail.environment.AvailWorkbench;
 import org.jetbrains.annotations.Nullable;
 

@@ -488,8 +488,7 @@ extends TypeDescriptor
 	public static A_Type singleInteger (final A_Number integerObject)
 	{
 		integerObject.makeImmutable();
-		return IntegerRangeTypeDescriptor.inclusive(
-			integerObject, integerObject);
+		return create(integerObject, true, integerObject, true);
 	}
 
 	/**
@@ -502,8 +501,7 @@ extends TypeDescriptor
 	{
 		final A_Number integerObject = IntegerDescriptor.fromInt(anInt);
 		integerObject.makeImmutable();
-		return IntegerRangeTypeDescriptor.inclusive(
-			integerObject, integerObject);
+		return create(integerObject, true, integerObject, true);
 	}
 
 	/**
@@ -590,7 +588,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create an inclusive-inclusive range with the given endpoint.
+	 * Create an inclusive-inclusive range with the given endpoints.
 	 *
 	 * @param lowerBound The low end, inclusive, of the range.
 	 * @param upperBound The high end, inclusive, of the range.
@@ -601,6 +599,24 @@ extends TypeDescriptor
 		final A_Number upperBound)
 	{
 		return create(lowerBound, true, upperBound, true);
+	}
+
+	/**
+	 * Create an inclusive-inclusive range with the given endpoints.
+	 *
+	 * @param lowerBound The low end, inclusive, of the range.
+	 * @param upperBound The high end, inclusive, of the range.
+	 * @return The integral type containing the bounds and all integers between.
+	 */
+	public static A_Type inclusive (
+		final long lowerBound,
+		final long upperBound)
+	{
+		return create(
+			IntegerDescriptor.fromLong(lowerBound),
+			true,
+			IntegerDescriptor.fromLong(upperBound),
+			true);
 	}
 
 	/**
@@ -726,13 +742,13 @@ extends TypeDescriptor
 	 * recommended for performance.  The {@link #create()} operation uses them
 	 * whenever possible.</p>
 	 */
-	private static final A_Type smallRanges[][] = new A_Type[smallRangeLimit][];
+	private static final A_Type[][] smallRanges = new A_Type[smallRangeLimit][];
 
 	static
 	{
 		for (int upper = 0; upper < smallRangeLimit; upper++)
 		{
-			final A_Type byLower[] = new A_Type[upper + 1];
+			final A_Type[] byLower = new A_Type[upper + 1];
 			for (int lower = 0; lower <= upper; lower++)
 			{
 				final IntegerRangeTypeDescriptor descriptor =
@@ -760,9 +776,7 @@ extends TypeDescriptor
 	}
 
 	/** The range [0..255]. */
-	private static final A_Type bytes = inclusive(
-		IntegerDescriptor.zero(),
-		IntegerDescriptor.fromUnsignedByte((short)255)).makeShared();
+	private static final A_Type bytes = inclusive(0, 255).makeShared();
 
 	/**
 	 * Return the range [0..255].
@@ -775,10 +789,8 @@ extends TypeDescriptor
 	}
 
 	/** The range of Unicode code points, [0..1114111]. */
-	private static final A_Type characterCodePoints = inclusive(
-			IntegerDescriptor.zero(),
-			IntegerDescriptor.fromInt(CharacterDescriptor.maxCodePointInt))
-		.makeShared();
+	private static final A_Type characterCodePoints =
+		inclusive(0, CharacterDescriptor.maxCodePointInt).makeShared();
 
 	/**
 	 * Return the range of Unicode code points, [0..1114111].
@@ -840,9 +852,7 @@ extends TypeDescriptor
 	}
 
 	/** The range [0..15]. */
-	private static final A_Type nybbles = inclusive(
-		IntegerDescriptor.zero(),
-		IntegerDescriptor.fromUnsignedByte((short)15)).makeShared();
+	private static final A_Type nybbles = inclusive(0, 15).makeShared();
 
 	/**
 	 * Return the range [0..15].
@@ -855,9 +865,8 @@ extends TypeDescriptor
 	}
 
 	/** The range [0..65535]. */
-	private static final A_Type unsignedShorts = inclusive(
-		IntegerDescriptor.zero(),
-		IntegerDescriptor.fromInt(65535)).makeShared();
+	private static final A_Type unsignedShorts =
+		inclusive(0, 65535).makeShared();
 
 	/**
 	 * Return the range [0..65535].
@@ -887,11 +896,8 @@ extends TypeDescriptor
 	}
 
 	/** The range of a signed 32-bit {@code int}, [-2^31..2^31). */
-	private static final A_Type int32 = create(
-		IntegerDescriptor.fromInt(Integer.MIN_VALUE),
-		true,
-		IntegerDescriptor.fromInt(Integer.MAX_VALUE),
-		true).makeShared();
+	private static final A_Type int32 =
+		inclusive(Integer.MIN_VALUE, Integer.MAX_VALUE).makeShared();
 
 	/**
 	 * Return the range of 32-bit signed ints.
@@ -904,11 +910,8 @@ extends TypeDescriptor
 	}
 
 	/** The range of a signed 64-bit {@code long}, [-2^63..2^63). */
-	private static final A_Type int64 = create(
-		IntegerDescriptor.fromLong(Long.MIN_VALUE),
-		true,
-		IntegerDescriptor.fromLong(Long.MAX_VALUE),
-		true).makeShared();
+	private static final A_Type int64 =
+		inclusive(Long.MIN_VALUE, Long.MAX_VALUE).makeShared();
 
 	/**
 	 * Return the range of 64-bit signed longs.

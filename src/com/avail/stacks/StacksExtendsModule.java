@@ -92,7 +92,7 @@ public class StacksExtendsModule extends StacksImportModule
 		{
 			return this;
 		}
-		else if (!(moduleNameToExtendsList().isEmpty()))
+		if (!(moduleNameToExtendsList().isEmpty()))
 		{
 			if (moduleNameToExtendsList().containsKey(moduleNameToSearch))
 			{
@@ -238,7 +238,7 @@ public class StacksExtendsModule extends StacksImportModule
 			} else
 			{
 				final HashMap<String, ImplementationGroup> newMap =
-					new HashMap<String, ImplementationGroup>();
+					new HashMap<>();
 
 				newMap.put(newlyDefinedModule.moduleName(), group);
 
@@ -264,11 +264,11 @@ public class StacksExtendsModule extends StacksImportModule
 	{
 
 		super (module.moduleName(),
-			new HashMap<A_String,ImplementationGroup>(
+			new HashMap<>(
 				module.namedPublicCommentImplementations()),
-			new HashMap<String,StacksExtendsModule>(
+			new HashMap<>(
 				module.extendedNamesImplementations()),
-			new HashMap<A_String, HashMap<String, ImplementationGroup>>(
+			new HashMap<>(
 				module.extendsMethodLeafNameToModuleName()),
 			module.usesNamesImplementations(),
 			module.usesMethodLeafNameToModuleName());

@@ -45,7 +45,6 @@ import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * The {@code P_BootstrapAssignmentStatementMacro} primitive is used for
@@ -131,34 +130,19 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		if (!declaration.declarationKind().isVariable())
 		{
 			throw new AvailRejectedParseException(
-				new Generator<A_String>()
-				{
-					@Override
-					public A_String value ()
-					{
-						return StringDescriptor.format(
-							"a name of a variable, not a %s",
-							declarationFinal.declarationKind()
-								.nativeKindName());
-					}
-				});
+				() -> StringDescriptor.format(
+					"a name of a variable, not a %s",
+					declarationFinal.declarationKind().nativeKindName()));
 		}
 		if (!valueExpression.expressionType().isSubtypeOf(
 			declaration.declaredType()))
 		{
 			throw new AvailRejectedParseException(
-				new Generator<A_String>()
-				{
-					@Override
-					public A_String value()
-					{
-						return StringDescriptor.format(
-							"assignment expression's type (%s) "
-							+ "to match variable type (%s)",
-							valueExpression.expressionType(),
-							declarationFinal.declaredType());
-					}
-				});
+				() -> StringDescriptor.format(
+					"assignment expression's type (%s) "
+					+ "to match variable type (%s)",
+					valueExpression.expressionType(),
+					declarationFinal.declaredType()));
 		}
 		final A_Phrase assignment = AssignmentNodeDescriptor.from(
 			VariableUseNodeDescriptor.newUse(actualToken, declaration),

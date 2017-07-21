@@ -72,6 +72,6 @@ extends AbstractWorkbenchAction
 			"Cancel the current build process.");
 		putValue(
 			ACCELERATOR_KEY,
-			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, Event.CTRL_MASK));
+			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, InputEvent.CTRL_MASK));
 	}
 }

@@ -41,9 +41,9 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.exceptions.MapException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -128,7 +128,7 @@ extends Descriptor
 		builder.append('{');
 		final int startPosition = builder.length();
 		boolean first = true;
-		for (final MapDescriptor.Entry entry : object.mapIterable())
+		for (final Entry entry : object.mapIterable())
 		{
 			if (!first)
 			{
@@ -153,7 +153,7 @@ extends Descriptor
 		if (multiline)
 		{
 			first = true;
-			for (final MapDescriptor.Entry entry : object.mapIterable())
+			for (final Entry entry : object.mapIterable())
 			{
 				if (!first)
 				{
@@ -248,7 +248,7 @@ extends Descriptor
 			return false;
 		}
 		final A_BasicObject aMapRootBin = rootBin(aMap);
-		for (final MapDescriptor.Entry entry : object.mapIterable())
+		for (final Entry entry : object.mapIterable())
 		{
 			final A_Map actualValue = aMapRootBin.mapBinAtHash(
 				entry.key(),
@@ -498,17 +498,9 @@ extends Descriptor
 	{
 		final int size = object.mapSize();
 		final MapIterable mapIterable = object.mapIterable();
-		final AvailObject result = ObjectTupleDescriptor.generateFrom(
+		return ObjectTupleDescriptor.generateFrom(
 			size,
-			new Generator<A_BasicObject>()
-			{
-				@Override
-				public A_BasicObject value ()
-				{
-					return mapIterable.next().value().makeImmutable();
-				}
-			});
-		return result;
+			() -> mapIterable.next().value().makeImmutable());
 	}
 
 	@Override @AvailMethod
@@ -556,7 +548,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	MapDescriptor.MapIterable o_MapIterable (final AvailObject object)
+	MapIterable o_MapIterable (final AvailObject object)
 	{
 		return rootBin(object).mapBinIterable();
 	}
@@ -642,7 +634,7 @@ extends Descriptor
 	}
 
 	/**
-	 * {@link MapDescriptor.Entry} exists solely to allow the "foreach" control
+	 * {@link Entry} exists solely to allow the "foreach" control
 	 * structure to be used on a {@linkplain MapDescriptor map} by suitable use
 	 * of {@linkplain MapDescriptor#o_MapIterable(AvailObject) mapIterable()}.
 	 *
@@ -713,7 +705,7 @@ extends Descriptor
 	}
 
 	/**
-	 * {@link MapDescriptor.MapIterable} is returned by {@linkplain
+	 * {@link MapIterable} is returned by {@linkplain
 	 * MapDescriptor#o_MapIterable(AvailObject) mapIterable()} to support use
 	 * of Java's "foreach" control structure on {@linkplain MapDescriptor maps}.
 	 *
@@ -729,7 +721,7 @@ extends Descriptor
 		protected final Entry entry = new Entry();
 
 		/**
-		 * Construct a new {@link MapDescriptor.MapIterable}.
+		 * Construct a new {@link MapIterable}.
 		 */
 		protected MapIterable ()
 		{
@@ -741,7 +733,7 @@ extends Descriptor
 		 * class supports both protocols.
 		 */
 		@Override
-		public MapIterable iterator ()
+		public @NotNull MapIterable iterator ()
 		{
 			return this;
 		}

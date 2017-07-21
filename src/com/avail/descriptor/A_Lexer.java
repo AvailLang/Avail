@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.compiler.scanning.LexingState;
+
 /**
  * {@code A_Lexer} is an interface that specifies the {@linkplain
  * LexerDescriptor lexer-specific operations that an {@link AvailObject} must
@@ -63,8 +65,8 @@ extends A_BasicObject
 	 * Answer the function to run (as the base call of a fiber) to generate some
 	 * tokens from the source string and position.  The function should produce
 	 * a tuple of potential next tokens, which may or may not have additional
-	 * tokens explicitly chained onto them via their {@link
-	 * A_Token#nextLexingState()}.
+	 * tokens explicitly chained onto them via {@link
+	 * A_Token#setNextLexingState(LexingState)}.
 	 *
 	 * @return The lexer's body function.
 	 */

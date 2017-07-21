@@ -40,7 +40,6 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Attempt to acquire the {@linkplain
@@ -75,22 +74,18 @@ extends Primitive
 		assert args.size() == 0;
 		final A_Fiber fiber = interpreter.fiber();
 		final MutableOrNull<Result> result = new MutableOrNull<>();
-		fiber.lock(new Continuation0()
+		fiber.lock(() ->
 		{
-			@Override
-			public void value ()
+			// If permit is not available, then park this fiber.
+			if (fiber.getAndSetSynchronizationFlag(
+				PERMIT_UNAVAILABLE, true))
 			{
-				// If permit is not available, then park this fiber.
-				if (fiber.getAndSetSynchronizationFlag(
-					PERMIT_UNAVAILABLE, true))
-				{
-					result.value = interpreter.primitivePark();
-				}
-				else
-				{
-					result.value = interpreter.primitiveSuccess(
-						NilDescriptor.nil());
-				}
+				result.value = interpreter.primitivePark();
+			}
+			else
+			{
+				result.value = interpreter.primitiveSuccess(
+					NilDescriptor.nil());
 			}
 		});
 		return result.value();

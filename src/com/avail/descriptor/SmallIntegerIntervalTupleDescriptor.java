@@ -562,8 +562,8 @@ extends NumericTupleDescriptor
 		// START + (index-1) × DELTA
 		assert index >= 1 && index <= object.tupleSize();
 		long temp = index - 1;
-		temp = temp * object.slot(DELTA);
-		temp = temp + object.slot(START);
+		temp *= object.slot(DELTA);
+		temp += object.slot(START);
 		assert temp == (int)temp;
 		return (int)temp;
 	}

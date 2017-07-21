@@ -45,7 +45,6 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
 import com.avail.io.TextInterface;
 import com.avail.io.TextOutputChannel;
-import com.avail.utility.evaluation.Continuation0;
 
 /**
  * <strong>Primitive:</strong> Print the specified {@linkplain
@@ -88,44 +87,37 @@ extends Primitive
 			interpreter.primitiveFunctionBeingAttempted();
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		interpreter.primitiveSuspend();
-		interpreter.postExitContinuation(new Continuation0()
-		{
-			@Override
-			public void value ()
+		interpreter.postExitContinuation(() -> textInterface.errorChannel().write(
+			string.asNativeString(),
+			fiber,
+			new CompletionHandler<Integer, A_Fiber>()
 			{
-				textInterface.errorChannel().write(
-					string.asNativeString(),
-					fiber,
-					new CompletionHandler<Integer, A_Fiber>()
-					{
-						@Override
-						public void completed (
-							final @Nullable Integer result,
-							final @Nullable A_Fiber unused)
-						{
-							Interpreter.resumeFromSuccessfulPrimitive(
-								runtime,
-								fiber,
-								NilDescriptor.nil(),
-								skipReturnCheck);
-						}
+				@Override
+				public void completed (
+					final @Nullable Integer result,
+					final @Nullable A_Fiber unused)
+				{
+					Interpreter.resumeFromSuccessfulPrimitive(
+						runtime,
+						fiber,
+						NilDescriptor.nil(),
+						skipReturnCheck);
+				}
 
-						@Override
-						public void failed (
-							final @Nullable Throwable exc,
-							final @Nullable A_Fiber unused)
-						{
-							Interpreter.resumeFromFailedPrimitive(
-								runtime,
-								fiber,
-								E_IO_ERROR.numericCode(),
-								failureFunction,
-								copiedArgs,
-								skipReturnCheck);
-						}
-					});
-			}
-		});
+				@Override
+				public void failed (
+					final @Nullable Throwable exc,
+					final @Nullable A_Fiber unused)
+				{
+					Interpreter.resumeFromFailedPrimitive(
+						runtime,
+						fiber,
+						E_IO_ERROR.numericCode(),
+						failureFunction,
+						copiedArgs,
+						skipReturnCheck);
+				}
+			}));
 		return Result.FIBER_SUSPENDED;
 	}
 

@@ -38,10 +38,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import org.jetbrains.annotations.Nullable;
 import com.avail.builder.*;
 import com.avail.compiler.AvailCompiler.*;
-import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
@@ -137,7 +135,7 @@ import com.avail.utility.evaluation.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-public class Compiler
+public final class Compiler
 {
 	/**
 	 * Configure the {@linkplain Compiler compiler} to build the target
@@ -174,35 +172,28 @@ public class Compiler
 	private static CompilerProgressReporter localTracker (
 		final CompilerConfiguration configuration)
 	{
-		return new CompilerProgressReporter()
+		return (module, moduleSize, position) ->
 		{
-			@Override
-			public void value (
-				final @Nullable ModuleName module,
-				final @Nullable Long moduleSize,
-				final @Nullable Long position)
+			assert module != null;
+			assert moduleSize != null;
+			assert position != null;
+
+			final int percent = (int) ((position * 100) / moduleSize);
+			String modName = module.qualifiedName();
+			final int maxModuleNameLength = 61;
+			final int len = modName.length();
+			if (len > maxModuleNameLength)
 			{
-				assert module != null;
-				assert moduleSize != null;
-				assert position != null;
+				modName = "…" + modName.substring(
+					len - maxModuleNameLength + 1, len);
+			}
 
-				final int percent = (int) ((position * 100) / moduleSize);
-				String modName = module.qualifiedName();
-				final int maxModuleNameLength = 61;
-				final int len = modName.length();
-				if (len > maxModuleNameLength)
-				{
-					modName = "…" + modName.substring(
-						len - maxModuleNameLength + 1, len);
-				}
-
-				final String localStatus = String.format(
-					"  |  %-61s - %3d%%", modName, percent);
-				final VerbosityLevel level = configuration.verbosityLevel();
-				if (level.displayLocalProgress())
-				{
-					System.out.println(globalStatus + localStatus);
-				}
+			final String localStatus = String.format(
+				"  |  %-61s - %3d%%", modName, percent);
+			final VerbosityLevel level = configuration.verbosityLevel();
+			if (level.displayLocalProgress())
+			{
+				System.out.println(globalStatus + localStatus);
 			}
 		};
 	}
@@ -223,27 +214,21 @@ public class Compiler
 	private static Continuation2<Long, Long> globalTracker(
 		final CompilerConfiguration configuration)
 	{
-		return new Continuation2<Long, Long>()
+		return (processedBytes, totalBytes) ->
 		{
-			@Override
-			public void value (
-				@Nullable final Long processedBytes,
-				@Nullable final Long totalBytes)
-			{
-				assert processedBytes != null;
-				assert totalBytes != null;
+			assert processedBytes != null;
+			assert totalBytes != null;
 
-				final int perThousand =
-					(int) ((processedBytes * 1000) / totalBytes);
-				final float percent = perThousand / 10.0f;
-				globalStatus = String.format(
-					"Build Progress - %3.1f%%", percent);
-				final VerbosityLevel level = configuration.verbosityLevel();
-				if (level.displayGlobalProgress() &&
-					!level.displayLocalProgress())
-				{
-					System.out.println(globalStatus);
-				}
+			final int perThousand =
+				(int) ((processedBytes * 1000) / totalBytes);
+			final float percent = perThousand / 10.0f;
+			globalStatus = String.format(
+				"Build Progress - %3.1f%%", percent);
+			final VerbosityLevel level = configuration.verbosityLevel();
+			if (level.displayGlobalProgress() &&
+				!level.displayLocalProgress())
+			{
+				System.out.println(globalStatus);
 			}
 		};
 	}

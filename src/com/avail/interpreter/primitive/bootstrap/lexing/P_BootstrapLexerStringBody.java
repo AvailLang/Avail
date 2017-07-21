@@ -1,6 +1,6 @@
 /**
- * P_BootstrapLexerKeywordBody.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * P_BootstrapLexerStringBody.java
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
+import com.avail.annotations.InnerAccess;
+import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -56,7 +58,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_BootstrapLexerStringBody().init(
-			2, CannotFail, Bootstrap);
+			3, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -64,31 +66,256 @@ public final class P_BootstrapLexerStringBody extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		final A_String source = args.get(0);
 		final A_Number sourcePositionInteger = args.get(1);
+		final A_Number lineNumberInteger = args.get(2);
 
-		final int sourceSize = source.tupleSize();
 		final int startPosition = sourcePositionInteger.extractInt();
-		int position = startPosition;
+		final int startLineNumber = lineNumberInteger.extractInt();
 
-		while (position <= sourceSize
-			&& Character.isUnicodeIdentifierPart(
-				source.tupleCodePointAt(position)))
+		final Scanner scanner = new Scanner(
+			source, startPosition + 1, startLineNumber);
+		final StringBuilder builder = new StringBuilder(32);
+		boolean canErase = true;
+		int erasurePosition = 0;
+		while (scanner.hasNext())
 		{
-			position++;
+			int c = scanner.next();
+			switch (c)
+			{
+				case '\"':
+					final A_Token token = LiteralTokenDescriptor.create(
+						(A_String) source.copyTupleFromToCanDestroy(
+							startPosition, scanner.position, false),
+						TupleDescriptor.empty(),
+						TupleDescriptor.empty(),
+						startPosition,
+						startLineNumber,
+						TokenType.LITERAL,
+						StringDescriptor.from(builder.toString()));
+					return interpreter.primitiveSuccess(
+						TupleDescriptor.from(token));
+				case '\\':
+					if (!scanner.hasNext())
+					{
+						throw new AvailRejectedParseException(
+							"more characters after backslash in string "
+								+ "literal");
+					}
+					c = scanner.next();
+					switch (c)
+					{
+						case 'n':
+							builder.append('\n');
+							break;
+						case 'r':
+							builder.append('\r');
+							break;
+						case 't':
+							builder.append('\t');
+							break;
+						case '\\':
+							builder.append('\\');
+							break;
+						case '\"':
+							builder.append('\"');
+							break;
+						case '\r':
+							// Treat \r or \r\n in the source just like \n.
+							if (scanner.hasNext() && scanner.peek() == '\n')
+							{
+								scanner.next();
+							}
+							canErase = true;
+							break;
+						case '\n':
+							// A backslash ending a line.  Emit nothing.
+							// Allow '\|' to back up to here as long as only
+							// whitespace follows.
+							canErase = true;
+							break;
+						case '|':
+							// Remove all immediately preceding white space
+							// from this line.
+							if (canErase)
+							{
+								builder.setLength(erasurePosition);
+								canErase = false;
+							}
+							else
+							{
+								throw new AvailRejectedParseException(
+									"only whitespace characters on line "
+										+ "before \"\\|\" ");
+							}
+							break;
+						case '(':
+							parseUnicodeEscapes(scanner, builder);
+							break;
+						case '[':
+							throw new AvailRejectedParseException(
+								"something other than \"\\[\", because power "
+									+ "strings are not yet supported");
+						default:
+							throw new AvailRejectedParseException(
+								"Backslash escape should be followed by "
+									+ "one of n, r, t, \\, \", (, [, |, or a "
+									+ "line break, not Unicode character "
+									+ c);
+					}
+					erasurePosition = builder.length();
+					break;
+				case '\r':
+					// Transform \r or \r\n in the source into \n.
+					if (scanner.hasNext() && scanner.peek() == '\n')
+					{
+						scanner.next();
+					}
+					builder.appendCodePoint('\n');
+					canErase = true;
+					erasurePosition = builder.length();
+					break;
+				case '\n':
+					// Just like a regular character, but limit how much
+					// can be removed by a subsequent '\|'.
+					builder.appendCodePoint(c);
+					canErase = true;
+					erasurePosition = builder.length();
+					break;
+				default:
+					builder.appendCodePoint(c);
+					if (canErase && !Character.isWhitespace(c))
+					{
+						canErase = false;
+					}
+					break;
+			}
 		}
-		final A_Token token = TokenDescriptor.create(
-			(A_String)source.copyTupleFromToCanDestroy(
-				startPosition, position - 1, false),
-			TupleDescriptor.empty(),
-			TupleDescriptor.empty(),
-			startPosition,
-			-1,  // TODO MvG - This should get a fix-up *after* the primitive
-			TokenType.KEYWORD);
-		token.makeShared();
-		return interpreter.primitiveSuccess(
-			TupleDescriptor.from(token));
+		assert !scanner.hasNext();
+		// TODO MvG - Indicate where the quoted string started, to make it
+		// easier to figure out where the end-quote is missing.
+		throw new AvailRejectedParseException(
+			"close-quote (\") for string literal");
+	}
+
+	final class Scanner
+	{
+		private final A_String source;
+
+		private final int sourceSize;
+
+		@InnerAccess int position;
+
+		@InnerAccess int lineNumber;
+
+		Scanner (
+			final A_String source,
+			final int position,
+			final int lineNumber)
+		{
+			this.source = source;
+			this.sourceSize = source.tupleSize();
+			this.position = position;
+			this.lineNumber = lineNumber;
+		}
+
+		@InnerAccess boolean hasNext ()
+		{
+			return position < sourceSize;
+		}
+
+		@InnerAccess int peek ()
+		{
+			return source.tupleCodePointAt(position);
+		}
+
+		@InnerAccess int next ()
+		{
+			final int c = source.tupleCodePointAt(position++);
+			if (c == '\n')
+			{
+				lineNumber++;
+			}
+			return c;
+		}
+	};
+
+
+	/**
+	 * Parse Unicode hexadecimal encoded characters.  The characters "\" and "("
+	 * were just encountered, so expect a comma-separated sequence of hex
+	 * sequences, each with one to six digits, and having a value between 0 and
+	 * 0x10FFFF, followed by a ")".
+	 *
+	 * @param scanner
+	 *        The source of characters.
+	 * @param stringBuilder
+	 *        The {@link StringBuilder} on which to append the corresponding
+	 *        Unicode characters.
+	 */
+	private void parseUnicodeEscapes (
+		final Scanner scanner,
+		final StringBuilder stringBuilder)
+	{
+		if (!scanner.hasNext())
+		{
+			throw new AvailRejectedParseException(
+				"Unicode escape sequence in string literal");
+		}
+		int c = scanner.next();
+		while (c != ')')
+		{
+			int value = 0;
+			int digitCount = 0;
+			while (c != ',' && c != ')')
+			{
+				if (c >= '0' && c <= '9')
+				{
+					value = (value << 4) + c - (int)'0';
+					digitCount++;
+				}
+				else if (c >= 'A' && c <= 'F')
+				{
+					value = (value << 4) + c - (int)'A' + 10;
+					digitCount++;
+				}
+				else if (c >= 'a' && c <= 'f')
+				{
+					value = (value << 4) + c - (int)'a' + 10;
+					digitCount++;
+				}
+				else
+				{
+					throw new AvailRejectedParseException(
+						"a hex digit or comma or closing parenthesis");
+				}
+				if (digitCount > 6)
+				{
+					throw new AvailRejectedParseException (
+						"at most six hex digits per comma-separated Unicode "
+							+ "entry");
+				}
+				c = scanner.next();
+			}
+			if (digitCount == 0)
+			{
+				throw new AvailRejectedParseException(
+					"a comma-separated list of Unicode code"
+						+ " points, each being one to six (upper case)"
+						+ " hexadecimal digits");
+			}
+			if (value > CharacterDescriptor.maxCodePointInt)
+			{
+				throw new AvailRejectedParseException(
+					"A valid Unicode code point, which must be <= U+10FFFF");
+			}
+			stringBuilder.appendCodePoint(value);
+			if (c == ',')
+			{
+				c = scanner.next();
+			}
+		}
 	}
 
 	@Override
@@ -97,6 +324,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType(),
+				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			TupleTypeDescriptor.zeroOrMoreOf(
 				Types.TOKEN.o()));

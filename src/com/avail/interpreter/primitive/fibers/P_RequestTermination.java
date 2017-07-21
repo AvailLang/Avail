@@ -41,7 +41,6 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Request termination of the given
@@ -67,54 +66,50 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
-		fiber.lock(new Continuation0()
+		fiber.lock(() ->
 		{
-			@Override
-			public void value ()
+			// Set the interrupt request flag.
+			fiber.setInterruptRequestFlag(TERMINATION_REQUESTED);
+			final ExecutionState oldState = fiber.executionState();
+			final boolean hadPermit = !fiber.getAndSetSynchronizationFlag(
+				PERMIT_UNAVAILABLE, false);
+			switch (oldState)
 			{
-				// Set the interrupt request flag.
-				fiber.setInterruptRequestFlag(TERMINATION_REQUESTED);
-				final ExecutionState oldState = fiber.executionState();
-				final boolean hadPermit = !fiber.getAndSetSynchronizationFlag(
-					PERMIT_UNAVAILABLE, false);
-				switch (oldState)
-				{
-					case ASLEEP:
-						// Try to cancel the task (if any). This is best
-						// effort only.
-						final TimerTask task = fiber.wakeupTask();
-						if (task != null)
-						{
-							task.cancel();
-							fiber.wakeupTask(null);
-						}
-						fiber.executionState(SUSPENDED);
-						Interpreter.resumeFromSuccessfulPrimitive(
-							AvailRuntime.current(),
-							fiber,
-							NilDescriptor.nil(),
-							true);
-						break;
-					case PARKED:
-						// Resume the fiber.
-						assert !hadPermit :
-							"Should not have been parked with a permit";
-						fiber.executionState(SUSPENDED);
-						Interpreter.resumeFromSuccessfulPrimitive(
-							AvailRuntime.current(),
-							fiber,
-							NilDescriptor.nil(),
-							true);
-						break;
-					case UNSTARTED:
-					case RUNNING:
-					case SUSPENDED:
-					case INTERRUPTED:
-					case TERMINATED:
-					case ABORTED:
-					case RETIRED:
-						break;
-				}
+				case ASLEEP:
+					// Try to cancel the task (if any). This is best
+					// effort only.
+					final TimerTask task = fiber.wakeupTask();
+					if (task != null)
+					{
+						task.cancel();
+						fiber.wakeupTask(null);
+					}
+					fiber.executionState(SUSPENDED);
+					Interpreter.resumeFromSuccessfulPrimitive(
+						AvailRuntime.current(),
+						fiber,
+						NilDescriptor.nil(),
+						true);
+					break;
+				case PARKED:
+					// Resume the fiber.
+					assert !hadPermit :
+						"Should not have been parked with a permit";
+					fiber.executionState(SUSPENDED);
+					Interpreter.resumeFromSuccessfulPrimitive(
+						AvailRuntime.current(),
+						fiber,
+						NilDescriptor.nil(),
+						true);
+					break;
+				case UNSTARTED:
+				case RUNNING:
+				case SUSPENDED:
+				case INTERRUPTED:
+				case TERMINATED:
+				case ABORTED:
+				case RETIRED:
+					break;
 			}
 		});
 		return interpreter.primitiveSuccess(NilDescriptor.nil());

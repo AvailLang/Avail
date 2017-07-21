@@ -36,6 +36,8 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.ref.SoftReference;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -61,7 +63,7 @@ extends Primitive
 	 * the {@linkplain P_EnvironmentMap primitive} has never been called.
 	 */
 	private static SoftReference<A_Map> environmentMap =
-		new SoftReference<A_Map>(null);
+		new SoftReference<>(null);
 
 	/**
 	 * Get the {@linkplain #environmentMap environment map}, creating a new one
@@ -80,7 +82,7 @@ extends Primitive
 		{
 			final Map<String, String> map = System.getenv();
 			A_Tuple bindings = TupleDescriptor.empty();
-			for (final Map.Entry<String, String> entry : map.entrySet())
+			for (final Entry<String, String> entry : map.entrySet())
 			{
 				bindings = bindings.appendCanDestroy(
 					TupleDescriptor.from(
@@ -89,7 +91,7 @@ extends Primitive
 					true);
 			}
 			result = MapDescriptor.newWithBindings(bindings).makeShared();
-			environmentMap = new SoftReference<A_Map>(result);
+			environmentMap = new SoftReference<>(result);
 		}
 		return result;
 	}

@@ -125,9 +125,7 @@ extends Expression
 	{
 		if (!argumentType.isSubtypeOf(
 			IntegerRangeTypeDescriptor.inclusive(
-				IntegerDescriptor.one(),
-				IntegerDescriptor.fromInt(
-					alternation.alternatives().size()))))
+				1, alternation.alternatives().size())))
 		{
 			// The declared type of the subexpression must be a subtype of
 			// [1..N] where N is the number of alternatives.
@@ -227,7 +225,7 @@ extends Expression
 		final Expression alternative =
 			alternation.alternatives().get(index - 1);
 		alternative.printWithArguments(
-			Collections.<AvailObject>emptyIterator(), builder, indent);
+			Collections.emptyIterator(), builder, indent);
 		builder.append("»!");
 	}
 

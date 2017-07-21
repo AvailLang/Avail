@@ -87,7 +87,7 @@ extends ParseNodeDescriptor
 	 * @param object An object.
 	 * @return A type.
 	 */
-	private A_Type expressionType (final AvailObject object)
+	private static A_Type expressionType (final AvailObject object)
 	{
 		A_Type tupleType = object.mutableSlot(TUPLE_TYPE);
 		if (tupleType.equalsNil())

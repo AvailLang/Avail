@@ -44,25 +44,13 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.*;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.dispatch.TypeComparison;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.SignatureException;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordBody;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordFilter;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerSlashStarCommentBody;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerSlashStarCommentFilter;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringFilter;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceBody;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFilter;
-import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro;
 import com.avail.utility.*;
 
 /**
@@ -369,9 +357,9 @@ extends Descriptor
 		if (bundleCount <= 15)
 		{
 			final Map<String, Integer> strings = new HashMap<>(bundleCount);
-			for (MapDescriptor.Entry entry : allPlansInProgress.mapIterable())
+			for (Entry entry : allPlansInProgress.mapIterable())
 			{
-				for (final MapDescriptor.Entry entry2
+				for (final Entry entry2
 					: entry.value().mapIterable())
 				{
 					for (final A_ParsingPlanInProgress planInProgress
@@ -451,7 +439,7 @@ extends Descriptor
 	 * @param outerMap {bundle → {definition → {plan-in-progress |}|}|}
 	 * @param planInProgress The {@link A_ParsingPlanInProgress} to add.
 	 */
-	private A_Map layeredMapWithPlan (
+	private static A_Map layeredMapWithPlan (
 		final A_Map outerMap,
 		final A_ParsingPlanInProgress planInProgress)
 	{
@@ -506,23 +494,23 @@ extends Descriptor
 				// monitor.
 				return;
 			}
-			final Mutable<A_Set> complete = new Mutable<A_Set>(
+			final Mutable<A_Set> complete = new Mutable<>(
 				object.slot(LAZY_COMPLETE));
-			final Mutable<A_Map> incomplete = new Mutable<A_Map>(
+			final Mutable<A_Map> incomplete = new Mutable<>(
 				object.slot(LAZY_INCOMPLETE));
-			final Mutable<A_Map> caseInsensitive = new Mutable<A_Map>(
+			final Mutable<A_Map> caseInsensitive = new Mutable<>(
 				object.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE));
-			final Mutable<A_Map> actionMap = new Mutable<A_Map>(
+			final Mutable<A_Map> actionMap = new Mutable<>(
 				object.slot(LAZY_ACTIONS));
-			final Mutable<A_Map> prefilterMap = new Mutable<A_Map>(
+			final Mutable<A_Map> prefilterMap = new Mutable<>(
 				object.slot(LAZY_PREFILTER_MAP));
-			final Mutable<A_Tuple> typeFilterPairs = new Mutable<A_Tuple>(
+			final Mutable<A_Tuple> typeFilterPairs = new Mutable<>(
 				object.slot(LAZY_TYPE_FILTER_PAIRS_TUPLE));
 			final int oldTypeFilterSize = typeFilterPairs.value.tupleSize();
 			final A_Set allAncestorModules = module.allAncestors();
-			for (final MapDescriptor.Entry entry : unclassified.mapIterable())
+			for (final Entry entry : unclassified.mapIterable())
 			{
-				for (final MapDescriptor.Entry entry2
+				for (final Entry entry2
 					: entry.value().mapIterable())
 				{
 					// final A_Definition definition = entry2.key();
@@ -582,7 +570,7 @@ extends Descriptor
 				// Rebuild the type-checking lookup tree.
 				LookupTree<A_Tuple, A_BundleTree, Void> tree =
 					MessageBundleTreeDescriptor.parserTypeChecker.createRoot(
-						TupleDescriptor.<A_Tuple>toList(typeFilterPairs.value),
+						TupleDescriptor.toList(typeFilterPairs.value),
 						Collections.singletonList(
 							ParseNodeKind.PARSE_NODE.mostGeneralType()),
 						null);
@@ -873,7 +861,7 @@ extends Descriptor
 	 * @param outerMap {bundle → {definition → {plan-in-progress |}|}|}
 	 * @param planInProgress The {@link A_ParsingPlanInProgress} to remove.
 	 */
-	private A_Map layeredMapWithoutPlan (
+	private static A_Map layeredMapWithoutPlan (
 		final A_Map outerMap,
 		final A_ParsingPlanInProgress planInProgress)
 	{
@@ -1103,7 +1091,7 @@ extends Descriptor
 				final A_ParsingPlanInProgress planInProgress =
 					ParsingPlanInProgressDescriptor.create(plan, pc + 1);
 				// Add it to every existing branch where it's permitted.
-				for (final MapDescriptor.Entry prefilterEntry
+				for (final Entry prefilterEntry
 					: prefilterMap.value.mapIterable())
 				{
 					if (!forbiddenBundles.hasElement(prefilterEntry.key()))
@@ -1126,11 +1114,11 @@ extends Descriptor
 						// the successor found under this instruction,
 						// since it *has* been kept up to date as the
 						// bundles have gotten classified.
-						for (final MapDescriptor.Entry existingEntry
+						for (final Entry existingEntry
 							: successor.allParsingPlansInProgress()
 								.mapIterable())
 						{
-							for (final MapDescriptor.Entry planEntry
+							for (final Entry planEntry
 								: existingEntry.value().mapIterable())
 							{
 								for (final A_ParsingPlanInProgress inProgress
@@ -1190,119 +1178,12 @@ extends Descriptor
 		}
 	}
 
-	public static final AvailObject moduleHeaderBundleRoot;
-
-	static
-	{
-		// Define a special root bundle tree that's only capable of lexing and
-		// parsing method headers.
-		moduleHeaderBundleRoot = createEmpty();
-
-		// Add the string literal lexer.
-		createPrimitiveLexerForHeaderParsing(
-			P_BootstrapLexerStringFilter.instance,
-			P_BootstrapLexerStringBody.instance,
-			"string token lexer");
-
-		// The module header uses keywords, e.g. "Extends".
-		createPrimitiveLexerForHeaderParsing(
-			P_BootstrapLexerKeywordFilter.instance,
-			P_BootstrapLexerKeywordBody.instance,
-			"keyword token lexer");
-
-		// It would be tricky with no whitespace!
-		createPrimitiveLexerForHeaderParsing(
-			P_BootstrapLexerWhitespaceFilter.instance,
-			P_BootstrapLexerWhitespaceBody.instance,
-			"keyword token lexer");
-
-		// Slash-star-star-slash comments are legal in the header.
-		createPrimitiveLexerForHeaderParsing(
-			P_BootstrapLexerSlashStarCommentFilter.instance,
-			P_BootstrapLexerSlashStarCommentBody.instance,
-			"comment lexer");
-
-		// Now add the method that allows the header to be parsed.
-		final A_Function headerFunction =
-			FunctionDescriptor.newPrimitiveFunction(
-				P_ModuleHeaderPseudoMacro.instance,
-				NilDescriptor.nil(),
-				0);
-		final A_Atom headerMethodName =
-			SpecialMethodAtom.MODULE_HEADER_MACRO.atom;
-		final A_Bundle headerMethodBundle;
-		try
-		{
-			headerMethodBundle = headerMethodName.bundleOrCreate();
-		}
-		catch (MalformedMessageException e)
-		{
-			assert false : "Malformed module header method name";
-			throw new RuntimeException(e);
-		}
-		final A_Method headerMethod = headerMethodBundle.bundleMethod();
-		final A_Definition headerDefinition =
-			MacroDefinitionDescriptor.create(
-				headerMethod,
-				NilDescriptor.nil(),
-				headerFunction,
-				TupleDescriptor.empty());
-		try
-		{
-			headerMethod.methodAddDefinition(headerDefinition);
-		}
-		catch (SignatureException e)
-		{
-			assert false : "Module header method could not be added";
-			throw new RuntimeException(e);
-		}
-		final A_DefinitionParsingPlan headerPlan =
-			headerMethodBundle.definitionParsingPlans().mapAt(headerDefinition);
-		final A_ParsingPlanInProgress headerPlanInProgress =
-			ParsingPlanInProgressDescriptor.create(headerPlan, 1);
-		moduleHeaderBundleRoot.addPlanInProgress(headerPlanInProgress);
-	}
-
-	private static A_Method createPrimitiveLexerForHeaderParsing (
-		final Primitive filterPrimitive,
-		final Primitive bodyPrimitive,
-		final String atomName)
-	{
-		A_Function stringLexerFilter = FunctionDescriptor.newPrimitiveFunction(
-			filterPrimitive,
-			NilDescriptor.nil(),
-			0);
-		A_Function stringLexerBody = FunctionDescriptor.newPrimitiveFunction(
-			bodyPrimitive,
-			NilDescriptor.nil(),
-			0);
-		final A_Atom atom = AtomDescriptor.createSpecialAtom(atomName);
-		final A_Bundle bundle;
-		try
-		{
-			bundle = atom.bundleOrCreate();
-		}
-		catch (final MalformedMessageException e)
-		{
-			assert false : "Invalid special lexer name: " + atomName;
-			throw new RuntimeException(e);
-		}
-		final A_Method method = bundle.bundleMethod();
-		final A_Lexer lexer = LexerDescriptor.newLexer(
-			stringLexerFilter,
-			stringLexerBody,
-			method,
-			NilDescriptor.nil());
-		moduleHeaderBundleRoot.addLexer(lexer);
-		return method;
-	}
-
 	/**
 	 * Create a new empty message bundle tree.
 	 *
 	 * @return The new empty message bundle tree.
 	 */
-	static AvailObject createEmpty ()
+	public static AvailObject createEmpty ()
 	{
 		final AvailObject result = mutable.create();
 		final A_Map emptyMap = MapDescriptor.empty();

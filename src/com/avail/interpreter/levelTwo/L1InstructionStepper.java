@@ -66,7 +66,7 @@ implements L1OperationDispatcher
 	/**
 	 * The {@link Interpreter} on whose behalf to step level one nybblecodes.
 	 */
-	Interpreter interpreter;
+	final Interpreter interpreter;
 
 	/**
 	 * A reusable buffer for holding arguments for method invocations.
@@ -247,7 +247,7 @@ implements L1OperationDispatcher
 	 *
 	 * @param value The value to push on the virtualized stack.
 	 */
-	private final void push (final A_BasicObject value)
+	private void push (final A_BasicObject value)
 	{
 		int stackp = integerAt(stackpRegister());
 		stackp--;
@@ -263,7 +263,7 @@ implements L1OperationDispatcher
 	 *
 	 * @return The value popped off the virtualized stack.
 	 */
-	private final AvailObject pop ()
+	private AvailObject pop ()
 	{
 		final int stackp = integerAt(stackpRegister());
 		assert stackp <= argumentOrLocalRegister(
@@ -285,7 +285,7 @@ implements L1OperationDispatcher
 	 *            The literal extracted from the specified literal slot of
 	 *            the code.
 	 */
-	private final AvailObject literalAt (final int literalIndex)
+	private AvailObject literalAt (final int literalIndex)
 	{
 		final A_Function function = pointerAt(FUNCTION);
 		final A_RawFunction code = function.code();
@@ -363,7 +363,7 @@ implements L1OperationDispatcher
 			assert pc == nybbles.tupleSize() + 1;
 			if (debugL1)
 			{
-				Interpreter.log(
+				log(
 					interpreter.fiber(),
 					Level.FINER,
 					"L1 Return (pc={0}, depth={1})",
@@ -379,7 +379,7 @@ implements L1OperationDispatcher
 		final L1Operation operation = L1Operation.all()[nybble];
 		if (debugL1)
 		{
-			Interpreter.log(
+			log(
 				interpreter.fiber(),
 				Level.FINER,
 				"{0} (pc={1}, depth={2})",
@@ -398,7 +398,7 @@ implements L1OperationDispatcher
 		final int numArgs = bundle.bundleMethod().numArgs();
 		if (debugL1)
 		{
-			Interpreter.log(
+			log(
 				interpreter.fiber(),
 				Level.FINE,
 				"L1 call {0}",
@@ -552,7 +552,7 @@ implements L1OperationDispatcher
 			interpreter.invokeFunction(
 				interpreter.runtime().implicitObserveFunction(),
 				Arrays.asList(
-					Interpreter.assignmentFunction(),
+					assignmentFunction(),
 					TupleDescriptor.from(localVariable, value)),
 				true);
 		}
@@ -581,7 +581,7 @@ implements L1OperationDispatcher
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().unassignedVariableReadFunction(),
-				Collections.<A_BasicObject>emptyList(),
+				Collections.emptyList(),
 				true);
 		}
 	}
@@ -627,7 +627,7 @@ implements L1OperationDispatcher
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().unassignedVariableReadFunction(),
-				Collections.<A_BasicObject>emptyList(),
+				Collections.emptyList(),
 				true);
 		}
 	}
@@ -653,7 +653,7 @@ implements L1OperationDispatcher
 			interpreter.invokeFunction(
 				interpreter.runtime().implicitObserveFunction(),
 				Arrays.asList(
-					Interpreter.assignmentFunction(),
+					assignmentFunction(),
 					TupleDescriptor.from(outerVariable, newValue)),
 				true);
 		}
@@ -675,7 +675,7 @@ implements L1OperationDispatcher
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().unassignedVariableReadFunction(),
-				Collections.<A_BasicObject>emptyList(),
+				Collections.emptyList(),
 				true);
 		}
 	}
@@ -722,7 +722,7 @@ implements L1OperationDispatcher
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().unassignedVariableReadFunction(),
-				Collections.<A_BasicObject>emptyList(),
+				Collections.emptyList(),
 				true);
 		}
 	}
@@ -796,7 +796,7 @@ implements L1OperationDispatcher
 			reifyContinuation();
 			interpreter.invokeFunction(
 				interpreter.runtime().unassignedVariableReadFunction(),
-				Collections.<A_BasicObject>emptyList(),
+				Collections.emptyList(),
 				true);
 		}
 	}
@@ -820,7 +820,7 @@ implements L1OperationDispatcher
 			interpreter.invokeFunction(
 				interpreter.runtime().implicitObserveFunction(),
 				Arrays.asList(
-					Interpreter.assignmentFunction(),
+					assignmentFunction(),
 					TupleDescriptor.from(literalVariable, value)),
 				true);
 		}
@@ -862,7 +862,7 @@ implements L1OperationDispatcher
 		final int numArgs = bundle.bundleMethod().numArgs();
 		if (debugL1)
 		{
-			Interpreter.log(
+			log(
 				interpreter.fiber(),
 				Level.FINE,
 				"L1 supercall {0}",

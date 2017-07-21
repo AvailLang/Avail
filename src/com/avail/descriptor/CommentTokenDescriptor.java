@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.compiler.CompilationContext;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -128,7 +130,33 @@ extends TokenDescriptor
 
 		/** The {@linkplain A_String trailing whitespace}. */
 		@HideFieldInDebugger
-		TRAILING_WHITESPACE
+		TRAILING_WHITESPACE,
+
+		/**
+		 * A {@link RawPojoDescriptor raw pojo} holding the {@link LexingState}
+		 * after this token.
+		 *
+		 * <p>The field is typically {@link NilDescriptor#nil() nil}, to
+		 * indicate the {@link LexingState} should be looked up by position (and
+		 * line number) via {@link CompilationContext#lexingStateAt(int, int)}.
+		 * </p>
+		 */
+		NEXT_LEXING_STATE_POJO;
+
+		static
+		{
+			assert TokenDescriptor.ObjectSlots.STRING.ordinal()
+				== STRING.ordinal();
+			assert TokenDescriptor.ObjectSlots.LOWER_CASE_STRING.ordinal()
+				== LOWER_CASE_STRING.ordinal();
+			assert TokenDescriptor.ObjectSlots.LEADING_WHITESPACE.ordinal()
+				== LEADING_WHITESPACE.ordinal();
+			assert TokenDescriptor.ObjectSlots.TRAILING_WHITESPACE.ordinal()
+				== TRAILING_WHITESPACE.ordinal();
+			assert TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal()
+				== NEXT_LEXING_STATE_POJO.ordinal();
+		}
+
 	}
 
 	@Override
@@ -181,6 +209,7 @@ extends TokenDescriptor
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, TokenType.COMMENT.ordinal());
+		instance.setSlot(NEXT_LEXING_STATE_POJO, NilDescriptor.nil());
 		return instance;
 	}
 
@@ -188,8 +217,15 @@ extends TokenDescriptor
 	 * Construct a new {@link CommentTokenDescriptor}.
 	 *
 	 * @param mutability
+	 *            The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param objectSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            ObjectSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
+	 *            The Java {@link Class} which is a subclass of {@link
+	 *            IntegerSlotsEnum} and defines this object's object slots
+	 *            layout, or null if there are no integer slots.
 	 */
 	public CommentTokenDescriptor (
 		final Mutability mutability,

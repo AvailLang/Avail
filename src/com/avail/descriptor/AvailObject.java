@@ -45,9 +45,11 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
@@ -62,6 +64,7 @@ import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.avail.utility.StackPrinter.trace;
@@ -305,7 +308,7 @@ implements
 	 * @return Whether the receiver is strictly greater than the argument.
 	 */
 	@Override
-	public final boolean greaterThan (
+	public boolean greaterThan (
 		final A_Number another)
 	{
 		return numericCompare(another).isMore();
@@ -320,7 +323,7 @@ implements
 	 *         argument.
 	 */
 	@Override
-	public final boolean greaterOrEqual (
+	public boolean greaterOrEqual (
 		final A_Number another)
 	{
 		return numericCompare(another).isMoreOrEqual();
@@ -333,7 +336,7 @@ implements
 	 * @return Whether the receiver is strictly less than the argument.
 	 */
 	@Override
-	public final boolean lessThan (
+	public boolean lessThan (
 		final A_Number another)
 	{
 		return numericCompare(another).isLess();
@@ -347,7 +350,7 @@ implements
 	 * @return Whether the receiver is less than or equivalent to the argument.
 	 */
 	@Override
-	public final boolean lessOrEqual (
+	public boolean lessOrEqual (
 		final A_Number another)
 	{
 		return numericCompare(another).isLessOrEqual();
@@ -388,7 +391,6 @@ implements
 			new MarkUnreachableSubobjectVisitor(exceptMe);
 		scanSubobjects(vis);
 		destroy();
-		return;
 	}
 
 	/**
@@ -408,7 +410,7 @@ implements
 	 * @return An {@code int} hash value.
 	 */
 	@Override
-	public final int hash ()
+	public int hash ()
 	{
 		return descriptor.o_Hash(this);
 	}
@@ -2830,7 +2832,7 @@ implements
 	 * @return An {@linkplain Iterator iterator}.
 	 */
 	@Override
-	public Iterator<AvailObject> iterator ()
+	public @NotNull Iterator<AvailObject> iterator ()
 	{
 		return descriptor.o_Iterator(this);
 	}
@@ -3992,7 +3994,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public TokenDescriptor.TokenType tokenType ()
+	public TokenType tokenType ()
 	{
 		return descriptor.o_TokenType(this);
 	}
@@ -4852,7 +4854,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public MapDescriptor.MapIterable mapIterable ()
+	public MapIterable mapIterable ()
 	{
 		return descriptor.o_MapIterable(this);
 	}
@@ -6107,7 +6109,7 @@ implements
 	 * @return
 	 */
 	@Override
-	public MapDescriptor.MapIterable mapBinIterable ()
+	public MapIterable mapBinIterable ()
 	{
 		return descriptor.o_MapBinIterable(this);
 	}
@@ -7077,12 +7079,6 @@ implements
 	}
 
 	@Override
-	public int tokenIndex ()
-	{
-		return descriptor.o_TokenIndex(this);
-	}
-
-	@Override
 	public void statementsDo (final Continuation1<A_Phrase> continuation)
 	{
 		descriptor.o_StatementsDo(this, continuation);
@@ -7315,23 +7311,18 @@ implements
 		return descriptor.o_GlobalName(this);
 	}
 
-
 	@Override
-	public void clearLexingState ()
+	public LexingState nextLexingStateIn (
+		final CompilationContext compilationContext)
 	{
-		descriptor.o_ClearNextLexingState(this);
+		return descriptor.o_NextLexingStateIn(this, compilationContext);
 	}
 
 	@Override
-	public void nextLexingState (final LexingState lexingState)
+	public void setNextLexingState (
+		final @Nullable LexingState lexingState)
 	{
-		descriptor.o_NextLexingState(this, lexingState);
-	}
-
-	@Override
-	public LexingState nextLexingState ()
-	{
-		return descriptor.o_NextLexingState(this);
+		descriptor.o_SetNextLexingState(this, lexingState);
 	}
 
 	@Override

@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.InnerAccess;
 
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.*;
@@ -1075,7 +1074,7 @@ extends TupleDescriptor
 	/**
 	 * {@link TreeTupleDescriptor}s organized by mutability and level.
 	 */
-	static final TreeTupleDescriptor descriptors[];
+	static final TreeTupleDescriptor[] descriptors;
 
 	static
 	{

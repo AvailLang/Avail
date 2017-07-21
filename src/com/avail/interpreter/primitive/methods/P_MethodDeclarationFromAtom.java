@@ -45,7 +45,6 @@ import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Define a concrete method implementation.
@@ -90,36 +89,32 @@ extends Primitive
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
-				new Continuation0()
+				() ->
 				{
-					@Override
-					public void value ()
+					try
 					{
-						try
-						{
-							loader.addMethodBody(atom, function);
-							// Quote the string to make the method name.
-							function.code().setMethodName(
-								StringDescriptor.from(
-									atom.atomName().toString()));
-							Interpreter.resumeFromSuccessfulPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								NilDescriptor.nil(),
-								skipReturnCheck);
-						}
-						catch (
-							final MalformedMessageException
-								| SignatureException e)
-						{
-							Interpreter.resumeFromFailedPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								e.numericCode(),
-								failureFunction,
-								copiedArgs,
-								skipReturnCheck);
-						}
+						loader.addMethodBody(atom, function);
+						// Quote the string to make the method name.
+						function.code().setMethodName(
+							StringDescriptor.from(
+								atom.atomName().toString()));
+						Interpreter.resumeFromSuccessfulPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							NilDescriptor.nil(),
+							skipReturnCheck);
+					}
+					catch (
+						final MalformedMessageException
+							| SignatureException e)
+					{
+						Interpreter.resumeFromFailedPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							e.numericCode(),
+							failureFunction,
+							copiedArgs,
+							skipReturnCheck);
 					}
 				}));
 		return FIBER_SUSPENDED;

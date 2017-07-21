@@ -281,7 +281,7 @@ public enum L2OperandType
 	 *            considered a read, then it is treated as a <em>potential</em>
 	 *            write.
 	 */
-	private L2OperandType (final boolean isSource, final boolean isDestination)
+	L2OperandType (final boolean isSource, final boolean isDestination)
 	{
 		this.isSource = isSource;
 		this.isDestination = isDestination;

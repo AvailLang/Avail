@@ -51,5 +51,5 @@ public @interface IndexedFileVersion
 	 *
 	 * @return The version number.
 	 */
-	public int value ();
+	int value ();
 }

@@ -37,7 +37,6 @@ import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Convert the specified {@linkplain
@@ -65,15 +64,8 @@ extends Primitive
 		assert args.size() == 1;
 		final AvailObject array = args.get(0);
 		final MutableOrNull<A_Tuple> tuple = new MutableOrNull<>();
-		array.lock(new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				tuple.value = TupleDescriptor.from(
-					(AvailObject[]) array.javaObject());
-			}
-		});
+		array.lock(() -> tuple.value = TupleDescriptor.from(
+			(AvailObject[]) array.javaObject()));
 		return interpreter.primitiveSuccess(tuple.value());
 	}
 

@@ -37,10 +37,8 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.ArrayList;
 import java.util.List;
 import com.avail.AvailRuntime;
-import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Ask another fiber what it's doing.  Fail if
@@ -73,41 +71,29 @@ extends Primitive
 			interpreter.primitiveFunctionBeingAttempted();
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		assert failureFunction.code().primitiveNumber() == primitiveNumber;
-		interpreter.postExitContinuation(new Continuation0()
-		{
-			@Override
-			public void value ()
+		interpreter.postExitContinuation(() -> otherFiber.whenContinuationIsAvailableDo(
+			theContinuation ->
 			{
-				otherFiber.whenContinuationIsAvailableDo(
-					new Continuation1<A_Continuation>()
-					{
-						@Override
-						public final void value (
-							final @Nullable A_Continuation theContinuation)
-						{
-							assert theContinuation != null;
-							if (!theContinuation.equalsNil())
-							{
-								Interpreter.resumeFromSuccessfulPrimitive(
-									AvailRuntime.current(),
-									thisFiber,
-									theContinuation,
-									skipReturnCheck);
-							}
-							else
-							{
-								Interpreter.resumeFromFailedPrimitive(
-									AvailRuntime.current(),
-									thisFiber,
-									E_FIBER_IS_TERMINATED.numericCode(),
-									failureFunction,
-									copiedArgs,
-									skipReturnCheck);
-							}
-						}
-					});
-			}
-		});
+				assert theContinuation != null;
+				if (!theContinuation.equalsNil())
+				{
+					Interpreter.resumeFromSuccessfulPrimitive(
+						AvailRuntime.current(),
+						thisFiber,
+						theContinuation,
+						skipReturnCheck);
+				}
+				else
+				{
+					Interpreter.resumeFromFailedPrimitive(
+						AvailRuntime.current(),
+						thisFiber,
+						E_FIBER_IS_TERMINATED.numericCode(),
+						failureFunction,
+						copiedArgs,
+						skipReturnCheck);
+				}
+			}));
 		return suspended;
 	}
 

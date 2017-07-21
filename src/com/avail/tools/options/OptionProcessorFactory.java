@@ -57,7 +57,7 @@ public class OptionProcessorFactory<OptionKeyType extends Enum<OptionKeyType>>
 
 	/** The {@linkplain Set set} of all {@linkplain Option options}. */
 	private final Set<Option<OptionKeyType>> allOptions =
-		new HashSet<Option<OptionKeyType>>();
+		new HashSet<>();
 
 	/**
 	 * Construct a new <code>{@link OptionProcessorFactory}</code>.
@@ -112,7 +112,7 @@ public class OptionProcessorFactory<OptionKeyType extends Enum<OptionKeyType>>
 			optionKeys.add(option.key());
 		}
 
-		final HashSet<String> keywords = new HashSet<String>();
+		final HashSet<String> keywords = new HashSet<>();
 		for (final Option<OptionKeyType> option : allOptions)
 		{
 			for (final String keyword : option.keywords())
@@ -158,7 +158,7 @@ public class OptionProcessorFactory<OptionKeyType extends Enum<OptionKeyType>>
 		validate();
 
 		final HashMap<String, OptionKeyType> keywords =
-			new HashMap<String, OptionKeyType>();
+			new HashMap<>();
 		for (final Option<OptionKeyType> option : allOptions)
 		{
 			for (final String keyword : option.keywords())
@@ -167,7 +167,7 @@ public class OptionProcessorFactory<OptionKeyType extends Enum<OptionKeyType>>
 			}
 		}
 
-		return new OptionProcessor<OptionKeyType>(
+		return new OptionProcessor<>(
 			optionKeyType, keywords, allOptions);
 	}
 }

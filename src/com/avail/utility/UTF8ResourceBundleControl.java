@@ -93,48 +93,38 @@ extends Control
 		{
 			final String resourceName =
 				toResourceName(bundleName, "properties");
-			final ClassLoader classLoader = loader;
-			final boolean reloadFlag = reload;
-			Reader stream = null;
+			Reader stream;
 			try
 			{
 				stream = AccessController.doPrivileged(
-					new PrivilegedExceptionAction<Reader>()
+					(PrivilegedExceptionAction<Reader>) () ->
 					{
-						@Override
-						public Reader run () throws IOException
+						InputStream is;
+						if (reload)
 						{
-							InputStream is = null;
-							if (reloadFlag)
+							final URL url = loader.getResource(resourceName);
+							if (url == null)
 							{
-								final URL url =
-									classLoader.getResource(resourceName);
-								if (url == null)
-								{
-									throw new IOException(
-										"Invalid URL for resource");
-								}
-								final URLConnection connection =
-									url.openConnection();
-								if (connection == null)
-								{
-									throw new IOException(
-										"Invalid URL for resource");
-								}
-								// Disable caches to get fresh data for
-								// reloading.
-								connection.setUseCaches(false);
-								is = connection.getInputStream();
+								throw new IOException(
+									"Invalid URL for resource");
 							}
-							else
+							final URLConnection connection =
+								url.openConnection();
+							if (connection == null)
 							{
-								is = classLoader.getResourceAsStream(
-									resourceName);
+								throw new IOException(
+									"Invalid URL for resource");
 							}
-							final Reader reader =
-								new InputStreamReader(is, "UTF-8");
-							return reader;
+							// Disable caches to get fresh data for
+							// reloading.
+							connection.setUseCaches(false);
+							is = connection.getInputStream();
 						}
+						else
+						{
+							is = loader.getResourceAsStream(resourceName);
+						}
+						return (Reader) new InputStreamReader(is, "UTF-8");
 					});
 			}
 			catch (final PrivilegedActionException e)

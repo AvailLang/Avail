@@ -37,11 +37,9 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.ArrayList;
 import java.util.List;
 import com.avail.AvailRuntime;
-import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MapException;
 import com.avail.interpreter.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Get the {@linkplain
@@ -78,7 +76,7 @@ extends Primitive
 		}
 		catch (final MapException e)
 		{
-			assert e.numericCode().equals(E_KEY_NOT_FOUND);
+			assert e.numericCode().extractInt() == E_KEY_NOT_FOUND.nativeCode();
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
 		interpreter.primitiveSuspend();
@@ -86,24 +84,20 @@ extends Primitive
 			runtime,
 			fiber.textInterface(),
 			continuation,
-			new Continuation1<List<String>>()
+			stack ->
 			{
-				@Override
-				public void value (final @Nullable List<String> stack)
+				assert stack != null;
+				final List<A_String> frames = new ArrayList<>(stack.size());
+				for (int i = stack.size() - 1; i >= 0; i--)
 				{
-					assert stack != null;
-					final List<A_String> frames = new ArrayList<>(stack.size());
-					for (int i = stack.size() - 1; i >= 0; i--)
-					{
-						frames.add(StringDescriptor.from(stack.get(i)));
-					}
-					final A_Tuple stackDump = TupleDescriptor.fromList(frames);
-					Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
-						stackDump,
-						skipReturnCheck);
+					frames.add(StringDescriptor.from(stack.get(i)));
 				}
+				final A_Tuple stackDump = TupleDescriptor.fromList(frames);
+				Interpreter.resumeFromSuccessfulPrimitive(
+					runtime,
+					fiber,
+					stackDump,
+					skipReturnCheck);
 			});
 		return Result.FIBER_SUSPENDED;
 	}

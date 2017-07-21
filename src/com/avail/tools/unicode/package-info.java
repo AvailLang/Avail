@@ -29,4 +29,5 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.tools.unicode;
+@NotNullByDefault package com.avail.tools.unicode;
+import com.avail.annotations.NotNullByDefault;

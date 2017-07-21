@@ -44,7 +44,6 @@ import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.ListNodeDescriptor;
 import com.avail.descriptor.LiteralNodeDescriptor;
 import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.MarkerNodeDescriptor;
 import com.avail.descriptor.MessageBundleTreeDescriptor;
 import com.avail.descriptor.ParseNodeDescriptor;
 import com.avail.descriptor.ReferenceNodeDescriptor;
@@ -455,14 +454,14 @@ public enum ParsingOperation
 	 * A {@link Statistic} that records the number of nanoseconds spent while
 	 * executing occurrences of this {@link ParsingOperation}.
 	 */
-	public Statistic parsingStatisticInNanoseconds = new Statistic(
+	public final Statistic parsingStatisticInNanoseconds = new Statistic(
 		name(), StatisticReport.RUNNING_PARSING_INSTRUCTIONS);
 
 	/**
 	 * A {@link Statistic} that records the number of nanoseconds spent while
 	 * expanding occurrences of this {@link ParsingOperation}.
 	 */
-	public Statistic expandingStatisticInNanoseconds = new Statistic(
+	public final Statistic expandingStatisticInNanoseconds = new Statistic(
 		name(), StatisticReport.EXPANDING_PARSING_INSTRUCTIONS);
 
 	/**

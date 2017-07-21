@@ -60,12 +60,12 @@ public class StacksBracketScanner extends AbstractStacksScanner
 	{
 		this.moduleName = bracketToken.moduleName;
 		this.moduleLeafName =
-			moduleName.substring(moduleName.lastIndexOf(" ") + 1);
+			moduleName.substring(moduleName.lastIndexOf(' ') + 1);
 
 		final String bracketString =
 			bracketToken.lexeme();
 		this.tokenString(bracketString);
-		this.outputTokens = new ArrayList<AbstractStacksToken>(
+		this.outputTokens = new ArrayList<>(
 			tokenString().length() / 20);
 		this.lineNumber(bracketToken.lineNumber());
 		this.filePosition(bracketToken.position());

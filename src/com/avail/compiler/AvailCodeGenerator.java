@@ -36,6 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
+import java.util.Map.Entry;
 
 import com.avail.utility.Generator;
 import org.jetbrains.annotations.Nullable;
@@ -338,7 +339,7 @@ public class AvailCodeGenerator
 		if (!unusedOuters.isEmpty())
 		{
 			final Set<A_Phrase> unusedOuterDeclarations = new HashSet<>();
-			for (final Map.Entry<A_Phrase, Integer> entry : outerMap.entrySet())
+			for (final Entry<A_Phrase, Integer> entry : outerMap.entrySet())
 			{
 				if (unusedOuters.get(entry.getValue() - 1))
 				{
@@ -366,7 +367,7 @@ public class AvailCodeGenerator
 		final A_Type[] argsArray = new A_Type[numArgs];
 		final A_Type[] localsArray =
 			new A_Type[varMap.size() - numArgs];
-		for (final Map.Entry<A_Phrase, Integer> entry : varMap.entrySet())
+		for (final Entry<A_Phrase, Integer> entry : varMap.entrySet())
 		{
 			final int i = entry.getValue();
 			final A_Type argDeclType = entry.getKey().declaredType();
@@ -384,7 +385,7 @@ public class AvailCodeGenerator
 		final A_Tuple argsTuple = TupleDescriptor.from(argsArray);
 		final A_Tuple localsTuple = TupleDescriptor.from(localsArray);
 		final A_Type [] outerArray = new A_Type[outerMap.size()];
-		for (final Map.Entry<A_Phrase, Integer> entry : outerMap.entrySet())
+		for (final Entry<A_Phrase, Integer> entry : outerMap.entrySet())
 		{
 			final int i = entry.getValue();
 			final A_Phrase argDecl = entry.getKey();
@@ -756,11 +757,9 @@ public class AvailCodeGenerator
 	 */
 	public void fixFinalUses ()
 	{
-		List<AvailVariableAccessNote> localData;
-		List<AvailVariableAccessNote> outerData;
-		localData = new ArrayList<AvailVariableAccessNote>(
+		final List<AvailVariableAccessNote> localData = new ArrayList<>(
 			Arrays.asList(new AvailVariableAccessNote[varMap.size()]));
-		outerData = new ArrayList<AvailVariableAccessNote>(
+		final List<AvailVariableAccessNote> outerData = new ArrayList<>(
 			Arrays.asList(new AvailVariableAccessNote[outerMap.size()]));
 		for (int index = 1, end = instructions.size(); index <= end; index++)
 		{

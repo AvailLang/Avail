@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
+import java.util.NoSuchElementException;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
@@ -151,13 +152,13 @@ extends Descriptor
 		return new MapIterable()
 		{
 			@Override
-			public final Entry next ()
+			public Entry next ()
 			{
-				throw new UnsupportedOperationException();
+				throw new NoSuchElementException();
 			}
 
 			@Override
-			public final boolean hasNext ()
+			public boolean hasNext ()
 			{
 				return false;
 			}

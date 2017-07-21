@@ -61,16 +61,12 @@ public abstract class AvailInstruction
 	 * @param anInteger The integer to write.
 	 * @param aStream The stream on which to write the integer.
 	 */
-	public void writeIntegerOn (
-			final int anInteger,
-			final ByteArrayOutputStream aStream)
+	public static void writeIntegerOn (
+		final int anInteger,
+		final ByteArrayOutputStream aStream)
 	{
-		if (anInteger < 0)
-		{
-			error("Only positive integers, please");
-			return;
-		}
-		else if (anInteger < 10)
+		assert anInteger >= 0 : "Only positive integers, please";
+		if (anInteger < 10)
 		{
 			aStream.write(anInteger);
 		}
@@ -106,7 +102,6 @@ public abstract class AvailInstruction
 			aStream.write((anInteger >>> 4) & 15);
 			aStream.write(anInteger & 15);
 		}
-		return;
 	}
 
 	/**

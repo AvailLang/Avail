@@ -69,7 +69,7 @@ extends ParseNodeDescriptor
 		/**
 		 * Is this an inline {@linkplain AssignmentNodeDescriptor assignment}?
 		 */
-		static BitField IS_INLINE = bitField(FLAGS, 0, 1);
+		static final BitField IS_INLINE = bitField(FLAGS, 0, 1);
 	}
 
 	/**

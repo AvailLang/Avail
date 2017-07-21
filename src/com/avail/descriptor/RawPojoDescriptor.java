@@ -272,8 +272,7 @@ extends Descriptor
 		final RawPojoDescriptor descriptor = new RawPojoDescriptor(
 			Mutability.MUTABLE,
 			javaObject);
-		final AvailObject wrapper = descriptor.create();
-		return wrapper;
+		return descriptor.create();
 	}
 
 	/**
@@ -289,8 +288,7 @@ extends Descriptor
 			new EqualityRawPojoDescriptor(
 				Mutability.MUTABLE,
 				javaObject);
-		final AvailObject wrapper = descriptor.create();
-		return wrapper;
+		return descriptor.create();
 	}
 
 	@Deprecated

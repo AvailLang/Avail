@@ -442,7 +442,8 @@ public class TreeTupleTest
 
 		assertEquals(twoByteString.tupleReverse(), twoByteStringReverse);
 		assertEquals(twoByteString, twoShouldBeSame);
-		assertEquals((A_BasicObject)twoByteString.tupleAt(51),
+		assertEquals(
+			twoByteString.tupleAt(51),
 			twoByteString.tupleReverse().tupleAt(2));
 
 		//Small size TwoByteStringDescriptor where copies are made

@@ -100,6 +100,26 @@ public final class ProblemsAtPosition
 	{
 		assert otherProblems != null;
 		return Integer.compare(
-			lexingState.position, otherProblems.lexingState.position);
+			lexingState.position, otherProblems.position());
+	}
+
+	/**
+	 * Answer the start of this problem in the source.
+	 *
+	 * @return The one-based index into the source.
+	 */
+	public int position ()
+	{
+		return lexingState.position;
+	}
+
+	/**
+	 * Answer the one-based line number of the start of this problem.
+	 *
+	 * @return The one-based line number.
+	 */
+	public int lineNumber ()
+	{
+		return lexingState.lineNumber;
 	}
 }

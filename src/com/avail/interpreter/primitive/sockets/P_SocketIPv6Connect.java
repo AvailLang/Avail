@@ -44,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Connect the {@linkplain
@@ -125,17 +124,13 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			new Generator<A_String>()
+			() ->
 			{
-				@Override
-				public A_String value ()
-				{
-					// TODO Auto-generated method stub
-					return StringDescriptor.format(
-						"Socket IPv6 connect, %s:%d",
-						addressTuple.toString(),
-						port.extractInt());
-				}
+				// TODO Auto-generated method stub
+				return StringDescriptor.format(
+					"Socket IPv6 connect, %s:%d",
+					addressTuple.toString(),
+					port.extractInt());
 			});
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.

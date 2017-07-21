@@ -129,15 +129,8 @@ public class ObjectLayoutVariant
 		// don't have to be lexicographically unique.
 		final List<A_Atom> sortedFields =
 			TupleDescriptor.toList(allFields.asTuple());
-		Collections.sort(sortedFields, new Comparator<A_Atom>()
-		{
-			@Override
-			public int compare (final A_Atom atom1, final A_Atom atom2)
-			{
-				return atom1.atomName().asNativeString().compareTo(
-					atom2.atomName().asNativeString());
-			}
-		});
+		sortedFields.sort(
+			Comparator.comparing(atom -> atom.atomName().asNativeString()));
 		this.fieldToSlotIndex = new HashMap<>(sortedFields.size());
 		int slotCount = 0;
 		for (final A_Atom field : sortedFields)

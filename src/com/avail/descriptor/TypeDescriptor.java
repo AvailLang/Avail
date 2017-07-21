@@ -37,7 +37,7 @@ import java.util.List;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.*;
-import com.avail.compiler.scanning.AvailScanner;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -186,7 +186,7 @@ extends AbstractTypeDescriptor
 		 * {@linkplain TokenDescriptor Tokens} all have the same kind, except
 		 * for {@linkplain LiteralTokenDescriptor literal tokens}, which are
 		 * parametrically typed by the type of value they contain.  They are
-		 * produced by a {@linkplain AvailScanner lexical scanner} and are
+		 * produced by a {@linkplain LexicalScanner lexical scanner} and are
 		 * consumed by the {@linkplain AvailCompiler parser}.
 		 */
 		TOKEN(NONTYPE, TypeTag.NONTYPE_TYPE_TAG),

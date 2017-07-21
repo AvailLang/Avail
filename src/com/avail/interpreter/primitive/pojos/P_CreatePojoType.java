@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.pojos;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.lang.reflect.TypeVariable;
-import java.util.Arrays;
 import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;

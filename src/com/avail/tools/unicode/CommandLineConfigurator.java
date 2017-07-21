@@ -36,7 +36,6 @@ import static com.avail.tools.unicode.CommandLineConfigurator.OptionKey.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import com.avail.annotations.InnerAccess;
-import org.jetbrains.annotations.Nullable;
 import com.avail.tools.options.DefaultOption;
 import com.avail.tools.options.GenericHelpOption;
 import com.avail.tools.options.OptionProcessor;
@@ -44,7 +43,6 @@ import com.avail.tools.options.OptionProcessorFactory;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
-import com.avail.utility.evaluation.Continuation2;
 
 /**
  * {@code CommandLineConfigurator} provides the command-line configuration for
@@ -116,27 +114,21 @@ implements Configurator<UnicodeConfiguration>
 			new MutableOrNull<>();
 		final OptionProcessorFactory<OptionKey> factory =
 			new OptionProcessorFactory<>(OptionKey.class);
-		factory.addOption(new GenericHelpOption<OptionKey>(
+		factory.addOption(new GenericHelpOption<>(
 			HELP,
 			processor,
 			"The Unicode catalog generator understands the following "
-			+ "options: ",
+				+ "options: ",
 			helpStream));
-		factory.addOption(new DefaultOption<OptionKey>(
+		factory.addOption(new DefaultOption<>(
 			TARGET_PATH,
 			"The location of the target JSON file. If a regular file already "
-			+ "exists at this location, then it will be overwritten.",
-			new Continuation2<String, String>()
+				+ "exists at this location, then it will be overwritten.",
+			(unused, pathString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String unused,
-					final @Nullable String pathString)
-				{
-					assert pathString != null;
-					processor.value().checkEncountered(TARGET_PATH, 0);
-					configuration.catalogPath = Paths.get(pathString);
-				}
+				assert pathString != null;
+				processor.value().checkEncountered(TARGET_PATH, 0);
+				configuration.catalogPath = Paths.get(pathString);
 			}));
 		processor.value = factory.createOptionProcessor();
 		return processor.value();

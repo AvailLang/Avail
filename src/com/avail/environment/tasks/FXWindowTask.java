@@ -273,6 +273,7 @@ implements WindowListener
 	@Override
 	public void windowClosed (final WindowEvent e)
 	{
+		//noinspection StatementWithEmptyBody
 		if (canceled)
 		{
 			//Do nothing

@@ -125,20 +125,9 @@ public final class StateMachineFactory<
 		this.eventType = eventType;
 		this.guardKeyType = guardKeyType;
 		this.actionKeyType = actionKeyType;
-		this.guardMap = new EnumMap<
-			GuardKeyType,
-			Transformer1<? super MementoType, Boolean>>(guardKeyType);
-		this.actionMap = new EnumMap<
-			ActionKeyType,
-			Continuation1<? super MementoType>>(actionKeyType);
-		this.summaries = new EnumMap<
-			StateType,
-			StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>>(stateType);
+		this.guardMap = new EnumMap<>(guardKeyType);
+		this.actionMap = new EnumMap<>(actionKeyType);
+		this.summaries = new EnumMap<>(stateType);
 	}
 
 	/**
@@ -184,12 +173,7 @@ public final class StateMachineFactory<
 			summary = summaries.get(state);
 		if (summary == null)
 		{
-			summary = new StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>(state, eventType);
+			summary = new StateSummary<>(state, eventType);
 			summaries.put(state, summary);
 		}
 
@@ -266,12 +250,7 @@ public final class StateMachineFactory<
 		assert event != null;
 		getSummary(startState).addTransitionArc(
 			event,
-			new StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>(
+			new StateTransitionArc<>(
 				event,
 				guardKey,
 				actionKey,
@@ -303,12 +282,7 @@ public final class StateMachineFactory<
 	{
 		getSummary(startState).addTransitionArc(
 			null,
-			new StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>(
+			new StateTransitionArc<>(
 				null,
 				guardKey,
 				actionKey,
@@ -478,7 +452,7 @@ public final class StateMachineFactory<
 			// Allow null element in the following set to handle the
 			// automatic transitions.
 			final Set<EventType> unguardedArcsFound =
-				new HashSet<EventType>();
+				new HashSet<>();
 			for (final StateTransitionArc<
 					StateType,
 					EventType,
@@ -583,12 +557,7 @@ public final class StateMachineFactory<
 		}
 		final StateType startState = initialState;
 		assert startState != null;
-		return new StateMachine<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>(
+		return new StateMachine<>(
 			startState,
 			actionKeyType,
 			summaries.values());

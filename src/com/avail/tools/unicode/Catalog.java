@@ -70,7 +70,6 @@ import com.avail.utility.IO;
 import com.avail.utility.json.JSONArray;
 import com.avail.utility.json.JSONData;
 import com.avail.utility.json.JSONFriendly;
-import com.avail.utility.json.JSONWriter;
 
 /**
  * A {@code Catalog} represents the complete catalog of Unicode characters used
@@ -426,18 +425,14 @@ public class Catalog
 	public JSONFriendly jsonFriendlyCodePoints () throws IOException
 	{
 		final Set<CharacterInfo> codePoints = allCodePoints();
-		return new JSONFriendly()
+		return writer ->
 		{
-			@Override
-			public void writeTo (final JSONWriter writer)
+			writer.startArray();
+			for (final CharacterInfo info : codePoints)
 			{
-				writer.startArray();
-				for (final CharacterInfo info : codePoints)
-				{
-					writer.write(info);
-				}
-				writer.endArray();
+				writer.write(info);
 			}
+			writer.endArray();
 		};
 	}
 
@@ -487,18 +482,14 @@ public class Catalog
 	public JSONFriendly jsonFriendlyNonAsciiCodePoints () throws IOException
 	{
 		final Set<CharacterInfo> codePoints = allNonAsciiCodePoints();
-		return new JSONFriendly()
+		return writer ->
 		{
-			@Override
-			public void writeTo (final JSONWriter writer)
+			writer.startArray();
+			for (final CharacterInfo info : codePoints)
 			{
-				writer.startArray();
-				for (final CharacterInfo info : codePoints)
-				{
-					writer.write(info);
-				}
-				writer.endArray();
+				writer.write(info);
 			}
+			writer.endArray();
 		};
 	}
 
@@ -548,18 +539,14 @@ public class Catalog
 	public JSONFriendly jsonFriendlySymbolicCodePoints () throws IOException
 	{
 		final Set<CharacterInfo> codePoints = allSymbolicCodePoints();
-		return new JSONFriendly()
+		return writer ->
 		{
-			@Override
-			public void writeTo (final JSONWriter writer)
+			writer.startArray();
+			for (final CharacterInfo info : codePoints)
 			{
-				writer.startArray();
-				for (final CharacterInfo info : codePoints)
-				{
-					writer.write(info);
-				}
-				writer.endArray();
+				writer.write(info);
 			}
+			writer.endArray();
 		};
 	}
 

@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.SetDescriptor.SetIterator;
 import org.jetbrains.annotations.Nullable;
 
 import static com.avail.descriptor.SetBinDescriptor.IntegerSlots.*;
@@ -96,7 +97,7 @@ extends Descriptor
 	}
 
 	@Override
-	abstract SetDescriptor.SetIterator o_SetBinIterator (
+	abstract SetIterator o_SetBinIterator (
 		final AvailObject object);
 
 	/**

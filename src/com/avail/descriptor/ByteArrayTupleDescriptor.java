@@ -565,14 +565,14 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	final void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		final byte[] bytes = (byte[]) object.slot(BYTE_ARRAY_POJO).javaObject();
 		assert bytes != null;
 		writer.startArray();
-		for (int i = 0; i < bytes.length; i++)
+		for (final byte aByte : bytes)
 		{
-			writer.write(bytes[i]);
+			writer.write(aByte);
 		}
 		writer.endArray();
 	}
@@ -624,7 +624,7 @@ extends NumericTupleDescriptor
 	 * @param object The byte tuple to copy.
 	 * @return The new mutable byte tuple.
 	 */
-	private A_Tuple copyAsMutableByteArrayTuple (
+	private static A_Tuple copyAsMutableByteArrayTuple (
 		final AvailObject object)
 	{
 		final byte[] array =

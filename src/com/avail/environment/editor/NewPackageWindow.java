@@ -124,11 +124,13 @@ extends Scene
 				}
 				else
 				{
+					//noinspection ResultOfMethodCallIgnored
 					newPackage.mkdir();
 					final File newModule = new File(
 						newPackage.getAbsolutePath() + "/" + leafFileName);
 					if (newModule.exists())
 					{
+						//noinspection ResultOfMethodCallIgnored
 						newPackage.delete();
 						errorLabel.setText("Package-Module Already Exists!");
 					}
@@ -141,6 +143,7 @@ extends Scene
 							: "";
 						try
 						{
+							//noinspection ResultOfMethodCallIgnored
 							newModule.createNewFile();
 							final List<String> input = new ArrayList<>();
 							input.add(contents);

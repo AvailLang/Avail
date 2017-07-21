@@ -40,13 +40,13 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
-import com.avail.utility.evaluation.Continuation0;
 
 /**
  * <strong>Primitive:</strong> Alias a {@linkplain A_String name} to another
@@ -117,18 +117,14 @@ extends Primitive
 		}
 		newAtom.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, newBundle);
 		final A_BundleTree root = loader.rootBundleTree();
-		loader.module().lock(new Continuation0()
+		loader.module().lock(() ->
 		{
-			@Override
-			public void value ()
+			for (final Entry entry
+				: newBundle.definitionParsingPlans().mapIterable())
 			{
-				for (final MapDescriptor.Entry entry
-					: newBundle.definitionParsingPlans().mapIterable())
-				{
-					root.addPlanInProgress(
-						ParsingPlanInProgressDescriptor.create(
-							entry.value(), 1));
-				}
+				root.addPlanInProgress(
+					ParsingPlanInProgressDescriptor.create(
+						entry.value(), 1));
 			}
 		});
 		return interpreter.primitiveSuccess(NilDescriptor.nil());

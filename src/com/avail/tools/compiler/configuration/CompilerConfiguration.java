@@ -413,10 +413,6 @@ implements Configuration
 		{
 			return false;
 		}
-		if (!compileModules && !generateDocumentation && !clearRepositories)
-		{
-			return false;
-		}
-		return true;
+		return compileModules || generateDocumentation || clearRepositories;
 	}
 }

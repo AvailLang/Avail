@@ -32,7 +32,6 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.compiler.instruction.AvailCloseCode;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -51,7 +50,7 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 	 * captured as outer variables of the resulting {@linkplain
 	 * FunctionDescriptor function}.
 	 */
-	int numCopiedVars;
+	final int numCopiedVars;
 
 	/**
 	 * Construct a new {@link AvailCloseCode}.

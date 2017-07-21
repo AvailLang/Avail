@@ -41,7 +41,6 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
 import com.avail.exceptions.*;
 import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -252,9 +251,8 @@ extends TypeDescriptor
 	 * corresponds to Java {@code byte}.
 	 */
 	private static final A_Type byteRange =
-		IntegerRangeTypeDescriptor.inclusive(
-			IntegerDescriptor.fromInt(Byte.MIN_VALUE),
-			IntegerDescriptor.fromInt(Byte.MAX_VALUE)).makeShared();
+		IntegerRangeTypeDescriptor.inclusive(Byte.MIN_VALUE, Byte.MAX_VALUE)
+			.makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -272,9 +270,8 @@ extends TypeDescriptor
 	 * corresponds to Java {@code short}.
 	 */
 	private static final A_Type shortRange =
-		IntegerRangeTypeDescriptor.inclusive(
-			IntegerDescriptor.fromInt(Short.MIN_VALUE),
-			IntegerDescriptor.fromInt(Short.MAX_VALUE)).makeShared();
+		IntegerRangeTypeDescriptor.inclusive(Short.MIN_VALUE, Short.MAX_VALUE)
+			.makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -327,8 +324,8 @@ extends TypeDescriptor
 	 */
 	private static final A_Type charRange =
 		IntegerRangeTypeDescriptor.inclusive(
-			IntegerDescriptor.fromInt(Character.MIN_VALUE),
-			IntegerDescriptor.fromInt(Character.MAX_VALUE)).makeShared();
+				Character.MIN_VALUE, Character.MAX_VALUE)
+			.makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -375,14 +372,10 @@ extends TypeDescriptor
 		new LRUCache<>(
 			1000,
 			10,
-			new Transformer1<LRUCacheKey, AvailObject>()
+			key ->
 			{
-				@Override
-				public AvailObject value (final @Nullable LRUCacheKey key)
-				{
-					assert key != null;
-					return computeValue(key);
-				}
+				assert key != null;
+				return computeValue(key);
 			});
 
 	@Override @AvailMethod
@@ -706,7 +699,7 @@ extends TypeDescriptor
 		{
 			childless.add(ancestor);
 		}
-		for (final A_BasicObject ancestor : ancestry)
+		for (final AvailObject ancestor : ancestry)
 		{
 			final Class<?> possibleAncestor =
 				(Class<?>) ancestor.javaObjectNotNull();
@@ -929,7 +922,7 @@ extends TypeDescriptor
 				return ANY.o();
 			}
 			// If type represents a Java primitive, then unmarshal it.
-			else if (aClass.isPrimitive())
+			if (aClass.isPrimitive())
 			{
 				// If type represents Java void, then answer top.
 				if (aClass.equals(Void.TYPE))
@@ -974,11 +967,11 @@ extends TypeDescriptor
 					throw new RuntimeException();
 				}
 			}
-			else if (aClass.equals(String.class))
+			if (aClass.equals(String.class))
 			{
 				return TupleTypeDescriptor.stringType();
 			}
-			else if (aClass.equals(BigInteger.class))
+			if (aClass.equals(BigInteger.class))
 			{
 				return IntegerRangeTypeDescriptor.integers();
 			}
@@ -986,7 +979,7 @@ extends TypeDescriptor
 		}
 		// If type is a type variable, then resolve it using the map of type
 		// variables.
-		else if (type instanceof TypeVariable<?>)
+		if (type instanceof TypeVariable<?>)
 		{
 			final TypeVariable<?> var = (TypeVariable<?>) type;
 			final GenericDeclaration decl = var.getGenericDeclaration();
@@ -1019,7 +1012,7 @@ extends TypeDescriptor
 		}
 		// If type is a parameterized type, then recursively resolve it using
 		// the map of type variables.
-		else if (type instanceof ParameterizedType)
+		if (type instanceof ParameterizedType)
 		{
 			final ParameterizedType parameterized = (ParameterizedType) type;
 			final Type[] unresolved = parameterized.getActualTypeArguments();

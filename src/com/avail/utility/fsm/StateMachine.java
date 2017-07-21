@@ -181,14 +181,7 @@ public final class StateMachine<
 				MementoType>> summaries)
 	{
 		this.initialState    = initialState;
-		this.transitionTable = new EnumMap<
-			StateType,
-			StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>>(initialState.getDeclaringClass());
+		this.transitionTable = new EnumMap<>(initialState.getDeclaringClass());
 		for (final StateSummary<
 				StateType,
 				EventType,
@@ -223,12 +216,7 @@ public final class StateMachine<
 				GuardKeyType,
 				ActionKeyType,
 				MementoType>
-			context = new ExecutionContext<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>(
+			context = new ExecutionContext<>(
 			this,
 			memento);
 

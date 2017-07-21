@@ -51,7 +51,6 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Rename the source {@linkplain Path path} to
@@ -90,9 +89,9 @@ extends Primitive
 		final Path destinationPath;
 		try
 		{
-			sourcePath = runtime.fileSystem().getPath(
+			sourcePath = AvailRuntime.fileSystem().getPath(
 				source.asNativeString());
-			destinationPath = runtime.fileSystem().getPath(
+			destinationPath = AvailRuntime.fileSystem().getPath(
 				destination.asNativeString());
 		}
 		catch (final InvalidPathException e)
@@ -105,17 +104,10 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.format(
-						"Asynchronous file rename, %s → %s",
-						sourcePath,
-						destinationPath);
-				}
-			});
+			() -> StringDescriptor.format(
+				"Asynchronous file rename, %s → %s",
+				sourcePath,
+				destinationPath));
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
@@ -184,7 +176,7 @@ extends Primitive
 					runtime,
 					newFiber,
 					succeed,
-					Collections.<A_BasicObject>emptyList());
+					Collections.emptyList());
 			}
 		});
 		return interpreter.primitiveSuccess(newFiber);

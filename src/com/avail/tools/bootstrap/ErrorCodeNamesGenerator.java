@@ -65,6 +65,7 @@ extends PropertiesFileGenerator
 	private static boolean allErrorCodesAreReachableFromPrimitives ()
 	{
 		// This forces initialization of Avail.
+		//noinspection ResultOfMethodCallIgnored
 		AvailRuntime.specialObjects();
 		A_Set allErrorCodes = SetDescriptor.empty();
 		for (final AvailErrorCode code : AvailErrorCode.all())

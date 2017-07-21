@@ -36,8 +36,8 @@ import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
@@ -72,7 +72,7 @@ extends Descriptor
 	{
 		/** The {@linkplain FunctionDescriptor reactor function}. */
 		private final AtomicReference<A_Function> function =
-			new AtomicReference<A_Function>(NilDescriptor.nil());
+			new AtomicReference<>(NilDescriptor.nil());
 
 		/**
 		 * Atomically get and clear {@linkplain FunctionDescriptor reactor
@@ -256,20 +256,12 @@ extends Descriptor
 	 * @param writeReactors
 	 *        The map of write reactors.
 	 */
-	public void discardInvalidWriteReactors (
+	public static void discardInvalidWriteReactors (
 		final Map<A_Atom, VariableAccessReactor> writeReactors)
 	{
-		final Iterator<Map.Entry<A_Atom, VariableAccessReactor>> iterator =
-			writeReactors.entrySet().iterator();
-		while (iterator.hasNext())
-		{
-			final Map.Entry<A_Atom, VariableAccessReactor> entry =
-				iterator.next();
-			if (entry.getValue().isInvalid())
-			{
-				iterator.remove();
-			}
-		}
+		writeReactors
+			.entrySet()
+			.removeIf(entry -> entry.getValue().isInvalid());
 	}
 
 	/**
@@ -588,7 +580,7 @@ extends Descriptor
 				(Map<A_Atom, VariableAccessReactor>)
 					rawPojo.javaObjectNotNull();
 			A_Set set = SetDescriptor.empty();
-			for (final Map.Entry<A_Atom, VariableAccessReactor> entry :
+			for (final Entry<A_Atom, VariableAccessReactor> entry :
 				writeReactors.entrySet())
 			{
 				final A_Function function =

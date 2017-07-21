@@ -111,10 +111,10 @@ public class EntryPointNode extends AbstractBuilderFrameTreeNode
 			String base = super.htmlStyle(selected);
 			if (builder.getLoadedModule(resolvedModuleName) == null)
 			{
-				base = base + ";font-style:italic";
+				base += ";font-style:italic";
 				if (!selected)
 				{
-					base = base + ";color:gray";
+					base += ";color:gray";
 				}
 			}
 			return base;

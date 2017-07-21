@@ -31,7 +31,6 @@
  */
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BottomTypeDescriptor;
@@ -133,7 +132,7 @@ extends Expression
 		assert arguments != null;
 		arguments.next().printOnAvoidingIndent(
 			builder,
-			new IdentityHashMap<A_BasicObject, Void>(),
+			new IdentityHashMap<>(),
 			indent + 1);
 	}
 

@@ -76,7 +76,7 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = runtime.fileSystem().getPath(
+			path = AvailRuntime.fileSystem().getPath(
 				filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
@@ -125,7 +125,7 @@ extends Primitive
 			try
 			{
 				final Mutable<Boolean> partialSuccess =
-					new Mutable<Boolean>(false);
+					new Mutable<>(false);
 				Files.walkFileTree(
 					path,
 					visitOptions,

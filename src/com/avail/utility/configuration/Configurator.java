@@ -54,7 +54,7 @@ public interface Configurator<ConfigurationType extends Configuration>
 	 * @throws ConfigurationException
 	 *         If the configuration could not be created for any reason.
 	 */
-	public void updateConfiguration () throws ConfigurationException;
+	void updateConfiguration () throws ConfigurationException;
 
 	/**
 	 * Answer the {@linkplain Configuration configuration} produced by the
@@ -62,5 +62,5 @@ public interface Configurator<ConfigurationType extends Configuration>
 	 *
 	 * @return A configuration.
 	 */
-	public ConfigurationType configuration ();
+	ConfigurationType configuration ();
 }

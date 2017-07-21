@@ -34,6 +34,7 @@ package com.avail.serialization;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.utility.*;
 import java.io.*;
 
@@ -339,15 +340,8 @@ enum SerializerOperandEncoding
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			final AvailObject newTuple = ObjectTupleDescriptor.generateFrom(
 				tupleSize,
-				new Generator<A_BasicObject>()
-				{
-					@Override
-					public A_BasicObject value ()
-					{
-						return deserializer.objectFromIndex(
-							readCompressedPositiveInt(deserializer));
-					}
-				});
+				() -> deserializer.objectFromIndex(
+					readCompressedPositiveInt(deserializer)));
 			newTuple.makeImmutable();
 			return newTuple;
 		}
@@ -380,14 +374,7 @@ enum SerializerOperandEncoding
 			return
 				(AvailObject) StringDescriptor.mutableByteStringFromGenerator(
 					tupleSize,
-					new Generator<Character>()
-					{
-						@Override
-						public Character value ()
-						{
-							return (char) deserializer.readByte();
-						}
-					});
+					() -> (char) deserializer.readByte());
 		}
 	},
 
@@ -428,17 +415,13 @@ enum SerializerOperandEncoding
 				(AvailObject)
 					StringDescriptor.mutableTwoByteStringFromGenerator(
 						tupleSize,
-						new Generator<Character>()
+						() ->
 						{
-							@Override
-							public Character value ()
-							{
-								final int compressedInt =
-									readCompressedPositiveInt(deserializer);
-								assert (compressedInt & 0xFFFF)
-									== compressedInt;
-								return (char) compressedInt;
-							}
+							final int compressedInt =
+								readCompressedPositiveInt(deserializer);
+							assert (compressedInt & 0xFFFF)
+								== compressedInt;
+							return (char) compressedInt;
 						});
 		}
 	},
@@ -473,15 +456,11 @@ enum SerializerOperandEncoding
 			final int tupleSize = readCompressedPositiveInt(deserializer);
 			return ObjectTupleDescriptor.generateFrom(
 				tupleSize,
-				new Generator<A_BasicObject>()
+				() ->
 				{
-					@Override
-					public A_BasicObject value ()
-					{
-						final int codePoint =
-							readCompressedPositiveInt(deserializer);
-						return CharacterDescriptor.fromCodePoint(codePoint);
-					}
+					final int codePoint =
+						readCompressedPositiveInt(deserializer);
+					return CharacterDescriptor.fromCodePoint(codePoint);
 				}
 			);
 		}
@@ -510,17 +489,9 @@ enum SerializerOperandEncoding
 		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
-			final AvailObject tuple = ByteTupleDescriptor.generateFrom(
+			return ByteTupleDescriptor.generateFrom(
 				tupleSize,
-				new Generator<Short>()
-				{
-					@Override
-					public Short value ()
-					{
-						return (short)(deserializer.readByte());
-					}
-				});
-			return tuple;
+				() -> (short)(deserializer.readByte()));
 		}
 	},
 
@@ -556,7 +527,7 @@ enum SerializerOperandEncoding
 		final AvailObject read (final Deserializer deserializer)
 		{
 			final int tupleSize = readCompressedPositiveInt(deserializer);
-			final AvailObject tuple = NybbleTupleDescriptor.generateFrom(
+			return NybbleTupleDescriptor.generateFrom(
 				tupleSize,
 				new Generator<Byte>()
 				{
@@ -576,7 +547,6 @@ enum SerializerOperandEncoding
 						return (byte)(twoNybbles & 0xF);
 					}
 				});
-			return tuple;
 		}
 	},
 
@@ -590,7 +560,7 @@ enum SerializerOperandEncoding
 		@Override
 		void trace (final AvailObject object, final Serializer serializer)
 		{
-			for (final MapDescriptor.Entry entry : object.mapIterable())
+			for (final Entry entry : object.mapIterable())
 			{
 				serializer.traceOne(entry.key());
 				serializer.traceOne(entry.value());
@@ -601,7 +571,7 @@ enum SerializerOperandEncoding
 		void write (final AvailObject object, final Serializer serializer)
 		{
 			writeCompressedPositiveInt(object.mapSize(), serializer);
-			for (final MapDescriptor.Entry entry : object.mapIterable())
+			for (final Entry entry : object.mapIterable())
 			{
 				writeCompressedPositiveInt(
 					serializer.indexOfExistingObject(entry.key()),

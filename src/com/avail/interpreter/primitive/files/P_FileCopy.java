@@ -82,9 +82,9 @@ extends Primitive
 		final Path destinationPath;
 		try
 		{
-			sourcePath = runtime.fileSystem().getPath(
+			sourcePath = AvailRuntime.fileSystem().getPath(
 				source.asNativeString());
-			destinationPath = runtime.fileSystem().getPath(
+			destinationPath = AvailRuntime.fileSystem().getPath(
 				destination.asNativeString());
 		}
 		catch (final InvalidPathException e)
@@ -109,7 +109,7 @@ extends Primitive
 				? EnumSet.of(FileVisitOption.FOLLOW_LINKS)
 				: EnumSet.noneOf(FileVisitOption.class);
 			final Mutable<Boolean> partialSuccess =
-				new Mutable<Boolean>(false);
+				new Mutable<>(false);
 			Files.walkFileTree(
 				sourcePath,
 				visitOptions,

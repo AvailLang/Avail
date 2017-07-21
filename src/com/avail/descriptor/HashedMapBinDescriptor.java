@@ -363,7 +363,7 @@ extends MapBinDescriptor
 			}
 			else
 			{
-				if (!canDestroy & isMutable())
+				if (!canDestroy && isMutable())
 				{
 					object.makeSubobjectsImmutable();
 				}
@@ -377,7 +377,7 @@ extends MapBinDescriptor
 			// Add a sub-bin for that hash slot.
 			delta = 1;
 			hashDelta = keyHash;
-			if (!canDestroy & isMutable())
+			if (!canDestroy && isMutable())
 			{
 				object.makeSubobjectsImmutable();
 			}
@@ -447,7 +447,7 @@ extends MapBinDescriptor
 		final boolean canDestroy)
 	{
 		check(object);
-		if (isMutable() & !canDestroy)
+		if (isMutable() && !canDestroy)
 		{
 			object.makeImmutable();
 		}
@@ -536,7 +536,7 @@ extends MapBinDescriptor
 	 * @param object An object.
 	 * @return The hash.
 	 */
-	private int mapBinValuesHash (final AvailObject object)
+	private static int mapBinValuesHash (final AvailObject object)
 	{
 		int valuesHash = object.slot(VALUES_HASH_OR_ZERO);
 		if (valuesHash == 0)
@@ -632,7 +632,10 @@ extends MapBinDescriptor
 		@Override
 		public Entry next ()
 		{
-			assert !binStack.isEmpty();
+			if (binStack.isEmpty())
+			{
+				throw new NoSuchElementException();
+			}
 			final AvailObject linearBin = binStack.getLast().traversed();
 			final Integer linearIndex = subscriptStack.getLast();
 			entry.setKeyAndHashAndValue(

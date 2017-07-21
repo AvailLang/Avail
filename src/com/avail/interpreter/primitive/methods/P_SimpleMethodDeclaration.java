@@ -43,7 +43,6 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Add a method definition, given a string for
@@ -92,37 +91,33 @@ extends Primitive
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
-				new Continuation0()
+				() ->
 				{
-					@Override
-					public void value ()
+					try
 					{
-						try
-						{
-							final A_Atom atom = loader.lookupName(string);
-							loader.addMethodBody(atom, function);
-							// Quote the string to make the method name.
-							function.code().setMethodName(
-								StringDescriptor.from(string.toString()));
-							Interpreter.resumeFromSuccessfulPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								NilDescriptor.nil(),
-								skipReturnCheck);
-						}
-						catch (
-							final MalformedMessageException
-								| SignatureException
-								| AmbiguousNameException e)
-						{
-							Interpreter.resumeFromFailedPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								e.numericCode(),
-								failureFunction,
-								copiedArgs,
-								skipReturnCheck);
-						}
+						final A_Atom atom = loader.lookupName(string);
+						loader.addMethodBody(atom, function);
+						// Quote the string to make the method name.
+						function.code().setMethodName(
+							StringDescriptor.from(string.toString()));
+						Interpreter.resumeFromSuccessfulPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							NilDescriptor.nil(),
+							skipReturnCheck);
+					}
+					catch (
+						final MalformedMessageException
+							| SignatureException
+							| AmbiguousNameException e)
+					{
+						Interpreter.resumeFromFailedPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							e.numericCode(),
+							failureFunction,
+							copiedArgs,
+							skipReturnCheck);
 					}
 				}));
 		return FIBER_SUSPENDED;

@@ -67,7 +67,7 @@ public class CommentImplementationBuilder
 			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final ArrayList<QuotedStacksToken> tempTokens =
-			new ArrayList<QuotedStacksToken>();
+			new ArrayList<>();
 
 		for (final AbstractStacksToken token : tagContentTokens)
 		{
@@ -132,7 +132,7 @@ public class CommentImplementationBuilder
 			 throws ClassCastException, StacksCommentBuilderException
 	{
 		final ArrayList<QuotedStacksToken> tempTokens =
-			new ArrayList<QuotedStacksToken>();
+			new ArrayList<>();
 
 		for (final AbstractStacksToken token : tagContentTokens)
 		{
@@ -174,7 +174,7 @@ public class CommentImplementationBuilder
 		if (description == null)
 		{
 			description =
-				new StacksDescription(new ArrayList<AbstractStacksToken>());
+				new StacksDescription(new ArrayList<>());
 		}
 		return description;
 	}
@@ -252,12 +252,12 @@ public class CommentImplementationBuilder
 		if (tokenCount == 2)
 		{
 			fields.add(new StacksFieldTag (tempName, tempType,
-				new StacksDescription(new ArrayList<AbstractStacksToken>(0))));
+				new StacksDescription(new ArrayList<>(0))));
 		}
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
-				new ArrayList<AbstractStacksToken>(
+				new ArrayList<>(
 					tagContentTokens.subList(2, tokenCount));
 			fields.add(new StacksFieldTag (tempName, tempType,
 				new StacksDescription(rest)));
@@ -299,7 +299,7 @@ public class CommentImplementationBuilder
 		try
 		{
 			final ArrayList<QuotedStacksToken> tempTokens =
-				new ArrayList<QuotedStacksToken>(1);
+				new ArrayList<>(1);
 
 			for (int i =1 ; i < tagContentTokens.size(); i++)
 			{
@@ -564,12 +564,12 @@ public class CommentImplementationBuilder
 		if (tokenCount == 2)
 		{
 			parameters.add(new StacksParameterTag (tempName, tempType,
-				new StacksDescription(new ArrayList<AbstractStacksToken>(0))));
+				new StacksDescription(new ArrayList<>(0))));
 		}
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
-				new ArrayList<AbstractStacksToken>(
+				new ArrayList<>(
 					tagContentTokens.subList(2, tokenCount));
 			parameters.add(new StacksParameterTag (tempName, tempType,
 				new StacksDescription(rest)));
@@ -625,12 +625,12 @@ public class CommentImplementationBuilder
 		if (tokenCount == 1)
 		{
 			raises.add(new StacksRaisesTag (tempName,
-				new StacksDescription(new ArrayList<AbstractStacksToken>(0))));
+				new StacksDescription(new ArrayList<>(0))));
 		}
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
-				new ArrayList<AbstractStacksToken>(
+				new ArrayList<>(
 					tagContentTokens.subList(1, tokenCount));
 			raises.add(new StacksRaisesTag (tempName,
 				new StacksDescription(rest)));
@@ -686,12 +686,12 @@ public class CommentImplementationBuilder
 		if (tokenCount == 1)
 		{
 			restricts.add(new StacksRestrictsTag (tempName,
-				new StacksDescription(new ArrayList<AbstractStacksToken>(0))));
+				new StacksDescription(new ArrayList<>(0))));
 		}
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
-				new ArrayList<AbstractStacksToken>(
+				new ArrayList<>(
 					tagContentTokens.subList(1, tokenCount));
 			restricts.add(new StacksRestrictsTag (tempName,
 				new StacksDescription(rest)));
@@ -746,12 +746,12 @@ public class CommentImplementationBuilder
 		if (tokenCount == 1)
 		{
 			returns.add(new StacksReturnTag (tempName,
-				new StacksDescription(new ArrayList<AbstractStacksToken>(0))));
+				new StacksDescription(new ArrayList<>(0))));
 		}
 		else
 		{
 			final ArrayList<AbstractStacksToken> rest =
-				new ArrayList<AbstractStacksToken>(
+				new ArrayList<>(
 					tagContentTokens.subList(1, tokenCount));
 			returns.add(new StacksReturnTag (tempName,
 				new StacksDescription(rest)));
@@ -942,28 +942,28 @@ public class CommentImplementationBuilder
 		final int commentStartLine, final LinkingFileMap linkingFileMap)
 	{
 		this.moduleLeafName = moduleName
-			.substring( moduleName.lastIndexOf("/") + 1);
+			.substring( moduleName.lastIndexOf('/') + 1);
 		this.moduleName = moduleName;
 		this.commentStartLine = commentStartLine;
-		this.authors = new ArrayList<StacksAuthorTag>(0);
-		this.categories = new ArrayList<StacksCategoryTag>(1);
-		this.fields = new ArrayList<StacksFieldTag>(0);
-		this.forbids = new TreeMap<Integer,StacksForbidsTag>();
-		this.globalVariables = new ArrayList<StacksGlobalTag>(0);
-		this.methods = new ArrayList<StacksMethodTag>(0);
-		this.modules = new ArrayList<StacksModuleTag>(0);
-		this.macros = new ArrayList<StacksMacroTag>(0);
-		this.parameters = new ArrayList<StacksParameterTag>(0);
-		this.raises = new ArrayList<StacksRaisesTag>(0);
-		this.restricts = new ArrayList<StacksRestrictsTag>(0);
-		this.returns = new ArrayList<StacksReturnTag>(0);
-		this.sees = new ArrayList<StacksSeeTag>(0);
-		this.supertypes = new ArrayList<StacksSuperTypeTag>(0);
-		this.types = new ArrayList<StacksTypeTag>(0);
-		this.aliases = new ArrayList<StacksAliasTag>(0);
-		this.stickies = new ArrayList<StacksStickyTag>(0);
+		this.authors = new ArrayList<>(0);
+		this.categories = new ArrayList<>(1);
+		this.fields = new ArrayList<>(0);
+		this.forbids = new TreeMap<>();
+		this.globalVariables = new ArrayList<>(0);
+		this.methods = new ArrayList<>(0);
+		this.modules = new ArrayList<>(0);
+		this.macros = new ArrayList<>(0);
+		this.parameters = new ArrayList<>(0);
+		this.raises = new ArrayList<>(0);
+		this.restricts = new ArrayList<>(0);
+		this.returns = new ArrayList<>(0);
+		this.sees = new ArrayList<>(0);
+		this.supertypes = new ArrayList<>(0);
+		this.types = new ArrayList<>(0);
+		this.aliases = new ArrayList<>(0);
+		this.stickies = new ArrayList<>(0);
 		final ArrayList<QuotedStacksToken> tempTokens =
-			new ArrayList<QuotedStacksToken>();
+			new ArrayList<>();
 
 		tempTokens
 			.add(QuotedStacksToken.create("Unclassified", 0, 0, 0, moduleName));
@@ -1065,7 +1065,7 @@ public class CommentImplementationBuilder
 					forbids.isEmpty())
 				{
 					final ArrayList<String> orderedInputTypes =
-						new ArrayList<String>(0);
+						new ArrayList<>(0);
 					for (final StacksRestrictsTag restrict : restricts)
 					{
 						orderedInputTypes.add(restrict.paramMetaType().lexeme());
@@ -1094,7 +1094,7 @@ public class CommentImplementationBuilder
 						throw new StacksCommentBuilderException(errorMessage, this);
 					}
 					final ArrayList<String> orderedInputTypes =
-						new ArrayList<String>(0);
+						new ArrayList<>(0);
 					for (final StacksParameterTag param : parameters)
 					{
 						orderedInputTypes.add(param.paramType().lexeme());
@@ -1128,7 +1128,7 @@ public class CommentImplementationBuilder
 					forbids.isEmpty() && !returns.isEmpty())
 				{
 					final ArrayList<String> orderedInputTypes =
-						new ArrayList<String>(0);
+						new ArrayList<>(0);
 
 					final MethodCommentSignature signature =
 						new MethodCommentSignature(
@@ -1155,7 +1155,7 @@ public class CommentImplementationBuilder
 					forbids.isEmpty())
 				{
 					final ArrayList<String> orderedInputTypes =
-						new ArrayList<String>(0);
+						new ArrayList<>(0);
 					for (final StacksRestrictsTag restrict : restricts)
 					{
 						orderedInputTypes.add(restrict.paramMetaType().lexeme());
@@ -1184,7 +1184,7 @@ public class CommentImplementationBuilder
 						throw new StacksCommentBuilderException(errorMessage, this);
 					}
 					final ArrayList<String> orderedInputTypes =
-						new ArrayList<String>(0);
+						new ArrayList<>(0);
 					for (final StacksParameterTag param : parameters)
 					{
 						orderedInputTypes.add(param.paramType().lexeme());
@@ -1218,7 +1218,7 @@ public class CommentImplementationBuilder
 					forbids.isEmpty() && !returns.isEmpty())
 				{
 					final ArrayList<String> orderedInputTypes =
-						new ArrayList<String>(0);
+						new ArrayList<>(0);
 
 					final MethodCommentSignature signature =
 						new MethodCommentSignature(

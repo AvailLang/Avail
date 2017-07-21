@@ -62,7 +62,7 @@ extends Primitive
 		final Primitive primitive =
 			Primitive.byName(primitiveName.asNativeString());
 		final boolean defined =
-			primitive != null && !primitive.hasFlag(Flag.Private);
+			primitive != null && !primitive.hasFlag(Private);
 		return interpreter.primitiveSuccess(
 			AtomDescriptor.objectFromBoolean(defined));
 	}

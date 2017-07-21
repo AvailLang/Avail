@@ -215,7 +215,7 @@ public class StacksUsesModule extends StacksImportModule
 		else
 		{
 			final HashMap<String, ImplementationGroup> newMap =
-				new HashMap<String, ImplementationGroup>();
+				new HashMap<>();
 
 			newMap.put(newlyDefinedModule.moduleName(), group);
 
@@ -241,11 +241,11 @@ public class StacksUsesModule extends StacksImportModule
 		final StacksCommentsModule module, final A_Map renamesMap)
 	{
 		super(module.moduleName(),
-			new HashMap<A_String,ImplementationGroup>(
+			new HashMap<>(
 				module.namedPublicCommentImplementations()),
-			new HashMap<String,StacksExtendsModule>(
+			new HashMap<>(
 				module.extendedNamesImplementations()),
-			new HashMap<A_String, HashMap<String, ImplementationGroup>>(
+			new HashMap<>(
 				module.extendsMethodLeafNameToModuleName()),
 			module.usesNamesImplementations(),
 			module.usesMethodLeafNameToModuleName());

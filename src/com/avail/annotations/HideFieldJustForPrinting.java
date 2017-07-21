@@ -44,7 +44,7 @@ import java.lang.annotation.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
+@Target(ElementType.FIELD)
 public @interface HideFieldJustForPrinting
 {
 	// No content.

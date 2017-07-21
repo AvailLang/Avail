@@ -41,7 +41,6 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Put the {@linkplain FiberDescriptor#current()
@@ -91,96 +90,70 @@ extends Primitive
 				@Override
 				public void run ()
 				{
-					fiber.lock(new Continuation0()
+					fiber.lock(() ->
 					{
-						@Override
-						public void value ()
+						// Only resume the fiber if it's still asleep. A
+						// termination request may have already woken the
+						// fiber up, but so recently that it didn't manage
+						// to cancel this timer task.
+						if (fiber.executionState() == ASLEEP)
 						{
-							// Only resume the fiber if it's still asleep. A
-							// termination request may have already woken the
-							// fiber up, but so recently that it didn't manage
-							// to cancel this timer task.
-							if (fiber.executionState() == ASLEEP)
-							{
-								fiber.wakeupTask(null);
-								fiber.executionState(SUSPENDED);
-								Interpreter.resumeFromSuccessfulPrimitive(
-									runtime,
-									fiber,
-									NilDescriptor.nil(),
-									true);
-							}
+							fiber.wakeupTask(null);
+							fiber.executionState(SUSPENDED);
+							Interpreter.resumeFromSuccessfulPrimitive(
+								runtime,
+								fiber,
+								NilDescriptor.nil(),
+								true);
 						}
 					});
 				}
 			};
 			// Once the fiber has been unbound, transition it to sleeping and
 			// start the timer task.
-			interpreter.postExitContinuation(new Continuation0()
+			interpreter.postExitContinuation(() -> fiber.lock(() ->
 			{
-				@Override
-				public void value ()
+				// If termination has been requested, then schedule
+				// the resumption of this fiber.
+				if (fiber.interruptRequestFlag(
+					TERMINATION_REQUESTED))
 				{
-					fiber.lock(new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							// If termination has been requested, then schedule
-							// the resumption of this fiber.
-							if (fiber.interruptRequestFlag(
-								TERMINATION_REQUESTED))
-							{
-								assert fiber.executionState() == SUSPENDED;
-								Interpreter.resumeFromSuccessfulPrimitive(
-									runtime,
-									fiber,
-									NilDescriptor.nil(),
-									true);
-								return;
-							}
-							fiber.wakeupTask(task);
-							fiber.executionState(ASLEEP);
-							runtime.timer.schedule(
-								task,
-								sleepMillis.extractLong());
-						}
-					});
+					assert fiber.executionState() == SUSPENDED;
+					Interpreter.resumeFromSuccessfulPrimitive(
+						runtime,
+						fiber,
+						NilDescriptor.nil(),
+						true);
+					return;
 				}
-			});
+				fiber.wakeupTask(task);
+				fiber.executionState(ASLEEP);
+				runtime.timer.schedule(
+					task,
+					sleepMillis.extractLong());
+			}));
 		}
 		// The delay was too big, so put the fiber to sleep forever.
 		else
 		{
 			// Once the fiber has been unbound, transition it to sleeping.
-			interpreter.postExitContinuation(new Continuation0()
+			interpreter.postExitContinuation(() -> fiber.lock(() ->
 			{
-				@Override
-				public void value ()
+				// If termination has been requested, then schedule
+				// the resumption of this fiber.
+				if (fiber.interruptRequestFlag(
+					TERMINATION_REQUESTED))
 				{
-					fiber.lock(new Continuation0()
-					{
-						@Override
-						public void value ()
-						{
-							// If termination has been requested, then schedule
-							// the resumption of this fiber.
-							if (fiber.interruptRequestFlag(
-								TERMINATION_REQUESTED))
-							{
-								assert fiber.executionState() == SUSPENDED;
-								Interpreter.resumeFromSuccessfulPrimitive(
-									runtime,
-									fiber,
-									NilDescriptor.nil(),
-									true);
-								return;
-							}
-							fiber.executionState(ASLEEP);
-						}
-					});
+					assert fiber.executionState() == SUSPENDED;
+					Interpreter.resumeFromSuccessfulPrimitive(
+						runtime,
+						fiber,
+						NilDescriptor.nil(),
+						true);
+					return;
 				}
-			});
+				fiber.executionState(ASLEEP);
+			}));
 		}
 		// Don't actually transition the fiber to the sleeping state, which
 		// can only occur at task-scheduling time. This happens after the

@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import java.util.Arrays;
 import java.util.Set;
+
+import com.avail.descriptor.FiberDescriptor.ObjectSlots;
 import org.jetbrains.annotations.Nullable;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 
@@ -641,7 +643,7 @@ implements A_BasicObject
 		final ObjectSlotsEnum field,
 		final A_Continuation aContinuation)
 	{
-		assert field == FiberDescriptor.ObjectSlots.CONTINUATION;
+		assert field == ObjectSlots.CONTINUATION;
 		checkSlot(field);
 		checkWriteForField(field);
 		// If the receiver is shared, then the new value must become shared

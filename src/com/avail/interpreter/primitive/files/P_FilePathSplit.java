@@ -67,7 +67,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_String filename = args.get(0);
-		final FileSystem fileSystem = AvailRuntime.current().fileSystem();
+		final FileSystem fileSystem = AvailRuntime.fileSystem();
 		final Path path;
 		try
 		{

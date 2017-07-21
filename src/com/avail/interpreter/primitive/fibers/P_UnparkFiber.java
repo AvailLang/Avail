@@ -41,7 +41,6 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.interpreter.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Unpark the specified {@linkplain
@@ -75,29 +74,25 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
-		fiber.lock(new Continuation0()
+		fiber.lock(() ->
 		{
-			@Override
-			public void value ()
+			// Restore the permit. If the fiber is parked, then unpark it.
+			fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false);
+			if (fiber.executionState() == PARKED)
 			{
-				// Restore the permit. If the fiber is parked, then unpark it.
-				fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false);
-				if (fiber.executionState() == PARKED)
-				{
-					// Wake up the fiber.
-					fiber.executionState(SUSPENDED);
-					Interpreter.resumeFromSuccessfulPrimitive(
-						AvailRuntime.current(),
-						fiber,
-						NilDescriptor.nil(),
-						skipReturnCheck);
-				}
-				else
-				{
-					// Save the permit for next time.
-					fiber.getAndSetSynchronizationFlag(
-						PERMIT_UNAVAILABLE, false);
-				}
+				// Wake up the fiber.
+				fiber.executionState(SUSPENDED);
+				Interpreter.resumeFromSuccessfulPrimitive(
+					AvailRuntime.current(),
+					fiber,
+					NilDescriptor.nil(),
+					skipReturnCheck);
+			}
+			else
+			{
+				// Save the permit for next time.
+				fiber.getAndSetSynchronizationFlag(
+					PERMIT_UNAVAILABLE, false);
 			}
 		});
 		return interpreter.primitiveSuccess(NilDescriptor.nil());

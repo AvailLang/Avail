@@ -64,7 +64,7 @@ public final class SerializerTest
 	/**
 	 * @return The {@link AvailRuntime} used by the serializer and deserializer.
 	 */
-	final AvailRuntime runtime ()
+	static AvailRuntime runtime ()
 	{
 		final AvailRuntime theRuntime = runtime;
 		assert theRuntime != null;
@@ -207,8 +207,9 @@ public final class SerializerTest
 		serializer().serialize(object);
 		prepareToReadBack();
 		final A_BasicObject newObject = deserializer().deserialize();
-		assertTrue(
-			in().available() == 0,
+		assertEquals(
+			0,
+			in().available(),
 			"Serialization stream was not fully emptied");
 		final AvailObject objectAfter = deserializer().deserialize();
 		assert objectAfter == null;
@@ -433,8 +434,9 @@ public final class SerializerTest
 		runtime().addModule(inputModule);
 		deserializer().currentModule(currentModule);
 		final A_BasicObject newObject = deserializer().deserialize();
-		assertTrue(
-			in().available() == 0,
+		assertEquals(
+			0,
+			in().available(),
 			"Serialization stream was not fully emptied");
 		assertEquals(tuple, newObject);
 	}

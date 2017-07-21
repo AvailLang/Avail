@@ -39,7 +39,6 @@ import com.avail.environment.editor.NewModuleWindow;
 import javafx.scene.Scene;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;

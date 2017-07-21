@@ -51,7 +51,7 @@ extends Expression
 	/**
 	 * The {@link MessageSplitter} in which this is a {@link Simple} expression.
 	 */
-	private MessageSplitter messageSplitter;
+	private final MessageSplitter messageSplitter;
 
 	/**
 	 * The one-based index of this token within the {@link

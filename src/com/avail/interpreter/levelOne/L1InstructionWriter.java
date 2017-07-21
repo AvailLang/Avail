@@ -89,7 +89,7 @@ public class L1InstructionWriter
 	 * The {@link List} of argument {@linkplain TypeDescriptor types} for this
 	 * {@linkplain CompiledCodeDescriptor compiled code}.
 	 */
-	private List<A_Type> argumentTypes = new ArrayList<A_Type>();
+	private List<A_Type> argumentTypes = new ArrayList<>();
 
 	/**
 	 * @param argTypes
@@ -98,10 +98,7 @@ public class L1InstructionWriter
 	{
 		assert localTypes.size() == 0
 		: "Must declare argument types before allocating locals";
-		for (final A_Type argType : argTypes)
-		{
-			argumentTypes.add(argType);
-		}
+		Collections.addAll(argumentTypes, argTypes);
 	}
 
 	/**
@@ -261,7 +258,7 @@ public class L1InstructionWriter
 	 * ContinuationDescriptor continuations} (essentially stack frames) at
 	 * runtime.
 	 */
-	L1StackTracker stackTracker = new L1StackTracker ()
+	final L1StackTracker stackTracker = new L1StackTracker ()
 	{
 		@Override AvailObject literalAt (final int literalIndex)
 		{

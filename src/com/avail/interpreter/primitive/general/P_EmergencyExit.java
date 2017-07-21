@@ -34,13 +34,12 @@ package com.avail.interpreter.primitive.general;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
+
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Exit the current {@linkplain
@@ -71,40 +70,36 @@ public final class P_EmergencyExit extends Primitive
 			interpreter.runtime(),
 			fiber.textInterface(),
 			continuation,
-			new Continuation1<List<String>>()
+			stack ->
 			{
-				@Override
-				public void value (final @Nullable List<String> stack)
+				assert stack != null;
+				final StringBuilder builder = new StringBuilder();
+				builder.append(String.format(
+					"A fiber (%s) has exited: %s",
+					fiber.fiberName(),
+					errorMessageProducer));
+				if (errorMessageProducer.isInt())
 				{
-					assert stack != null;
-					final StringBuilder builder = new StringBuilder();
-					builder.append(String.format(
-						"A fiber (%s) has exited: %s",
-						fiber.fiberName(),
-						errorMessageProducer));
-					if (errorMessageProducer.isInt())
+					final int intValue =
+						((A_Number)errorMessageProducer).extractInt();
+					if (intValue >= 0 &&
+						intValue < AvailErrorCode.all().length)
 					{
-						final int intValue =
-							((A_Number)errorMessageProducer).extractInt();
-						if (intValue >= 0 &&
-							intValue < AvailErrorCode.all().length)
-						{
-							builder.append(String.format(
-								" (= %s)",
-								AvailErrorCode.byNumericCode(intValue).name()));
-						}
+						builder.append(String.format(
+							" (= %s)",
+							AvailErrorCode.byNumericCode(intValue).name()));
 					}
-					for (final String frame : stack)
-					{
-						builder.append(String.format("%n\t-- %s", frame));
-					}
-					builder.append("\n\n");
-					final AvailEmergencyExitException killer =
-						new AvailEmergencyExitException(builder.toString());
-					killer.fillInStackTrace();
-					fiber.executionState(ExecutionState.ABORTED);
-					fiber.failureContinuation().value(killer);
 				}
+				for (final String frame : stack)
+				{
+					builder.append(String.format("%n\t-- %s", frame));
+				}
+				builder.append("\n\n");
+				final AvailEmergencyExitException killer =
+					new AvailEmergencyExitException(builder.toString());
+				killer.fillInStackTrace();
+				fiber.executionState(ExecutionState.ABORTED);
+				fiber.failureContinuation().value(killer);
 			});
 		return Result.FIBER_SUSPENDED;
 	}

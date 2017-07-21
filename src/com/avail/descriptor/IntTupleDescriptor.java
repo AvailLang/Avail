@@ -127,14 +127,7 @@ extends NumericTupleDescriptor
 			// Transition to a tree tuple because it's too big.
 			final A_Tuple singleton = IntTupleDescriptor.generateFrom(
 				1,
-				new Generator<Integer>()
-				{
-					@Override
-					public Integer value ()
-					{
-						return intValue;
-					}
-				});
+				() -> intValue);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int newSize = originalSize + 1;
@@ -668,7 +661,7 @@ extends NumericTupleDescriptor
 		int i = 0;
 		for (final int excess : new int[] {0,1})
 		{
-			for (final Mutability mut : Mutability.values())
+			for (final Mutability mut : values())
 			{
 				descriptors[i++] = new IntTupleDescriptor(mut, excess);
 			}

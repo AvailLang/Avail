@@ -40,6 +40,7 @@ import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -90,7 +91,7 @@ extends Descriptor
 	public static boolean debugFibers = false;
 
 	/** A simple counter for identifying fibers by creation order. */
-	public static AtomicInteger uniqueDebugCounter = new AtomicInteger(0);
+	public static final AtomicInteger uniqueDebugCounter = new AtomicInteger(0);
 
 	/** The priority of module tracing tasks. */
 	public static final int tracerPriority = 50;
@@ -132,7 +133,7 @@ extends Descriptor
 		 *
 		 * @param bitField
 		 */
-		private InterruptRequestFlag (final BitField bitField)
+		InterruptRequestFlag (final BitField bitField)
 		{
 			this.bitField = bitField;
 		}
@@ -167,7 +168,7 @@ extends Descriptor
 		 *
 		 * @param bitField
 		 */
-		private SynchronizationFlag (final BitField bitField)
+		SynchronizationFlag (final BitField bitField)
 		{
 			this.bitField = bitField;
 		}
@@ -202,7 +203,7 @@ extends Descriptor
 		 *
 		 * @param bitField
 		 */
-		private TraceFlag (final BitField bitField)
+		TraceFlag (final BitField bitField)
 		{
 			this.bitField = bitField;
 		}
@@ -234,7 +235,7 @@ extends Descriptor
 		 *
 		 * @param bitField
 		 */
-		private GeneralFlag (final BitField bitField)
+		GeneralFlag (final BitField bitField)
 		{
 			this.bitField = bitField;
 		}
@@ -631,7 +632,7 @@ extends Descriptor
 		};
 
 		/** An array of all {@link ExecutionState} enumeration values. */
-		private static ExecutionState[] all = values();
+		private static final ExecutionState[] all = values();
 
 		/**
 		 * Answer an array of all {@link ExecutionState} enumeration values.
@@ -752,7 +753,7 @@ extends Descriptor
 	@Override @AvailMethod
 	ExecutionState o_ExecutionState (final AvailObject object)
 	{
-		return ExecutionState.all()[(int)object.mutableSlot(EXECUTION_STATE)];
+		return all()[(int)object.mutableSlot(EXECUTION_STATE)];
 	}
 
 	@Override @AvailMethod
@@ -760,7 +761,7 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			final ExecutionState current = ExecutionState.all()
+			final ExecutionState current = all()
 				[(int)object.mutableSlot(EXECUTION_STATE)];
 			assert current.mayTransitionTo(value);
 			object.setSlot(EXECUTION_STATE, value.ordinal());
@@ -1096,13 +1097,9 @@ extends Descriptor
 	 * NilDescriptor nil}.
 	 */
 	private static final A_BasicObject defaultResultContinuation =
-		RawPojoDescriptor.identityWrap(new Continuation1<AvailObject>()
+		RawPojoDescriptor.identityWrap((Continuation1<AvailObject>) ignored ->
 		{
-			@Override
-			public void value (final @Nullable AvailObject ignored)
-			{
-				// Do nothing.
-			}
+			// Do nothing.
 		});
 
 	@SuppressWarnings("unchecked")
@@ -1153,14 +1150,10 @@ extends Descriptor
 	 * NilDescriptor nil}.
 	 */
 	private static final A_BasicObject defaultFailureContinuation =
-		RawPojoDescriptor.identityWrap(new Continuation1<Throwable>()
+		RawPojoDescriptor.identityWrap((Continuation1<Throwable>) ignored ->
 		{
-			@Override
-			public void value (final @Nullable Throwable ignored)
-			{
-				// Do nothing; errors in fibers should be handled by Avail
-				// code.
-			}
+			// Do nothing; errors in fibers should be handled by Avail
+			// code.
 		});
 
 	@SuppressWarnings("unchecked")
@@ -1280,7 +1273,7 @@ extends Descriptor
 		final WeakHashMap<A_Variable, Boolean> map =
 			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObjectNotNull();
 		A_Set set = SetDescriptor.empty();
-		for (final Map.Entry<A_Variable, Boolean> entry : map.entrySet())
+		for (final Entry<A_Variable, Boolean> entry : map.entrySet())
 		{
 			if (entry.getValue())
 			{
@@ -1300,7 +1293,7 @@ extends Descriptor
 		final WeakHashMap<A_Variable, Boolean> map =
 			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObjectNotNull();
 		A_Set set = SetDescriptor.empty();
-		for (final Map.Entry<A_Variable, Boolean> entry : map.entrySet())
+		for (final Entry<A_Variable, Boolean> entry : map.entrySet())
 		{
 			set = set.setWithElementCanDestroy(entry.getKey(), true);
 		}
@@ -1324,7 +1317,7 @@ extends Descriptor
 	 * @param object An object.
 	 * @return The hash.
 	 */
-	private int hash (final AvailObject object)
+	private static int hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -1366,38 +1359,34 @@ extends Descriptor
 		final AvailObject object,
 		final Continuation1<A_Continuation> whenReified)
 	{
-		object.lock(new Continuation0()
+		object.lock(() ->
 		{
-			@Override
-			public void value ()
+			switch (object.executionState())
 			{
-				switch (object.executionState())
+				case ABORTED:
+				case ASLEEP:
+				case INTERRUPTED:
+				case PARKED:
+				case RETIRED:
+				case SUSPENDED:
+				case TERMINATED:
+				case UNSTARTED:
 				{
-					case ABORTED:
-					case ASLEEP:
-					case INTERRUPTED:
-					case PARKED:
-					case RETIRED:
-					case SUSPENDED:
-					case TERMINATED:
-					case UNSTARTED:
-					{
-						whenReified.value(object.continuation().makeShared());
-						break;
-					}
-					case RUNNING:
-					{
-						final A_BasicObject pojo =
-							RawPojoDescriptor.identityWrap(whenReified);
-						final A_Set oldSet = object.slot(REIFICATION_WAITERS);
-						final A_Set newSet =
-							oldSet.setWithElementCanDestroy(pojo, true);
-						object.setSlot(
-							REIFICATION_WAITERS,
-							newSet.makeShared());
-						object.setInterruptRequestFlag(REIFICATION_REQUESTED);
-						break;
-					}
+					whenReified.value(object.continuation().makeShared());
+					break;
+				}
+				case RUNNING:
+				{
+					final A_BasicObject pojo =
+						RawPojoDescriptor.identityWrap(whenReified);
+					final A_Set oldSet = object.slot(REIFICATION_WAITERS);
+					final A_Set newSet =
+						oldSet.setWithElementCanDestroy(pojo, true);
+					object.setSlot(
+						REIFICATION_WAITERS,
+						newSet.makeShared());
+					object.setInterruptRequestFlag(REIFICATION_REQUESTED);
+					break;
 				}
 			}
 		});
@@ -1474,7 +1463,7 @@ extends Descriptor
 	 * @return {@code true} if the current thread can safely lock the specified
 	 *         fiber, {@code false} otherwise.
 	 */
-	private boolean canSafelyLock (final A_Fiber fiber)
+	private static boolean canSafelyLock (final A_Fiber fiber)
 	{
 		final A_Fiber lockedFiber = currentlyLockedFiber.get();
 		return lockedFiber == null || lockedFiber == fiber;

@@ -151,7 +151,7 @@ public class Multigraph<V, E extends Edge<V>>
 			new HashMap<>();
 
 		/**
-		 * Construct a new {@link Multigraph.VertexInGraph}.
+		 * Construct a new {@link VertexInGraph}.
 		 *
 		 * @param vertex The actual vertex to wrap.
 		 */
@@ -297,7 +297,8 @@ public class Multigraph<V, E extends Edge<V>>
 		final VertexInGraph sourceInGraph = vertices.get(edge.source());
 		if (sourceInGraph != null)
 		{
-			final Set<E> edgeSet = sourceInGraph.outbound.get(edge.destination());
+			final Set<E> edgeSet =
+				sourceInGraph.outbound.get(edge.destination());
 			if (edgeSet != null)
 			{
 				return edgeSet.contains(edge);
@@ -324,7 +325,7 @@ public class Multigraph<V, E extends Edge<V>>
 		Set<E> sourceOut = privateSource.outbound.get(privateDestination);
 		if (sourceOut == null)
 		{
-			sourceOut = new HashSet<E>(1);
+			sourceOut = new HashSet<>(1);
 			privateSource.outbound.put(privateDestination, sourceOut);
 		}
 		assert !sourceOut.contains(edge) : "Edge is already present";
@@ -332,7 +333,7 @@ public class Multigraph<V, E extends Edge<V>>
 		Set<E> destinationIn = privateDestination.inbound.get(privateSource);
 		if (destinationIn == null)
 		{
-			destinationIn = new HashSet<E>(1);
+			destinationIn = new HashSet<>(1);
 			privateDestination.inbound.put(privateSource, destinationIn);
 		}
 		assert !destinationIn.contains(edge); // Consistency check

@@ -110,9 +110,7 @@ extends Primitive
 				ATOM.o()),
 			TupleTypeDescriptor.forTypes(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.fromInt(4),
-						IntegerDescriptor.fromInt(16)),
+					IntegerRangeTypeDescriptor.inclusive(4, 16),
 					TupleDescriptor.empty(),
 					IntegerRangeTypeDescriptor.bytes()),
 				IntegerRangeTypeDescriptor.unsignedShorts()));

@@ -44,6 +44,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 import com.avail.AvailRuntime;
@@ -51,7 +52,6 @@ import com.avail.AvailRuntime.FiberReference;
 import com.avail.annotations.InnerAccess;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
-import com.avail.builder.AvailBuilder.CompiledCommand;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoot;
@@ -62,12 +62,10 @@ import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.persistence.IndexedFileException;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.server.configuration.AvailServerConfiguration;
 import com.avail.server.configuration.CommandLineConfigurator;
 import com.avail.server.configuration.EnvironmentConfigurator;
@@ -520,36 +518,28 @@ public final class AvailServer
 		{
 			message = newSuccessMessage(
 				command,
-				new Continuation1<JSONWriter>()
+				writer ->
 				{
-					@Override
-					public void value (final @Nullable JSONWriter writer)
-					{
-						assert writer != null;
-						writer.write(version);
-					}
+					assert writer != null;
+					writer.write(version);
 				});
 		}
 		else
 		{
 			message = newSuccessMessage(
 				command,
-				new Continuation1<JSONWriter>()
+				writer ->
 				{
-					@Override
-					public void value (final @Nullable JSONWriter writer)
+					assert writer != null;
+					writer.startObject();
+					writer.write("supported");
+					writer.startArray();
+					for (final int supported : supportedProtocolVersions)
 					{
-						assert writer != null;
-						writer.startObject();
-						writer.write("supported");
-						writer.startArray();
-						for (final int supported : supportedProtocolVersions)
-						{
-							writer.write(supported);
-						}
-						writer.endArray();
-						writer.endObject();
+						writer.write(supported);
 					}
+					writer.endArray();
+					writer.endObject();
 				});
 		}
 		// Transition to the next state. If the client cannot handle any of the
@@ -580,26 +570,22 @@ public final class AvailServer
 		assert command.command() == Command.COMMANDS;
 		final Message message = newSuccessMessage(
 			command,
-			new Continuation1<JSONWriter>()
+			writer ->
 			{
-				@Override
-				public void value (final @Nullable JSONWriter writer)
+				assert writer != null;
+				final Command[] commands = Command.all();
+				final List<String> help = new ArrayList<>(commands.length);
+				for (final Command c : commands)
 				{
-					assert writer != null;
-					final Command[] commands = Command.all();
-					final List<String> help = new ArrayList<>(commands.length);
-					for (final Command c : commands)
-					{
-						help.add(c.syntaxHelp());
-					}
-					Collections.sort(help);
-					writer.startArray();
-					for (final String h : help)
-					{
-						writer.write(h);
-					}
-					writer.endArray();
+					help.add(c.syntaxHelp());
 				}
+				Collections.sort(help);
+				writer.startArray();
+				for (final String h : help)
+				{
+					writer.write(h);
+				}
+				writer.endArray();
 			});
 		channel.enqueueMessageThen(message, continuation);
 	}
@@ -625,15 +611,11 @@ public final class AvailServer
 		assert command.command() == Command.MODULE_ROOTS;
 		final Message message = newSuccessMessage(
 			command,
-			new Continuation1<JSONWriter>()
+			writer ->
 			{
-				@Override
-				public void value (final @Nullable JSONWriter writer)
-				{
-					assert writer != null;
-					final ModuleRoots roots = runtime.moduleRoots();
-					roots.writeOn(writer);
-				}
+				assert writer != null;
+				final ModuleRoots roots = runtime.moduleRoots();
+				roots.writeOn(writer);
 			});
 		channel.enqueueMessageThen(message, continuation);
 	}
@@ -661,15 +643,11 @@ public final class AvailServer
 		assert command.command() == Command.MODULE_ROOT_PATHS;
 		final Message message = newSuccessMessage(
 			command,
-			new Continuation1<JSONWriter>()
+			writer ->
 			{
-				@Override
-				public void value (final @Nullable JSONWriter writer)
-				{
-					assert writer != null;
-					final ModuleRoots roots = runtime.moduleRoots();
-					roots.writePathsOn(writer);
-				}
+				assert writer != null;
+				final ModuleRoots roots = runtime.moduleRoots();
+				roots.writePathsOn(writer);
 			});
 		channel.enqueueMessageThen(message, continuation);
 	}
@@ -696,15 +674,11 @@ public final class AvailServer
 		assert command.command() == Command.MODULE_ROOTS_PATH;
 		final Message message = newSuccessMessage(
 			command,
-			new Continuation1<JSONWriter>()
+			writer ->
 			{
-				@Override
-				public void value (final @Nullable JSONWriter writer)
-				{
-					assert writer != null;
-					final ModuleRoots roots = runtime.moduleRoots();
-					writer.write(roots.modulePath());
-				}
+				assert writer != null;
+				final ModuleRoots roots = runtime.moduleRoots();
+				writer.write(roots.modulePath());
 			});
 		channel.enqueueMessageThen(message, continuation);
 	}
@@ -898,7 +872,7 @@ public final class AvailServer
 		final MutableOrNull<ModuleNode> tree)
 	{
 		final String extension = ModuleNameResolver.availExtension;
-		final Mutable<Boolean> isRoot = new Mutable<Boolean>(true);
+		final Mutable<Boolean> isRoot = new Mutable<>(true);
 		final Deque<ModuleNode> stack = new ArrayDeque<>();
 		return new FileVisitor<Path>()
 		{
@@ -1022,39 +996,35 @@ public final class AvailServer
 		assert command.command() == Command.SOURCE_MODULES;
 		final Message message = newSuccessMessage(
 			command,
-			new Continuation1<JSONWriter>()
+			writer ->
 			{
-				@Override
-				public void value (final @Nullable JSONWriter writer)
+				assert writer != null;
+				final ModuleRoots roots = runtime.moduleRoots();
+				writer.startArray();
+				for (final ModuleRoot root : roots)
 				{
-					assert writer != null;
-					final ModuleRoots roots = runtime.moduleRoots();
-					writer.startArray();
-					for (final ModuleRoot root : roots)
+					final MutableOrNull<ModuleNode> tree =
+						new MutableOrNull<>();
+					final File directory = root.sourceDirectory();
+					if (directory != null)
 					{
-						final MutableOrNull<ModuleNode> tree =
-							new MutableOrNull<>();
-						final File directory = root.sourceDirectory();
-						if (directory != null)
+						try
 						{
-							try
-							{
-								Files.walkFileTree(
-									Paths.get(directory.getAbsolutePath()),
-									EnumSet.of(FileVisitOption.FOLLOW_LINKS),
-									Integer.MAX_VALUE,
-									sourceModuleVisitor(root, tree));
-							}
-							catch (final IOException e)
-							{
-								// This shouldn't happen, since we never raise
-								// any exceptions in the visitor.
-							}
+							Files.walkFileTree(
+								Paths.get(directory.getAbsolutePath()),
+								EnumSet.of(FileVisitOption.FOLLOW_LINKS),
+								Integer.MAX_VALUE,
+								sourceModuleVisitor(root, tree));
 						}
-						tree.value().writeOn(writer);
+						catch (final IOException e)
+						{
+							// This shouldn't happen, since we never raise
+							// any exceptions in the visitor.
+						}
 					}
-					writer.endArray();
+					tree.value().writeOn(writer);
 				}
+				writer.endArray();
 			});
 		channel.enqueueMessageThen(message, continuation);
 	}
@@ -1081,53 +1051,42 @@ public final class AvailServer
 		assert command.command() == Command.ENTRY_POINTS;
 		final Message message = newSuccessMessage(
 			command,
-			new Continuation1<JSONWriter>()
+			writer ->
 			{
-				@Override
-				public void value (
-					final @Nullable JSONWriter writer)
-				{
-					assert writer != null;
-					final Map<String, List<String>> map = new HashMap<>();
-					builder.traceDirectories(
-						new Continuation2<ResolvedModuleName, ModuleVersion>()
-						{
-							@Override
-							public void value (
-								final @Nullable ResolvedModuleName name,
-								final @Nullable ModuleVersion version)
-							{
-								assert name != null;
-								assert version != null;
-								final List<String> entryPoints =
-									version.getEntryPoints();
-								if (!entryPoints.isEmpty())
-								{
-									synchronized (map)
-									{
-										map.put(
-											name.qualifiedName(),
-											entryPoints);
-									}
-								}
-							}
-						});
-					writer.startArray();
-					for (final Map.Entry<String, List<String>> entry :
-						map.entrySet())
+				assert writer != null;
+				final Map<String, List<String>> map = new HashMap<>();
+				builder.traceDirectories(
+					(name, version) ->
 					{
-						writer.startObject();
-						writer.write(entry.getKey());
-						writer.startArray();
-						for (final String entryPoint : entry.getValue())
+						assert name != null;
+						assert version != null;
+						final List<String> entryPoints =
+							version.getEntryPoints();
+						if (!entryPoints.isEmpty())
 						{
-							writer.write(entryPoint);
+							synchronized (map)
+							{
+								map.put(
+									name.qualifiedName(),
+									entryPoints);
+							}
 						}
-						writer.endArray();
-						writer.endObject();
+					});
+				writer.startArray();
+				for (final Entry<String, List<String>> entry :
+					map.entrySet())
+				{
+					writer.startObject();
+					writer.write(entry.getKey());
+					writer.startArray();
+					for (final String entryPoint : entry.getValue())
+					{
+						writer.write(entryPoint);
 					}
 					writer.endArray();
+					writer.endObject();
 				}
+				writer.endArray();
 			});
 		channel.enqueueMessageThen(message, continuation);
 	}
@@ -1153,7 +1112,7 @@ public final class AvailServer
 		final Continuation0 continuation)
 	{
 		assert command.command() == Command.CLEAR_REPOSITORIES;
-		Message message = null;
+		Message message;
 		try
 		{
 			for (final ModuleRoot root :
@@ -1167,7 +1126,6 @@ public final class AvailServer
 		{
 			message = newErrorMessage(command, e.getLocalizedMessage());
 		}
-		assert message != null;
 		channel.enqueueMessageThen(message, continuation);
 	}
 
@@ -1239,21 +1197,14 @@ public final class AvailServer
 		recordUpgradeRequest(
 			channel,
 			uuid,
-			new Continuation3<AvailServerChannel, UUID, Continuation0>()
+			(upgradedChannel, receivedUUID, resumeUpgrader) ->
 			{
-				@Override
-				public void value (
-					final @Nullable AvailServerChannel upgradedChannel,
-					final @Nullable UUID receivedUUID,
-					final @Nullable Continuation0 resumeUpgrader)
-				{
-					assert upgradedChannel != null;
-					assert resumeUpgrader != null;
-					assert uuid.equals(receivedUUID);
-					upgradedChannel.upgradeToIOChannel();
-					resumeUpgrader.value();
-					afterUpgraded.value(upgradedChannel);
-				}
+				assert upgradedChannel != null;
+				assert resumeUpgrader != null;
+				assert uuid.equals(receivedUUID);
+				upgradedChannel.upgradeToIOChannel();
+				resumeUpgrader.value();
+				afterUpgraded.value(upgradedChannel);
 			});
 		channel.enqueueMessageThen(
 			newIOUpgradeRequestMessage(command, uuid),
@@ -1284,14 +1235,10 @@ public final class AvailServer
 		requestUpgradesThen(
 			channel,
 			command,
-			new Continuation1<AvailServerChannel>()
+			ioChannel ->
 			{
-				@Override
-				public void value (final @Nullable AvailServerChannel ioChannel)
-				{
-					assert ioChannel != null;
-					loadModule(channel, ioChannel, command);
-				}
+				assert ioChannel != null;
+				loadModule(channel, ioChannel, command);
 			},
 			continuation);
 	}
@@ -1322,25 +1269,17 @@ public final class AvailServer
 	{
 		assert !channel.state().generalTextIO();
 		assert ioChannel.state().generalTextIO();
-		final Continuation0 nothing = new Continuation0()
+		final Continuation0 nothing = () ->
 		{
-			@Override
-			public void value ()
-			{
-				// Do nothing.
-			}
+			// Do nothing.
 		};
 		channel.enqueueMessageThen(
 			newSuccessMessage(
 				command,
-				new Continuation1<JSONWriter>()
+				writer ->
 				{
-					@Override
-					public void value (final @Nullable JSONWriter writer)
-					{
-						assert writer != null;
-						writer.write("begin");
-					}
+					assert writer != null;
+					writer.write("begin");
 				}),
 			nothing);
 		final List<JSONWriter> localUpdates = new ArrayList<>();
@@ -1366,30 +1305,25 @@ public final class AvailServer
 				{
 					final Message message = newSuccessMessage(
 						command,
-						new Continuation1<JSONWriter>()
+						writer ->
 						{
-							@Override
-							public void value (
-								final @Nullable JSONWriter writer)
+							assert writer != null;
+							writer.startObject();
+							writer.write("local");
+							writer.startArray();
+							for (final JSONWriter local : locals)
 							{
-								assert writer != null;
-								writer.startObject();
-								writer.write("local");
-								writer.startArray();
-								for (final JSONWriter local : locals)
-								{
-									writer.write(local);
-								}
-								writer.endArray();
-								writer.write("global");
-								writer.startArray();
-								for (final JSONWriter global : globals)
-								{
-									writer.write(global);
-								}
-								writer.endArray();
-								writer.endObject();
+								writer.write(local);
 							}
+							writer.endArray();
+							writer.write("global");
+							writer.startArray();
+							for (final JSONWriter global : globals)
+							{
+								writer.write(global);
+							}
+							writer.endArray();
+							writer.endObject();
 						});
 					channel.enqueueMessageThen(message, nothing);
 				}
@@ -1402,50 +1336,37 @@ public final class AvailServer
 		builder.setTextInterface(ioChannel.textInterface());
 		builder.buildTarget(
 			command.target(),
-			new CompilerProgressReporter()
+			(name, moduleSize, position) ->
 			{
-				@Override
-				public void value (
-					final @Nullable ModuleName name,
-					final @Nullable Long moduleSize,
-					final @Nullable Long position)
+				assert name != null;
+				assert moduleSize != null;
+				assert position != null;
+				final JSONWriter writer = new JSONWriter();
+				writer.startObject();
+				writer.write("module");
+				writer.write(name.qualifiedName());
+				writer.write("position");
+				writer.write(position);
+				writer.endObject();
+				synchronized (localUpdates)
 				{
-					assert name != null;
-					assert moduleSize != null;
-					assert position != null;
-					final JSONWriter writer = new JSONWriter();
-					writer.startObject();
-					writer.write("module");
-					writer.write(name.qualifiedName());
-					writer.write("position");
-					writer.write(position);
-					writer.endObject();
-					synchronized (localUpdates)
-					{
-						localUpdates.add(writer);
-					}
+					localUpdates.add(writer);
 				}
 			},
-			new Continuation2<Long, Long>()
+			(bytesSoFar, totalBytes) ->
 			{
-				@Override
-				public void value (
-					final @Nullable Long bytesSoFar,
-					final @Nullable Long totalBytes)
+				assert bytesSoFar != null;
+				assert totalBytes != null;
+				final JSONWriter writer = new JSONWriter();
+				writer.startObject();
+				writer.write("bytesSoFar");
+				writer.write(bytesSoFar);
+				writer.write("totalBytes");
+				writer.write(totalBytes);
+				writer.endObject();
+				synchronized (globalUpdates)
 				{
-					assert bytesSoFar != null;
-					assert totalBytes != null;
-					final JSONWriter writer = new JSONWriter();
-					writer.startObject();
-					writer.write("bytesSoFar");
-					writer.write(bytesSoFar);
-					writer.write("totalBytes");
-					writer.write(totalBytes);
-					writer.endObject();
-					synchronized (globalUpdates)
-					{
-						globalUpdates.add(writer);
-					}
+					globalUpdates.add(writer);
 				}
 			});
 		updater.cancel();
@@ -1455,23 +1376,12 @@ public final class AvailServer
 		channel.enqueueMessageThen(
 			newSuccessMessage(
 				command,
-				new Continuation1<JSONWriter>()
+				writer ->
 				{
-					@Override
-					public void value (final @Nullable JSONWriter writer)
-					{
-						assert writer != null;
-						writer.write("end");
-					}
+					assert writer != null;
+					writer.write("end");
 				}),
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					IO.close(ioChannel);
-				}
-			});
+			() -> IO.close(ioChannel));
 	}
 
 	/**
@@ -1506,27 +1416,19 @@ public final class AvailServer
 			final Message message = newErrorMessage(command, e.toString());
 			channel.enqueueMessageThen(
 				message,
-				new Continuation0()
+				() ->
 				{
-					@Override
-					public void value ()
-					{
-						// Do nothing.
-					}
+					// Do nothing.
 				});
 			return;
 		}
 		requestUpgradesThen(
 			channel,
 			command,
-			new Continuation1<AvailServerChannel>()
+			ioChannel ->
 			{
-				@Override
-				public void value (final @Nullable AvailServerChannel ioChannel)
-				{
-					assert ioChannel != null;
-					unloadModule(channel, ioChannel, command, moduleName);
-				}
+				assert ioChannel != null;
+				unloadModule(channel, ioChannel, command, moduleName);
 			},
 			continuation);
 	}
@@ -1556,14 +1458,10 @@ public final class AvailServer
 		requestUpgradesThen(
 			channel,
 			command,
-			new Continuation1<AvailServerChannel>()
+			ioChannel ->
 			{
-				@Override
-				public void value (final @Nullable AvailServerChannel ioChannel)
-				{
-					assert ioChannel != null;
-					unloadModule(channel, ioChannel, command, null);
-				}
+				assert ioChannel != null;
+				unloadModule(channel, ioChannel, command, null);
 			},
 			continuation);
 	}
@@ -1595,45 +1493,26 @@ public final class AvailServer
 		channel.enqueueMessageThen(
 			newSuccessMessage(
 				command,
-				new Continuation1<JSONWriter>()
+				writer ->
 				{
-					@Override
-					public void value (final @Nullable JSONWriter writer)
-					{
-						assert writer != null;
-						writer.write("begin");
-					}
+					assert writer != null;
+					writer.write("begin");
 				}),
-			new Continuation0()
+			() ->
 			{
-				@Override
-				public void value ()
-				{
-					// Do nothing.
-				}
+				// Do nothing.
 			});
 		builder.setTextInterface(ioChannel.textInterface());
 		builder.unloadTarget(target);
 		channel.enqueueMessageThen(
 			newSuccessMessage(
 				command,
-				new Continuation1<JSONWriter>()
+				writer ->
 				{
-					@Override
-					public void value (final @Nullable JSONWriter writer)
-					{
-						assert writer != null;
-						writer.write("end");
-					}
+					assert writer != null;
+					writer.write("end");
 				}),
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					IO.close(ioChannel);
-				}
-			});
+			() -> IO.close(ioChannel));
 	}
 
 	/**
@@ -1660,14 +1539,10 @@ public final class AvailServer
 		requestUpgradesThen(
 			channel,
 			command,
-			new Continuation1<AvailServerChannel>()
+			ioChannel ->
 			{
-				@Override
-				public void value (final @Nullable AvailServerChannel ioChannel)
-				{
-					assert ioChannel != null;
-					run(channel, ioChannel, command);
-				}
+				assert ioChannel != null;
+				run(channel, ioChannel, command);
 			},
 			continuation);
 	}
@@ -1694,119 +1569,57 @@ public final class AvailServer
 		builder.setTextInterface(ioChannel.textInterface());
 		builder.attemptCommand(
 			command.expression(),
-			new Continuation2<
-				List<CompiledCommand>, Continuation1<CompiledCommand>>()
+			(list, decider) ->
 			{
-				@Override
-				public void value (
-					final @Nullable List<CompiledCommand> list,
-					final @Nullable Continuation1<CompiledCommand> decider)
-				{
-					// TODO: [TLS] Disambiguate.
-				}
+				// TODO: [TLS] Disambiguate.
 			},
-			new Continuation2<AvailObject, Continuation1<Continuation0>>()
+			(value, cleanup) ->
 			{
-				@Override
-				public void value (
-					final @Nullable AvailObject value,
-					final @Nullable Continuation1<Continuation0> cleanup)
+				assert value != null;
+				assert cleanup != null;
+				if (value.equalsNil())
 				{
-					assert value != null;
-					assert cleanup != null;
-					if (value.equalsNil())
+					final Message message = newSuccessMessage(
+						command,
+						writer ->
+						{
+							assert writer != null;
+							writer.startObject();
+							writer.write("expression");
+							writer.write(command.expression());
+							writer.write("result");
+							writer.writeNull();
+							writer.endObject();
+						});
+					channel.enqueueMessageThen(
+						message,
+						() -> cleanup.value(() -> IO.close(ioChannel)));
+					return;
+				}
+				Interpreter.stringifyThen(
+					runtime,
+					ioChannel.textInterface(),
+					value,
+					string ->
 					{
 						final Message message = newSuccessMessage(
 							command,
-							new Continuation1<JSONWriter>()
+							writer ->
 							{
-								@Override
-								public void value (
-									final @Nullable JSONWriter writer)
-								{
-									assert writer != null;
-									writer.startObject();
-									writer.write("expression");
-									writer.write(command.expression());
-									writer.write("result");
-									writer.writeNull();
-									writer.endObject();
-								}
+								assert writer != null;
+								writer.startObject();
+								writer.write("expression");
+								writer.write(command.expression());
+								writer.write("result");
+								writer.write(string);
+								writer.endObject();
 							});
 						channel.enqueueMessageThen(
 							message,
-							new Continuation0()
-							{
-								@Override
-								public void value ()
-								{
-									cleanup.value(new Continuation0()
-									{
-										@Override
-										public void value ()
-										{
-											IO.close(ioChannel);
-										}
-									});
-								}
-							});
-						return;
-					}
-					Interpreter.stringifyThen(
-						runtime,
-						ioChannel.textInterface(),
-						value,
-						new Continuation1<String>()
-						{
-							@Override
-							public void value (final @Nullable String string)
-							{
-								final Message message = newSuccessMessage(
-									command,
-									new Continuation1<JSONWriter>()
-									{
-										@Override
-										public void value (
-											final @Nullable JSONWriter writer)
-										{
-											assert writer != null;
-											writer.startObject();
-											writer.write("expression");
-											writer.write(command.expression());
-											writer.write("result");
-											writer.write(string);
-											writer.endObject();
-										}
-									});
-								channel.enqueueMessageThen(
-									message,
-									new Continuation0()
-									{
-										@Override
-										public void value ()
-										{
-											cleanup.value(new Continuation0()
-											{
-												@Override
-												public void value ()
-												{
-													IO.close(ioChannel);
-												}
-											});
-										}
-									});
-							}
-						});
-				}
+							() -> cleanup.value(() -> IO.close(ioChannel)));
+					});
 			},
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					IO.close(ioChannel);
-				}
-			});
+			() -> IO.close(ioChannel));
 	}
 
 	/**
@@ -1832,28 +1645,24 @@ public final class AvailServer
 		final Map<Long, FiberReference> allFibers = runtime.allFibers();
 		final Message message = newSuccessMessage(
 			command,
-			new Continuation1<JSONWriter>()
+			writer ->
 			{
-				@Override
-				public void value (final @Nullable JSONWriter writer)
+				assert writer != null;
+				writer.startArray();
+				for (final FiberReference ref : allFibers.values())
 				{
-					assert writer != null;
-					writer.startArray();
-					for (final FiberReference ref : allFibers.values())
+					final A_Fiber fiber = ref.get();
+					if (fiber != null)
 					{
-						final A_Fiber fiber = ref.get();
-						if (fiber != null)
-						{
-							writer.startObject();
-							writer.write("id");
-							writer.write(fiber.uniqueId());
-							writer.write("name");
-							writer.write(fiber.fiberName());
-							writer.endObject();
-						}
+						writer.startObject();
+						writer.write("id");
+						writer.write(fiber.uniqueId());
+						writer.write("name");
+						writer.write(fiber.fiberName());
+						writer.endObject();
 					}
-					writer.endArray();
 				}
+				writer.endArray();
 			});
 		channel.enqueueMessageThen(message, continuation);
 	}
@@ -1924,7 +1733,6 @@ public final class AvailServer
 			| InterruptedException e)
 		{
 			e.printStackTrace();
-			return;
 		}
 		finally
 		{

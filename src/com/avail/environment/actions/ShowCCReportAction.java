@@ -36,7 +36,7 @@ import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 import java.awt.event.*;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
+
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.builder.AvailBuilder;
@@ -44,7 +44,6 @@ import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor.CodeCoverageReport;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
-import com.avail.utility.evaluation.Continuation1;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -69,11 +68,7 @@ extends AbstractWorkbenchAction
 			public void value ()
 			{
 				CompiledCodeDescriptor.codeCoverageReportsThen(
-					new Continuation1<List<CodeCoverageReport>>()
-				{
-					@Override
-					public void value (
-						@Nullable final List<CodeCoverageReport> reports)
+					reports ->
 					{
 						assert reports != null;
 
@@ -96,17 +91,13 @@ extends AbstractWorkbenchAction
 						builder.append(header);
 
 						// Iterate over each report
-						final Iterator<CodeCoverageReport> iterator =
-							reports.iterator();
-						while (iterator.hasNext())
+						for (final CodeCoverageReport r : reports)
 						{
-							final CodeCoverageReport r = iterator.next();
-							builder.append(r.toString());
+							builder.append(r);
 							builder.append('\n');
 						}
 						workbench.writeText(builder.toString(), INFO);
-					}
-				});
+					});
 			}
 		});
 	}

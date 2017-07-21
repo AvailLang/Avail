@@ -606,7 +606,7 @@ extends NumericTupleDescriptor
 	 * @param object The byte tuple to copy.
 	 * @return The new mutable byte tuple.
 	 */
-	private AvailObject copyAsMutableByteBufferTuple (
+	private static AvailObject copyAsMutableByteBufferTuple (
 		final AvailObject object)
 	{
 		final int size = object.tupleSize();

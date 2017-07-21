@@ -47,7 +47,6 @@ import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_Fiber;
-import com.avail.utility.evaluation.Continuation0;
 
 /**
  * A {@code ProcessInputChannel} provides a faux {@linkplain
@@ -96,27 +95,23 @@ implements TextInputChannel
 		final A_Fiber fiber = (A_Fiber) attachment;
 		runtime.executeFileTask(AvailTask.forUnboundFiber(
 			fiber,
-			new Continuation0()
+			() ->
 			{
-				@Override
-				public void value ()
+				final int charsRead;
+				try
 				{
-					final int charsRead;
-					try
+					charsRead = in.read(buffer);
+					if (charsRead == -1)
 					{
-						charsRead = in.read(buffer);
-						if (charsRead == -1)
-						{
-							throw new IOException("end of stream");
-						}
+						throw new IOException("end of stream");
 					}
-					catch (final IOException e)
-					{
-						handler.failed(e, attachment);
-						return;
-					}
-					handler.completed(charsRead, attachment);
 				}
+				catch (final IOException e)
+				{
+					handler.failed(e, attachment);
+					return;
+				}
+				handler.completed(charsRead, attachment);
 			}));
 	}
 

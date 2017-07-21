@@ -212,7 +212,7 @@ extends TupleDescriptor
 		if (newSize <= maximumCopySize)
 		{
 			// Copy the objects.
-			final AvailObject result = ObjectTupleDescriptor.generateFrom(
+			return ObjectTupleDescriptor.generateFrom(
 				newSize,
 				new Generator<A_BasicObject>()
 				{
@@ -237,7 +237,6 @@ extends TupleDescriptor
 						return element;
 					}
 				});
-			return result;
 		}
 		if (!canDestroy)
 		{

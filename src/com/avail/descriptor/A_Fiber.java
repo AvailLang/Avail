@@ -172,17 +172,17 @@ extends A_BasicObject
 	 * @param flag
 	 * @return
 	 */
-	public boolean traceFlag (final TraceFlag flag);
+	boolean traceFlag (final TraceFlag flag);
 
 	/**
 	 * @param flag
 	 */
-	public void setTraceFlag (final TraceFlag flag);
+	void setTraceFlag (final TraceFlag flag);
 
 	/**
 	 * @param flag
 	 */
-	public void clearTraceFlag (final TraceFlag flag);
+	void clearTraceFlag (final TraceFlag flag);
 
 	/**
 	 * @return
@@ -261,7 +261,7 @@ extends A_BasicObject
 	 * @param wasRead
 	 *        {@code true} if the variable was read, {@code false} otherwise.
 	 */
-	public void recordVariableAccess (
+	void recordVariableAccess (
 		final A_Variable var,
 		final boolean wasRead);
 
@@ -274,7 +274,7 @@ extends A_BasicObject
 	 *
 	 * @return The requested variables.
 	 */
-	public A_Set variablesReadBeforeWritten ();
+	A_Set variablesReadBeforeWritten ();
 
 	/**
 	 * Answer the {@linkplain SetDescriptor set} of {@linkplain
@@ -285,7 +285,7 @@ extends A_BasicObject
 	 *
 	 * @return The requested variables.
 	 */
-	public A_Set variablesWritten ();
+	A_Set variablesWritten ();
 
 	/**
 	 * Ensure the specified {@linkplain Continuation1 action} is invoked with

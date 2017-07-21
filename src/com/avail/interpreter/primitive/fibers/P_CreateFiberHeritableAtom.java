@@ -44,7 +44,6 @@ import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Create a new {@linkplain AtomDescriptor atom}
@@ -80,31 +79,27 @@ extends Primitive
 		if (!module.equalsNil())
 		{
 			module.lock(
-				new Continuation0()
+				() ->
 				{
-					@Override
-					public void value ()
+					final A_Set trueNames =
+						module.trueNamesForStringName(name);
+					if (trueNames.setSize() == 0)
 					{
-						final A_Set trueNames =
-							module.trueNamesForStringName(name);
-						if (trueNames.setSize() == 0)
-						{
-							final A_Atom newName = AtomDescriptor.create(
-								name, module);
-							newName.setAtomProperty(
-								HERITABLE_KEY.atom,
-								AtomDescriptor.trueObject());
-							module.addPrivateName(newName);
-							trueName.value = newName;
-						}
-						else if (trueNames.setSize() == 1)
-						{
-							errorCode.value = E_ATOM_ALREADY_EXISTS;
-						}
-						else
-						{
-							errorCode.value = E_AMBIGUOUS_NAME;
-						}
+						final A_Atom newName = AtomDescriptor.create(
+							name, module);
+						newName.setAtomProperty(
+							HERITABLE_KEY.atom,
+							AtomDescriptor.trueObject());
+						module.addPrivateName(newName);
+						trueName.value = newName;
+					}
+					else if (trueNames.setSize() == 1)
+					{
+						errorCode.value = E_ATOM_ALREADY_EXISTS;
+					}
+					else
+					{
+						errorCode.value = E_AMBIGUOUS_NAME;
 					}
 				});
 		}

@@ -86,9 +86,9 @@ public final class P_IfTrueThenElse extends Primitive
 		final List<L2ObjectRegister> args,
 		final L1NaiveTranslator naiveTranslator)
 	{
-		assert hasFlag(Flag.Invokes);
-		assert !hasFlag(Flag.CanInline);
-		assert !hasFlag(Flag.CanFold);
+		assert hasFlag(Invokes);
+		assert !hasFlag(CanInline);
+		assert !hasFlag(CanFold);
 
 		final L2ObjectRegister functionReg = args.get(1);
 		args.clear();

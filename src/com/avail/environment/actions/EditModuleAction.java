@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 /**
@@ -95,6 +96,6 @@ extends AbstractWorkbenchAction
 		putValue(
 			ACCELERATOR_KEY,
 			KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,
-				Event.CTRL_MASK));
+				InputEvent.CTRL_MASK));
 	}
 }

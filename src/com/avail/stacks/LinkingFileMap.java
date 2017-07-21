@@ -96,7 +96,7 @@ public class LinkingFileMap
 		}
 		else
 		{
-			final HashSet<String> newLinks = new HashSet<String>();
+			final HashSet<String> newLinks = new HashSet<>();
 			newLinks.add(fileLink);
 			aliasesToFileLink.put(alias,newLinks);
 		}
@@ -153,13 +153,13 @@ public class LinkingFileMap
 	 */
 	public LinkingFileMap ()
 	{
-		categoryToDescription = new HashMap<String,StacksDescription>();
+		categoryToDescription = new HashMap<>();
 		categoryMethodList =
-			new HashMap<String,ArrayList<Pair<String,String>>>();
-		aliasesToFileLink = new HashMap<String,HashSet<String>>();
-		namedFileLinks = new HashMap<String,String>();
-		internalLinks = new HashMap<String,String>();
-		moduleComments = new HashSet<ModuleCommentImplementation>();
+			new HashMap<>();
+		aliasesToFileLink = new HashMap<>();
+		namedFileLinks = new HashMap<>();
+		internalLinks = new HashMap<>();
+		moduleComments = new HashSet<>();
 	}
 
 	/**
@@ -211,7 +211,8 @@ public class LinkingFileMap
 		final String methodLeafName, final String methodAndMethodLink)
 	{
 		final Pair<String,String> methodPair =
-			new Pair<String,String>(methodLeafName,
+			new Pair<>(
+				methodLeafName,
 				methodAndMethodLink);
 		if (categoryMethodList.containsKey(categoryName))
 		{
@@ -220,7 +221,7 @@ public class LinkingFileMap
 		else
 		{
 			final ArrayList <Pair<String,String>> aList =
-				new ArrayList <Pair<String,String>>();
+				new ArrayList<>();
 			aList.add(methodPair);
 			categoryMethodList.put(categoryName, aList);
 		}
@@ -249,7 +250,7 @@ public class LinkingFileMap
 			jsonWriter.write("categories");
 			jsonWriter.startArray();
 
-			for (final Map.Entry<String, ArrayList<Pair<String, String>>> entry
+			for (final Entry<String, ArrayList<Pair<String, String>>> entry
 				: categoryMethodList.entrySet())
 			{
 				jsonWriter.startObject();
@@ -300,7 +301,7 @@ public class LinkingFileMap
 		final StringBuilder stringBuilder = new StringBuilder().append("[\n");
 
 		final ArrayList<String> categorySet =
-			new ArrayList<String>(categoryMethodList.keySet());
+			new ArrayList<>(categoryMethodList.keySet());
 
 		final int setSize = categorySet.size();
 
@@ -308,11 +309,17 @@ public class LinkingFileMap
 		{
 			for (int j = 0; j < setSize - 1; j++)
 			{
-				stringBuilder.append(tabs(1) + "{\n")
-					.append(tabs(2) + "\"selected\" : false,\n")
-					.append(tabs(2) + "\"category\" : \"")
+				stringBuilder
+					.append(tabs(1))
+					.append("{\n")
+					.append(tabs(2))
+					.append("\"selected\" : false,\n")
+					.append(tabs(2))
+					.append("\"category\" : \"")
 					.append(categorySet.get(j))
-					.append("\",\n" + tabs(2) +"\"methods\" : [\n");
+					.append("\",\n")
+					.append(tabs(2))
+					.append("\"methods\" : [\n");
 
 				final ArrayList<Pair<String,String>> methodList =
 					categoryMethodList.get(categorySet.get(j));
@@ -324,31 +331,50 @@ public class LinkingFileMap
 					for (int i = 0; i < listSize - 1; i++)
 					{
 						final Pair<String,String> pair = methodList.get(i);
-						stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
-							.append(pair.first()).append("\", \"link\" : \"")
+						stringBuilder
+							.append(tabs(3))
+							.append("{\"methodName\" : \"")
+							.append(pair.first())
+							.append("\", \"link\" : \"")
 							.append(pair.second().substring(1))
 							.append("\", \"distinct\" : \"")
-							.append(pair.first()).append(pair.second())
+							.append(pair.first())
+							.append(pair.second())
 							.append("\"},\n");
 					}
 
 					final Pair<String,String> lastPair =
 						methodList.get(listSize - 1);
 
-					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
-						.append(lastPair.first()).append("\", \"link\" : \"")
+					stringBuilder
+						.append(tabs(3))
+						.append("{\"methodName\" : \"")
+						.append(lastPair.first())
+						.append("\", \"link\" : \"")
 						.append(lastPair.second().substring(1))
 						.append("\", \"distinct\" : \"")
-						.append(lastPair.first()).append(lastPair.second())
-						.append("\"}\n" + tabs(2)+ "]\n" + tabs(1)+ "},\n");
+						.append(lastPair.first())
+						.append(lastPair.second())
+						.append("\"}\n")
+						.append(tabs(2))
+						.append("]\n")
+						.append(tabs(1))
+						.append("},\n");
 				}
 			}
 
-			stringBuilder.append(tabs(1) + "{\n" + tabs(2) + "\"selected\" : "
-					+ "false,\n")
-				.append(tabs(2) + "\"category\" : \"")
+			stringBuilder
+				.append(tabs(1))
+				.append("{\n")
+				.append(tabs(2))
+				.append("\"selected\" : ")
+				.append("false,\n")
+				.append(tabs(2))
+				.append("\"category\" : \"")
 				.append(categorySet.get(setSize - 1))
-				.append("\",\n" + tabs(2) + "\"methods\" : [\n");
+				.append("\",\n")
+				.append(tabs(2))
+				.append("\"methods\" : [\n");
 
 			final ArrayList<Pair<String,String>> methodList =
 				categoryMethodList.get(categorySet.get(setSize - 1));
@@ -360,23 +386,35 @@ public class LinkingFileMap
 				for (int i = 0; i < listSize - 1; i++)
 				{
 					final Pair<String,String> pair = methodList.get(i);
-					stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
-						.append(pair.first()).append("\", \"link\" : \"")
+					stringBuilder
+						.append(tabs(3))
+						.append("{\"methodName\" : \"")
+						.append(pair.first())
+						.append("\", \"link\" : \"")
 						.append(pair.second().substring(1))
 						.append("\", \"distinct\" : \"")
-						.append(pair.first()).append(pair.second())
+						.append(pair.first())
+						.append(pair.second())
 						.append("\"},\n");
 				}
 
 				final Pair<String,String> lastPair =
 					methodList.get(listSize - 1);
 
-				stringBuilder.append(tabs(3) + "{\"methodName\" : \"")
-					.append(lastPair.first()).append("\", \"link\" : \"")
+				stringBuilder
+					.append(tabs(3))
+					.append("{\"methodName\" : \"")
+					.append(lastPair.first())
+					.append("\", \"link\" : \"")
 					.append(lastPair.second().substring(1))
 					.append("\", \"distinct\" : \"")
-					.append(lastPair.first()).append(lastPair.second())
-					.append("\"}\n" + tabs(2) + "]\n" + tabs(1) + "}\n]");
+					.append(lastPair.first())
+					.append(lastPair.second())
+					.append("\"}\n")
+					.append(tabs(2))
+					.append("]\n")
+					.append(tabs(1))
+					.append("}\n]");
 			}
 		}
 
@@ -413,10 +451,10 @@ public class LinkingFileMap
 
 			jsonWriter.startObject();
 
-			for (final String key : internalLinks.keySet())
+			for (final Entry<String, String> entry : internalLinks.entrySet())
 			{
-				jsonWriter.write(key);
-				jsonWriter.write(internalLinks.get(key));
+				jsonWriter.write((String) entry.getKey());
+				jsonWriter.write(entry.getValue());
 			}
 			jsonWriter.endObject();
 

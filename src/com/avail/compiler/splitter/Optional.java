@@ -237,7 +237,7 @@ extends Expression
 		{
 			builder.append("«");
 			sequence.printWithArguments(
-				Collections.<AvailObject>emptyIterator(), builder, indent);
+				Collections.emptyIterator(), builder, indent);
 			builder.append("»?");
 		}
 	}

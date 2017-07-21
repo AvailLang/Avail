@@ -444,7 +444,7 @@ public final class RenamesFileParser
 		};
 
 		/** An array of all {@link ScannerAction} enumeration values. */
-		private static ScannerAction[] all = values();
+		private static final ScannerAction[] all = values();
 
 		/**
 		 * Answer an array of all {@link ScannerAction} enumeration values.

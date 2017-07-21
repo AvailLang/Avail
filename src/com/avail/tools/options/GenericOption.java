@@ -60,7 +60,7 @@ implements Option<OptionKeyType>
 	 * The {@linkplain LinkedHashSet set} of keywords that indicate this
 	 * {@linkplain GenericOption option}.
 	 */
-	private final LinkedHashSet<String> keywords = new LinkedHashSet<String>();
+	private final LinkedHashSet<String> keywords = new LinkedHashSet<>();
 
 	@Override
 	public LinkedHashSet<String> keywords ()

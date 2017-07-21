@@ -101,10 +101,7 @@ public final class P_TupleToSet extends Primitive
 			true,
 			tupleSizes.upperBound(),
 			tupleSizes.upperInclusive());
-		final A_Type setType =
-			SetTypeDescriptor.setTypeForSizesContentType(
-				setSizes,
-				unionType);
-		return setType;
+		return SetTypeDescriptor.setTypeForSizesContentType(
+			setSizes, unionType);
 	}
 }

@@ -37,7 +37,6 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 import java.util.logging.Level;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
@@ -45,7 +44,6 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.utility.MutableOrNull;
 
 /**
  * Look up the method to invoke. Use the provided vector of arguments to

@@ -180,7 +180,7 @@ extends PojoTypeDescriptor
 	 * @param object An object.
 	 * @return The hash.
 	 */
-	private int hash (final AvailObject object)
+	private static int hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -362,6 +362,7 @@ extends PojoTypeDescriptor
 		return MapDescriptor.empty();
 	}
 
+	@SuppressWarnings("StatementWithEmptyBody")
 	@Override
 	void printObjectOnAvoidingIndent (
 		final AvailObject object,

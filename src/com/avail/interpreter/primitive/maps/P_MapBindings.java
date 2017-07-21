@@ -35,6 +35,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.interpreter.*;
 
 /**
@@ -62,7 +63,7 @@ public final class P_MapBindings extends Primitive
 
 		final A_Tuple[] bindings = new A_Tuple[map.mapSize()];
 		int index = 0;
-		for (final MapDescriptor.Entry entry : map.mapIterable())
+		for (final Entry entry : map.mapIterable())
 		{
 			bindings[index++] = TupleDescriptor.from(entry.key(), entry.value());
 		}

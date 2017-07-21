@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.*;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
 import com.avail.annotations.AvailMethod;
@@ -151,7 +152,7 @@ extends AtomDescriptor
 		@SuppressWarnings("unchecked")
 		final Map<A_Atom, AvailObject> propertyMap =
 			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObjectNotNull();
-		for (final Map.Entry<A_Atom, AvailObject> entry :
+		for (final Entry<A_Atom, AvailObject> entry :
 			propertyMap.entrySet())
 		{
 			entry.getKey().makeShared();

@@ -129,7 +129,7 @@ extends AvailServerChannel
 				public void value ()
 				{
 					final Message nextMessage;
-					Pair<Message, Continuation0> pair = null;
+					Pair<Message, Continuation0> pair;
 					synchronized (sendQueue)
 					{
 						// The message remains on the queue during
@@ -209,7 +209,7 @@ extends AvailServerChannel
 			else
 			{
 				assert size == maxQueueDepth;
-				senders.addLast(new Pair<Message, Continuation0>(
+				senders.addLast(new Pair<>(
 					message, enqueueSucceeded));
 				beginTransmitting = false;
 				invokeContinuationNow = false;

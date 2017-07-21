@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 import com.avail.AvailRuntime;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.MapDescriptor.Entry;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
@@ -138,7 +139,7 @@ public class ModuleHeader
 	/**
 	 * The token "Pragma" which the pragma section, if any, otherwise null.
 	 */
-	public A_Token pragmaToken = null;
+	public final A_Token pragmaToken = null;
 
 	/**
 	 * Construct a new {@link ModuleHeader}.
@@ -191,8 +192,8 @@ public class ModuleHeader
 	 * @throws MalformedSerialStreamException
 	 *         If the module import specification is invalid.
 	 */
-	private List<ModuleImport> moduleImportsFromTuple (
-			final A_Tuple serializedTuple)
+	private static List<ModuleImport> moduleImportsFromTuple (
+		final A_Tuple serializedTuple)
 		throws MalformedSerialStreamException
 	{
 		final List<ModuleImport> list = new ArrayList<>();
@@ -222,7 +223,7 @@ public class ModuleHeader
 		final A_Tuple theVersions = deserializer.deserialize();
 		assert theVersions != null;
 		versions.clear();
-		versions.addAll(TupleDescriptor.<A_String>toList(theVersions));
+		versions.addAll(TupleDescriptor.toList(theVersions));
 		final A_Tuple theExtended = deserializer.deserialize();
 		assert theExtended != null;
 		importedModules.clear();
@@ -230,12 +231,12 @@ public class ModuleHeader
 		final A_Tuple theExported = deserializer.deserialize();
 		assert theExported != null;
 		exportedNames.clear();
-		exportedNames.addAll(TupleDescriptor.<A_String>toList(theExported));
+		exportedNames.addAll(TupleDescriptor.toList(theExported));
 		final A_Tuple theEntryPoints = deserializer.deserialize();
 		assert theEntryPoints != null;
 		entryPoints.clear();
 		entryPoints.addAll(
-			TupleDescriptor.<A_String>toList(theEntryPoints));
+			TupleDescriptor.toList(theEntryPoints));
 		final A_Tuple thePragmas = deserializer.deserialize();
 		assert thePragmas != null;
 		pragmas.clear();
@@ -353,7 +354,7 @@ public class ModuleHeader
 			}
 
 			// Perform renames.
-			for (final MapDescriptor.Entry entry
+			for (final Entry entry
 				: moduleImport.renames.mapIterable())
 			{
 				final A_String newString = entry.key();

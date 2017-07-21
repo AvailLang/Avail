@@ -41,6 +41,7 @@ import java.util.IdentityHashMap;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
@@ -57,16 +58,16 @@ import org.jetbrains.annotations.Nullable;
  * Instead, the term "primitive type" in Avail refers to the top section of the
  * type lattice which partitions the rest of the lattice into broad categories
  * of essential disjoint subgraphs. This includes the ultimate type {@linkplain
- * TypeDescriptor.Types#TOP top (⊤)}, the penultimate type {@linkplain
- * TypeDescriptor.Types#ANY any}, and various specialties such as {@linkplain
- * TypeDescriptor.Types#ATOM atom} and {@linkplain TypeDescriptor.Types#NUMBER
+ * Types#TOP top (⊤)}, the penultimate type {@linkplain
+ * Types#ANY any}, and various specialties such as {@linkplain
+ * Types#ATOM atom} and {@linkplain Types#NUMBER
  * number}. Type hierarchies that have a natural root don't bother with a
  * primitive type to delimit the hierarchy, using the natural root itself. For
  * example, the tuple type whose instances include all tuples is a natural root
  * of the tuple types.
  * </p>
  *
- * @see TypeDescriptor.Types all primitive types
+ * @see Types all primitive types
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -131,7 +132,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Extract the {@link Types} enum value's {@link java.lang.Enum#ordinal()}
+	 * Extract the {@link Types} enum value's {@link Enum#ordinal()}
 	 * from this primitive type.
 	 *
 	 * @param object The primitive type.
@@ -352,7 +353,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		for (final Types type : Types.all())
+		for (final Types type : all())
 		{
 			if (object.equals(type.o()))
 			{
@@ -372,6 +373,7 @@ extends TypeDescriptor
 					case ATOM:
 					case DEFINITION_PARSING_PLAN:
 					case FORWARD_DEFINITION:
+					case LEXER:
 					case MACRO_DEFINITION:
 					case MESSAGE_BUNDLE:
 					case MESSAGE_BUNDLE_TREE:

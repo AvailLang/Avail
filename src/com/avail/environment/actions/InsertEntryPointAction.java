@@ -68,7 +68,7 @@ extends AbstractWorkbenchAction
 			.replaceAll("_\\B", "_ ");
 		assert entryPointText != null;
 		workbench.inputField.setText(entryPointText);
-		final int offsetToUnderscore = entryPointText.indexOf("_");
+		final int offsetToUnderscore = entryPointText.indexOf('_');
 		final int offset;
 		if (offsetToUnderscore == -1)
 		{

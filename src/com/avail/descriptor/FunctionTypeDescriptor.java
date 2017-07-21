@@ -131,7 +131,7 @@ extends TypeDescriptor
 		boolean anyBreaks;
 		List<String> tempStrings;
 		anyBreaks = false;
-		tempStrings = new ArrayList<String>(objectCount);
+		tempStrings = new ArrayList<>(objectCount);
 		for (final A_BasicObject elem : objects)
 		{
 			final String str = elem != null ? elem.toString() : "…";
@@ -254,7 +254,7 @@ extends TypeDescriptor
 	 * @param object The object.
 	 * @return The hash.
 	 */
-	private int hash (final AvailObject object)
+	private static int hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)

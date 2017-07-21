@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.ContinuationDescriptor.IntegerSlots;
+import com.avail.descriptor.ContinuationDescriptor.ObjectSlots;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 
@@ -101,10 +103,10 @@ extends A_BasicObject
 	/**
 	 * Answer the current depth of the argument stack within this continuation.
 	 * This is a one-based index into the continuation's {@link
-	 * ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame area}.  The stack
+	 * ObjectSlots#FRAME_AT_ frame area}.  The stack
 	 * pointer indexes the most recently pushed value.  The stack grows
 	 * downwards, and the empty stack is indicated by a pointer just beyond the
-	 * {@link ContinuationDescriptor.ObjectSlots#FRAME_AT_ frame data}.
+	 * {@link ObjectSlots#FRAME_AT_ frame data}.
 	 *
 	 * @return The current stack pointer within this continuation.
 	 */
@@ -179,8 +181,8 @@ extends A_BasicObject
 	int numArgsAndLocalsAndStack ();
 
 	/**
-	 * Set both the {@link ContinuationDescriptor.IntegerSlots#PROGRAM_COUNTER}
-	 * and the {@link ContinuationDescriptor.IntegerSlots#STACK_POINTER} of this
+	 * Set both the {@link IntegerSlots#PROGRAM_COUNTER}
+	 * and the {@link IntegerSlots#STACK_POINTER} of this
 	 * continuation, which must be mutable.
 	 *
 	 * @param pc
@@ -203,7 +205,7 @@ extends A_BasicObject
 
 	/**
 	 * Create a copy of the receiver if it's not already mutable, then clobber
-	 * the {@link ContinuationDescriptor.ObjectSlots#CALLER} slot with the
+	 * the {@link ObjectSlots#CALLER} slot with the
 	 * passed value.
 	 *
 	 * @param newCaller The calling continuation.

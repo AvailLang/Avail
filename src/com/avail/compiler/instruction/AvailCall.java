@@ -48,7 +48,7 @@ public class AvailCall extends AvailInstructionWithIndex
 	/**
 	 * The index of the literal that holds the call-site specific return type.
 	 */
-	int verifyIndex;
+	final int verifyIndex;
 
 	/**
 	 * Construct a new {@link AvailCall}.

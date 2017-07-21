@@ -38,8 +38,6 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
-import java.util.List;
-
 /**
  * A label can be the target of a branching instruction.  It is not actually
  * emitted in the instruction stream, but it acts as a place holder during

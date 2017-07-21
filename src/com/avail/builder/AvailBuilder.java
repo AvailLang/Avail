@@ -51,6 +51,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -197,15 +198,14 @@ public final class AvailBuilder
 	 * current build action.  Modules are only added here after they have been
 	 * locally traced successfully.
 	 */
-	public final Graph<ResolvedModuleName> moduleGraph =
-		new Graph<ResolvedModuleName>();
+	public final Graph<ResolvedModuleName> moduleGraph = new Graph<>();
 
 	/**
 	 * A map from each {@link ResolvedModuleName} to its currently loaded
 	 * {@link LoadedModule}.
 	 */
 	private final Map<ResolvedModuleName, LoadedModule> allLoadedModules =
-		new HashMap<ResolvedModuleName, LoadedModule>();
+		new HashMap<>();
 
 	/** Whom to notify when modules load and unload. */
 	private final Set<Continuation2<LoadedModule, Boolean>> subscriptions =
@@ -385,14 +385,7 @@ public final class AvailBuilder
 	}
 
 	/** Create a Generator<Boolean> for polling for abort requests. */
-	public final Generator<Boolean> pollForAbort = new Generator<Boolean>()
-	{
-		@Override
-		public Boolean value()
-		{
-			return shouldStopBuild();
-		}
-	};
+	public final Generator<Boolean> pollForAbort = this::shouldStopBuild;
 
 	/**
 	 * Cancel the build at the next convenient stopping point for each module.
@@ -410,7 +403,8 @@ public final class AvailBuilder
 	 * @param bytes The input bytes.
 	 * @return The bytes followed by the checksum.
 	 */
-	@InnerAccess byte[] appendCRC (final byte[] bytes)
+	@InnerAccess
+	static byte[] appendCRC (final byte[] bytes)
 	{
 		final CRC32 checksum = new CRC32();
 		checksum.update(bytes);
@@ -436,7 +430,8 @@ public final class AvailBuilder
 	 *         bytes.
 	 * @throws MalformedSerialStreamException If the CRC check fails.
 	 */
-	@InnerAccess ByteArrayInputStream validatedBytesFrom (final byte[] bytes)
+	@InnerAccess
+	static ByteArrayInputStream validatedBytesFrom (final byte[] bytes)
 		throws MalformedSerialStreamException
 	{
 		final int storedChecksum =
@@ -1228,7 +1223,7 @@ public final class AvailBuilder
 				{
 					if (!shouldStopBuild())
 					{
-						ResolvedModuleName resolvedName = null;
+						ResolvedModuleName resolvedName;
 						try
 						{
 							log(Level.FINEST, "Resolve: %s", qualifiedName);
@@ -1484,7 +1479,7 @@ public final class AvailBuilder
 			scheduleTraceModuleImports(
 				target,
 				null,
-				new LinkedHashSet<ResolvedModuleName>());
+				new LinkedHashSet<>());
 			// Wait until the parallel recursive trace completes.
 			synchronized (this)
 			{
@@ -1810,10 +1805,7 @@ public final class AvailBuilder
 		{
 			final A_Token fakeStartToken =
 				TokenDescriptor.createSyntheticStart();
-			localTracker.value(
-				moduleName,
-				moduleName.moduleSize(),
-				0L);
+			localTracker.value(moduleName, moduleName.moduleSize(), 0L);
 			final A_Module module = ModuleDescriptor.newModule(
 				StringDescriptor.from(moduleName.qualifiedName()));
 			final AvailLoader availLoader =
@@ -1909,18 +1901,14 @@ public final class AvailBuilder
 					final A_Fiber fiber = newLoaderFiber(
 						function.kind().returnType(),
 						availLoader,
-						new Generator<A_String>()
+						() ->
 						{
-							@Override
-							public A_String value ()
-							{
-								final A_RawFunction code = function.code();
-								return StringDescriptor.format(
-									"Load repo module %s, in %s:%d",
-									code.methodName(),
-									code.module().moduleName(),
-									code.startingLineNumber());
-							}
+							final A_RawFunction code = function.code();
+							return StringDescriptor.format(
+								"Load repo module %s, in %s:%d",
+								code.methodName(),
+								code.module().moduleName(),
+								code.startingLineNumber());
 						});
 					fiber.textInterface(textInterface);
 					fiber.failureContinuation(fail);
@@ -2018,59 +2006,57 @@ public final class AvailBuilder
 			final ModuleVersionKey versionKey =
 				new ModuleVersionKey(moduleName, digest);
 			final Mutable<Long> lastPosition = new Mutable<>(0L);
-			final Continuation1<AvailCompiler> continuation =
-				compiler ->
-				{
-					assert compiler != null;
-					compiler.parseModule(
-						module ->
-						{
-							assert module != null;
-							final ByteArrayOutputStream stream =
-								compiler.compilationContext
-									.serializerOutputStream;
-							// This is the moment of compilation.
-							final long compilationTime =
-								System.currentTimeMillis();
-							final ModuleCompilation compilation =
-								repository.new ModuleCompilation(
-									compilationTime,
-									appendCRC(stream.toByteArray()));
-							archive.putCompilation(
-								versionKey, compilationKey, compilation);
+			final Continuation1<AvailCompiler> continuation = compiler ->
+			{
+				assert compiler != null;
+				compiler.parseModule(
+					module ->
+					{
+						assert module != null;
+						final ByteArrayOutputStream stream =
+							compiler.compilationContext.serializerOutputStream;
+						// This is the moment of compilation.
+						final long compilationTime = System.currentTimeMillis();
+						final ModuleCompilation compilation =
+							repository.new ModuleCompilation(
+								compilationTime,
+								appendCRC(stream.toByteArray()));
+						archive.putCompilation(
+							versionKey, compilationKey, compilation);
 
-							// Serialize the Stacks comments.
-							final ByteArrayOutputStream out =
-								new ByteArrayOutputStream(5000);
-							final Serializer serializer =
-								new Serializer(out);
-							final A_Tuple comments = TupleDescriptor.fromList(
-								module.commentTokens());
-							serializer.serialize(comments);
-							final ModuleVersion version =
-								archive.getVersion(versionKey);
-							assert version != null;
-							version.putComments(appendCRC(out.toByteArray()));
+						// Serialize the Stacks comments.
+						final ByteArrayOutputStream out =
+							new ByteArrayOutputStream(5000);
+						final Serializer serializer = new Serializer(out);
+						// TODO MvG - Capture "/**" comments for Stacks.
+//						final A_Tuple comments = TupleDescriptor.fromList(
+//							module.commentTokens());
+						final A_Tuple comments = TupleDescriptor.empty();
+						serializer.serialize(comments);
+						final ModuleVersion version =
+							archive.getVersion(versionKey);
+						assert version != null;
+						version.putComments(appendCRC(out.toByteArray()));
 
-							repository.commitIfStaleChanges(
-								maximumStaleRepositoryMs);
-							postLoad(moduleName, lastPosition.value);
-							putLoadedModule(
+						repository.commitIfStaleChanges(
+							maximumStaleRepositoryMs);
+						postLoad(moduleName, lastPosition.value);
+						putLoadedModule(
+							moduleName,
+							new LoadedModule(
 								moduleName,
-								new LoadedModule(
-									moduleName,
-									versionKey.sourceDigest,
-									module,
-									version,
-									compilation));
-							completionAction.value();
-						},
-						() ->
-						{
-							postLoad(moduleName, lastPosition.value);
-							completionAction.value();
-						});
-				};
+								versionKey.sourceDigest,
+								module,
+								version,
+								compilation));
+						completionAction.value();
+					},
+					() ->
+					{
+						postLoad(moduleName, lastPosition.value);
+						completionAction.value();
+					});
+			};
 			AvailCompiler.create(
 				moduleName,
 				false,
@@ -2809,7 +2795,7 @@ public final class AvailBuilder
 					StandardOpenOption.TRUNCATE_EXISTING));
 			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(
 				out.toString());
-			final Mutable<Integer> position = new Mutable<Integer>(0);
+			final Mutable<Integer> position = new Mutable<>(0);
 			channel.write(
 				buffer,
 				0,
@@ -3207,16 +3193,9 @@ public final class AvailBuilder
 				StringDescriptor.from(command),
 				textInterface,
 				pollForAbort,
-				new CompilerProgressReporter()
+				(moduleName, moduleSize, position) ->
 				{
-					@Override
-					public void value (
-						final @Nullable ModuleName moduleName,
-						final @Nullable Long moduleSize,
-						final @Nullable Long position)
-					{
-						// do nothing.
-					}
+					// do nothing.
 				},
 				new BuilderProblemHandler("«collection only»")
 				{
@@ -3314,22 +3293,15 @@ public final class AvailBuilder
 					}
 				});
 			compiler.parseCommand(
-				new Continuation2<
-					List<A_Phrase>, Continuation1<Continuation0>>()
+				(solutions, cleanup) ->
 				{
-					@Override
-					public void value (
-						final @Nullable List<A_Phrase> solutions,
-						final @Nullable Continuation1<Continuation0> cleanup)
+					assert solutions != null;
+					synchronized (allSolutions)
 					{
-						assert solutions != null;
-						synchronized (allSolutions)
-						{
-							allSolutions.put(loadedModule, solutions);
-							allCleanups.add(cleanup);
-						}
-						decrement.value();
+						allSolutions.put(loadedModule, solutions);
+						allCleanups.add(cleanup);
 					}
+					decrement.value();
 				},
 				decrement);
 		}
@@ -3350,38 +3322,34 @@ public final class AvailBuilder
 	@InnerAccess Continuation1<Continuation0> parallelCombine (
 		final Collection<Continuation1<Continuation0>> continuations)
 	{
-		return new Continuation1<Continuation0>()
+		return postAction ->
 		{
-			@Override
-			public void value (final @Nullable Continuation0 postAction)
+			assert postAction != null;
+
+			final Continuation0 decrement = new Continuation0()
 			{
-				assert postAction != null;
+				private int count = continuations.size();
 
-				final Continuation0 decrement = new Continuation0()
+				@Override
+				public synchronized void value ()
 				{
-					private int count = continuations.size();
-
-					@Override
-					public synchronized void value ()
+					if (--count == 0)
 					{
-						if (--count == 0)
-						{
-							postAction.value();
-						}
+						postAction.value();
 					}
-				};
-				for (final Continuation1<Continuation0> continuation :
-					continuations)
-				{
-					runtime.execute(new AvailTask(commandPriority)
-					{
-						@Override
-						public void value ()
-						{
-							continuation.value(decrement);
-						}
-					});
 				}
+			};
+			for (final Continuation1<Continuation0> continuation :
+				continuations)
+			{
+				runtime.execute(new AvailTask(commandPriority)
+				{
+					@Override
+					public void value ()
+					{
+						continuation.value(decrement);
+					}
+				});
 			}
 		};
 	}
@@ -3426,7 +3394,7 @@ public final class AvailBuilder
 			// deepest parse, and only show those problems.
 			long deepestPosition = Long.MIN_VALUE;
 			final List<Problem> deepestProblems = new ArrayList<>();
-			for (final Map.Entry<LoadedModule, List<Problem>> entry :
+			for (final Entry<LoadedModule, List<Problem>> entry :
 				problems.entrySet())
 			{
 				for (final Problem problem : entry.getValue())
@@ -3451,7 +3419,7 @@ public final class AvailBuilder
 		}
 		// Filter the solutions to invocations of entry points.
 		final List<CompiledCommand> commands = new ArrayList<>();
-		for (final Map.Entry<LoadedModule, List<A_Phrase>> entry :
+		for (final Entry<LoadedModule, List<A_Phrase>> entry :
 			solutions.entrySet())
 		{
 			final List<String> moduleEntryPoints = entry.getKey().entryPoints();
@@ -3493,90 +3461,69 @@ public final class AvailBuilder
 		}
 
 		final Continuation1<CompiledCommand> unambiguous =
-			new Continuation1<CompiledCommand>()
+			command ->
 			{
-				@Override
-				public void value (final @Nullable CompiledCommand command)
+				if (command == null)
 				{
-					if (command == null)
+					onFailure.value();
+					return;
+				}
+				final A_Phrase phrase = command.phrase;
+				final A_Function function =
+					FunctionDescriptor.createFunctionForPhrase(
+						phrase, NilDescriptor.nil(), 1);
+				final A_Fiber fiber = newFiber(
+					function.kind().returnType(),
+					commandPriority,
+					() -> StringDescriptor.format(
+						"Running command: %s",
+						phrase));
+				A_Map fiberGlobals = fiber.fiberGlobals();
+				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+					CLIENT_DATA_GLOBAL_KEY.atom,
+					MapDescriptor.empty(),
+					true);
+				fiber.fiberGlobals(fiberGlobals);
+				fiber.textInterface(textInterface);
+				fiber.resultContinuation(result ->
+				{
+					assert result != null;
+					onSuccess.value(result, postSuccessCleanup);
+				});
+				fiber.failureContinuation(e ->
+				{
+					assert e != null;
+					if (!(e instanceof FiberTerminationException))
 					{
-						onFailure.value();
-						return;
-					}
-					final A_Phrase phrase = command.phrase;
-					final A_Function function =
-						FunctionDescriptor.createFunctionForPhrase(
-							phrase, NilDescriptor.nil(), 1);
-					final A_Fiber fiber = FiberDescriptor.newFiber(
-						function.kind().returnType(),
-						FiberDescriptor.commandPriority,
-						new Generator<A_String>()
+						final Problem problem = new Problem(
+							null,
+							1,
+							1,
+							EXECUTION,
+							"Error executing command:{0}\n{1}",
+							e.getMessage() != null
+								? " " + e.getMessage()
+								: "",
+							trace(e))
 						{
 							@Override
-							public A_String value ()
-							{
-								return StringDescriptor.format(
-									"Running command: %s",
-									phrase);
-							}
-						});
-					A_Map fiberGlobals = fiber.fiberGlobals();
-					fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-						CLIENT_DATA_GLOBAL_KEY.atom,
-						MapDescriptor.empty(),
-						true);
-					fiber.fiberGlobals(fiberGlobals);
-					fiber.textInterface(textInterface);
-					fiber.resultContinuation(
-						new Continuation1<AvailObject>()
-						{
-							@Override
-							public void value (
-								final @Nullable AvailObject result)
-								{
-									assert result != null;
-									onSuccess.value(result, postSuccessCleanup);
-								}
-						});
-					fiber.failureContinuation(new Continuation1<Throwable>()
-					{
-						@Override
-						public void value (@Nullable final Throwable e)
-						{
-							assert e != null;
-							if (!(e instanceof FiberTerminationException))
-							{
-								final Problem problem = new Problem(
-									null,
-									1,
-									1,
-									EXECUTION,
-									"Error executing command:{0}\n{1}",
-									e.getMessage() != null
-										? " " + e.getMessage()
-										: "",
-									trace(e))
-								{
-									@Override
-									public void abortCompilation ()
-									{
-										onFailure.value();
-									}
-								};
-								commandProblemHandler.handle(problem);
-							}
-							else
+							public void abortCompilation ()
 							{
 								onFailure.value();
 							}
-						}
-					});
-					Interpreter.runOutermostFunction(
-						runtime,
-						fiber,
-						function,
-						Collections.<AvailObject>emptyList());
-				}
+						};
+						commandProblemHandler.handle(problem);
+					}
+					else
+					{
+						onFailure.value();
+					}
+				});
+				Interpreter.runOutermostFunction(
+					runtime,
+					fiber,
+					function,
+					Collections.<AvailObject>emptyList());
 			};
 
 		// If the command was unambiguous, then go ahead and run it.

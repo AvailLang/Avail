@@ -65,10 +65,18 @@ import static com.avail.utility.StackPrinter.trace;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * A {@code CompilationContext} lasts for a module's entire compilation
+ * activity.
+ */
 public class CompilationContext
 {
 	/**
@@ -214,6 +222,7 @@ public class CompilationContext
 
 	/** The number of work units that have been queued. */
 	@InnerAccess
+	final
 	AtomicLong workUnitsQueued = new AtomicLong(0);
 
 	public AtomicLong getWorkUnitsQueued ()
@@ -223,6 +232,7 @@ public class CompilationContext
 
 	/** The number of work units that have been completed. */
 	@InnerAccess
+	final
 	AtomicLong workUnitsCompleted = new AtomicLong(0);
 
 	public AtomicLong getWorkUnitsCompleted ()
@@ -255,16 +265,11 @@ public class CompilationContext
 	 * the ongoing parse (in bytes), and the size of the module (in bytes).
 	 */
 	@InnerAccess
-	volatile CompilerProgressReporter progressReporter;
+	final CompilerProgressReporter progressReporter;
 
 	public CompilerProgressReporter getProgressReporter ()
 	{
 		return progressReporter;
-	}
-
-	public void setProgressReporter (CompilerProgressReporter progressReporter)
-	{
-		this.progressReporter = progressReporter;
 	}
 
 	/**
@@ -294,6 +299,20 @@ public class CompilationContext
 	 */
 	final Serializer serializer = new Serializer(serializerOutputStream);
 
+	/**
+	 * The map from position in the source to the {@link LexingState} associated
+	 * with that position.  Each {@link LexingState} handles its own
+	 * synchronization and laziness.  Because different lexers may have
+	 * different ideas about what line number they're at, the key is a long,
+	 * computed from (lineNumber << 32) + position.
+	 */
+	final Map<Long, LexingState> lexingStates = new HashMap<>(100);
+
+	/**
+	 * The lock used to control access to the {@link #lexingStates}.
+	 */
+	final ReadWriteLock lexingStatesLock = new ReentrantReadWriteLock();
+
 	public CompilationContext (
 		final @Nullable ModuleHeader moduleHeader,
 		final A_Module module,
@@ -303,6 +322,7 @@ public class CompilationContext
 		final CompilerProgressReporter progressReporter,
 		final ProblemHandler problemHandler)
 	{
+		this.loader = new AvailLoader(module, textInterface);
 		this.moduleHeader = moduleHeader;
 		this.module = module;
 		this.source = source;
@@ -390,11 +410,16 @@ public class CompilationContext
 			try
 			{
 				// Don't actually run tasks if canceling.
-				diagnostics.isShuttingDown |=
-					diagnostics.pollForAbort.value();
 				if (!diagnostics.isShuttingDown)
 				{
-					continuation.value(value);
+					if (diagnostics.pollForAbort.value())
+					{
+						diagnostics.isShuttingDown = true;
+					}
+					else
+					{
+						continuation.value(value);
+					}
 				}
 			}
 			catch (final Exception e)
@@ -495,6 +520,76 @@ public class CompilationContext
 	}
 
 	/**
+	 * Look up the {@link LexingState} at the specified source position (and
+	 * lineNumber), creating and recording a new one if necessary.
+	 *
+	 * <p>Note that a {@link A_Token token} can be created with a successor
+	 * {@link LexingState} which is not recorded in the {@link #lexingStates}
+	 * map.  This allows a {@link A_Lexer lexer} to produce a sequence of tokens
+	 * instead of just one.</p>
+	 *
+	 * @param position The position in the module's source code.
+	 * @return The {@link LexingState} for that position.
+	 */
+	public LexingState lexingStateAt (final int position, final int lineNumber)
+	{
+		// First try to read it inside a (shared) read lock.
+		final Long key = (((long)lineNumber) << 32) + position;
+		LexingState state;
+		lexingStatesLock.readLock().lock();
+		try
+		{
+			state = lexingStates.get(key);
+		}
+		finally
+		{
+			lexingStatesLock.readLock().unlock();
+		}
+
+		if (state == null)
+		{
+			lexingStatesLock.writeLock().lock();
+			try
+			{
+				// Someone else may have just added it while we held no lock.
+				state = lexingStates.get(key);
+				if (state == null)
+				{
+					state = new LexingState(this, position, lineNumber);
+					lexingStates.put(key, state);
+				}
+			}
+			finally
+			{
+				lexingStatesLock.writeLock().unlock();
+			}
+		}
+
+		assert state.position == position;
+		assert state.lineNumber == lineNumber;
+		return state;
+	}
+
+	/**
+	 * Release all recorded information about the {@link LexingState}s at every
+	 * position.  This is done between top-level expressions (1) to ensure that
+	 * lexers defined by a top-level expression are able to run without caching
+	 * stale tokens, and (2) to reduce the memory load.
+	 */
+	void clearLexingStates ()
+	{
+		lexingStatesLock.writeLock().lock();
+		try
+		{
+			lexingStates.clear();
+		}
+		finally
+		{
+			lexingStatesLock.writeLock().unlock();
+		}
+	}
+
+	/**
 	 * Evaluate the specified {@linkplain FunctionDescriptor function} in the
 	 * module's context; lexically enclosing variables are not considered in
 	 * scope, but module variables and constants are in scope.
@@ -531,18 +626,11 @@ public class CompilationContext
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader(),
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.format(
-						"Eval fn=%s, in %s:%d",
-						code.methodName(),
-						code.module().moduleName(),
-						code.startingLineNumber());
-				}
-			});
+			() -> StringDescriptor.format(
+				"Eval fn=%s, in %s:%d",
+				code.methodName(),
+				code.module().moduleName(),
+				code.startingLineNumber()));
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
@@ -784,7 +872,8 @@ public class CompilationContext
 		diagnostics.compilationIsInvalid = true;
 		if (e instanceof FiberTerminationException)
 		{
-			diagnostics.handleProblem(new Problem(
+			diagnostics.handleProblem(
+				new Problem(
 					moduleName(),
 					lineNumber,
 					position,
@@ -800,21 +889,22 @@ public class CompilationContext
 		}
 		else
 		{
-		diagnostics.handleProblem(new Problem(
-					moduleName(),
-					lineNumber,
-					position,
-					EXECUTION,
-					"Execution error: {0}\n{1}",
-					e.getMessage(),
-					trace(e))
+		diagnostics.handleProblem(
+			new Problem(
+				moduleName(),
+				lineNumber,
+				position,
+				EXECUTION,
+				"Execution error: {0}\n{1}",
+				e.getMessage(),
+				trace(e))
+			{
+				@Override
+				public void abortCompilation ()
 				{
-					@Override
-					public void abortCompilation ()
-					{
-						diagnostics.isShuttingDown = true;
-					}
-				});
+					diagnostics.isShuttingDown = true;
+				}
+			});
 		}
 	}
 

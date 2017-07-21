@@ -49,7 +49,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
-import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro;
+import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMethod;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
@@ -274,7 +274,8 @@ extends Descriptor
 			|| e == SEMANTIC_RESTRICTIONS_SET
 			|| e == SEALED_ARGUMENTS_TYPES_TUPLE
 			|| e == MACRO_DEFINITIONS_TUPLE
-			|| e == MACRO_TESTING_TREE;
+			|| e == MACRO_TESTING_TREE
+			|| e == LEXER_OR_NIL;
 	}
 
 	@Override
@@ -797,7 +798,6 @@ extends Descriptor
 		{
 			object.setSlot(LEXER_OR_NIL, lexer);
 		}
-		super.o_SetLexer(object, lexer);
 	}
 
 	@Override
@@ -1128,22 +1128,23 @@ extends Descriptor
 			"vm resume_",
 			P_ResumeContinuation.instance),
 
-		MODULE_HEADER_MACRO(
+		MODULE_HEADER_METHOD(
 			"Module…$"
-				+ "«Versions«…$‡,»»?"
+				+ "«Versions«…$‡,»»"
 				+ "«"
-					+ "«Extends|Uses»#"
+					+ "«Extends|Uses»!"
 					+ "«"
 						+ "…$"
-						+ "«(«…$‡,»)»?"
-						+ "«=(«-?…$«→…$»?‡,»,⁇`…?)»?"
+						+ "«(«…$‡,»)»"
+						+ "«=(««-»?…$«→…$»?‡,»,⁇«`…»?)»"
 						+ "‡,"
 					+ "»"
 				+ "»"
-				+ "«Names«…$‡,»»?"
-				+ "«Pragma«…$‡,»»?"
+				+ "«Names«…$‡,»»"
+				+ "«Entries«…$‡,»»"
+				+ "«Pragma«…$‡,»»"
 				+ "Body",
-			P_ModuleHeaderPseudoMacro.instance);
+			P_ModuleHeaderPseudoMethod.instance);
 
 		/** The special atom. */
 		public final A_Atom atom;

@@ -1,6 +1,6 @@
 /**
  * P_BootstrapLexerKeywordFilter.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,12 +73,12 @@ public final class P_BootstrapLexerWhitespaceFilter extends Primitive
 		assert args.size() == 1;
 		final A_Character character = args.get(0);
 
-		final int codePoint = character.codePoint();
-		final boolean isIdentifierStart =
-			Character.isUnicodeIdentifierStart(codePoint)
-				|| codePoint == '_';
+		final int c = character.codePoint();
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(isIdentifierStart));
+			AtomDescriptor.objectFromBoolean(
+				Character.isWhitespace(c)
+					|| Character.isSpaceChar(c)
+					|| c == '\uFEFF'));
 	}
 
 	@Override

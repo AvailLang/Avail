@@ -44,7 +44,6 @@ import com.avail.AvailTask;
 import com.avail.AvailRuntime.FileHandle;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Force all system buffers associated with the
@@ -109,16 +108,9 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.format(
-						"Asynchronous file sync, %s",
-						handle.filename);
-				}
-			});
+			() -> StringDescriptor.format(
+				"Asynchronous file sync, %s",
+				handle.filename));
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
@@ -151,7 +143,7 @@ extends Primitive
 					runtime,
 					newFiber,
 					succeed,
-					Collections.<A_BasicObject>emptyList());
+					Collections.emptyList());
 			}
 		});
 		return interpreter.primitiveSuccess(newFiber);

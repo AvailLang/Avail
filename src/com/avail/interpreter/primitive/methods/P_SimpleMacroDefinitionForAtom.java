@@ -48,7 +48,6 @@ import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
-import com.avail.utility.evaluation.Continuation0;
 
 /**
  * <strong>Primitive:</strong> Simple macro definition.  The first argument
@@ -153,47 +152,43 @@ extends Primitive
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
-				new Continuation0()
+				() ->
 				{
-					@Override
-					public void value ()
+					try
 					{
-						try
+						loader.addMacroBody(
+							atom, function, prefixFunctions);
+						int counter = 1;
+						for (final A_Function prefixFunction
+							: prefixFunctions)
 						{
-							loader.addMacroBody(
-								atom, function, prefixFunctions);
-							int counter = 1;
-							for (final A_Function prefixFunction
-								: prefixFunctions)
-							{
-								prefixFunction.code().setMethodName(
-									StringDescriptor.format(
-										"Macro prefix #%d of %s",
-										counter,
-										atom.atomName()));
-								counter++;
-							}
-							function.code().setMethodName(
+							prefixFunction.code().setMethodName(
 								StringDescriptor.format(
-									"Macro body of %s", atom.atomName()));
-							Interpreter.resumeFromSuccessfulPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								NilDescriptor.nil(),
-								skipReturnCheck);
+									"Macro prefix #%d of %s",
+									counter,
+									atom.atomName()));
+							counter++;
 						}
-						catch (
-							final MalformedMessageException
-								| SignatureException e)
-						{
-							Interpreter.resumeFromFailedPrimitive(
-								AvailRuntime.current(),
-								fiber,
-								e.numericCode(),
-								failureFunction,
-								copiedArgs,
-								skipReturnCheck);
-						}
+						function.code().setMethodName(
+							StringDescriptor.format(
+								"Macro body of %s", atom.atomName()));
+						Interpreter.resumeFromSuccessfulPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							NilDescriptor.nil(),
+							skipReturnCheck);
+					}
+					catch (
+						final MalformedMessageException
+							| SignatureException e)
+					{
+						Interpreter.resumeFromFailedPrimitive(
+							AvailRuntime.current(),
+							fiber,
+							e.numericCode(),
+							failureFunction,
+							copiedArgs,
+							skipReturnCheck);
 					}
 				}));
 		return FIBER_SUSPENDED;

@@ -120,7 +120,7 @@ extends LookupTree<Element, Result, Memento>
 	}
 
 	@Override
-	public final String toString (final int indent)
+	public String toString (final int indent)
 	{
 		// Special case tuples for easier debugging.  Assume that tupleSize = 1
 		// means success.

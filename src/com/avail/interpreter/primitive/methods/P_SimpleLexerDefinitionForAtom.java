@@ -37,20 +37,14 @@ import com.avail.AvailTask;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.utility.evaluation.Continuation0;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
@@ -116,24 +110,20 @@ extends Primitive
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
-				new Continuation0()
+				() ->
 				{
-					@Override
-					public void value ()
-					{
-						loader.lexicalScanner().addLexer(lexer);
-						filterFunction.code().setMethodName(
-							StringDescriptor.format(
-								"Filter for lexer %s", atom.atomName()));
-						bodyFunction.code().setMethodName(
-							StringDescriptor.format(
-								"Body for lexer %s", atom.atomName()));
-						Interpreter.resumeFromSuccessfulPrimitive(
-							AvailRuntime.current(),
-							fiber,
-							NilDescriptor.nil(),
-							skipReturnCheck);
-					}
+					loader.lexicalScanner().addLexer(lexer);
+					filterFunction.code().setMethodName(
+						StringDescriptor.format(
+							"Filter for lexer %s", atom.atomName()));
+					bodyFunction.code().setMethodName(
+						StringDescriptor.format(
+							"Body for lexer %s", atom.atomName()));
+					Interpreter.resumeFromSuccessfulPrimitive(
+						AvailRuntime.current(),
+						fiber,
+						NilDescriptor.nil(),
+						skipReturnCheck);
 				}));
 		return FIBER_SUSPENDED;
 	}

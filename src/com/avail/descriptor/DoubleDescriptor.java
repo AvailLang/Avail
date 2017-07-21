@@ -146,9 +146,7 @@ extends AbstractNumberDescriptor
 		final int exponentAdjustment = Math.max(exponent - 60, 0);
 		final double normalD = Math.scalb(floorD, -exponentAdjustment);
 		assert Long.MIN_VALUE < normalD && normalD < Long.MAX_VALUE;
-		final A_Number normalInteger =
-			IntegerDescriptor.fromLong((long)normalD);
-		A_Number integer = normalInteger;
+		A_Number integer = IntegerDescriptor.fromLong((long)normalD);
 		if (exponentAdjustment > 0)
 		{
 			integer = integer.bitShift(

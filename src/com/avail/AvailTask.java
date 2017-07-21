@@ -84,22 +84,18 @@ implements Comparable<AvailTask>, Runnable
 			public void value ()
 			{
 				final Interpreter interpreter = Interpreter.current();
-				fiber.lock(new Continuation0()
+				fiber.lock(() ->
 				{
-					@Override
-					public void value ()
-					{
-						assert fiber.executionState().indicatesSuspension();
-						final boolean bound =
-							fiber.getAndSetSynchronizationFlag(BOUND, true);
-						assert !bound;
-						final boolean wasScheduled =
-							fiber.getAndSetSynchronizationFlag(
-								SCHEDULED, false);
-						assert wasScheduled;
-						fiber.executionState(RUNNING);
-						interpreter.fiber(fiber);
-					}
+					assert fiber.executionState().indicatesSuspension();
+					final boolean bound =
+						fiber.getAndSetSynchronizationFlag(BOUND, true);
+					assert !bound;
+					final boolean wasScheduled =
+						fiber.getAndSetSynchronizationFlag(
+							SCHEDULED, false);
+					assert wasScheduled;
+					fiber.executionState(RUNNING);
+					interpreter.fiber(fiber);
 				});
 				final MutableOrNull<Continuation0> postExitContinuation =
 					new MutableOrNull<>();
@@ -139,18 +135,14 @@ implements Comparable<AvailTask>, Runnable
 				}
 				// If the fiber has terminated, then report its
 				// result via its result continuation.
-				fiber.lock(new Continuation0()
+				fiber.lock(() ->
 				{
-					@Override
-					public void value ()
+					if (fiber.executionState() == TERMINATED)
 					{
-						if (fiber.executionState() == TERMINATED)
-						{
-							fiber.resultContinuation().value(
-								fiber.fiberResult());
-							fiber.executionState(RETIRED);
-							interpreter.runtime().unregisterFiber(fiber);
-						}
+						fiber.resultContinuation().value(
+							fiber.fiberResult());
+						fiber.executionState(RETIRED);
+						interpreter.runtime().unregisterFiber(fiber);
 					}
 				});
 			}

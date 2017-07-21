@@ -226,22 +226,17 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							readPayloadThen(
 								channel,
 								payloadLength,
-								new Continuation1<ByteBuffer>()
+								content ->
 								{
-									@Override
-									public void value (
-										final @Nullable ByteBuffer content)
-									{
-										assert content != null;
-										// The buffer should have been flipped
-										// already.
-										assert content.position() == 0;
-										final Message message = new Message(
-											new String(
-												content.array(),
-												StandardCharsets.UTF_8));
-										channel.receiveMessage(message);
-									}
+									assert content != null;
+									// The buffer should have been flipped
+									// already.
+									assert content.position() == 0;
+									final Message message = new Message(
+										new String(
+											content.array(),
+											StandardCharsets.UTF_8));
+									channel.receiveMessage(message);
 								});
 						}
 					}

@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.json.JSONWriter;
 
@@ -110,13 +111,10 @@ extends Descriptor
 		/**
 		 * The function to run (as the base call of a fiber) to generate some
 		 * tokens from the source string and position.  The function should
-		 * produce a tuple of solutions, where each solution is a pair
-		 * consisting of:
-		 *
-		 * <ol>
-		 *     <li>a tuple of successive tokens, and</li>
-		 *     <li>the source position after these tokens.</li>
-		 * </ol>
+		 * produce a tuple of potential {@link A_Token}s at this position, as
+		 * produced by this lexer.  Each token may be seeded with the potential
+		 * tokens that follow it.  Since each token also records the {@link
+		 * LexingState} after it, there's no need to produce that separately.
 		 */
 		LEXER_BODY_FUNCTION;
 	}
@@ -137,6 +135,7 @@ extends Descriptor
 		FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType(),
+				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			TupleTypeDescriptor.zeroOrMoreOf(
 				Types.TOKEN.o())
@@ -199,11 +198,11 @@ extends Descriptor
 		{
 			return true;
 		}
-		if (object.slot(HASH) != otherTraversed.hash())
+		if (otherTraversed.typeTag() != TypeTag.LEXER_TAG)
 		{
 			return false;
 		}
-		if (otherTraversed.typeTag() != TypeTag.LEXER_TAG)
+		if (object.slot(HASH) != otherTraversed.hash())
 		{
 			return false;
 		}
@@ -311,7 +310,10 @@ extends Descriptor
 		lexer.setSlot(HASH, hash);
 		lexer = lexer.makeShared();
 		lexerMethod.setLexer(lexer);
-		definitionModule.addLexer(lexer);
+		if (!definitionModule.equalsNil())
+		{
+			definitionModule.addLexer(lexer);
+		}
 		return lexer;
 	}
 

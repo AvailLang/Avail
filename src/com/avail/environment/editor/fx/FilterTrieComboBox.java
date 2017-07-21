@@ -65,7 +65,8 @@ extends FilterComboBox<String>
 	 * An {@link ArrayDeque} that represents the currently navigated path on
 	 * the {@link #prefixTrie}.
 	 */
-	private @NotNull ArrayDeque<PrefixNode<T>> path = new ArrayDeque<>();
+	private @NotNull
+	final ArrayDeque<PrefixNode<T>> path = new ArrayDeque<>();
 
 	/**
 	 * Add a {@link PrefixNode} to the {@link #path}.

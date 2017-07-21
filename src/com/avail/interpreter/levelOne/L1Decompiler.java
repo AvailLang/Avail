@@ -38,6 +38,7 @@ import java.util.*;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.evaluation.*;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +56,8 @@ public class L1Decompiler
 	 * The {@linkplain CompiledCodeDescriptor compiled code} which is being
 	 * decompiled.
 	 */
-	@InnerAccess A_RawFunction code;
+	@InnerAccess
+	final A_RawFunction code;
 
 	/**
 	 * {@linkplain ParseNodeDescriptor Parse nodes} which correspond with the
@@ -64,24 +66,28 @@ public class L1Decompiler
 	 * LiteralNodeDescriptor literal nodes}, but the latter may be phased out
 	 * in favor of module constants and module variables.
 	 */
-	@InnerAccess List<A_Phrase> outers;
+	@InnerAccess
+	final List<A_Phrase> outers;
 
 	/**
-	 * The {@linkplain DeclarationNodeDescriptor.DeclarationKind#ARGUMENT
+	 * The {@linkplain DeclarationKind#ARGUMENT
 	 * arguments declarations} for this code.
 	 */
-	@InnerAccess List<A_Phrase> args;
+	@InnerAccess
+	final List<A_Phrase> args;
 
 	/**
-	 * The {@linkplain DeclarationNodeDescriptor.DeclarationKind#
+	 * The {@linkplain DeclarationKind#
 	 * LOCAL_VARIABLE local variables} defined by this code.
 	 */
-	@InnerAccess List<A_Phrase> locals;
+	@InnerAccess
+	final List<A_Phrase> locals;
 
 	/**
 	 * The tuple of nybblecodes to decode.
 	 */
-	@InnerAccess A_Tuple nybbles;
+	@InnerAccess
+	final A_Tuple nybbles;
 
 	/**
 	 * The current position in the instruction stream at which decompilation is
@@ -92,13 +98,15 @@ public class L1Decompiler
 	/**
 	 * Something to generate unique variable names from a prefix.
 	 */
-	@InnerAccess Transformer1<String, String> tempGenerator;
+	@InnerAccess
+	final Transformer1<String, String> tempGenerator;
 
 	/**
 	 * The stack of expressions roughly corresponding to the subexpressions that
 	 * have been parsed but not yet integrated into their parent expressions.
 	 */
-	@InnerAccess List<A_Phrase> expressionStack = new ArrayList<>();
+	@InnerAccess
+	final List<A_Phrase> expressionStack = new ArrayList<>();
 
 	/**
 	 * The list of completely decompiled {@linkplain ParseNodeDescriptor
@@ -837,6 +845,7 @@ public class L1Decompiler
 		public void L1Implied_doReturn ()
 		{
 			assert pc == nybbles.tupleSize() + 1;
+			//noinspection StatementWithEmptyBody
 			if (endsWithPushNil)
 			{
 				// Nothing was left on the expression stack in this case.
@@ -962,17 +971,13 @@ public class L1Decompiler
 	{
 		final Map<String, Integer> counts = new HashMap<>();
 		final Transformer1<String, String> generator =
-			new Transformer1<String, String>()
+			prefix ->
 			{
-				@Override
-				public String value (final @Nullable String prefix)
-				{
-					assert prefix != null;
-					Integer newCount = counts.get(prefix);
-					newCount = newCount == null ? 1 : newCount + 1;
-					counts.put(prefix, newCount);
-					return prefix + newCount.toString();
-				}
+				assert prefix != null;
+				Integer newCount = counts.get(prefix);
+				newCount = newCount == null ? 1 : newCount + 1;
+				counts.put(prefix, newCount);
+				return prefix + newCount;
 			};
 		// Synthesize fake outers as literals to allow decompilation.
 		final int outerCount = aFunction.numOuterVars();

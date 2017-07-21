@@ -107,9 +107,9 @@ public class StacksForbidsTag extends AbstractStacksTag
 		jsonWriter.write("Argument " + arityIndex.lexeme);
 		jsonWriter.write("expressions");
 		jsonWriter.startArray();
-		for (int i = 0; i < rowSize; i++)
+		for (QuotedStacksToken forbidMethod : forbidMethods)
 		{
-			final String method = forbidMethods.get(i).lexeme;
+			final String method = forbidMethod.lexeme;
 			jsonWriter.startArray();
 			jsonWriter.write(method);
 			jsonWriter.write(linkingFileMap.internalLinks().get(method));

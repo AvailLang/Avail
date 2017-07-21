@@ -30,4 +30,5 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.interpreter.levelTwo.operation;
+@NotNullByDefault package com.avail.interpreter.levelTwo.operation;
+import com.avail.annotations.NotNullByDefault;

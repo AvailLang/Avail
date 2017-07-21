@@ -34,10 +34,8 @@ package com.avail.builder;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -47,7 +45,6 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -219,16 +216,11 @@ public final class ModuleNameResolver
 		resolutionCache = new LRUCache<>(
 			10_000,
 			100,
-			new Transformer1<ModuleName, ModuleNameResolutionResult>()
-			{
-				@Override
-				public @Nullable ModuleNameResolutionResult value (
-					final @Nullable ModuleName qualifiedName)
-				{
-					assert qualifiedName != null;
-					return privateResolve(qualifiedName);
-				}
-			});
+		qualifiedName ->
+		{
+			assert qualifiedName != null;
+			return privateResolve(qualifiedName);
+		});
 
 	public void clearCache ()
 	{
@@ -270,7 +262,7 @@ public final class ModuleNameResolver
 		}
 
 		// Splitting the module group into its components.
-		final ArrayList<ModuleName> checkedPaths = new ArrayList<ModuleName>();
+		final ArrayList<ModuleName> checkedPaths = new ArrayList<>();
 
 		final String[] components = canonicalName.packageName().split("/");
 		assert components.length > 1;
@@ -285,7 +277,7 @@ public final class ModuleNameResolver
 		@Nullable File sourceDirectory = root.sourceDirectory();
 		if (sourceDirectory != null)
 		{
-			pathStack = new LinkedList<File>();
+			pathStack = new LinkedList<>();
 			pathStack.addLast(sourceDirectory);
 		}
 		for (int index = 2; index < components.length; index++)

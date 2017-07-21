@@ -276,7 +276,7 @@ extends SetBinDescriptor
 			}
 			else
 			{
-				if (!canDestroy & isMutable())
+				if (!canDestroy && isMutable())
 				{
 					object.makeSubobjectsImmutable();
 				}
@@ -290,7 +290,7 @@ extends SetBinDescriptor
 			return objectToModify;
 		}
 		// Augment object with a new entry.
-		if (!canDestroy & isMutable())
+		if (!canDestroy && isMutable())
 		{
 			object.makeSubobjectsImmutable();
 		}
@@ -425,7 +425,7 @@ extends SetBinDescriptor
 		else
 		{
 			// Replace the hash entry.
-			if (canDestroy & isMutable())
+			if (canDestroy && isMutable())
 			{
 				result = object;
 			}
@@ -528,7 +528,10 @@ extends SetBinDescriptor
 		@Override
 		public AvailObject next ()
 		{
-			assert currentElement != null;
+			if (currentElement == null)
+			{
+				throw new NoSuchElementException();
+			}
 			final AvailObject result = currentElement;
 			assert !binStack.isEmpty();
 			assert binStack.size() == subscriptStack.size();
@@ -687,7 +690,7 @@ extends SetBinDescriptor
 	/**
 	 * {@link HashedSetBinDescriptor}s clustered by mutability and level.
 	 */
-	static final HashedSetBinDescriptor descriptors[];
+	static final HashedSetBinDescriptor[] descriptors;
 
 	static
 	{

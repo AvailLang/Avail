@@ -55,7 +55,6 @@ public class MutableOrNull<T>
 	 */
 	public MutableOrNull ()
 	{
-		super();
 	}
 
 	/**

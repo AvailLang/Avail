@@ -73,7 +73,7 @@ public class StacksCategoryTag extends AbstractStacksTag
 	 */
 	public HashSet<String> getCategorySet()
 	{
-		final HashSet<String> categorySet = new HashSet<String>();
+		final HashSet<String> categorySet = new HashSet<>();
 		for (final QuotedStacksToken category : categories)
 		{
 			categorySet.add(category.lexeme());

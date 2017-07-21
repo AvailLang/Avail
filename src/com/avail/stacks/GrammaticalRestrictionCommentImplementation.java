@@ -95,7 +95,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 		super(signature, commentStartLine, author, sees, description,
 			categories,aliases, false);
 		this.forbids = forbids;
-		this.modules = new ArrayList<String>();
+		this.modules = new ArrayList<>();
 		this.modules.add(signature().module());
 		this.hashID = StringDescriptor.from(
 			signature.name()).hash();
@@ -120,15 +120,14 @@ public class GrammaticalRestrictionCommentImplementation extends
 		modules.add(implementation.signature().module());
 		for (final Integer arity : implementation.forbids.keySet())
 		{
-			if(forbids.containsKey(arity))
+			if (forbids.containsKey(arity))
 			{
 				forbids.get(arity).forbidMethods()
 					.addAll(implementation.forbids.get(arity).forbidMethods());
 			}
 			else
 			{
-				forbids.put(arity,
-					implementation.forbids.get(arity));
+				forbids.put(arity, implementation.forbids.get(arity));
 			}
 		}
 	}

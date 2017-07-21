@@ -43,13 +43,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
+
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.BufferKey;
 import com.avail.AvailRuntime.FileHandle;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
@@ -129,16 +130,9 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.format(
-						"Asynchronous file write, %s",
-						handle.filename);
-				}
-			});
+			() -> StringDescriptor.format(
+				"Asynchronous file write, %s",
+				handle.filename));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -184,7 +178,10 @@ extends Primitive
 				@Override
 				public ByteBuffer next ()
 				{
-					assert hasNext();
+					if (!hasNext())
+					{
+						throw new NoSuchElementException();
+					}
 					buffer.clear();
 					int count = nextSubscript + buffer.limit() - 1;
 					if (count >= totalBytes)
@@ -236,148 +233,144 @@ extends Primitive
 			new Mutable<>(bufferIterator.next());
 		final MutableOrNull<Continuation0> continueWriting =
 			new MutableOrNull<>();
-		continueWriting.value = new Continuation0()
+		continueWriting.value = () ->
 		{
-			@Override
-			public void value ()
+			if (!currentBuffer.value.hasRemaining())
 			{
-				if (!currentBuffer.value.hasRemaining())
+				if (bufferIterator.hasNext())
 				{
-					if (bufferIterator.hasNext())
-					{
-						currentBuffer.value = bufferIterator.next();
-						assert currentBuffer.value.hasRemaining();
-					}
+					currentBuffer.value = bufferIterator.next();
+					assert currentBuffer.value.hasRemaining();
 				}
-				if (currentBuffer.value.hasRemaining())
-				{
-					fileChannel.write(
-						currentBuffer.value,
-						nextPosition.value,
-						null,
-						new CompletionHandler<Integer, Void>()
+			}
+			if (currentBuffer.value.hasRemaining())
+			{
+				fileChannel.write(
+					currentBuffer.value,
+					nextPosition.value,
+					null,
+					new CompletionHandler<Integer, Void>()
+					{
+						@Override
+						public void completed (
+							final @Nullable Integer bytesWritten,
+							final @Nullable Void attachment)
 						{
-							@Override
-							public void completed (
-								final @Nullable Integer bytesWritten,
-								final @Nullable Void attachment)
-							{
-								assert bytesWritten != null;
-								nextPosition.value += (long) bytesWritten;
-								continueWriting.value().value();
-							}
+							assert bytesWritten != null;
+							nextPosition.value += (long) bytesWritten;
+							continueWriting.value().value();
+						}
 
-							@Override
-							public void failed (
-								final @Nullable Throwable killer,
-								final @Nullable Void attachment)
+						@Override
+						public void failed (
+							final @Nullable Throwable killer,
+							final @Nullable Void attachment)
+						{
+							assert killer != null;
+							// Invalidate *all* pages for this file to
+							// ensure subsequent I/O has a proper
+							// opportunity to re-encounter problems like
+							// read faults and whatnot.
+							for (final BufferKey key : new ArrayList<>(
+								handle.bufferKeys.keySet()))
 							{
-								assert killer != null;
-								// Invalidate *all* pages for this file to
-								// ensure subsequent I/O has a proper
-								// opportunity to re-encounter problems like
-								// read faults and whatnot.
-								for (final BufferKey key : new ArrayList<>(
-									handle.bufferKeys.keySet()))
-								{
-									runtime.discardBuffer(key);
-								}
-								Interpreter.runOutermostFunction(
-									runtime,
-									newFiber,
-									fail,
-									Collections.singletonList(
-										E_IO_ERROR.numericCode()));
+								runtime.discardBuffer(key);
 							}
-						});
-				}
-				else
+							Interpreter.runOutermostFunction(
+								runtime,
+								newFiber,
+								fail,
+								Collections.singletonList(
+									E_IO_ERROR.numericCode()));
+						}
+					});
+			}
+			else
+			{
+				// Just finished the entire write.  Transfer the data onto
+				// any affected cached pages.
+				assert nextPosition.value ==
+					oneBasedPositionLong + totalBytes - 1;
+				int subscriptInTuple = 1;
+				long startOfBuffer = (oneBasedPositionLong - 1)
+					/ alignment * alignment + 1;
+				int offsetInBuffer =
+					(int) (oneBasedPositionLong - startOfBuffer + 1);
+				// Skip this if the file isn't also open for read access.
+				if (!handle.canRead)
 				{
-					// Just finished the entire write.  Transfer the data onto
-					// any affected cached pages.
-					assert nextPosition.value ==
-						oneBasedPositionLong + totalBytes - 1;
-					int subscriptInTuple = 1;
-					long startOfBuffer = (oneBasedPositionLong - 1)
-						/ alignment * alignment + 1;
-					int offsetInBuffer =
-						(int) (oneBasedPositionLong - startOfBuffer + 1);
-					// Skip this if the file isn't also open for read access.
-					if (!handle.canRead)
-					{
-						subscriptInTuple = totalBytes + 1;
-					}
-					while (subscriptInTuple <= totalBytes)
-					{
-						// Update one buffer.
-						final int consumedThisTime = min(
-							alignment - offsetInBuffer,
-							totalBytes - subscriptInTuple) + 1;
-						final BufferKey key = new BufferKey(
-							handle, startOfBuffer);
-						final MutableOrNull<A_Tuple> bufferHolder =
-							runtime.getBuffer(key);
-						A_Tuple tuple = bufferHolder.value;
-						if (offsetInBuffer == 1
-							&& consumedThisTime == alignment)
-						{
-							tuple = bytes.copyTupleFromToCanDestroy(
-								subscriptInTuple,
-								subscriptInTuple + consumedThisTime - 1,
-								false);
-						}
-						else if (tuple != null)
-						{
-							// Update the cached tuple.
-							assert tuple.tupleSize() == alignment;
-							final List<A_Tuple> parts = new ArrayList<>(3);
-							if (offsetInBuffer > 1)
-							{
-								parts.add(tuple.copyTupleFromToCanDestroy(
-									1, offsetInBuffer - 1, false));
-							}
-							parts.add(bytes.copyTupleFromToCanDestroy(
-								subscriptInTuple,
-								subscriptInTuple + consumedThisTime - 1,
-								false));
-							final int endInBuffer =
-								offsetInBuffer + consumedThisTime - 1;
-							if (endInBuffer < alignment)
-							{
-								parts.add(tuple.copyTupleFromToCanDestroy(
-									endInBuffer + 1, alignment, false));
-							}
-							assert parts.size() > 1;
-							tuple = parts.remove(0);
-							while (!parts.isEmpty())
-							{
-								tuple = tuple.concatenateWith(
-									parts.remove(0), true);
-							}
-							assert tuple.tupleSize() == alignment;
-						}
-						// Otherwise we're attempting to update a subregion of
-						// an uncached buffer.  Just drop it in that case and
-						// let the OS cache pick up the slack.
-						if (tuple != null)
-						{
-							tuple = tuple.makeShared();
-							synchronized (bufferHolder)
-							{
-								bufferHolder.value = tuple;
-							}
-						}
-						subscriptInTuple += consumedThisTime;
-						startOfBuffer += alignment;
-						offsetInBuffer = 1;
-					}
-					assert subscriptInTuple == totalBytes + 1;
-					Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						succeed,
-						Collections.<A_BasicObject>emptyList());
+					subscriptInTuple = totalBytes + 1;
 				}
+				while (subscriptInTuple <= totalBytes)
+				{
+					// Update one buffer.
+					final int consumedThisTime = min(
+						alignment - offsetInBuffer,
+						totalBytes - subscriptInTuple) + 1;
+					final BufferKey key = new BufferKey(
+						handle, startOfBuffer);
+					final MutableOrNull<A_Tuple> bufferHolder =
+						runtime.getBuffer(key);
+					A_Tuple tuple = bufferHolder.value;
+					if (offsetInBuffer == 1
+						&& consumedThisTime == alignment)
+					{
+						tuple = bytes.copyTupleFromToCanDestroy(
+							subscriptInTuple,
+							subscriptInTuple + consumedThisTime - 1,
+							false);
+					}
+					else if (tuple != null)
+					{
+						// Update the cached tuple.
+						assert tuple.tupleSize() == alignment;
+						final List<A_Tuple> parts = new ArrayList<>(3);
+						if (offsetInBuffer > 1)
+						{
+							parts.add(tuple.copyTupleFromToCanDestroy(
+								1, offsetInBuffer - 1, false));
+						}
+						parts.add(bytes.copyTupleFromToCanDestroy(
+							subscriptInTuple,
+							subscriptInTuple + consumedThisTime - 1,
+							false));
+						final int endInBuffer =
+							offsetInBuffer + consumedThisTime - 1;
+						if (endInBuffer < alignment)
+						{
+							parts.add(tuple.copyTupleFromToCanDestroy(
+								endInBuffer + 1, alignment, false));
+						}
+						assert parts.size() > 1;
+						tuple = parts.remove(0);
+						while (!parts.isEmpty())
+						{
+							tuple = tuple.concatenateWith(
+								parts.remove(0), true);
+						}
+						assert tuple.tupleSize() == alignment;
+					}
+					// Otherwise we're attempting to update a subregion of
+					// an uncached buffer.  Just drop it in that case and
+					// let the OS cache pick up the slack.
+					if (tuple != null)
+					{
+						tuple = tuple.makeShared();
+						synchronized (bufferHolder)
+						{
+							bufferHolder.value = tuple;
+						}
+					}
+					subscriptInTuple += consumedThisTime;
+					startOfBuffer += alignment;
+					offsetInBuffer = 1;
+				}
+				assert subscriptInTuple == totalBytes + 1;
+				Interpreter.runOutermostFunction(
+					runtime,
+					newFiber,
+					succeed,
+					Collections.emptyList());
 			}
 		};
 		continueWriting.value().value();

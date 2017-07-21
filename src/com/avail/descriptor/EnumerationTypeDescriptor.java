@@ -111,7 +111,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *            The enumeration for which to extract the instances.
 	 * @return The instances of this enumeration.
 	 */
-	static final A_Set getInstances (final AvailObject object)
+	static A_Set getInstances (final AvailObject object)
 	{
 		return object.slot(INSTANCES);
 	}
@@ -462,11 +462,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
-		if (getInstances(object).hasElement(potentialInstance))
-		{
-			return true;
-		}
-		return false;
+		return getInstances(object).hasElement(potentialInstance);
 	}
 
 	@Override @AvailMethod
@@ -707,7 +703,7 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		if (object.isSubtypeOf(booleanObject()))
 		{
-			return java.lang.Boolean.TYPE;
+			return Boolean.TYPE;
 		}
 		return super.o_MarshalToJava(object, ignoredClassHint);
 	}

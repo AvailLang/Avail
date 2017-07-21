@@ -41,7 +41,7 @@ import com.avail.utility.evaluation.Transformer1;
  * Exposes the Mac OS X-specific functionality for gracefully handling normal
  * Mac application event handling.
  */
-public class OSXUtility
+public final class OSXUtility
 {
 	/** The Apple-specific Application class. */
 	@InnerAccess static final Class<?> applicationClass;
@@ -179,26 +179,22 @@ public class OSXUtility
 	{
 		setHandler(
 			"handleOpenFile",
-			new Transformer1<Object, Boolean>()
+			event ->
 			{
-				@Override
-				public @Nullable Boolean value (@Nullable final Object event)
+				assert event != null;
+				String filename;
+				try
 				{
-					assert event != null;
-					String filename;
-					try
-					{
-						filename = (String) getFilenameMethod.invoke(event);
-					}
-					catch (
-						final IllegalAccessException
-							| IllegalArgumentException
-							| InvocationTargetException e)
-					{
-						throw new RuntimeException(e);
-					}
-					return fileHandler.value(filename);
+					filename = (String) getFilenameMethod.invoke(event);
 				}
+				catch (
+					final IllegalAccessException
+						| IllegalArgumentException
+						| InvocationTargetException e)
+				{
+					throw new RuntimeException(e);
+				}
+				return fileHandler.value(filename);
 			});
 	}
 
@@ -219,32 +215,24 @@ public class OSXUtility
 			final Object proxy = Proxy.newProxyInstance(
 				OSXUtility.class.getClassLoader(),
 				new Class[] { applicationListenerClass },
-				new InvocationHandler()
+				(thisProxy, method, args) ->
 				{
-					@Override
-					public @Nullable Object invoke (
-						final @Nullable Object thisProxy,
-						final @Nullable Method method,
-						final @Nullable Object[] args)
-					throws Throwable
+					assert thisProxy != null;
+					assert method != null;
+					assert args != null;
+					final boolean success;
+					if (method.getName().equals(handlerMessage)
+						&& handler != null)
 					{
-						assert thisProxy != null;
-						assert method != null;
-						assert args != null;
-						final boolean success;
-						if (method.getName().equals(handlerMessage)
-							&& handler != null)
-						{
-							final Boolean s = handler.value(args[0]);
-							success = Boolean.TRUE.equals(s);
-						}
-						else
-						{
-							success = false;
-						}
-						setApplicationEventHandled(args[0], success);
-						return success;
+						final Boolean s = handler.value(args[0]);
+						success = Boolean.TRUE.equals(s);
 					}
+					else
+					{
+						success = false;
+					}
+					setApplicationEventHandled(args[0], success);
+					return success;
 				});
 			addListenerMethod.invoke(macOSXApplication, proxy);
 		}

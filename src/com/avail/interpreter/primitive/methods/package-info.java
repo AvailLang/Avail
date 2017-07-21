@@ -30,5 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault
+@NotNullByDefault
 package com.avail.interpreter.primitive.methods;
+import com.avail.annotations.NotNullByDefault;

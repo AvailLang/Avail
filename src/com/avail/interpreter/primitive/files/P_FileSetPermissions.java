@@ -75,7 +75,8 @@ extends Primitive
 	 *        Some ordinals.
 	 * @return The equivalent POSIX file permissions.
 	 */
-	private Set<PosixFilePermission> permissionsFor (final A_Set ordinals)
+	private static Set<PosixFilePermission> permissionsFor (
+		final A_Set ordinals)
 	{
 		final PosixFilePermission[] allPermissions =
 			AvailRuntime.posixPermissions();
@@ -102,7 +103,7 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = runtime.fileSystem().getPath(
+			path = AvailRuntime.fileSystem().getPath(
 				filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
@@ -140,12 +141,8 @@ extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType(),
 				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.fromInt(0),
-						IntegerDescriptor.fromInt(9)),
-					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.fromInt(1),
-						IntegerDescriptor.fromInt(9))),
+					IntegerRangeTypeDescriptor.inclusive(0, 9),
+					IntegerRangeTypeDescriptor.inclusive(1, 9)),
 				EnumerationTypeDescriptor.booleanObject()),
 			TOP.o());
 	}

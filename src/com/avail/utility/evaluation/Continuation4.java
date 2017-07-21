@@ -44,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <Y> The type of the third argument.
  * @param <Z> The type of the fourth argument.
  */
+@FunctionalInterface
 public interface Continuation4<W, X, Y, Z>
 {
 	/**
@@ -54,7 +55,7 @@ public interface Continuation4<W, X, Y, Z>
 	 * @param arg3 The third argument.
 	 * @param arg4 The fourth argument.
 	 */
-	public void value (
+	void value (
 		@Nullable W arg1,
 		@Nullable X arg2,
 		@Nullable Y arg3,

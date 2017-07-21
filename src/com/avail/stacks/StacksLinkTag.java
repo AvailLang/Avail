@@ -81,7 +81,7 @@ public class StacksLinkTag extends AbstractStacksTag
 	public StacksLinkTag (final QuotedStacksToken link)
 	{
 		this.link = link;
-		this.displayLinkTokens = new ArrayList<AbstractStacksToken>();
+		this.displayLinkTokens = new ArrayList<>();
 	}
 
 	/**

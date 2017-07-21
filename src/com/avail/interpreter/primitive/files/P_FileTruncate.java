@@ -45,7 +45,6 @@ import com.avail.AvailTask;
 import com.avail.AvailRuntime.FileHandle;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> If the specified size is less than the size
@@ -107,16 +106,9 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.format(
-						"Asynchronous truncate, %s",
-						handle.filename);
-				}
-			});
+			() -> StringDescriptor.format(
+				"Asynchronous truncate, %s",
+				handle.filename));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -153,7 +145,7 @@ extends Primitive
 					runtime,
 					newFiber,
 					succeed,
-					Collections.<A_BasicObject>emptyList());
+					Collections.emptyList());
 			}
 		});
 

@@ -234,7 +234,7 @@ final class Resources
 		}
 		newValue = newValue.replace("\n ", "\n\\ ");
 		newValue = newValue.replaceAll(
-			"\\\\(?!n|\\n| )", Matcher.quoteReplacement("\\\\"));
+			"\\\\(?![n\\n ])", Matcher.quoteReplacement("\\\\"));
 		return newValue;
 	}
 

@@ -30,4 +30,5 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.compiler.instruction;
+@NotNullByDefault package com.avail.compiler.instruction;
+import com.avail.annotations.NotNullByDefault;

@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import static com.avail.descriptor.AtomWithPropertiesSharedDescriptor.IntegerSlots.*;
-import com.avail.AvailRuntime;
+
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.exceptions.MalformedMessageException;

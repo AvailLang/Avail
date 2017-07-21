@@ -43,14 +43,14 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <X> The type of value produced by the operation.
  */
-public abstract class Transformer0 <X>
+public interface Transformer0 <X>
 {
 	/**
 	 * Perform the operation.
 	 *
 	 * @return The result of performing the operation.
 	 */
-	public abstract @Nullable X value ();
+	@Nullable X value ();
 
 	/**
 	 * Perform the operation, then assert a {@link NotNull} condition for the
@@ -58,7 +58,7 @@ public abstract class Transformer0 <X>
 	 *
 	 * @return The non-null transformed value.
 	 */
-	public final X valueNotNull ()
+	default X valueNotNull ()
 	{
 		final X result = value();
 		assert result != null;

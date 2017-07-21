@@ -32,6 +32,7 @@
 
 package com.avail.utility;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -168,7 +169,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	}
 
 	@Override
-	public Iterator<E> iterator ()
+	public @NotNull Iterator<E> iterator ()
 	{
 		cacheFlatListOrMore();
 		final int mySize = size;
@@ -264,7 +265,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		{
 			return Collections.singletonList(lastElement);
 		}
-		return new PrefixSharingList<E2>(allButLast, lastElement);
+		return new PrefixSharingList<>(allButLast, lastElement);
 	}
 
 	/**
@@ -294,9 +295,9 @@ public class PrefixSharingList<E> extends AbstractList<E>
 			}
 			final List<E2> flat = strongOriginal.cachedFlatListOrMore;
 			assert flat != null;
-			return new PrefixSharingList<E2>(flat, originalList.size() - 1);
+			return new PrefixSharingList<>(flat, originalList.size() - 1);
 		}
-		return new PrefixSharingList<E2>(
+		return new PrefixSharingList<>(
 			originalList,
 			originalList.size() - 1);
 	}

@@ -64,7 +64,8 @@ extends PrimitiveThrownException
 	 * A {@link Generator} that will produce the rejectionString if needed.
 	 * May be null if the rejectionString is provided directly.
 	 */
-	@Nullable Generator<A_String> rejectionGenerator;
+	@Nullable
+	final Generator<A_String> rejectionGenerator;
 
 	/**
 	 * Return the {@linkplain StringDescriptor error message} indicating why
@@ -118,15 +119,11 @@ extends PrimitiveThrownException
 		final String rejectionPattern,
 		final Object... rejectionArguments)
 	{
-		this.rejectionGenerator = new Generator<A_String>()
+		this.rejectionGenerator = () ->
 		{
-			@Override
-			public A_String value ()
-			{
-				final String string = String.format(
-					rejectionPattern, rejectionArguments);
-				return StringDescriptor.from(string);
-			}
+			final String string = String.format(
+				rejectionPattern, rejectionArguments);
+			return StringDescriptor.from(string);
 		};
 		this.rejectionString = null;
 	}

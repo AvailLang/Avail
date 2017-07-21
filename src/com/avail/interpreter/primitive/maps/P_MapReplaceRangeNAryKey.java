@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.maps;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.Arrays;
+
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailException;
@@ -154,18 +154,16 @@ extends Primitive
 			final A_BasicObject newTuple = recursivelyUpdateTuple(
 				subtuple, pathTuple, headLastIndex, tailFirstIndex,
 				pathIndex + 1, newValues);
-			final A_Tuple resultTuple = targetTuple.tupleAtPuttingCanDestroy(
+			return targetTuple.tupleAtPuttingCanDestroy(
 				targetIndex, newTuple, true);
-			return resultTuple;
 		}
 		else if (subtuple.isMap())
 		{
 			final A_BasicObject newMap = recursivelyUpdateMap(subtuple,
 				pathTuple, headLastIndex, tailFirstIndex, pathIndex + 1,
 				newValues);
-			final A_Tuple resultTuple = targetTuple.tupleAtPuttingCanDestroy(
+			return targetTuple.tupleAtPuttingCanDestroy(
 				targetIndex, newMap, true);
-			return resultTuple;
 		}
 		else
 		{
@@ -221,9 +219,8 @@ extends Primitive
 			final A_BasicObject newTuple = recursivelyUpdateTuple(
 				(A_Tuple)targetElement, pathTuple, headLastIndex,
 				tailFirstIndex, pathIndex + 1, newValues);
-			final A_Map resultMap = targetMap.mapAtPuttingCanDestroy(
+			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newTuple, true);
-			return resultMap;
 		}
 		else if (targetElement.isInstanceOf(
 			MapTypeDescriptor.mostGeneralType()))
@@ -231,9 +228,7 @@ extends Primitive
 			final A_BasicObject newMap = recursivelyUpdateMap(
 				(A_Map)targetElement, pathTuple, headLastIndex, tailFirstIndex,
 				pathIndex + 1, newValues);
-			final A_Map resultMap = targetMap.mapAtPuttingCanDestroy(
-				targetIndex, newMap, true);
-			return resultMap;
+			return targetMap.mapAtPuttingCanDestroy(targetIndex, newMap, true);
 		}
 		else
 		{

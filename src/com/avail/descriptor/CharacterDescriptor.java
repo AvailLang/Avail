@@ -242,7 +242,7 @@ extends Descriptor
 		{
 			return SerializerOperation.BYTE_CHARACTER;
 		}
-		else if (codePoint < 65536)
+		if (codePoint < 65536)
 		{
 			return SerializerOperation.SHORT_CHARACTER;
 		}

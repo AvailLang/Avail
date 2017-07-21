@@ -34,12 +34,11 @@ package com.avail.interpreter.primitive.general;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
+
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.interpreter.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> Assert the specified {@linkplain
@@ -75,26 +74,22 @@ public final class P_Assert extends Primitive
 				interpreter.runtime(),
 				fiber.textInterface(),
 				continuation,
-				new Continuation1<List<String>>()
+				stack ->
 				{
-					@Override
-					public void value (final @Nullable List<String> stack)
+					assert stack != null;
+					final StringBuilder builder = new StringBuilder();
+					builder.append(failureMessage.asNativeString());
+					for (final String frame : stack)
 					{
-						assert stack != null;
-						final StringBuilder builder = new StringBuilder();
-						builder.append(failureMessage.asNativeString());
-						for (final String frame : stack)
-						{
-							builder.append(String.format("%n\t-- %s", frame));
-						}
-						builder.append("\n\n");
-						final AvailAssertionFailedException killer =
-							new AvailAssertionFailedException(
-								builder.toString());
-						killer.fillInStackTrace();
-						fiber.executionState(ExecutionState.ABORTED);
-						fiber.failureContinuation().value(killer);
+						builder.append(String.format("%n\t-- %s", frame));
 					}
+					builder.append("\n\n");
+					final AvailAssertionFailedException killer =
+						new AvailAssertionFailedException(
+							builder.toString());
+					killer.fillInStackTrace();
+					fiber.executionState(ExecutionState.ABORTED);
+					fiber.failureContinuation().value(killer);
 				});
 			return Result.FIBER_SUSPENDED;
 		}

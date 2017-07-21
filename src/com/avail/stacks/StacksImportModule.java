@@ -224,13 +224,13 @@ public abstract class StacksImportModule
 		HashMap<String,String>> qualifiedImplementationNameToImplementation()
 	{
 			final HashMap<String,Pair<String,ImplementationGroup>> newMap =
-				new HashMap<String,Pair<String,ImplementationGroup>>();
+				new HashMap<>();
 
 			final HashMap<A_String,Integer> newHashNameMap =
-				new HashMap<A_String,Integer>();
+				new HashMap<>();
 
 			final HashMap<String,String> nameToLinkMap =
-				new HashMap<String,String>();
+				new HashMap<>();
 
 			for (final A_String name : implementationGroups.keySet())
 			{
@@ -248,17 +248,16 @@ public abstract class StacksImportModule
 				}
 
 				long hashedName = nameToBeHashed.hash();
-				hashedName = hashedName & 0xFFFFFFFFL;
+				hashedName &= 0xFFFFFFFFL;
 
 				final String qualifiedName = moduleName + "/"
 					+ String.valueOf(hashedName) + ".json";
 				newMap.put(qualifiedName,
-					new Pair<String,ImplementationGroup> (
+					new Pair<>(
 						name.asNativeString(), implementationGroups.get(name)));
 				nameToLinkMap.put(name.asNativeString(), qualifiedName);
 			}
-			return new Pair<HashMap<String, Pair<String,ImplementationGroup>>,
-				HashMap<String, String>>(newMap,nameToLinkMap);
+			return new Pair<>(newMap, nameToLinkMap);
 	}
 
 	/**
@@ -272,10 +271,10 @@ public abstract class StacksImportModule
 		HashMap<String,String>> flattenImplementationGroups()
 	{
 		final HashMap<String,Pair<String,ImplementationGroup>> newMap =
-			new HashMap<String,Pair<String,ImplementationGroup>>();
+			new HashMap<>();
 
 		final HashMap<String,String> nameToLinkMap =
-			new HashMap<String,String>();
+			new HashMap<>();
 
 		for (final StacksExtendsModule extendsModule :
 			moduleNameToExtendsList.values())
@@ -293,8 +292,7 @@ public abstract class StacksImportModule
 		newMap.putAll(aPair.first());
 		nameToLinkMap.putAll(aPair.second());
 
-		return new Pair<HashMap<String, Pair<String,ImplementationGroup>>,
-			HashMap<String, String>>(newMap,nameToLinkMap);
+		return new Pair<>(newMap, nameToLinkMap);
 	}
 
 	/**

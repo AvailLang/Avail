@@ -43,7 +43,7 @@ import com.avail.descriptor.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
+@Target(ElementType.FIELD)
 public @interface EnumField
 {
 	/**
@@ -54,7 +54,7 @@ public @interface EnumField
 	 * {@link #lookupMethodName()} is also specified then the int value may be
 	 * something other than the Enum's ordinal.
 	 */
-	public Class<? extends IntegerEnumSlotDescriptionEnum> describedBy ();
+	Class<? extends IntegerEnumSlotDescriptionEnum> describedBy ();
 
 	/**
 	 * This optional annotation field indicates the name of a static method
@@ -67,5 +67,5 @@ public @interface EnumField
 	 * Similarly, in this case an ordinal that is out of range will only display
 	 * its numeric value.
 	 */
-	public String lookupMethodName () default "";
+	String lookupMethodName () default "";
 }

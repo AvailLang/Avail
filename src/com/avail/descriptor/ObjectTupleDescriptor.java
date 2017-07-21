@@ -513,7 +513,7 @@ extends TupleDescriptor
 			return super.o_TupleReverse(object);
 		}
 
-		final AvailObject newTuple = generateFrom(
+		return generateFrom(
 			size,
 			new Generator<A_BasicObject>()
 			{
@@ -525,7 +525,6 @@ extends TupleDescriptor
 					return object.tupleAt(index--);
 				}
 			});
-		return newTuple;
 	}
 
 	@Override @AvailMethod

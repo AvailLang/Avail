@@ -192,7 +192,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -228,7 +228,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							bracketToken.lineNumber());
 
 						final ByteBuffer errorBuffer = ByteBuffer.wrap(
-							errorMessage.toString()
+							errorMessage
 								.getBytes(StandardCharsets.UTF_8));
 						errorLog.addLogEntry(errorBuffer,1);
 
@@ -270,7 +270,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -308,7 +308,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							bracketToken.lineNumber());
 
 						final ByteBuffer errorBuffer = ByteBuffer.wrap(
-							errorMessage.toString()
+							errorMessage
 								.getBytes(StandardCharsets.UTF_8));
 						errorLog.addLogEntry(errorBuffer,1);
 
@@ -350,7 +350,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -398,7 +398,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							bracketToken.lineNumber());
 
 						final ByteBuffer errorBuffer = ByteBuffer.wrap(
-							errorMessage.toString()
+							errorMessage
 								.getBytes(StandardCharsets.UTF_8));
 						errorLog.addLogEntry(errorBuffer,1);
 
@@ -425,7 +425,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -457,7 +457,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -495,7 +495,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							bracketToken.lineNumber());
 
 						final ByteBuffer errorBuffer = ByteBuffer.wrap(
-							errorMessage.toString()
+							errorMessage
 								.getBytes(StandardCharsets.UTF_8));
 						errorLog.addLogEntry(errorBuffer,1);
 
@@ -537,7 +537,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							bracketToken.lineNumber());
 
 						final ByteBuffer errorBuffer = ByteBuffer.wrap(
-							errorMessage.toString()
+							errorMessage
 								.getBytes(StandardCharsets.UTF_8));
 						errorLog.addLogEntry(errorBuffer,1);
 
@@ -586,7 +586,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -667,7 +667,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -703,7 +703,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							bracketToken.lineNumber());
 
 						final ByteBuffer errorBuffer = ByteBuffer.wrap(
-							errorMessage.toString()
+							errorMessage
 								.getBytes(StandardCharsets.UTF_8));
 						errorLog.addLogEntry(errorBuffer,1);
 
@@ -748,7 +748,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -781,7 +781,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							bracketToken.lineNumber());
 
 						final ByteBuffer errorBuffer = ByteBuffer.wrap(
-							errorMessage.toString()
+							errorMessage
 								.getBytes(StandardCharsets.UTF_8));
 						errorLog.addLogEntry(errorBuffer,1);
 
@@ -807,7 +807,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -839,7 +839,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -887,7 +887,7 @@ public class BracketedStacksToken extends RegionStacksToken
 							bracketToken.lineNumber());
 
 						final ByteBuffer errorBuffer = ByteBuffer.wrap(
-							errorMessage.toString()
+							errorMessage
 								.getBytes(StandardCharsets.UTF_8));
 						errorLog.addLogEntry(errorBuffer,1);
 
@@ -929,7 +929,7 @@ public class BracketedStacksToken extends RegionStacksToken
 						bracketToken.lineNumber());
 
 					final ByteBuffer errorBuffer = ByteBuffer.wrap(
-						errorMessage.toString()
+						errorMessage
 							.getBytes(StandardCharsets.UTF_8));
 					errorLog.addLogEntry(errorBuffer,1);
 
@@ -956,7 +956,7 @@ public class BracketedStacksToken extends RegionStacksToken
 		};
 
 		/** An array of all {@link StacksKeyword} enumeration values. */
-		private static StacksKeyword[] all = values();
+		private static final StacksKeyword[] all = values();
 
 		/**
 		 * Answer an array of all {@link StacksKeyword} enumeration values.
@@ -977,7 +977,7 @@ public class BracketedStacksToken extends RegionStacksToken
 		 * @param lexeme {@link String} String representation of
 		 * the keyword.
 		 */
-		private StacksKeyword(final String lexeme) {
+		StacksKeyword (final String lexeme) {
 			this.lexeme = lexeme;
 		}
 
@@ -986,7 +986,7 @@ public class BracketedStacksToken extends RegionStacksToken
 		 * the {@link Enum StacksKeywords}
 		 */
 		static final Map<String, StacksKeyword> keywordTable =
-			new HashMap<String, StacksKeyword>();
+			new HashMap<>();
 
 		// Learn the lexeme's of the keywords.
 		static

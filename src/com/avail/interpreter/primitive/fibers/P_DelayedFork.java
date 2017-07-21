@@ -39,7 +39,6 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Schedule a new {@linkplain FiberDescriptor
@@ -101,18 +100,14 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			function.kind().returnType(),
 			priority.extractInt(),
-			new Generator<A_String>()
+			() ->
 			{
-				@Override
-				public A_String value ()
-				{
-					final A_RawFunction code = function.code();
-					return StringDescriptor.format(
-						"Delayed fork, %s, %s:%d",
-						code.methodName(),
-						code.module().moduleName(),
-						code.startingLineNumber());
-				}
+				final A_RawFunction code = function.code();
+				return StringDescriptor.format(
+					"Delayed fork, %s, %s:%d",
+					code.methodName(),
+					code.module().moduleName(),
+					code.startingLineNumber());
 			});
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.

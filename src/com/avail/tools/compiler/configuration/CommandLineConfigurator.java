@@ -40,7 +40,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
 import com.avail.annotations.InnerAccess;
-import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
@@ -54,7 +53,6 @@ import com.avail.tools.options.OptionProcessorFactory;
 import com.avail.utility.*;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
-import com.avail.utility.evaluation.*;
 
 /**
  * Provides the configuration for the command-line compiler. Specifies the
@@ -147,314 +145,254 @@ implements Configurator<CompilerConfiguration>
 		final OptionProcessorFactory<OptionKey> factory =
 			new OptionProcessorFactory<>(OptionKey.class);
 
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			AVAIL_RENAMES,
 			asList("availRenames"),
 			"The path to the renames file. This option overrides environment "
-			+ "variables.",
-			new Continuation2<String, String>()
+				+ "variables.",
+			(keyword, renamesString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String renamesString)
-				{
-					assert renamesString != null;
-					processor.value().checkEncountered(AVAIL_RENAMES, 0);
-					configuration.setRenamesFilePath(renamesString);
-				}
+				assert renamesString != null;
+				processor.value().checkEncountered(AVAIL_RENAMES, 0);
+				configuration.setRenamesFilePath(renamesString);
 			}));
 
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			AVAIL_ROOTS,
 			asList("availRoots"),
 			"The Avail roots, as a semicolon (;) separated list of module root "
-			+ "specifications. Each module root specification comprises a "
-			+ "logical root name, then an equals (=), then a module root "
-			+ "location. A module root location comprises the absolute path to "
-			+ "a binary module repository, then optionally a comma (,) and the "
-			+ "absolute path to a source package. This option overrides " +
-			"environment variables.",
-			new Continuation2<String, String>()
+				+ "specifications. Each module root specification comprises a "
+				+ "logical root name, then an equals (=), then a module root "
+				+ "location. A module root location comprises the absolute path to "
+				+ "a binary module repository, then optionally a comma (,) and the "
+				+ "absolute path to a source package. This option overrides " +
+				"environment variables.",
+			(keyword, rootsString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String rootsString)
-				{
-					assert rootsString != null;
-					processor.value().checkEncountered(AVAIL_ROOTS, 0);
-					configuration.setAvailRootsPath(rootsString);
-				}
+				assert rootsString != null;
+				processor.value().checkEncountered(AVAIL_ROOTS, 0);
+				configuration.setAvailRootsPath(rootsString);
 			}));
 
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			COMPILE_MODULES,
 			asList("c", "compile"),
 			"Compile the target module and its ancestors.",
-			new Continuation2<String, String>()
+			(keyword, unused) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String unused)
+				processor.value().checkEncountered(COMPILE_MODULES, 0);
+				if (unused != null)
 				{
-					processor.value().checkEncountered(COMPILE_MODULES, 0);
-					if (unused != null)
-					{
-						throw new OptionProcessingException(
-							keyword + ": An argument was specified, but none " +
-									"are permitted.");
-					}
-					configuration.setCompileModulesFlag();
+					throw new OptionProcessingException(
+						keyword + ": An argument was specified, but none " +
+							"are permitted.");
 				}
+				configuration.setCompileModulesFlag();
 			}));
 
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			CLEAR_REPOSITORIES,
 			asList("f", "clearRepositories"),
 			"Force removal of all repositories for which the Avail root path "
-			+ "has valid source directories specified. This option can be used "
-			+ "in isolation and will cause the repositories to be emptied. In "
-			+ "an invocation with a valid target module name, the repositories "
-			+ "will be cleared before compilation is attempted. Mutually "
-			+ "exclusive with -g.",
-			new Continuation2<String, String>()
+				+ "has valid source directories specified. This option can be used "
+				+ "in isolation and will cause the repositories to be emptied. In "
+				+ "an invocation with a valid target module name, the repositories "
+				+ "will be cleared before compilation is attempted. Mutually "
+				+ "exclusive with -g.",
+			(keyword, unused) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String unused)
+				processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
+				processor.value().checkEncountered(
+					GENERATE_DOCUMENTATION, 0);
+				if (unused != null)
 				{
-					processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
-					processor.value().checkEncountered(
-						GENERATE_DOCUMENTATION, 0);
-					if (unused != null)
-					{
-						throw new OptionProcessingException(
-							keyword + ": An argument was specified, but none " +
-									"are permitted.");
-					}
-					configuration.setClearRepositoriesFlag();
+					throw new OptionProcessingException(
+						keyword + ": An argument was specified, but none " +
+							"are permitted.");
 				}
+				configuration.setClearRepositoriesFlag();
 			}));
 
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			GENERATE_DOCUMENTATION,
 			asList("g", "generateDocumentation"),
 			"Generate Stacks documentation for the target module and its "
-			+ "ancestors. The relevant repositories must already contain "
-			+ "compilations for every module implied by the request. Mutually "
-			+ "exclusive with -f.",
-			new Continuation2<String, String>()
+				+ "ancestors. The relevant repositories must already contain "
+				+ "compilations for every module implied by the request. Mutually "
+				+ "exclusive with -f.",
+			(keyword, unused) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String unused)
+				processor.value().checkEncountered(
+					GENERATE_DOCUMENTATION, 0);
+				processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
+				processor.value().checkEncountered(SHOW_STATISTICS, 0);
+				if (unused != null)
 				{
-					processor.value().checkEncountered(
-						GENERATE_DOCUMENTATION, 0);
-					processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
-					processor.value().checkEncountered(SHOW_STATISTICS, 0);
-					if (unused != null)
-					{
-						throw new OptionProcessingException(
-							keyword + ": An argument was specified, but none " +
-									"are permitted.");
-					}
-					configuration.setGenerateDocumenationFlag();
+					throw new OptionProcessingException(
+						keyword + ": An argument was specified, but none " +
+							"are permitted.");
 				}
+				configuration.setGenerateDocumenationFlag();
 			}));
 
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			DOCUMENTATION_PATH,
 			asList("G", "documentationPath"),
 			"The path to the output directory where documentation and data "
-			+ "files will appear when Stacks documentation is generated. "
-			+ "Requires -g.",
-			new Continuation2<String, String>()
+				+ "files will appear when Stacks documentation is generated. "
+				+ "Requires -g.",
+			(keyword, pathString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String pathString)
+				processor.value().checkEncountered(DOCUMENTATION_PATH, 0);
+				final Path path;
+				try
 				{
-					processor.value().checkEncountered(DOCUMENTATION_PATH, 0);
-					final Path path;
-					try
-					{
-						path = Paths.get(pathString);
-					}
-					catch (final InvalidPathException e)
-					{
-						throw new OptionProcessingException(
-							keyword
+					path = Paths.get(pathString);
+				}
+				catch (final InvalidPathException e)
+				{
+					throw new OptionProcessingException(
+						keyword
 							+ ": invalid path: "
 							+ e.getLocalizedMessage());
-					}
-					configuration.setDocumentationPath(path);
 				}
+				configuration.setDocumentationPath(path);
 			}));
 
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			QUIET,
 			asList("q", "quiet"),
 			"Mute all output originating from user code.",
-			new Continuation2<String, String>()
+			(keyword, unused) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String unused)
+				processor.value().checkEncountered(QUIET, 0);
+				if (unused != null)
 				{
-					processor.value().checkEncountered(QUIET, 0);
-					if (unused != null)
-					{
-						throw new OptionProcessingException(
-							keyword + ": An argument was specified, but none " +
-									"are permitted.");
-					}
-					configuration.setQuietFlag();
+					throw new OptionProcessingException(
+						keyword + ": An argument was specified, but none " +
+							"are permitted.");
 				}
+				configuration.setQuietFlag();
 			}));
 
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			SHOW_STATISTICS,
 			asList("s", "showStatistics"),
 			"Request statistics about the most time-intensive operations in "
-			+ "all categories ( -s or --showStatistics ) or for specific "
-			+ "categories, using a comma-separated list of keywords "
-			+ "( --showStatistics=#,# ). Requires -c.\n"
-			+ "\nPossible values in # include:"
-			+ "\nL2Operations - The most time-intensive level-two operations."
-			+ "\nDynamicLookups - The most time-intensive dynamic method "
-			+ "lookups."
-			+ "\nPrimitives - The primitives that are the most time-intensive "
-			+ "to run overall."
-			+ "\nPrimitiveReturnTypeChecks - The primitives that take the most "
-			+ "time checking return types.",
-			new Continuation2<String, String>()
+				+ "all categories ( -s or --showStatistics ) or for specific "
+				+ "categories, using a comma-separated list of keywords "
+				+ "( --showStatistics=#,# ). Requires -c.\n"
+				+ "\nPossible values in # include:"
+				+ "\nL2Operations - The most time-intensive level-two operations."
+				+ "\nDynamicLookups - The most time-intensive dynamic method "
+				+ "lookups."
+				+ "\nPrimitives - The primitives that are the most time-intensive "
+				+ "to run overall."
+				+ "\nPrimitiveReturnTypeChecks - The primitives that take the most "
+				+ "time checking return types.",
+			(keyword, reportsString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String reportsString)
+				processor.value().checkEncountered(SHOW_STATISTICS, 0);
+				processor.value().checkEncountered(
+					GENERATE_DOCUMENTATION, 0);
+				EnumSet<StatisticReport> reports;
+				if (reportsString == null)
 				{
-					processor.value().checkEncountered(SHOW_STATISTICS, 0);
-					processor.value().checkEncountered(
-						GENERATE_DOCUMENTATION, 0);
-					EnumSet<StatisticReport> reports;
-					if (reportsString == null)
-					{
-						reports = EnumSet.allOf(StatisticReport.class);
-					}
-					else
-					{
-						final String[] reportsArr = reportsString.split(",");
-						reports = EnumSet.noneOf(StatisticReport.class);
-						StatisticReport report;
-						for (final String reportName : reportsArr)
-						{
-							report = StatisticReport.reportFor(reportName);
-
-							// This will also catch the illegal use of "="
-							// without any items following.
-							if (report == null)
-							{
-								throw new OptionProcessingException(
-									keyword + ": Illegal argument.");
-							}
-							reports.add(report);
-						}
-					}
-					configuration.setReports(reports);
+					reports = EnumSet.allOf(StatisticReport.class);
 				}
+				else
+				{
+					final String[] reportsArr = reportsString.split(",");
+					reports = EnumSet.noneOf(StatisticReport.class);
+					StatisticReport report;
+					for (final String reportName : reportsArr)
+					{
+						report = StatisticReport.reportFor(reportName);
+
+						// This will also catch the illegal use of "="
+						// without any items following.
+						if (report == null)
+						{
+							throw new OptionProcessingException(
+								keyword + ": Illegal argument.");
+						}
+						reports.add(report);
+					}
+				}
+				configuration.setReports(reports);
 			}));
 
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			VERBOSE_MODE,
 			asList("v", "verboseMode"),
 			"Request minimum verbosity ( -v or --verboseMode ) "
-			+ "or manually set the verbosity level ( --verboseMode=# ).\n"
-			+ "\nPossible values for # include:"
-			+ "\n0 - Zero extra verbosity. Only error messages will be "
-			+ "output. This is the default level for the compiler and is "
-			+ "used when the verboseMode option is not used."
-			+ "\n1 - The minimum verbosity level. The global progress and "
-			+ "any error messages will be output. This is the default level "
-			+ "for this option when a level is not specified."
-			+ "\n2 - Global progress is output along with the local module "
-			+ "compilation progress and any error messages.",
-			new Continuation2<String, String>()
+				+ "or manually set the verbosity level ( --verboseMode=# ).\n"
+				+ "\nPossible values for # include:"
+				+ "\n0 - Zero extra verbosity. Only error messages will be "
+				+ "output. This is the default level for the compiler and is "
+				+ "used when the verboseMode option is not used."
+				+ "\n1 - The minimum verbosity level. The global progress and "
+				+ "any error messages will be output. This is the default level "
+				+ "for this option when a level is not specified."
+				+ "\n2 - Global progress is output along with the local module "
+				+ "compilation progress and any error messages.",
+			(keyword, verboseString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String verboseString)
+				processor.value().checkEncountered(VERBOSE_MODE, 0);
+				if (verboseString == null)
 				{
-					processor.value().checkEncountered(VERBOSE_MODE, 0);
-					if (verboseString == null)
+					configuration.setVerbosityLevel(
+						VerbosityLevel.atLevel(1));
+				}
+				else
+				{
+					try
 					{
+						// This parseInt will (also) throw an exception if
+						// it tries to parse "" as a result of the illegal
+						// use of "=" without any items following.
+						final int level = Integer.parseInt(verboseString);
 						configuration.setVerbosityLevel(
-							VerbosityLevel.atLevel(1));
+							VerbosityLevel.atLevel(level));
 					}
-					else
+					catch (final NumberFormatException e)
 					{
-						try
-						{
-							// This parseInt will (also) throw an exception if
-							// it tries to parse "" as a result of the illegal
-							// use of "=" without any items following.
-							final int level = Integer.parseInt(verboseString);
-							configuration.setVerbosityLevel(
-								VerbosityLevel.atLevel(level));
-						}
-						catch (final NumberFormatException e)
-						{
-							throw new OptionProcessingException(
-								keyword + ": Illegal argument.",
-								e);
-						}
+						throw new OptionProcessingException(
+							keyword + ": Illegal argument.",
+							e);
 					}
 				}
 			}));
 
-		factory.addOption(new GenericHelpOption<OptionKey>(
+		factory.addOption(new GenericHelpOption<>(
 			HELP,
 			processor,
 			"The Avail compiler understands the following options: ",
 			helpStream));
 
-		factory.addOption(new DefaultOption<OptionKey>(
+		factory.addOption(new DefaultOption<>(
 			TARGET_MODULE_NAME,
 			"The target module name for compilation and/or documentation "
-			+ "generation. The module is specified via a path relative to an "
-			+ "AVAIL_ROOTS root name. For example, if AVAIL_ROOTS specifies a "
-			+ "root named \"foo\" at path /usr/local/avail/stuff/, and module "
-			+ "\"frog\" is in the root directory as "
-			+ "/usr/local/avail/stuff/frog, the target module name would be "
-			+ "/foo/frog.",
-			new Continuation2<String, String>()
+				+ "generation. The module is specified via a path relative to an "
+				+ "AVAIL_ROOTS root name. For example, if AVAIL_ROOTS specifies a "
+				+ "root named \"foo\" at path /usr/local/avail/stuff/, and module "
+				+ "\"frog\" is in the root directory as "
+				+ "/usr/local/avail/stuff/frog, the target module name would be "
+				+ "/foo/frog.",
+			(keyword, targetModuleString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String targetModuleString)
+				assert targetModuleString != null;
+				processor.value().checkEncountered(TARGET_MODULE_NAME, 0);
+				try
 				{
-					assert targetModuleString != null;
-					processor.value().checkEncountered(TARGET_MODULE_NAME, 0);
-					try
-					{
-						configuration.setTargetModuleName(
-							new ModuleName(targetModuleString));
-					}
-					catch (final OptionProcessingException e)
-					{
-						throw new OptionProcessingException(
-							"«default»: " + e.getMessage(),
-							e);
-					}
+					configuration.setTargetModuleName(
+						new ModuleName(targetModuleString));
+				}
+				catch (final OptionProcessingException e)
+				{
+					throw new OptionProcessingException(
+						"«default»: " + e.getMessage(),
+						e);
 				}
 			}));
 

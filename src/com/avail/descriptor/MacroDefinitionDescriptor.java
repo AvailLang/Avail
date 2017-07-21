@@ -39,9 +39,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Macros are extremely hygienic in Avail.  They are defined almost exactly like
@@ -135,8 +133,7 @@ extends DefinitionDescriptor
 	int o_Hash (
 		final AvailObject object)
 	{
-		final int hash = object.bodyBlock().hash() ^ 0x67f6ec56 + 0x0AFB0E62;
-		return hash;
+		return object.bodyBlock().hash() ^ 0x67f6ec56 + 0x0AFB0E62;
 	}
 
 	@Override @AvailMethod
@@ -172,14 +169,7 @@ extends DefinitionDescriptor
 			ParseNodeKind.LIST_NODE,
 			TupleTypeDescriptor.mappingElementTypes(
 				argsTupleType,
-				new Transformer1<A_Type, A_Type>()
-				{
-					@Override
-					public A_Type value (@Nullable final A_Type argPhraseType)
-					{
-						return argPhraseType.expressionType();
-					}
-				}),
+				A_Type::expressionType),
 			argsTupleType);
 	}
 

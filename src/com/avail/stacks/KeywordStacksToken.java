@@ -427,7 +427,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		};
 
 		/** An array of all {@link StacksKeyword} enumeration values. */
-		private static StacksKeyword[] all = values();
+		private static final StacksKeyword[] all = values();
 
 		/**
 		 * Answer an array of all {@link StacksKeyword} enumeration values.
@@ -448,7 +448,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		 * @param lexeme {@link String} String representation of
 		 * the keyword.
 		 */
-		private StacksKeyword(final String lexeme) {
+		StacksKeyword (final String lexeme) {
 			this.lexeme = lexeme;
 		}
 
@@ -457,7 +457,7 @@ public abstract class KeywordStacksToken extends AbstractStacksToken
 		 * the {@link Enum StacksKeywords}
 		 */
 		static final Map<String, StacksKeyword> keywordTable =
-			new HashMap<String, StacksKeyword>();
+			new HashMap<>();
 
 		// Learn the lexemes of the keywords.
 		static

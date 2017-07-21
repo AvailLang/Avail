@@ -41,6 +41,7 @@ import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -97,7 +98,7 @@ extends L2Operation
 								E_FORWARD_METHOD_DEFINITION.numericCode(),
 								E_ABSTRACT_METHOD_DEFINITION.numericCode())
 							.asSet()),
-					TypeDescriptor.Types.METHOD.o(),
+					Types.METHOD.o(),
 					TupleTypeDescriptor.mostGeneralType()),
 				BottomTypeDescriptor.bottom()),
 			instruction);

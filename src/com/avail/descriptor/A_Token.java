@@ -32,9 +32,11 @@
 
 package com.avail.descriptor;
 
-import com.avail.compiler.scanning.AvailScanner;
+import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -48,11 +50,6 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 public interface A_Token
 extends A_BasicObject
 {
-	/**
-	 * Clear the next lexing state to {@link NilDescriptor#nil()}.
-	 */
-	void clearLexingState ();
-
 	/**
 	 * Answer whether this token is a {@linkplain LiteralTokenDescriptor literal
 	 * token}, such as a string or number.
@@ -102,14 +99,14 @@ extends A_BasicObject
 	 *
 	 * @return The next {@link LexingState}.
 	 */
-	LexingState nextLexingState ();
+	LexingState nextLexingStateIn (final CompilationContext compilationContext);
 
 	/**
 	 * Set this token's next {@link LexingState}.
 	 *
 	 * @param lexingState The lexing state after this token.
 	 */
-	void nextLexingState (final LexingState lexingState);
+	void setNextLexingState (final @Nullable LexingState lexingState);
 
 	/**
 	 * Answer this token's initial character position in the source file.
@@ -125,14 +122,6 @@ extends A_BasicObject
 	 * @return The token's string representation.
 	 */
 	A_String string ();
-
-	/**
-	 * Answer the zero-based index of this token within the list of this
-	 * module's tokenized source.
-	 *
-	 * @return The zero-based subscript of this token.
-	 */
-	int tokenIndex ();
 
 	/**
 	 * Answer the {@linkplain TokenType} of this token.
@@ -151,7 +140,7 @@ extends A_BasicObject
 
 	/**
 	 * Set this token's exact trailing whitespace as it appeared in the source
-	 * code. This capability makes the {@linkplain AvailScanner scanner} much
+	 * code. This capability makes the {@linkplain LexicalScanner scanner} much
 	 * easier to build and maintain.
 	 *
 	 * @param trailingWhitespace A string.

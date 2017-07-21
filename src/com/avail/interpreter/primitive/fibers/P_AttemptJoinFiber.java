@@ -41,7 +41,6 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * <strong>Primitive:</strong> If the {@linkplain FiberDescriptor fiber} has
@@ -76,40 +75,32 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF);
 		}
-		joinee.lock(new Continuation0()
+		joinee.lock(() ->
 		{
-			@Override
-			public void value ()
+			if (!joinee.executionState().indicatesTermination())
 			{
-				if (!joinee.executionState().indicatesTermination())
-				{
-					joinee.joiningFibers(joinee.joiningFibers()
-						.setWithElementCanDestroy(
-							current,
-							false));
-					shouldPark.value = true;
-				}
+				joinee.joiningFibers(joinee.joiningFibers()
+					.setWithElementCanDestroy(
+						current,
+						false));
+				shouldPark.value = true;
 			}
 		});
 		final MutableOrNull<Result> result = new MutableOrNull<>();
 		if (shouldPark.value)
 		{
-			current.lock(new Continuation0()
+			current.lock(() ->
 			{
-				@Override
-				public void value()
+				// If permit is not available, then park this fiber.
+				if (current.getAndSetSynchronizationFlag(
+					PERMIT_UNAVAILABLE, true))
 				{
-					// If permit is not available, then park this fiber.
-					if (current.getAndSetSynchronizationFlag(
-						PERMIT_UNAVAILABLE, true))
-					{
-						result.value = interpreter.primitivePark();
-					}
-					else
-					{
-						result.value =
-							interpreter.primitiveSuccess(NilDescriptor.nil());
-					}
+					result.value = interpreter.primitivePark();
+				}
+				else
+				{
+					result.value =
+						interpreter.primitiveSuccess(NilDescriptor.nil());
 				}
 			});
 		}

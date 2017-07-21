@@ -33,7 +33,9 @@ package com.avail.compiler.problems;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
+import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
+import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
@@ -52,7 +54,6 @@ import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -260,8 +261,8 @@ public class CompilerDiagnostics
 
 		int supplementaryCounter = 0;
 
-		@NotNull
-		private String next ()
+		@InnerAccess
+		@NotNull String next ()
 		{
 			final int nextLetterOffset =
 				circledLetters.offsetByCodePoints(letterOffset, 1);
@@ -330,62 +331,53 @@ public class CompilerDiagnostics
 	{
 		final List<Integer> descendingIndices =
 			new ArrayList<>(expectationsIndexHeap);
-		Collections.sort(
-			descendingIndices, Collections.<Integer>reverseOrder());
+		descendingIndices.sort(Collections.reverseOrder());
 		final Iterator<Integer> descendingIterator =
 			descendingIndices.iterator();
 		final IndicatorGenerator indicatorGenerator = new IndicatorGenerator();
 		final List<ProblemsAtPosition> groupedProblems = new ArrayList<>();
 		final MutableOrNull<Continuation0> writeAnotherThen =
 			new MutableOrNull<>();
-		writeAnotherThen.value = new Continuation0()
+		writeAnotherThen.value = () ->
 		{
-			@Override
-			public void value ()
+			if (!descendingIterator.hasNext())
 			{
-				if (!descendingIterator.hasNext())
-				{
-					// Done assembling each of the problems.  Report them.
-					assert !groupedProblems.isEmpty();
-					reportError(
-						groupedProblems, headerMessagePattern, afterFail);
-					return;
-				}
-				final int sourcePosition = descendingIterator.next();
-				final Map<LexingState, List<Describer>> innerMap =
-					expectations.get(sourcePosition);
-				assert !innerMap.isEmpty();
-				// Due to local lexer ambiguity, there may be multiple possible
-				// tokens at this position.  Choose the longest for the purpose
-				// of displaying the diagnostics.  We only care about the tokens
-				// that have already been formed, not ones in progress.
-				findLongestTokenThen(
-					innerMap.keySet(),
-					new Continuation1<A_Token>()
-					{
-						@Override
-						public void value (@Nullable final A_Token longestToken)
-						{
-							assert longestToken != null;
-							final List<Describer> describers =
-								new ArrayList<>();
-							for (final List<Describer> eachDescriberList
-								: innerMap.values())
-							{
-								describers.addAll(eachDescriberList);
-							}
-
-							groupedProblems.add(
-								new ProblemsAtPosition(
-									innerMap.keySet().iterator().next(),
-									longestToken.nextLexingState(),
-									indicatorGenerator.next(),
-									describers));
-							writeAnotherThen.value().value();
-						}
-					});
+				// Done assembling each of the problems.  Report them.
+				assert !groupedProblems.isEmpty();
+				reportError(
+					groupedProblems, headerMessagePattern, afterFail);
+				return;
 			}
-
+			final int sourcePosition = descendingIterator.next();
+			final Map<LexingState, List<Describer>> innerMap =
+				expectations.get(sourcePosition);
+			assert !innerMap.isEmpty();
+			final CompilationContext compilationContext =
+				innerMap.keySet().iterator().next().compilationContext;
+			// Due to local lexer ambiguity, there may be multiple possible
+			// tokens at this position.  Choose the longest for the purpose
+			// of displaying the diagnostics.  We only care about the tokens
+			// that have already been formed, not ones in progress.
+			findLongestTokenThen(
+				innerMap.keySet(),
+				longestToken ->
+				{
+					assert longestToken != null;
+					final List<Describer> describers =
+						new ArrayList<>();
+					for (final List<Describer> eachDescriberList
+						: innerMap.values())
+					{
+						describers.addAll(eachDescriberList);
+					}
+					groupedProblems.add(
+						new ProblemsAtPosition(
+							innerMap.keySet().iterator().next(),
+							longestToken.nextLexingStateIn(compilationContext),
+							indicatorGenerator.next(),
+							describers));
+					writeAnotherThen.value().value();
+				});
 		};
 		writeAnotherThen.value().value();
 	}
@@ -417,47 +409,15 @@ public class CompilerDiagnostics
 		final Map<LexingState, List<Describer>> innerMap = new HashMap<>();
 		innerMap.put(
 			lexingState,
-			Collections.<Describer>singletonList(new SimpleDescriber(message)));
+			Collections.singletonList(new SimpleDescriber(message)));
 		expectations.put(startPosition, innerMap);
 		expectationsIndexHeap.add(startPosition);
 		reportError(headerMessagePattern, failure);
 	}
 
 	/**
-	 * Report one specific terminal problem and call the failure continuation to
-	 * abort compilation.
-	 *
-	 * @param token
-	 *        The token at which to report the problem.
-	 * @param headerMessagePattern
-	 *        The problem header pattern, where the first pattern argument is
-	 *        the indicator string (e.g., circled-A), and the second pattern
-	 *        argument is the line number.
-	 * @param message
-	 *        The message text for this problem.
-	 * @param failure
-	 *        What to do after displaying the error message.
-	 */
-	public void reportError (
-		final A_Token token,
-		final String headerMessagePattern,
-		final String message,
-		final Continuation0 failure)
-	{
-		final LexingState after = token.nextLexingState();
-		reportError(
-			new LexingState(
-				after.compilationContext,
-				token.start(),
-				token.lineNumber()),
-			headerMessagePattern,
-			message,
-			failure);
-	}
-
-	/**
 	 * Search for a particular code point in the Avail string, starting at the
-	 * given index and working foreward.
+	 * given index and working forward.
 	 *
 	 * @param string
 	 *        The string in which to search.
@@ -596,7 +556,7 @@ public class CompilerDiagnostics
 		// line after the *end* of the last problem token.
 		final ProblemsAtPosition lastProblem =
 			ascending.get(ascending.size() - 1);
-		final int finalLineNumber = lastProblem.lexingState.lineNumber;
+		final int finalLineNumber = lastProblem.lineNumber();
 		int startOfNextLine = 1 + firstIndexOf(
 			source,
 			'\n',
@@ -613,7 +573,7 @@ public class CompilerDiagnostics
 		final List<A_Tuple> parts = new ArrayList<>(10);
 		for (final ProblemsAtPosition eachProblem : ascending)
 		{
-			final int newPosition = eachProblem.lexingState.position;
+			final int newPosition = eachProblem.position();
 			parts.add(
 				source.copyTupleFromToCanDestroy(
 					sourcePosition, newPosition - 1, false));
@@ -652,86 +612,78 @@ public class CompilerDiagnostics
 			groupedProblems.iterator();
 		final Mutable<Iterator<Describer>> problemIterator = new Mutable<>(
 			Collections.<Describer>emptyIterator());
-		final Set<String> alreadySeen = new HashSet<String>();
+		final Set<String> alreadySeen = new HashSet<>();
 		final MutableOrNull<Continuation0> continueReport =
-			new MutableOrNull<Continuation0>();
-		continueReport.value = new Continuation0()
+			new MutableOrNull<>();
+		continueReport.value = () ->
 		{
-			@Override
-			public void value ()
+			if (!problemIterator.value.hasNext())
 			{
-				if (!problemIterator.value.hasNext())
+				// Start a new problem group...
+				if (!groupIterator.hasNext())
 				{
-					// Start a new problem group...
-					if (!groupIterator.hasNext())
-					{
-						// Done everything.  Pass the complete text forward.
-						compilationIsInvalid = true;
-						// Generate the footer that indicates the module and
-						// line where the last indicator was found.
-						text.format(
-							"%n(file=\"%s\", line=%d)",
-							moduleName.qualifiedName(),
-							lastProblem.lexingState.lineNumber);
-						text.format("%n>>>%s", rowOfDashes);
-						handleProblem(new Problem(
-							moduleName,
-							lastProblem.lexingState.lineNumber,
-							lastProblem.lexingState.position,
-							PARSE,
-							"{0}",
-							text.toString())
-						{
-							@Override
-							public void abortCompilation ()
-							{
-								isShuttingDown = true;
-								afterFail.value();
-							}
-						});
-						// Generate the footer that indicates the module and
-						// line where the last indicator was found.
-						return;
-					}
-					// Advance to the next problem group...
-					final ProblemsAtPosition newGroup = groupIterator.next();
+					// Done everything.  Pass the complete text forward.
+					compilationIsInvalid = true;
+					// Generate the footer that indicates the module and
+					// line where the last indicator was found.
 					text.format(
-						"%n>>> " + headerMessagePattern,
-						newGroup.indicator,
-						newGroup.lexingState.lineNumber);
-					problemIterator.value = newGroup.describers.iterator();
-					alreadySeen.clear();
-					assert problemIterator.value.hasNext();
-				}
-				problemIterator.value.next().describeThen(
-					new Continuation1<String>()
+						"%n(file=\"%s\", line=%d)",
+						moduleName.qualifiedName(),
+						lastProblem.lineNumber());
+					text.format("%n>>>%s", rowOfDashes);
+					handleProblem(new Problem(
+						moduleName,
+						lastProblem.lineNumber(),
+						lastProblem.position(),
+						PARSE,
+						"{0}",
+						text.toString())
 					{
 						@Override
-						public void value (final @Nullable String message)
+						public void abortCompilation ()
 						{
-							assert message != null;
-							// Suppress duplicate messages.
-							if (!alreadySeen.contains(message))
-							{
-								alreadySeen.add(message);
-								text.format(
-									"%n>>>\t\t%s",
-									message.replace("\n", "\n>>>\t\t"));
-							}
-							// Avoid using direct recursion to keep the stack
-							// from getting too deep.
-							AvailRuntime.current().execute(new AvailTask(
-								FiberDescriptor.compilerPriority)
-							{
-								@Override
-								public void value ()
-								{
-									continueReport.value().value();
-								}
-							});
+							isShuttingDown = true;
+							afterFail.value();
 						}
 					});
+					// Generate the footer that indicates the module and
+					// line where the last indicator was found.
+					return;
+				}
+				// Advance to the next problem group...
+				final ProblemsAtPosition newGroup = groupIterator.next();
+				text.format(
+					"%n>>> " + headerMessagePattern,
+					newGroup.indicator,
+					newGroup.lineNumber());
+				problemIterator.value = newGroup.describers.iterator();
+				alreadySeen.clear();
+				assert problemIterator.value.hasNext();
 			}
+			problemIterator.value.next().describeThen(
+				message ->
+				{
+					assert message != null;
+					// Suppress duplicate messages.
+					if (!alreadySeen.contains(message))
+					{
+						alreadySeen.add(message);
+						text.format(
+							"%n>>>\t\t%s",
+							message.replace("\n", "\n>>>\t\t"));
+					}
+					// Avoid using direct recursion to keep the stack
+					// from getting too deep.
+					AvailRuntime.current().execute(new AvailTask(
+						FiberDescriptor.compilerPriority)
+					{
+						@Override
+						public void value ()
+						{
+							continueReport.value().value();
+						}
+					});
+				});
 		};
 		// Initiate all the grouped error printing.
 		continueReport.value().value();

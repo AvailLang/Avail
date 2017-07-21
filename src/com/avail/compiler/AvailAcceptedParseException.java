@@ -55,7 +55,7 @@ extends PrimitiveThrownException
 	 * Construct a new {@link AvailAcceptedParseException}, which can be thrown
 	 * by primitive {@link P_AcceptParsing} to indicate a semantic
 	 * restriction has accepted a parse but does not wish to strengthen the
-	 * exrpssion's type.
+	 * expression's type.
 	 */
 	public AvailAcceptedParseException ()
 	{

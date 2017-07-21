@@ -54,7 +54,7 @@ public interface IntegerEnumSlotDescriptionEnum
 	 *
 	 * @return A string that names this enumeration value.
 	 */
-	public @Nullable String name();
+	@Nullable String name ();
 
 	/**
 	 * Answer an integer that identifies this enumeration value uniquely within
@@ -64,5 +64,5 @@ public interface IntegerEnumSlotDescriptionEnum
 	 *
 	 * @return The enumeration value's ordinal number.
 	 */
-	public int ordinal();
+	int ordinal ();
 }

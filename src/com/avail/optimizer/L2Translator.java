@@ -34,6 +34,7 @@ package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
+import com.avail.interpreter.Primitive.Flag;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.dispatch.InternalLookupTree;
@@ -203,16 +204,7 @@ public class L2Translator
 			if (shouldLog && logger.isLoggable(level))
 			{
 				continuation.value(
-					new Continuation2<String, Throwable>()
-					{
-						@Override
-						public void value (
-							final @Nullable String message,
-							final @Nullable Throwable exception)
-						{
-							logger.log(level, message, exception);
-						}
-					});
+					(message, exception) -> logger.log(level, message, exception));
 			}
 		}
 
@@ -290,7 +282,7 @@ public class L2Translator
 		NATIVE;
 
 		/** An array of all {@link OptimizationLevel} enumeration values. */
-		private static OptimizationLevel[] all = values();
+		private static final OptimizationLevel[] all = values();
 
 		/**
 		 * Answer an array of all {@link OptimizationLevel} enumeration values.
@@ -307,7 +299,8 @@ public class L2Translator
 	/**
 	 * The current {@link CompiledCodeDescriptor compiled code} being optimized.
 	 */
-	@InnerAccess @Nullable A_RawFunction codeOrNull;
+	@InnerAccess @Nullable
+	final A_RawFunction codeOrNull;
 
 	/**
 	 * The number of arguments expected by the code being optimized.
@@ -328,7 +321,8 @@ public class L2Translator
 	 * The amount of {@linkplain OptimizationLevel effort} to apply to the
 	 * current optimization attempt.
 	 */
-	@InnerAccess OptimizationLevel optimizationLevel;
+	@InnerAccess
+	final OptimizationLevel optimizationLevel;
 
 	/**
 	 * The {@link Interpreter} that tripped the translation request.
@@ -408,8 +402,8 @@ public class L2Translator
 	 * holding the first argument to this compiled code (or where the first
 	 * argument would be if there were any).
 	 */
-	public static int firstArgumentRegisterIndex =
-		FixedRegister.all().length;
+	public static final int firstArgumentRegisterIndex =
+		all().length;
 
 	/**
 	 * An {@link EnumMap} from each {@link FixedRegister} to its manifestation
@@ -585,8 +579,7 @@ public class L2Translator
 	public L2RegisterVector createVector (
 		final List<L2ObjectRegister> objectRegisters)
 	{
-		final L2RegisterVector vector = new L2RegisterVector(objectRegisters);
-		return vector;
+		return new L2RegisterVector(objectRegisters);
 	}
 
 	/**
@@ -613,24 +606,13 @@ public class L2Translator
 	 */
 	final Transformer3<L2Register, L2OperandType, RegisterSet, L2Register>
 		normalizer =
-			new Transformer3<
-				L2Register,
-				L2OperandType,
-				RegisterSet,
-				L2Register>()
-			{
-				@Override
-				public L2Register value (
-					final @Nullable L2Register register,
-					final @Nullable L2OperandType operandType,
-					final @Nullable RegisterSet registerSet)
-				{
-					assert register != null;
-					assert operandType != null;
-					assert registerSet != null;
-					return registerSet.normalize(register, operandType);
-				}
-			};
+		(register, operandType, registerSet) ->
+		{
+			assert register != null;
+			assert operandType != null;
+			assert registerSet != null;
+			return registerSet.normalize(register, operandType);
+		};
 
 	/**
 	 * Attempt to inline an invocation of this method definition.  If it can be
@@ -647,19 +629,13 @@ public class L2Translator
 	 *        A {@link RegisterSet} indicating the current state of the
 	 *        registers at this invocation point.
 	 * @return The provided method definition's primitive {@linkplain
-	 * FunctionDescriptor function}, or {@code null} otherwise.
+	 *         FunctionDescriptor function}, or {@code null} otherwise.
 	 */
 	@InnerAccess @Nullable A_Function primitiveFunctionToInline (
 		final A_Function function,
 		final List<L2ObjectRegister> args,
 		final RegisterSet registerSet)
 	{
-		final List<A_Type> argTypes = new ArrayList<>(args.size());
-		for (final L2ObjectRegister arg : args)
-		{
-			argTypes.add(
-				registerSet.hasTypeAt(arg) ? registerSet.typeAt(arg) : ANY.o());
-		}
 		final int primitiveNumber = function.code().primitiveNumber();
 		if (primitiveNumber == 0)
 		{
@@ -974,23 +950,18 @@ public class L2Translator
 			final RegisterSet finalNaiveRegs = naiveRegs;
 			DebugFlag.GENERATION.log(
 				Level.FINEST,
-				new Continuation1<Continuation2<String, Throwable>>()
+				log ->
 				{
-					@Override
-					public void value (
-						final @Nullable Continuation2<String, Throwable> log)
-					{
-						assert log != null;
-						final StringBuilder builder = new StringBuilder(100);
-						finalNaiveRegs.debugOn(builder);
-						log.value(
-							String.format(
-								"%s%n\t#%d = %s",
-								builder.toString().replace("\n", "\n\t"),
-								instructions.size(),
-								normalizedInstruction),
-							null);
-					}
+					assert log != null;
+					final StringBuilder builder = new StringBuilder(100);
+					finalNaiveRegs.debugOn(builder);
+					log.value(
+						String.format(
+							"%s%n\t#%d = %s",
+							builder.toString().replace("\n", "\n\t"),
+							instructions.size(),
+							normalizedInstruction),
+						null);
 				});
 			normalizedInstruction.setOffset(instructions.size());
 			instructions.add(normalizedInstruction);
@@ -1067,30 +1038,25 @@ public class L2Translator
 			}
 			DebugFlag.GENERATION.log(
 				Level.FINEST,
-				new Continuation1<Continuation2<String, Throwable>>()
+				log ->
 				{
-					@Override
-					public void value (
-						final @Nullable Continuation2<String, Throwable> log)
+					assert log != null;
+					final StringBuilder builder = new StringBuilder(100);
+					if (naiveRegisters == null)
 					{
-						assert log != null;
-						final StringBuilder builder = new StringBuilder(100);
-						if (naiveRegisters == null)
-						{
-							builder.append("\n[[[no RegisterSet]]]");
-						}
-						else
-						{
-							naiveRegisters().debugOn(builder);
-						}
-						log.value(
-							String.format(
-								"%s%n\t#%d = %s",
-								builder.toString().replace("\n", "\n\t"),
-								instructions.size() - 1,
-								label),
-							null);
+						builder.append("\n[[[no RegisterSet]]]");
 					}
+					else
+					{
+						naiveRegisters.debugOn(builder);
+					}
+					log.value(
+						String.format(
+							"%s%n\t#%d = %s",
+							builder.toString().replace("\n", "\n\t"),
+							instructions.size() - 1,
+							label),
+						null);
 				});
 		}
 
@@ -1323,290 +1289,271 @@ public class L2Translator
 				MethodDescriptor.runtimeDispatcher,
 				null,
 				// preInternalNode
-				new Transformer2<Integer, A_Type, InternalNodeMemento>()
+				(argumentIndexToTest, typeToTest) ->
 				{
-					@Override
-					public @Nullable InternalNodeMemento value (
-						final @Nullable Integer argumentIndexToTest,
-						final @Nullable A_Type typeToTest)
+					assert argumentIndexToTest != null;
+					assert typeToTest != null;
+					assert stackp == initialStackp;
+					final InternalNodeMemento memento =
+						new InternalNodeMemento(
+							argumentIndexToTest,
+							typeToTest,
+							branchLabelCounter.value++);
+					if (naiveRegisters == null)
 					{
-						assert argumentIndexToTest != null;
-						assert typeToTest != null;
-						assert stackp == initialStackp;
-						final InternalNodeMemento memento =
-							new InternalNodeMemento(
-								argumentIndexToTest,
-								typeToTest,
-								branchLabelCounter.value++);
-						if (naiveRegisters == null)
+						// This code path is unreachable, so both children
+						// are as well.  Don't generate anything.
+						return memento;
+					}
+					final L2ObjectRegister argReg = stackRegister(
+						stackp + nArgs - argumentIndexToTest);
+					final A_Type existingType =
+						naiveRegisters().typeAt(argReg);
+					// Strengthen the test based on what's already known
+					// about the argument.  Eventually we can decide whether
+					// to strengthen based on the expected cost of the type
+					// check.
+					final A_Type intersection =
+						existingType.typeIntersection(typeToTest);
+					assert !intersection.isBottom()
+						: "Impossible condition should have been excluded";
+					// Tricky here.  We have the type we want to test for,
+					// and we have the argument for which we want to test
+					// the type, but we also have an element of the
+					// superUnionType to consider.  And that element might
+					// be a combination of restrictions and bottoms.  Deal
+					// with the easy, common cases first.
+					final A_Type superUnionElementType =
+						superUnionType.typeAtIndex(argumentIndexToTest);
+					if (naiveRegisters().hasConstantAt(argReg))
+					{
+						// The argument is a constant, so test it now.
+						// Take into account any supercasts.
+						final A_BasicObject value =
+							naiveRegisters().constantAt(argReg)
+								.typeUnion(superUnionElementType);
+						if (value.isInstanceOf(intersection))
 						{
-							// This code path is unreachable, so both children
-							// are as well.  Don't generate anything.
-							return memento;
-						}
-						final L2ObjectRegister argReg = stackRegister(
-							stackp + nArgs - argumentIndexToTest);
-						final A_Type existingType =
-							naiveRegisters().typeAt(argReg);
-						// Strengthen the test based on what's already known
-						// about the argument.  Eventually we can decide whether
-						// to strengthen based on the expected cost of the type
-						// check.
-						final A_Type intersection =
-							existingType.typeIntersection(typeToTest);
-						assert !intersection.isBottom()
-							: "Impossible condition should have been excluded";
-						// Tricky here.  We have the type we want to test for,
-						// and we have the argument for which we want to test
-						// the type, but we also have an element of the
-						// superUnionType to consider.  And that element might
-						// be a combination of restrictions and bottoms.  Deal
-						// with the easy, common cases first.
-						final A_Type superUnionElementType =
-							superUnionType.typeAtIndex(argumentIndexToTest);
-						if (naiveRegisters().hasConstantAt(argReg))
-						{
-							// The argument is a constant, so test it now.
-							// Take into account any supercasts.
-							final A_BasicObject value =
-								naiveRegisters().constantAt(argReg)
-									.typeUnion(superUnionElementType);
-							if (value.isInstanceOf(intersection))
-							{
-								// Generate code to always fall through to the
-								// true case, which comes first.
-							}
-							else
-							{
-								// Generate code to always jump to the false
-								// case.
-								addInstruction(
-									L2_JUMP.instance,
-									new L2PcOperand(memento.failCheckLabel));
-							}
-						}
-						else if (existingType.isSubtypeOf(
-							superUnionElementType))
-						{
-							// It's a pure supercast of this argument, not a mix
-							// of parts being supercast and others not.  Do the
-							// test once, right now.
-							if (superUnionElementType.isSubtypeOf(existingType))
-							{
-								// Only the true case should be reached.
-								// Let the code just fall through to it, and
-								// rely on dead code elimination to remove the
-								// false case.
-							}
-							else
-							{
-								// Only the false case should be reached.  Jump
-								// unconditionally to it, and rely on dead code
-								// elimination to remove the unreachable true
-								// case.
-								addInstruction(
-									L2_JUMP.instance,
-									new L2PcOperand(memento.failCheckLabel));
-							}
-						}
-						else if (superUnionElementType.isBottom()
-							&& intersection.isEnumeration()
-							&& !intersection.isInstanceMeta()
-							&& intersection.instanceCount().extractInt() <=
-								maxExpandedEqualityChecks)
-						{
-							// It doesn't contain a supercast, and the type is
-							// a small non-meta enumeration.  Use equality
-							// checks rather than the more general type checks.
-							final A_Set instances = intersection.instances();
-							if (instances.setSize() == 1)
-							{
-								addInstruction(
-									L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT.instance,
-									new L2PcOperand(memento.failCheckLabel),
-									new L2ReadPointerOperand(argReg),
-									new L2ConstantOperand(
-										instances.iterator().next()));
-							}
-							else
-							{
-								final L2Instruction matchedLabel =
-									newLabel("matched enumeration");
-								for (final A_BasicObject instance : instances)
-								{
-									addInstruction(
-										L2_JUMP_IF_EQUALS_CONSTANT.instance,
-										new L2PcOperand(matchedLabel),
-										new L2ReadPointerOperand(argReg),
-										new L2ConstantOperand(instance));
-								}
-								addInstruction(
-									L2_JUMP.instance,
-									new L2PcOperand(memento.failCheckLabel));
-								addLabel(matchedLabel);
-							}
-						}
-						else if (superUnionElementType.isBottom())
-						{
-							// Use the argument's type unaltered.  In fact, just
-							// check if the argument is an instance of the type.
-							addInstruction(
-								L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
-								new L2PcOperand(memento.failCheckLabel),
-								new L2ReadPointerOperand(argReg),
-								new L2ConstantOperand(intersection));
+							//noinspection StatementWithEmptyBody
+							// Generate code to always fall through to the
+							// true case, which comes first.
 						}
 						else
 						{
-							// This argument dispatch type is a mixture of
-							// supercasts and non-supercasts.  Do it the slow
-							// way with a type union.  Technically, the
-							// superUnionElementType's recursive tuple structure
-							// mimics the call site, so it must have a fixed,
-							// finite structure corresponding with occurrences
-							// of supercasts syntactically.  Thus, in theory we
-							// could analyze the superUnionElementType and
-							// generate a more complex collection of branches –
-							// but this is already a pretty rare case.
-							final L2ObjectRegister argTypeReg =
-								newObjectRegister();
-							final L2ObjectRegister superUnionReg =
-								newObjectRegister();
-							final L2ObjectRegister unionReg =
-								newObjectRegister();
+							// Generate code to always jump to the false
+							// case.
 							addInstruction(
-								L2_GET_TYPE.instance,
-								new L2ReadPointerOperand(argReg),
-								new L2WritePointerOperand(argTypeReg));
-							moveConstant(superUnionElementType, superUnionReg);
-							addInstruction(
-								L2_TYPE_UNION.instance,
-								new L2ReadPointerOperand(argTypeReg),
-								new L2ReadPointerOperand(superUnionReg),
-								new L2WritePointerOperand(unionReg));
-							addInstruction(
-								L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT.instance,
-								new L2PcOperand(memento.failCheckLabel),
-								new L2ReadPointerOperand(unionReg),
-								new L2ConstantOperand(intersection));
+								L2_JUMP.instance,
+								new L2PcOperand(memento.failCheckLabel));
 						}
-						return memento;
 					}
+					else if (existingType.isSubtypeOf(
+						superUnionElementType))
+					{
+						// It's a pure supercast of this argument, not a mix
+						// of parts being supercast and others not.  Do the
+						// test once, right now.
+						if (superUnionElementType.isSubtypeOf(existingType))
+						{
+							//noinspection StatementWithEmptyBody
+							// Only the true case should be reached.
+							// Let the code just fall through to it, and
+							// rely on dead code elimination to remove the
+							// false case.
+						}
+						else
+						{
+							// Only the false case should be reached.  Jump
+							// unconditionally to it, and rely on dead code
+							// elimination to remove the unreachable true
+							// case.
+							addInstruction(
+								L2_JUMP.instance,
+								new L2PcOperand(memento.failCheckLabel));
+						}
+					}
+					else if (superUnionElementType.isBottom()
+						&& intersection.isEnumeration()
+						&& !intersection.isInstanceMeta()
+						&& intersection.instanceCount().extractInt() <=
+							maxExpandedEqualityChecks)
+					{
+						// It doesn't contain a supercast, and the type is
+						// a small non-meta enumeration.  Use equality
+						// checks rather than the more general type checks.
+						final A_Set instances = intersection.instances();
+						if (instances.setSize() == 1)
+						{
+							addInstruction(
+								L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT.instance,
+								new L2PcOperand(memento.failCheckLabel),
+								new L2ReadPointerOperand(argReg),
+								new L2ConstantOperand(
+									instances.iterator().next()));
+						}
+						else
+						{
+							final L2Instruction matchedLabel =
+								newLabel("matched enumeration");
+							for (final A_BasicObject instance : instances)
+							{
+								addInstruction(
+									L2_JUMP_IF_EQUALS_CONSTANT.instance,
+									new L2PcOperand(matchedLabel),
+									new L2ReadPointerOperand(argReg),
+									new L2ConstantOperand(instance));
+							}
+							addInstruction(
+								L2_JUMP.instance,
+								new L2PcOperand(memento.failCheckLabel));
+							addLabel(matchedLabel);
+						}
+					}
+					else if (superUnionElementType.isBottom())
+					{
+						// Use the argument's type unaltered.  In fact, just
+						// check if the argument is an instance of the type.
+						addInstruction(
+							L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
+							new L2PcOperand(memento.failCheckLabel),
+							new L2ReadPointerOperand(argReg),
+							new L2ConstantOperand(intersection));
+					}
+					else
+					{
+						// This argument dispatch type is a mixture of
+						// supercasts and non-supercasts.  Do it the slow
+						// way with a type union.  Technically, the
+						// superUnionElementType's recursive tuple structure
+						// mimics the call site, so it must have a fixed,
+						// finite structure corresponding with occurrences
+						// of supercasts syntactically.  Thus, in theory we
+						// could analyze the superUnionElementType and
+						// generate a more complex collection of branches –
+						// but this is already a pretty rare case.
+						final L2ObjectRegister argTypeReg =
+							newObjectRegister();
+						final L2ObjectRegister superUnionReg =
+							newObjectRegister();
+						final L2ObjectRegister unionReg =
+							newObjectRegister();
+						addInstruction(
+							L2_GET_TYPE.instance,
+							new L2ReadPointerOperand(argReg),
+							new L2WritePointerOperand(argTypeReg));
+						moveConstant(superUnionElementType, superUnionReg);
+						addInstruction(
+							L2_TYPE_UNION.instance,
+							new L2ReadPointerOperand(argTypeReg),
+							new L2ReadPointerOperand(superUnionReg),
+							new L2WritePointerOperand(unionReg));
+						addInstruction(
+							L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT.instance,
+							new L2PcOperand(memento.failCheckLabel),
+							new L2ReadPointerOperand(unionReg),
+							new L2ConstantOperand(intersection));
+					}
+					return memento;
 				},
 				// intraInternalNode
-				new Continuation1<InternalNodeMemento>()
+				memento ->
 				{
-					@Override
-					public void value (
-						final @Nullable InternalNodeMemento memento)
+					assert memento != null;
+					if (naiveRegisters != null)
 					{
-						assert memento != null;
-						if (naiveRegisters != null)
-						{
-							addInstruction(
-								L2_JUMP.instance,
-								new L2PcOperand(afterCall));
-						}
-						addLabel(memento.failCheckLabel);
+						addInstruction(
+							L2_JUMP.instance,
+							new L2PcOperand(afterCall));
 					}
+					addLabel(memento.failCheckLabel);
 				},
 				// postInternalNode
-				new Continuation1<InternalNodeMemento>()
+				memento ->
 				{
-					@Override
-					public void value (
-						final @Nullable InternalNodeMemento memento)
+					assert memento != null;
+					if (naiveRegisters != null)
 					{
-						assert memento != null;
-						if (naiveRegisters != null)
-						{
-							addInstruction(
-								L2_JUMP.instance,
-								new L2PcOperand(afterCall));
-						}
+						addInstruction(
+							L2_JUMP.instance,
+							new L2PcOperand(afterCall));
 					}
 				},
 				// forEachLeafNode
-				new Continuation1<A_Tuple>()
+				solutions ->
 				{
-					@Override
-					public void value(
-						final @Nullable A_Tuple solutions)
+					assert solutions != null;
+					assert stackp == initialStackp;
+					if (naiveRegisters == null)
 					{
-						assert solutions != null;
-						assert stackp == initialStackp;
-						if (naiveRegisters == null)
+						// This leaf code path is unreachable, so don't
+						// generate anything.
+						return;
+					}
+					A_Definition solution;
+					if (solutions.tupleSize() == 1
+						&& (solution = solutions.tupleAt(1)).isInstanceOf(
+							METHOD_DEFINITION.o()))
+					{
+						generateFunctionInvocation(
+							solution.bodyBlock(), expectedType);
+						// Reset for next type test or call.
+						stackp = initialStackp;
+					}
+					else
+					{
+						// Collect the arguments into a tuple and invoke the
+						// handler for failed method lookups.
+						final A_Set solutionsSet = solutions.asSet();
+						final List<L2ObjectRegister> argumentRegisters =
+							new ArrayList<>(nArgs);
+						for (int i = nArgs - 1; i >= 0; i--)
 						{
-							// This leaf code path is unreachable, so don't
-							// generate anything.
-							return;
+							argumentRegisters.add(
+								stackRegister(stackp + i));
 						}
-						A_Definition solution;
-						if (solutions.tupleSize() == 1
-							&& (solution = solutions.tupleAt(1)).isInstanceOf(
-								METHOD_DEFINITION.o()))
-						{
-							generateFunctionInvocation(
-								solution.bodyBlock(), expectedType);
-							// Reset for next type test or call.
-							stackp = initialStackp;
-						}
-						else
-						{
-							// Collect the arguments into a tuple and invoke the
-							// handler for failed method lookups.
-							final A_Set solutionsSet = solutions.asSet();
-							final List<L2ObjectRegister> argumentRegisters =
-								new ArrayList<>(nArgs);
-							for (int i = nArgs - 1; i >= 0; i--)
-							{
-								argumentRegisters.add(
-									stackRegister(stackp + i));
-							}
-							final L2ObjectRegister errorCodeReg =
-								newObjectRegister();
-							addInstruction(
-								L2_DIAGNOSE_LOOKUP_FAILURE.instance,
-								new L2ConstantOperand(solutionsSet),
-								new L2WritePointerOperand(errorCodeReg));
-							final L2ObjectRegister invalidSendReg =
-								newObjectRegister();
-							addInstruction(
-								L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
-								new L2WritePointerOperand(invalidSendReg));
-							// Make the method itself accessible to the code.
-							final L2ObjectRegister methodReg =
-								newObjectRegister();
-							moveConstant(method, methodReg);
-							// Collect the arguments into a tuple.
-							final L2ObjectRegister argumentsTupleReg =
-								newObjectRegister();
-							addInstruction(
-								L2_CREATE_TUPLE.instance,
-								new L2ReadVectorOperand(
-									createVector(argumentRegisters)),
-								new L2WritePointerOperand(argumentsTupleReg));
-							final List<L2ObjectRegister> slots =
-								continuationSlotsList(numSlots);
-							// The continuation must be reified prior to
-							// invoking the failure function.
-							final L2Instruction unreachable =
-								newLabel("unreachable");
-							final L2ObjectRegister reifiedRegister =
-								newObjectRegister();
-							reify(slots, reifiedRegister, unreachable);
-							addInstruction(
-								L2_INVOKE.instance,
-								new L2ReadPointerOperand(reifiedRegister),
-								new L2ReadPointerOperand(invalidSendReg),
-								new L2ReadVectorOperand(createVector(
-									Arrays.asList(
-										errorCodeReg,
-										methodReg,
-										argumentsTupleReg))),
-								new L2ImmediateOperand(1));
-							unreachableCode(unreachable);
-						}
+						final L2ObjectRegister errorCodeReg =
+							newObjectRegister();
+						addInstruction(
+							L2_DIAGNOSE_LOOKUP_FAILURE.instance,
+							new L2ConstantOperand(solutionsSet),
+							new L2WritePointerOperand(errorCodeReg));
+						final L2ObjectRegister invalidSendReg =
+							newObjectRegister();
+						addInstruction(
+							L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
+							new L2WritePointerOperand(invalidSendReg));
+						// Make the method itself accessible to the code.
+						final L2ObjectRegister methodReg =
+							newObjectRegister();
+						moveConstant(method, methodReg);
+						// Collect the arguments into a tuple.
+						final L2ObjectRegister argumentsTupleReg =
+							newObjectRegister();
+						addInstruction(
+							L2_CREATE_TUPLE.instance,
+							new L2ReadVectorOperand(
+								createVector(argumentRegisters)),
+							new L2WritePointerOperand(argumentsTupleReg));
+						final List<L2ObjectRegister> slots =
+							continuationSlotsList(numSlots);
+						// The continuation must be reified prior to
+						// invoking the failure function.
+						final L2Instruction unreachable =
+							newLabel("unreachable");
+						final L2ObjectRegister reifiedRegister =
+							newObjectRegister();
+						reify(slots, reifiedRegister, unreachable);
+						addInstruction(
+							L2_INVOKE.instance,
+							new L2ReadPointerOperand(reifiedRegister),
+							new L2ReadPointerOperand(invalidSendReg),
+							new L2ReadVectorOperand(createVector(
+								Arrays.asList(
+									errorCodeReg,
+									methodReg,
+									argumentsTupleReg))),
+							new L2ImmediateOperand(1));
+						unreachableCode(unreachable);
 					}
 				});
 			addLabel(afterCall);
@@ -1976,7 +1923,7 @@ public class L2Translator
 				// take the type union with the superUnionType, then perform a
 				// lookup-by-types using that tuple type.
 				final List<L2ObjectRegister> argTypeRegs =
-					new ArrayList<L2ObjectRegister>(nArgs);
+					new ArrayList<>(nArgs);
 				for (int i = 1; i <= nArgs; i++)
 				{
 					final L2ObjectRegister argReg = argRegs.get(i - 1);
@@ -2091,19 +2038,19 @@ public class L2Translator
 		 *
 		 * <p>
 		 * Special case if the flag {@link
-		 * com.avail.interpreter.Primitive.Flag#SpecialReturnConstant} is
+		 * Flag#SpecialReturnConstant} is
 		 * specified: Always fold it, since it's just a constant.
 		 * </p>
 		 *
 		 * <p>
 		 * Another special case if the flag {@link
-		 * com.avail.interpreter.Primitive.Flag#SpecialReturnSoleArgument} is
+		 * Flag#SpecialReturnSoleArgument} is
 		 * specified:  Don't generate an inlined primitive invocation, but
 		 * instead generate a move from the argument register to the output.
 		 * </p>
 		 *
 		 * <p>
-		 * The flag {@link com.avail.interpreter.Primitive.Flag
+		 * The flag {@link Flag
 		 * #SpecialReturnGlobalValue} indicates the operation simply returns the
 		 * value of some (global) variable.  In that circumstance, output
 		 * alternative code to read the variable without leaving the current
@@ -2293,7 +2240,7 @@ public class L2Translator
 						new L2ReadPointerOperand(reifiedRegister),
 						new L2ReadPointerOperand(invalidResultFunction),
 						new L2ReadVectorOperand(createVector(
-							Collections.<L2ObjectRegister>emptyList())),
+							Collections.emptyList())),
 						new L2ImmediateOperand(1));
 					unreachableCode(unreachable);
 					addLabel(returnWasOkLabel);
@@ -2515,7 +2462,7 @@ public class L2Translator
 				new L2ReadPointerOperand(reifiedRegister),
 				new L2ReadPointerOperand(unassignedReadFunction),
 				new L2ReadVectorOperand(createVector(
-					Collections.<L2ObjectRegister>emptyList())),
+					Collections.emptyList())),
 				new L2ImmediateOperand(1));
 			unreachableCode(unreachable);
 			addLabel(success);
@@ -2662,7 +2609,7 @@ public class L2Translator
 						OptimizationLevel.FIRST_TRANSLATION.ordinal()));
 			}
 			final List<L2ObjectRegister> initialRegisters =
-				new ArrayList<>(FixedRegister.all().length);
+				new ArrayList<>(all().length);
 			initialRegisters.add(fixed(NULL));
 			initialRegisters.add(fixed(CALLER));
 			initialRegisters.add(fixed(FUNCTION));
@@ -3141,7 +3088,6 @@ public class L2Translator
 			// This shouldn't happen unless the compiler is out of sync with the
 			// translator.
 			error("That nybblecode is not supported");
-			return;
 		}
 
 		@Override
@@ -3163,37 +3109,33 @@ public class L2Translator
 	private void optimize ()
 	{
 		final List<L2Instruction> originals = new ArrayList<>(instructions);
+		//noinspection StatementWithEmptyBody
 		while (removeDeadInstructions())
 		{
 			// Do it again.
 		}
 		DebugFlag.OPTIMIZATION.log(
 			Level.FINEST,
-			new Continuation1<Continuation2<String, Throwable>>()
+			log ->
 			{
-				@Override
-				public void value (
-					final @Nullable Continuation2<String, Throwable> log)
+				assert log != null;
+				@SuppressWarnings("resource")
+				final Formatter formatter = new Formatter();
+				formatter.format("%nOPTIMIZED: %s%n", codeOrFail());
+				final Set<L2Instruction> kept = new HashSet<>(instructions);
+				for (final L2Instruction instruction : originals)
 				{
-					assert log != null;
-					@SuppressWarnings("resource")
-					final Formatter formatter = new Formatter();
-					formatter.format("%nOPTIMIZED: %s%n", codeOrFail());
-					final Set<L2Instruction> kept = new HashSet<>(instructions);
-					for (final L2Instruction instruction : originals)
-					{
-						formatter.format(
-							"%n%s\t%s",
-							kept.contains(instruction)
-								? instruction.operation.shouldEmit()
-									? "+"
-									: "-"
-								: "",
-							instruction);
-					}
-					formatter.format("%n");
-					log.value(formatter.toString(), null);
+					formatter.format(
+						"%n%s\t%s",
+						kept.contains(instruction)
+							? instruction.operation.shouldEmit()
+								? "+"
+								: "-"
+							: "",
+						instruction);
 				}
+				formatter.format("%n");
+				log.value(formatter.toString(), null);
 			});
 	}
 
@@ -3259,24 +3201,18 @@ public class L2Translator
 				final int targetInstructionNumber = successor.offset();
 				DebugFlag.DATA_FLOW.log(
 					Level.FINEST,
-					new Continuation1<Continuation2<String, Throwable>>()
+					log ->
 					{
-						@Override
-						public void value (
-							final @Nullable
-								Continuation2<String, Throwable> log)
-						{
-							assert log != null;
-							final StringBuilder builder =
-								new StringBuilder(100);
-							targetRegisterSet.debugOn(builder);
-							log.value(
-								String.format(
-									"\t->#%d:%s%n",
-									targetInstructionNumber,
-									builder.toString().replace("\n", "\n\t")),
-								null);
-						}
+						assert log != null;
+						final StringBuilder builder =
+							new StringBuilder(100);
+						targetRegisterSet.debugOn(builder);
+						log.value(
+							String.format(
+								"\t->#%d:%s%n",
+								targetInstructionNumber,
+								builder.toString().replace("\n", "\n\t")),
+							null);
 					});
 				final RegisterSet existing =
 					instructionRegisterSets.get(targetInstructionNumber);
@@ -3367,29 +3303,24 @@ public class L2Translator
 		// We now have a complete list of which instructions should be kept.
 		DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
 			Level.FINEST,
-			new Continuation1<Continuation2<String, Throwable>>()
+			log ->
 			{
-				@Override
-				public void value (
-					final @Nullable Continuation2<String, Throwable> log)
+				assert log != null;
+				@SuppressWarnings("resource")
+				final Formatter formatter = new Formatter();
+				formatter.format("Keep/drop instruction list:%n");
+				for (int i = 0, end = instructions.size(); i < end; i++)
 				{
-					assert log != null;
-					@SuppressWarnings("resource")
-					final Formatter formatter = new Formatter();
-					formatter.format("Keep/drop instruction list:%n");
-					for (int i = 0, end = instructions.size(); i < end; i++)
-					{
-						final L2Instruction instruction = instructions.get(i);
-						formatter.format(
-							"\t%s #%d %s%n",
-							neededInstructions.contains(instruction)
-								? "+"
-								: "-",
-							i,
-							instruction.toString().replace("\n", "\n\t\t"));
-					}
-					log.value(formatter.toString(), null);
+					final L2Instruction instruction = instructions.get(i);
+					formatter.format(
+						"\t%s #%d %s%n",
+						neededInstructions.contains(instruction)
+							? "+"
+							: "-",
+						i,
+						instruction.toString().replace("\n", "\n\t\t"));
 				}
+				log.value(formatter.toString(), null);
 			});
 		boolean anyChanges = instructions.retainAll(neededInstructions);
 		final List<L2Instruction> oldInstructions =
@@ -3476,33 +3407,28 @@ public class L2Translator
 		}
 		DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
 			Level.FINEST,
-			new Continuation1<Continuation2<String, Throwable>>()
+			log ->
 			{
-				@Override
-				public void value (
-					final @Nullable Continuation2<String, Throwable> log)
+				assert log != null;
+				@SuppressWarnings("resource")
+				final Formatter formatter = new Formatter();
+				formatter.format(
+					"Directly irremovable reachable instructions:");
+				for (int i = 0, end = instructions.size(); i < end; i++)
 				{
-					assert log != null;
-					@SuppressWarnings("resource")
-					final Formatter formatter = new Formatter();
+					final L2Instruction instruction = instructions.get(i);
 					formatter.format(
-						"Directly irremovable reachable instructions:");
-					for (int i = 0, end = instructions.size(); i < end; i++)
-					{
-						final L2Instruction instruction = instructions.get(i);
-						formatter.format(
-							"\t%s: #%d %s%n",
-							(instructionsToVisit.contains(instruction)
-								? "Forced "
-								: (reachableInstructions.contains(instruction)
-									? "Reach  "
-									: "pending")),
-							i,
-							instruction.toString().replace("\n", "\n\t\t"));
-					}
-					log.value(formatter.toString(), null);
-					log.value("Propagation of needed instructions:", null);
+						"\t%s: #%d %s%n",
+						(instructionsToVisit.contains(instruction)
+							? "Forced "
+							: (reachableInstructions.contains(instruction)
+								? "Reach  "
+								: "pending")),
+						i,
+						instruction.toString().replace("\n", "\n\t\t"));
 				}
+				log.value(formatter.toString(), null);
+				log.value("Propagation of needed instructions:", null);
 			});
 		// Recursively mark as needed all instructions that produce values
 		// consumed by another needed instruction.
@@ -3524,30 +3450,23 @@ public class L2Translator
 					{
 						DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
 							Level.FINEST,
-							new Continuation1<
-								Continuation2<String, Throwable>>()
+							log ->
 							{
-								@Override
-								public void value (
-									final @Nullable
-										Continuation2<String, Throwable> log)
+								assert log != null;
+								final Set<Integer> providerIndices =
+									new TreeSet<>();
+								for (final L2Instruction need :
+									providingInstructions)
 								{
-									assert log != null;
-									final Set<Integer> providerIndices =
-										new TreeSet<>();
-									for (final L2Instruction need :
-										providingInstructions)
-									{
-										providerIndices.add(need.offset());
-									}
-									log.value(
-										String.format(
-											"\t\t#%d (%s) -> %s%n",
-											instruction.offset(),
-											sourceRegister,
-											providerIndices),
-										null);
+									providerIndices.add(need.offset());
 								}
+								log.value(
+									String.format(
+										"\t\t#%d (%s) -> %s%n",
+										instruction.offset(),
+										sourceRegister,
+										providerIndices),
+									null);
 							});
 						instructionsToVisit.addAll(providingInstructions);
 					}
@@ -3623,20 +3542,12 @@ public class L2Translator
 				}
 			}
 		}
-		Collections.sort(
-			encounteredList,
-			new Comparator<L2Register>()
-			{
-				@Override
-				public int compare (
-					final @Nullable L2Register r1,
-					final @Nullable L2Register r2)
-				{
-					assert r1 != null;
-					assert r2 != null;
-					return Long.compare(r2.uniqueValue, r1.uniqueValue);
-				}
-			});
+		encounteredList.sort((r1, r2) ->
+		{
+			assert r1 != null;
+			assert r2 != null;
+			return Long.compare(r2.uniqueValue, r1.uniqueValue);
+		});
 		for (final L2Register register : encounteredList)
 		{
 			if (register.finalIndex() == -1)
@@ -3664,7 +3575,7 @@ public class L2Translator
 		final Mutable<Integer> intRegMaxIndex = new Mutable<>(-1);
 		final Mutable<Integer> floatRegMaxIndex = new Mutable<>(-1);
 		final Mutable<Integer> objectRegMaxIndex =
-			new Mutable<>(FixedRegister.all().length - 1);
+			new Mutable<>(all().length - 1);
 		final L2OperandDispatcher dispatcher = new L2OperandDispatcher()
 		{
 			@Override
@@ -3856,9 +3767,9 @@ public class L2Translator
 
 		final int numFixed = firstArgumentRegisterIndex;
 		final int numRegisters = numFixed + code.numArgsAndLocalsAndStack();
-		architecturalRegisters = new ArrayList<L2ObjectRegister>(numRegisters);
+		architecturalRegisters = new ArrayList<>(numRegisters);
 		fixedRegisterMap = new EnumMap<>(FixedRegister.class);
-		for (final FixedRegister fixedRegister : FixedRegister.all())
+		for (final FixedRegister fixedRegister : all())
 		{
 			final L2ObjectRegister reg =
 				L2ObjectRegister.precolored(
@@ -3883,9 +3794,9 @@ public class L2Translator
 		optimizationLevel = OptimizationLevel.UNOPTIMIZED;
 		interpreter = null;
 		architecturalRegisters =
-			new ArrayList<L2ObjectRegister>(firstArgumentRegisterIndex);
+			new ArrayList<>(firstArgumentRegisterIndex);
 		fixedRegisterMap = new EnumMap<>(FixedRegister.class);
-		for (final FixedRegister fixedRegister : FixedRegister.all())
+		for (final FixedRegister fixedRegister : all())
 		{
 			final L2ObjectRegister reg =
 				L2ObjectRegister.precolored(

@@ -44,7 +44,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.PopupControl;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
@@ -80,7 +79,8 @@ public class AvailArea
 	 * An {@link ArrayDeque} that represents the currently navigated path on
 	 * the {@link ReplaceTextTemplate#prefixTrie}.
 	 */
-	private @NotNull ArrayDeque<PrefixNode<String>> path = new ArrayDeque<>();
+	private @NotNull
+	final ArrayDeque<PrefixNode<String>> path = new ArrayDeque<>();
 
 	/**
 	 * A {@link List} of {@link KeyComboAction}s to be performed on various

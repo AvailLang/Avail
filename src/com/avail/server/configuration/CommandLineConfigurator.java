@@ -36,7 +36,6 @@ import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.*
 import static java.util.Arrays.asList;
 import java.io.File;
 import com.avail.annotations.InnerAccess;
-import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.server.AvailServer;
@@ -48,7 +47,6 @@ import com.avail.tools.options.OptionProcessorFactory;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
-import com.avail.utility.evaluation.Continuation2;
 
 /**
  * Provides the {@linkplain AvailServerConfiguration configuration} for the
@@ -110,111 +108,81 @@ implements Configurator<AvailServerConfiguration>
 			new MutableOrNull<>();
 		final OptionProcessorFactory<OptionKey> factory =
 			new OptionProcessorFactory<>(OptionKey.class);
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			AVAIL_RENAMES,
 			asList("availRenames"),
 			"The path to the renames file. This option overrides environment "
-			+ "variables.",
-			new Continuation2<String, String>()
+				+ "variables.",
+			(keyword, renamesString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String renamesString)
-				{
-					assert renamesString != null;
-					processor.value().checkEncountered(AVAIL_RENAMES, 0);
-					configuration.setRenamesFilePath(renamesString);
-				}
+				assert renamesString != null;
+				processor.value().checkEncountered(AVAIL_RENAMES, 0);
+				configuration.setRenamesFilePath(renamesString);
 			}));
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			AVAIL_ROOTS,
 			asList("availRoots"),
 			"The Avail roots, as a semicolon (;) separated list of module root "
-			+ "specifications. Each module root specification comprises a "
-			+ "logical root name, then an equals (=), then a module root "
-			+ "location. A module root location comprises the absolute path to "
-			+ "a binary module repository, then optionally a comma (,) and the "
-			+ "absolute path to a source package. This option overrides " +
-			"environment variables.",
-			new Continuation2<String, String>()
+				+ "specifications. Each module root specification comprises a "
+				+ "logical root name, then an equals (=), then a module root "
+				+ "location. A module root location comprises the absolute path to "
+				+ "a binary module repository, then optionally a comma (,) and the "
+				+ "absolute path to a source package. This option overrides " +
+				"environment variables.",
+			(keyword, rootsString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String rootsString)
-				{
-					assert rootsString != null;
-					processor.value().checkEncountered(AVAIL_ROOTS, 0);
-					configuration.setAvailRootsPath(rootsString);
-				}
+				assert rootsString != null;
+				processor.value().checkEncountered(AVAIL_ROOTS, 0);
+				configuration.setAvailRootsPath(rootsString);
 			}));
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			SERVER_AUTHORITY,
 			asList("serverAuthority"),
 			"The server authority, i.e., the name of the Avail server. If not "
-			+ "specified, then the server authority defaults to \"localhost\".",
-			new Continuation2<String, String>()
+				+ "specified, then the server authority defaults to \"localhost\".",
+			(keyword, nameString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String nameString)
-				{
-					assert nameString != null;
-					processor.value().checkEncountered(SERVER_AUTHORITY, 0);
-					configuration.setServerAuthority(nameString);
-				}
+				assert nameString != null;
+				processor.value().checkEncountered(SERVER_AUTHORITY, 0);
+				configuration.setServerAuthority(nameString);
 			}));
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			SERVER_PORT,
 			asList("serverPort"),
 			"The server port. If not specified, then the server port defaults "
-			+ "to 40000.",
-			new Continuation2<String, String>()
+				+ "to 40000.",
+			(keyword, portString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String portString)
+				assert portString != null;
+				processor.value().checkEncountered(SERVER_PORT, 0);
+				final int port;
+				try
 				{
-					assert portString != null;
-					processor.value().checkEncountered(SERVER_PORT, 0);
-					final int port;
-					try
-					{
-						port = Integer.parseInt(portString);
-					}
-					catch (final NumberFormatException e)
-					{
-						throw new OptionProcessingException(
-							"expected an integer \"p\" where 0 ≤ p < 65535",
-							e);
-					}
-					configuration.setServerPort(port);
+					port = Integer.parseInt(portString);
 				}
+				catch (final NumberFormatException e)
+				{
+					throw new OptionProcessingException(
+						"expected an integer \"p\" where 0 ≤ p < 65535",
+						e);
+				}
+				configuration.setServerPort(port);
 			}));
-		factory.addOption(new GenericOption<OptionKey>(
+		factory.addOption(new GenericOption<>(
 			DOCUMENT_ROOT,
 			asList("documentRoot"),
 			"The document root, as a path to a directory. The document root "
-			+ "contains static files that should be served by the Avail "
-			+ "server. These files are available through GET requests under "
-			+ "the URI /doc. If not specified, then the Avail server will "
-			+ "reject all such requests.",
-			new Continuation2<String, String>()
+				+ "contains static files that should be served by the Avail "
+				+ "server. These files are available through GET requests under "
+				+ "the URI /doc. If not specified, then the Avail server will "
+				+ "reject all such requests.",
+			(keyword, pathString) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String pathString)
-				{
-					assert pathString != null;
-					processor.value().checkEncountered(DOCUMENT_ROOT, 0);
-					configuration.setDocumentPath(pathString);
-				}
+				assert pathString != null;
+				processor.value().checkEncountered(DOCUMENT_ROOT, 0);
+				configuration.setDocumentPath(pathString);
 			}));
-		factory.addOption(new GenericHelpOption<OptionKey>(
+		factory.addOption(new GenericHelpOption<>(
 			HELP,
 			processor,
 			"The Avail server understands the following options: ",

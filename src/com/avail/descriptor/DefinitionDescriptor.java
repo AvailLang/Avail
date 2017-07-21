@@ -37,7 +37,6 @@ import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.Transformer1;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -140,15 +139,7 @@ extends Descriptor
 			argsTupleType,
 			TupleTypeDescriptor.mappingElementTypes(
 				argsTupleType,
-				new Transformer1<A_Type, A_Type>()
-				{
-					@Override
-					public A_Type value (@Nullable final A_Type argYieldType)
-					{
-						return ParseNodeKind.EXPRESSION_NODE.create(
-							argYieldType);
-					}
-				}));
+				ParseNodeKind.EXPRESSION_NODE::create));
 	}
 
 	@Override @AvailMethod

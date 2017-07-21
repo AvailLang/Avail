@@ -114,7 +114,7 @@ extends Primitive
 		final List<L2ObjectRegister> args,
 		final L1NaiveTranslator naiveTranslator)
 	{
-		assert hasFlag(Flag.Invokes);
+		assert hasFlag(Invokes);
 		assert !hasFlag(Flag.CanInline);
 		assert !hasFlag(Flag.CanFold);
 

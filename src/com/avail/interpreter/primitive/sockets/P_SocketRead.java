@@ -44,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Initiate an asynchronous read from the
@@ -99,16 +98,9 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.format(
-						"Socket read, %s",
-						handle.atomName());
-				}
-			});
+			() -> StringDescriptor.format(
+				"Socket read, %s",
+				handle.atomName()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -182,9 +174,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				IntegerRangeTypeDescriptor.inclusive(
-					IntegerDescriptor.zero(),
-					IntegerDescriptor.fromInt(Integer.MAX_VALUE)),
+				IntegerRangeTypeDescriptor.inclusive(0, Integer.MAX_VALUE),
 				ATOM.o(),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.from(

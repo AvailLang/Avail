@@ -37,8 +37,6 @@ import java.io.IOException;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code GenericHelpOption} provides an application help message that
@@ -108,23 +106,17 @@ extends GenericOption<OptionKeyType>
 			asList("?"),
 			"Display help text containing a description of the application "
 			+ "and an enumeration of its options.",
-			new Continuation2<String, String>()
+			(keyword, value) ->
 			{
-				@Override
-				public void value (
-					final @Nullable String keyword,
-					final @Nullable String value)
+				try
 				{
-					try
-					{
-						writeHelpText(
-							optionProcessor.value(), preamble, appendable);
-						System.exit(0);
-					}
-					catch (final IOException e)
-					{
-						throw new OptionProcessingException(e);
-					}
+					writeHelpText(
+						optionProcessor.value(), preamble, appendable);
+					System.exit(0);
+				}
+				catch (final IOException e)
+				{
+					throw new OptionProcessingException(e);
 				}
 			});
 	}

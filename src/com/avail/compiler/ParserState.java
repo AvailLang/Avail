@@ -1,6 +1,6 @@
 /**
  * ParserState.java
- * Copyright © 1993-2015, The Avail Foundation, LLC. All rights reserved.
+ * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,12 +31,10 @@
 
 package com.avail.compiler;
 import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer1;
@@ -56,11 +54,6 @@ import static java.lang.Math.min;
 public class ParserState
 {
 	/**
-	 * The compilation context for which this is a state of compilation.
-	 */
-	@InnerAccess final CompilationContext compilationContext;
-
-	/**
 	 * The state of the lexer at this parse position.
 	 */
 	final LexingState lexingState;
@@ -74,8 +67,6 @@ public class ParserState
 	/**
 	 * Construct a new immutable {@link ParserState}.
 	 *
-	 * @param compiler
-	 *        The {@link AvailCompiler} doing the parsing.
 	 * @param lexingState
 	 *        The {@link LexingState} at this parse position.
 	 * @param clientDataMap
@@ -83,11 +74,9 @@ public class ParserState
 	 *        parsing Avail code.
 	 */
 	ParserState (
-		final AvailCompiler compiler,
 		final LexingState lexingState,
 		final A_Map clientDataMap)
 	{
-		this.compilationContext = compiler.compilationContext;
 		this.lexingState = lexingState;
 		// Note that this map *must* be marked as shared, since parsing
 		// proceeds in parallel.
@@ -116,7 +105,7 @@ public class ParserState
 	@Override
 	public String toString ()
 	{
-		final A_String source = compilationContext.source();
+		final A_String source = lexingState.compilationContext.source();
 		return String.format(
 			"%s%n\tPOSITION = %d%n\tTOKENS = %s %s %s%n\tCLIENT_DATA = %s",
 			getClass().getSimpleName(),
@@ -135,7 +124,7 @@ public class ParserState
 
 	public String shortString ()
 	{
-		final A_String source = compilationContext.source();
+		final A_String source = lexingState.compilationContext.source();
 		if (lexingState.position == 1)
 		{
 			return "(start)";
@@ -162,6 +151,16 @@ public class ParserState
 	}
 
 	/**
+	 * Answer the one-based line number of this state.
+	 *
+	 * @return The one-based line number.
+	 */
+	public int lineNumber ()
+	{
+		return lexingState.lineNumber;
+	}
+
+	/**
 	 * Determine if this state represents the end of the file.
 	 *
 	 * @return Whether this state represents the end of the file.
@@ -169,40 +168,7 @@ public class ParserState
 	public boolean atEnd ()
 	{
 		return lexingState.position ==
-			compilationContext.source().tupleSize() + 1;
-	}
-
-	/**
-	 * Answer the {@linkplain TokenDescriptor token} at the current
-	 * position.
-	 *
-	 * @return The token.
-	 */
-	@Deprecated
-	public A_Token peekToken ()
-	{
-		throw new UnsupportedOperationException("DEPRECATED");
-	}
-
-	/**
-	 * Answer a {@linkplain A_Tuple tuple} that comprises the {@linkplain
-	 * A_Token tokens} from the receiver's position, inclusive, to the
-	 * argument's position, exclusive.
-	 *
-	 * @param after
-	 *        The {@linkplain A_Token token} strictly after the last token
-	 *        that should appear in the resultant {@linkplain A_Tuple
-	 *        tuple}.
-	 * @return The requested {@linkplain A_Tuple tuple}.
-	 */
-	@Deprecated // Collect tokens during parsing instead.
-	A_Tuple upTo (final ParserState after)
-	{
-		throw new UnsupportedOperationException();
-//		return tokensTuple.copyTupleFromToCanDestroy(
-//			tokenIndex,
-//			after.tokenIndex - 1,
-//			false);
+			lexingState.compilationContext.source().tupleSize() + 1;
 	}
 
 	/**
@@ -222,7 +188,8 @@ public class ParserState
 	 */
 	void expected (final Describer describer)
 	{
-		compilationContext.diagnostics.expectedAt(describer, lexingState);
+		lexingState.compilationContext.diagnostics.expectedAt(
+			describer, lexingState);
 	}
 
 	/**
@@ -241,19 +208,11 @@ public class ParserState
 		final List<? extends A_BasicObject> values,
 		final Transformer1<List<String>, String> transformer)
 	{
-		expected(new Describer()
-		{
-			@Override
-			public void describeThen (
-				final Continuation1<String> continuation)
-			{
-				Interpreter.stringifyThen(
-					AvailRuntime.current(),
-					compilationContext.getTextInterface(),
-					values,
-					list -> continuation.value(transformer.value(list)));
-			}
-		});
+		expected(continuation -> Interpreter.stringifyThen(
+			AvailRuntime.current(),
+			lexingState.compilationContext.getTextInterface(),
+			values,
+			list -> continuation.value(transformer.value(list))));
 	}
 
 	/**

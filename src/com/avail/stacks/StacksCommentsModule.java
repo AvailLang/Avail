@@ -293,7 +293,7 @@ public class StacksCommentsModule
 			if (!privateCommentImplementations.containsKey(nameToCheck))
 			{
 				long hashedName = nameToCheck.hash();
-				hashedName = hashedName & 0xFFFFFFFFL;
+				hashedName &= 0xFFFFFFFFL;
 
 				final StacksFilename filename = new StacksFilename(moduleName,
 					String.valueOf(hashedName) + "." + fileExtensionName);
@@ -312,7 +312,7 @@ public class StacksCommentsModule
 		if (comment.isSticky())
 		{
 			long hashedName = nameToCheck.hash();
-			hashedName = hashedName & 0xFFFFFFFFL;
+			hashedName &= 0xFFFFFFFFL;
 
 			final StacksFilename filename = new StacksFilename(moduleName,
 				String.valueOf(hashedName) + "." + fileExtensionName);
@@ -326,7 +326,7 @@ public class StacksCommentsModule
 				.contains(nameToCheck))
 			{
 				stickyNamesImplementations.put(nameToCheck,
-					new HashMap<String,ImplementationGroup>(0));
+					new HashMap<>(0));
 			}
 			stickyNamesImplementations.get(nameToCheck)
 				.put(comment.signature().module(),stickyGroup);
@@ -367,23 +367,22 @@ public class StacksCommentsModule
 		this.fileExtensionName = "json";
 
 		this.usesModuleToImplementedNamesToImplementation =
-			new HashMap<String,
-				HashMap<A_String, ArrayList<AbstractCommentImplementation>>>();
+			new HashMap<>();
 
 		this.stickyNamesImplementations =
-			new HashMap<A_String, HashMap<String, ImplementationGroup>>();
+			new HashMap<>();
 
 		this.privateCommentImplementations =
-			new HashMap<A_String,ImplementationGroup>();
+			new HashMap<>();
 
 		this.namedPublicCommentImplementations =
-			new HashMap<A_String,ImplementationGroup>();
+			new HashMap<>();
 
 		this.extendsMethodLeafNameToModuleName =
-			new HashMap<A_String, HashMap<String, ImplementationGroup>>();
+			new HashMap<>();
 
 		this.usesMethodLeafNameToModuleName =
-			new HashMap<A_String, HashMap<String, ImplementationGroup>>();
+			new HashMap<>();
 
 		this.inScopeMethodsToFileNames =
 			createFileNames(header.exportedNames, moduleName,
@@ -420,7 +419,7 @@ public class StacksCommentsModule
 
 			final HashMap<String, ImplementationGroup>
 				moduleNameToImplementation =
-					new HashMap<String, ImplementationGroup>();
+				new HashMap<>();
 			moduleNameToImplementation.put(this.moduleName,
 					group);
 
@@ -428,7 +427,7 @@ public class StacksCommentsModule
 				.put(implementationName, moduleNameToImplementation);
 		}
 
-		this.usesNamesImplementations = new HashMap<String,StacksUsesModule>();
+		this.usesNamesImplementations = new HashMap<>();
 
 		buildModuleImportMaps(
 			header,resolver, moduleToComments);
@@ -494,10 +493,10 @@ public class StacksCommentsModule
 		final HashMap<String,StacksCommentsModule> moduleToComments)
 	{
 		final HashMap<String,StacksExtendsModule> extendsMap =
-			new HashMap<String,StacksExtendsModule>();
+			new HashMap<>();
 
 		final HashMap<String,StacksUsesModule> usesMap =
-			new HashMap<String,StacksUsesModule>();
+			new HashMap<>();
 
 		for (final ModuleImport moduleImport : header.importedModules)
 		{
@@ -555,7 +554,7 @@ public class StacksCommentsModule
 							moduleToComments.get(moduleImportName));
 
 					final ArrayList<A_String> renameValues =
-						new ArrayList<A_String>();
+						new ArrayList<>();
 
 					for (final A_String rename :
 						moduleImport.renames.keysAsSet())
@@ -620,14 +619,15 @@ public class StacksCommentsModule
 
 					final ArrayList<Pair<A_String,ImplementationGroup>>
 						visibleValues =
-						new ArrayList<Pair<A_String,ImplementationGroup>>();
+						new ArrayList<>();
 					for (final A_String name :
 						usesMethodLeafNameToModuleName.keySet())
 					{
 						for (final String module :
 							usesMethodLeafNameToModuleName.get(name).keySet())
 						visibleValues.add
-							(new Pair<A_String,ImplementationGroup>(name,
+							(new Pair<>(
+								name,
 								usesMethodLeafNameToModuleName.get(name)
 									.get(module)));
 					}
@@ -638,7 +638,8 @@ public class StacksCommentsModule
 						for (final String module :
 							extendsMethodLeafNameToModuleName.get(name).keySet())
 						visibleValues.add
-							(new Pair<A_String,ImplementationGroup>(name,
+							(new Pair<>(
+								name,
 								extendsMethodLeafNameToModuleName.get(name)
 									.get(module)));
 					}
@@ -696,7 +697,7 @@ public class StacksCommentsModule
 							moduleImport.renames);
 
 					final ArrayList<A_String> renameValues =
-						new ArrayList<A_String>();
+						new ArrayList<>();
 
 					for (final A_String rename :
 						moduleImport.renames.keysAsSet())
@@ -759,14 +760,15 @@ public class StacksCommentsModule
 
 					final ArrayList<Pair<A_String,ImplementationGroup>>
 						visibleValues =
-						new ArrayList<Pair<A_String,ImplementationGroup>>();
+						new ArrayList<>();
 					for (final A_String name :
 						usesMethodLeafNameToModuleName.keySet())
 					{
 						for (final String module :
 							usesMethodLeafNameToModuleName.get(name).keySet())
 						visibleValues.add
-							(new Pair<A_String,ImplementationGroup>(name,
+							(new Pair<>(
+								name,
 								usesMethodLeafNameToModuleName.get(name)
 									.get(module)));
 					}
@@ -777,7 +779,8 @@ public class StacksCommentsModule
 						for (final String module :
 							extendsMethodLeafNameToModuleName.get(name).keySet())
 						visibleValues.add
-							(new Pair<A_String,ImplementationGroup>(name,
+							(new Pair<>(
+								name,
 								extendsMethodLeafNameToModuleName.get(name)
 									.get(module)));
 					}
@@ -800,7 +803,7 @@ public class StacksCommentsModule
 
 		final HashMap<String,Pair<String,ImplementationGroup>>
 			namesExtendsImplementationsMap =
-				new HashMap<String,Pair<String,ImplementationGroup>>();
+			new HashMap<>();
 
 		for (final StacksUsesModule module : usesNamesImplementations.values())
 		{
@@ -877,7 +880,7 @@ public class StacksCommentsModule
 
 				final HashMap<String,Pair<String,ImplementationGroup>>
 					namesUsesExtendsImplementationsMap =
-						new HashMap<String,Pair<String,ImplementationGroup>>();
+					new HashMap<>();
 
 				for (final StacksExtendsModule usesExtendsModule :
 					usesModule.moduleNameToExtendsList().values())
@@ -1004,10 +1007,10 @@ public class StacksCommentsModule
 		final String fileExtension)
 	{
 		final HashMap<A_String,Integer> newHashNameMap =
-			new HashMap<A_String,Integer>();
+			new HashMap<>();
 
 		final HashMap <A_String, StacksFilename> namesToFileNames =
-			new HashMap <A_String, StacksFilename>();
+			new HashMap<>();
 
 		for (final Pair<A_String,ImplementationGroup> pair : names)
 		{
@@ -1026,7 +1029,7 @@ public class StacksCommentsModule
 			}
 
 			long hashedName = nameToBeHashed.hash();
-			hashedName = hashedName & 0xFFFFFFFFL;
+			hashedName &= 0xFFFFFFFFL;
 			final String fileName = String.valueOf(hashedName) + "."
 				+ fileExtension;
 
@@ -1051,10 +1054,10 @@ public class StacksCommentsModule
 		final String fileExtension)
 	{
 		final HashMap<A_String,Integer> newHashNameMap =
-			new HashMap<A_String,Integer>();
+			new HashMap<>();
 
 		final HashMap <A_String, StacksFilename> namesToFileNames =
-			new HashMap <A_String, StacksFilename>();
+			new HashMap<>();
 
 		for (final A_String key : names)
 		{
@@ -1072,7 +1075,7 @@ public class StacksCommentsModule
 			}
 
 			long hashedName = nameToBeHashed.hash();
-			hashedName = hashedName & 0xFFFFFFFFL;
+			hashedName &= 0xFFFFFFFFL;
 			final String fileName = String.valueOf(hashedName) + "."
 				+ fileExtension;
 
@@ -1109,16 +1112,16 @@ public class StacksCommentsModule
 	{
 		final HashMap<A_String, HashMap<String, ImplementationGroup>>
 			filteredMap =
-			new HashMap<A_String, HashMap<String, ImplementationGroup>>();
+			new HashMap<>();
 
 		final HashMap<String,ImplementationGroup> notPopulated =
-			new HashMap<String,ImplementationGroup>();
+			new HashMap<>();
 
 		int fileCount = 0;
 
 		final HashMap<A_String, HashMap<String, ImplementationGroup>>
 		ambiguousMethodFileMap = new
-			HashMap<A_String, HashMap<String, ImplementationGroup>>();
+			HashMap<>();
 
 		for (final A_String key : extendsMethodLeafNameToModuleName.keySet())
 		{
@@ -1154,7 +1157,7 @@ public class StacksCommentsModule
 					{
 						final HashMap<String, ImplementationGroup>
 						modToImplement =
-							new HashMap<String, ImplementationGroup>();
+							new HashMap<>();
 						modToImplement.put(modName, implementation);
 						filteredMap.put(key,modToImplement);
 					}
@@ -1214,7 +1217,7 @@ public class StacksCommentsModule
 						{
 							final HashMap<String, ImplementationGroup>
 							modToImplement =
-								new HashMap<String, ImplementationGroup>();
+								new HashMap<>();
 							modToImplement.put(modName, implementation);
 							filteredMap.put(key,modToImplement);
 						}
@@ -1356,7 +1359,7 @@ public class StacksCommentsModule
 		throws IOException
 	{
 		final HashMap<String,String> internalLinks =
-			new HashMap<String,String>();
+			new HashMap<>();
 
 		final Path outputFolder = outputPath
 			.resolve("_Ambiguities");
@@ -1393,8 +1396,8 @@ public class StacksCommentsModule
 				ambiguousMethodFileMap.get(key);
 
 			final HashSet<Pair<String, String>> ambiguousLinks =
-				new HashSet<Pair<String,String>>();
-			final HashSet<String> ambiguousNoLinks = new HashSet<String>();
+				new HashSet<>();
+			final HashSet<String> ambiguousNoLinks = new HashSet<>();
 
 			if (linkingFileMap.aliasesToFileLink()
 				.containsKey(key.asNativeString()))
@@ -1402,7 +1405,7 @@ public class StacksCommentsModule
 				for (final String link : linkingFileMap.aliasesToFileLink()
 					.get(key.asNativeString()))
 				{
-					ambiguousLinks.add(new Pair<String, String>(link, link));
+					ambiguousLinks.add(new Pair<>(link, link));
 				}
 			}
 
@@ -1414,8 +1417,9 @@ public class StacksCommentsModule
 
 				if (group.isPopulated())
 				{
-					ambiguousLinks.add(new Pair<String, String>(linkPrefix
-						+ group.filepath().relativeFilePath(),
+					ambiguousLinks.add(new Pair<>(
+						linkPrefix
+							+ group.filepath().relativeFilePath(),
 						group.namingModule()));
 				}
 				else
@@ -1502,13 +1506,13 @@ public class StacksCommentsModule
 	{
 
 		final HashMap<String,String> internalLinks =
-			new HashMap<String,String>();
+			new HashMap<>();
 
 		final Path outputFolder = outputPath
 			.resolve("library-documentation/_Ambiguities");
 
 		final HashMap<String,HashSet<String>> tempAmbiguousAliasMap =
-			new HashMap<String,HashSet<String>>();
+			new HashMap<>();
 
 		for (final String key : linkingFileMap.namedFileLinks().keySet())
 		{

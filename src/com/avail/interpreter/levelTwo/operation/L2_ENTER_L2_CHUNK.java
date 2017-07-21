@@ -88,18 +88,18 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 
 		final List<L2ObjectRegister> regs = writeVector.registers();
 		final A_RawFunction code = translator.codeOrFail();
-		assert regs.size() == FixedRegister.all().length + code.numArgs();
-		assert regs.get(FixedRegister.NULL.ordinal())
+		assert regs.size() == all().length + code.numArgs();
+		assert regs.get(NULL.ordinal())
 			== translator.fixed(NULL);
-		assert regs.get(FixedRegister.CALLER.ordinal())
+		assert regs.get(CALLER.ordinal())
 			== translator.fixed(CALLER);
-		assert regs.get(FixedRegister.FUNCTION.ordinal())
+		assert regs.get(FUNCTION.ordinal())
 			== translator.fixed(FUNCTION);
-		assert regs.get(FixedRegister.PRIMITIVE_FAILURE.ordinal())
+		assert regs.get(PRIMITIVE_FAILURE.ordinal())
 			== translator.fixed(PRIMITIVE_FAILURE);
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
-			assert regs.get(FixedRegister.all().length + i - 1)
+			assert regs.get(all().length + i - 1)
 				== translator.continuationSlot(i);
 		}
 		registerSet.constantAtPut(

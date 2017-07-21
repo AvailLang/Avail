@@ -53,7 +53,6 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Create a directory with the indicated name
@@ -82,7 +81,8 @@ extends Primitive
 	 *        Some ordinals.
 	 * @return The equivalent POSIX file permissions.
 	 */
-	private Set<PosixFilePermission> permissionsFor (final A_Set ordinals)
+	private static Set<PosixFilePermission> permissionsFor (
+		final A_Set ordinals)
 	{
 		final PosixFilePermission[] allPermissions =
 			AvailRuntime.posixPermissions();
@@ -109,7 +109,7 @@ extends Primitive
 		final A_Number priority = args.get(4);
 
 		final AvailRuntime runtime = interpreter.runtime();
-		final FileSystem fileSystem = runtime.fileSystem();
+		final FileSystem fileSystem = AvailRuntime.fileSystem();
 		final Path path;
 		try
 		{
@@ -125,16 +125,9 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.format(
-						"Asynchronous create directory, %s",
-						path);
-				}
-			});
+			() -> StringDescriptor.format(
+				"Asynchronous create directory, %s",
+				path));
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
@@ -196,7 +189,7 @@ extends Primitive
 					runtime,
 					newFiber,
 					succeed,
-					Collections.<A_BasicObject>emptyList());
+					Collections.emptyList());
 			}
 		});
 		return interpreter.primitiveSuccess(newFiber);
@@ -209,12 +202,8 @@ extends Primitive
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType(),
 				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.fromInt(0),
-						IntegerDescriptor.fromInt(9)),
-					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.fromInt(1),
-						IntegerDescriptor.fromInt(9))),
+					IntegerRangeTypeDescriptor.inclusive(0, 9),
+					IntegerRangeTypeDescriptor.inclusive(1, 9)),
 				FunctionTypeDescriptor.create(
 					TupleDescriptor.empty(),
 					TOP.o()),

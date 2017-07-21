@@ -82,9 +82,9 @@ extends Primitive
 		final Path destinationPath;
 		try
 		{
-			sourcePath = runtime.fileSystem().getPath(
+			sourcePath = AvailRuntime.fileSystem().getPath(
 				source.asNativeString());
-			destinationPath = runtime.fileSystem().getPath(
+			destinationPath = AvailRuntime.fileSystem().getPath(
 				destination.asNativeString());
 		}
 		catch (final InvalidPathException e)

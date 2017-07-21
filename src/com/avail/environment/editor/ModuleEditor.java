@@ -255,7 +255,7 @@ public final class ModuleEditor
 			final List<String> input = new ArrayList<>();
 			input.add(codeArea.getText());
 			final File file = resolvedModuleName.sourceReference();
-			file.canWrite();
+			assert file.canWrite();
 			Files.write(
 				file.toPath(),
 				input,
@@ -562,7 +562,7 @@ public final class ModuleEditor
 	/** Accumulate a sequence of styles as tokens are processed. */
 	private class StyleSpansAccumulator
 	{
-		StyleSpansBuilder spansBuilder = new StyleSpansBuilder(1000);
+		final StyleSpansBuilder spansBuilder = new StyleSpansBuilder(1000);
 
 		int lastPosition = 0;
 
@@ -606,9 +606,8 @@ public final class ModuleEditor
 			final Map<A_Token, ModuleEditorStyle> tokenStyles =	new HashMap<>();
 			final Map<A_String, ModuleEditorStyle> nameStyles = new HashMap<>();
 			ModuleEditorStyle activeStyle = null;
-			for (int i = 0; i < outputTokenCount; i++)
+			for (final A_Token token : outputTokens)
 			{
-				final A_Token token = outputTokens.get(i);
 				final A_String lexeme = token.string().makeShared();
 				final ExpectedToken expected = headerKeywords.get(lexeme);
 				if (expected != null && token.tokenType() == TokenType.KEYWORD)

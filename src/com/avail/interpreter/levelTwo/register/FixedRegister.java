@@ -68,7 +68,7 @@ public enum FixedRegister
 	PRIMITIVE_FAILURE;
 
 	/** An array of all {@link FixedRegister} enumeration values. */
-	private static FixedRegister[] all = values();
+	private static final FixedRegister[] all = values();
 
 	/**
 	 * Answer an array of all {@link FixedRegister} enumeration values.

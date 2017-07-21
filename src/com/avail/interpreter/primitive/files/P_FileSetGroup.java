@@ -79,11 +79,11 @@ extends Primitive
 		final A_String groupName = args.get(1);
 		final A_Atom followSymlinks = args.get(2);
 		final AvailRuntime runtime = AvailRuntime.current();
-		final FileSystem fileSystem = runtime.fileSystem();
+		final FileSystem fileSystem = AvailRuntime.fileSystem();
 		final Path path;
 		try
 		{
-			path = runtime.fileSystem().getPath(
+			path = AvailRuntime.fileSystem().getPath(
 				filename.asNativeString());
 		}
 		catch (final InvalidPathException e)

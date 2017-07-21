@@ -50,8 +50,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
+import com.avail.compiler.CompilationContext;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -60,6 +62,14 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.effects.LoadingEffectToAddDefinition;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordBody;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordFilter;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerSlashStarCommentBody;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerSlashStarCommentFilter;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringFilter;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceBody;
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFilter;
 import com.avail.io.TextInterface;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
@@ -77,8 +87,6 @@ public final class AvailLoader
 {
 	public static class LexicalScanner
 	{
-		final AvailLoader loader;
-
 		/**
 		 * The {@link List} of all {@link A_Lexer lexers} which are visible
 		 * within the module being compiled.
@@ -124,30 +132,23 @@ public final class AvailLoader
 		 */
 		final Map<A_Set, A_Tuple> canonicalLexerTuples = new HashMap<>();
 
-		LexicalScanner (final AvailLoader loader)
+		LexicalScanner ()
 		{
-			this.loader = loader;
+			// Nothing else to initialize.
 		}
 
 		/**
-		 * Add a lexer constructed from the given parts.  Update not just the
-		 * current lexing information for this loader, but also the specified
-		 * atom's bundle's method and the current module.
+		 * Add an {@link A_Lexer}.  Update not just the current lexing
+		 * information for this loader, but also the specified atom's bundle's
+		 * method and the current module.
 		 *
 		 * <p>This must be called as an L1-safe task, which precludes execution
 		 * of Avail code while it's running.  That does not preclude other
 		 * non-Avail code from running (i.e., other L1-safe tasks), so this
 		 * method is synchronized to achieve that.</p>
 		 *
-		 * @param atom
-		 *        The {@link AtomDescriptor atom} that names the {@link A_Bundle
-		 *        bundle} whose {@link A_Method method} will hold the new lexer.
-		 * @param lexerFilterFunction
-		 *        The {@linkplain FunctionDescriptor function} used to filter
-		 *        lexers by the leading character.
-		 * @param lexerBodyFunction
-		 *        The {@linkplain FunctionDescriptor function} used to scan
-		 *        nearby characters to generate tuples of tokens.
+		 * @param lexer
+		 *        The {@link A_Lexer} to add.
 		 * @throws MalformedMessageException
 		 *         If the message name is malformed.
 		 * @throws SignatureException
@@ -157,7 +158,11 @@ public final class AvailLoader
 			final A_Lexer lexer)
 		{
 			lexer.lexerMethod().setLexer(lexer);
-			lexer.definitionModule().addLexer(lexer);
+			final A_Module module = lexer.definitionModule();
+			if (!module.equalsNil())
+			{
+				module.addLexer(lexer);
+			}
 			// Update the loader's lexing tables...
 			allVisibleLexers.add(lexer);
 			// Since the existence of at least one non-null entry in the Latin-1
@@ -183,12 +188,17 @@ public final class AvailLoader
 		 * this code point, we <em>may</em> invoke the continuation
 		 * synchronously for performance.</p>
 		 *
+		 * @param loader
+		 *        The {@link AvailLoader} being used in scanning.
 		 * @param codePoint
 		 *        The full Unicode code point in the range 0..1114111.
 		 * @param continuation
-		 *        What to invoke with the tuple of
+		 *        What to invoke with the tuple of tokens at this position.
+		 * @param onFailure
+		 *        What to do if lexical scanning fails.
 		 */
 		public void getLexersForCodePointThen (
+			final AvailLoader loader,
 			final int codePoint,
 			final Continuation1<A_Tuple> continuation,
 			final Continuation1<Map<A_Lexer, Throwable>> onFailure)
@@ -209,111 +219,101 @@ public final class AvailLoader
 				// use the canonical map to make it a tuple, then invoke the
 				// continuation with it.
 				selectLexersPassingFilterThen(
+					loader,
 					codePoint,
-					new Continuation2<A_Set, Map<A_Lexer, Throwable>>()
+					(applicableLexers, failures) ->
 					{
-						@Override
-						public void value (
-							@Nullable final A_Set applicableLexers,
-							@Nullable final Map<A_Lexer, Throwable> failures)
+						if (!failures.isEmpty())
 						{
-							if (!failures.isEmpty())
-							{
-								onFailure.value(failures);
-								// Don't cache the successful lexer filter
-								// results, because we shouldn't continue and
-								// neither should lexing of any codePoint
-								// equal to the one that caused this trouble.
-								return;
-							}
-							A_Tuple tuple;
-							synchronized (canonicalLexerTuples)
-							{
-								tuple = canonicalLexerTuples.get(
-									applicableLexers);
-								if (tuple == null)
-								{
-									tuple = applicableLexers.asTuple();
-									canonicalLexerTuples.put(
-										applicableLexers, tuple);
-								}
-								// Just replace it, even if another thread beat
-								// us to the punch, since it's semantically
-								// idempotent.  Use a write barrier *first*, to
-								// ensure readers don't see a half-initialized
-								// tuple.
-								dummyVolatile = 0;   // write barrier
-								latin1ApplicableLexers[codePoint] = tuple;
-							}
-							continuation.value(tuple);
+							onFailure.value(failures);
+							// Don't cache the successful lexer filter
+							// results, because we shouldn't continue and
+							// neither should lexing of any codePoint
+							// equal to the one that caused this trouble.
+							return;
 						}
+						A_Tuple tupleOfLexers;
+						synchronized (canonicalLexerTuples)
+						{
+							tupleOfLexers = canonicalLexerTuples.get(
+								applicableLexers);
+							if (tupleOfLexers == null)
+							{
+								tupleOfLexers = applicableLexers.asTuple();
+								canonicalLexerTuples.put(
+									applicableLexers, tupleOfLexers);
+							}
+							// Just replace it, even if another thread beat
+							// us to the punch, since it's semantically
+							// idempotent.  Use a write barrier *first*, to
+							// ensure readers don't see a half-initialized
+							// tuple.
+							dummyVolatile = 0;   // write barrier
+							latin1ApplicableLexers[codePoint] = tupleOfLexers;
+						}
+						continuation.value(tupleOfLexers);
 					});
 			}
 			else
 			{
 				// It's non-Latin1.
-				A_Tuple tuple;
+				A_Tuple tupleOfLexers;
 				nonLatin1Lock.readLock().lock();
 				try
 				{
-					tuple = nonLatin1Lexers.get(codePoint);
+					tupleOfLexers = nonLatin1Lexers.get(codePoint);
 				}
 				finally
 				{
 					nonLatin1Lock.readLock().unlock();
 				}
-				if (tuple != null)
+				if (tupleOfLexers != null)
 				{
-					continuation.value(tuple);
+					continuation.value(tupleOfLexers);
 					return;
 				}
 				// Run the filters to produce the set of applicable lexers, then
 				// use the canonical map to make it a tuple, then invoke the
 				// continuation with it.
 				selectLexersPassingFilterThen(
+					loader,
 					codePoint,
-					new Continuation2<A_Set, Map<A_Lexer, Throwable>>()
+					(applicableLexers, failures) ->
 					{
-						@Override
-						public void value (
-							@Nullable final A_Set applicableLexers,
-							@Nullable final Map<A_Lexer, Throwable> failures)
+						if (!failures.isEmpty())
 						{
-							if (!failures.isEmpty())
-							{
-								onFailure.value(failures);
-								// Don't cache the successful lexer filter
-								// results, because we shouldn't continue and
-								// neither should lexing of any codePoint
-								// equal to the one that caused this trouble.
-								return;
-							}
-							A_Tuple tuple;
-							synchronized (canonicalLexerTuples)
-							{
-								tuple = canonicalLexerTuples.get(
-									applicableLexers);
-								if (tuple == null)
-								{
-									tuple = applicableLexers.asTuple();
-									canonicalLexerTuples.put(
-										applicableLexers, tuple);
-								}
-								// Just replace it, even if another thread beat
-								// us to the punch, since it's semantically
-								// idempotent.
-								nonLatin1Lock.writeLock().lock();
-								try
-								{
-									nonLatin1Lexers.put(codePoint, tuple);
-								}
-								finally
-								{
-									nonLatin1Lock.writeLock().unlock();
-								}
-							}
-							continuation.value(tuple);
+							onFailure.value(failures);
+							// Don't cache the successful lexer filter
+							// results, because we shouldn't continue and
+							// neither should lexing of any codePoint
+							// equal to the one that caused this trouble.
+							return;
 						}
+						A_Tuple filteredLexers;
+						synchronized (canonicalLexerTuples)
+						{
+							filteredLexers = canonicalLexerTuples.get(
+								applicableLexers);
+							if (filteredLexers == null)
+							{
+								filteredLexers = applicableLexers.asTuple();
+								canonicalLexerTuples.put(
+									applicableLexers, filteredLexers);
+							}
+							// Just replace it, even if another thread beat
+							// us to the punch, since it's semantically
+							// idempotent.
+							nonLatin1Lock.writeLock().lock();
+							try
+							{
+								nonLatin1Lexers.put(codePoint, filteredLexers);
+							}
+							finally
+							{
+								nonLatin1Lock.writeLock().unlock();
+							}
+						}
+						continuation.value(filteredLexers);
 					});
 			}
 		}
@@ -329,6 +329,8 @@ public final class AvailLoader
 		 * this code point, we <em>may</em> invoke the continuation
 		 * synchronously for performance.</p>
 		 *
+		 * @param loader
+		 *        The {@link AvailLoader} being used in scanning.
 		 * @param codePoint
 		 *        The full Unicode code point in the range 0..1114111.
 		 * @param continuation
@@ -338,9 +340,9 @@ public final class AvailLoader
 		 *        exceptions.
 		 */
 		private void selectLexersPassingFilterThen (
+			final AvailLoader loader,
 			final int codePoint,
-			final Continuation2<A_Set, Map<A_Lexer, Throwable>>
-				continuation)
+			final Continuation2<A_Set, Map<A_Lexer, Throwable>> continuation)
 		{
 			final Mutable<Integer> countdown =
 				new Mutable<>(allVisibleLexers.size());
@@ -348,15 +350,15 @@ public final class AvailLoader
 			{
 				continuation.value(
 					SetDescriptor.empty(),
-					Collections.<A_Lexer, Throwable>emptyMap());
+					Collections.emptyMap());
 				return;
 			}
 			// Initially use the immutable emptyMap for the failureMap, but
 			// replace it if/when the first error happens.
 			final Mutable<Map<A_Lexer, Throwable>> failureMap =
 				new Mutable<>(Collections.<A_Lexer, Throwable>emptyMap());
-			final List<A_Number> argsList = Collections.singletonList(
-				IntegerDescriptor.fromInt(codePoint));
+			final List<A_Character> argsList = Collections.singletonList(
+				CharacterDescriptor.fromCodePoint(codePoint));
 			final Object joinLock = new Object();
 			final List<A_Lexer> applicableLexers = new ArrayList<>();
 			for (final A_Lexer lexer : allVisibleLexers)
@@ -364,89 +366,68 @@ public final class AvailLoader
 				final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 					EnumerationTypeDescriptor.booleanObject(),
 					loader,
-					new Generator<A_String>()
-					{
-						@Override
-						public A_String value ()
-						{
-							return StringDescriptor.format(
-								"Check lexer filter %s for U+%x",
-								lexer.lexerMethod().chooseBundle().message()
-									.atomName(),
-								codePoint);
-						}
-					});
+					() -> StringDescriptor.format(
+						"Check lexer filter %s for U+%x",
+						lexer.lexerMethod().chooseBundle().message().atomName(),
+						codePoint));
 				final Continuation1<AvailObject> fiberSuccess =
-					new Continuation1<AvailObject>()
+					boolValue ->
 					{
-						@Override
-						public void value (
-							@Nullable final AvailObject boolValue)
+						assert boolValue.isBoolean();
+						final boolean countdownHitZero;
+						synchronized (joinLock)
 						{
-							assert boolValue.isBoolean();
-							final boolean countdownHitZero;
-							synchronized (joinLock)
+							if (boolValue.extractBoolean())
 							{
-								if (boolValue.extractBoolean())
-								{
-									applicableLexers.add(lexer);
-								}
-								countdown.value--;
-								assert countdown.value >= 0;
-								countdownHitZero = countdown.value == 0;
+								applicableLexers.add(lexer);
 							}
-							if (countdownHitZero)
-							{
-								// This was the fiber reporting the last
-								// result.
-								continuation.value(
-									SetDescriptor.fromCollection(
-										applicableLexers),
-									failureMap.value);
-							}
+							countdown.value--;
+							assert countdown.value >= 0;
+							countdownHitZero = countdown.value == 0;
+						}
+						if (countdownHitZero)
+						{
+							// This was the fiber reporting the last
+							// result.
+							continuation.value(
+								SetDescriptor.fromCollection(applicableLexers),
+								failureMap.value);
 						}
 					};
 				final Continuation1<Throwable> fiberFailure =
-					new Continuation1<Throwable>()
+					throwable ->
 					{
-						@Override
-						public void value (@Nullable final Throwable throwable)
+						final boolean countdownHitZero;
+						synchronized (joinLock)
 						{
-							final boolean countdownHitZero;
-							synchronized (joinLock)
+							if (failureMap.value.isEmpty())
 							{
-								if (failureMap.value.isEmpty())
-								{
-									failureMap.value = new HashMap<>();
-								}
-								failureMap.value.put(lexer, throwable);
-								countdown.value--;
-								assert countdown.value >= 0;
-								countdownHitZero = countdown.value == 0;
+								failureMap.value = new HashMap<>();
 							}
-							if (countdownHitZero)
-							{
-								// This was the fiber reporting the last
-								// result (a fiber failure).
-								continuation.value(
-									SetDescriptor.fromCollection(
-										applicableLexers),
-									failureMap.value);
-							}
+							failureMap.value.put(lexer, throwable);
+							countdown.value--;
+							assert countdown.value >= 0;
+							countdownHitZero = countdown.value == 0;
+						}
+						if (countdownHitZero)
+						{
+							// This was the fiber reporting the last
+							// result (a fiber failure).
+							continuation.value(
+								SetDescriptor.fromCollection(applicableLexers),
+								failureMap.value);
 						}
 					};
 				fiber.textInterface(loader.textInterface);
 				fiber.resultContinuation(fiberSuccess);
 				fiber.failureContinuation(fiberFailure);
 				Interpreter.runOutermostFunction(
-					loader.runtime,
+					loader.runtime(),
 					fiber,
 					lexer.lexerFilterFunction(),
 					argsList);
 			}
 		}
-
-
 	}
 
 	/**
@@ -500,13 +481,13 @@ public final class AvailLoader
 	 * Allow investigation of why a top-level expression is being excluded from
 	 * summarization.
 	 */
-	public static boolean debugUnsummarizedStatements = false;
+	public static boolean debugUnsummarizedStatements = true;
 
 	/**
 	 * Show the top-level statements that are executed during loading or
 	 * compilation.
 	 */
-	public static boolean debugLoadedStatements = false;
+	public static boolean debugLoadedStatements = true;
 
 	/**
 	 * A flag that controls whether compilation attempts to use the fast-loader
@@ -548,8 +529,33 @@ public final class AvailLoader
 		return module;
 	}
 
+	@Nullable CompilationContext compilationContext;
+
+	/**
+	 * Set the current {@link CompilationContext} for this loader.
+	 *
+	 * @param context A {@link CompilationContext}.
+	 */
+	public void compilationContext (final CompilationContext context)
+	{
+		compilationContext = context;
+	}
+
+	/**
+	 * Answer the current {@link CompilationContext}, failing if there is none
+	 * for this loader.
+	 *
+	 * @return A {@link CompilationContext}.
+	 */
+	public CompilationContext compilationContext ()
+	{
+		final CompilationContext context = compilationContext;
+		assert context != null;
+		return context;
+	}
+
 	/** Used for extracting tokens from the source text. */
-	final LexicalScanner lexicalScanner;
+	LexicalScanner lexicalScanner;
 
 	/**
 	 * Answer the {@link LexicalScanner} used for creating tokens from source
@@ -558,6 +564,15 @@ public final class AvailLoader
 	public LexicalScanner lexicalScanner ()
 	{
 		return lexicalScanner;
+	}
+
+	/**
+	 * Set the {@link LexicalScanner} used for creating tokens from source
+	 * code for this {@link AvailLoader}.
+	 */
+	public void lexicalScanner (final LexicalScanner scanner)
+	{
+		lexicalScanner = scanner;
 	}
 
 	/**
@@ -704,9 +719,13 @@ public final class AvailLoader
 		final TextInterface textInterface)
 	{
 		this.module = module;
-		this.lexicalScanner = new LexicalScanner(this);
 		this.textInterface = textInterface;
 		this.phase = INITIALIZING;
+		// Start by using the module header lexical scanner, and replace it
+		// after the header has been fully parsed.
+		this.lexicalScanner = moduleHeaderLexicalScanner;
+		// Do the same for the module header bundle tree.
+		this.rootBundleTree = moduleHeaderBundleRoot;
 	}
 
 	/**
@@ -730,6 +749,14 @@ public final class AvailLoader
 		loader.pendingForwards = NilDescriptor.nil();
 		loader.phase = UNLOADING;
 		return loader;
+	}
+
+	/**
+	 *
+	 */
+	public void createModuleHeaderBundleTree ()
+	{
+		rootBundleTree = moduleHeaderBundleRoot;
 	}
 
 	/**
@@ -830,20 +857,16 @@ public final class AvailLoader
 		recordEffect(new LoadingEffectToAddDefinition(newForward));
 		final A_Module theModule = module;
 		final A_BundleTree root = rootBundleTree();
-		theModule.lock(new Continuation0()
+		theModule.lock(() ->
 		{
-			@Override
-			public void value ()
-			{
-				theModule.moduleAddDefinition(newForward);
-				pendingForwards = pendingForwards.setWithElementCanDestroy(
-					newForward, true);
-				final A_DefinitionParsingPlan plan =
-					bundle.definitionParsingPlans().mapAt(newForward);
-				final A_ParsingPlanInProgress planInProgress =
-					ParsingPlanInProgressDescriptor.create(plan, 1);
-				root.addPlanInProgress(planInProgress);
-			}
+			theModule.moduleAddDefinition(newForward);
+			pendingForwards = pendingForwards.setWithElementCanDestroy(
+				newForward, true);
+			final A_DefinitionParsingPlan plan =
+				bundle.definitionParsingPlans().mapAt(newForward);
+			final A_ParsingPlanInProgress planInProgress =
+				ParsingPlanInProgressDescriptor.create(plan, 1);
+			root.addPlanInProgress(planInProgress);
 		});
 	}
 
@@ -987,58 +1010,54 @@ public final class AvailLoader
 		}
 		final @Nullable A_Definition finalForward = forward;
 		final A_Module theModule = module;
-		theModule.lock(new Continuation0()
+		theModule.lock(() ->
 		{
-			@Override
-			public void value ()
+			final A_Set ancestorModules = theModule.allAncestors();
+			final A_BundleTree root = rootBundleTree();
+			if (finalForward != null)
 			{
-				final A_Set ancestorModules = theModule.allAncestors();
-				final A_BundleTree root = rootBundleTree();
-				if (finalForward != null)
-				{
-					for (final A_Bundle bundle : method.bundles())
-					{
-						if (ancestorModules.hasElement(
-							bundle.message().issuingModule()))
-						{
-							// Remove the appropriate forwarder plan from the
-							// bundle tree.
-							final A_DefinitionParsingPlan plan =
-								bundle.definitionParsingPlans().mapAt(
-									finalForward);
-							final A_ParsingPlanInProgress planInProgress =
-								ParsingPlanInProgressDescriptor.create(plan, 1);
-							root.removePlanInProgress(planInProgress);
-						}
-					}
-					removeForward(finalForward);
-				}
-				try
-				{
-					method.methodAddDefinition(newDefinition);
-				}
-				catch (SignatureException e)
-				{
-					assert false : "Signature was already vetted";
-					return;
-				}
-				recordEffect(
-					new LoadingEffectToAddDefinition(newDefinition));
 				for (final A_Bundle bundle : method.bundles())
 				{
 					if (ancestorModules.hasElement(
 						bundle.message().issuingModule()))
 					{
+						// Remove the appropriate forwarder plan from the
+						// bundle tree.
 						final A_DefinitionParsingPlan plan =
 							bundle.definitionParsingPlans().mapAt(
-								newDefinition);
+								finalForward);
 						final A_ParsingPlanInProgress planInProgress =
 							ParsingPlanInProgressDescriptor.create(plan, 1);
-						root.addPlanInProgress(planInProgress);
+						root.removePlanInProgress(planInProgress);
 					}
 				}
-				theModule.moduleAddDefinition(newDefinition);
+				removeForward(finalForward);
 			}
+			try
+			{
+				method.methodAddDefinition(newDefinition);
+			}
+			catch (SignatureException e)
+			{
+				assert false : "Signature was already vetted";
+				return;
+			}
+			recordEffect(
+				new LoadingEffectToAddDefinition(newDefinition));
+			for (final A_Bundle bundle : method.bundles())
+			{
+				if (ancestorModules.hasElement(
+					bundle.message().issuingModule()))
+				{
+					final A_DefinitionParsingPlan plan =
+						bundle.definitionParsingPlans().mapAt(
+							newDefinition);
+					final A_ParsingPlanInProgress planInProgress =
+						ParsingPlanInProgressDescriptor.create(plan, 1);
+					root.addPlanInProgress(planInProgress);
+				}
+			}
+			theModule.moduleAddDefinition(newDefinition);
 		});
 	}
 
@@ -1107,17 +1126,13 @@ public final class AvailLoader
 		method.methodAddDefinition(macroDefinition);
 		recordEffect(new LoadingEffectToAddDefinition(macroDefinition));
 		final A_BundleTree root = rootBundleTree();
-		module.lock(new Continuation0()
+		module.lock(() ->
 		{
-			@Override
-			public void value ()
-			{
-				A_DefinitionParsingPlan plan =
-					bundle.definitionParsingPlans().mapAt(macroDefinition);
-				A_ParsingPlanInProgress planInProgress =
-					ParsingPlanInProgressDescriptor.create(plan, 1);
-				root.addPlanInProgress(planInProgress);
-			}
+			A_DefinitionParsingPlan plan =
+				bundle.definitionParsingPlans().mapAt(macroDefinition);
+			A_ParsingPlanInProgress planInProgress =
+				ParsingPlanInProgressDescriptor.create(plan, 1);
+			root.addPlanInProgress(planInProgress);
 		});
 	}
 
@@ -1148,14 +1163,7 @@ public final class AvailLoader
 				method.chooseBundle().message(),
 				restriction.function()));
 		final A_Module theModule = module;
-		theModule.lock(new Continuation0()
-		{
-			@Override
-			public void value ()
-			{
-				theModule.moduleAddSemanticRestriction(restriction);
-			}
-		});
+		theModule.lock(() -> theModule.moduleAddSemanticRestriction(restriction));
 	}
 
 	/**
@@ -1251,37 +1259,33 @@ public final class AvailLoader
 					bundleSetTuple, bundle, module);
 			final A_BundleTree root = rootBundleTree();
 			final A_Module theModule = module;
-			theModule.lock(new Continuation0()
+			theModule.lock(() ->
 			{
-				@Override
-				public void value ()
+				bundle.addGrammaticalRestriction(grammaticalRestriction);
+				theModule.moduleAddGrammaticalRestriction(
+					grammaticalRestriction);
+				// Now update the message bundle tree to accommodate the new
+				// grammatical restriction.
+				Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>
+					treesToVisit = new ArrayDeque<>();
+				for (final Entry planEntry
+					: bundle.definitionParsingPlans().mapIterable())
 				{
-					bundle.addGrammaticalRestriction(grammaticalRestriction);
-					theModule.moduleAddGrammaticalRestriction(
-						grammaticalRestriction);
-					// Now update the message bundle tree to accommodate the new
-					// grammatical restriction.
-					Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>
-						treesToVisit = new ArrayDeque<>();
-					for (final MapDescriptor.Entry planEntry
-						: bundle.definitionParsingPlans().mapIterable())
+					final A_DefinitionParsingPlan plan = planEntry.value();
+					treesToVisit.addLast(
+						new Pair<>(
+							root,
+							ParsingPlanInProgressDescriptor.create(
+								plan, 1)));
+					while (!treesToVisit.isEmpty())
 					{
-						final A_DefinitionParsingPlan plan = planEntry.value();
-						treesToVisit.addLast(
-							new Pair<>(
-								root,
-								ParsingPlanInProgressDescriptor.create(
-									plan, 1)));
-						while (!treesToVisit.isEmpty())
-						{
-							final Pair<A_BundleTree, A_ParsingPlanInProgress>
-								pair = treesToVisit.removeLast();
-							final A_BundleTree tree = pair.first();
-							final A_ParsingPlanInProgress planInProgress =
-								pair.second();
-							tree.updateForNewGrammaticalRestriction(
-								planInProgress, treesToVisit);
-						}
+						final Pair<A_BundleTree, A_ParsingPlanInProgress>
+							pair = treesToVisit.removeLast();
+						final A_BundleTree tree = pair.first();
+						final A_ParsingPlanInProgress planInProgress =
+							pair.second();
+						tree.updateForNewGrammaticalRestriction(
+							planInProgress, treesToVisit);
 					}
 				}
 			});
@@ -1340,45 +1344,28 @@ public final class AvailLoader
 					final A_Fiber fiber = FiberDescriptor.newFiber(
 						Types.TOP.o(),
 						FiberDescriptor.loaderPriority,
-						new Generator<A_String>()
-						{
-							@Override
-							public A_String value ()
-							{
-								return StringDescriptor.format(
-									"Unload function #%d for module %s",
-									index,
-									module().moduleName());
-							}
-						});
+						() -> StringDescriptor.format(
+							"Unload function #%d for module %s",
+							index,
+							module().moduleName()));
 					fiber.textInterface(textInterface);
 					fiber.resultContinuation(
-						new Continuation1<AvailObject>()
+						unused ->
 						{
-							@Override
-							public void value (
-								final @Nullable AvailObject unused)
-							{
-								index++;
-								onExit.value().value();
-							}
+							index++;
+							onExit.value().value();
 						});
 					fiber.failureContinuation(
-						new Continuation1<Throwable>()
+						unused ->
 						{
-							@Override
-							public void value (
-								final @Nullable Throwable unused)
-							{
-								index++;
-								onExit.value().value();
-							}
+							index++;
+							onExit.value().value();
 						});
 					Interpreter.runOutermostFunction(
 						runtime(),
 						fiber,
 						unloadFunction,
-						Collections.<A_BasicObject>emptyList());
+						Collections.emptyList());
 				}
 				else
 				{
@@ -1434,31 +1421,27 @@ public final class AvailLoader
 		//  Check if it's already defined somewhere...
 		final MutableOrNull<A_Atom> atom = new MutableOrNull<>();
 		module.lock(
-			new Continuation0()
+			() ->
 			{
-				@Override
-				public void value ()
+				final A_Set who = module.trueNamesForStringName(
+					stringName);
+				if (who.setSize() == 0)
 				{
-					final A_Set who = module.trueNamesForStringName(
-						stringName);
-					if (who.setSize() == 0)
+					final A_Atom trueName = AtomDescriptor.create(
+						stringName, module);
+					if (isExplicitSubclassAtom)
 					{
-						final A_Atom trueName = AtomDescriptor.create(
-							stringName, module);
-						if (isExplicitSubclassAtom)
-						{
-							trueName.setAtomProperty(
-								EXPLICIT_SUBCLASSING_KEY.atom,
-								EXPLICIT_SUBCLASSING_KEY.atom);
-						}
-						trueName.makeImmutable();
-						module.addPrivateName(trueName);
-						atom.value = trueName;
+						trueName.setAtomProperty(
+							EXPLICIT_SUBCLASSING_KEY.atom,
+							EXPLICIT_SUBCLASSING_KEY.atom);
 					}
-					if (who.setSize() == 1)
-					{
-						atom.value = who.iterator().next();
-					}
+					trueName.makeImmutable();
+					module.addPrivateName(trueName);
+					atom.value = trueName;
+				}
+				if (who.setSize() == 1)
+				{
+					atom.value = who.iterator().next();
 				}
 			});
 		if (atom.value == null)
@@ -1484,29 +1467,138 @@ public final class AvailLoader
 		assert stringName.isString();
 		final MutableOrNull<A_Set> who = new MutableOrNull<>();
 		module.lock(
-			new Continuation0()
+			() ->
 			{
-				@Override
-				public void value ()
-				{
-					final A_Set newNames =
-						module.newNames().hasKey(stringName)
-							? SetDescriptor.empty().setWithElementCanDestroy(
-								module.newNames().mapAt(stringName), true)
-							: SetDescriptor.empty();
-					final A_Set publics =
-						module.importedNames().hasKey(stringName)
-							? module.importedNames().mapAt(stringName)
-							: SetDescriptor.empty();
-					final A_Set privates =
-						module.privateNames().hasKey(stringName)
-							? module.privateNames().mapAt(stringName)
-							: SetDescriptor.empty();
-					who.value = newNames
-						.setUnionCanDestroy(publics, true)
-						.setUnionCanDestroy(privates, true);
-				}
+				final A_Set newNames =
+					module.newNames().hasKey(stringName)
+						? SetDescriptor.empty().setWithElementCanDestroy(
+							module.newNames().mapAt(stringName), true)
+						: SetDescriptor.empty();
+				final A_Set publics =
+					module.importedNames().hasKey(stringName)
+						? module.importedNames().mapAt(stringName)
+						: SetDescriptor.empty();
+				final A_Set privates =
+					module.privateNames().hasKey(stringName)
+						? module.privateNames().mapAt(stringName)
+						: SetDescriptor.empty();
+				who.value = newNames
+					.setUnionCanDestroy(publics, true)
+					.setUnionCanDestroy(privates, true);
 			});
 		return who.value();
+	}
+
+	/**
+	 * The {@link A_BundleTree} used <em>only</em> for parsing module
+	 * headers.
+	 */
+	public static final A_BundleTree moduleHeaderBundleRoot;
+
+	/**
+	 * The {@link LexicalScanner} used only</em> for parsing module
+	 * headers.
+	 */
+	public static final LexicalScanner moduleHeaderLexicalScanner;
+
+	/*
+	 * Create the special {@link A_BundleTree} used for parsing module headers.
+	 */
+	static
+	{
+		// Define a special root bundle tree that's only capable of lexing and
+		// parsing method headers.
+		moduleHeaderBundleRoot = MessageBundleTreeDescriptor.createEmpty();
+
+		// Also define the LexicalScanner used for module headers.
+		moduleHeaderLexicalScanner = new LexicalScanner();
+
+		// Add the string literal lexer.
+		createPrimitiveLexerForHeaderParsing(
+			P_BootstrapLexerStringFilter.instance,
+			P_BootstrapLexerStringBody.instance,
+			"string token lexer");
+
+		// The module header uses keywords, e.g. "Extends".
+		createPrimitiveLexerForHeaderParsing(
+			P_BootstrapLexerKeywordFilter.instance,
+			P_BootstrapLexerKeywordBody.instance,
+			"keyword token lexer");
+
+		// It would be tricky with no whitespace!
+		createPrimitiveLexerForHeaderParsing(
+			P_BootstrapLexerWhitespaceFilter.instance,
+			P_BootstrapLexerWhitespaceBody.instance,
+			"Whitespace token lexer");
+
+		// Slash-star-star-slash comments are legal in the header.
+		createPrimitiveLexerForHeaderParsing(
+			P_BootstrapLexerSlashStarCommentFilter.instance,
+			P_BootstrapLexerSlashStarCommentBody.instance,
+			"comment lexer");
+
+		// Now add the method that allows the header to be parsed.
+		final A_Atom headerMethodName =
+			SpecialMethodAtom.MODULE_HEADER_METHOD.atom;
+		final A_Bundle headerMethodBundle;
+		try
+		{
+			headerMethodBundle = headerMethodName.bundleOrCreate();
+		}
+		catch (MalformedMessageException e)
+		{
+			assert false : "Malformed module header method name";
+			throw new RuntimeException(e);
+		}
+		final A_DefinitionParsingPlan headerPlan =
+			headerMethodBundle.definitionParsingPlans().mapIterable().next()
+				.value();
+		final A_ParsingPlanInProgress headerPlanInProgress =
+			ParsingPlanInProgressDescriptor.create(headerPlan, 1);
+		moduleHeaderBundleRoot.addPlanInProgress(headerPlanInProgress);
+	}
+
+	/**
+	 * Create an {@link A_Lexer} from the given filter and body primitives, and
+	 * install it in specified atom's bundle.  Add the lexer to the root {@link
+	 * A_BundleTree} that is used for parsing module headers.
+	 *
+	 * @param filterPrimitive
+	 *        A primitive for filtering the lexer by its first character.
+	 * @param bodyPrimitive
+	 *        A primitive for constructing a tuple of tokens at the current
+	 *        position.  Typically the tuple has zero or one tokens, but more
+	 *        can be produced to indicate ambiguity within the lexer.
+	 * @param atomName
+	 *        The {@link A_Atom} under which to record the new lexer.
+	 * @return
+	 */
+	private static void createPrimitiveLexerForHeaderParsing (
+		final Primitive filterPrimitive,
+		final Primitive bodyPrimitive,
+		final String atomName)
+	{
+		A_Function stringLexerFilter = FunctionDescriptor.newPrimitiveFunction(
+			filterPrimitive, NilDescriptor.nil(), 0);
+		A_Function stringLexerBody = FunctionDescriptor.newPrimitiveFunction(
+			bodyPrimitive, NilDescriptor.nil(), 0);
+		final A_Atom atom = AtomDescriptor.createSpecialAtom(atomName);
+		final A_Bundle bundle;
+		try
+		{
+			bundle = atom.bundleOrCreate();
+		}
+		catch (final MalformedMessageException e)
+		{
+			assert false : "Invalid special lexer name: " + atomName;
+			throw new RuntimeException(e);
+		}
+		final A_Method method = bundle.bundleMethod();
+		final A_Lexer lexer = LexerDescriptor.newLexer(
+			stringLexerFilter,
+			stringLexerBody,
+			method,
+			NilDescriptor.nil());
+		moduleHeaderLexicalScanner.addLexer(lexer);
 	}
 }

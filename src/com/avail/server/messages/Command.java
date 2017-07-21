@@ -298,7 +298,7 @@ public enum Command
 	ALL_FIBERS;
 
 	/** An array of all {@link Command} enumeration values. */
-	private static Command[] all = values();
+	private static final Command[] all = values();
 
 	/**
 	 * Answer an array of all {@link Command} enumeration values.
@@ -520,7 +520,7 @@ public enum Command
 	 * parsing {@linkplain TrieNode#trie} (treating the tokenization of its
 	 * {@linkplain #name() name} on underscore boundaries as its syntax).
 	 */
-	private Command ()
+	Command ()
 	{
 		if (!requiresSpecialParsing())
 		{
@@ -542,7 +542,7 @@ public enum Command
 	 * @param syntax
 	 *        The tokenized syntax of the command.
 	 */
-	private Command (final String... syntax)
+	Command (final String... syntax)
 	{
 		assert !requiresSpecialParsing();
 		this.syntax = syntax;
@@ -569,7 +569,7 @@ public enum Command
 		{
 			throw new CommandParseException("unrecognized command");
 		}
-		else if (parsedCommands.size() > 1)
+		if (parsedCommands.size() > 1)
 		{
 			@SuppressWarnings("resource")
 			final Formatter formatter = new Formatter();

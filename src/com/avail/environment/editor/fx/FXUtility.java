@@ -52,9 +52,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.BoxLayout;
+import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Component;
 
@@ -139,7 +137,7 @@ public final class FXUtility
 		final @NotNull JFXPanel fxPanel)
 	{
 		final JFrame frame = new JFrame(frameName);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -173,7 +171,7 @@ public final class FXUtility
 	{
 		final JFrame frame = new JFrame(frameName);
 		Platform.setImplicitExit(false);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -205,7 +203,7 @@ public final class FXUtility
 	{
 		final JFrame frame = new JFrame(frameName);
 		Platform.setImplicitExit(false);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -242,7 +240,7 @@ public final class FXUtility
 	{
 		final JFrame frame = new JFrame(frameName);
 		Platform.setImplicitExit(false);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -273,7 +271,7 @@ public final class FXUtility
 	{
 		final JFrame frame = new JFrame();
 		Platform.setImplicitExit(false);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));

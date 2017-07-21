@@ -70,7 +70,7 @@ public class ModuleCommentImplementation extends AbstractCommentImplementation
 		final boolean sticky)
 	{
 		super(signature, commentStartLine, author, sees, description,
-			new ArrayList<StacksCategoryTag>(), new ArrayList<StacksAliasTag>(),
+			new ArrayList<>(), new ArrayList<>(),
 			sticky);
 	}
 

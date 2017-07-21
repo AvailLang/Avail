@@ -229,7 +229,7 @@ public class MessageSplitterTest
 	}
 
 	/** Test cases. */
-	private static Case[] splitCases =
+	private static final Case[] splitCases =
 	{
 		C("Foo",
 			List(0, 0),
@@ -1274,7 +1274,7 @@ public class MessageSplitterTest
 	 * @param instructions A sequence of integer-encoded parse instructions.
 	 * @return The descriptive string.
 	 */
-	private String dumpInstructions (final List<Integer> instructions)
+	private static String dumpInstructions (final List<Integer> instructions)
 	{
 		final StringBuilder builder = new StringBuilder();
 		boolean first = true;
@@ -1287,7 +1287,7 @@ public class MessageSplitterTest
 			builder.append('\t');
 			final ParsingOperation operation = decode(instructionEncoding);
 			builder.append(operation.name());
-			if (operation.ordinal() >= ParsingOperation.distinctInstructions)
+			if (operation.ordinal() >= distinctInstructions)
 			{
 				builder.append('(');
 				builder.append(operand(instructionEncoding));

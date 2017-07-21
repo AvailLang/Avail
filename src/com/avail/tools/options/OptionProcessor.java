@@ -90,7 +90,7 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 	 * indicate.
 	 */
 	private final HashMap<String, OptionKeyType> allKeywords =
-		new HashMap<String, OptionKeyType>();
+		new HashMap<>();
 
 	/** A mapping between option keys and {@linkplain Option options}. */
 	private final
@@ -117,14 +117,14 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 		final Collection<Option<OptionKeyType>> options)
 	{
 		allKeywords.putAll(keywords);
-		allOptions = new EnumMap<OptionKeyType, Option<OptionKeyType>>(
-				optionKeyType);
-		timesEncountered = new EnumMap<OptionKeyType, Mutable<Integer>>(
-				optionKeyType);
+		allOptions = new EnumMap<>(
+			optionKeyType);
+		timesEncountered = new EnumMap<>(
+			optionKeyType);
 		for (final Option<OptionKeyType> option : options)
 		{
 			allOptions.put(option.key(), option);
-			timesEncountered.put(option.key(), new Mutable<Integer>(0));
+			timesEncountered.put(option.key(), new Mutable<>(0));
 		}
 	}
 
@@ -157,14 +157,7 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 
 	/** Continue processing keywords? */
 	private static final ThreadLocal<Boolean>
-		continueProcessingKeywords = new ThreadLocal<Boolean>()
-		{
-			@Override
-			protected Boolean initialValue ()
-			{
-				return true;
-			}
-		};
+		continueProcessingKeywords = ThreadLocal.withInitial(() -> true);
 
 	/**
 	 * Process the argument as a long keyword, potentially one with an
@@ -333,7 +326,7 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 	public Set<Option<OptionKeyType>> allOptions ()
 	{
 		return Collections.unmodifiableSet(
-			new LinkedHashSet<Option<OptionKeyType>>(allOptions.values()));
+			new LinkedHashSet<>(allOptions.values()));
 	}
 
 	/**
@@ -409,7 +402,7 @@ public class OptionProcessor<OptionKeyType extends Enum<OptionKeyType>>
 				new ParagraphFormatterStream(descriptionFormatter, appendable);
 
 			final LinkedHashSet<String> keywords =
-				new LinkedHashSet<String>(option.keywords());
+				new LinkedHashSet<>(option.keywords());
 			for (final String keyword : keywords)
 			{
 				if (option instanceof DefaultOption)

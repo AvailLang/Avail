@@ -1,6 +1,6 @@
 /**
  * P_BootstrapLexerKeywordBody.java
- * Copyright © 1993-2014, The Avail Foundation, LLC.
+ * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ public final class P_BootstrapLexerKeywordBody extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_BootstrapLexerKeywordBody().init(
-			2, CannotFail, Bootstrap);
+			3, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -64,9 +64,10 @@ public final class P_BootstrapLexerKeywordBody extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		final A_String source = args.get(0);
 		final A_Number sourcePositionInteger = args.get(1);
+		final A_Number lineNumberInteger = args.get(2);
 
 		final int sourceSize = source.tupleSize();
 		final int startPosition = sourcePositionInteger.extractInt();
@@ -84,7 +85,7 @@ public final class P_BootstrapLexerKeywordBody extends Primitive
 			TupleDescriptor.empty(),
 			TupleDescriptor.empty(),
 			startPosition,
-			-1,  // TODO MvG - This should get a fix-up *after* the primitive
+			lineNumberInteger.extractInt(),
 			TokenType.KEYWORD);
 		token.makeShared();
 		return interpreter.primitiveSuccess(
@@ -97,6 +98,7 @@ public final class P_BootstrapLexerKeywordBody extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType(),
+				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			TupleTypeDescriptor.zeroOrMoreOf(
 				Types.TOKEN.o()));

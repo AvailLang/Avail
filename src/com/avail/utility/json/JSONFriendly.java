@@ -47,5 +47,5 @@ public interface JSONFriendly
 	 * @param writer
 	 *        A {@link JSONWriter}.
 	 */
-	public void writeTo (JSONWriter writer);
+	void writeTo (JSONWriter writer);
 }

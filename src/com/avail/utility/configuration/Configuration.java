@@ -46,5 +46,5 @@ public interface Configuration
 	 * @return {@code true} if the configuration is valid, {@code false}
 	 *         otherwise.
 	 */
-	public boolean isValid ();
+	boolean isValid ();
 }

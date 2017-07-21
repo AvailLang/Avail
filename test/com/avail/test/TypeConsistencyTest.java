@@ -32,6 +32,8 @@
 
 package com.avail.test;
 
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.Primitive.Result;
 import org.jetbrains.annotations.Nullable;
 import static com.avail.descriptor.TypeDescriptor.Types;
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,7 +45,6 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
-import com.avail.utility.evaluation.Transformer1;
 import org.junit.jupiter.api.*;
 
 
@@ -425,7 +426,7 @@ public class TypeConsistencyTest
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
 						SOME_ATOM_TYPE.t().instance(),
-						TypeDescriptor.Types.ANY.o(),
+						Types.ANY.o(),
 						false));
 			}
 		};
@@ -459,7 +460,7 @@ public class TypeConsistencyTest
 				return ObjectTypeDescriptor.objectTypeFromMap(
 					MapDescriptor.empty().mapAtPuttingCanDestroy(
 						ANOTHER_ATOM_TYPE.t().instance(),
-						TypeDescriptor.Types.ANY.o(),
+						Types.ANY.o(),
 						false));
 			}
 		};
@@ -582,7 +583,7 @@ public class TypeConsistencyTest
 
 		/**
 		 * The pojo type representing the Java enumeration {@link
-		 * com.avail.interpreter.Primitive.Result}.
+		 * Result}.
 		 */
 		final static Node AVAIL_PRIMITIVE_RESULT_ENUM_POJO = new Node(
 			"AVAIL_PRIMITIVE_RESULT_ENUM_POJO",
@@ -591,7 +592,7 @@ public class TypeConsistencyTest
 			@Override
 			A_Type get ()
 			{
-				return PojoTypeDescriptor.forClass(Primitive.Result.class);
+				return PojoTypeDescriptor.forClass(Result.class);
 			}
 		};
 
@@ -965,7 +966,7 @@ public class TypeConsistencyTest
 			}
 			else
 			{
-				submap = new HashMap<Node, Node>();
+				submap = new HashMap<>();
 				parseNodeTypeMap.put(parseNodeKind, submap);
 			}
 			final List<Node> parents = new ArrayList<>();
@@ -1008,16 +1009,11 @@ public class TypeConsistencyTest
 						final A_Type subexpressionsTupleType =
 							TupleTypeDescriptor.mappingElementTypes(
 								innerType,
-								new Transformer1<A_Type, A_Type>()
+								elementType ->
 								{
-									@Override
-									public @Nullable A_Type value (
-										final @Nullable A_Type elementType)
-									{
-										assert elementType != null;
-										return ParseNodeKind.PARSE_NODE.create(
-											elementType);
-									}
+									assert elementType != null;
+									return ParseNodeKind.PARSE_NODE.create(
+										elementType);
 								});
 						newType = ListNodeTypeDescriptor.createListNodeType(
 							parseNodeKind,
@@ -1217,10 +1213,7 @@ public class TypeConsistencyTest
 
 		static
 		{
-			for (final Node existingType : values)
-			{
-				nonBottomTypes.add(existingType);
-			}
+			nonBottomTypes.addAll(values);
 		}
 
 		/** The type {@code bottom} */
@@ -1492,6 +1485,7 @@ public class TypeConsistencyTest
 	{
 		// Force early initialization of the Avail runtime in order to prevent
 		// initialization errors.
+		//noinspection ResultOfMethodCallIgnored
 		AvailRuntime.specialAtoms();
 		Node.createTypes();
 		System.out.format("Checking %d types%n", Node.values.size());

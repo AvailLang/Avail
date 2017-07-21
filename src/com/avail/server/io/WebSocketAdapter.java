@@ -252,7 +252,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 * @return The named request method, or {@code null} if no such request
 		 *         method exists.
 		 */
-		static final @Nullable HttpRequestMethod named (final String name)
+		static @Nullable HttpRequestMethod named (final String name)
 		{
 			return methodsByName.get(name.toLowerCase());
 		}
@@ -291,12 +291,12 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		}
 
 		/**
-		 * Construct a new {@link WebSocketAdapter.HttpStatusCode}.
+		 * Construct a new {@link HttpStatusCode}.
 		 *
 		 * @param statusCode
 		 *        The status code.
 		 */
-		private HttpStatusCode (final int statusCode)
+		HttpStatusCode (final int statusCode)
 		{
 			this.statusCode = statusCode;
 		}
@@ -962,15 +962,10 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					ClientRequest.receiveThen(
 						channel,
 						WebSocketAdapter.this,
-						new Continuation1<ClientRequest>()
+						request ->
 						{
-							@Override
-							public void value (
-								final @Nullable ClientRequest request)
-							{
-								assert request != null;
-								processRequest(request, channel);
-							}
+							assert request != null;
+							processRequest(request, channel);
 						});
 				}
 
@@ -1031,14 +1026,10 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							new ServerHandshake(handshake.key, empty, empty);
 						serverHandshake.sendThen(
 							channel.transport(),
-							new Continuation0()
+							() ->
 							{
-								@Override
-								public void value ()
-								{
-									channel.handshakeSucceeded();
-									readMessage(channel);
-								}
+								channel.handshakeSucceeded();
+								readMessage(channel);
 							});
 					}
 				}
@@ -1165,7 +1156,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		RESERVED_15;
 
 		/** An array of all {@link Opcode} enumeration values. */
-		private static Opcode[] all = values();
+		private static final Opcode[] all = values();
 
 		/**
 		 * Answer an array of all {@link Opcode} enumeration values.
@@ -1254,7 +1245,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 * @param statusCode
 		 *        The WebSocket status code.
 		 */
-		private WebSocketStatusCode (final int statusCode)
+		WebSocketStatusCode (final int statusCode)
 		{
 			this.statusCode = statusCode;
 		}
@@ -1434,15 +1425,11 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	{
 		final WebSocketChannel channel = (WebSocketChannel) weakChannel;
 		final ByteArrayOutputStream bytes = new ByteArrayOutputStream(1024);
-		final Continuation0 processMessage = new Continuation0()
+		final Continuation0 processMessage = () ->
 		{
-			@Override
-			public void value ()
-			{
-				final Message message = new Message(new String(
-					bytes.toByteArray(), StandardCharsets.UTF_8));
-				channel.receiveMessage(message);
-			}
+			final Message message = new Message(new String(
+				bytes.toByteArray(), StandardCharsets.UTF_8));
+			channel.receiveMessage(message);
 		};
 		readFrameThen(
 			channel,
@@ -1525,7 +1512,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								WebSocketStatusCode.PROTOCOL_ERROR,
 								"opcode "
 								+ frame.opcode().ordinal()
-								+ "is reserved");
+								+ " is reserved");
 							return;
 					}
 					// A text frame was processed.
@@ -1595,14 +1582,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		readOpcodeThen(
 			channel,
 			frame,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					continuation.value(frame);
-				}
-			});
+			() -> continuation.value(frame));
 	}
 
 	/**
@@ -1709,6 +1689,14 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						final int len = b & 0x7F;
 						switch (len)
 						{
+							case 126:
+								readPayloadLength2ByteExtensionThen(
+									channel, frame, continuation);
+								break;
+							case 127:
+								readPayloadLength8ByteExtensionThen(
+									channel, frame, continuation);
+								break;
 							default:
 								frame.payloadLength = len;
 								if (frame.isMasked)
@@ -1721,14 +1709,6 @@ implements TransportAdapter<AsynchronousSocketChannel>
 									readPayloadDataThen(
 										channel, frame, continuation);
 								}
-								break;
-							case 126:
-								readPayloadLength2ByteExtensionThen(
-									channel, frame, continuation);
-								break;
-							case 127:
-								readPayloadLength8ByteExtensionThen(
-									channel, frame, continuation);
 								break;
 						}
 					}
@@ -2169,14 +2149,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			channel,
 			Opcode.CLOSE,
 			buffer,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					IO.close(channel.transport());
-				}
-			},
+			() -> IO.close(channel.transport()),
 			null);
 	}
 
@@ -2250,14 +2223,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			channel,
 			Opcode.CLOSE,
 			buffer,
-			new Continuation0()
-			{
-				@Override
-				public void value ()
-				{
-					IO.close(channel);
-				}
-			},
+			() -> IO.close(channel),
 			null);
 	}
 

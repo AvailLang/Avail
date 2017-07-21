@@ -32,14 +32,6 @@
 
 package com.avail.environment.actions;
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.environment.AvailWorkbench;
 import com.avail.interpreter.AvailLoader;
 import org.jetbrains.annotations.Nullable;

@@ -37,6 +37,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.IdentityHashMap;
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
@@ -143,7 +145,7 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain StringDescriptor
 		 * string} to a {@linkplain VariableDescriptor variable}. Since
-		 * {@linkplain DeclarationNodeDescriptor.DeclarationKind#MODULE_VARIABLE
+		 * {@linkplain DeclarationKind#MODULE_VARIABLE
 		 * module variables} are never accessible outside the module in which
 		 * they are defined, this slot is overwritten with {@linkplain
 		 * NilDescriptor#nil() nil} when module compilation is complete.
@@ -153,7 +155,7 @@ extends Descriptor
 		/**
 		 * A {@linkplain MapDescriptor map} from {@linkplain StringDescriptor
 		 * string} to an {@linkplain AvailObject}. Since a {@linkplain
-		 * DeclarationNodeDescriptor.DeclarationKind#MODULE_CONSTANT module
+		 * DeclarationKind#MODULE_CONSTANT module
 		 * constants} are never accessible outside the module in which they are
 		 * defined, this slot is overwritten with {@linkplain
 		 * NilDescriptor#nil() nil} when module compilation is complete.
@@ -300,13 +302,13 @@ extends Descriptor
 		A_Set exportedNames = SetDescriptor.empty();
 		synchronized (object)
 		{
-			for (final MapDescriptor.Entry entry
+			for (final Entry entry
 				: object.slot(IMPORTED_NAMES).mapIterable())
 			{
 				exportedNames = exportedNames.setUnionCanDestroy(
 					entry.value().makeShared(), true);
 			}
-			for (final MapDescriptor.Entry entry
+			for (final Entry entry
 				: object.slot(PRIVATE_NAMES).mapIterable())
 			{
 				exportedNames = exportedNames.setMinusCanDestroy(
@@ -657,64 +659,60 @@ extends Descriptor
 			// order.
 			aLoader.runUnloadFunctions(
 				unloadFunctions,
-				new Continuation0()
+				() ->
 				{
-					@Override
-					public void value ()
+					synchronized (object)
 					{
-						synchronized (object)
+						// Remove method definitions.
+						for (final A_Definition definition
+							: object.methodDefinitions())
 						{
-							// Remove method definitions.
-							for (final A_Definition definition
-								: object.methodDefinitions())
+							aLoader.removeDefinition(definition);
+						}
+						// Remove semantic restrictions.
+						for (final A_SemanticRestriction restriction :
+							object.moduleSemanticRestrictions())
+						{
+							runtime.removeTypeRestriction(restriction);
+						}
+						for (final A_GrammaticalRestriction restriction :
+							object.moduleGrammaticalRestrictions())
+						{
+							runtime.removeGrammaticalRestriction(
+								restriction);
+						}
+						// Remove seals.
+						final A_Map seals = object.slot(SEALS);
+						for (final Entry entry :
+							seals.mapIterable())
+						{
+							final A_Atom methodName = entry.key();
+							for (final A_Tuple seal : entry.value())
 							{
-								aLoader.removeDefinition(definition);
-							}
-							// Remove semantic restrictions.
-							for (final A_SemanticRestriction restriction :
-								object.moduleSemanticRestrictions())
-							{
-								runtime.removeTypeRestriction(restriction);
-							}
-							for (final A_GrammaticalRestriction restriction :
-								object.moduleGrammaticalRestrictions())
-							{
-								runtime.removeGrammaticalRestriction(
-									restriction);
-							}
-							// Remove seals.
-							final A_Map seals = object.slot(SEALS);
-							for (final MapDescriptor.Entry entry :
-								seals.mapIterable())
-							{
-								final A_Atom methodName = entry.key();
-								for (final A_Tuple seal : entry.value())
+								try
 								{
-									try
-									{
-										runtime.removeSeal(methodName, seal);
-									}
-									catch (final MalformedMessageException e)
-									{
-										assert false
-											: "This should not happen!";
-										throw new AvailRuntimeException(
-											e.errorCode());
-									}
+									runtime.removeSeal(methodName, seal);
+								}
+								catch (final MalformedMessageException e)
+								{
+									assert false
+										: "This should not happen!";
+									throw new AvailRuntimeException(
+										e.errorCode());
 								}
 							}
-							// Remove lexers.  Don't bother adjusting the
-							// loader, since it's not going to parse anything
-							// again.  Don't even bother removing it from the
-							// module, since that's being unloaded.
-							for (final A_Lexer lexer : object.slot(LEXERS))
-							{
-								lexer.lexerMethod().setLexer(
-									NilDescriptor.nil());
-							}
 						}
-						afterRemoval.value();
+						// Remove lexers.  Don't bother adjusting the
+						// loader, since it's not going to parse anything
+						// again.  Don't even bother removing it from the
+						// module, since that's being unloaded.
+						for (final A_Lexer lexer : object.slot(LEXERS))
+						{
+							lexer.lexerMethod().setLexer(
+								NilDescriptor.nil());
+						}
 					}
+					afterRemoval.value();
 				});
 		}
 	}
@@ -821,7 +819,7 @@ extends Descriptor
 				final A_Bundle bundle = visibleName.bundleOrNil();
 				if (!bundle.equalsNil())
 				{
-					for (final MapDescriptor.Entry definitionEntry
+					for (final Entry definitionEntry
 						: bundle.definitionParsingPlans().mapIterable())
 					{
 						if (ancestors.hasElement(

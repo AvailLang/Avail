@@ -56,7 +56,6 @@ abstract class AbstractAvailObject
 	 */
 	final void checkValidAddress () throws Error
 	{
-		return;
 	}
 
 	/**

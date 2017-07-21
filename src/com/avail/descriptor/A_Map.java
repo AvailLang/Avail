@@ -32,6 +32,9 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.MapDescriptor.MapIterable;
+
 /**
  * {@code A_Map} is an interface that specifies the map-specific operations
  * that an {@link AvailObject} must implement.  It's a sub-interface of {@link
@@ -128,10 +131,10 @@ extends A_BasicObject
 
 	/**
 	 * Answer a suitable Iterable<> for iterating over this map's key/value
-	 * pairs (made available in a {@link MapDescriptor.Entry}).  This allows the
+	 * pairs (made available in a {@link Entry}).  This allows the
 	 * Java for-each syntax hack to be used.
 	 *
-	 * @return An {@linkplain MapDescriptor.MapIterable iterable for maps}.
+	 * @return An {@linkplain MapIterable iterable for maps}.
 	 */
-	MapDescriptor.MapIterable mapIterable ();
+	MapIterable mapIterable ();
 }

@@ -88,7 +88,8 @@ extends Primitive
 	 *        Some integral option indicators.
 	 * @return The implied open options.
 	 */
-	private Set<? extends OpenOption> openOptionsFor (final A_Set optionInts)
+	private static Set<? extends OpenOption> openOptionsFor (
+		final A_Set optionInts)
 	{
 		final EnumSet<StandardOpenOption> options =
 			EnumSet.noneOf(StandardOpenOption.class);
@@ -106,8 +107,6 @@ extends Primitive
 	 * file permissions} that correspond to the supplied {@linkplain
 	 * SetDescriptor set} of integral option indicators.
 	 *
-	 * @param runtime
-	 *        The {@linkplain AvailRuntime runtime}.
 	 * @param optionInts
 	 *        Some integral option indicators.
 	 * @return An array whose lone element is a set containing an attribute that
@@ -115,11 +114,10 @@ extends Primitive
 	 *         if the {@linkplain FileSystem file system} does not support POSIX
 	 *         file permissions.
 	 */
-	private @Nullable FileAttribute<?>[] permissionsFor (
-		final AvailRuntime runtime,
-		final A_Set optionInts)
+	private @Nullable
+	static FileAttribute<?>[] permissionsFor (final A_Set optionInts)
 	{
-		if (runtime.fileSystem().supportedFileAttributeViews().contains(
+		if (AvailRuntime.fileSystem().supportedFileAttributeViews().contains(
 			"posix"))
 		{
 			final PosixFilePermission[] allPermissions =
@@ -165,8 +163,7 @@ extends Primitive
 		assert alignmentInt > 0;
 		final AvailRuntime runtime = AvailRuntime.current();
 		final Set<? extends OpenOption> fileOptions = openOptionsFor(options);
-		final FileAttribute<?>[] fileAttributes = permissionsFor(
-			runtime, permissions);
+		final FileAttribute<?>[] fileAttributes = permissionsFor(permissions);
 		if (!fileOptions.contains(READ) && !fileOptions.contains(WRITE))
 		{
 			return interpreter.primitiveFailure(E_ILLEGAL_OPTION);
@@ -174,7 +171,7 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = runtime.fileSystem().getPath(
+			path = AvailRuntime.fileSystem().getPath(
 				filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
@@ -224,14 +221,10 @@ extends Primitive
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
-					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.fromInt(0),
-						IntegerDescriptor.fromInt(9))),
+					IntegerRangeTypeDescriptor.inclusive(0, 9)),
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
-					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.fromInt(1),
-						IntegerDescriptor.fromInt(9)))),
+					IntegerRangeTypeDescriptor.inclusive(1, 9))),
 			ATOM.o());
 	}
 

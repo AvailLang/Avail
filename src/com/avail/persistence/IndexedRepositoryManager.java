@@ -37,6 +37,7 @@ import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,7 +68,7 @@ public class IndexedRepositoryManager
 	/**
 	 * Whether to log repository accesses to standard output.
 	 */
-	private static boolean debugRepository = false;
+	private static final boolean debugRepository = false;
 
 	/**
 	 * Log the specified message if {@linkplain #debugRepository debugging} is
@@ -227,17 +228,11 @@ public class IndexedRepositoryManager
 	 * version, and the second is the code's version.
 	 */
 	final static Transformer2<Integer, Integer, Boolean> versionCheck =
-		new Transformer2<Integer, Integer, Boolean>()
+		(fileVersion, codeVersion) ->
 		{
-			@Override
-			public @Nullable Boolean value (
-				final @Nullable Integer fileVersion,
-				final @Nullable Integer codeVersion)
-			{
-				assert fileVersion != null;
-				assert codeVersion != null;
-				return fileVersion.intValue() == codeVersion.intValue();
-			}
+			assert fileVersion != null;
+			assert codeVersion != null;
+			return fileVersion.intValue() == codeVersion.intValue();
 		};
 
 	/**
@@ -257,7 +252,7 @@ public class IndexedRepositoryManager
 		final int maximumSize;
 
 		/**
-		 * Construct a new {@link IndexedRepositoryManager.LimitedCache} with
+		 * Construct a new {@link LimitedCache} with
 		 * the given maximum size.
 		 *
 		 * @param maximumSize The maximum cache size.
@@ -380,13 +375,13 @@ public class IndexedRepositoryManager
 		{
 			binaryStream.writeUTF(rootRelativeName);
 			binaryStream.writeInt(digestCache.size());
-			for (final Map.Entry<Long, byte []> entry : digestCache.entrySet())
+			for (final Entry<Long, byte []> entry : digestCache.entrySet())
 			{
 				binaryStream.writeLong(entry.getKey());
 				binaryStream.write(entry.getValue());
 			}
 			binaryStream.writeInt(versions.size());
-			for (final Map.Entry<ModuleVersionKey, ModuleVersion> entry
+			for (final Entry<ModuleVersionKey, ModuleVersion> entry
 				: versions.entrySet())
 			{
 				entry.getKey().write(binaryStream);
@@ -425,7 +420,7 @@ public class IndexedRepositoryManager
 
 
 		/**
-		 * Construct a new {@link IndexedRepositoryManager.ModuleArchive}.
+		 * Construct a new {@link ModuleArchive}.
 		 *
 		 * @param rootRelativeName
 		 *        The name of the module, relative to the root of this
@@ -579,9 +574,9 @@ public class IndexedRepositoryManager
 		private int computeHash ()
 		{
 			int h = isPackage ? 0xDEAD_BEEF : 0xA_CABBA6E;
-			for (int i = 0; i < sourceDigest.length; i++)
+			for (final byte aSourceDigest : sourceDigest)
 			{
-				h = h * multiplier + sourceDigest[i];
+				h = h * multiplier + aSourceDigest;
 			}
 			return h;
 		}
@@ -697,9 +692,10 @@ public class IndexedRepositoryManager
 		private int computeHash ()
 		{
 			int h = 0x9E5_90125;
-			for (int i = 0; i < predecessorCompilationTimes.length; i++)
+			for (final long predecessorCompilationTime
+				: predecessorCompilationTimes)
 			{
-				h = mix(h, predecessorCompilationTimes[i]);
+				h = mix(h, predecessorCompilationTime);
 			}
 			return h;
 		}
@@ -997,7 +993,7 @@ public class IndexedRepositoryManager
 				binaryStream.writeUTF(entryPoint);
 			}
 			binaryStream.writeInt(compilations.size());
-			for (final Map.Entry<ModuleCompilationKey, ModuleCompilation>
+			for (final Entry<ModuleCompilationKey, ModuleCompilation>
 				entry : compilations.entrySet())
 			{
 				entry.getKey().write(binaryStream);
@@ -1236,6 +1232,7 @@ public class IndexedRepositoryManager
 			repository = null;
 			try
 			{
+				//noinspection ResultOfMethodCallIgnored
 				fileName.delete();
 				repository = IndexedFile.newFile(
 					IndexedRepository.class,
@@ -1265,7 +1262,7 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
-			for (final Map.Entry<String, ModuleArchive> entry
+			for (final Entry<String, ModuleArchive> entry
 				: moduleMap.entrySet())
 			{
 				final String moduleKey = entry.getKey();
@@ -1403,7 +1400,7 @@ public class IndexedRepositoryManager
 		assert !isOpen;
 		try
 		{
-			IndexedRepository repo = null;
+			IndexedRepository repo;
 			try
 			{
 				repo = IndexedFile.openFile(
@@ -1589,7 +1586,7 @@ public class IndexedRepositoryManager
 		@SuppressWarnings("resource")
 		final Formatter out = new Formatter();
 		out.format("Repository \"%s\" with modules:", rootName);
-		for (final Map.Entry<String, ModuleArchive> entry
+		for (final Entry<String, ModuleArchive> entry
 			: moduleMap.entrySet())
 		{
 			out.format("%n\t%s → %s", entry.getKey(), entry.getValue());

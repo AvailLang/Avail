@@ -432,7 +432,7 @@ extends Descriptor
 		final int lineNumber)
 	{
 		final A_Phrase block = BlockNodeDescriptor.newBlockNode(
-			Collections.<A_Phrase>emptyList(),
+			Collections.emptyList(),
 			0,
 			Collections.singletonList(phrase),
 			TOP.o(),

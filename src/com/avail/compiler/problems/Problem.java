@@ -36,9 +36,7 @@ import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
-import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CharacterDescriptor;
-import com.avail.descriptor.TokenDescriptor;
 import com.avail.utility.evaluation.Continuation1;
 
 /**

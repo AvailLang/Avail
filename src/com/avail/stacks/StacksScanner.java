@@ -171,7 +171,7 @@ public class StacksScanner extends AbstractStacksScanner
 	 * The index locations where a new {@link SectionKeywordStacksToken section}
 	 * begins in in the
 	 */
-	ArrayList<Integer> sectionStartLocations;
+	final ArrayList<Integer> sectionStartLocations;
 
 	/**
 	 * Construct a new {@link StacksScanner}.
@@ -188,14 +188,14 @@ public class StacksScanner extends AbstractStacksScanner
 		hasHTMLTagFalse();
 		addedParagraphHTMLTagFalse();
 		this.moduleLeafName =
-			moduleName.substring(moduleName.lastIndexOf("/") + 1);
+			moduleName.substring(moduleName.lastIndexOf('/') + 1);
 
 		final String commentString =
 			commentToken.string().asNativeString();
 		tokenString(commentString);
 		this.commentStartLine = commentToken.lineNumber();
 		this.moduleName = moduleName;
-		this.outputTokens = new ArrayList<AbstractStacksToken>(
+		this.outputTokens = new ArrayList<>(
 			tokenString().length() / 20);
 		this.commentEndsStandardly = tokenString().substring(
 			tokenString().length()-2,
@@ -205,7 +205,7 @@ public class StacksScanner extends AbstractStacksScanner
 		this.lineNumber(commentToken.lineNumber());
 		this.filePosition(commentToken.start());
 		this.startOfTokenLinePostion(0);
-		this.sectionStartLocations = new ArrayList<Integer>(9);
+		this.sectionStartLocations = new ArrayList<>(9);
 		this.beingTokenized = new StringBuilder();
 	}
 
@@ -401,7 +401,7 @@ public class StacksScanner extends AbstractStacksScanner
 					{
 						// Just like a regular character, but limit how much
 						// can be removed by a subsequent '\|'.
-						scanner.beingTokenized().appendCodePoint(c);
+						scanner.beingTokenized().appendCodePoint('\n');
 						canErase = true;
 						erasurePosition = scanner.beingTokenized().length();
 					}
@@ -411,7 +411,7 @@ public class StacksScanner extends AbstractStacksScanner
 						// can be removed by a subsequent '\|'.
 						if (!canErase)
 						{
-							scanner.beingTokenized().appendCodePoint(c);
+							scanner.beingTokenized().appendCodePoint('*');
 							erasurePosition = scanner.beingTokenized().length();
 						}
 					}
@@ -683,7 +683,7 @@ public class StacksScanner extends AbstractStacksScanner
 			void scan (final StacksScanner scanner)
 				throws StacksScannerException
 			{
-				int cp = 0;
+				int cp;
 				scanner.incrementNewlineCount();
 				while (Character.isSpaceChar(scanner.peek())
 					|| Character.isWhitespace(scanner.peek()))
@@ -961,7 +961,7 @@ public class StacksScanner extends AbstractStacksScanner
 			position () + filePosition(),
 			lineNumber(),
 			startOfTokenLinePostion(),
-			moduleName.toString());
+			moduleName);
 		outputTokens.add(token);
 	}
 }

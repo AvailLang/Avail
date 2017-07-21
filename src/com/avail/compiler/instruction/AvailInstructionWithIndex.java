@@ -45,7 +45,7 @@ public abstract class AvailInstructionWithIndex extends AvailInstruction
 	/**
 	 * A generic index to be interpreted by subclasses.  Must be non-negative.
 	 */
-	int index;
+	final int index;
 
 
 	/**

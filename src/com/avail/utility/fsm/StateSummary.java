@@ -207,22 +207,8 @@ final class StateSummary<
 		final Class<EventType> eventType)
 	{
 		this.state = state;
-		transitionTable = new EnumMap<
-			EventType,
-			Collection<
-				StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>>>(eventType);
-		automaticTransitionTable = new ArrayList<
-			StateTransitionArc<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>>();
+		transitionTable = new EnumMap<>(eventType);
+		automaticTransitionTable = new ArrayList<>();
 	}
 
 	/**
@@ -291,13 +277,7 @@ final class StateSummary<
 			collection = transitionTable.get(event);
 			if (collection == null)
 			{
-				collection = new ArrayList<
-					StateTransitionArc<
-						StateType,
-						EventType,
-						GuardKeyType,
-						ActionKeyType,
-						MementoType>>();
+				collection = new ArrayList<>();
 				transitionTable.put(event, collection);
 			}
 		}
@@ -338,13 +318,7 @@ final class StateSummary<
 					GuardKeyType,
 					ActionKeyType,
 					MementoType>>
-			aggregate = new ArrayList<
-				StateTransitionArc<
-					StateType,
-					EventType,
-					GuardKeyType,
-					ActionKeyType,
-					MementoType>>();
+			aggregate = new ArrayList<>();
 		for (final Collection<
 				StateTransitionArc<
 					StateType,

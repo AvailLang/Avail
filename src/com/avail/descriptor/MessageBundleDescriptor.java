@@ -296,7 +296,7 @@ extends Descriptor
 	 * @param object The affected message bundle.
 	 * @param plan A definition parsing plan.
 	 */
-	private void addDefinitionParsingPlan (
+	private static void addDefinitionParsingPlan (
 		final AvailObject object,
 		final A_DefinitionParsingPlan plan)
 	{
@@ -314,7 +314,7 @@ extends Descriptor
 	 * @param object The affected message bundle.
 	 * @param definition A definition whose plan should be removed.
 	 */
-	private void removePlanForDefinition (
+	private static void removePlanForDefinition (
 		final AvailObject object,
 		final A_Definition definition)
 	{
@@ -331,7 +331,7 @@ extends Descriptor
 	 * @param object The affected message bundle.
 	 * @param grammaticalRestriction A grammatical restriction.
 	 */
-	private void addGrammaticalRestriction (
+	private static void addGrammaticalRestriction (
 		final AvailObject object,
 		final A_GrammaticalRestriction grammaticalRestriction)
 	{
@@ -348,7 +348,7 @@ extends Descriptor
 	 * @param object A message bundle.
 	 * @param obsoleteRestriction The grammatical restriction to remove.
 	 */
-	private void removeGrammaticalRestriction (
+	private static void removeGrammaticalRestriction (
 		final AvailObject object,
 		final A_GrammaticalRestriction obsoleteRestriction)
 	{

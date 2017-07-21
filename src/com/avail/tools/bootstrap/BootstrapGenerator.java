@@ -73,7 +73,7 @@ public final class BootstrapGenerator
 	{
 		specialObjects = AvailRuntime.specialObjects();
 		specialObjectIndexMap =
-			new HashMap<AvailObject, Integer>(specialObjects.size());
+			new HashMap<>(specialObjects.size());
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
 			final AvailObject specialObject = specialObjects.get(i);
@@ -117,7 +117,7 @@ public final class BootstrapGenerator
 	 * @param numericCode The error code.
 	 * @return The localized name of the error code.
 	 */
-	private final String errorCodeName (final A_Number numericCode)
+	private String errorCodeName (final A_Number numericCode)
 	{
 		final AvailErrorCode code = AvailErrorCode.byNumericCode(
 			numericCode.extractInt());
@@ -133,7 +133,7 @@ public final class BootstrapGenerator
 	 * @param numericCode The error code.
 	 * @return The localized name of the error code.
 	 */
-	private final String exceptionName (final A_Number numericCode)
+	private String exceptionName (final A_Number numericCode)
 	{
 		final AvailErrorCode code = AvailErrorCode.byNumericCode(
 			numericCode.extractInt());
@@ -150,7 +150,7 @@ public final class BootstrapGenerator
 	 * @param key The module name key.
 	 * @return The file name.
 	 */
-	private final File moduleFileName (final Key key)
+	private File moduleFileName (final Key key)
 	{
 		return new File(String.format(
 			"src/%s/%s/%s.avail/%s.avail",
@@ -271,7 +271,7 @@ public final class BootstrapGenerator
 	private String specialObjectsNamesString ()
 	{
 		final List<String> names = new ArrayList<>(
-			new ArrayList<String>(specialObjectsByName.keySet()));
+			new ArrayList<>(specialObjectsByName.keySet()));
 		Collections.sort(names);
 		final StringBuilder builder = new StringBuilder();
 		for (final String name : names)
@@ -419,7 +419,7 @@ public final class BootstrapGenerator
 	{
 		final Set<Primitive> wanted = new HashSet<>(primitives);
 		final List<String> names = new ArrayList<>(
-			new ArrayList<String>(primitiveNameMap.keySet()));
+			new ArrayList<>(primitiveNameMap.keySet()));
 		Collections.sort(names);
 		final StringBuilder builder = new StringBuilder();
 		for (final String name : names)
@@ -620,20 +620,13 @@ public final class BootstrapGenerator
 					{
 						codes.add(instance);
 					}
-					Collections.sort(
-						codes,
-						new Comparator<A_Number>()
-						{
-							@Override
-							public int compare (
-								final @Nullable A_Number o1,
-								final @Nullable A_Number o2)
-							{
-								assert o1 != null;
-								assert o2 != null;
-								return o1.extractInt() - o2.extractInt();
-							}
-						});
+					codes.sort((o1, o2) ->
+					{
+						assert o1 != null;
+						assert o2 != null;
+						return Integer.compare(
+							o1.extractInt(), o2.extractInt());
+					});
 					for (final A_Number code : codes)
 					{
 						final String errorCodeName = errorCodeName(code);
@@ -801,20 +794,13 @@ public final class BootstrapGenerator
 						{
 							codes.add(instance);
 						}
-						Collections.sort(
-							codes,
-							new Comparator<A_Number>()
-							{
-								@Override
-								public int compare (
-									final @Nullable A_Number o1,
-									final @Nullable A_Number o2)
-								{
-									assert o1 != null;
-									assert o2 != null;
-									return o1.extractInt() - o2.extractInt();
-								}
-							});
+						codes.sort((o1, o2) ->
+						{
+							assert o1 != null;
+							assert o2 != null;
+							return Integer.compare(
+								o1.extractInt(), o2.extractInt());
+						});
 						for (final A_Number code : codes)
 						{
 							formatArgs[raiseIndex++] = exceptionName(code);
@@ -1272,13 +1258,6 @@ public final class BootstrapGenerator
 		new HashMap<>(AvailErrorCode.all().length);
 
 	/**
-	 * A {@linkplain Map map} from {@linkplain AvailErrorCode primitive error
-	 * codes} to localized names.
-	 */
-	private final Map<AvailErrorCode, String> namesByErrorCode =
-		new HashMap<>(AvailErrorCode.all().length);
-
-	/**
 	 * Answer a textual representation of the {@linkplain AvailErrorCode
 	 * primitive error codes} that is satisfactory for use in an Avail
 	 * {@linkplain ModuleDescriptor module} header.
@@ -1631,7 +1610,7 @@ public final class BootstrapGenerator
 					Set<Primitive> set = primitiveNameMap.get(value);
 					if (set == null)
 					{
-						set = new HashSet<Primitive>();
+						set = new HashSet<>();
 						primitiveNameMap.put(value, set);
 					}
 					set.add(primitive);
@@ -1647,7 +1626,6 @@ public final class BootstrapGenerator
 			if (value != null && !value.isEmpty())
 			{
 				errorCodesByName.put(value, code);
-				namesByErrorCode.put(code, value);
 			}
 		}
 	}

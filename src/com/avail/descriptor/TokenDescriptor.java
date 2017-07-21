@@ -40,6 +40,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -64,11 +65,7 @@ extends Descriptor
 		 * {@link BitField}s for the token type code, the starting byte
 		 * position, and the line number.
 		 */
-		TOKEN_TYPE_AND_START_AND_LINE,
-
-		/** One-base index into the obsolete list of tokens. */
-		@Deprecated
-		TOKEN_INDEX;
+		TOKEN_TYPE_AND_START_AND_LINE;
 
 		/**
 		 * The {@link Enum#ordinal() ordinal} of the {@link TokenType} that
@@ -125,8 +122,12 @@ extends Descriptor
 
 		/**
 		 * A {@link RawPojoDescriptor raw pojo} holding the {@link LexingState}
-		 * after this token.  This field is cleared after the top-level
-		 * statement containing it has been parsed.
+		 * after this token.
+		 *
+		 * <p>The field is typically {@link NilDescriptor#nil() nil}, to
+		 * indicate the {@link LexingState} should be looked up by position (and
+		 * line number) via {@link CompilationContext#lexingStateAt(int, int)}.
+		 * </p>
 		 */
 		NEXT_LEXING_STATE_POJO;
 	}
@@ -227,13 +228,6 @@ extends Descriptor
 		return lowerCase;
 	}
 
-	@Override
-	void o_ClearNextLexingState (
-		final AvailObject object)
-	{
-		object.setSlot(NEXT_LEXING_STATE_POJO, NilDescriptor.nil());
-	}
-
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
@@ -293,18 +287,45 @@ extends Descriptor
 	}
 
 	@Override
-	LexingState o_NextLexingState (final AvailObject object)
+	LexingState o_NextLexingStateIn (
+		final AvailObject object,
+		final CompilationContext compilationContext)
 	{
 		final AvailObject pojo = object.slot(NEXT_LEXING_STATE_POJO);
+		if (pojo.equalsNil())
+		{
+			// First, figure out where the token ends.
+			final A_Tuple string = object.slot(STRING);
+			final int stringSize = string.tupleSize();
+			final int positionAfter = object.slot(START) + stringSize;
+			int line = object.slot(LINE_NUMBER);
+			for (int i = 1; i <= stringSize; i++)
+			{
+				if (string.tupleCodePointAt(i) == '\n')
+				{
+					line++;
+				}
+			}
+			// Now lookup/capture the next state.
+			final LexingState state =
+				compilationContext.lexingStateAt(positionAfter, line);
+			// Cache it for faster access next time.
+			object.setSlot(
+				NEXT_LEXING_STATE_POJO,
+				RawPojoDescriptor.identityWrap(state));
+			return state;
+		}
 		return (LexingState) pojo.javaObjectNotNull();
 	}
 
 	@Override
-	void o_NextLexingState (
+	void o_SetNextLexingState (
 		final AvailObject object,
-		final LexingState lexingState)
+		final @Nullable LexingState lexingState)
 	{
-		final AvailObject pojo = RawPojoDescriptor.identityWrap(lexingState);
+		final AvailObject pojo = lexingState == null
+			? NilDescriptor.nil()
+			: RawPojoDescriptor.identityWrap(lexingState);
 		object.setSlot(NEXT_LEXING_STATE_POJO, pojo);
 	}
 
@@ -341,12 +362,6 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_TokenIndex (final AvailObject object)
-	{
-		return (int)object.slot(TOKEN_INDEX);
-	}
-
-	@Override @AvailMethod
 	TokenType o_TokenType (final AvailObject object)
 	{
 		final int index = object.slot(TOKEN_TYPE_CODE);
@@ -375,7 +390,12 @@ extends Descriptor
 	/**
 	 * Create and initialize a new {@linkplain TokenDescriptor token}.  The
 	 * {@link ObjectSlots#NEXT_LEXING_STATE_POJO} is initially set to {@link
-	 * NilDescriptor#nil()}.
+	 * NilDescriptor#nil()}.  This indicates that the next lexing state can be
+	 * found by examining the {@link CompilationContext#lexingStateAt(int,
+	 * int)}, adding the length of the string to {@link IntegerSlots#START} for
+	 * the next lexing position, and adding the number of line feeds ({@code
+	 * '\n'}) within the {@link ObjectSlots#STRING} to the initial {@link
+	 * IntegerSlots#LINE_NUMBER} to calculate the final line number.
 	 *
 	 * @param string
 	 *        The token text.

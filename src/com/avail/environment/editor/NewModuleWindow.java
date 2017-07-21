@@ -129,6 +129,7 @@ extends Scene
 						: "";
 					try
 					{
+						//noinspection ResultOfMethodCallIgnored
 						newModule.createNewFile();
 						final List<String> input = new ArrayList<>();
 						input.add(contents);

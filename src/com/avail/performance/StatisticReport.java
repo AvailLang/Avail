@@ -35,7 +35,6 @@ package com.avail.performance;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -245,29 +244,21 @@ public enum StatisticReport
 			if (aggregate.count() > 0)
 			{
 				namedSnapshots.add(
-					new Pair<String, PerInterpreterStatistic>(
+					new Pair<>(
 						stat.name(), aggregate));
 			}
 		}
-		Collections.sort(
-			namedSnapshots,
-			new Comparator<Pair<String, PerInterpreterStatistic>>()
+		namedSnapshots.sort((pair1, pair2) ->
+		{
+			assert pair1 != null && pair2 != null;
+			final int byStat = pair1.second().compareTo(pair2.second());
+			if (byStat != 0)
 			{
-				@Override
-				public int compare (
-					final @Nullable Pair<String, PerInterpreterStatistic> pair1,
-					final @Nullable Pair<String, PerInterpreterStatistic> pair2)
-				{
-					assert pair1 != null && pair2 != null;
-					final int byStat = pair1.second().compareTo(pair2.second());
-					if (byStat != 0)
-					{
-						return byStat;
-					}
-					return Collator.getInstance().compare(
-						pair1.first(), pair2.first());
-				}
-			});
+				return byStat;
+			}
+			return Collator.getInstance().compare(
+				pair1.first(), pair2.first());
+		});
 		return namedSnapshots;
 	}
 

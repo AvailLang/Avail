@@ -82,7 +82,8 @@ class InstructionGenerator
 		 * location after combining with this label's position to form a parsing
 		 * instruction.
 		 */
-		@InnerAccess List<Pair<Integer, ParsingOperation>> operationsToFix =
+		@InnerAccess
+		final List<Pair<Integer, ParsingOperation>> operationsToFix =
 			new ArrayList<>();
 
 		/**

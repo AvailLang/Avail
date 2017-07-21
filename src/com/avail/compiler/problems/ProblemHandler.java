@@ -32,7 +32,6 @@
 
 package com.avail.compiler.problems;
 
-import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.ParseNodeDescriptor;
 import com.avail.utility.evaluation.Continuation1;
 
@@ -207,7 +206,7 @@ public abstract class ProblemHandler
 	{
 		throw new UnsupportedOperationException(
 			"Failed to reimplement either a problem type-specific handler"
-			+ "or handleGeneric");
+				+ " or handleGeneric");
 	}
 
 	/**
@@ -223,20 +222,16 @@ public abstract class ProblemHandler
 	{
 		problem.report(
 			this,
-			new Continuation1<Boolean>()
+			shouldContinue ->
 			{
-				@Override
-				public void value (final @Nullable Boolean shouldContinue)
+				assert shouldContinue != null;
+				if (shouldContinue)
 				{
-					assert shouldContinue != null;
-					if (shouldContinue)
-					{
-						problem.continueCompilation();
-					}
-					else
-					{
-						problem.abortCompilation();
-					}
+					problem.continueCompilation();
+				}
+				else
+				{
+					problem.abortCompilation();
 				}
 			});
 	}

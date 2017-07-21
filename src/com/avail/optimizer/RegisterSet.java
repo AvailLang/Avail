@@ -33,9 +33,9 @@
 package com.avail.optimizer;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
@@ -74,17 +74,11 @@ public final class RegisterSet
 	{
 		final List<L2Register> sortedRegs =
 			new ArrayList<>(registerStates.keySet());
-		Collections.sort(sortedRegs, new Comparator<L2Register>()
+		sortedRegs.sort((r1, r2) ->
 		{
-			@Override
-			public int compare(
-				final @Nullable L2Register r1,
-				final @Nullable L2Register r2)
-			{
-				assert r1 != null;
-				assert r2 != null;
-				return (int)(r1.uniqueValue - r2.uniqueValue);
-			}
+			assert r1 != null;
+			assert r2 != null;
+			return Long.compare(r1.uniqueValue, r2.uniqueValue);
 		});
 		for (final L2Register reg : sortedRegs)
 		{
@@ -512,7 +506,7 @@ public final class RegisterSet
 			stateForModifying(origin).removeInvertedOrigin(
 				destinationRegister);
 		}
-		destinationState.origins(Collections.<L2Register>emptyList());
+		destinationState.origins(Collections.emptyList());
 
 		// Secondly, any registers that were derived from the old value of
 		// the destinationRegister are no longer equivalent to it.
@@ -522,7 +516,7 @@ public final class RegisterSet
 			assert state.origins().contains(destinationRegister);
 			state.removeOrigin(destinationRegister);
 		}
-		destinationState.invertedOrigins(Collections.<L2Register>emptyList());
+		destinationState.invertedOrigins(Collections.emptyList());
 
 		// Finally, *this* is the instruction that produces a value for the
 		// destination.
@@ -575,17 +569,11 @@ public final class RegisterSet
 	 * pairs (e.g., <a,b>[1]).
 	 */
 	final Transformer2<L2Register, L2OperandType, L2Register> normalizer =
-		new Transformer2<L2Register, L2OperandType, L2Register>()
+		(register, operandType) ->
 		{
-			@Override
-			public L2Register value (
-				final @Nullable L2Register register,
-				final @Nullable L2OperandType operandType)
-			{
-				assert register != null;
-				assert operandType != null;
-				return normalize(register, operandType);
-			}
+			assert register != null;
+			assert operandType != null;
+			return normalize(register, operandType);
 		};
 
 	/**
@@ -618,7 +606,7 @@ public final class RegisterSet
 		final EnumMap<FixedRegister, L2ObjectRegister> fixedRegisters)
 	{
 		this.fixedRegisters = fixedRegisters;
-		this.registerStates = new HashMap<L2Register, RegisterState>(10);
+		this.registerStates = new HashMap<>(10);
 	}
 
 	/**
@@ -650,7 +638,7 @@ public final class RegisterSet
 	boolean mergeFrom (final RegisterSet other)
 	{
 		boolean registerSetChanged = false;
-		for (final Map.Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register, RegisterState> entry
 			: registerStates.entrySet())
 		{
 			boolean entryChanged = false;
@@ -737,7 +725,7 @@ public final class RegisterSet
 		// those instructions from being discarded, since their results *may*
 		// be used here.  However, only keep information about registers that
 		// are mentioned in both RegisterSets.
-		for (final Map.Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register, RegisterState> entry
 			: registerStates.entrySet())
 		{
 			final L2Register reg = entry.getKey();
@@ -765,12 +753,12 @@ public final class RegisterSet
 	@Override
 	public String toString ()
 	{
-		@SuppressWarnings("resource")
+		@SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
 		final Formatter formatter = new Formatter();
 		formatter.format("RegisterSet(%n\tConstants:");
 		final Map<L2Register, RegisterState> sorted =
 			new TreeMap<>(registerStates);
-		for (final Map.Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register, RegisterState> entry
 			: sorted.entrySet())
 		{
 			final AvailObject constant = entry.getValue().constant();
@@ -783,7 +771,7 @@ public final class RegisterSet
 			}
 		}
 		formatter.format("%n\tTypes:");
-		for (final Map.Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register, RegisterState> entry
 			: sorted.entrySet())
 		{
 			final A_Type type = entry.getValue().type();
@@ -796,7 +784,7 @@ public final class RegisterSet
 			}
 		}
 		formatter.format("%n\tOrigins:");
-		for (final Map.Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register, RegisterState> entry
 			: sorted.entrySet())
 		{
 			final List<L2Register> origins = entry.getValue().origins();
@@ -809,7 +797,7 @@ public final class RegisterSet
 			}
 		}
 		formatter.format("%n\tSources:");
-		for (final Map.Entry<L2Register, RegisterState> entry
+		for (final Entry<L2Register, RegisterState> entry
 			: sorted.entrySet())
 		{
 			final List<L2Instruction> sourceInstructions =

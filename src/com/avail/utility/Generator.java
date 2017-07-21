@@ -39,12 +39,13 @@ package com.avail.utility;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @param <X> The kind of thing to generate.
  */
-public abstract class Generator <X>
+@FunctionalInterface
+public interface Generator <X>
 {
 	/**
 	 * Request that the value be produced.
 	 *
 	 * @return The generated value.
 	 */
-	public abstract X value ();
+	X value ();
 }

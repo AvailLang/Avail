@@ -30,4 +30,5 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.utility.fsm;
+@NotNullByDefault package com.avail.utility.fsm;
+import com.avail.annotations.NotNullByDefault;

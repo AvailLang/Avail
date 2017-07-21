@@ -1,6 +1,6 @@
 /**
  * LexingState.java
- * Copyright © 1993-2015, The Avail Foundation, LLC. All rights reserved.
+ * Copyright © 1993-2017, The Avail Foundation, LLC. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -40,7 +40,6 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Interpreter;
-import com.avail.utility.Generator;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
@@ -100,7 +99,10 @@ public class LexingState
 	@InnerAccess List<Continuation1<List<A_Token>>> actions = new ArrayList<>();
 
 	/**
-	 * Construct a new immutable {@link LexingState}.
+	 * Construct a new immutable {@link LexingState}.  It starts in a state
+	 * where the potential tokens at this position have not yet been computed,
+	 * and no actions have been queued to run against that eventual list of
+	 * tokens.
 	 *
 	 * @param position
 	 *        The one-based position in the source.
@@ -155,6 +157,7 @@ public class LexingState
 		final int codePoint =
 			compilationContext.source().tupleCodePointAt(position);
 		scanner.getLexersForCodePointThen(
+			compilationContext.loader(),
 			codePoint,
 			applicableLexers ->
 			{
@@ -182,9 +185,10 @@ public class LexingState
 					final AtomicInteger countdown =
 						new AtomicInteger(applicableLexers.tupleSize());
 					final List<A_BasicObject> arguments =
-						Arrays.<A_BasicObject>asList(
+						Arrays.asList(
 							compilationContext.source(),
-							IntegerDescriptor.fromInt(position));
+							IntegerDescriptor.fromInt(position),
+							IntegerDescriptor.fromInt(lineNumber));
 					for (final A_Lexer lexer : applicableLexers)
 					{
 						evaluateLexerAndRunActionsWhenZero(
@@ -198,22 +202,18 @@ public class LexingState
 					: filterFailures.entrySet())
 				{
 					expected(
-						new Describer()
+						afterDescribing ->
 						{
-							@Override
-							public void describeThen (
-								final Continuation1<String> afterDescribing)
-							{
-								final StringWriter stringWriter =
-									new StringWriter();
-								entry.getValue().printStackTrace(
-									new PrintWriter(stringWriter));
-								final String text = String.format(
-									"%s not to have failed while "
-									+ "evaluating its filter function:\n%s",
-									entry.getKey().toString(),
-									stringWriter.toString());
-							}
+							final StringWriter stringWriter =
+								new StringWriter();
+							entry.getValue().printStackTrace(
+								new PrintWriter(stringWriter));
+							final String text = String.format(
+								"%s not to have failed while "
+								+ "evaluating its filter function:\n%s",
+								entry.getKey().toString(),
+								stringWriter.toString());
+							afterDescribing.value(text);
 						});
 				}
 			});
@@ -226,20 +226,11 @@ public class LexingState
 	{
 		final AvailLoader loader = compilationContext.loader();
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
-			LexerDescriptor.lexerBodyFunctionType().resultType(),
+			LexerDescriptor.lexerBodyFunctionType().returnType(),
 			loader,
-			new Generator<A_String>()
-			{
-				@Override
-				public A_String value ()
-				{
-					return StringDescriptor.format(
-						"Lexer body on line %d for %s.",
-						lineNumber,
-						lexer);
-				}
-			});
-		// Set up fiber variables for lexing.
+			() -> StringDescriptor.format(
+				"Lexer body on line %d for %s.", lineNumber, lexer));
+		// TDO MvG - Set up fiber variables for lexing?
 //		A_Map fiberGlobals = fiber.fiberGlobals();
 //		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 //			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
@@ -263,23 +254,18 @@ public class LexingState
 				}
 				// Report the problem as an expectation, with a stack trace.
 				expected(
-					new Describer()
+					afterDescribing ->
 					{
-						@Override
-						public void describeThen (
-							final Continuation1<String> afterDescribing)
-						{
-							final StringWriter stringWriter =
-								new StringWriter();
-							throwable.printStackTrace(
-								new PrintWriter(stringWriter));
-							final String text = String.format(
-								"%s not to have failed while "
-									+ "evaluating its body:\n%s",
-								lexer.toString(),
-								stringWriter.toString());
-							afterDescribing.value(text);
-						}
+						final StringWriter stringWriter =
+							new StringWriter();
+						throwable.printStackTrace(
+							new PrintWriter(stringWriter));
+						final String text = String.format(
+							"%s not to have failed while "
+								+ "evaluating its body:\n%s",
+							lexer.toString(),
+							stringWriter.toString());
+						afterDescribing.value(text);
 					});
 			}
 		);
@@ -374,19 +360,11 @@ public class LexingState
 		final List<? extends A_BasicObject> values,
 		final Transformer1<List<String>, String> transformer)
 	{
-		expected(new Describer()
-		{
-			@Override
-			public void describeThen (
-				final Continuation1<String> continuation)
-			{
-				Interpreter.stringifyThen(
-					AvailRuntime.current(),
-					compilationContext.getTextInterface(),
-					values,
-					list -> continuation.value(transformer.value(list)));
-			}
-		});
+		expected(continuation -> Interpreter.stringifyThen(
+			AvailRuntime.current(),
+			compilationContext.getTextInterface(),
+			values,
+			list -> continuation.value(transformer.value(list))));
 	}
 
 	/**

@@ -52,32 +52,32 @@ public class L1Disassembler
 	 * The {@linkplain CompiledCodeDescriptor compiled code object} being
 	 * disassembled.
 	 */
-	A_RawFunction code;
+	final A_RawFunction code;
 
 	/**
 	 * The {@link StringBuilder} onto which to describe the level one
 	 * instructions.
 	 */
-	StringBuilder builder;
+	final StringBuilder builder;
 
 	/**
 	 * The (mutable) {@link IdentityHashMap} of {@link A_BasicObject}s to avoid
 	 * recursing into while printing the {@linkplain L1Operation level one
 	 * operations}.
 	 */
-	IdentityHashMap<A_BasicObject, Void> recursionMap;
+	final IdentityHashMap<A_BasicObject, Void> recursionMap;
 
 	/**
 	 * The number of tabs to output after each line break.
 	 */
-	int indent;
+	final int indent;
 
 	/**
 	 * The level one {@linkplain NybbleTupleDescriptor nybblecodes tuple},
 	 * pre-extracted from the {@linkplain CompiledCodeDescriptor compiled code
 	 * object}.
 	 */
-	A_Tuple nybbles;
+	final A_Tuple nybbles;
 
 	/**
 	 * The current level one offset into the code.
@@ -89,20 +89,20 @@ public class L1Disassembler
 	 * An {@link L1OperandTypeDispatcher} suitably specialized to decode and
 	 * print the instruction operands.
 	 */
-	L1OperandTypeDispatcher operandTypePrinter = new L1OperandTypeDispatcher()
+	final L1OperandTypeDispatcher operandTypePrinter = new L1OperandTypeDispatcher()
 	{
 
 		@Override
 		public void doImmediate ()
 		{
-			builder.append("immediate=" + getInteger());
+			builder.append("immediate=").append(getInteger());
 		}
 
 		@Override
 		public void doLiteral ()
 		{
 			final int index = getInteger();
-			builder.append("literal#" + index + "=");
+			builder.append("literal#").append(index).append("=");
 			code.literalAt(index).printOnAvoidingIndent(
 				builder,
 				recursionMap,
@@ -115,18 +115,18 @@ public class L1Disassembler
 			final int index = getInteger();
 			if (index <= code.numArgs())
 			{
-				builder.append("arg#" + index);
+				builder.append("arg#").append(index);
 			}
 			else
 			{
-				builder.append("local#" + (index - code.numArgs()));
+				builder.append("local#").append(index - code.numArgs());
 			}
 		}
 
 		@Override
 		public void doOuter ()
 		{
-			builder.append("outer#" + getInteger());
+			builder.append("outer#").append(getInteger());
 		}
 
 		@Override
@@ -156,6 +156,7 @@ public class L1Disassembler
 		final int indent)
 	{
 		// The constructor does all the work...
+		//noinspection ResultOfObjectAllocationIgnored
 		new L1Disassembler(code, builder, recursionMap, indent);
 	}
 
@@ -196,7 +197,7 @@ public class L1Disassembler
 			{
 				builder.append("\t");
 			}
-			builder.append(pc + ": ");
+			builder.append(pc).append(": ");
 			int nybble = nybbles.extractNybbleFromTupleAt(pc++);
 			if (nybble == L1Operation.L1_doExtension.ordinal())
 			{

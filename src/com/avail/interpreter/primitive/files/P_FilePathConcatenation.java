@@ -67,7 +67,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Tuple tuple = args.get(0);
-		final FileSystem fileSystem = AvailRuntime.current().fileSystem();
+		final FileSystem fileSystem = AvailRuntime.fileSystem();
 		Path path = null;
 		try
 		{

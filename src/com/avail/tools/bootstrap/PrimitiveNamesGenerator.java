@@ -193,7 +193,6 @@ extends PropertiesFileGenerator
 							raises = MessageFormat.format(
 								raisesTemplate,
 								String.format("{%d}", templateParameters));
-							templateParameters++;
 						}
 					}
 					else

@@ -53,6 +53,7 @@ import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.SetDescriptor.SetIterator;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
@@ -2635,7 +2636,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	TokenDescriptor.TokenType o_TokenType (final AvailObject object)
+	TokenType o_TokenType (final AvailObject object)
 	{
 		return o_Traversed(object).tokenType();
 	}
@@ -2994,7 +2995,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	MapDescriptor.MapIterable o_MapIterable (
+	MapIterable o_MapIterable (
 		final AvailObject object)
 	{
 		return o_Traversed(object).mapIterable();
@@ -3197,7 +3198,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	final A_Tuple o_SealedArgumentsTypesTuple (
+	A_Tuple o_SealedArgumentsTypesTuple (
 		final AvailObject object)
 	{
 		return o_Traversed(object).sealedArgumentsTypesTuple();
@@ -4741,12 +4742,6 @@ extends AbstractDescriptor
 		return o_Traversed(object).messageSplitter();
 	}
 
-	@Override @AvailMethod
-	int o_TokenIndex (final AvailObject object)
-	{
-		return o_Traversed(object).tokenIndex();
-	}
-
 	@Override
 	void o_StatementsDo (
 		final AvailObject object,
@@ -5008,28 +5003,24 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ClearNextLexingState (final AvailObject object)
+	LexingState o_NextLexingStateIn (
+		final AvailObject object,
+		final CompilationContext compilationContext)
 	{
-		o_Traversed(object).clearLexingState();
+		return o_Traversed(object).nextLexingStateIn(compilationContext);
 	}
 
 	@Override
-	LexingState o_NextLexingState (final AvailObject object)
+	void o_SetNextLexingState (
+		final AvailObject object, final @Nullable LexingState lexingState)
 	{
-		return o_Traversed(object).nextLexingState();
-	}
-
-	@Override
-	void o_NextLexingState (
-		final AvailObject object, final LexingState lexingState)
-	{
-		o_Traversed(object).nextLexingState(lexingState);
+		o_Traversed(object).setNextLexingState(lexingState);
 	}
 
 	@Override
 	int o_TupleCodePointAt (final AvailObject object, final int index)
 	{
-		o_Traversed(object).tupleCodePointAt(index);
+		return o_Traversed(object).tupleCodePointAt(index);
 	}
 
 	@Override

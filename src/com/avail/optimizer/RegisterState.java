@@ -321,7 +321,7 @@ public final class RegisterState
 	}
 
 	/** The immutable initial register state in which nothing is known. */
-	private static RegisterState blank = new RegisterState();
+	private static final RegisterState blank = new RegisterState();
 
 	/**
 	 * Answer the immutable initial register state in which nothing is known.

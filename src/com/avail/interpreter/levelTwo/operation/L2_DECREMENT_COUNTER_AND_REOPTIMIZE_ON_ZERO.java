@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.OptimizationLevel;
 import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
 
 /**
  * Explicitly decrement the current compiled code's countdown via {@link
@@ -66,19 +65,15 @@ extends L2Operation
 		final A_Function theFunction = interpreter.pointerAt(FUNCTION);
 		final A_RawFunction theCode = theFunction.code();
 		final Mutable<Boolean> translated = new Mutable<>(false);
-		theCode.decrementCountdownToReoptimize(new Continuation0()
+		theCode.decrementCountdownToReoptimize(() ->
 		{
-			@Override
-			public void value ()
-			{
-				theCode.countdownToReoptimize(
-					L2Chunk.countdownForNewlyOptimizedCode());
-				L2Translator.translateToLevelTwo(
-					theCode,
-					OptimizationLevel.all()[targetOptimizationLevel],
-					interpreter);
-				translated.value = true;
-			}
+			theCode.countdownToReoptimize(
+				L2Chunk.countdownForNewlyOptimizedCode());
+			L2Translator.translateToLevelTwo(
+				theCode,
+				OptimizationLevel.all()[targetOptimizationLevel],
+				interpreter);
+			translated.value = true;
 		});
 		// If translation actually happened, then run the function in Level Two.
 		if (translated.value)

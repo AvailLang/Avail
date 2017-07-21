@@ -195,7 +195,7 @@ public final class ArithmeticTest
 	 *
 	 * @param bigIntHexString
 	 */
-	private void checkBigIntegerHexString (final String bigIntHexString)
+	private static void checkBigIntegerHexString (final String bigIntHexString)
 	{
 		final BigInteger bigInt = new BigInteger(bigIntHexString, 16);
 		assertEquals(
@@ -276,7 +276,7 @@ public final class ArithmeticTest
 	 * @param base A BigInteger
 	 * @param leftShift How much to shift it left.  May be negative.
 	 */
-	private void checkBitShift (
+	private static void checkBitShift (
 		final BigInteger base,
 		final int leftShift)
 	{

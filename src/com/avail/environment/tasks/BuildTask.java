@@ -39,7 +39,6 @@ import com.avail.descriptor.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A {@code BuildTask} launches the actual build of the target {@linkplain
@@ -71,19 +70,12 @@ extends AbstractWorkbenchTask
 	 */
 	private CompilerProgressReporter compilerProgressReporter ()
 	{
-		return new CompilerProgressReporter()
+		return (moduleName, moduleSize, position) ->
 		{
-			@Override
-			public void value (
-				final @Nullable ModuleName moduleName,
-				final @Nullable Long moduleSize,
-				final @Nullable Long position)
-			{
-				assert moduleSize != null;
-				assert position != null;
-				workbench.eventuallyUpdatePerModuleProgress(
-					moduleName, moduleSize, position);
-			}
+			assert moduleSize != null;
+			assert position != null;
+			workbench.eventuallyUpdatePerModuleProgress(
+				moduleName, moduleSize, position);
 		};
 	}
 
@@ -94,18 +86,12 @@ extends AbstractWorkbenchTask
 	 */
 	private Continuation2<Long, Long> globalTracker ()
 	{
-		return new Continuation2<Long, Long>()
+		return (position, globalCodeSize) ->
 		{
-			@Override
-			public void value (
-				final @Nullable Long position,
-				final @Nullable Long globalCodeSize)
-			{
-				assert position != null;
-				assert globalCodeSize != null;
-				workbench.eventuallyUpdateBuildProgress(
-					position, globalCodeSize);
-			}
+			assert position != null;
+			assert globalCodeSize != null;
+			workbench.eventuallyUpdateBuildProgress(
+				position, globalCodeSize);
 		};
 	}
 

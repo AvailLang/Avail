@@ -40,7 +40,6 @@ import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.Generator;
 
 /**
  * {@code RepeatedElementTupleDescriptor} represents a tuple with a single
@@ -110,7 +109,7 @@ extends TupleDescriptor
 	 * requested below this size will be created as standard tuples or the empty
 	 * tuple.
 	 */
-	private static int minimumRepeatSize = 2;
+	private static final int minimumRepeatSize = 2;
 
 	@Override @AvailMethod
 	public boolean o_IsRepeatedElementTuple(final AvailObject object)
@@ -407,41 +406,20 @@ extends TupleDescriptor
 				{
 					result = StringDescriptor.mutableByteStringFromGenerator(
 						size,
-						new Generator<Character>()
-						{
-							@Override
-							public Character value ()
-							{
-								return (char)codePoint;
-							}
-						});
+						() -> (char)codePoint);
 				}
 				else if (codePoint <= 65535)
 				{
 					result = StringDescriptor.mutableTwoByteStringFromGenerator(
 						size,
-						new Generator<Character>()
-						{
-							@Override
-							public Character value ()
-							{
-								return (char)codePoint;
-							}
-						});
+						() -> (char)codePoint);
 				}
 			}
 			if (result == null)
 			{
 				result = ObjectTupleDescriptor.generateFrom(
 					size,
-					new Generator<A_BasicObject>()
-					{
-						@Override
-						public A_BasicObject value ()
-						{
-							return element;
-						}
-					});
+					() -> element);
 			}
 			// Replace the element, which might need to switch representation in
 			// some cases which we assume are infrequent.

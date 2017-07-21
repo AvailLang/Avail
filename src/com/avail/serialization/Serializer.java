@@ -186,8 +186,7 @@ public class Serializer
 		final SerializerInstruction instruction =
 			encounteredObjects.get(object);
 		assert instruction.hasBeenWritten();
-		final int index = instruction.index();
-		return index;
+		return instruction.index();
 	}
 
 	/**

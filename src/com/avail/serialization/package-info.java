@@ -30,4 +30,5 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.serialization;
+@NotNullByDefault package com.avail.serialization;
+import com.avail.annotations.NotNullByDefault;

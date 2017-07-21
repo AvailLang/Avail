@@ -35,19 +35,14 @@ package com.avail.environment.actions;
 import static javax.swing.SwingUtilities.invokeLater;
 import java.awt.event.*;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 import javax.swing.*;
 import com.avail.builder.AvailBuilder.CompiledCommand;
-import com.avail.descriptor.AvailObject;
 import com.avail.environment.AvailWorkbench;
 import com.avail.interpreter.Interpreter;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Continuation2;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -87,131 +82,88 @@ extends AbstractWorkbenchAction
 				new ConsoleOutputChannel(workbench.errorStream())));
 			workbench.availBuilder.attemptCommand(
 				string,
-				new Continuation2<
-					List<CompiledCommand>, Continuation1<CompiledCommand>>()
+				(commands, proceed) ->
 				{
-					@Override
-					public void value (
-						final @Nullable List<CompiledCommand> commands,
-						final @Nullable Continuation1<CompiledCommand> proceed)
-					{
-						assert commands != null;
-						assert proceed != null;
-						final CompiledCommand[] array =
-							commands.toArray(new CompiledCommand[0]);
-						Arrays.sort(
-							array,
-							new Comparator<CompiledCommand>()
-							{
-								@Override
-								public int compare (
-									final @Nullable CompiledCommand o1,
-									final @Nullable CompiledCommand o2)
-								{
-									assert o1 != null;
-									assert o2 != null;
-									return o1.toString().compareTo(
-										o2.toString());
-								}
-							});
-						final CompiledCommand selection = (CompiledCommand)
-							JOptionPane.showInputDialog(
-								workbench,
-								"Choose the desired entry point:",
-								"Disambiguate",
-								JOptionPane.QUESTION_MESSAGE,
-								null,
-								commands.toArray(),
-								null);
-						// There may not be a selection, in which case the
-						// command will not be run – but any necessary cleanup
-						// will be run.
-						proceed.value(selection);
-					}
-				},
-				new Continuation2<
-					AvailObject, Continuation1<Continuation0>>()
-				{
-					@Override
-					public void value (
-						final @Nullable AvailObject result,
-						final @Nullable
-							Continuation1<Continuation0> cleanup)
-					{
-						assert cleanup != null;
-						final Continuation0 afterward = new Continuation0()
+					assert commands != null;
+					assert proceed != null;
+					final CompiledCommand[] array =
+						commands.toArray(new CompiledCommand[0]);
+					Arrays.sort(
+						array,
+						(o1, o2) ->
 						{
-							@Override
-							public void value ()
-							{
-								workbench.isRunning = false;
-								invokeLater(new Runnable()
-								{
-									@Override
-									public void run ()
-									{
-										workbench.inputStream().clear();
-										workbench.availBuilder.runtime
-											.setTextInterface(new TextInterface(
-												new ConsoleInputChannel(
-													workbench.inputStream()),
-												new ConsoleOutputChannel(
-													workbench.outputStream()),
-												new ConsoleOutputChannel(
-													workbench.errorStream())));
-										workbench.setEnablements();
-									}
-								});
-							}
-						};
-						assert result != null;
-						if (result.equalsNil())
-						{
-							cleanup.value(afterward);
-							return;
-						}
-						Interpreter.stringifyThen(
-							workbench.availBuilder.runtime,
-							workbench.availBuilder.runtime.textInterface(),
-							result,
-							new Continuation1<String>()
-							{
-								@Override
-								public void value (
-									final @Nullable String resultString)
-								{
-									workbench.outputStream().append(
-										resultString + "\n");
-									cleanup.value(afterward);
-								}
-							});
-					}
-				},
-				new Continuation0()
-				{
-					@Override
-					public void value ()
-					{
-						invokeLater(new Runnable()
-						{
-							@Override
-							public void run ()
-							{
-								workbench.isRunning = false;
-								workbench.inputStream().clear();
-								workbench.availBuilder.runtime.setTextInterface(
-									new TextInterface(
-										new ConsoleInputChannel(
-											workbench.inputStream()),
-										new ConsoleOutputChannel(
-											workbench.outputStream()),
-										new ConsoleOutputChannel(
-											workbench.errorStream())));
-								workbench.setEnablements();
-							}
+							assert o1 != null;
+							assert o2 != null;
+							return o1.toString().compareTo(
+								o2.toString());
 						});
+					final CompiledCommand selection = (CompiledCommand)
+						JOptionPane.showInputDialog(
+							workbench,
+							"Choose the desired entry point:",
+							"Disambiguate",
+							JOptionPane.QUESTION_MESSAGE,
+							null,
+							commands.toArray(),
+							null);
+					// There may not be a selection, in which case the
+					// command will not be run – but any necessary cleanup
+					// will be run.
+					proceed.value(selection);
+				},
+				(result, cleanup) ->
+				{
+					assert cleanup != null;
+					final Continuation0 afterward = () ->
+					{
+						workbench.isRunning = false;
+						invokeLater(() ->
+						{
+							workbench.inputStream().clear();
+							workbench.availBuilder.runtime
+								.setTextInterface(new TextInterface(
+									new ConsoleInputChannel(
+										workbench.inputStream()),
+									new ConsoleOutputChannel(
+										workbench.outputStream()),
+									new ConsoleOutputChannel(
+										workbench.errorStream())));
+							workbench.setEnablements();
+						});
+					};
+					assert result != null;
+					if (result.equalsNil())
+					{
+						cleanup.value(afterward);
+						return;
 					}
-				});
+					Interpreter.stringifyThen(
+						workbench.availBuilder.runtime,
+						workbench.availBuilder.runtime.textInterface(),
+						result,
+						resultString ->
+						{
+							workbench
+								.outputStream()
+								.append(resultString)
+								.append("\n");
+							cleanup.value(afterward);
+						});
+				},
+				() -> invokeLater(() ->
+				{
+					workbench.isRunning = false;
+					workbench.inputStream().clear();
+					workbench.availBuilder.runtime.setTextInterface(
+						new TextInterface(
+							new ConsoleInputChannel(
+								workbench.inputStream()),
+							new ConsoleOutputChannel(
+								workbench.outputStream()),
+							new ConsoleOutputChannel(
+								workbench.errorStream())));
+					workbench.setEnablements();
+				}));
 		}
 	}
 

@@ -76,7 +76,7 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = runtime.fileSystem().getPath(
+			path = AvailRuntime.fileSystem().getPath(
 				filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
@@ -157,14 +157,8 @@ extends Primitive
 				IntegerRangeTypeDescriptor.singleInt(6),
 				TupleDescriptor.from(
 					PojoTypeDescriptor.mostGeneralType(),
-					IntegerRangeTypeDescriptor.inclusive(
-						IntegerDescriptor.fromInt(1),
-						IntegerDescriptor.fromInt(4))),
-				IntegerRangeTypeDescriptor.create(
-					IntegerDescriptor.fromInt(0),
-					true,
-					IntegerDescriptor.fromLong(Long.MAX_VALUE),
-					true)));
+					IntegerRangeTypeDescriptor.inclusive(1, 4)),
+				IntegerRangeTypeDescriptor.inclusive(0, Long.MAX_VALUE)));
 	}
 
 	@Override

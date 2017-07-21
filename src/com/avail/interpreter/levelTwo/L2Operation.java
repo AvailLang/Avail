@@ -82,7 +82,8 @@ public abstract class L2Operation
 	 * The name of this level two operation.  This is initialized to be the
 	 * {@linkplain Class#getSimpleName() simple name} of the {@link Class}.
 	 */
-	private @Nullable String name;
+	private @Nullable
+	final String name;
 
 	/**
 	 * Answer the name of this {@linkplain L2Operation}.
@@ -103,7 +104,7 @@ public abstract class L2Operation
 	 * the order in which the operations are first encontered in the code
 	 * generator (or elsewhere), so don't rely on specific numeric values.
 	 */
-	private int ordinal;
+	private final int ordinal;
 
 	/**
 	 * The ordinal of this {@link L2Operation}.  Note that the assignment of
@@ -178,7 +179,7 @@ public abstract class L2Operation
 	 * A {@link Statistic} that records the number of nanoseconds spent while
 	 * executing {@link L2Instruction}s that use this operation.
 	 */
-	public Statistic statisticInNanoseconds;
+	public final Statistic statisticInNanoseconds;
 
 	/**
 	 * Protect the constructor so the subclasses can maintain a fly-weight

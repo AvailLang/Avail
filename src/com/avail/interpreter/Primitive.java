@@ -509,7 +509,7 @@ implements IntegerEnumSlotDescriptionEnum
 		 * @return The singleton instance of the requested subclass of {@link
 		 *         Primitive}
 		 */
-		public final Primitive primitive ()
+		public Primitive primitive ()
 		{
 			Primitive p = primitive;
 			if (p != null)
@@ -552,7 +552,7 @@ implements IntegerEnumSlotDescriptionEnum
 		}
 
 		/**
-		 * Construct a new {@link Primitive.PrimitiveHolder}.
+		 * Construct a new {@link PrimitiveHolder}.
 		 *
 		 * @param name The primitive's textual name.
 		 * @param className The fully qualified name of the Primitive subclass.
@@ -776,10 +776,10 @@ implements IntegerEnumSlotDescriptionEnum
 	public boolean canHaveNybblecodes ()
 	{
 		return
-			!hasFlag(Primitive.Flag.CannotFail)
-				|| hasFlag(Primitive.Flag.SpecialReturnConstant)
-				|| hasFlag(Primitive.Flag.SpecialReturnSoleArgument)
-				|| hasFlag(Primitive.Flag.SpecialReturnGlobalValue);
+			!hasFlag(Flag.CannotFail)
+				|| hasFlag(Flag.SpecialReturnConstant)
+				|| hasFlag(Flag.SpecialReturnSoleArgument)
+				|| hasFlag(Flag.SpecialReturnGlobalValue);
 	}
 
 	/**
@@ -1081,7 +1081,7 @@ implements IntegerEnumSlotDescriptionEnum
 					new L2ReadPointerOperand(reifiedRegister),
 					new L2ReadPointerOperand(invalidResultFunction),
 					new L2ReadVectorOperand(translator.createVector(
-						Collections.<L2ObjectRegister>emptyList())),
+						Collections.emptyList())),
 					new L2ImmediateOperand(1));
 				translator.unreachableCode(unreachableLabel);
 				translator.addLabel(failureLabel);

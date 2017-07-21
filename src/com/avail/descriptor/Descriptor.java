@@ -50,6 +50,7 @@ import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailException;
@@ -2029,7 +2030,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	TokenDescriptor.TokenType o_TokenType (final AvailObject object)
+	TokenType o_TokenType (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2983,7 +2984,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	MapDescriptor.MapIterable o_MapIterable (final AvailObject object)
+	MapIterable o_MapIterable (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3765,7 +3766,7 @@ extends AbstractDescriptor
 		}
 		if (isMutable())
 		{
-			typeName = typeName + "\u2133";
+			typeName += "\u2133";
 		}
 		if (object.showValueInNameForDebugger())
 		{
@@ -3818,14 +3819,17 @@ extends AbstractDescriptor
 	SetIterator o_SetBinIterator (final AvailObject object)
 	{
 		// By default an object acts like a bin of size one.
-		return new SetDescriptor.SetIterator()
+		return new SetIterator()
 		{
 			private boolean hasNext = true;
 
 			@Override
 			public AvailObject next ()
 			{
-				assert hasNext;
+				if (!hasNext)
+				{
+					throw new NoSuchElementException();
+				}
 				hasNext = false;
 				return object;
 			}
@@ -4586,12 +4590,6 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
-	@Override @AvailMethod
-	int o_TokenIndex (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
 	@Override
 	void o_StatementsDo (
 		final AvailObject object,
@@ -4820,21 +4818,17 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_ClearNextLexingState (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	LexingState o_NextLexingState (final AvailObject object)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_NextLexingState (
+	LexingState o_NextLexingStateIn (
 		final AvailObject object,
-		final LexingState lexingState)
+		final CompilationContext compilationContext)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SetNextLexingState (
+		final AvailObject object,
+		final @Nullable LexingState lexingState)
 	{
 		throw unsupportedOperationException();
 	}

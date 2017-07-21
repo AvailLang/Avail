@@ -100,7 +100,7 @@ extends StringDescriptor
 	 * TreeTupleDescriptor}/using other forms of reference instead of creating
 	 * a new tuple.
 	 */
-	private final int maximumCopySize = 64;
+	private static final int maximumCopySize = 64;
 
 	@Override @AvailMethod
 	A_Tuple o_AppendCanDestroy (
@@ -553,7 +553,7 @@ extends StringDescriptor
 	 * @param object The {@linkplain AvailObject receiver}.
 	 * @return A mutable copy of the {@linkplain AvailObject receiver}.
 	 */
-	private A_String copyAsMutableTwoByteString (
+	private static A_String copyAsMutableTwoByteString (
 		final AvailObject object)
 	{
 		final A_String result =
@@ -617,7 +617,7 @@ extends StringDescriptor
 	 * @param unusedBytes
 	 *            The number of unused bytes of the last long.
 	 */
-	protected ByteStringDescriptor (
+	private ByteStringDescriptor (
 		final Mutability mutability,
 		final int unusedBytes)
 	{

@@ -170,6 +170,7 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 //		final RegisterSet postJumpSet = registerSets.get(1);
 
 		assert fallThroughSet.hasTypeAt(typeReg);
+		//noinspection StatementWithEmptyBody
 		if (fallThroughSet.hasConstantAt(typeReg))
 		{
 			// The *exact* type is already known.  Don't weaken it by recording

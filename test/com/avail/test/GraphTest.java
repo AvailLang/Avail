@@ -37,13 +37,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import org.jetbrains.annotations.Nullable;
 import com.avail.utility.*;
 import com.avail.utility.Graph.GraphPreconditionFailure;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation2;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -107,15 +103,7 @@ public class GraphTest
 		tinyGraph.addVertex(5);
 		assertThrows(
 			GraphPreconditionFailure.class,
-			new Executable()
-			{
-				@Override
-				public void execute ()
-				throws Throwable
-				{
-					tinyGraph.addVertex(5);
-				}
-			});
+			() -> tinyGraph.addVertex(5));
 	}
 
 	/**
@@ -161,15 +149,7 @@ public class GraphTest
 		final Graph<Integer> tinyGraph = new Graph<>();
 		assertThrows(
 			GraphPreconditionFailure.class,
-			new Executable()
-			{
-				@Override
-				public void execute ()
-				throws Throwable
-				{
-					tinyGraph.removeEdge(5, 6);
-				}
-			});
+			() -> tinyGraph.removeEdge(5, 6));
 	}
 
 	/**
@@ -182,15 +162,7 @@ public class GraphTest
 		tinyGraph.addVertex(5);
 		assertThrows(
 			GraphPreconditionFailure.class,
-			new Executable()
-			{
-				@Override
-				public void execute ()
-				throws Throwable
-				{
-					tinyGraph.removeEdge(5, 6);
-				}
-			});
+			() -> tinyGraph.removeEdge(5, 6));
 	}
 
 	/**
@@ -203,15 +175,7 @@ public class GraphTest
 		tinyGraph.addVertex(6);
 		assertThrows(
 			GraphPreconditionFailure.class,
-			new Executable()
-			{
-				@Override
-				public void execute ()
-				throws Throwable
-				{
-					tinyGraph.removeEdge(5, 6);
-				}
-			});
+			() -> tinyGraph.removeEdge(5, 6));
 	}
 
 	/**
@@ -225,15 +189,7 @@ public class GraphTest
 		tinyGraph.addVertex(6);
 		assertThrows(
 			GraphPreconditionFailure.class,
-			new Executable()
-			{
-				@Override
-				public void execute ()
-				throws Throwable
-				{
-					tinyGraph.removeEdge(5, 6);
-				}
-			});
+			() -> tinyGraph.removeEdge(5, 6));
 	}
 
 	/**
@@ -277,23 +233,17 @@ public class GraphTest
 		final List<Integer> visitedVertices = new ArrayList<>(scale);
 		final Thread mainThread = Thread.currentThread();
 		tinyGraph.parallelVisit(
-			new Continuation2<Integer, Continuation0>()
+			(vertex, completion) ->
 			{
-				@Override
-				public void value (
-					final @Nullable Integer vertex,
-					final @Nullable Continuation0 completion)
+				assert vertex != null;
+				assert completion != null;
+				assertEquals(mainThread, Thread.currentThread());
+				for (final Integer previousVertex : visitedVertices)
 				{
-					assert vertex != null;
-					assert completion != null;
-					assertEquals(mainThread, Thread.currentThread());
-					for (final Integer previousVertex : visitedVertices)
-					{
-						assertFalse(previousVertex % vertex == 0);
-					}
-					visitedVertices.add(vertex);
-					completion.value();
+					assertFalse(previousVertex % vertex == 0);
 				}
+				visitedVertices.add(vertex);
+				completion.value();
 			});
 		assertEquals(scale, visitedVertices.size());
 		assertEquals(scale, new HashSet<>(visitedVertices).size());

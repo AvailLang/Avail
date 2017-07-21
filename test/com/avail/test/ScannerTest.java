@@ -158,20 +158,15 @@ public final class ScannerTest
 		final TokenType tokenType,
 		final int start)
 	{
-		return new Generator<A_Token>()
+		return () ->
 		{
-			@Override public A_Token value ()
-			{
-				final A_Token token = TokenDescriptor.create(
-					StringDescriptor.from(string),
-					TupleDescriptor.empty(),
-					TupleDescriptor.empty(),
-					start,
-					1,
-					-1,
-					tokenType);
-				return token;
-			}
+			return TokenDescriptor.create(
+				StringDescriptor.from(string),
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
+				start,
+				1,
+				tokenType);
 		};
 	}
 
@@ -287,49 +282,42 @@ public final class ScannerTest
 		final String string,
 		final int start)
 	{
-		return new Generator<A_Token>()
+		return () ->
 		{
-			@Override
-			public A_Token value ()
+			final A_BasicObject literal;
+			if (object instanceof Double)
 			{
-				final A_BasicObject literal;
-				if (object instanceof Double)
-				{
-					literal = DoubleDescriptor.fromDouble((Double)object);
-				}
-				else if (object instanceof Float)
-				{
-					literal = FloatDescriptor.fromFloat((Float)object);
-				}
-				else if (object instanceof Number)
-				{
-					final long asLong = ((Number)object).longValue();
-					literal = IntegerDescriptor.fromLong(asLong);
-				}
-				else if (object instanceof String)
-				{
-					literal = StringDescriptor.from((String)object);
-				}
-				else
-				{
-					fail(
-						"Unexpected literal type: "
-						+ object.getClass().getCanonicalName());
-					literal = null;
-				}
-				assert literal != null;
-				final A_Token token =
-					LiteralTokenDescriptor.create(
-						StringDescriptor.from(string),
-						TupleDescriptor.empty(),
-						TupleDescriptor.empty(),
-						start,
-						1,
-						-1,
-						LITERAL,
-						literal);
-				return token;
+				literal = DoubleDescriptor.fromDouble((Double)object);
 			}
+			else if (object instanceof Float)
+			{
+				literal = FloatDescriptor.fromFloat((Float)object);
+			}
+			else if (object instanceof Number)
+			{
+				final long asLong = ((Number)object).longValue();
+				literal = IntegerDescriptor.fromLong(asLong);
+			}
+			else if (object instanceof String)
+			{
+				literal = StringDescriptor.from((String)object);
+			}
+			else
+			{
+				fail(
+					"Unexpected literal type: "
+					+ object.getClass().getCanonicalName());
+				literal = null;
+			}
+			assert literal != null;
+			return (A_Token) LiteralTokenDescriptor.create(
+				StringDescriptor.from(string),
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
+				start,
+				1,
+				LITERAL,
+				literal);
 		};
 	}
 
@@ -441,7 +429,6 @@ public final class ScannerTest
 						TupleDescriptor.empty(),
 						input.length() + 1,
 						1,
-						scannedTokens.size() + 1,
 						END_OF_FILE),
 					c + ": Expected scanner to have produced the"
 						+ " end-of-file token.");
@@ -491,7 +478,6 @@ public final class ScannerTest
 			TupleDescriptor.empty(),
 			0,
 			0,
-			-1,
 			LITERAL,
 			FloatDescriptor.fromFloat(1.5f)));
 		literals.add(LiteralTokenDescriptor.create(
@@ -500,7 +486,6 @@ public final class ScannerTest
 			TupleDescriptor.empty(),
 			0,
 			0,
-			-1,
 			LITERAL,
 			FloatDescriptor.fromFloat(1.5f)));
 		literals.add(LiteralTokenDescriptor.create(
@@ -509,7 +494,6 @@ public final class ScannerTest
 			TupleDescriptor.empty(),
 			0,
 			0,
-			-1,
 			LITERAL,
 			FloatDescriptor.fromFloat(2.5f)));
 		literals.add(LiteralTokenDescriptor.create(
@@ -518,7 +502,6 @@ public final class ScannerTest
 			TupleDescriptor.empty(),
 			0,
 			0,
-			-1,
 			LITERAL,
 			DoubleDescriptor.fromDouble(2.5)));
 		for (int i = 0; i < literals.size(); i++)

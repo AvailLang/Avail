@@ -35,6 +35,8 @@ package com.avail.descriptor;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
+
+import com.avail.descriptor.MapDescriptor.MapIterable;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -999,7 +1001,7 @@ extends JSONFriendly
 	/**
 	 * @return
 	 */
-	MapDescriptor.MapIterable mapBinIterable ();
+	MapIterable mapBinIterable ();
 
 	/**
 	 * @return

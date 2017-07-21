@@ -44,12 +44,12 @@ import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.*;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.json.JSONWriter;
 import org.jetbrains.annotations.Nullable;
 
@@ -496,7 +496,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	static A_Atom createSpecialAtom (
+	public static A_Atom createSpecialAtom (
 		final String name)
 	{
 		AvailObject atom = mutable.create();
@@ -521,7 +521,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	static A_Atom createSpecialBooleanAtom (
+	@InnerAccess static A_Atom createSpecialBooleanAtom (
 		final String name,
 		final boolean booleanValue)
 	{

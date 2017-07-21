@@ -39,7 +39,6 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.avail.AvailRuntime;
-import org.jetbrains.annotations.Nullable;
 import com.avail.compiler.AvailAcceptedParseException;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.splitter.MessageSplitter;
@@ -190,96 +189,88 @@ extends Primitive
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		final AtomicInteger countdown = new AtomicInteger(restrictionsSize);
 		final List<A_String> problems = new ArrayList<>();
-		final Continuation0 decrement = new Continuation0()
+		final Continuation0 decrement = () ->
 		{
-			@Override
-			public void value ()
+			if (countdown.decrementAndGet() != 0)
 			{
-				if (countdown.decrementAndGet() != 0)
+				// We're not last to decrement, so don't do the epilogue.
+				return;
+			}
+			// We're last to report.  Either succeed or fail the
+			// primitive within the original fiber.
+			if (problems.isEmpty())
+			{
+				// There were no problems.  Succeed the primitive with a
+				// send node yielding the intersection type.
+				Interpreter.resumeFromSuccessfulPrimitive(
+					runtime,
+					originalFiber,
+					SendNodeDescriptor.from(
+						TupleDescriptor.empty(),
+						bundle,
+						argsListNode,
+						intersection.value),
+					skipReturnCheck);
+			}
+			else
+			{
+				// There were problems.  Fail the primitive with a string
+				// describing them all.
+				assert problems.size() > 0;
+				final StringBuilder builder = new StringBuilder();
+				if (problems.size() == 1)
 				{
-					// We're not last to decrement, so don't do the epilogue.
-					return;
-				}
-				// We're last to report.  Either succeed or fail the
-				// primitive within the original fiber.
-				if (problems.isEmpty())
-				{
-					// There were no problems.  Succeed the primitive with a
-					// send node yielding the intersection type.
-					Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						originalFiber,
-						SendNodeDescriptor.from(
-							TupleDescriptor.empty(),
-							bundle,
-							argsListNode,
-							intersection.value),
-						skipReturnCheck);
+					builder.append(problems.get(0).asNativeString());
 				}
 				else
 				{
-					// There were problems.  Fail the primitive with a string
-					// describing them all.
-					assert problems.size() > 0;
-					final StringBuilder builder = new StringBuilder();
-					if (problems.size() == 1)
+					builder.append(
+						"send phrase creation primitive not to have "
+						+ "encountered multiple problems in "
+						+ "semantic restrictions:");
+					for (final A_String problem : problems)
 					{
-						builder.append(problems.get(0).asNativeString());
-					}
-					else
-					{
+						builder.append("\n\t");
 						builder.append(
-							"send phrase creation primitive not to have "
-							+ "encountered multiple problems in "
-							+ "semantic restrictions:");
-						for (final A_String problem : problems)
-						{
-							builder.append("\n\t");
-							builder.append(
-								problem.asNativeString().replace("\n", "\n\t"));
-						}
+							problem.asNativeString().replace("\n", "\n\t"));
 					}
-					final A_String problemReport =
-						StringDescriptor.from(builder.toString());
-					Interpreter.resumeFromFailedPrimitive(
-						runtime,
-						originalFiber,
-						problemReport,
-						failureFunction,
-						copiedArgs,
-						skipReturnCheck);
 				}
+				final A_String problemReport =
+					StringDescriptor.from(builder.toString());
+				Interpreter.resumeFromFailedPrimitive(
+					runtime,
+					originalFiber,
+					problemReport,
+					failureFunction,
+					copiedArgs,
+					skipReturnCheck);
 			}
 		};
 		final Continuation1<AvailObject> success =
-			new Continuation1<AvailObject>()
+			resultType ->
 			{
-				@Override
-				public void value (@Nullable final AvailObject resultType)
+				assert resultType != null;
+				if (resultType.isType())
 				{
-					assert resultType != null;
-					if (resultType.isType())
+					synchronized (intersection)
 					{
-						synchronized (intersection)
-						{
-							intersection.value =
-								intersection.value.typeIntersection(
-									resultType);
-						}
+						intersection.value =
+							intersection.value.typeIntersection(
+								resultType);
 					}
-					else
-					{
-						synchronized (problems)
-						{
-							problems.add(
-								StringDescriptor.from(
-									"Semantic restriction failed to produce "
-									+ "a type, and instead produced: "
-									+ resultType));
-						}
-					}
-					decrement.value();
 				}
+				else
+				{
+					synchronized (problems)
+					{
+						problems.add(
+							StringDescriptor.from(
+								"Semantic restriction failed to produce "
+								+ "a type, and instead produced: "
+								+ resultType));
+					}
+				}
+				decrement.value();
 			};
 		int fiberCount = 1;
 		for (final A_SemanticRestriction restriction : applicableRestrictions)
@@ -305,39 +296,35 @@ extends Primitive
 				originalFiber.heritableFiberGlobals());
 			forkedFiber.textInterface(originalFiber.textInterface());
 			forkedFiber.resultContinuation(success);
-			forkedFiber.failureContinuation(new Continuation1<Throwable>()
+			forkedFiber.failureContinuation(throwable ->
 			{
-				@Override
-				public void value (final @Nullable Throwable throwable)
+				assert throwable != null;
+				if (throwable instanceof AvailRejectedParseException)
 				{
-					assert throwable != null;
-					if (throwable instanceof AvailRejectedParseException)
+					final AvailRejectedParseException rejected =
+						(AvailRejectedParseException)throwable;
+					final A_String string = rejected.rejectionString();
+					synchronized (problems)
 					{
-						final AvailRejectedParseException rejected =
-							(AvailRejectedParseException)throwable;
-						final A_String string = rejected.rejectionString();
-						synchronized (problems)
-						{
-							problems.add(string);
-						}
+						problems.add(string);
 					}
-					else if (throwable
-						instanceof AvailAcceptedParseException)
-					{
-						// Success without type narrowing – do nothing.
-					}
-					else
-					{
-						synchronized (problems)
-						{
-							problems.add(StringDescriptor.from(
-								"evaluation of macro body not to raise an "
-								+ "unhandled exception:\n\t"
-								+ throwable));
-						}
-					}
-					// Now that we've fully dealt with it,
 				}
+				else if (throwable instanceof AvailAcceptedParseException)
+				{
+					//noinspection StatementWithEmptyBody
+					// Success without type narrowing – do nothing.
+				}
+				else
+				{
+					synchronized (problems)
+					{
+						problems.add(StringDescriptor.from(
+							"evaluation of macro body not to raise an "
+							+ "unhandled exception:\n\t"
+							+ throwable));
+					}
+				}
+				// Now that we've fully dealt with it,
 			});
 			Interpreter.runOutermostFunction(
 				runtime,

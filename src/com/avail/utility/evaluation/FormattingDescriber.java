@@ -41,7 +41,7 @@ import java.util.Formatter;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class FormattingDescriber extends Describer
+public final class FormattingDescriber implements Describer
 {
 	/** The {@link String} to use as a {@link Formatter} pattern. */
 	final String patternString;
@@ -73,9 +73,6 @@ public final class FormattingDescriber extends Describer
 	@Override
 	public void describeThen (final Continuation1<String> continuation)
 	{
-		@SuppressWarnings("resource")
-		final Formatter formatter = new Formatter();
-		formatter.format(patternString, arguments);
-		continuation.value(formatter.toString());
+		continuation.value(String.format(patternString, arguments));
 	}
 }

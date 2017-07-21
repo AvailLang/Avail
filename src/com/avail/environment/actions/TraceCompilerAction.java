@@ -34,7 +34,6 @@ package com.avail.environment.actions;
 
 import com.avail.AvailRuntime;
 import com.avail.environment.AvailWorkbench;
-import com.avail.interpreter.AvailLoader;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.ActionEvent;

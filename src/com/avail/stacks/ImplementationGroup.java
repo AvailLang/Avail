@@ -357,15 +357,15 @@ public class ImplementationGroup
 		final boolean isPrivate)
 	{
 		this.name = name;
-		this.methods = new HashMap<String,MethodCommentImplementation>();
-		this.macros = new HashMap<String,MacroCommentImplementation>();
+		this.methods = new HashMap<>();
+		this.macros = new HashMap<>();
 		this.semanticRestrictions =
-			new HashMap<String,SemanticRestrictionCommentImplementation>();
+			new HashMap<>();
 		this.grammaticalRestrictions =
-			new HashMap<String,GrammaticalRestrictionCommentImplementation>();
-		this.aliases = new HashSet<String>();
+			new HashMap<>();
+		this.aliases = new HashSet<>();
 		this.namingModule = namingModule;
-		this.categories = new HashSet<String>();
+		this.categories = new HashSet<>();
 		this.filepath = filename;
 		this.isPrivate = isPrivate;
 		this.hasStickyComment = false;
@@ -450,7 +450,7 @@ public class ImplementationGroup
 				final int listSize = grammaticalRestrictions.size();
 				final ArrayList<GrammaticalRestrictionCommentImplementation>
 					restrictions = new ArrayList
-						<GrammaticalRestrictionCommentImplementation>();
+					<>();
 				restrictions.addAll(grammaticalRestrictions.values());
 				if (listSize > 1)
 				{
@@ -504,7 +504,7 @@ public class ImplementationGroup
 				final int listSize = grammaticalRestrictions.size();
 				final ArrayList<GrammaticalRestrictionCommentImplementation>
 					restrictions = new ArrayList
-						<GrammaticalRestrictionCommentImplementation>();
+					<>();
 				restrictions.addAll(grammaticalRestrictions.values());
 				if (listSize > 1)
 				{
@@ -596,7 +596,7 @@ public class ImplementationGroup
 	 */
 	public HashSet<String> getCategorySet()
 	{
-		final HashSet<String> categorySet = new HashSet<String>();
+		final HashSet<String> categorySet = new HashSet<>();
 
 		for (final MethodCommentImplementation implementation :
 			methods.values())

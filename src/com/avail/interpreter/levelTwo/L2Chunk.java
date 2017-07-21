@@ -80,7 +80,7 @@ public final class L2Chunk
 	 * dynamically expanded as needed only when starting or resuming a
 	 * {@link ContinuationDescriptor continuation}.
 	 */
-	int numObjects;
+	final int numObjects;
 
 	/**
 	 * The number of {@linkplain L2IntegerRegister integer registers} that
@@ -88,7 +88,7 @@ public final class L2Chunk
 	 * register list to be dynamically expanded as needed only when starting
 	 * or resuming a continuation.
 	 */
-	int numIntegers;
+	final int numIntegers;
 
 	/**
 	 * The number of {@linkplain L2FloatRegister floating point registers}
@@ -96,7 +96,7 @@ public final class L2Chunk
 	 * the register list to be dynamically expanded as needed only when
 	 * starting or resuming a continuation.
 	 */
-	int numDoubles;
+	final int numDoubles;
 
 	/**
 	 * A flag indicating whether this chunk is valid or if it has been
@@ -123,7 +123,7 @@ public final class L2Chunk
 	 * present in {@link #instructions}, which is suitable for inlining into
 	 * callers.
 	 */
-	public L2Instruction[] executableInstructions;
+	public final L2Instruction[] executableInstructions;
 
 	/**
 	 * Answer the Avail {@linkplain PojoDescriptor pojo} associated with this

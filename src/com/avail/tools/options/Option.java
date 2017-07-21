@@ -54,7 +54,7 @@ public interface Option<OptionKeyType extends Enum<OptionKeyType>>
 	 *
 	 * @return The option key.
 	 */
-	public OptionKeyType key ();
+	OptionKeyType key ();
 
 	/**
 	 * Answer the {@linkplain LinkedHashSet set} of keywords that indicate this
@@ -62,7 +62,7 @@ public interface Option<OptionKeyType extends Enum<OptionKeyType>>
 	 *
 	 * @return A {@linkplain LinkedHashSet set} of keywords.
 	 */
-	public LinkedHashSet<String> keywords ();
+	LinkedHashSet<String> keywords ();
 
 	/**
 	 * Answer an end-user comprehensible description of the {@linkplain
@@ -70,7 +70,7 @@ public interface Option<OptionKeyType extends Enum<OptionKeyType>>
 	 *
 	 * @return A description of the {@linkplain GenericOption option}.
 	 */
-	public String description ();
+	String description ();
 
 	/**
 	 * Answer the {@linkplain Continuation2 action} that should be performed
@@ -79,5 +79,5 @@ public interface Option<OptionKeyType extends Enum<OptionKeyType>>
 	 * @return An action that accepts an option keyword and its associated
 	 *         value.
 	 */
-	public Continuation2<String, String> action ();
+	Continuation2<String, String> action ();
 }
