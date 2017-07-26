@@ -1,5 +1,5 @@
 /**
- * P_ModuleHeaderPseudoMethod.java
+ * P_ModuleHeaderPseudoMacro.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,35 +35,35 @@ package com.avail.interpreter.primitive.bootstrap.syntax;
 import com.avail.descriptor.*;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.exceptions.AvailErrorCode;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.Private;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
-import static com.avail.descriptor.EnumerationTypeDescriptor.*;
 
 /**
- * The {@code P_ModuleHeaderPseudoMethod} primitive is used to parse module
- * headers.  This primitive should never actually be invoked, but it's
- * convenient to reuse the lexing/parsing machinery as though the module header
- * were an invocation of a complex macro, specifically this one.
+ * The {@code P_ModuleHeaderPseudoMacro} primitive is used to parse module
+ * headers.  When this primitive is invoked, it should yield a {@link
+ * ParseNodeKind#STATEMENT_NODE}.  The method is private, and used to parse the
+ * headers of modules with the same machinery used for the bodies.
  *
  * <p>The name of the module header method is given in {@link
  * SpecialMethodAtom#MODULE_HEADER_METHOD}.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_ModuleHeaderPseudoMethod extends Primitive
+public final class P_ModuleHeaderPseudoMacro extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_ModuleHeaderPseudoMethod().init(
+		new P_ModuleHeaderPseudoMacro().init(
 			6, Private, Bootstrap);
 
 	@Override
@@ -73,56 +73,90 @@ public final class P_ModuleHeaderPseudoMethod extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 6;
-//		final A_Phrase moduleNameLiteral = args.get(0);
-//		final A_Phrase optionalVersions = args.get(1);
-//		final A_Phrase allImports = args.get(2);
-//		final A_Phrase optionalNames = args.get(3);
-//		final A_Phrase optionalEntries = args.get(4);
-//		final A_Phrase optionalPragmas = args.get(5);
+		final A_Phrase moduleNameLiteral = args.get(0);
+		final A_Phrase optionalVersions = args.get(1);
+		final A_Phrase allImports = args.get(2);
+		final A_Phrase optionalNames = args.get(3);
+		final A_Phrase optionalEntries = args.get(4);
+		final A_Phrase optionalPragmas = args.get(5);
 
-		return interpreter.primitiveFailure(AvailErrorCode.E_REQUIRED_FAILURE);
+		return interpreter.primitiveSuccess(
+			ExpressionAsStatementNodeDescriptor.fromExpression(
+				SendNodeDescriptor.from(
+					// Don't bother collecting tokens in header.
+					TupleDescriptor.empty(),
+					SpecialMethodAtom.MODULE_HEADER_METHOD.bundle,
+					ListNodeDescriptor.newExpressions(
+						TupleDescriptor.from(
+							moduleNameLiteral,
+							optionalVersions,
+							allImports,
+							optionalNames,
+							optionalEntries,
+							optionalPragmas)),
+					Types.TOP.o())));
+	}
+
+	static A_Type zeroOrMoreOf (final A_Type type)
+	{
+		return ListNodeTypeDescriptor.createListNodeType(
+			LIST_NODE,
+			TupleTypeDescriptor.zeroOrMoreOf(type));
+	}
+
+	static A_Type zeroOrOneOf (final A_Type type)
+	{
+		return ListNodeTypeDescriptor.createListNodeType(
+			LIST_NODE,
+			TupleTypeDescriptor.zeroOrOneOf(type));
+	}
+
+	static A_Type list (final A_Type... types)
+	{
+		return ListNodeTypeDescriptor.createListNodeType(
+			LIST_NODE,
+			TupleTypeDescriptor.forTypes(types));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		final A_Type stringTokenType =
-			ParseNodeKind.LITERAL_NODE.create(
-				LiteralTokenTypeDescriptor.create(stringType()));
+			LITERAL_NODE.create(
+				LiteralTokenTypeDescriptor.create(
+					TupleTypeDescriptor.stringType()));
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				/* Module name */
 				stringTokenType,
 				/* Optional versions */
-				zeroOrOneOf(
-					zeroOrMoreOf(
-						stringTokenType)),
+				zeroOrOneOf(zeroOrMoreOf(stringTokenType)),
 				/* All imports */
 				zeroOrMoreOf(
-					forTypes(
-						IntegerRangeTypeDescriptor.inclusive(1, 2),
+					list(
+						LITERAL_NODE.create(
+							IntegerRangeTypeDescriptor.inclusive(1, 2)),
 						zeroOrMoreOf(
-							forTypes(
+							list(
 								// Imported module name
 								stringTokenType,
 								// Imported module versions
-								zeroOrOneOf(
-									zeroOrMoreOf(
-										stringTokenType)),
+								zeroOrOneOf(zeroOrMoreOf(stringTokenType)),
 								// Imported names
 								zeroOrOneOf(
-									forTypes(
+									list(
 										zeroOrMoreOf(
-											forTypes(
+											list(
 												// Negated import
-												booleanObject(),
+												LITERAL_NODE.create(
+													booleanObject()),
 												// Name
 												stringTokenType,
 												// Replacement name
-												zeroOrOneOf(
-													stringTokenType))),
+												zeroOrOneOf(stringTokenType))),
 										// Final ellipsis (import all the rest)
-										booleanObject())))))),
+										LITERAL_NODE.create(
+											booleanObject()))))))),
 				/* Optional names */
 				zeroOrOneOf(zeroOrMoreOf(stringTokenType)),
 				/* Optional entries */
@@ -130,6 +164,6 @@ public final class P_ModuleHeaderPseudoMethod extends Primitive
 				/* Optional pragma */
 				zeroOrOneOf(zeroOrMoreOf(stringTokenType))),
 			/* Shouldn't be invoked, so always fail. */
-			BottomTypeDescriptor.bottom());
+			STATEMENT_NODE.mostGeneralType());
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * P_BootstrapLexerKeywordFilter.java
+ * P_BootstrapLexerSlashStarCommentFilter.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -49,9 +49,9 @@ import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * The {@code P_BootstrapLexerKeywordFilter} primitive is used for deciding
- * whether a particular Unicode character is suitable as the start of a keyword
- * token.
+ * The {@code P_BootstrapLexerSlashStarCommentFilter} primitive is used for
+ * deciding whether a particular Unicode character is suitable as the start of a
+ * slash-star star-slash comment.  Obviously only a slash would pass.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

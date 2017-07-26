@@ -87,9 +87,8 @@ public final class P_BootstrapLexerKeywordBody extends Primitive
 			startPosition,
 			lineNumberInteger.extractInt(),
 			TokenType.KEYWORD);
-		token.makeShared();
 		return interpreter.primitiveSuccess(
-			TupleDescriptor.from(token));
+			TupleDescriptor.from(token.makeShared()));
 	}
 
 	@Override

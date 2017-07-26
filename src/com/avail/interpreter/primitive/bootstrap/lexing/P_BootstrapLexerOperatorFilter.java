@@ -1,5 +1,5 @@
 /**
- * P_BootstrapLexerSlashStarCommentBody.java
+ * P_BootstrapLexerOperatorFilter.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,8 +32,13 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Character;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.EnumerationTypeDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -44,19 +49,24 @@ import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * The {@code P_BootstrapLexerSlashStarCommentBody} primitive is used for
- * parsing slash-star star-slash delimited comment tokens.
+ * The {@code P_BootstrapLexerOperatorFilter} primitive is used for deciding
+ * whether a particular Unicode character is suitable as the start of an
+ * operator token.  Operator tokens are currently always single characters.
+ *
+ * <p>Let an occurrence of '/' pass the filter, even though the lexer body might
+ * reject it if it happens to be followed by an asterisk (indicating a comment,
+ * handled by another lexer).</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
+public final class P_BootstrapLexerOperatorFilter extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_BootstrapLexerSlashStarCommentBody().init(
-			3, CannotFail, Bootstrap);
+		new P_BootstrapLexerOperatorFilter().init(
+			1, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -64,68 +74,26 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 3;
-		final A_String source = args.get(0);
-		final A_Number sourcePositionInteger = args.get(1);
-		final A_Number startingLineNumber = args.get(2);
+		assert args.size() == 1;
+		final A_Character character = args.get(0);
 
-		final int sourceSize = source.tupleSize();
-		final int startPosition = sourcePositionInteger.extractInt();
-		int position = startPosition + 1;
-
-		if (position > sourceSize || source.tupleCodePointAt(position) != '*')
-		{
-			// It didn't start with "/*", so it's not a comment.
-			return interpreter.primitiveSuccess(TupleDescriptor.empty());
-		}
-		position++;
-
-		int depth = 1;
-		while (true)
-		{
-			final int c = source.tupleCodePointAt(position);
-			if (position >= sourceSize)
-			{
-				// There aren't two characters left, so it can't close the outer
-				// nesting of the comment (with "*/").  Reject the lexing with a
-				// suitable warning.
-				throw new AvailRejectedParseException(
-					"Missing '*/' to close (nestable) block comment");
-			}
-
-			// At least two characters are available to examine.
-			if (c == '*' && source.tupleCodePointAt(position + 1) == '/')
-			{
-				// Close a nesting level.
-				position += 2;
-				depth--;
-				if (depth == 0)
-				{
-					break;
-				}
-			}
-			else if (c == '/' && source.tupleCodePointAt(position + 1) == '*')
-			{
-				// Open a new nesting level.
-				position += 2;
-				depth++;
-			}
-			else
-			{
-				position++;
-			}
-		}
-
-		// A comment was successfully parsed.
-		final A_Token token = CommentTokenDescriptor.create(
-			(A_String)source.copyTupleFromToCanDestroy(
-				startPosition, position - 1, false),
-			TupleDescriptor.empty(),
-			TupleDescriptor.empty(),
-			startPosition,
-			startingLineNumber.extractInt());
-		token.makeShared();
-		return interpreter.primitiveSuccess(TupleDescriptor.from(token));
+		// Note that the slash character is a potential operator, as far as
+		// initial filtering is concerned.  The body will immediately reject it
+		// if it's followed by an asterisk (*), since that sequence is reserved
+		// for comments.
+		final int c = character.codePoint();
+		final boolean fail =
+			Character.isDigit(c)
+				|| Character.isUnicodeIdentifierStart(c)
+				|| Character.isSpaceChar(c)
+				|| Character.isWhitespace(c)
+				|| c < 32 || (c < 160 && c > 126)
+				|| !Character.isDefined(c)
+				|| c == '_'
+				|| c == '"'
+				|| c == '\uFEFF';
+		return interpreter.primitiveSuccess(
+			AtomDescriptor.objectFromBoolean(!fail));
 	}
 
 	@Override
@@ -133,10 +101,7 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				TupleTypeDescriptor.stringType(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				Types.TOKEN.o()));
+				Types.CHARACTER.o()),
+			EnumerationTypeDescriptor.booleanObject());
 	}
 }

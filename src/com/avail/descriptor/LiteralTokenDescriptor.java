@@ -163,6 +163,15 @@ extends TokenDescriptor
 		}
 	}
 
+	@Override
+	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	{
+		return e == LOWER_CASE_STRING
+			|| e == TRAILING_WHITESPACE
+			|| e == NEXT_LEXING_STATE_POJO
+			|| super.allowsImmutableToMutableReferenceInField(e);
+	}
+
 	@Override @AvailMethod
 	AvailObject o_Literal (final AvailObject object)
 	{

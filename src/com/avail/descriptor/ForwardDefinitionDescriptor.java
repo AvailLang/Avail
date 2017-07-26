@@ -144,7 +144,7 @@ extends DefinitionDescriptor
 		writer.write("definition method");
 		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
 		writer.write("definition module");
-		object.slot(MODULE).moduleName().writeTo(writer);
+		object.definitionModuleName().writeTo(writer);
 		writer.write("body signature");
 		object.slot(BODY_SIGNATURE).writeTo(writer);
 		writer.endObject();
@@ -159,7 +159,7 @@ extends DefinitionDescriptor
 		writer.write("definition method");
 		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
 		writer.write("definition module");
-		object.slot(MODULE).moduleName().writeTo(writer);
+		object.definitionModuleName().writeTo(writer);
 		writer.write("body signature");
 		object.slot(BODY_SIGNATURE).writeSummaryTo(writer);
 		writer.endObject();

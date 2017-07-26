@@ -46,11 +46,13 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.CompilationContext;
+import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
@@ -62,14 +64,7 @@ import com.avail.exceptions.*;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.effects.LoadingEffectToAddDefinition;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordBody;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordFilter;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerSlashStarCommentBody;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerSlashStarCommentFilter;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringFilter;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceBody;
-import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFilter;
+import com.avail.interpreter.primitive.bootstrap.lexing.*;
 import com.avail.io.TextInterface;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
@@ -93,9 +88,6 @@ public final class AvailLoader
 		 */
 		final List<A_Lexer> allVisibleLexers = new ArrayList<>();
 
-		/** A volatile for coordinating memory coherence in Latin-1 case. */
-		volatile int dummyVolatile = 0;
-
 		/**
 		 * A 256-way dispatch table that takes a Latin-1 character's Unicode
 		 * codepoint (which is in [0..255]) to a {@link A_Tuple tuple} of
@@ -115,6 +107,12 @@ public final class AvailLoader
 		 * canonical tuples.</p>
 		 */
 		final A_Tuple[] latin1ApplicableLexers = new A_Tuple[256];
+
+		/**
+		 * The lock controlling access to the array of lexers filtered on
+		 * characters within the Latin1 block of Unicode (i.e., U+0000..U+00FF).
+		 */
+		final ReentrantReadWriteLock latin1Lock = new ReentrantReadWriteLock();
 
 		/**
 		 * A map from non-Latin-1 codepoint (i.e., ≥ 256) to the tuple of lexers
@@ -188,8 +186,9 @@ public final class AvailLoader
 		 * this code point, we <em>may</em> invoke the continuation
 		 * synchronously for performance.</p>
 		 *
-		 * @param loader
-		 *        The {@link AvailLoader} being used in scanning.
+		 * @param lexingState
+		 *        The {@link LexingState} at which the lexical scanning is
+		 *        happening.
 		 * @param codePoint
 		 *        The full Unicode code point in the range 0..1114111.
 		 * @param continuation
@@ -198,28 +197,34 @@ public final class AvailLoader
 		 *        What to do if lexical scanning fails.
 		 */
 		public void getLexersForCodePointThen (
-			final AvailLoader loader,
+			final LexingState lexingState,
 			final int codePoint,
 			final Continuation1<A_Tuple> continuation,
 			final Continuation1<Map<A_Lexer, Throwable>> onFailure)
 		{
 			if ((codePoint & ~255) == 0)
 			{
-				A_Tuple tuple = latin1ApplicableLexers[codePoint];
-				// The tuple was initialized before a write barrier and stored
-				// in the array after that barrier.  This read barrier ensures
-				// we can't see a partially initialized tuple after it.
-				int ignored = dummyVolatile;  // read barrier
+				final A_Tuple tuple;
+				latin1Lock.readLock().lock();
+				try
+				{
+					tuple = latin1ApplicableLexers[codePoint];
+				}
+				finally
+				{
+					latin1Lock.readLock().unlock();
+				}
 				if (tuple != null)
 				{
 					continuation.value(tuple);
 					return;
 				}
+
 				// Run the filters to produce the set of applicable lexers, then
 				// use the canonical map to make it a tuple, then invoke the
 				// continuation with it.
 				selectLexersPassingFilterThen(
-					loader,
+					lexingState,
 					codePoint,
 					(applicableLexers, failures) ->
 					{
@@ -241,15 +246,21 @@ public final class AvailLoader
 							{
 								tupleOfLexers = applicableLexers.asTuple();
 								canonicalLexerTuples.put(
-									applicableLexers, tupleOfLexers);
+									applicableLexers.makeShared(),
+									tupleOfLexers.makeShared());
 							}
-							// Just replace it, even if another thread beat
-							// us to the punch, since it's semantically
-							// idempotent.  Use a write barrier *first*, to
-							// ensure readers don't see a half-initialized
-							// tuple.
-							dummyVolatile = 0;   // write barrier
+						}
+						// Just replace it, even if another thread beat
+						// us to the punch, since it's semantically
+						// idempotent.
+						latin1Lock.writeLock().lock();
+						try
+						{
 							latin1ApplicableLexers[codePoint] = tupleOfLexers;
+						}
+						finally
+						{
+							latin1Lock.writeLock().unlock();
 						}
 						continuation.value(tupleOfLexers);
 					});
@@ -257,26 +268,26 @@ public final class AvailLoader
 			else
 			{
 				// It's non-Latin1.
-				A_Tuple tupleOfLexers;
+				A_Tuple tuple;
 				nonLatin1Lock.readLock().lock();
 				try
 				{
-					tupleOfLexers = nonLatin1Lexers.get(codePoint);
+					tuple = nonLatin1Lexers.get(codePoint);
 				}
 				finally
 				{
 					nonLatin1Lock.readLock().unlock();
 				}
-				if (tupleOfLexers != null)
+				if (tuple != null)
 				{
-					continuation.value(tupleOfLexers);
+					continuation.value(tuple);
 					return;
 				}
 				// Run the filters to produce the set of applicable lexers, then
 				// use the canonical map to make it a tuple, then invoke the
 				// continuation with it.
 				selectLexersPassingFilterThen(
-					loader,
+					lexingState,
 					codePoint,
 					(applicableLexers, failures) ->
 					{
@@ -289,16 +300,18 @@ public final class AvailLoader
 							// equal to the one that caused this trouble.
 							return;
 						}
-						A_Tuple filteredLexers;
+						A_Tuple tupleOfLexers;
 						synchronized (canonicalLexerTuples)
 						{
-							filteredLexers = canonicalLexerTuples.get(
+							tupleOfLexers = canonicalLexerTuples.get(
 								applicableLexers);
-							if (filteredLexers == null)
+							if (tupleOfLexers == null)
 							{
-								filteredLexers = applicableLexers.asTuple();
+								tupleOfLexers =
+									applicableLexers.asTuple().makeShared();
 								canonicalLexerTuples.put(
-									applicableLexers, filteredLexers);
+									applicableLexers.makeShared(),
+									tupleOfLexers.makeShared());
 							}
 							// Just replace it, even if another thread beat
 							// us to the punch, since it's semantically
@@ -306,14 +319,14 @@ public final class AvailLoader
 							nonLatin1Lock.writeLock().lock();
 							try
 							{
-								nonLatin1Lexers.put(codePoint, filteredLexers);
+								nonLatin1Lexers.put(codePoint, tupleOfLexers);
 							}
 							finally
 							{
 								nonLatin1Lock.writeLock().unlock();
 							}
 						}
-						continuation.value(filteredLexers);
+						continuation.value(tupleOfLexers);
 					});
 			}
 		}
@@ -329,8 +342,9 @@ public final class AvailLoader
 		 * this code point, we <em>may</em> invoke the continuation
 		 * synchronously for performance.</p>
 		 *
-		 * @param loader
-		 *        The {@link AvailLoader} being used in scanning.
+		 * @param lexingState
+		 *        The {@link LexingState} at which scanning encountered this
+		 *        codePoint for the first time.
 		 * @param codePoint
 		 *        The full Unicode code point in the range 0..1114111.
 		 * @param continuation
@@ -340,7 +354,7 @@ public final class AvailLoader
 		 *        exceptions.
 		 */
 		private void selectLexersPassingFilterThen (
-			final AvailLoader loader,
+			final LexingState lexingState,
 			final int codePoint,
 			final Continuation2<A_Set, Map<A_Lexer, Throwable>> continuation)
 		{
@@ -361,6 +375,9 @@ public final class AvailLoader
 				CharacterDescriptor.fromCodePoint(codePoint));
 			final Object joinLock = new Object();
 			final List<A_Lexer> applicableLexers = new ArrayList<>();
+			final CompilationContext compilationContext =
+				lexingState.compilationContext;
+			final AvailLoader loader = compilationContext.loader();
 			for (final A_Lexer lexer : allVisibleLexers)
 			{
 				final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
@@ -419,7 +436,14 @@ public final class AvailLoader
 						}
 					};
 				fiber.textInterface(loader.textInterface);
-				fiber.resultContinuation(fiberSuccess);
+
+				compilationContext.startWorkUnit();
+				final AtomicBoolean oneWay = new AtomicBoolean();
+				fiber.resultContinuation(
+					compilationContext.workUnitCompletion(
+						lexingState,
+						oneWay,
+						fiberSuccess));
 				fiber.failureContinuation(fiberFailure);
 				Interpreter.runOutermostFunction(
 					loader.runtime(),
@@ -481,13 +505,13 @@ public final class AvailLoader
 	 * Allow investigation of why a top-level expression is being excluded from
 	 * summarization.
 	 */
-	public static boolean debugUnsummarizedStatements = true;
+	public static boolean debugUnsummarizedStatements = false;
 
 	/**
 	 * Show the top-level statements that are executed during loading or
 	 * compilation.
 	 */
-	public static boolean debugLoadedStatements = true;
+	public static boolean debugLoadedStatements = false;
 
 	/**
 	 * A flag that controls whether compilation attempts to use the fast-loader
@@ -1525,11 +1549,17 @@ public final class AvailLoader
 			P_BootstrapLexerKeywordBody.instance,
 			"keyword token lexer");
 
+		// There's also punctuation in there, like commas.
+		createPrimitiveLexerForHeaderParsing(
+			P_BootstrapLexerOperatorFilter.instance,
+			P_BootstrapLexerOperatorBody.instance,
+			"operator token lexer");
+
 		// It would be tricky with no whitespace!
 		createPrimitiveLexerForHeaderParsing(
 			P_BootstrapLexerWhitespaceFilter.instance,
 			P_BootstrapLexerWhitespaceBody.instance,
-			"Whitespace token lexer");
+			"whitespace lexer");
 
 		// Slash-star-star-slash comments are legal in the header.
 		createPrimitiveLexerForHeaderParsing(

@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 import java.util.*;
 
@@ -1078,8 +1079,10 @@ extends Descriptor
 				{
 					// Exclude grammatical restrictions that aren't defined in
 					// an ancestor module.
-					if (allAncestorModules.hasElement(
-						restriction.definitionModule()))
+					final A_Module definitionModule =
+						restriction.definitionModule();
+					if (definitionModule.equalsNil()
+						|| allAncestorModules.hasElement(definitionModule))
 					{
 						final A_Set bundles =
 							restriction.argumentRestrictionSets().tupleAt(

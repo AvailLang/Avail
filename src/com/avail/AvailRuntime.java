@@ -37,6 +37,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.utility.StackPrinter.trace;
+import static java.lang.Math.min;
 import static java.nio.file.attribute.PosixFilePermission.*;
 import java.io.*;
 import java.lang.ref.PhantomReference;
@@ -214,9 +215,10 @@ public final class AvailRuntime
 	 * The {@linkplain ThreadFactory thread factory} for creating {@link
 	 * AvailThread}s on behalf of this {@linkplain AvailRuntime Avail runtime}.
 	 */
-	private final ThreadFactory executorThreadFactory = runnable -> new AvailThread(
-		runnable,
-		new Interpreter(AvailRuntime.this));
+	private final ThreadFactory executorThreadFactory =
+		runnable -> new AvailThread(
+			runnable,
+			new Interpreter(AvailRuntime.this));
 
 	/**
 	 * The {@linkplain ThreadFactory thread factory} for creating {@link
@@ -287,7 +289,7 @@ public final class AvailRuntime
 	 */
 	private final ThreadPoolExecutor executor =
 		new ThreadPoolExecutor(
-			availableProcessors,
+			min(availableProcessors, maxInterpreters),
 			maxInterpreters,
 			10L,
 			TimeUnit.SECONDS,
@@ -795,12 +797,12 @@ public final class AvailRuntime
 	 * Whether to show all {@link MacroDefinitionDescriptor macro} expansions as
 	 * they happen.
 	 */
-	public static boolean debugMacroExpansions = true;
+	public static boolean debugMacroExpansions = false;
 
 	/**
 	 * Whether to show detailed compiler trace information.
 	 */
-	public static boolean debugCompilerSteps = true;
+	public static boolean debugCompilerSteps = false;
 
 	/**
 	 * Perform an integrity check on the parser data structures.  Report the

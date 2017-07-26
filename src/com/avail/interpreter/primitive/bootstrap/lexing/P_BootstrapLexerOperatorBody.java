@@ -1,5 +1,5 @@
 /**
- * P_BootstrapLexerSlashStarCommentBody.java
+ * P_BootstrapLexerOperatorBody.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -44,18 +44,22 @@ import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * The {@code P_BootstrapLexerSlashStarCommentBody} primitive is used for
- * parsing slash-star star-slash delimited comment tokens.
+ * The {@code P_BootstrapLexerOperatorBody} primitive is used for parsing
+ * operator tokens.  These currently are a single character long.
+ *
+ * <p>Note that if a slash is encountered, and it's followed an asterisk, it
+ * should reject the lexical scan, allowing the comment lexer to deal with it
+ * instead.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
+public final class P_BootstrapLexerOperatorBody extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public final static Primitive instance =
-		new P_BootstrapLexerSlashStarCommentBody().init(
+		new P_BootstrapLexerOperatorBody().init(
 			3, CannotFail, Bootstrap);
 
 	@Override
@@ -67,65 +71,31 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		assert args.size() == 3;
 		final A_String source = args.get(0);
 		final A_Number sourcePositionInteger = args.get(1);
-		final A_Number startingLineNumber = args.get(2);
+		final A_Number lineNumberInteger = args.get(2);
 
 		final int sourceSize = source.tupleSize();
 		final int startPosition = sourcePositionInteger.extractInt();
-		int position = startPosition + 1;
 
-		if (position > sourceSize || source.tupleCodePointAt(position) != '*')
+		int c = source.tupleCodePointAt(startPosition);
+		if (c == '/')
 		{
-			// It didn't start with "/*", so it's not a comment.
-			return interpreter.primitiveSuccess(TupleDescriptor.empty());
-		}
-		position++;
-
-		int depth = 1;
-		while (true)
-		{
-			final int c = source.tupleCodePointAt(position);
-			if (position >= sourceSize)
+			if (startPosition < sourceSize
+				&& source.tupleCodePointAt(startPosition + 1) == '*')
 			{
-				// There aren't two characters left, so it can't close the outer
-				// nesting of the comment (with "*/").  Reject the lexing with a
-				// suitable warning.
-				throw new AvailRejectedParseException(
-					"Missing '*/' to close (nestable) block comment");
-			}
-
-			// At least two characters are available to examine.
-			if (c == '*' && source.tupleCodePointAt(position + 1) == '/')
-			{
-				// Close a nesting level.
-				position += 2;
-				depth--;
-				if (depth == 0)
-				{
-					break;
-				}
-			}
-			else if (c == '/' && source.tupleCodePointAt(position + 1) == '*')
-			{
-				// Open a new nesting level.
-				position += 2;
-				depth++;
-			}
-			else
-			{
-				position++;
+				// No solution in this case, but don't complain.
+				return interpreter.primitiveSuccess(TupleDescriptor.empty());
 			}
 		}
-
-		// A comment was successfully parsed.
-		final A_Token token = CommentTokenDescriptor.create(
+		final A_Token token = TokenDescriptor.create(
 			(A_String)source.copyTupleFromToCanDestroy(
-				startPosition, position - 1, false),
+				startPosition, startPosition, false),
 			TupleDescriptor.empty(),
 			TupleDescriptor.empty(),
 			startPosition,
-			startingLineNumber.extractInt());
-		token.makeShared();
-		return interpreter.primitiveSuccess(TupleDescriptor.from(token));
+			lineNumberInteger.extractInt(),
+			TokenType.OPERATOR);
+		return interpreter.primitiveSuccess(
+			TupleDescriptor.from(token.makeShared()));
 	}
 
 	@Override

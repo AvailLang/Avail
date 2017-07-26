@@ -173,12 +173,19 @@ extends Descriptor
 		SYNTHETIC_LITERAL,
 
 		/**
-		 * A token that is the entirety an Avail method/class comment.  This is
-		 * text contained between forward slash-asterisk-asterisk and
-		 * asterisk-forward slash.  Only applicable for {@link
-		 * CommentTokenDescriptor}.
+		 * A token that is the entirety of an Avail method/class comment.  This
+		 * is text contained between slash-asterisk and asterisk-slash.  Only
+		 * applicable for {@link CommentTokenDescriptor}.
 		 */
-		COMMENT;
+		COMMENT,
+
+		/**
+		 * A token representing one or more whitespace characters separating
+		 * other tokens.  These tokens are skipped by the normal parsing
+		 * machinery, although some day we'll provide a notation within method
+		 * names to capture whitespace tokens as arguments.
+		 */
+		WHITESPACE;
 
 		/** An array of all {@link TokenType} enumeration values. */
 		private final static TokenType[] all = values();
@@ -200,7 +207,8 @@ extends Descriptor
 	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == LOWER_CASE_STRING
-			|| e == TRAILING_WHITESPACE;
+			|| e == TRAILING_WHITESPACE
+			|| e == NEXT_LEXING_STATE_POJO;
 	}
 
 	/**
@@ -312,7 +320,7 @@ extends Descriptor
 			// Cache it for faster access next time.
 			object.setSlot(
 				NEXT_LEXING_STATE_POJO,
-				RawPojoDescriptor.identityWrap(state));
+				RawPojoDescriptor.identityWrap(state).makeShared());
 			return state;
 		}
 		return (LexingState) pojo.javaObjectNotNull();
@@ -325,7 +333,7 @@ extends Descriptor
 	{
 		final AvailObject pojo = lexingState == null
 			? NilDescriptor.nil()
-			: RawPojoDescriptor.identityWrap(lexingState);
+			: RawPojoDescriptor.identityWrap(lexingState).makeShared();
 		object.setSlot(NEXT_LEXING_STATE_POJO, pojo);
 	}
 

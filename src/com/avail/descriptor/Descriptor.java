@@ -4192,6 +4192,16 @@ extends AbstractDescriptor
 		throw unsupportedOperationException();
 	}
 
+	/**
+	 * @param object
+	 * @return
+	 */
+	@Override
+	A_String o_DefinitionModuleName (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
 	@Override
 	A_Bundle o_BundleOrCreate (final AvailObject object)
 		throws MalformedMessageException

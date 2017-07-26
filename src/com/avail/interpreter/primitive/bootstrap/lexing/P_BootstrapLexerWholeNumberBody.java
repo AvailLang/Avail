@@ -1,5 +1,5 @@
 /**
- * P_BootstrapLexerKeywordBody.java
+ * P_BootstrapLexerWholeNumberBody.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -44,8 +44,8 @@ import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * The {@code P_BootstrapLexerKeywordBody} primitive is used for parsing keyword
- * tokens.
+ * The {@code P_BootstrapLexerWholeNumberBody} primitive is used for parsing
+ * non-negative integer literal tokens.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -56,7 +56,7 @@ public final class P_BootstrapLexerWholeNumberBody extends Primitive
 	 */
 	public final static Primitive instance =
 		new P_BootstrapLexerWholeNumberBody().init(
-			2, CannotFail, Bootstrap);
+			3, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (
@@ -67,28 +67,38 @@ public final class P_BootstrapLexerWholeNumberBody extends Primitive
 		assert args.size() == 2;
 		final A_String source = args.get(0);
 		final A_Number sourcePositionInteger = args.get(1);
+		final A_Number lineNumberInteger = args.get(1);
 
 		final int sourceSize = source.tupleSize();
 		final int startPosition = sourcePositionInteger.extractInt();
 		int position = startPosition;
+		A_Number value = IntegerDescriptor.zero();
 
-		while (position <= sourceSize
-			&& Character.isUnicodeIdentifierPart(
-				source.tupleCodePointAt(position)))
+		while (position <= sourceSize)
 		{
+			final int digitCodePoint = source.tupleCodePointAt(position);
+			if (!Character.isDigit(digitCodePoint))
+			{
+				break;
+			}
+			value = value.noFailTimesCanDestroy(IntegerDescriptor.ten(), true);
+			value = value.noFailPlusCanDestroy(
+				IntegerDescriptor.fromUnsignedByte(
+					(short) Character.digit(digitCodePoint, 10)),
+				true);
 			position++;
 		}
-		final A_Token token = TokenDescriptor.create(
+		final A_Token token = LiteralTokenDescriptor.create(
 			(A_String)source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
 			TupleDescriptor.empty(),
 			TupleDescriptor.empty(),
 			startPosition,
-			-1,  // TODO MvG - This should get a fix-up *after* the primitive
-			TokenType.KEYWORD);
+			lineNumberInteger.extractInt(),
+			TokenType.LITERAL,
+			value);
 		token.makeShared();
-		return interpreter.primitiveSuccess(
-			TupleDescriptor.from(token));
+		return interpreter.primitiveSuccess(TupleDescriptor.from(token));
 	}
 
 	@Override

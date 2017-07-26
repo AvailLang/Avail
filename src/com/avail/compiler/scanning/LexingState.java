@@ -44,13 +44,16 @@ import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer1;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -136,7 +139,7 @@ public class LexingState
 			// The complete list of tokens was already computed, and actions
 			// that arrived before that completed have already been started.
 			assert nextTokens != null;
-			compilationContext.eventuallyDo(
+			compilationContext.workUnitDo(
 				this, () -> newAction.value(nextTokens));
 			return;
 		}
@@ -157,7 +160,7 @@ public class LexingState
 		final int codePoint =
 			compilationContext.source().tupleCodePointAt(position);
 		scanner.getLexersForCodePointThen(
-			compilationContext.loader(),
+			this,
 			codePoint,
 			applicableLexers ->
 			{
@@ -173,7 +176,7 @@ public class LexingState
 						for (final Continuation1<List<A_Token>> action
 							: actions)
 						{
-							compilationContext.eventuallyDo(
+							compilationContext.workUnitDo(
 								LexingState.this,
 								() -> action.value(nextTokens));
 						}
@@ -236,39 +239,44 @@ public class LexingState
 //			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
 //		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(compilationContext.getTextInterface());
+		compilationContext.startWorkUnit();
+		final AtomicBoolean oneWay = new AtomicBoolean();
 		fiber.resultContinuation(
-			newTokens ->
-			{
-				assert newTokens.isTuple();
-				lexerBodyWasSuccessful(newTokens, countdown);
-			});
-		fiber.failureContinuation(
-			throwable ->
-			{
-				if (throwable instanceof AvailRejectedParseException)
+			compilationContext.workUnitCompletion(
+				this,
+				oneWay,
+				newTokens ->
 				{
-					final AvailRejectedParseException rej =
-						(AvailRejectedParseException) throwable;
-					expected(rej.rejectionString().asNativeString());
-					return;
-				}
-				// Report the problem as an expectation, with a stack trace.
-				expected(
-					afterDescribing ->
+					assert newTokens.isTuple();
+					lexerBodyWasSuccessful(newTokens, countdown);
+				}));
+		fiber.failureContinuation(
+			compilationContext.workUnitCompletion(
+				this,
+				oneWay,
+				throwable ->
+				{
+					if (throwable instanceof AvailRejectedParseException)
 					{
-						final StringWriter stringWriter =
-							new StringWriter();
-						throwable.printStackTrace(
-							new PrintWriter(stringWriter));
-						final String text = String.format(
-							"%s not to have failed while "
-								+ "evaluating its body:\n%s",
-							lexer.toString(),
-							stringWriter.toString());
-						afterDescribing.value(text);
-					});
-			}
-		);
+						final AvailRejectedParseException rej =
+							(AvailRejectedParseException) throwable;
+						expected(rej.rejectionString().asNativeString());
+						return;
+					}
+					// Report the problem as an expectation, with a stack trace.
+					expected(
+						afterDescribing ->
+						{
+							final StringWriter writer = new StringWriter();
+							throwable.printStackTrace(new PrintWriter(writer));
+							final String text = String.format(
+								"%s not to have failed while "
+									+ "evaluating its body:\n%s",
+								lexer.toString(),
+								writer.toString());
+							afterDescribing.value(text);
+						});
+				}));
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		Interpreter.runOutermostFunction(
 			loader.runtime(),
@@ -316,12 +324,29 @@ public class LexingState
 		{
 			for (final Continuation1<List<A_Token>> action : actions)
 			{
-				compilationContext.eventuallyDo(
-					LexingState.this,
-					() -> action.value(nextTokens));
+				compilationContext.workUnitDo(
+					this, () -> action.value(nextTokens));
 			}
 			actions = null;
 		}
+	}
+
+	/**
+	 * If the {@link A_Token}s that start at this location have been computed,
+	 * answer that {@link List}, otherwise answer {@code null}.  The list is
+	 * copied to ensure it isn't modified by the client or other active lexers.
+	 *
+	 * <p>This should only used by diagnostics, specifically to avoid running
+	 * lexers while producing failure messages.</p>
+	 *
+	 * @return The list of tokens or null.
+	 */
+	public final synchronized @Nullable List<A_Token>
+		knownToBeComputedTokensOrNull ()
+	{
+		return nextTokens == null
+			? null
+			: Collections.unmodifiableList(new ArrayList<>(nextTokens));
 	}
 
 	/**

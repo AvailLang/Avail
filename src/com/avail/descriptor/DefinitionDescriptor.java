@@ -86,6 +86,23 @@ extends Descriptor
 		return object.slot(MODULE);
 	}
 
+	final static A_String builtInNoModuleName =
+		StringDescriptor.from("(built-in)").makeShared();
+
+	@Override @AvailMethod
+	public A_String o_DefinitionModuleName (final AvailObject object)
+	{
+		final A_Module module = object.slot(MODULE);
+		if (module.equalsNil())
+		{
+			return builtInNoModuleName;
+		}
+		else
+		{
+			return module.moduleName();
+		}
+	}
+
 	@Override @AvailMethod
 	boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{

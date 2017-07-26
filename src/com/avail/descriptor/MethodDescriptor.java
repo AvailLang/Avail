@@ -49,7 +49,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
-import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMethod;
+import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
@@ -80,6 +80,7 @@ import static com.avail.descriptor.MethodDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
+import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.*;
 
 /**
  * A method maintains all definitions that have the same name.  At compile time
@@ -217,6 +218,12 @@ extends Descriptor
 		 * nil}.
 		 */
 		LEXER_OR_NIL;
+	}
+
+	public enum CreateMethodOrMacroEnum
+	{
+		CREATE_METHOD,
+		CREATE_MACRO;
 	}
 
 	/**
@@ -1009,125 +1016,150 @@ extends Descriptor
 		/** The special atom for failing during bootstrap.  Must be first. */
 		CRASH(
 			"vm crash:_",
+			CREATE_METHOD,
 			P_EmergencyExit.instance),
 
 		/** The special atom for defining abstract methods. */
 		ABSTRACT_DEFINER(
 			"vm abstract_for_",
+			CREATE_METHOD,
 			P_AbstractMethodDeclarationForAtom.instance),
 
 		/** The special atom for adding to a map inside a variable. */
 		ADD_TO_MAP_VARIABLE(
 			"vm_↑[_]:=_",
+			CREATE_METHOD,
 			P_AtomicAddToMap.instance),
 
 		/** The special atom for adding a module unload function. */
 		ADD_UNLOADER(
 			"vm on unload_",
+			CREATE_METHOD,
 			P_AddUnloadFunction.instance),
 
 		/** The special atom for creating aliases of atoms. */
 		ALIAS(
 			"vm alias new name_to_",
+			CREATE_METHOD,
 			P_Alias.instance),
 
 		/** The special atom for function application. */
 		APPLY(
 			"vm function apply_(«_‡,»)",
+			CREATE_METHOD,
 			P_InvokeWithTuple.instance),
 
 		/** The special atom for adding properties to atoms. */
 		ATOM_PROPERTY(
 			"vm atom_at property_put_",
+			CREATE_METHOD,
 			P_AtomSetProperty.instance),
 
 		/** The special atom for removing properties from atoms. */
 		ATOM_REMOVE_PROPERTY(
 			"vm atom_remove property_",
+			CREATE_METHOD,
 			P_AtomRemoveProperty.instance),
 
 		/** The special atom for extracting the caller of a continuation. */
 		CONTINUATION_CALLER(
 			"vm_'s caller",
+			CREATE_METHOD,
 			P_ContinuationCaller.instance),
 
 		/** The special atom for creating a literal phrase. */
 		CREATE_LITERAL_PHRASE(
 			"vm create literal phrase_",
+			CREATE_METHOD,
 			P_CreateLiteralExpression.instance),
 
 		/** The special atom for creating a literal token. */
 		CREATE_LITERAL_TOKEN(
 			"vm create literal token_,_",
+			CREATE_METHOD,
 			P_CreateLiteralToken.instance),
 
 		/** The special atom for declaring the stringifier atom. */
 		DECLARE_STRINGIFIER(
 			"vm stringifier:=_",
+			CREATE_METHOD,
 			P_DeclareStringificationAtom.instance),
 
 		/** The special atom for forward-defining methods. */
 		FORWARD_DEFINER(
 			"vm forward_for_",
+			CREATE_METHOD,
 			P_ForwardMethodDeclarationForAtom.instance),
 
 		/** The special atom for getting a variable's value. */
 		GET_VARIABLE(
 			"vm↓_",
+			CREATE_METHOD,
 			P_GetValue.instance),
 
 		/** The special atom for adding grammatical restrictions. */
 		GRAMMATICAL_RESTRICTION(
 			"vm grammatical restriction_is_",
+			CREATE_METHOD,
 			P_GrammaticalRestrictionFromAtoms.instance),
 
 		/** The special atom for defining lexers. */
 		LEXER_DEFINER(
 			"vm lexer_filter is_body is_",
+			CREATE_METHOD,
 			P_SimpleLexerDefinitionForAtom.instance),
 
 		/** The special atom for defining macros. */
 		MACRO_DEFINER(
 			"vm macro_is«_,»_",
+			CREATE_METHOD,
 			P_SimpleMacroDeclaration.instance,
 			P_SimpleMacroDefinitionForAtom.instance),
 
 		/** The special atom for defining methods. */
 		METHOD_DEFINER(
 			"vm method_is_",
+			CREATE_METHOD,
 			P_SimpleMethodDeclaration.instance,
 			P_MethodDeclarationFromAtom.instance),
 
 		/** The special atom for publishing atoms. */
 		PUBLISH_ATOMS(
 			"vm publish atom set_(public=_)",
+			CREATE_METHOD,
 			P_DeclareAllExportedAtoms.instance),
 
 		/** The special atom for recording a type's name. */
 		RECORD_TYPE_NAME(
 			"vm record type_name_",
+			CREATE_METHOD,
 			P_RecordNewTypeName.instance),
 
 		/** The special atom for creating a module variable/constant. */
 		CREATE_MODULE_VARIABLE(
 			"vm in module_create_with variable type_«constant»?«stably computed»?",
+			CREATE_METHOD,
 			P_PrivateCreateModuleVariable.instance),
 
 		/** The special atom for sealing methods. */
 		SEAL(
 			"vm seal_at_",
+			CREATE_METHOD,
 			P_SealMethodByAtom.instance),
 
 		/** The special atom for adding semantic restrictions. */
 		SEMANTIC_RESTRICTION(
 			"vm semantic restriction_is_",
+			CREATE_METHOD,
 			P_AddSemanticRestrictionForAtom.instance),
 
 		/** The special atom for resuming a continuation. */
 		RESUME_CONTINUATION(
 			"vm resume_",
+			CREATE_METHOD,
 			P_ResumeContinuation.instance),
 
+		/** The special atom for parsing module headers. */
 		MODULE_HEADER_METHOD(
 			"Module…$"
 				+ "«Versions«…$‡,»»"
@@ -1144,7 +1176,8 @@ extends Descriptor
 				+ "«Entries«…$‡,»»"
 				+ "«Pragma«…$‡,»»"
 				+ "Body",
-			P_ModuleHeaderPseudoMethod.instance);
+			CREATE_MACRO,
+			P_ModuleHeaderPseudoMacro.instance);
 
 		/** The special atom. */
 		public final A_Atom atom;
@@ -1152,9 +1185,13 @@ extends Descriptor
 		/** The special atom's message bundle. */
 		public final A_Bundle bundle;
 
-		SpecialMethodAtom (final String name, final Primitive... primitives)
+		SpecialMethodAtom (
+			final String name,
+			final CreateMethodOrMacroEnum methodOrMacro,
+			final Primitive... primitives)
 		{
-			this.atom = createSpecialMethodAtom(name, primitives);
+			this.atom = createSpecialMethodAtom(
+				name, methodOrMacro, primitives);
 			this.bundle = atom.bundleOrNil();
 		}
 
@@ -1168,6 +1205,8 @@ extends Descriptor
 		 *
 		 * @param name
 		 *        A string used to help identify the new atom.
+		 * @param createMethodOrMacro
+		 *        Whether to create method(s) or macro(s).
 		 * @param primitives
 		 *        The {@link Primitive}s to instantiate as method definitions in
 		 *        this atom's message bundle's method.
@@ -1177,6 +1216,7 @@ extends Descriptor
 		 */
 		private static A_Atom createSpecialMethodAtom (
 			final String name,
+			final CreateMethodOrMacroEnum createMethodOrMacro,
 			final Primitive... primitives)
 		{
 			final A_Atom atom = AtomDescriptor.createSpecialAtom(name);
@@ -1197,11 +1237,23 @@ extends Descriptor
 				final A_Function function =
 					FunctionDescriptor.newPrimitiveFunction(
 						primitive, NilDescriptor.nil(), 0);
-				final A_Definition definition =
-					MethodDefinitionDescriptor.create(
+				A_Definition definition;
+				if (createMethodOrMacro == CREATE_METHOD)
+				{
+					definition = MethodDefinitionDescriptor.create(
 						method,
 						NilDescriptor.nil(),  // System defs have no module.
 						function);
+				}
+				else
+				{
+					definition = MacroDefinitionDescriptor.create(
+						method,
+						NilDescriptor.nil(),  // System defs have no module.
+						function,
+						TupleDescriptor.empty());
+				}
+
 				try
 				{
 					method.methodAddDefinition(definition);

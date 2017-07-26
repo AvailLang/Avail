@@ -43,6 +43,8 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.TokenDescriptor;
+import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.Generator;
@@ -54,8 +56,10 @@ import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static com.avail.compiler.problems.ProblemType.PARSE;
 
@@ -302,17 +306,43 @@ public class CompilerDiagnostics
 	 * been accumulated so far, ignoring whether this is a complete list or not,
 	 * and synthesizing an empty token if necessary.</p>
 	 *
-	 * @param startLexingState
-	 *        The starting {@link LexingState}.
+	 * @param startLexingStates
+	 *        The starting {@link LexingState}s.
 	 * @param continuation
 	 *        What to do when the longest {@link A_Token} has been found.
 	 */
 	void findLongestTokenThen (
-		final Collection<LexingState> startLexingState,
+		final Collection<LexingState> startLexingStates,
 		Continuation1<A_Token> continuation)
 	{
-
-		//TODO MvG - write it!!!
+		List<A_Token> candidates = new ArrayList<>();
+		for (final LexingState startState : startLexingStates)
+		{
+			final @Nullable List<A_Token> known =
+				startState.knownToBeComputedTokensOrNull();
+			if (known != null)
+			{
+				candidates.addAll(known);
+			}
+		}
+		if (candidates.isEmpty())
+		{
+			final LexingState state = startLexingStates.iterator().next();
+			final A_Token emptyToken = TokenDescriptor.create(
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
+				state.position,
+				state.lineNumber,
+				TokenType.WHITESPACE);
+			continuation.value(emptyToken.makeShared());
+			return;
+		}
+		continuation.value(
+			candidates.stream()
+				.max(Comparator.comparing(
+					(A_Token t) -> t.string().tupleSize()))
+				.get());
 	}
 
 	/**
@@ -551,7 +581,7 @@ public class CompilerDiagnostics
 		final int startOfFirstLine =
 			lastIndexOf(source, '\n', startOfStatement, 1) + 1;
 		final int initialLineNumber =
-			occurrencesInRange(source, '\n', 1, startOfFirstLine);
+			occurrencesInRange(source, '\n', 1, startOfFirstLine) + 1;
 		// Now figure out the last line to show, which if possible should be the
 		// line after the *end* of the last problem token.
 		final ProblemsAtPosition lastProblem =
@@ -569,7 +599,7 @@ public class CompilerDiagnostics
 			: source.tupleSize() + 1;
 
 		// Insert the problem location indicators...
-		int sourcePosition = startOfFirstLine + 1;
+		int sourcePosition = startOfFirstLine /* + 1*/;
 		final List<A_Tuple> parts = new ArrayList<>(10);
 		for (final ProblemsAtPosition eachProblem : ascending)
 		{
@@ -601,7 +631,7 @@ public class CompilerDiagnostics
 		text.format(
 			"%s",
 			Strings.addLineNumbers(
-				unnumbered.toString(),
+				((A_String) unnumbered).asNativeString(),
 				">>> %" + maxDigits + "d: %s",
 				initialLineNumber));
 		text.format(">>>%s", rowOfDashes);

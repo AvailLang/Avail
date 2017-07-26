@@ -134,8 +134,7 @@ public class CompilationContext
 	 * migrate between two runtime environments, it is safe to cache it for
 	 * efficient access.
 	 */
-	@InnerAccess
-	final AvailRuntime runtime = AvailRuntime.current();
+	@InnerAccess final AvailRuntime runtime = AvailRuntime.current();
 
 	/**
 	 * The header information for the current module being parsed.
@@ -150,8 +149,7 @@ public class CompilationContext
 	/**
 	 * The Avail {@linkplain ModuleDescriptor module} undergoing compilation.
 	 */
-	@InnerAccess
-	final A_Module module;
+	@InnerAccess final A_Module module;
 
 	public A_Module module ()
 	{
@@ -188,8 +186,7 @@ public class CompilationContext
 	 *
 	 * @return A loader.
 	 */
-	@InnerAccess
-	public AvailLoader loader ()
+	@InnerAccess public AvailLoader loader ()
 	{
 		final AvailLoader theLoader = loader;
 		assert theLoader != null;
@@ -212,8 +209,7 @@ public class CompilationContext
 	 * A_Fiber fibers} started by this {@linkplain AvailCompiler
 	 * compiler}.
 	 */
-	@InnerAccess
-	final TextInterface textInterface;
+	@InnerAccess final TextInterface textInterface;
 
 	public TextInterface getTextInterface ()
 	{
@@ -221,9 +217,7 @@ public class CompilationContext
 	}
 
 	/** The number of work units that have been queued. */
-	@InnerAccess
-	final
-	AtomicLong workUnitsQueued = new AtomicLong(0);
+	@InnerAccess final AtomicLong workUnitsQueued = new AtomicLong(0);
 
 	public AtomicLong getWorkUnitsQueued ()
 	{
@@ -231,9 +225,7 @@ public class CompilationContext
 	}
 
 	/** The number of work units that have been completed. */
-	@InnerAccess
-	final
-	AtomicLong workUnitsCompleted = new AtomicLong(0);
+	@InnerAccess final AtomicLong workUnitsCompleted = new AtomicLong(0);
 
 	public AtomicLong getWorkUnitsCompleted ()
 	{
@@ -243,8 +235,7 @@ public class CompilationContext
 	/**
 	 * What to do when there are no more work units.
 	 */
-	@InnerAccess
-	volatile @Nullable Continuation0 noMoreWorkUnits = null;
+	@InnerAccess volatile @Nullable Continuation0 noMoreWorkUnits = null;
 
 	public Continuation0 getNoMoreWorkUnits ()
 	{
@@ -264,8 +255,7 @@ public class CompilationContext
 	 * number on which the last complete statement concluded, the position of
 	 * the ongoing parse (in bytes), and the size of the module (in bytes).
 	 */
-	@InnerAccess
-	final CompilerProgressReporter progressReporter;
+	@InnerAccess final CompilerProgressReporter progressReporter;
 
 	public CompilerProgressReporter getProgressReporter ()
 	{
@@ -276,8 +266,7 @@ public class CompilationContext
 	 * The {@linkplain Continuation0 continuation} that reports success of
 	 * compilation.
 	 */
-	@InnerAccess
-	volatile @Nullable Continuation0 successReporter;
+	@InnerAccess volatile @Nullable Continuation0 successReporter;
 
 	public Continuation0 getSuccessReporter ()
 	{
@@ -371,17 +360,17 @@ public class CompilationContext
 	/**
 	 * Start a work unit.
 	 */
-	@InnerAccess
-	void startWorkUnit ()
+	public void startWorkUnit ()
 	{
+		assert noMoreWorkUnits != null;
 		workUnitsQueued.incrementAndGet();
 	}
 
 	/**
-	 * Construct and answer a {@linkplain Continuation1 continuation} that
-	 * wraps the specified continuation in logic that will increment the
-	 * {@linkplain #workUnitsCompleted count of completed work units} and
-	 * potentially call the {@linkplain #noMoreWorkUnits unambiguous statement}.
+	 * Construct and answer a {@linkplain Continuation1 continuation} that wraps
+	 * the specified continuation in logic that will increment the {@linkplain
+	 * #workUnitsCompleted count of completed work units} and potentially call
+	 * the {@linkplain #noMoreWorkUnits unambiguous statement}.
 	 *
 	 * @param lexingState
 	 *        The {@link LexingState} for which to report problems.
@@ -393,8 +382,7 @@ public class CompilationContext
 	 * @return A new continuation. It accepts an argument of some kind, which
 	 * will be passed forward to the argument continuation.
 	 */
-	@InnerAccess
-	<ArgType> Continuation1<ArgType> workUnitCompletion (
+	public <ArgType> Continuation1<ArgType> workUnitCompletion (
 		final LexingState lexingState,
 		final @Nullable AtomicBoolean optionalSafetyCheck,
 		final Continuation1<ArgType> continuation)
@@ -431,15 +419,14 @@ public class CompilationContext
 			}
 			finally
 			{
-				// We increment and read completed and then read queued.
-				// That's because at every moment completed must always
-				// be <= queued. No matter how many new tasks are being
-				// queued and completed by other threads, that invariant
-				// holds.  The other fact is that the moment the
-				// counters have the same (nonzero) value, they will
-				// forever after have that same value.  Note that we
-				// still have to do the fused incrementAndGet so that we
-				// know if *we* were the (sole) cause of exhaustion.
+				// We increment and read completed and then read queued.  That's
+				// because at every moment completed must always be <= queued.
+				// No matter how many new tasks are being queued and completed
+				// by other threads, that invariant holds.  The other fact is
+				// that the moment the counters have the same (nonzero) value,
+				// they will forever after have that same value.  Note that we
+				// still have to do the fused incrementAndGet so that we know if
+				// *we* were the (sole) cause of exhaustion.
 				final long completed = workUnitsCompleted.incrementAndGet();
 				final long queued = workUnitsQueued.get();
 				assert completed <= queued;
@@ -468,14 +455,14 @@ public class CompilationContext
 	 * Eventually execute the specified {@linkplain Continuation0 continuation}
 	 * as a {@linkplain AvailCompiler compiler} work unit.
 	 *
-	 * @param continuation
-	 *        What to do at some point in the future.
 	 * @param lexingState
 	 *        The {@link LexingState} for which to report problems.
+	 * @param continuation
+	 *        What to do at some point in the future.
 	 */
-	void workUnitDo (
-		final Continuation0 continuation,
-		final LexingState lexingState)
+	public void workUnitDo (
+		final LexingState lexingState,
+		final Continuation0 continuation)
 	{
 		startWorkUnit();
 		final Continuation1<Void> workUnit = workUnitCompletion(
@@ -496,7 +483,7 @@ public class CompilationContext
 	/**
 	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
 	 * {@linkplain Continuation0 continuation of zero arguments} and record that
-	 * as per {@linkplain #workUnitDo(Continuation0, LexingState)}.
+	 * as per {@linkplain #workUnitDo(LexingState, Continuation0)}.
 	 *
 	 * @param <ArgType>
 	 *        The type of argument to the given continuation.
@@ -508,15 +495,13 @@ public class CompilationContext
 	 *        What to pass as an argument to the provided {@linkplain
 	 *        Continuation1 one-argument continuation}.
 	 */
-	@InnerAccess
-	<ArgType> void attempt (
+	@InnerAccess <ArgType> void attempt (
 		final LexingState lexingState,
 		final Continuation1<ArgType> continuation,
 		final ArgType argument)
 	{
 		workUnitDo(
-			() -> continuation.value(argument),
-			lexingState);
+			lexingState, () -> continuation.value(argument));
 	}
 
 	/**
@@ -611,8 +596,7 @@ public class CompilationContext
 	 * @param onFailure
 	 *        What to do with a terminal {@link Throwable}.
 	 */
-	@InnerAccess
-	void evaluateFunctionThen (
+	@InnerAccess void evaluateFunctionThen (
 		final A_Function function,
 		final int lineNumber,
 		final List<? extends A_BasicObject> args,
@@ -786,7 +770,7 @@ public class CompilationContext
 			if (AvailLoader.debugUnsummarizedStatements)
 			{
 				System.out.println(
-					module.toString()
+					module
 						+ ":" + function.code().startingLineNumber()
 						+ " Unsummarized -- " + function);
 			}
@@ -806,7 +790,7 @@ public class CompilationContext
 		if (AvailLoader.debugUnsummarizedStatements)
 		{
 			System.out.println(
-				module.toString()
+				module
 					+ ":" + function.code().startingLineNumber()
 					+ " Forced -- " + function);
 		}
@@ -825,8 +809,7 @@ public class CompilationContext
 	 *        The unexpected {@linkplain Throwable exception} that is the
 	 *        proximal cause of the problem.
 	 */
-	@InnerAccess
-	void reportInternalProblem (
+	@InnerAccess void reportInternalProblem (
 		final int lineNumber,
 		final int position,
 		final Throwable e)
@@ -863,8 +846,7 @@ public class CompilationContext
 	 *        The unexpected {@linkplain Throwable exception} that is the
 	 *        proximal cause of the problem.
 	 */
-	@InnerAccess
-	void reportExecutionProblem (
+	@InnerAccess void reportExecutionProblem (
 		final int lineNumber,
 		final int position,
 		final Throwable e)
@@ -919,8 +901,7 @@ public class CompilationContext
 	 * @param e
 	 *        The {@linkplain AvailAssertionFailedException assertion failure}.
 	 */
-	@InnerAccess
-	void reportAssertionFailureProblem (
+	@InnerAccess void reportAssertionFailureProblem (
 		final int lineNumber,
 		final int position,
 		final AvailAssertionFailedException e)
@@ -954,8 +935,7 @@ public class CompilationContext
 	 *        The {@linkplain AvailEmergencyExitException emergency exit
 	 *        failure}.
 	 */
-	@InnerAccess
-	void reportEmergencyExitProblem (
+	@InnerAccess void reportEmergencyExitProblem (
 		final int lineNumber,
 		final int position,
 		final AvailEmergencyExitException e)

@@ -2570,8 +2570,10 @@ extends JFrame
 		final JMenu transcriptPopup = menu("Transcript", clearTranscriptAction);
 
 		// Collect the modules and entry points.
-		final TreeNode modules = newModuleTree();
-		final TreeNode entryPoints = newEntryPointsTree();
+		final TreeNode modules = new DefaultMutableTreeNode(
+			"(packages hidden root)");
+		final TreeNode entryPoints =
+			new DefaultMutableTreeNode("(entry points hidden root)");
 
 		// Create the module tree.
 		moduleTree = new JTree(modules);
@@ -3088,6 +3090,7 @@ extends JFrame
 				frame.setUpInstanceForMac();
 			}
 			frame.setVisible(true);
+			frame.refresh();
 		});
 	}
 }

@@ -85,6 +85,16 @@ extends A_BasicObject
 	A_Module definitionModule ();
 
 	/**
+	 * Answer the {@link A_String} that names the {@link ModuleDescriptor
+	 * module} in which this {@linkplain DefinitionDescriptor definition}
+	 * occurred.  IF the definition is built-in (i.e., not created in any
+	 * module), reply with a suitable string to indicate this.
+	 *
+	 * @return The definition's originating module's name.
+	 */
+	A_String definitionModuleName ();
+
+	/**
 	 * Answer whether this is an {@linkplain AbstractDefinitionDescriptor
 	 * abstract definition}.
 	 *

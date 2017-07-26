@@ -155,7 +155,7 @@ extends Descriptor
 	{
 		aStream.append("Lexer for ");
 		boolean first = true;
-		for (final A_Bundle eachBundle : object.bundles())
+		for (final A_Bundle eachBundle : object.lexerMethod().bundles())
 		{
 			if (!first)
 			{

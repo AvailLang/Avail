@@ -46,8 +46,8 @@ import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * The {@code P_BootstrapLexerKeywordBody} primitive is used for parsing keyword
- * tokens.
+ * The {@code P_BootstrapLexerStringBody} primitive is used for parsing quoted
+ * string literal tokens.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -87,7 +87,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 				case '\"':
 					final A_Token token = LiteralTokenDescriptor.create(
 						(A_String) source.copyTupleFromToCanDestroy(
-							startPosition, scanner.position, false),
+							startPosition, scanner.position - 1, false),
 						TupleDescriptor.empty(),
 						TupleDescriptor.empty(),
 						startPosition,
@@ -95,7 +95,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 						TokenType.LITERAL,
 						StringDescriptor.from(builder.toString()));
 					return interpreter.primitiveSuccess(
-						TupleDescriptor.from(token));
+						TupleDescriptor.from(token.makeShared()));
 				case '\\':
 					if (!scanner.hasNext())
 					{

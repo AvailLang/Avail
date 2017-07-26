@@ -1,5 +1,5 @@
 /**
- * P_BootstrapLexerKeywordFilter.java
+ * P_BootstrapLexerWholeNumberFilter.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -49,9 +49,9 @@ import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * The {@code P_BootstrapLexerKeywordFilter} primitive is used for deciding
- * whether a particular Unicode character is suitable as the start of a keyword
- * token.
+ * The {@code P_BootstrapLexerWholeNumberFilter} primitive is used for deciding
+ * whether a particular Unicode character is suitable as the start of a
+ * non-negative integer literal token.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -74,11 +74,8 @@ public final class P_BootstrapLexerWholeNumberFilter extends Primitive
 		final A_Character character = args.get(0);
 
 		final int codePoint = character.codePoint();
-		final boolean isIdentifierStart =
-			Character.isUnicodeIdentifierStart(codePoint)
-				|| codePoint == '_';
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(isIdentifierStart));
+			AtomDescriptor.objectFromBoolean(Character.isDigit(codePoint)));
 	}
 
 	@Override

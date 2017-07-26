@@ -49,12 +49,12 @@ final class CompilerSolution implements AbstractSolution
 	/**
 	 * The parse position after this solution.
 	 */
-	final ParserState endState;
+	private final ParserState endState;
 
 	/**
 	 * A parse node that ends at the specified ending position.
 	 */
-	final A_Phrase parseNode;
+	private final A_Phrase parseNode;
 
 
 	/**
@@ -86,8 +86,7 @@ final class CompilerSolution implements AbstractSolution
 		{
 			return false;
 		}
-		final CompilerSolution other =
-			(CompilerSolution)obj;
+		final CompilerSolution other = (CompilerSolution) obj;
 		return endState.equals(other.endState)
 			&& parseNode.equals(other.parseNode);
 	}
@@ -107,7 +106,7 @@ final class CompilerSolution implements AbstractSolution
 		builder.append(": ");
 		builder.append(endState.clientDataMap);
 		builder.append(") = ");
-		builder.append(parseNode().toString());
+		builder.append(parseNode());
 		return builder.toString();
 	}
 

@@ -4285,6 +4285,12 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_String o_DefinitionModuleName (final AvailObject object)
+	{
+		return o_Traversed(object).definitionModuleName();
+	}
+
+	@Override
 	A_Bundle o_BundleOrCreate (final AvailObject object)
 		throws MalformedMessageException
 	{

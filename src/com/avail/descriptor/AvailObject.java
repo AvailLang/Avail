@@ -6638,6 +6638,12 @@ implements
 	}
 
 	@Override
+	public A_String definitionModuleName ()
+	{
+		return descriptor.o_DefinitionModuleName(this);
+	}
+
+	@Override
 	public A_Bundle bundleOrCreate () throws MalformedMessageException
 	{
 		return descriptor.o_BundleOrCreate(this);

@@ -194,7 +194,7 @@ extends DefinitionDescriptor
 		writer.write("definition method");
 		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
 		writer.write("definition module");
-		object.slot(MODULE).moduleName().writeTo(writer);
+		object.definitionModuleName().writeTo(writer);
 		writer.write("body block");
 		object.slot(BODY_BLOCK).writeTo(writer);
 		writer.write("macro prefix functions");
@@ -211,7 +211,7 @@ extends DefinitionDescriptor
 		writer.write("definition method");
 		object.slot(DEFINITION_METHOD).methodName().writeTo(writer);
 		writer.write("definition module");
-		object.slot(MODULE).moduleName().writeTo(writer);
+		object.definitionModuleName().writeTo(writer);
 		writer.write("body block");
 		object.slot(BODY_BLOCK).writeSummaryTo(writer);
 		writer.write("macro prefix functions");

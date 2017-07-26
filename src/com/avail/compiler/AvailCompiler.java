@@ -39,11 +39,13 @@ import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedPragmaException;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.PrefixSharingList;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
@@ -102,6 +104,7 @@ import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 /**
  * The compiler for Avail code.
@@ -239,7 +242,7 @@ public final class AvailCompiler
 	 *        May be null for synthetic modules (for entry points), or when
 	 *        parsing the header.
 	 * @param module
-	 *        The current {@linkplain ModuleDescriptor module}.
+	 *        The current {@linkplain ModuleDescriptor module}.`
 	 * @param source
 	 *        The source {@link String}.
 	 * @param textInterface
@@ -579,7 +582,7 @@ public final class AvailCompiler
 							// between the previously recorded solution and this
 							// one.
 							reportAmbiguousInterpretations(
-								aSolution.endState,
+								aSolution.endState(),
 								solution.value(),
 								aSolution.parseNode(),
 								afterFail);
@@ -1394,8 +1397,8 @@ public final class AvailCompiler
 
 	/**
 	 * Report that the parser was expecting one of several keywords. The
-	 * keywords are keys of the {@linkplain MapDescriptor map} argument
-	 * {@code incomplete}.
+	 * keywords are keys of the {@linkplain MapDescriptor map} argument {@code
+	 * incomplete}.
 	 *
 	 * @param where
 	 *        Where the keywords were expected.
@@ -1422,8 +1425,7 @@ public final class AvailCompiler
 			final StringBuilder builder = new StringBuilder(200);
 			if (caseInsensitive)
 			{
-				builder.append(
-					"one of the following case-insensitive tokens:");
+				builder.append("one of the following case-insensitive tokens:");
 			}
 			else
 			{
@@ -1449,9 +1451,6 @@ public final class AvailCompiler
 					// current bundle tree might be eligible for
 					// continued parsing at multiple positions.
 					final Set<String> strings = new HashSet<>();
-					final List<A_ParsingPlanInProgress>
-						representativePlansInProgress =
-							new ArrayList<>();
 					final A_BundleTree nextTree = entry.value();
 					for (final Entry successorBundleEntry :
 						nextTree.allParsingPlansInProgress().mapIterable())
@@ -1469,12 +1468,15 @@ public final class AvailCompiler
 											.create(
 												inProgress.parsingPlan(),
 												max(
-													inProgress.parsingPc()
-														- 1,
+													inProgress.parsingPc() - 1,
 													1));
+								final @Nullable A_Module issuingModule =
+									bundle.message().issuingModule();
 								final String moduleName =
-									bundle.message().issuingModule()
-										.moduleName().asNativeString();
+									issuingModule.equalsNil()
+										? "(built-in)"
+										: issuingModule.moduleName()
+											.asNativeString();
 								final String shortModuleName =
 									moduleName.substring(
 										moduleName.lastIndexOf('/') + 1);
@@ -1485,8 +1487,7 @@ public final class AvailCompiler
 							}
 						}
 					}
-					final List<String> sortedStrings =
-						new ArrayList<>(strings);
+					final List<String> sortedStrings = new ArrayList<>(strings);
 					Collections.sort(sortedStrings);
 					final StringBuilder buffer = new StringBuilder();
 					buffer.append(availTokenString.asNativeString());
@@ -1574,12 +1575,12 @@ public final class AvailCompiler
 		clientMap = clientMap.mapAtPuttingCanDestroy(
 			ALL_TOKENS_KEY.atom, TupleDescriptor.empty(), false);
 		parseRestOfSendNode(
-			new ParserState(start.lexingState, clientMap),
+			start.withMap(clientMap),
 			compilationContext.loader().rootBundleTree(),
 			null,
 			start,
 			false,  // Nothing consumed yet.
-			Collections.emptyList(),
+			emptyList(),
 			initialParseStack,
 			initialMarkStack,
 			Con(
@@ -1615,12 +1616,12 @@ public final class AvailCompiler
 		clientMap = clientMap.mapAtPuttingCanDestroy(
 			ALL_TOKENS_KEY.atom, TupleDescriptor.empty(), false);
 		parseRestOfSendNode(
-			new ParserState(start.lexingState, clientMap),
+			start.withMap(clientMap),
 			compilationContext.loader().rootBundleTree(),
 			leadingArgument,
 			initialTokenPosition,
 			false,  // Leading argument does not yet count as something parsed.
-			Collections.emptyList(),
+			emptyList(),
 			initialParseStack,
 			initialMarkStack,
 			Con(
@@ -1905,19 +1906,17 @@ public final class AvailCompiler
 				if (firstArgOrNull == null || op.canRunIfHasFirstArgument)
 				{
 					final A_Tuple value = entry.value();
-					compilationContext.workUnitDo(
-						() -> runParsingInstructionThen(
-							start,
-							keyInt,
-							firstArgOrNull,
-							argsSoFar,
-							marksSoFar,
-							initialTokenPosition,
-							consumedAnything,
-							consumedTokens,
-							value,
-							continuation),
-						start.lexingState);
+					start.workUnitDo(() -> runParsingInstructionThen(
+						start,
+						keyInt,
+						firstArgOrNull,
+						argsSoFar,
+						marksSoFar,
+						initialTokenPosition,
+						consumedAnything,
+						consumedTokens,
+						value,
+						continuation));
 				}
 			}
 		}
@@ -1947,7 +1946,6 @@ public final class AvailCompiler
 	 * @param tokenMap
 	 *        A map from string to message bundle tree, used for parsing tokens
 	 *        when in this state.
-	 * @return Whether a token was recognized along any lexer path.
 	 */
 	private void attemptToConsumeToken (
 		final ParserState start,
@@ -1966,10 +1964,31 @@ public final class AvailCompiler
 			boolean recognized = false;
 			for (final A_Token token : tokens)
 			{
+				final TokenType tokenType = token.tokenType();
+				if (tokenType == COMMENT || tokenType == WHITESPACE)
+				{
+					// Capture the comment and try again.
+					final ParserState afterComment =
+						new ParserState(
+							token.nextLexingStateIn(compilationContext),
+							start.clientDataMap,
+							captureIfComment(
+								start.capturedCommentTokens, token));
+					afterComment.workUnitDo(() -> attemptToConsumeToken(
+						afterComment,
+						initialTokenPosition,
+						consumedAnything,  // Don't count the comment.
+						consumedTokens,  // Don't include the comment.
+						argsSoFar,
+						marksSoFar,
+						continuation,
+						tokenMap,  // Don't record the comment.
+						caseInsensitive));
+					continue;
+				}
 				final A_String string = caseInsensitive
 					? token.lowerCaseString()
 					: token.string();
-				final TokenType tokenType = token.tokenType();
 				if (tokenType == KEYWORD || tokenType == OPERATOR)
 				{
 					if (tokenMap.hasKey(string))
@@ -1980,7 +1999,7 @@ public final class AvailCompiler
 						{
 							System.out.println(
 								"Matched"
-									+ (caseInsensitive ? " insensitive " : " ")
+									+ (caseInsensitive ? " insensitive " : "")
 									+ "token: "
 									+ string
 									+ "@" + token.lineNumber()
@@ -1995,10 +2014,12 @@ public final class AvailCompiler
 								.mapAt(ALL_TOKENS_KEY.atom)
 								.appendCanDestroy(token, false),
 							false);
-						final ParserState afterRecordingToken = new ParserState(
-							start.lexingState, clientMap);
+						final ParserState afterToken = new ParserState(
+							token.nextLexingStateIn(compilationContext),
+							clientMap,
+							start.capturedCommentTokens);
 						eventuallyParseRestOfSendNode(
-							afterRecordingToken,
+							afterToken,
 							successor,
 							null,
 							initialTokenPosition,
@@ -2031,6 +2052,22 @@ public final class AvailCompiler
 				expectedKeywordsOf(start, tokenMap, caseInsensitive, strings);
 			}
 		});
+	}
+
+	@InnerAccess static List<A_Token> captureIfComment (
+		final List<A_Token> commentTokens,
+		final A_Token token)
+	{
+		switch (token.tokenType())
+		{
+			case COMMENT:
+				return append(commentTokens, token);
+			case WHITESPACE:
+				return commentTokens;
+			default:
+				throw new RuntimeException(
+					"Expecting comment or whitespace token");
+		}
 	}
 
 	@InnerAccess void describeFailedTypeTestThen (
@@ -2493,6 +2530,32 @@ public final class AvailCompiler
 						for (final A_Token token : nextTokens)
 						{
 							final TokenType tokenType = token.tokenType();
+							if (tokenType == COMMENT || tokenType == WHITESPACE)
+							{
+								// Capture the comment and try again.
+								start.workUnitDo(() ->
+								{
+									final ParserState next = new ParserState(
+										token.nextLexingStateIn(
+											compilationContext),
+										start.clientDataMap,
+										captureIfComment(
+											start.capturedCommentTokens,
+											token));
+									runParsingInstructionThen(
+										next,
+										instruction,
+										firstArgOrNull,
+										argsSoFar,
+										marksSoFar,
+										initialTokenPosition,
+										consumedAnything,
+										consumedTokens,
+										successorTrees,
+										continuation);
+								});
+								continue;
+							}
 							if (op == PARSE_RAW_KEYWORD_TOKEN
 								&& tokenType != KEYWORD)
 							{
@@ -2552,7 +2615,8 @@ public final class AvailCompiler
 							eventuallyParseRestOfSendNode(
 								new ParserState(
 									token.nextLexingStateIn(compilationContext),
-									start.clientDataMap),
+									start.clientDataMap,
+									start.capturedCommentTokens),
 								successorTrees.tupleAt(1),
 								null,
 								initialTokenPosition,
@@ -3004,11 +3068,8 @@ public final class AvailCompiler
 				// The prefix function ran successfully.
 				final A_Map replacementClientDataMap =
 					fiber.fiberGlobals().mapAt(CLIENT_DATA_GLOBAL_KEY.atom);
-				final ParserState newState = new ParserState(
-					start.lexingState,
-					replacementClientDataMap);
 				eventuallyParseRestOfSendNode(
-					newState,
+					start.withMap(replacementClientDataMap),
 					successorTree,
 					firstArgOrNull,
 					initialTokenPosition,
@@ -3031,11 +3092,8 @@ public final class AvailCompiler
 					// parse.
 					final A_Map replacementClientDataMap =
 						fiber.fiberGlobals().mapAt(CLIENT_DATA_GLOBAL_KEY.atom);
-					final ParserState newState = new ParserState(
-						start.lexingState,
-						replacementClientDataMap);
 					eventuallyParseRestOfSendNode(
-						newState,
+						start.withMap(replacementClientDataMap),
 						successorTree,
 						firstArgOrNull,
 						initialTokenPosition,
@@ -3141,7 +3199,9 @@ public final class AvailCompiler
 		final List<A_Definition> satisfyingDefinitions = new ArrayList<>();
 		for (final A_Definition definition : filteredByTypes)
 		{
-			if (allAncestors.hasElement(definition.definitionModule()))
+			final A_Module definitionModule = definition.definitionModule();
+			if (definitionModule.equalsNil()
+				|| allAncestors.hasElement(definitionModule))
 			{
 				satisfyingDefinitions.add(definition);
 			}
@@ -3183,7 +3243,9 @@ public final class AvailCompiler
 			new ArrayList<>(restrictions.setSize());
 		for (final A_SemanticRestriction restriction : restrictions)
 		{
-			if (allAncestors.hasElement(restriction.definitionModule()))
+			final A_Module definitionModule = restriction.definitionModule();
+			if (definitionModule.equalsNil()
+				|| allAncestors.hasElement(restriction.definitionModule()))
 			{
 				if (restriction.function().kind().acceptsListOfArgValues(
 					argTypes))
@@ -3373,7 +3435,9 @@ public final class AvailCompiler
 			final List<A_Definition> allVisible = new ArrayList<>();
 			for (final A_Definition def : definitionsTuple)
 			{
-				if (allAncestorModules.hasElement(def.definitionModule()))
+				final A_Module definingModule = def.definitionModule();
+				if (definingModule.equalsNil()
+					|| allAncestorModules.hasElement(def.definitionModule()))
 				{
 					allVisible.add(def);
 				}
@@ -3459,7 +3523,7 @@ public final class AvailCompiler
 					{
 						builder.format(
 							"%n\t\tFrom module %s @ line #%s,",
-							definition.definitionModule().moduleName(),
+							definition.definitionModuleName(),
 							definition.isMethodDefinition()
 								? definition.bodyBlock().code()
 									.startingLineNumber()
@@ -3586,7 +3650,9 @@ public final class AvailCompiler
 				new ArrayList<>(macroDefinitionsTuple.tupleSize());
 			for (final A_Definition definition : macroDefinitionsTuple)
 			{
-				if (allAncestors.hasElement(definition.definitionModule()))
+				final A_Module definitionModule = definition.definitionModule();
+				if (definitionModule.equalsNil()
+					|| allAncestors.hasElement(definitionModule))
 				{
 					visibleDefinitions.add(definition);
 				}
@@ -3620,8 +3686,8 @@ public final class AvailCompiler
 				final List<A_Definition> filtered = new ArrayList<>();
 				for (final A_Definition macroDefinition : visibleDefinitions)
 				{
-					if (macroDefinition.bodySignature()
-						.couldEverBeInvokedWith(phraseTypes))
+					if (macroDefinition.bodySignature().couldEverBeInvokedWith(
+						phraseTypes))
 					{
 						filtered.add(macroDefinition);
 					}
@@ -3742,9 +3808,8 @@ public final class AvailCompiler
 			argTypes.add(argTupleType.typeAtIndex(i));
 		}
 		// Parsing a macro send must not affect the scope.
-		final ParserState afterState = new ParserState(
-			stateAfterCall.lexingState,
-			stateBeforeCall.clientDataMap);
+		final ParserState afterState =
+			stateAfterCall.withMap(stateBeforeCall.clientDataMap);
 		final A_Definition finalMacro = macro;
 		// Validate the message send before reifying a send phrase.
 		validateArgumentTypes(
@@ -3993,11 +4058,8 @@ public final class AvailCompiler
 				COMPILER_SCOPE_MAP_KEY.atom,
 				MapDescriptor.empty(),
 				false);
-		final ParserState startInGlobalScope = new ParserState(
-			start.lexingState,
-			clientDataInGlobalScope);
 		parseSendArgumentWithExplanationThen(
-			startInGlobalScope,
+			start.withMap(clientDataInGlobalScope),
 			"module-scoped argument",
 			firstArgOrNull,
 			firstArgOrNull == null
@@ -4054,11 +4116,8 @@ public final class AvailCompiler
 					}
 					final List<A_Phrase> newArgsSoFar =
 						append(argsSoFar, newArg);
-					final ParserState afterArgButInScope = new ParserState(
-						afterArg.lexingState,
-						start.clientDataMap);
 					eventuallyParseRestOfSendNode(
-						afterArgButInScope,
+						afterArg.withMap(start.clientDataMap),
 						successorTrees.tupleAt(1),
 						null,
 						initialTokenPosition,
@@ -4210,8 +4269,7 @@ public final class AvailCompiler
 					}
 					// Continue after this macro invocation with whatever
 					// client data was set up by the macro.
-					final ParserState stateAfter = new ParserState(
-						stateAfterCall.lexingState,
+					final ParserState stateAfter = stateAfterCall.withMap(
 						clientDataAfterRunning.value());
 					final A_Phrase original = SendNodeDescriptor.from(
 						constituentTokens,
@@ -4906,7 +4964,7 @@ public final class AvailCompiler
 		}
 		final Iterator<A_Token> iterator = moduleHeader().pragmas.iterator();
 		final MutableOrNull<Continuation0> body = new MutableOrNull<>();
-		final Continuation0 next = () -> compilationContext.eventuallyDo(
+		final Continuation0 next = () -> compilationContext.workUnitDo(
 			state.lexingState, body.value());
 		body.value = () ->
 		{
@@ -5059,7 +5117,7 @@ public final class AvailCompiler
 						// Parse the body of the module.
 						if (!afterHeader.atEnd())
 						{
-							compilationContext.eventuallyDo(
+							compilationContext.workUnitDo(
 								afterHeader.lexingState,
 								() -> parseAndExecuteOutermostStatements(
 									afterHeader, onFail));
@@ -5147,12 +5205,10 @@ public final class AvailCompiler
 							moduleName(),
 							(long) source().tupleSize(),
 							(long) afterStatement.position());
-						compilationContext.eventuallyDo(
+						compilationContext.workUnitDo(
 							afterStatement.lexingState,
 							() -> parseAndExecuteOutermostStatements(
-								new ParserState(
-									afterStatement.lexingState,
-									start.clientDataMap),
+								afterStatement.withMap(start.clientDataMap),
 								afterFail));
 					};
 
@@ -5268,7 +5324,7 @@ public final class AvailCompiler
 		startModuleTransaction();
 		final LexingState startOfModule = new LexingState(
 			compilationContext, 1, 1);
-		compilationContext.eventuallyDo(
+		compilationContext.workUnitDo(
 			startOfModule,
 			() -> parseModuleCompletely(
 				() -> onSuccess.value(compilationContext.module()),
@@ -5322,7 +5378,7 @@ public final class AvailCompiler
 			});
 		recordExpectationsRelativeTo(1);
 		final LexingState start = new LexingState(compilationContext, 1, 1);
-		compilationContext.eventuallyDo(
+		compilationContext.workUnitDo(
 			start,
 			() ->
 			{
@@ -5335,13 +5391,12 @@ public final class AvailCompiler
 					ALL_TOKENS_KEY.atom, TupleDescriptor.empty(), true);
 				// Rollback the module transaction no matter what happens.
 				parseExpressionThen(
-					new ParserState(start, clientData),
+					new ParserState(start, clientData, emptyList()),
 					Con(
 						null,
 						solution ->
 						{
-							final A_Phrase expression =
-								solution.parseNode();
+							final A_Phrase expression = solution.parseNode();
 							final ParserState afterExpression =
 								solution.endState();
 							if (expression.hasSuperCast())
@@ -5427,7 +5482,8 @@ public final class AvailCompiler
 	private static A_String stringFromToken (final A_Token token)
 	{
 		assert token.isInstanceOfKind(TOKEN.o());
-		final AvailObject literal = token.literal();
+		final A_Token innerToken = token.literal();
+		final A_String literal = innerToken.literal();
 		assert literal.isInstanceOfKind(TupleTypeDescriptor.stringType());
 		return literal;
 	}
@@ -5452,7 +5508,7 @@ public final class AvailCompiler
 			SpecialMethodAtom.MODULE_HEADER_METHOD.atom);
 		final A_Tuple args =
 			convertHeaderPhraseToValue(headerPhrase.argumentsListNode());
-		assert args.tupleSize() == 5;
+		assert args.tupleSize() == 6;
 		final A_Token moduleNameToken = args.tupleAt(1);
 		final A_Tuple optionalVersions = args.tupleAt(2);
 		final A_Tuple allImports = args.tupleAt(3);
@@ -5677,7 +5733,7 @@ public final class AvailCompiler
 			assert optionalEntries.tupleSize() == 1;
 			for (final A_Token entryToken : optionalEntries.tupleAt(1))
 			{
-				header.entryPoints.add(entryToken.literal());
+				header.entryPoints.add(stringFromToken(entryToken));
 			}
 		}
 
@@ -5726,7 +5782,8 @@ public final class AvailCompiler
 			ALL_TOKENS_KEY.atom, TupleDescriptor.empty(), true);
 		ParserState state = new ParserState(
 			new LexingState(compilationContext, 1, 1),
-			clientData);
+			clientData,
+			emptyList());
 
 		recordExpectationsRelativeTo(1);
 
@@ -5738,10 +5795,12 @@ public final class AvailCompiler
 				solution ->
 				{
 					final A_Phrase headerPhrase = solution.parseNode();
-					assert headerPhrase.parseNodeKindIsUnder(SEND_NODE);
+					assert headerPhrase.parseNodeKindIsUnder(
+						EXPRESSION_AS_STATEMENT_NODE);
 					assert headerPhrase.apparentSendName().equals(
 						SpecialMethodAtom.MODULE_HEADER_METHOD.atom);
-					processHeaderMacro(headerPhrase, onFail);
+					processHeaderMacro(headerPhrase.expression(), onFail);
+					onSuccess.value(solution.endState());
 				}),
 			onFail);
 	}
@@ -5821,20 +5880,18 @@ public final class AvailCompiler
 									});
 							}
 						});
-				compilationContext.workUnitDo(
-					() -> parseExpressionUncachedThen(start, action),
-					start.lexingState);
+				start.workUnitDo(() -> parseExpressionUncachedThen(
+					start,
+					action));
 			}
-			compilationContext.workUnitDo(
-				() ->
+			start.workUnitDo(() ->
+			{
+				synchronized (fragmentCache)
 				{
-					synchronized (fragmentCache)
-					{
-						fragmentCache.addAction(
-							start, originalContinuation);
-					}
-				},
-				start.lexingState);
+					fragmentCache.addAction(
+						start, originalContinuation);
+				}
+			});
 		}
 	}
 
@@ -5936,18 +5993,16 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final Con<CompilerSolution> continuation)
 	{
-		compilationContext.workUnitDo(
-			() -> parseRestOfSendNode(
-				start,
-				bundleTree,
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedTokens,
-				argsSoFar,
-				marksSoFar,
-				continuation),
-			start.lexingState);
+		start.workUnitDo(() -> parseRestOfSendNode(
+			start,
+			bundleTree,
+			firstArgOrNull,
+			initialTokenPosition,
+			consumedAnything,
+			consumedTokens,
+			argsSoFar,
+			marksSoFar,
+			continuation));
 	}
 
 	/**

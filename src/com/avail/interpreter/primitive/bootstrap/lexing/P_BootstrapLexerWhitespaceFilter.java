@@ -50,8 +50,8 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * The {@code P_BootstrapLexerKeywordFilter} primitive is used for deciding
- * whether a particular Unicode character is suitable as the start of a keyword
- * token.
+ * whether a particular Unicode character is an initial character for a run of
+ * whitespace.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

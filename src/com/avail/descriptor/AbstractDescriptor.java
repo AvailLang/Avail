@@ -5857,6 +5857,12 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @return
+	 */
+	abstract A_String o_DefinitionModuleName (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
 	 * @throws MalformedMessageException
 	 */
 	abstract A_Bundle o_BundleOrCreate (AvailObject object)

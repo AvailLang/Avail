@@ -35,6 +35,8 @@ import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
+import com.avail.utility.PrefixSharingList;
+import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer1;
@@ -59,10 +61,16 @@ public class ParserState
 	final LexingState lexingState;
 
 	/**
-	 * A {@linkplain MapDescriptor map} of interesting information used by
-	 * the compiler.
+	 * A {@linkplain MapDescriptor map} of interesting information used by the
+	 * compiler.
 	 */
 	public final A_Map clientDataMap;
+
+	/**
+	 * The {@link CommentTokenDescriptor comment tokens} that have been captured
+	 * along the history of this parser state.
+	 */
+	public final List<A_Token> capturedCommentTokens;
 
 	/**
 	 * Construct a new immutable {@link ParserState}.
@@ -72,15 +80,21 @@ public class ParserState
 	 * @param clientDataMap
 	 *        The {@link MapDescriptor map} of data used by macros while
 	 *        parsing Avail code.
+	 * @param capturedCommentTokens
+	 *        The immutable list of {@link CommentTokenDescriptor comment
+	 *        tokens} that were encountered so far along the history of this
+	 *        {@link ParserState}.
 	 */
 	ParserState (
 		final LexingState lexingState,
-		final A_Map clientDataMap)
+		final A_Map clientDataMap,
+		final List<A_Token> capturedCommentTokens)
 	{
 		this.lexingState = lexingState;
 		// Note that this map *must* be marked as shared, since parsing
 		// proceeds in parallel.
 		this.clientDataMap = clientDataMap.makeShared();
+		this.capturedCommentTokens = capturedCommentTokens;
 	}
 
 	@Override
@@ -138,6 +152,20 @@ public class ParserState
 			min(lexingState.position + 20, source.tupleSize()),
 			false);
 		return lexingState.lineNumber + ":" + nearbyText.asNativeString() + "…";
+	}
+
+	/**
+	 * Create a {@link ParserState} with a different {@link #clientDataMap}.
+	 *
+	 * @param replacementMap
+	 *        The {@link A_Map} to replace this parser state's {@link
+	 *        #clientDataMap} in the new parser state.
+	 * @return The new {@link ParserState}.
+	 */
+	public ParserState withMap (final A_Map replacementMap)
+	{
+		return new ParserState(
+			lexingState, replacementMap, capturedCommentTokens);
 	}
 
 	/**
@@ -225,5 +253,15 @@ public class ParserState
 	void expected (final String aString)
 	{
 		expected(new SimpleDescriber(aString));
+	}
+
+	/**
+	 * Queue an action to be performed later.
+	 *
+	 * @param action The {@link Continuation0} to perform later.
+	 */
+	public void workUnitDo (final Continuation0 action)
+	{
+		lexingState.compilationContext.workUnitDo(lexingState, action);
 	}
 }

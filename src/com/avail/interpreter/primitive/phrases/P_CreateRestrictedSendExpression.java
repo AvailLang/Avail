@@ -141,7 +141,9 @@ extends Primitive
 		for (final A_Definition definition :
 			bundle.bundleMethod().filterByTypes(argTypesList))
 		{
-			if (allVisibleModules.hasElement(definition.definitionModule()))
+			final A_Module definitionModule = definition.definitionModule();
+			if (definition.equalsNil()
+				|| allVisibleModules.hasElement(definitionModule))
 			{
 				intersection.value = intersection.value.typeIntersection(
 					definition.bodySignature().returnType());

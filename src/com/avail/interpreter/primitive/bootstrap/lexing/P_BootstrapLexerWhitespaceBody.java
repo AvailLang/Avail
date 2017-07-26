@@ -1,5 +1,5 @@
 /**
- * P_BootstrapLexerKeywordBody.java
+ * P_BootstrapLexerWhitespaceBody.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -44,8 +44,8 @@ import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * The {@code P_BootstrapLexerKeywordBody} primitive is used for parsing keyword
- * tokens.
+ * The {@code P_BootstrapLexerWhitespaceBody} primitive is used for parsing the
+ * whitespace between tokens.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -91,10 +91,9 @@ public final class P_BootstrapLexerWhitespaceBody extends Primitive
 			TupleDescriptor.empty(),
 			startPosition,
 			lineNumberInteger.extractInt(),
-			TokenType.COMMENT);  // TODO MvG - Maybe add TokenType.WHITESPACE.
-		token.makeShared();
+			TokenType.WHITESPACE);
 		return interpreter.primitiveSuccess(
-			TupleDescriptor.from(token));
+			TupleDescriptor.from(token.makeShared()));
 	}
 
 	@Override

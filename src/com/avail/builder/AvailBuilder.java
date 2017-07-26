@@ -935,131 +935,130 @@ public final class AvailBuilder
 	class BuildUnloader
 	{
 		/**
-		 * A {@link Continuation2} suitable for use by {@link
-		 * Graph#parallelVisit(Continuation2)} on the module graph.  It should
-		 * determine which modules should be unloaded.
+		 * Determine which modules should be unloaded.  Suitable to be invoked
+		 * by {@link Graph#parallelVisit(Continuation2)} on the module graph.
+		 * For each module that should be unloaded, set its {@link
+		 * LoadedModule#deletionRequest deletionRequest}.
+		 *
+		 * <p>Note that the parallel graph visit mechanism blocks for all
+		 * predecessors to complete before starting a vertex (module), and this
+		 * method automatically marks a module for invalidation if any of its
+		 * immediate predecessors (which will have already been processed) is
+		 * also marked for invalidation.</p>
+		 *
+		 * @param moduleName
+		 *        The name of the module to check for dirtiness.
+		 * @param completionAction
+		 *        What to do after testing for dirtiness (and possibly setting
+		 *        the deletionRequest) of the given module.
 		 */
-		private final Continuation2<ResolvedModuleName, Continuation0>
-			determineDirtyModules =
-				new Continuation2<ResolvedModuleName, Continuation0>()
+		private final void determineDirtyModules (
+			final @Nullable ResolvedModuleName moduleName,
+			final @Nullable Continuation0 completionAction)
 		{
-			@Override
-			public void value (
-				final @Nullable ResolvedModuleName moduleName,
-				final @Nullable Continuation0 completionAction)
+			assert moduleName != null;
+			assert completionAction != null;
+			runtime.execute(new AvailTask(loaderPriority)
 			{
-				assert moduleName != null;
-				assert completionAction != null;
-				runtime.execute(new AvailTask(loaderPriority)
+				@Override
+				public void value()
 				{
-					@Override
-					public void value()
+					boolean dirty = false;
+					for (final ResolvedModuleName predecessor :
+						moduleGraph.predecessorsOf(moduleName))
 					{
-						boolean dirty = false;
-						for (final ResolvedModuleName predecessor
-							: moduleGraph.predecessorsOf(moduleName))
-						{
-							final LoadedModule loadedModule =
-								getLoadedModule(predecessor);
-							assert loadedModule != null;
-							if (loadedModule.deletionRequest)
-							{
-								dirty = true;
-								break;
-							}
-						}
-						if (!dirty)
-						{
-							// Look at the file to determine if it's changed.
-							final LoadedModule loadedModule =
-								getLoadedModule(moduleName);
-							assert loadedModule != null;
-							final IndexedRepositoryManager
-								repository = moduleName.repository();
-							final ModuleArchive archive = repository.getArchive(
-								moduleName.rootRelativeName());
-							final File sourceFile =
-								moduleName.sourceReference();
-							if (!sourceFile.isFile())
-							{
-								dirty = true;
-							}
-							else
-							{
-								final byte [] latestDigest =
-									archive.digestForFile(moduleName);
-								dirty = !Arrays.equals(
-									latestDigest,
-									loadedModule.sourceDigest);
-							}
-						}
-						final LoadedModule loadedModule =
-							getLoadedModule(moduleName);
+						final LoadedModule loadedModule = getLoadedModule(
+							predecessor);
 						assert loadedModule != null;
-						loadedModule.deletionRequest = dirty;
-						log(Level.FINEST, "(Module %s is dirty)", moduleName);
-						completionAction.value();
+						if (loadedModule.deletionRequest)
+						{
+							dirty = true;
+							break;
+						}
 					}
-				});
-			}
-		};
+					if (!dirty)
+					{
+						// Look at the file to determine if it's changed.
+						final LoadedModule loadedModule = getLoadedModule(
+							moduleName);
+						assert loadedModule != null;
+						final IndexedRepositoryManager repository =
+							moduleName.repository();
+						final ModuleArchive archive = repository.getArchive(
+							moduleName.rootRelativeName());
+						final File sourceFile = moduleName.sourceReference();
+						if (!sourceFile.isFile())
+						{
+							dirty = true;
+						}
+						else
+						{
+							final byte [] latestDigest = archive.digestForFile(
+								moduleName);
+							dirty = !Arrays.equals(
+								latestDigest, loadedModule.sourceDigest);
+						}
+					}
+					final LoadedModule loadedModule = getLoadedModule(
+						moduleName);
+					assert loadedModule != null;
+					loadedModule.deletionRequest = dirty;
+					log(Level.FINEST, "(Module %s is dirty)", moduleName);
+					completionAction.value();
+				}
+			});
+		}
 
 		/**
-		 * A {@link Continuation2} suitable for use by {@link
+		 * Unload a module previously determined to be dirty, ensuring that the
+		 * completionAction runs when this is done.  Suitable for use by {@link
 		 * Graph#parallelVisit(Continuation2)} on the {@linkplain
-		 * Graph#reverse() reverse} of the module graph.  It should unload each
-		 * module previously determined to be dirty.
+		 * Graph#reverse() reverse} of the module graph.
 		 */
-		private final Continuation2<ResolvedModuleName, Continuation0>
-			unloadModules =
-				new Continuation2<ResolvedModuleName, Continuation0>()
+		private final void unloadModules (
+			@Nullable ResolvedModuleName moduleName,
+			@Nullable Continuation0 completionAction)
 		{
-			@Override
-			public void value (
-				final @Nullable ResolvedModuleName moduleName,
-				final @Nullable Continuation0 completionAction)
+			// No need to lock dirtyModules any more, since it's
+			// purely read-only at this point.
+			assert moduleName != null;
+			assert completionAction != null;
+			runtime.whenLevelOneSafeDo(new AvailTask(loaderPriority)
 			{
-				// No need to lock dirtyModules any more, since it's
-				// purely read-only at this point.
-				assert moduleName != null;
-				assert completionAction != null;
-				runtime.whenLevelOneSafeDo(new AvailTask(loaderPriority)
+				@Override
+				public void value()
 				{
-					@Override
-					public void value()
+					final LoadedModule loadedModule =
+						getLoadedModule(moduleName);
+					assert loadedModule != null;
+					if (!loadedModule.deletionRequest)
 					{
-						final LoadedModule loadedModule =
-							getLoadedModule(moduleName);
-						assert loadedModule != null;
-						if (!loadedModule.deletionRequest)
-						{
-							completionAction.value();
-							return;
-						}
-						log(
-							Level.FINER,
-							"Beginning unload of: %s",
-							moduleName);
-						final A_Module module = loadedModule.module;
-						assert module != null;
-						// It's legal to just create a loader
-						// here, since it won't have any pending
-						// forwards to remove.
-						module.removeFrom(
-							AvailLoader.forUnloading(module, textInterface),
-							() ->
-							{
-								runtime.unlinkModule(module);
-								log(
-									Level.FINER,
-									"Finised unload of: %s",
-									moduleName);
-								completionAction.value();
-							});
+						completionAction.value();
+						return;
 					}
-				});
-			}
-		};
+					log(
+						Level.FINER,
+						"Beginning unload of: %s",
+						moduleName);
+					final A_Module module = loadedModule.module;
+					assert module != null;
+					// It's legal to just create a loader
+					// here, since it won't have any pending
+					// forwards to remove.
+					module.removeFrom(
+						AvailLoader.forUnloading(module, textInterface),
+						() ->
+						{
+							runtime.unlinkModule(module);
+							log(
+								Level.FINER,
+								"Finised unload of: %s",
+								moduleName);
+							completionAction.value();
+						});
+				}
+			});
+		}
 
 		/**
 		 * Find all loaded modules that have changed since compilation, then
@@ -1067,8 +1066,8 @@ public final class AvailBuilder
 		 */
 		@InnerAccess void unloadModified ()
 		{
-			moduleGraph.parallelVisit(determineDirtyModules);
-			moduleGraph.reverse().parallelVisit(unloadModules);
+			moduleGraph.parallelVisit(this::determineDirtyModules);
+			moduleGraph.reverse().parallelVisit(this::unloadModules);
 			// Unloading of each A_Module is complete.  Update my local
 			// structures to agree.
 			for (final LoadedModule loadedModule : loadedModulesCopy())
@@ -1155,7 +1154,7 @@ public final class AvailBuilder
 			}
 			int moduleCount = moduleGraph.vertexCount();
 			moduleGraph.parallelVisit(determineSuccessorModules);
-			moduleGraph.reverse().parallelVisit(unloadModules);
+			moduleGraph.reverse().parallelVisit(this::unloadModules);
 			// Unloading of each A_Module is complete.  Update my local
 			// structures to agree.
 			for (final LoadedModule loadedModule : loadedModulesCopy())
@@ -1706,9 +1705,6 @@ public final class AvailBuilder
 				final ModuleVersion version = archive.getVersion(versionKey);
 				assert version != null
 					: "Version should have been populated during tracing";
-				final Map<String, ResolvedModuleName> predecessorsByName =
-					moduleGraph.predecessorsOf(moduleName).stream().collect(
-						Collectors.toMap(ModuleName::qualifiedName, m -> m));
 				final List<String> imports = version.getImports();
 				final ModuleNameResolver resolver =
 					runtime.moduleNameResolver();
