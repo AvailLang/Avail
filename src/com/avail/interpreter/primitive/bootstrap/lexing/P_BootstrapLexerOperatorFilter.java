@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_Character;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
@@ -82,18 +83,9 @@ public final class P_BootstrapLexerOperatorFilter extends Primitive
 		// if it's followed by an asterisk (*), since that sequence is reserved
 		// for comments.
 		final int c = character.codePoint();
-		final boolean fail =
-			Character.isDigit(c)
-				|| Character.isUnicodeIdentifierStart(c)
-				|| Character.isSpaceChar(c)
-				|| Character.isWhitespace(c)
-				|| c < 32 || (c < 160 && c > 126)
-				|| !Character.isDefined(c)
-				|| c == '_'
-				|| c == '"'
-				|| c == '\uFEFF';
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(!fail));
+			AtomDescriptor.objectFromBoolean(
+				MessageSplitter.isOperator(c)));
 	}
 
 	@Override

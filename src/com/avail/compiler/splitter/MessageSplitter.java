@@ -42,7 +42,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.problems.CompilerDiagnostics;
-import com.avail.compiler.scanning.AvailScanner;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
 import org.jetbrains.annotations.Nullable;
@@ -634,12 +633,12 @@ public final class MessageSplitter
 		int position = 1;
 		while (position <= messageName.tupleSize())
 		{
-			final char ch = (char) messageName.tupleCodePointAt(position);
+			final int ch = messageName.tupleCodePointAt(position);
 			if (ch == ' ')
 			{
 				if (messagePartsList.size() == 0
-					|| isCharacterAnUnderscoreOrSpaceOrOperator(
-						(char) messageName.tupleCodePointAt(position - 1)))
+					|| isUnderscoreOrSpaceOrOperator(
+						messageName.tupleCodePointAt(position - 1)))
 				{
 					// Problem is before the space.  Stuff the rest of the input
 					// in as a final token to make diagnostics look right.
@@ -655,13 +654,12 @@ public final class MessageSplitter
 				//  Skip the space.
 				position++;
 				if (position > messageName.tupleSize()
-						|| isCharacterAnUnderscoreOrSpaceOrOperator(
-							(char) messageName.tupleCodePointAt(position)))
+						|| isUnderscoreOrSpaceOrOperator(
+							messageName.tupleCodePointAt(position)))
 				{
 					if ((char) messageName.tupleCodePointAt(position) != '`'
 						|| position == messageName.tupleSize()
-						|| (char) messageName.tupleCodePointAt(position + 1)
-							!= '_')
+						|| messageName.tupleCodePointAt(position + 1) != '_')
 					{
 						// Problem is after the space.
 						messagePartsList.add(
@@ -690,9 +688,7 @@ public final class MessageSplitter
 					// backquote in the usual way.
 					messagePartsList.add(
 						(A_String)(messageName.copyTupleFromToCanDestroy(
-							position,
-							position,
-							false)));
+							position, position, false)));
 					messagePartPositions.add(position);
 					position++;
 				}
@@ -702,8 +698,8 @@ public final class MessageSplitter
 					final int start = position;
 					while (position <= messageName.tupleSize())
 					{
-						if (!isCharacterAnUnderscoreOrSpaceOrOperator(
-							(char) messageName.tupleCodePointAt(position)))
+						if (!isUnderscoreOrSpaceOrOperator(
+							messageName.tupleCodePointAt(position)))
 						{
 							sawRegular = true;
 							position++;
@@ -751,21 +747,17 @@ public final class MessageSplitter
 						{
 							messagePartsList.add((A_String)
 								(messageName.copyTupleFromToCanDestroy(
-									i,
-									i,
-									false)));
+									i, i, false)));
 							messagePartPositions.add(i);
 						}
 					}
 				}
 			}
-			else if (isCharacterAnUnderscoreOrSpaceOrOperator(ch))
+			else if (isUnderscoreOrSpaceOrOperator(ch))
 			{
 				messagePartsList.add(
 					(A_String)(messageName.copyTupleFromToCanDestroy(
-						position,
-						position,
-						false)));
+						position, position, false)));
 				messagePartPositions.add(position);
 				position++;
 			}
@@ -776,8 +768,8 @@ public final class MessageSplitter
 				final int start = position;
 				while (position <= messageName.tupleSize())
 				{
-					if (!isCharacterAnUnderscoreOrSpaceOrOperator(
-						(char) messageName.tupleCodePointAt(position)))
+					if (!isUnderscoreOrSpaceOrOperator(
+						messageName.tupleCodePointAt(position)))
 					{
 						position++;
 					}
@@ -810,9 +802,7 @@ public final class MessageSplitter
 				{
 					messagePartsList.add(
 						(A_String)messageName.copyTupleFromToCanDestroy(
-							start,
-							position - 1,
-							false));
+							start, position - 1, false));
 				}
 			}
 		}
@@ -1231,8 +1221,8 @@ public final class MessageSplitter
 					}
 					token = currentMessagePart();
 					if (token.tupleSize() != 1
-						|| !isCharacterAnUnderscoreOrSpaceOrOperator(
-							(char)token.tupleCodePointAt(1)))
+						|| !isUnderscoreOrSpaceOrOperator(
+							token.tupleCodePointAt(1)))
 					{
 						// Expected operator character after backquote.
 						throwMalformedMessageException(
@@ -1531,19 +1521,41 @@ public final class MessageSplitter
 	 * Answer whether the specified character is an operator character, space,
 	 * underscore, or ellipsis.
 	 *
-	 * @param aCharacter A Java {@code char}.
+	 * @param cp A Unicode codepoint (an {@code int}).
 	 * @return {@code true} if the specified character is an operator character,
 	 *          space, underscore, or ellipsis; or {@code false} otherwise.
 	 */
-	private static boolean isCharacterAnUnderscoreOrSpaceOrOperator (
-		final char aCharacter)
+	private static boolean isUnderscoreOrSpaceOrOperator (
+		final int cp)
 	{
-		return aCharacter == '_'
-			|| aCharacter == '…'
-			|| aCharacter == ' '
-			|| aCharacter == '/'
-			|| aCharacter == '$'
-			|| AvailScanner.isOperatorCharacter(aCharacter);
+		return cp == '_'
+			|| cp == '…'
+			|| cp == ' '
+			|| cp == '/'
+			|| cp == '$'
+			|| isOperator(cp);
+	}
+
+	/**
+	 * Answer whether the given Unicode codePoint is an acceptable operator.
+	 *
+	 * @param cp The codePoint to check.
+	 * @return Whether the codePoint can be used as an operator character in a
+	 *         method name.
+	 */
+	public static boolean isOperator (final int cp)
+	{
+		return
+			!(Character.isDigit(cp)
+				|| Character.isUnicodeIdentifierStart(cp)
+				|| Character.isSpaceChar(cp)
+				|| Character.isWhitespace(cp)
+				|| cp < 32
+				|| !(cp >= 160 || cp <= 126)
+				|| !Character.isDefined(cp)
+				|| cp == '_'
+				|| cp == '"'
+				|| cp == '\uFEFF');
 	}
 
 	@Override

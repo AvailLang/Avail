@@ -859,6 +859,14 @@ public class AvailScanner
 		};
 
 		/**
+		 * ScannerAction has an implicitly defined (due to being an Enum)
+		 * {@code values()} method, but it makes a copy of the array for safety
+		 * because immutable arrays aren't possible in Java.  Copy it once here
+		 * for speed.
+		 */
+		final static ScannerAction[] all = values();
+
+		/**
 		 * Process the current character.
 		 *
 		 * @param scanner
@@ -883,7 +891,7 @@ public class AvailScanner
 		{
 			if (c < 65536)
 			{
-				return values()[dispatchTable[c]];
+				return all[dispatchTable[c]];
 			}
 			else if (Character.isDigit(c))
 			{
@@ -930,10 +938,7 @@ public class AvailScanner
 		throws AvailScannerException
 	{
 		final AvailScanner scanner =
-			new AvailScanner(
-				string,
-				moduleName,
-				stopAfterBodyTokenFlag);
+			new AvailScanner(string, moduleName, stopAfterBodyTokenFlag);
 		scanner.scan();
 		return new AvailScannerResult(
 			string,
@@ -951,13 +956,11 @@ public class AvailScanner
 	 *            The name of the module being scanned.
 	 * @param stopAfterBodyToken
 	 *            Whether to skip parsing the body.
-	 * @throws AvailScannerException If scanning fails.
 	 */
 	private AvailScanner (
-			final String inputString,
-			final String moduleName,
-			final boolean stopAfterBodyToken)
-		throws AvailScannerException
+		final String inputString,
+		final String moduleName,
+		final boolean stopAfterBodyToken)
 	{
 		this.inputString = inputString;
 		this.moduleName = moduleName;
@@ -995,18 +998,6 @@ public class AvailScanner
 		}
 		startOfToken = position;
 		addCurrentToken(TokenType.END_OF_FILE);
-	}
-
-	/**
-	 * Answer whether the passed character can appear as an Avail operator.
-	 *
-	 * @param c
-	 *            The character to test.
-	 * @return Whether it's a valid operator character.
-	 */
-	public static boolean isOperatorCharacter (final char c)
-	{
-		return dispatchTable[c] == (byte) OPERATOR.ordinal();
 	}
 
 	/**

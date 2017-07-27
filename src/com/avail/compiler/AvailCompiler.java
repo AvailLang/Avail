@@ -193,7 +193,7 @@ public final class AvailCompiler
 	 *        The {@linkplain TextInterface text interface} for any {@linkplain
 	 *        A_Fiber fibers} started by the new compiler.
 	 * @param pollForAbort
-	 *        A zero-argument continuation to invoke
+	 *        A zero-argument continuation to invoke.
 	 * @param succeed
 	 *        What to do with the resultant compiler in the event of success.
 	 *        This is a continuation that accepts the new compiler.
@@ -5298,12 +5298,11 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * Parse a {@linkplain ModuleDescriptor module} from the {@linkplain
-	 * TokenDescriptor token} list and install it into the {@linkplain
-	 * AvailRuntime runtime}.  This method generally returns long before the
-	 * module has been parsed, but the {@link #compilationContext}'s {@link
-	 * CompilationContext#successReporter} is invoked when the module has been
-	 * fully parsed and installed.
+	 * Parse a {@linkplain ModuleDescriptor module} from the source and install
+	 * it into the {@linkplain AvailRuntime runtime}.  This method generally
+	 * returns long before the module has been parsed, but the {@link
+	 * #compilationContext}'s {@link CompilationContext#successReporter} is
+	 * invoked when the module has been fully parsed and installed.
 	 *
 	 * @param onSuccess
 	 *        What to do when the entire module has been parsed successfully.
