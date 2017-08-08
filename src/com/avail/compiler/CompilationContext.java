@@ -54,9 +54,10 @@ import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.io.TextInterface;
 import com.avail.serialization.Serializer;
+import com.avail.server.AvailServer;
 import com.avail.utility.Generator;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.avail.compiler.problems.ProblemType.*;
@@ -72,6 +73,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A {@code CompilationContext} lasts for a module's entire compilation
@@ -79,6 +82,10 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class CompilationContext
 {
+	/** The {@linkplain Logger logger}. */
+	public static final Logger logger = Logger.getLogger(
+		CompilationContext.class.getName());
+
 	/**
 	 * A {@link Runnable} which supports a natural ordering (via the {@link
 	 * Comparable} interface) which will favor processing of the leftmost
@@ -174,7 +181,7 @@ public class CompilationContext
 	 */
 	@Nullable AvailLoader loader = null;
 
-	public void setLoader (AvailLoader loader)
+	public void setLoader (final AvailLoader loader)
 	{
 		this.loader = loader;
 	}
@@ -242,7 +249,7 @@ public class CompilationContext
 		return noMoreWorkUnits;
 	}
 
-	public void setNoMoreWorkUnits (Continuation0 noMoreWorkUnits)
+	public void setNoMoreWorkUnits (final Continuation0 noMoreWorkUnits)
 	{
 		this.noMoreWorkUnits = noMoreWorkUnits;
 	}
@@ -273,7 +280,7 @@ public class CompilationContext
 		return successReporter;
 	}
 
-	public void setSuccessReporter (Continuation0 theSuccessReporter)
+	public void setSuccessReporter (final Continuation0 theSuccessReporter)
 	{
 		this.successReporter = theSuccessReporter;
 	}
@@ -364,13 +371,19 @@ public class CompilationContext
 	{
 		assert noMoreWorkUnits != null;
 		workUnitsQueued.incrementAndGet();
+		logger.log(
+			Level.FINEST,
+			String.format(
+				"Started work unit: %d/%d%n",
+				workUnitsCompleted.get(),
+				workUnitsQueued.get()));
 	}
 
 	/**
-	 * Construct and answer a {@linkplain Continuation1 continuation} that wraps
-	 * the specified continuation in logic that will increment the {@linkplain
-	 * #workUnitsCompleted count of completed work units} and potentially call
-	 * the {@linkplain #noMoreWorkUnits unambiguous statement}.
+	 * Construct and answer a {@linkplain Continuation1NotNull continuation}
+	 * that wraps the specified continuation in logic that will increment the
+	 * {@linkplain #workUnitsCompleted count of completed work units} and
+	 * potentially call the {@linkplain #noMoreWorkUnits unambiguous statement}.
 	 *
 	 * @param lexingState
 	 *        The {@link LexingState} for which to report problems.
@@ -382,10 +395,10 @@ public class CompilationContext
 	 * @return A new continuation. It accepts an argument of some kind, which
 	 * will be passed forward to the argument continuation.
 	 */
-	public <ArgType> Continuation1<ArgType> workUnitCompletion (
+	public <ArgType> Continuation1NotNull<ArgType> workUnitCompletion (
 		final LexingState lexingState,
 		final @Nullable AtomicBoolean optionalSafetyCheck,
-		final Continuation1<ArgType> continuation)
+		final Continuation1NotNull<ArgType> continuation)
 	{
 		assert noMoreWorkUnits != null;
 		final AtomicBoolean hasRunSafetyCheck = optionalSafetyCheck != null
@@ -430,6 +443,12 @@ public class CompilationContext
 				final long completed = workUnitsCompleted.incrementAndGet();
 				final long queued = workUnitsQueued.get();
 				assert completed <= queued;
+				logger.log(
+					Level.FINEST,
+					String.format(
+						"Completed work unit: %d/%d%n",
+						completed,
+						queued));
 				if (completed == queued)
 				{
 					try
@@ -464,44 +483,39 @@ public class CompilationContext
 		final LexingState lexingState,
 		final Continuation0 continuation)
 	{
-		startWorkUnit();
-		final Continuation1<Void> workUnit = workUnitCompletion(
-			lexingState,
-			null,
-			ignored -> continuation.value());
-		runtime.execute(
-			new ParsingTask(lexingState.position)
-			{
-				@Override
-				public void value ()
+		if (noMoreWorkUnits != null)
+		{
+			// We're tracking work units, so we have to make sure to account for
+			// the new unit being queued, increment the completed count when it
+			// completes, and run the noMoreWorkUnits action as soon the
+			// counters collide (indicating the last work unit just completed).
+			startWorkUnit();
+			final Continuation1NotNull<Void> workUnit = workUnitCompletion(
+				lexingState, null, ignored -> continuation.value());
+			runtime.execute(
+				new ParsingTask(lexingState.position)
 				{
-					workUnit.value(null);
-				}
-			});
-	}
-
-	/**
-	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
-	 * {@linkplain Continuation0 continuation of zero arguments} and record that
-	 * as per {@linkplain #workUnitDo(LexingState, Continuation0)}.
-	 *
-	 * @param <ArgType>
-	 *        The type of argument to the given continuation.
-	 * @param continuation
-	 *        What to execute with the passed argument.
-	 * @param lexingState
-	 *        The {@link LexingState} for which to report problems.
-	 * @param argument
-	 *        What to pass as an argument to the provided {@linkplain
-	 *        Continuation1 one-argument continuation}.
-	 */
-	@InnerAccess <ArgType> void attempt (
-		final LexingState lexingState,
-		final Continuation1<ArgType> continuation,
-		final ArgType argument)
-	{
-		workUnitDo(
-			lexingState, () -> continuation.value(argument));
+					@Override
+					public void value ()
+					{
+						workUnit.value(null);
+					}
+				});
+		}
+		else
+		{
+			// We're not tracking work units, so just queue it without fiddling
+			// with the queued/completed counts.
+			runtime.execute(
+				new ParsingTask(lexingState.position)
+				{
+					@Override
+					public void value ()
+					{
+						continuation.value();
+					}
+				});
+		}
 	}
 
 	/**
@@ -602,8 +616,8 @@ public class CompilationContext
 		final List<? extends A_BasicObject> args,
 		final A_Map clientParseData,
 		final boolean shouldSerialize,
-		final Continuation1<AvailObject> onSuccess,
-		final Continuation1<Throwable> onFailure)
+		final Continuation1NotNull<AvailObject> onSuccess,
+		final Continuation1NotNull<Throwable> onFailure)
 	{
 		final A_RawFunction code = function.code();
 		assert code.numArgs() == args.size();
@@ -624,21 +638,22 @@ public class CompilationContext
 		{
 			loader().startRecordingEffects();
 		}
-		final long before = System.nanoTime();
-		final Continuation1<AvailObject> adjustedSuccess =
-			shouldSerialize
-				? successValue ->
-					{
-						final long after = System.nanoTime();
-						Interpreter.current().recordTopStatementEvaluation(
-							after - before,
-							module,
-							lineNumber);
-						loader().stopRecordingEffects();
-						serializeAfterRunning(function);
-						onSuccess.value(successValue);
-					}
-				: onSuccess;
+		Continuation1NotNull<AvailObject> adjustedSuccess = onSuccess;
+		if (shouldSerialize)
+		{
+			final long before = System.nanoTime();
+			adjustedSuccess = successValue ->
+			{
+				final long after = System.nanoTime();
+				Interpreter.current().recordTopStatementEvaluation(
+					after - before,
+					module,
+					lineNumber);
+				loader().stopRecordingEffects();
+				serializeAfterRunning(function);
+				onSuccess.value(successValue);
+			};
+		}
 		fiber.resultContinuation(adjustedSuccess);
 		fiber.failureContinuation(onFailure);
 		Interpreter.runOutermostFunction(runtime, fiber, function, args);
@@ -666,8 +681,8 @@ public class CompilationContext
 		final A_Phrase expressionNode,
 		final int lineNumber,
 		final boolean shouldSerialize,
-		final Continuation1<AvailObject> onSuccess,
-		final Continuation1<Throwable> onFailure)
+		final Continuation1NotNull<AvailObject> onSuccess,
+		final Continuation1NotNull<Throwable> onFailure)
 	{
 		evaluateFunctionThen(
 			FunctionDescriptor.createFunctionForPhrase(
@@ -696,8 +711,8 @@ public class CompilationContext
 	void evaluatePhraseAtThen (
 		final LexingState lexingState,
 		final A_Phrase expression,
-		final Continuation1<AvailObject> continuation,
-		final Continuation1<Throwable> onFailure)
+		final Continuation1NotNull<AvailObject> continuation,
+		final Continuation1NotNull<Throwable> onFailure)
 	{
 		startWorkUnit();
 		final AtomicBoolean hasRunEither = new AtomicBoolean(false);

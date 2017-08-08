@@ -48,7 +48,7 @@ public class AvailSetLiteralVariable extends AvailInstructionWithIndex
 	 *
 	 * @param variableLiteralIndex The index of the literal variable.
 	 */
-	public AvailSetLiteralVariable (int variableLiteralIndex)
+	public AvailSetLiteralVariable (final int variableLiteralIndex)
 	{
 		super(variableLiteralIndex);
 	}

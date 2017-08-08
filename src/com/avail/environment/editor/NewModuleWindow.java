@@ -140,7 +140,7 @@ extends Scene
 						task.clearCanceTask();
 						task.closeCleanly();
 					}
-					catch (IOException e)
+					catch (final IOException e)
 					{
 						task.clearCanceTask();
 						task.erroredClose("Module Creation Failed!");

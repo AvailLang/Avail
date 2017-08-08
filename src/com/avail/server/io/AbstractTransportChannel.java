@@ -129,7 +129,7 @@ extends AvailServerChannel
 				public void value ()
 				{
 					final Message nextMessage;
-					Pair<Message, Continuation0> pair;
+					final Pair<Message, Continuation0> pair;
 					synchronized (sendQueue)
 					{
 						// The message remains on the queue during

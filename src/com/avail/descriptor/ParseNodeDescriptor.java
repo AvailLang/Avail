@@ -267,7 +267,7 @@ extends Descriptor
 	@Override @AvailMethod
 	abstract void o_StatementsDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> continuation);
+		final Continuation1NotNull<A_Phrase> continuation);
 
 	@Override @AvailMethod
 	A_Phrase o_StripMacro (final AvailObject object)

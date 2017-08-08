@@ -36,6 +36,12 @@ Uses
 Extends
 	"Avail" =
 	(
+		"whitespace lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
+
 		"…$",
 		"…#"
 	)

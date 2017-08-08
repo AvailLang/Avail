@@ -94,7 +94,7 @@ public class ReplaceTextTemplate
 			}
 			populatePrefixTrie();
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{
 			System.err.println(
 				"Failed To Load Template Properties File; File Not Found");
@@ -121,10 +121,10 @@ public class ReplaceTextTemplate
 	{
 		try
 		{
-			OutputStream output = new FileOutputStream(propertiesFileName);
+			final OutputStream output = new FileOutputStream(propertiesFileName);
 			properties.store(output, "Inline code replace templates");
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{
 			e.printStackTrace();
 		}

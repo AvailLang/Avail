@@ -361,7 +361,7 @@ public final class RegisterSet
 			final Set<L2Register> newEquivalents = new HashSet<>(equivalents);
 			for (final L2Register reg : new ArrayList<>(equivalents))
 			{
-				RegisterState state = stateForReading(reg);
+				final RegisterState state = stateForReading(reg);
 				newEquivalents.addAll(state.origins());
 				newEquivalents.addAll(state.invertedOrigins());
 			}

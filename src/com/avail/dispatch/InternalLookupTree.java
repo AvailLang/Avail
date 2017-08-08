@@ -197,7 +197,7 @@ public class InternalLookupTree<
 	 * testing a single argument at a time, keeping track of the types we
 	 * have tested that argument against.</p>
 	 *
-	 * </p>Since the negative case is already efficient at eliminating
+	 * <p>Since the negative case is already efficient at eliminating
 	 * uncertainty, we only need to track positive information about the
 	 * argument types.  Thus, for each argument we maintain precise
 	 * information about what type each argument must be at this point in
@@ -210,7 +210,7 @@ public class InternalLookupTree<
 	 */
 	final private void chooseCriterion (
 		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
-		Memento memento)
+		final Memento memento)
 	{
 		// Choose a signature to test that guarantees it eliminates the most
 		// undecided definitions, regardless of whether the test passes or
@@ -359,7 +359,7 @@ public class InternalLookupTree<
 	@Override
 	protected LookupTree<Element, Result, Memento> lookupStepByValues (
 		final List<? extends A_BasicObject> argValues,
-		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		final Memento memento)
 	{
 		expandIfNecessary(adaptor, memento);
@@ -376,7 +376,7 @@ public class InternalLookupTree<
 	@Override
 	protected LookupTree<Element, Result, Memento> lookupStepByValues (
 		final A_Tuple argValues,
-		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		final Memento memento)
 	{
 		expandIfNecessary(adaptor, memento);
@@ -393,7 +393,7 @@ public class InternalLookupTree<
 	@Override
 	protected LookupTree<Element, Result, Memento> lookupStepByTypes (
 		final List<? extends A_Type> argTypes,
-		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		final Memento memento)
 	{
 		expandIfNecessary(adaptor, memento);
@@ -410,7 +410,7 @@ public class InternalLookupTree<
 	@Override
 	protected LookupTree<Element, Result, Memento> lookupStepByTypes (
 		final A_Tuple argTypes,
-		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		final Memento memento)
 	{
 		expandIfNecessary(adaptor, memento);
@@ -427,7 +427,7 @@ public class InternalLookupTree<
 	@Override
 	protected LookupTree<Element, Result, Memento> lookupStepByValue (
 		final A_BasicObject probeValue,
-		LookupTreeAdaptor<Element, Result, Memento> adaptor,
+		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		final Memento memento)
 	{
 		expandIfNecessary(adaptor, memento);

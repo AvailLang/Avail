@@ -36,11 +36,13 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
 import java.util.List;
 
@@ -99,7 +101,7 @@ extends Primitive
 		{
 			bundle = atom.bundleOrCreate();
 		}
-		catch (MalformedMessageException e)
+		catch (final MalformedMessageException e)
 		{
 			return interpreter.primitiveFailure(e.errorCode());
 		}
@@ -112,13 +114,19 @@ extends Primitive
 				fiber,
 				() ->
 				{
-					loader.lexicalScanner().addLexer(lexer);
 					filterFunction.code().setMethodName(
 						StringDescriptor.format(
 							"Filter for lexer %s", atom.atomName()));
 					bodyFunction.code().setMethodName(
 						StringDescriptor.format(
 							"Body for lexer %s", atom.atomName()));
+					loader.lexicalScanner().addLexer(lexer);
+					loader.recordEffect(
+						new LoadingEffectToRunPrimitive(
+							SpecialMethodAtom.LEXER_DEFINER.bundle,
+							atom,
+							filterFunction,
+							bodyFunction));
 					Interpreter.resumeFromSuccessfulPrimitive(
 						AvailRuntime.current(),
 						fiber,

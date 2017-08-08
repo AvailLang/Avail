@@ -182,7 +182,7 @@ public final class OSXUtility
 			event ->
 			{
 				assert event != null;
-				String filename;
+				final String filename;
 				try
 				{
 					filename = (String) getFilenameMethod.invoke(event);

@@ -33,7 +33,7 @@
 package com.avail.compiler.problems;
 
 import com.avail.descriptor.ParseNodeDescriptor;
-import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
 
 
 /**
@@ -62,7 +62,7 @@ public abstract class ProblemHandler
 	 */
 	protected void handleInformation (
 		final Problem problem,
-		final Continuation1<Boolean> decider)
+		final Continuation1NotNull<Boolean> decider)
 	{
 		handleGeneric(problem, decider);
 	}
@@ -82,7 +82,7 @@ public abstract class ProblemHandler
 	 */
 	protected void handleWarning (
 		final Problem problem,
-		final Continuation1<Boolean> decider)
+		final Continuation1NotNull<Boolean> decider)
 	{
 		handleGeneric(problem, decider);
 	}
@@ -100,7 +100,7 @@ public abstract class ProblemHandler
 	 */
 	protected void handleTrace (
 		final Problem problem,
-		final Continuation1<Boolean> decider)
+		final Continuation1NotNull<Boolean> decider)
 	{
 		handleGeneric(problem, decider);
 	}
@@ -121,7 +121,7 @@ public abstract class ProblemHandler
 	 */
 	protected void handleParse (
 		final Problem problem,
-		final Continuation1<Boolean> decider)
+		final Continuation1NotNull<Boolean> decider)
 	{
 		handleGeneric(problem, decider);
 	}
@@ -141,7 +141,7 @@ public abstract class ProblemHandler
 	 */
 	protected void handleExecution (
 		final Problem problem,
-		final Continuation1<Boolean> decider)
+		final Continuation1NotNull<Boolean> decider)
 	{
 		handleGeneric(problem, decider);
 	}
@@ -161,7 +161,7 @@ public abstract class ProblemHandler
 	 */
 	protected void handleInternal (
 		final Problem problem,
-		final Continuation1<Boolean> decider)
+		final Continuation1NotNull<Boolean> decider)
 	{
 		handleGeneric(problem, decider);
 	}
@@ -181,7 +181,7 @@ public abstract class ProblemHandler
 	 */
 	protected void handleExternal (
 		final Problem problem,
-		final Continuation1<Boolean> decider)
+		final Continuation1NotNull<Boolean> decider)
 	{
 		handleGeneric(problem, decider);
 	}
@@ -202,7 +202,7 @@ public abstract class ProblemHandler
 	 */
 	protected void handleGeneric (
 		final Problem problem,
-		final Continuation1<Boolean> decider)
+		final Continuation1NotNull<Boolean> decider)
 	{
 		throw new UnsupportedOperationException(
 			"Failed to reimplement either a problem type-specific handler"
@@ -224,7 +224,6 @@ public abstract class ProblemHandler
 			this,
 			shouldContinue ->
 			{
-				assert shouldContinue != null;
 				if (shouldContinue)
 				{
 					problem.continueCompilation();

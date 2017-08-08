@@ -72,7 +72,6 @@ public final class P_EmergencyExit extends Primitive
 			continuation,
 			stack ->
 			{
-				assert stack != null;
 				final StringBuilder builder = new StringBuilder();
 				builder.append(String.format(
 					"A fiber (%s) has exited: %s",

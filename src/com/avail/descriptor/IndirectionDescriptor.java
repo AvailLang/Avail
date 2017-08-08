@@ -63,6 +63,7 @@ import com.avail.exceptions.SignatureException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
@@ -2905,14 +2906,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Phrase o_PrependWith (
-		final AvailObject object,
-		final A_Phrase newParseNode)
-	{
-		return o_Traversed(object).prependWith(newParseNode);
-	}
-
-	@Override
 	void o_IsLastUse (
 		final AvailObject object,
 		final boolean isLastUse)
@@ -4084,13 +4077,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	Continuation1<Throwable> o_FailureContinuation (final AvailObject object)
+	Continuation1NotNull<Throwable> o_FailureContinuation (final AvailObject object)
 	{
 		return o_Traversed(object).failureContinuation();
 	}
 
 	@Override
-	Continuation1<AvailObject> o_ResultContinuation (final AvailObject object)
+	Continuation1NotNull<AvailObject> o_ResultContinuation (final AvailObject object)
 	{
 		return o_Traversed(object).resultContinuation();
 	}
@@ -4098,7 +4091,7 @@ extends AbstractDescriptor
 	@Override
 	void o_ResultContinuation (
 		final AvailObject object,
-		final Continuation1<AvailObject> continuation)
+		final Continuation1NotNull<AvailObject> continuation)
 	{
 		o_Traversed(object).resultContinuation(continuation);
 	}
@@ -4106,7 +4099,7 @@ extends AbstractDescriptor
 	@Override
 	void o_FailureContinuation (
 		final AvailObject object,
-		final Continuation1<Throwable> continuation)
+		final Continuation1NotNull<Throwable> continuation)
 	{
 		o_Traversed(object).failureContinuation(continuation);
 	}
@@ -4499,7 +4492,7 @@ extends AbstractDescriptor
 	@Override
 	void o_WhenContinuationIsAvailableDo (
 		final AvailObject object,
-		final Continuation1<A_Continuation> whenReified)
+		final Continuation1NotNull<A_Continuation> whenReified)
 	{
 		o_Traversed(object).whenContinuationIsAvailableDo(whenReified);
 	}
@@ -4751,7 +4744,7 @@ extends AbstractDescriptor
 	@Override
 	void o_StatementsDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> continuation)
+		final Continuation1NotNull<A_Phrase> continuation)
 	{
 		o_Traversed(object).statementsDo(continuation);
 	}
@@ -5057,5 +5050,17 @@ extends AbstractDescriptor
 	A_String o_GlobalName (final AvailObject object)
 	{
 		return o_Traversed(object).globalName();
+	}
+
+	@Override
+	LexicalScanner o_CreateLexicalScanner (final AvailObject object)
+	{
+		return o_Traversed(object).createLexicalScanner();
+	}
+
+	@Override
+	A_Lexer o_Lexer (final AvailObject object)
+	{
+		return o_Traversed(object).lexer();
 	}
 }

@@ -179,7 +179,7 @@ public class Deserializer
 	static
 	{
 		int max = 0;
-		for (SerializerOperation operation : SerializerOperation.values())
+		for (final SerializerOperation operation : SerializerOperation.values())
 		{
 			max = Math.max(max, operation.operands().length);
 		}

@@ -193,7 +193,7 @@ enum TypeTag
 
 	private int highOrdinal;
 
-	public boolean isSubtagOf (TypeTag otherTag)
+	public boolean isSubtagOf (final TypeTag otherTag)
 	{
 		return ordinal() >= otherTag.ordinal()
 			&& highOrdinal <= otherTag.highOrdinal;

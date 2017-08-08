@@ -438,7 +438,7 @@ extends NumericTupleDescriptor
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
 		assert index >= 1 && index <= object.tupleSize();
-		long temp = object.slot(START) + (index - 1) * object.slot(DELTA);
+		final long temp = object.slot(START) + (index - 1) * object.slot(DELTA);
 		assert temp == (int)temp;
 		return (AvailObject) IntegerDescriptor.fromInt((int)temp);
 	}

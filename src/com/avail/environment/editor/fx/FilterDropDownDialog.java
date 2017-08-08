@@ -127,7 +127,7 @@ public class FilterDropDownDialog<
 			.getString("Dialog.confirm.header"));
 		dialogPane.getStyleClass().add("choice-dialog");
 		dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-		Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
+		final Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
 
 		final double MIN_WIDTH = 150;
 		this.comboBox = comboBox;
@@ -157,7 +157,7 @@ public class FilterDropDownDialog<
 		setGraphic(null);
 		setResultConverter(dialogButton ->
 		{
-			ButtonData data = dialogButton == null
+			final ButtonData data = dialogButton == null
 				? null : dialogButton.getButtonData();
 			return data == ButtonData.OK_DONE ? getSelectedItem() : null;
 		});

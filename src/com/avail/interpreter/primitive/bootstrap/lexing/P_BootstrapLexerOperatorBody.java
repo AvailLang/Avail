@@ -76,7 +76,7 @@ public final class P_BootstrapLexerOperatorBody extends Primitive
 		final int sourceSize = source.tupleSize();
 		final int startPosition = sourcePositionInteger.extractInt();
 
-		int c = source.tupleCodePointAt(startPosition);
+		final int c = source.tupleCodePointAt(startPosition);
 		if (c == '/')
 		{
 			if (startPosition < sourceSize

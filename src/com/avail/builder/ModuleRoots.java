@@ -81,7 +81,7 @@ implements Iterable<ModuleRoot>
 	{
 		final StringBuilder builder = new StringBuilder(200);
 		boolean first = true;
-		for (Entry<String, ModuleRoot> entry : rootMap.entrySet())
+		for (final Entry<String, ModuleRoot> entry : rootMap.entrySet())
 		{
 			final ModuleRoot root = entry.getValue();
 			if (!first)

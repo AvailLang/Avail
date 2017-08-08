@@ -49,7 +49,7 @@ public class AvailGetLiteralVariable extends AvailInstructionWithIndex
 	 * @param index The index of the literal holding the variable whose
 	 *              content should be pushed.
 	 */
-	public AvailGetLiteralVariable (int index)
+	public AvailGetLiteralVariable (final int index)
 	{
 		super(index);
 	}

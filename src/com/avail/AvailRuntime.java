@@ -814,8 +814,8 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			Set<A_Atom> atoms = new HashSet<>();
-			Set<A_Definition> definitions = new HashSet<>();
+			final Set<A_Atom> atoms = new HashSet<>();
+			final Set<A_Definition> definitions = new HashSet<>();
 			for (final Entry moduleEntry : modules.mapIterable())
 			{
 				final A_Module module = moduleEntry.value();
@@ -828,12 +828,12 @@ public final class AvailRuntime
 				A_Tuple atomSets = module.importedNames().valuesAsTuple();
 				atomSets = atomSets.concatenateWith(
 					module.privateNames().valuesAsTuple(), true);
-				for (A_Set atomSet : atomSets)
+				for (final A_Set atomSet : atomSets)
 				{
 					atoms.addAll(
 						TupleDescriptor.toList(atomSet.asTuple()));
 				}
-				for (A_Definition definition : module.methodDefinitions())
+				for (final A_Definition definition : module.methodDefinitions())
 				{
 					if (definitions.contains(definition))
 					{
@@ -843,7 +843,7 @@ public final class AvailRuntime
 					definitions.add(definition);
 				}
 			}
-			Set<A_Method> methods = new HashSet<>();
+			final Set<A_Method> methods = new HashSet<>();
 			for (final A_Atom atom : atoms)
 			{
 				final A_Bundle bundle = atom.bundleOrNil();
@@ -854,7 +854,7 @@ public final class AvailRuntime
 			}
 			for (final A_Method method : methods)
 			{
-				Set<A_Definition> bundleDefinitions = new HashSet<>(
+				final Set<A_Definition> bundleDefinitions = new HashSet<>(
 					TupleDescriptor.<A_Definition>toList(
 						method.definitionsTuple()));
 				bundleDefinitions.addAll(
@@ -1740,6 +1740,7 @@ public final class AvailRuntime
 			SpecialMethodAtom.CREATE_MODULE_VARIABLE.atom,
 			SpecialMethodAtom.SEAL.atom,
 			SpecialMethodAtom.SEMANTIC_RESTRICTION.atom,
+			SpecialMethodAtom.LEXER_DEFINER.atom,
 			ObjectTypeDescriptor.exceptionAtom(),
 			ObjectTypeDescriptor.stackDumpAtom(),
 			PojoTypeDescriptor.selfAtom()));
@@ -2140,7 +2141,7 @@ public final class AvailRuntime
 				{
 					unsafeTask.run();
 				}
-				catch (Exception e)
+				catch (final Exception e)
 				{
 					System.err.println(
 						"Exception in level-one-unsafe task:\n"
@@ -2214,7 +2215,7 @@ public final class AvailRuntime
 				{
 					safeTask.run();
 				}
-				catch (Exception e)
+				catch (final Exception e)
 				{
 					System.err.println(
 						"Exception in level-one-safe task:\n"

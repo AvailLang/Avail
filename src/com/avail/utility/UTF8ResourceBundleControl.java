@@ -93,13 +93,13 @@ extends Control
 		{
 			final String resourceName =
 				toResourceName(bundleName, "properties");
-			Reader stream;
+			final Reader stream;
 			try
 			{
 				stream = AccessController.doPrivileged(
 					(PrivilegedExceptionAction<Reader>) () ->
 					{
-						InputStream is;
+						final InputStream is;
 						if (reload)
 						{
 							final URL url = loader.getResource(resourceName);

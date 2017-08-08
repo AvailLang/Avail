@@ -812,6 +812,28 @@ extends Descriptor
 	}
 
 	/**
+	 * Create a new {@linkplain MapDescriptor map} whose contents correspond to
+	 * the specified {@linkplain TupleDescriptor tuple} of key-value bindings.
+	 *
+	 * @param keysAndValues
+	 *        A tuple of key-value bindings, i.e. 2-element tuples.
+	 * @return A new map.
+	 */
+	public static A_Map fromPairs (A_BasicObject... keysAndValues)
+	{
+		assert (keysAndValues.length & 1) == 0;
+		A_Map newMap = empty();
+		for (int i = 0; i < keysAndValues.length; i += 2)
+		{
+			newMap = newMap.mapAtPuttingCanDestroy(
+				keysAndValues[i],
+				keysAndValues[i + 1],
+				true);
+		}
+		return newMap;
+	}
+
+	/**
 	 * Create a new {@linkplain MapDescriptor map} based on the given
 	 * {@linkplain MapBinDescriptor root bin}.
 	 *

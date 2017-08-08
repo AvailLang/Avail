@@ -601,7 +601,7 @@ extends AbstractList<byte[]>
 				m.fileLimit,
 				m.rawBytes.size());
 			RecordCoordinates orphan;
-			for (RecordCoordinates orphan1 : orphans)
+			for (final RecordCoordinates orphan1 : orphans)
 			{
 				orphan = orphan1;
 				m.uncompressedData.writeLong(orphan.filePosition());
@@ -1551,7 +1551,7 @@ extends AbstractList<byte[]>
 			try
 			{
 				// Determine the newest valid master node.
-				MasterNode previous =
+				final MasterNode previous =
 					decodeMasterNode(previousMasterPosition);
 				MasterNode current = decodeMasterNode(masterPosition);
 				if (previous == null && current == null)

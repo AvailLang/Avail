@@ -253,7 +253,7 @@ extends TypeDescriptor
 	{
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
 		A_Map fieldTypeMap = MapDescriptor.empty();
-		for (Map.Entry<A_Atom, Integer> entry
+		for (final Map.Entry<A_Atom, Integer> entry
 			: variant.fieldToSlotIndex.entrySet())
 		{
 			final A_Atom field = entry.getKey();
@@ -373,7 +373,7 @@ extends TypeDescriptor
 				assert instanceSlotIndex != 0;
 				final A_BasicObject fieldValue = ObjectDescriptor.getField(
 					potentialInstance, instanceSlotIndex);
-				A_Type fieldType = object.slot(FIELD_TYPES_, slotIndex);
+				final A_Type fieldType = object.slot(FIELD_TYPES_, slotIndex);
 				if (!fieldValue.isInstanceOf(fieldType))
 				{
 					return false;
@@ -712,7 +712,7 @@ extends TypeDescriptor
 		final Map<A_Atom, Integer> slotMap = variant.fieldToSlotIndex;
 		final AvailObject result =
 			mutableDescriptor.create(variant.realSlotCount);
-		for (Entry entry : map.mapIterable())
+		for (final Entry entry : map.mapIterable())
 		{
 			final int slotIndex = slotMap.get(entry.key());
 			if (slotIndex > 0)
@@ -754,7 +754,7 @@ extends TypeDescriptor
 	 * @param object An object.
 	 * @return An object type.
 	 */
-	AvailObject createFromObject (AvailObject object)
+	AvailObject createFromObject (final AvailObject object)
 	{
 		final AvailObject result = create(variant.realSlotCount);
 		for (int i = 1, limit = variant.realSlotCount; i <= limit; i++)

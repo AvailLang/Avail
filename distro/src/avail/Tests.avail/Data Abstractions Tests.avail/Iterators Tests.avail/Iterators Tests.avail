@@ -33,6 +33,8 @@
 Module "Iterators Tests"
 Versions
 	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail"
 Extends
 	"Abstract Iterators Tests" = ("iterators test suite"),
 	"Bounded Readers Tests" = ("bounded reader test suite"),

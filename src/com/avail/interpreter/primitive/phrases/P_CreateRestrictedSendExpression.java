@@ -50,6 +50,7 @@ import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
 
 /**
  * <strong>Primitive CreateRestrictedSendExpression</strong>: Create a
@@ -248,17 +249,15 @@ extends Primitive
 					skipReturnCheck);
 			}
 		};
-		final Continuation1<AvailObject> success =
+		final Continuation1NotNull<AvailObject> success =
 			resultType ->
 			{
-				assert resultType != null;
 				if (resultType.isType())
 				{
 					synchronized (intersection)
 					{
 						intersection.value =
-							intersection.value.typeIntersection(
-								resultType);
+							intersection.value.typeIntersection(resultType);
 					}
 				}
 				else
@@ -300,7 +299,6 @@ extends Primitive
 			forkedFiber.resultContinuation(success);
 			forkedFiber.failureContinuation(throwable ->
 			{
-				assert throwable != null;
 				if (throwable instanceof AvailRejectedParseException)
 				{
 					final AvailRejectedParseException rejected =

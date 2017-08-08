@@ -32,11 +32,16 @@
 
 Module "CSV Language"
 Extends
-	"Avail" =
-	(
+	"Avail" = (
+		/* Some of the core Avail syntax */
+		"whitespace lexer",
+		"comment lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
 		"_!;",
-		"…$"
-	)
+		"…$")
 Uses
 	"Avail"
 Names

@@ -86,7 +86,7 @@ public final class P_CreateExplicitSubclassAtom extends Primitive
 			{
 				atom = loader.lookupName(name, true);
 			}
-			catch (AmbiguousNameException e)
+			catch (final AmbiguousNameException e)
 			{
 				return interpreter.primitiveFailure(
 					AvailErrorCode.E_AMBIGUOUS_NAME);

@@ -295,7 +295,7 @@ implements Configurator<CompilerConfiguration>
 				processor.value().checkEncountered(SHOW_STATISTICS, 0);
 				processor.value().checkEncountered(
 					GENERATE_DOCUMENTATION, 0);
-				EnumSet<StatisticReport> reports;
+				final EnumSet<StatisticReport> reports;
 				if (reportsString == null)
 				{
 					reports = EnumSet.allOf(StatisticReport.class);

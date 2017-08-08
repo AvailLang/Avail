@@ -50,6 +50,7 @@ import java.util.logging.Logger;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FiberReference;
 import com.avail.annotations.InnerAccess;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ModuleName;
@@ -357,7 +358,7 @@ public final class AvailServer
 	 */
 	@InnerAccess Message newSuccessMessage (
 		final CommandMessage command,
-		final Continuation1<JSONWriter> content)
+		final Continuation1NotNull<JSONWriter> content)
 	{
 		final JSONWriter writer = new JSONWriter();
 		writer.startObject();
@@ -517,12 +518,7 @@ public final class AvailServer
 		if (supportedProtocolVersions.contains(version))
 		{
 			message = newSuccessMessage(
-				command,
-				writer ->
-				{
-					assert writer != null;
-					writer.write(version);
-				});
+				command, writer -> writer.write(version));
 		}
 		else
 		{
@@ -530,7 +526,6 @@ public final class AvailServer
 				command,
 				writer ->
 				{
-					assert writer != null;
 					writer.startObject();
 					writer.write("supported");
 					writer.startArray();
@@ -572,7 +567,6 @@ public final class AvailServer
 			command,
 			writer ->
 			{
-				assert writer != null;
 				final Command[] commands = Command.all();
 				final List<String> help = new ArrayList<>(commands.length);
 				for (final Command c : commands)
@@ -610,13 +604,7 @@ public final class AvailServer
 	{
 		assert command.command() == Command.MODULE_ROOTS;
 		final Message message = newSuccessMessage(
-			command,
-			writer ->
-			{
-				assert writer != null;
-				final ModuleRoots roots = runtime.moduleRoots();
-				roots.writeOn(writer);
-			});
+			command, writer -> runtime.moduleRoots().writeOn(writer));
 		channel.enqueueMessageThen(message, continuation);
 	}
 
@@ -642,13 +630,7 @@ public final class AvailServer
 	{
 		assert command.command() == Command.MODULE_ROOT_PATHS;
 		final Message message = newSuccessMessage(
-			command,
-			writer ->
-			{
-				assert writer != null;
-				final ModuleRoots roots = runtime.moduleRoots();
-				roots.writePathsOn(writer);
-			});
+			command, writer -> runtime.moduleRoots().writePathsOn(writer));
 		channel.enqueueMessageThen(message, continuation);
 	}
 
@@ -674,12 +656,7 @@ public final class AvailServer
 		assert command.command() == Command.MODULE_ROOTS_PATH;
 		final Message message = newSuccessMessage(
 			command,
-			writer ->
-			{
-				assert writer != null;
-				final ModuleRoots roots = runtime.moduleRoots();
-				writer.write(roots.modulePath());
-			});
+			writer -> writer.write(runtime.moduleRoots().modulePath()));
 		channel.enqueueMessageThen(message, continuation);
 	}
 
@@ -998,7 +975,6 @@ public final class AvailServer
 			command,
 			writer ->
 			{
-				assert writer != null;
 				final ModuleRoots roots = runtime.moduleRoots();
 				writer.startArray();
 				for (final ModuleRoot root : roots)
@@ -1053,7 +1029,6 @@ public final class AvailServer
 			command,
 			writer ->
 			{
-				assert writer != null;
 				final Map<String, List<String>> map = new HashMap<>();
 				builder.traceDirectories(
 					(name, version) ->
@@ -1235,11 +1210,7 @@ public final class AvailServer
 		requestUpgradesThen(
 			channel,
 			command,
-			ioChannel ->
-			{
-				assert ioChannel != null;
-				loadModule(channel, ioChannel, command);
-			},
+			ioChannel -> loadModule(channel, ioChannel, command),
 			continuation);
 	}
 
@@ -1274,13 +1245,7 @@ public final class AvailServer
 			// Do nothing.
 		};
 		channel.enqueueMessageThen(
-			newSuccessMessage(
-				command,
-				writer ->
-				{
-					assert writer != null;
-					writer.write("begin");
-				}),
+			newSuccessMessage(command, writer -> writer.write("begin")),
 			nothing);
 		final List<JSONWriter> localUpdates = new ArrayList<>();
 		final List<JSONWriter> globalUpdates = new ArrayList<>();
@@ -1307,7 +1272,6 @@ public final class AvailServer
 						command,
 						writer ->
 						{
-							assert writer != null;
 							writer.startObject();
 							writer.write("local");
 							writer.startArray();
@@ -1374,13 +1338,7 @@ public final class AvailServer
 		assert localUpdates.isEmpty();
 		assert globalUpdates.isEmpty();
 		channel.enqueueMessageThen(
-			newSuccessMessage(
-				command,
-				writer ->
-				{
-					assert writer != null;
-					writer.write("end");
-				}),
+			newSuccessMessage(command, writer -> writer.write("end")),
 			() -> IO.close(ioChannel));
 	}
 
@@ -1425,11 +1383,7 @@ public final class AvailServer
 		requestUpgradesThen(
 			channel,
 			command,
-			ioChannel ->
-			{
-				assert ioChannel != null;
-				unloadModule(channel, ioChannel, command, moduleName);
-			},
+			ioChannel -> unloadModule(channel, ioChannel, command, moduleName),
 			continuation);
 	}
 
@@ -1458,11 +1412,7 @@ public final class AvailServer
 		requestUpgradesThen(
 			channel,
 			command,
-			ioChannel ->
-			{
-				assert ioChannel != null;
-				unloadModule(channel, ioChannel, command, null);
-			},
+			ioChannel -> unloadModule(channel, ioChannel, command, null),
 			continuation);
 	}
 
@@ -1491,13 +1441,7 @@ public final class AvailServer
 		assert !channel.state().generalTextIO();
 		assert ioChannel.state().generalTextIO();
 		channel.enqueueMessageThen(
-			newSuccessMessage(
-				command,
-				writer ->
-				{
-					assert writer != null;
-					writer.write("begin");
-				}),
+			newSuccessMessage(command, writer -> writer.write("begin")),
 			() ->
 			{
 				// Do nothing.
@@ -1505,13 +1449,7 @@ public final class AvailServer
 		builder.setTextInterface(ioChannel.textInterface());
 		builder.unloadTarget(target);
 		channel.enqueueMessageThen(
-			newSuccessMessage(
-				command,
-				writer ->
-				{
-					assert writer != null;
-					writer.write("end");
-				}),
+			newSuccessMessage(command, writer -> writer.write("end")),
 			() -> IO.close(ioChannel));
 	}
 
@@ -1539,11 +1477,7 @@ public final class AvailServer
 		requestUpgradesThen(
 			channel,
 			command,
-			ioChannel ->
-			{
-				assert ioChannel != null;
-				run(channel, ioChannel, command);
-			},
+			ioChannel -> run(channel, ioChannel, command),
 			continuation);
 	}
 
@@ -1583,7 +1517,6 @@ public final class AvailServer
 						command,
 						writer ->
 						{
-							assert writer != null;
 							writer.startObject();
 							writer.write("expression");
 							writer.write(command.expression());
@@ -1606,7 +1539,6 @@ public final class AvailServer
 							command,
 							writer ->
 							{
-								assert writer != null;
 								writer.startObject();
 								writer.write("expression");
 								writer.write(command.expression());
@@ -1647,7 +1579,6 @@ public final class AvailServer
 			command,
 			writer ->
 			{
-				assert writer != null;
 				writer.startArray();
 				for (final FiberReference ref : allFibers.values())
 				{

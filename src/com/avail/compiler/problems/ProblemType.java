@@ -33,7 +33,7 @@
 package com.avail.compiler.problems;
 
 import com.avail.descriptor.ParseNodeDescriptor;
-import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
 
 /**
  * A {@link Problem} has a {@code ProblemType}, indicating its basic nature
@@ -57,7 +57,7 @@ public enum ProblemType
 		void report (
 			final Problem problem,
 			final ProblemHandler handler,
-			final Continuation1<Boolean> decider)
+			final Continuation1NotNull<Boolean> decider)
 		{
 			assert problem.type == this;
 			handler.handleInformation(problem, decider);
@@ -75,7 +75,7 @@ public enum ProblemType
 		void report (
 			final Problem problem,
 			final ProblemHandler handler,
-			final Continuation1<Boolean> decider)
+			final Continuation1NotNull<Boolean> decider)
 		{
 			assert problem.type == this;
 			handler.handleWarning(problem, decider);
@@ -94,7 +94,7 @@ public enum ProblemType
 		void report (
 			final Problem problem,
 			final ProblemHandler handler,
-			final Continuation1<Boolean> decider)
+			final Continuation1NotNull<Boolean> decider)
 		{
 			assert problem.type == this;
 			handler.handleTrace(problem, decider);
@@ -113,7 +113,7 @@ public enum ProblemType
 		void report (
 			final Problem problem,
 			final ProblemHandler handler,
-			final Continuation1<Boolean> decider)
+			final Continuation1NotNull<Boolean> decider)
 		{
 			assert problem.type == this;
 			handler.handleParse(problem, decider);
@@ -132,7 +132,7 @@ public enum ProblemType
 		void report (
 			final Problem problem,
 			final ProblemHandler handler,
-			final Continuation1<Boolean> decider)
+			final Continuation1NotNull<Boolean> decider)
 		{
 			assert problem.type == this;
 			handler.handleExecution(problem, decider);
@@ -150,7 +150,7 @@ public enum ProblemType
 		void report (
 			final Problem problem,
 			final ProblemHandler handler,
-			final Continuation1<Boolean> decider)
+			final Continuation1NotNull<Boolean> decider)
 		{
 			assert problem.type == this;
 			handler.handleInternal(problem, decider);
@@ -168,7 +168,7 @@ public enum ProblemType
 		void report (
 			final Problem problem,
 			final ProblemHandler handler,
-			final Continuation1<Boolean> decider)
+			final Continuation1NotNull<Boolean> decider)
 		{
 			assert problem.type == this;
 			handler.handleExternal(problem, decider);
@@ -178,19 +178,17 @@ public enum ProblemType
 	/**
 	 * Report the given {@link Problem} to the {@link ProblemHandler}. The
 	 * problem's type must be the receiver.
-	 *
-	 * @param problem
+	 *  @param problem
 	 *        The problem to report.
 	 * @param handler
 	 *        The problem handler to notify.
 	 * @param decider
-	 *        How to {@linkplain Problem#continueCompilation() continue} or
-	 *        {@linkplain Problem#abortCompilation() abort} compilation.
-	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
-	 *        compilation should continue.
+ *        How to {@linkplain Problem#continueCompilation() continue} or
+ *        {@linkplain Problem#abortCompilation() abort} compilation.
+ *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
 	 */
 	abstract void report (
 		final Problem problem,
 		final ProblemHandler handler,
-		final Continuation1<Boolean> decider);
+		final Continuation1NotNull<Boolean> decider);
 }

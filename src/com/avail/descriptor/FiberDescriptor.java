@@ -664,7 +664,7 @@ extends Descriptor
 			{
 				// No lock - redundant computation in other threads is stable.
 				int s = 0;
-				for (ExecutionState successor : privateSuccessors())
+				for (final ExecutionState successor : privateSuccessors())
 				{
 					s |= 1 << successor.ordinal();
 				}
@@ -1097,14 +1097,16 @@ extends Descriptor
 	 * NilDescriptor nil}.
 	 */
 	private static final A_BasicObject defaultResultContinuation =
-		RawPojoDescriptor.identityWrap((Continuation1<AvailObject>) ignored ->
-		{
-			// Do nothing.
-		});
+		RawPojoDescriptor.identityWrap(
+			(Continuation1NotNull<AvailObject>)
+				ignored ->
+				{
+					// Do nothing.
+				});
 
 	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
-	Continuation1<AvailObject> o_ResultContinuation (
+	Continuation1NotNull<AvailObject> o_ResultContinuation (
 		final AvailObject object)
 	{
 		final AvailObject pojo;
@@ -1126,13 +1128,13 @@ extends Descriptor
 			}
 			log(object, "Succeeded:%s", b);
 		}
-		return (Continuation1<AvailObject>) pojo.javaObject();
+		return (Continuation1NotNull<AvailObject>) pojo.javaObject();
 	}
 
 	@Override @AvailMethod
 	void o_ResultContinuation (
 		final AvailObject object,
-		final Continuation1<AvailObject> continuation)
+		final Continuation1NotNull<AvailObject> continuation)
 	{
 		synchronized (object)
 		{
@@ -1158,7 +1160,7 @@ extends Descriptor
 
 	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
-	Continuation1<Throwable> o_FailureContinuation (
+	Continuation1NotNull<Throwable> o_FailureContinuation (
 		final AvailObject object)
 	{
 		final AvailObject pojo;
@@ -1180,13 +1182,13 @@ extends Descriptor
 			}
 			log(object, "Failed:%s", b);
 		}
-		return (Continuation1<Throwable>) pojo.javaObject();
+		return (Continuation1NotNull<Throwable>) pojo.javaObject();
 	}
 
 	@Override @AvailMethod
 	void o_FailureContinuation (
 		final AvailObject object,
-		final Continuation1<Throwable> continuation)
+		final Continuation1NotNull<Throwable> continuation)
 	{
 		synchronized (object)
 		{
@@ -1357,7 +1359,7 @@ extends Descriptor
 	@Override
 	void o_WhenContinuationIsAvailableDo (
 		final AvailObject object,
-		final Continuation1<A_Continuation> whenReified)
+		final Continuation1NotNull<A_Continuation> whenReified)
 	{
 		object.lock(() ->
 		{

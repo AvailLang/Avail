@@ -584,9 +584,9 @@ extends Descriptor
 	/**
 	 * Create a list of descriptions of the stack frames ({@linkplain
 	 * ContinuationDescriptor continuations}) of the specified continuation.
-	 * Invoke the specified {@linkplain Continuation1 Java continuation} with
-	 * the resultant list. This list begins with the newest frame and ends with
-	 * the base frame.
+	 * Invoke the specified {@linkplain Continuation1NotNull Java continuation}
+	 * with the resultant list. This list begins with the newest frame and ends
+	 * with the base frame.
 	 *
 	 * @param runtime
 	 *        The {@linkplain AvailRuntime Avail runtime} to use for
@@ -605,7 +605,7 @@ extends Descriptor
 		final AvailRuntime runtime,
 		final TextInterface textInterface,
 		final A_Continuation availContinuation,
-		final Continuation1<List<String>> javaContinuation)
+		final Continuation1NotNull<List<String>> javaContinuation)
 	{
 		final List<A_Continuation> frames = new ArrayList<>(20);
 		for (
@@ -639,7 +639,6 @@ extends Descriptor
 			allTypes,
 			allTypeNames ->
 			{
-				assert allTypeNames != null;
 				int allTypesIndex = 0;
 				for (
 					int frameIndex = 0, end = frames.size();

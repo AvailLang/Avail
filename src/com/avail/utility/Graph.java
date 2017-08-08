@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
 
 /**
@@ -684,7 +685,7 @@ public class Graph<Vertex>
 	 * @param doneAction What to do when traversal completes.
 	 */
 	public void parallelVisit (
-		final Continuation1<Continuation0> scheduleAction,
+		final Continuation1NotNull<Continuation0> scheduleAction,
 		final Continuation2<Vertex, Continuation0> visitAction,
 		final Continuation0 doneAction)
 	{
@@ -771,24 +772,23 @@ public class Graph<Vertex>
 		 * Exhaust the stack.
 		 *
 		 * @param process
-		 *        The {@link Continuation1} to invoke to schedule visitation of
-		 *        a vertex. Its argument is a {@link Continuation0} that
-		 *        actually visits the appropriate vertex, using the supplied
-		 *        {@link #visitAction}.
+		 *        The {@link Continuation1NotNull} to invoke to schedule
+		 *        visitation of a vertex. Its argument is a {@link
+		 *        Continuation0} that actually visits the appropriate vertex,
+		 *        using the supplied {@link #visitAction}.
 		 * @param done
 		 *        A {@link Continuation0} to invoke when the traversal has
 		 *        completed.
 		 */
 		@InnerAccess void exhaustStack (
-			final Continuation1<Continuation0> process,
+			final Continuation1NotNull<Continuation0> process,
 			final Continuation0 done)
 		{
 			assert Thread.holdsLock(this);
 			while (!stack.isEmpty())
 			{
 				final Vertex vertex = stack.removeLast();
-				final int countdown =
-					predecessorCountdowns.get(vertex);
+				final int countdown = predecessorCountdowns.get(vertex);
 				if (countdown == 1)
 				{
 					log(Level.FINE, "Visiting %s%n", vertex);
@@ -796,9 +796,7 @@ public class Graph<Vertex>
 						vertex,
 						new Continuation0()
 						{
-							/**
-							 * Whether this completion action has run.
-							 */
+							/** Whether this completion action has run. */
 							private boolean alreadyRan;
 
 							@Override
@@ -816,8 +814,7 @@ public class Graph<Vertex>
 										"Invoked completion action "
 										+ "twice for vertex");
 									alreadyRan = true;
-									predecessorCountdowns.remove(
-										vertex);
+									predecessorCountdowns.remove(vertex);
 									final Set<Vertex> successors =
 										successorsOf(vertex);
 									stack.addAll(successors);
@@ -825,8 +822,7 @@ public class Graph<Vertex>
 										Level.FINE,
 										"Completed %s%n",
 										vertex);
-									visitRemainingVertices(
-										process, done);
+									visitRemainingVertices(process, done);
 								}
 							}
 						}));
@@ -834,8 +830,7 @@ public class Graph<Vertex>
 				else
 				{
 					assert countdown > 1;
-					predecessorCountdowns.put(
-						vertex, countdown - 1);
+					predecessorCountdowns.put(vertex, countdown - 1);
 				}
 			}
 		}
@@ -859,7 +854,7 @@ public class Graph<Vertex>
 		 *        completed.
 		 */
 		@InnerAccess void visitRemainingVertices (
-			final Continuation1<Continuation0> process,
+			final Continuation1NotNull<Continuation0> process,
 			final Continuation0 done)
 		{
 			process.value(() ->
@@ -895,7 +890,7 @@ public class Graph<Vertex>
 		 *        completed.
 		 */
 		@InnerAccess void execute (
-			final Continuation1<Continuation0> process,
+			final Continuation1NotNull<Continuation0> process,
 			final Continuation0 done)
 		{
 			computePredecessorCountdowns();
@@ -912,11 +907,7 @@ public class Graph<Vertex>
 			computePredecessorCountdowns();
 			final Semaphore semaphore = new Semaphore(0);
 			visitRemainingVertices(
-				executeOne ->
-				{
-					assert executeOne != null;
-					executeOne.value();
-				},
+				Continuation0::value,
 				semaphore::release);
 			semaphore.acquireUninterruptibly();
 		}

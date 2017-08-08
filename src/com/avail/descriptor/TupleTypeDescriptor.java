@@ -296,7 +296,7 @@ extends TypeDescriptor
 		}
 		for (int i = 1; i <= end; i++)
 		{
-			A_Type subType;
+			final A_Type subType;
 			if (i <= subTuple.tupleSize())
 			{
 				subType = subTuple.tupleAt(i);
@@ -305,7 +305,7 @@ extends TypeDescriptor
 			{
 				subType = aTupleType.defaultType();
 			}
-			A_Type superType;
+			final A_Type superType;
 			if (i <= superTuple.tupleSize())
 			{
 				superType = superTuple.tupleAt(i);

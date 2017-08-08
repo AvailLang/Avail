@@ -76,7 +76,6 @@ public final class P_Assert extends Primitive
 				continuation,
 				stack ->
 				{
-					assert stack != null;
 					final StringBuilder builder = new StringBuilder();
 					builder.append(failureMessage.asNativeString());
 					for (final String frame : stack)

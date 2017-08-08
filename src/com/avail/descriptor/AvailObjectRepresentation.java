@@ -720,7 +720,7 @@ implements A_BasicObject
 	public final AvailObject volatileSlot (final ObjectSlotsEnum field)
 	{
 		checkSlot(field);
-		int ignored = dummyVolatile;
+		final int ignored = dummyVolatile;
 		return objectSlots[field.ordinal()];
 	}
 

@@ -312,10 +312,9 @@ enum SerializerOperandEncoding
 			final Serializer serializer)
 		{
 			// Visit the *elements* of the tuple.
-			final int tupleSize = object.tupleSize();
-			for (int i = 1; i <= tupleSize; i++)
+			for (final A_BasicObject element : object)
 			{
-				serializer.traceOne(object.tupleAt(i));
+				serializer.traceOne(element);
 			}
 		}
 
@@ -326,10 +325,10 @@ enum SerializerOperandEncoding
 		{
 			final int tupleSize = object.tupleSize();
 			writeCompressedPositiveInt(tupleSize, serializer);
-			for (int i = 1; i <= tupleSize; i++)
+			for (final A_BasicObject element : object)
 			{
 				writeCompressedPositiveInt(
-					serializer.indexOfExistingObject(object.tupleAt(i)),
+					serializer.indexOfExistingObject(element),
 					serializer);
 			}
 		}

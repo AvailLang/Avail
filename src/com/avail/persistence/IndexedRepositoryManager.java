@@ -809,10 +809,8 @@ public class IndexedRepositoryManager
 		 * The N most recently recorded compilations of this version of the
 		 * module.
 		 */
-		@InnerAccess
-		final LimitedCache<ModuleCompilationKey, ModuleCompilation>
-			compilations =
-				new LimitedCache<>(maxHistoricalVersionCompilations);
+		@InnerAccess final LimitedCache<ModuleCompilationKey, ModuleCompilation>
+			compilations = new LimitedCache<>(maxHistoricalVersionCompilations);
 
 		/**
 		 * Look up the {@link ModuleCompilation} associated with the provided
@@ -1257,7 +1255,7 @@ public class IndexedRepositoryManager
 	 *
 	 * @param rootRelativePath The root-relative path of the module or package.
 	 */
-	public void cleanModulesUnder (String rootRelativePath)
+	public void cleanModulesUnder (final String rootRelativePath)
 	{
 		lock.lock();
 		try

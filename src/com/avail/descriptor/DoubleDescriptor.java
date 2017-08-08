@@ -287,7 +287,7 @@ extends AbstractNumberDescriptor
 		final A_Number recyclable2,
 		final boolean canDestroy)
 	{
-		AvailObject result;
+		final AvailObject result;
 		if (canDestroy && recyclable1.descriptor().isMutable())
 		{
 			result = (AvailObject)recyclable1;

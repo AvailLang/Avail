@@ -87,7 +87,7 @@ implements WindowListener
 			Platform.setImplicitExit(false);
 			frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-			JPanel panel = new JPanel();
+			final JPanel panel = new JPanel();
 			panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 			panel.setOpaque(true);
 

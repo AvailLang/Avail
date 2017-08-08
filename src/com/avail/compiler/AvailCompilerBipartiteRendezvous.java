@@ -53,29 +53,24 @@ import com.avail.compiler.AvailCompiler.Con;
  * That allows us to reorder the continuations arbitrarily, including forcing
  * them to run basically in lock-step with the lexical scanner, avoiding
  * scanning too far ahead in the cases of dynamic scanning rules and power
- * strings.  It also allows parallel execution of the parser (in theory).
- * </p>
- *
- * <p>
- * This class is parametric in its {@link Solution} type, allowing it to be used
- * for both parsing and lexical scanning.
+ * strings.  It also allows parallel execution of the parser.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailCompilerBipartiteRendezvous<Solution extends AbstractSolution>
+public class AvailCompilerBipartiteRendezvous
 {
 
 	/**
 	 * The solutions that have been encountered so far, and will be passed to
 	 * new actions when they arrive.
 	 */
-	private final List<Solution> solutions = new ArrayList<>(3);
+	private final List<CompilerSolution> solutions = new ArrayList<>(3);
 
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
 	 */
-	private final List<Con<Solution>> actions = new ArrayList<>(3);
+	private final List<Con> actions = new ArrayList<>(3);
 
 	/**
 	 * Record a new solution, and also run any waiting actions with it.
@@ -84,7 +79,7 @@ public class AvailCompilerBipartiteRendezvous<Solution extends AbstractSolution>
 	 * @throws DuplicateSolutionException
 	 *         If the solution is equal to a solution already recorded.
 	 */
-	void addSolution (final Solution solution)
+	void addSolution (final CompilerSolution solution)
 	throws DuplicateSolutionException
 	{
 		if (solutions.contains(solution))
@@ -103,7 +98,7 @@ public class AvailCompilerBipartiteRendezvous<Solution extends AbstractSolution>
 			// throw new DuplicateSolutionException();
 		}
 		solutions.add(solution);
-		for (final Con<Solution> action : actions)
+		for (final Con action : actions)
 		{
 			action.value(solution);
 		}
@@ -114,10 +109,10 @@ public class AvailCompilerBipartiteRendezvous<Solution extends AbstractSolution>
 	 *
 	 * @param action The new action.
 	 */
-	void addAction (final Con<Solution> action)
+	void addAction (final Con action)
 	{
 		actions.add(action);
-		for (final Solution solution : solutions)
+		for (final CompilerSolution solution : solutions)
 		{
 			action.value(solution);
 		}

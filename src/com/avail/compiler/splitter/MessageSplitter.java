@@ -407,7 +407,7 @@ public final class MessageSplitter
 		if (!atEnd())
 		{
 			final A_String part = currentMessagePart();
-			String encountered;
+			final String encountered;
 			if (part.equals(CLOSE_GUILLEMET.string))
 			{
 				encountered =

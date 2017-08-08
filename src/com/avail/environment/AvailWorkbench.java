@@ -101,7 +101,7 @@ import static javax.swing.SwingUtilities.invokeLater;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @SuppressWarnings("serial")
-public class AvailWorkbench
+public final class AvailWorkbench
 extends JFrame
 {
 	/**
@@ -723,10 +723,10 @@ extends JFrame
 		{
 			try
 			{
-				StringBuilder sb = new StringBuilder();
-				List<String> lines =
+				final StringBuilder sb = new StringBuilder();
+				final List<String> lines =
 					Files.lines(file.toPath()).collect(Collectors.toList());
-				int size = lines.size();
+				final int size = lines.size();
 				for (int i = 0; i < size - 1; i++)
 				{
 					sb.append(lines.get(i));
@@ -1301,7 +1301,7 @@ extends JFrame
 	 *
 	 * @return The (invisible) root of the module tree.
 	 */
-	public final TreeNode newModuleTree ()
+	public TreeNode newModuleTree ()
 	{
 		final ModuleRoots roots = resolver.moduleRoots();
 		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(
@@ -1340,7 +1340,7 @@ extends JFrame
 	 *
 	 * @return The (invisible) root of the entry points tree.
 	 */
-	public final TreeNode newEntryPointsTree ()
+	public TreeNode newEntryPointsTree ()
 	{
 		final Object mutex = new Object();
 		final Map<String, DefaultMutableTreeNode> moduleNodes = new HashMap<>();
@@ -1836,18 +1836,18 @@ extends JFrame
 	 */
 	public static ModuleRoots loadModuleRoots ()
 	{
-		ModuleRoots roots = new ModuleRoots("");
+		final ModuleRoots roots = new ModuleRoots("");
 		roots.clearRoots();
-		Preferences node = basePreferences.node(moduleRootsKeyString);
+		final Preferences node = basePreferences.node(moduleRootsKeyString);
 		try
 		{
 			final String[] childNames = node.childrenNames();
-			for (String childName : childNames)
+			for (final String childName : childNames)
 			{
 				final Preferences childNode = node.node(childName);
-				String repoName = childNode.get(
+				final String repoName = childNode.get(
 					moduleRootsRepoSubkeyString, "");
-				String sourceName = childNode.get(
+				final String sourceName = childNode.get(
 					moduleRootsSourceSubkeyString, "");
 				roots.addRoot(
 					new ModuleRoot(
@@ -1856,7 +1856,7 @@ extends JFrame
 						new File(sourceName)));
 			}
 		}
-		catch (BackingStoreException e)
+		catch (final BackingStoreException e)
 		{
 			System.err.println(
 				"Unable to read Avail roots preferences.");
@@ -1873,16 +1873,16 @@ extends JFrame
 	public static void loadRenameRulesInto (final ModuleNameResolver resolver)
 	{
 		resolver.clearRenameRules();
-		Preferences node = basePreferences.node(moduleRenamesKeyString);
+		final Preferences node = basePreferences.node(moduleRenamesKeyString);
 		try
 		{
 			final String[] childNames = node.childrenNames();
-			for (String childName : childNames)
+			for (final String childName : childNames)
 			{
 				final Preferences childNode = node.node(childName);
-				String source = childNode.get(
+				final String source = childNode.get(
 					moduleRenameSourceSubkeyString, "");
-				String target = childNode.get(
+				final String target = childNode.get(
 					moduleRenameTargetSubkeyString, "");
 				// Ignore empty sources and targets, although they shouldn't
 				// occur.
@@ -1892,7 +1892,7 @@ extends JFrame
 				}
 			}
 		}
-		catch (BackingStoreException e)
+		catch (final BackingStoreException e)
 		{
 			System.err.println(
 				"Unable to read Avail rename rule preferences.");
@@ -1909,7 +1909,7 @@ extends JFrame
 	{
 		try
 		{
-			Preferences rootsNode = basePreferences.node(moduleRootsKeyString);
+			final Preferences rootsNode = basePreferences.node(moduleRootsKeyString);
 			final ModuleRoots roots = resolver.moduleRoots();
 			for (final String oldChildName : rootsNode.childrenNames())
 			{
@@ -1929,7 +1929,7 @@ extends JFrame
 					root.sourceDirectory().getPath());
 			}
 
-			Preferences renamesNode =
+			final Preferences renamesNode =
 				basePreferences.node(moduleRenamesKeyString);
 			final Map<String, String> renames = resolver.renameRules();
 			for (final String oldChildName : renamesNode.childrenNames())
@@ -1939,7 +1939,7 @@ extends JFrame
 				{
 					nameInt = Integer.valueOf(oldChildName);
 				}
-				catch (NumberFormatException e)
+				catch (final NumberFormatException e)
 				{
 					nameInt = -1;
 				}
@@ -1964,7 +1964,7 @@ extends JFrame
 
 			basePreferences.flush();
 		}
-		catch (BackingStoreException e)
+		catch (final BackingStoreException e)
 		{
 			System.err.println(
 				"Unable to write Avail roots/renames preferences.");
@@ -2262,7 +2262,7 @@ extends JFrame
 				final @NotNull String... replacements)
 			{
 				String result = template;
-				Replaceable[] replaceables = Replaceable.values();
+				final Replaceable[] replaceables = Replaceable.values();
 
 				assert replaceables.length == replacements.length;
 
@@ -2296,7 +2296,7 @@ extends JFrame
 		public String stringToStore ()
 		{
 			final String [] strings = new String [moduleTemplates.size()];
-			int index = 0;
+			final int index = 0;
 			for (final Entry<String, String> entry : moduleTemplates.entrySet())
 			{
 				strings[index] = entry.getKey() + '\0' +
@@ -2340,12 +2340,12 @@ extends JFrame
 		{
 			if (!input.isEmpty())
 			{
-				String pairSpliter = "" + '\0';
-				String recordSpliter  = "" + 0x1e;
+				final String pairSpliter = "" + '\0';
+				final String recordSpliter  = "" + 0x1e;
 				final String[] substrings = input.split(recordSpliter);
-				for (String template : substrings)
+				for (final String template : substrings)
 				{
-					String[] pair = template.split(pairSpliter);
+					final String[] pair = template.split(pairSpliter);
 					assert  pair.length == 2;
 					moduleTemplates.put(pair[0], pair[1]);
 				}
@@ -2449,13 +2449,9 @@ extends JFrame
 	 *
 	 * @param resolver
 	 *        The {@linkplain ModuleNameResolver module name resolver}.
-	 * @param initialTarget
-	 *        The initial target {@linkplain ModuleName module}, possibly the
-	 *        empty string.
 	 */
 	@InnerAccess AvailWorkbench (
-		final ModuleNameResolver resolver,
-		final String initialTarget)
+		final ModuleNameResolver resolver)
 	{
 		//This must be called to circumvent a bug that won't be fixed for swing
 		//and JavaFx interaction
@@ -2900,15 +2896,6 @@ extends JFrame
 
 		// Select an initial module if specified.
 		validate();
-		if (!initialTarget.isEmpty())
-		{
-			final TreePath path = modulePath(initialTarget);
-			if (path != null)
-			{
-				moduleTree.setSelectionPath(path);
-				moduleTree.scrollRowToVisible(moduleTree.getRowForPath(path));
-			}
-		}
 		setEnablements();
 	}
 
@@ -2920,7 +2907,7 @@ extends JFrame
 		final String name,
 		final Object... actionsAndSubmenus)
 	{
-		JMenu menu = new JMenu(name);
+		final JMenu menu = new JMenu(name);
 		augment(menu, actionsAndSubmenus);
 		return menu;
 	}
@@ -2929,9 +2916,9 @@ extends JFrame
 	 * Augment the given menu with the array of entries, which can be null to
 	 * indicate a separator, a JMenuItem, or an Action to wrap in a JMenuItem.
 	 */
-	private static void augment (final JMenu menu, Object... actionsAndSubmenus)
+	private static void augment (final JMenu menu, final Object... actionsAndSubmenus)
 	{
-		for (Object item : actionsAndSubmenus)
+		for (final Object item : actionsAndSubmenus)
 		{
 			if (item == null)
 			{
@@ -3071,26 +3058,32 @@ extends JFrame
 		}
 
 		// The first application argument, if any, says which module to select.
-		final String initial;
-		if (args.length > 0)
-		{
-			initial = args[0];
-		}
-		else
-		{
-			initial = "";
-		}
+		final String initial = args.length > 0 ? args[0] : "";
 
 		// Display the UI.
 		invokeLater(() ->
 		{
-			final AvailWorkbench frame = new AvailWorkbench(resolver, initial);
+			final AvailWorkbench frame = new AvailWorkbench(resolver);
 			if (runningOnMac)
 			{
 				frame.setUpInstanceForMac();
 			}
 			frame.setVisible(true);
 			frame.refresh();
+
+			// Select an initial module if specified.
+			if (!initial.isEmpty())
+			{
+				final TreePath path = frame.modulePath(initial);
+				if (path != null)
+				{
+					frame.moduleTree.setSelectionPath(path);
+					frame.moduleTree.scrollRowToVisible(
+						frame.moduleTree.getRowForPath(path));
+					frame.setEnablements();
+				}
+			}
+
 		});
 	}
 }

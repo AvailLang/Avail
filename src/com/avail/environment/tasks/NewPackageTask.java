@@ -122,7 +122,7 @@ extends FXWindowTask
 		{
 			try
 			{
-				ResolvedModuleName resolvedModuleName =
+				final ResolvedModuleName resolvedModuleName =
 					workbench.availBuilder.runtime.moduleNameResolver()
 						.resolve(new ModuleName(qualifiedName), null);
 				try
@@ -130,12 +130,12 @@ extends FXWindowTask
 					new EditModuleTask(workbench, resolvedModuleName)
 						.executeTask();
 				}
-				catch (Exception e)
+				catch (final Exception e)
 				{
 					//We tried...
 				}
 			}
-			catch (UnresolvedDependencyException e)
+			catch (final UnresolvedDependencyException e)
 			{
 				//Don't bother opening it.
 			}

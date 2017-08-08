@@ -71,6 +71,7 @@ import com.avail.exceptions.SignatureException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
@@ -691,7 +692,7 @@ public abstract class AbstractDescriptor
 				Strings.newlineTab(builder, indent);
 				final String slotName = slot.name();
 				assert slotName != null;
-				long value;
+				final long value;
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
 					final int subscript = i - intSlots.length + 1;
@@ -951,7 +952,7 @@ public abstract class AbstractDescriptor
 							bitFields.add(bitField);
 						}
 					}
-					catch (IllegalAccessException e)
+					catch (final IllegalAccessException e)
 					{
 						assert false;
 						throw new RuntimeException(e);
@@ -4418,15 +4419,6 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param newParseNode
-	 * @return
-	 */
-	abstract A_Phrase o_PrependWith (
-		AvailObject object,
-		A_Phrase newParseNode);
-
-	/**
-	 * @param object
 	 * @param isLastUse
 	 */
 	abstract void o_IsLastUse (
@@ -5648,14 +5640,14 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract Continuation1<Throwable> o_FailureContinuation (
+	abstract Continuation1NotNull<Throwable> o_FailureContinuation (
 		AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	abstract Continuation1<AvailObject> o_ResultContinuation (
+	abstract Continuation1NotNull<AvailObject> o_ResultContinuation (
 		AvailObject object);
 
 	/**
@@ -5664,7 +5656,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_ResultContinuation (
 		AvailObject object,
-		Continuation1<AvailObject> continuation);
+		Continuation1NotNull<AvailObject> continuation);
 
 	/**
 	 * @param object
@@ -5672,7 +5664,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_FailureContinuation (
 		AvailObject object,
-		Continuation1<Throwable> continuation);
+		Continuation1NotNull<Throwable> continuation);
 
 	/**
 	 * @param object
@@ -6095,7 +6087,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_WhenContinuationIsAvailableDo (
 		AvailObject object,
-		Continuation1<A_Continuation> whenReified);
+		Continuation1NotNull<A_Continuation> whenReified);
 
 	/**
 	 * @param object
@@ -6352,7 +6344,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_StatementsDo (
 		AvailObject object,
-		Continuation1<A_Phrase> continuation);
+		Continuation1NotNull<A_Phrase> continuation);
 
 	/**
 	 * @param object
@@ -6634,4 +6626,17 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_String o_GlobalName (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract LexicalScanner o_CreateLexicalScanner (final AvailObject object);
+
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_Lexer o_Lexer (final AvailObject object);
 }

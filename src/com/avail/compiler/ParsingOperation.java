@@ -163,10 +163,10 @@ public enum ParsingOperation
 	 */
 	CONCATENATE(13, false, true),
 
-	/** {@code 14} - A list and a value have been pushed; pop them, prepend
-	 * the value on the list, and push the new list.
+	/**
+	 * {@code 14} - Reserved for future use.
 	 */
-	PREPEND(14, false, true),
+	RESERVED_14(14, false, true),
 
 	/**
 	 * {@code 15} - Reserved for future use.

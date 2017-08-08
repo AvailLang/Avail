@@ -65,7 +65,7 @@ extends AbstractWorkbenchAction
 
 		assert selectedModule != null || moduleRootNode != null;
 
-		String baseQualifiedName = (selectedModule != null
+		final String baseQualifiedName = (selectedModule != null
 			? selectedModule.packageName()
 			: "/" + moduleRootNode.moduleRoot().name()) + "/";
 

@@ -65,13 +65,13 @@ public final class FormattingDescriber implements Describer
 
 	/**
 	 * Produce the formatted string and pass it to the specified {@linkplain
-	 * Continuation1 continuation}.
+	 * Continuation1NotNull continuation}.
 	 *
 	 * @param continuation
 	 *        What to do with the formatted {@link String}.
 	 */
 	@Override
-	public void describeThen (final Continuation1<String> continuation)
+	public void describeThen (final Continuation1NotNull<String> continuation)
 	{
 		continuation.value(String.format(patternString, arguments));
 	}

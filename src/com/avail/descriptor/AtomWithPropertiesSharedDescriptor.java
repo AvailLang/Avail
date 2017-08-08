@@ -152,7 +152,7 @@ extends AtomWithPropertiesDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		int hash = object.slot(HASH_OR_ZERO);
+		final int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
 		{
 			synchronized (object)

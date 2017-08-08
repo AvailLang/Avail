@@ -86,7 +86,6 @@ extends Primitive
 			continuation,
 			stack ->
 			{
-				assert stack != null;
 				final List<A_String> frames = new ArrayList<>(stack.size());
 				for (int i = stack.size() - 1; i >= 0; i--)
 				{

@@ -388,7 +388,7 @@ extends SetBinDescriptor
 				canDestroy);
 		final int deltaHash = replacementEntry.binHash() - oldEntryHash;
 		final int deltaSize = replacementEntry.binSize() - oldEntrySize;
-		AvailObject result;
+		final AvailObject result;
 		if (replacementEntry.binSize() == 0)
 		{
 			// Exclude the entire hash entry.

@@ -74,7 +74,7 @@ extends FilterComboBox<String>
 	 * @param node
 	 *        The {@code PrefixNode} to add,
 	 */
-	private void addNode (PrefixNode<T> node)
+	private void addNode (final PrefixNode<T> node)
 	{
 		path.add(node);
 	}
@@ -164,7 +164,7 @@ extends FilterComboBox<String>
 	{
 		path.clear();
 		path.add(prefixTrie.root());
-		String value = getEditor().getText();
+		final String value = getEditor().getText();
 		if (value != null && value.length() > 0)
 		{
 			currentNode().searchTrie(value, node ->
@@ -191,7 +191,7 @@ extends FilterComboBox<String>
 	{
 		path.clear();
 		path.add(prefixTrie.root());
-		String value = getEditor().getText();
+		final String value = getEditor().getText();
 		if (value != null && value.length() > 0)
 		{
 			currentNode().searchTrie(value, node ->

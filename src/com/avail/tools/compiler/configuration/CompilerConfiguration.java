@@ -177,7 +177,7 @@ implements Configuration
 			{
 				reader.close();
 			}
-			catch (IOException e)
+			catch (final IOException e)
 			{
 				throw new RenamesFileParserException(e);
 			}

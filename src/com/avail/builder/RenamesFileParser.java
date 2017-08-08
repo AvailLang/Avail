@@ -489,7 +489,7 @@ public final class RenamesFileParser
 		for (int i = 0; i < scannerTable.length; i++)
 		{
 			final char c = (char) i;
-			ScannerAction action;
+			final ScannerAction action;
 			if (c == '"')
 			{
 				action = ScannerAction.DOUBLE_QUOTE;

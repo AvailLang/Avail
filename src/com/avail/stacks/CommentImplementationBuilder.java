@@ -280,7 +280,7 @@ public class CommentImplementationBuilder
 		 final ArrayList<AbstractStacksToken> tagContentTokens)
 			 throws ClassCastException, StacksCommentBuilderException
 	{
-		int arity;
+		final int arity;
 		try
 		{
 			arity = Integer.parseInt(tagContentTokens.get(0).lexeme);

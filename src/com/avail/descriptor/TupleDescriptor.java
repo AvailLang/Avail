@@ -864,7 +864,6 @@ extends Descriptor
 		boolean hasNonInts = false;
 		int maxCodePoint = 0;
 		int maxInteger = 0;
-		int minInteger = 0;
 		for (int i = 1; i <= size; i++)
 		{
 			final AvailObject element = object.tupleAt(i);
@@ -887,8 +886,11 @@ extends Descriptor
 				if (element.isInt())
 				{
 					final int integer = element.extractInt();
+					if (integer < 0)
+					{
+						return SerializerOperation.GENERAL_TUPLE;
+					}
 					maxInteger = Math.max(maxInteger, integer);
-					minInteger = Math.min(minInteger, integer);
 				}
 				else
 				{
@@ -900,11 +902,11 @@ extends Descriptor
 		if (hasNonChars)
 		{
 			assert !hasNonInts;
-			if (minInteger >= 0 && maxInteger <= 15)
+			if (maxInteger <= 15)
 			{
 				return SerializerOperation.NYBBLE_TUPLE;
 			}
-			if (minInteger >= 0 && maxInteger <= 255)
+			if (maxInteger <= 255)
 			{
 				return SerializerOperation.BYTE_TUPLE;
 			}

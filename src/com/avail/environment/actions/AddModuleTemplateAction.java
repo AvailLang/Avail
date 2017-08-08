@@ -55,7 +55,7 @@ extends AbstractWorkbenchAction
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		chooser.setCurrentDirectory(AvailWorkbench.currentWorkingDirectory);
 		chooser.setAcceptAllFileFilterUsed(false);
-		FileNameExtensionFilter filter =
+		final FileNameExtensionFilter filter =
 			new FileNameExtensionFilter(
 				"Template Files (.tmpl)","tmpl");
 		chooser.setFileFilter(filter);
@@ -64,7 +64,7 @@ extends AbstractWorkbenchAction
 			workbench, "Add Module Template");
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			String name = JOptionPane.showInputDialog(workbench,
+			final String name = JOptionPane.showInputDialog(workbench,
 				"Enter template name", null);
 			workbench.addModuleTemplate(name, chooser.getSelectedFile());
 		}

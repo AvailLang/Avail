@@ -57,8 +57,8 @@ public enum ParsingConversionRule
 			final CompilationContext compilationContext,
 			final LexingState lexingState,
 			final A_Phrase input,
-			final Continuation1<A_Phrase> continuation,
-			final Continuation1<Throwable> onProblem)
+			final Continuation1NotNull<A_Phrase> continuation,
+			final Continuation1NotNull<Throwable> onProblem)
 		{
 			continuation.value(input);
 		}
@@ -77,8 +77,8 @@ public enum ParsingConversionRule
 			final CompilationContext compilationContext,
 			final LexingState lexingState,
 			final A_Phrase input,
-			final Continuation1<A_Phrase> continuation,
-			final Continuation1<Throwable> onProblem)
+			final Continuation1NotNull<A_Phrase> continuation,
+			final Continuation1NotNull<Throwable> onProblem)
 		{
 			final A_Tuple expressions = input.expressionsTuple();
 			final A_Number count = IntegerDescriptor.fromInt(
@@ -108,8 +108,8 @@ public enum ParsingConversionRule
 			final CompilationContext compilationContext,
 			final LexingState lexingState,
 			final A_Phrase input,
-			final Continuation1<A_Phrase> continuation,
-			final Continuation1<Throwable> onProblem)
+			final Continuation1NotNull<A_Phrase> continuation,
+			final Continuation1NotNull<Throwable> onProblem)
 		{
 			assert input.expressionType().isSubtypeOf(
 				InstanceMetaDescriptor.topMeta());
@@ -141,25 +141,23 @@ public enum ParsingConversionRule
 	/**
 	 * Convert an input {@link AvailObject} into an output AvailObject, using
 	 * the specific conversion rule's implementation.
-	 *
-	 * @param compilationContext
+	 *  @param compilationContext
 	 *        The {@link CompilationContext} to use during conversion, if
 	 *        needed.
 	 * @param lexingState
 	 *        The {@link LexingState} after the phrase.
 	 * @param input
-	 *        The parse node to be converted.
+ *        The parse node to be converted.
 	 * @param continuation
-	 *        What to do with the replacement parse node.
+*        What to do with the replacement parse node.
 	 * @param onProblem
-	 *        What to do if a problem happens during conversion.
 	 */
 	public abstract void convert (
 		final CompilationContext compilationContext,
 		final LexingState lexingState,
 		final A_Phrase input,
-		final Continuation1<A_Phrase> continuation,
-		final Continuation1<Throwable> onProblem);
+		final Continuation1NotNull<A_Phrase> continuation,
+		final Continuation1NotNull<Throwable> onProblem);
 
 	/**
 	 * Construct a new {@link ParsingConversionRule}.

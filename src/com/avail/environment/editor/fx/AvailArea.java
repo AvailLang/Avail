@@ -305,11 +305,11 @@ public class AvailArea
 						moveTo(line - 1, 0);
 						requestFollowCaret();
 					}
-					catch (NumberFormatException e)
+					catch (final NumberFormatException e)
 					{
 						//Just don't do anything
 					}
-					catch (IndexOutOfBoundsException e)
+					catch (final IndexOutOfBoundsException e)
 					{
 						moveTo(getText().length());
 						requestFollowCaret();
@@ -382,7 +382,7 @@ public class AvailArea
 							findBuffer = null;
 						}
 					}
-					catch (NumberFormatException e)
+					catch (final NumberFormatException e)
 					{
 						//Just don't do anything
 					}
@@ -418,7 +418,7 @@ public class AvailArea
 	 * @param node
 	 *        The {@code PrefixNode} to add,
 	 */
-	private void addNode (PrefixNode<String> node)
+	private void addNode (final PrefixNode<String> node)
 	{
 		path.add(node);
 	}

@@ -33,7 +33,15 @@
 Module "Playing"
 Versions
 	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail"
 Extends
+	"Avail" =
+	(
+		"whitespace lexer",
+		"keyword lexer",
+		"operator lexer",
+	),
 	"English Wumpus",
 	"Smalltalk Wumpus" =
 	(

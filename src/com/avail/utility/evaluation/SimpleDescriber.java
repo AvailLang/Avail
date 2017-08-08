@@ -61,7 +61,7 @@ public final class SimpleDescriber implements Describer
 	 *        What to do with the message.
 	 */
 	@Override
-	public void describeThen (final Continuation1<String> continuation)
+	public void describeThen (final Continuation1NotNull<String> continuation)
 	{
 		continuation.value(string);
 	}

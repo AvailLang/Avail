@@ -171,7 +171,7 @@ public class StacksGenerator
 		final ModuleHeader header,
 		final A_Tuple commentTokens)
 	{
-		StacksCommentsModule commentsModule = new StacksCommentsModule(
+		final StacksCommentsModule commentsModule = new StacksCommentsModule(
 			header,commentTokens,errorLog, resolver,
 			moduleToComments,linkingFileMap,
 			linkPrefix);
@@ -285,7 +285,7 @@ public class StacksGenerator
 		final Path newFilePath,
 		final ArrayList<Pair<CharSequence,CharSequence>>replacementPairs)
 	{
-		FileChannel newFile;
+		final FileChannel newFile;
 		try
 		{
 			newFile =

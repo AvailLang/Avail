@@ -60,6 +60,7 @@ import com.avail.exceptions.SignatureException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
@@ -97,17 +98,17 @@ extends AbstractDescriptor
 	 * Construct a new {@link Descriptor}.
 	 *
 	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param typeTag
-	 *            The {@link TypeTag} to embed in the new descriptor.
+	 *        The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        ObjectSlotsEnum} and defines this object's object slots
+	 *        layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        IntegerSlotsEnum} and defines this object's object slots
+	 *        layout, or null if there are no integer slots.
 	 */
 	protected Descriptor (
 		final Mutability mutability,
@@ -250,7 +251,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ArgOrLocalOrStackAt (final AvailObject object, final int index)
+	AvailObject o_ArgOrLocalOrStackAt (
+		final AvailObject object,
+		final int index)
 	{
 		throw unsupportedOperationException();
 	}
@@ -900,9 +903,9 @@ extends AbstractDescriptor
 
 	@Override
 	A_Definition o_LookupByTypesFromTuple (
-			final AvailObject object,
-			final A_Tuple argumentTypeTuple)
-		throws MethodDefinitionException
+		final AvailObject object,
+		final A_Tuple argumentTypeTuple)
+	throws MethodDefinitionException
 	{
 		throw unsupportedOperationException();
 	}
@@ -917,7 +920,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_MapAt (final AvailObject object, final A_BasicObject keyObject)
+	AvailObject o_MapAt (
+		final AvailObject object,
+		final A_BasicObject keyObject)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1119,9 +1124,9 @@ extends AbstractDescriptor
 	 * objects to the provided visitor.
 	 *
 	 * @param object
-	 *            The object to scan.
+	 *        The object to scan.
 	 * @param visitor
-	 *            The visitor to invoke.
+	 *        The visitor to invoke.
 	 */
 	@Override
 	void o_ScanSubobjects (
@@ -1174,7 +1179,7 @@ extends AbstractDescriptor
 
 	@Override
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
-		throws VariableSetException
+	throws VariableSetException
 	{
 		throw unsupportedOperationException();
 	}
@@ -1265,7 +1270,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Tuple o_TupleReverse(final AvailObject object)
+	A_Tuple o_TupleReverse (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1463,7 +1468,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeUnionOfMapType (final AvailObject object, final A_Type aMapType)
+	A_Type o_TypeUnionOfMapType (
+		final AvailObject object,
+		final A_Type aMapType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1493,7 +1500,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Type o_TypeUnionOfSetType (final AvailObject object, final A_Type aSetType)
+	A_Type o_TypeUnionOfSetType (
+		final AvailObject object,
+		final A_Type aSetType)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1697,7 +1706,7 @@ extends AbstractDescriptor
 	 * {@linkplain IntegerDescriptor integer}.
 	 *
 	 * @param object
-	 *            An {@link AvailObject}.
+	 *        An {@link AvailObject}.
 	 * @return A 64-bit signed Java {@code long}
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
@@ -1727,7 +1736,7 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_GetValue (final AvailObject object)
-		throws VariableGetException
+	throws VariableGetException
 	{
 		throw unsupportedOperationException();
 	}
@@ -2109,7 +2118,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsByteString (final AvailObject object, final A_String aString)
+	boolean o_EqualsByteString (
+		final AvailObject object,
+		final A_String aString)
 	{
 		return false;
 	}
@@ -2137,7 +2148,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsFiberType (final AvailObject object, final A_Type aFiberType)
+	boolean o_EqualsFiberType (
+		final AvailObject object,
+		final A_Type aFiberType)
 	{
 		return false;
 	}
@@ -2281,7 +2294,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsObject (final AvailObject object, final AvailObject anObject)
+	boolean o_EqualsObject (
+		final AvailObject object,
+		final AvailObject anObject)
 	{
 		return false;
 	}
@@ -2332,7 +2347,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsReverseTuple (final AvailObject object, final A_Tuple aTuple)
+	boolean o_EqualsReverseTuple (
+		final AvailObject object,
+		final A_Tuple aTuple)
 	{
 		return false;
 	}
@@ -2350,7 +2367,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsTupleType (final AvailObject object, final A_Type aTupleType)
+	boolean o_EqualsTupleType (
+		final AvailObject object,
+		final A_Type aTupleType)
 	{
 		return false;
 	}
@@ -2520,9 +2539,9 @@ extends AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail string?
 	 *
 	 * @param object
-	 *            An {@link AvailObject}.
+	 * 	An {@link AvailObject}.
 	 * @return {@code true} if the argument is an Avail string, {@code false}
-	 *         otherwise.
+	 * otherwise.
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
@@ -2725,7 +2744,7 @@ extends AbstractDescriptor
 	 * <em>foreach</em> construct.
 	 *
 	 * @param object
-	 *            An {@link AvailObject}.
+	 * 	An {@link AvailObject}.
 	 * @return An {@linkplain Iterator iterator}.
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
@@ -2908,14 +2927,6 @@ extends AbstractDescriptor
 
 	@Override
 	A_Phrase o_CopyWith (final AvailObject object, final A_Phrase newParseNode)
-	{
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	A_Phrase o_PrependWith (
-		final AvailObject object,
-		final A_Phrase newParseNode)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3948,9 +3959,9 @@ extends AbstractDescriptor
 
 	@Override
 	AvailObject o_GetAndSetValue (
-			final AvailObject object,
-			final A_BasicObject newValue)
-		throws VariableGetException, VariableSetException
+		final AvailObject object,
+		final A_BasicObject newValue)
+	throws VariableGetException, VariableSetException
 	{
 		throw unsupportedOperationException();
 	}
@@ -3958,10 +3969,10 @@ extends AbstractDescriptor
 	@Override
 	@AvailMethod
 	boolean o_CompareAndSwapValues (
-			final AvailObject object,
-			final A_BasicObject reference,
-			final A_BasicObject newValue)
-		throws VariableGetException, VariableSetException
+		final AvailObject object,
+		final A_BasicObject reference,
+		final A_BasicObject newValue)
+	throws VariableGetException, VariableSetException
 	{
 		throw unsupportedOperationException();
 	}
@@ -3969,23 +3980,23 @@ extends AbstractDescriptor
 	@Override
 	@AvailMethod
 	A_Number o_FetchAndAddValue (
-			final AvailObject object,
-			final A_Number addend)
-		throws VariableGetException, VariableSetException
+		final AvailObject object,
+		final A_Number addend)
+	throws VariableGetException, VariableSetException
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
 	@AvailMethod
-	Continuation1<Throwable> o_FailureContinuation (final AvailObject object)
+	Continuation1NotNull<Throwable> o_FailureContinuation (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
 	@AvailMethod
-	Continuation1<AvailObject> o_ResultContinuation (final AvailObject object)
+	Continuation1NotNull<AvailObject> o_ResultContinuation (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3994,7 +4005,7 @@ extends AbstractDescriptor
 	@AvailMethod
 	void o_ResultContinuation (
 		final AvailObject object,
-		final Continuation1<AvailObject> continuation)
+		final Continuation1NotNull<AvailObject> continuation)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4003,7 +4014,7 @@ extends AbstractDescriptor
 	@AvailMethod
 	void o_FailureContinuation (
 		final AvailObject object,
-		final Continuation1<Throwable> continuation)
+		final Continuation1NotNull<Throwable> continuation)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4204,7 +4215,7 @@ extends AbstractDescriptor
 
 	@Override
 	A_Bundle o_BundleOrCreate (final AvailObject object)
-		throws MalformedMessageException
+	throws MalformedMessageException
 	{
 		throw unsupportedOperationException();
 	}
@@ -4300,7 +4311,7 @@ extends AbstractDescriptor
 
 	@Override
 	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
-		throws AvailException
+	throws AvailException
 	{
 		throw unsupportedOperationException();
 	}
@@ -4351,7 +4362,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Continuation o_ReplacingCaller(
+	A_Continuation o_ReplacingCaller (
 		final AvailObject object,
 		final A_Continuation newCaller)
 	{
@@ -4361,7 +4372,7 @@ extends AbstractDescriptor
 	@Override
 	void o_WhenContinuationIsAvailableDo (
 		final AvailObject object,
-		final Continuation1<A_Continuation> whenReified)
+		final Continuation1NotNull<A_Continuation> whenReified)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4603,7 +4614,7 @@ extends AbstractDescriptor
 	@Override
 	void o_StatementsDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> continuation)
+		final Continuation1NotNull<A_Phrase> continuation)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4856,7 +4867,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_IsGlobal(
+	boolean o_IsGlobal (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -4870,6 +4881,18 @@ extends AbstractDescriptor
 
 	@Override
 	A_String o_GlobalName (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	LexicalScanner o_CreateLexicalScanner (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_Lexer o_Lexer (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

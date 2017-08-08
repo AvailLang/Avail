@@ -190,7 +190,7 @@ public class AvailObjectFieldHelper
 						(IntegerSlotsEnum) slot,
 						builder);
 				}
-				catch (RuntimeException e)
+				catch (final RuntimeException e)
 				{
 					builder.append(
 						"PROBLEM DESCRIBING INTEGER FIELD:\n");

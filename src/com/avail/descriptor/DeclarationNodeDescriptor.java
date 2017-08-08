@@ -169,7 +169,7 @@ extends ParseNodeDescriptor
 				builder.append('$');
 				builder.append(object.token().string().asNativeString());
 				builder.append(" : ");
-				A_BasicObject typeExpression = object.typeExpression();
+				final A_BasicObject typeExpression = object.typeExpression();
 				if (!typeExpression.equalsNil())
 				{
 					typeExpression.printOnAvoidingIndent(
@@ -605,7 +605,7 @@ extends ParseNodeDescriptor
 			final IdentityHashMap<A_BasicObject, Void> recursionMap,
 			final int indent)
 		{
-			A_BasicObject typeExpression = object.typeExpression();
+			final A_BasicObject typeExpression = object.typeExpression();
 			if (!typeExpression.equalsNil())
 			{
 				typeExpression.printOnAvoidingIndent(
@@ -766,7 +766,7 @@ extends ParseNodeDescriptor
 	@Override
 	void o_StatementsDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> continuation)
+		final Continuation1NotNull<A_Phrase> continuation)
 	{
 		continuation.value(object);
 	}

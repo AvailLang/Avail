@@ -31,7 +31,13 @@
  */
 
 Module "Hello World"
-Uses "Avail"
+Uses
+	"Avail"
+Extends
+	"Avail" =
+	(
+		"keyword lexer"
+	)
 Entries "Greet"
 Body
 

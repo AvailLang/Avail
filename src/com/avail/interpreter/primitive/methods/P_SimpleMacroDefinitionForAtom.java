@@ -123,7 +123,7 @@ extends Primitive
 					E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS);
 			}
 		}
-		catch (MalformedMessageException e)
+		catch (final MalformedMessageException e)
 		{
 			return interpreter.primitiveFailure(e.errorCode());
 		}

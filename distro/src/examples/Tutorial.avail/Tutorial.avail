@@ -32,6 +32,7 @@
 
 Module "Tutorial"
 Uses
+	"Avail",
 	"Hello World",
 	"RPN",
 	"Guess the Number",

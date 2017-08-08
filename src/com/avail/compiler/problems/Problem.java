@@ -34,6 +34,8 @@ package com.avail.compiler.problems;
 
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
+
+import com.avail.utility.evaluation.Continuation1NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.CharacterDescriptor;
@@ -153,7 +155,7 @@ public abstract class Problem
 	 */
 	final void report (
 		final ProblemHandler handler,
-		final Continuation1<Boolean> decider)
+		final Continuation1NotNull<Boolean> decider)
 	{
 		type.report(this, handler, decider);
 	}

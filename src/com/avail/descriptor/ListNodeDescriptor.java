@@ -183,29 +183,6 @@ extends ParseNodeDescriptor
 		return ListNodeDescriptor.newExpressions(newTuple);
 	}
 
-	/**
-	 * Create a new {@code ListNodeDescriptor list node} with one more parse
-	 * node added to the beginning of the list.
-	 *
-	 * @param object
-	 *        The list node to be left-extended.
-	 * @param newParseNode
-	 *        The parse node to prepend.
-	 * @return
-	 *         A new {@code ListNodeDescriptor list node} with the parse node
-	 *         prepended.
-	 */
-	@Override @AvailMethod
-	A_Phrase o_PrependWith (
-		final AvailObject object,
-		final A_Phrase newParseNode)
-	{
-		final A_Tuple oldTuple = object.slot(EXPRESSIONS_TUPLE);
-		final A_Tuple newTuple =
-			TupleDescriptor.from(newParseNode).concatenateWith(oldTuple, true);
-		return ListNodeDescriptor.newExpressions(newTuple);
-	}
-
 	@Override
 	void o_EmitAllValuesOn (
 		final AvailObject object,
@@ -309,7 +286,7 @@ extends ParseNodeDescriptor
 	@Override
 	void o_StatementsDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> continuation)
+		final Continuation1NotNull<A_Phrase> continuation)
 	{
 		throw unsupportedOperationException();
 	}

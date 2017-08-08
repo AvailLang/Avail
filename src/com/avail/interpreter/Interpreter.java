@@ -1948,11 +1948,11 @@ public final class Interpreter
 	 * Schedule the specified {@linkplain ExecutionState#indicatesSuspension()
 	 * suspended} {@linkplain FiberDescriptor fiber} to execute for a while as a
 	 * {@linkplain AvailRuntime#whenLevelOneUnsafeDo(AvailTask) Level One-unsafe
-	 * task} for a while. If the fiber completes normally, then call its
-	 * {@linkplain A_Fiber#resultContinuation() result continuation} with
-	 * its final answer. If the fiber terminates abnormally, then call its
-	 * {@linkplain A_Fiber#failureContinuation() failure continuation} with
-	 * the terminal {@linkplain Throwable throwable}.
+	 * task}. If the fiber completes normally, then call its {@linkplain
+	 * A_Fiber#resultContinuation() result continuation} with its final answer.
+	 * If the fiber terminates abnormally, then call its {@linkplain
+	 * A_Fiber#failureContinuation() failure continuation} with the terminal
+	 * {@linkplain Throwable throwable}.
 	 *
 	 * @param runtime
 	 *        An {@linkplain AvailRuntime Avail runtime}.
@@ -1965,7 +1965,7 @@ public final class Interpreter
 	private static void executeFiber (
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
-		final Continuation1<Interpreter> continuation)
+		final Continuation1NotNull<Interpreter> continuation)
 	{
 		assert aFiber.executionState().indicatesSuspension();
 		// We cannot simply run the specified function, we must queue a task to
@@ -2034,7 +2034,6 @@ public final class Interpreter
 			aFiber,
 			interpreter ->
 			{
-				assert interpreter != null;
 				assert aFiber == interpreter.fiberOrNull();
 				assert aFiber.executionState() == RUNNING;
 				assert aFiber.continuation().equalsNil();
@@ -2080,7 +2079,6 @@ public final class Interpreter
 			aFiber,
 			interpreter ->
 			{
-				assert interpreter != null;
 				assert aFiber == interpreter.fiberOrNull();
 				assert aFiber.executionState() == RUNNING;
 				assert !aFiber.continuation().equalsNil();
@@ -2121,7 +2119,6 @@ public final class Interpreter
 			aFiber,
 			interpreter ->
 			{
-				assert interpreter != null;
 				assert aFiber == interpreter.fiberOrNull();
 				assert aFiber.executionState() == RUNNING;
 				assert !aFiber.continuation().equalsNil();
@@ -2188,7 +2185,6 @@ public final class Interpreter
 			aFiber,
 			interpreter ->
 			{
-				assert interpreter != null;
 				interpreter.pointerAtPut(
 					PRIMITIVE_FAILURE,
 					failureValue);
@@ -2227,7 +2223,7 @@ public final class Interpreter
 		final AvailRuntime runtime,
 		final TextInterface textInterface,
 		final A_BasicObject value,
-		final Continuation1<String> continuation)
+		final Continuation1NotNull<String> continuation)
 	{
 		final A_Function stringifierFunction =
 			runtime.stringificationFunction();
@@ -2246,19 +2242,13 @@ public final class Interpreter
 			FiberDescriptor.stringificationPriority,
 			() -> StringDescriptor.from("Stringification"));
 		fiber.textInterface(textInterface);
-		fiber.resultContinuation(string ->
-		{
-			assert string != null;
-			continuation.value(string.asNativeString());
-		});
-		fiber.failureContinuation(e ->
-		{
-			assert e != null;
-			continuation.value(String.format(
+		fiber.resultContinuation(
+			string -> continuation.value(string.asNativeString()));
+		fiber.failureContinuation(
+			e -> continuation.value(String.format(
 				"(stringification failed [%s]) %s",
 				e.getClass().getSimpleName(),
-				value.toString()));
-		});
+				value.toString())));
 		// Stringify!
 		Interpreter.runOutermostFunction(
 			runtime,
@@ -2294,7 +2284,7 @@ public final class Interpreter
 		final AvailRuntime runtime,
 		final TextInterface textInterface,
 		final List<? extends A_BasicObject> values,
-		final Continuation1<List<String>> continuation)
+		final Continuation1NotNull<List<String>> continuation)
 	{
 		final int valuesCount = values.size();
 		if (valuesCount == 0)
@@ -2328,7 +2318,6 @@ public final class Interpreter
 				entry.getKey(),
 				arg ->
 				{
-					assert arg != null;
 					for (final int indexToWrite : indicesToWrite)
 					{
 						strings[indexToWrite] = arg;
@@ -2385,7 +2374,7 @@ public final class Interpreter
 		final A_Bundle bundle,
 		final double nanos)
 	{
-		Statistic stat = bundle.dynamicLookupStatistic();
+		final Statistic stat = bundle.dynamicLookupStatistic();
 		stat.record(nanos, interpreterIndex);
 	}
 

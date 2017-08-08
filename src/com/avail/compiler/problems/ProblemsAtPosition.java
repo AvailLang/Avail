@@ -84,8 +84,8 @@ public final class ProblemsAtPosition
 	 *        problems at the specified token.
 	 */
 	ProblemsAtPosition (
-		LexingState lexingState,
-		LexingState lexingStateAfterToken,
+		final LexingState lexingState,
+		final LexingState lexingStateAfterToken,
 		final String indicator,
 		final List<Describer> describers)
 	{

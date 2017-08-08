@@ -1,5 +1,5 @@
-/*
- * Learn.avail
+/**
+ * Continuation1NotNull.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,7 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Learn"
-Uses
-	"Avail"
-Body
+package com.avail.utility.evaluation;
+
+/**
+ * Implementors of {@code Continuation1NotNull} provide a single arbitrary
+ * operation that accepts one argument, which must not be null.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @param <X> The type of the argument.
+ */
+@FunctionalInterface
+public interface Continuation1NotNull<X>
+{
+	/**
+	 * Perform the operation.
+	 *
+	 * @param arg The first argument.
+	 */
+	void value (X arg);
+}

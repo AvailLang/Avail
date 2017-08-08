@@ -110,12 +110,12 @@ extends A_BasicObject
 	/**
 	 * @return
 	 */
-	Continuation1<Throwable> failureContinuation ();
+	Continuation1NotNull<Throwable> failureContinuation ();
 
 	/**
 	 * @param onFailure
 	 */
-	void failureContinuation (Continuation1<Throwable> onFailure);
+	void failureContinuation (Continuation1NotNull<Throwable> onFailure);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -225,12 +225,12 @@ extends A_BasicObject
 	/**
 	 * @return
 	 */
-	Continuation1<AvailObject> resultContinuation ();
+	Continuation1NotNull<AvailObject> resultContinuation ();
 
 	/**
 	 * @param onSuccess
 	 */
-	void resultContinuation (Continuation1<AvailObject> onSuccess);
+	void resultContinuation (Continuation1NotNull<AvailObject> onSuccess);
 
 	/**
 	 * @param flag
@@ -288,14 +288,16 @@ extends A_BasicObject
 	A_Set variablesWritten ();
 
 	/**
-	 * Ensure the specified {@linkplain Continuation1 action} is invoked with
-	 * this fiber's reified {@linkplain ContinuationDescriptor continuation} as
-	 * soon as it's available.
+	 * Ensure the specified {@linkplain Continuation1NotNull action} is invoked
+	 * with this fiber's reified {@linkplain ContinuationDescriptor
+	 * continuation} as soon as it's available.
 	 *
 	 * @param whenReified
+	 *        What to run with the Avail {@link ContinuationDescriptor
+	 *        continuation}.
 	 */
 	void whenContinuationIsAvailableDo (
-		Continuation1<A_Continuation> whenReified);
+		Continuation1NotNull<A_Continuation> whenReified);
 
 	/**
 	 * Extract the current set of {@linkplain Continuation1 actions} to perform

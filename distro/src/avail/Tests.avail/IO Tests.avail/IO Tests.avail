@@ -33,6 +33,8 @@
 Module "IO Tests"
 Versions
 	"1.0.0 DEV 2014-04-28"
+Uses
+	"Avail"
 Extends
 	"Common",
 	"File Access Rights Test",

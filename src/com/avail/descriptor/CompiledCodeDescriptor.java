@@ -502,7 +502,7 @@ extends Descriptor
 	 *        The continuation to pass the return value to.
 	 */
 	public static void codeCoverageReportsThen (
-		final Continuation1<List<CodeCoverageReport>> resume)
+		final Continuation1NotNull<List<CodeCoverageReport>> resume)
 	{
 		AvailRuntime.current().whenLevelOneSafeDo(
 			new AvailTask(FiberDescriptor.commandPriority)

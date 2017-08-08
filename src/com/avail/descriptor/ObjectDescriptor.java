@@ -249,7 +249,8 @@ extends Descriptor
 			newVariant.fieldToSlotIndex;
 		final AvailObject result =
 			newVariant.mutableObjectDescriptor.create(newVariant.realSlotCount);
-		for (Map.Entry<A_Atom, Integer> oldEntry : fieldToSlotIndex.entrySet())
+		for (final Map.Entry<A_Atom, Integer> oldEntry
+			: fieldToSlotIndex.entrySet())
 		{
 			result.setSlot(
 				FIELD_VALUES_,
@@ -271,7 +272,7 @@ extends Descriptor
 	{
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
 		A_Map fieldMap = MapDescriptor.empty();
-		for (Map.Entry<A_Atom, Integer> entry
+		for (final Map.Entry<A_Atom, Integer> entry
 			: variant.fieldToSlotIndex.entrySet())
 		{
 			final A_Atom field = entry.getKey();
@@ -380,7 +381,7 @@ extends Descriptor
 		writer.write("object");
 		writer.write("map");
 		writer.startObject();
-		for (Map.Entry<A_Atom, Integer> entry
+		for (final Map.Entry<A_Atom, Integer> entry
 			: variant.fieldToSlotIndex.entrySet())
 		{
 			final A_Atom field = entry.getKey();
@@ -403,7 +404,7 @@ extends Descriptor
 		writer.write("object");
 		writer.write("map");
 		writer.startObject();
-		for (Map.Entry<A_Atom, Integer> entry
+		for (final Map.Entry<A_Atom, Integer> entry
 			: variant.fieldToSlotIndex.entrySet())
 		{
 			final A_Atom field = entry.getKey();
@@ -522,7 +523,7 @@ extends Descriptor
 		final Map<A_Atom, Integer> slotMap = variant.fieldToSlotIndex;
 		final AvailObject result =
 			mutableDescriptor.create(variant.realSlotCount);
-		for (Entry entry : map.mapIterable())
+		for (final Entry entry : map.mapIterable())
 		{
 			final int slotIndex = slotMap.get(entry.key());
 			if (slotIndex > 0)

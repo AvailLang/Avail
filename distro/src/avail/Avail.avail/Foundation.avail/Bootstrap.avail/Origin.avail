@@ -47,6 +47,12 @@ Names
 	"Primitive_is_",
 	"special object_",
 	"Special object_is_;",
+	"whitespace lexer",
+	"comment lexer",
+	"string token lexer",
+	"whole number lexer",
+	"keyword lexer",
+	"operator lexer",
 	"\
 		\|[§\
 			\|««…:_†§‡,»`|»?\
@@ -68,6 +74,12 @@ Names
 	"…#"
 Pragma
 	"check=version=1.0.0 DEV 2014-04-28",
+	"lexer=BootstrapLexerWhitespaceFilter,BootstrapLexerWhitespaceBody=whitespace lexer",
+	"lexer=BootstrapLexerSlashStarCommentFilter,BootstrapLexerSlashStarCommentBody=comment lexer",
+	"lexer=BootstrapLexerStringFilter,BootstrapLexerStringBody=string token lexer",
+	"lexer=BootstrapLexerWholeNumberFilter,BootstrapLexerWholeNumberBody=whole number lexer",
+	"lexer=BootstrapLexerKeywordFilter,BootstrapLexerKeywordBody=keyword lexer",
+	"lexer=BootstrapLexerOperatorFilter,BootstrapLexerOperatorBody=operator lexer",
 	"method=SimpleMethodDeclaration=Primitive_is_",
 	"macro=SpecialObject=special object_",
 	"macro=BootstrapDefineSpecialObjectMacro=Special object_is_;",

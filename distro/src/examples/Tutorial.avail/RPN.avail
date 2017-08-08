@@ -34,7 +34,16 @@ Module "RPN"
 Uses
 	"Avail"
 Extends
-	"Avail" = ("…#")
+	"Avail" = (
+		/* Avail's lexers */
+		"whitespace lexer",
+		"comment lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
+
+		"…#")
 Names
 	"__+",
 	"__-",

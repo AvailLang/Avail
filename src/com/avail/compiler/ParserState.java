@@ -35,8 +35,9 @@ import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
-import com.avail.utility.PrefixSharingList;
 import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer1;
@@ -262,6 +263,47 @@ public class ParserState
 	 */
 	public void workUnitDo (final Continuation0 action)
 	{
-		lexingState.compilationContext.workUnitDo(lexingState, action);
+		lexingState.workUnitDo(action);
+	}
+
+	/**
+	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
+	 * {@linkplain Continuation0 continuation of zero arguments} and record that
+	 * as per {@linkplain #workUnitDo(Continuation0)}.
+	 *
+	 * @param <ArgType>
+	 *        The type of argument to the given continuation.
+	 * @param continuation
+	 *        What to execute with the passed argument.
+	 * @param argument
+	 *        What to pass as an argument to the provided {@linkplain
+	 *        Continuation1 one-argument continuation}.
+	 */
+	public <ArgType> void workUnitDo (
+		final Continuation1<ArgType> continuation,
+		final ArgType argument)
+	{
+		lexingState.workUnitDo(continuation, argument);
+	}
+
+	/**
+	 * Wrap the {@linkplain Continuation1NotNull continuation of one non-null
+	 * argument} inside a {@linkplain Continuation0 continuation of zero
+	 * arguments} and record that as per {@linkplain
+	 * #workUnitDo(Continuation0)}.
+	 *
+	 * @param <ArgType>
+	 *        The type of argument to the given continuation.
+	 * @param continuation
+	 *        What to execute with the passed argument.
+	 * @param argument
+	 *        What to pass as an argument to the provided {@linkplain
+	 *        Continuation1NotNull one-argument continuation}.
+	 */
+	public <ArgType> void workUnitDo (
+		final Continuation1NotNull<ArgType> continuation,
+		final ArgType argument)
+	{
+		lexingState.workUnitDo(continuation, argument);
 	}
 }

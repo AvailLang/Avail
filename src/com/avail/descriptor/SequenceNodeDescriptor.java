@@ -158,7 +158,7 @@ extends ParseNodeDescriptor
 	@Override
 	void o_StatementsDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> continuation)
+		final Continuation1NotNull<A_Phrase> continuation)
 	{
 		for (final AvailObject statement : object.slot(STATEMENTS))
 		{

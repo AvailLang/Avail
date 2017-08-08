@@ -34,7 +34,17 @@ Module "Leet"
 Uses
 	"Avail"
 Extends
-	"Avail" = ("…$")
+	"Avail" = (
+		/* Avail's lexers */
+		"whitespace lexer",
+		"comment lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
+
+		/* String literal */
+		"…$")
 Entries
 	"_translated"
 Body

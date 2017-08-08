@@ -129,7 +129,7 @@ extends TypeDescriptor
 	{
 		final int objectCount = objects.size();
 		boolean anyBreaks;
-		List<String> tempStrings;
+		final List<String> tempStrings;
 		anyBreaks = false;
 		tempStrings = new ArrayList<>(objectCount);
 		for (final A_BasicObject elem : objects)

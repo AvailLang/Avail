@@ -341,7 +341,7 @@ extends MapBinDescriptor
 		final int physicalIndex = bitCount(masked) + 1;
 		final int delta;
 		final int hashDelta;
-		AvailObject objectToModify;
+		final AvailObject objectToModify;
 		if ((vector & bitShift(1L, logicalIndex)) != 0)
 		{
 			// Sub-bin already exists for those hash bits.  Update the sub-bin.
@@ -712,7 +712,7 @@ extends MapBinDescriptor
 		final byte myLevel,
 		final long bitVector)
 	{
-		AvailObject result;
+		final AvailObject result;
 		final int newSize = bitCount(bitVector);
 		result = descriptorFor(MUTABLE, myLevel).create(newSize);
 		result.setSlot(KEYS_HASH, 0);

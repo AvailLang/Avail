@@ -34,7 +34,16 @@ Module "Languages"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
-	"Avail" = ("_!;", "…$"),
+	"Avail" = (
+		/* Some of the core Avail syntax */
+		"whitespace lexer",
+		"comment lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
+		"_!;",
+		"…$"),
 	"Framework"
 Body
 

@@ -962,11 +962,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					ClientRequest.receiveThen(
 						channel,
 						WebSocketAdapter.this,
-						request ->
-						{
-							assert request != null;
-							processRequest(request, channel);
-						});
+						request -> processRequest(request, channel));
 				}
 
 				@Override

@@ -53,6 +53,7 @@ import com.avail.utility.MutableOrNull;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import org.jetbrains.annotations.NotNull;
@@ -313,9 +314,9 @@ public class CompilerDiagnostics
 	 */
 	void findLongestTokenThen (
 		final Collection<LexingState> startLexingStates,
-		Continuation1<A_Token> continuation)
+		final Continuation1NotNull<A_Token> continuation)
 	{
-		List<A_Token> candidates = new ArrayList<>();
+		final List<A_Token> candidates = new ArrayList<>();
 		for (final LexingState startState : startLexingStates)
 		{
 			final @Nullable List<A_Token> known =
@@ -392,9 +393,7 @@ public class CompilerDiagnostics
 				innerMap.keySet(),
 				longestToken ->
 				{
-					assert longestToken != null;
-					final List<Describer> describers =
-						new ArrayList<>();
+					final List<Describer> describers = new ArrayList<>();
 					for (final List<Describer> eachDescriberList
 						: innerMap.values())
 					{
@@ -579,15 +578,15 @@ public class CompilerDiagnostics
 		// Figure out where to start showing the file content.  Never show the
 		// content before the line on which startOfStatement resides.
 		final int startOfFirstLine =
-			lastIndexOf(source, '\n', startOfStatement, 1) + 1;
-		final int initialLineNumber =
-			occurrencesInRange(source, '\n', 1, startOfFirstLine) + 1;
+			lastIndexOf(source, '\n', startOfStatement - 1, 1) + 1;
+		final int initialLineNumber = 1 + occurrencesInRange(
+			source, '\n', 1, Math.min(source.tupleSize(), startOfFirstLine));
 		// Now figure out the last line to show, which if possible should be the
 		// line after the *end* of the last problem token.
 		final ProblemsAtPosition lastProblem =
 			ascending.get(ascending.size() - 1);
 		final int finalLineNumber = lastProblem.lineNumber();
-		int startOfNextLine = 1 + firstIndexOf(
+		final int startOfNextLine = 1 + firstIndexOf(
 			source,
 			'\n',
 			lastProblem.lexingStateAfterToken.position,
@@ -693,7 +692,6 @@ public class CompilerDiagnostics
 			problemIterator.value.next().describeThen(
 				message ->
 				{
-					assert message != null;
 					// Suppress duplicate messages.
 					if (!alreadySeen.contains(message))
 					{

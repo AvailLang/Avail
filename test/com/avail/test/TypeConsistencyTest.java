@@ -53,13 +53,14 @@ import org.junit.jupiter.api.*;
  * Avail.  The type system is really pretty complex, so these tests are quite
  * important.
  *
- * <p>
- * Here are some things to test.  T is the set of types, T(x) means the type of
- * x, Co(x) is some relation between a type and its parameters that's supposed
- * to be covariant, Con(x) is some relation that's supposed to be contravariant,
- * &cup; is type union, and &cap; is type intersection.
+ * <p>Here are some things to test.  T is the set of types, T(x) means the type
+ * of x, Co(x) is some relation between a type and its parameters that's
+ * supposed to be covariant, Con(x) is some relation that's supposed to be
+ * contravariant, &cup; is type union, and &cap; is type intersection.</p>
  *
- * <table border=1 cellspacing=0>
+ * <table border=1>
+ * <caption>Type consistency conditions</caption>
+ * <tbody>
  * <tr>
  *     <td>Subtype reflexivity</td>
  *     <td>&forall;<sub>x&isin;T</sub>&thinsp;x&sube;x</td>
@@ -111,7 +112,6 @@ import org.junit.jupiter.api.*;
  * </tr><tr>
  *     <td>Type union metainvariance</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y))</td>
- * </tr>
  * </tr><tr>
  *     <td>Type intersection metainvariance</td>
  *     <td>&forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cap;T(y) = T(x&cap;y))</td>
@@ -119,8 +119,8 @@ import org.junit.jupiter.api.*;
  *     <td>Instantiation metainvariance</td>
  *     <td>&forall;<sub>b&isin;T,a</sub>&thinsp;(a&isin;b = T(a)&isin;T(b))</td>
  * </tr>
+ * </tbody>
  * </table>
- * </p>
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class TypeConsistencyTest
@@ -1009,12 +1009,7 @@ public class TypeConsistencyTest
 						final A_Type subexpressionsTupleType =
 							TupleTypeDescriptor.mappingElementTypes(
 								innerType,
-								elementType ->
-								{
-									assert elementType != null;
-									return ParseNodeKind.PARSE_NODE.create(
-										elementType);
-								});
+								ParseNodeKind.PARSE_NODE::create);
 						newType = ListNodeTypeDescriptor.createListNodeType(
 							parseNodeKind,
 							innerType,

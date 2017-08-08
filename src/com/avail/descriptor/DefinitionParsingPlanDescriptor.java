@@ -201,7 +201,7 @@ extends Descriptor
 				-1,
 				descriptionsList.toArray(new String[descriptionsList.size()])));
 		}
-		catch (Exception e)
+		catch (final Exception e)
 		{
 			final String[] stackStrings = trace(e).split("\\n");
 			int lineNumber = 0;

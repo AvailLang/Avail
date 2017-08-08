@@ -356,14 +356,6 @@ extends ParseNodeDescriptor
 	}
 
 	@Override
-	A_Phrase o_PrependWith (
-		final AvailObject object, final A_Phrase newParseNode)
-	{
-		// Don't copy the macro substitution, just the output phrase.
-		return object.slot(OUTPUT_PARSE_NODE).prependWith(newParseNode);
-	}
-
-	@Override
 	@Nullable Primitive o_Primitive (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).primitive();
@@ -390,7 +382,7 @@ extends ParseNodeDescriptor
 	@Override
 	void o_StatementsDo (
 		final AvailObject object,
-		final Continuation1<A_Phrase> continuation)
+		final Continuation1NotNull<A_Phrase> continuation)
 	{
 		object.slot(OUTPUT_PARSE_NODE).statementsDo(continuation);
 	}

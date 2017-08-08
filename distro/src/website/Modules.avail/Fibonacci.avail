@@ -31,7 +31,14 @@
  */
 
 Module "Fibonacci"
-Uses "Avail"
+Uses
+	"Avail"
+Extends
+	"Avail" =
+	(
+		"whitespace lexer",
+		"keyword lexer"
+	)
 Entries "Next Fibonacci number"
 Body
 

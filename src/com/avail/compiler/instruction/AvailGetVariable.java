@@ -55,7 +55,7 @@ public abstract class AvailGetVariable extends AvailInstructionWithIndex
 	 * @param variableIndex The index of the variable in some unspecified
 	 *                      coordinate system.
 	 */
-	public AvailGetVariable (int variableIndex)
+	public AvailGetVariable (final int variableIndex)
 	{
 		super(variableIndex);
 	}

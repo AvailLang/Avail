@@ -69,13 +69,6 @@ public class ModuleHeader
 	public final List<A_String> versions = new ArrayList<>();
 
 	/**
-	 * The file patterns that occurred in this module.  The patterns are
-	 * 2-tuples, where the first element is a relative file name, perhaps
-	 * containing wildcards like * (any string within file's name),
-	 */
-	public final List<A_Tuple> filePatterns = new ArrayList<>();
-
-	/**
 	 * The {@linkplain ModuleImport module imports} imported by the module
 	 * undergoing compilation.  This includes both modules being extended
 	 * and modules being simply used.
@@ -137,9 +130,16 @@ public class ModuleHeader
 	public final List<A_Token> pragmas = new ArrayList<>();
 
 	/**
-	 * The token "Pragma" which the pragma section, if any, otherwise null.
+	 * The position in the file where the body starts (right after the "body"
+	 * token).
 	 */
-	public final A_Token pragmaToken = null;
+	public int startOfBodyPosition;
+
+	/**
+	 * The line number in the file where the body starts (on the same line as
+	 * the "body" token).
+	 */
+	public int startOfBodyLineNumber;
 
 	/**
 	 * Construct a new {@link ModuleHeader}.
@@ -153,18 +153,22 @@ public class ModuleHeader
 	}
 
 	/**
+	 * Output the module header.
+	 *
 	 * @param serializer
+	 *        The serializer on which to write the header information.
 	 */
 	public void serializeHeaderOn (final Serializer serializer)
 	{
-		serializer.serialize(
-			StringDescriptor.from(moduleName.qualifiedName()));
+		serializer.serialize(StringDescriptor.from(moduleName.qualifiedName()));
 		serializer.serialize(TupleDescriptor.fromList(versions));
 		serializer.serialize(tuplesForSerializingModuleImports());
-		serializer.serialize(TupleDescriptor.fromList(
-			new ArrayList<>(exportedNames)));
+		serializer.serialize(
+			TupleDescriptor.fromList(new ArrayList<>(exportedNames)));
 		serializer.serialize(TupleDescriptor.fromList(entryPoints));
 		serializer.serialize(TupleDescriptor.fromList(pragmas));
+		serializer.serialize(IntegerDescriptor.fromInt(startOfBodyPosition));
+		serializer.serialize(IntegerDescriptor.fromInt(startOfBodyLineNumber));
 	}
 
 	/**
@@ -184,8 +188,8 @@ public class ModuleHeader
 	}
 
 	/**
-	 * Convert the information encoded in a tuple into a {@link List} of
-	 * {@link ModuleImport}s.
+	 * Convert the information encoded in a tuple into a {@link List} of {@link
+	 * ModuleImport}s.
 	 *
 	 * @param serializedTuple An encoding of a list of ModuleImports.
 	 * @return The list of ModuleImports.
@@ -252,6 +256,12 @@ public class ModuleHeader
 				LITERAL,
 				pragmaString));
 		}
+		final A_Number positionInteger = deserializer.deserialize();
+		assert positionInteger != null;
+		startOfBodyPosition = positionInteger.extractInt();
+		final A_Number lineNumberInteger = deserializer.deserialize();
+		assert lineNumberInteger != null;
+		startOfBodyLineNumber = lineNumberInteger.extractInt();
 	}
 
 	/**
@@ -378,7 +388,7 @@ public class ModuleHeader
 				}
 				final A_Atom oldAtom = oldCandidates.iterator().next();
 				// Find or create the new atom.
-				A_Atom newAtom;
+				final A_Atom newAtom;
 				final A_Map newNames = module.newNames();
 				if (newNames.hasKey(newString))
 				{

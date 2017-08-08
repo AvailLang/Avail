@@ -55,7 +55,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 import com.avail.*;
@@ -504,7 +503,7 @@ public final class AvailBuilder
 		@Override
 		protected void handleGeneric (
 			final Problem problem,
-			final Continuation1<Boolean> decider)
+			final Continuation1NotNull<Boolean> decider)
 		{
 			synchronized (this)
 			{
@@ -841,7 +840,6 @@ public final class AvailBuilder
 				resolvedName.repository();
 			repository.commitIfStaleChanges(maximumStaleRepositoryMs);
 			final File sourceFile = resolvedName.sourceReference();
-			assert sourceFile != null;
 			final ModuleArchive archive = repository.getArchive(
 				resolvedName.rootRelativeName());
 			final byte [] digest = archive.digestForFile(resolvedName);
@@ -860,46 +858,40 @@ public final class AvailBuilder
 			// Trace the source and write it back to the repository.
 			AvailCompiler.create(
 				resolvedName,
-				true,
 				textInterface,
 				pollForAbort,
 				(moduleName, moduleSize, position) ->
 				{
 					// do nothing.
 				},
-				compiler ->
-				{
-					assert compiler != null;
-					compiler.parseModuleHeader(
-						true,
-						afterHeader ->
-						{
-							final ModuleHeader header =
-								compiler.compilationContext.getModuleHeader();
-							assert header != null;
-							final List<String> importNames =
-								header.importedModuleNames();
-							final List<String> entryPoints =
-								header.entryPointNames();
-							final ModuleVersion newVersion =
-								repository.new ModuleVersion(
-									sourceFile.length(),
-									importNames,
-									entryPoints);
-							serialize(header, newVersion);
-							archive.putVersion(versionKey, newVersion);
-							action.value(resolvedName, newVersion);
-							indicateTraceCompleted();
-						},
-						this::indicateTraceCompleted);
-				},
+				compiler -> compiler.parseModuleHeader(
+					afterHeader ->
+					{
+						final ModuleHeader header =
+							compiler.compilationContext.getModuleHeader();
+						assert header != null;
+						final List<String> importNames =
+							header.importedModuleNames();
+						final List<String> entryPoints =
+							header.entryPointNames();
+						final ModuleVersion newVersion =
+							repository.new ModuleVersion(
+								sourceFile.length(),
+								importNames,
+								entryPoints);
+						serialize(header, newVersion);
+						archive.putVersion(versionKey, newVersion);
+						action.value(resolvedName, newVersion);
+						indicateTraceCompleted();
+					},
+					this::indicateTraceCompleted),
 				this::indicateTraceCompleted,
 				new BuilderProblemHandler("")
 				{
 					@Override
 					protected void handleGeneric (
 						final Problem problem,
-						final Continuation1<Boolean> decider)
+						final Continuation1NotNull<Boolean> decider)
 					{
 						// Simply ignore all problems when all we're doing is
 						// trying to locate the entry points within any
@@ -1016,8 +1008,8 @@ public final class AvailBuilder
 		 * Graph#reverse() reverse} of the module graph.
 		 */
 		private final void unloadModules (
-			@Nullable ResolvedModuleName moduleName,
-			@Nullable Continuation0 completionAction)
+			@Nullable final ResolvedModuleName moduleName,
+			@Nullable final Continuation0 completionAction)
 		{
 			// No need to lock dirtyModules any more, since it's
 			// purely read-only at this point.
@@ -1222,7 +1214,7 @@ public final class AvailBuilder
 				{
 					if (!shouldStopBuild())
 					{
-						ResolvedModuleName resolvedName;
+						final ResolvedModuleName resolvedName;
 						try
 						{
 							log(Level.FINEST, "Resolve: %s", qualifiedName);
@@ -1362,43 +1354,37 @@ public final class AvailBuilder
 			// Trace the source and write it back to the repository.
 			AvailCompiler.create(
 				resolvedName,
-				true,
 				textInterface,
 				pollForAbort,
 				(moduleName, moduleSize, position) ->
 				{
 					// do nothing
 				},
-				compiler ->
-				{
-					assert compiler != null;
-					compiler.parseModuleHeader(
-						true,
-						afterHeader ->
-						{
-							final ModuleHeader header =
-								compiler.compilationContext.getModuleHeader();
-							assert header != null;
-							assert afterHeader != null;
-							final List<String> importNames =
-								header. importedModuleNames();
-							final List<String> entryPoints =
-								header.entryPointNames();
-							final ModuleVersion newVersion =
-								repository.new ModuleVersion(
-									sourceFile.length(),
-									importNames,
-									entryPoints);
-							serialize(header, newVersion);
-							archive.putVersion(versionKey, newVersion);
-							traceModuleNames(
-								resolvedName,
+				compiler -> compiler.parseModuleHeader(
+					afterHeader ->
+					{
+						final ModuleHeader header =
+							compiler.compilationContext.getModuleHeader();
+						assert header != null;
+						assert afterHeader != null;
+						final List<String> importNames =
+							header. importedModuleNames();
+						final List<String> entryPoints =
+							header.entryPointNames();
+						final ModuleVersion newVersion =
+							repository.new ModuleVersion(
+								sourceFile.length(),
 								importNames,
-								recursionSet);
-							indicateTraceCompleted();
-						},
-						this::indicateTraceCompleted);
-				},
+								entryPoints);
+						serialize(header, newVersion);
+						archive.putVersion(versionKey, newVersion);
+						traceModuleNames(
+							resolvedName,
+							importNames,
+							recursionSet);
+						indicateTraceCompleted();
+					},
+					this::indicateTraceCompleted),
 				this::indicateTraceCompleted,
 				buildProblemHandler);
 		}
@@ -1799,40 +1785,36 @@ public final class AvailBuilder
 			final byte[] sourceDigest,
 			final Continuation0 completionAction)
 		{
-			final A_Token fakeStartToken =
-				TokenDescriptor.createSyntheticStart();
 			localTracker.value(moduleName, moduleName.moduleSize(), 0L);
 			final A_Module module = ModuleDescriptor.newModule(
 				StringDescriptor.from(moduleName.qualifiedName()));
 			final AvailLoader availLoader =
 				new AvailLoader(module, textInterface);
-			final Continuation1<Throwable> fail =
-				e ->
-				{
-					assert e != null;
-					module.removeFrom(
-						availLoader,
-						() ->
+			availLoader.createFilteredBundleTree();
+			availLoader.createLexicalScanner();
+			final Continuation1NotNull<Throwable> fail =
+				e -> module.removeFrom(
+					availLoader,
+					() ->
+					{
+						postLoad(moduleName, 0L);
+						final Problem problem = new Problem(
+							moduleName,
+							1,
+							1,
+							EXECUTION,
+							"Problem loading module: {0}",
+							e.getLocalizedMessage())
 						{
-							postLoad(moduleName, 0L);
-							final Problem problem = new Problem(
-								moduleName,
-								fakeStartToken.lineNumber(),
-								fakeStartToken.start(),
-								EXECUTION,
-								"Problem loading module: {0}",
-								e.getLocalizedMessage())
+							@Override
+							public void abortCompilation ()
 							{
-								@Override
-								public void abortCompilation ()
-								{
-									stopBuildReason("Problem loading module");
-									completionAction.value();
-								}
-							};
-							buildProblemHandler.handle(problem);
-						});
-				};
+								stopBuildReason("Problem loading module");
+								completionAction.value();
+							}
+						};
+						buildProblemHandler.handle(problem);
+					});
 			// Read the module header from the repository.
 			try
 			{
@@ -1925,7 +1907,7 @@ public final class AvailBuilder
 					if (AvailLoader.debugLoadedStatements)
 					{
 						System.out.println(
-							module.toString()
+							module
 								+ ":" + function.code().startingLineNumber()
 								+ " Running precompiled -- " + function);
 					}
@@ -1933,7 +1915,7 @@ public final class AvailBuilder
 						runtime,
 						fiber,
 						function,
-						Collections.<AvailObject>emptyList());
+						Collections.emptyList());
 				}
 				else if (shouldStopBuild())
 				{
@@ -2002,13 +1984,10 @@ public final class AvailBuilder
 			final ModuleVersionKey versionKey =
 				new ModuleVersionKey(moduleName, digest);
 			final Mutable<Long> lastPosition = new Mutable<>(0L);
-			final Continuation1<AvailCompiler> continuation = compiler ->
-			{
-				assert compiler != null;
-				compiler.parseModule(
+			final Continuation1NotNull<AvailCompiler> continuation =
+				compiler -> compiler.parseModule(
 					module ->
 					{
-						assert module != null;
 						final ByteArrayOutputStream stream =
 							compiler.compilationContext.serializerOutputStream;
 						// This is the moment of compilation.
@@ -2052,10 +2031,8 @@ public final class AvailBuilder
 						postLoad(moduleName, lastPosition.value);
 						completionAction.value();
 					});
-			};
 			AvailCompiler.create(
 				moduleName,
-				false,
 				textInterface,
 				pollForAbort,
 				(moduleName2, moduleSize, position) ->
@@ -2669,11 +2646,8 @@ public final class AvailBuilder
 			}
 
 			final StringBuilder out = new StringBuilder();
-			final Continuation1<Integer> tab = count ->
-			{
-				assert count != null;
-				Strings.tab(out, count);
-			};
+			final Continuation1NotNull<Integer> tab =
+				count -> Strings.tab(out, count);
 			root.recursiveDo(
 				(node, depth) ->
 				{
@@ -2965,9 +2939,9 @@ public final class AvailBuilder
 	}
 
 	/**
-	 * Scan all module files in all visible source directories, passing
-	 * each {@link ResolvedModuleName} and corresponding {@link ModuleVersion}
-	 * to the provided {@link Continuation2}.
+	 * Scan all module files in all visible source directories, passing each
+	 * {@link ResolvedModuleName} and corresponding {@link ModuleVersion} to the
+	 * provided {@link Continuation2}.
 	 *
 	 * <p>Note that the action may be invoked from multiple {@link Thread}s
 	 * simultaneously, so the client may need to provide suitable
@@ -2978,8 +2952,7 @@ public final class AvailBuilder
 	public void traceDirectories (
 		final Continuation2<ResolvedModuleName, ModuleVersion> action)
 	{
-		final BuildDirectoryTracer tracer = new BuildDirectoryTracer();
-		tracer.traceAllModuleHeaders(action);
+		new BuildDirectoryTracer().traceAllModuleHeaders(action);
 	}
 
 	/**
@@ -3063,9 +3036,13 @@ public final class AvailBuilder
 	public void attemptCommand (
 		final String command,
 		final Continuation2<
-			List<CompiledCommand>, Continuation1<CompiledCommand>> onAmbiguity,
+				List<CompiledCommand>,
+				Continuation1NotNull<CompiledCommand>>
+			onAmbiguity,
 		final Continuation2<
-			AvailObject, Continuation1<Continuation0>> onSuccess,
+				AvailObject,
+				Continuation1NotNull<Continuation0>>
+			onSuccess,
 		final Continuation0 onFailure)
 	{
 		clearShouldStopBuild();
@@ -3097,22 +3074,27 @@ public final class AvailBuilder
 	 * @param onAmbiguity
 	 *        What to do if the entry point is ambiguous. Accepts a {@linkplain
 	 *        List list} of {@linkplain CompiledCommand compiled commands} and
-	 *        the {@linkplain Continuation1 continuation} to invoke with the
-	 *        selected command (or {@code null} if no command should be run).
+	 *        the {@linkplain Continuation1NotNull continuation} to invoke with
+	 *        the selected command (or {@code null} if no command should be
+	 *        run).
 	 * @param onSuccess
 	 *        What to do if the command parsed and ran to completion.  It should
 	 *        be passed both the result of execution and a {@linkplain
-	 *        Continuation1 cleanup continuation} to invoke with a {@linkplain
-	 *        Continuation0 post-cleanup continuation}.
+	 *        Continuation1NotNull cleanup continuation} to invoke with a
+	 *        {@linkplain Continuation0 post-cleanup continuation}.
 	 * @param onFailure
 	 *        What to do otherwise.
 	 */
 	@InnerAccess void scheduleAttemptCommand (
 		final String command,
 		final Continuation2<
-			List<CompiledCommand>, Continuation1<CompiledCommand>> onAmbiguity,
+				List<CompiledCommand>,
+				Continuation1NotNull<CompiledCommand>>
+			onAmbiguity,
 		final Continuation2<
-			AvailObject, Continuation1<Continuation0>> onSuccess,
+				AvailObject,
+				Continuation1NotNull<Continuation0>>
+			onSuccess,
 		final Continuation0 onFailure)
 	{
 		final Set<LoadedModule> modulesWithEntryPoints = new HashSet<>();
@@ -3143,7 +3125,7 @@ public final class AvailBuilder
 		}
 
 		final Map<LoadedModule, List<A_Phrase>> allSolutions = new HashMap<>();
-		final List<Continuation1<Continuation0>> allCleanups =
+		final List<Continuation1NotNull<Continuation0>> allCleanups =
 			new ArrayList<>();
 		final Map<LoadedModule, List<Problem>> allProblems = new HashMap<>();
 		final Continuation0 decrement = new Continuation0()
@@ -3184,7 +3166,6 @@ public final class AvailBuilder
 			}
 			final AvailCompiler compiler = new AvailCompiler(
 				header,
-				false,
 				module,
 				StringDescriptor.from(command),
 				textInterface,
@@ -3198,7 +3179,7 @@ public final class AvailBuilder
 					@Override
 					protected void handleGeneric (
 						final Problem problem,
-						final Continuation1<Boolean> decider)
+						final Continuation1NotNull<Boolean> decider)
 					{
 						// Clone the problem message into a new problem to
 						// avoid running any cleanup associated with aborting
@@ -3234,7 +3215,7 @@ public final class AvailBuilder
 					@Override
 					public void handleInternal (
 						final Problem problem,
-						final Continuation1<Boolean> decider)
+						final Continuation1NotNull<Boolean> decider)
 					{
 						textInterface.errorChannel().write(
 							problem.toString(),
@@ -3262,7 +3243,7 @@ public final class AvailBuilder
 					@Override
 					public void handleExternal (
 						final Problem problem,
-						final Continuation1<Boolean> decider)
+						final Continuation1NotNull<Boolean> decider)
 					{
 						// Same as handleInternal (2015.04.24)
 						textInterface.errorChannel().write(
@@ -3315,13 +3296,11 @@ public final class AvailBuilder
 	 *        A collection of continuations.
 	 * @return The combined continuation.
 	 */
-	@InnerAccess Continuation1<Continuation0> parallelCombine (
-		final Collection<Continuation1<Continuation0>> continuations)
+	@InnerAccess Continuation1NotNull<Continuation0> parallelCombine (
+		final Collection<Continuation1NotNull<Continuation0>> continuations)
 	{
 		return postAction ->
 		{
-			assert postAction != null;
-
 			final Continuation0 decrement = new Continuation0()
 			{
 				private int count = continuations.size();
@@ -3335,7 +3314,7 @@ public final class AvailBuilder
 					}
 				}
 			};
-			for (final Continuation1<Continuation0> continuation :
+			for (final Continuation1NotNull<Continuation0> continuation :
 				continuations)
 			{
 				runtime.execute(new AvailTask(commandPriority)
@@ -3377,10 +3356,14 @@ public final class AvailBuilder
 		final Map<LoadedModule, List<A_Phrase>> solutions,
 		final Map<LoadedModule, List<Problem>> problems,
 		final Continuation2<
-			List<CompiledCommand>, Continuation1<CompiledCommand>> onAmbiguity,
+				List<CompiledCommand>,
+				Continuation1NotNull<CompiledCommand>>
+			onAmbiguity,
 		final Continuation2<
-			AvailObject, Continuation1<Continuation0>> onSuccess,
-		final Continuation1<Continuation0> postSuccessCleanup,
+				AvailObject,
+				Continuation1NotNull<Continuation0>>
+			onSuccess,
+		final Continuation1NotNull<Continuation0> postSuccessCleanup,
 		final Continuation0 onFailure)
 	{
 		if (solutions.isEmpty())
@@ -3456,14 +3439,9 @@ public final class AvailBuilder
 			return;
 		}
 
-		final Continuation1<CompiledCommand> unambiguous =
+		final Continuation1NotNull<CompiledCommand> unambiguous =
 			command ->
 			{
-				if (command == null)
-				{
-					onFailure.value();
-					return;
-				}
 				final A_Phrase phrase = command.phrase;
 				final A_Function function =
 					FunctionDescriptor.createFunctionForPhrase(
@@ -3481,14 +3459,10 @@ public final class AvailBuilder
 					true);
 				fiber.fiberGlobals(fiberGlobals);
 				fiber.textInterface(textInterface);
-				fiber.resultContinuation(result ->
-				{
-					assert result != null;
-					onSuccess.value(result, postSuccessCleanup);
-				});
+				fiber.resultContinuation(
+					result -> onSuccess.value(result, postSuccessCleanup));
 				fiber.failureContinuation(e ->
 				{
-					assert e != null;
 					if (!(e instanceof FiberTerminationException))
 					{
 						final Problem problem = new Problem(

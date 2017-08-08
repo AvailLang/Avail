@@ -34,5 +34,6 @@ Module "Sequences"
 Versions
 	"1.0.0 DEV 2014-04-28"
 Uses
+	"Foundation",
 	"Abstract Sequences"
 Body

@@ -31,6 +31,8 @@
  */
 
 Module "CSV"
+Uses
+	"Avail"
 Extends
 	"CSV Language" =
 	(

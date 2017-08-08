@@ -55,6 +55,7 @@ import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
@@ -4732,16 +4733,6 @@ implements
 	}
 
 	/**
-	 * @param newParseNode
-	 * @return
-	 */
-	@Override
-	public A_Phrase prependWith (final A_Phrase newParseNode)
-	{
-		return descriptor.o_PrependWith(this, newParseNode);
-	}
-
-	/**
 	 * @param isLastUse
 	 */
 	@Override
@@ -6317,47 +6308,47 @@ implements
 	}
 
 	/**
-	 * Answer the {@linkplain Continuation1 continuation} that accepts the
-	 * result produced by the {@linkplain FiberDescriptor receiver}'s successful
-	 * completion.
+	 * Answer the {@linkplain Continuation1NotNull continuation} that accepts
+	 * the result produced by the {@linkplain FiberDescriptor receiver}'s
+	 * successful completion.
 	 *
 	 * @return A continuation.
 	 */
 	@Override
-	public Continuation1<AvailObject> resultContinuation ()
+	public Continuation1NotNull<AvailObject> resultContinuation ()
 	{
 		return descriptor.o_ResultContinuation(this);
 	}
 
 	/**
-	 * Set the {@linkplain Continuation1 continuation} that accepts the result
-	 * produced by the {@linkplain FiberDescriptor receiver}'s successful
+	 * Set the {@linkplain Continuation1NotNull continuation} that accepts the
+	 * result produced by the {@linkplain FiberDescriptor receiver}'s successful
 	 * completion.
 	 *
 	 * @param continuation The result.
 	 */
 	@Override
 	public void resultContinuation (
-		final Continuation1<AvailObject> continuation)
+		final Continuation1NotNull<AvailObject> continuation)
 	{
 		descriptor.o_ResultContinuation(this, continuation);
 	}
 
 	/**
-	 * Answer the {@linkplain Continuation1 continuation} that accepts the
-	 * {@linkplain Throwable throwable} responsible for abnormal termination of
-	 * the {@linkplain FiberDescriptor receiver}.
+	 * Answer the {@linkplain Continuation1NotNull continuation} that accepts
+	 * the {@linkplain Throwable throwable} responsible for abnormal termination
+	 * of the {@linkplain FiberDescriptor receiver}.
 	 *
 	 * @return A continuation.
 	 */
 	@Override
-	public Continuation1<Throwable> failureContinuation ()
+	public Continuation1NotNull<Throwable> failureContinuation ()
 	{
 		return descriptor.o_FailureContinuation(this);
 	}
 
 	/**
-	 * Set the {@linkplain Continuation1 continuation} that accepts the
+	 * Set the {@linkplain Continuation1NotNull continuation} that accepts the
 	 * {@linkplain Throwable throwable} responsible for abnormal termination of
 	 * the {@linkplain FiberDescriptor receiver}.
 	 *
@@ -6366,7 +6357,7 @@ implements
 	 */
 	@Override
 	public void failureContinuation (
-		final Continuation1<Throwable> onFailure)
+		final Continuation1NotNull<Throwable> onFailure)
 	{
 		descriptor.o_FailureContinuation(this, onFailure);
 	}
@@ -6853,7 +6844,7 @@ implements
 
 	@Override
 	public void whenContinuationIsAvailableDo (
-		final Continuation1<A_Continuation> whenReified)
+		final Continuation1NotNull<A_Continuation> whenReified)
 	{
 		descriptor.o_WhenContinuationIsAvailableDo(this, whenReified);
 	}
@@ -7085,7 +7076,7 @@ implements
 	}
 
 	@Override
-	public void statementsDo (final Continuation1<A_Phrase> continuation)
+	public void statementsDo (final Continuation1NotNull<A_Phrase> continuation)
 	{
 		descriptor.o_StatementsDo(this, continuation);
 	}
@@ -7335,5 +7326,17 @@ implements
 	public int tupleCodePointAt (final int index)
 	{
 		return descriptor.o_TupleCodePointAt(this, index);
+	}
+
+	@Override
+	public LexicalScanner createLexicalScanner ()
+	{
+		return descriptor.o_CreateLexicalScanner(this);
+	}
+
+	@Override
+	public A_Lexer lexer ()
+	{
+		return descriptor.o_Lexer(this);
 	}
 }

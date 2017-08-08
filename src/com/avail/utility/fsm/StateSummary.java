@@ -365,7 +365,7 @@ final class StateSummary<
 					MementoType>
 				executionContext)
 	{
-		Collection<
+		final Collection<
 				StateTransitionArc<
 					StateType,
 					EventType,

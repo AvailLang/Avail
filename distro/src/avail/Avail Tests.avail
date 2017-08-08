@@ -37,6 +37,15 @@ Uses
 	"Avail" = ("all test suites"→"the test suites", …),
 	"Tests"
 Extends
+	"Avail" =
+	(
+		"whitespace lexer",
+		"comment lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer"
+	),
 	"Tests" =
 	(
 		"assertion test suite",

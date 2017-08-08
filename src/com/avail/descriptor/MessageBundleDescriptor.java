@@ -221,7 +221,7 @@ extends Descriptor
 	A_Tuple o_MessageParts (final AvailObject object)
 	{
 		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
-		MessageSplitter messageSplitter =
+		final MessageSplitter messageSplitter =
 			(MessageSplitter) splitterPojo.javaObject();
 		assert messageSplitter != null;
 		return messageSplitter.messageParts();
@@ -442,7 +442,7 @@ extends Descriptor
 				dynamicLookupStatsByString.put(name, stat);
 			}
 		}
-		A_BasicObject pojo = RawPojoDescriptor.identityWrap(stat);
+		final A_BasicObject pojo = RawPojoDescriptor.identityWrap(stat);
 		result.setSlot(DYNAMIC_LOOKUP_STATS_POJO, pojo);
 
 		result.makeShared();

@@ -262,7 +262,7 @@ public final class ModuleEditor
 				StandardCharsets.UTF_8);
 			stylingSemaphore.release();
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{
 			//Do not much
 		}
@@ -278,15 +278,15 @@ public final class ModuleEditor
 	 */
 	private void readFile ()
 	{
-		File sourceFile = resolvedModuleName.sourceReference();
+		final File sourceFile = resolvedModuleName.sourceReference();
 		try
 		{
-			StringBuilder sb = new StringBuilder();
-			List<String> lines =
+			final StringBuilder sb = new StringBuilder();
+			final List<String> lines =
 				Files.lines(sourceFile.toPath()).collect(Collectors.toList());
 			codeArea.clear();
 
-			int size = lines.size();
+			final int size = lines.size();
 
 			for (int i = 0; i < size - 1; i++)
 			{
@@ -299,7 +299,7 @@ public final class ModuleEditor
 			codeArea.replaceText(0, 0, sb.toString());
 			codeArea.getUndoManager().forgetHistory();
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{
 			System.err.println("Failed to read file");
 		}

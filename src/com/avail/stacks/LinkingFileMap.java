@@ -236,7 +236,7 @@ public class LinkingFileMap
 	{
 		final StandardOpenOption[] options = new StandardOpenOption[]
 			{CREATE, TRUNCATE_EXISTING, WRITE};
-		Writer writer;
+		final Writer writer;
 		try
 		{
 			writer = Files.newBufferedWriter(
@@ -439,7 +439,7 @@ public class LinkingFileMap
 	{
 		final StandardOpenOption[] options = new StandardOpenOption[]
 			{CREATE, TRUNCATE_EXISTING, WRITE};
-		Writer writer;
+		final Writer writer;
 		try
 		{
 			writer = Files.newBufferedWriter(
@@ -493,7 +493,7 @@ public class LinkingFileMap
 	{
 		final StandardOpenOption[] options = new StandardOpenOption[]
 			{CREATE, TRUNCATE_EXISTING, WRITE};
-		Writer writer;
+		final Writer writer;
 		try
 		{
 			writer = Files.newBufferedWriter(
@@ -537,7 +537,7 @@ public class LinkingFileMap
 	{
 		final StandardOpenOption[] options = new StandardOpenOption[]
 			{CREATE, TRUNCATE_EXISTING, WRITE};
-		Writer writer;
+		final Writer writer;
 		try
 		{
 			writer = Files.newBufferedWriter(

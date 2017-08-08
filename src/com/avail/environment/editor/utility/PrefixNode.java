@@ -66,7 +66,7 @@ public class PrefixNode<T>
 	{
 		synchronized (lock)
 		{
-			TreeSet<String> set = new TreeSet<>(words);
+			final TreeSet<String> set = new TreeSet<>(words);
 			set.add(word);
 			words = new ArrayList<>(set);
 		}
@@ -101,7 +101,7 @@ public class PrefixNode<T>
 		if (word.length() - 1 > depth)
 		{
 			final Character next = word.charAt(depth + 1);
-			PrefixNode<T> nextNode;
+			final PrefixNode<T> nextNode;
 			synchronized (lock)
 			{
 				nextNode = children.computeIfAbsent(

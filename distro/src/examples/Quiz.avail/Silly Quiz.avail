@@ -33,6 +33,12 @@
 Module "Silly Quiz"
 Versions
 	"1.0.0 DEV 2014-04-28"
+Extends
+	"Avail" =
+	(
+		"whitespace lexer",
+		"keyword lexer"
+	)
 Uses
 	"Quiz DSL"
 Entries

@@ -35,6 +35,7 @@ package com.avail.optimizer;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.interpreter.Primitive.Flag;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.dispatch.InternalLookupTree;
@@ -199,12 +200,14 @@ public class L2Translator
 		 */
 		void log (
 			final Level level,
-			final Continuation1<Continuation2<String, Throwable>> continuation)
+			final Continuation1NotNull<Continuation2<String, Throwable>>
+				continuation)
 		{
 			if (shouldLog && logger.isLoggable(level))
 			{
 				continuation.value(
-					(message, exception) -> logger.log(level, message, exception));
+					(message, exception) ->
+						logger.log(level, message, exception));
 			}
 		}
 
@@ -952,7 +955,6 @@ public class L2Translator
 				Level.FINEST,
 				log ->
 				{
-					assert log != null;
 					final StringBuilder builder = new StringBuilder(100);
 					finalNaiveRegs.debugOn(builder);
 					log.value(
@@ -1040,7 +1042,6 @@ public class L2Translator
 				Level.FINEST,
 				log ->
 				{
-					assert log != null;
 					final StringBuilder builder = new StringBuilder(100);
 					if (naiveRegisters == null)
 					{
@@ -1458,7 +1459,6 @@ public class L2Translator
 				// intraInternalNode
 				memento ->
 				{
-					assert memento != null;
 					if (naiveRegisters != null)
 					{
 						addInstruction(
@@ -1470,7 +1470,6 @@ public class L2Translator
 				// postInternalNode
 				memento ->
 				{
-					assert memento != null;
 					if (naiveRegisters != null)
 					{
 						addInstruction(
@@ -1481,7 +1480,6 @@ public class L2Translator
 				// forEachLeafNode
 				solutions ->
 				{
-					assert solutions != null;
 					assert stackp == initialStackp;
 					if (naiveRegisters == null)
 					{
@@ -1489,7 +1487,7 @@ public class L2Translator
 						// generate anything.
 						return;
 					}
-					A_Definition solution;
+					final A_Definition solution;
 					if (solutions.tupleSize() == 1
 						&& (solution = solutions.tupleAt(1)).isInstanceOf(
 							METHOD_DEFINITION.o()))
@@ -3118,7 +3116,6 @@ public class L2Translator
 			Level.FINEST,
 			log ->
 			{
-				assert log != null;
 				@SuppressWarnings("resource")
 				final Formatter formatter = new Formatter();
 				formatter.format("%nOPTIMIZED: %s%n", codeOrFail());
@@ -3190,9 +3187,7 @@ public class L2Translator
 			{
 				targetRegisterSets.add(new RegisterSet(regs));
 			}
-			instruction.propagateTypes(
-				targetRegisterSets,
-				L2Translator.this);
+			instruction.propagateTypes(targetRegisterSets, L2Translator.this);
 
 			for (int i = 0; i < successorsSize; i++)
 			{
@@ -3203,9 +3198,7 @@ public class L2Translator
 					Level.FINEST,
 					log ->
 					{
-						assert log != null;
-						final StringBuilder builder =
-							new StringBuilder(100);
+						final StringBuilder builder = new StringBuilder(100);
 						targetRegisterSet.debugOn(builder);
 						log.value(
 							String.format(
@@ -3220,8 +3213,7 @@ public class L2Translator
 				if (existing == null)
 				{
 					instructionRegisterSets.set(
-						targetInstructionNumber,
-						targetRegisterSet);
+						targetInstructionNumber, targetRegisterSet);
 					followIt = true;
 				}
 				else
@@ -3305,7 +3297,6 @@ public class L2Translator
 			Level.FINEST,
 			log ->
 			{
-				assert log != null;
 				@SuppressWarnings("resource")
 				final Formatter formatter = new Formatter();
 				formatter.format("Keep/drop instruction list:%n");
@@ -3409,7 +3400,6 @@ public class L2Translator
 			Level.FINEST,
 			log ->
 			{
-				assert log != null;
 				@SuppressWarnings("resource")
 				final Formatter formatter = new Formatter();
 				formatter.format(
@@ -3452,7 +3442,6 @@ public class L2Translator
 							Level.FINEST,
 							log ->
 							{
-								assert log != null;
 								final Set<Integer> providerIndices =
 									new TreeSet<>();
 								for (final L2Instruction need :

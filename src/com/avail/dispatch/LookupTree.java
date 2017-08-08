@@ -33,6 +33,7 @@
 package com.avail.dispatch;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Definition;
@@ -198,17 +199,16 @@ public abstract class LookupTree<
 		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		final Memento adaptorMemento,
 		final Transformer2<Integer, A_Type, M> preInternalNode,
-		final Continuation1<M> intraInternalNode,
-		final Continuation1<M> postInternalNode,
-		final Continuation1<Result> forEachLeafNode)
+		final Continuation1NotNull<M> intraInternalNode,
+		final Continuation1NotNull<M> postInternalNode,
+		final Continuation1NotNull<Result> forEachLeafNode)
 	{
 		final List<Continuation0> actionStack = new ArrayList<>();
 		final MutableOrNull<
-				Continuation1<LookupTree<Element, Result, Memento>>>
+				Continuation1NotNull<LookupTree<Element, Result, Memento>>>
 			visit = new MutableOrNull<>();
 		visit.value = node ->
 		{
-			assert node != null;
 			final @Nullable Result solution = node.solutionOrNull();
 			if (solution != null)
 			{

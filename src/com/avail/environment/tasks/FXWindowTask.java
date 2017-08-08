@@ -126,7 +126,7 @@ implements WindowListener
 	 */
 	public void positionFrame ()
 	{
-		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		final Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 		frame.setLocation(
 			(dim.width >> 1) - (frame.getSize().width >> 1),
 			(dim.height >> 1) - (frame.getSize().height >> 1));
@@ -172,7 +172,7 @@ implements WindowListener
 			Platform.setImplicitExit(false);
 			frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-			JPanel panel = new JPanel();
+			final JPanel panel = new JPanel();
 			panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 			panel.setOpaque(true);
 

@@ -137,8 +137,8 @@ public class MessageSplitterTest
 		final A_Type... values)
 	{
 		assert upperBound >= -1;
-		A_Number lower = IntegerDescriptor.fromInt(lowerBound);
-		A_Number upperPlusOne = upperBound >= 0
+		final A_Number lower = IntegerDescriptor.fromInt(lowerBound);
+		final A_Number upperPlusOne = upperBound >= 0
 			? IntegerDescriptor.fromLong(upperBound + 1L)
 			: InfinityDescriptor.positiveInfinity();
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
@@ -169,8 +169,8 @@ public class MessageSplitterTest
 		final A_Type... subexpressionPhraseTypes)
 	{
 		assert upperBound >= -1;
-		A_Number lower = IntegerDescriptor.fromInt(lowerBound);
-		A_Number upperPlusOne = upperBound >= 0
+		final A_Number lower = IntegerDescriptor.fromInt(lowerBound);
+		final A_Number upperPlusOne = upperBound >= 0
 			? IntegerDescriptor.fromLong(upperBound + 1L)
 			: InfinityDescriptor.positiveInfinity();
 		final A_Type subexpressionsTupleType =

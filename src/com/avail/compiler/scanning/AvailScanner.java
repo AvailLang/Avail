@@ -509,7 +509,8 @@ public class AvailScanner
 								+ " in string literal",
 								scanner);
 						}
-						switch (c = scanner.next())
+						c = scanner.next();
+						switch (c)
 						{
 							case 'n':
 								stringBuilder.append('\n');
@@ -1016,7 +1017,7 @@ public class AvailScanner
 		for (int i = 0; i < 65536; i++)
 		{
 			final char c = (char) i;
-			ScannerAction action;
+			final ScannerAction action;
 			if (Character.isDigit(c))
 			{
 				action = DIGIT;

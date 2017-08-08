@@ -43,6 +43,7 @@ import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import com.avail.annotations.InnerAccess;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
@@ -228,7 +229,6 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								payloadLength,
 								content ->
 								{
-									assert content != null;
 									// The buffer should have been flipped
 									// already.
 									assert content.position() == 0;
@@ -270,7 +270,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 	@InnerAccess void readPayloadThen (
 		final SocketChannel channel,
 		final int payloadLength,
-		final Continuation1<ByteBuffer> continuation)
+		final Continuation1NotNull<ByteBuffer> continuation)
 	{
 		final ByteBuffer buffer = ByteBuffer.allocate(payloadLength);
 		final AsynchronousSocketChannel transport = channel.transport();

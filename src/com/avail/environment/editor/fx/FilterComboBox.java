@@ -186,7 +186,7 @@ extends ComboBox<T>
 	protected @NotNull Collection<T> generateVisibleList ()
 	{
 		final List<T> list = new ArrayList<>();
-		for (T aData : optionList)
+		for (final T aData : optionList)
 		{
 			if (aData != null
 				&& getEditor().getText() != null
@@ -324,7 +324,7 @@ extends ComboBox<T>
 		}
 
 		@Override
-		public void handle (KeyEvent event)
+		public void handle (final KeyEvent event)
 		{
 			final KeyCode keycode = event.getCode();
 
@@ -333,7 +333,7 @@ extends ComboBox<T>
 				case UP:
 				{
 					caretPosition = -1;
-					String selection = getEditor().getText();
+					final String selection = getEditor().getText();
 					if (selection != null)
 					{
 						moveCaret(selection.length());
@@ -347,7 +347,7 @@ extends ComboBox<T>
 						show();
 					}
 					caretPosition = -1;
-					String selection = getEditor().getText();
+					final String selection = getEditor().getText();
 					if (selection != null)
 					{
 						downSelectAction();

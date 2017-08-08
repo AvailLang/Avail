@@ -75,7 +75,7 @@ public final class P_BootstrapLexerWhitespaceBody extends Primitive
 
 		while (position <= sourceSize)
 		{
-			int c = source.tupleCodePointAt(position);
+			final int c = source.tupleCodePointAt(position);
 			if (!Character.isWhitespace(c)
 				&& !Character.isSpaceChar(c)
 				&& c != '\uFEFF')

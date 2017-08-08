@@ -97,7 +97,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			definitionToCall =
 				method.lookupByValuesFromList(interpreter.argsBuffer);
 		}
-		catch (MethodDefinitionException e)
+		catch (final MethodDefinitionException e)
 		{
 			errorCodeReg.set(e.numericCode(), interpreter);
 			// Fall through to the next instruction.

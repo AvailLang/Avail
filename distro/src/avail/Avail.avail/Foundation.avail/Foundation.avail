@@ -60,6 +60,12 @@ Extends
 	"Bootstrap" =
 	(
 		/* Core Avail Syntax */
+		"whitespace lexer",
+		"comment lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
 		"\
 			\|[§\
 				\|««…:_†§‡,»`|»?\

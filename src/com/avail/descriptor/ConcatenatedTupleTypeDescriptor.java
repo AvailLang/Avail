@@ -585,7 +585,7 @@ extends TypeDescriptor
 		// secondTupleType, depending on the spread between the first tuple
 		// type's lower and upper bounds. Compute the union of these types.
 		final A_Type typeFromFirstTuple = firstTupleType.typeAtIndex(index);
-		int startIndex;
+		final int startIndex;
 		if (firstUpper.isFinite())
 		{
 			startIndex = max(index - firstUpper.extractInt(), 1);
@@ -642,7 +642,7 @@ extends TypeDescriptor
 		{
 			return tupleType2.defaultType();
 		}
-		int highIndexInB;
+		final int highIndexInB;
 		if (bRange.upperBound().isFinite())
 		{
 			highIndexInB = bRange.upperBound().extractInt();

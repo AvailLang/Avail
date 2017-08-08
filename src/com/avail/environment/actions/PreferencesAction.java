@@ -75,7 +75,7 @@ extends AbstractWorkbenchAction
 		}
 
 		@Override
-		public String getColumnName (int column) {
+		public String getColumnName (final int column) {
 			return columnNames[column];
 		}
 
@@ -92,18 +92,18 @@ extends AbstractWorkbenchAction
 		}
 
 		@Override
-		public Object getValueAt (int row, int column) {
+		public Object getValueAt (final int row, final int column) {
 			return rows.get(row).get(column);
 		}
 
 		@Override
-		public boolean isCellEditable (int row, int column)
+		public boolean isCellEditable (final int row, final int column)
 		{
 			return true;
 		}
 
 		@Override
-		public void setValueAt (Object value, int row, int column) {
+		public void setValueAt (final Object value, final int row, final int column) {
 			rows.get(row).set(column, (String)value);
 			fireTableCellUpdated(row, column);
 		}
@@ -159,7 +159,7 @@ extends AbstractWorkbenchAction
 						: new File(triple.get(2)));
 				roots.addRoot(root);
 			}
-			catch (IndexedFileException e)
+			catch (final IndexedFileException e)
 			{
 				// Just ignore this malformed entry for now.
 			}
@@ -248,7 +248,7 @@ extends AbstractWorkbenchAction
 				@Override
 				public void actionPerformed (final ActionEvent e)
 				{
-					int deletionIndex = rootsTable.getSelectedRow();
+					final int deletionIndex = rootsTable.getSelectedRow();
 					if (deletionIndex != -1)
 					{
 						rootsTableModel.rows().remove(deletionIndex);
@@ -323,7 +323,7 @@ extends AbstractWorkbenchAction
 				@Override
 				public void actionPerformed (final ActionEvent e)
 				{
-					int deletionIndex = renamesTable.getSelectedRow();
+					final int deletionIndex = renamesTable.getSelectedRow();
 					if (deletionIndex != -1)
 					{
 						renamesTableModel.rows().remove(deletionIndex);
@@ -358,7 +358,7 @@ extends AbstractWorkbenchAction
 					preferencesDialog.setVisible(false);
 				}
 			};
-		JButton okButton = new JButton(okAction);
+		final JButton okButton = new JButton(okAction);
 		panel.add(okButton);
 		final AbstractWorkbenchAction cancelAction =
 			new AbstractWorkbenchAction(
@@ -371,7 +371,7 @@ extends AbstractWorkbenchAction
 					preferencesDialog.setVisible(false);
 				}
 			};
-		JButton cancelButton = new JButton(cancelAction);
+		final JButton cancelButton = new JButton(cancelAction);
 		panel.add(cancelButton);
 
 		final GroupLayout layout = new GroupLayout(panel);

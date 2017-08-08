@@ -71,7 +71,7 @@ public class LoadingEffectToRunPrimitive extends LoadingEffect
 	public void writeEffectTo (final L1InstructionWriter writer)
 	{
 		// Push each argument.
-		for (A_BasicObject argument : arguments)
+		for (final A_BasicObject argument : arguments)
 		{
 			writer.write(
 				L1Operation.L1_doPushLiteral,

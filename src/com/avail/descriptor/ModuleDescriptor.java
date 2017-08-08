@@ -34,7 +34,11 @@ package com.avail.descriptor;
 
 import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Set;
+
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -42,6 +46,7 @@ import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.json.JSONWriter;
@@ -563,6 +568,19 @@ extends Descriptor
 		}
 	}
 
+	@Override
+	void o_AddLexer (
+		final AvailObject object,
+		final A_Lexer lexer)
+	{
+		synchronized (object)
+		{
+			A_Set lexers = object.slot(LEXERS);
+			lexers = lexers.setWithElementCanDestroy(lexer, false);
+			object.setSlot(LEXERS, lexers.makeShared());
+		}
+	}
+
 	@Override @AvailMethod
 	void o_AddUnloadFunction (
 		final AvailObject object,
@@ -799,9 +817,9 @@ extends Descriptor
 	}
 
 	/**
-	 * Populate my {@linkplain MessageBundleTreeDescriptor bundle tree} to have
-	 * the {@linkplain MessageBundleDescriptor message bundles} that are visible
-	 * in the current module.
+	 * Create a {@linkplain MessageBundleTreeDescriptor bundle tree} to have the
+	 * {@linkplain MessageBundleDescriptor message bundles} that are visible in
+	 * the current module.
 	 *
 	 * @param object The module.
 	 */
@@ -838,6 +856,45 @@ extends Descriptor
 			}
 		}
 		return filteredBundleTree;
+	}
+
+	/**
+	 * Create a {@link LexicalScanner} to have the {@link A_Lexer lexers} that
+	 * are isible in the current module.
+	 *
+	 * <p>As a nicety, since the bundle name isn't actually used during lexing,
+	 * and since lexers can interfere with each other, de-duplicate lexers that
+	 * might be from different bundles but the same method.</p>
+	 *
+	 * @param object The module.
+	 */
+	@Override @AvailMethod
+	LexicalScanner o_CreateLexicalScanner (
+		final AvailObject object)
+	{
+		final Set<A_Lexer> lexers = new HashSet<>();
+		synchronized (object)
+		{
+			for (final A_Atom visibleName : object.visibleNames())
+			{
+				final A_Bundle bundle = visibleName.bundleOrNil();
+				if (!bundle.equalsNil())
+				{
+					final A_Method method = bundle.bundleMethod();
+					final A_Lexer lexer = method.lexer();
+					if (!lexer.equalsNil())
+					{
+						lexers.add(lexer);
+					}
+				}
+			}
+		}
+		final LexicalScanner lexicalScanner = new LexicalScanner();
+		for (final A_Lexer lexer : lexers)
+		{
+			lexicalScanner.addLexer(lexer);
+		}
+		return lexicalScanner;
 	}
 
 	@Override

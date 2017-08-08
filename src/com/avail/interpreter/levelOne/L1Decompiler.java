@@ -673,7 +673,6 @@ public class L1Decompiler
 		@Override
 		public void L1_doGetOuter ()
 		{
-			final A_Phrase use;
 			final int outerIndex = getInteger();
 			final A_Phrase outer = outers.get(outerIndex - 1);
 			if (outer.parseNodeKindIsUnder(LITERAL_NODE))
@@ -682,9 +681,8 @@ public class L1Decompiler
 				return;
 			}
 			final A_Phrase outerDecl = outer.variable().declaration();
-			use = VariableUseNodeDescriptor.newUse(
-				outerDecl.token(),
-				outerDecl);
+			final A_Phrase use = VariableUseNodeDescriptor.newUse(
+				outerDecl.token(), outerDecl);
 			pushExpression(use);
 		}
 

@@ -301,7 +301,7 @@ extends Descriptor
 		{
 			final A_BundleTree newBundleTree =
 				MessageBundleTreeDescriptor.createEmpty();
-			for (A_Tuple pair : elements)
+			for (final A_Tuple pair : elements)
 			{
 				final A_ParsingPlanInProgress planInProgress = pair.tupleAt(2);
 				newBundleTree.addPlanInProgress(planInProgress);
@@ -358,7 +358,7 @@ extends Descriptor
 		if (bundleCount <= 15)
 		{
 			final Map<String, Integer> strings = new HashMap<>(bundleCount);
-			for (Entry entry : allPlansInProgress.mapIterable())
+			for (final Entry entry : allPlansInProgress.mapIterable())
 			{
 				for (final Entry entry2
 					: entry.value().mapIterable())
@@ -379,14 +379,14 @@ extends Descriptor
 					}
 				}
 			}
-			List<String> sorted = new ArrayList<>();
-			for (Map.Entry<String, Integer> entry : strings.entrySet())
+			final List<String> sorted = new ArrayList<>();
+			for (final Map.Entry<String, Integer> entry : strings.entrySet())
 			{
 				sorted.add(entry.getKey() + "(×" + entry.getValue() + ")");
 			}
 			Collections.sort(sorted);
 			boolean first = true;
-			for (String string : sorted)
+			for (final String string : sorted)
 			{
 				if (bundleCount <= 3)
 				{
@@ -569,7 +569,7 @@ extends Descriptor
 			if (typeFilterPairs.value.tupleSize() != oldTypeFilterSize)
 			{
 				// Rebuild the type-checking lookup tree.
-				LookupTree<A_Tuple, A_BundleTree, Void> tree =
+				final LookupTree<A_Tuple, A_BundleTree, Void> tree =
 					MessageBundleTreeDescriptor.parserTypeChecker.createRoot(
 						TupleDescriptor.toList(typeFilterPairs.value),
 						Collections.singletonList(
@@ -996,7 +996,7 @@ extends Descriptor
 			{
 				// Parse a specific keyword, or case-insensitive keyword.
 				final int keywordIndex = op.keywordIndex(instruction);
-				A_BundleTree subtree;
+				final A_BundleTree subtree;
 				final A_String part =
 					plan.bundle().messageParts().tupleAt(keywordIndex);
 				final Mutable<A_Map> map =

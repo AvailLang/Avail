@@ -71,29 +71,29 @@ extends Primitive
 			interpreter.primitiveFunctionBeingAttempted();
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		assert failureFunction.code().primitiveNumber() == primitiveNumber;
-		interpreter.postExitContinuation(() -> otherFiber.whenContinuationIsAvailableDo(
-			theContinuation ->
-			{
-				assert theContinuation != null;
-				if (!theContinuation.equalsNil())
+		interpreter.postExitContinuation(
+			() -> otherFiber.whenContinuationIsAvailableDo(
+				theContinuation ->
 				{
-					Interpreter.resumeFromSuccessfulPrimitive(
-						AvailRuntime.current(),
-						thisFiber,
-						theContinuation,
-						skipReturnCheck);
-				}
-				else
-				{
-					Interpreter.resumeFromFailedPrimitive(
-						AvailRuntime.current(),
-						thisFiber,
-						E_FIBER_IS_TERMINATED.numericCode(),
-						failureFunction,
-						copiedArgs,
-						skipReturnCheck);
-				}
-			}));
+					if (!theContinuation.equalsNil())
+					{
+						Interpreter.resumeFromSuccessfulPrimitive(
+							AvailRuntime.current(),
+							thisFiber,
+							theContinuation,
+							skipReturnCheck);
+					}
+					else
+					{
+						Interpreter.resumeFromFailedPrimitive(
+							AvailRuntime.current(),
+							thisFiber,
+							E_FIBER_IS_TERMINATED.numericCode(),
+							failureFunction,
+							copiedArgs,
+							skipReturnCheck);
+					}
+				}));
 		return suspended;
 	}
 

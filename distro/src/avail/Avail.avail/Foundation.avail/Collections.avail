@@ -33,6 +33,8 @@
 Module "Collections"
 Versions
 	"1.0.0 DEV 2014-04-28"
+Uses
+	"Bootstrap"
 Names
 	/* The definitions are provided by Tuples, Sets, and Maps, but the names
 	 * are introduced here.

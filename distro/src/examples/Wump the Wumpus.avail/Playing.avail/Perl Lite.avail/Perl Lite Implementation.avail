@@ -44,6 +44,14 @@ Uses
 Extends
 	"Avail" =
 	(
+		/* Lexing */
+		"whitespace lexer",
+		"comment lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
+
 		/* Statements. */
 		"_!;",
 		"_!;" → "_!",

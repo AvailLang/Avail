@@ -91,7 +91,7 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 
 		final boolean canJump;
 		final boolean mustJump;
-		A_Type intersection;
+		final A_Type intersection;
 		if (registerSet.hasConstantAt(objectReg))
 		{
 			final AvailObject constant = registerSet.constantAt(objectReg);

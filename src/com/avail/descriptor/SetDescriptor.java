@@ -316,8 +316,8 @@ extends Descriptor
 	{
 		// Compute the intersection of two sets. May destroy one of them if
 		// it's mutable and canDestroy is true.
-		A_Set smaller;
-		A_Set larger;
+		final A_Set smaller;
+		final A_Set larger;
 		if (object.setSize() <= otherSet.setSize())
 		{
 			smaller = object;
@@ -351,8 +351,8 @@ extends Descriptor
 		final AvailObject object,
 		final A_Set otherSet)
 	{
-		A_Set smaller;
-		A_Set larger;
+		final A_Set smaller;
+		final A_Set larger;
 		if (object.setSize() <= otherSet.setSize())
 		{
 			smaller = object;
@@ -407,8 +407,8 @@ extends Descriptor
 	{
 		// Compute the union of two sets. May destroy one of them if it's
 		// mutable and canDestroy is true.
-		A_Set smaller;
-		A_Set larger;
+		final A_Set smaller;
+		final A_Set larger;
 		if (object.setSize() <= otherSet.setSize())
 		{
 			smaller = object;
@@ -466,7 +466,7 @@ extends Descriptor
 			}
 			return object;
 		}
-		A_Set result;
+		final A_Set result;
 		if (canDestroy && isMutable())
 		{
 			result = object;
@@ -503,7 +503,7 @@ extends Descriptor
 			}
 			return object;
 		}
-		AvailObject result;
+		final AvailObject result;
 		if (canDestroy && isMutable())
 		{
 			result = object;
@@ -633,7 +633,7 @@ extends Descriptor
 		final A_BasicObject... elements)
 	{
 		A_Set set = empty();
-		for (A_BasicObject element : elements)
+		for (final A_BasicObject element : elements)
 		{
 			set = set.setWithElementCanDestroy(element, true);
 		}
@@ -653,7 +653,7 @@ extends Descriptor
 		final AvailErrorCode... errorCodeElements)
 	{
 		A_Set set = empty();
-		for (AvailErrorCode element : errorCodeElements)
+		for (final AvailErrorCode element : errorCodeElements)
 		{
 			set = set.setWithElementCanDestroy(element.numericCode(), true);
 		}

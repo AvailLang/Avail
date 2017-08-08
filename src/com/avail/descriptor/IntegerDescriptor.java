@@ -649,7 +649,7 @@ extends ExtendedIntegerDescriptor
 	{
 		final int objectSize = intCount(object);
 		final int anIntegerSize = intCount(another);
-		AvailObject output;
+		final AvailObject output;
 		if (objectSize == anIntegerSize)
 		{
 			output =

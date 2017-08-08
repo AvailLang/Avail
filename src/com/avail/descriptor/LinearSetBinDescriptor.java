@@ -161,7 +161,7 @@ extends SetBinDescriptor
 			return elementObject;
 		}
 		final int oldHash = object.binHash();
-		AvailObject result;
+		final AvailObject result;
 		if (myLevel < numberOfLevels - 1 && oldSize >= thresholdToHash)
 		{
 			final byte shift = (byte)(6 * myLevel);

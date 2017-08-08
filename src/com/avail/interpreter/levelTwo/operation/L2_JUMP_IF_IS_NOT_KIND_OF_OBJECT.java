@@ -118,7 +118,7 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT extends L2Operation
 		final RegisterSet fallThroughSet = registerSets.get(0);
 //		final RegisterSet postJumpSet = registerSets.get(1);
 
-		A_Type type;
+		final A_Type type;
 		if (fallThroughSet.hasConstantAt(typeReg))
 		{
 			// The type is statically known.

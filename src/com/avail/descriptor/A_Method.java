@@ -37,6 +37,7 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
@@ -292,4 +293,11 @@ extends A_ChunkDependable
 	 *        NilDescriptor#nil() nil}.
 	 */
 	void setLexer (final A_Lexer lexer);
+
+	/**
+	 * Answer this method's lexer, or {@link NilDescriptor#nil()}.
+	 *
+	 * @return The {@link A_Lexer} or {@code nil}.
+	 */
+	A_Lexer lexer ();
 }

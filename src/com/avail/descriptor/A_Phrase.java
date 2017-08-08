@@ -280,12 +280,6 @@ extends A_BasicObject
 	A_Tuple permutation ();
 
 	/**
-	 * @param newParseNode
-	 * @return
-	 */
-	A_Phrase prependWith (A_Phrase newParseNode);
-
-	/**
 	 * @return
 	 */
 	@Nullable Primitive primitive ();
@@ -306,12 +300,12 @@ extends A_BasicObject
 	/**
 	 * Iterate through each {@linkplain ParseNodeKind#SEQUENCE_NODE statement
 	 * phrase} recursively within the receiver, applying the {@linkplain
-	 * Continuation1 continuation} to each.
+	 * Continuation1NotNull continuation} to each.
 	 *
 	 * @param continuation
 	 *        A continuation.
 	 */
-	void statementsDo (Continuation1<A_Phrase> continuation);
+	void statementsDo (Continuation1NotNull<A_Phrase> continuation);
 
 	/**
 	 * @return

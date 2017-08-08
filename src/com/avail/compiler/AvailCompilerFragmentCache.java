@@ -51,10 +51,8 @@ public class AvailCompilerFragmentCache
 	 * ParserState parser states}, since we must take into account which
 	 * variable declarations are in scope when looking for subexpressions.
 	 */
-	private final Map<
-			ParserState,
-			AvailCompilerBipartiteRendezvous<CompilerSolution>>
-		solutions = new HashMap<>(100);
+	private final Map<ParserState, AvailCompilerBipartiteRendezvous> solutions =
+		new HashMap<>(100);
 
 	/**
 	 * Answer whether expression parsing has started at this position.
@@ -82,8 +80,7 @@ public class AvailCompilerFragmentCache
 	{
 		assert Thread.holdsLock(this);
 		assert !hasStartedParsingAt(state);
-		solutions.put(
-			state, new AvailCompilerBipartiteRendezvous<>());
+		solutions.put(state, new AvailCompilerBipartiteRendezvous());
 		assert hasStartedParsingAt(state);
 	}
 
@@ -121,7 +118,7 @@ public class AvailCompilerFragmentCache
 	 */
 	void addAction (
 		final ParserState state,
-		final Con<CompilerSolution> action)
+		final Con action)
 	{
 		assert Thread.holdsLock(this);
 		solutions.get(state).addAction(action);

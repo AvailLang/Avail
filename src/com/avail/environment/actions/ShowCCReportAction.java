@@ -70,8 +70,6 @@ extends AbstractWorkbenchAction
 				CompiledCodeDescriptor.codeCoverageReportsThen(
 					reports ->
 					{
-						assert reports != null;
-
 						// Order the report items using the natural sort defined
 						// in the object.
 						Collections.sort(reports);

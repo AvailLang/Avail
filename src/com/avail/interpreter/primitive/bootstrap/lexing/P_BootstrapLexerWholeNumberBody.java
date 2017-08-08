@@ -64,10 +64,10 @@ public final class P_BootstrapLexerWholeNumberBody extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		final A_String source = args.get(0);
 		final A_Number sourcePositionInteger = args.get(1);
-		final A_Number lineNumberInteger = args.get(1);
+		final A_Number lineNumberInteger = args.get(2);
 
 		final int sourceSize = source.tupleSize();
 		final int startPosition = sourcePositionInteger.extractInt();
@@ -107,6 +107,7 @@ public final class P_BootstrapLexerWholeNumberBody extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				TupleTypeDescriptor.stringType(),
+				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			TupleTypeDescriptor.zeroOrMoreOf(
 				Types.TOKEN.o()));

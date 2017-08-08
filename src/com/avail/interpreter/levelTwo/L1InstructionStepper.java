@@ -415,7 +415,7 @@ implements L1OperationDispatcher
 		{
 			matching = method.lookupByValuesFromList(argsBuffer);
 		}
-		catch (MethodDefinitionException e)
+		catch (final MethodDefinitionException e)
 		{
 			reifyContinuation();
 			interpreter.invokeFunction(

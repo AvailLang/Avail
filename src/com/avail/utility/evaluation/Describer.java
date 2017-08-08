@@ -36,7 +36,7 @@ import com.avail.compiler.AvailCompiler;
 
 /**
  * A {@code Describer} produces a message and forwards it to a supplied
- * {@linkplain Continuation1 continuation}. It is used by the {@linkplain
+ * {@linkplain Continuation1NotNull continuation}. It is used by the {@linkplain
  * AvailCompiler compiler} to support lazy stringification in a
  * continuation-passing style.
  *
@@ -47,10 +47,10 @@ public interface Describer
 {
 	/**
 	 * Assemble a message and pass it into the specified {@linkplain
-	 * Continuation1 continuation}.
+	 * Continuation1NotNull continuation}.
 	 *
 	 * @param continuation
 	 *        What to do with the message.
 	 */
-	void describeThen (Continuation1<String> continuation);
+	void describeThen (Continuation1NotNull<String> continuation);
 }

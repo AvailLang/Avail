@@ -92,7 +92,7 @@ public final class SerializerTest
 			new File("distro/src/avail").getAbsolutePath()));
 		final RenamesFileParser parser =
 			new RenamesFileParser(new StringReader(""), roots);
-		ModuleNameResolver resolver;
+		final ModuleNameResolver resolver;
 		try
 		{
 			resolver = parser.parse();

@@ -517,6 +517,15 @@ extends Descriptor
 		return METHOD.o();
 	}
 
+	@Override @AvailMethod
+	A_Lexer o_Lexer (final AvailObject object)
+	{
+		synchronized (object)
+		{
+			return object.slot(LEXER_OR_NIL);
+		}
+	}
+
 	/**
 	 * Look up the definition to invoke, given a tuple of argument types.
 	 * Use the testingTree to find the definition to invoke.
@@ -527,11 +536,10 @@ extends Descriptor
 		final A_Tuple argumentTypeTuple)
 	throws MethodDefinitionException
 	{
-		@SuppressWarnings("unchecked")
-		LookupTree<A_Definition, A_Tuple, Void> tree =
+		@SuppressWarnings("unchecked") final LookupTree<A_Definition, A_Tuple, Void> tree =
 			(LookupTree<A_Definition, A_Tuple, Void>)
 				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-		A_Tuple resultTuple = runtimeDispatcher.lookupByTypes(
+		final A_Tuple resultTuple = runtimeDispatcher.lookupByTypes(
 			tree, argumentTypeTuple, null);
 		return MethodDefinitionException.extractUniqueMethod(resultTuple);
 	}
@@ -547,11 +555,10 @@ extends Descriptor
 		final List<? extends A_BasicObject> argumentList)
 	throws MethodDefinitionException
 	{
-		@SuppressWarnings("unchecked")
-		LookupTree<A_Definition, A_Tuple, Void> tree =
+		@SuppressWarnings("unchecked") final LookupTree<A_Definition, A_Tuple, Void> tree =
 			(LookupTree<A_Definition, A_Tuple, Void>)
 				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-		A_Tuple results = runtimeDispatcher.lookupByValues(
+		final A_Tuple results = runtimeDispatcher.lookupByValues(
 			tree, argumentList, null);
 		return MethodDefinitionException.extractUniqueMethod(results);
 	}
@@ -574,8 +581,7 @@ extends Descriptor
 		final A_Tuple argumentPhraseTuple)
 	throws MethodDefinitionException
 	{
-		@SuppressWarnings("unchecked")
-		LookupTree<A_Definition, A_Tuple, Void> tree =
+		@SuppressWarnings("unchecked") final LookupTree<A_Definition, A_Tuple, Void> tree =
 			(LookupTree<A_Definition, A_Tuple, Void>)
 				object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple results =
@@ -664,7 +670,7 @@ extends Descriptor
 					definition, true);
 				object.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared());
 			}
-			for (A_Bundle bundle : object.slot(OWNING_BUNDLES))
+			for (final A_Bundle bundle : object.slot(OWNING_BUNDLES))
 			{
 				final A_DefinitionParsingPlan plan =
 					DefinitionParsingPlanDescriptor.createPlan(
@@ -1237,7 +1243,7 @@ extends Descriptor
 				final A_Function function =
 					FunctionDescriptor.newPrimitiveFunction(
 						primitive, NilDescriptor.nil(), 0);
-				A_Definition definition;
+				final A_Definition definition;
 				if (createMethodOrMacro == CREATE_METHOD)
 				{
 					definition = MethodDefinitionDescriptor.create(

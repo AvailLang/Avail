@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.primitive.modules.P_PublishName;
 import com.avail.utility.evaluation.Continuation0;
 
@@ -128,6 +129,14 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 */
 	A_Map constantBindings ();
+
+	/**
+	 * Create and answer a {@link LexicalScanner} containing all lexers that are
+	 * in scope for this module.
+	 *
+	 * @return The new {@link LexicalScanner}.
+	 */
+	LexicalScanner createLexicalScanner ();
 
 	/**
 	 * Dispatch to the descriptor.
