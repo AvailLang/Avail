@@ -33,7 +33,7 @@
 package com.avail.annotations;
 
 import org.jetbrains.annotations.NotNull;
-
+import javax.annotation.meta.TypeQualifierDefault;
 import java.lang.annotation.*;
 
 /**
@@ -42,14 +42,21 @@ import java.lang.annotation.*;
  * annotated for nullability are {@link NotNull} by default.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Retention(RetentionPolicy.CLASS)
-@Target({
-	ElementType.PACKAGE,
-	ElementType.TYPE,
-	ElementType.METHOD
-})
-public @interface NotNullByDefault
-{
-	// No implementation required.
+@TypeQualifierDefault(
+	{
+		ElementType.ANNOTATION_TYPE,
+		ElementType.CONSTRUCTOR,
+		ElementType.FIELD,
+		ElementType.LOCAL_VARIABLE,
+		ElementType.METHOD,
+		ElementType.PACKAGE,
+		ElementType.PARAMETER,
+		ElementType.TYPE
+	})
+@Documented
+public @NotNull @interface NotNullByDefault {
+
 }

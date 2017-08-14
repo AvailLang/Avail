@@ -147,10 +147,11 @@ public enum ParsingConversionRule
 	 * @param lexingState
 	 *        The {@link LexingState} after the phrase.
 	 * @param input
- *        The parse node to be converted.
+	 *        The parse node to be converted.
 	 * @param continuation
-*        What to do with the replacement parse node.
+	 *        What to do with the replacement parse node.
 	 * @param onProblem
+	 *        What to do if there's a problem.
 	 */
 	public abstract void convert (
 		final CompilationContext compilationContext,
@@ -170,7 +171,7 @@ public enum ParsingConversionRule
 	}
 
 	/** An array of all {@link ParsingConversionRule}s. */
-	private final static ParsingConversionRule[] all = values();
+	private static final ParsingConversionRule[] all = values();
 
 	/**
 	 * Lookup the specified {@linkplain ParsingConversionRule conversion rule}

@@ -55,7 +55,7 @@ import static java.lang.Math.min;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class IntTupleDescriptor
+public final class IntTupleDescriptor
 extends NumericTupleDescriptor
 {
 	/**

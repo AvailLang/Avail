@@ -295,11 +295,8 @@ public final class RenamesFileParser
 	 * (→).
 	 *
 	 * @return A {@linkplain Token token}.
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} or unexpected
-	 *         end-of-file occurs.
 	 */
-	Token scanRightArrow () throws IOException
+	static Token scanRightArrow ()
 	{
 		return new Token(TokenType.ARROW, "→");
 	}
@@ -354,7 +351,7 @@ public final class RenamesFileParser
 	 *
 	 * @return {@code null}.
 	 */
-	@Nullable Token scanWhitespace ()
+	static @Nullable Token scanWhitespace ()
 	{
 		return null;
 	}
@@ -366,7 +363,7 @@ public final class RenamesFileParser
 	 * @param unknownChar A character.
 	 * @return A {@linkplain Token token}.
 	 */
-	Token scanUnknown (final int unknownChar)
+	static Token scanUnknown (final int unknownChar)
 	{
 		return new Token(
 			TokenType.UNKNOWN,
@@ -401,7 +398,7 @@ public final class RenamesFileParser
 					final int firstChar)
 				throws IOException
 			{
-				return parser.scanRightArrow();
+				return RenamesFileParser.scanRightArrow();
 			}
 		},
 
@@ -426,7 +423,7 @@ public final class RenamesFileParser
 				final RenamesFileParser parser,
 				final int firstChar)
 			{
-				return parser.scanWhitespace();
+				return RenamesFileParser.scanWhitespace();
 			}
 		},
 
@@ -435,11 +432,10 @@ public final class RenamesFileParser
 		{
 			@Override
 			Token scan (
-					final RenamesFileParser parser,
-					final int firstChar)
-				throws IOException
+				final RenamesFileParser parser,
+				final int firstChar)
 			{
-				return parser.scanUnknown(firstChar);
+				return RenamesFileParser.scanUnknown(firstChar);
 			}
 		};
 
@@ -517,7 +513,7 @@ public final class RenamesFileParser
 	 *        A code point.
 	 * @return The appropriate {@code ScannerAction}.
 	 */
-	private ScannerAction actionFor (final int c)
+	private static ScannerAction actionFor (final int c)
 	{
 		if (c == '→')
 		{

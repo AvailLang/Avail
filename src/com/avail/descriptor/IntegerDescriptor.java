@@ -76,7 +76,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class IntegerDescriptor
+public final class IntegerDescriptor
 extends ExtendedIntegerDescriptor
 {
 	/**
@@ -978,7 +978,6 @@ extends ExtendedIntegerDescriptor
 			// point division and still always converged in time proportional to
 			// the difference in bit lengths divided by the number of bits of
 			// accuracy in the floating point quotient.
-			final double doubleQuotient = doubleDividend / doubleDivisor;
 			final long quotientScale = dividendScale - divisorScale;
 			assert quotientScale >= 0L;
 
@@ -989,6 +988,7 @@ extends ExtendedIntegerDescriptor
 			final long bitShift = quotientScale
 				- (((long) intCount(partialQuotient) - 1) << 5L);
 			assert -100L < bitShift && bitShift < 100L;
+			final double doubleQuotient = doubleDividend / doubleDivisor;
 			double scaledDoubleQuotient = scalb(doubleQuotient, (int)bitShift);
 			for (int i = intCount(partialQuotient); i >= 1; --i)
 			{
@@ -1612,7 +1612,7 @@ extends ExtendedIntegerDescriptor
 	 * @param canDestroy
 	 *            Whether it is permitted to alter the original object if it
 	 *            happens to be mutable.
-	 * @return &#40;object × 2<sup>shiftFactor</sup>)
+	 * @return &#40;object &times; 2<sup>shiftFactor</sup>)
 	 *            mod 2<sup>truncationBits</sup>
 	 */
 	@Override @AvailMethod
@@ -1758,7 +1758,7 @@ extends ExtendedIntegerDescriptor
 	 * @param canDestroy
 	 *            Whether it is permitted to alter the original object if it
 	 *            happens to be mutable.
-	 * @return ⎣object × 2<sup>shiftFactor</sup>⎦
+	 * @return &#x23a3;object &times; 2<sup>shiftFactor</sup>&#x23a6;
 	 */
 	@Override @AvailMethod
 	A_Number o_BitShift (
@@ -2050,37 +2050,42 @@ extends ExtendedIntegerDescriptor
 	public static A_Number fromBigInteger (final BigInteger bigInteger)
 	{
 		final byte[] bytes = bigInteger.toByteArray();
-		if (bytes.length < 8)
+		if (bytes.length <= 8)
 		{
 			return fromLong(bigInteger.longValue());
 		}
-		final int signByte = ((bytes[0] >> 7) & 1) * 255;
-		final int intCount = (bytes.length + 4) >> 2;
+		final int intCount = (bytes.length + 3) >> 2;
 		final AvailObject result = createUninitialized(intCount);
 		// Start with the least significant bits.
-		int byteIndex = bytes.length - 1;
-		for (int destIndex = 1; destIndex <= intCount; destIndex++)
+		int byteIndex = bytes.length;
+		int destIndex;
+		for (destIndex = 1; destIndex < intCount; destIndex++)
 		{
-			int intValue;
-			if (byteIndex >= 3)
-			{
-				intValue = (bytes[byteIndex] & 255);
-				intValue += (bytes[byteIndex - 1] & 255) << 8;
-				intValue += (bytes[byteIndex - 2] & 255) << 16;
-				intValue += (bytes[byteIndex - 3] & 255) << 24;
-			}
-			else
-			{
-				// Do the highest order int specially, low to high bytes.
-				intValue = (byteIndex >= 0 ? bytes[byteIndex] : signByte) & 255;
-				intValue += ((byteIndex >= 1 ? bytes[byteIndex - 1] : signByte) & 255) << 8;
-				intValue += ((byteIndex >= 2 ? bytes[byteIndex - 2] : signByte) & 255) << 16;
-				intValue += ((byteIndex >= 3 ? bytes[byteIndex - 3] : signByte) & 255) << 24;
-			}
+			byteIndex -= 4;  // Zero-based index to start of four byte run
+			final int intValue =
+				((bytes[byteIndex] & 255) << 24)
+				+ ((bytes[byteIndex + 1] & 255) << 16)
+				+ ((bytes[byteIndex + 2] & 255) << 8)
+				+ ((bytes[byteIndex + 3] & 255));
 			result.setIntSlot(RAW_LONG_SLOTS_, destIndex, intValue);
-			byteIndex -= 4;
 		}
+		// There are at least 4 bytes present (<=8 was special-cased), so create
+		// an int from the leading (most significant) 4 bytes.  Some of these
+		// bytes may have already been included in the previous int, but at
+		// least one and at most four bytes will survive to be written to the
+		// most significant int.
+		int highInt =
+			((bytes[0] & 255) << 24)
+			+ ((bytes[1] & 255) << 16)
+			+ ((bytes[2] & 255) << 8)
+			+ (bytes[3] & 255);
+		assert byteIndex >= 1 && byteIndex <= 4;
+		// Now shift away the bytes already consumed.
+		highInt >>= (4 - byteIndex) << 3;
+		result.setIntSlot(RAW_LONG_SLOTS_, destIndex, highInt);
+		// There should be no need to trim it...
 		result.trimExcessInts();
+		assert intCount(result) == intCount;
 		return result;
 	}
 
@@ -2492,5 +2497,5 @@ extends ExtendedIntegerDescriptor
 	 * for which {@link #o_IsLong(AvailObject)} returns true.
 	 */
 	private static final A_Number quintillionInteger =
-		IntegerDescriptor.fromLong(quintillionLong);
+		IntegerDescriptor.fromLong(quintillionLong).makeShared();
 }

@@ -69,7 +69,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_CreateDirectory().init(
+	public static final Primitive instance = new P_CreateDirectory().init(
 		5, CanInline, HasSideEffect);
 
 	/**

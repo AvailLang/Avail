@@ -52,7 +52,7 @@ extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO().init(
 			IMMEDIATE.is("New optimization level"));
 

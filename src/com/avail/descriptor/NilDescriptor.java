@@ -60,14 +60,6 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_EqualsNil (final AvailObject object)
-	{
-		//  There is only one Nil.
-		return true;
-	}
-
-	@Override
-	@AvailMethod @ThreadSafe
 	int o_Hash (final AvailObject object)
 	{
 		// Nil should hash to zero, because the only place it can appear in a

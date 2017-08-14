@@ -25,5 +25,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="idea-junit" level="project" />
+    <orderEntry type="library" name="annotations" level="project" />
+    <orderEntry type="library" name="jsr305" level="project" />
   </component>
 </module>

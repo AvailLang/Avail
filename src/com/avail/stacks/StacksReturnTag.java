@@ -44,12 +44,12 @@ public class StacksReturnTag extends AbstractStacksTag
 	/**
 	 * The type of the return
 	 */
-	final private RegionStacksToken returnType;
+	private final RegionStacksToken returnType;
 
 	/**
 	 * The description of the return.
 	 */
-	final private StacksDescription returnDescription;
+	private final StacksDescription returnDescription;
 
 	/**
 	 * Construct a new {@link StacksReturnTag}.

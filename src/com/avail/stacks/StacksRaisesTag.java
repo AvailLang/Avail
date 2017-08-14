@@ -45,12 +45,12 @@ public class StacksRaisesTag extends AbstractStacksTag
 	/**
 	 * The name of the exception.
 	 */
-	final private QuotedStacksToken exceptionName;
+	private final QuotedStacksToken exceptionName;
 
 	/**
 	 * The description of the exception.
 	 */
-	final private StacksDescription exceptionDescription;
+	private final StacksDescription exceptionDescription;
 
 	/**
 	 * Construct a new {@link StacksRaisesTag}.

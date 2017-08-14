@@ -202,8 +202,7 @@ implements Configurator<CompilerConfiguration>
 			(keyword, unused) ->
 			{
 				processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
-				processor.value().checkEncountered(
-					GENERATE_DOCUMENTATION, 0);
+				processor.value().checkEncountered(GENERATE_DOCUMENTATION, 0);
 				if (unused != null)
 				{
 					throw new OptionProcessingException(
@@ -222,8 +221,7 @@ implements Configurator<CompilerConfiguration>
 				+ "exclusive with -f.",
 			(keyword, unused) ->
 			{
-				processor.value().checkEncountered(
-					GENERATE_DOCUMENTATION, 0);
+				processor.value().checkEncountered(GENERATE_DOCUMENTATION, 0);
 				processor.value().checkEncountered(CLEAR_REPOSITORIES, 0);
 				processor.value().checkEncountered(SHOW_STATISTICS, 0);
 				if (unused != null)
@@ -243,6 +241,7 @@ implements Configurator<CompilerConfiguration>
 				+ "Requires -g.",
 			(keyword, pathString) ->
 			{
+				assert pathString != null;
 				processor.value().checkEncountered(DOCUMENTATION_PATH, 0);
 				final Path path;
 				try
@@ -293,8 +292,7 @@ implements Configurator<CompilerConfiguration>
 			(keyword, reportsString) ->
 			{
 				processor.value().checkEncountered(SHOW_STATISTICS, 0);
-				processor.value().checkEncountered(
-					GENERATE_DOCUMENTATION, 0);
+				processor.value().checkEncountered(GENERATE_DOCUMENTATION, 0);
 				final EnumSet<StatisticReport> reports;
 				if (reportsString == null)
 				{
@@ -304,10 +302,10 @@ implements Configurator<CompilerConfiguration>
 				{
 					final String[] reportsArr = reportsString.split(",");
 					reports = EnumSet.noneOf(StatisticReport.class);
-					StatisticReport report;
 					for (final String reportName : reportsArr)
 					{
-						report = StatisticReport.reportFor(reportName);
+						final StatisticReport report =
+							StatisticReport.reportFor(reportName);
 
 						// This will also catch the illegal use of "="
 						// without any items following.
@@ -429,11 +427,9 @@ implements Configurator<CompilerConfiguration>
 	{
 		if (!isConfigured)
 		{
-			final OptionProcessor<OptionKey> optionProcessor;
 			try
 			{
-				optionProcessor = createOptionProcessor();
-				optionProcessor.processOptions(commandLineArguments);
+				createOptionProcessor().processOptions(commandLineArguments);
 				isConfigured = true;
 			}
 			catch (final Exception e)

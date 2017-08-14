@@ -56,7 +56,7 @@ import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailCodeGenerator
+public final class AvailCodeGenerator
 {
 	/**
 	 * The {@linkplain List list} of {@linkplain AvailInstruction instructions}
@@ -146,8 +146,7 @@ public class AvailCodeGenerator
 	public int indexOfLiteral (
 		final A_BasicObject aLiteral)
 	{
-		int index;
-		index = literals.indexOf(aLiteral) + 1;
+		int index = literals.indexOf(aLiteral) + 1;
 		if (index == 0)
 		{
 			literals.add(aLiteral);
@@ -365,8 +364,7 @@ public class AvailCodeGenerator
 		);
 		assert resultType.isType();
 		final A_Type[] argsArray = new A_Type[numArgs];
-		final A_Type[] localsArray =
-			new A_Type[varMap.size() - numArgs];
+		final A_Type[] localsArray = new A_Type[varMap.size() - numArgs];
 		for (final Entry<A_Phrase, Integer> entry : varMap.entrySet())
 		{
 			final int i = entry.getValue();
@@ -570,19 +568,19 @@ public class AvailCodeGenerator
 	 *            variable that should have its value extracted.
 	 */
 	public void emitGetLocalOrOuter (
-		final A_BasicObject localOrOuter)
+		final A_Phrase localOrOuter)
 	{
 		increaseDepth(1);
 		if (varMap.containsKey(localOrOuter))
 		{
-			instructions.add(new AvailGetLocalVariable(
-				varMap.get(localOrOuter)));
+			instructions.add(
+				new AvailGetLocalVariable(varMap.get(localOrOuter)));
 			return;
 		}
 		if (outerMap.containsKey(localOrOuter))
 		{
-			instructions.add(new AvailGetOuterVariable(
-				outerMap.get(localOrOuter)));
+			instructions.add(
+				new AvailGetOuterVariable(outerMap.get(localOrOuter)));
 			return;
 		}
 		assert !labelInstructions.containsKey(localOrOuter)
@@ -597,7 +595,7 @@ public class AvailCodeGenerator
 	 * @param labelNode The label declaration.
 	 */
 	public void emitLabelDeclaration (
-		final A_BasicObject labelNode)
+		final A_Phrase labelNode)
 	{
 		assert instructions.isEmpty()
 		: "Label must be first statement in block";
@@ -661,7 +659,7 @@ public class AvailCodeGenerator
 	 * @param variableDeclaration The variable declaration.
 	 */
 	public void emitPushLocalOrOuter (
-		final A_BasicObject variableDeclaration)
+		final A_Phrase variableDeclaration)
 	{
 		increaseDepth(1);
 		if (varMap.containsKey(variableDeclaration))
@@ -705,7 +703,7 @@ public class AvailCodeGenerator
 	 *            in which to write.
 	 */
 	public void emitSetLocalOrOuter (
-		final A_BasicObject localOrOuter)
+		final A_Phrase localOrOuter)
 	{
 		decreaseDepth(1);
 		if (varMap.containsKey(localOrOuter))

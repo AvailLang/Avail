@@ -45,12 +45,12 @@ public class StacksForbidsTag extends AbstractStacksTag
 	/**
 	 * The forbids arity index.
 	 */
-	final private AbstractStacksToken arityIndex;
+	private final AbstractStacksToken arityIndex;
 	/**
 	 * The list of the methods for which the method is "forbidden" to used in
 	 * conjunction with.
 	 */
-	final private ArrayList<QuotedStacksToken> forbidMethods;
+	private final ArrayList<QuotedStacksToken> forbidMethods;
 
 	/**
 	 * Construct a new {@link StacksForbidsTag}.

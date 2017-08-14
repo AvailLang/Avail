@@ -76,11 +76,8 @@ public class AvailCompilerBipartiteRendezvous
 	 * Record a new solution, and also run any waiting actions with it.
 	 *
 	 * @param solution The new solution to record.
-	 * @throws DuplicateSolutionException
-	 *         If the solution is equal to a solution already recorded.
 	 */
 	void addSolution (final CompilerSolution solution)
-	throws DuplicateSolutionException
 	{
 		if (solutions.contains(solution))
 		{

@@ -473,7 +473,7 @@ extends ParseNodeTypeDescriptor
 	}
 
 	/** A static inner type that delays initialization until first use. */
-	private final static class Empty
+	private static final class Empty
 	{
 		/** The empty list phrase's type. */
 		@InnerAccess static final A_Type empty = createListNodeTypeNoCheck(

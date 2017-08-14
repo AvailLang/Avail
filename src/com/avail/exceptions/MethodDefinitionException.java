@@ -47,7 +47,7 @@ import com.avail.descriptor.MethodDescriptor;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class MethodDefinitionException
+public final class MethodDefinitionException
 extends AvailException
 {
 	/** The serial version identifier. */

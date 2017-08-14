@@ -35,6 +35,8 @@ package com.avail.serialization;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.utility.evaluation.*;
+
+import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
 
@@ -52,7 +54,7 @@ public class Serializer
 	 * AvailRuntime#specialObjects() special objects} list.  Entries that are
 	 * {@code null} (i.e., unused entries} are not included.
 	 */
-	static final Map<AvailObject, Integer> specialObjects =
+	static final Map<A_BasicObject, Integer> specialObjects =
 		new HashMap<>(1000);
 
 	/**
@@ -259,22 +261,17 @@ public class Serializer
 		{
 			// Build but don't yet emit the instruction.
 			final SerializerOperation operation;
-			final Integer specialObjectIndex = specialObjects.get(object);
-			if (specialObjectIndex != null)
+			if (specialObjects.containsKey(object))
 			{
 				operation = SerializerOperation.SPECIAL_OBJECT;
 			}
+			else if (specialAtoms.containsKey(object))
+			{
+				operation = SerializerOperation.SPECIAL_ATOM;
+			}
 			else
 			{
-				final Integer specialAtomIndex = specialAtoms.get(object);
-				if (specialAtomIndex != null)
-				{
-					operation = SerializerOperation.SPECIAL_ATOM;
-				}
-				else
-				{
-					operation = object.serializerOperation();
-				}
+				operation = object.serializerOperation();
 			}
 			instruction = new SerializerInstruction(
 				(AvailObject)object,

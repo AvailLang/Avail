@@ -686,9 +686,8 @@ public final class AvailBuilder
 				{
 					@Override
 					public FileVisitResult preVisitDirectory (
-							final @Nullable Path dir,
-							final @Nullable BasicFileAttributes unused)
-						throws IOException
+						final @Nullable Path dir,
+						final @Nullable BasicFileAttributes unused)
 					{
 						assert dir != null;
 						if (dir.equals(rootPath))
@@ -707,9 +706,8 @@ public final class AvailBuilder
 
 					@Override
 					public FileVisitResult visitFile (
-							final @Nullable Path file,
-							final @Nullable BasicFileAttributes unused)
-						throws IOException
+						final @Nullable Path file,
+						final @Nullable BasicFileAttributes unused)
 					{
 						assert file != null;
 						final String localName = file.toFile().getName();
@@ -757,9 +755,8 @@ public final class AvailBuilder
 
 					@Override
 					public FileVisitResult visitFileFailed (
-							final @Nullable Path file,
-							final @Nullable IOException exception)
-						throws IOException
+						final @Nullable Path file,
+						final @Nullable IOException exception)
 					{
 						// Ignore the exception and continue.  We're just
 						// trying to populate the list of entry points, so it's
@@ -769,9 +766,8 @@ public final class AvailBuilder
 
 					@Override
 					public FileVisitResult postVisitDirectory (
-							final @Nullable Path dir,
-							final @Nullable IOException e)
-						throws IOException
+						final @Nullable Path dir,
+						final @Nullable IOException e)
 					{
 						return CONTINUE;
 					}
@@ -1008,8 +1004,8 @@ public final class AvailBuilder
 		 * Graph#reverse() reverse} of the module graph.
 		 */
 		private final void unloadModules (
-			@Nullable final ResolvedModuleName moduleName,
-			@Nullable final Continuation0 completionAction)
+			final @Nullable ResolvedModuleName moduleName,
+			final @Nullable Continuation0 completionAction)
 		{
 			// No need to lock dirtyModules any more, since it's
 			// purely read-only at this point.
@@ -1335,7 +1331,6 @@ public final class AvailBuilder
 				resolvedName.repository();
 			repository.commitIfStaleChanges(maximumStaleRepositoryMs);
 			final File sourceFile = resolvedName.sourceReference();
-			assert sourceFile != null;
 			final ModuleArchive archive = repository.getArchive(
 				resolvedName.rootRelativeName());
 			final byte [] digest = archive.digestForFile(resolvedName);
@@ -2203,7 +2198,8 @@ public final class AvailBuilder
 				tuple = deserializer.deserialize();
 				assert tuple != null;
 				assert tuple.isTuple();
-				assert deserializer.deserialize() == null;
+				final AvailObject residue = deserializer.deserialize();
+				assert residue == null;
 			}
 			catch (final MalformedSerialStreamException e)
 			{
@@ -3198,17 +3194,13 @@ public final class AvailBuilder
 								// Do nothing.
 							}
 						};
-						List<Problem> problems;
 						synchronized (allProblems)
 						{
-							problems = allProblems.get(loadedModule);
-							if (problems == null)
-							{
-								problems = new ArrayList<>();
-								allProblems.put(loadedModule, problems);
-							}
+							final List<Problem> problems =
+								allProblems.computeIfAbsent(
+									loadedModule, k -> new ArrayList<>());
+							problems.add(copy);
 						}
-						problems.add(copy);
 						decider.value(false);
 					}
 

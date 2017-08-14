@@ -44,7 +44,7 @@ public class StacksSeeTag extends AbstractStacksTag
 	/**
 	 * The thing that should be 'seen'
 	 */
-	final private RegionStacksToken thingToSee;
+	private final RegionStacksToken thingToSee;
 
 	/**
 	 * Construct a new {@link StacksSeeTag}.

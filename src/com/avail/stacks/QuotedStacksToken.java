@@ -39,7 +39,7 @@ import com.avail.utility.json.JSONWriter;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class QuotedStacksToken extends RegionStacksToken
+public final class QuotedStacksToken extends RegionStacksToken
 {
 
 	/**

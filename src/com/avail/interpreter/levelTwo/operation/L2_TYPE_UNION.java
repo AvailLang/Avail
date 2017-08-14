@@ -51,7 +51,7 @@ public class L2_TYPE_UNION extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_TYPE_UNION().init(
 			READ_POINTER.is("first type"),
 			READ_POINTER.is("second type"),

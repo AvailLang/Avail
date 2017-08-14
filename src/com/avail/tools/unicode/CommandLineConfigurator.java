@@ -144,11 +144,9 @@ implements Configurator<UnicodeConfiguration>
 	{
 		if (!isConfigured)
 		{
-			final OptionProcessor<OptionKey> optionProcessor;
 			try
 			{
-				optionProcessor = createOptionProcessor();
-				optionProcessor.processOptions(commandLineArguments);
+				createOptionProcessor().processOptions(commandLineArguments);
 				isConfigured = true;
 			}
 			catch (final Exception e)

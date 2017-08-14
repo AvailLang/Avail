@@ -48,7 +48,7 @@ public final class P_DescribeNoncanonicalMessage extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_DescribeNoncanonicalMessage().init(
 			1, CanInline, CanFold, CannotFail);
 

@@ -194,7 +194,7 @@ abstract class Expression
 	 * @throws SignatureException
 	 *        If the argument type is inappropriate.
 	 */
-	abstract public void checkType (
+	public abstract void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
 	throws SignatureException;
@@ -239,7 +239,7 @@ abstract class Expression
 	 * @param indent
 	 *        The indentation level.
 	 */
-	abstract public void printWithArguments (
+	public abstract void printWithArguments (
 		@Nullable Iterator<AvailObject> arguments,
 		StringBuilder builder,
 		int indent);

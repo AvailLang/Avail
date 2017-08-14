@@ -44,7 +44,7 @@ import com.avail.descriptor.TokenDescriptor;
  *
  * @author Richard Arriaga &lt;Rich@availlang.org&gt;
  */
-public class StacksBracketScanner extends AbstractStacksScanner
+public final class StacksBracketScanner extends AbstractStacksScanner
 {
 	/**
 	 * The module file name without the path.

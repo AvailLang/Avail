@@ -72,7 +72,7 @@ extends MapBinDescriptor
 	/**
 	 * A static switch for enabling slow, detailed correctness checks.
 	 */
-	private final static boolean shouldCheck = false; //XXX
+	private static final boolean shouldCheck = false; //XXX
 
 	/**
 	 * Make sure the {@link HashedMapBinDescriptor hashed map bin} is
@@ -84,11 +84,11 @@ extends MapBinDescriptor
 	{
 		if (shouldCheck)
 		{
+			final int size = object.variableObjectSlotsCount();
+			assert bitCount(object.slot(BIT_VECTOR)) == size;
 			int keyHashSum = 0;
 			int valueHashSum = 0;
 			int totalCount = 0;
-			final int size = object.variableObjectSlotsCount();
-			assert bitCount(object.slot(BIT_VECTOR)) == size;
 			for (int i = 1; i <= size; i++)
 			{
 				final AvailObject subBin = object.slot(SUB_BINS_, i);
@@ -130,14 +130,14 @@ extends MapBinDescriptor
 		/**
 		 * The sum of the hashes of the elements recursively within this bin.
 		 */
-		public final static BitField KEYS_HASH = bitField(
+		public static final BitField KEYS_HASH = bitField(
 			COMBINED_HASHES, 0, 32);
 
 		/**
 		 * The sum of the hashes of the elements recursively within this bin,
 		 * or zero if not computed.
 		 */
-		public final static BitField VALUES_HASH_OR_ZERO = bitField(
+		public static final BitField VALUES_HASH_OR_ZERO = bitField(
 			COMBINED_HASHES, 32, 32);
 
 		static
@@ -337,12 +337,12 @@ extends MapBinDescriptor
 		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = (keyHash >>> shift) & 63;
 		final long vector = object.slot(BIT_VECTOR);
-		final long masked = vector & bitShift(1L, logicalIndex) - 1;
+		final long masked = vector & (1L << logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		final int delta;
 		final int hashDelta;
 		final AvailObject objectToModify;
-		if ((vector & bitShift(1L, logicalIndex)) != 0)
+		if ((vector & (1L << logicalIndex)) != 0)
 		{
 			// Sub-bin already exists for those hash bits.  Update the sub-bin.
 			final AvailObject oldSubBin = object.slot(SUB_BINS_, physicalIndex);
@@ -384,7 +384,7 @@ extends MapBinDescriptor
 			objectToModify = descriptorFor(MUTABLE, level).create(
 				objectEntryCount + 1);
 			objectToModify.setSlot(
-				BIT_VECTOR, vector | bitShift(1L, logicalIndex));
+				BIT_VECTOR, vector | (1L << logicalIndex));
 			for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 			{
 				objectToModify.setSlot(SUB_BINS_, i, object.slot(SUB_BINS_,i));
@@ -422,14 +422,14 @@ extends MapBinDescriptor
 		// First, grab the appropriate 6 bits from the hash.
 		final int logicalIndex = (keyHash >>> shift) & 63;
 		final long vector = object.slot(BIT_VECTOR);
-		if ((vector & bitShift(1L, logicalIndex)) == 0)
+		if ((vector & (1L << logicalIndex)) == 0)
 		{
 			// Not found.  Answer nil.
 			return NilDescriptor.nil();
 		}
 		// There's an entry.  Count the 1-bits below it to compute its
 		// zero-relative physicalIndex.
-		final long masked = vector & bitShift(1L, logicalIndex) - 1;
+		final long masked = vector & (1L << logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		final AvailObject subBin = object.slot(SUB_BINS_, physicalIndex);
 		return subBin.mapBinAtHash(key, keyHash);
@@ -454,7 +454,7 @@ extends MapBinDescriptor
 		// First, grab the appropriate 6 bits from the hash.
 		final int logicalIndex = (keyHash >>> shift) & 63;
 		final long vector = object.slot(BIT_VECTOR);
-		if ((vector & bitShift(1L, logicalIndex)) == 0)
+		if ((vector & (1L << logicalIndex)) == 0)
 		{
 			// Definitely not present.
 			return object;
@@ -463,7 +463,7 @@ extends MapBinDescriptor
 		// 1-bits below it to compute its zero-relative physicalIndex.
 		final int oldSize = (int)object.slot(BIN_SIZE);
 		final int oldKeysHash = object.slot(KEYS_HASH);
-		final long masked = vector & bitShift(1L, logicalIndex) - 1;
+		final long masked = vector & (1L << logicalIndex) - 1;
 		final int physicalIndex = bitCount(masked) + 1;
 		final AvailObject oldSubBin = object.slot(SUB_BINS_, physicalIndex);
 		final int oldSubBinKeysHash = oldSubBin.mapBinKeysHash();
@@ -499,7 +499,7 @@ extends MapBinDescriptor
 			deltaHash = -oldSubBinKeysHash;
 			objectToModify.setSlot(
 				BIT_VECTOR,
-				object.slot(BIT_VECTOR) & ~bitShift(1L, logicalIndex));
+				object.slot(BIT_VECTOR) & ~(1L << logicalIndex));
 		}
 		else
 		{
@@ -712,9 +712,9 @@ extends MapBinDescriptor
 		final byte myLevel,
 		final long bitVector)
 	{
-		final AvailObject result;
 		final int newSize = bitCount(bitVector);
-		result = descriptorFor(MUTABLE, myLevel).create(newSize);
+		final AvailObject result = descriptorFor(MUTABLE, myLevel).create(
+			newSize);
 		result.setSlot(KEYS_HASH, 0);
 		result.setSlot(VALUES_HASH_OR_ZERO, 0);
 		result.setSlot(BIN_SIZE, 0);

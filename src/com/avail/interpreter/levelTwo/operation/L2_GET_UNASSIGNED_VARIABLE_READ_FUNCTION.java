@@ -57,7 +57,7 @@ extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION().init(
 			WRITE_POINTER.is("unassigned variable read function"));
 

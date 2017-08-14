@@ -2137,12 +2137,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsNil (final AvailObject object)
-	{
-		return o_Traversed(object).equalsNil();
-	}
-
-	@Override
 	ExecutionState o_ExecutionState (final AvailObject object)
 	{
 		return o_Traversed(object).executionState();
@@ -4519,14 +4513,6 @@ extends AbstractDescriptor
 	boolean o_IsAtomSpecial (final AvailObject object)
 	{
 		return o_Traversed(object).isAtomSpecial();
-	}
-
-	@Override
-	void o_RecordLatestPrimitive (
-		final AvailObject object,
-		final short primitiveNumber)
-	{
-		o_Traversed(object).recordLatestPrimitive(primitiveNumber);
 	}
 
 	@Override

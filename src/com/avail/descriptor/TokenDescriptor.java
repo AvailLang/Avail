@@ -73,14 +73,14 @@ extends Descriptor
 		 * reserved for this purpose.
 		 */
 		@EnumField(describedBy = TokenType.class)
-		final static BitField TOKEN_TYPE_CODE =
+		static final BitField TOKEN_TYPE_CODE =
 			bitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4);
 
 		/**
 		 * The line number in the source file. Currently signed 28 bits, which
 		 * should be plenty.
 		 */
-		final static BitField LINE_NUMBER =
+		static final BitField LINE_NUMBER =
 			bitField(TOKEN_TYPE_AND_START_AND_LINE, 4, 28);
 
 		/**
@@ -89,7 +89,7 @@ extends Descriptor
 		 * 2GB of <em>Avail</em> source in one file, due to its deeply flexible
 		 * syntax.
 		 */
-		final static BitField START =
+		static final BitField START =
 			bitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
 	}
 
@@ -188,7 +188,7 @@ extends Descriptor
 		WHITESPACE;
 
 		/** An array of all {@link TokenType} enumeration values. */
-		private final static TokenType[] all = values();
+		private static final TokenType[] all = values();
 
 		/**
 		 * Answer an array of all {@link TokenType} enumeration values.

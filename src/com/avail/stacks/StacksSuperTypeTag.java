@@ -45,7 +45,7 @@ public class StacksSuperTypeTag extends AbstractStacksTag
 	 * The supertype keyword indicates the supertype of the class
 	 * implementation
 	 */
-	final private QuotedStacksToken superType;
+	private final QuotedStacksToken superType;
 
 	/**
 	 * Construct a new {@link StacksSuperTypeTag}.

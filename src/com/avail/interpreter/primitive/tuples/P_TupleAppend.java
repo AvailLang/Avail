@@ -49,7 +49,7 @@ public final class P_TupleAppend extends Primitive
 	 * Construct a new {@link P_TupleAppend}.
 	 *
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_TupleAppend().init(
 			2, CannotFail, CanFold, CanInline);
 

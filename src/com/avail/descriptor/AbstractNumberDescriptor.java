@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -106,7 +105,7 @@ extends Descriptor
 		 *
 		 * @return An Avail double.
 		 */
-		protected A_Number limitDoubleObject ()
+		A_Number limitDoubleObject ()
 		{
 			return limitDoubleObject;
 		}
@@ -377,7 +376,7 @@ extends Descriptor
 	 * Answer a {@link Comparable} capable of ordering {@link A_Number} values,
 	 * at least those which are comparable.
 	 */
-	final static Comparator<A_Number> numericComparator =
+	static final Comparator<A_Number> numericComparator =
 		(n1, n2) ->
 		{
 			assert n1 != null;
@@ -596,7 +595,7 @@ extends Descriptor
 
 	/**
 	 * Apply the usual rules of type promotion for some unspecified binary
-	 * numeric operation (like +, -, ×, ÷).
+	 * numeric operation (like +, -, &times;, &divide;).
 	 *
 	 * @param aType One argument's numeric type.
 	 * @param bType The other argument's numeric type.

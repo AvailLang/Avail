@@ -492,9 +492,8 @@ extends TupleDescriptor
 	/**
 	 * Construct a new {@link ReverseTupleDescriptor}.
 	 *
-	 * @param mutability
+	 * @param mutability The mutability of the descriptor.
 	 */
-
 	private ReverseTupleDescriptor (final Mutability mutability)
 	{
 		super(mutability, ObjectSlots.class, IntegerSlots.class);

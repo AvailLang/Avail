@@ -260,7 +260,7 @@ final class StateSummary<
 				MementoType>
 			arc)
 	{
-		Collection<
+		final Collection<
 				StateTransitionArc<
 					StateType,
 					EventType,
@@ -274,12 +274,8 @@ final class StateSummary<
 		}
 		else
 		{
-			collection = transitionTable.get(event);
-			if (collection == null)
-			{
-				collection = new ArrayList<>();
-				transitionTable.put(event, collection);
-			}
+			collection = transitionTable.computeIfAbsent(
+				event, k -> new ArrayList<>());
 		}
 		collection.add(arc);
 	}

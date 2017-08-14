@@ -79,7 +79,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_FileRead().init(
 			6, CanInline, HasSideEffect);
 
@@ -87,7 +87,7 @@ extends Primitive
 	 * The maximum transfer size when reading from a file.  Attempts to read
 	 * more than this will simply be limited to this value.
 	 */
-	public final static int MAX_READ_SIZE = 4_194_304;
+	public static final int MAX_READ_SIZE = 4_194_304;
 
 	/**
 	 * The maximum transfer size for which a buffer is always allocated with the
@@ -96,7 +96,7 @@ extends Primitive
 	 * actual file size to determine how big a buffer to actually use to avoid
 	 * over-allocating buffer space.
 	 */
-	public final static int THRESHOLD_READ_SIZE = 32768;
+	public static final int THRESHOLD_READ_SIZE = 32768;
 
 	@Override
 	public Result attempt (
@@ -250,12 +250,12 @@ extends Primitive
 				runtime,
 				newFiber,
 				succeed,
-				Arrays.asList(concatenated));
+				Collections.singletonList(concatenated));
 			return interpreter.primitiveSuccess(newFiber);
 		}
 		// We began with buffer misses, and we can figure out how many...
 		assert firstMissingBufferStart == augmentedStart;
-		for (@Nullable final A_Tuple b : buffers)
+		for (final @Nullable A_Tuple b : buffers)
 		{
 			assert b == null;
 		}
@@ -274,8 +274,8 @@ extends Primitive
 					final @Nullable Void unused)
 				{
 					assert bytesRead != null;
-					final A_Tuple bytesTuple;
 					buffer.flip();
+					final A_Tuple bytesTuple;
 					if (bytesRead == -1)
 					{
 						// We started reading after the last byte of the file.
@@ -327,7 +327,7 @@ extends Primitive
 						runtime,
 						newFiber,
 						succeed,
-						Arrays.asList(bytesTuple));
+						Collections.singletonList(bytesTuple));
 				}
 
 				@Override

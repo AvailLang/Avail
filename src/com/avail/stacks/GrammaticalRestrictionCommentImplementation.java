@@ -59,7 +59,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 	/**
 	 * The hash id for this implementation
 	 */
-	final private int hashID;
+	private final int hashID;
 
 	/**
 	 * Construct a new {@link GrammaticalRestrictionCommentImplementation}.
@@ -122,8 +122,8 @@ public class GrammaticalRestrictionCommentImplementation extends
 		{
 			if (forbids.containsKey(arity))
 			{
-				forbids.get(arity).forbidMethods()
-					.addAll(implementation.forbids.get(arity).forbidMethods());
+				forbids.get(arity).forbidMethods().addAll(
+					implementation.forbids.get(arity).forbidMethods());
 			}
 			else
 			{

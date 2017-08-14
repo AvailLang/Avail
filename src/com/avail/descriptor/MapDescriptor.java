@@ -124,10 +124,10 @@ extends Descriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		boolean multiline = false;
 		builder.append('{');
 		final int startPosition = builder.length();
 		boolean first = true;
+		boolean multiline = false;
 		for (final Entry entry : object.mapIterable())
 		{
 			if (!first)
@@ -313,16 +313,16 @@ extends Descriptor
 		{
 			if (valuesMatch)
 			{
-				assert keysMatch && valuesMatch;
+				// assert keysMatch && valuesMatch;
 				return true;
 			}
-			assert keysMatch && !valuesMatch;
+			// assert keysMatch && !valuesMatch;
 			// If the valueUnionKind and the expected valueType don't intersect
 			// then the actual map can't comply.  The empty map was already
 			// special-cased.
 			if (!valueTypeIsEnumeration)
 			{
-				assert valueUnionKind != null;
+				// assert valueUnionKind != null;
 				if (valueUnionKind.typeIntersection(valueType).isBottom())
 				{
 					return false;
@@ -343,7 +343,7 @@ extends Descriptor
 			// special-cased.
 			if (!keyTypeIsEnumeration)
 			{
-				assert keyUnionKind != null;
+				// assert keyUnionKind != null;
 				if (keyUnionKind.typeIntersection(keyType).isBottom())
 				{
 					return false;
@@ -351,7 +351,7 @@ extends Descriptor
 			}
 			if (valuesMatch)
 			{
-				assert !keysMatch && valuesMatch;
+				// assert !keysMatch && valuesMatch;
 				for (final Entry entry : object.mapIterable())
 				{
 					if (!entry.key().isInstanceOf(keyType))
@@ -362,13 +362,13 @@ extends Descriptor
 			}
 			else
 			{
-				assert !keysMatch && !valuesMatch;
+				// assert !keysMatch && !valuesMatch;
 				// If the valueUnionKind and the expected valueType don't
 				// intersect then the actual map can't comply.  The empty map
 				// was already special-cased.
 				if (!valueTypeIsEnumeration)
 				{
-					assert valueUnionKind != null;
+					// assert valueUnionKind != null;
 					if (valueUnionKind.typeIntersection(valueType).isBottom())
 					{
 						return false;
@@ -819,7 +819,7 @@ extends Descriptor
 	 *        A tuple of key-value bindings, i.e. 2-element tuples.
 	 * @return A new map.
 	 */
-	public static A_Map fromPairs (A_BasicObject... keysAndValues)
+	public static A_Map fromPairs (final A_BasicObject... keysAndValues)
 	{
 		assert (keysAndValues.length & 1) == 0;
 		A_Map newMap = empty();

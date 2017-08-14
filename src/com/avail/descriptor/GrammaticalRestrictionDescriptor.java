@@ -114,7 +114,6 @@ extends Descriptor
 		 * positions.  Due to guillemet expressions («»), the underscore
 		 * positions do not necessarily agree with the tuple of arguments passed
 		 * in a method send.
-		 * </p>
 		 */
 		ARGUMENT_RESTRICTION_SETS,
 
@@ -207,7 +206,7 @@ extends Descriptor
 	}
 
 	/** The mutable {@link GrammaticalRestrictionDescriptor}. */
-	private final static GrammaticalRestrictionDescriptor mutable =
+	private static final GrammaticalRestrictionDescriptor mutable =
 		new GrammaticalRestrictionDescriptor(Mutability.MUTABLE);
 
 	@Override
@@ -217,7 +216,7 @@ extends Descriptor
 	}
 
 	/** The shared {@link GrammaticalRestrictionDescriptor}. */
-	private final static GrammaticalRestrictionDescriptor shared =
+	private static final GrammaticalRestrictionDescriptor shared =
 		new GrammaticalRestrictionDescriptor(Mutability.SHARED);
 
 	@Override

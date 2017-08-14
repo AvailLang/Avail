@@ -100,14 +100,13 @@ final class CompilerSolution implements AbstractSolution
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("Solution(@");
-		builder.append(endState.position());
-		builder.append(": ");
-		builder.append(endState.clientDataMap);
-		builder.append(") = ");
-		builder.append(parseNode());
-		return builder.toString();
+		return
+			"Solution(@"
+				+ endState.position()
+				+ ": "
+				+ endState.clientDataMap
+				+ ") = "
+				+ parseNode();
 	}
 
 	/**

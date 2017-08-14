@@ -46,7 +46,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_GetGlobalVariableValue().init(
 			1, SpecialReturnGlobalValue, CanFold, CanInline, Private, CannotFail);
 

@@ -54,7 +54,9 @@ import java.util.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class PrefixSharingList<E> extends AbstractList<E>
+public final class PrefixSharingList<E>
+	extends AbstractCollection<E>
+	implements List<E>
 {
 	/** The size of this list */
 	private final int size;
@@ -78,6 +80,19 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	}
 
 	@Override
+	public boolean isEmpty ()
+	{
+		// Always at least two elements.
+		return false;
+	}
+
+	@Override
+	public boolean contains (final Object o)
+	{
+		return cacheFlatListOrMore().subList(0, size).contains(o);
+	}
+
+	@Override
 	public E get (final int index)
 	{
 		if (index < 0 || index >= size)
@@ -88,10 +103,37 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		{
 			return lastElement;
 		}
-		cacheFlatListOrMore();
-		final List<E> flat = cachedFlatListOrMore;
-		assert flat != null;
-		return flat.get(index);
+		return cacheFlatListOrMore().get(index);
+	}
+
+	@Override
+	public E set (final int index, final E element)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void add (final int index, final E element)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public E remove (final int index)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int indexOf (final Object o)
+	{
+		return cacheFlatListOrMore().subList(0, size).indexOf(o);
+	}
+
+	@Override
+	public int lastIndexOf (final Object o)
+	{
+		return cacheFlatListOrMore().subList(0, size).lastIndexOf(o);
 	}
 
 	/**
@@ -114,68 +156,60 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	 * An invariant of the class is that either the {@link #allButLast} must be
 	 * non-null or the {@link #cachedFlatListOrMore} must be non-null (or both).
 	 * </p>
+	 *
+	 * @return The flattened list, containing <em>at least</em> {@link #size}
+	 *         elements, perhaps more.
 	 */
-	private void cacheFlatListOrMore ()
+	private List<E> cacheFlatListOrMore ()
 	{
 		if (cachedFlatListOrMore != null)
 		{
-			return;
+			return cachedFlatListOrMore;
 		}
 		final ArrayList<E> flatList = new ArrayList<>(size);
 		PrefixSharingList<E> pointer = this;
 		while (true)
 		{
-			flatList.add(0, pointer.lastElement);
-			if (pointer.allButLast instanceof PrefixSharingList<?>)
+			final @Nullable List<E> pointerFlatList =
+				pointer.cachedFlatListOrMore;
+			if (pointerFlatList != null)
 			{
-				pointer = (PrefixSharingList<E>)pointer.allButLast;
-				assert pointer != null;
-				final @Nullable List<E> pointerFlatList =
-					pointer.cachedFlatListOrMore;
-				if (pointerFlatList != null)
-				{
-					flatList.addAll(
-						0,
-						pointerFlatList.subList(0, pointer.size));
-					break;
-				}
+				flatList.addAll(0, pointerFlatList.subList(0, pointer.size));
+				break;
 			}
-			else
+			flatList.add(0, pointer.lastElement);
+			assert pointer.allButLast != null;
+			if (!(pointer.allButLast instanceof PrefixSharingList<?>))
 			{
 				flatList.addAll(0, pointer.allButLast);
 				break;
 			}
+			pointer = (PrefixSharingList<E>)pointer.allButLast;
 		}
 		// Replace the cached flat lists until we hit a non-PrefixSharingList
 		// or a PrefixSharingList with its flat list already set.
 		pointer = this;
-		while (true)
+		assert flatList.size() >= size;
+		while (pointer.cachedFlatListOrMore == null)
 		{
-			if (pointer.cachedFlatListOrMore != null)
-			{
-				break;
-			}
 			pointer.cachedFlatListOrMore = flatList;
 			if (pointer.allButLast instanceof PrefixSharingList<?>)
 			{
 				pointer = (PrefixSharingList<E>)pointer.allButLast;
-				assert pointer != null;
 			}
 			else
 			{
 				break;
 			}
 		}
+		return flatList;
 	}
 
 	@Override
 	public @NotNull Iterator<E> iterator ()
 	{
-		cacheFlatListOrMore();
+		final List<E> flatList = cacheFlatListOrMore();
 		final int mySize = size;
-		final @Nullable List<E> flatList = cachedFlatListOrMore;
-		assert flatList != null;
-
 		return new Iterator<E>()
 		{
 			int position = 0;
@@ -214,7 +248,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	}
 
 	/**
-	 * Construct a new {@link PrefixSharingList}.
+	 * Construct a new instance.
 	 *
 	 * @param allButLast All but the last element of the new list.
 	 * @param lastElement The last element of the new list.
@@ -230,8 +264,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 	}
 
 	/**
-	 * Construct a new {@link PrefixSharingList} truncated to the specified
-	 * size.
+	 * Construct a new instance truncated to the specified size.
 	 *
 	 * @param originalList An immutable list.
 	 * @param size The size of the resulting list.
@@ -297,9 +330,7 @@ public class PrefixSharingList<E> extends AbstractList<E>
 			assert flat != null;
 			return new PrefixSharingList<>(flat, originalList.size() - 1);
 		}
-		return new PrefixSharingList<>(
-			originalList,
-			originalList.size() - 1);
+		return new PrefixSharingList<>(originalList, originalList.size() - 1);
 	}
 
 	/**
@@ -312,5 +343,44 @@ public class PrefixSharingList<E> extends AbstractList<E>
 		final List<E2> list)
 	{
 		return list.get(list.size() - 1);
+	}
+
+	@Override
+	public boolean addAll (
+		final int index,
+		final @NotNull Collection<? extends E> c)
+	{
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public @NotNull ListIterator<E> listIterator ()
+	{
+		return subList(0, size).listIterator();
+	}
+
+	@Override
+	public @NotNull ListIterator<E> listIterator (final int index)
+	{
+		return subList(0, size).listIterator(index);
+	}
+
+	@Override
+	public @NotNull List<E> subList (final int fromIndex, final int toIndex)
+	{
+		if (fromIndex < 0)
+		{
+			throw new IndexOutOfBoundsException("fromIndex = " + fromIndex);
+		}
+		if (toIndex > size)
+		{
+			throw new IndexOutOfBoundsException("toIndex = " + toIndex);
+		}
+		if (fromIndex > toIndex)
+		{
+			throw new IllegalArgumentException("fromIndex(" + fromIndex +
+				") > toIndex(" + toIndex + ")");
+		}
+		return cacheFlatListOrMore().subList(fromIndex, toIndex);
 	}
 }

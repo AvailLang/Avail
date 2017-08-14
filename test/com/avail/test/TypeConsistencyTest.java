@@ -32,7 +32,6 @@
 
 package com.avail.test;
 
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Primitive.Result;
 import org.jetbrains.annotations.Nullable;
 import static com.avail.descriptor.TypeDescriptor.Types;
@@ -44,7 +43,6 @@ import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.interpreter.Primitive;
 import org.junit.jupiter.api.*;
 
 
@@ -566,7 +564,7 @@ public class TypeConsistencyTest
 		 * actually be written as a Java type expression.  This pojo type is the
 		 * most general Java enumeration type.
 		 */
-		final static Node JAVA_ENUM_POJO = new Node(
+		static final Node JAVA_ENUM_POJO = new Node(
 			"JAVA_ENUM_POJO",
 			COMPARABLE_OF_JAVA_OBJECT_POJO)
 		{
@@ -585,7 +583,7 @@ public class TypeConsistencyTest
 		 * The pojo type representing the Java enumeration {@link
 		 * Result}.
 		 */
-		final static Node AVAIL_PRIMITIVE_RESULT_ENUM_POJO = new Node(
+		static final Node AVAIL_PRIMITIVE_RESULT_ENUM_POJO = new Node(
 			"AVAIL_PRIMITIVE_RESULT_ENUM_POJO",
 			JAVA_ENUM_POJO)
 		{
@@ -932,7 +930,7 @@ public class TypeConsistencyTest
 		 * yet.
 		 */
 		static final Map<ParseNodeKind, Map<Node, Node>> parseNodeTypeMap =
-			new HashMap<>();
+			new EnumMap<>(ParseNodeKind.class);
 
 		/**
 		 * Create a parse node type Node with the given name, parse node kind,
@@ -1596,7 +1594,7 @@ public class TypeConsistencyTest
 	 *            A variable number of objects to describe via the
 	 *            messagePattern.
 	 */
-	void assertEQ (
+	static void assertEQ (
 		final Object a,
 		final Object b,
 		final String messagePattern,
@@ -1622,7 +1620,7 @@ public class TypeConsistencyTest
 	 *            A variable number of objects to describe via the
 	 *            messagePattern.
 	 */
-	void assertT (
+	static void assertT (
 		final boolean bool,
 		final String messagePattern,
 		final Object... messageArguments)
@@ -1830,6 +1828,7 @@ public class TypeConsistencyTest
 						// These are useful trace points. Leave them in.
 						xy.typeUnion(z.t());
 						x.t().typeUnion(yz);
+						//noinspection ResultOfMethodCallIgnored
 						xyUz.equals(xUyz);
 						assertEQ(
 							xyUz,
@@ -1944,6 +1943,7 @@ public class TypeConsistencyTest
 						y.t().typeIntersection(z.t());
 						xy.typeIntersection(z.t());
 						x.t().typeIntersection(yz);
+						//noinspection ResultOfMethodCallIgnored
 						xyIz.equals(xIyz);
 						assertEQ(
 							xyIz,
@@ -1963,7 +1963,7 @@ public class TypeConsistencyTest
 	 * either covary or contravary with respect to it, depending on the specific
 	 * {@code TypeRelation}.
 	 */
-	public static abstract class TypeRelation
+	public abstract static class TypeRelation
 	{
 		/**
 		 * Transform any {@linkplain TypeDescriptor type} into another type (in

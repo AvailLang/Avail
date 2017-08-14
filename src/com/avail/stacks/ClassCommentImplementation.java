@@ -57,7 +57,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 	/**
 	 * The hash id for this implementation
 	 */
-	final private int hashID;
+	private final int hashID;
 
 	/**
 	 * Construct a new {@link ClassCommentImplementation}.
@@ -174,9 +174,9 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 
 
 		//The ordered position of the parameter in the method signature.
-		int position = 1;
 		jsonWriter.write("fields");
 		jsonWriter.startArray();
+		int position = 1;
 		for (final StacksFieldTag fieldTag : fields)
 		{
 			fieldTag.toJSON(linkingFileMap, hashID, errorLog, position++,

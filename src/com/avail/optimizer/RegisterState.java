@@ -174,6 +174,7 @@ public final class RegisterState
 	 * sources of the value in the register at this point.
 	 *
 	 * @param newSource
+	 *        An instruction that may provide a value for this register.
 	 */
 	public void addSource (final L2Instruction newSource)
 	{

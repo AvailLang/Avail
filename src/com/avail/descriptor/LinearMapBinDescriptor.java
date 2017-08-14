@@ -74,14 +74,14 @@ extends MapBinDescriptor
 		/**
 		 * The sum of the hashes of the elements recursively within this bin.
 		 */
-		public final static BitField KEYS_HASH = bitField(
+		public static final BitField KEYS_HASH = bitField(
 			COMBINED_HASHES, 0, 32);
 
 		/**
 		 * The sum of the hashes of the elements recursively within this bin,
 		 * or zero if not computed.
 		 */
-		public final static BitField VALUES_HASH_OR_ZERO = bitField(
+		public static final BitField VALUES_HASH_OR_ZERO = bitField(
 			COMBINED_HASHES, 32, 32);
 
 		static
@@ -133,7 +133,7 @@ extends MapBinDescriptor
 	/**
 	 * Debugging flag to force deep, expensive consistency checks.
 	 */
-	private final static boolean shouldCheckConsistency = false; //XXX
+	private static final boolean shouldCheckConsistency = false; //XXX
 
 	/**
 	 * When a {@linkplain LinearMapBinDescriptor linear bin} reaches this many
@@ -164,8 +164,9 @@ extends MapBinDescriptor
 			for (int i = 1; i <= numEntries; i++)
 			{
 				final int keyHash = object.intSlot(KEY_HASHES_AREA_, i);
-				final A_BasicObject key = object.slot(BIN_SLOT_AT_, i * 2 - 1);
-				final A_BasicObject value = object.slot(BIN_SLOT_AT_, i * 2);
+				final A_BasicObject key =
+					object.slot(BIN_SLOT_AT_, (i << 1) - 1);
+				final A_BasicObject value = object.slot(BIN_SLOT_AT_, i << 1);
 				assert key.hash() == keyHash;
 				computedKeyHashSum += keyHash;
 				computedValueHashSum += value.hash();
@@ -303,13 +304,13 @@ extends MapBinDescriptor
 		{
 			// Convert to a hashed bin.
 			int bitPosition = bitShift(keyHash, -6 * myLevel) & 63;
-			long bitVector = bitShift(1L, bitPosition);
+			long bitVector = 1L << bitPosition;
 			for (int i = 1; i <= oldSize; i++)
 			{
 				final int anotherKeyHash =
 					object.intSlot(KEY_HASHES_AREA_, i);
 				bitPosition = bitShift(anotherKeyHash, -6 * myLevel) & 63;
-				bitVector |= bitShift(1L, bitPosition);
+				bitVector |= 1L << bitPosition;
 			}
 			final AvailObject result =
 				HashedMapBinDescriptor.createLevelBitVector(myLevel, bitVector);

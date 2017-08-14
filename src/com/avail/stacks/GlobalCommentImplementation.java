@@ -34,7 +34,6 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 import com.avail.descriptor.A_String;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.json.JSONWriter;
 
 /**
@@ -48,11 +47,6 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 	 * A global module variable comment tag
 	 */
 	final StacksGlobalTag globalTag;
-
-	/**
-	 * The hash id for this implementation
-	 */
-	final private int hashID;
 
 	/**
 	 * Construct a new {@link GlobalCommentImplementation}.
@@ -88,9 +82,6 @@ public class GlobalCommentImplementation extends AbstractCommentImplementation
 		super(signature, commentStartLine, author, sees, description,
 			categories,aliases, false);
 		this.globalTag = globalTag;
-
-		this.hashID = StringDescriptor.from(
-			signature.name()).hash();
 	}
 
 	@Override

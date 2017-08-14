@@ -227,7 +227,7 @@ public class IndexedRepositoryManager
 	 * false to cause on open attempt to fail.  The first argument is the file's
 	 * version, and the second is the code's version.
 	 */
-	final static Transformer2<Integer, Integer, Boolean> versionCheck =
+	static final Transformer2<Integer, Integer, Boolean> versionCheck =
 		(fileVersion, codeVersion) ->
 		{
 			assert fileVersion != null;
@@ -266,7 +266,7 @@ public class IndexedRepositoryManager
 
 		@Override
 		protected boolean removeEldestEntry (
-			@Nullable final Map.Entry<K, V> eldest)
+			final @Nullable Entry<K, V> eldest)
 		{
 			return size() > maximumSize;
 		}
@@ -279,10 +279,10 @@ public class IndexedRepositoryManager
 	public class ModuleArchive
 	{
 		/** The maximum number of versions to keep for each module. */
-		private final static int maxRecordedVersionsPerModule = 10;
+		private static final int maxRecordedVersionsPerModule = 10;
 
 		/** The maximum number of digests to cache per module. */
-		private final static int maxRecordedDigestsPerModule = 20;
+		private static final int maxRecordedDigestsPerModule = 20;
 
 		/** The latest N versions of this module. */
 		private final LinkedHashMap <ModuleVersionKey, ModuleVersion> versions =
@@ -316,10 +316,10 @@ public class IndexedRepositoryManager
 		public byte [] digestForFile (
 			final ResolvedModuleName resolvedModuleName)
 		{
-			assert resolvedModuleName.rootRelativeName()
-				.equals(rootRelativeName);
+			assert resolvedModuleName.rootRelativeName().equals(
+				rootRelativeName);
 			final File sourceFile = resolvedModuleName.sourceReference();
-			assert sourceFile != null;
+			// assert sourceFile != null;
 			final long lastModification = sourceFile.lastModified();
 			byte [] digest = digestCache.get(lastModification);
 			if (digest == null)
@@ -328,13 +328,13 @@ public class IndexedRepositoryManager
 				// same file in multiple threads.  At worst it's extra work, and
 				// it's not likely that maintenance on the build mechanism would
 				// *ever* cause it to do that anyhow.
-				final byte [] buffer = new byte [4096];
-				int bufferSize;
 				final MessageDigest hasher;
 				try (RandomAccessFile reader =
 					new RandomAccessFile(sourceFile, "r"))
 				{
 					hasher = MessageDigest.getInstance(DIGEST_ALGORITHM);
+					final byte[] buffer = new byte[4096];
+					int bufferSize;
 					while ((bufferSize = reader.read(buffer)) != -1)
 					{
 						hasher.update(buffer, 0, bufferSize);
@@ -582,7 +582,7 @@ public class IndexedRepositoryManager
 		}
 
 		@Override
-		public boolean equals (@Nullable final Object obj)
+		public boolean equals (final @Nullable Object obj)
 		{
 			if (obj == null)
 			{
@@ -701,7 +701,7 @@ public class IndexedRepositoryManager
 		}
 
 		@Override
-		public boolean equals (@Nullable final Object obj)
+		public boolean equals (final @Nullable Object obj)
 		{
 			if (obj == null)
 			{
@@ -794,7 +794,7 @@ public class IndexedRepositoryManager
 		 * The maximum number of compilations to keep available for a particular
 		 * module version.
 		 */
-		private final static int maxHistoricalVersionCompilations = 10;
+		private static final int maxHistoricalVersionCompilations = 10;
 
 		/**
 		 * The list of entry points declared by this version of the module.
@@ -1013,7 +1013,7 @@ public class IndexedRepositoryManager
 				localImportNames,
 				entryPoints.isEmpty()
 					? ""
-					: "\n\t\tentry points=" + entryPoints.toString(),
+					: "\n\t\tentry points=" + entryPoints,
 				compilations.values(),
 				moduleHeaderRecordNumber,
 				stacksRecordNumber);
@@ -1195,13 +1195,8 @@ public class IndexedRepositoryManager
 		lock.lock();
 		try
 		{
-			ModuleArchive archive = moduleMap.get(rootRelativeName);
-			if (archive == null)
-			{
-				archive = new ModuleArchive(rootRelativeName);
-				moduleMap.put(rootRelativeName, archive);
-			}
-			return archive;
+			return moduleMap.computeIfAbsent(
+				rootRelativeName, ModuleArchive::new);
 		}
 		finally
 		{

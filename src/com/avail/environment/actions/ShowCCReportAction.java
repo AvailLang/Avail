@@ -35,7 +35,6 @@ package com.avail.environment.actions;
 import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 import java.awt.event.*;
 import java.util.Collections;
-import java.util.Iterator;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
@@ -106,6 +105,7 @@ extends AbstractWorkbenchAction
 	 * @param workbench
 	 *        The owning {@link AvailWorkbench}.
 	 * @param runtime
+	 *        The current {@link AvailRuntime}.
 	 */
 	public ShowCCReportAction (
 		final AvailWorkbench workbench,

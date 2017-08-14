@@ -58,7 +58,7 @@ public class SemanticRestrictionCommentImplementation extends
 	/**
 	 * The hash id for this implementation
 	 */
-	final private int hashID;
+	private final int hashID;
 
 	/**
 	 * Construct a new {@link SemanticRestrictionCommentImplementation}.
@@ -149,9 +149,9 @@ public class SemanticRestrictionCommentImplementation extends
 
 
 		//The ordered position of the parameter in the method signature.
-		int position = 1;
 		jsonWriter.write("parameters");
 		jsonWriter.startArray();
+		int position = 1;
 		for (final StacksRestrictsTag restrictTag : restricts)
 		{
 			restrictTag.toJSON(linkingFileMap, hashID, errorLog, position++,

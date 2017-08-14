@@ -59,7 +59,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_BootstrapPrefixPrimitiveDeclaration().init(
 			2, CannotFail, Bootstrap);
 

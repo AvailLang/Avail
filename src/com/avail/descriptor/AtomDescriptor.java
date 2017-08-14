@@ -83,7 +83,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>
  * Booleans are implemented with exactly this technique, with an atom
- * representing <code>true</code> and another representing <code>false</code>.
+ * representing {@code true} and another representing {@code false}.
  * The boolean type itself is merely an enumeration of these two values.  The
  * only thing special about booleans is that they are referenced by the Avail
  * virtual machine.  In fact, this very class, {@code AtomDescriptor}, contains
@@ -537,12 +537,12 @@ extends Descriptor
 	}
 
 	/**
-	 * Convert a Java <code>boolean</code> into an Avail boolean.  There are
+	 * Convert a Java {@code boolean} into an Avail boolean.  There are
 	 * exactly two Avail booleans, which are just ordinary atoms ({@link
 	 * #trueObject} and {@link #falseObject}) which are known by the Avail
 	 * virtual machine.
 	 *
-	 * @param aBoolean A Java <code>boolean</code>
+	 * @param aBoolean A Java {@code boolean}
 	 * @return An Avail boolean.
 	 */
 	public static A_Atom objectFromBoolean (final boolean aBoolean)
@@ -553,7 +553,7 @@ extends Descriptor
 	/**
 	 * Answer the atom representing the Avail concept "true".
 	 *
-	 * @return Avail's <code>true</code> boolean object.
+	 * @return Avail's {@code true} boolean object.
 	 */
 	public static A_Atom trueObject ()
 	{
@@ -563,7 +563,7 @@ extends Descriptor
 	/**
 	 * Answer the atom representing the Avail concept "false".
 	 *
-	 * @return Avail's <code>false</code> boolean object.
+	 * @return Avail's {@code false} boolean object.
 	 */
 	public static A_Atom falseObject ()
 	{

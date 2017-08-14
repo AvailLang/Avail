@@ -39,17 +39,17 @@ package com.avail.utility;
  * generated automatically by the Smalltalk -> Java translator after flow
  * analysis.
  * <p>
- * Say there's a variable called <code>outer</code> of type <code>Foo</code>,
+ * Say there's a variable called {@code outer} of type <code>Foo</code>,
  * and you want to read and write it from within an inner class's methods.
- * Simply change its definition from "<code>Foo outer;</code>" to
- * "<code>Mutable&lt;Foo&gt; outer = new Mutable&lt;Foo&gt;();</code>" and change
- * all references to <code>outer</code> to be references to
- * <code>outer.value</code> instead.
+ * Simply change its definition from "{@code Foo outer;}" to
+ * "{@code Mutable<Foo> outer = new Mutable<Foo>();}" and change
+ * all references to {@code outer} to be references to
+ * {@code outer.value} instead.
  * <p>
  * Primitive Java types are accommodated via their boxed counterparts.  For
- * example, "<code>int x;</code>" becomes
- * "<code>Mutable&lt;Integer&gt = new Mutable&lt;Integer&gt;();</code>", and
- * assignments like "<code>x = 5;</code>" become "<code>x.value = 5;</code>".
+ * example, "{@code int x;}" becomes
+ * "{@code Mutable<Integer> = new Mutable<Integer>();}", and
+ * assignments like "{@code x = 5;}" become "<code>x.value = 5;</code>".
  * Java's autoboxing takes care of the rest.
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
@@ -59,8 +59,9 @@ public class Mutable<T>
 {
 	/**
 	 * Expose a public field for readability.  For instance, one could declare
-	 * something "final Mutable<Integer> x = new Mutable<>(9);" and
-	 * then have code within inner classes like "x.value = 5" or "x.value++".
+	 * something {@code "final Mutable<Integer> x = new Mutable<>(9);"} and
+	 * then have code within inner classes like {@code "x.value = 5"} or {@code
+	 * }"x.value++"}.
 	 */
 	public T value;
 

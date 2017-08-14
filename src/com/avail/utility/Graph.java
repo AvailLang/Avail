@@ -128,7 +128,7 @@ public class Graph<Vertex>
 	 * a graph manipulation operation does not hold.  The preconditions are
 	 * described in the JavaDoc comment for each operation.
 	 */
-	public final static class GraphPreconditionFailure extends RuntimeException
+	public static final class GraphPreconditionFailure extends RuntimeException
 	{
 		/** The serial version identifier. */
 		private static final long serialVersionUID = -4084330590821139287L;

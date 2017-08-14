@@ -59,7 +59,7 @@ import com.avail.utility.json.JSONWriter;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class SetDescriptor
+public final class SetDescriptor
 extends Descriptor
 {
 	/**

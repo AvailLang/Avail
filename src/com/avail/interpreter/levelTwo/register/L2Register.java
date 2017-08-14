@@ -45,7 +45,7 @@ import com.avail.optimizer.L2Translator;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2Register implements Comparable<L2Register>
+public class L2Register
 {
 	/**
 	 * A coloring number to be used by the {@linkplain Interpreter
@@ -110,12 +110,5 @@ public class L2Register implements Comparable<L2Register>
 		builder.append("@");
 		builder.append(uniqueValue);
 		return builder.toString();
-	}
-
-	@Override
-	public int compareTo (final @Nullable L2Register otherRegister)
-	{
-		assert otherRegister != null;
-		return Long.compare(uniqueValue, otherRegister.uniqueValue);
 	}
 }

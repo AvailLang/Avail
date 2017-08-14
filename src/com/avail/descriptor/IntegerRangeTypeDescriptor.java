@@ -494,7 +494,7 @@ extends TypeDescriptor
 	/**
 	 * Return a range consisting of a single integer or infinity.
 	 *
-	 * @param anInt A Java <code>int</code>.
+	 * @param anInt A Java {@code int}.
 	 * @return A range containing a single value.
 	 */
 	public static A_Type singleInt (final int anInt)
@@ -670,7 +670,7 @@ extends TypeDescriptor
 	 * These occur in bit positions 0x01, 0x02, and 0x04 of the array
 	 * subscripts, respectively.
 	 */
-	private final static IntegerRangeTypeDescriptor[] descriptors;
+	private static final IntegerRangeTypeDescriptor[] descriptors;
 
 	static
 	{

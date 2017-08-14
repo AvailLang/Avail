@@ -53,16 +53,16 @@ public class PerInterpreterStatistic
 implements Comparable<PerInterpreterStatistic>
 {
 	/** The number of samples recorded so far. */
-	public long count;
+	private long count;
 
 	/** The smallest sample yet encountered. */
-	public double min;
+	private double min;
 
 	/** The largest sample yet encountered. */
-	public double max;
+	private double max;
 
 	/** The average of all samples recorded so far. */
-	public double mean;
+	private double mean;
 
 	/**
 	 * The sum of the squares of differences from the current mean.  This is
@@ -72,16 +72,17 @@ implements Comparable<PerInterpreterStatistic>
 	 * edn., p. 232. Boston: Addison-Wesley</cite>.  That cites a 1962 paper
 	 * by <cite>B. P. Welford</cite>.
 	 */
-	public double sumOfDeltaSquares;
+	private double sumOfDeltaSquares;
 
 	/**
-	 * Construct a new {@link PerInterpreterStatistic} with the given values.
+	 * Construct a new statistic with the given values.
 	 *
-	 * @param count
-	 * @param min
-	 * @param max
-	 * @param mean
+	 * @param count The number of samples.
+	 * @param min The minimum sample.
+	 * @param max The maximum sample.
+	 * @param mean The mean of the samples.
 	 * @param sumOfDeltaSquares
+	 *        The sum of squares of differences of the samples from the mean.
 	 */
 	PerInterpreterStatistic (
 		final long count,
@@ -98,16 +99,11 @@ implements Comparable<PerInterpreterStatistic>
 	}
 
 	/**
-	 * An empty {@link PerInterpreterStatistic}.
+	 * Create an empty statistic.
 	 */
 	PerInterpreterStatistic ()
 	{
-		this(
-			0,
-			Double.POSITIVE_INFINITY,
-			Double.NEGATIVE_INFINITY,
-			0.0,
-			0.0);
+		this(0, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, 0.0, 0.0);
 	}
 
 	/** Default sort is descending by sum. */

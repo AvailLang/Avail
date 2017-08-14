@@ -575,7 +575,7 @@ extends TypeDescriptor
 	 * The sole mutable {@link PrimitiveTypeDescriptor}, only used during early
 	 * instantiation.
 	 */
-	final static PrimitiveTypeDescriptor transientMutable =
+	static final PrimitiveTypeDescriptor transientMutable =
 		new PrimitiveTypeDescriptor();
 
 	@Override

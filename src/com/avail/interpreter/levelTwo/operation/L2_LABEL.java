@@ -48,7 +48,7 @@ public class L2_LABEL extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_LABEL().init(
 			COMMENT.is("Name of label"));
 

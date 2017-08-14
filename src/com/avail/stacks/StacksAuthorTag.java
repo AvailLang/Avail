@@ -45,7 +45,7 @@ public class StacksAuthorTag extends AbstractStacksTag
 	/**
 	 * Excess tokens of unknown purpose
 	 */
-	final private List<AbstractStacksToken> author;
+	private final List<AbstractStacksToken> author;
 
 	/**
 	 * Construct a new {@link StacksAuthorTag}.

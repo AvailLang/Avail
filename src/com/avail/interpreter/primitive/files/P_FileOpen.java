@@ -69,7 +69,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_FileOpen().init(
 			4, CanInline, HasSideEffect);
 
@@ -114,8 +114,7 @@ extends Primitive
 	 *         if the {@linkplain FileSystem file system} does not support POSIX
 	 *         file permissions.
 	 */
-	private @Nullable
-	static FileAttribute<?>[] permissionsFor (final A_Set optionInts)
+	private static FileAttribute<?>[] permissionsFor (final A_Set optionInts)
 	{
 		if (AvailRuntime.fileSystem().supportedFileAttributeViews().contains(
 			"posix"))

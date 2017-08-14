@@ -35,7 +35,6 @@ package com.avail.descriptor;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 import java.util.*;
 
@@ -282,7 +281,7 @@ extends Descriptor
 	 * perform type filtering after parsing each leaf argument, and the phrase
 	 * type is the expected type of that latest argument.
 	 */
-	public final static LookupTreeAdaptor<A_Tuple, A_BundleTree, Void>
+	public static final LookupTreeAdaptor<A_Tuple, A_BundleTree, Void>
 		parserTypeChecker =
 			new LookupTreeAdaptor<A_Tuple, A_BundleTree, Void>()
 	{
@@ -511,8 +510,7 @@ extends Descriptor
 			final A_Set allAncestorModules = module.allAncestors();
 			for (final Entry entry : unclassified.mapIterable())
 			{
-				for (final Entry entry2
-					: entry.value().mapIterable())
+				for (final Entry entry2 : entry.value().mapIterable())
 				{
 					// final A_Definition definition = entry2.key();
 					for (final A_ParsingPlanInProgress planInProgress
@@ -693,7 +691,7 @@ extends Descriptor
 		}
 	}
 
-	private final static Statistic invalidationsStat = new Statistic(
+	private static final Statistic invalidationsStat = new Statistic(
 		"(invalidations)", StatisticReport.EXPANDING_PARSING_INSTRUCTIONS);
 
 	/**
@@ -996,11 +994,11 @@ extends Descriptor
 			{
 				// Parse a specific keyword, or case-insensitive keyword.
 				final int keywordIndex = op.keywordIndex(instruction);
-				final A_BundleTree subtree;
 				final A_String part =
 					plan.bundle().messageParts().tupleAt(keywordIndex);
 				final Mutable<A_Map> map =
 					op == PARSE_PART ? incomplete : caseInsensitive;
+				final A_BundleTree subtree;
 				if (map.value.hasKey(part))
 				{
 					subtree = map.value.mapAt(part);

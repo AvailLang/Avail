@@ -376,13 +376,6 @@ public class LexingState
 		final A_Tuple newTokens,
 		final AtomicInteger countdown)
 	{
-		if (newTokens.tupleSize() == 0)
-		{
-//			expected(
-//				"Lexer body to have produced at least one sequence of tokens, "
-//				+ "since its filter replied true. This is not required of "
-//				+ "lexers, but it might indicate an inefficiency.");
-		}
 		synchronized (this)
 		{
 			for (final A_Token token : newTokens)

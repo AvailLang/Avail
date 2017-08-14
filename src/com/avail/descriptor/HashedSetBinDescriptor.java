@@ -235,7 +235,7 @@ extends SetBinDescriptor
 		//  First, grab the appropriate 6 bits from the hash.
 		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = (elementObjectHash >>> shift) & 63;
-		final long logicalBitValue = bitShift(1L, logicalIndex);
+		final long logicalBitValue = 1L << logicalIndex;
 		final long vector = object.slot(BIT_VECTOR);
 		final long masked = vector & (logicalBitValue - 1);
 		final int physicalIndex = bitCount(masked) + 1;
@@ -332,7 +332,7 @@ extends SetBinDescriptor
 	{
 		// First, grab the appropriate 6 bits from the hash.
 		final int logicalIndex = (elementObjectHash >>> shift) & 63;
-		final long logicalBitValue = bitShift(1L, logicalIndex);
+		final long logicalBitValue = 1L << logicalIndex;
 		final long vector = object.slot(BIT_VECTOR);
 		if ((vector & logicalBitValue) == 0)
 		{
@@ -362,7 +362,7 @@ extends SetBinDescriptor
 		assert level == myLevel;
 		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = (elementObjectHash >>> shift) & 63;
-		final long logicalBitValue = bitShift(1L, logicalIndex);
+		final long logicalBitValue = 1L << logicalIndex;
 		final long vector = object.slot(BIT_VECTOR);
 		if ((vector & logicalBitValue) == 0)
 		{

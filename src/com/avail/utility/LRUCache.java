@@ -114,7 +114,7 @@ public class LRUCache<K, V>
 		 * @param capacity The capacity of the {@linkplain
 		 *                 StrongCacheMap map}.
 		 */
-		public StrongCacheMap (final int capacity)
+		StrongCacheMap (final int capacity)
 		{
 			super(capacity, 0.75f, true);
 			this.capacity = capacity;
@@ -126,7 +126,7 @@ public class LRUCache<K, V>
 		{
 			// size() is potentially ambiguous (StrongCacheMap vs. LRUCache),
 			// but using super forces it to be about the StrongCacheMap.
-			return super.size() > capacity;
+			return this.size() > capacity;
 		}
 	}
 
@@ -228,7 +228,7 @@ public class LRUCache<K, V>
 
 			// size() is potentially ambiguous (SoftCacheMap vs. LRUCache),
 			// but using super forces it to be about the SoftCacheMap.
-			if (super.size() > capacity)
+			if (this.size() > capacity)
 			{
 				assert eldest != null;
 				final K key = eldest.getKey();
@@ -477,7 +477,6 @@ public class LRUCache<K, V>
 
 		@Override
 		public V get (final long timeout, final @Nullable TimeUnit unit)
-			throws InterruptedException, ExecutionException, TimeoutException
 		{
 			throw new UnsupportedOperationException();
 		}
@@ -579,9 +578,10 @@ public class LRUCache<K, V>
 	}
 
 	/**
+	 * Remove the specific key (and value) from the cache.
 	 *
-	 * @param key
-	 * @param referent
+	 * @param key The key to remove.
+	 * @param referent The value at that key.
 	 */
 	@InnerAccess void retire (final K key, final V referent)
 	{
@@ -728,8 +728,6 @@ public class LRUCache<K, V>
 		lock();
 		try
 		{
-			V result = null;
-
 			checkInvariants();
 
 			// Before searching the primary cache map for the key, expunge all
@@ -737,6 +735,7 @@ public class LRUCache<K, V>
 			expungeDefunctReferences();
 
 			SoftReference<V> reference = softMap.get(key);
+			V result = null;
 			if (reference == null || (result = reference.get()) == null)
 			{
 				// We didn't find the desired value in the cache, so now we
@@ -751,10 +750,9 @@ public class LRUCache<K, V>
 					future = new ValueFuture();
 					futures.put(key, future);
 
-					@Nullable RuntimeException exception = null;
-
 					// We must not hold any locks while computing the future.
 					unlock();
+					@Nullable RuntimeException exception = null;
 					try
 					{
 						result = transformer.value(key);
@@ -881,9 +879,9 @@ public class LRUCache<K, V>
 			// defunct references from it.
 			expungeDefunctReferences();
 
-			V result = null;
 			final SoftReference<V> reference = softMap.remove(key);
 			strongMap.remove(key);
+			V result = null;
 			if (reference != null && (result = reference.get()) != null)
 			{
 				retire(key, result);

@@ -54,7 +54,7 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_BootstrapLexerSlashStarCommentBody().init(
 			3, CannotFail, Bootstrap);
 

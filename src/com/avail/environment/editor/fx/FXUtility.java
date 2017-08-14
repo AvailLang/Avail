@@ -139,7 +139,7 @@ public final class FXUtility
 		final JFrame frame = new JFrame(frameName);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-		JPanel panel = new JPanel();
+		final JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setOpaque(true);
 		frame.getContentPane().add(BorderLayout.CENTER, panel);
@@ -173,7 +173,7 @@ public final class FXUtility
 		Platform.setImplicitExit(false);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-		JPanel panel = new JPanel();
+		final JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setOpaque(true);
 
@@ -205,7 +205,7 @@ public final class FXUtility
 		Platform.setImplicitExit(false);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-		JPanel panel = new JPanel();
+		final JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setOpaque(true);
 
@@ -242,7 +242,7 @@ public final class FXUtility
 		Platform.setImplicitExit(false);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-		JPanel panel = new JPanel();
+		final JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setOpaque(true);
 
@@ -273,7 +273,7 @@ public final class FXUtility
 		Platform.setImplicitExit(false);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-		JPanel panel = new JPanel();
+		final JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 		panel.setOpaque(true);
 
@@ -368,7 +368,7 @@ public final class FXUtility
 		final double prefWidth,
 		final double prefHeight)
 	{
-		TextField textField = new TextField();
+		final TextField textField = new TextField();
 		textField.setPadding(new Insets(top, right, bottom, left));
 		textField.setPrefWidth(prefWidth);
 		textField.setPrefHeight(prefHeight);
@@ -404,7 +404,7 @@ public final class FXUtility
 		final double prefHeight,
 		final @NotNull String style)
 	{
-		TextField textField =
+		final TextField textField =
 			textField(top, right, bottom, left, prefWidth, prefHeight);
 		textField.setStyle(style);
 		return textField;
@@ -685,13 +685,12 @@ public final class FXUtility
 	public static TextInputDialog textInputDialog(
 		final @NotNull String title)
 	{
-		TextInputDialog textInputDialog = new TextInputDialog();
+		final TextInputDialog textInputDialog = new TextInputDialog();
 		textInputDialog.setTitle(title);
 		textInputDialog.setHeaderText(null);
-		ButtonType ok = new ButtonType("OK",
-			ButtonData.OK_DONE);
-		ButtonType cancel = new ButtonType("Cancel",
-			ButtonData.CANCEL_CLOSE);
+		final ButtonType ok = new ButtonType("OK", ButtonData.OK_DONE);
+		final ButtonType cancel =
+			new ButtonType("Cancel", ButtonData.CANCEL_CLOSE);
 		textInputDialog.getDialogPane().getButtonTypes().setAll(ok, cancel);
 		textInputDialog.setGraphic(null);
 		return textInputDialog;

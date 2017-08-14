@@ -3400,18 +3400,21 @@ public enum SerializerOperation
 	}
 
 	/**
-	 * @param atomName
-	 * @param moduleName
-	 * @param deserializer
-	 * @return
+	 * Find or create the atom with the given name in the module with the given
+	 * name.
+	 *
+	 * @param atomName The name of the atom.
+	 * @param moduleName The module that defines the atom.
+	 * @param deserializer A deserializer with which to look up modules.
+	 * @return The {@link A_Atom atom}.
 	 */
-	A_Atom lookupAtom (
+	static A_Atom lookupAtom (
 		final A_String atomName,
 		final A_String moduleName,
 		final Deserializer deserializer)
 	{
 		final A_Module currentModule = deserializer.currentModule();
-		assert currentModule != null;
+		assert !currentModule.equalsNil();
 		if (moduleName.equals(currentModule.moduleName()))
 		{
 			// An atom in the current module.  Create it if necessary.

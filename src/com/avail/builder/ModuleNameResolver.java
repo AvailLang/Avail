@@ -181,7 +181,7 @@ public final class ModuleNameResolver
 	 *        A local module name.
 	 * @return A filename that specifies the module within the package.
 	 */
-	String filenameFor (
+	static String filenameFor (
 		final String packageName,
 		final String localName)
 	{
@@ -261,9 +261,6 @@ public final class ModuleNameResolver
 					null, qualifiedName.localName(), enclosingRoot));
 		}
 
-		// Splitting the module group into its components.
-		final ArrayList<ModuleName> checkedPaths = new ArrayList<>();
-
 		final String[] components = canonicalName.packageName().split("/");
 		assert components.length > 1;
 		assert components[0].isEmpty();
@@ -296,6 +293,7 @@ public final class ModuleNameResolver
 		}
 
 		// If the source directory is available, then search the file system.
+		final ArrayList<ModuleName> checkedPaths = new ArrayList<>();
 		IndexedRepositoryManager repository = null;
 		File sourceFile = null;
 		if (sourceDirectory != null)

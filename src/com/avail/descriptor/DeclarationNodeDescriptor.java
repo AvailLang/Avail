@@ -447,7 +447,7 @@ extends ParseNodeDescriptor
 		/**
 		 * Stash a copy of the array of all {@link DeclarationKind} enum values.
 		 */
-		private final static DeclarationKind[] all = values();
+		private static final DeclarationKind[] all = values();
 
 		/**
 		 * Answer the previously stashed copy of the array of all {@link

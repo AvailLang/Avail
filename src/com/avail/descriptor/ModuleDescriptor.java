@@ -69,7 +69,7 @@ import com.avail.utility.json.JSONWriter;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class ModuleDescriptor
+public final class ModuleDescriptor
 extends Descriptor
 {
 	/**
@@ -229,7 +229,7 @@ extends Descriptor
 		final int indent)
 	{
 		builder.append("Module: ");
-		builder.append(object.moduleName().toString());
+		builder.append(object.moduleName());
 	}
 
 	@Override @AvailMethod

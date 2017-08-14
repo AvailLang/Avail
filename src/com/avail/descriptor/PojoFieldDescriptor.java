@@ -80,7 +80,7 @@ extends Descriptor
 	@Override
 	void o_ClearValue (final AvailObject object)
 	{
-		final Object receiver = object.slot(RECEIVER).javaObject();
+		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
 		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		final Class<?> fieldType = field.getType();
 		final Object defaultValue;
@@ -150,7 +150,7 @@ extends Descriptor
 	AvailObject o_GetValue (final AvailObject object)
 		throws VariableGetException
 	{
-		final Object receiver = object.slot(RECEIVER).javaObject();
+		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
 		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		final A_Type expectedType = object.slot(KIND).readType();
 		try
@@ -184,7 +184,7 @@ extends Descriptor
 	@Override @AvailMethod
 	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
-		final Object receiver = object.slot(RECEIVER).javaObject();
+		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
 		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		final Class<?> classHint = field.getType();
 		try
@@ -208,7 +208,7 @@ extends Descriptor
 		final A_BasicObject newValue)
 	{
 		// Actually check this write anyhow. Just in case.
-		final Object receiver = object.slot(RECEIVER).javaObject();
+		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
 		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		final Class<?> classHint = field.getType();
 		try
@@ -229,7 +229,7 @@ extends Descriptor
 	@Override @AvailMethod
 	AvailObject o_Value (final AvailObject object)
 	{
-		final Object receiver = object.slot(RECEIVER).javaObject();
+		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
 		final Field field = (Field) object.slot(FIELD).javaObjectNotNull();
 		final A_Type expectedType = object.slot(KIND).readType();
 		try

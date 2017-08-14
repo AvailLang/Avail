@@ -48,14 +48,9 @@ import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 class L2OperandDescriber implements L2OperandTypeDispatcher
 {
 	/**
-	 * The {@link String name} of this {@link L2NamedOperandType}.
-	 */
-	private @Nullable String _name;
-
-	/**
 	 * The operand being described.
 	 */
-	private @Nullable L2Operand _operand;
+	private L2Operand _operand;
 
 	/**
 	 * The {@link StringBuilder} on which to write an operand description.
@@ -122,13 +117,12 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 			final L2Operand operand,
 			final StringBuilder stream)
 	{
-		_name = namedOperandType.name();
 		_operand = operand;
 		_description = stream;
 		stream.append(
 			String.format(
 				"%n\t%s = ",
-				_name));
+				namedOperandType.name()));
 		namedOperandType.operandType().dispatch(this);
 	}
 

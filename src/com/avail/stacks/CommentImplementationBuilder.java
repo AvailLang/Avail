@@ -40,7 +40,7 @@ import java.util.TreeMap;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class CommentImplementationBuilder
+public final class CommentImplementationBuilder
 {
 	/**
 	 * The available {@linkplain LinkingFileMap}

@@ -51,7 +51,7 @@ extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_SET_VARIABLE().init(
 			READ_POINTER.is("variable"),
 			READ_POINTER.is("value to write"),

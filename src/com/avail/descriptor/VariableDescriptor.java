@@ -193,10 +193,9 @@ extends Descriptor
 	AvailObject o_GetValue (final AvailObject object)
 		throws VariableGetException
 	{
-		final Interpreter interpreter;
 		try
 		{
-			interpreter = Interpreter.current();
+			final Interpreter interpreter = Interpreter.current();
 			if (interpreter.traceVariableReadsBeforeWrites())
 			{
 				final A_Fiber fiber = interpreter.fiber();
@@ -224,10 +223,9 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_HasValue (final AvailObject object)
 	{
-		final Interpreter interpreter;
 		try
 		{
-			interpreter = Interpreter.current();
+			final Interpreter interpreter = Interpreter.current();
 			if (interpreter.traceVariableReadsBeforeWrites())
 			{
 				final A_Fiber fiber = interpreter.fiber();
@@ -274,17 +272,17 @@ extends Descriptor
 	 * code.
 	 *
 	 * @param object
+	 *        The variable.
 	 * @throws VariableSetException
 	 *         If variable write tracing is disabled, but the variable has
 	 *         write reactors.
 	 */
-	private void handleVariableWriteTracing (final AvailObject object)
+	private static void handleVariableWriteTracing (final AvailObject object)
 		throws VariableSetException
 	{
-		final Interpreter interpreter;
 		try
 		{
-			interpreter = Interpreter.current();
+			final Interpreter interpreter = Interpreter.current();
 			if (interpreter.traceVariableWrites())
 			{
 				final A_Fiber fiber = interpreter.fiber();

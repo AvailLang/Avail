@@ -48,7 +48,7 @@ public class L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS().init(
 			READ_INT.is("subtrahend"),
 			READWRITE_INT.is("minuend"));

@@ -342,7 +342,6 @@ public enum L1Operation
 	 * Permute the top N stack elements based on the literal which is an N-tuple
 	 * of distinct integers in [1..N] (i.e., a permutation).  The mutability of
 	 * the values is unaffected.
-	 * </p>
 	 *
 	 * <p>
 	 * The first pushed value is considered position 1, and the most recently

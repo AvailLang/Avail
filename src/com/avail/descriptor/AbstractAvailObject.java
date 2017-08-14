@@ -54,6 +54,7 @@ abstract class AbstractAvailObject
 	 * @throws Error
 	 *         If the address is invalid.
 	 */
+	@SuppressWarnings("EmptyMethod")
 	final void checkValidAddress () throws Error
 	{
 	}

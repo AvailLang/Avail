@@ -49,7 +49,6 @@ import com.avail.interpreter.*;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 /**
@@ -83,7 +82,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_CreateRestrictedSendExpression().init(
 			3, Unknown);
 
@@ -219,7 +218,7 @@ extends Primitive
 			{
 				// There were problems.  Fail the primitive with a string
 				// describing them all.
-				assert problems.size() > 0;
+				// assert problems.size() > 0;
 				final StringBuilder builder = new StringBuilder();
 				if (problems.size() == 1)
 				{
@@ -309,12 +308,7 @@ extends Primitive
 						problems.add(string);
 					}
 				}
-				else if (throwable instanceof AvailAcceptedParseException)
-				{
-					//noinspection StatementWithEmptyBody
-					// Success without type narrowing – do nothing.
-				}
-				else
+				else if (!(throwable instanceof AvailAcceptedParseException))
 				{
 					synchronized (problems)
 					{
@@ -324,6 +318,7 @@ extends Primitive
 							+ throwable));
 					}
 				}
+				// Success without type narrowing – do nothing.
 				// Now that we've fully dealt with it,
 			});
 			Interpreter.runOutermostFunction(

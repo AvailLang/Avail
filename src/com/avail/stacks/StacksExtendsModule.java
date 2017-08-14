@@ -290,7 +290,7 @@ public class StacksExtendsModule extends StacksImportModule
 		for (final StacksExtendsModule extendsModule :
 			moduleNameToExtendsList().values())
 		{
-			stringBuilder.append(extendsModule.toString());
+			stringBuilder.append(extendsModule);
 		}
 
 		return stringBuilder.toString();

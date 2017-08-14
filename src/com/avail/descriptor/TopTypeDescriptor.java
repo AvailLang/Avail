@@ -144,7 +144,7 @@ extends PrimitiveTypeDescriptor
 	 * @param primitiveType
 	 *        The {@link Types primitive type} represented by this descriptor.
 	 */
-	protected TopTypeDescriptor (
+	TopTypeDescriptor (
 		final TypeTag typeTag,
 		final Types primitiveType)
 	{

@@ -129,9 +129,9 @@ public class FilterDropDownDialog<
 		dialogPane.getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 		final Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
 
-		final double MIN_WIDTH = 150;
 		this.comboBox = comboBox;
 		this.comboBox.enterBehavior(okButton::fire);
+		final double MIN_WIDTH = 150;
 		this.comboBox.setMinWidth(MIN_WIDTH);
 		if (choices != null)
 		{

@@ -46,7 +46,7 @@ public final class BeImmutableSubobjectVisitor
 extends AvailSubobjectVisitor
 {
 	/** The sole instance of this visitor. */
-	public final static BeImmutableSubobjectVisitor instance =
+	public static final BeImmutableSubobjectVisitor instance =
 		new BeImmutableSubobjectVisitor();
 
 	/** Construct a new {@link BeImmutableSubobjectVisitor}. */

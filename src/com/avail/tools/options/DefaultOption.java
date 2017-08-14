@@ -48,7 +48,7 @@ public final class DefaultOption<OptionKeyType extends Enum<OptionKeyType>>
 extends GenericOption<OptionKeyType>
 {
 	/**
-	 * Construct a new {@link DefaultOption}.
+	 * Construct a new instance.
 	 *
 	 * @param optionKey
 	 *        The option key.

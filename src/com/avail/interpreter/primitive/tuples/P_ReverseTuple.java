@@ -50,7 +50,7 @@ public final class P_ReverseTuple extends Primitive
 	 * Construct a new {@link P_ReverseTuple}.
 	 *
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_ReverseTuple().init(
 			1, CannotFail, CanFold, CanInline);
 

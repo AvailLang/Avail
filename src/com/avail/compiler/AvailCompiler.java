@@ -44,14 +44,12 @@ import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.PrefixSharingList;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.descriptor.*;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.TokenDescriptor.TokenType;
@@ -69,7 +67,6 @@ import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Pair;
-import sun.util.locale.ParseStatus;
 
 import java.io.File;
 import java.io.IOException;
@@ -84,9 +81,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static com.avail.compiler.ExpectedToken.*;
@@ -398,7 +392,7 @@ public final class AvailCompiler
 	 * Continuation1NotNull} is also supplied to the constructor.  It will only
 	 * be invoked with a non-null argument.
 	 */
-	@InnerAccess final static class Con
+	static final class Con
 	implements Continuation1NotNull<CompilerSolution>
 	{
 		/**
@@ -488,7 +482,7 @@ public final class AvailCompiler
 	 */
 	private void tryIfUnambiguousThen (
 		final ParserState start,
-		final Continuation1<Con> tryBlock,
+		final Continuation1NotNull<Con> tryBlock,
 		final Con supplyAnswer,
 		final Continuation0 afterFail)
 	{
@@ -635,8 +629,8 @@ public final class AvailCompiler
 		{
 			@Override
 			public void completed (
-				@Nullable final Integer bytesRead,
-				@Nullable final Void nothing)
+				final @Nullable Integer bytesRead,
+				final @Nullable Void nothing)
 			{
 				try
 				{
@@ -727,8 +721,8 @@ public final class AvailCompiler
 
 			@Override
 			public void failed (
-				@Nullable final Throwable e,
-				@Nullable final Void attachment)
+				final @Nullable Throwable e,
+				final @Nullable Void attachment)
 			{
 				assert e != null;
 				final Problem problem = new Problem(
@@ -838,15 +832,12 @@ public final class AvailCompiler
 					nodes,
 					nodeStrings ->
 					{
-						final StringBuilder builder = new StringBuilder(200);
-						builder.append(
-							"unambiguous interpretation.  " +
-							"Here are two possible parsings..." +
-							"\n\t");
-						builder.append(nodeStrings.get(0));
-						builder.append("\n\t");
-						builder.append(nodeStrings.get(1));
-						continuation.value(builder.toString());
+						continuation.value(
+							"unambiguous interpretation.  "
+								+ "Here are two possible parsings...\n\t"
+								+ nodeStrings.get(0)
+								+ "\n\t"
+								+ nodeStrings.get(1));
 					});
 				});
 		compilationContext.diagnostics.reportError(afterFail);
@@ -1438,7 +1429,7 @@ public final class AvailCompiler
 												max(
 													inProgress.parsingPc() - 1,
 													1));
-								final @Nullable A_Module issuingModule =
+								final A_Module issuingModule =
 									bundle.message().issuingModule();
 								final String moduleName =
 									issuingModule.equalsNil()
@@ -1925,7 +1916,7 @@ public final class AvailCompiler
 		final A_Map tokenMap,
 		final boolean caseInsensitive)
 	{
-		AtomicBoolean ambiguousWhitespace = new AtomicBoolean(false);
+		final AtomicBoolean ambiguousWhitespace = new AtomicBoolean(false);
 		skipWhitespaceAndComments(
 			start,
 			afterWhiteSpaceStates ->
@@ -2351,739 +2342,18 @@ public final class AvailCompiler
 		}
 
 		final long timeBefore = System.nanoTime();
-		switch (op)
-		{
-			case EMPTY_LIST:
-			{
-				// Push an empty list node and continue.
-				assert successorTrees.tupleSize() == 1;
-				final List<A_Phrase> newArgsSoFar =
-					append(argsSoFar, ListNodeDescriptor.empty());
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					newArgsSoFar,
-					marksSoFar,
-					continuation);
-				break;
-			}
-			case APPEND_ARGUMENT:
-			{
-				// Append the item that's the last thing onto the list that's
-				// the second last thing. Pop both and push the new list (the
-				// original list must not change), then continue.
-				assert successorTrees.tupleSize() == 1;
-				final A_Phrase value = last(argsSoFar);
-				final List<A_Phrase> poppedOnce = withoutLast(argsSoFar);
-				final A_Phrase oldNode = last(poppedOnce);
-				final A_Phrase listNode = oldNode.copyWith(value);
-				final List<A_Phrase> newArgsSoFar =
-					append(withoutLast(poppedOnce), listNode);
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					newArgsSoFar,
-					marksSoFar,
-					continuation);
-				break;
-			}
-			case SAVE_PARSE_POSITION:
-			{
-				// Push current parse position on the mark stack.
-				assert successorTrees.tupleSize() == 1;
-				final int marker =
-					firstArgOrNull == null
-						? start.position()
-						: initialTokenPosition.position();
-				final List<Integer> newMarksSoFar = append(marksSoFar, marker);
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					argsSoFar,
-					newMarksSoFar,
-					continuation);
-				break;
-			}
-			case DISCARD_SAVED_PARSE_POSITION:
-			{
-				// Pop from the mark stack.
-				assert successorTrees.tupleSize() == 1;
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					argsSoFar,
-					withoutLast(marksSoFar),
-					continuation);
-				break;
-			}
-			case ENSURE_PARSE_PROGRESS:
-			{
-				// Check for parser progress.  Abort this avenue of parsing if
-				// the parse position is still equal to the position on the
-				// mark stack.  Pop the old mark and push the new mark.
-				assert successorTrees.tupleSize() == 1;
-				final int oldMarker = last(marksSoFar);
-				if (oldMarker == start.position())
-				{
-					// No progress has been made.  Reject this path.
-					return;
-				}
-				final int newMarker = start.position();
-				final List<Integer> newMarksSoFar =
-					append(withoutLast(marksSoFar), newMarker);
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					argsSoFar,
-					newMarksSoFar,
-					continuation);
-				break;
-			}
-			case PARSE_ARGUMENT:
-			case PARSE_TOP_VALUED_ARGUMENT:
-			{
-				// Parse an argument and continue.
-				assert successorTrees.tupleSize() == 1;
-				final PartialSubexpressionList partialSubexpressionList =
-					firstArgOrNull == null
-						? continuation.superexpressions().advancedTo(
-							successorTrees.tupleAt(1))
-						: continuation.superexpressions;
-				parseSendArgumentWithExplanationThen(
-					start,
-					op == PARSE_ARGUMENT
-						? "argument"
-						: "top-valued argument",
-					firstArgOrNull,
-					firstArgOrNull == null
-						&& initialTokenPosition.lexingState
-							!= start.lexingState,
-					op == PARSE_TOP_VALUED_ARGUMENT,
-					Con(
-						partialSubexpressionList,
-						solution ->
-						{
-							final List<A_Phrase> newArgsSoFar =
-								append(argsSoFar, solution.parseNode());
-							eventuallyParseRestOfSendNode(
-								solution.endState(),
-								successorTrees.tupleAt(1),
-								null,
-								initialTokenPosition,
-								// The argument counts as something that was
-								// consumed if it's not a leading argument...
-								firstArgOrNull == null,
-								consumedTokens,
-								newArgsSoFar,
-								marksSoFar,
-								continuation);
-						}));
-				break;
-			}
-			case PARSE_VARIABLE_REFERENCE:
-			{
-				assert successorTrees.tupleSize() == 1;
-				final PartialSubexpressionList partialSubexpressionList =
-					firstArgOrNull == null
-						? continuation.superexpressions().advancedTo(
-							successorTrees.tupleAt(1))
-						: continuation.superexpressions;
-				parseSendArgumentWithExplanationThen(
-					start,
-					"variable reference",
-					firstArgOrNull,
-					firstArgOrNull == null
-						&& initialTokenPosition.lexingState
-						!= start.lexingState,
-					false,
-					Con(
-						partialSubexpressionList,
-						variableUseSolution ->
-						{
-							assert successorTrees.tupleSize() == 1;
-							final A_Phrase variableUse =
-								variableUseSolution.parseNode();
-							final A_Phrase rawVariableUse =
-								variableUse.stripMacro();
-							final ParserState afterUse =
-								variableUseSolution.endState();
-							if (!rawVariableUse.parseNodeKindIsUnder(
-								VARIABLE_USE_NODE))
-							{
-								if (consumedAnything)
-								{
-									// At least one token besides the variable
-									// use has been encountered, so go ahead and
-									// report that we expected a variable.
-									afterUse.expected(
-										describeWhyVariableUseIsExpected(
-											successorTrees.tupleAt(1)));
-								}
-								// It wasn't a variable use node, so give up.
-								return;
-							}
-							// Make sure taking a reference is appropriate.
-							final DeclarationKind declarationKind =
-								rawVariableUse.declaration().declarationKind();
-							if (!declarationKind.isVariable())
-							{
-								if (consumedAnything)
-								{
-									// Only complain about this not being a
-									// variable if we've parsed something
-									// besides the variable reference argument.
-									afterUse.expected(
-										"variable for reference argument to "
-										+ "be assignable, not "
-										+ declarationKind.nativeKindName());
-								}
-								return;
-							}
-							// Create a variable reference from this use.
-							final A_Phrase rawVariableReference =
-								ReferenceNodeDescriptor.fromUse(rawVariableUse);
-							final A_Phrase variableReference =
-								variableUse.isMacroSubstitutionNode()
-									? MacroSubstitutionNodeDescriptor
-										.fromOriginalSendAndReplacement(
-											variableUse.macroOriginalSendNode(),
-											rawVariableReference)
-									: rawVariableReference;
-							eventuallyParseRestOfSendNode(
-								afterUse,
-								successorTrees.tupleAt(1),
-								null,
-								initialTokenPosition,
-								// The argument counts as something that was
-								// consumed if it's not a leading argument...
-								firstArgOrNull == null,
-								consumedTokens,
-								append(argsSoFar, variableReference),
-								marksSoFar,
-								continuation);
-						}));
-				break;
-			}
-			case PARSE_ARGUMENT_IN_MODULE_SCOPE:
-			{
-				assert successorTrees.tupleSize() == 1;
-				parseArgumentInModuleScopeThen(
-					start,
-					firstArgOrNull,
-					consumedTokens,
-					argsSoFar,
-					marksSoFar,
-					initialTokenPosition,
-					successorTrees,
-					continuation);
-				break;
-			}
-			case PARSE_ANY_RAW_TOKEN:
-			case PARSE_RAW_KEYWORD_TOKEN:
-			case PARSE_RAW_STRING_LITERAL_TOKEN:
-			case PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN:
-			{
-				// Parse a raw token and continue.  In particular, push a
-				// literal node whose token is a synthetic literal token whose
-				// value is the actual token that was parsed.
-				assert successorTrees.tupleSize() == 1;
-				if (firstArgOrNull != null)
-				{
-					// Starting with a parseRawToken can't cause unbounded
-					// left-recursion, so treat it more like reading an expected
-					// token than like parseArgument.  Thus, if a firstArgument
-					// has been provided (i.e., we're attempting to parse a
-					// leading-argument message to wrap a leading expression),
-					// then reject the parse.
-					break;
-				}
-				start.lexingState.withTokensDo(
-					nextTokens ->
-					{
-						if (nextTokens.isEmpty())
-						{
-							if (consumedAnything)
-							{
-								start.expected(
-									"a token, not end of file");
-							}
-							return;
-						}
-						for (final A_Token token : nextTokens)
-						{
-							final TokenType tokenType = token.tokenType();
-							if (tokenType == COMMENT || tokenType == WHITESPACE)
-							{
-								// Capture the comment and try again.
-								start.workUnitDo(() ->
-								{
-									final ParserState next = new ParserState(
-										token.nextLexingStateIn(
-											compilationContext),
-										start.clientDataMap,
-										captureIfComment(
-											start.capturedCommentTokens,
-											token));
-									runParsingInstructionThen(
-										next,
-										instruction,
-										firstArgOrNull,
-										argsSoFar,
-										marksSoFar,
-										initialTokenPosition,
-										consumedAnything,
-										consumedTokens,
-										successorTrees,
-										continuation);
-								});
-								continue;
-							}
-							if (op == PARSE_RAW_KEYWORD_TOKEN
-								&& tokenType != KEYWORD)
-							{
-								if (consumedAnything)
-								{
-									start.expected(
-										"a keyword token, not "
-											+ token.string());
-								}
-								continue;
-							}
-							if (op == PARSE_RAW_STRING_LITERAL_TOKEN
-								&& (tokenType != LITERAL
-									    || !token.literal().isInstanceOf(
-								TupleTypeDescriptor.stringType())))
-							{
-								if (consumedAnything)
-								{
-									start.expected(
-										"a string literal token, not "
-											+ (tokenType != LITERAL
-												   ? token.string()
-												   : token.literal()));
-								}
-								continue;
-							}
-							if (op == PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN
-								&& (tokenType != LITERAL
-									    || !token.literal().isInstanceOf(
-								IntegerRangeTypeDescriptor.wholeNumbers())))
-							{
-								if (consumedAnything)
-								{
-									start.expected(
-										"a whole number literal token, not "
-											+ (token.tokenType() != LITERAL
-												   ? token.string()
-												   : token.literal()));
-								}
-								continue;
-							}
-
-							// It's the right kind of token...
-							final A_Token syntheticToken =
-								LiteralTokenDescriptor.create(
-									token.string(),
-									token.leadingWhitespace(),
-									token.trailingWhitespace(),
-									token.start(),
-									token.lineNumber(),
-									SYNTHETIC_LITERAL,
-									token);
-							final A_Phrase literalNode =
-								fromToken(syntheticToken);
-							final List<A_Phrase> newArgsSoFar =
-								append(argsSoFar, literalNode);
-							eventuallyParseRestOfSendNode(
-								new ParserState(
-									token.nextLexingStateIn(compilationContext),
-									start.clientDataMap,
-									start.capturedCommentTokens),
-								successorTrees.tupleAt(1),
-								null,
-								initialTokenPosition,
-								true,
-								append(consumedTokens, syntheticToken),
-								newArgsSoFar,
-								marksSoFar,
-								continuation);
-						}
-					});
-				break;
-			}
-			case CONCATENATE:
-			{
-				assert successorTrees.tupleSize() == 1;
-				final A_Phrase right = last(argsSoFar);
-				final List<A_Phrase> popped1 = withoutLast(argsSoFar);
-				A_Phrase concatenated = last(popped1);
-				final List<A_Phrase> popped2 = withoutLast(popped1);
-				for (final A_Phrase rightElement : right.expressionsTuple())
-				{
-					concatenated = concatenated.copyWith(rightElement);
-				}
-				final List<A_Phrase> newArgsSoFar =
-					append(popped2, concatenated);
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					newArgsSoFar,
-					marksSoFar,
-					continuation);
-				break;
-			}
-			case RESERVED_14:
-			case RESERVED_15:
-				break;
-			case BRANCH:
-				// $FALL-THROUGH$
-				// Fall through.  The successorTrees will be different
-				// for the jump versus parallel-branch.
-			case JUMP:
-			{
-				for (int i = successorTrees.tupleSize(); i >= 1; i--)
-				{
-					final A_BundleTree successorTree =
-						successorTrees.tupleAt(i);
-					eventuallyParseRestOfSendNode(
-						start,
-						successorTree,
-						firstArgOrNull,
-						initialTokenPosition,
-						consumedAnything,
-						consumedTokens,
-						argsSoFar,
-						marksSoFar,
-						continuation);
-				}
-				break;
-			}
-			case PARSE_PART:
-			case PARSE_PART_CASE_INSENSITIVELY:
-			case TYPE_CHECK_ARGUMENT:
-			{
-				assert false
-					: op.name() + " instruction should not be dispatched";
-				break;
-			}
-			case CHECK_ARGUMENT:
-			{
-				// CheckArgument.  An actual argument has just been parsed (and
-				// pushed).  Make sure it satisfies any grammatical
-				// restrictions.  The message bundle tree's lazy prefilter map
-				// deals with that efficiently.
-				assert successorTrees.tupleSize() == 1;
-				assert firstArgOrNull == null;
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					null,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					argsSoFar,
-					marksSoFar,
-					continuation);
-				break;
-			}
-			case CONVERT:
-			{
-				// Convert the argument.
-				assert successorTrees.tupleSize() == 1;
-				final A_Phrase input = last(argsSoFar);
-				final AtomicBoolean sanityFlag = new AtomicBoolean();
-				op.conversionRule(instruction).convert(
-					compilationContext,
-					start.lexingState,
-					input,
-					replacementExpression ->
-					{
-						assert sanityFlag.compareAndSet(false, true);
-						assert replacementExpression != null;
-						final List<A_Phrase> newArgsSoFar =
-							append(
-								withoutLast(argsSoFar),
-								replacementExpression);
-						eventuallyParseRestOfSendNode(
-							start,
-							successorTrees.tupleAt(1),
-							firstArgOrNull,
-							initialTokenPosition,
-							consumedAnything,
-							consumedTokens,
-							newArgsSoFar,
-							marksSoFar,
-							continuation);
-					},
-					e ->
-					{
-						// Deal with a failed conversion.  As of 2016-08-28,
-						// this can only happen during an expression
-						// evaluation.
-						assert sanityFlag.compareAndSet(false, true);
-						assert e != null;
-						start.expected(withString -> withString.value(
-							"evaluation of expression not to have "
-								+ "thrown Java exception:\n"
-								+ trace(e)));
-					});
-				break;
-			}
-			case PREPARE_TO_RUN_PREFIX_FUNCTION:
-			{
-				/*
-				 * Prepare a copy of the arguments that have been parsed so far,
-				 * and push them as a list node onto the parse stack, in
-				 * preparation for a RUN_PREFIX_FUNCTION, which must come next.
-				 * The current instruction and the following one are always
-				 * generated at the point a section checkpoint (§) is found in
-				 * a method name.
-				 *
-				 * Also note that this instruction was detected specially by
-				 * MessageBundleTreeDescriptor.o_Expand(AvailObject), preventing
-				 * the successors from having multiple bundles in the same tree.
-				 */
-				List<A_Phrase> stackCopy = argsSoFar;
-				// Only do N-1 steps.  We simply couldn't encode zero as an
-				// operand, so we always bias by one automatically.
-				for (int i = op.fixupDepth(instruction); i > 1; i--)
-				{
-					// Pop the last element and append it to the second last.
-					final A_Phrase value = last(stackCopy);
-					final List<A_Phrase> poppedOnce = withoutLast(stackCopy);
-					final A_Phrase oldNode = last(poppedOnce);
-					final A_Phrase listNode = oldNode.copyWith(value);
-					stackCopy = append(withoutLast(poppedOnce), listNode);
-				}
-				assert stackCopy.size() == 1;
-				final A_Phrase newListNode = stackCopy.get(0);
-				final List<A_Phrase> newStack = append(argsSoFar, newListNode);
-				for (final A_BundleTree successorTree : successorTrees)
-				{
-					eventuallyParseRestOfSendNode(
-						start,
-						successorTree,
-						firstArgOrNull,
-						initialTokenPosition,
-						consumedAnything,
-						consumedTokens,
-						newStack,
-						marksSoFar,
-						continuation);
-				}
-				break;
-			}
-			case RUN_PREFIX_FUNCTION:
-			{
-				/* Extract the list node pushed by the
-				 * PREPARE_TO_RUN_PREFIX_FUNCTION instruction that should have
-				 * just run.  Pass it to the indicated prefix function, which
-				 * will communicate parser state changes via fiber globals.
-				 *
-				 * We are always operating on a single definition parse plan
-				 * here, because the message bundle tree's o_Expand(AvailObject)
-				 * detected the previous instruction, always a
-				 * PREPARE_TO_RUN_PREFIX_FUNCTION, and put each plan into a new
-				 * tree.  Go to that plan's (macro) definition to find its
-				 * prefix functions, subscripting that tuple by this
-				 * RUN_PREFIX_FUNCTION's operand.
-				 */
-				assert successorTrees.tupleSize() == 1;
-				final A_BundleTree successorTree = successorTrees.tupleAt(1);
-				// Look inside the only successor to find the only bundle.
-				final A_Map bundlesMap =
-					successorTree.allParsingPlansInProgress();
-				assert bundlesMap.mapSize() == 1;
-				final A_Map submap = bundlesMap.mapIterable().next().value();
-				assert submap.mapSize() == 1;
-				final A_Definition definition =
-					submap.mapIterable().next().key();
-				final A_Tuple prefixFunctions = definition.prefixFunctions();
-				final int prefixIndex = op.prefixFunctionSubscript(instruction);
-				final A_Function prefixFunction =
-					prefixFunctions.tupleAt(prefixIndex);
-				final A_Phrase prefixArgumentsList = last(argsSoFar);
-				final List<A_Phrase> withoutPrefixArguments =
-					withoutLast(argsSoFar);
-				final List<AvailObject> listOfArgs = TupleDescriptor.toList(
-					prefixArgumentsList.expressionsTuple());
-				runPrefixFunctionThen(
-					start,
-					successorTree,
-					prefixFunction,
-					listOfArgs,
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					withoutPrefixArguments,
-					marksSoFar,
-					continuation);
-				break;
-			}
-			case PERMUTE_LIST:
-			{
-				final int permutationIndex = op.permutationIndex(instruction);
-				final A_Tuple permutation =
-					MessageSplitter.permutationAtIndex(permutationIndex);
-				final A_Phrase poppedList = last(argsSoFar);
-				List<A_Phrase> stack = withoutLast(argsSoFar);
-				stack = append(
-					stack,
-					PermutedListNodeDescriptor.fromListAndPermutation(
-						poppedList, permutation));
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					stack,
-					marksSoFar,
-					continuation);
-				break;
-			}
-			case CHECK_AT_LEAST:
-			{
-				final int limit = op.requiredMinimumSize(instruction);
-				final A_Phrase top = last(argsSoFar);
-				if (top.expressionsSize() >= limit)
-				{
-					eventuallyParseRestOfSendNode(
-						start,
-						successorTrees.tupleAt(1),
-						firstArgOrNull,
-						initialTokenPosition,
-						consumedAnything,
-						consumedTokens,
-						argsSoFar,
-						marksSoFar,
-						continuation);
-				}
-				break;
-			}
-			case CHECK_AT_MOST:
-			{
-				final int limit = op.requiredMaximumSize(instruction);
-				final A_Phrase top = last(argsSoFar);
-				if (top.expressionsSize() <= limit)
-				{
-					eventuallyParseRestOfSendNode(
-						start,
-						successorTrees.tupleAt(1),
-						firstArgOrNull,
-						initialTokenPosition,
-						consumedAnything,
-						consumedTokens,
-						argsSoFar,
-						marksSoFar,
-						continuation);
-				}
-				break;
-			}
-			case WRAP_IN_LIST:
-			{
-				assert successorTrees.tupleSize() == 1;
-				final int listSize = op.listSize(instruction);
-				final int totalSize = argsSoFar.size();
-				final List<A_Phrase> unpopped =
-					argsSoFar.subList(0, totalSize - listSize);
-				final List<A_Phrase> popped =
-					argsSoFar.subList(totalSize - listSize, totalSize);
-				final A_Phrase newListNode = ListNodeDescriptor.newExpressions(
-					TupleDescriptor.fromList(popped));
-				final List<A_Phrase> newArgsSoFar =
-					append(unpopped, newListNode);
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					newArgsSoFar,
-					marksSoFar,
-					continuation);
-				break;
-			}
-			case PUSH_LITERAL:
-			{
-				final AvailObject constant = MessageSplitter.constantForIndex(
-					op.literalIndex(instruction));
-				final A_Token token = LiteralTokenDescriptor.create(
-					StringDescriptor.from(constant.toString()),
-					TupleDescriptor.empty(), // TODO MvG - get start's token
-					TupleDescriptor.empty(), // TODO MvG - get start's token
-					initialTokenPosition.position(),
-					initialTokenPosition.lineNumber(),
-					LITERAL,
-					constant);
-				final A_Phrase literalNode = fromToken(token);
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					append(argsSoFar, literalNode),
-					marksSoFar,
-					continuation);
-				break;
-			}
-			case REVERSE_STACK:
-			{
-				assert successorTrees.tupleSize() == 1;
-				final int depthToReverse = op.depthToReverse(instruction);
-				final int totalSize = argsSoFar.size();
-				final List<A_Phrase> unpopped =
-					argsSoFar.subList(0, totalSize - depthToReverse);
-				final List<A_Phrase> popped =
-					new ArrayList<>(
-						argsSoFar.subList(
-							totalSize - depthToReverse, totalSize));
-				Collections.reverse(popped);
-				final List<A_Phrase> newArgsSoFar =
-					new ArrayList<>(unpopped);
-				newArgsSoFar.addAll(popped);
-				eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedTokens,
-					newArgsSoFar,
-					marksSoFar,
-					continuation);
-				break;
-			}
-		}
+		op.execute(
+			this,
+			instruction,
+			successorTrees,
+			start,
+			firstArgOrNull,
+			argsSoFar,
+			marksSoFar,
+			initialTokenPosition,
+			consumedAnything,
+			consumedTokens,
+			continuation);
 		final long timeAfter = System.nanoTime();
 		final AvailThread thread = (AvailThread) Thread.currentThread();
 		op.parsingStatisticInNanoseconds.record(
@@ -3122,7 +2392,7 @@ public final class AvailCompiler
 	 *        What should eventually be done with the completed macro
 	 *        invocation, should parsing ever get that far.
 	 */
-	private void runPrefixFunctionThen (
+	void runPrefixFunctionThen (
 		final ParserState start,
 		final A_BundleTree successorTree,
 		final A_Function prefixFunction,
@@ -3459,7 +2729,7 @@ public final class AvailCompiler
 						+ bundle.message().atomName()
 							.asNativeString()
 						+ "):\n\t"
-						+ e.toString());
+						+ e);
 				}
 				else if (e instanceof AvailAssertionFailedException)
 				{
@@ -3647,46 +2917,6 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * Produce a {@link Describer} that says a variable use was expected, and
-	 * indicates why.
-	 *
-	 * @param successorTree
-	 *        The next {@link A_BundleTree} after the current instruction.
-	 * @return The {@link Describer}.
-	 */
-	@InnerAccess
-	static Describer describeWhyVariableUseIsExpected (
-		final A_BundleTree successorTree)
-	{
-		return continuation ->
-		{
-			final A_Set bundles =
-				successorTree.allParsingPlansInProgress().keysAsSet();
-			final StringBuilder builder = new StringBuilder();
-			builder.append("a variable use, for one of:");
-			if (bundles.setSize() > 2)
-			{
-				builder.append("\n\t");
-			}
-			else
-			{
-				builder.append(" ");
-			}
-			boolean first = true;
-			for (final A_Bundle bundle : bundles)
-			{
-				if (!first)
-				{
-					builder.append(", ");
-				}
-				builder.append(bundle.message().atomName());
-				first = false;
-			}
-			continuation.value(builder.toString());
-		};
-	}
-
-	/**
 	 * A complete {@linkplain SendNodeDescriptor send node} has been parsed.
 	 * Create the send node and invoke the continuation.
 	 *
@@ -3809,7 +3039,7 @@ public final class AvailCompiler
 				else
 				{
 					// Find the most specific macro(s).
-					assert filtered.size() > 1;
+					// assert filtered.size() > 1;
 					final List<A_Definition> mostSpecific = new ArrayList<>();
 					for (final A_Definition candidate : filtered)
 					{
@@ -3977,7 +3207,7 @@ public final class AvailCompiler
 	 * @param continuation
 	 *            What to do with the argument.
 	 */
-	private void parseSendArgumentWithExplanationThen (
+	void parseSendArgumentWithExplanationThen (
 		final ParserState start,
 		final String kindOfArgument,
 		final @Nullable A_Phrase firstArgOrNull,
@@ -4136,7 +3366,7 @@ public final class AvailCompiler
 	 *            What to do once we have a fully parsed send node (of which we
 	 *            are currently parsing an argument).
 	 */
-	private void parseArgumentInModuleScopeThen (
+	void parseArgumentInModuleScopeThen (
 		final ParserState start,
 		final @Nullable A_Phrase firstArgOrNull,
 		final List<A_Token> consumedTokens,
@@ -4204,7 +3434,7 @@ public final class AvailCompiler
 									+ "was supposed to be parsed in "
 									+ "module scope, but it referred to "
 									+ "some local variables: "
-									+ localNames.toString());
+									+ localNames);
 							});
 							return;
 						}
@@ -4768,7 +3998,7 @@ public final class AvailCompiler
 	 *        definitions.
 	 * @throws MalformedPragmaException if the pragma is malformed.
 	 */
-	@InnerAccess void applyCheckPragmaThen (
+	@InnerAccess static void applyCheckPragmaThen (
 		final A_Token pragmaToken,
 		final String pragmaValue,
 		final ParserState state,
@@ -5327,6 +4557,7 @@ public final class AvailCompiler
 					// What to do after running all these simple statements.
 					final Continuation0 resumeParsing = () ->
 					{
+						compilationContext.clearLexingStates();
 						// Report progress.
 						compilationContext.getProgressReporter().value(
 							moduleName(),
@@ -5482,7 +4713,7 @@ public final class AvailCompiler
 		loader.createFilteredBundleTree();
 		loader.createLexicalScanner();
 		loader.lexicalScanner().freezeFromChanges();  // Safety
-		A_Map clientData = MapDescriptor.fromPairs(
+		final A_Map clientData = MapDescriptor.fromPairs(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			MapDescriptor.empty(),
 			ALL_TOKENS_KEY.atom,
@@ -5943,7 +5174,7 @@ public final class AvailCompiler
 	{
 		// Create the initial parser state: no tokens have been seen, and no
 		// names are in scope.
-		A_Map clientData = MapDescriptor.fromPairs(
+		final A_Map clientData = MapDescriptor.fromPairs(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			MapDescriptor.empty(),
 			ALL_TOKENS_KEY.atom,
@@ -6016,37 +5247,9 @@ public final class AvailCompiler
 						originalContinuation.superexpressions,
 						solution ->
 						{
-							try
+							synchronized (fragmentCache)
 							{
-								synchronized (fragmentCache)
-								{
-									fragmentCache.addSolution(
-										start, solution);
-								}
-							}
-							catch (final DuplicateSolutionException e)
-							{
-								final ParserState endState =
-									solution.endState();
-								compilationContext.diagnostics.handleProblem(
-									new Problem(
-										moduleName(),
-										endState.lineNumber(),
-										endState.position(),
-										INTERNAL,
-										"Duplicate expressions were parsed at "
-											+ "the same position "
-											+ "(line {0}): {1}",
-										start.lineNumber(),
-										solution.parseNode())
-									{
-										@Override
-										public void abortCompilation ()
-										{
-											compilationContext.diagnostics
-												.isShuttingDown = true;
-										}
-									});
+								fragmentCache.addSolution(start, solution);
 							}
 						});
 				start.workUnitDo(

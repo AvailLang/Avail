@@ -53,7 +53,7 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_CONCATENATE_TUPLES().init(
 			READ_VECTOR.is("tuples to concatenate"),
 			WRITE_POINTER.is("concatenated tuple"));

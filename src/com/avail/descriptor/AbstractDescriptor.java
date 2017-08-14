@@ -770,7 +770,6 @@ public abstract class AbstractDescriptor
 		final StringBuilder builder = new StringBuilder();
 		final Class<? extends AbstractDescriptor> thisClass = getClass();
 		builder.append(thisClass.getSimpleName());
-		int fieldCount = 0;
 		final List<Class<?>> supers = new ArrayList<>();
 		for (
 			Class<?> cls = thisClass;
@@ -779,6 +778,7 @@ public abstract class AbstractDescriptor
 		{
 			supers.add(0, cls);  // top-down
 		}
+		int fieldCount = 0;
 		for (final Class<?> cls : supers)
 		{
 			for (final Field f : cls.getDeclaredFields())
@@ -3620,14 +3620,14 @@ public abstract class AbstractDescriptor
 	 * @param aFunctionType The function type used in the comparison.
 	 * @return {@code true} IFF the receiver is also a function type and:
 	 *
-	 * <p><ul>
+	 * <ul>
 	 * <li>The {@linkplain AvailObject#argsTupleType() argument types}
 	 * correspond,</li>
 	 * <li>The {@linkplain AvailObject#returnType() return types}
 	 * correspond, and</li>
 	 * <li>The {@linkplain AvailObject#declaredExceptions() raise types}
 	 * correspond.</li>
-	 * </ul></p>
+	 * </ul>
 	 * @see AvailObject#equalsFunctionType(A_Type)
 	 */
 	abstract boolean o_EqualsFunctionType (
@@ -3933,12 +3933,6 @@ public abstract class AbstractDescriptor
 	abstract boolean o_IsInstanceOfKind (
 		AvailObject object,
 		A_Type aType);
-
-	/**
-	 * @param object
-	 * @return
-	 */
-	abstract boolean o_EqualsNil (AvailObject object);
 
 	/**
 	 * @param object
@@ -6112,14 +6106,6 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract boolean o_IsAtomSpecial (AvailObject object);
-
-	/**
-	 * @param object
-	 * @param primitiveNumber
-	 */
-	abstract void o_RecordLatestPrimitive (
-		AvailObject object,
-		short primitiveNumber);
 
 	/**
 	 * @param object

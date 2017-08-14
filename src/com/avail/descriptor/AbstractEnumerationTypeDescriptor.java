@@ -746,8 +746,7 @@ extends AbstractTypeDescriptor
 				return InstanceTypeDescriptor.on(
 					instancesSet.iterator().next());
 			}
-			return EnumerationTypeDescriptor.fromNormalizedSet(
-				instancesSet);
+			return EnumerationTypeDescriptor.fromNormalizedSet(instancesSet);
 		}
 		if (typeCount == setSize)
 		{

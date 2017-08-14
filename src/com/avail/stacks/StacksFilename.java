@@ -42,12 +42,12 @@ public class StacksFilename
 	/**
 	 * The relative path where the file exists.
 	 */
-	final private String pathName;
+	private final String pathName;
 
 	/**
 	 * The leaf (no path) name of the file
 	 */
-	final private String leafFilename;
+	private final String leafFilename;
 
 	/**
 	 * Construct a new {@link StacksFilename}.

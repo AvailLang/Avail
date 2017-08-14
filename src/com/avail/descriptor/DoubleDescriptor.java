@@ -105,8 +105,10 @@ extends AbstractNumberDescriptor
 
 	/**
 	 * @param aDouble
+	 *        The {@code double} value to compare numerically.
 	 * @param anInteger
-	 * @return
+	 *        An {@link IntegerDescriptor Avail integer} to compare against.
+	 * @return The {@link Order} of the double and integer.
 	 */
 	static Order compareDoubleAndInteger (
 		final double aDouble,
@@ -136,7 +138,6 @@ extends AbstractNumberDescriptor
 		// The integer is beyond an int's range.  Perhaps even beyond a double.
 		// For boundary purposes, check now if it's exactly integral.
 		final double floorD = Math.floor(aDouble);
-		final boolean isIntegral = aDouble == floorD;
 		// Produce an Avail integer with the exact value from floorD.  If it's
 		// more than about 2^60, scale it down to have about 60 bits of data.
 		// Since the mantissa is only 53 bits, this will be exact.  Since floorD
@@ -155,6 +156,7 @@ extends AbstractNumberDescriptor
 		// We now have an Avail integer representing the exact same quantity as
 		// floorD.
 		final Order integerOrder = integer.numericCompare(anInteger);
+		final boolean isIntegral = aDouble == floorD;
 		if (!isIntegral && integerOrder == Order.EQUAL)
 		{
 			// d is actually a fraction of a unit bigger than the integer we
@@ -542,7 +544,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{

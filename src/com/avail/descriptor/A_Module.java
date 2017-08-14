@@ -105,8 +105,10 @@ extends A_BasicObject
 	void addUnloadFunction (A_Function unloadFunction);
 
 	/**
-	 * @param name
-	 * @param variableBinding
+	 * Add a module variable binding to this module.
+	 *
+	 * @param name The string naming the variable binding.
+	 * @param variableBinding The {@link A_Variable variable} itself.
 	 */
 	void addVariableBinding (
 		A_String name,
@@ -145,7 +147,7 @@ extends A_BasicObject
 
 	/**
 	 * Answer the {@linkplain A_Set set} of all {@linkplain A_Atom names}
-	 * exported by this {@linkplain A_Module module}.
+	 * exported by this module.
 	 *
 	 * @return The set of exported names.
 	 */
@@ -157,7 +159,9 @@ extends A_BasicObject
 	A_Map importedNames ();
 
 	/**
-	 * @param trueName
+	 * Introduce a new atom into this module.
+	 *
+	 * @param trueName The atom to introduce.
 	 */
 	void introduceNewName (A_Atom trueName);
 
@@ -167,18 +171,24 @@ extends A_BasicObject
 	A_Set methodDefinitions ();
 
 	/**
-	 * @param definition
+	 * Add a {@link A_Definition definition} to this module.
+	 *
+	 * @param definition The definition to add.
 	 */
 	void moduleAddDefinition (A_BasicObject definition);
 
 	/**
-	 * @param grammaticalRestriction
+	 * Add a grammatical restriction to this module.
+	 *
+	 * @param grammaticalRestriction The grammatical restriction to add.
 	 */
 	void moduleAddGrammaticalRestriction (
 		A_GrammaticalRestriction grammaticalRestriction);
 
 	/**
-	 * @param semanticRestriction
+	 * Add a semantic restriction to this module.
+	 *
+	 * @param semanticRestriction The semantic restriction to add.
 	 */
 	void moduleAddSemanticRestriction (
 		A_SemanticRestriction semanticRestriction);
@@ -191,18 +201,18 @@ extends A_BasicObject
 	A_String moduleName ();
 
 	/**
-	 * Answer this {@link A_Module}'s {@linkplain A_Set} of {@link
+	 * Answer this module's {@linkplain A_Set} of {@link
 	 * A_GrammaticalRestriction}s.
 	 *
-	 * @returns The set of grammatical restrictions defined by this module.
+	 * @return The set of grammatical restrictions defined by this module.
 	 */
 	A_Set moduleGrammaticalRestrictions ();
 
 	/**
-	 * Answer this {@link A_Module}'s {@linkplain A_Set} of {@linkplain
+	 * Answer this module's {@linkplain A_Set} of {@linkplain
 	 * A_SemanticRestriction}s.
 	 *
-	 * @returns The set of semantic restrictions defined by this module.
+	 * @return The set of semantic restrictions defined by this module.
 	 */
 	A_Set moduleSemanticRestrictions ();
 
@@ -214,8 +224,8 @@ extends A_BasicObject
 	/**
 	 * Answer a {@linkplain A_Map map} from {@linkplain A_String strings} to
 	 * {@linkplain A_Atom atoms}. These atoms prevent or at least clarify name
-	 * conflicts. These names are those introduced by the {@linkplain A_Module
-	 * module}'s {@code "Names"} section or {@link P_PublishName}.
+	 * conflicts. These names are those introduced by the module's {@code
+	 * "Names"} section or {@link P_PublishName}.
 	 *
 	 * @return The map of new names.
 	 */

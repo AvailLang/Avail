@@ -70,7 +70,7 @@ extends TypeDescriptor
 		 * This may become a conservatively large estimate due to my subobjects
 		 * being coalesced with more direct representations.
 		 */
-		final static BitField TUPLE_TYPE_COMPLEXITY =
+		static final BitField TUPLE_TYPE_COMPLEXITY =
 			bitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32);
 	}
 
@@ -662,7 +662,7 @@ extends TypeDescriptor
 	 *
 	 * @param part1 The left tuple type.
 	 * @param part2 The right tuple type.
-	 * @return
+	 * @return The concatenated tuple type.
 	 */
 	private static A_Type reallyConcatenate (
 		final A_Type part1,

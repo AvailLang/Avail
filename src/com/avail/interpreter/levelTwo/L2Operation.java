@@ -82,8 +82,7 @@ public abstract class L2Operation
 	 * The name of this level two operation.  This is initialized to be the
 	 * {@linkplain Class#getSimpleName() simple name} of the {@link Class}.
 	 */
-	private @Nullable
-	final String name;
+	private final @Nullable String name;
 
 	/**
 	 * Answer the name of this {@linkplain L2Operation}.
@@ -191,7 +190,6 @@ public abstract class L2Operation
 		name = className;
 		statisticInNanoseconds = new Statistic(
 			className, StatisticReport.L2_OPERATIONS);
-		//noinspection SynchronizationOnStaticField
 		valuesLock.lock();
 		try
 		{

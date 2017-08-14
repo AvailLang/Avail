@@ -52,7 +52,6 @@ import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
@@ -60,7 +59,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Function;
 
 import static com.avail.compiler.problems.ProblemType.PARSE;
 
@@ -178,11 +176,11 @@ public class CompilerDiagnostics
 
 
 	/** A bunch of dash characters, wide enough to catch the eye. */
-	public final static String rowOfDashes =
+	public static final String rowOfDashes =
 		"---------------------------------------------------------------------";
 
 	/** The 26 letters of the English alphabet, inside circles. */
-	public final static String circledLetters =
+	public static final String circledLetters =
 		"ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ";
 
 	/**
@@ -195,7 +193,7 @@ public class CompilerDiagnostics
 	 *
 	 * <p>That will teach you.</p>
 	 */
-	public final static String errorIndicatorSymbol =
+	public static final String errorIndicatorSymbol =
 		System.getProperty("os.name").startsWith("Windows")
 			? "↪"
 			: "⤷";
@@ -234,12 +232,9 @@ public class CompilerDiagnostics
 				expectationsIndexHeap.remove();
 			}
 		}
-		List<Describer> innerList = innerMap.get(lexingState);
-		if (innerList == null)
-		{
-			innerList = new ArrayList<>();
-			innerMap.put(lexingState, innerList);
-		}
+		final List<Describer> innerList = innerMap.computeIfAbsent(
+			lexingState,
+			k -> new ArrayList<>());
 		innerList.add(describer);
 	}
 
@@ -312,7 +307,7 @@ public class CompilerDiagnostics
 	 * @param continuation
 	 *        What to do when the longest {@link A_Token} has been found.
 	 */
-	void findLongestTokenThen (
+	static void findLongestTokenThen (
 		final Collection<LexingState> startLexingStates,
 		final Continuation1NotNull<A_Token> continuation)
 	{

@@ -186,8 +186,7 @@ public class AvailScanner
 	 * token}.
 	 *
 	 * @param anAvailObject
-	 *            A {@linkplain LiteralTokenDescriptor literal token}.
-	 * @return The newly added token.
+	 *        A {@linkplain LiteralTokenDescriptor literal token}.
 	 */
 	@InnerAccess
 	void addCurrentLiteralToken (
@@ -212,7 +211,6 @@ public class AvailScanner
 	 * token}.
 	 *
 	 * @param startLine The line the token started.
-	 * @return The newly added token.
 	 */
 	@InnerAccess
 	void addCurrentCommentToken (final int startLine)
@@ -500,108 +498,115 @@ public class AvailScanner
 				int erasurePosition = 0;
 				while (c != '\"')
 				{
-					if (c == '\\')
+					switch (c)
 					{
-						if (scanner.atEnd())
+						case '\\':
 						{
-							throw new AvailScannerException(
-								"Encountered end of file after backslash"
-								+ " in string literal",
-								scanner);
-						}
-						c = scanner.next();
-						switch (c)
-						{
-							case 'n':
-								stringBuilder.append('\n');
-								break;
-							case 'r':
-								stringBuilder.append('\r');
-								break;
-							case 't':
-								stringBuilder.append('\t');
-								break;
-							case '\\':
-								stringBuilder.append('\\');
-								break;
-							case '\"':
-								stringBuilder.append('\"');
-								break;
-							case '\r':
-								// Treat \r or \r\n in the source just like \n.
-								if (!scanner.atEnd())
-								{
-									scanner.peekFor('\n');
-								}
-								canErase = true;
-								break;
-							case '\n':
-								// A backslash ending a line.  Emit nothing.
-								// Allow '\|' to back up to here as long as only
-								// whitespace follows.
-								canErase = true;
-								break;
-							case '|':
-								// Remove all immediately preceding white space
-								// from this line.
-								if (canErase)
-								{
-									stringBuilder.setLength(erasurePosition);
-									canErase = false;
-								}
-								else
-								{
+							if (scanner.atEnd())
+							{
+								throw new AvailScannerException(
+									"Encountered end of file after backslash"
+										+ " in string literal",
+									scanner);
+							}
+							c = scanner.next();
+							switch (c)
+							{
+								case 'n':
+									stringBuilder.append('\n');
+									break;
+								case 'r':
+									stringBuilder.append('\r');
+									break;
+								case 't':
+									stringBuilder.append('\t');
+									break;
+								case '\\':
+									stringBuilder.append('\\');
+									break;
+								case '\"':
+									stringBuilder.append('\"');
+									break;
+								case '\r':
+									// Treat \r or \r\n in the source just like \n.
+									if (!scanner.atEnd())
+									{
+										scanner.peekFor('\n');
+									}
+									canErase = true;
+									break;
+								case '\n':
+									// A backslash ending a line.  Emit nothing.
+									// Allow '\|' to back up to here as long as only
+									// whitespace follows.
+									canErase = true;
+									break;
+								case '|':
+									// Remove all immediately preceding white space
+									// from this line.
+									if (canErase)
+									{
+										stringBuilder.setLength(erasurePosition);
+										canErase = false;
+									}
+									else
+									{
+										throw new AvailScannerException(
+											"The input line before \"\\|\" "
+												+ "contains non-whitespace",
+											scanner);
+									}
+									break;
+								case '(':
+									parseUnicodeEscapes(scanner, stringBuilder);
+									break;
+								case '[':
+									scanner.lineNumber = literalStartingLine;
 									throw new AvailScannerException(
-										"The input line before \"\\|\" "
-										+ "contains non-whitespace",
+										"Power strings are not yet supported",
 										scanner);
-								}
-								break;
-							case '(':
-								parseUnicodeEscapes(scanner, stringBuilder);
-								break;
-							case '[':
-								scanner.lineNumber = literalStartingLine;
-								throw new AvailScannerException(
-									"Power strings are not yet supported",
-									scanner);
-								// TODO parsePowerString(scanner);
-								// break;
-							default:
-								throw new AvailScannerException(
-									"Backslash escape should be followed by"
-									+ " one of n, r, t, \\, \", (, [, |, or a"
-									+ " line break, not Unicode character "
-									+ c,
-									scanner);
+									// TODO parsePowerString(scanner);
+									// break;
+								default:
+									throw new AvailScannerException(
+										"Backslash escape should be followed by"
+											+ " one of n, r, t, \\, \", (, [, |, or a"
+											+ " line break, not Unicode character "
+											+ c,
+										scanner);
+							}
+							erasurePosition = stringBuilder.length();
+							break;
 						}
-						erasurePosition = stringBuilder.length();
-					}
-					else if (c == '\r')
-					{
-						// Transform \r or \r\n in the source into \n.
-						if (!scanner.atEnd())
+						case '\r':
 						{
-							scanner.peekFor('\n');
+							// Transform \r or \r\n in the source into \n.
+							if (!scanner.atEnd())
+							{
+								scanner.peekFor('\n');
+							}
+							stringBuilder.appendCodePoint('\n');
+							canErase = true;
+							erasurePosition = stringBuilder.length();
+							break;
 						}
-						stringBuilder.appendCodePoint('\n');
-						canErase = true;
-						erasurePosition = stringBuilder.length();
-					}
-					else if (c == '\n')
-					{
-						// Just like a regular character, but limit how much
-						// can be removed by a subsequent '\|'.
-						stringBuilder.appendCodePoint('\n');
-						canErase = true;
-						erasurePosition = stringBuilder.length();
-					}
-					else
-					{
-						stringBuilder.appendCodePoint(c);
-						if (canErase && !Character.isWhitespace(c))
+						case '\n':
 						{
-							canErase = false;
+							// Just like a regular character, but limit how much
+							// can be removed by a subsequent '\|'.
+							stringBuilder.appendCodePoint('\n');
+							canErase = true;
+							erasurePosition = stringBuilder.length();
+							break;
+						}
+						default:
+						{
+							stringBuilder.appendCodePoint(c);
+							if (canErase && !Character.isWhitespace(c))
+							{
+								canErase = false;
+							}
+							break;
 						}
 					}
 					if (scanner.atEnd())
@@ -641,7 +646,6 @@ public class AvailScanner
 					final StringBuilder stringBuilder)
 				throws AvailScannerException
 			{
-				int c;
 				if (scanner.atEnd())
 				{
 					throw new AvailScannerException(
@@ -649,7 +653,7 @@ public class AvailScanner
 						+ " commas",
 						scanner);
 				}
-				c = scanner.next();
+				int c = scanner.next();
 				while (c != ')')
 				{
 					int value = 0;
@@ -658,17 +662,17 @@ public class AvailScanner
 					{
 						if (c >= '0' && c <= '9')
 						{
-							value = (value << 4) + c - '0';
+							value = (value << 4) + c - (int)'0';
 							digitCount++;
 						}
 						else if (c >= 'A' && c <= 'F')
 						{
-							value = (value << 4) + c - 'A' + 10;
+							value = (value << 4) + c - (int)'A' + 10;
 							digitCount++;
 						}
 						else if (c >= 'a' && c <= 'f')
 						{
-							value = (value << 4) + c - 'a' + 10;
+							value = (value << 4) + c - (int)'a' + 10;
 							digitCount++;
 						}
 						else
@@ -695,7 +699,7 @@ public class AvailScanner
 							+ " hexadecimal digits",
 							scanner);
 					}
-					assert digitCount >= 1 && digitCount <= 6;
+					// assert digitCount >= 1 && digitCount <= 6;
 					if (value > CharacterDescriptor.maxCodePointInt)
 					{
 						throw new AvailScannerException(
@@ -853,7 +857,6 @@ public class AvailScanner
 		{
 			@Override
 			void scan (final AvailScanner scanner)
-				throws AvailScannerException
 			{
 				scanner.addCurrentToken(TokenType.OPERATOR);
 			}
@@ -865,7 +868,7 @@ public class AvailScanner
 		 * because immutable arrays aren't possible in Java.  Copy it once here
 		 * for speed.
 		 */
-		final static ScannerAction[] all = values();
+		static final ScannerAction[] all = values();
 
 		/**
 		 * Process the current character.

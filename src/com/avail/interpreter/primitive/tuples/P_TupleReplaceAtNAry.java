@@ -54,7 +54,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_TupleReplaceAtNAry().init(
 			3, CanInline, CanFold);
 	/**
@@ -71,6 +71,7 @@ extends Primitive
 	 * @param newValue
 	 *        the updating value
 	 * @return
+	 *         The outermost tuple with the update applied.
 	 * @throws AvailException
 	 */
 	private A_Tuple recursivelyUpdateTuple (
@@ -128,6 +129,7 @@ extends Primitive
 	 * @param newValue
 	 *        the updating value
 	 * @return
+	 *         The outermost {@link A_Map map} with the update applied.
 	 * @throws AvailException E_INCORRECT_ARGUMENT_TYPE
 	 * @throws AvailException E_KEY_NOT_FOUND
 	 */

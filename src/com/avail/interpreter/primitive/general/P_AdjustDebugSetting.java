@@ -46,7 +46,7 @@ public final class P_AdjustDebugSetting extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_AdjustDebugSetting().init(
 			1, Unknown, CannotFail);
 
@@ -62,11 +62,9 @@ public final class P_AdjustDebugSetting extends Primitive
 		final int level = levelObject.extractInt();
 		Interpreter.debugL1 = (level & 1) != 0;
 		Interpreter.debugL2 = (level & 2) != 0;
-		FiberDescriptor.debugFibers = (level & 4) != 0;
-		Interpreter.debugPrimitives = (level & 8) != 0;
+		Interpreter.debugPrimitives = (level & 4) != 0;
 		Interpreter.debugCustom = (level & 128) != 0;
-		Interpreter.setLoggerLevel(
-			level != 0 ? Level.ALL : Level.OFF);
+		Interpreter.setLoggerLevel(level != 0 ? Level.ALL : Level.OFF);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

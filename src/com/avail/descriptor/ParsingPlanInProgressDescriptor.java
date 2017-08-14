@@ -57,7 +57,7 @@ import java.util.IdentityHashMap;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class ParsingPlanInProgressDescriptor
+public final class ParsingPlanInProgressDescriptor
 extends Descriptor
 {
 	/**

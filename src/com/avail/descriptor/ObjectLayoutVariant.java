@@ -32,7 +32,6 @@
 
 package com.avail.descriptor;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +53,7 @@ import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSI
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class ObjectLayoutVariant
+public final class ObjectLayoutVariant
 {
 	/**
 	 * The number of slots to allocate in an object or object type to
@@ -157,11 +156,11 @@ public class ObjectLayoutVariant
 	}
 
 	/** The collection of all variants, indexed by the set of field atoms. */
-	private final static Map<A_Set, ObjectLayoutVariant> allVariants =
+	private static final Map<A_Set, ObjectLayoutVariant> allVariants =
 		new HashMap<>();
 
 	/** The lock used to protect access to the allVariants map. */
-	private final static ReadWriteLock variantsLock =
+	private static final ReadWriteLock variantsLock =
 		new ReentrantReadWriteLock();
 
 	/**

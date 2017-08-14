@@ -67,7 +67,7 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_INVOKE_AFTER_FAILED_PRIMITIVE().init(
 			READ_POINTER.is("continuation"),
 			READ_POINTER.is("function"),

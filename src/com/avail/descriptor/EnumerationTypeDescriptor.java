@@ -78,7 +78,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class EnumerationTypeDescriptor
+public final class EnumerationTypeDescriptor
 extends AbstractEnumerationTypeDescriptor
 {
 	/** The layout of object slots for my instances. */
@@ -827,8 +827,7 @@ extends AbstractEnumerationTypeDescriptor
 
 	/**
 	 * Avail's boolean type, the equivalent of Java's primitive {@code boolean}
-	 * pseudo-type, and Java's other non-primitive boxed {@link #booleanObject}
-	 * class.
+	 * pseudo-type, similar to Java's boxed {@link Boolean} class.
 	 */
 	private static final A_Type booleanObject;
 
@@ -850,8 +849,8 @@ extends AbstractEnumerationTypeDescriptor
 			AtomDescriptor.trueObject(),
 			AtomDescriptor.falseObject());
 		booleanObject = withInstances(tuple.asSet()).makeShared();
-		trueType = withInstance(AtomDescriptor.trueObject());
-		falseType = withInstance(AtomDescriptor.falseObject());
+		trueType = withInstance(AtomDescriptor.trueObject()).makeShared();
+		falseType = withInstance(AtomDescriptor.falseObject()).makeShared();
 	}
 
 	/**

@@ -52,7 +52,7 @@ public final class P_ShortCircuitHelper extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_ShortCircuitHelper().init(
 			2, Invokes, CannotFail);
 

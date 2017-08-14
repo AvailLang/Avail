@@ -136,7 +136,7 @@ extends Descriptor
 	}
 
 	/** The mutable {@link SemanticRestrictionDescriptor}. */
-	private final static SemanticRestrictionDescriptor mutable =
+	private static final SemanticRestrictionDescriptor mutable =
 		new SemanticRestrictionDescriptor(Mutability.MUTABLE);
 
 	@Override
@@ -146,7 +146,7 @@ extends Descriptor
 	}
 
 	/** The shared {@link SemanticRestrictionDescriptor}. */
-	private final static SemanticRestrictionDescriptor shared =
+	private static final SemanticRestrictionDescriptor shared =
 		new SemanticRestrictionDescriptor(Mutability.SHARED);
 
 	@Override

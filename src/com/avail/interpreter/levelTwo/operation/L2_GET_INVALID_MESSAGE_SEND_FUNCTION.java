@@ -40,7 +40,6 @@ import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -62,7 +61,7 @@ extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_GET_INVALID_MESSAGE_SEND_FUNCTION().init(
 			WRITE_POINTER.is("invalid message send function"));
 

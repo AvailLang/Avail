@@ -48,7 +48,7 @@ public class L2_CREATE_VARIABLE extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_CREATE_VARIABLE().init(
 			CONSTANT.is("outerType"),
 			WRITE_POINTER.is("variable"));

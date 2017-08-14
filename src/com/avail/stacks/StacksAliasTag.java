@@ -45,7 +45,7 @@ public class StacksAliasTag extends AbstractStacksTag
 	/**
 	 * The list of the aliases for which the method/type is known by
 	 */
-	final private List<QuotedStacksToken> aliases;
+	private final List<QuotedStacksToken> aliases;
 
 
 	/**

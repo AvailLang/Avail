@@ -48,7 +48,7 @@ public final class P_CatchException extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_CatchException().init(
 			3, CatchException, PreserveFailureVariable, PreserveArguments, Unknown);
 

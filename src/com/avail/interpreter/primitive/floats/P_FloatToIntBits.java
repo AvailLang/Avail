@@ -50,7 +50,7 @@ public final class P_FloatToIntBits extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_FloatToIntBits().init(
 			1, CannotFail, CanFold, CanInline);
 

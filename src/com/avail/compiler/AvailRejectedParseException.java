@@ -62,9 +62,7 @@ extends PrimitiveThrownException
 
 	/**
 	 * A {@link Generator} that will produce the rejectionString if needed.
-	 * May be null if the rejectionString is provided directly.
 	 */
-	@Nullable
 	final Generator<A_String> rejectionGenerator;
 
 	/**
@@ -87,9 +85,8 @@ extends PrimitiveThrownException
 	}
 
 	/**
-	 * Construct a new {@link AvailRejectedParseException}.  If this diagnostic
-	 * is deemed relevant, the string will be presented after the word
-	 * "Expected...".
+	 * Construct a new instance.  If this diagnostic is deemed relevant, the
+	 * string will be presented after the word "Expected...".
 	 *
 	 * @param rejectionString
 	 *        The Avail {@linkplain A_String string} indicating why a particular
@@ -98,20 +95,20 @@ extends PrimitiveThrownException
 	public AvailRejectedParseException (
 		final A_String rejectionString)
 	{
-		this.rejectionGenerator = null;
+		this.rejectionGenerator = () -> rejectionString;
 		this.rejectionString = rejectionString;
 	}
 
 	/**
-	 * Construct a new {@link AvailRejectedParseException} with a Java {@link
-	 * String} as the pattern for the explanation, and arguments to be
-	 * substituted into the pattern.  If this diagnostic is deemed relevant, the
-	 * string will be presented after the word "Expected...".
+	 * Construct a new instance with a Java {@link String} as the pattern for
+	 * the explanation, and arguments to be substituted into the pattern.  If
+	 * this diagnostic is deemed relevant, the string will be presented after
+	 * the word "Expected...".
 	 *
 	 * @param rejectionPattern
-	 *        The String to use as a pattern in {@linkplain
-	 *        String#format(String, Object...)}.  The arguments with which to
-	 *        instantiate the pattern are also supplied.
+	 *        The String to use as a pattern in {@link String#format(String,
+	 *        Object...)}.  The arguments with which to instantiate the pattern
+	 *        are also supplied.
 	 * @param rejectionArguments
 	 *        The arguments that should be substituted into the pattern.
 	 */
@@ -129,10 +126,10 @@ extends PrimitiveThrownException
 	}
 
 	/**
-	 * Construct a new {@link AvailRejectedParseException} the most general way,
-	 * with a {@link Generator} to produce an {@link A_String Avail string} as
-	 * needed.  If this diagnostic is deemed relevant, the string will be
-	 * presented after the word "Expected...".
+	 * Construct a new instance the most general way, with a {@link Generator}
+	 * to produce an {@link A_String Avail string} as needed.  If this
+	 * diagnostic is deemed relevant, the string will be presented after the
+	 * word "Expected...".
 	 *
 	 * @param generator
 	 *        The {@link Generator} that produces a diagnostic {@link A_String

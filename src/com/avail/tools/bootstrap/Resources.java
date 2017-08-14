@@ -134,7 +134,7 @@ final class Resources
 
 	/**
 	 * Answer the key for the specified special object's preferred Stacks
-	 * @type name.
+	 * type name.
 	 *
 	 * @param index
 	 *        The special object index.

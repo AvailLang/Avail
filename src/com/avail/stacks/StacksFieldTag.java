@@ -44,17 +44,17 @@ public class StacksFieldTag extends AbstractStacksTag
 	/**
 	 * The type of the field
 	 */
-	final private QuotedStacksToken fieldType;
+	private final QuotedStacksToken fieldType;
 
 	/**
 	 * The name of the field.
 	 */
-	final private QuotedStacksToken fieldName;
+	private final QuotedStacksToken fieldName;
 
 	/**
 	 * The description of the field.
 	 */
-	final private StacksDescription fieldDescription;
+	private final StacksDescription fieldDescription;
 
 	/**
 	 * Construct a new {@link StacksFieldTag}.

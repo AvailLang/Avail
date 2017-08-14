@@ -54,7 +54,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance = new P_EnvironmentMap().init(
+	public static final Primitive instance = new P_EnvironmentMap().init(
 		0, CannotFail, CanInline, HasSideEffect);
 
 	/**

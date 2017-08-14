@@ -55,7 +55,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_BootstrapDefineSpecialObjectMacro().init(
 			2, Unknown, Bootstrap, CannotFail);
 
@@ -74,11 +74,10 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}
-		final A_Atom trueName;
 		final A_Bundle bundle;
 		try
 		{
-			trueName = loader.lookupName(
+			final A_Atom trueName = loader.lookupName(
 				nameLiteral.token().literal());
 			bundle = trueName.bundleOrCreate();
 		}

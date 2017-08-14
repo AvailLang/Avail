@@ -494,10 +494,10 @@ extends PojoTypeDescriptor
 		builder.append(((Class<?>) javaClass.javaObjectNotNull()).getName());
 		final A_Map ancestors = object.slot(JAVA_ANCESTORS);
 		final A_Tuple params = ancestors.mapAt(javaClass);
-		boolean first = true;
 		if (params.tupleSize() != 0)
 		{
 			builder.append('<');
+			boolean first = true;
 			for (final A_BasicObject param : params)
 			{
 				if (!first)
@@ -534,7 +534,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The mutable {@link UnfusedPojoTypeDescriptor}. */
-	private final static UnfusedPojoTypeDescriptor mutable =
+	private static final UnfusedPojoTypeDescriptor mutable =
 		new UnfusedPojoTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
@@ -544,7 +544,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The immutable {@link UnfusedPojoTypeDescriptor}. */
-	private final static UnfusedPojoTypeDescriptor immutable =
+	private static final UnfusedPojoTypeDescriptor immutable =
 		new UnfusedPojoTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
@@ -554,7 +554,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The shared {@link UnfusedPojoTypeDescriptor}. */
-	private final static UnfusedPojoTypeDescriptor shared =
+	private static final UnfusedPojoTypeDescriptor shared =
 		new UnfusedPojoTypeDescriptor(Mutability.SHARED);
 
 	@Override

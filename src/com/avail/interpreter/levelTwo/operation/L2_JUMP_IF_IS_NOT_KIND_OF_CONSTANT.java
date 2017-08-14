@@ -56,7 +56,7 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT().init(
 			PC.is("target"),
 			READ_POINTER.is("object"),
@@ -128,13 +128,13 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 			// It can never be that kind of object.  Always jump.  The
 			// instructions that follow the jump will become dead code and
 			// be eliminated next pass.
-			assert canJump;
+			// assert canJump;
 			naiveTranslator.addInstruction(
 				L2_JUMP.instance,
 				instruction.operands[0]);
 			return true;
 		}
-		assert !mustJump;
+		// assert !mustJump;
 		if (!canJump)
 		{
 			// It is always of the specified type, so never jump.

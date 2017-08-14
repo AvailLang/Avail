@@ -49,7 +49,7 @@ public class StacksLinkTag extends AbstractStacksTag
 	 * is what is displayed, otherwise the text following the web address will
 	 * be used as the linking text.
 	 */
-	final private List<AbstractStacksToken> displayLinkTokens;
+	private final List<AbstractStacksToken> displayLinkTokens;
 
 	/**
 	 * The main link.

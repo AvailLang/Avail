@@ -45,7 +45,7 @@ public final class P_CreateFunctionType extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_CreateFunctionType().init(
 			2, CannotFail, CanFold, CanInline);
 

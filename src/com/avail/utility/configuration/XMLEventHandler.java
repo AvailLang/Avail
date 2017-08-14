@@ -120,11 +120,11 @@ extends DefaultHandler
 
 	@Override
 	public void startElement (
-			final @Nullable String uri,
-			final @Nullable String localName,
-			final @Nullable String qName,
-			final @Nullable Attributes attributes)
-		throws SAXException
+		final @Nullable String uri,
+		final @Nullable String localName,
+		final @Nullable String qName,
+		final @Nullable Attributes attributes)
+	throws SAXException
 	{
 		assert qName != null;
 		assert attributes != null;
@@ -143,10 +143,10 @@ extends DefaultHandler
 
 	@Override
 	public void endElement (
-			final @Nullable String uri,
-			final @Nullable String localName,
-			final @Nullable String qName)
-		throws SAXException
+		final @Nullable String uri,
+		final @Nullable String localName,
+		final @Nullable String qName)
+	throws SAXException
 	{
 		assert qName != null;
 		final ElementType element = model.elementWithQName(qName);
@@ -158,10 +158,9 @@ extends DefaultHandler
 
 	@Override
 	public void characters (
-			final @Nullable char[] buffer,
-			final int start,
-			final int length)
-		throws SAXException
+		final @Nullable char[] buffer,
+		final int start,
+		final int length)
 	{
 		assert buffer != null;
 		state.accumulate(buffer, start, length);

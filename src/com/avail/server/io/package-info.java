@@ -29,4 +29,5 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@com.avail.annotations.NotNullByDefault package com.avail.server.io;
+@NotNullByDefault package com.avail.server.io;
+import com.avail.annotations.NotNullByDefault;

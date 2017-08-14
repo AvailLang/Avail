@@ -86,7 +86,7 @@ extends Descriptor
 		return object.slot(MODULE);
 	}
 
-	final static A_String builtInNoModuleName =
+	static final A_String builtInNoModuleName =
 		StringDescriptor.from("(built-in)").makeShared();
 
 	@Override @AvailMethod

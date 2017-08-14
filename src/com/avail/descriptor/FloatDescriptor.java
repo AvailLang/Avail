@@ -430,7 +430,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{

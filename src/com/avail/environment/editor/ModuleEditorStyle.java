@@ -36,6 +36,7 @@ import com.avail.environment.AvailWorkbench;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -140,7 +141,7 @@ public enum ModuleEditorStyle
 	 */
 	private static final @NotNull
 	Map<ExpectedToken, ModuleEditorStyle> stylesByExpectedToken =
-		new HashMap<>();
+		new EnumMap<>(ExpectedToken.class);
 
 	static
 	{

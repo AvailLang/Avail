@@ -50,7 +50,7 @@ public class L2_CREATE_SET extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_CREATE_SET().init(
 			READ_VECTOR.is("values"),
 			WRITE_POINTER.is("new set"));

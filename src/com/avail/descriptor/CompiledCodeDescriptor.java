@@ -89,7 +89,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class CompiledCodeDescriptor
+public final class CompiledCodeDescriptor
 extends Descriptor
 {
 	/**

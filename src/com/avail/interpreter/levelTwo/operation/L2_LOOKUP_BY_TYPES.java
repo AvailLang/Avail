@@ -58,7 +58,7 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_LOOKUP_BY_TYPES().init(
 			SELECTOR.is("message bundle"),
 			READ_VECTOR.is("argument types"),

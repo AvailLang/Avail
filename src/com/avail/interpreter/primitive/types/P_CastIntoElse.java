@@ -64,7 +64,7 @@ public final class P_CastIntoElse extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_CastIntoElse().init(
 			3, Invokes, CannotFail);
 

@@ -48,7 +48,7 @@ public class L2_UPDATE_CONTINUATION_SLOT extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_UPDATE_CONTINUATION_SLOT().init(
 			READWRITE_POINTER.is("continuation"),
 			IMMEDIATE.is("slot index"),

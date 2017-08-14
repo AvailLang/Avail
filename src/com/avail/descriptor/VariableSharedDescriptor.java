@@ -507,8 +507,8 @@ extends VariableDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain VariableSharedDescriptor variable}. This method
-	 * should only be used to "upgrade" a variable's representation.
+	 * Create a {@link Mutability#SHARED shared} {@link A_Variable variable}.
+	 * This method should only be used to "upgrade" a variable's representation.
 	 *
 	 * @param kind
 	 *        The {@linkplain VariableTypeDescriptor variable type}.
@@ -519,6 +519,7 @@ extends VariableDescriptor
 	 * @param oldVariable
 	 *        The variable being made shared.
 	 * @return
+	 *         The shared variable.
 	 */
 	static AvailObject createSharedFrom (
 		final A_Type kind,
@@ -565,7 +566,8 @@ extends VariableDescriptor
 	}
 
 	/**
-	 * Construct a new {@link VariableSharedDescriptor}.
+	 * Construct a new {@link Mutability#SHARED shared} {@link A_Variable
+	 * variable}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

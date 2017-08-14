@@ -3,35 +3,44 @@
     <words>
       <w>arriaga</w>
       <w>availuator</w>
+      <w>backquote</w>
       <w>backquoted</w>
+      <w>callees</w>
       <w>choosable</w>
       <w>codepoints</w>
       <w>contravariance</w>
       <w>cyclicity</w>
       <w>deconstructor</w>
       <w>deduplication</w>
+      <w>disassembly</w>
       <w>endian</w>
       <w>endianness</w>
       <w>fixup</w>
       <w>guillemet</w>
+      <w>guillemets</w>
+      <w>gulik</w>
       <w>homogenous</w>
       <w>idempotently</w>
       <w>inlined</w>
       <w>invalidations</w>
       <w>iterable</w>
+      <w>leapt</w>
       <w>lexed</w>
       <w>lexing</w>
       <w>lexings</w>
       <w>metacharacter</w>
       <w>metatype</w>
+      <w>multimethod</w>
       <w>multimethods</w>
       <w>mutables</w>
       <w>naïve</w>
       <w>nontype</w>
+      <w>nullary</w>
       <w>nybblecode</w>
       <w>nybblecodes</w>
       <w>opcode</w>
       <w>parameterizations</w>
+      <w>parameterize</w>
       <w>parameterized</w>
       <w>pojo</w>
       <w>pragmas</w>
@@ -42,21 +51,27 @@
       <w>reconstructor</w>
       <w>reconstructors</w>
       <w>recursing</w>
+      <w>reimplement</w>
       <w>reoptimization</w>
       <w>reoptimize</w>
+      <w>reoptimized</w>
+      <w>reoptimizes</w>
       <w>reoptimizing</w>
       <w>shareds</w>
       <w>stringified</w>
       <w>stringifier</w>
       <w>subclassing</w>
       <w>subcomponents</w>
+      <w>subentry</w>
       <w>submap</w>
       <w>subobject</w>
       <w>subobjects</w>
+      <w>subphrases</w>
       <w>subrange</w>
       <w>subranges</w>
       <w>subsequence</w>
       <w>substrings</w>
+      <w>subtasks</w>
       <w>subtuple</w>
       <w>subtuples</w>
       <w>summarizability</w>
@@ -69,8 +84,12 @@
       <w>tokenization</w>
       <w>tokenized</w>
       <w>tuples</w>
+      <w>unbackquoted</w>
       <w>uncached</w>
+      <w>unparseable</w>
+      <w>unpopped</w>
       <w>unregister</w>
+      <w>unstarted</w>
       <w>unsummarized</w>
     </words>
   </dictionary>

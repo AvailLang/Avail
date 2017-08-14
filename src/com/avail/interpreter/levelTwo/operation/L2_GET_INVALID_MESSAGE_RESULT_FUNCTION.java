@@ -57,7 +57,7 @@ extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_GET_INVALID_MESSAGE_RESULT_FUNCTION().init(
 			WRITE_POINTER.is("invalid message result function"));
 

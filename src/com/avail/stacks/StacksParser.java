@@ -44,7 +44,7 @@ import com.avail.descriptor.TokenDescriptor;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class StacksParser
+public final class StacksParser
 {
 	/**
 	 * The {@link CommentImplementationBuilder builder} responsible for
@@ -401,7 +401,7 @@ public class StacksParser
 	/**
 	 *  The tokens to be parsed.
 	 */
-	final private ArrayList<AbstractStacksToken> tokens;
+	private final ArrayList<AbstractStacksToken> tokens;
 
 	/**
 	 * The index locations where a new {@link SectionKeywordStacksToken section}
@@ -510,7 +510,6 @@ public class StacksParser
 		final LinkingFileMap linkingFileMap)
 		throws StacksCommentBuilderException
 	{
-		int nextSectionStartLocationsIndex = -1;
 		int currentSectionStartLocationsIndex = 0;
 
 		if (sectionStartLocations.get(0) != 0)
@@ -522,22 +521,20 @@ public class StacksParser
 			builder.addStacksCommentDescription(description);
 		}
 
-		int getDataStartingFrom;
-
-		int getDataUntil;
-
+		int nextSectionStartLocationsIndex = -1;
 		while (nextSectionStartLocationsIndex < sectionStartLocations.size())
 		{
 			nextSectionStartLocationsIndex =
 				currentSectionStartLocationsIndex + 1;
 
-			final String key =
-				tokens().get(sectionStartLocations
-					.get(currentSectionStartLocationsIndex)).lexeme();
+			final String key = tokens().get(
+					sectionStartLocations.get(currentSectionStartLocationsIndex)
+				).lexeme();
 
-			getDataStartingFrom = sectionStartLocations
-				.get(currentSectionStartLocationsIndex) + 1;
+			final int getDataStartingFrom = sectionStartLocations.get(
+				currentSectionStartLocationsIndex) + 1;
 
+			final int getDataUntil;
 			if (nextSectionStartLocationsIndex >
 				sectionStartLocations.size() - 1)
 			{

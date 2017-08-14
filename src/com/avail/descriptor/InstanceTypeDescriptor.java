@@ -74,7 +74,7 @@ import com.avail.utility.json.JSONWriter;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class InstanceTypeDescriptor
+public final class InstanceTypeDescriptor
 extends AbstractEnumerationTypeDescriptor
 {
 	/**

@@ -46,7 +46,7 @@ public final class P_BundleRestrictions extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_BundleRestrictions().init(
 			1, CanInline, CannotFail);
 

@@ -74,7 +74,7 @@ implements Appendable
 	}
 
 	@Override
-	public Appendable append (@Nullable final CharSequence csq)
+	public Appendable append (final @Nullable CharSequence csq)
 		throws IOException
 	{
 		String str = String.valueOf(csq);
@@ -84,7 +84,7 @@ implements Appendable
 
 	@Override
 	public Appendable append (
-			@Nullable final CharSequence csq,
+			final @Nullable CharSequence csq,
 			final int start,
 			final int end)
 		throws IOException

@@ -50,7 +50,7 @@ public final class P_RemoveTypeName extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_RemoveTypeName().init(
 			2, CanInline, CannotFail, HasSideEffect);
 

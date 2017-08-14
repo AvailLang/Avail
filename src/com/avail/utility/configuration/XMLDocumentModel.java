@@ -71,15 +71,6 @@ public final class XMLDocumentModel<
 		ConfigurationType, ElementType, StateType>>
 {
 	/**
-	 * The {@linkplain Class class} of the {@linkplain Enum enumeration} of
-	 * the actual elements.
-	 */
-	private final Class<ElementType> elementClass;
-
-	/** The elements. */
-	private final ElementType[] elements;
-
-	/**
 	 * A {@linkplain Map map} from the qualified names of XML elements to
 	 * the elements themselves.
 	 */
@@ -99,9 +90,7 @@ public final class XMLDocumentModel<
 	}
 
 	/**
-	 * Answer the root {@linkplain XMLElement element}.
-	 *
-	 * @returns The root element.
+	 * The root {@linkplain XMLElement element}.
 	 */
 	private final ElementType rootElement;
 
@@ -159,14 +148,13 @@ public final class XMLDocumentModel<
 	XMLDocumentModel (final Class<ElementType> elementClass)
 	{
 		assert elementClass.isEnum();
-		this.elementClass = elementClass;
 		// Capture the elements of the enumeration.
-		ElementType[] values = null;
+		ElementType[] elements = null;
 		try
 		{
-			final Method valuesMethod = this.elementClass.getMethod("values");
+			final Method valuesMethod = elementClass.getMethod("values");
 			assert Modifier.isStatic(valuesMethod.getModifiers());
-			values = (ElementType[]) valuesMethod.invoke(null);
+			elements = (ElementType[]) valuesMethod.invoke(null);
 		}
 		catch (final SecurityException
 			| NoSuchMethodException
@@ -177,12 +165,10 @@ public final class XMLDocumentModel<
 			// This never happens.
 			assert false;
 		}
-		assert values != null;
-		elements = values;
+		assert elements != null;
 		// Initialize other data structures.
 		elementsByQName = new HashMap<>(elements.length);
-		allowedChildren =
-			new HashMap<>(elements.length);
+		allowedChildren = new HashMap<>(elements.length);
 		ElementType root = null;
 		for (final ElementType element : elements)
 		{

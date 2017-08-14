@@ -57,7 +57,7 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_FUNCTION_PARAMETER_TYPE().init(
 			READ_POINTER.is("function"),
 			IMMEDIATE.is("parameter index"),

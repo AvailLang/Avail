@@ -36,7 +36,6 @@ import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.instruction.AvailVariableAccessNote;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import static com.avail.descriptor.AvailObject.*;
 
 /**
  * {@code AvailInstruction} implements an abstract instruction set that doesn't

@@ -47,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class TwoByteStringDescriptor
+final class TwoByteStringDescriptor
 extends StringDescriptor
 {
 	/**

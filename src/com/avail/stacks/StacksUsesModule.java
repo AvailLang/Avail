@@ -269,7 +269,7 @@ public class StacksUsesModule extends StacksImportModule
 		for (final StacksUsesModule usesModule :
 			moduleNameToUsesList().values())
 		{
-			stringBuilder.append(usesModule.toString());
+			stringBuilder.append(usesModule);
 		}
 
 		return stringBuilder.toString();

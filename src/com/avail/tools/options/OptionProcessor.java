@@ -57,7 +57,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * <p>Option strings may have the following forms:</p>
  *
- * <p><ul>
+ * <ul>
  * <li>Begins with "-" (hyphen): Each subsequent character is treated as a
  * distinct short option keyword. Short option keywords associate {@code null}
  * arguments with their actions.</li>
@@ -72,7 +72,7 @@ import org.jetbrains.annotations.Nullable;
  * action associated with the default option. An option processor supports a
  * single default option. It is distinguished in that one of its keywords is
  * the empty string.</li>
- * </ul></p>
+ * </ul>
  *
  * <p>A new option processor is obtainable via an appropriately parameterized
  * {@linkplain OptionProcessorFactory factory}. This allows incremental and

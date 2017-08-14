@@ -112,8 +112,8 @@ extends Scene
 			evt ->
 			{
 				final String moduleName = moduleNameField.getText();
-				final String leafFileName = moduleName + ".avail";
 				task.setQualifiedName(moduleName);
+				final String leafFileName = moduleName + ".avail";
 				final File newModule = new File(
 					directory.getAbsolutePath() + "/" + leafFileName);
 				if (newModule.exists())

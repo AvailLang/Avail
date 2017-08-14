@@ -47,7 +47,7 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_CLEAR_VARIABLE().init(
 			READ_POINTER.is("variable"));
 

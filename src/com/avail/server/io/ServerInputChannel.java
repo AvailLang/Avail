@@ -161,7 +161,7 @@ implements TextInputChannel
 	private @Nullable CharBuffer markBuffer;
 
 	@Override
-	public synchronized void mark (final int readAhead) throws IOException
+	public synchronized void mark (final int readAhead)
 	{
 		markBuffer = CharBuffer.allocate(readAhead);
 	}
@@ -384,7 +384,7 @@ implements TextInputChannel
 	}
 
 	@Override
-	public void close () throws IOException
+	public void close ()
 	{
 		// The AvailServerChannel should be closed, not this.
 		assert false : "This should not be closed directly!";

@@ -55,7 +55,7 @@ import java.nio.ByteBuffer;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class SubrangeTupleDescriptor
+public final class SubrangeTupleDescriptor
 extends TupleDescriptor
 {
 	/**

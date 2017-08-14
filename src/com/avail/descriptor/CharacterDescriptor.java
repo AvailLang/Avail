@@ -87,9 +87,8 @@ extends Descriptor
 		final int escapeIndex = "\n\r\t\\\"".indexOf(codePoint);
 		if (escapeIndex != -1)
 		{
-			final char escapedChar = "nrt\\\"".charAt(escapeIndex);
 			aStream.append("\"\\");
-			aStream.append(escapedChar);
+			aStream.append("nrt\\\"".charAt(escapeIndex));
 			aStream.append('"');
 			return;
 		}
@@ -267,7 +266,7 @@ extends Descriptor
 	}
 
 	/** The mutable {@link CharacterDescriptor}. */
-	private final static CharacterDescriptor mutable =
+	private static final CharacterDescriptor mutable =
 		new CharacterDescriptor(Mutability.MUTABLE);
 
 	@Override
@@ -277,7 +276,7 @@ extends Descriptor
 	}
 
 	/** The shared {@link CharacterDescriptor}. */
-	private final static CharacterDescriptor shared =
+	private static final CharacterDescriptor shared =
 		new CharacterDescriptor(Mutability.SHARED);
 
 	@Override
@@ -294,8 +293,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer a shared Avail {@linkplain CharacterDescriptor character} for the
-	 * specified Unicode code point.
+	 * Answer a shared Avail {@link A_Character character} for the specified
+	 * Unicode code point.
 	 *
 	 * @param codePoint A Unicode code point.
 	 * @return An {@link AvailObject}.
@@ -306,7 +305,6 @@ extends Descriptor
 		{
 			return byteCharacters[codePoint];
 		}
-
 		final AvailObject result = mutable.create();
 		result.setSlot(CODE_POINT, codePoint);
 		result.makeShared();
@@ -314,16 +312,14 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer an already instantiated Avail {@linkplain CharacterDescriptor
-	 * character} for the specified unsigned 8-bit Unicode code point.
+	 * Answer an already instantiated Avail {@link A_Character character} for
+	 * the specified unsigned 8-bit Unicode code point.
 	 *
 	 * @param codePoint An unsigned 8-bit Unicode code point.
 	 * @return An {@link AvailObject}.
 	 */
 	public static A_Character fromByteCodePoint (final short codePoint)
 	{
-		// Provided separately so it can return more efficiently by constant
-		// reference.
 		assert codePoint >= 0 && codePoint <= 255;
 		return byteCharacters[codePoint];
 	}
@@ -338,8 +334,7 @@ extends Descriptor
 		{
 			final AvailObject object = mutable.create();
 			object.setSlot(CODE_POINT, i);
-			object.makeShared();
-			byteCharacters[i] = object;
+			byteCharacters[i] = object.makeShared();
 		}
 	}
 

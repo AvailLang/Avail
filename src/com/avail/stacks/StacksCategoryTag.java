@@ -46,7 +46,7 @@ public class StacksCategoryTag extends AbstractStacksTag
 	/**
 	 * The list of the categories for which the method/type is applicable
 	 */
-	final private List<QuotedStacksToken> categories;
+	private final List<QuotedStacksToken> categories;
 
 	/**
 	 * Construct a new {@link StacksCategoryTag}.

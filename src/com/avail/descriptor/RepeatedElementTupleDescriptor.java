@@ -48,7 +48,7 @@ import com.avail.annotations.HideFieldInDebugger;
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-public class RepeatedElementTupleDescriptor
+public final class RepeatedElementTupleDescriptor
 extends TupleDescriptor
 {
 	/**
@@ -154,8 +154,8 @@ extends TupleDescriptor
 		// Ensure parameters are in bounds
 		assert 1 <= start && start <= end + 1;
 		final int oldSize = object.slot(SIZE);
-		final int newSize = end - start + 1;
 		assert 0 <= end && end <= oldSize;
+		final int newSize = end - start + 1;
 
 		// If the requested copy is a proper subrange, create it.
 		if (newSize != oldSize)

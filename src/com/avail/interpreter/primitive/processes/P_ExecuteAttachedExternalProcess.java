@@ -55,7 +55,7 @@ import com.avail.io.TextInterface;
 
 /**
  * <strong>Primitive</strong>: Execute an attached external {@linkplain Process
- * process}. The forked {@type A_Fiber fiber} is wired to the external process's
+ * process}. The forked {@link A_Fiber fiber} is wired to the external process's
  * standard input, output, and error mechanisms.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -66,7 +66,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_ExecuteAttachedExternalProcess().init(
 			6, CanInline, HasSideEffect);
 

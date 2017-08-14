@@ -53,7 +53,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_ComputeDigest().init(2, CannotFail, CanFold, CanInline);
 
 	@Override
@@ -68,7 +68,7 @@ extends Primitive
 		final MessageDigest digest;
 		try
 		{
-			digest = MessageDigest.getInstance("SHA-" + algorithm.toString());
+			digest = MessageDigest.getInstance("SHA-" + algorithm);
 		}
 		catch (final NoSuchAlgorithmException e)
 		{

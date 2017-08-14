@@ -57,7 +57,7 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT().init(
 			PC.is("target"),
 			READ_POINTER.is("type to check"),

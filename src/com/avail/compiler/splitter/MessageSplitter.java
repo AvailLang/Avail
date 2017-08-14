@@ -162,7 +162,7 @@ public final class MessageSplitter
 	 * The individual tokens ({@linkplain StringDescriptor strings})
 	 * constituting the message.
 	 *
-	 * <p><ul>
+	 * <ul>
 	 * <li>Alphanumerics are in runs, separated from other
 	 * alphanumerics by a single space.</li>
 	 * <li>Operator characters are never beside spaces, and are always parsed as
@@ -218,7 +218,7 @@ public final class MessageSplitter
 	 * ensure it is not used in a special way. A backquote may also operate on
 	 * another backquote (to indicate that an actual backquote token will appear
 	 * in a call).</li>
-	 * </ul></p>
+	 * </ul>
 	 * @see #messagePartsTuple
 	 */
 	final List<A_String> messagePartsList = new ArrayList<>(10);
@@ -346,7 +346,7 @@ public final class MessageSplitter
 	}
 
 	/** The position at which true is stored in the {@link #constantsList}. */
-	private final static int indexForTrue =
+	private static final int indexForTrue =
 		indexForConstant(AtomDescriptor.trueObject());
 
 	/** The position at which true is stored in the {@link #constantsList}. */
@@ -356,7 +356,7 @@ public final class MessageSplitter
 	}
 
 	/** The position at which false is stored in the {@link #constantsList}. */
-	private final static int indexForFalse =
+	private static final int indexForFalse =
 		indexForConstant(AtomDescriptor.falseObject());
 
 	/** The position at which false is stored in the {@link #constantsList}. */
@@ -932,8 +932,7 @@ public final class MessageSplitter
 						"Alternations must not contain arguments");
 				}
 				messagePartPosition++;
-				@Nullable
-				final A_String nextToken = currentMessagePartOrNull();
+				final @Nullable A_String nextToken = currentMessagePartOrNull();
 				if (nextToken != null
 					&& nextToken.equals(EXCLAMATION_MARK.string))
 				{

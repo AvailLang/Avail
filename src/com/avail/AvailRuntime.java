@@ -83,6 +83,7 @@ import com.avail.io.TextInterface;
 import com.avail.utility.LRUCache;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -162,8 +163,8 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * Answer the {@linkplain AvailRuntime Avail runtime} associated with the
-	 * current {@linkplain Thread thread}.
+	 * Answer the Avail runtime associated with the current {@linkplain Thread
+	 * thread}.
 	 *
 	 * @return The Avail runtime of the current thread.
 	 */
@@ -230,7 +231,7 @@ public final class AvailRuntime
 		final AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public Thread newThread (final Runnable runnable)
+		public Thread newThread (final @NotNull Runnable runnable)
 		{
 			return new Thread(
 				runnable, "AvailFile-" + counter.incrementAndGet());
@@ -247,7 +248,7 @@ public final class AvailRuntime
 		final AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public Thread newThread (final Runnable runnable)
+		public Thread newThread (final @NotNull Runnable runnable)
 		{
 			return new Thread(
 				runnable, "AvailSocket-" + counter.incrementAndGet());
@@ -424,7 +425,7 @@ public final class AvailRuntime
 	}
 
 	/** The default {@linkplain FileSystem file system}. */
-	private final static FileSystem fileSystem = FileSystems.getDefault();
+	private static final FileSystem fileSystem = FileSystems.getDefault();
 
 	/**
 	 * Answer the default {@linkplain FileSystem file system}.
@@ -687,8 +688,6 @@ public final class AvailRuntime
 	 *
 	 * @param key
 	 *        A key.
-	 * @return A container for the associated buffer, or {@code null} if the
-	 *         buffer is no longer valid.
 	 */
 	public void discardBuffer (final BufferKey key)
 	{

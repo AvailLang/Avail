@@ -705,7 +705,8 @@ extends TypeDescriptor
 				(Class<?>) ancestor.javaObjectNotNull();
 			for (final A_BasicObject child : ancestry)
 			{
-				final Class<?> possibleChild = (Class<?>) child.javaObject();
+				final Class<?> possibleChild =
+					(Class<?>) child.javaObjectNotNull();
 				if (possibleAncestor != possibleChild
 					&& possibleAncestor.isAssignableFrom(possibleChild))
 				{
@@ -1018,9 +1019,9 @@ extends TypeDescriptor
 			final Type[] unresolved = parameterized.getActualTypeArguments();
 			final List<A_Type> resolved = new ArrayList<>(
 				unresolved.length);
-			for (int i = 0; i < unresolved.length; i++)
+			for (final Type anUnresolved : unresolved)
 			{
-				resolved.add(resolve(unresolved[i], typeVars));
+				resolved.add(resolve(anUnresolved, typeVars));
 			}
 			return forClassWithTypeArguments(
 				(Class<?>) parameterized.getRawType(),

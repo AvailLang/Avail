@@ -56,7 +56,7 @@ public class L2_CREATE_OBJECT extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_CREATE_OBJECT().init(
 			READ_VECTOR.is("field keys"),
 			READ_VECTOR.is("field values"),

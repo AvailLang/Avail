@@ -43,12 +43,10 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import com.avail.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.io.TextInterface;
@@ -82,14 +80,9 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class FiberDescriptor
+public final class FiberDescriptor
 extends Descriptor
 {
-	/**
-	 * Debug flag for tracing some mysterious fiber problems (MvG 2013.06.30).
-	 */
-	public static boolean debugFibers = false;
-
 	/** A simple counter for identifying fibers by creation order. */
 	public static final AtomicInteger uniqueDebugCounter = new AtomicInteger(0);
 
@@ -129,9 +122,9 @@ extends Descriptor
 		final BitField bitField;
 
 		/**
-		 * Construct a new {@link InterruptRequestFlag}.
+		 * Construct a new instance of this enum.
 		 *
-		 * @param bitField
+		 * @param bitField The {@link BitField} that encodes this flag.
 		 */
 		InterruptRequestFlag (final BitField bitField)
 		{
@@ -164,9 +157,9 @@ extends Descriptor
 		final BitField bitField;
 
 		/**
-		 * Construct a new {@link SynchronizationFlag}.
+		 * Construct a new instance of this enum.
 		 *
-		 * @param bitField
+		 * @param bitField The {@link BitField} that encodes this flag.
 		 */
 		SynchronizationFlag (final BitField bitField)
 		{
@@ -199,9 +192,9 @@ extends Descriptor
 		final BitField bitField;
 
 		/**
-		 * Construct a new {@link TraceFlag}.
+		 * Construct a new instance of this enum.
 		 *
-		 * @param bitField
+		 * @param bitField The {@link BitField} that encodes this flag.
 		 */
 		TraceFlag (final BitField bitField)
 		{
@@ -231,9 +224,9 @@ extends Descriptor
 		final transient BitField bitField;
 
 		/**
-		 * Construct a new {@link GeneralFlag}.
+		 * Construct a new instance of this enum.
 		 *
-		 * @param bitField
+		 * @param bitField The {@link BitField} that encodes this flag.
 		 */
 		GeneralFlag (final BitField bitField)
 		{
@@ -277,40 +270,40 @@ extends Descriptor
 			bitField(FLAGS, 32, 8);
 
 		/** See {@link InterruptRequestFlag#TERMINATION_REQUESTED}. */
-		static final BitField _TERMINATION_REQUESTED = bitField(
-			FLAGS, 40, 1);
+		static final BitField _TERMINATION_REQUESTED =
+			bitField(FLAGS, 40, 1);
 
 		/** See {@link InterruptRequestFlag#REIFICATION_REQUESTED}. */
-		static final BitField _REIFICATION_REQUESTED = bitField(
-			FLAGS, 41, 1);
+		static final BitField _REIFICATION_REQUESTED =
+			bitField(FLAGS, 41, 1);
 
 		/** See {@link SynchronizationFlag#BOUND}. */
-		static final BitField _BOUND = bitField(
-			FLAGS, 42, 1);
+		static final BitField _BOUND =
+			bitField(FLAGS, 42, 1);
 
 		/** See {@link SynchronizationFlag#SCHEDULED}. */
-		static final BitField _SCHEDULED = bitField(
-			FLAGS, 43, 1);
+		static final BitField _SCHEDULED =
+			bitField(FLAGS, 43, 1);
 
 		/** See {@link SynchronizationFlag#PERMIT_UNAVAILABLE}. */
-		static final BitField _PERMIT_UNAVAILABLE = bitField(
-			FLAGS, 44, 1);
+		static final BitField _PERMIT_UNAVAILABLE =
+			bitField(FLAGS, 44, 1);
 
 		/** See {@link TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES}. */
-		static final BitField _TRACE_VARIABLE_READS_BEFORE_WRITES = bitField(
-			FLAGS, 45, 1);
+		static final BitField _TRACE_VARIABLE_READS_BEFORE_WRITES =
+			bitField(FLAGS, 45, 1);
 
 		/** See {@link TraceFlag#TRACE_VARIABLE_WRITES}. */
-		static final BitField _TRACE_VARIABLE_WRITES = bitField(
-			FLAGS, 46, 1);
+		static final BitField _TRACE_VARIABLE_WRITES =
+			bitField(FLAGS, 46, 1);
 
 		/** See {@link GeneralFlag#CAN_REJECT_PARSE}. */
-		static final BitField _CAN_REJECT_PARSE = bitField(
-			FLAGS, 47, 1);
+		static final BitField _CAN_REJECT_PARSE =
+			bitField(FLAGS, 47, 1);
 
 		/** See {@link GeneralFlag#CAN_REJECT_PARSE}. */
-		static final BitField _IS_EVALUATING_MACRO = bitField(
-			FLAGS, 48, 1);
+		static final BitField _IS_EVALUATING_MACRO =
+			bitField(FLAGS, 48, 1);
 	}
 
 	/**
@@ -436,19 +429,7 @@ extends Descriptor
 		 * {@link #NAME_GENERATOR} to run, and the resulting string to be cached
 		 * here.
 		 */
-		NAME_OR_NIL,
-
-		/**
-		 * The in-memory debug log for this fiber.  This reduces contention
-		 * between fibers versus a global log.  The log is merely a {@link
-		 * RawPojoDescriptor raw pojo} holding a StringBuilder.  We don't even
-		 * bother making it circular, since fiber generally don't usually run
-		 * for very long in Avail.
-		 *
-		 * <p>TODO [MvG] Remove when the succeed-twice bug is gone.</p>
-		 */
-		@HideFieldJustForPrinting
-		DEBUG_LOG;
+		NAME_OR_NIL;
 	}
 
 	/**
@@ -544,12 +525,6 @@ extends Descriptor
 			}
 
 			@Override
-			public boolean indicatesVoluntarySuspension ()
-			{
-				return true;
-			}
-
-			@Override
 			protected Set<ExecutionState> privateSuccessors ()
 			{
 				return EnumSet.of(SUSPENDED);
@@ -563,12 +538,6 @@ extends Descriptor
 		{
 			@Override
 			public boolean indicatesSuspension ()
-			{
-				return true;
-			}
-
-			@Override
-			public boolean indicatesVoluntarySuspension ()
 			{
 				return true;
 			}
@@ -635,9 +604,9 @@ extends Descriptor
 		private static final ExecutionState[] all = values();
 
 		/**
-		 * Answer an array of all {@link ExecutionState} enumeration values.
+		 * Answer an array of all execution state enum values.
 		 *
-		 * @return An array of all {@link ExecutionState} enum values.  Do not
+		 * @return An array of all execution enum values.  Do not
 		 *         modify the array.
 		 */
 		static ExecutionState[] all ()
@@ -674,10 +643,9 @@ extends Descriptor
 		}
 
 		/**
-		 * Answer my legal successor {@linkplain ExecutionState states}.  None
-		 * by default.
+		 * Answer my legal successor execution states.  None by default.
 		 *
-		 * @return A {@link Set} of {@link ExecutionState}s.
+		 * @return A {@link Set} of execution states.
 		 */
 		protected Set<ExecutionState> privateSuccessors ()
 		{
@@ -685,8 +653,8 @@ extends Descriptor
 		}
 
 		/**
-		 * Does this {@linkplain ExecutionState execution state} indicate that
-		 * a {@linkplain FiberDescriptor fiber} is suspended for some reason?
+		 * Does this execution state indicate that a {@link A_Fiber fiber} is
+		 * suspended for some reason?
 		 *
 		 * @return {@code true} if the execution state represents suspension,
 		 *         {@code false} otherwise.
@@ -697,21 +665,8 @@ extends Descriptor
 		}
 
 		/**
-		 * Does this {@linkplain ExecutionState execution state} indicate that
-		 * a {@linkplain FiberDescriptor fiber} suspended itself voluntarily
-		 * for some reason?
-		 *
-		 * @return {@code true} if the execution state represents voluntary
-		 *         suspension, {@code false} otherwise.
-		 */
-		public boolean indicatesVoluntarySuspension ()
-		{
-			return false;
-		}
-
-		/**
-		 * Does this {@linkplain ExecutionState execution state} indicate that
-		 * a {@linkplain FiberDescriptor fiber} has terminated for some reason?
+		 * Does this execution state indicate that a {@link A_Fiber fiber} has
+		 * terminated for some reason?
 		 *
 		 * @return {@code true} if the execution state represents termination,
 		 *         {@code false} otherwise.
@@ -720,27 +675,6 @@ extends Descriptor
 		{
 			return false;
 		}
-	}
-
-	/**
-	 * Log concurrency-related information about a specific fiber or null.
-	 *
-	 * @param fiber The fiber that is affected, or null.
-	 * @param level The logging level.
-	 * @param format The message string.
-	 * @param parameters The parameters with which to fill the message string.
-	 */
-	public static void log (
-		final @Nullable A_Fiber fiber,
-		final Level level,
-		final String format,
-		final Object... parameters)
-	{
-		Interpreter.log(
-			fiber,
-			level,
-			format,
-			parameters);
 	}
 
 	@Override boolean allowsImmutableToMutableReferenceInField (
@@ -761,58 +695,10 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			final ExecutionState current = all()
-				[(int)object.mutableSlot(EXECUTION_STATE)];
+			final ExecutionState current =
+				all()[(int)object.mutableSlot(EXECUTION_STATE)];
 			assert current.mayTransitionTo(value);
 			object.setSlot(EXECUTION_STATE, value.ordinal());
-			if (debugFibers)
-			{
-				log(object, "ExecState: %s -> %s (protected/shared)",
-					current, value);
-			}
-		}
-	}
-
-
-	/**
-	 * Log concurrency-related information about a specific fiber or null.  The
-	 * text is written to an in-memory StringBuilder that is truncated on the
-	 * left when it grows too large.
-	 *
-	 * @param fiber The fiber that is affected, or null.
-	 * @param pattern The pattern to log.
-	 * @param arguments The values with which to populate the pattern.
-	 */
-	public static void log (
-		final AvailObject fiber,
-		final String pattern,
-		final Object... arguments)
-	{
-		final StringBuilder builder =
-			(StringBuilder)fiber.slot(DEBUG_LOG).javaObjectNotNull();
-		synchronized (builder)
-		{
-			if (builder.length() > 1_000_000)
-			{
-				builder.replace(0, 800_000, "(TRUNCATED)...\n");
-			}
-			final Formatter formatter = new Formatter(builder);
-			final Interpreter interpreter = Interpreter.currentOrNull();
-			if (interpreter == null)
-			{
-				formatter.format(
-					"NO INTERPRETER [Thread = %s]: ",
-					Thread.currentThread());
-			}
-			else
-			{
-				formatter.format(
-					"%2d: ",
-					Interpreter.current().interpreterIndex);
-			}
-			formatter.format(pattern, arguments);
-			builder.append("\n");
-			formatter.close();
 		}
 	}
 
@@ -882,11 +768,6 @@ extends Descriptor
 			value = object.slot(flag.bitField);
 			object.setSlot(flag.bitField, newBit);
 		}
-		if (debugFibers)
-		{
-			log(object, "Get & set synch flag: %s (%s -> %s)",
-				flag, value, newBit);
-		}
 		return value == 1;
 	}
 
@@ -897,10 +778,6 @@ extends Descriptor
 		synchronized (object)
 		{
 			value = object.slot(flag.bitField);
-		}
-		if (debugFibers)
-		{
-			log(object, "GET general flag: %s=%d", flag, value);
 		}
 		return value == 1;
 	}
@@ -914,10 +791,6 @@ extends Descriptor
 		{
 			object.setSlot(flag.bitField, 1);
 		}
-		if (debugFibers)
-		{
-			log(object, "Set general flag: %s", flag);
-		}
 	}
 
 	@Override @AvailMethod
@@ -928,10 +801,6 @@ extends Descriptor
 		synchronized (object)
 		{
 			object.setSlot(flag.bitField, 0);
-		}
-		if (debugFibers)
-		{
-			log(object, "Clear general flag: %s", flag);
 		}
 	}
 
@@ -953,10 +822,6 @@ extends Descriptor
 		{
 			object.setSlot(flag.bitField, 1);
 		}
-		if (debugFibers)
-		{
-			log(object, "Set trace flag %s", flag);
-		}
 	}
 
 	@Override @AvailMethod
@@ -967,10 +832,6 @@ extends Descriptor
 		synchronized (object)
 		{
 			object.setSlot(flag.bitField, 0);
-		}
-		if (debugFibers)
-		{
-			log(object, "Clear trace flag: %s", flag);
 		}
 	}
 
@@ -1092,9 +953,8 @@ extends Descriptor
 	}
 
 	/**
-	 * The default result continuation, answered when a {@linkplain
-	 * FiberDescriptor fiber}'s result continuation is {@linkplain
-	 * NilDescriptor nil}.
+	 * The default result continuation, answered when a {@link A_Fiber fiber}'s
+	 * result continuation is {@link NilDescriptor#nil()}  nil}.
 	 */
 	private static final A_BasicObject defaultResultContinuation =
 		RawPojoDescriptor.identityWrap(
@@ -1116,17 +976,6 @@ extends Descriptor
 			assert !pojo.equalsNil() : "Fiber attempting to succeed twice!";
 			object.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
 			object.setSlot(FAILURE_CONTINUATION, NilDescriptor.nil());
-		}
-		if (debugFibers)
-		{
-			final StringBuilder b = new StringBuilder();
-			for (final StackTraceElement frame :
-				Thread.currentThread().getStackTrace())
-			{
-				b.append("\n\t");
-				b.append(frame);
-			}
-			log(object, "Succeeded:%s", b);
 		}
 		return (Continuation1NotNull<AvailObject>) pojo.javaObject();
 	}
@@ -1170,17 +1019,6 @@ extends Descriptor
 			assert !pojo.equalsNil();
 			object.setSlot(FAILURE_CONTINUATION, NilDescriptor.nil());
 			object.setSlot(RESULT_CONTINUATION, NilDescriptor.nil());
-		}
-		if (debugFibers)
-		{
-			final StringBuilder b = new StringBuilder();
-			for (final StackTraceElement frame :
-				Thread.currentThread().getStackTrace())
-			{
-				b.append("\n\t");
-				b.append(frame);
-			}
-			log(object, "Failed:%s", b);
 		}
 		return (Continuation1NotNull<Throwable>) pojo.javaObject();
 	}
@@ -1407,16 +1245,6 @@ extends Descriptor
 	}
 
 	@Override
-	void o_RecordLatestPrimitive (
-		final AvailObject object,
-		final short primitiveNumber)
-	{
-		final Primitive p =
-			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
-		log(object, "%s", p.name());
-	}
-
-	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
@@ -1559,7 +1387,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link FiberDescriptor}.
+	 * Construct a new {@link A_Fiber fiber}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -1651,20 +1479,6 @@ extends Descriptor
 			TEXT_INTERFACE, AvailRuntime.current().textInterfacePojo());
 		final int id = uniqueDebugCounter.incrementAndGet();
 		fiber.setSlot(DEBUG_UNIQUE_ID, id);
-		final AvailObject logPojo;
-		if (debugFibers)
-		{
-			final StringBuilder builder = new StringBuilder(200);
-			builder.append("new: ");
-			builder.append(id);
-			builder.append("\n");
-			logPojo = RawPojoDescriptor.identityWrap(builder);
-		}
-		else
-		{
-			logPojo = RawPojoDescriptor.rawNullObject();
-		}
-		fiber.setSlot(DEBUG_LOG, logPojo);
 		AvailRuntime.current().registerFiber(fiber);
 		return fiber;
 	}
@@ -1719,27 +1533,13 @@ extends Descriptor
 			TEXT_INTERFACE, AvailRuntime.current().textInterfacePojo());
 		final int id = uniqueDebugCounter.incrementAndGet();
 		fiber.setSlot(DEBUG_UNIQUE_ID, id);
-		final AvailObject logPojo;
-		if (debugFibers)
-		{
-			final StringBuilder builder = new StringBuilder(200);
-			builder.append("newLoader: ");
-			builder.append(nameGenerator.value());
-			builder.append("\n");
-			logPojo = RawPojoDescriptor.identityWrap(builder);
-		}
-		else
-		{
-			logPojo = RawPojoDescriptor.rawNullObject();
-		}
-		fiber.setSlot(DEBUG_LOG, logPojo);
 		AvailRuntime.current().registerFiber(fiber);
 		return fiber;
 	}
 
 	/**
-	 * Answer the {@linkplain FiberDescriptor fiber} currently bound to this
-	 * {@link AvailThread}.
+	 * Answer the {@link A_Fiber fiber} currently bound to this {@link
+	 * AvailThread}.
 	 *
 	 * @return A fiber.
 	 */
@@ -1749,8 +1549,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer the {@linkplain FiberDescriptor fiber} currently bound to this
-	 * {@link AvailThread}.
+	 * Answer the {@link A_Fiber fiber} currently bound to this {@link
+	 * AvailThread}.
 	 *
 	 * @return A fiber, or {@code null} if no fiber is currently bound.
 	 */

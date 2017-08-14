@@ -49,7 +49,7 @@ public abstract class AbstractCommentImplementation
 	 * The {@link CommentSignature signature} of the class/method the comment
 	 * describes.
 	 */
-	final private CommentSignature signature;
+	private final CommentSignature signature;
 
 	/**
 	 * @return the signature
@@ -63,7 +63,7 @@ public abstract class AbstractCommentImplementation
 	 * Indicates whether or not a method/class is to be documented regardless
 	 * of visibility
 	 */
-	final private boolean sticky;
+	private final boolean sticky;
 
 	/**
 	 * @return whether or not the method is {@link #sticky}

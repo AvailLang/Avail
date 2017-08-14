@@ -811,7 +811,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 *        The client-supplied WebSocket key.
 		 * @return The WebSocket accept key.
 		 */
-		private String computeAcceptKey (final byte[] key)
+		private static String computeAcceptKey (final byte[] key)
 		{
 			final MessageDigest digest;
 			try
@@ -1347,17 +1347,23 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				| (payloadLength < 126
 					? payloadLength : payloadLength < 65536
 					? 126 : 127)));
-			if (ext == 2)
+			switch (ext)
 			{
-				buffer.putShort((short) payloadLength);
-			}
-			else if (ext == 8)
-			{
-				buffer.putLong(payloadLength);
-			}
-			else
-			{
-				assert ext == 0;
+				case 2:
+				{
+					buffer.putShort((short) payloadLength);
+					break;
+				}
+				case 8:
+				{
+					buffer.putLong(payloadLength);
+					break;
+				}
+				default:
+				{
+					// assert ext == 0;
+					break;
+				}
 			}
 			final ByteBuffer payload = payloadData();
 			payload.rewind();

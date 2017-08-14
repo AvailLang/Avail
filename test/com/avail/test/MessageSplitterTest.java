@@ -54,7 +54,7 @@ import com.avail.exceptions.MalformedMessageException;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class MessageSplitterTest
+public final class MessageSplitterTest
 {
 	/**
 	 * This is a helper class for building test cases.

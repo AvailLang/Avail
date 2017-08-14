@@ -140,7 +140,7 @@ extends NumericTupleDescriptor
 	 * requested below this size will be created as standard tuples or the empty
 	 * tuple.
 	 */
-	private final static int maximumCopySize = 4;
+	private static final int maximumCopySize = 4;
 
 	@Override @AvailMethod
 	A_Tuple o_AppendCanDestroy (
@@ -422,7 +422,7 @@ extends NumericTupleDescriptor
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
-		// START + (index-1) × DELTA
+		// START + (index-1) * DELTA
 		assert index >= 1 && index <= object.tupleSize();
 		A_Number temp = IntegerDescriptor.fromInt(index - 1);
 		temp = temp.timesCanDestroy(object.slot(DELTA), false);

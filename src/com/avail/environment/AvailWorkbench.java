@@ -107,8 +107,7 @@ extends JFrame
 	/**
 	 * The prefix string for resources related to the workbench.
 	 */
-	public static @NotNull
-	final String resourcePrefix = "/resources/workbench/";
+	public static final @NotNull String resourcePrefix = "/resources/workbench/";
 
 	/** Determine at startup whether we're on a Mac. */
 	public static final boolean runningOnMac =
@@ -657,8 +656,7 @@ extends JFrame
 		 */
 		public BuildInputStream ()
 		{
-			super(new byte[1024]);
-			this.count = 0;
+			super(new byte[1024], 0, 0);
 			this.doc = transcript.getStyledDocument();
 		}
 	}
@@ -671,7 +669,7 @@ extends JFrame
 	public final ModuleNameResolver resolver;
 
 	/** The current {@linkplain AbstractWorkbenchTask background task}. */
-	public volatile @Nullable AbstractWorkbenchTask backgroundTask;
+	public volatile @Nullable AbstractWorkbenchTask backgroundTask = null;
 
 	/**
 	 * The documentation {@linkplain Path path} for the {@linkplain
@@ -716,7 +714,7 @@ extends JFrame
 	{
 		if (!file.exists())
 		{
-			final String message = file.toString() + " not found!";
+			final String message = file + " not found!";
 				JOptionPane.showMessageDialog(this, message);
 		}
 		else
@@ -745,8 +743,7 @@ extends JFrame
 	}
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
-	private @Nullable
-	final BuildInputStream inputStream;
+	private final @Nullable BuildInputStream inputStream;
 
 	/**
 	 * Answer the {@linkplain BuildInputStream standard input stream}.
@@ -761,8 +758,7 @@ extends JFrame
 	}
 
 	/** The {@linkplain PrintStream standard error stream}. */
-	private @Nullable
-	final PrintStream errorStream;
+	private final @Nullable PrintStream errorStream;
 
 	/**
 	 * Answer the {@linkplain PrintStream standard error stream}.
@@ -777,8 +773,7 @@ extends JFrame
 	}
 
 	/** The {@linkplain PrintStream standard output stream}. */
-	private @Nullable
-	final PrintStream outputStream;
+	private final @Nullable PrintStream outputStream;
 
 	/**
 	 * Answer the {@linkplain PrintStream standard output stream}.
@@ -1133,9 +1128,8 @@ extends JFrame
 		{
 			@Override
 			public FileVisitResult preVisitDirectory (
-					final @Nullable Path dir,
-					final @Nullable BasicFileAttributes unused)
-				throws IOException
+				final @Nullable Path dir,
+				final @Nullable BasicFileAttributes unused)
 			{
 				assert dir != null;
 				final DefaultMutableTreeNode parentNode = stack.peekFirst();
@@ -1210,9 +1204,8 @@ extends JFrame
 
 			@Override
 			public FileVisitResult postVisitDirectory (
-					final @Nullable Path dir,
-					final @Nullable IOException ex)
-				throws IOException
+				final @Nullable Path dir,
+				final @Nullable IOException ex)
 			{
 				assert dir != null;
 				// Pop the node from the stack.
@@ -1261,10 +1254,10 @@ extends JFrame
 						moduleName = new ModuleName(
 							parentModuleName.packageName(), localName);
 					}
-					final ResolvedModuleName resolved;
 					try
 					{
-						resolved = resolver.resolve(moduleName, null);
+						final ResolvedModuleName resolved =
+							resolver.resolve(moduleName, null);
 						final ModuleOrPackageNode node =
 							new ModuleOrPackageNode(
 								availBuilder, moduleName, resolved, false);
@@ -1285,9 +1278,8 @@ extends JFrame
 
 			@Override
 			public FileVisitResult visitFileFailed (
-					final @Nullable Path file,
-					final @Nullable IOException ex)
-				throws IOException
+				final @Nullable Path file,
+				final @Nullable IOException ex)
 			{
 				return FileVisitResult.CONTINUE;
 			}
@@ -1749,43 +1741,43 @@ extends JFrame
 	}
 
 	/** The user-specific {@link Preferences} for this application to use. */
-	private final static Preferences basePreferences =
+	private static final Preferences basePreferences =
 		Preferences.userNodeForPackage(AvailWorkbench.class);
 
 	/** The key under which to organize all placement information. */
-	private final static String placementByMonitorNamesString =
+	private static final String placementByMonitorNamesString =
 		"placementByMonitorNames";
 
 	/** The leaf key under which to store a single window placement. */
-	public final static String placementLeafKeyString = "placement";
+	public static final String placementLeafKeyString = "placement";
 
 	/** The key under which to organize all templates */
-	private final static String templatePreferenceString =
+	private static final String templatePreferenceString =
 		"templates";
 
 	/** The leaf key under which to store the module template string. */
-	public final static String moduleLeafKeyString = "module";
+	public static final String moduleLeafKeyString = "module";
 
 	/** The leaf key under which to store the text template string. */
-	public final static String textLeafKeyString = "text template";
+	public static final String textLeafKeyString = "text template";
 
 	/** The key under which to store the {@link ModuleRoots}. */
-	public final static String moduleRootsKeyString = "module roots";
+	public static final String moduleRootsKeyString = "module roots";
 
 	/** The subkey that holds a root's repository name. */
-	public final static String moduleRootsRepoSubkeyString = "repository";
+	public static final String moduleRootsRepoSubkeyString = "repository";
 
 	/** The subkey that holds a root's source directory name. */
-	public final static String moduleRootsSourceSubkeyString = "source";
+	public static final String moduleRootsSourceSubkeyString = "source";
 
 	/** The key under which to store the module rename rules. */
-	public final static String moduleRenamesKeyString = "module renames";
+	public static final String moduleRenamesKeyString = "module renames";
 
 	/** The subkey that holds a rename rule's source module name. */
-	public final static String moduleRenameSourceSubkeyString = "source";
+	public static final String moduleRenameSourceSubkeyString = "source";
 
 	/** The subkey that holds a rename rule's replacement module name. */
-	public final static String moduleRenameTargetSubkeyString = "target";
+	public static final String moduleRenameTargetSubkeyString = "target";
 
 	/**
 	 * Answer a {@link List} of {@link Rectangle}s corresponding with the
@@ -1868,7 +1860,8 @@ extends JFrame
 	/**
 	 * Parse the {@link ModuleRoots} from the module roots preferences node.
 	 *
-	 * @return The {@code ModuleRoots} constructed from the preferences node.
+	 * @param resolver
+	 *        The {@link ModuleNameResolver} used for resolving module names.
 	 */
 	public static void loadRenameRulesInto (final ModuleNameResolver resolver)
 	{
@@ -1898,8 +1891,6 @@ extends JFrame
 				"Unable to read Avail rename rule preferences.");
 		}
 	}
-
-
 
 	/**
 	 * Save the current {@link ModuleRoots} and rename rules to the preferences
@@ -2177,7 +2168,7 @@ extends JFrame
 	 *
 	 * @return The initial {@link LayoutConfiguration}.
 	 */
-	@InnerAccess LayoutConfiguration getInitialConfiguration ()
+	@InnerAccess static LayoutConfiguration getInitialConfiguration ()
 	{
 		final Preferences preferences =
 			placementPreferencesNodeForScreenNames(allScreenNames());
@@ -2200,8 +2191,7 @@ extends JFrame
 		/**
 		 * A {@link Map} representing module template name - template pairs.
 		 */
-		public @Nullable
-		final Map<String, String> moduleTemplates = new HashMap<>();
+		public final Map<String, String> moduleTemplates = new HashMap<>();
 
 		/**
 		 * Answer the requested template or an empty string if none found.
@@ -2261,11 +2251,11 @@ extends JFrame
 				final @NotNull String template,
 				final @NotNull String... replacements)
 			{
-				String result = template;
 				final Replaceable[] replaceables = Replaceable.values();
 
 				assert replaceables.length == replacements.length;
 
+				String result = template;
 				for (int i = 0; i < replacements.length; i++)
 				{
 					result = result.replace(
@@ -2359,8 +2349,7 @@ extends JFrame
 	 *
 	 * @return The initial {@link LayoutConfiguration}.
 	 */
-	@InnerAccess
-	ModuleTemplates getInitialModuleTemplate ()
+	@InnerAccess static ModuleTemplates getInitialModuleTemplate ()
 	{
 		final Preferences preferences = templatePreferences();
 		final String templateString = preferences.get(
@@ -2411,7 +2400,7 @@ extends JFrame
 	 * The {@link DefaultTreeCellRenderer} that knows how to render tree nodes
 	 * for my {@link #moduleTree} and my {@link #entryPointsTree}.
 	 */
-	private final DefaultTreeCellRenderer treeRenderer =
+	private static final DefaultTreeCellRenderer treeRenderer =
 		new DefaultTreeCellRenderer()
 		{
 			@Override

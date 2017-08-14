@@ -69,7 +69,7 @@ import com.avail.utility.evaluation.*;
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
-public class ContinuationDescriptor
+public final class ContinuationDescriptor
 extends Descriptor
 {
 	/**
@@ -98,7 +98,7 @@ extends Descriptor
 		 * relationship between the type guaranteed by the function and the type
 		 * expected at the call site.
 		 */
-		public final static BitField SKIP_RETURN_CHECK = bitField(
+		public static final BitField SKIP_RETURN_CHECK = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			31,
 			1);
@@ -108,7 +108,7 @@ extends Descriptor
 		 * ObjectSlots#FUNCTION function's} compiled code's tuple of nybblecodes
 		 * at which execution will next occur.
 		 */
-		public final static BitField PROGRAM_COUNTER = bitField(
+		public static final BitField PROGRAM_COUNTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			16,
 			15);
@@ -118,7 +118,7 @@ extends Descriptor
 		 * frame slots}.  It grows from the top + 1 (empty stack), and at its
 		 * deepest it just abuts the last local variable.
 		 */
-		public final static BitField STACK_POINTER = bitField(
+		public static final BitField STACK_POINTER = bitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			0,
 			16);
@@ -404,8 +404,7 @@ extends Descriptor
 		final AvailObject object,
 		final A_Continuation newCaller)
 	{
-		final AvailObject mutableVersion;
-		mutableVersion = isMutable()
+		final AvailObject mutableVersion = isMutable()
 			? object
 			: AvailObjectRepresentation.newLike(mutable, object, 0, 0);
 		mutableVersion.setSlot(CALLER, newCaller);

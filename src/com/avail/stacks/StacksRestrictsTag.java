@@ -45,12 +45,12 @@ public class StacksRestrictsTag extends AbstractStacksTag
 	/**
 	 * The type of the method parameter's type.
 	 */
-	final private QuotedStacksToken paramMetaType;
+	private final QuotedStacksToken paramMetaType;
 
 	/**
 	 * Excess tokens of unknown purpose
 	 */
-	final private StacksDescription description;
+	private final StacksDescription description;
 
 	/**
 	 * Construct a new {@link StacksRestrictsTag}.

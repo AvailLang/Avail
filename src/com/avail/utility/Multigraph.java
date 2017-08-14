@@ -35,6 +35,8 @@ package com.avail.utility;
 import java.util.*;
 import com.avail.utility.Multigraph.Edge;
 
+import javax.annotation.Nullable;
+
 /**
  * This is an implementation of a directed multigraph.  A graph consists of a
  * collection of vertices connected by (directed) edges.  A vertex v1 may be
@@ -81,7 +83,7 @@ public class Multigraph<V, E extends Edge<V>>
 		private final V destination;
 
 		/**
-		 * Construct a new {@link Edge}.
+		 * Construct a new edge.
 		 *
 		 * @param source The source vertex.
 		 * @param destination The destination vertex.
@@ -140,7 +142,7 @@ public class Multigraph<V, E extends Edge<V>>
 		/**
 		 * A {@link Map} from each source VertexInGraph to the (non-empty)
 		 * {@link Set set} of {@link Edge edges} leading to the receiver
-		 * vertex to that source vertex.
+		 * vertex from that source vertex.
 		 *
 		 * <p>
 		 * Each such edge must also be present in the source VertexInGraph's
@@ -151,7 +153,7 @@ public class Multigraph<V, E extends Edge<V>>
 			new HashMap<>();
 
 		/**
-		 * Construct a new {@link VertexInGraph}.
+		 * Construct a new vertex.
 		 *
 		 * @param vertex The actual vertex to wrap.
 		 */
@@ -297,8 +299,8 @@ public class Multigraph<V, E extends Edge<V>>
 		final VertexInGraph sourceInGraph = vertices.get(edge.source());
 		if (sourceInGraph != null)
 		{
-			final Set<E> edgeSet =
-				sourceInGraph.outbound.get(edge.destination());
+			@Nullable final Set<E> edgeSet =
+				sourceInGraph.outbound.get(vertices.get(edge.destination()));
 			if (edgeSet != null)
 			{
 				return edgeSet.contains(edge);
@@ -322,20 +324,12 @@ public class Multigraph<V, E extends Edge<V>>
 		final VertexInGraph privateDestination = vertices.get(destination);
 		assert privateSource != null : "source of edge not in graph";
 		assert privateDestination != null : "destination of edge not in graph";
-		Set<E> sourceOut = privateSource.outbound.get(privateDestination);
-		if (sourceOut == null)
-		{
-			sourceOut = new HashSet<>(1);
-			privateSource.outbound.put(privateDestination, sourceOut);
-		}
+		final Set<E> sourceOut = privateSource.outbound.computeIfAbsent(
+			privateDestination, k -> new HashSet<>(1));
 		assert !sourceOut.contains(edge) : "Edge is already present";
 		sourceOut.add(edge);
-		Set<E> destinationIn = privateDestination.inbound.get(privateSource);
-		if (destinationIn == null)
-		{
-			destinationIn = new HashSet<>(1);
-			privateDestination.inbound.put(privateSource, destinationIn);
-		}
+		final Set<E> destinationIn = privateDestination.inbound.computeIfAbsent(
+			privateSource, k -> new HashSet<>(1));
 		assert !destinationIn.contains(edge); // Consistency check
 		destinationIn.add(edge);
 	}
@@ -369,11 +363,18 @@ public class Multigraph<V, E extends Edge<V>>
 	{
 		assert containsEdge(edge) : "The edge to remove was not present";
 		final VertexInGraph sourceInGraph = vertices.get(edge.source());
-		final Set<E> edgeSet = sourceInGraph.outbound.get(edge.destination());
-		edgeSet.remove(edge);
-		if (edgeSet.isEmpty())
+		final VertexInGraph destInGraph = vertices.get(edge.destination());
+		final Set<E> forwardEdgeSet = sourceInGraph.outbound.get(destInGraph);
+		forwardEdgeSet.remove(edge);
+		if (forwardEdgeSet.isEmpty())
 		{
-			sourceInGraph.outbound.remove(edge.destination());
+			sourceInGraph.outbound.remove(destInGraph);
+		}
+		final Set<E> reverseEdgeSet = destInGraph.inbound.get(sourceInGraph);
+		reverseEdgeSet.remove(edge);
+		if (reverseEdgeSet.isEmpty())
+		{
+			destInGraph.inbound.remove(sourceInGraph);
 		}
 	}
 
@@ -405,11 +406,12 @@ public class Multigraph<V, E extends Edge<V>>
 	public Set<E> edgesFromTo (final V source, final V destination)
 	{
 		final VertexInGraph sourceInGraph = vertices.get(source);
+		final VertexInGraph destInGraph = vertices.get(destination);
 		if (sourceInGraph != null
-			&& sourceInGraph.outbound.containsKey(destination))
+			&& destInGraph != null
+			&& sourceInGraph.outbound.containsKey(destInGraph))
 		{
-			return Collections.unmodifiableSet(
-				sourceInGraph.outbound.get(destination));
+			return new HashSet<>(sourceInGraph.outbound.get(destInGraph));
 		}
 		return Collections.emptySet();
 	}

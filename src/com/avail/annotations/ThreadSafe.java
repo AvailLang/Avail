@@ -42,14 +42,14 @@ import java.lang.annotation.Target;
  * for concurrent access. The precise meaning depends upon the type of the
  * target:
  *
- * <p><ul>
+ * <ul>
  * <li><strong>Method.</strong> The method is safe for concurrent execution by
  * multiple {@linkplain Thread threads}. Whether the method is side-effect
  * free or internally locked is unspecified.</li>
  * <li><strong>Type.</strong> Each {@code public} method provided by this type
  * is safe for concurrent execution by multiple threads. Whether any given
  * method is side-effect free or internally locked is unspecified.</li>
- * </ul></p>
+ * </ul>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

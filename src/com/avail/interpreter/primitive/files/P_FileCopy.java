@@ -61,7 +61,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_FileCopy().init(
 			5, CanInline, HasSideEffect);
 
@@ -118,9 +118,9 @@ extends Primitive
 				{
 					@Override
 					public FileVisitResult preVisitDirectory (
-							final @Nullable Path dir,
-							final @Nullable BasicFileAttributes unused)
-						throws IOException
+						final @Nullable Path dir,
+						final @Nullable BasicFileAttributes unused)
+					throws IOException
 					{
 						assert dir != null;
 						final Path dstDir = destinationPath.resolve(
@@ -141,9 +141,9 @@ extends Primitive
 
 					@Override
 					public FileVisitResult visitFile (
-							final @Nullable Path file,
-							final @Nullable BasicFileAttributes unused)
-						throws IOException
+						final @Nullable Path file,
+						final @Nullable BasicFileAttributes unused)
+					throws IOException
 					{
 						assert file != null;
 						Files.copy(
@@ -156,9 +156,8 @@ extends Primitive
 
 					@Override
 					public FileVisitResult visitFileFailed (
-							final @Nullable Path file,
-							final @Nullable IOException unused)
-						throws IOException
+						final @Nullable Path file,
+						final @Nullable IOException unused)
 					{
 						partialSuccess.value = true;
 						return CONTINUE;
@@ -166,9 +165,8 @@ extends Primitive
 
 					@Override
 					public FileVisitResult postVisitDirectory (
-							final @Nullable Path dir,
-							final @Nullable IOException e)
-						throws IOException
+						final @Nullable Path dir,
+						final @Nullable IOException e)
 					{
 						if (e != null)
 						{

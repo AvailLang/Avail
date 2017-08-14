@@ -49,7 +49,7 @@ public final class P_IfFalseThenElse extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_IfFalseThenElse().init(
 			3, Invokes, CannotFail);
 

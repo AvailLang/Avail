@@ -44,7 +44,7 @@ public class StacksMacroTag extends AbstractStacksTag
 	/**
 	 * The name of the macroName
 	 */
-	final private QuotedStacksToken macroName;
+	private final QuotedStacksToken macroName;
 
 	/**
 	 * Construct a new {@link StacksMacroTag}.

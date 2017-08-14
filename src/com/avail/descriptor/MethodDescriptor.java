@@ -234,7 +234,7 @@ extends Descriptor
 	 * @see ObjectSlots#PRIVATE_TESTING_TREE
 	 * @see ObjectSlots#MACRO_TESTING_TREE
 	 */
-	public final static LookupTreeAdaptor<A_Definition, A_Tuple, Void>
+	public static final LookupTreeAdaptor<A_Definition, A_Tuple, Void>
 		runtimeDispatcher = new LookupTreeAdaptor<A_Definition, A_Tuple, Void>()
 	{
 		@Override

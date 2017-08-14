@@ -38,7 +38,7 @@ package com.avail.stacks;
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-public class SectionKeywordStacksToken extends KeywordStacksToken
+public final class SectionKeywordStacksToken extends KeywordStacksToken
 {
 
 	/**

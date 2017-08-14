@@ -334,9 +334,8 @@ extends NumericTupleDescriptor
 		// Ensure parameters are in bounds
 		assert 1 <= start && start <= end + 1;
 		final int oldSize = object.slot(SIZE);
-		final int newSize = end - start + 1;
 		assert 0 <= end && end <= oldSize;
-
+		final int newSize = end - start + 1;
 		if (newSize == oldSize)
 		{
 			// This method is requesting a full copy of the original.
@@ -629,7 +628,7 @@ extends NumericTupleDescriptor
 	/**
 	 * Construct a new {@link SmallIntegerIntervalTupleDescriptor}.
 	 *
-	 * @param mutability
+	 * @param mutability The mutability of the descriptor.
 	 */
 	public SmallIntegerIntervalTupleDescriptor (final Mutability mutability)
 	{

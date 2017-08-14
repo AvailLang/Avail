@@ -139,7 +139,6 @@ public class ParagraphFormatter
 		input = input.replaceAll("[^\\S\n\r]", " ");
 
 		final int lineWidth = windowWidth - leftMargin - rightMargin;
-		int adjustedLineWidth;
 
 		while (!input.isEmpty())
 		{
@@ -168,7 +167,7 @@ public class ParagraphFormatter
 
 				// Calculate the space left for the first line of the paragraph.
 				String indent = fIndent;
-				adjustedLineWidth = lineWidth - firstIndent;
+				int adjustedLineWidth = lineWidth - firstIndent;
 
 				// If there is data to process in the paragraph,
 				while (!paragraph.isEmpty())
@@ -226,7 +225,9 @@ public class ParagraphFormatter
 	 * @param separator The separator to be used.
 	 * @return The string with all separators replaced.
 	 */
-	private String replaceSeparators(final String input, final String separator)
+	private static String replaceSeparators (
+		final String input,
+		final String separator)
 	{
 		String result = input;
 		result = result.replace("\r\n", separator);
@@ -241,7 +242,7 @@ public class ParagraphFormatter
 	 * @param len The number of spaces.
 	 * @return A string of spaces.
 	 */
-	private String padding (final int len)
+	private static String padding (final int len)
 	{
 		final StringBuilder padding = new StringBuilder(len);
 		for (int i = 0; i < len; i++)

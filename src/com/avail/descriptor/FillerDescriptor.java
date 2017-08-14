@@ -63,7 +63,7 @@ extends Descriptor
 	}
 
 	/** A shared {@link FillerDescriptor}. */
-	final static FillerDescriptor shared =
+	static final FillerDescriptor shared =
 		new FillerDescriptor(Mutability.SHARED);
 
 	@Override

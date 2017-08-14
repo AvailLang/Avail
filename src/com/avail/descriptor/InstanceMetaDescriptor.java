@@ -75,7 +75,7 @@ import com.avail.utility.json.JSONWriter;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class InstanceMetaDescriptor
+public final class InstanceMetaDescriptor
 extends AbstractEnumerationTypeDescriptor
 {
 	/**

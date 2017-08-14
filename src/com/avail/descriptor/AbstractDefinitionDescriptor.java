@@ -46,7 +46,7 @@ import com.avail.utility.json.JSONWriter;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AbstractDefinitionDescriptor
+public final class AbstractDefinitionDescriptor
 extends DefinitionDescriptor
 {
 	/**

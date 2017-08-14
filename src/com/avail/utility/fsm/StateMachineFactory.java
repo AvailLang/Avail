@@ -164,20 +164,9 @@ public final class StateMachineFactory<
 			MementoType>
 		getSummary (final StateType state)
 	{
-		StateSummary<
-				StateType,
-				EventType,
-				GuardKeyType,
-				ActionKeyType,
-				MementoType>
-			summary = summaries.get(state);
-		if (summary == null)
-		{
-			summary = new StateSummary<>(state, eventType);
-			summaries.put(state, summary);
-		}
 
-		return summary;
+		return summaries.computeIfAbsent(
+			state, s -> new StateSummary<>(s, eventType));
 	}
 
 	/**

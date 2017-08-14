@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
 
 /**
- * <strong>Primitive:</strong> Seal the {@linkplan A_Atom named} {@linkplain
+ * <strong>Primitive:</strong> Seal the {@linkplain A_Atom named} {@linkplain
  * A_Method} at each existing {@linkplain A_Definition definition}. Ignore
  * macros and forward definitions.
  *
@@ -56,7 +56,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_SealMethodsAtExistingDefinitions().init(
 			1, CanInline, HasSideEffect);
 

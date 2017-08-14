@@ -49,7 +49,7 @@ public class L2_MULTIPLY_INT_BY_INT extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_MULTIPLY_INT_BY_INT().init(
 			READ_INT.is("multiplier"),
 			READWRITE_INT.is("multiplicand"),

@@ -55,7 +55,7 @@ import com.avail.utility.json.JSONWriter;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class ForwardDefinitionDescriptor
+public final class ForwardDefinitionDescriptor
 extends DefinitionDescriptor
 {
 	/**

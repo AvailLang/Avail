@@ -41,6 +41,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer1;
+import com.avail.utility.evaluation.Transformer1NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -235,7 +236,7 @@ public class ParserState
 	 */
 	void expected (
 		final List<? extends A_BasicObject> values,
-		final Transformer1<List<String>, String> transformer)
+		final Transformer1NotNull<List<String>, String> transformer)
 	{
 		expected(continuation -> Interpreter.stringifyThen(
 			AvailRuntime.current(),

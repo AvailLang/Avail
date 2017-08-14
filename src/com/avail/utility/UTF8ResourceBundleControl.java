@@ -58,10 +58,10 @@ extends Control
 			final boolean reload)
 		throws IllegalAccessException, InstantiationException, IOException
 	{
-		final String bundleName = toBundleName(baseName, locale);
-		ResourceBundle bundle = null;
 		assert format != null;
 		assert loader != null;
+		final String bundleName = toBundleName(baseName, locale);
+		ResourceBundle bundle = null;
 		if (format.equals("java.class"))
 		{
 			try
@@ -91,11 +91,11 @@ extends Control
 		}
 		else if (format.equals("java.properties"))
 		{
-			final String resourceName =
-				toResourceName(bundleName, "properties");
 			final Reader stream;
 			try
 			{
+				final String resourceName = toResourceName(
+					bundleName, "properties");
 				stream = AccessController.doPrivileged(
 					(PrivilegedExceptionAction<Reader>) () ->
 					{

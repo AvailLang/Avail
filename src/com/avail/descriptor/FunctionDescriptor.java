@@ -55,7 +55,7 @@ import com.avail.utility.json.JSONWriter;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class FunctionDescriptor
+public final class FunctionDescriptor
 extends Descriptor
 {
 	/**

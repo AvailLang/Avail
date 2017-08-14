@@ -285,14 +285,14 @@ public class StacksGenerator
 		final Path newFilePath,
 		final ArrayList<Pair<CharSequence,CharSequence>>replacementPairs)
 	{
-		final FileChannel newFile;
 		try
 		{
-			newFile =
-				FileChannel.open(newFilePath,
-					EnumSet.of(StandardOpenOption.CREATE,
-						StandardOpenOption.WRITE,
-						StandardOpenOption.TRUNCATE_EXISTING));
+			final FileChannel newFile = FileChannel.open(
+				newFilePath,
+				EnumSet.of(
+					StandardOpenOption.CREATE,
+					StandardOpenOption.WRITE,
+					StandardOpenOption.TRUNCATE_EXISTING));
 			try
 			{
 				String newFileContent =

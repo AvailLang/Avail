@@ -641,7 +641,6 @@ public final class RegisterSet
 		for (final Entry<L2Register, RegisterState> entry
 			: registerStates.entrySet())
 		{
-			boolean entryChanged = false;
 			final L2Register reg = entry.getKey();
 			RegisterState state = entry.getValue();
 			// We'll write this back only if it's modified below.
@@ -651,6 +650,7 @@ public final class RegisterSet
 			// registers which are not known in both sources.
 			final A_Type type = state.type();
 			final A_Type otherType = otherState.type();
+			boolean entryChanged = false;
 			if (type != null)
 			{
 				if (otherType != null)

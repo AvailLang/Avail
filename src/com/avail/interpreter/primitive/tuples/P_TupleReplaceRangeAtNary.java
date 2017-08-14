@@ -55,7 +55,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_TupleReplaceRangeAtNary().init(5, CanInline, CanFold);
 
 	/**
@@ -63,20 +63,21 @@ extends Primitive
 	 * ultimately updating the value range at the final index of the pathIndex.
 	 *
 	 * @param targetTuple
-	 * 		the {@linkplain TupleDescriptor tuple} to traverse
+	 *        The {@linkplain TupleDescriptor tuple} to traverse.
 	 * @param pathTuple
-	 * 		{@linkplain TupleDescriptor tuple} containing the path of indices
-	 *        to traverse to
+	 *        The {@linkplain TupleDescriptor tuple} containing the path of
+	 *        indices to traverse.
 	 * @param headLastIndex
-	 * 		the last index in the head of the target tuple to be kept
+	 *        The last index in the head of the target tuple to be kept.
 	 * @param tailFirstIndex
-	 * 		the first index in the tail of the target tuple to be kept
+	 *        The first index in the tail of the target tuple to be kept.
 	 * @param pathIndex
-	 * 		the current position of the pathTuple being accessed
+	 *        The current position of the pathTuple being accessed.
 	 * @param newValues
-	 * 		the {@linkplain TupleDescriptor tuple} of values used to update
-	 * 		the given target range
+	 *        The {@linkplain TupleDescriptor tuple} of values used to update
+	 *        the given target range.
 	 * @return
+	 *         The outermost tuple with the range updated.
 	 * @throws AvailException
 	 */
 	private A_Tuple recursivelyUpdateTuple (
@@ -140,20 +141,22 @@ extends Primitive
 	 * contains the range to be replaced.
 	 *
 	 * @param targetMap
-	 * 		the {@linkplain MapDescriptor map} to traverse
+	 *        The {@linkplain MapDescriptor map} to traverse.
 	 * @param pathTuple
-	 * 		{@linkplain TupleDescriptor tuple} containing the path of indices
-	 *        to traverse to
+	 *        The {@linkplain TupleDescriptor tuple} containing the path of
+	 *        indices to traverse.
 	 * @param headLastIndex
-	 * 		the last index in the head of the target tuple to be kept
+	 *        The last index in the head of the target tuple to be kept.
 	 * @param tailFirstIndex
-	 * 		the first index in the tail of the target tuple to be kept
+	 *        The first index in the tail of the target tuple to be kept.
 	 * @param pathIndex
-	 * 		the current position of the pathTuple being accessed
+	 *        The current position of the pathTuple being accessed.
 	 * @param newValues
-	 * 		the {@linkplain TupleDescriptor tuple} of values used to update
-	 * 		the given target range
+	 *        The {@linkplain TupleDescriptor tuple} of values used to update
+	 *        the given target range.
 	 * @return
+	 *         The outermost {@link A_Map map}, but with the inner tuple range
+	 *         updated.
 	 * @throws AvailException
 	 */
 	private A_Map recursivelyUpdateMap (

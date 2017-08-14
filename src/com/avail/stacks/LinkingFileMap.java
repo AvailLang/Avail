@@ -43,7 +43,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
 import com.avail.utility.Pair;
 import com.avail.utility.json.JSONWriter;
@@ -234,12 +233,11 @@ public class LinkingFileMap
 	 */
 	public void writeCategoryLinksToJSON (final Path path)
 	{
-		final StandardOpenOption[] options = new StandardOpenOption[]
-			{CREATE, TRUNCATE_EXISTING, WRITE};
-		final Writer writer;
 		try
 		{
-			writer = Files.newBufferedWriter(
+			final StandardOpenOption[] options = new StandardOpenOption[]
+				{CREATE, TRUNCATE_EXISTING, WRITE};
+			final Writer writer = Files.newBufferedWriter(
 				path,
 				StandardCharsets.UTF_8,
 				options);
@@ -437,12 +435,11 @@ public class LinkingFileMap
 	 */
 	public void writeInternalLinksToJSON (final Path path)
 	{
-		final StandardOpenOption[] options = new StandardOpenOption[]
-			{CREATE, TRUNCATE_EXISTING, WRITE};
-		final Writer writer;
 		try
 		{
-			writer = Files.newBufferedWriter(
+			final StandardOpenOption[] options = new StandardOpenOption[]
+				{CREATE, TRUNCATE_EXISTING, WRITE};
+			final Writer writer = Files.newBufferedWriter(
 				path,
 				StandardCharsets.UTF_8,
 				options);
@@ -453,7 +450,7 @@ public class LinkingFileMap
 
 			for (final Entry<String, String> entry : internalLinks.entrySet())
 			{
-				jsonWriter.write((String) entry.getKey());
+				jsonWriter.write(entry.getKey());
 				jsonWriter.write(entry.getValue());
 			}
 			jsonWriter.endObject();
@@ -491,12 +488,11 @@ public class LinkingFileMap
 	 */
 	public void writeCategoryDescriptionToJSON (final Path path)
 	{
-		final StandardOpenOption[] options = new StandardOpenOption[]
-			{CREATE, TRUNCATE_EXISTING, WRITE};
-		final Writer writer;
 		try
 		{
-			writer = Files.newBufferedWriter(
+			final StandardOpenOption[] options = new StandardOpenOption[]
+				{CREATE, TRUNCATE_EXISTING, WRITE};
+			final Writer writer = Files.newBufferedWriter(
 				path,
 				StandardCharsets.UTF_8,
 				options);
@@ -535,12 +531,11 @@ public class LinkingFileMap
 	 */
 	public void writeModuleCommentsToJSON (final Path path)
 	{
-		final StandardOpenOption[] options = new StandardOpenOption[]
-			{CREATE, TRUNCATE_EXISTING, WRITE};
-		final Writer writer;
 		try
 		{
-			writer = Files.newBufferedWriter(
+			final StandardOpenOption[] options = new StandardOpenOption[]
+				{CREATE, TRUNCATE_EXISTING, WRITE};
+			final Writer writer = Files.newBufferedWriter(
 				path,
 				StandardCharsets.UTF_8,
 				options);

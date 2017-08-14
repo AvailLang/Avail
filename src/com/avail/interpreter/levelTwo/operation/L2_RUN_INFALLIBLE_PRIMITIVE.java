@@ -64,7 +64,7 @@ extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_RUN_INFALLIBLE_PRIMITIVE().init(
 			PRIMITIVE.is("primitive to run"),
 			READ_VECTOR.is("arguments"),

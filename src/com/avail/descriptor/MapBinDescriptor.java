@@ -62,14 +62,14 @@ extends Descriptor
 		/**
 		 * The sum of the hashes of the elements recursively within this bin.
 		 */
-		public final static BitField KEYS_HASH = bitField(
+		public static final BitField KEYS_HASH = bitField(
 			COMBINED_HASHES, 0, 32);
 
 		/**
 		 * The sum of the hashes of the elements recursively within this bin,
 		 * or zero if not computed.
 		 */
-		public final static BitField VALUES_HASH_OR_ZERO = bitField(
+		public static final BitField VALUES_HASH_OR_ZERO = bitField(
 			COMBINED_HASHES, 32, 32);
 	}
 

@@ -74,7 +74,7 @@ implements L1OperationDispatcher
 	private final List<AvailObject> argsBuffer;
 
 	/** Statistic for recording checked non-primitive returns from L1. */
-	private final static Statistic checkedNonPrimitiveReturn =
+	private static final Statistic checkedNonPrimitiveReturn =
 		new Statistic(
 			"Checked non-primitive return from L1",
 			StatisticReport.NON_PRIMITIVE_RETURN_LEVELS);

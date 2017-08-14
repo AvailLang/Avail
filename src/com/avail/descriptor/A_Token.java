@@ -88,13 +88,6 @@ extends A_BasicObject
 	A_String lowerCaseString ();
 
 	/**
-	 * Answer this token's module of origin.
-	 *
-	 * @return The module this token appears in
-	 */
-	A_String moduleName ();
-
-	/**
 	 * Answer the {@link LexingState} that follows this token.
 	 *
 	 * @return The next {@link LexingState}.

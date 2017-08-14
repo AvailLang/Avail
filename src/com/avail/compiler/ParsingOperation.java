@@ -32,27 +32,29 @@
 
 package com.avail.compiler;
 
+import static com.avail.compiler.AvailCompiler.Con;
 import static com.avail.compiler.ParsingConversionRule.*;
-import java.util.*;
+import static com.avail.descriptor.LiteralNodeDescriptor.fromToken;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.utility.PrefixSharingList.append;
+import static com.avail.utility.PrefixSharingList.last;
+import static com.avail.utility.PrefixSharingList.withoutLast;
+import static com.avail.utility.StackPrinter.trace;
 
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.avail.compiler.AvailCompiler.Con;
+import com.avail.compiler.AvailCompiler.PartialSubexpressionList;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.A_BundleTree;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.ListNodeDescriptor;
-import com.avail.descriptor.LiteralNodeDescriptor;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.MessageBundleTreeDescriptor;
-import com.avail.descriptor.ParseNodeDescriptor;
-import com.avail.descriptor.ReferenceNodeDescriptor;
-import com.avail.descriptor.TokenDescriptor;
+import com.avail.descriptor.*;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.VariableDescriptor;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.utility.evaluation.Describer;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * {@code ParsingOperation} describes the operations available for parsing Avail
@@ -72,7 +74,38 @@ public enum ParsingOperation
 	 * contains an {@linkplain TupleDescriptor#empty() empty tuple} of
 	 * {@linkplain ParseNodeDescriptor phrases} onto the parse stack.
 	 */
-	EMPTY_LIST(0, true, true),
+	EMPTY_LIST(0, true, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			// Push an empty list node and continue.
+			assert successorTrees.tupleSize() == 1;
+			final List<A_Phrase> newArgsSoFar =
+				append(argsSoFar, ListNodeDescriptor.empty());
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				newArgsSoFar,
+				marksSoFar,
+				continuation);
+		}
+	},
 
 	/**
 	 * {@code 1} - Pop an argument from the parse stack of the current
@@ -80,17 +113,112 @@ public enum ParsingOperation
 	 * the parse stack. Append the argument to the list. Push the resultant list
 	 * onto the parse stack.
 	 */
-	APPEND_ARGUMENT(1, true, true),
+	APPEND_ARGUMENT(1, true, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			final A_Phrase value = last(argsSoFar);
+			final List<A_Phrase> poppedOnce = withoutLast(argsSoFar);
+			final A_Phrase oldNode = last(poppedOnce);
+			final A_Phrase listNode = oldNode.copyWith(value);
+			final List<A_Phrase> newArgsSoFar =
+				append(withoutLast(poppedOnce), listNode);
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				newArgsSoFar,
+				marksSoFar,
+				continuation);
+		}
+	},
 
 	/**
 	 * {@code 2} - Push the current parse position onto the mark stack.
 	 */
-	SAVE_PARSE_POSITION(2, false, true),
+	SAVE_PARSE_POSITION(2, false, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			final int marker =
+				firstArgOrNull == null
+					? start.position()
+					: initialTokenPosition.position();
+			final List<Integer> newMarksSoFar = append(marksSoFar, marker);
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				argsSoFar,
+				newMarksSoFar,
+				continuation);
+		}
+	},
 
 	/**
 	 * {@code 3} - Pop the top marker off the mark stack.
 	 */
-	DISCARD_SAVED_PARSE_POSITION(3, true, true),
+	DISCARD_SAVED_PARSE_POSITION(3, true, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				argsSoFar,
+				withoutLast(marksSoFar),
+				continuation);
+		}
+	},
 
 	/**
 	 * {@code 4} - Pop the top marker off the mark stack and compare it to the
@@ -98,13 +226,99 @@ public enum ParsingOperation
 	 * otherwise push the current parse position onto the mark stack in place of
 	 * the old marker and continue parsing.
 	 */
-	ENSURE_PARSE_PROGRESS(4, false, true),
+	ENSURE_PARSE_PROGRESS(4, false, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			final int oldMarker = last(marksSoFar);
+			if (oldMarker == start.position())
+			{
+				// No progress has been made.  Reject this path.
+				return;
+			}
+			final int newMarker = start.position();
+			final List<Integer> newMarksSoFar =
+				append(withoutLast(marksSoFar), newMarker);
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				argsSoFar,
+				newMarksSoFar,
+				continuation);
+		}
+	},
 
 	/**
 	 * {@code 5} - Parse an ordinary argument of a message send, pushing the
 	 * expression onto the parse stack.
 	 */
-	PARSE_ARGUMENT(5, false, true),
+	PARSE_ARGUMENT(5, false, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			final PartialSubexpressionList partialSubexpressionList =
+				firstArgOrNull == null
+					? continuation.superexpressions().advancedTo(
+						successorTrees.tupleAt(1))
+					: continuation.superexpressions;
+			compiler.parseSendArgumentWithExplanationThen(
+				start,
+				"argument",
+				firstArgOrNull,
+				firstArgOrNull == null
+					&& initialTokenPosition.lexingState != start.lexingState,
+				false,
+				Con(
+					partialSubexpressionList,
+					(CompilerSolution solution) ->
+					{
+						final List<A_Phrase> newArgsSoFar =
+							append(argsSoFar, solution.parseNode());
+						compiler.eventuallyParseRestOfSendNode(
+							solution.endState(),
+							successorTrees.tupleAt(1),
+							null,
+							initialTokenPosition,
+							// The argument counts as something that was
+							// consumed if it's not a leading argument...
+							firstArgOrNull == null,
+							consumedTokens,
+							newArgsSoFar,
+							marksSoFar,
+							continuation);
+					}));
+		}
+	},
 
 	/**
 	 * {@code 6} - Parse an expression, even one whose expressionType is ⊤,
@@ -118,7 +332,56 @@ public enum ParsingOperation
 	 * (or phrase⇒⊥), which is perfectly fine to put inside a list node during
 	 * parsing.</p>
 	 */
-	PARSE_TOP_VALUED_ARGUMENT(6, false, true),
+	PARSE_TOP_VALUED_ARGUMENT(6, false, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			final PartialSubexpressionList partialSubexpressionList =
+				firstArgOrNull == null
+					? continuation.superexpressions().advancedTo(
+						successorTrees.tupleAt(1))
+					: continuation.superexpressions;
+			compiler.parseSendArgumentWithExplanationThen(
+				start,
+				"top-valued argument",
+				firstArgOrNull,
+				firstArgOrNull == null
+					&& initialTokenPosition.lexingState != start.lexingState,
+				true,
+				Con(
+					partialSubexpressionList,
+					solution ->
+					{
+						final List<A_Phrase> newArgsSoFar =
+							append(argsSoFar, solution.parseNode());
+						compiler.eventuallyParseRestOfSendNode(
+							solution.endState(),
+							successorTrees.tupleAt(1),
+							null,
+							initialTokenPosition,
+							// The argument counts as something that was
+							// consumed if it's not a leading argument...
+							firstArgOrNull == null,
+							consumedTokens,
+							newArgsSoFar,
+							marksSoFar,
+							continuation);
+					}));
+		}
+	},
 
 	/**
 	 * {@code 7} - Parse a {@linkplain TokenDescriptor raw token}. It should
@@ -126,52 +389,577 @@ public enum ParsingOperation
 	 * in scope. Push a {@linkplain ReferenceNodeDescriptor variable reference
 	 * phrase} onto the parse stack.
 	 */
-	PARSE_VARIABLE_REFERENCE(7, false, true),
+	PARSE_VARIABLE_REFERENCE(7, false, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			final PartialSubexpressionList partialSubexpressionList =
+				firstArgOrNull == null
+					? continuation.superexpressions().advancedTo(
+						successorTrees.tupleAt(1))
+					: continuation.superexpressions;
+			compiler.parseSendArgumentWithExplanationThen(
+				start,
+				"variable reference",
+				firstArgOrNull,
+				firstArgOrNull == null
+					&& initialTokenPosition.lexingState != start.lexingState,
+				false,
+				Con(
+					partialSubexpressionList,
+					variableUseSolution ->
+					{
+						assert successorTrees.tupleSize() == 1;
+						final A_Phrase variableUse =
+							variableUseSolution.parseNode();
+						final A_Phrase rawVariableUse =
+							variableUse.stripMacro();
+						final ParserState afterUse =
+							variableUseSolution.endState();
+						if (!rawVariableUse.parseNodeKindIsUnder(
+							VARIABLE_USE_NODE))
+						{
+							if (consumedAnything)
+							{
+								// At least one token besides the variable
+								// use has been encountered, so go ahead and
+								// report that we expected a variable.
+								afterUse.expected(
+									describeWhyVariableUseIsExpected(
+										successorTrees.tupleAt(1)));
+							}
+							// It wasn't a variable use node, so give up.
+							return;
+						}
+						// Make sure taking a reference is appropriate.
+						final DeclarationKind declarationKind =
+							rawVariableUse.declaration().declarationKind();
+						if (!declarationKind.isVariable())
+						{
+							if (consumedAnything)
+							{
+								// Only complain about this not being a
+								// variable if we've parsed something
+								// besides the variable reference argument.
+								afterUse.expected(
+									"variable for reference argument to be "
+										+ "assignable, not "
+										+ declarationKind.nativeKindName());
+							}
+							return;
+						}
+						// Create a variable reference from this use.
+						final A_Phrase rawVariableReference =
+							ReferenceNodeDescriptor.fromUse(rawVariableUse);
+						final A_Phrase variableReference =
+							variableUse.isMacroSubstitutionNode()
+								? MacroSubstitutionNodeDescriptor
+									.fromOriginalSendAndReplacement(
+										variableUse.macroOriginalSendNode(),
+										rawVariableReference)
+								: rawVariableReference;
+						compiler.eventuallyParseRestOfSendNode(
+							afterUse,
+							successorTrees.tupleAt(1),
+							null,
+							initialTokenPosition,
+							// The argument counts as something that was
+							// consumed if it's not a leading argument...
+							firstArgOrNull == null,
+							consumedTokens,
+							append(argsSoFar, variableReference),
+							marksSoFar,
+							continuation);
+					}));
+		}
+	},
 
 	/**
 	 * {@code 8} - Parse an argument of a message send, using the <em>outermost
 	 * (module) scope</em>.  Leave it on the parse stack.
 	 */
-	PARSE_ARGUMENT_IN_MODULE_SCOPE(8, false, true),
+	PARSE_ARGUMENT_IN_MODULE_SCOPE(8, false, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			compiler.parseArgumentInModuleScopeThen(
+				start,
+				firstArgOrNull,
+				consumedTokens,
+				argsSoFar,
+				marksSoFar,
+				initialTokenPosition,
+				successorTrees,
+				continuation);
+		}
+	},
 
 	/**
 	 * {@code 9} - Parse <em>any</em> {@linkplain TokenDescriptor raw token},
-	 * leaving it on the parse stack.
+	 * leaving it on the parse stack.  In particular, push a literal node whose
+	 * token is a synthetic literal token whose value is the actual token that
+	 * was parsed.
 	 */
-	PARSE_ANY_RAW_TOKEN(9, false, false),
+	PARSE_ANY_RAW_TOKEN(9, false, false)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			if (firstArgOrNull != null)
+			{
+				// Starting with a parseRawToken can't cause unbounded
+				// left-recursion, so treat it more like reading an expected
+				// token than like parseArgument.  Thus, if a firstArgument
+				// has been provided (i.e., we're attempting to parse a
+				// leading-argument message to wrap a leading expression),
+				// then reject the parse.
+				return;
+			}
+			compiler.skipWhitespaceAndComments(
+				start,
+				statesAfterWhitespace ->
+				{
+					for (final ParserState state : statesAfterWhitespace)
+					{
+						state.lexingState.withTokensDo(
+							nextTokens ->
+							{
+								for (final A_Token token : nextTokens)
+								{
+									final A_Token syntheticToken =
+										LiteralTokenDescriptor.create(
+											token.string(),
+											token.leadingWhitespace(),
+											token.trailingWhitespace(),
+											token.start(),
+											token.lineNumber(),
+											SYNTHETIC_LITERAL,
+											token);
+									final A_Phrase literalNode =
+										fromToken(syntheticToken);
+									final List<A_Phrase> newArgsSoFar =
+										append(argsSoFar, literalNode);
+									compiler.eventuallyParseRestOfSendNode(
+										new ParserState(
+											token.nextLexingStateIn(
+												compiler.compilationContext),
+											start.clientDataMap,
+											start.capturedCommentTokens),
+										successorTrees.tupleAt(1),
+										null,
+										initialTokenPosition,
+										true,
+										append(consumedTokens, syntheticToken),
+										newArgsSoFar,
+										marksSoFar,
+										continuation);
+								}
+							});
+					}
+				},
+				new AtomicBoolean(false));
+		}
+	},
 
 	/**
 	 * {@code 10} - Parse a raw <em>{@linkplain TokenType#KEYWORD keyword}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
 	 */
-	PARSE_RAW_KEYWORD_TOKEN(10, false, false),
+	PARSE_RAW_KEYWORD_TOKEN(10, false, false)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			if (firstArgOrNull != null)
+			{
+				// Starting with a parseRawToken can't cause unbounded
+				// left-recursion, so treat it more like reading an expected
+				// token than like parseArgument.  Thus, if a firstArgument
+				// has been provided (i.e., we're attempting to parse a
+				// leading-argument message to wrap a leading expression),
+				// then reject the parse.
+				return;
+			}
+			compiler.skipWhitespaceAndComments(
+				start,
+				statesAfterWhitespace ->
+				{
+					for (final ParserState state : statesAfterWhitespace)
+					{
+						state.lexingState.withTokensDo(
+							nextTokens ->
+							{
+								for (final A_Token token : nextTokens)
+								{
+									final TokenType tokenType = token.tokenType();
+									if (tokenType != KEYWORD)
+									{
+										if (consumedAnything)
+										{
+											start.expected(
+												"a keyword token, not "
+													+ token.string());
+										}
+										continue;
+									}
+									final A_Token syntheticToken =
+										LiteralTokenDescriptor.create(
+											token.string(),
+											token.leadingWhitespace(),
+											token.trailingWhitespace(),
+											token.start(),
+											token.lineNumber(),
+											SYNTHETIC_LITERAL,
+											token);
+									final A_Phrase literalNode =
+										fromToken(syntheticToken);
+									final List<A_Phrase> newArgsSoFar =
+										append(argsSoFar, literalNode);
+									compiler.eventuallyParseRestOfSendNode(
+										new ParserState(
+											token.nextLexingStateIn(
+												compiler.compilationContext),
+											start.clientDataMap,
+											start.capturedCommentTokens),
+										successorTrees.tupleAt(1),
+										null,
+										initialTokenPosition,
+										true,
+										append(consumedTokens, syntheticToken),
+										newArgsSoFar,
+										marksSoFar,
+										continuation);
+								}
+							});
+					}
+				},
+				new AtomicBoolean(false));
+		}
+	},
 
 	/**
 	 * {@code 11} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
 	 */
-	PARSE_RAW_STRING_LITERAL_TOKEN(11, false, false),
+	PARSE_RAW_STRING_LITERAL_TOKEN(11, false, false)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			if (firstArgOrNull != null)
+			{
+				// Starting with a parseRawToken can't cause unbounded
+				// left-recursion, so treat it more like reading an expected
+				// token than like parseArgument.  Thus, if a firstArgument
+				// has been provided (i.e., we're attempting to parse a
+				// leading-argument message to wrap a leading expression),
+				// then reject the parse.
+				return;
+			}
+			compiler.skipWhitespaceAndComments(
+				start,
+				statesAfterWhitespace ->
+				{
+					for (final ParserState state : statesAfterWhitespace)
+					{
+						state.lexingState.withTokensDo(
+							nextTokens ->
+							{
+								for (final A_Token token : nextTokens)
+								{
+									final TokenType tokenType = token.tokenType();
+									if (tokenType != LITERAL
+										|| !token.literal().isInstanceOf(
+											TupleTypeDescriptor.stringType()))
+									{
+										if (consumedAnything)
+										{
+											start.expected(
+												"a string literal token, not "
+													+ (tokenType != LITERAL
+														   ? token.string()
+														   : token.literal()));
+										}
+										continue;
+									}
+									final A_Token syntheticToken =
+										LiteralTokenDescriptor.create(
+											token.string(),
+											token.leadingWhitespace(),
+											token.trailingWhitespace(),
+											token.start(),
+											token.lineNumber(),
+											SYNTHETIC_LITERAL,
+											token);
+									final A_Phrase literalNode =
+										fromToken(syntheticToken);
+									final List<A_Phrase> newArgsSoFar =
+										append(argsSoFar, literalNode);
+									compiler.eventuallyParseRestOfSendNode(
+										new ParserState(
+											token.nextLexingStateIn(
+												compiler.compilationContext),
+											start.clientDataMap,
+											start.capturedCommentTokens),
+										successorTrees.tupleAt(1),
+										null,
+										initialTokenPosition,
+										true,
+										append(consumedTokens, syntheticToken),
+										newArgsSoFar,
+										marksSoFar,
+										continuation);
+								}
+							});
+					}
+				},
+				new AtomicBoolean(false));
+		}
+	},
 
 	/**
 	 * {@code 12} - Parse a raw <em>{@linkplain TokenType#LITERAL literal}</em>
 	 * {@linkplain TokenDescriptor token}, leaving it on the parse stack.
 	 */
-	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(12, false, false),
+	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(12, false, false)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			if (firstArgOrNull != null)
+			{
+				// Starting with a parseRawToken can't cause unbounded
+				// left-recursion, so treat it more like reading an expected
+				// token than like parseArgument.  Thus, if a firstArgument
+				// has been provided (i.e., we're attempting to parse a
+				// leading-argument message to wrap a leading expression),
+				// then reject the parse.
+				return;
+			}
+			compiler.skipWhitespaceAndComments(
+				start,
+				statesAfterWhitespace ->
+				{
+					for (final ParserState state : statesAfterWhitespace)
+					{
+						state.lexingState.withTokensDo(
+							nextTokens ->
+							{
+								for (final A_Token token : nextTokens)
+								{
+									final TokenType tokenType = token.tokenType();
+									if (tokenType != LITERAL
+										|| !token.literal().isInstanceOf(
+											IntegerRangeTypeDescriptor
+												.wholeNumbers()))
+									{
+										if (consumedAnything)
+										{
+											start.expected(
+												"a whole number literal token, not "
+													+ (token.tokenType()
+														   != LITERAL
+														   ? token.string()
+														   : token.literal()));
+										}
+										continue;
+									}
+									final A_Token syntheticToken =
+										LiteralTokenDescriptor.create(
+											token.string(),
+											token.leadingWhitespace(),
+											token.trailingWhitespace(),
+											token.start(),
+											token.lineNumber(),
+											SYNTHETIC_LITERAL,
+											token);
+									final A_Phrase literalNode =
+										fromToken(syntheticToken);
+									final List<A_Phrase> newArgsSoFar =
+										append(argsSoFar, literalNode);
+									compiler.eventuallyParseRestOfSendNode(
+										new ParserState(
+											token.nextLexingStateIn(
+												compiler.compilationContext),
+											start.clientDataMap,
+											start.capturedCommentTokens),
+										successorTrees.tupleAt(1),
+										null,
+										initialTokenPosition,
+										true,
+										append(consumedTokens, syntheticToken),
+										newArgsSoFar,
+										marksSoFar,
+										continuation);
+								}
+							});
+					}
+				},
+				new AtomicBoolean(false));
+		}
+	},
 
 	/**
 	 * {@code 13} - Concatenate the two lists that have been pushed previously.
 	 */
-	CONCATENATE(13, false, true),
+	CONCATENATE(13, false, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			final A_Phrase right = last(argsSoFar);
+			final List<A_Phrase> popped1 = withoutLast(argsSoFar);
+			A_Phrase concatenated = last(popped1);
+			final List<A_Phrase> popped2 = withoutLast(popped1);
+			for (final A_Phrase rightElement : right.expressionsTuple())
+			{
+				concatenated = concatenated.copyWith(rightElement);
+			}
+			final List<A_Phrase> newArgsSoFar = append(popped2, concatenated);
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				newArgsSoFar,
+				marksSoFar,
+				continuation);
+		}
+	},
 
 	/**
 	 * {@code 14} - Reserved for future use.
 	 */
-	RESERVED_14(14, false, true),
+	RESERVED_14(14, false, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert false : "Illegal reserved parsing operation";
+		}
+	},
 
 	/**
 	 * {@code 15} - Reserved for future use.
 	 */
-	RESERVED_15(15, false, true),
+	RESERVED_15(15, false, true)
+	{
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert false : "Illegal reserved parsing operation";
+		}
+	},
 
 	/*
 	 * Arity one entries:
@@ -190,6 +978,35 @@ public enum ParsingOperation
 		{
 			return Arrays.asList(operand(instruction), currentPc + 1);
 		}
+
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			for (final A_BundleTree successorTree : successorTrees)
+			{
+				compiler.eventuallyParseRestOfSendNode(
+					start,
+					successorTree,
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					consumedTokens,
+					argsSoFar,
+					marksSoFar,
+					continuation);
+			}
+		}
 	},
 
 	/**
@@ -204,6 +1021,33 @@ public enum ParsingOperation
 			final int currentPc)
 		{
 			return Collections.singletonList(operand(instruction));
+		}
+
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				argsSoFar,
+				marksSoFar,
+				continuation);
 		}
 	},
 
@@ -220,6 +1064,23 @@ public enum ParsingOperation
 		{
 			return operand(instruction);
 		}
+
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert false : name() + " instruction should not be dispatched";
+		}
 	},
 
 	/**
@@ -235,11 +1096,28 @@ public enum ParsingOperation
 		{
 			return operand(instruction);
 		}
+
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert false : name() + " instruction should not be dispatched";
+		}
 	},
 
 	/**
 	 * {@code 16*N+4} - Apply grammatical restrictions to the Nth leaf argument
-	 * (underscore/ellipsis) of the current message.
+	 * (underscore/ellipsis) of the current message, which is on the stack.
 	 */
 	CHECK_ARGUMENT(4, true, true)
 	{
@@ -247,6 +1125,34 @@ public enum ParsingOperation
 		public int checkArgumentIndex (final int instruction)
 		{
 			return operand(instruction);
+		}
+
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert successorTrees.tupleSize() == 1;
+			assert firstArgOrNull == null;
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				null,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				argsSoFar,
+				marksSoFar,
+				continuation);
 		}
 	},
 
@@ -257,10 +1163,57 @@ public enum ParsingOperation
 	CONVERT(5, true, true)
 	{
 		@Override
-		public ParsingConversionRule conversionRule (
-			final int instruction)
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
 		{
-			return ruleNumber(operand(instruction));
+			assert successorTrees.tupleSize() == 1;
+			final A_Phrase input = last(argsSoFar);
+			final AtomicBoolean sanityFlag = new AtomicBoolean();
+			final ParsingConversionRule conversionRule =
+				ruleNumber(operand(instruction));
+			conversionRule.convert(
+				compiler.compilationContext,
+				start.lexingState,
+				input,
+				replacementExpression ->
+				{
+					assert sanityFlag.compareAndSet(false, true);
+					assert replacementExpression != null;
+					final List<A_Phrase> newArgsSoFar =
+						append(withoutLast(argsSoFar), replacementExpression);
+					compiler.eventuallyParseRestOfSendNode(
+						start,
+						successorTrees.tupleAt(1),
+						firstArgOrNull,
+						initialTokenPosition,
+						consumedAnything,
+						consumedTokens,
+						newArgsSoFar,
+						marksSoFar,
+						continuation);
+				},
+				e ->
+				{
+					// Deal with a failed conversion.  As of 2016-08-28,
+					// this can only happen during an expression
+					// evaluation.
+					assert sanityFlag.compareAndSet(false, true);
+					assert e != null;
+					start.expected(withString -> withString.value(
+						"evaluation of expression not to have "
+							+ "thrown Java exception:\n"
+							+ trace(e)));
+				});
 		}
 	},
 
@@ -280,9 +1233,48 @@ public enum ParsingOperation
 	PREPARE_TO_RUN_PREFIX_FUNCTION(6, false, true)
 	{
 		@Override
-		public int fixupDepth (final int instruction)
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
 		{
-			return operand(instruction);
+			List<A_Phrase> stackCopy = argsSoFar;
+			// Only do N-1 steps.  We simply couldn't encode zero as an
+			// operand, so we always bias by one automatically.
+			final int fixupDepth = operand(instruction);
+			for (int i = fixupDepth; i > 1; i--)
+			{
+				// Pop the last element and append it to the second last.
+				final A_Phrase value = last(stackCopy);
+				final List<A_Phrase> poppedOnce = withoutLast(stackCopy);
+				final A_Phrase oldNode = last(poppedOnce);
+				final A_Phrase listNode = oldNode.copyWith(value);
+				stackCopy = append(withoutLast(poppedOnce), listNode);
+			}
+			assert stackCopy.size() == 1;
+			final A_Phrase newListNode = stackCopy.get(0);
+			final List<A_Phrase> newStack = append(argsSoFar, newListNode);
+			for (final A_BundleTree successorTree : successorTrees)
+			{
+				compiler.eventuallyParseRestOfSendNode(
+					start,
+					successorTree,
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					consumedTokens,
+					newStack,
+					marksSoFar,
+					continuation);
+			}
 		}
 	},
 
@@ -302,9 +1294,48 @@ public enum ParsingOperation
 	RUN_PREFIX_FUNCTION(7, false, true)
 	{
 		@Override
-		public int prefixFunctionSubscript (final int instruction)
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
 		{
-			return operand(instruction);
+			assert successorTrees.tupleSize() == 1;
+			final A_BundleTree successorTree = successorTrees.tupleAt(1);
+			// Look inside the only successor to find the only bundle.
+			final A_Map bundlesMap = successorTree.allParsingPlansInProgress();
+			assert bundlesMap.mapSize() == 1;
+			final A_Map submap = bundlesMap.mapIterable().next().value();
+			assert submap.mapSize() == 1;
+			final A_Definition definition = submap.mapIterable().next().key();
+			final A_Tuple prefixFunctions = definition.prefixFunctions();
+			final int prefixIndex = operand(instruction);
+			final A_Function prefixFunction =
+				prefixFunctions.tupleAt(prefixIndex);
+			final A_Phrase prefixArgumentsList = last(argsSoFar);
+			final List<A_Phrase> withoutPrefixArguments =
+				withoutLast(argsSoFar);
+			final List<AvailObject> listOfArgs = TupleDescriptor.toList(
+				prefixArgumentsList.expressionsTuple());
+			compiler.runPrefixFunctionThen(
+				start,
+				successorTree,
+				prefixFunction,
+				listOfArgs,
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				withoutPrefixArguments,
+				marksSoFar,
+				continuation);
 		}
 	},
 
@@ -317,9 +1348,38 @@ public enum ParsingOperation
 	PERMUTE_LIST(8, true, true)
 	{
 		@Override
-		public int permutationIndex (final int instruction)
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
 		{
-			return operand(instruction);
+			final int permutationIndex = operand(instruction);
+			final A_Tuple permutation =
+				MessageSplitter.permutationAtIndex(permutationIndex);
+			final A_Phrase poppedList = last(argsSoFar);
+			List<A_Phrase> stack = withoutLast(argsSoFar);
+			stack = append(
+				stack,
+				PermutedListNodeDescriptor.fromListAndPermutation(
+					poppedList, permutation));
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				stack,
+				marksSoFar,
+				continuation);
 		}
 	},
 
@@ -331,9 +1391,34 @@ public enum ParsingOperation
 	CHECK_AT_LEAST(9, true, true)
 	{
 		@Override
-		public int requiredMinimumSize (final int instruction)
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
 		{
-			return operand(instruction);
+			final int limit = operand(instruction);
+			final A_Phrase top = last(argsSoFar);
+			if (top.expressionsSize() >= limit)
+			{
+				compiler.eventuallyParseRestOfSendNode(
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					consumedTokens,
+					argsSoFar,
+					marksSoFar,
+					continuation);
+			}
 		}
 	},
 
@@ -345,9 +1430,34 @@ public enum ParsingOperation
 	CHECK_AT_MOST(10, true, true)
 	{
 		@Override
-		public int requiredMaximumSize (final int instruction)
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
 		{
-			return operand(instruction);
+			final int limit = operand(instruction);
+			final A_Phrase top = last(argsSoFar);
+			if (top.expressionsSize() <= limit)
+			{
+				compiler.eventuallyParseRestOfSendNode(
+					start,
+					successorTrees.tupleAt(1),
+					firstArgOrNull,
+					initialTokenPosition,
+					consumedAnything,
+					consumedTokens,
+					argsSoFar,
+					marksSoFar,
+					continuation);
+			}
 		}
 	},
 
@@ -366,6 +1476,23 @@ public enum ParsingOperation
 		public int typeCheckArgumentIndex (final int instruction)
 		{
 			return operand(instruction);
+		}
+
+		@Override
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
+		{
+			assert false : name() + " instruction should not be dispatched";
 		}
 	},
 
@@ -387,9 +1514,40 @@ public enum ParsingOperation
 	WRAP_IN_LIST(12, true, true)
 	{
 		@Override
-		public int listSize (final int instruction)
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
 		{
-			return operand(instruction);
+			assert successorTrees.tupleSize() == 1;
+			final int listSize = operand(instruction);
+			final int totalSize = argsSoFar.size();
+			final List<A_Phrase> unpopped =
+				argsSoFar.subList(0, totalSize - listSize);
+			final List<A_Phrase> popped =
+				argsSoFar.subList(totalSize - listSize, totalSize);
+			final A_Phrase newListNode = ListNodeDescriptor.newExpressions(
+				TupleDescriptor.fromList(popped));
+			final List<A_Phrase> newArgsSoFar =
+				append(unpopped, newListNode);
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				newArgsSoFar,
+				marksSoFar,
+				continuation);
 		}
 	},
 
@@ -401,9 +1559,40 @@ public enum ParsingOperation
 	PUSH_LITERAL(13, true, true)
 	{
 		@Override
-		public int literalIndex (final int instruction)
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
 		{
-			return operand(instruction);
+			final AvailObject constant = MessageSplitter.constantForIndex(
+				operand(instruction));
+			final A_Token token = LiteralTokenDescriptor.create(
+				StringDescriptor.from(constant.toString()),
+				TupleDescriptor.empty(),
+				TupleDescriptor.empty(),
+				initialTokenPosition.position(),
+				initialTokenPosition.lineNumber(),
+				LITERAL,
+				constant);
+			final A_Phrase literalNode = fromToken(token);
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				append(argsSoFar, literalNode),
+				marksSoFar,
+				continuation);
 		}
 	},
 
@@ -414,9 +1603,40 @@ public enum ParsingOperation
 	REVERSE_STACK(14, true, true)
 	{
 		@Override
-		public int depthToReverse (final int instruction)
+		void execute (
+			final AvailCompiler compiler,
+			final int instruction,
+			final A_Tuple successorTrees,
+			final ParserState start,
+			final @Nullable A_Phrase firstArgOrNull,
+			final List<A_Phrase> argsSoFar,
+			final List<Integer> marksSoFar,
+			final ParserState initialTokenPosition,
+			final boolean consumedAnything,
+			final List<A_Token> consumedTokens,
+			final Con continuation)
 		{
-			return operand(instruction);
+			assert successorTrees.tupleSize() == 1;
+			final int depthToReverse = operand(instruction);
+			final int totalSize = argsSoFar.size();
+			final List<A_Phrase> unpopped =
+				argsSoFar.subList(0, totalSize - depthToReverse);
+			final List<A_Phrase> popped =
+				new ArrayList<>(
+					argsSoFar.subList(totalSize - depthToReverse, totalSize));
+			Collections.reverse(popped);
+			final List<A_Phrase> newArgsSoFar = new ArrayList<>(unpopped);
+			newArgsSoFar.addAll(popped);
+			compiler.eventuallyParseRestOfSendNode(
+				start,
+				successorTrees.tupleAt(1),
+				firstArgOrNull,
+				initialTokenPosition,
+				consumedAnything,
+				consumedTokens,
+				newArgsSoFar,
+				marksSoFar,
+				continuation);
 		}
 	};
 
@@ -550,31 +1770,6 @@ public enum ParsingOperation
 	}
 
 	/**
-	 * Answer the depth to fix the argument stack for preparing a partial parse
-	 * for a prefix function.  Fail here, as it's only applicable for {@link
-	 * #PREPARE_TO_RUN_PREFIX_FUNCTION}.
-	 *
-	 * @param instruction The instruction to decompose.
-	 * @return The depth to which to fix the parse stack.
-	 */
-	public int fixupDepth (final int instruction)
-	{
-		throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
-	 * Answer the subscript of the prefix function that should be invoked.  Fail
-	 * here, as it's only applicable for a {@link #RUN_PREFIX_FUNCTION}.
-	 *
-	 * @param instruction The instruction to decompose.
-	 * @return The prefix function subscript.
-	 */
-	public int prefixFunctionSubscript (final int instruction)
-	{
-		throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
 	 * Given an instruction and program counter, answer the list of successor
 	 * program counters that should be explored. For example, a {@link #BRANCH}
 	 * instruction will need to visit both the next program counter <em>and</em>
@@ -606,32 +1801,6 @@ public enum ParsingOperation
 	}
 
 	/**
-	 * Assume that the instruction encodes an operand that represents an
-	 * argument {@linkplain ParsingConversionRule conversion rule} to be
-	 * performed: answer the operand.
-	 *
-	 * @param instruction A coded instruction.
-	 * @return The conversion rule, or {@code 0} if the assumption was false.
-	 */
-	public ParsingConversionRule conversionRule (final int instruction)
-	{
-		throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
-	 * Extract the index of the permutation for a {@link #PERMUTE_LIST}
-	 * parsing instruction.  This indexes the static {@link
-	 * MessageSplitter#permutationAtIndex(int)}.
-	 *
-	 * @param instruction A coded instruction.
-	 * @return The index of the permutation.
-	 */
-	public int permutationIndex (final int instruction)
-	{
-		throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
 	 * Extract the index of the type check argument for a {@link
 	 * #TYPE_CHECK_ARGUMENT} parsing instruction.  This indexes the static
 	 * {@link MessageSplitter#constantForIndex(int)}.
@@ -640,66 +1809,6 @@ public enum ParsingOperation
 	 * @return The index of the type to be checked against.
 	 */
 	public int typeCheckArgumentIndex (final int instruction)
-	{
-		throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
-	 * Extract the index of the value for which to push literal phrase for the
-	 * {@link #PUSH_LITERAL} parsing instruction.  This indexes the static
-	 * {@link MessageSplitter#constantForIndex(int)}.
-	 *
-	 * @param instruction A coded instruction
-	 * @return The index of the type to be checked against.
-	 */
-	public int literalIndex (final int instruction)
-	{
-		throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
-	 * Extract the minimum size that the list on the top of the stack must be
-	 * to continue parsing.
-	 *
-	 * @param instruction A coded instruction.
-	 * @return The minimum list size.
-	 */
-	public int requiredMinimumSize (final int instruction)
-	{
-		throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
-	 * Extract the maximum size that the list on the top of the stack may be
-	 * to continue parsing.
-	 *
-	 * @param instruction A coded instruction.
-	 * @return The maximum list size.
-	 */
-	public int requiredMaximumSize (final int instruction)
-	{
-		throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
-	 * Extract the number of arguments to pop and combine into a list.
-	 *
-	 * @param instruction A coded instruction.
-	 * @return The resulting list size.
-	 */
-	public int listSize (final int instruction)
-	{
-		throw new RuntimeException("Parsing instruction is inappropriate");
-	}
-
-	/**
-	 * Extract the number of arguments to pop, reverse, and push, without
-	 * forming any new lists.
-	 *
-	 * @param instruction A coded instruction.
-	 * @return How many elements on the stack should be reversed.
-	 */
-	public int depthToReverse (final int instruction)
 	{
 		throw new RuntimeException("Parsing instruction is inappropriate");
 	}
@@ -734,5 +1843,72 @@ public enum ParsingOperation
 	public boolean commutesWithParsePart ()
 	{
 		return commutesWithParsePart;
+	}
+
+	/**
+	 * Perform one parsing instruction.
+	 *
+	 * @param compiler
+	 * @param instruction
+	 * @param successorTrees
+	 * @param start
+	 * @param firstArgOrNull
+	 * @param argsSoFar
+	 * @param marksSoFar
+	 * @param initialTokenPosition
+	 * @param consumedAnything
+	 * @param consumedTokens
+	 * @param continuation
+	 */
+	abstract void execute (
+		final AvailCompiler compiler,
+		final int instruction,
+		final A_Tuple successorTrees,
+		final ParserState start,
+		final @Nullable A_Phrase firstArgOrNull,
+		final List<A_Phrase> argsSoFar,
+		final List<Integer> marksSoFar,
+		final ParserState initialTokenPosition,
+		final boolean consumedAnything,
+		final List<A_Token> consumedTokens,
+		final Con continuation);
+
+	/**
+	 * Produce a {@link Describer} that says a variable use was expected, and
+	 * indicates why.
+	 *
+	 * @param successorTree
+	 *        The next {@link A_BundleTree} after the current instruction.
+	 * @return The {@link Describer}.
+	 */
+	static Describer describeWhyVariableUseIsExpected (
+		final A_BundleTree successorTree)
+	{
+		return continuation ->
+		{
+			final A_Set bundles =
+				successorTree.allParsingPlansInProgress().keysAsSet();
+			final StringBuilder builder = new StringBuilder();
+			builder.append("a variable use, for one of:");
+			if (bundles.setSize() > 2)
+			{
+				builder.append("\n\t");
+			}
+			else
+			{
+				builder.append(" ");
+			}
+			boolean first = true;
+			for (final A_Bundle bundle : bundles)
+			{
+				if (!first)
+				{
+					builder.append(", ");
+				}
+				builder.append(bundle.message().atomName());
+				first = false;
+			}
+			continuation.value(builder.toString());
+		};
 	}
 }

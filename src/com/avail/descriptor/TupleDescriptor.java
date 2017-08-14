@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Collections.min;
 import static java.util.Collections.max;
@@ -860,48 +861,34 @@ extends Descriptor
 		{
 			return SerializerOperation.NYBBLE_TUPLE;
 		}
-		boolean hasNonChars = false;
-		boolean hasNonInts = false;
+		boolean allChars = true;
+		boolean allInts = true;
 		int maxCodePoint = 0;
 		int maxInteger = 0;
 		for (int i = 1; i <= size; i++)
 		{
+			final int intValue;
 			final AvailObject element = object.tupleAt(i);
-			if (element.isCharacter())
+			if (allChars && element.isCharacter())
 			{
-				if (hasNonChars)
-				{
-					return SerializerOperation.GENERAL_TUPLE;
-				}
-				hasNonInts = true;
-				maxCodePoint = Math.max(maxCodePoint, element.codePoint());
+				allInts = false;
+				maxCodePoint = max(maxCodePoint, element.codePoint());
+			}
+			else if (allInts
+				&& element.isInt()
+				&& (intValue = element.extractInt()) >= 0)
+			{
+				allChars = false;
+				maxInteger = max(maxInteger, intValue);
 			}
 			else
 			{
-				if (hasNonInts)
-				{
-					return SerializerOperation.GENERAL_TUPLE;
-				}
-				hasNonChars = true;
-				if (element.isInt())
-				{
-					final int integer = element.extractInt();
-					if (integer < 0)
-					{
-						return SerializerOperation.GENERAL_TUPLE;
-					}
-					maxInteger = Math.max(maxInteger, integer);
-				}
-				else
-				{
-					return SerializerOperation.GENERAL_TUPLE;
-				}
+				return SerializerOperation.GENERAL_TUPLE;
 			}
 		}
-		assert !(hasNonChars && hasNonInts);
-		if (hasNonChars)
+		if (allInts)
 		{
-			assert !hasNonInts;
+			// assert !allChars;
 			if (maxInteger <= 15)
 			{
 				return SerializerOperation.NYBBLE_TUPLE;
@@ -912,7 +899,7 @@ extends Descriptor
 			}
 			return SerializerOperation.GENERAL_TUPLE;
 		}
-		assert hasNonInts;
+		// assert allChars && !allInts;
 		if (maxCodePoint <= 255)
 		{
 			return SerializerOperation.BYTE_STRING;
@@ -1282,7 +1269,7 @@ extends Descriptor
 	}
 
 	/** A static inner type that delays initialization until first use. */
-	private final static class Empty
+	private static final class Empty
 	{
 		/** The empty tuple. */
 		public static final AvailObject emptyTuple;

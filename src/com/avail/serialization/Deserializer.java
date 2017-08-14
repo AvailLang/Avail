@@ -68,7 +68,7 @@ public class Deserializer
 	/**
 	 * The current {@linkplain ModuleDescriptor module}.
 	 */
-	private @Nullable A_Module currentModule;
+	private A_Module currentModule = NilDescriptor.nil();
 
 	/**
 	 * Answer the deserializer's instance of {@link AvailRuntime} used for
@@ -140,14 +140,14 @@ public class Deserializer
 	{
 		assert moduleName.isString();
 		final A_Module current = currentModule;
-		if (current != null && moduleName.equals(current.moduleName()))
+		if (!current.equalsNil() && moduleName.equals(current.moduleName()))
 		{
 			return current;
 		}
 		if (!runtime.includesModuleNamed(moduleName))
 		{
 			throw new RuntimeException(
-				"Cannot locate module named \"" + moduleName.toString() + "\"");
+				"Cannot locate module named " + moduleName);
 		}
 		return runtime.moduleAt(moduleName);
 	}
@@ -164,11 +164,12 @@ public class Deserializer
 	}
 
 	/**
-	 * Return the {@link ModuleDescriptor module} currently being defined.
+	 * Return the {@link ModuleDescriptor module} currently being defined, or
+	 * {@link NilDescriptor#nil()} if there isn't one.
 	 *
-	 * @return The current module.
+	 * @return The current module or {@code nil}.
 	 */
-	@Nullable A_Module currentModule ()
+	A_Module currentModule ()
 	{
 		return currentModule;
 	}

@@ -52,7 +52,7 @@ import com.avail.interpreter.Primitive;
  *
  * <p>The strategy is to invoke prefix functions as various checkpoints are
  * reached during block parsing.  The prefix functions are invoked with all
- * arguments that have been parsed up to that point.
+ * arguments that have been parsed up to that point.</p>
  * <ul>
  * <li>After the open square bracket ("["), push the existing scope stack.</li>
  * <li>After parsing each argument declaration, invoke a prefix function that
@@ -65,7 +65,6 @@ import com.avail.interpreter.Primitive;
  * that builds it also adds it to the scope.</li>
  * <li>After the close square bracket ("]"), pop the scope stack.</li>
  * </ul>
- * </p>
  *
  * <p>When the whole macro has been parsed, the actual parsed arguments are
  * passed to the macro body (i.e., this primitive).  The body function has to
@@ -81,7 +80,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_BootstrapBlockMacro().init(
 			7, Unknown, Bootstrap);
 

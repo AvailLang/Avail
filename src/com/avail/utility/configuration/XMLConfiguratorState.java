@@ -192,8 +192,6 @@ public class XMLConfiguratorState<
 	/**
 	 * Answer the {@linkplain XMLElement top} of the parse stack (and consume
 	 * it).
-	 *
-	 * @return The top of the parse stack.
 	 */
 	public final void pop ()
 	{

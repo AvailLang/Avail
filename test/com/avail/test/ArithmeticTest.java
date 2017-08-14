@@ -193,7 +193,7 @@ public final class ArithmeticTest
 	 * is correctly convertible to an {@linkplain IntegerDescriptor Avail
 	 * integer}.
 	 *
-	 * @param bigIntHexString
+	 * @param bigIntHexString A string containing a hexadecimal integer.
 	 */
 	private static void checkBigIntegerHexString (final String bigIntHexString)
 	{
@@ -280,13 +280,13 @@ public final class ArithmeticTest
 		final BigInteger base,
 		final int leftShift)
 	{
-		final BigInteger shiftedBigInt = base.shiftLeft(leftShift);
 		final A_Number availInt = IntegerDescriptor.fromBigInteger(base);
 		final A_Number availShift = IntegerDescriptor.fromInt(leftShift);
 		final A_Number shiftedAvailInt = availInt.bitShift(availShift, true);
 		final A_Number availInt2 = IntegerDescriptor.fromBigInteger(base);
 		final A_Number shiftedAvailInt2 = availInt2.bitShift(availShift, false);
 		assertEquals(shiftedAvailInt, shiftedAvailInt2);
+		final BigInteger shiftedBigInt = base.shiftLeft(leftShift);
 		assertEquals(
 			IntegerDescriptor.fromBigInteger(shiftedBigInt),
 			shiftedAvailInt);

@@ -61,7 +61,6 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.utility.Mutable;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation2;
 import com.avail.utility.evaluation.Transformer2;
 import com.avail.utility.evaluation.Transformer3;
@@ -72,7 +71,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -88,7 +86,7 @@ import static java.lang.Math.max;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2Translator
+public final class L2Translator
 {
 	/**
 	 * {@code DebugFlag}s control which kinds of {@linkplain L2Translator
@@ -229,14 +227,14 @@ public class L2Translator
 	 * Don't inline dispatch logic if there are more than this many possible
 	 * implementations at a call site.
 	 */
-	final static int maxPolymorphismToInlineDispatch = 10;
+	static final int maxPolymorphismToInlineDispatch = 10;
 
 	/**
 	 * Use a series of instance equality checks if we're doing type testing for
 	 * method dispatch code and the type is a non-meta enumeration with at most
 	 * this number of instances.  Otherwise do a type test.
 	 */
-	final static int maxExpandedEqualityChecks = 3;
+	static final int maxExpandedEqualityChecks = 3;
 
 	/**
 	 * An indication of the possible degrees of optimization effort.  These are
@@ -302,8 +300,8 @@ public class L2Translator
 	/**
 	 * The current {@link CompiledCodeDescriptor compiled code} being optimized.
 	 */
-	@InnerAccess @Nullable
-	final A_RawFunction codeOrNull;
+	@InnerAccess
+	final @Nullable A_RawFunction codeOrNull;
 
 	/**
 	 * The number of arguments expected by the code being optimized.
@@ -559,7 +557,7 @@ public class L2Translator
 	 *
 	 * @return The code being translated.
 	 */
-	final public A_RawFunction codeOrFail ()
+	public final A_RawFunction codeOrFail ()
 	{
 		final A_RawFunction c = codeOrNull;
 		if (c == null)
@@ -579,7 +577,7 @@ public class L2Translator
 	 *        The list of object registers to aggregate.
 	 * @return A new L2RegisterVector.
 	 */
-	public L2RegisterVector createVector (
+	public static L2RegisterVector createVector (
 		final List<L2ObjectRegister> objectRegisters)
 	{
 		return new L2RegisterVector(objectRegisters);
@@ -592,7 +590,7 @@ public class L2Translator
 	 *        A description of the label.
 	 * @return The new label.
 	 */
-	public L2Instruction newLabel (final String comment)
+	public static L2Instruction newLabel (final String comment)
 	{
 		return new L2Instruction(
 			L2_LABEL.instance,
@@ -634,7 +632,8 @@ public class L2Translator
 	 * @return The provided method definition's primitive {@linkplain
 	 *         FunctionDescriptor function}, or {@code null} otherwise.
 	 */
-	@InnerAccess @Nullable A_Function primitiveFunctionToInline (
+	@InnerAccess
+	static @Nullable A_Function primitiveFunctionToInline (
 		final A_Function function,
 		final List<L2ObjectRegister> args,
 		final RegisterSet registerSet)
@@ -869,7 +868,7 @@ public class L2Translator
 		public L2RegisterVector createVector (
 			final List<L2ObjectRegister> objectRegisters)
 		{
-			return L2Translator.this.createVector(objectRegisters);
+			return L2Translator.createVector(objectRegisters);
 		}
 
 		/**
@@ -881,7 +880,7 @@ public class L2Translator
 		 */
 		public L2Instruction newLabel (final String comment)
 		{
-			return L2Translator.this.newLabel(comment);
+			return L2Translator.newLabel(comment);
 		}
 
 		/**
@@ -1333,13 +1332,7 @@ public class L2Translator
 						final A_BasicObject value =
 							naiveRegisters().constantAt(argReg)
 								.typeUnion(superUnionElementType);
-						if (value.isInstanceOf(intersection))
-						{
-							//noinspection StatementWithEmptyBody
-							// Generate code to always fall through to the
-							// true case, which comes first.
-						}
-						else
+						if (!value.isInstanceOf(intersection))
 						{
 							// Generate code to always jump to the false
 							// case.
@@ -1347,6 +1340,8 @@ public class L2Translator
 								L2_JUMP.instance,
 								new L2PcOperand(memento.failCheckLabel));
 						}
+						// Otherwise fall through to the true case, which comes
+						// first.
 					}
 					else if (existingType.isSubtypeOf(
 						superUnionElementType))
@@ -1354,15 +1349,7 @@ public class L2Translator
 						// It's a pure supercast of this argument, not a mix
 						// of parts being supercast and others not.  Do the
 						// test once, right now.
-						if (superUnionElementType.isSubtypeOf(existingType))
-						{
-							//noinspection StatementWithEmptyBody
-							// Only the true case should be reached.
-							// Let the code just fall through to it, and
-							// rely on dead code elimination to remove the
-							// false case.
-						}
-						else
+						if (!superUnionElementType.isSubtypeOf(existingType))
 						{
 							// Only the false case should be reached.  Jump
 							// unconditionally to it, and rely on dead code
@@ -1372,6 +1359,8 @@ public class L2Translator
 								L2_JUMP.instance,
 								new L2PcOperand(memento.failCheckLabel));
 						}
+						// Otherwise just fall through to it and rely on dead
+						// code elimination to remove the false case.
 					}
 					else if (superUnionElementType.isBottom()
 						&& intersection.isEnumeration()
@@ -1643,8 +1632,8 @@ public class L2Translator
 			final A_Function primFunction = primitiveFunctionToInline(
 				functionToInvoke, args, naiveRegisters());
 			// The convergence point for primitive success and failure paths.
-			final L2Instruction successLabel;
-			successLabel = newLabel("success"); //+bundle.message().atomName());
+			final L2Instruction successLabel =
+				newLabel("success"); //+bundle.message().atomName());
 			final L2ObjectRegister reifiedCallerRegister = newObjectRegister();
 			if (primFunction != null)
 			{
@@ -3354,9 +3343,9 @@ public class L2Translator
 	 */
 	private Set<L2Instruction> findReachableInstructions ()
 	{
-		final Set<L2Instruction> reachableInstructions = new HashSet<>();
 		final Deque<L2Instruction> instructionsToVisit = new ArrayDeque<>();
 		instructionsToVisit.add(instructions.get(0));
+		final Set<L2Instruction> reachableInstructions = new HashSet<>();
 		while (!instructionsToVisit.isEmpty())
 		{
 			final L2Instruction instruction = instructionsToVisit.removeFirst();

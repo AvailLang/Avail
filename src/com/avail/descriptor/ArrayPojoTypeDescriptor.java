@@ -75,7 +75,7 @@ extends PojoTypeDescriptor
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 * @param <T> The element type.
 	 */
-	static abstract class PojoArray<T>
+	abstract static class PojoArray<T>
 	implements Cloneable, Serializable
 	{
 		/** The serial version identifier. */
@@ -420,7 +420,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The mutable {@link ArrayPojoTypeDescriptor}. */
-	private final static ArrayPojoTypeDescriptor mutable =
+	private static final ArrayPojoTypeDescriptor mutable =
 		new ArrayPojoTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
@@ -430,7 +430,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The immutable {@link ArrayPojoTypeDescriptor}. */
-	private final static ArrayPojoTypeDescriptor immutable =
+	private static final ArrayPojoTypeDescriptor immutable =
 		new ArrayPojoTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
@@ -440,7 +440,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The shared {@link ArrayPojoTypeDescriptor}. */
-	private final static ArrayPojoTypeDescriptor shared =
+	private static final ArrayPojoTypeDescriptor shared =
 		new ArrayPojoTypeDescriptor(Mutability.SHARED);
 
 	@Override

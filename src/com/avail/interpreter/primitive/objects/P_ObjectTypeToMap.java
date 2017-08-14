@@ -37,7 +37,6 @@ import static com.avail.interpreter.Primitive.Flag.*;
 
 import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
 
 /**
@@ -51,7 +50,7 @@ public final class P_ObjectTypeToMap extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_ObjectTypeToMap().init(
 			1, CanFold, CanInline);
 

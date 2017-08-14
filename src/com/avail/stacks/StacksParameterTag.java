@@ -44,17 +44,17 @@ public class StacksParameterTag extends AbstractStacksTag
 	/**
 	 * The name of the parameter variable.
 	 */
-	final private QuotedStacksToken paramName;
+	private final QuotedStacksToken paramName;
 
 	/**
 	 * The type of the parameter
 	 */
-	final private QuotedStacksToken paramType;
+	private final QuotedStacksToken paramType;
 
 	/**
 	 * The description of the parameter.
 	 */
-	final private StacksDescription paramDescription;
+	private final StacksDescription paramDescription;
 
 	/**
 	 * Construct a new {@link StacksParameterTag}.

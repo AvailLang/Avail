@@ -57,7 +57,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_CreatePojoConstructorFunction().init(
 			3, CanFold, CanInline);
 

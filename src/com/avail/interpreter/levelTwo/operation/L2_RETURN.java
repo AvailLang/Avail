@@ -55,14 +55,14 @@ public class L2_RETURN extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_RETURN().init(
 			READ_POINTER.is("continuation"),
 			READ_POINTER.is("return value"),
 			READ_INT.is("skip check"));
 
 	/** Statistic for recording checked non-primitive returns from L2. */
-	private final static Statistic checkedNonPrimitiveReturn =
+	private static final Statistic checkedNonPrimitiveReturn =
 		new Statistic(
 			"Checked non-primitive return from L2",
 			StatisticReport.NON_PRIMITIVE_RETURN_LEVELS);

@@ -500,10 +500,9 @@ public class StacksCommentsModule
 
 		for (final ModuleImport moduleImport : header.importedModules)
 		{
-			final String moduleImportName;
 			try
 			{
-				moduleImportName = resolver.resolve(
+				final String moduleImportName = resolver.resolve(
 					header.moduleName
 						.asSibling(moduleImport.moduleName.asNativeString()),
 					header.moduleName).qualifiedName();
@@ -521,7 +520,7 @@ public class StacksCommentsModule
 									moduleToComments.get(moduleImportName)
 										.extendsMethodLeafNameToModuleName()
 											.keySet()),
-							true);
+								true);
 
 						collectedExtendedNames =
 							collectedExtendedNames.setUnionCanDestroy(
@@ -529,7 +528,7 @@ public class StacksCommentsModule
 									.get(moduleImportName)
 										.namedPublicCommentImplementations()
 											.keySet()),
-							true);
+								true);
 					}
 					if (!moduleImport.excludes.equals(SetDescriptor.empty()))
 					{
@@ -604,10 +603,13 @@ public class StacksCommentsModule
 						{
 							final HashMap<String, ImplementationGroup>
 								modToImplement = addOn.get(key);
-							for (final String mod : modToImplement.keySet())
+							for (final Entry<String, ImplementationGroup>
+									stringImplementationGroupEntry
+								: modToImplement.entrySet())
 							{
-								extendsMethodLeafNameToModuleName.get(key)
-								.put(mod,modToImplement.get(mod));
+								extendsMethodLeafNameToModuleName.get(key).put(
+									stringImplementationGroupEntry.getKey(),
+									stringImplementationGroupEntry.getValue());
 							}
 						}
 						else
@@ -625,11 +627,13 @@ public class StacksCommentsModule
 					{
 						for (final String module :
 							usesMethodLeafNameToModuleName.get(name).keySet())
-						visibleValues.add
-							(new Pair<>(
-								name,
-								usesMethodLeafNameToModuleName.get(name)
-									.get(module)));
+						{
+							visibleValues.add
+								(new Pair<>(
+									name,
+									usesMethodLeafNameToModuleName.get(name)
+										.get(module)));
+						}
 					}
 
 					for (final A_String name :
@@ -637,11 +641,13 @@ public class StacksCommentsModule
 					{
 						for (final String module :
 							extendsMethodLeafNameToModuleName.get(name).keySet())
-						visibleValues.add
-							(new Pair<>(
-								name,
-								extendsMethodLeafNameToModuleName.get(name)
-									.get(module)));
+						{
+							visibleValues.add
+								(new Pair<>(
+									name,
+									extendsMethodLeafNameToModuleName.get(name)
+										.get(module)));
+						}
 					}
 
 					final HashMap<A_String, StacksFilename>
@@ -766,11 +772,13 @@ public class StacksCommentsModule
 					{
 						for (final String module :
 							usesMethodLeafNameToModuleName.get(name).keySet())
-						visibleValues.add
-							(new Pair<>(
-								name,
-								usesMethodLeafNameToModuleName.get(name)
-									.get(module)));
+						{
+							visibleValues.add
+								(new Pair<>(
+									name,
+									usesMethodLeafNameToModuleName.get(name)
+										.get(module)));
+						}
 					}
 
 					for (final A_String name :
@@ -778,11 +786,13 @@ public class StacksCommentsModule
 					{
 						for (final String module :
 							extendsMethodLeafNameToModuleName.get(name).keySet())
-						visibleValues.add
-							(new Pair<>(
-								name,
-								extendsMethodLeafNameToModuleName.get(name)
-									.get(module)));
+						{
+							visibleValues.add
+								(new Pair<>(
+									name,
+									extendsMethodLeafNameToModuleName.get(name)
+										.get(module)));
+						}
 					}
 
 					final HashMap<A_String, StacksFilename>
@@ -1002,8 +1012,8 @@ public class StacksCommentsModule
 	 * @return A map of method name to the file name where it will be
 	 * 		output into.
 	 */
-	private HashMap <A_String, StacksFilename> createFileNames(
-		final List<Pair<A_String,ImplementationGroup>> names,
+	private static HashMap <A_String, StacksFilename> createFileNames (
+		final List<Pair<A_String, ImplementationGroup>> names,
 		final String fileExtension)
 	{
 		final HashMap<A_String,Integer> newHashNameMap =
@@ -1049,7 +1059,7 @@ public class StacksCommentsModule
 	 *		The type of file extension of the output file (e.g. html, json)
 	 * @return A map of method name to the file name of the output.
 	 */
-	private HashMap <A_String, StacksFilename> createFileNames(
+	private static HashMap <A_String, StacksFilename> createFileNames (
 		final Collection<A_String> names, final String originatingModuleName,
 		final String fileExtension)
 	{
@@ -1397,7 +1407,6 @@ public class StacksCommentsModule
 
 			final HashSet<Pair<String, String>> ambiguousLinks =
 				new HashSet<>();
-			final HashSet<String> ambiguousNoLinks = new HashSet<>();
 
 			if (linkingFileMap.aliasesToFileLink()
 				.containsKey(key.asNativeString()))
@@ -1410,6 +1419,7 @@ public class StacksCommentsModule
 			}
 
 			//Create ambiguous link list
+			final HashSet<String> ambiguousNoLinks = new HashSet<>();
 			for (final String modulePath : tempImplementationMap.keySet())
 			{
 				final ImplementationGroup group =
@@ -1458,8 +1468,8 @@ public class StacksCommentsModule
 			jsonWriter.endArray();
 			jsonWriter.endObject();
 
-			final String fileName = String.valueOf(key.hash()
-				& 0xFFFFFFFFL) + "." + fileExtensionName;
+			final String fileName =
+				(key.hash() & 0xFFFFFFFFL) + "." + fileExtensionName;
 
 			internalLinks.put(key.asNativeString(),
 				linkLocation + "/"  + fileName);
@@ -1568,9 +1578,10 @@ public class StacksCommentsModule
 
 				jsonWriter.endArray();
 				jsonWriter.endObject();
-				final String fileName = String.valueOf(
-					StringDescriptor.from(ambiguousAliasKey).hash()
-						& 0xFFFFFFFFL) + "." + fileExtensionName;
+				final String fileName =
+					(StringDescriptor.from(ambiguousAliasKey).hash()
+							& 0xFFFFFFFFL)
+						+ "." + fileExtensionName;
 
 				internalLinks.put(ambiguousAliasKey,
 					linkPrefix + "/_Ambiguities/" + fileName);

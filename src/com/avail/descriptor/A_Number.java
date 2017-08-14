@@ -188,7 +188,8 @@ extends A_BasicObject
 	 * @param canDestroy
 	 *        Whether it is permitted to alter the receiver if it happens to be
 	 *        mutable.
-	 * @return (object × 2<sup>shiftFactor</sup>) mod 2<sup>truncationBits</sup>
+	 * @return &#40;object &times; 2<sup>shiftFactor</sup>)
+	 *         mod 2<sup>truncationBits</sup>
 	 */
 	A_Number bitShiftLeftTruncatingToBits (
 		A_Number shiftFactor,
@@ -196,7 +197,7 @@ extends A_BasicObject
 		boolean canDestroy);
 
 	/**
-	 * Compute the boolean <code>and</code> operation for the corresponding bits
+	 * Compute the boolean {@code and} operation for the corresponding bits
 	 * of the receiver and anInteger.  Both values are signed 2's complement
 	 * integers.
 	 *
@@ -206,18 +207,18 @@ extends A_BasicObject
 	 *
 	 * @param anInteger
 	 *        The integer to combine with the receiver using the bitwise
-	 *        <code>and</code> operation.
+	 *        {@code and} operation.
 	 * @param canDestroy
 	 *        Whether the receiver or anInteger can be recycled or destroyed if
 	 *        it happens to be mutable.
-	 * @return The bitwise <code>and</code> of the receiver and anInteger.
+	 * @return The bitwise {@code and} of the receiver and anInteger.
 	 */
 	A_Number bitwiseAnd (
 		A_Number anInteger,
 		boolean canDestroy);
 
 	/**
-	 * Compute the boolean <code>or</code> operation for the corresponding bits
+	 * Compute the boolean {@code or} operation for the corresponding bits
 	 * of the receiver and anInteger.  Both values are signed 2's complement
 	 * integers.
 	 *
@@ -227,18 +228,18 @@ extends A_BasicObject
 	 *
 	 * @param anInteger
 	 *        The integer to combine with the receiver using the bitwise
-	 *        <code>or</code> operation.
+	 *        {@code or} operation.
 	 * @param canDestroy
 	 *        Whether the receiver or anInteger can be recycled or destroyed if
 	 *        it happens to be mutable.
-	 * @return The bitwise <code>or</code> of the receiver and anInteger.
+	 * @return The bitwise {@code or} of the receiver and anInteger.
 	 */
 	A_Number bitwiseOr (
 		A_Number anInteger,
 		boolean canDestroy);
 
 	/**
-	 * Compute the boolean <code>exclusive-or</code> operation for the
+	 * Compute the boolean {@code exclusive-or} operation for the
 	 * corresponding bits of the receiver and anInteger.  Both values are
 	 * signed 2's complement integers.
 	 *
@@ -248,11 +249,11 @@ extends A_BasicObject
 	 *
 	 * @param anInteger
 	 *        The integer to combine with the receiver using the bitwise
-	 *        <code>exclusive-or</code> operation.
+	 *        {@code exclusive-or} operation.
 	 * @param canDestroy
 	 *        Whether the receiver or anInteger can be recycled or destroyed if
 	 *        it happens to be mutable.
-	 * @return The bitwise <code>exclusive-or</code> of the receiver and
+	 * @return The bitwise {@code exclusive-or} of the receiver and
 	 *         anInteger.
 	 */
 	A_Number bitwiseXor (

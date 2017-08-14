@@ -39,7 +39,6 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.CharacterDescriptor;
-import com.avail.utility.evaluation.Continuation1;
 
 /**
  * A {@code Problem} is produced when encountering an unexpected or less than
@@ -171,9 +170,8 @@ public abstract class Problem
 	}
 
 	/**
-	 * Give up compilation.  Note that either the {@link #continueCompilation()}
-	 * or the {@link #abortCompilation()} method must be invoked by code
-	 * handling {@link Problem}s.
+	 * Give up compilation.  Note that either {@link #continueCompilation()} or
+	 * this method must be invoked by code handling {@link Problem}s.
 	 */
 	protected abstract void abortCompilation ();
 

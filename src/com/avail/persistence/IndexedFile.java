@@ -600,10 +600,8 @@ extends AbstractList<byte[]>
 			final RecordCoordinates newOrphanLocation = new RecordCoordinates(
 				m.fileLimit,
 				m.rawBytes.size());
-			RecordCoordinates orphan;
-			for (final RecordCoordinates orphan1 : orphans)
+			for (final RecordCoordinates orphan : orphans)
 			{
-				orphan = orphan1;
 				m.uncompressedData.writeLong(orphan.filePosition());
 				m.uncompressedData.writeInt(orphan.blockPosition());
 			}
@@ -808,8 +806,10 @@ extends AbstractList<byte[]>
 
 			// Rename the temporary file to the canonical target name. Reopen
 			// the file and reacquire the write lock.
+			final File fileRef = fileReference;
+			assert fileRef != null;
 			@SuppressWarnings("unused")
-			final boolean ignored = tempFilename.renameTo(fileReference);
+			final boolean ignored = tempFilename.renameTo(fileRef);
 			file = new RandomAccessFile(fileReference, "rw");
 			channel = file().getChannel();
 			acquireLockForWriting(true);
@@ -1035,7 +1035,7 @@ extends AbstractList<byte[]>
 			compressionBlockSize = buffer.getInt();
 			fanout = buffer.getInt();
 			previousMasterPosition =
-				(bufferSize + pageSize - 1) / pageSize * pageSize;
+				((long)bufferSize + pageSize - 1) / pageSize * pageSize;
 			masterPosition = previousMasterPosition + masterNodeSize();
 			finished = true;
 		}
@@ -1063,21 +1063,20 @@ extends AbstractList<byte[]>
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private byte[] recordAtZeroBasedIndex (
-			final long startingIndex,
-			final RecordCoordinates startingNodePosition,
-			final int startingLevel)
-		throws IOException
+		final long startingIndex,
+		final RecordCoordinates startingNodePosition,
+		final int startingLevel)
 	{
 		long pow = (long) Math.pow(fanout, startingLevel);
 		assert startingIndex < pow : "Arithmetic error traversing perfect tree";
-		long zIndex = startingIndex;
-		int level = startingLevel;
 		RecordCoordinates node = new RecordCoordinates(
 			startingNodePosition.filePosition(),
 			startingNodePosition.blockPosition());
 		ByteBuffer buffer = ByteBuffer.wrap(
 			blockAtFilePosition(node.filePosition()));
 		buffer.position(node.blockPosition());
+		long zIndex = startingIndex;
+		int level = startingLevel;
 		while (level != 0)
 		{
 			pow /= fanout;
@@ -1306,7 +1305,7 @@ extends AbstractList<byte[]>
 			master().serialNumber++;
 			master().writeTo(b);
 			final FileLock shortTermLock = channel().lock(
-				pageSize, masterNodeSize() * 2, false);
+				pageSize, (long)masterNodeSize() << 1L, false);
 			try
 			{
 				channel().position(masterPosition);
@@ -1412,10 +1411,6 @@ extends AbstractList<byte[]>
 				power /= fanout;
 			}
 			throw new IndexOutOfBoundsException();
-		}
-		catch (final IOException e)
-		{
-			throw new IndexedFileException(e);
 		}
 		finally
 		{
@@ -1547,7 +1542,7 @@ extends AbstractList<byte[]>
 		try
 		{
 			final FileLock fileLock = channel().lock(
-				pageSize, masterNodeSize() * 2, false);
+				pageSize, (long)masterNodeSize() << 1L, false);
 			try
 			{
 				// Determine the newest valid master node.
@@ -1574,17 +1569,17 @@ extends AbstractList<byte[]>
 				// Swap the previous and current nodes if necessary.
 				if (previous != null && !Integer.valueOf(1).equals(delta))
 				{
-					final MasterNode tempNode = previous;
-					current = tempNode;
+					current = previous;
+					// previous is unused after this point.
 					final long tempPos = previousMasterPosition;
 					previousMasterPosition = masterPosition;
 					masterPosition = tempPos;
 				}
 				if (master != null
-					&& master().serialNumber != current.serialNumber)
+					&& master.serialNumber != current.serialNumber)
 				{
 					// Clear the cached metadata if it has changed.
-					if (!master().metaDataLocation.equals(
+					if (!master.metaDataLocation.equals(
 						current.metaDataLocation))
 					{
 						metaData = null;

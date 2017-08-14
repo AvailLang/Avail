@@ -391,7 +391,6 @@ extends Descriptor
 	 * @param method The method that this bundle represents.
 	 * @param splitter A MessageSplitter for this message name.
 	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
-	 * @throws MalformedMessageException If the message name is malformed.
 	 */
 	public static A_Bundle newBundle (
 		final A_Atom methodName,
@@ -430,17 +429,14 @@ extends Descriptor
 		// will accumulate.
 		final String nameString = methodName.toString();
 		final A_String name = StringDescriptor.from(nameString).makeShared();
-		Statistic stat;
+		final Statistic stat;
 		synchronized (dynamicLookupStatsByString)
 		{
-			stat = dynamicLookupStatsByString.get(name);
-			if (stat == null)
-			{
-				stat = new Statistic(
+			stat = dynamicLookupStatsByString.computeIfAbsent(
+				name,
+				k -> new Statistic(
 					"Lookup " + nameString,
-					StatisticReport.DYNAMIC_LOOKUPS);
-				dynamicLookupStatsByString.put(name, stat);
-			}
+					StatisticReport.DYNAMIC_LOOKUPS));
 		}
 		final A_BasicObject pojo = RawPojoDescriptor.identityWrap(stat);
 		result.setSlot(DYNAMIC_LOOKUP_STATS_POJO, pojo);

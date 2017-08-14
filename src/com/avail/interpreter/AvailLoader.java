@@ -1616,7 +1616,6 @@ public final class AvailLoader
 	 *        can be produced to indicate ambiguity within the lexer.
 	 * @param atomName
 	 *        The {@link A_Atom} under which to record the new lexer.
-	 * @return
 	 */
 	private static void createPrimitiveLexerForHeaderParsing (
 		final Primitive filterPrimitive,

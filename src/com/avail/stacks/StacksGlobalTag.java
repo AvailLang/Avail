@@ -44,12 +44,12 @@ public class StacksGlobalTag extends AbstractStacksTag
 	/**
 	 * The name of the global module variable
 	 */
-	final private QuotedStacksToken globalName;
+	private final QuotedStacksToken globalName;
 
 	/**
 	 * The name of the global module variable
 	 */
-	final private QuotedStacksToken globalType;
+	private final QuotedStacksToken globalType;
 
 	/**
 	 * Construct a new {@link StacksGlobalTag}.

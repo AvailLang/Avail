@@ -92,14 +92,10 @@ public class AvailCompilerFragmentCache
 	 *        The {@link ParserState} at which parsing took place.
 	 * @param solution
 	 *        The {@link CompilerSolution} to record.
-	 * @throws DuplicateSolutionException
-	 *         If the parse node and end state are equal to a solution already
-	 *         recorded.
 	 */
 	void addSolution (
 		final ParserState state,
 		final CompilerSolution solution)
-	throws DuplicateSolutionException
 	{
 		assert Thread.holdsLock(this);
 		solutions.get(state).addSolution(solution);

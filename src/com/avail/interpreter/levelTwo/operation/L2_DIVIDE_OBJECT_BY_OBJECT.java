@@ -51,7 +51,7 @@ public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_DIVIDE_OBJECT_BY_OBJECT().init(
 			READ_POINTER.is("dividend"),
 			READ_POINTER.is("divisor"),

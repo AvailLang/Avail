@@ -50,7 +50,7 @@ public final class P_DoubleTimesTwoPower extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_DoubleTimesTwoPower().init(
 			3, CannotFail, CanFold, CanInline);
 
@@ -60,7 +60,7 @@ public final class P_DoubleTimesTwoPower extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		assert args.size() == 2;
+		assert args.size() == 3;
 		final A_Number a = args.get(0);
 //		final A_Token literalTwo = args.get(1);
 		final A_Number b = args.get(2);

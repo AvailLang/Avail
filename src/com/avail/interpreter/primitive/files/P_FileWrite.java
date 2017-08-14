@@ -77,7 +77,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_FileWrite().init(
 			6, CanInline, HasSideEffect);
 
@@ -86,7 +86,7 @@ extends Primitive
 	 * more bytes than this may be broken down internally into transfers that
 	 * are this small, possibly recycling the same buffer.
 	 */
-	public final static int MAX_WRITE_BUFFER_SIZE = 4_194_304;
+	public static final int MAX_WRITE_BUFFER_SIZE = 4_194_304;
 
 	@Override
 	public Result attempt (

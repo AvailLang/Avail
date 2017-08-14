@@ -101,17 +101,17 @@ public final class Strings
 	 *        the line, including a terminal '\n'.
 	 * @param startingLineNumber
 	 *        What to number the first line as.
-	 * @return
+	 * @return The string containing line numbers.
 	 */
 	public static String addLineNumbers (
 		final String source,
 		final String pattern,
 		final int startingLineNumber)
 	{
-		int line = startingLineNumber;
-		int position = 0;
 		try (final Formatter formatter = new Formatter())
 		{
+			int line = startingLineNumber;
+			int position = 0;
 			while (position < source.length())
 			{
 				int nextStart = source.indexOf('\n', position);
@@ -126,7 +126,7 @@ public final class Strings
 	}
 
 	/** Strings containing a reasonably small number of tabs. */
-	private final static String[] tabs = new String[10];
+	private static final String[] tabs = new String[10];
 
 	static
 	{

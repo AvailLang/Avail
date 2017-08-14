@@ -1031,10 +1031,6 @@ public final class Interpreter
 				"attempt {0}",
 				primitive.name());
 		}
-		if (FiberDescriptor.debugFibers)
-		{
-			fiber().recordLatestPrimitive((short)primitiveNumber);
-		}
 		latestResult = null;
 		primitiveFunctionBeingAttempted = function;
 		assert current() == this;
@@ -2298,12 +2294,9 @@ public final class Interpreter
 		for (int i = 0; i < values.size(); i++)
 		{
 			final A_BasicObject value = values.get(i);
-			List<Integer> indices = map.get(value);
-			if (indices == null)
-			{
-				indices = new ArrayList<>();
-				map.put(value, indices);
-			}
+			final List<Integer> indices = map.computeIfAbsent(
+				value,
+				k -> new ArrayList<>());
 			indices.add(i);
 		}
 		final AtomicInteger outstanding = new AtomicInteger(map.size());
@@ -2433,13 +2426,8 @@ public final class Interpreter
 	{
 		final Map<A_RawFunction, Map<A_RawFunction, PerInterpreterStatistic>>
 			outerMap = checkedReturnMaps[interpreterIndex];
-		Map<A_RawFunction, PerInterpreterStatistic> submap =
-			outerMap.get(returner);
-		if (submap == null)
-		{
-			submap = new WeakHashMap<>();
-			outerMap.put(returner, submap);
-		}
+		final Map<A_RawFunction, PerInterpreterStatistic> submap =
+			outerMap.computeIfAbsent(returner, k -> new WeakHashMap<>());
 		PerInterpreterStatistic perInterpreterStatistic = submap.get(returnee);
 		if (perInterpreterStatistic == null)
 		{
@@ -2452,14 +2440,11 @@ public final class Interpreter
 			final A_String stringKey = StringDescriptor.from(nameString);
 			synchronized (checkedReturnMapsByString)
 			{
-				Statistic statistic = checkedReturnMapsByString.get(stringKey);
-				if (statistic == null)
-				{
-					statistic = new Statistic(
+				final Statistic statistic = checkedReturnMapsByString.computeIfAbsent(
+					stringKey,
+					k -> new Statistic(
 						nameString,
-						StatisticReport.NON_PRIMITIVE_RETURN_TYPE_CHECKS);
-					checkedReturnMapsByString.put(stringKey, statistic);
-				}
+						StatisticReport.NON_PRIMITIVE_RETURN_TYPE_CHECKS));
 				perInterpreterStatistic =
 					statistic.statistics[interpreterIndex];
 				submap.put(returnee, perInterpreterStatistic);
@@ -2472,7 +2457,7 @@ public final class Interpreter
 	 * Top-level statement evaluation statistics, keyed by module and then line
 	 * number.
 	 */
-	private final static Map<A_Module, Map<Integer, Statistic>>
+	private static final Map<A_Module, Map<Integer, Statistic>>
 		topStatementEvaluationStats = new WeakHashMap<>();
 
 	/**
@@ -2492,13 +2477,10 @@ public final class Interpreter
 		synchronized (topStatementEvaluationStats)
 		{
 			final A_Module moduleTraversed = module.traversed();
-			Map<Integer, Statistic> submap =
-				topStatementEvaluationStats.get(moduleTraversed);
-			if (submap == null)
-			{
-				submap = new HashMap<>();
-				topStatementEvaluationStats.put(moduleTraversed, submap);
-			}
+			final Map<Integer, Statistic> submap =
+				topStatementEvaluationStats.computeIfAbsent(
+					moduleTraversed,
+					k -> new HashMap<>());
 			statistic = submap.get(lineNumber);
 			if (statistic == null)
 			{

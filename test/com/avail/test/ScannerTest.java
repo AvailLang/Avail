@@ -57,7 +57,7 @@ public final class ScannerTest
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	static class Case
+	static final class Case
 	{
 		/**
 		 * The input string to be lexically scanned.
@@ -121,8 +121,8 @@ public final class ScannerTest
 	/**
 	 * A concise static method for building a {@link Generator} of {@linkplain
 	 * TokenDescriptor token} with the specified string and {@linkplain
-	 * TokenType token type}.  Its zero-based start position in the entire input
-	 * string is set to zero.
+	 * TokenType token type}.  Its one-based start position in the entire input
+	 * string is set to one.
 	 *
 	 * @param string
 	 *            The characters from which the token will ostensibly have been
@@ -135,7 +135,7 @@ public final class ScannerTest
 		final String string,
 		final TokenType tokenType)
 	{
-		return T(string, tokenType, 0);
+		return T(string, tokenType, 1);
 	}
 
 	/**
@@ -149,7 +149,7 @@ public final class ScannerTest
 	 * @param tokenType
 	 *            The type of token to construct.
 	 * @param start
-	 *            The zero-based offset of the first character of this token
+	 *            The one-based offset of the first character of this token
 	 *            within the entire input string.
 	 * @return The new token.
 	 */
@@ -159,15 +159,13 @@ public final class ScannerTest
 		final int start)
 	{
 		return () ->
-		{
-			return TokenDescriptor.create(
+			TokenDescriptor.create(
 				StringDescriptor.from(string),
 				TupleDescriptor.empty(),
 				TupleDescriptor.empty(),
 				start,
 				1,
 				tokenType);
-		};
 	}
 
 	/**
@@ -194,7 +192,7 @@ public final class ScannerTest
 	 *            The characters from which the token will ostensibly have been
 	 *            constructed.
 	 * @param start
-	 *            The zero-based offset of the first character of this token
+	 *            The one-based offset of the first character of this token
 	 *            within the entire input string.
 	 * @return The new keyword token.
 	 */
@@ -231,7 +229,7 @@ public final class ScannerTest
 	 *            The characters from which the token will ostensibly have been
 	 *            constructed.  An operator token is always a single character.
 	 * @param start
-	 *            The zero-based offset of the first character of this token
+	 *            The one-based offset of the first character of this token
 	 *            within the entire input string.
 	 * @return The new operator token.
 	 */
@@ -245,7 +243,7 @@ public final class ScannerTest
 	/**
 	 * A concise static method for building a {@link Generator} of {@linkplain
 	 * LiteralTokenDescriptor literal token} with the specified value and
-	 * string.  The start position will be zero, indicating that the token is at
+	 * string.  The start position will be one, indicating that the token is at
 	 * the beginning of the entire input string.
 	 *
 	 * @param object
@@ -259,7 +257,7 @@ public final class ScannerTest
 		final Object object,
 		final String string)
 	{
-		return L (object, string, 0);
+		return L (object, string, 1);
 	}
 
 	/**
@@ -273,7 +271,7 @@ public final class ScannerTest
 	 *            The characters from which the literal token will ostensibly
 	 *            have been constructed.
 	 * @param start
-	 *            The zero-based offset of the first character of this literal
+	 *            The one-based offset of the first character of this literal
 	 *            token within the entire input string.
 	 * @return The new operator token.
 	 */
@@ -339,37 +337,37 @@ public final class ScannerTest
 		C("0", L(0,"0")),
 		C("1", L(1,"1")),
 		C("123", L(123,"123")),
-		C("1 2", L(1,"1"), L(2,"2", 2)),
-		C("-12", O("-"), L(12, "12", 1)),
+		C("1 2", L(1,"1"), L(2,"2", 3)),
+		C("-12", O("-"), L(12, "12", 2)),
 
 		// Reals and such:
 		C(".", O(".")),
-		C("..", O("."), O(".",1)),
-		C(".f", O("."), K("f",1)),
-		C(".e5", O("."), K("e5",1)),
-		C("5.", L(5,"5"), O(".",1)),
-		C(".5", O("."), L(5,"5",1)),
-		C("3.14159", L(3,"3"), O(".", 1), L(14159, "14159", 2)),
-		C("123.056", L(123, "123"), O(".", 3), L(56, "056", 4)),
-		C("1d", L(1,"1"), K("d",1)),
-		C("5e", L(5,"5"), K("e",1)),
-		C("5e5", L(5, "5"), K("e5", 1)),
-		C("5e+5", L(5, "5"), K("e", 1), O("+", 2), L(5, "5", 3)),
-		C("5e-5", L(5, "5"), K("e", 1), O("-", 2), L(5, "5", 3)),
-		C("12.34e5f", L(12, "12"), O(".", 2), L(34, "34", 3), K("e5f", 5)),
+		C("..", O("."), O(".",2)),
+		C(".f", O("."), K("f",2)),
+		C(".e5", O("."), K("e5",2)),
+		C("5.", L(5,"5"), O(".",2)),
+		C(".5", O("."), L(5,"5",2)),
+		C("3.14159", L(3,"3"), O(".", 2), L(14159, "14159", 3)),
+		C("123.056", L(123, "123"), O(".", 4), L(56, "056", 5)),
+		C("1d", L(1,"1"), K("d",2)),
+		C("5e", L(5,"5"), K("e",2)),
+		C("5e5", L(5, "5"), K("e5", 2)),
+		C("5e+5", L(5, "5"), K("e", 2), O("+", 3), L(5, "5", 4)),
+		C("5e-5", L(5, "5"), K("e", 2), O("-", 3), L(5, "5", 4)),
+		C("12.34e5f", L(12, "12"), O(".", 3), L(34, "34", 4), K("e5f", 6)),
 
 		C("hello", K("hello")),
-		C("hello world", K("hello"), K("world",6)),
-		C("hello  world", K("hello"), K("world",7)),
-		C("   cat   dog   ", K("cat",3), K("dog",9)),
-		C("hello-world", K("hello"), O("-",5), K("world",6)),
+		C("hello world", K("hello"), K("world",7)),
+		C("hello  world", K("hello"), K("world",8)),
+		C("   cat   dog   ", K("cat",4), K("dog",10)),
+		C("hello-world", K("hello"), O("-",6), K("world",7)),
 		C("𝄞", O("𝄞")),
-		C("𝄞𝄞", O("𝄞"), O("𝄞",2)),
-		C("𝄞𝄞cat", O("𝄞"), O("𝄞",2), K("cat",4)),
-		C("«cat»", O("«"), K("cat",1), O("»",4)),
+		C("𝄞𝄞", O("𝄞"), O("𝄞",3)),
+		C("𝄞𝄞cat", O("𝄞"), O("𝄞",3), K("cat",5)),
+		C("«cat»", O("«"), K("cat",2), O("»",5)),
 		C("\\", O("\\")),
 		C("/", O("/")),
-		C("\\(", O("\\"), O("(",1)),
+		C("\\(", O("\\"), O("(",2)),
 		C("`", O("`")),
 		C(";", O(";")),
 
@@ -504,12 +502,10 @@ public final class ScannerTest
 			0,
 			LITERAL,
 			DoubleDescriptor.fromDouble(2.5)));
-		for (int i = 0; i < literals.size(); i++)
+		for (final A_Token lit_i : literals)
 		{
-			final A_Token lit_i = literals.get(i);
-			for (int j = 0; j < literals.size(); j++)
+			for (final A_Token lit_j : literals)
 			{
-				final AvailObject lit_j = literals.get(j);
 				if (lit_i.literal().equals(lit_j.literal()))
 				{
 					assertEquals(

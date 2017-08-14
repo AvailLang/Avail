@@ -56,7 +56,7 @@ public final class P_InvokePojoConstructor extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_InvokePojoConstructor().init(
 			4, Private);
 
@@ -113,7 +113,6 @@ public final class P_InvokePojoConstructor extends Primitive
 			error("reflected constructor call unexpectedly failed");
 			throw new Error();
 		}
-		assert newObject != null;
 		final AvailObject newPojo = PojoDescriptor.newPojo(
 			RawPojoDescriptor.identityWrap(newObject),
 			expectedType);

@@ -89,7 +89,6 @@ extends Expression
 	public void checkType (
 		final A_Type argumentType,
 		final int sectionNumber)
-	throws SignatureException
 	{
 		assert false : "checkType() should not be called for " +
 			"SectionCheckpoint expressions";

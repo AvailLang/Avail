@@ -1707,14 +1707,14 @@ implements
 	 * @param aFunctionType The function type used in the comparison.
 	 * @return {@code true} IFF the receiver is also a function type and:
 	 *
-	 * <p><ul>
+	 * <ul>
 	 * <li>The {@linkplain AvailObject#argsTupleType() argument types}
 	 * correspond,</li>
 	 * <li>The {@linkplain AvailObject#returnType() return types}
 	 * correspond, and</li>
 	 * <li>The {@linkplain AvailObject#declaredExceptions() raise types}
 	 * correspond.</li>
-	 * </ul></p>
+	 * </ul>
 	 */
 	@Override
 	public boolean equalsFunctionType (
@@ -6874,12 +6874,6 @@ implements
 	}
 
 	@Override
-	public void recordLatestPrimitive (final short primitiveNumber)
-	{
-		descriptor.o_RecordLatestPrimitive(this, primitiveNumber);
-	}
-
-	@Override
 	public void addPrivateNames (final A_Set trueNames)
 	{
 		descriptor.o_AddPrivateNames(this, trueNames);
@@ -7117,9 +7111,6 @@ implements
 		descriptor.o_ValueWasStablyComputed(this, wasStablyComputed);
 	}
 
-	/**
-	 * @return
-	 */
 	@Override
 	public long uniqueId ()
 	{

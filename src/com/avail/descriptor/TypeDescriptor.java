@@ -349,7 +349,7 @@ extends AbstractTypeDescriptor
 		/**
 		 * Stash a copy of the array of all {@link Types} enum values.
 		 */
-		private final static Types[] all = values();
+		private static final Types[] all = values();
 
 		/**
 		 * Answer the previously stashed copy of the array of all {@link Types}

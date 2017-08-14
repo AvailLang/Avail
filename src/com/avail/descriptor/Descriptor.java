@@ -2427,12 +2427,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	boolean o_EqualsNil (final AvailObject object)
-	{
-		return false;
-	}
-
-	@Override
 	int o_Hash (final AvailObject object)
 	{
 		// Answer a 32-bit long that is always the same for equal objects, but
@@ -4405,14 +4399,6 @@ extends AbstractDescriptor
 		final AvailObject object)
 	{
 		// Only atoms should be tested for being special.
-		throw unsupportedOperationException();
-	}
-
-	@Override
-	void o_RecordLatestPrimitive (
-		final AvailObject object,
-		final short primitiveNumber)
-	{
 		throw unsupportedOperationException();
 	}
 

@@ -129,7 +129,6 @@ extends Exception
 		final @Nullable ResolvedModuleName referringModuleName,
 		final String unresolvedModuleName)
 	{
-		super();
 		this.referringModuleName = referringModuleName;
 		this.unresolvedModuleName = unresolvedModuleName;
 	}

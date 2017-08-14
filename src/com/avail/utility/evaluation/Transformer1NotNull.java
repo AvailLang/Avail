@@ -1,5 +1,5 @@
 /**
- * DuplicateSolutionException.java
+ * Transformer1.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,26 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.utility.evaluation;
 
 /**
- * Indicates that two equal solutions have been produced by the parser for some
- * intermediate expression.  While we could allow this to proceed, and in some
- * cases both solutions might even be eliminated by subsequent parsing steps, it
- * seems unlikely that a valid subexpression should be parsable in two ways.
+ * Implementors of {@code Transformer1NotNull} provide a single arbitrary
+ * operation that accepts one argument and produces a result.  Nulls are not
+ * allowed as input or output.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @param <X> The type of the sole argument to the operation.
+ * @param <Y> The type of value produced by the operation.
  */
-public class DuplicateSolutionException extends Exception
+@FunctionalInterface
+public interface Transformer1NotNull<X,Y>
 {
-	/** The serial version identifier. */
-	private static final long serialVersionUID = -6329252274205064940L;
-
 	/**
-	 * Construct a new {@link DuplicateSolutionException}.
+	 * Perform the operation.
+	 *
+	 * @param arg The argument to the operation.
+	 * @return The result of performing the operation.
 	 */
-	public DuplicateSolutionException ()
-	{
-		super();
-	}
+	Y value (X arg);
 }

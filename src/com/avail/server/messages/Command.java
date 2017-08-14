@@ -408,18 +408,12 @@ public enum Command
 			final Command command,
 			final String... syntax)
 		{
-			assert trie != null;
 			TrieNode node = trie;
 			for (final String token : syntax)
 			{
 				final String lowercase = token.toLowerCase();
-				TrieNode nextNode = node.nextNodes.get(lowercase);
-				if (nextNode == null)
-				{
-					nextNode = new TrieNode();
-					node.nextNodes.put(lowercase, nextNode);
-				}
-				node = nextNode;
+				node = node.nextNodes.computeIfAbsent(
+					lowercase, k -> new TrieNode());
 			}
 			final Command existingCommand = node.command;
 			assert existingCommand == null : String.format(
@@ -595,7 +589,7 @@ public enum Command
 			}
 			throw new CommandParseException(formatter.toString());
 		}
-		assert parsedCommands.size() == 1;
+		// assert parsedCommands.size() == 1;
 		return parsedCommands.get(0);
 	}
 }

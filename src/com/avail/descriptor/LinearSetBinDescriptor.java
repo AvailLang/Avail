@@ -53,7 +53,7 @@ import java.util.NoSuchElementException;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class LinearSetBinDescriptor
+public final class LinearSetBinDescriptor
 extends SetBinDescriptor
 {
 	/**
@@ -167,12 +167,12 @@ extends SetBinDescriptor
 			final byte shift = (byte)(6 * myLevel);
 			assert shift < 32;
 			int bitPosition = (elementObjectHash >>> shift) & 63;
-			long bitVector = bitShift(1L, bitPosition);
+			long bitVector = 1L << bitPosition;
 			for (int i = 1; i <= oldSize; i++)
 			{
 				final A_BasicObject element = object.slot(BIN_ELEMENT_AT_, i);
 				bitPosition = (element.hash() >>> shift) & 63;
-				bitVector |= bitShift(1L, bitPosition);
+				bitVector |= 1L << bitPosition;
 			}
 			final int newLocalSize = bitCount(bitVector);
 			result = HashedSetBinDescriptor.createInitializedBin(
@@ -506,7 +506,7 @@ extends SetBinDescriptor
 	/**
 	 * The canonical array of empty bins, one for each level.
 	 */
-	private final static AvailObject [] emptyBins =
+	private static final AvailObject [] emptyBins =
 		new AvailObject [numberOfLevels];
 
 	static

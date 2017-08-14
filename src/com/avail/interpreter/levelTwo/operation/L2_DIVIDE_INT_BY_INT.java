@@ -50,7 +50,7 @@ public class L2_DIVIDE_INT_BY_INT extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_DIVIDE_INT_BY_INT().init(
 			READ_INT.is("dividend"),
 			READ_INT.is("divisor"),

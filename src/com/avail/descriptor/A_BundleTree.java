@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.compiler.ParsingOperation;
 import com.avail.utility.Pair;
 
 import java.util.Collection;
@@ -84,36 +85,112 @@ extends A_BasicObject
 			treesToVisit);
 
 	/**
-	 * Dispatch to the descriptor.
-	 * @return
+	 * Answer the {@link A_Set set} of {@link A_Bundle bundles}, an invocation
+	 * of which has been completely parsed when this bundle tree has been
+	 * reached.
+	 *
+	 * <p>This is only an authoritative set if an {@link #expand(A_Module)} has
+	 * been invoked since the last modification via methods like {@link
+	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * @return The bundles for which a send has been parsed at this point.
 	 */
 	A_Set lazyComplete ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 * @return
+	 * Answer the {@link A_BundleTree bundle trees} that are waiting for a
+	 * specific token to be parsed.  These are organized as a map where each key
+	 * is the string form of an expected token, and the corresponding value is
+	 * the succesor {@link A_BundleTree bundle tree} representing the situation
+	 * where a token matching the key was consumed.
+	 *
+	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
+	 * been invoked since the last modification via methods like {@link
+	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * @return A map from strings to bundle trees.
 	 */
 	A_Map lazyIncomplete ();
 
 	/**
-	 * @return
+	 * Answer the {@link A_BundleTree bundle trees} that are waiting for a
+	 * specific case-insensitive token to be parsed.  These are organized as a
+	 * map where each key is the lower-case string form of an expected
+	 * case-insensitive token, and the corresponding value is the succesor
+	 * {@link A_BundleTree bundle tree} representing the situation where a token
+	 * case-insensitively matching the key was consumed.
+	 *
+	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
+	 * been invoked since the last modification via methods like {@link
+	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * @return A map from lowercase strings to bundle trees.
 	 */
 	A_Map lazyIncompleteCaseInsensitive ();
 
 	/**
-	 * Dispatch to the descriptor.
-	 * @return
+	 * Answer the {@link A_BundleTree bundle trees} that will be reached when
+	 * specific parse instructions run.  During normal processing, all such
+	 * instructions are attempted in parallel.  Certain instructions like
+	 * {@link ParsingOperation#PARSE_PART} do not get added to this map, and are
+	 * added to other structures such as {@link #lazyIncomplete()}.
+	 *
+	 * <p>Each key is an {@link IntegerDescriptor integer} that encodes a
+	 * parsing instruction, and the value is a tuple of successor {@link
+	 * A_BundleTree bundle trees} that are reached after executing that parsing
+	 * instruction.  The tuples are typically of size one, but some instructions
+	 * require the parsings to diverge, for example when running macro prefix
+	 * functions.</p>
+	 *
+	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
+	 * been invoked since the last modification via methods like {@link
+	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * @return A map from integer-encoded instructions to tuples of successor
+	 *         bundle trees.
 	 */
 	A_Map lazyActions ();
 
 	/**
-	 * @return
+	 * Answer a map used by the {@link ParsingOperation#CHECK_ARGUMENT}
+	 * instruction to quickly eliminate arguments that are forbidden by
+	 * grammatical restrictions.  The map is from each restricted argument
+	 * {@link A_Bundle bundle} to the successor {@link A_BundleTree bundle tree}
+	 * that includes every bundle that <em>is</em> allowed when an argument is
+	 * an invocation of a restricted argument bundle.  Each argument bundle that
+	 * is restricted by at least one parent bundle at this point (just after
+	 * having parsed an argument) has an entry in this map.  Argument bundles
+	 * that are not restricted do not occur in this map, and are instead dealt
+	 * with by an entry in the {@link #lazyActions()} map.
+	 *
+	 * <p>This technique leads to an increase in the number of bundle trees, but
+	 * is very fast at eliminating illegal parses, even when expressions are
+	 * highly ambiguous (or highly ambiguous for their initial parts).</p>
+	 *
+	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
+	 * been invoked since the last modification via methods like {@link
+	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * @return A map from potential child bundle to the successor bundle tree
+	 *         that should be visited if an invocation of that bundle has just
+	 *         been parsed as an argument.
 	 */
 	A_Map lazyPrefilterMap ();
 
 	/**
 	 * If this message bundle tree has a type filter tree, return the raw pojo
 	 * holding it, otherwise {@link NilDescriptor#nil()}.
+	 *
+	 * <p>The type filter tree is used to quickly eliminate potential bundle
+	 * invocations based on the type of an argument that has just been parsed.
+	 * The argument's expression type is looked up in the tree, and the result
+	 * is which {@link A_BundleTree bundle tree} should be visited, having
+	 * eliminated all parsing possibilities where the argument was of an
+	 * unacceptable type.</p>
+	 *
+	 * <p>This is only authoritative if an {@link #expand(A_Module)} has been
+	 * invoked since the last modification via methods like {@link
+	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
 	 *
 	 * @return The type filter tree pojo or nil.
 	 */
@@ -124,7 +201,7 @@ extends A_BasicObject
 	 * this bundle tree.  The corresponding bundle must already be present.
 	 *
 	 * @param planInProgress
-	 *            The definition parsing plan to add.
+	 *        The definition parsing plan to add.
 	 */
 	void addPlanInProgress (A_ParsingPlanInProgress planInProgress);
 
@@ -132,7 +209,8 @@ extends A_BasicObject
 	 * Remove information about this {@link A_DefinitionParsingPlan definition
 	 * parsing plan} from this bundle tree.
 	 *
-	 * @param planInProgress The parsing plan to exclude.
+	 * @param planInProgress
+	 *        The parsing plan to exclude.
 	 */
 	void removePlanInProgress (A_ParsingPlanInProgress planInProgress);
 }

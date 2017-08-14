@@ -430,12 +430,12 @@ implements Closeable
 	 */
 	private JSONArray readArray () throws IOException, MalformedJSONException
 	{
-		final List<JSONData> list = new LinkedList<>();
 		peekFor('[', null);
 		if (peekFor(']', null))
 		{
 			return JSONArray.empty();
 		}
+		final List<JSONData> list = new LinkedList<>();
 		do
 		{
 			list.add(readData());

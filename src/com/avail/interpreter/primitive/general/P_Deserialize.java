@@ -56,7 +56,7 @@ extends Primitive
 	/**
 	 * The sole instance of this primitive class. Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_Deserialize().init(2, CanInline);
 
 	@Override
@@ -97,10 +97,10 @@ extends Primitive
 		}
 
 		final ByteArrayInputStream in = new ByteArrayInputStream(byteArray);
-		final List<A_BasicObject> values = new ArrayList<>();
 		final Deserializer deserializer = new Deserializer(
 			in, interpreter.runtime());
 		deserializer.currentModule(module);
+		final List<A_BasicObject> values = new ArrayList<>();
 		try
 		{
 			A_BasicObject value;

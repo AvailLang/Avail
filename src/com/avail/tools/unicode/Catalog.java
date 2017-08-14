@@ -125,9 +125,8 @@ public class Catalog
 			{
 				@Override
 				public FileVisitResult visitFile (
-						final @Nullable Path path,
-						final @Nullable BasicFileAttributes attrs)
-					throws IOException
+					final @Nullable Path path,
+					final @Nullable BasicFileAttributes attrs)
 				{
 					assert path != null;
 					final String name = path.getFileName().toString();
@@ -190,9 +189,9 @@ public class Catalog
 		final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
 		final ByteBuffer encoded = ByteBuffer.allocateDirect(4096);
 		final CharBuffer decoded = CharBuffer.allocate(4096);
-		boolean atEnd = false;
 		try
 		{
+			boolean atEnd = false;
 			while (!atEnd)
 			{
 				final int bytesRead = in.read(encoded);
@@ -327,7 +326,7 @@ public class Catalog
 			codePoints = new TreeSet<>(codePoints);
 			allCodePoints = codePoints;
 		}
-		assert codePoints != null;
+		// assert codePoints != null;
 		return Collections.unmodifiableSet(codePoints);
 	}
 
@@ -340,7 +339,7 @@ public class Catalog
 	 * @throws IOException
 	 *         If an I/O exception occurs.
 	 */
-	private void populateCharacterInfo (final CharacterInfo info)
+	private static void populateCharacterInfo (final CharacterInfo info)
 		throws IOException
 	{
 		final URL url = urlFor(info);
@@ -363,7 +362,7 @@ public class Catalog
 			while (reader.read(buffer) != -1)
 			{
 				buffer.flip();
-				builder.append(buffer.toString());
+				builder.append(buffer);
 				buffer.clear();
 			}
 		}
@@ -466,7 +465,7 @@ public class Catalog
 				}
 			}
 		}
-		assert codePoints != null;
+		// assert codePoints != null;
 		return Collections.unmodifiableSet(codePoints);
 	}
 
@@ -523,7 +522,7 @@ public class Catalog
 				}
 			}
 		}
-		assert codePoints != null;
+		// assert codePoints != null;
 		return Collections.unmodifiableSet(codePoints);
 	}
 

@@ -128,10 +128,8 @@ extends TypeDescriptor
 		final int indent)
 	{
 		final int objectCount = objects.size();
-		boolean anyBreaks;
-		final List<String> tempStrings;
-		anyBreaks = false;
-		tempStrings = new ArrayList<>(objectCount);
+		boolean anyBreaks = false;
+		final List<String> tempStrings = new ArrayList<>(objectCount);
 		for (final A_BasicObject elem : objects)
 		{
 			final String str = elem != null ? elem.toString() : "…";

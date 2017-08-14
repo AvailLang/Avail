@@ -45,7 +45,7 @@ public final class ClearTranscriptAction
 extends AbstractWorkbenchAction
 {
 	@Override
-	public void actionPerformed (@Nullable final ActionEvent e)
+	public void actionPerformed (final @Nullable ActionEvent e)
 	{
 		workbench.clearTranscript();
 	}

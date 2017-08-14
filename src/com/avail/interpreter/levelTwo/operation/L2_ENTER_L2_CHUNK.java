@@ -43,7 +43,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
@@ -59,7 +58,7 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_ENTER_L2_CHUNK().init(
 			WRITE_VECTOR.is("fixed and arguments"));
 

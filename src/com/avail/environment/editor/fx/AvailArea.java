@@ -79,8 +79,7 @@ public class AvailArea
 	 * An {@link ArrayDeque} that represents the currently navigated path on
 	 * the {@link ReplaceTextTemplate#prefixTrie}.
 	 */
-	private @NotNull
-	final ArrayDeque<PrefixNode<String>> path = new ArrayDeque<>();
+	private final @NotNull ArrayDeque<PrefixNode<String>> path = new ArrayDeque<>();
 
 	/**
 	 * A {@link List} of {@link KeyComboAction}s to be performed on various
@@ -136,16 +135,16 @@ public class AvailArea
 		final int caretPosition = getCaretPosition();
 		final String text = getText();
 		int start = 0;
-		for (
-			int i = caretPosition - 1, cp = text.codePointAt(i);
-			i >= 0;
-			i -= Character.charCount(cp), cp = text.codePointAt(i))
+		int i = caretPosition;
+		while (i > 0)
 		{
+			final int cp = text.codePointBefore(i);
 			if (!Character.isLetterOrDigit(cp))
 			{
-				start = i + Character.charCount(cp);
+				start = i;
 				break;
 			}
+			i -= Character.charCount(cp);
 		}
 		if (prefixStartHolder != null)
 		{
@@ -295,12 +294,11 @@ public class AvailArea
 				final TextInputDialog dialog =
 					FXUtility.textInputDialog("Go to Line");
 				final Optional<String> result = dialog.showAndWait();
-				if (result.isPresent())
+				result.ifPresent(s ->
 				{
 					try
 					{
-						final int line = clamp.apply(
-							Integer.parseInt(result.get()));
+						final int line = clamp.apply(Integer.parseInt(s));
 						showParagraphAtTop(line);
 						moveTo(line - 1, 0);
 						requestFollowCaret();
@@ -314,7 +312,7 @@ public class AvailArea
 						moveTo(getText().length());
 						requestFollowCaret();
 					}
-				}
+				});
 			},
 			KeyCode.L,
 			KeyCombination.META_DOWN);
@@ -368,11 +366,11 @@ public class AvailArea
 				final TextInputDialog dialog =
 					FXUtility.textInputDialog("Find");
 				final Optional<String> result = dialog.showAndWait();
-				if (result.isPresent())
+				result.ifPresent(s ->
 				{
 					try
 					{
-						findBuffer = result.get();
+						findBuffer = s;
 						if (findBuffer.length() > 0)
 						{
 							finder().value();
@@ -386,7 +384,7 @@ public class AvailArea
 					{
 						//Just don't do anything
 					}
-				}
+				});
 			},
 			KeyCode.F,
 			KeyCombination.META_DOWN);

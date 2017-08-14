@@ -49,18 +49,18 @@ import com.avail.utility.configuration.Configurator;
  * <ul>
  * <li><strong>AVAIL_ROOTS</strong>: The {@linkplain ModuleRoots Avail root
  * path}, described by the following grammar:
- * <p><pre>
+ * <pre>
  * modulePath ::= binding ++ ";" ;
  * binding ::= logicalRoot "=" objectRepository ("," sourceDirectory) ;
  * logicalRoot ::= [^=;]+ ;
  * objectRepository ::= [^;]+ ;
  * sourceDirectory ::= [^;]+ ;
- * </pre></p>
- * <p>{@code logicalRoot} represents a logical root name. {@code
+ * </pre>
+ * {@code logicalRoot} represents a logical root name. {@code
  * objectRepository} represents the absolute path of a binary module repository.
  * {@code sourceDirectory} represents the absolute path of a package, i.e., a
  * directory containing source modules, and may be sometimes be omitted (e.g.,
- * when compilation is not required).</p></li>
+ * when compilation is not required).</li>
  * <li><strong>AVAIL_RENAMES</strong>: The path to the {@linkplain
  * RenamesFileParser renames file}.</li>
  * </ul>

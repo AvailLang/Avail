@@ -877,7 +877,7 @@ public enum AvailErrorCode
 	 * The mapping from {@linkplain #code numeric codes} to {@link
 	 * AvailErrorCode}s.
 	 */
-	private final static Map<Integer, AvailErrorCode> byNumericCode
+	private static final Map<Integer, AvailErrorCode> byNumericCode
 		= new HashMap<>();
 
 	// The enumeration values have been initialized, so build the map.

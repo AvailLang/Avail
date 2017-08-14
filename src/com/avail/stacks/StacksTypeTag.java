@@ -44,7 +44,7 @@ public class StacksTypeTag extends AbstractStacksTag
 	/**
 	 * The name of the method
 	 */
-	final private QuotedStacksToken typeName;
+	private final QuotedStacksToken typeName;
 
 	/**
 	 * Construct a new {@link StacksTypeTag}.

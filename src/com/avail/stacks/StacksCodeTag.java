@@ -48,7 +48,7 @@ public class StacksCodeTag extends AbstractStacksTag
 	 * The text that is intended to be styled as code.  Can either be quoted
 	 * text or numerical value.  Multiple tokens should be quoted.
 	 */
-	final private AbstractStacksToken codeStyledText;
+	private final AbstractStacksToken codeStyledText;
 
 	/**
 	 * Construct a new {@link StacksCodeTag}.

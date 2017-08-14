@@ -296,131 +296,142 @@ public class StacksScanner extends AbstractStacksScanner
 				int erasurePosition = 0;
 				while (c != '\"')
 				{
-					if (c == '\\')
+					switch (c)
 					{
-						if (scanner.atEnd())
+						case '\\':
 						{
-							throw new StacksScannerException(
-								String.format(
-									"\n<li><strong>%s</strong><em> Line #: %d"
-									+ "</em>: Scanner Error: Encountered end "
-									+ "of file after backslash in string "
-									+ "literal.\n",
-									scanner.moduleLeafName(),
-									scanner.lineNumber()),
-								scanner);
-						}
-						switch (c = scanner.next())
-						{
-							case 'n':
-								scanner.beingTokenized().append('\n');
-								break;
-							case 'r':
-								scanner.beingTokenized().append('\r');
-								break;
-							case 't':
-								scanner.beingTokenized().append('\t');
-								break;
-							case '\\':
-								scanner.beingTokenized().append('\\');
-								break;
-							case '\"':
-								scanner.beingTokenized().append('\"');
-								break;
-							case '\r':
-								// Treat \r or \r\n in the source just like \n.
-								if (!scanner.atEnd())
-								{
-									scanner.peekFor('\n');
-								}
-								canErase = true;
-								break;
-							case '\n':
-								// A backslash ending a line.  Emit nothing.
-								// Allow '\|' to back up to here as long as only
-								// whitespace follows.
-								canErase = true;
-								break;
-							case '|':
-								// Remove all immediately preceding white space
-								// from this line.
-								if (canErase)
-								{
-									scanner.beingTokenized()
-										.setLength(erasurePosition);
-									canErase = false;
-								}
-								else
-								{
+							if (scanner.atEnd())
+							{
+								throw new StacksScannerException(
+									String.format(
+										"\n<li><strong>%s</strong><em> Line #: %d"
+											+ "</em>: Scanner Error: Encountered end "
+											+ "of file after backslash in string "
+											+ "literal.\n",
+										scanner.moduleLeafName(),
+										scanner.lineNumber()),
+									scanner);
+							}
+							switch (c = scanner.next())
+							{
+								case 'n':
+									scanner.beingTokenized().append('\n');
+									break;
+								case 'r':
+									scanner.beingTokenized().append('\r');
+									break;
+								case 't':
+									scanner.beingTokenized().append('\t');
+									break;
+								case '\\':
+									scanner.beingTokenized().append('\\');
+									break;
+								case '\"':
+									scanner.beingTokenized().append('\"');
+									break;
+								case '\r':
+									// Treat \r or \r\n in the source just like \n.
+									if (!scanner.atEnd())
+									{
+										scanner.peekFor('\n');
+									}
+									canErase = true;
+									break;
+								case '\n':
+									// A backslash ending a line.  Emit nothing.
+									// Allow '\|' to back up to here as long as only
+									// whitespace follows.
+									canErase = true;
+									break;
+								case '|':
+									// Remove all immediately preceding white space
+									// from this line.
+									if (canErase)
+									{
+										scanner.beingTokenized()
+											.setLength(erasurePosition);
+										canErase = false;
+									}
+									else
+									{
+										throw new StacksScannerException(
+											String.format(
+												"\n<li><strong>%s</strong><em> "
+													+ "Line #: %d</em>: Scanner Error: "
+													+ "The input before  \"\\|\" "
+													+ "contains non-whitespace.</li>",
+												scanner.moduleLeafName(),
+												scanner.lineNumber()),
+											scanner);
+									}
+									break;
+								case '(':
+									parseUnicodeEscapes(
+										scanner,
+										scanner.beingTokenized());
+									break;
+								case '[':
+									scanner.lineNumber(literalStartingLine);
+									throw new StacksScannerException(
+										"Power strings are not yet supported",
+										scanner);
+								default:
 									throw new StacksScannerException(
 										String.format(
-											"\n<li><strong>%s</strong><em> "
-											+ "Line #: %d</em>: Scanner Error: "
-											+ "The input before  \"\\|\" "
-											+ "contains non-whitespace.</li>",
+											"\n<li><strong>%s</strong><em> Line #: "
+												+ "%d</em>: Scanner Error: Backslash "
+												+ "escape should be followed by one of "
+												+ "n , r, t, \\, \", (, [, |, or "
+												+ "a line break.</li>",
 											scanner.moduleLeafName(),
 											scanner.lineNumber()),
 										scanner);
-								}
-								break;
-							case '(':
-								parseUnicodeEscapes(scanner,
-									scanner.beingTokenized());
-								break;
-							case '[':
-								scanner.lineNumber(literalStartingLine);
-								throw new StacksScannerException(
-									"Power strings are not yet supported",
-									scanner);
-							default:
-								throw new StacksScannerException(
-									String.format(
-									"\n<li><strong>%s</strong><em> Line #: "
-									+ "%d</em>: Scanner Error: Backslash "
-									+ "escape should be followed by one of "
-									+ "n , r, t, \\, \", (, [, |, or "
-									+ "a line break.</li>",
-									scanner.moduleLeafName(),
-									scanner.lineNumber()),
-									scanner);
-						}
-						erasurePosition = scanner.beingTokenized().length();
-					}
-					else if (c == '\r')
-					{
-						// Transform \r or \r\n in the source into \n.
-						if (!scanner.atEnd())
-						{
-							scanner.peekFor('\n');
-						}
-						scanner.beingTokenized().appendCodePoint('\n');
-						canErase = true;
-						erasurePosition = scanner.beingTokenized().length();
-					}
-					else if (c == '\n')
-					{
-						// Just like a regular character, but limit how much
-						// can be removed by a subsequent '\|'.
-						scanner.beingTokenized().appendCodePoint('\n');
-						canErase = true;
-						erasurePosition = scanner.beingTokenized().length();
-					}
-					else if (c == '*')
-					{
-						// Just like a regular character, but limit how much
-						// can be removed by a subsequent '\|'.
-						if (!canErase)
-						{
-							scanner.beingTokenized().appendCodePoint('*');
+							}
 							erasurePosition = scanner.beingTokenized().length();
+							break;
 						}
-					}
-					else
-					{
-						scanner.beingTokenized().appendCodePoint(c);
-						if (canErase && !Character.isWhitespace(c))
+						case '\r':
 						{
-							canErase = false;
+							// Transform \r or \r\n in the source into \n.
+							if (!scanner.atEnd())
+							{
+								scanner.peekFor('\n');
+							}
+							scanner.beingTokenized().appendCodePoint('\n');
+							canErase = true;
+							erasurePosition = scanner.beingTokenized().length();
+							break;
+						}
+						case '\n':
+						{
+							// Just like a regular character, but limit how much
+							// can be removed by a subsequent '\|'.
+							scanner.beingTokenized().appendCodePoint('\n');
+							canErase = true;
+							erasurePosition = scanner.beingTokenized().length();
+							break;
+						}
+						case '*':
+						{
+							// Just like a regular character, but limit how much
+							// can be removed by a subsequent '\|'.
+							if (!canErase)
+							{
+								scanner.beingTokenized().appendCodePoint('*');
+								erasurePosition = scanner
+									.beingTokenized()
+									.length();
+							}
+							break;
+						}
+						default:
+						{
+							scanner.beingTokenized().appendCodePoint(c);
+							if (canErase && !Character.isWhitespace(c))
+							{
+								canErase = false;
+							}
+							break;
 						}
 					}
 					if (scanner.atEnd())
@@ -459,7 +470,6 @@ public class StacksScanner extends AbstractStacksScanner
 					final StringBuilder stringBuilder)
 				throws StacksScannerException
 			{
-				int c;
 				if (scanner.atEnd())
 				{
 					throw new StacksScannerException(String.format(
@@ -470,7 +480,7 @@ public class StacksScanner extends AbstractStacksScanner
 						scanner.lineNumber()),
 						scanner);
 				}
-				c = scanner.next();
+				int c = scanner.next();
 				while (c != ')')
 				{
 					int value = 0;
@@ -479,17 +489,17 @@ public class StacksScanner extends AbstractStacksScanner
 					{
 						if (c >= '0' && c <= '9')
 						{
-							value = (value << 4) + c - '0';
+							value = (value << 4) + c - (int)'0';
 							digitCount++;
 						}
 						else if (c >= 'A' && c <= 'F')
 						{
-							value = (value << 4) + c - 'A' + 10;
+							value = (value << 4) + c - (int)'A' + 10;
 							digitCount++;
 						}
 						else if (c >= 'a' && c <= 'f')
 						{
-							value = (value << 4) + c - 'a' + 10;
+							value = (value << 4) + c - (int)'a' + 10;
 							digitCount++;
 						}
 						else
@@ -683,12 +693,11 @@ public class StacksScanner extends AbstractStacksScanner
 			void scan (final StacksScanner scanner)
 				throws StacksScannerException
 			{
-				int cp;
 				scanner.incrementNewlineCount();
 				while (Character.isSpaceChar(scanner.peek())
 					|| Character.isWhitespace(scanner.peek()))
 				{
-					cp = scanner.next();
+					int cp = scanner.next();
 					if (forCodePoint(cp) == NEWLINE)
 					{
 							scanner.incrementNewlineCount();
@@ -702,7 +711,7 @@ public class StacksScanner extends AbstractStacksScanner
 						}
 					}
 				}
-				if(scanner.peek() == '<')
+				if (scanner.peek() == '<')
 				{
 					scanner.hasHTMLTagTrue();
 				}

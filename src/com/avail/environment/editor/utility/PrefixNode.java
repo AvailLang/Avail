@@ -100,12 +100,11 @@ public class PrefixNode<T>
 
 		if (word.length() - 1 > depth)
 		{
-			final Character next = word.charAt(depth + 1);
 			final PrefixNode<T> nextNode;
 			synchronized (lock)
 			{
 				nextNode = children.computeIfAbsent(
-					next,
+					word.charAt(depth + 1),
 					key -> new PrefixNode<>(depth + 1));
 			}
 			nextNode.addWord(word, contents);

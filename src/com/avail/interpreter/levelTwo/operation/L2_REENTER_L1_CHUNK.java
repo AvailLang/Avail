@@ -48,7 +48,7 @@ public class L2_REENTER_L1_CHUNK extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_REENTER_L1_CHUNK().init();
 
 	@Override

@@ -10,7 +10,6 @@
       <root url="jar://$APPLICATION_HOME_DIR$/plugins/junit/lib/junit-platform-runner-1.0.0-M5.jar!/" />
       <root url="jar://$APPLICATION_HOME_DIR$/plugins/junit/lib/junit-platform-suite-api-1.0.0-M5.jar!/" />
       <root url="jar://$APPLICATION_HOME_DIR$/plugins/junit/lib/junit-rt.jar!/" />
-      <root url="jar://$APPLICATION_HOME_DIR$/plugins/junit/lib/junit-vintage-engine-4.12.0-M5.jar!/" />
       <root url="jar://$APPLICATION_HOME_DIR$/plugins/junit/lib/junit5-rt.jar!/" />
       <root url="jar://$APPLICATION_HOME_DIR$/plugins/junit/lib/opentest4j-1.0.0-M2.jar!/" />
     </CLASSES>

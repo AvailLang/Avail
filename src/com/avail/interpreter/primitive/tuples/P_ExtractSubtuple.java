@@ -47,7 +47,7 @@ public final class P_ExtractSubtuple extends Primitive
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
-	public final static Primitive instance =
+	public static final Primitive instance =
 		new P_ExtractSubtuple().init(
 			3, CanFold, CanInline);
 

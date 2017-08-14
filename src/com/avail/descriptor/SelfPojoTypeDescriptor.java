@@ -329,7 +329,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The mutable {@link SelfPojoTypeDescriptor}. */
-	private final static SelfPojoTypeDescriptor mutable =
+	private static final SelfPojoTypeDescriptor mutable =
 		new SelfPojoTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
@@ -339,7 +339,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The shared {@link SelfPojoTypeDescriptor}. */
-	private final static SelfPojoTypeDescriptor shared =
+	private static final SelfPojoTypeDescriptor shared =
 		new SelfPojoTypeDescriptor(Mutability.SHARED);
 
 	@Override

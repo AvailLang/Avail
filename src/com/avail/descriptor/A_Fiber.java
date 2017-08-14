@@ -308,14 +308,6 @@ extends A_BasicObject
 	A_Set getAndClearReificationWaiters ();
 
 	/**
-	 * Record, for debugging, the fact that the specified primitive is being
-	 * attempted.
-	 *
-	 * @param primitiveNumber The primitive being attempted.
-	 */
-	void recordLatestPrimitive (short primitiveNumber);
-
-	/**
 	 * Answer the {@linkplain TextInterface text interface} for this {@linkplain
 	 * A_Fiber fiber}.
 	 *
@@ -335,7 +327,7 @@ extends A_BasicObject
 	/**
 	 * Answer the unique identifier of this {@linkplain A_Fiber fiber}.
 	 *
-	 * @return The unique identifier.
+	 * @return The unique identifier, a {@code long}.
 	 */
 	long uniqueId ();
 }

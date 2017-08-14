@@ -79,7 +79,7 @@ public final class SerializerTest
 	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	@BeforeAll
-	public static void initializeAllWellKnownObjects () throws IOException
+	public static void initializeAllWellKnownObjects ()
 	{
 		final IndexedRepositoryManager repository =
 			IndexedRepositoryManager.createTemporary(

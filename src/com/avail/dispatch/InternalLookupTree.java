@@ -208,7 +208,7 @@ public class InternalLookupTree<
 	 * @param adaptor
 	 *        The {@link LookupTreeAdaptor} to use for expanding the tree.
 	 */
-	final private void chooseCriterion (
+	private final void chooseCriterion (
 		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		final Memento memento)
 	{

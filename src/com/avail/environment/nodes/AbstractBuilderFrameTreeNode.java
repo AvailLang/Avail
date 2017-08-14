@@ -113,7 +113,7 @@ extends DefaultMutableTreeNode
 	/**
 	 * A static cache of scaled icons, organized by node class and line height.
 	 */
-	final static LRUCache<Pair<String, Integer>, ImageIcon>
+	static final LRUCache<Pair<String, Integer>, ImageIcon>
 		cachedScaledIcons = new LRUCache<>(
 			100,
 			20,
@@ -162,7 +162,7 @@ extends DefaultMutableTreeNode
 	 *
 	 * @param selected
 	 *        Whether the node is selected.
-	 * @return
+	 * @return The HTML text as a {@link String}.
 	 */
 	public final String htmlText (final boolean selected)
 	{

@@ -56,7 +56,7 @@ implements A_BasicObject
 	 * occasionally valuable to enable for a short time, especially right after
 	 * introducing new descriptor subclasses.
 	 */
-	public final static boolean shouldCheckSlots = false;
+	public static final boolean shouldCheckSlots = false;
 
 	/** A {@code long} array encoding all of my digital state. */
 	private long[] longSlots;
@@ -128,8 +128,7 @@ implements A_BasicObject
 	{
 		if (shouldCheckSlots)
 		{
-			@Nullable
-			final ObjectSlotsEnum [] permittedFields =
+			final @Nullable ObjectSlotsEnum [] permittedFields =
 				descriptor.debugObjectSlots[field.ordinal()];
 			if (permittedFields != null)
 			{
@@ -173,8 +172,7 @@ implements A_BasicObject
 	{
 		if (shouldCheckSlots)
 		{
-			@Nullable
-			final IntegerSlotsEnum [] permittedFields =
+			final @Nullable IntegerSlotsEnum [] permittedFields =
 				descriptor.debugIntegerSlots[field.ordinal()];
 			if (permittedFields != null)
 			{

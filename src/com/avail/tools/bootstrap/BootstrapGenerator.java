@@ -60,20 +60,19 @@ import org.jetbrains.annotations.Nullable;
 public final class BootstrapGenerator
 {
 	/** The Avail special objects. */
-	private static final List<AvailObject> specialObjects;
+	private static final List<AvailObject> specialObjects =
+		AvailRuntime.specialObjects();
 
 	/**
 	 * A {@linkplain Map map} from the special objects to their indices.
 	 */
 	private static final
-	Map<AvailObject, Integer> specialObjectIndexMap;
+	Map<A_BasicObject, Integer> specialObjectIndexMap;
 
 	/* Capture the special objects. */
 	static
 	{
-		specialObjects = AvailRuntime.specialObjects();
-		specialObjectIndexMap =
-			new HashMap<>(specialObjects.size());
+		specialObjectIndexMap = new HashMap<>(specialObjects.size());
 		for (int i = 0; i < specialObjects.size(); i++)
 		{
 			final AvailObject specialObject = specialObjects.get(i);
@@ -168,7 +167,7 @@ public final class BootstrapGenerator
 	 * @param versions The versions.
 	 * @return The version string.
 	 */
-	private String vmVersionString (final List<String> versions)
+	private static String vmVersionString (final List<String> versions)
 	{
 		final StringBuilder builder = new StringBuilder();
 		for (final String version : versions)
@@ -188,7 +187,7 @@ public final class BootstrapGenerator
 	 * @param versions The versions.
 	 * @return The version string.
 	 */
-	private String moduleVersionString (final List<String> versions)
+	private static String moduleVersionString (final List<String> versions)
 	{
 		final StringBuilder builder = new StringBuilder();
 		for (final String version : versions)
@@ -243,7 +242,7 @@ public final class BootstrapGenerator
 	/**
 	 * A {@linkplain Map map} from Avail special objects to localized names.
 	 */
-	private final Map<AvailObject, String> namesBySpecialObject =
+	private final Map<A_BasicObject, String> namesBySpecialObject =
 		new HashMap<>(specialObjects.size());
 
 	/**
@@ -350,7 +349,7 @@ public final class BootstrapGenerator
 					final String commentTemplate =
 						specialObjectBundle.getString(commentKey);
 					String type = specialObjectBundle.getString(typeKey);
-					if (type == null || type.isEmpty())
+					if (type.isEmpty())
 					{
 						type = methodName;
 					}
@@ -379,7 +378,7 @@ public final class BootstrapGenerator
 	 *        null} if all primitives should be answered.
 	 * @return The selected primitives.
 	 */
-	private List<Primitive> primitives (final @Nullable Boolean fallible)
+	private static List<Primitive> primitives (final @Nullable Boolean fallible)
 	{
 		final List<Primitive> primitives = new ArrayList<>();
 		for (int i = 1; i <= Primitive.maxPrimitiveNumber(); i++)
@@ -1237,7 +1236,7 @@ public final class BootstrapGenerator
 	 *
 	 * @return The relevant primitive error codes.
 	 */
-	private List<AvailErrorCode> errorCodes ()
+	private static List<AvailErrorCode> errorCodes ()
 	{
 		final List<AvailErrorCode> relevant = new ArrayList<>(100);
 		for (final AvailErrorCode code : AvailErrorCode.all())
@@ -1589,7 +1588,7 @@ public final class BootstrapGenerator
 			{
 				final String key = specialObjectKey(i);
 				final String value = specialObjectBundle.getString(key);
-				if (value != null && !value.isEmpty())
+				if (!value.isEmpty())
 				{
 					specialObjectsByName.put(value, specialObject);
 					namesBySpecialObject.put(specialObject, value);
@@ -1605,14 +1604,10 @@ public final class BootstrapGenerator
 			{
 				final String value = primitiveBundle.getString(
 					primitive.getClass().getSimpleName());
-				if (value != null && !value.isEmpty())
+				if (!value.isEmpty())
 				{
-					Set<Primitive> set = primitiveNameMap.get(value);
-					if (set == null)
-					{
-						set = new HashSet<>();
-						primitiveNameMap.put(value, set);
-					}
+					final Set<Primitive> set = primitiveNameMap.computeIfAbsent(
+						value, k -> new HashSet<>());
 					set.add(primitive);
 				}
 			}
@@ -1621,9 +1616,8 @@ public final class BootstrapGenerator
 		// Map localized names to the primitive error codes.
 		for (final AvailErrorCode code : errorCodes())
 		{
-			final String value = errorCodeBundle.getString(
-				errorCodeKey(code));
-			if (value != null && !value.isEmpty())
+			final String value = errorCodeBundle.getString(errorCodeKey(code));
+			if (!value.isEmpty())
 			{
 				errorCodesByName.put(value, code);
 			}
@@ -1646,7 +1640,6 @@ public final class BootstrapGenerator
 		throws Exception
 	{
 		final List<String> languages = new ArrayList<>();
-		final List<String> versions = new ArrayList<>();
 		if (args.length < 1)
 		{
 			languages.add(System.getProperty("user.language"));
@@ -1659,6 +1652,7 @@ public final class BootstrapGenerator
 				languages.add(tokenizer.nextToken());
 			}
 		}
+		final List<String> versions = new ArrayList<>();
 		if (args.length < 2)
 		{
 			final A_Set activeVersions = AvailRuntime.activeVersions();

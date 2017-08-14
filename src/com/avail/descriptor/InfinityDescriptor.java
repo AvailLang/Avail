@@ -52,7 +52,7 @@ import com.avail.utility.json.JSONWriter;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class InfinityDescriptor
+public final class InfinityDescriptor
 extends ExtendedIntegerDescriptor
 {
 	@Override

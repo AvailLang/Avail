@@ -37,7 +37,6 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 /**
@@ -84,9 +83,7 @@ extends A_ChunkDependable
 	 * definition.
 	 *
 	 * @param definition The definition to be added.
-	 * @return The set of added definition parsing plans.
-	 * @throws SignatureException
-	 *         If the definition could not be added.
+	 * @throws SignatureException If the definition could not be added.
 	 */
 	void methodAddDefinition (A_Definition definition)
 		throws SignatureException;
@@ -278,7 +275,7 @@ extends A_ChunkDependable
 
 	/**
 	 * Of this method's bundles, choose one that is visible in the current
-	 * module.  The current module is determined by the current {@A_Fiber
+	 * module.  The current module is determined by the current {@link A_Fiber
 	 * fiber}'s {@link AvailLoader}.  If none are visible, choose one at random.
 	 *
 	 * @return One of this method's {@link A_Bundle bundles}.

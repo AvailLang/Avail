@@ -49,7 +49,7 @@ public class L2_SUBTRACT_INT_FROM_INT extends L2Operation
 	/**
 	 * Initialize the sole instance.
 	 */
-	public final static L2Operation instance =
+	public static final L2Operation instance =
 		new L2_ADD_INT_TO_INT().init(
 			READ_INT.is("subtrahend"),
 			READWRITE_INT.is("minuend"),

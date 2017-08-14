@@ -233,7 +233,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -492,10 +492,10 @@ extends PojoTypeDescriptor
 			final A_Tuple params = ancestors.hasKey(javaClass)
 				? ancestors.mapAt(javaClass)
 				: TupleDescriptor.empty();
-			boolean firstParam = true;
 			if (params.tupleSize() != 0)
 			{
 				builder.append('<');
+				boolean firstParam = true;
 				for (final A_BasicObject param : params)
 				{
 					if (!firstParam)
@@ -533,7 +533,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The mutable {@link FusedPojoTypeDescriptor}. */
-	private final static FusedPojoTypeDescriptor mutable =
+	private static final FusedPojoTypeDescriptor mutable =
 		new FusedPojoTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
@@ -543,7 +543,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The immutable {@link FusedPojoTypeDescriptor}. */
-	private final static FusedPojoTypeDescriptor immutable =
+	private static final FusedPojoTypeDescriptor immutable =
 		new FusedPojoTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
@@ -553,7 +553,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The shared {@link FusedPojoTypeDescriptor}. */
-	private final static FusedPojoTypeDescriptor shared =
+	private static final FusedPojoTypeDescriptor shared =
 		new FusedPojoTypeDescriptor(Mutability.SHARED);
 
 	@Override

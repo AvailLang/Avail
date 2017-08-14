@@ -54,7 +54,6 @@ import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.io.TextInterface;
 import com.avail.serialization.Serializer;
-import com.avail.server.AvailServer;
 import com.avail.utility.Generator;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -93,7 +92,7 @@ public class CompilationContext
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	static abstract class ParsingTask
+	abstract static class ParsingTask
 		extends AvailTask
 	{
 		/** The one-based source position with which this task is associated. */
@@ -534,8 +533,8 @@ public class CompilationContext
 	{
 		// First try to read it inside a (shared) read lock.
 		final Long key = (((long)lineNumber) << 32) + position;
-		LexingState state;
 		lexingStatesLock.readLock().lock();
+		LexingState state;
 		try
 		{
 			state = lexingStates.get(key);
@@ -551,12 +550,9 @@ public class CompilationContext
 			try
 			{
 				// Someone else may have just added it while we held no lock.
-				state = lexingStates.get(key);
-				if (state == null)
-				{
-					state = new LexingState(this, position, lineNumber);
-					lexingStates.put(key, state);
-				}
+				state = lexingStates.computeIfAbsent(
+					key,
+					k -> new LexingState(this, position, lineNumber));
 			}
 			finally
 			{
@@ -736,9 +732,9 @@ public class CompilationContext
 	@InnerAccess synchronized void serializeAfterRunning (
 		final A_Function function)
 	{
-		if (loader.statementCanBeSummarized())
+		if (loader().statementCanBeSummarized())
 		{
-			final List<LoadingEffect> effects = loader.recordedEffects();
+			final List<LoadingEffect> effects = loader().recordedEffects();
 			if (!effects.isEmpty())
 			{
 				// Output summarized functions instead of what ran.  Associate

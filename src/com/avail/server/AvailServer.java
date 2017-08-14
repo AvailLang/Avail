@@ -236,7 +236,8 @@ public final class AvailServer
 	 * @param writer
 	 *        A {@link JSONWriter}.
 	 */
-	@InnerAccess void writeStatusOn (
+	@InnerAccess
+	static void writeStatusOn (
 		final boolean ok,
 		final JSONWriter writer)
 	{
@@ -252,7 +253,9 @@ public final class AvailServer
 	 * @param writer
 	 *        A {@link JSONWriter}.
 	 */
-	private void writeCommandOn (final Command command, final JSONWriter writer)
+	private static void writeCommandOn (
+		final Command command,
+		final JSONWriter writer)
 	{
 		writer.write("command");
 		writer.write(command.name().toLowerCase().replace('_', ' '));
@@ -266,7 +269,7 @@ public final class AvailServer
 	 * @param writer
 	 *        A {@link JSONWriter}.
 	 */
-	private void writeCommandIdentifierOn (
+	private static void writeCommandIdentifierOn (
 		final long commandId,
 		final JSONWriter writer)
 	{
@@ -844,7 +847,8 @@ public final class AvailServer
 	 *        {@linkplain ModuleNode modules}.
 	 * @return A {@code FileVisitor}.
 	 */
-	@InnerAccess FileVisitor<Path> sourceModuleVisitor (
+	@InnerAccess
+	static FileVisitor<Path> sourceModuleVisitor (
 		final ModuleRoot root,
 		final MutableOrNull<ModuleNode> tree)
 	{
@@ -855,9 +859,8 @@ public final class AvailServer
 		{
 			@Override
 			public FileVisitResult preVisitDirectory (
-					final @Nullable Path dir,
-					final @Nullable BasicFileAttributes attrs)
-				throws IOException
+				final @Nullable Path dir,
+				final @Nullable BasicFileAttributes attrs)
 			{
 				assert dir != null;
 				if (isRoot.value)
@@ -887,9 +890,8 @@ public final class AvailServer
 
 			@Override
 			public FileVisitResult postVisitDirectory (
-					final @Nullable Path dir,
-					final @Nullable IOException e)
-				throws IOException
+				final @Nullable Path dir,
+				final @Nullable IOException e)
 			{
 				stack.removeFirst();
 				return FileVisitResult.CONTINUE;
@@ -897,9 +899,8 @@ public final class AvailServer
 
 			@Override
 			public FileVisitResult visitFile (
-					final @Nullable Path file,
-					final @Nullable BasicFileAttributes attrs)
-				throws IOException
+				final @Nullable Path file,
+				final @Nullable BasicFileAttributes attrs)
 			{
 				assert file != null;
 				// The root should be a directory, not a file.
@@ -926,9 +927,8 @@ public final class AvailServer
 
 			@Override
 			public FileVisitResult visitFileFailed (
-					final @Nullable Path file,
-					final @Nullable IOException e)
-				throws IOException
+				final @Nullable Path file,
+				final @Nullable IOException e)
 			{
 				assert file != null;
 				final String fileName = file.getFileName().toString();

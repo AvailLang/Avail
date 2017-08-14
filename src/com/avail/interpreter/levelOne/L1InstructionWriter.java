@@ -128,7 +128,7 @@ public class L1InstructionWriter
 	 * The return type of the {@linkplain FunctionDescriptor} under
 	 * construction.
 	 */
-	@Nullable private A_Type returnType;
+	private @Nullable A_Type returnType;
 
 	/**
 	 * Set the return type that the {@linkplain FunctionDescriptor} under

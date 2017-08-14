@@ -46,7 +46,7 @@ public class CommentSignature
 	/**
 	 * The name of the class/method the comment describes.
 	 */
-	final private String name;
+	private final String name;
 
 	/**
 	 * @return the implementation name.
@@ -59,7 +59,7 @@ public class CommentSignature
 	/**
 	 *  The module this implementation appears in.
 	 */
-	final private String module;
+	private final String module;
 
 	/**
 	 * @return the implementation module location.
