@@ -71,7 +71,7 @@ extends Primitive
 		final A_Map fieldMap = exception.fieldMap();
 		final A_Map newFieldMap = fieldMap.mapAtPuttingCanDestroy(
 			ObjectTypeDescriptor.stackDumpAtom(),
-			interpreter.currentContinuation(),
+			interpreter.reifiedContinuation,
 			false);
 		final AvailObject newException =
 			ObjectDescriptor.objectFromMap(newFieldMap);

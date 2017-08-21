@@ -59,15 +59,17 @@ public class L2_MOVE extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
-		final L2ObjectRegister sourceReg = instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(1);
-
-		destinationReg.set(sourceReg.in(interpreter), interpreter);
+		final int sourceRegNumber =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final int destinationRegNumber =
+			instruction.writeObjectRegisterAt(1).finalIndex();
+		return interpreter ->
+			interpreter.pointerAtPut(
+				destinationRegNumber,
+				interpreter.pointerAt(sourceRegNumber));
 	}
 
 	@Override

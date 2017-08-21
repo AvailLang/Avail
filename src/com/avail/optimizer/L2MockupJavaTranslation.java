@@ -1,5 +1,5 @@
 /**
- * L2JavaTranslation.java
+ * L2MockupJavaTranslation.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,46 +34,64 @@ package com.avail.optimizer;
 
 import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This class represents a translation of a level two continuation into
- * equivalent Java code.  Its execution should be the equivalent of interpreting
- * the level two code, which is itself an optimized version of the corresponding
- * level one raw function.
+ * This is a mockup subclass of {@link L2JavaTranslation}, used only as a proof
+ * of concept of the code generation technique.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class L2JavaTranslation
+public final class L2MockupJavaTranslation extends L2JavaTranslation
 {
 	/**
-	 * Start or resume execution of this translation of an L2Chunk.  If the
-	 * provided continuation is {@code null}, start running the function, under
-	 * the assumption that the interpreter's registers have been set up for a
-	 * call, including setting the architectural argument registers.  If the
-	 * provided continuation is not null, locate the {@link L2Instruction} that
-	 * was responsible for originally leaving this context, and ask it to
-	 * restore the execution state from the continuation, then continue
-	 * executing it.
-	 *
-	 * <p>In the majority of circumstances, this Java method will only return
-	 * when the corresponding Avail function has completed.  However, to support
-	 * some of Avail's more powerful features like backtracking, exceptions,
-	 * very deep stacks, and stackless context switching, we may instead throw a
-	 * {@link ReifyStackThrowable}.  During the unwinding of this throwable,
-	 * all unreified frames still on the Java stack will be converted to mutable
-	 * level one {@link A_Continuation}s, which will subsequently be linked
-	 * together in the correct order by the {@link Interpreter}'s outermost
-	 * handler.
-	 *
-	 * @param thisContinuation
-	 *        Either {@code null} in the case that this is an initial call, or
-	 *        else the {@link A_Continuation} to resume.
-	 * @throws ReifyStackThrowable
+	 * Ultimately we want a separate class generated at runtime for each {@link
+	 * L2Chunk}, but for now we capture it in the constructor.
 	 */
-	abstract void startOrResume (
+	private final L2Chunk chunk;
+
+	@Override
+	void startOrResume (
 		final Interpreter interpreter,
 		final @Nullable A_Continuation thisContinuation)
-	throws ReifyStackThrowable;
+	throws ReifyStackThrowable
+	{
+		//TODO MvG - Implement before L2->JVM translation.
+		throw new UnsupportedOperationException("Not yet implemented");
+
+//		if (thisContinuation != null)
+//		{
+//			// We're resuming the continuation.  The continuation's
+//			// levelTwoOffset() indicates the instruction that was interrupted.
+//			// The instruction's operation knows what to do to re-enter safely.
+//			// Note that the chunk has already been checked for validity.
+//			final L2Instruction interruptedInstruction =
+//				chunk.executableInstructions[thisContinuation.levelTwoOffset()];
+//			interruptedInstruction.operation.reenter(
+//				interruptedInstruction, thisContinuation, interpreter);
+//		}
+//		// This will take the form of a while loop containing a switch based on
+//		// the current offset.  Every jump instruction sets the offset and
+//		// continues, implementing an efficient arbitrary goto.
+//		while (!interpreter.returnNow)
+//		{
+//			final L2Instruction instruction =
+//				chunk.executableInstructions[interpreter.offset++];
+//			instruction.action.value(interpreter);
+//		}
+	}
+
+	/**
+	 * Ultimately we want a separate class generated at runtime for each {@link
+	 * L2Chunk}, but for now we capture it in the constructor.
+	 *
+	 *  @param chunk
+	 */
+	L2MockupJavaTranslation (
+		final L2Chunk chunk)
+	{
+		this.chunk = chunk;
+	}
 }

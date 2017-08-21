@@ -38,9 +38,9 @@ import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.*;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import static java.lang.Math.*;
+import static com.avail.interpreter.Primitive.Result.*;
+
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,20 +50,19 @@ import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.exceptions.*;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.Continuation0ThrowsReification;
+import com.avail.optimizer.ReifyStackThrowable;
 import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -366,11 +365,11 @@ public final class Interpreter
 
 		// Extract the current L2 offset...
 		outerArray[FakeStackTraceSlots.L2_OFFSET.ordinal()] =
-			new AvailIntegerValueHelper(offset());
+			new AvailIntegerValueHelper(offset);
 
 		// Produce the current chunk's L2 instructions...
 		outerArray[FakeStackTraceSlots.L2_INSTRUCTIONS.ordinal()] =
-			chunk().instructions;
+			chunk.instructions;
 
 		// Produce the current function being executed...
 		outerArray[FakeStackTraceSlots.CURRENT_FUNCTION.ordinal()] =
@@ -394,10 +393,10 @@ public final class Interpreter
 		// suppress printing by the Eclipse debugger...
 		outerArray[FakeStackTraceSlots.POINTERS.ordinal()] =
 			TupleDescriptor.fromList(
-				Arrays.asList(pointers).subList(0, chunk().numObjects()));
+				Arrays.asList(pointers).subList(0, chunk.numObjects()));
 
 		// May as well show the integer registers too...
-		final int numInts = chunk().numIntegers();
+		final int numInts = chunk.numIntegers();
 		final List<Integer> integersList = new ArrayList<>(numInts);
 		for (int i = 0; i < numInts; i++)
 		{
@@ -454,7 +453,6 @@ public final class Interpreter
 	{
 		this.runtime = runtime;
 		interpreterIndex = runtime.allocateInterpreterIndex();
-		pointers[NULL.ordinal()] = NilDescriptor.nil();
 	}
 
 	/**
@@ -524,8 +522,7 @@ public final class Interpreter
 
 	/**
 	 * Bind the specified {@linkplain ExecutionState#RUNNING running}
-	 * {@linkplain FiberDescriptor fiber} to the {@linkplain Interpreter
-	 * Interpreter}.
+	 * {@linkplain FiberDescriptor fiber} to the {@code Interpreter}.
 	 *
 	 * @param newFiber
 	 *        The fiber to run.
@@ -553,16 +550,14 @@ public final class Interpreter
 	}
 
 	/**
-	 * Should the {@linkplain Interpreter interpreter} record which
-	 * {@linkplain VariableDescriptor variables} are read before written while
-	 * running its current {@linkplain FiberDescriptor fiber}?
+	 * Should the {@code Interpreter} record which {@link A_Variable}s are read
+	 * before written while running its current {@link A_Fiber}?
 	 */
 	private boolean traceVariableReadsBeforeWrites = false;
 
 	/**
-	 * Should the {@linkplain Interpreter interpreter} record which
-	 * {@linkplain VariableDescriptor variables} are read before written while
-	 * running its current {@linkplain FiberDescriptor fiber}?
+	 * Should the {@code Interpreter} record which {@link A_Variable}s are read
+	 * before written while running its current {@link A_Fiber}?
 	 *
 	 * @return {@code true} if the interpreter should record variable accesses,
 	 *         {@code false} otherwise.
@@ -576,10 +571,9 @@ public final class Interpreter
 	 * Set the variable trace flag.
 	 *
 	 * @param traceVariableReadsBeforeWrites
-	 *        {@code true} if the {@linkplain Interpreter interpreter} should
-	 *        record which {@linkplain VariableDescriptor variables} are
-	 *        read before written while running its current {@linkplain
-	 *        FiberDescriptor fiber}, {@code false} otherwise.
+	 *        {@code true} if the {@code Interpreter} should record which {@link
+	 *        A_Variable}s are read before written while running its current
+	 *        {@link A_Fiber}, {@code false} otherwise.
 	 */
 	public void setTraceVariableReadsBeforeWrites (
 		final boolean traceVariableReadsBeforeWrites)
@@ -597,16 +591,14 @@ public final class Interpreter
 	}
 
 	/**
-	 * Should the {@linkplain Interpreter interpreter} record which
-	 * {@linkplain VariableDescriptor variables} are written while running its
-	 * current {@linkplain FiberDescriptor fiber}?
+	 * Should the {@code Interpreter} record which {@link A_Variable}s are
+	 * written while running its current {@link A_Fiber}?
 	 */
 	private boolean traceVariableWrites = false;
 
 	/**
-	 * Should the {@linkplain Interpreter interpreter} record which
-	 * {@linkplain VariableDescriptor variables} are written while running its
-	 * current {@linkplain FiberDescriptor fiber}?
+	 * Should the {@code Interpreter} record which {@link A_Variable}s are
+	 * written while running its current {@link A_Fiber}?
 	 *
 	 * @return {@code true} if the interpreter should record variable accesses,
 	 *         {@code false} otherwise.
@@ -620,10 +612,9 @@ public final class Interpreter
 	 * Set the variable trace flag.
 	 *
 	 * @param traceVariableWrites
-	 *        {@code true} if the {@linkplain Interpreter interpreter} should
-	 *        record which {@linkplain VariableDescriptor variables} are
-	 *        written while running its current {@linkplain FiberDescriptor
-	 *        fiber}, {@code false} otherwise.
+	 *        {@code true} if the {@code Interpreter} should record which {@link
+	 *        A_Variable}s are written while running its current {@link
+	 *        A_Fiber}, {@code false} otherwise.
 	 */
 	public void setTraceVariableWrites (final boolean traceVariableWrites)
 	{
@@ -639,12 +630,11 @@ public final class Interpreter
 	}
 
 	/**
-	 * Answer the {@linkplain ModuleDescriptor module} being loaded by this
-	 * interpreter's loader. If there is no {@linkplain AvailLoader loader} then
-	 * answer {@link NilDescriptor#nil() nil}.
+	 * Answer the {@link A_Module} being loaded by this interpreter's loader. If
+	 * there is no {@linkplain AvailLoader loader} then answer {@code nil}.
 	 *
 	 * @return The current loader's module under definition, or {@code nil} if
-	 *         loading is not taking via in this interpreter.
+	 *         loading is not taking place via this interpreter.
 	 */
 	public A_Module module()
 	{
@@ -674,7 +664,6 @@ public final class Interpreter
 	 */
 	public void latestResult (final A_BasicObject newResult)
 	{
-		assert newResult != null;
 		latestResult = (AvailObject)newResult;
 	}
 
@@ -759,7 +748,6 @@ public final class Interpreter
 	{
 		assert fiber().executionState() == RUNNING;
 		latestResult(exception.numericCode());
-		assert latestResult != null;
 		return FAILURE;
 	}
 
@@ -774,16 +762,31 @@ public final class Interpreter
 	public Result primitiveFailure (final A_BasicObject result)
 	{
 		assert fiber().executionState() == RUNNING;
-		assert result != null;
 		latestResult(result);
 		return FAILURE;
 	}
 
 	/**
-	 * Should the {@linkplain Interpreter interpreter} exit its {@linkplain
-	 * #run() run loop}?
+	 * Should the current executing chunk return to its caller?  The value to
+	 * return is in {@link #latestResult}.  If the outer interpreter loop
+	 * detects this, it should resume the top reified continuation's chunk,
+	 * giving it an opportunity to accept the return value and de-reify.
 	 */
-	@InnerAccess volatile boolean exitNow = true;
+	public boolean returnNow = true;
+
+	/**
+	 * Should the {@linkplain Interpreter interpreter} exit its {@linkplain
+	 * #run() run loop}?  This can happen when the fiber has completed, failed,
+	 * or been suspended.
+	 */
+	public boolean exitNow = true;
+
+	/**
+	 * This usually refers to the current function that is executing.  Early in
+	 * a function invocation it may refer to the callee, even though the
+	 * pointers and integers arrays still reflect the caller.
+	 */
+	public A_Function currentFunction;
 
 	/**
 	 * A {@linkplain Continuation0 continuation} to run after a {@linkplain
@@ -819,11 +822,10 @@ public final class Interpreter
 	}
 
 	/**
-	 * Suspend the {@linkplain #fiber() current} {@linkplain FiberDescriptor
-	 * fiber} from a {@linkplain Primitive primitive} invocation. The reified
-	 * {@linkplain ContinuationDescriptor continuation} must be available in the
-	 * architectural {@linkplain FixedRegister#CALLER caller register}, and will
-	 * be installed into the current fiber.
+	 * Suspend the current {@link A_Fiber} within a {@link Primitive}
+	 * invocation.  The reified {@link A_Continuation} will be available in
+	 * {@link #reifiedContinuation}, and will be installed into the current
+	 * fiber.
 	 *
 	 * @param state
 	 *        The suspension {@linkplain ExecutionState state}.
@@ -838,7 +840,7 @@ public final class Interpreter
 		{
 			assert aFiber.executionState() == RUNNING;
 			aFiber.executionState(state);
-			aFiber.continuation(pointerAt(CALLER));
+			aFiber.continuation(reifiedContinuation);
 			final boolean bound = aFiber.getAndSetSynchronizationFlag(
 				BOUND, false);
 			assert bound;
@@ -847,17 +849,16 @@ public final class Interpreter
 		exitNow = true;
 		startTick = -1L;
 		latestResult = null;
-		wipeObjectRegisters();
+		pointers = null;
+		integers = null;
 		return FIBER_SUSPENDED;
 	}
 
 	/**
-	 * {@linkplain ExecutionState#SUSPENDED Suspend} the {@linkplain #fiber()
-	 * current} {@linkplain FiberDescriptor fiber} from a {@linkplain Primitive
-	 * primitive} invocation. The reified {@linkplain ContinuationDescriptor
-	 * continuation} must be available in the architectural {@linkplain
-	 * FixedRegister#CALLER caller register}, and will be installed into the
-	 * current fiber.
+	 * {@linkplain ExecutionState#SUSPENDED Suspend} the current {@link A_Fiber}
+	 * from within a {@link Primitive} invocation.  The reified {@link
+	 * A_Continuation} will be available in {@link #reifiedContinuation}, and
+	 * will be installed into the current fiber.
 	 *
 	 * @return {@link Result#FIBER_SUSPENDED}, for convenience.
 	 */
@@ -867,12 +868,10 @@ public final class Interpreter
 	}
 
 	/**
-	 * {@linkplain ExecutionState#PARKED Park} the {@linkplain #fiber()
-	 * current} {@linkplain FiberDescriptor fiber} from a {@linkplain Primitive
-	 * primitive} invocation. The reified {@linkplain ContinuationDescriptor
-	 * continuation} must be available in the architectural {@linkplain
-	 * FixedRegister#CALLER caller register}, and will be installed into the
-	 * current fiber.
+	 * {@linkplain ExecutionState#PARKED Park} the current {@link A_Fiber}
+	 * from within a {@link Primitive} invocation.  The reified {@link
+	 * A_Continuation} will be available in {@link #reifiedContinuation}, and
+	 * will be installed into the current fiber.
 	 *
 	 * @return {@link Result#FIBER_SUSPENDED}, for convenience.
 	 */
@@ -1034,9 +1033,9 @@ public final class Interpreter
 		latestResult = null;
 		primitiveFunctionBeingAttempted = function;
 		assert current() == this;
-		final long timeBefore = System.nanoTime();
+		final long timeBefore = AvailRuntime.captureNanos();
 		final Result success = primitive.attempt(args, this, skipReturnCheck);
-		final long timeAfter = System.nanoTime();
+		final long timeAfter = AvailRuntime.captureNanos();
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore,
 			interpreterIndex);
@@ -1066,114 +1065,40 @@ public final class Interpreter
 		return success;
 	}
 
+	/** The (bottom) portion of the call stack that has been reified. */
+	public A_Continuation reifiedContinuation;
+
+	/** The {@link A_Function} being executed. */
+	public @Nullable A_Function function;
+
 	/** The {@link L2Chunk} being executed. */
-	private @Nullable L2Chunk chunk;
+	public @Nullable L2Chunk chunk;
 
 	/**
-	 * Return the currently executing {@linkplain L2Chunk Level Two chunk}.
-	 *
-	 * @return The {@linkplain L2Chunk Level Two chunk} that is currently being
-	 *         executed.
+	 * The current zero-based L2 offset within the current L2Chunk's
+	 * instructions.
 	 */
-	public L2Chunk chunk ()
-	{
-		final L2Chunk c = chunk;
-		assert c != null;
-		return c;
-	}
-
-	/**
-	 * The current pointer into {@link #chunkInstructions}, the Level Two
-	 * instruction stream.
-	 */
-	private int offset;
-
-	/**
-	 * Return the current position in the L2 wordcode stream.
-	 *
-	 * @return The position in the L2 wordcode stream.
-	 */
-	public int offset ()
-	{
-		return offset;
-	}
-
-	/**
-	 * The level two instruction stream as an array of {@link L2Instruction}s.
-	 */
-	private @Nullable L2Instruction [] chunkInstructions;
-
-	/**
-	 * Start executing a new chunk. The {@linkplain #offset} at which to execute
-	 * must be set separately.
-	 *
-	 * <p>
-	 * Note that the {@linkplain CompiledCodeDescriptor compiled code} is passed
-	 * in because the {@linkplain L2Chunk#unoptimizedChunk() default chunk}
-	 * doesn't inherently know how many registers it needs – the answer depends
-	 * on the Level One compiled code being executed.
-	 * </p>
-	 *
-	 * @param chunkToResume
-	 *        The {@linkplain L2Chunk Level Two chunk} to start executing.
-	 * @param code
-	 *        The {@linkplain CompiledCodeDescriptor compiled code} on whose
-	 *        behalf to start executing the chunk.
-	 * @param newOffset
-	 *        The offset at which to begin executing the chunk.
-	 */
-	private void setChunk (
-		final L2Chunk chunkToResume,
-		final A_RawFunction code,
-		final int newOffset)
-	{
-		this.chunk = chunkToResume;
-		this.chunkInstructions = chunkToResume.executableInstructions;
-		makeRoomForChunkRegisters(chunkToResume, code);
-		this.offset = newOffset;
-		if (debugL2)
-		{
-			log(
-				Level.FINER,
-				"starting new chunk ({0})",
-				chunkToResume);
-		}
-	}
-
-	/** The number of fixed object registers in Level Two. */
-	private static final int numberOfFixedRegisters =
-		FixedRegister.all().length;
+	public int offset;
 
 	/**
 	 * Answer the subscript of the register holding the argument or local with
-	 * the given index (e.g., the first argument is in register 4). The
-	 * arguments come first, then the locals.
+	 * the given index. The arguments come first, then the locals.
 	 *
 	 * @param argumentOrLocalNumber
-	 *            The one-based argument/local number.
+	 *        The one-based argument/local number.
 	 * @return The subscript to use with {@link Interpreter#pointerAt(int)}.
 	 */
 	public static int argumentOrLocalRegister (
 		final int argumentOrLocalNumber)
 	{
 		// Skip the fixed registers.
-		return numberOfFixedRegisters + argumentOrLocalNumber - 1;
+		return fixedRegisterCount() + argumentOrLocalNumber - 1;
 	}
 
 	/**
 	 * The registers that hold {@linkplain AvailObject Avail objects}.
 	 */
-	private AvailObject[] pointers = new AvailObject[10];
-
-	/**
-	 * Answer the current continuation.
-	 *
-	 * @return The current continuation.
-	 */
-	public AvailObject currentContinuation ()
-	{
-		return pointerAt(CALLER);
-	}
+	public AvailObject[] pointers = new AvailObject[10];
 
 	/**
 	 * Read from an object register. Register zero is reserved for read-only
@@ -1187,7 +1112,7 @@ public final class Interpreter
 	public AvailObject pointerAt (final int index)
 	{
 		// assert index >= 0;
-		assert pointers[index] != null;
+		// assert pointers[index] != null;
 		return pointers[index];
 	}
 
@@ -1204,7 +1129,7 @@ public final class Interpreter
 	public void pointerAtPut (final int index, final A_BasicObject anAvailObject)
 	{
 		// assert index > 0;
-		assert anAvailObject != null;
+		// assert anAvailObject != null;
 		pointers[index] = (AvailObject)anAvailObject;
 	}
 
@@ -1249,14 +1174,39 @@ public final class Interpreter
 	 */
 	public void clearPointerAt (final int index)
 	{
-		assert index > 0;
+		// assert index > 0;
 		pointers[index] = null;
+	}
+
+	/**
+	 * Create a new array of pointer registers of the requested size, and answer
+	 * the previous array.
+	 *
+	 * @param newCount The number of pointer registers to create.
+	 * @return The previous array of pointer registers.
+	 */
+	public AvailObject[] savePointers (final int newCount)
+	{
+		final AvailObject[] result = pointers;
+		pointers = new AvailObject[newCount];
+		return result;
+	}
+
+	/**
+	 * Restore the array of pointer registers, discarding the current array.
+	 *
+	 * @param replacementPointers The pointer registers to restore.
+	 */
+	public void restorePointers (final AvailObject[] replacementPointers)
+	{
+		pointers = replacementPointers;
 	}
 
 	/**
 	 * Write {@code null} into each object register except the constant
 	 * {@link FixedRegister#NULL} register.
 	 */
+	@Deprecated
 	public void wipeObjectRegisters ()
 	{
 		if (chunk != null)
@@ -1278,7 +1228,7 @@ public final class Interpreter
 	/**
 	 * The 32-bit signed integer registers.
 	 */
-	private int[] integers = new int[10];
+	public int[] integers = new int[0];
 
 	/**
 	 * Read from an integer register. The index is one-based. Entry [0] is
@@ -1290,7 +1240,7 @@ public final class Interpreter
 	 */
 	public int integerAt (final int index)
 	{
-		assert index > 0;
+		// assert index > 0;
 		return integers[index];
 	}
 
@@ -1305,8 +1255,32 @@ public final class Interpreter
 	 */
 	public void integerAtPut (final int index, final int value)
 	{
-		assert index > 0;
+		// assert index > 0;
 		integers[index] = value;
+	}
+
+	/**
+	 * Create a new array of int registers of the requested size, and answer
+	 * the previous array.
+	 *
+	 * @param newCount The number of int registers to create.
+	 * @return The previous array of int registers.
+	 */
+	public int[] saveInts (final int newCount)
+	{
+		final int[] result = integers;
+		integers = new int[newCount];
+		return result;
+	}
+
+	/**
+	 * Restore the array of int registers, discarding the current array.
+	 *
+	 * @param replacementInts The int registers to restore.
+	 */
+	public void restoreInts (final int[] replacementInts)
+	{
+		integers = replacementInts;
 	}
 
 	/**
@@ -1332,6 +1306,12 @@ public final class Interpreter
 	public final List<AvailObject> argsBuffer = new ArrayList<>();
 
 	/**
+	 * An indicator that the current {@link #function} can safely skip checking
+	 * the type of its result when it returns to its caller.
+	 */
+	public boolean skipReturnCheck;
+
+	/**
 	 * The {@link L1InstructionStepper} used to simulate execution of Level One
 	 * nybblecodes.
 	 */
@@ -1347,7 +1327,7 @@ public final class Interpreter
 	/**
 	 * The size of a {@linkplain FiberDescriptor fiber}'s time slice, in ticks.
 	 */
-	private static final int timeSliceTicks = 5;
+	private static final int timeSliceTicks = 20;
 
 	/**
 	 * Answer true if an interrupt has been requested. The interrupt may be
@@ -1421,87 +1401,32 @@ public final class Interpreter
 	}
 
 	/**
-	 * Return into the specified continuation with the given return value.
-	 * Verify that the return value matches the expected type already pushed on
-	 * the continuation's stack. If the continuation is
-	 * {@linkplain NilDescriptor#nil() nil} then make sure
-	 * the value gets returned from the main interpreter invocation.
-	 *
-	 * @param caller
-	 *        The {@linkplain ContinuationDescriptor continuation} to resume, or
-	 *        {@linkplain NilDescriptor#nil() nil}.
-	 * @param value
-	 *        The {@link AvailObject} to return.
-	 * @param skipReturnCheck
-	 *        Whether to skip checking that the return value is of the required
-	 *        type.
-	 */
-	public void returnToCaller (
-		final A_Continuation caller,
-		final A_BasicObject value,
-		final boolean skipReturnCheck)
-	{
-		// Wipe out the existing registers for safety. This is technically
-		// optional, but not doing so may (1) hide bugs, and (2) leak
-		// references to values in registers.
-		if (caller.equalsNil())
-		{
-			wipeObjectRegisters();
-			terminateFiber(value);
-			return;
-		}
-		// Return into the caller.
-		final int stackp = caller.stackp();
-		if (!skipReturnCheck)
-		{
-			final A_Type expectedType = caller.stackAt(stackp);
-			if (!value.isInstanceOf(expectedType))
-			{
-				final A_Function callee = pointerAt(FUNCTION);
-				final A_Variable reportedResult =
-					VariableDescriptor.forContentType(Types.ANY.o());
-				reportedResult.setValueNoCheck(value);
-				wipeObjectRegisters();
-				pointerAtPut(CALLER, caller);
-				invokeFunction(
-					runtime.resultDisagreedWithExpectedTypeFunction(),
-					Arrays.asList(
-						callee,
-						expectedType,
-						reportedResult),
-					true);
-				return;
-			}
-		}
-		wipeObjectRegisters();
-		final A_Continuation updatedCaller = caller.ensureMutable();
-		updatedCaller.stackAtPut(stackp, value);
-		prepareToResumeContinuation(updatedCaller);
-	}
-
-	/**
 	 * Prepare to resume execution of the passed {@linkplain
 	 * ContinuationDescriptor continuation}.
 	 *
 	 * @param updatedCaller The continuation to resume.
 	 */
+	@Deprecated
 	public void prepareToResumeContinuation (final A_Continuation updatedCaller)
 	{
-		L2Chunk chunkToResume = updatedCaller.levelTwoChunk();
-		if (!chunkToResume.isValid())
-		{
-			// The chunk has become invalid, so use the default chunk and tweak
-			// the continuation's chunk information.
-			chunkToResume = L2Chunk.unoptimizedChunk();
-			updatedCaller.levelTwoChunkOffset(
-				chunkToResume,
-				L2Chunk.offsetToContinueUnoptimizedChunk());
-		}
-		pointerAtPut(CALLER, updatedCaller);
-		setChunk(
-			chunkToResume,
-			updatedCaller.function().code(),
-			updatedCaller.levelTwoOffset());
+		//TODO MvG - Remove when not referenced.
+		throw new UnsupportedOperationException("Operation no longer makes sense");
+//		L2Chunk chunkToResume = updatedCaller.levelTwoChunk();
+//		if (!chunkToResume.isValid())
+//		{
+//			// The chunk has become invalid, so use the default chunk and tweak
+//			// the continuation's chunk information.
+//			chunkToResume = L2Chunk.unoptimizedChunk();
+//			updatedCaller.levelTwoChunkOffset(
+//				chunkToResume,
+//				L2Chunk.offsetToReturnIntoUnoptimizedChunk());
+//		}
+//		pointerAtPut(CALLER, updatedCaller);
+//		chunk = chunkToResume;
+//		setChunk(
+//			chunkToResume,
+//			updatedCaller.function().code(),
+//			updatedCaller.levelTwoOffset());
 	}
 
 	/**
@@ -1511,67 +1436,32 @@ public final class Interpreter
 	 *
 	 * @param continuationToRestart The Avail continuation to restart.
 	 */
+	@Deprecated
 	public void prepareToRestartContinuation (
 		final A_Continuation continuationToRestart)
 	{
-		L2Chunk chunkToRestart = continuationToRestart.levelTwoChunk();
-		if (!chunkToRestart.isValid())
-		{
-			// The chunk has become invalid, so use the default chunk and tweak
-			// the continuation's chunk information.
-			chunkToRestart = L2Chunk.unoptimizedChunk();
-			continuationToRestart.levelTwoChunkOffset(chunkToRestart, 0);
-		}
-		final int numArgs = continuationToRestart.function().code().numArgs();
-		argsBuffer.clear();
-		for (int i = 1; i <= numArgs; i++)
-		{
-			argsBuffer.add(continuationToRestart.argOrLocalOrStackAt(i));
-		}
-		wipeObjectRegisters();
-		invokeWithoutPrimitiveFunctionArguments(
-			continuationToRestart.function(),
-			argsBuffer,
-			continuationToRestart.caller(),
-			continuationToRestart.skipReturnFlag());
-	}
-
-	/**
-	 * Increase the number of registers if necessary to accommodate the new
-	 * chunk/code.
-	 *
-	 * @param theChunk
-	 *        The {@link L2Chunk} about to be invoked.
-	 * @param theCode
-	 *        The code about to be invoked.
-	 */
-	private void makeRoomForChunkRegisters (
-		final L2Chunk theChunk,
-		final A_RawFunction theCode)
-	{
-		final int neededObjectCount = max(
-			theChunk.numObjects(),
-			numberOfFixedRegisters + theCode.numArgsAndLocalsAndStack());
-		if (neededObjectCount > pointers.length)
-		{
-			final AvailObject[] newPointers =
-				new AvailObject[neededObjectCount * 2 + 10];
-			System.arraycopy(pointers, 0, newPointers, 0, pointers.length);
-			pointers = newPointers;
-		}
-		if (theChunk.numIntegers() > integers.length)
-		{
-			final int[] newIntegers = new int[theChunk.numIntegers() * 2 + 10];
-			System.arraycopy(integers, 0, newIntegers, 0, integers.length);
-			integers = newIntegers;
-		}
-		if (theChunk.numDoubles() > doubles.length)
-		{
-			final double[] newDoubles =
-				new double[theChunk.numDoubles() * 2 + 10];
-			System.arraycopy(doubles, 0, newDoubles, 0, doubles.length);
-			doubles = newDoubles;
-		}
+		//TODO MvG - Remove when not referenced.
+		throw new UnsupportedOperationException("Operation no longer makes sense");
+//		L2Chunk chunkToRestart = continuationToRestart.levelTwoChunk();
+//		if (!chunkToRestart.isValid())
+//		{
+//			// The chunk has become invalid, so use the default chunk and tweak
+//			// the continuation's chunk information.
+//			chunkToRestart = L2Chunk.unoptimizedChunk();
+//			continuationToRestart.levelTwoChunkOffset(chunkToRestart, 0);
+//		}
+//		final int numArgs = continuationToRestart.function().code().numArgs();
+//		argsBuffer.clear();
+//		for (int i = 1; i <= numArgs; i++)
+//		{
+//			argsBuffer.add(continuationToRestart.argOrLocalOrStackAt(i));
+//		}
+//		wipeObjectRegisters();
+//		invokeWithoutPrimitiveFunctionArguments(
+//			continuationToRestart.function(),
+//			argsBuffer,
+//			continuationToRestart.caller(),
+//			continuationToRestart.skipReturnFlag());
 	}
 
 	/**
@@ -1594,7 +1484,7 @@ public final class Interpreter
 		assert argsBuffer.size() == 1;
 		argsBuffer.set(0, exceptionValue);
 		final int primNum = P_CatchException.instance.primitiveNumber;
-		A_Continuation continuation = pointerAt(CALLER);
+		A_Continuation continuation = reifiedContinuation;
 		while (!continuation.equalsNil())
 		{
 			final A_RawFunction code = continuation.function().code();
@@ -1618,13 +1508,13 @@ public final class Interpreter
 							// exception raised from within one of its handlers.
 							failureVariable.setValueNoCheck(
 								E_HANDLER_SENTINEL.numericCode());
-							// Run the handler.
-							invokePossiblePrimitiveWithReifiedCaller(
-								handler,
-								continuation,
-								false);
-							// Catching an exception *always* changes the
-							// continuation.
+							// Run the handler.  Since the Java stack has been
+							// fully reified, simply jump into the chunk.  Note
+							// that the argsBuffer was already set up with just
+							// the exceptionValue.
+							function = handler;
+							chunk = handler.code().startingChunk();
+							offset = 0;
 							return CONTINUATION_CHANGED;
 						}
 					}
@@ -1637,18 +1527,18 @@ public final class Interpreter
 	}
 
 	/**
-	 * Scan the stack of continuations until one is found for a function whose
-	 * code specifies {@linkplain P_CatchException}. Write the specified
-	 * marker into its primitive failure variable to indicate the current
-	 * exception handling state.
+	 * Assume the entire stack has been reified.  Scan the stack of
+	 * continuations until one is found for a function whose code specifies
+	 * {@link P_CatchException}. Write the specified marker into its primitive
+	 * failure variable to indicate the current exception handling state.
 	 *
 	 * @param marker An exception handling state marker.
-	 * @return The {@linkplain Result success state}.
+	 * @return The {@link Result success state}.
 	 */
 	public Result markNearestGuard (final A_Number marker)
 	{
 		final int primNum = P_CatchException.instance.primitiveNumber;
-		A_Continuation continuation = pointerAt(CALLER);
+		A_Continuation continuation = reifiedContinuation;
 		while (!continuation.equalsNil())
 		{
 			final A_RawFunction code = continuation.function().code();
@@ -1682,61 +1572,52 @@ public final class Interpreter
 	}
 
 	/**
-	 * Prepare the {@linkplain Interpreter interpreter} to execute the given
-	 * {@linkplain FunctionDescriptor function} with the given arguments.
+	 * Prepare the {@code Interpreter} to execute the given {@link
+	 * FunctionDescriptor function} with the arguments provided in {@link
+	 * #argsBuffer}.  The {@link #skipReturnCheck} should also have been set,
+	 * based on the call site.
 	 *
 	 * @param aFunction
 	 *        The function to begin executing.
-	 * @param args
-	 *        The arguments to pass to the function.
-	 * @param skipReturnCheck
-	 *        Whether the return type check can be safely skipped upon eventual
-	 *        completion of the function.
 	 * @return The {@linkplain Result success state}. If the function was not a
 	 *         primitive, always indicate that the current continuation was
 	 *         replaced.
+	 * @throws ReifyStackThrowable
+	 *         If reification is requested at any point while running the
+	 *         function.
 	 */
-	public Result invokeFunction (
-		final A_Function aFunction,
-		final List<? extends A_BasicObject> args,
-		final boolean skipReturnCheck)
+	public void invokeFunction (
+		final A_Function aFunction)
+	throws ReifyStackThrowable
 	{
+		function = aFunction;
 		final A_RawFunction code = aFunction.code();
-		assert code.numArgs() == args.size();
-		final A_Continuation caller = pointerAt(CALLER);
-		final int primNum = code.primitiveNumber();
-		if (primNum != 0)
-		{
-			final List<AvailObject> strongArgs =
-				new ArrayList<>(args.size());
-			for (final A_BasicObject arg : args)
-			{
-				strongArgs.add((AvailObject)arg);
-			}
-			final Result result = attemptPrimitive(
-				primNum, aFunction, strongArgs, skipReturnCheck);
-			switch (result)
-			{
-				case FAILURE:
-					assert !Primitive.byPrimitiveNumberOrFail(primNum).hasFlag(
-						Flag.CannotFail);
-					assert latestResult != null;
-					pointerAtPut(PRIMITIVE_FAILURE, latestResult());
-					break;
-				case FIBER_SUSPENDED:
-					assert exitNow;
-					return result;
-				case SUCCESS:
-					assert latestResult != null;
-					return result;
-				case CONTINUATION_CHANGED:
-					return result;
-			}
-		}
-		// It wasn't a primitive.
-		invokeWithoutPrimitiveFunctionArguments(
-			aFunction, args, caller, skipReturnCheck);
-		return CONTINUATION_CHANGED;
+		assert code.numArgs() == argsBuffer.size();
+		code.startingChunk().run(this);
+	}
+
+	/**
+	 * Immediately throw a {@link ReifyStackThrowable}.  Various Java stack
+	 * frames will catch and rethrow it, accumulating reified {@link
+	 * A_Continuation}s along the way.  The outer interpreter loop should catch
+	 * this, then run the provided {@link Continuation0ThrowsReification}.
+	 *
+	 * @param postReificationAction
+	 *        The action to perform (in the outer interpreter loop) after the
+	 *        entire stack is reified.
+	 * @return Pretends to return the exception, so callers can pretend to
+	 *         throw it, to help the compiler figure out it never returns.
+	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
+	 *         integrated into type signatures in a sane way, there'd be that
+	 *         many less reasons for Avail.
+	 * @throws ReifyStackThrowable
+	 *         Always, to initiate reification of the Java stack.
+	 */
+	public ReifyStackThrowable reifyThen(
+		final Continuation0 postReificationAction)
+	throws ReifyStackThrowable
+	{
+		throw new ReifyStackThrowable(this, postReificationAction);
 	}
 
 	/**
@@ -1764,180 +1645,221 @@ public final class Interpreter
 	 *            Whether this invocation can skip checking its return result
 	 *            upon eventual completion.
 	 */
+	@Deprecated
 	public void invokeWithoutPrimitiveFunctionArguments (
 		final A_Function aFunction,
 		final List<? extends A_BasicObject> args,
 		final A_BasicObject caller,
 		final boolean skipReturnCheck)
 	{
-		final A_RawFunction code = aFunction.code();
-		assert code.primitiveNumber() == 0
-			|| pointers[PRIMITIVE_FAILURE.ordinal()] != null;
-		code.tallyInvocation();
-		L2Chunk chunkToInvoke = code.startingChunk();
-		if (!chunkToInvoke.isValid())
-		{
-			// The chunk is invalid, so use the default chunk and patch up
-			// aFunction's code.
-			chunkToInvoke = L2Chunk.unoptimizedChunk();
-			code.setStartingChunkAndReoptimizationCountdown(
-				chunkToInvoke,
-				L2Chunk.countdownForInvalidatedCode());
-		}
-		wipeObjectRegisters();
-		setChunk(chunkToInvoke, code, 0);
-
-		pointerAtPut(CALLER, caller);
-		pointerAtPut(FUNCTION, aFunction);
-		// Transfer arguments...
-		final int numArgs = code.numArgs();
-		int dest = argumentOrLocalRegister(1);
-		for (int i = 1; i <= numArgs; i++)
-		{
-			pointerAtPut(dest, args.get(i - 1));
-			dest++;
-		}
-		// Store skipReturnCheck into its *architectural* register.  It will be
-		// retrieved from there by the L2 code, whether it's the default
-		// unoptimized chunk or an optimized chunk.
-		integerAtPut(
-			L1InstructionStepper.skipReturnCheckRegister(),
-			skipReturnCheck ? 1 : 0);
+		//TODO MvG - Remove when not referenced.
+		throw new UnsupportedOperationException("Operation no longer makes sense");
+//		final A_RawFunction code = aFunction.code();
+//		assert code.primitiveNumber() == 0
+//			|| pointers[PRIMITIVE_FAILURE.ordinal()] != null;
+//		code.tallyInvocation();
+//		L2Chunk chunkToInvoke = code.startingChunk();
+//		if (!chunkToInvoke.isValid())
+//		{
+//			// The chunk is invalid, so use the default chunk and patch up
+//			// aFunction's code.
+//			chunkToInvoke = L2Chunk.unoptimizedChunk();
+//			code.setStartingChunkAndReoptimizationCountdown(
+//				chunkToInvoke,
+//				L2Chunk.countdownForInvalidatedCode());
+//		}
+//		wipeObjectRegisters();
+//		setChunk(chunkToInvoke, code, 0);
+//
+//		pointerAtPut(CALLER, caller);
+//		pointerAtPut(FUNCTION, aFunction);
+//		// Transfer arguments...
+//		final int numArgs = code.numArgs();
+//		int dest = argumentOrLocalRegister(1);
+//		for (int i = 1; i <= numArgs; i++)
+//		{
+//			pointerAtPut(dest, args.get(i - 1));
+//			dest++;
+//		}
+//		// Store skipReturnCheck into its *architectural* register.  It will be
+//		// retrieved from there by the L2 code, whether it's the default
+//		// unoptimized chunk or an optimized chunk.
+//		integerAtPut(
+//			L1InstructionStepper.skipReturnCheckRegister(),
+//			skipReturnCheck ? 1 : 0);
 	}
 
 	/**
-	 * Start or complete execution of the specified function. The function is
-	 * permitted to be primitive. The current continuation must already have
-	 * been reified. Since that's the case, we can clobber all registers, as
-	 * long as the {@link FixedRegister#CALLER} is set appropriately afterward.
-	 *
-	 * @param function
-	 *        The function to invoke.
-	 * @param continuation
-	 *        The calling continuation.
-	 * @param skipReturnCheck
-	 *        Whether the function being invoked can safely skip checking its
-	 *        return type when it completes.
-	 */
-	public void invokePossiblePrimitiveWithReifiedCaller (
-		final A_Function function,
-		final A_Continuation continuation,
-		final boolean skipReturnCheck)
-	{
-		final int primNum = function.code().primitiveNumber();
-		pointerAtPut(CALLER, continuation);
-		if (primNum != 0)
-		{
-			final Result primResult = attemptPrimitive(
-				primNum,
-				function,
-				argsBuffer,
-				skipReturnCheck);
-			switch (primResult)
-			{
-				case CONTINUATION_CHANGED:
-					return;
-				case FIBER_SUSPENDED:
-					assert exitNow;
-					return;
-				case SUCCESS:
-//					assert chunk().isValid();
-					final int stackp = continuation.stackp();
-					final AvailObject result = latestResult();
-					if (!skipReturnCheck)
-					{
-						final A_Type expectedType =
-							continuation.stackAt(stackp);
-						if (!result.isInstanceOf(expectedType))
-						{
-							final A_Variable reportedResult =
-								VariableDescriptor.forContentType(
-									Types.ANY.o());
-							reportedResult.setValueNoCheck(result);
-							invokeFunction(
-								runtime
-									.resultDisagreedWithExpectedTypeFunction(),
-								Arrays.asList(
-									function,
-									expectedType,
-									reportedResult),
-								true);
-							return;
-						}
-					}
-					final A_Continuation updatedCaller =
-						continuation.ensureMutable();
-					pointerAtPut(CALLER, updatedCaller);
-					updatedCaller.stackAtPut(stackp, result);
-					setChunk(
-						updatedCaller.levelTwoChunk(),
-						updatedCaller.function().code(),
-						updatedCaller.levelTwoOffset());
-					return;
-				case FAILURE:
-					pointerAtPut(PRIMITIVE_FAILURE, latestResult());
-					break;
-			}
-		}
-		invokeWithoutPrimitiveFunctionArguments(
-			function, argsBuffer, continuation, skipReturnCheck);
-	}
-
-	/**
-	 * Run the interpreter for a while. Assume the interpreter has already been
-	 * set up to run something other than a (successful) primitive function at
-	 * the outermost level.
+	 * Run the interpreter until it completes the fiber, is suspended, or is
+	 * interrupted, perhaps by exceeding its time-slice.
 	 */
 	@InnerAccess void run ()
 	{
 		startTick = runtime.clock.get();
-		while (!exitNow)
+		while (true)
 		{
-			/* This loop is only exited by a return off the end of the outermost
-			 * context, a suspend or terminate of the current fiber, or by an
-			 * inter-nybblecode interrupt. At the time of an inter-nybblecode
-			 * interrupt, the continuation must be a reflection of the current
-			 * continuation, <em>not</em> the caller. That is, only the
-			 * callerRegister()'s content is valid.
-			 */
-			final L2Instruction[] instructions = chunkInstructions;
-			assert instructions != null;
-			final L2Instruction instruction = instructions[offset];
-			final L2Operation operation = instruction.operation;
-			if (debugL2)
-			{
-				int depth = 0;
-				for (
-					A_Continuation c = pointerAt(CALLER);
-					!c.equalsNil();
-					c = c.caller())
-				{
-					depth++;
-				}
-				log(
-					Level.FINE,
-					"d={0}: {1} (chunk={2}, off={3})",
-					depth,
-					operation.name(),
-					String.format("#%08x", System.identityHashCode(chunk())),
-					offset);
-			}
-			offset++;
-			final long timeBefore = System.nanoTime();
 			try
 			{
-				operation.step(instruction, this);
+				// Run the chunk to completion (dealing with reification).
+				// The chunk will do its own invalidation checks and off-ramp
+				// to L1 if needed.
+				chunk.run(this);
 			}
-			finally
+			catch (ReifyStackThrowable reifier)
 			{
-				// Even though some primitives may suspend the current fiber,
-				// the code still returns here after suspending.  Close enough.
-				final long timeAfter = System.nanoTime();
-				operation.statisticInNanoseconds.record(
-					timeAfter - timeBefore,
-					interpreterIndex);
+				// Reification has been requested, and the exception has already
+				// collected all the continuations.
+				reifiedContinuation =
+					reifier.assembleContinuation(reifiedContinuation);
+				chunk = null; // The postReificationAction should set this up.
+				reifier.postReificationAction().value();
+				continue;
 			}
+			// We're returning from the outermost non-reified frame, either into
+			// the top reified frame or right out of the fiber.
+			assert returnNow;
+			assert latestResult != null;
+			returnNow = false;
+			if (reifiedContinuation.equalsNil())
+			{
+				// The reified stack is empty, too.  We must have returned from
+				// the outermost frame.  The fiber runner will deal with it.
+				exitNow = true;
+				return;
+			}
+			// Resume the top reified frame.  It should be at an on-ramp that
+			// expects nothing of the current registers, but is able to create
+			// them and explode the current reified continuation into them
+			// (popping the continuation as it does so).
+			final A_Continuation frame = reifiedContinuation;
+			function = frame.function();
+			chunk = frame.levelTwoChunk();
+			offset = frame.levelTwoOffset();
 		}
+	}
+
+	/**
+	 * Throw a {@link ReifyStackThrowable} to reify the Java stack into {@link
+	 * A_Continuation}s, then invoke the given {@link A_Function} with no
+	 * arguments.
+	 *
+	 * @param functionToCall
+	 *        What zero-argument function to invoke after reification.
+	 * @param skipReturnCheckFlag
+	 *        Whether when the function completes it can skip checking the
+	 *        result's type.
+	 * @return Pretends to return the exception, so callers can pretend to
+	 *         throw it, to help the compiler figure out it never returns.
+	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
+	 *         integrated into type signatures in a sane way, there'd be that
+	 *         many less reasons for Avail.
+	 * @throws ReifyStackThrowable
+	 *         Always, to initiate reification of the Java stack.
+	 */
+	public ReifyStackThrowable reifyThenCall0 (
+		final A_Function functionToCall,
+		final boolean skipReturnCheckFlag)
+	throws ReifyStackThrowable
+	{
+		throw reifyThen(
+			() ->
+			{
+				argsBuffer.clear();
+				skipReturnCheck = skipReturnCheckFlag;
+				function = functionToCall;
+				chunk = function.code().startingChunk();
+				offset = 0;
+			});
+	}
+
+	/**
+	 * Throw a {@link ReifyStackThrowable} to reify the Java stack into {@link
+	 * A_Continuation}s, then invoke the given {@link A_Function} with the given
+	 * two arguments.
+	 *
+	 * @param functionToCall
+	 *        What two-argument function to invoke after reification.
+	 * @param skipReturnCheckFlag
+	 *        Whether when the function completes it can skip checking the
+	 *        result's type.
+	 * @param arg1
+	 *        The first argument of the function.
+	 * @param arg2
+	 *        The second argument of the function.
+	 * @return Pretends to return the exception, so callers can pretend to
+	 *         throw it, to help the compiler figure out it never returns.
+	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
+	 *         integrated into type signatures in a sane way, there'd be that
+	 *         many less reasons for Avail.
+	 * @throws ReifyStackThrowable
+	 *         Always, to initiate reification of the Java stack.
+	 */
+	public ReifyStackThrowable reifyThenCall2 (
+		final A_Function functionToCall,
+		final boolean skipReturnCheckFlag,
+		final A_BasicObject arg1,
+		final A_BasicObject arg2)
+	throws ReifyStackThrowable
+	{
+		throw new ReifyStackThrowable(
+			this,
+			() ->
+			{
+				argsBuffer.clear();
+				argsBuffer.add((AvailObject) arg1);
+				argsBuffer.add((AvailObject) arg2);
+				skipReturnCheck = skipReturnCheckFlag;
+				function = functionToCall;
+				chunk = function.code().startingChunk();
+				offset = 0;
+			});
+	}
+
+	/**
+	 * Throw a {@link ReifyStackThrowable} to reify the Java stack into {@link
+	 * A_Continuation}s, then invoke the given {@link A_Function} with the given
+	 * three arguments.
+	 *
+	 * @param functionToCall
+	 *        What three-argument function to invoke after reification.
+	 * @param skipReturnCheckFlag
+	 *        Whether when the function completes it can skip checking the
+	 *        result's type.
+	 * @param arg1
+	 *        The first argument of the function.
+	 * @param arg2
+	 *        The second argument of the function.
+	 * @param arg3
+	 *        The third argument of the function.
+	 * @return Pretends to return the exception, so callers can pretend to
+	 *         throw it, to help the compiler figure out it never returns.
+	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
+	 *         integrated into type signatures in a sane way, there'd be that
+	 *         many less reasons for Avail.
+	 * @throws ReifyStackThrowable
+	 *         Always, to initiate reification of the Java stack.
+	 */
+	public ReifyStackThrowable reifyThenCall3 (
+		final A_Function functionToCall,
+		final boolean skipReturnCheckFlag,
+		final A_BasicObject arg1,
+		final A_BasicObject arg2,
+		final A_BasicObject arg3)
+	throws ReifyStackThrowable
+	{
+		throw new ReifyStackThrowable(
+			this,
+			() ->
+			{
+				argsBuffer.clear();
+				argsBuffer.add((AvailObject) arg1);
+				argsBuffer.add((AvailObject) arg2);
+				argsBuffer.add((AvailObject) arg3);
+				skipReturnCheck = skipReturnCheckFlag;
+				function = functionToCall;
+				chunk = function.code().startingChunk();
+				offset = 0;
+			});
 	}
 
 	/**
@@ -1974,10 +1896,10 @@ public final class Interpreter
 					final Interpreter interpreter = current();
 					assert aFiber == interpreter.fiberOrNull();
 					assert aFiber.executionState() == RUNNING;
-					// Set up the interpreter.
-					continuation.value(interpreter);
 					// Run the interpreter for a while.
+					continuation.value(interpreter);
 					interpreter.run();
+					interpreter.fiber = null;
 					return aFiber.executionState();
 				}));
 	}
@@ -2037,17 +1959,18 @@ public final class Interpreter
 				// succeeds, then immediately invoke the fiber's
 				// result continuation with the primitive's result.
 				interpreter.exitNow = false;
-				interpreter.pointerAtPut(CALLER, NilDescriptor.nil());
-				interpreter.clearPointerAt(FUNCTION.ordinal());
-				// Always check the type of the outermost continuation's
-				// return value.
-				final Result result =
-					interpreter.invokeFunction(function, arguments, false);
-				if (result == SUCCESS)
+				interpreter.returnNow = false;
+				interpreter.reifiedContinuation = NilDescriptor.nil();
+				interpreter.function = function;
+				interpreter.argsBuffer.clear();
+				for (final A_BasicObject arg : arguments)
 				{
-					interpreter.terminateFiber(interpreter.latestResult());
-					assert interpreter.exitNow;
+					interpreter.argsBuffer.add((AvailObject) arg);
 				}
+				interpreter.chunk = function.code().startingChunk();
+				interpreter.offset = 0;
+				// Always check the type of the outermost return value.
+				interpreter.skipReturnCheck = false;
 			});
 	}
 
@@ -2440,11 +2363,12 @@ public final class Interpreter
 			final A_String stringKey = StringDescriptor.from(nameString);
 			synchronized (checkedReturnMapsByString)
 			{
-				final Statistic statistic = checkedReturnMapsByString.computeIfAbsent(
-					stringKey,
-					k -> new Statistic(
-						nameString,
-						StatisticReport.NON_PRIMITIVE_RETURN_TYPE_CHECKS));
+				final Statistic statistic =
+					checkedReturnMapsByString.computeIfAbsent(
+						stringKey,
+						k -> new Statistic(
+							nameString,
+							StatisticReport.NON_PRIMITIVE_RETURN_TYPE_CHECKS));
 				perInterpreterStatistic =
 					statistic.statistics[interpreterIndex];
 				submap.put(returnee, perInterpreterStatistic);

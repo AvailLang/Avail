@@ -1,5 +1,5 @@
 /**
- * L2_INTERPRET_ONE_L1_INSTRUCTION.java
+ * Continuation0ThrowsReification.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,50 +29,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.FixedRegister;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
+package com.avail.optimizer;
 
 /**
- * Execute a single nybblecode of the current continuation, found in {@link
- * FixedRegister#CALLER caller register}.
+ * A zero-argument {@link FunctionalInterface} that can throw a {@link
+ * ReifyStackThrowable}.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_INTERPRET_ONE_L1_INSTRUCTION
-extends L2Operation
+@FunctionalInterface
+public interface Continuation0ThrowsReification
 {
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2Operation instance =
-		new L2_INTERPRET_ONE_L1_INSTRUCTION().init();
-
-	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		interpreter.levelOneStepper.stepLevelOne();
-	}
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Translator translator)
-	{
-		// No real optimization should ever be done near this wordcode.
-		// Do nothing.
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Keep this instruction from being removed, since it's only used
-		// by the default chunk.
-		return true;
-	}
+	void value ()
+	throws ReifyStackThrowable;
 }

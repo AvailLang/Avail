@@ -1,5 +1,5 @@
 /**
- * L2_PREPARE_NEW_FRAME.java
+ * L2_PREPARE_NEW_FRAME_FOR_L1.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,8 +32,9 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.Interpreter.*;
-import static com.avail.interpreter.levelTwo.L1InstructionStepper.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.fixedRegisterCount;
+
+import com.avail.interpreter.levelTwo.register.FixedRegister;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -52,32 +53,42 @@ import com.avail.optimizer.RegisterSet;
  * failure value into the first local variable if this is a primitive (and
  * therefore failed).
  */
-public class L2_PREPARE_NEW_FRAME extends L2Operation
+public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_PREPARE_NEW_FRAME().init();
+		new L2_PREPARE_NEW_FRAME_FOR_L1().init();
+
+	static final int[] emptyIntArray = new int[0];
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final A_Function function = interpreter.pointerAt(FUNCTION);
+		final A_Function function = interpreter.function;
+		assert function != null;
 		final A_RawFunction code = function.code();
 		final int numArgs = code.numArgs();
 		final int numLocals = code.numLocals();
 		final int numSlots = code.numArgsAndLocalsAndStack();
-		// Create locals...
-		int dest = argumentOrLocalRegister(numArgs + 1);
+		interpreter.pointers =
+			new AvailObject[fixedRegisterCount() + numSlots];
+		interpreter.integers = emptyIntArray;
+		int dest = argumentOrLocalRegister(1);
+		// Populate the arguments from argsBuffer.
+		for (final AvailObject arg : interpreter.argsBuffer)
+		{
+			interpreter.pointerAtPut(dest++, arg);
+		}
+		// Create actual local variables.
 		for (int i = 1; i <= numLocals; i++)
 		{
 			interpreter.pointerAtPut(
-				dest,
+				dest++,
 				VariableDescriptor.forVariableType(code.localTypeAt(i)));
-			dest++;
 		}
 		// Write nil into the remaining stack slots.  These values should not
 		// encounter any kind of ordinary use, but they must still be
@@ -85,20 +96,19 @@ public class L2_PREPARE_NEW_FRAME extends L2Operation
 		// use Java nulls here.
 		for (int i = numArgs + numLocals + 1; i <= numSlots; i++)
 		{
-			interpreter.pointerAtPut(dest, NilDescriptor.nil());
-			dest++;
+			interpreter.pointerAtPut(dest++, NilDescriptor.nil());
 		}
-		interpreter.integerAtPut(pcRegister(), 1);
-		interpreter.integerAtPut(
-			stackpRegister(),
-			argumentOrLocalRegister(numSlots + 1));
+		interpreter.levelOneStepper.pc = 0;
+		interpreter.levelOneStepper.stackp =
+			argumentOrLocalRegister(numSlots + 1);
 		final @Nullable Primitive primitive = code.primitive();
 		if (primitive != null)
 		{
-			// A failed primitive.
+			// A failed primitive.  The failure value was captured in the
+			// latestResult().
 			assert !primitive.hasFlag(Flag.CannotFail);
 			final A_BasicObject primitiveFailureValue =
-				interpreter.pointerAt(PRIMITIVE_FAILURE);
+				interpreter.latestResult();
 			final A_Variable primitiveFailureVariable =
 				interpreter.pointerAt(argumentOrLocalRegister(numArgs + 1));
 			primitiveFailureVariable.setValue(primitiveFailureValue);

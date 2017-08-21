@@ -75,19 +75,26 @@ public final class P_CastIntoElse extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 3;
-		final A_BasicObject value = args.get(0);
-		final A_Function castBlock = args.get(1);
-		final A_Function elseBlock = args.get(2);
+		final AvailObject value = args.get(0);
+		final A_Function castFunction = args.get(1);
+		final A_Function elseFunction = args.get(2);
 		if (value.isInstanceOf(
-			castBlock.code().functionType().argsTupleType().typeAtIndex(1)))
+			castFunction.code().functionType().argsTupleType().typeAtIndex(1)))
 		{
-			return interpreter.invokeFunction(
-				castBlock,
-				Collections.singletonList(value),
-				false);
+			// "Jump" into the castFunction, to keep this frame from showing up.
+			interpreter.argsBuffer.clear();
+			interpreter.argsBuffer.add(value);
+			interpreter.function = castFunction;
+			interpreter.chunk = castFunction.code().startingChunk();
+			interpreter.offset = 0;
+			return Result.CONTINUATION_CHANGED;
 		}
-		return interpreter.invokeFunction(
-			elseBlock, Collections.<AvailObject>emptyList(), false);
+		// "Jump" into the elseFunction, to keep this frame from showing up.
+		interpreter.argsBuffer.clear();
+		interpreter.function = elseFunction;
+		interpreter.chunk = elseFunction.code().startingChunk();
+		interpreter.offset = 0;
+		return Result.CONTINUATION_CHANGED;
 	}
 
 	@Override

@@ -40,6 +40,8 @@ import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.min;
 import static java.nio.file.attribute.PosixFilePermission.*;
 import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.nio.channels.AsynchronousChannelGroup;
@@ -2309,4 +2311,43 @@ public final class AvailRuntime
 		}
 		modules = NilDescriptor.nil();
 	}
+
+	/**
+	 * The bean for tracking per-thread CPU statistics.
+	 */
+	public static ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+
+	/**
+	 * Whether per-thread CPU statistics are accessible on this VM.
+	 */
+	public static boolean recordL2PerThread =
+		// Unfortunately, this information is far too expensive to access inside
+		// tight loops, where it would do the most good.
+		false;
+		// threadBean.isThreadCpuTimeSupported();
+
+	static
+	{
+		if (recordL2PerThread)
+		{
+			threadBean.setThreadCpuTimeEnabled(true);
+		}
+	}
+
+	/**
+	 * Capture the current time with nanosecond precision (but not necessarily
+	 * accuracy).  If per-thread accounting is available, use it.
+	 *
+	 * @return The current value of the nanosecond counter, or if supported, the
+	 *         number of nanoseconds of CPU time that the current thread has
+	 *         consumed.
+	 */
+	public static long captureNanos ()
+	{
+		return recordL2PerThread
+			? threadBean.getCurrentThreadCpuTime()
+			: System.nanoTime();
+	}
+
+
 }

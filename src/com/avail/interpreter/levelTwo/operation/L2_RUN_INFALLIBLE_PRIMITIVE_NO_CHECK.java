@@ -34,6 +34,8 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
+
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.*;
@@ -70,39 +72,51 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 			WRITE_POINTER.is("primitive result"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
-		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
-		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(2);
+		final List<L2ObjectRegister> argumentRegs =
+			instruction.readVectorRegisterAt(1).registers();
+		final int resultRegNumber =
+			instruction.writeObjectRegisterAt(2).finalIndex();
 
-		interpreter.argsBuffer.clear();
-		for (final L2ObjectRegister argumentRegister : argsVector.registers())
+		// Pre-decode the argument registers as much as possible.
+		final int[] argumentRegNumbers = new int[argumentRegs.size()];
+		for (int i = 0; i < argumentRegNumbers.length; i++)
 		{
-			interpreter.argsBuffer.add(argumentRegister.in(interpreter));
+			argumentRegNumbers[i] = argumentRegs.get(i).finalIndex();
 		}
-		// Only primitive 340 is infallible and yet needs the function,
-		// and it's always folded.  In the case that primitive 340 is known to
-		// produce the wrong type at some site (potentially dead code due to
-		// inlining of an unreachable branch), it is converted to an
-		// explicit failure instruction.  Thus we can pass null.
-		// Note also that primitives which have to suspend the fiber (to perform
-		// a level one unsafe operation and then switch back to level one safe
-		// mode) must *never* be inlined, otherwise they couldn't reach a safe
-		// inter-nybblecode position.
-		// Also, the skipReturnCheck flag doesn't come into play for infallible
-		// primitives, since we would check it after it runs -- but this is the
-		// no-check version anyhow, so we don't check it at all.
-		final Result res = interpreter.attemptPrimitive(
-			primitive.primitiveNumber,
-			null,
-			interpreter.argsBuffer,
-			false);
 
-		assert res == SUCCESS;
-		resultReg.set(interpreter.latestResult(), interpreter);
+		return interpreter ->
+		{
+			interpreter.argsBuffer.clear();
+			for (int i = 0; i < argumentRegNumbers.length; i++)
+			{
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(argumentRegNumbers[i]));
+			}
+			// Only primitive 340 is infallible and yet needs the function, and
+			// it's always folded.  In the case that primitive 340 is known to
+			// produce the wrong type at some site (potentially dead code due to
+			// inlining of an unreachable branch), it is converted to an
+			// explicit failure instruction.  Thus we can pass null.  Note also
+			// that primitives which have to suspend the fiber (to perform a
+			// level one unsafe operation and then switch back to level one safe
+			// mode) must *never* be inlined, otherwise they couldn't reach a
+			// safe inter-nybblecode position.  Also, the skipReturnCheck flag
+			// doesn't come into play for infallible primitives, since we would
+			// check it after it runs -- but this is the no-check version
+			// anyhow, so we don't check it at all.
+			final Result res = interpreter.attemptPrimitive(
+				primitive.primitiveNumber,
+				null,
+				interpreter.argsBuffer,
+				false);
+			assert res == SUCCESS;
+			interpreter.pointerAtPut(
+				resultRegNumber, interpreter.latestResult());
+		};
 	}
 
 	@Override

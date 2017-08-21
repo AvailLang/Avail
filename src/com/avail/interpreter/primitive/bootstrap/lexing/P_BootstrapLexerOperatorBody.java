@@ -40,8 +40,7 @@ import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapLexerOperatorBody} primitive is used for parsing
@@ -60,7 +59,7 @@ public final class P_BootstrapLexerOperatorBody extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapLexerOperatorBody().init(
-			3, CannotFail, Bootstrap);
+			3, CannotFail, CanFold, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

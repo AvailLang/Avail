@@ -35,9 +35,11 @@ package com.avail.interpreter.levelTwo;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
 import com.avail.optimizer.L2Translator;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.register.*;
+import com.avail.optimizer.ReifyStackThrowable;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -99,8 +101,20 @@ public final class L2Chunk
 	final int numDoubles;
 
 	/**
+	 * The level two offset at which to start if the corresponding {@link
+	 * A_RawFunction} is a primitive, and it has already been attempted and
+	 * failed.  If it's not a primitive, this is the offset of the start of the
+	 * code (0).
+	 */
+	final int offsetAfterInitialTryPrimitive;
+
+	/**
 	 * A flag indicating whether this chunk is valid or if it has been
-	 * invalidated by the addition or removal of a method signature.
+	 * invalidated by the addition or removal of a method signature.  It doesn't
+	 * have to be {@code volatile}, since it can only be set when Avail code
+	 * execution is temporarily suspended in all fibers, which involves
+	 * synchronization (and therefore memory coherence) before it can start
+	 * running again.
 	 */
 	boolean valid;
 
@@ -163,6 +177,17 @@ public final class L2Chunk
 	}
 
 	/**
+	 * The offset at which to start running this chunk if the code's primitive
+	 * was already tried but failed.
+	 *
+	 * @return An index into the chunk's {@link #executableInstructions}.
+	 */
+	public int offsetAfterInitialTryPrimitive ()
+	{
+		return offsetAfterInitialTryPrimitive;
+	}
+
+	/**
 	 * Answer whether this chunk is still valid.  A {@linkplain
 	 * ContinuationDescriptor continuation} or {@linkplain
 	 * CompiledCodeDescriptor raw function} may refer to an invalid chunk, but
@@ -213,12 +238,28 @@ public final class L2Chunk
 	 * continuation that's running the {@linkplain #unoptimizedChunk unoptimized
 	 * chunk}.
 	 *
-	 * @return A level two wordcode offset.
+	 * <p>It's hard-coded, but checked against the default chunk in {@link
+	 * L2Translator#L2Translator()} when that chunk is created.</p>
+	 *
+	 * @return A level two offset within the default chunk.
 	 */
-	public static int offsetToContinueUnoptimizedChunk ()
+	public static int offsetToReturnIntoUnoptimizedChunk ()
 	{
-		// This is hard-coded, but cross-checked by
-		// L2Translator#createChunkForFirstInvocation().
+		return 4;
+	}
+
+	/**
+	 * The level two wordcode offset to which to jump when returning from an
+	 * interrupt into a continuation that's running the {@linkplain
+	 * #unoptimizedChunk unoptimized chunk}.
+	 *
+	 * <p>It's hard-coded, but checked against the default chunk in {@link
+	 * L2Translator#L2Translator()} when that chunk is created.</p>
+	 *
+	 * @return A level two offset within the default chunk.
+	 */
+	public static int offsetToResumeFromInterruptIntoUnoptimizedChunk ()
+	{
 		return 6;
 	}
 
@@ -270,7 +311,7 @@ public final class L2Chunk
 	public static final ReentrantLock invalidationLock = new ReentrantLock();
 
 	/**
-	 * Allocate and set up a new {@linkplain L2Chunk level two chunk} with the
+	 * Allocate and set up a new {@code L2Chunk level two chunk} with the
 	 * given information. If {@code code} is non-null, set it up to use the new
 	 * chunk for subsequent invocations.
 	 *
@@ -286,6 +327,10 @@ public final class L2Chunk
 	 * @param numFloats
 	 *        The number of {@linkplain L2FloatRegister floating point
 	 *        registers} that this chunk will require.
+	 * @param offsetAfterInitialTryPrimitive
+	 *        The offset into my {@link #executableInstructions} at which to
+	 *        begin if this chunk's code was primitive and that primitive has
+	 *        already been attempted and failed.
 	 * @param theInstructions
 	 *        A {@link List} of {@link L2Instruction}s that prescribe what to do
 	 *        in place of the level one nybblecodes.  These are not normally
@@ -303,6 +348,7 @@ public final class L2Chunk
 		final int numObjects,
 		final int numIntegers,
 		final int numFloats,
+		final int offsetAfterInitialTryPrimitive,
 		final List<L2Instruction> theInstructions,
 		final List<L2Instruction> executableInstructions,
 		final A_Set contingentValues)
@@ -311,6 +357,7 @@ public final class L2Chunk
 			numObjects,
 			numIntegers,
 			numFloats,
+			offsetAfterInitialTryPrimitive,
 			theInstructions,
 			executableInstructions,
 			contingentValues);
@@ -328,20 +375,35 @@ public final class L2Chunk
 	}
 
 	/**
-	 * Create a new {@linkplain L2Chunk level two chunk} with the given
-	 * information.
+	 * Create a new {@code L2Chunk} with the given information.
 	 *
-	 * @param numObjects The number of object registers needed.
-	 * @param numIntegers The number of integer registers needed.
-	 * @param numFloats The number of float registers needed.
-	 * @param theInstructions The instructions that can be inlined into callers.
-	 * @param executableInstructions The actual instructions to execute.
-	 * @param contingentValues The set of contingent {@link A_ChunkDependable}.
+	 * @param numObjects
+	 *        The number of object registers needed.
+	 * @param numIntegers
+	 *        The number of integer registers needed.
+	 * @param numFloats
+	 *        The number of float registers needed.
+	 * @param offsetAfterInitialTryPrimitive
+	 *        The offset into my {@link #executableInstructions} at which to
+	 *        begin if this chunk's code was primitive and that primitive has
+	 *        already been attempted and failed.
+	 * @param theInstructions
+	 *        The instructions that can be inlined into callers.  This may
+	 *        include non-executable instructions that assist with type
+	 *        propagation during inlining, but are omitted from the
+	 *        {@link #executableInstructions}.
+	 * @param executableInstructions
+	 *        The actual instructions to execute.  This excludes non-executable
+	 *        instructions that help with type propagation and things of that
+	 *        nature.
+	 * @param contingentValues
+	 *        The set of contingent {@link A_ChunkDependable}.
 	 */
 	private L2Chunk (
 		final int numObjects,
 		final int numIntegers,
 		final int numFloats,
+		final int offsetAfterInitialTryPrimitive,
 		final List<L2Instruction> theInstructions,
 		final List<L2Instruction> executableInstructions,
 		final A_Set contingentValues)
@@ -351,6 +413,7 @@ public final class L2Chunk
 		this.numObjects = numObjects;
 		this.numIntegers = numIntegers;
 		this.numDoubles = numFloats;
+		this.offsetAfterInitialTryPrimitive = offsetAfterInitialTryPrimitive;
 		this.instructions = theInstructions.toArray(
 			new L2Instruction[theInstructions.size()]);
 		this.executableInstructions = executableInstructions.toArray(
@@ -359,26 +422,29 @@ public final class L2Chunk
 	}
 
 	/**
-	 * Something that this {@linkplain L2Chunk Level Two chunk} depended on has
-	 * changed. This must have been because it was optimized in a way that
-	 * relied on some aspect of the available definitions (e.g., monomorphic
-	 * inlining), so we need to invalidate the chunk now, so that an attempt to
-	 * invoke it or return into it will be detected and converted into using the
-	 * {@linkplain #unoptimizedChunk unoptimized chunk}. Also remove this
-	 * chunk from the contingent set of each object on which it was depending.
+	 * Something that this {@code L2Chunk} depended on has changed. This must
+	 * have been because it was optimized in a way that relied on some aspect of
+	 * the available definitions (e.g., monomorphic inlining), so we need to
+	 * invalidate the chunk now, so that an attempt to invoke it or return into
+	 * it will be detected and converted into using the {@link
+	 * #unoptimizedChunk}. Also remove this chunk from the contingent set of
+	 * each object on which it was depending.
 	 *
-	 * <p>
-	 * This can only happen when L2 execution is suspended, due to a method
-	 * changing (TODO[MvG] - we'll have to consider "observed" variables
-	 * changing at some point).  The {@link #invalidationLock} must be acquired
-	 * by the caller to ensure safe manipulation of the dependency information.
-	 * </p>
+	 * <p>This can only happen when L2 execution is suspended, due to a method
+	 * changing (TODO[MvG] - we'll have to consider dependent nearly-constant
+	 * variables changing at some point).  The {@link #invalidationLock} must be
+	 * acquired by the caller to ensure safe manipulation of the dependency
+	 * information.</p>
+	 *
+	 * <p>Note that all we do here is clear the valid flag and update the
+	 * dependency information.  It's up to any re-entry points within this
+	 * optimized code to determine that invalidation has happened,
+	 * using the default chunk.</p>
 	 */
 	public void invalidate ()
 	{
 		assert invalidationLock.isHeldByCurrentThread();
 		valid = false;
-		instructions = new L2Instruction[0];
 		final A_Set contingents = contingentValues.makeImmutable();
 		contingentValues = SetDescriptor.empty();
 		for (final A_ChunkDependable value : contingents)
@@ -397,15 +463,42 @@ public final class L2Chunk
 		L2Translator.createChunkForFirstInvocation();
 
 	/**
-	 * Return the special {@linkplain L2Chunk level two chunk} that is used to
-	 * interpret level one nybblecodes until a piece of {@linkplain
-	 * CompiledCodeDescriptor compiled code} has been executed some threshold
-	 * number of times.
+	 * Return the special {@code L2Chunk} that is used to interpret level one
+	 * nybblecodes until a piece of {@linkplain CompiledCodeDescriptor compiled
+	 * code} has been executed some threshold number of times and optimized.
 	 *
 	 * @return The special {@linkplain #unoptimizedChunk unoptimized chunk}.
 	 */
 	public static L2Chunk unoptimizedChunk ()
 	{
 		return unoptimizedChunk;
+	}
+
+	/**
+	 * Run this L2Chunk to completion.  Note that a reification throwable may
+	 * cut this short.  Also note that the interpreter indicates the offset at
+	 * which to start executing.  For an initial invocation, the argsBuffer will
+	 * have been set up for the call.  For a return into this continuation, the
+	 * offset will refer to code that will rebuild the register set from the top
+	 * reified continuation, using the {@link Interpreter#latestResult()}.  For
+	 * resuming the continuation, the offset will point to code that also
+	 * rebuilds the register set from the top reified continuation, but it won't
+	 * expect a return value.  These re-entry points should perform validity
+	 * checks on the chunk, allowing an orderly off-ramp into the {@link
+	 * #unoptimizedChunk()} (which simply interprets the L1 nybblecodes).
+	 *
+	 * @param interpreter The current {@link Interpreter}.
+	 * @throws ReifyStackThrowable If reification is requested.
+	 */
+	public void run (final Interpreter interpreter)
+	throws ReifyStackThrowable
+	{
+		while (!interpreter.returnNow)
+		{
+			assert interpreter.chunk == this;
+			final L2Instruction instruction =
+				executableInstructions[interpreter.offset++];
+			instruction.action.value(interpreter);
+		}
 	}
 }

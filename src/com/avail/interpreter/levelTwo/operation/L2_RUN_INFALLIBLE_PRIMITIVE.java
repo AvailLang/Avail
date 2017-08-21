@@ -34,6 +34,8 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
+
+import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.*;
@@ -108,9 +110,9 @@ extends L2Operation
 		assert res == SUCCESS;
 
 		final AvailObject result = interpreter.latestResult();
-		final long before = System.nanoTime();
+		final long before = AvailRuntime.captureNanos();
 		final boolean checkOk = result.isInstanceOf(expectedType);
-		final long after = System.nanoTime();
+		final long after = AvailRuntime.captureNanos();
 		primitive.addNanosecondsCheckingResultType(
 			after - before,
 			interpreter.interpreterIndex);

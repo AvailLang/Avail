@@ -34,6 +34,8 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.List;
+
+import com.avail.interpreter.levelTwo.register.FixedRegister;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
@@ -87,7 +89,7 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 
 		final List<L2ObjectRegister> regs = writeVector.registers();
 		final A_RawFunction code = translator.codeOrFail();
-		assert regs.size() == all().length + code.numArgs();
+		assert regs.size() == fixedRegisterCount() + code.numArgs();
 		assert regs.get(NULL.ordinal())
 			== translator.fixed(NULL);
 		assert regs.get(CALLER.ordinal())
@@ -98,7 +100,7 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 			== translator.fixed(PRIMITIVE_FAILURE);
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
-			assert regs.get(all().length + i - 1)
+			assert regs.get(fixedRegisterCount() + i - 1)
 				== translator.continuationSlot(i);
 		}
 		registerSet.constantAtPut(

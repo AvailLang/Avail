@@ -47,33 +47,19 @@ public enum FixedRegister
 	 */
 	NULL,
 
-	/**
-	 * The enumeration value representing the fixed register reserved for
-	 * holding the {@link Interpreter}'s calling {@linkplain
-	 * ContinuationDescriptor continuation}.
-	 */
-	CALLER,
+	@Deprecated CALLER,
+	@Deprecated FUNCTION,
+	@Deprecated PRIMITIVE_FAILURE,
 
-	/**
-	 * The enumeration value representing the fixed register reserved for
-	 * holding the currently executing {@linkplain FunctionDescriptor
-	 * function}.
-	 */
-	FUNCTION,
-
-	/**
-	 * The enumeration value representing the fixed register reserved for
-	 * holding the most recently failed {@link Primitive}'s failure value.
-	 */
-	PRIMITIVE_FAILURE;
+	;
 
 	/** An array of all {@link FixedRegister} enumeration values. */
 	private static final FixedRegister[] all = values();
 
 	/**
-	 * Answer an array of all {@link FixedRegister} enumeration values.
+	 * Answer an array of all {@code FixedRegister} enumeration values.
 	 *
-	 * @return An array of all {@link FixedRegister } enum values.  Do not
+	 * @return An array of all {@code FixedRegister } enum values.  Do not
 	 *         modify the array.
 	 */
 	public static FixedRegister[] all ()
@@ -81,4 +67,18 @@ public enum FixedRegister
 		return all;
 	}
 
+	/**
+	 * Record statically how many fixed registers exist.
+	 */
+	private static final int count = all.length;
+
+	/**
+	 * Answer how many fixed registers exist.
+	 *
+	 * @return The number of instances in this enum.
+	 */
+	public static int fixedRegisterCount ()
+	{
+		return count;
+	}
 }

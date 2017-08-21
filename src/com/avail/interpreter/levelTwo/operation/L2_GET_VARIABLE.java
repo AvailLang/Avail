@@ -38,6 +38,7 @@ import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -57,28 +58,29 @@ public class L2_GET_VARIABLE extends L2Operation
 			PC.is("if assigned"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1);
+		final int variableRegNumber =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final int destRegNumber =
+			instruction.writeObjectRegisterAt(1).finalIndex();
 		final int ifAssigned = instruction.pcAt(2);
-
-		final A_Variable variable = variableReg.in(interpreter);
-		try
+		return interpreter ->
 		{
-			final AvailObject value = variable.getValue();
-			value.makeImmutable();
-			destReg.set(value, interpreter);
-			interpreter.offset(ifAssigned);
-		}
-		catch (final VariableGetException e)
-		{
-			// Fall through to the next instruction.
-		}
+			final A_Variable variable =
+				interpreter.pointerAt(variableRegNumber);
+			try
+			{
+				final AvailObject value = variable.getValue();
+				interpreter.pointerAtPut(destRegNumber, value.makeImmutable());
+				interpreter.offset(ifAssigned);
+			}
+			catch (final VariableGetException e)
+			{
+				// Fall through to the next instruction.
+			}
+		};
 	}
 
 	@Override

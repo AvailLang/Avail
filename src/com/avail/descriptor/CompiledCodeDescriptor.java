@@ -190,7 +190,7 @@ extends Descriptor
 		 * L2Chunk#unoptimizedChunk() default chunk} will be substituted until
 		 * the next reoptimization.
 		 */
-		@HideFieldJustForPrinting
+//		@HideFieldJustForPrinting
 		STARTING_CHUNK,
 
 		/**
@@ -598,7 +598,7 @@ extends Descriptor
 				// reoptimized, the counter was reset to something positive,
 				// but it has already been decremented back below zero.
 				// Either way, reoptimize now.
-				if (invocationStatistic.countdownToReoptimize.get() < 0)
+				if (invocationStatistic.countdownToReoptimize.get() <= 0)
 				{
 					continuation.value();
 				}

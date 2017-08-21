@@ -530,7 +530,7 @@ extends Descriptor
 						}
 						else
 						{
-							final long timeBefore = System.nanoTime();
+							final long timeBefore = AvailRuntime.captureNanos();
 							final int instruction = instructions.tupleIntAt(pc);
 							final ParsingOperation op = decode(instruction);
 							updateForPlan(
@@ -543,7 +543,7 @@ extends Descriptor
 								actionMap,
 								prefilterMap,
 								typeFilterPairs);
-							final long timeAfter = System.nanoTime();
+							final long timeAfter = AvailRuntime.captureNanos();
 							final AvailThread thread =
 								(AvailThread) Thread.currentThread();
 							op.expandingStatisticInNanoseconds.record(
@@ -699,7 +699,7 @@ extends Descriptor
 	 */
 	private static void invalidate (final AvailObject object)
 	{
-		final long timeBefore = System.nanoTime();
+		final long timeBefore = AvailRuntime.captureNanos();
 		synchronized (object)
 		{
 			final A_Map emptyMap = MapDescriptor.empty();
@@ -713,7 +713,7 @@ extends Descriptor
 			object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
 			object.setSlot(UNCLASSIFIED, object.slot(ALL_PLANS_IN_PROGRESS));
 		}
-		final long timeAfter = System.nanoTime();
+		final long timeAfter = AvailRuntime.captureNanos();
 		final AvailThread thread = (AvailThread) Thread.currentThread();
 		invalidationsStat.record(
 			timeAfter - timeBefore, thread.interpreter.interpreterIndex);

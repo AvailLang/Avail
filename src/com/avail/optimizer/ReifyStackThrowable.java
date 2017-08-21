@@ -37,6 +37,8 @@ import java.util.List;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.NilDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.utility.evaluation.Continuation0;
 
 /**
  * The level two execution machinery allows limited use of the Java stack during
@@ -54,6 +56,8 @@ extends Exception
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 7279470906495791301L;
 
+	final Interpreter interpreter;
+
 	/**
 	 * The list of mutable level one continuations that have been reified so
 	 * far.  They are added to the end during repeated throws until the
@@ -64,11 +68,26 @@ extends Exception
 	final List<A_Continuation> continuationsNewestFirst = new ArrayList<>();
 
 	/**
-	 * Construct a new {@link ReifyStackThrowable}.
+	 * A {@link Continuation0ThrowsReification} that should be executed once the
+	 * {@link Interpreter}'s stack has been fully reified.  The interpreter
 	 */
-	public ReifyStackThrowable ()
+	final Continuation0 postReificationAction;
+
+	/**
+	 * Construct a new {@code ReifyStackThrowable}.
+	 *
+	 * @param interpreter
+	 *        The running interpreter.
+	 * @param postReificationAction
+	 *        The action to perform after the Java stack has been fully reified.
+	 */
+	public ReifyStackThrowable (
+		final Interpreter interpreter,
+		final Continuation0 postReificationAction)
 	{
-		// do nothing
+		//TODO MvG - fix all Continuation0ThrowsReification references in file.
+		this.interpreter = interpreter;
+		this.postReificationAction = postReificationAction;
 	}
 
 	/**
@@ -81,7 +100,7 @@ extends Exception
 	 *            to indicate the outermost execution frame.
 	 * @return The fully assembled reified continuation.
 	 */
-	A_Continuation assembleContinuation (
+	public A_Continuation assembleContinuation (
 		final A_Continuation alreadyReifiedContinuation)
 	{
 		A_Continuation current = alreadyReifiedContinuation;
@@ -108,11 +127,23 @@ extends Exception
 	 *
 	 * @param mutableContinuation The mutable continuation to push.
 	 */
-	void pushContinuation (
+	public void pushContinuation (
 		final A_Continuation mutableContinuation)
 	{
 		assert mutableContinuation.descriptor().isMutable();
 		assert mutableContinuation.caller().equalsNil();
 		continuationsNewestFirst.add(mutableContinuation);
+	}
+
+	/**
+	 * Answer the {@link Continuation0ThrowsReification} that should be executed
+	 * after all frames have been reified.
+	 *
+	 * @return The post-reification action, captured when this throwable was
+	 *         created.
+	 */
+	public Continuation0 postReificationAction ()
+	{
+		return postReificationAction;
 	}
 }

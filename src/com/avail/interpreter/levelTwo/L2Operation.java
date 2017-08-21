@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.avail.utility.evaluation.Continuation1NotNull;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
@@ -67,7 +68,7 @@ public abstract class L2Operation
 
 	/**
 	 * Answer the {@linkplain L2NamedOperandType named operand types} that this
-	 * {@linkplain L2Operation operation} expects.
+	 * {@code L2Operation operation} expects.
 	 *
 	 * @return The named operand types that this operation expects.
 	 */
@@ -85,7 +86,7 @@ public abstract class L2Operation
 	private final @Nullable String name;
 
 	/**
-	 * Answer the name of this {@linkplain L2Operation}.
+	 * Answer the name of this {@code L2Operation}.
 	 *
 	 * @return The operation name, suitable for symbolic debugging of level two
 	 *         generated code.
@@ -235,15 +236,23 @@ public abstract class L2Operation
 	 * that is also passed.
 	 *
 	 * @param instruction
-	 *            The {@link L2Instruction} of which this is the {@link
-	 *            L2Operation}.
+	 *        The {@link L2Instruction} of which this is the {@code
+	 *        L2Operation}.
 	 * @param interpreter
-	 *            The {@linkplain Interpreter interpreter} on behalf of which
-	 *            to perform this operation.
+	 *        The {@link Interpreter} on behalf of which to perform this
+	 *        operation.
+	 * @throws ReifyStackThrowable
+	 *         If the instruction triggers stack reification.
 	 */
-	public abstract void step (
+	public void step (
 		final L2Instruction instruction,
-		final Interpreter interpreter);
+		final Interpreter interpreter)
+	throws ReifyStackThrowable
+	{
+		// Subclasses should implement either this or actionFor().
+		// Eventually step() will be entirely deprecated.
+		throw new UnsupportedOperationException();
+	}
 
 	/**
 	 * Propagate type, value, alias, and source instruction information due to
@@ -460,7 +469,7 @@ public abstract class L2Operation
 	 * Otherwise answer {@code null}.
 	 *
 	 * @param instruction
-	 *        The {@link L2Instruction} for which the receiver is the {@link
+	 *        The {@link L2Instruction} for which the receiver is the {@code
 	 *        L2Operation}.
 	 * @return The register into which the primitive attempted by this
 	 *         instruction will write its result, or null if the instruction
@@ -471,5 +480,25 @@ public abstract class L2Operation
 	{
 		assert instruction.operation == this;
 		return null;
+	}
+
+	/**
+	 * Create an action (@link {@link Continuation1NotNull<Interpreter>}) for
+	 * the instruction (whose operation is the receiver).
+	 *
+	 * @param instruction
+	 *        The instruction for which to create an action.
+	 * @return A {@link Continuation1NotNullThrowsReification} to run to effect
+	 *         this {@code L2Operation} on an {@link Interpreter}.
+	 */
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
+	{
+		// For now, most operations can just fall back on their step method.
+		// Eventually we'll deprecate step, making actionFor() abstract.  And
+		// further down the road, we'll generate JVM (or perhaps native) code
+		// from each instruction instead, getting rid of both step() and
+		// actionFor().
+		return interpreter -> step(instruction, interpreter);
 	}
 }

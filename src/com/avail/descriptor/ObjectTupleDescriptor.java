@@ -512,19 +512,7 @@ extends TupleDescriptor
 		{
 			return super.o_TupleReverse(object);
 		}
-
-		return generateFrom(
-			size,
-			new Generator<A_BasicObject>()
-			{
-				private int index = size;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					return object.tupleAt(index--);
-				}
-			});
+		return generateReversedFrom(size, object.iterator()::next);
 	}
 
 	@Override @AvailMethod
@@ -568,6 +556,34 @@ extends TupleDescriptor
 			result.setSlot(TUPLE_AT_, i, NilDescriptor.nil());
 		}
 		for (int i = 1; i <= size; i++)
+		{
+			result.setSlot(TUPLE_AT_, i, generator.value());
+		}
+		return result;
+	}
+
+	/**
+	 * Create an object of the appropriate size, whose descriptor is an instance
+	 * of {@link ObjectTupleDescriptor}.  Run the generator for each position in
+	 * descending order to produce the {@link AvailObject}s with which to
+	 * populate the tuple.
+	 *
+	 * @param size The size of the object tuple to create.
+	 * @param generator A generator to provide {@link AvailObject}s to store.
+	 * @return The new object tuple.
+	 */
+	public static AvailObject generateReversedFrom (
+		final int size,
+		final Generator<? extends A_BasicObject> generator)
+	{
+		final AvailObject result = createUninitialized(size);
+		for (int i = 1; i <= size; i++)
+		{
+			// Initialize it for safe GC within the loop below.  Might be
+			// unnecessary if the substrate already initialized it safely.
+			result.setSlot(TUPLE_AT_, i, NilDescriptor.nil());
+		}
+		for (int i = size; i >= 1; i--)
 		{
 			result.setSlot(TUPLE_AT_, i, generator.value());
 		}

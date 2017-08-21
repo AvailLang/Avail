@@ -2015,7 +2015,7 @@ implements
 	 * Dispatch to the descriptor.
 	 */
 	@Override
-	public boolean equalsNil ()
+	public final boolean equalsNil ()
 	{
 		// Was a dispatch that took indirections into account, but even when we
 		// rebuild the memory substrate we can keep nil from moving around.

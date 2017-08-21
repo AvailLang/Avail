@@ -35,6 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import java.util.List;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -53,15 +54,17 @@ public class L2_JUMP_IF_NOT_INTERRUPT extends L2Operation
 			PC.is("target if not interrupt"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
 		final int offsetIfNotInterrupt = instruction.pcAt(0);
-		if (!interpreter.isInterruptRequested())
+		return interpreter ->
 		{
-			interpreter.offset(offsetIfNotInterrupt);
-		}
+			if (!interpreter.isInterruptRequested())
+			{
+				interpreter.offset(offsetIfNotInterrupt);
+			}
+		};
 	}
 
 	@Override

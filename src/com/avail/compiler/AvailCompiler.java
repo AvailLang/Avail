@@ -1949,7 +1949,7 @@ public final class AvailCompiler
 							{
 								continue;
 							}
-							final long timeBefore = System.nanoTime();
+							final long timeBefore = AvailRuntime.captureNanos();
 							final A_BundleTree successor =
 								tokenMap.mapAt(string);
 							if (AvailRuntime.debugCompilerSteps)
@@ -1987,7 +1987,7 @@ public final class AvailCompiler
 								argsSoFar,
 								marksSoFar,
 								continuation);
-							final long timeAfter = System.nanoTime();
+							final long timeAfter = AvailRuntime.captureNanos();
 							final AvailThread thread =
 								(AvailThread) Thread.currentThread();
 							final Statistic stat = caseInsensitive
@@ -2341,7 +2341,7 @@ public final class AvailCompiler
 			}
 		}
 
-		final long timeBefore = System.nanoTime();
+		final long timeBefore = AvailRuntime.captureNanos();
 		op.execute(
 			this,
 			instruction,
@@ -2354,7 +2354,7 @@ public final class AvailCompiler
 			consumedAnything,
 			consumedTokens,
 			continuation);
-		final long timeAfter = System.nanoTime();
+		final long timeAfter = AvailRuntime.captureNanos();
 		final AvailThread thread = (AvailThread) Thread.currentThread();
 		op.parsingStatisticInNanoseconds.record(
 			timeAfter - timeBefore,

@@ -38,6 +38,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
@@ -74,14 +75,12 @@ public final class L2Instruction
 	public final L2Operand[] operands;
 
 	/**
-	 * The position of this {@link L2Instruction} within its array of
-	 * instructions.
+	 * The position of this instruction within its array of instructions.
 	 */
 	private int offset = -1;
 
 	/**
-	 * Answer the position of this {@link L2Instruction} within its array of
-	 * instructions.
+	 * Answer the position of this instruction within its array of instructions.
 	 *
 	 * @return The position of the instruction in its chunk's instruction array.
 	 */
@@ -91,8 +90,8 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Set the final position of the {@link L2Instruction} within its {@link
-	 * L2Chunk}'s array of instructions.
+	 * Set the final position of this instruction within its {@link L2Chunk}'s
+	 * array of instructions.
 	 *
 	 * @param offset
 	 *        The final position of the instruction within the array.
@@ -103,7 +102,16 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Construct a new {@link L2Instruction}.
+	 * Each {@link L2Operation} is responsible for generating this {@link
+	 * Continuation1NotNullThrowsReification<Interpreter>} as an action to
+	 * directly invoke to accomplish the effect of this instruction.  This
+	 * interim measure helps alleviate some of the runtime instruction decoding
+	 * cost, until we're able to generate JVM instructions directly.
+	 */
+	public Continuation1NotNullThrowsReification<Interpreter> action;
+
+	/**
+	 * Construct a new {@code L2Instruction}.
 	 *
 	 * @param operation
 	 *            The {@link L2Operation} that this instruction performs.
@@ -129,7 +137,7 @@ public final class L2Instruction
 
 	/**
 	 * Answer the {@linkplain List list} of {@linkplain L2Register registers}
-	 * read by this {@linkplain L2Instruction instruction}.
+	 * read by this {@code L2Instruction instruction}.
 	 *
 	 * @return The source {@linkplain L2Register registers}.
 	 */
@@ -154,10 +162,10 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Answer the {@linkplain List list} of {@linkplain L2Register registers}
-	 * modified by this {@linkplain L2Instruction instruction}.
+	 * Answer the {@link List list} of {@link L2Register} modified by this
+	 * {@code L2Instruction instruction}.
 	 *
-	 * @return The source {@linkplain L2Register registers}.
+	 * @return The source {@linkplain L2Register}s.
 	 */
 	public List<L2Register> destinationRegisters ()
 	{
@@ -187,7 +195,7 @@ public final class L2Instruction
 	 * instructions, but its reachability can be determined separately via
 	 * {@linkplain L2Operation#reachesNextInstruction()}.
 	 *
-	 * @return A {@link List} of label {@link L2Instruction instructions}.
+	 * @return A {@link List} of label {@code L2Instruction instructions}.
 	 */
 	public List<L2Instruction> targetLabels ()
 	{
@@ -263,7 +271,7 @@ public final class L2Instruction
 	 *            The {@link Transformer2 transformer} which can normalize any
 	 *            register to its best available equivalent.
 	 * @return
-	 *            The resulting {@link L2Instruction}.
+	 *            The resulting {@code L2Instruction}.
 	 */
 	public L2Instruction transformRegisters (
 		final Transformer2<L2Register, L2OperandType, L2Register> transformer)

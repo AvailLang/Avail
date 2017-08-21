@@ -81,7 +81,7 @@ public final class P_CreateContinuation extends Primitive
 			stackp.extractInt(),
 			false,
 			L2Chunk.unoptimizedChunk(),
-			L2Chunk.offsetToContinueUnoptimizedChunk());
+			L2Chunk.offsetToReturnIntoUnoptimizedChunk());
 		for (int i = 1, end = stack.tupleSize(); i <= end; i++)
 		{
 			cont.argOrLocalOrStackAtPut(i, stack.tupleAt(i));

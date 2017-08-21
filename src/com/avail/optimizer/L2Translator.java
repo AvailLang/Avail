@@ -403,8 +403,7 @@ public final class L2Translator
 	 * holding the first argument to this compiled code (or where the first
 	 * argument would be if there were any).
 	 */
-	public static final int firstArgumentRegisterIndex =
-		all().length;
+	public static final int firstArgumentRegisterIndex = fixedRegisterCount();
 
 	/**
 	 * An {@link EnumMap} from each {@link FixedRegister} to its manifestation
@@ -422,6 +421,17 @@ public final class L2Translator
 	 * instruction.
 	 */
 	final L2Instruction startLabel = newLabel("start");
+
+	/**
+	 * Primitive {@link A_RawFunction}s will start with a {@link
+	 * L2_TRY_PRIMITIVE} instruction.  If we have just optimized such code, we
+	 * must have already tried and failed the primitive (because we try the
+	 * primitive prior to {@link L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO}).
+	 * In either case, this label is where to continue in the new chunk right
+	 * after optimizing.
+	 */
+	final L2Instruction afterOptionalInitialPrimitiveLabel =
+		newLabel("after initial primitive");
 
 	/**
 	 * A label (i.e., an {@link L2Instruction} whose operation is an {@link
@@ -1154,21 +1164,22 @@ public final class L2Translator
 		 * @param resumeLabel
 		 *        Where to resume execution of the current continuation.
 		 */
+		@Deprecated
 		public void reify (
 			final List<L2ObjectRegister> slots,
 			final L2ObjectRegister newContinuationRegister,
 			final L2Instruction resumeLabel)
 		{
-			addInstruction(
-				L2_CREATE_CONTINUATION.instance,
-				new L2ReadPointerOperand(fixed(CALLER)),
-				new L2ReadPointerOperand(fixed(FUNCTION)),
-				new L2ImmediateOperand(pc),
-				new L2ImmediateOperand(stackp),
-				new L2ReadIntOperand(skipReturnCheckRegister),
-				new L2ReadVectorOperand(createVector(slots)),
-				new L2PcOperand(resumeLabel),
-				new L2WritePointerOperand(newContinuationRegister));
+//			addInstruction(
+//				L2_CREATE_CONTINUATION.instance,
+//				new L2ReadPointerOperand(fixed(CALLER)),
+//				new L2ReadPointerOperand(fixed(FUNCTION)),
+//				new L2ImmediateOperand(pc),
+//				new L2ImmediateOperand(stackp),
+//				new L2ReadIntOperand(skipReturnCheckRegister),
+//				new L2ReadVectorOperand(createVector(slots)),
+//				new L2PcOperand(resumeLabel),
+//				new L2WritePointerOperand(newContinuationRegister));
 		}
 
 		/**
@@ -2585,6 +2596,12 @@ public final class L2Translator
 		void addNaiveInstructions ()
 		{
 			addLabel(startLabel);
+			final @Nullable Primitive primitive = code.primitive();
+			if (primitive != null)
+			{
+				addInstruction(L2_TRY_PRIMITIVE.instance);
+			}
+			addLabel(afterOptionalInitialPrimitiveLabel);
 			if (optimizationLevel == OptimizationLevel.UNOPTIMIZED)
 			{
 				// Optimize it again if it's called frequently enough.
@@ -2596,11 +2613,8 @@ public final class L2Translator
 						OptimizationLevel.FIRST_TRANSLATION.ordinal()));
 			}
 			final List<L2ObjectRegister> initialRegisters =
-				new ArrayList<>(all().length);
+				new ArrayList<>(fixedRegisterCount());
 			initialRegisters.add(fixed(NULL));
-			initialRegisters.add(fixed(CALLER));
-			initialRegisters.add(fixed(FUNCTION));
-			initialRegisters.add(fixed(PRIMITIVE_FAILURE));
 			for (int i = 1, end = code.numArgs(); i <= end; i++)
 			{
 				final L2ObjectRegister r = continuationSlot(i);
@@ -3553,7 +3567,7 @@ public final class L2Translator
 		final Mutable<Integer> intRegMaxIndex = new Mutable<>(-1);
 		final Mutable<Integer> floatRegMaxIndex = new Mutable<>(-1);
 		final Mutable<Integer> objectRegMaxIndex =
-			new Mutable<>(all().length - 1);
+			new Mutable<>(fixedRegisterCount() - 1);
 		final L2OperandDispatcher dispatcher = new L2OperandDispatcher()
 		{
 			@Override
@@ -3565,7 +3579,7 @@ public final class L2Translator
 			@Override
 			public void doOperand (final L2ConstantOperand operand)
 			{
-				operand.object.makeShared();
+				// Ignore, already made shared at creation time.
 			}
 
 			@Override
@@ -3695,6 +3709,12 @@ public final class L2Translator
 			}
 		}
 
+		// Install an action inside each executable L2Instruction.
+		for (final L2Instruction instruction : executableInstructions)
+		{
+			instruction.action = instruction.operation.actionFor(instruction);
+		}
+
 		// Clean up a little.
 		instructionRegisterSets.clear();
 		chunk = L2Chunk.allocate(
@@ -3702,14 +3722,14 @@ public final class L2Translator
 			objectRegMaxIndex.value + 1,
 			intRegMaxIndex.value + 1,
 			floatRegMaxIndex.value + 1,
+			afterOptionalInitialPrimitiveLabel.offset(),
 			instructions,
 			executableInstructions,
 			contingentValues);
 	}
 
 	/**
-	 * Return the {@linkplain L2Chunk chunk} previously created via {@link
-	 * #createChunk()}.
+	 * Return the {@link L2Chunk} previously created via {@link #createChunk()}.
 	 *
 	 * @return The chunk.
 	 */
@@ -3763,62 +3783,66 @@ public final class L2Translator
 	}
 
 	/**
-	 * Construct a new {@link L2Translator} solely for the purpose of creating
-	 * the default chunk.  Do everything here except the final chunk creation.
+	 * Construct a new {@code L2Translator} solely for the purpose of creating
+	 * the default chunk.  Do everything here except the final chunk extraction.
 	 */
 	private L2Translator ()
 	{
 		codeOrNull = null;
 		optimizationLevel = OptimizationLevel.UNOPTIMIZED;
 		interpreter = null;
-		architecturalRegisters =
-			new ArrayList<>(firstArgumentRegisterIndex);
 		fixedRegisterMap = new EnumMap<>(FixedRegister.class);
-		for (final FixedRegister fixedRegister : all())
-		{
-			final L2ObjectRegister reg =
-				L2ObjectRegister.precolored(
-					nextUnique(),
-					fixedRegister.ordinal());
-			fixedRegisterMap.put(fixedRegister, reg);
-			architecturalRegisters.add(reg);
-		}
+		architecturalRegisters = new ArrayList<>(firstArgumentRegisterIndex);
 		final L2Instruction reenterFromCallLabel =
 			newLabel("reenter L1 from call");
+		final L2Instruction reenterFromInterruptLabel =
+			newLabel("reenter L1 from interrupt");
+		// First we try to run it as a primitive.
+		justAddInstruction(L2_TRY_PRIMITIVE.instance);
+		// Only if the primitive fails should we consider optimizing the
+		// fallback code.
+		instructions.add(afterOptionalInitialPrimitiveLabel);
+		instructionRegisterSets.add(null);
 		justAddInstruction(
 			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
 			new L2ImmediateOperand(
 				OptimizationLevel.FIRST_TRANSLATION.ordinal()));
-		justAddInstruction(L2_PREPARE_NEW_FRAME.instance);
+		justAddInstruction(L2_PREPARE_NEW_FRAME_FOR_L1.instance);
+
 		final L2Instruction loopStart = newLabel("main L1 loop");
 		instructions.add(loopStart);
 		instructionRegisterSets.add(null);
-		justAddInstruction(L2_INTERPRET_ONE_L1_INSTRUCTION.instance);
-		justAddInstruction(L2_INTERPRET_UNTIL_INTERRUPT.instance);
 		justAddInstruction(
-			L2_PROCESS_INTERRUPT.instance,
-			new L2ReadPointerOperand(fixed(CALLER)));
-		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
+			L2_INTERPRET_LEVEL_ONE.instance,
+			new L2PcOperand(reenterFromCallLabel),
+			new L2PcOperand(reenterFromInterruptLabel));
+
 		instructions.add(reenterFromCallLabel);
 		instructionRegisterSets.add(null);
-		justAddInstruction(L2_REENTER_L1_CHUNK.instance);
+		justAddInstruction(L2_REENTER_L1_CHUNK_FROM_CALL.instance);
 		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
+
+		instructions.add(reenterFromInterruptLabel);
+		instructionRegisterSets.add(null);
+		justAddInstruction(L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance);
+		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
+
 		createChunk();
 		assert reenterFromCallLabel.offset() ==
-			L2Chunk.offsetToContinueUnoptimizedChunk();
+			L2Chunk.offsetToReturnIntoUnoptimizedChunk();
+		assert reenterFromInterruptLabel.offset() ==
+			L2Chunk.offsetToResumeFromInterruptIntoUnoptimizedChunk();
 	}
 
 	/**
-	 * Translate the previously supplied {@linkplain CompiledCodeDescriptor
-	 * Level One compiled code object} into a sequence of {@linkplain
-	 * L2Instruction Level Two instructions}. The optimization level specifies
-	 * how hard to try to optimize this method. It is roughly equivalent to the
-	 * level of inlining to attempt, or the ratio of code expansion that is
-	 * permitted. An optimization level of zero is the bare minimum, which
-	 * produces a naïve translation to {@linkplain L2Chunk Level Two code}. The
-	 * translation creates a counter that the Level Two code decrements each
-	 * time it is invoked.  When it reaches zero, the method will be reoptimized
-	 * with a higher optimization effort.
+	 * Translate the previously supplied {@link A_RawFunction} into a sequence
+	 * of {@link L2Instruction}s.  The optimization level specifies how hard to
+	 * try to optimize this method.  It is roughly equivalent to the level of
+	 * inlining to attempt, or the ratio of code expansion that is permitted.
+	 * An optimization level of zero is the bare minimum, which produces a naïve
+	 * translation to {@linkplain L2Chunk Level Two code}.  The translation
+	 * may include code to decrement a counter and reoptimize with greater
+	 * effort when the counter reaches zero.
 	 */
 	private void translate ()
 	{
@@ -3830,8 +3854,7 @@ public final class L2Translator
 		// first instruction so that L1Ext_doPushLabel can always find it. Since
 		// we only translate one method at a time, the first instruction always
 		// represents the start of this compiledCode.
-		final L1NaiveTranslator naiveTranslator =
-			new L1NaiveTranslator();
+		final L1NaiveTranslator naiveTranslator = new L1NaiveTranslator();
 		naiveTranslator.addNaiveInstructions();
 		optimize();
 		simpleColorRegisters();
@@ -3840,9 +3863,23 @@ public final class L2Translator
 	}
 
 	/**
+	 * Run the translator on the provided {@link A_RawFunction} to produce an
+	 * optimized {@link L2Chunk} that is then written back into the code for
+	 * subsequent executions.  Also update the {@link Interpreter}'s chunk and
+	 * offset to use this new chunk right away.  If the code was a primitive,
+	 * make sure to adjust the offset to just beyond its {@link
+	 * L2_TRY_PRIMITIVE} instruction, which must have <em>already</em> been
+	 * attempted and failed for us to have reached the {@link
+	 * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO} that caused this
+	 * optimization to happen.
+	 *
 	 * @param code
+	 *        The {@link A_RawFunction} to optimize.
 	 * @param optimizationLevel
+	 *        How much optimization to attempt.
 	 * @param interpreter
+	 *        The {@link Interpreter} used for folding expressions, and to be
+	 *        updated with the new chunk and post-primitive offset.
 	 */
 	public static void translateToLevelTwo (
 		final A_RawFunction code,
@@ -3850,9 +3887,7 @@ public final class L2Translator
 		final Interpreter interpreter)
 	{
 		final L2Translator translator = new L2Translator(
-			code,
-			optimizationLevel,
-			interpreter);
+			code, optimizationLevel, interpreter);
 		translator.translate();
 	}
 

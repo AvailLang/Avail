@@ -1,5 +1,5 @@
 /**
- * L2_ATTEMPT_INLINE_PRIMITIVE.java
+ * L2_TRY_PRIMITIVE.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,117 +31,130 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-
-import com.avail.AvailRuntime;
-import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.ReifyStackThrowable;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Result.FAILURE;
+import static com.avail.interpreter.Primitive.Result.SUCCESS;
 
 /**
- * Attempt to perform the specified primitive, using the provided arguments.
- * If successful, check that the resulting object's type agrees with the
- * provided expected type. If the check fails, then branch. Otherwise, write the
- * result to some register and then jump to the success label. If the primitive
- * fails, capture the primitive failure value in some register then continue to
- * the next instruction.
- *
- * <p>
- * Unlike for {@link L2_INVOKE} and related operations, we do not provide
- * the calling continuation here. That's because by inlining the primitive
- * attempt we have avoided (or at worst postponed) construction of the
- * continuation that reifies the current function execution. This is a Good
- * Thing, performance-wise.
- * </p>
- *
- * <p>
- * A collection of preserved fields is provided. Since tampering with a
- * continuation switches it to use the default level one interpreting chunk,
- * we can rest assured that anything written to a continuation by optimized
- * level two code will continue to be free from tampering. The preserved
- * fields list any such registers whose values are preserved across both
- * successful primitive invocations and failed invocations.
- * </p>
+ * Expect the AvailObject (pointers) array and int array to still reflect the
+ * caller.  Expect argsBuffer to have been loaded with the arguments to this
+ * primitive function, and expect the code/function/chunk to have been updated
+ * for this primitive function.  Try to execute the primitive, setting the
+ * returnNow flag and latestResult if successful.  The caller always has the
+ * responsibility of checking the return value, if applicable at that call site.
  */
-public class L2_ATTEMPT_INLINE_PRIMITIVE
+public class L2_TRY_PRIMITIVE
 extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_ATTEMPT_INLINE_PRIMITIVE().init(
-			PRIMITIVE.is("primitive to attempt"),
-			CONSTANT.is("function"),
-			READ_VECTOR.is("arguments"),
-			CONSTANT.is("expected type"),
-			WRITE_POINTER.is("primitive result"),
-			WRITE_POINTER.is("primitive failure value"),
-			READWRITE_VECTOR.is("preserved fields"),
-			PC.is("if primitive succeeds"),
-			PC.is("if primitive fails"));
+		new L2_TRY_PRIMITIVE().init();
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
+	throws ReifyStackThrowable
 	{
-		final Primitive primitive = instruction.primitiveAt(0);
-		final A_Function function = instruction.constantAt(1);
-		final L2RegisterVector argumentsVector =
-			instruction.readVectorRegisterAt(2);
-		final A_Type expectedType = instruction.constantAt(3);
-		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(4);
-		final L2ObjectRegister failureReg =
-			instruction.writeObjectRegisterAt(5);
-		final int successOffset = instruction.pcAt(7);
-		final int failureOffset = instruction.pcAt(8);
-
-		interpreter.argsBuffer.clear();
-		for (final L2ObjectRegister register : argumentsVector)
+		final Primitive primitive = interpreter.function.code().primitive();
+		if (primitive == null)
 		{
-			interpreter.argsBuffer.add(register.in(interpreter));
+			// Not a primitive.  Exit quickly, having done nothing.
+			return;
 		}
-		assert function.code().primitive() == primitive;
-		// We'll check the return type on success, below.
-		final Result res = interpreter.attemptPrimitive(
-			primitive.primitiveNumber,
-			function,
-			interpreter.argsBuffer,
-			true);
-		switch (res)
+
+		if (primitive.hasFlag(CanInline))
 		{
-			case SUCCESS:
-				final long before = AvailRuntime.captureNanos();
-				final AvailObject result = interpreter.latestResult();
-				final boolean checkOk = result.isInstanceOf(expectedType);
-				final long after = AvailRuntime.captureNanos();
-				primitive.addNanosecondsCheckingResultType(
-					after - before,
-					interpreter.interpreterIndex);
-				if (!checkOk)
+			// It can succeed or fail, but it can't mess with the fiber's stack.
+			final Result result = primitive.attempt(
+				interpreter.argsBuffer,
+				interpreter,
+				interpreter.skipReturnCheck);
+			if (result == SUCCESS)
+			{
+				interpreter.returnNow = true;
+				return;
+			}
+			assert result == FAILURE;
+			// The failure value was set up, and the next L2 instruction will
+			// set up the frame, including capturing that value in a local.
+		}
+
+		// The primitive can't be safely inlined, so reify the stack and try the
+		// primitive.
+		interpreter.skipReturnCheck = false;
+		final L2Chunk savedChunk = interpreter.chunk;
+		final int savedOffset = interpreter.offset;
+		final AvailObject[] savedPointers = interpreter.pointers;
+		final int[] savedInts = interpreter.integers;
+		final A_Function savedFunction = interpreter.function;
+
+		throw interpreter.reifyThen(() ->
+		{
+			interpreter.chunk = savedChunk;
+			interpreter.offset = savedOffset;
+			interpreter.pointers = savedPointers;
+			interpreter.integers = savedInts;
+			interpreter.function = savedFunction;
+
+			final Result result = primitive.attempt(
+				interpreter.argsBuffer,
+				interpreter,
+				interpreter.skipReturnCheck);
+			switch (result)
+			{
+				case SUCCESS:
 				{
+					interpreter.returnNow = true;
 					break;
 				}
-				resultReg.set(result, interpreter);
-				interpreter.offset(successOffset);
-				break;
-			case FAILURE:
-				failureReg.set(interpreter.latestResult(), interpreter);
-				interpreter.offset(failureOffset);
-				break;
-			default:
-				assert false;
-		}
+				case FAILURE:
+				{
+					// Continue in this frame where it left off, right after
+					// the L2_TRY_PRIMITIVE instruction.
+					assert !interpreter.returnNow;
+					break;
+				}
+				case CONTINUATION_CHANGED:
+				{
+					// Continue in whatever frame was set up by the primitive.
+					// It's not really a return, but the returnNow flag still
+					// indicates it should reenter (or continue) the next outer
+					// frame.
+					interpreter.returnNow = true;
+					break;
+				}
+				case FIBER_SUSPENDED:
+				{
+					// Set the exitNow flag to ensure the interpreter will wind
+					// down correctly.  It should be in a state where all frames
+					// have been reified, so returnNow would be unnessary.
+					assert !interpreter.returnNow;
+					interpreter.exitNow = true;
+					break;
+				}
+			}
+
+		});
 	}
 
 	@Override

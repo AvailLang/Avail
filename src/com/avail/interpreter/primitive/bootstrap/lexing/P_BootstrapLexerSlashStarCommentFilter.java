@@ -45,8 +45,7 @@ import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapLexerSlashStarCommentFilter} primitive is used for
@@ -62,7 +61,7 @@ public final class P_BootstrapLexerSlashStarCommentFilter extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapLexerSlashStarCommentFilter().init(
-			1, CannotFail, Bootstrap);
+			1, CannotFail, CanFold, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

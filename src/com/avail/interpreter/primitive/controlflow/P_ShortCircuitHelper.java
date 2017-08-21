@@ -36,6 +36,8 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.optimizer.ReifyStackThrowable;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -64,12 +66,20 @@ public final class P_ShortCircuitHelper extends Primitive
 	{
 		assert args.size() == 2;
 //		final A_Atom ignoredBool = args.get(0);
-		final A_Function block = args.get(1);
-		assert block.code().numArgs() == 0;
-		return interpreter.invokeFunction(
-			block,
-			Collections.<AvailObject>emptyList(),
-			false);
+		final A_Function function = args.get(1);
+
+		final A_RawFunction code = function.code();
+		assert code.numArgs() == 0;
+
+		// Function takes no arguments.
+		interpreter.argsBuffer.clear();
+
+		// "Jump" into the function, since the current primitive should not show
+		// up in the Avail stack.
+		interpreter.function = function;
+		interpreter.chunk = code.startingChunk();
+		interpreter.offset = 0;
+		return Result.CONTINUATION_CHANGED;
 	}
 
 	@Override

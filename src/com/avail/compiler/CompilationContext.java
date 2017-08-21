@@ -637,10 +637,10 @@ public class CompilationContext
 		Continuation1NotNull<AvailObject> adjustedSuccess = onSuccess;
 		if (shouldSerialize)
 		{
-			final long before = System.nanoTime();
+			final long before = AvailRuntime.captureNanos();
 			adjustedSuccess = successValue ->
 			{
-				final long after = System.nanoTime();
+				final long after = AvailRuntime.captureNanos();
 				Interpreter.current().recordTopStatementEvaluation(
 					after - before,
 					module,

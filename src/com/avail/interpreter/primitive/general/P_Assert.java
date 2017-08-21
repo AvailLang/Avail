@@ -41,7 +41,7 @@ import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.interpreter.*;
 
 /**
- * <strong>Primitive:</strong> Assert the specified {@linkplain
+ * <strong>Primitive:</strong> Assert the specified {@link
  * EnumerationTypeDescriptor#booleanObject() predicate} or raise an
  * {@link AvailAssertionFailedException} (in Java) that contains the
  * provided {@linkplain TupleTypeDescriptor#stringType() message}.
@@ -67,8 +67,7 @@ public final class P_Assert extends Primitive
 		if (!predicate.extractBoolean())
 		{
 			final A_Fiber fiber = interpreter.fiber();
-			final A_Continuation continuation =
-				interpreter.currentContinuation();
+			final A_Continuation continuation = interpreter.reifiedContinuation;
 			interpreter.primitiveSuspend();
 			ContinuationDescriptor.dumpStackThen(
 				interpreter.runtime(),

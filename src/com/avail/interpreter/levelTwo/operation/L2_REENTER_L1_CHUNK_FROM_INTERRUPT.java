@@ -1,5 +1,5 @@
 /**
- * L2_INTERPRET_UNTIL_INTERRUPT.java
+ * L2_REENTER_L1_CHUNK_FROM_CALL.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,60 +31,56 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.FixedRegister;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 
+import static com.avail.interpreter.Interpreter.argumentOrLocalRegister;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.fixedRegisterCount;
 /**
- * Execute a single nybblecode of the current continuation, found in {@link
- * FixedRegister#CALLER caller register}.  If no interrupt is indicated,
- * move the L2 {@link Interpreter#offset()} back to the same instruction
- * (which always occupies a single word, so the address is implicit).
+ * This is the first instruction of the L1 interpreter's on-ramp for resuming
+ * after an interrupt.  The reified {@link A_Continuation} that was captured
+ * (and is now being resumed) pointed to this {@link L2Instruction}.  That
+ * continuation is current in the {@link Interpreter#reifiedContinuation}.  Pop
+ * it from that continuation chain, create suitable pointer and integer
+ * registers as expected by {@link L2_INTERPRET_LEVEL_ONE}, then explode the
+ * continuation's slots into those registers.  The {@link Interpreter#function}
+ * should also have already been set up to agree with the continuation's
+ * function.
  */
-public class L2_INTERPRET_UNTIL_INTERRUPT
-extends L2Operation
+public class L2_REENTER_L1_CHUNK_FROM_INTERRUPT extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_INTERPRET_UNTIL_INTERRUPT().init();
+		new L2_REENTER_L1_CHUNK_FROM_INTERRUPT().init();
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		if (interpreter.isInterruptRequested())
+		final A_Continuation continuation = interpreter.reifiedContinuation;
+		interpreter.reifiedContinuation = continuation.caller();
+
+		assert interpreter.function == continuation.function();
+		final int numSlots = continuation.numArgsAndLocalsAndStack();
+		interpreter.pointers = new AvailObject[fixedRegisterCount() + numSlots];
+		int registerIndex = argumentOrLocalRegister(1);
+		for (int i = 1; i <= numSlots; i++)
 		{
-			// Reify the current L2 state before suspension due to interrupt.
-			// Don't execute another L1 instruction.
-			interpreter.levelOneStepper.reifyContinuation();
-			return;
+			interpreter.pointerAtPut(registerIndex++, continuation.stackAt(i));
 		}
-
-		// Branch back to this (operandless) instruction by default.
-		interpreter.offset(interpreter.offset() - 1);
-		interpreter.levelOneStepper.stepLevelOne();
-	}
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Translator translator)
-	{
-		// No real optimization should ever be done near this wordcode.
-		// Do nothing.
+		interpreter.levelOneStepper.pc = continuation.pc();
+		interpreter.levelOneStepper.stackp = continuation.stackp();
 	}
 
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// Keep this instruction from being removed, since it's only used
-		// by the default chunk.
 		return true;
 	}
 }

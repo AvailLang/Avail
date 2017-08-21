@@ -52,7 +52,7 @@ public class L2ConstantOperand extends L2Operand
 	public final AvailObject object;
 
 	/**
-	 * Construct a new {@link L2ConstantOperand} with the specified {@link
+	 * Construct a new {@code L2ConstantOperand} with the specified {@link
 	 * AvailObject constant}.
 	 *
 	 * @param object The constant value.
@@ -60,8 +60,7 @@ public class L2ConstantOperand extends L2Operand
 	public L2ConstantOperand (
 		final A_BasicObject object)
 	{
-		object.makeShared();
-		this.object = (AvailObject)object;
+		this.object = object.makeShared();
 	}
 
 	@Override

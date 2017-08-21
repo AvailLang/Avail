@@ -2760,10 +2760,12 @@ extends JFrame
 		System.setOut(outputStream);
 		System.setErr(errorStream);
 		System.setIn(inputStream);
-		final TextInterface textInterface = new TextInterface(
-			new ConsoleInputChannel(inputStream),
-			new ConsoleOutputChannel(outputStream),
-			new ConsoleOutputChannel(errorStream));
+//		final TextInterface textInterface = new TextInterface(
+//			new ConsoleInputChannel(inputStream),
+//			new ConsoleOutputChannel(outputStream),
+//			new ConsoleOutputChannel(errorStream));
+		//TODO MvG - Temporary, output to main console instead of workbench.
+		final TextInterface textInterface = TextInterface.system();
 		runtime.setTextInterface(textInterface);
 		availBuilder.setTextInterface(textInterface);
 

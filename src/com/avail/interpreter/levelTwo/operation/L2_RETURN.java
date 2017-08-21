@@ -33,14 +33,15 @@ package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
+
+import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.performance.Statistic;
@@ -57,9 +58,7 @@ public class L2_RETURN extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_RETURN().init(
-			READ_POINTER.is("continuation"),
-			READ_POINTER.is("return value"),
-			READ_INT.is("skip check"));
+			READ_POINTER.is("return value"));
 
 	/** Statistic for recording checked non-primitive returns from L2. */
 	private static final Statistic checkedNonPrimitiveReturn =
@@ -68,45 +67,19 @@ public class L2_RETURN extends L2Operation
 			StatisticReport.NON_PRIMITIVE_RETURN_LEVELS);
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
 		// Return to the calling continuation with the given value.
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
-		final L2IntegerRegister skipCheckReg = instruction.readIntRegisterAt(2);
+		final int valueRegNumber =
+			instruction.readObjectRegisterAt(0).finalIndex();
 
-		final A_Continuation continuation = continuationReg.in(interpreter);
-		final AvailObject value = valueReg.in(interpreter);
-		final boolean skipCheck = skipCheckReg.in(interpreter) != 0;
-		if (skipCheck)
+		return interpreter ->
 		{
-			interpreter.returnToCaller(continuation, value, true);
-		}
-		else if (continuation.equalsNil())
-		{
-			// Final return from fiber.
-			final long before = System.nanoTime();
-			interpreter.returnToCaller(continuation, value, false);
-			final long after = System.nanoTime();
-			checkedNonPrimitiveReturn.record(
-				after - before, interpreter.interpreterIndex);
-		}
-		else
-		{
-			final A_RawFunction returnee = continuation.function().code();
-			final A_RawFunction returner =
-				interpreter.pointerAt(FixedRegister.FUNCTION).code();
-			final long before = System.nanoTime();
-			interpreter.returnToCaller(continuation, value, false);
-			final long after = System.nanoTime();
-			checkedNonPrimitiveReturn.record(
-				after - before, interpreter.interpreterIndex);
-			interpreter.recordCheckedReturnFromTo(
-				returner, returnee, after - before);
-		}
+			final AvailObject value = interpreter.pointerAt(valueRegNumber);
+			interpreter.latestResult(value);
+			interpreter.returnNow = true;
+		};
 	}
 
 	@Override

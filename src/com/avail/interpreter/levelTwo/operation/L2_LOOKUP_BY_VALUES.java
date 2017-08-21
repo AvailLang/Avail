@@ -36,6 +36,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 import java.util.logging.Level;
+
+import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
@@ -90,7 +92,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 			interpreter.argsBuffer.add(argumentReg.in(interpreter));
 		}
 		final A_Method method = bundle.bundleMethod();
-		final long before = System.nanoTime();
+		final long before = AvailRuntime.captureNanos();
 		final A_Definition definitionToCall;
 		try
 		{
@@ -105,7 +107,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		}
 		finally
 		{
-			final long after = System.nanoTime();
+			final long after = AvailRuntime.captureNanos();
 			interpreter.recordDynamicLookup(bundle, after - before);
 		}
 		if (definitionToCall.isAbstractDefinition())

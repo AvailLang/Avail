@@ -32,7 +32,9 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.CALLER;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.PRIMITIVE_FAILURE;
+
 import java.util.List;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
@@ -107,7 +109,7 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 		// Put the primitive failure value somewhere that both L1 and L2
 		// will find it.
 		interpreter.pointerAtPut(PRIMITIVE_FAILURE, failureValue);
-		interpreter.clearPointerAt(FixedRegister.CALLER.ordinal());  // safety
+		interpreter.clearPointerAt(CALLER.ordinal());  // safety
 		interpreter.invokeWithoutPrimitiveFunctionArguments(
 			function,
 			interpreter.argsBuffer,

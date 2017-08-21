@@ -1885,11 +1885,11 @@ public final class AvailBuilder
 						});
 					fiber.textInterface(textInterface);
 					fiber.failureContinuation(fail);
-					final long before = System.nanoTime();
+					final long before = AvailRuntime.captureNanos();
 					fiber.resultContinuation(
 						ignored ->
 						{
-							final long after = System.nanoTime();
+							final long after = AvailRuntime.captureNanos();
 							Interpreter.current()
 								.recordTopStatementEvaluation(
 									after - before,

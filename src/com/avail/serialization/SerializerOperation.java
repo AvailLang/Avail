@@ -1515,7 +1515,7 @@ public enum SerializerOperation
 					stackpInteger.extractInt(),
 					false,
 					L2Chunk.unoptimizedChunk(),
-					L2Chunk.offsetToContinueUnoptimizedChunk());
+					L2Chunk.offsetToReturnIntoUnoptimizedChunk());
 			for (int i = 1; i <= frameSlotCount; i++)
 			{
 				continuation.argOrLocalOrStackAtPut(i, frameSlots.tupleAt(i));

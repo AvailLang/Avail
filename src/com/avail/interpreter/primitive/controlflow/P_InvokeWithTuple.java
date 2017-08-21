@@ -44,6 +44,7 @@ import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
 import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import sun.security.x509.AVA;
 
 /**
  * <strong>Primitive:</strong> {@linkplain FunctionDescriptor Function}
@@ -72,26 +73,36 @@ extends Primitive
 		final A_Function function = args.get(0);
 		final A_Tuple argTuple = args.get(1);
 		final A_Type blockType = function.kind();
+
 		final int numArgs = argTuple.tupleSize();
-		if (function.code().numArgs() != numArgs)
+		final A_RawFunction code = function.code();
+		if (code.numArgs() != numArgs)
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		final List<AvailObject> callArgs = new ArrayList<>(numArgs);
 		final A_Type tupleType = blockType.argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{
-			final AvailObject anArg = argTuple.tupleAt(i);
-			if (!anArg.isInstanceOf(tupleType.typeAtIndex(i)))
+			final AvailObject arg = argTuple.tupleAt(i);
+			if (!arg.isInstanceOf(tupleType.typeAtIndex(i)))
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_ARGUMENT_TYPE);
 			}
-			//  Transfer the argument into callArgs.
-			callArgs.add(anArg);
 		}
-		return interpreter.invokeFunction(function, callArgs, false);
+
+		// The arguments and parameter types agree.  Can't fail after here, so
+		// feel free to clobber the argsBuffer.
+		interpreter.argsBuffer.clear();
+		argTuple.forEach(interpreter.argsBuffer::add);
+
+		// "Jump" into the function, since the current primitive should not show
+		// up in the Avail stack.
+		interpreter.function = function;
+		interpreter.chunk = code.startingChunk();
+		interpreter.offset = 0;
+		return Result.CONTINUATION_CHANGED;
 	}
 
 	/**
@@ -102,7 +113,7 @@ extends Primitive
 	 * by answering the register holding the function after replacing the list
 	 * of (two) argument registers by the list of registers that supplied
 	 * entries for the tuple.  If some tuple slots were populated from
-	 * constants, emit suitable constant moves into fresh registers.
+Í	 * constants, emit suitable constant moves into fresh registers.
 	 *
 	 * If, however, the exact constant function cannot be determined, and it
 	 * cannot be proven that the function's type is adequate to accept the

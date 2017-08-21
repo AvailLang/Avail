@@ -40,8 +40,7 @@ import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapLexerWhitespaceBody} primitive is used for parsing the
@@ -56,7 +55,7 @@ public final class P_BootstrapLexerWhitespaceBody extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapLexerWhitespaceBody().init(
-			3, CannotFail, Bootstrap);
+			3, CannotFail, CanFold, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

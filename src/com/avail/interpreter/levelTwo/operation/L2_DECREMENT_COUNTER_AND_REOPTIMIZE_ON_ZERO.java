@@ -31,12 +31,11 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.Interpreter.argumentOrLocalRegister;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.FUNCTION;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.OptimizationLevel;
 import com.avail.utility.*;
@@ -57,41 +56,34 @@ extends L2Operation
 			IMMEDIATE.is("New optimization level"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
 		final int targetOptimizationLevel = instruction.immediateAt(0);
-		final A_Function theFunction = interpreter.pointerAt(FUNCTION);
-		final A_RawFunction theCode = theFunction.code();
-		final Mutable<Boolean> translated = new Mutable<>(false);
-		theCode.decrementCountdownToReoptimize(() ->
+		return interpreter ->
 		{
-			theCode.countdownToReoptimize(
-				L2Chunk.countdownForNewlyOptimizedCode());
-			L2Translator.translateToLevelTwo(
-				theCode,
-				OptimizationLevel.all()[targetOptimizationLevel],
-				interpreter);
-			translated.value = true;
-		});
-		// If translation actually happened, then run the function in Level Two.
-		if (translated.value)
-		{
-			interpreter.argsBuffer.clear();
-			final int nArgs = theCode.numArgs();
-			for (int i = 1; i <= nArgs; i++)
+			final A_Function function = interpreter.function;
+			assert function != null;
+			final A_RawFunction theCode = function.code();
+			final Mutable<Boolean> translated = new Mutable<>(false);
+			theCode.decrementCountdownToReoptimize(() ->
 			{
-				interpreter.argsBuffer.add(
-					interpreter.pointerAt(argumentOrLocalRegister(i)));
+				theCode.countdownToReoptimize(
+					L2Chunk.countdownForNewlyOptimizedCode());
+				L2Translator.translateToLevelTwo(
+					theCode,
+					OptimizationLevel.all()[targetOptimizationLevel],
+					interpreter);
+				translated.value = true;
+			});
+			// If translation actually happened, then run the function in L2.
+			if (translated.value)
+			{
+				interpreter.chunk = theCode.startingChunk();
+				interpreter.offset =
+					interpreter.chunk.offsetAfterInitialTryPrimitive();
 			}
-			final boolean skipReturnCheck = interpreter.integerAt(
-				L1InstructionStepper.skipReturnCheckRegister()) != 0;
-			interpreter.invokeFunction(
-				theFunction,
-				interpreter.argsBuffer,
-				skipReturnCheck);
-		}
+		};
 	}
 
 	@Override

@@ -40,6 +40,7 @@ import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
@@ -63,21 +64,24 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 			CONSTANT.is("outer type"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
 		final int outerIndex = instruction.immediateAt(0);
-		final L2ObjectRegister functionReg =
-			instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister destinationReg =
-			instruction.writeObjectRegisterAt(2);
-//		final A_Type outerType = instruction.constantAt(3);
+		final int functionRegNumber =
+			instruction.readObjectRegisterAt(1).finalIndex();
+		final int destinationRegNumber =
+			instruction.writeObjectRegisterAt(2).finalIndex();
+		// final A_Type outerType = instruction.constantAt(3);
 
-		final A_Function function = functionReg.in(interpreter);
-		final AvailObject value = function.outerVarAt(outerIndex);
-//		assert value.isInstanceOf(outerType);
-		destinationReg.set(value, interpreter);
+		return interpreter ->
+		{
+			final A_Function function =
+				interpreter.pointerAt(functionRegNumber);
+			final AvailObject value = function.outerVarAt(outerIndex);
+			// assert value.isInstanceOf(outerType);
+			interpreter.pointerAtPut(destinationRegNumber, value);
+		};
 	}
 
 	@Override

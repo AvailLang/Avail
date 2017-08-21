@@ -32,13 +32,69 @@
 
 package com.avail.optimizer;
 
+import com.avail.descriptor.AvailObject;
+import com.sun.org.apache.bcel.internal.generic.ArrayType;
+import com.sun.org.apache.bcel.internal.generic.ClassGen;
+import com.sun.org.apache.bcel.internal.generic.ConstantPoolGen;
+import com.sun.org.apache.bcel.internal.generic.InstructionList;
+import com.sun.org.apache.bcel.internal.generic.MethodGen;
+import com.sun.org.apache.bcel.internal.generic.Type;
+
+import java.util.concurrent.atomic.AtomicLong;
+
+import static com.sun.org.apache.bcel.internal.Constants.ACC_FINAL;
+import static com.sun.org.apache.bcel.internal.Constants.ACC_PUBLIC;
+
 /**
  * The {@code L2ToJavaGenerator} generates a corresponding subclass of {@link
  * L2JavaTranslation}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class L2ToJavaGenerator
+public final class L2ToJavaGenerator
 {
-	// TODO [MvG] - Write this.
+	static AtomicLong counter = new AtomicLong(0);
+
+//	ClassGen  cg = new ClassGen("HelloWorld", "java.lang.Object",
+//		"<generated>", ACC_PUBLIC | ACC_SUPER, null);
+//	MethodGen mg = new MethodGen(ACC_STATIC | ACC_PUBLIC,
+//		Type.VOID, new Type[] { new ArrayType(Type.STRING, 1) },
+//		new String[] { "argv" }, "main", "HelloWorld", il, cp);
+//...
+//	cg.addMethod(mg.getMethod());
+//il.dispose(); // Reuse instruction handles of list
+
+	final ClassGen classGenerator = new ClassGen(
+		"com.avail.dynamic.$" + counter.incrementAndGet(),
+		L2JavaTranslation.class.getCanonicalName(),
+		"<generated>",
+		ACC_PUBLIC | ACC_FINAL,
+		null);
+
+	final MethodGen startMethodGenerator = new MethodGen(
+		ACC_PUBLIC,
+		Type.getType(AvailObject.class),
+		new Type[] { new ArrayType(Type.getType(AvailObject.class), 1)},
+		new String [] { "args" },
+		"start",
+		classGenerator.getClassName(),
+		new InstructionList(),
+		new ConstantPoolGen());
+
+	final MethodGen resumeMethodGenerator = new MethodGen(
+		ACC_PUBLIC,
+		Type.getType(AvailObject.class),
+		new Type[] { new ArrayType(Type.getType(AvailObject.class), 1)},
+		new String [] { "thisContinuation" },
+		"resume",
+		classGenerator.getClassName(),
+		new InstructionList(),
+		new ConstantPoolGen());
+
+	L2ToJavaGenerator ()
+	{
+		// nothing
+	}
+
+
 }

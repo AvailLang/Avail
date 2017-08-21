@@ -1,5 +1,5 @@
 /**
- * L2_REENTER_L1_CHUNK.java
+ * Continuation1NotNullThrowsReification.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,52 +29,20 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.Interpreter.*;
-import static com.avail.interpreter.levelTwo.L1InstructionStepper.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import com.avail.descriptor.A_Continuation;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+package com.avail.optimizer;
 
 /**
- * Arrive here by returning from a called method into unoptimized (level
- * one) code.  Explode the current continuation's slots into the registers
- * that level one expects.
+ * A one-argument {@link FunctionalInterface} that takes one nut-null argument,
+ * and can throw a {@link ReifyStackThrowable}.  Yes, Java's generics are so
+ * horribly implemented that it requires this to be a separate interface.
+ *
+ * @param <X> The type of the argument.
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_REENTER_L1_CHUNK extends L2Operation
+@FunctionalInterface
+public interface Continuation1NotNullThrowsReification<X>
 {
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2Operation instance =
-		new L2_REENTER_L1_CHUNK().init();
-
-	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
-	{
-		final A_Continuation continuation = interpreter.pointerAt(CALLER);
-		final int numSlots = continuation.numArgsAndLocalsAndStack();
-		for (int i = 1; i <= numSlots; i++)
-		{
-			interpreter.pointerAtPut(
-				argumentOrLocalRegister(i),
-				continuation.stackAt(i));
-		}
-		interpreter.integerAtPut(pcRegister(), continuation.pc());
-		interpreter.integerAtPut(
-			stackpRegister(),
-			argumentOrLocalRegister(continuation.stackp()));
-		interpreter.pointerAtPut(FUNCTION, continuation.function());
-		interpreter.pointerAtPut(CALLER, continuation.caller());
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
+	void value (X arg)
+	throws ReifyStackThrowable;
 }

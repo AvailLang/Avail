@@ -928,8 +928,8 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * This is an *inlineable* primitive, so it can only succeed with some
-	 * value or fail.  The value can't be an instance of bottom, so the
+	 * This is an <em>inlineable</em> primitive, so it can only succeed with
+	 * some value or fail.  The value can't be an instance of bottom, so the
 	 * primitive's guaranteed return type can't be bottom.  If the primitive
 	 * fails, the backup code can produce bottom, but since this primitive
 	 * could have succeeded instead, the function itself must not be
@@ -1024,12 +1024,14 @@ implements IntegerEnumSlotDescriptionEnum
 					L2_INVOKE.instance,
 					new L2ReadPointerOperand(reifiedRegister),
 					new L2ReadPointerOperand(invalidResultFunction),
-					new L2ReadVectorOperand(translator.createVector(
-						Arrays.asList(
-							translator.fixed(FixedRegister.FUNCTION),
-							expectedTypeRegister,
-							resultRegister))),
-					new L2ImmediateOperand(1));
+					new L2ReadVectorOperand(
+						translator.createVector(
+							Arrays.asList(
+								translator.fixed(FixedRegister.FUNCTION),
+								expectedTypeRegister,
+								resultRegister))),
+					new L2ImmediateOperand(1),
+					new L2PcOperand(unreachableLabel)); //TODO - Some other label!
 				translator.unreachableCode(unreachableLabel);
 				translator.addLabel(successLabel);
 			}

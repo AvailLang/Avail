@@ -36,9 +36,8 @@ import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -48,6 +47,7 @@ import com.avail.optimizer.RegisterSet;
  * slot values, and level two program counter.  Write the new continuation
  * into the specified register.
  */
+@Deprecated
 public class L2_CREATE_CONTINUATION extends L2Operation
 {
 	/**
@@ -65,43 +65,52 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			WRITE_POINTER.is("destination"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
-		final L2ObjectRegister callerReg = instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister functionReg =
-			instruction.readObjectRegisterAt(1);
+		final int callerRegNumber =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final int functionRegNumber =
+			instruction.readObjectRegisterAt(1).finalIndex();
 		final int levelOnePC = instruction.immediateAt(2);
 		final int levelOneStackp = instruction.immediateAt(3);
-		final L2IntegerRegister skipReturnReg =
-			instruction.readIntRegisterAt(4);
-		final L2RegisterVector slotsVector =
-			instruction.readVectorRegisterAt(5);
-		final int levelTwoOffset = instruction.pcAt(6);
-		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(7);
-
-		final A_Function function = functionReg.in(interpreter);
-		final A_RawFunction code = function.code();
-		final int frameSize = code.numArgsAndLocalsAndStack();
-		final boolean skipReturnCheck = skipReturnReg.in(interpreter) != 0;
-		final A_Continuation continuation =
-			ContinuationDescriptor.createExceptFrame(
-				function,
-				callerReg.in(interpreter),
-				levelOnePC,
-				frameSize - code.maxStackDepth() + levelOneStackp,
-				skipReturnCheck,
-				interpreter.chunk(),
-				levelTwoOffset);
-		final List<L2ObjectRegister> registers = slotsVector.registers();
-		for (int index = 0, limit = registers.size(); index < limit; index++)
+		final int skipReturnRegNumber =
+			instruction.readIntRegisterAt(4).finalIndex();
+		final List<L2ObjectRegister> slots =
+			instruction.readVectorRegisterAt(5).registers();
+		final int[] slotRegNumbers = new int[slots.size()];
+		for (int i = 0; i < slotRegNumbers.length; i++)
 		{
-			continuation.argOrLocalOrStackAtPut(
-				index + 1,
-				interpreter.pointerAt(registers.get(index).finalIndex()));
+			slotRegNumbers[i] = slots.get(i).finalIndex();
 		}
-		destReg.set(continuation, interpreter);
+		final int levelTwoOffset = instruction.pcAt(6);
+		final int destRegNumber =
+			instruction.writeObjectRegisterAt(7).finalIndex();
+
+		return interpreter ->
+		{
+			final A_Function function =
+				interpreter.pointerAt(functionRegNumber);
+			final A_RawFunction code = function.code();
+			final int frameSize = code.numArgsAndLocalsAndStack();
+			final boolean skipReturnCheck =
+				interpreter.integerAt(skipReturnRegNumber) != 0;
+			final A_Continuation continuation =
+				ContinuationDescriptor.createExceptFrame(
+					function,
+					interpreter.pointerAt(callerRegNumber),
+					levelOnePC,
+					frameSize - code.maxStackDepth() + levelOneStackp,
+					skipReturnCheck,
+					interpreter.chunk,
+					levelTwoOffset);
+			for (int i = 0; i < slotRegNumbers.length; i++)
+			{
+				continuation.argOrLocalOrStackAtPut(
+					i + 1, interpreter.pointerAt(slotRegNumbers[i]));
+			}
+			interpreter.pointerAtPut(destRegNumber, continuation);
+		};
 	}
 
 	@Override

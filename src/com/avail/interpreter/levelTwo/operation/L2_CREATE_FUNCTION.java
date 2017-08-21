@@ -38,6 +38,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
@@ -58,27 +59,33 @@ public class L2_CREATE_FUNCTION extends L2Operation
 			WRITE_POINTER.is("new function"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
 		final A_RawFunction code = instruction.constantAt(0);
-		final L2RegisterVector outersVector =
-			instruction.readVectorRegisterAt(1);
-		final L2ObjectRegister newFunctionReg =
-			instruction.writeObjectRegisterAt(2);
+		final List<L2ObjectRegister> outersRegisters =
+			instruction.readVectorRegisterAt(1).registers();
+		final int newFunctionRegNumber =
+			instruction.writeObjectRegisterAt(2).finalIndex();
 
-		final int numOuters = outersVector.registers().size();
+		final int numOuters = outersRegisters.size();
 		assert numOuters == code.numOuters();
-		final List<L2ObjectRegister> outerRegs = outersVector.registers();
-		final A_Function function = FunctionDescriptor.createExceptOuters(
-			code,
-			numOuters);
-		for (int i = 1; i <= numOuters; i++)
+		final int[] outerRegNumbers = new int[numOuters];
+		for (int i = 0; i < numOuters; i++)
 		{
-			function.outerVarAtPut(i, outerRegs.get(i - 1).in(interpreter));
+			outerRegNumbers[i] = outersRegisters.get(i).finalIndex();
 		}
-		newFunctionReg.set(function, interpreter);
+		return interpreter ->
+		{
+			final A_Function function = FunctionDescriptor.createExceptOuters(
+				code, numOuters);
+			for (int i = 0; i < numOuters; i++)
+			{
+				function.outerVarAtPut(
+					i + 1, interpreter.pointerAt(outerRegNumbers[i]));
+			}
+			interpreter.pointerAtPut(newFunctionRegNumber, function);
+		};
 	}
 
 	@Override
@@ -145,5 +152,22 @@ public class L2_CREATE_FUNCTION extends L2Operation
 			registerSet,
 			targetRegister,
 			naiveTranslator);
+	}
+
+	/**
+	 * Extract the constant {@link A_RawFunction} from the given {@link
+	 * L2Instruction}, which must have {@code L2_CREATE_FUNCTION} as its
+	 * operation.
+	 *
+	 * @param instruction
+	 *        The instruction to examine.
+	 * @return The constant {@link A_RawFunction} extracted from the
+	 *         instruction.
+	 */
+	public static A_RawFunction getConstantCodeFrom (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		return instruction.constantAt(0);
 	}
 }

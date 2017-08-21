@@ -61,12 +61,20 @@ public final class P_IfFalseThenElse extends Primitive
 	{
 		assert args.size() == 3;
 //		final A_Atom ignoredBoolean = args.get(0);
-//		final A_Function ignoredTrueBlock = args.get(1);
-		final A_Function falseBlock = args.get(2);
-		return interpreter.invokeFunction(
-			falseBlock,
-			Collections.<AvailObject>emptyList(),
-			false);
+//		final A_Function ignoredTrueFunction = args.get(1);
+		final A_Function falseFunction = args.get(2);
+
+		final A_RawFunction code = falseFunction.code();
+
+		// Function takes no arguments.
+		interpreter.argsBuffer.clear();
+
+		// "Jump" into the function, since the current primitive should not show
+		// up in the Avail stack.
+		interpreter.function = falseFunction;
+		interpreter.chunk = code.startingChunk();
+		interpreter.offset = 0;
+		return Result.CONTINUATION_CHANGED;
 	}
 
 	@Override

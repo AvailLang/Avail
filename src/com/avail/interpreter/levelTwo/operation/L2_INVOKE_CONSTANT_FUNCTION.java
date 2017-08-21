@@ -1,5 +1,5 @@
 /**
- * L2_INVOKE.java
+ * L2_INVOKE_CONSTANT_FUNCTION.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,44 +31,43 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import com.avail.optimizer.RegisterState;
-import com.avail.optimizer.ReifyStackThrowable;
-import org.jetbrains.annotations.Nullable;
+import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.ReifyStackThrowable;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
- * The given function is invoked.  The function may be a primitive, and the
- * primitive may succeed, fail, or replace the current continuation (after
- * reifying the stack).  An immediate, if true ({@code 1}), indicates that the
- * VM can elide the check of the return type (because it has already been proven
- * for this circumstance).
+ * The given immediate function is invoked. The function may be a primitive, and
+ * the primitive may succeed, fail, or change the current continuation. The
+ * given continuation is the caller. An immediate, if true ({@code 1}),
+ * indicates that the VM can elide the check of the return type (because it has
+ * already been proven for this circumstance).
  */
-public class L2_INVOKE extends L2Operation
+public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_INVOKE().init(
-			READ_POINTER.is("called function"),
+		new L2_INVOKE_CONSTANT_FUNCTION().init(
+			CONSTANT.is("constant function"),
 			READ_VECTOR.is("arguments"),
 			IMMEDIATE.is("skip return check"),
 			/* Only used for reification. */
@@ -78,8 +77,7 @@ public class L2_INVOKE extends L2Operation
 	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
 		final L2Instruction instruction)
 	{
-		final int functionRegNumber =
-			instruction.readObjectRegisterAt(0).finalIndex();
+		final AvailObject constantFunction = instruction.constantAt(0);
 		final List<L2ObjectRegister> argumentRegs =
 			instruction.readVectorRegisterAt(1).registers();
 		final boolean skipReturnCheck = instruction.immediateAt(2) != 0;
@@ -92,10 +90,10 @@ public class L2_INVOKE extends L2Operation
 			argumentRegNumbers[i] = argumentRegs.get(i).finalIndex();
 		}
 
+		final A_RawFunction code = constantFunction.code();
+
 		return interpreter ->
 		{
-			final A_Function function =
-				interpreter.pointerAt(functionRegNumber);
 			interpreter.argsBuffer.clear();
 			for (final int argumentRegNumber : argumentRegNumbers)
 			{
@@ -112,7 +110,6 @@ public class L2_INVOKE extends L2Operation
 			assert chunk != null;
 			assert chunk.executableInstructions[offset] == instruction;
 
-			final A_RawFunction code = function.code();
 			interpreter.chunk = code.startingChunk();
 			interpreter.offset = 0;
 			try
@@ -175,11 +172,11 @@ public class L2_INVOKE extends L2Operation
 		//TODO MvG - Rewrite to agree with operands.
 		final L2ObjectRegister continuationReg =
 			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister functionReg =
-			instruction.readObjectRegisterAt(1);
-		final L2RegisterVector argumentsVector =
-			instruction.readVectorRegisterAt(2);
-		final boolean skipReturnCheck = instruction.immediateAt(3) != 0;
+		final A_Function function =
+			instruction.constantAt(1);
+//		final L2RegisterVector argumentsReg =
+//			instruction.readVectorRegisterAt(2);
+//		final boolean skipReturnCheck = instruction.immediateAt(3) != 0;
 
 		// Extract information about the continuation's construction.  Hopefully
 		// we'll switch to SSA form before implementing code movement, so assume
@@ -202,52 +199,17 @@ public class L2_INVOKE extends L2Operation
 			return false;
 		}
 
-		if (registerSet.hasConstantAt(functionReg))
+		final A_RawFunction code = function.code();
+		final @Nullable Primitive primitive = code.primitive();
+		if (primitive != null)
 		{
-			final A_Function function = registerSet.constantAt(functionReg);
-			final A_RawFunction code = function.code();
-			final @Nullable Primitive primitive = code.primitive();
-			if (primitive != null)
+			// It's a primitive, so maybe it can inline or fold or
+			// invoke-reduce itself better than it already has, or even
+			// rewrite itself as alternative L2Instructions.
+			final boolean transformed = primitive.regenerate(
+				instruction, naiveTranslator, registerSet);
+			if (transformed)
 			{
-				// It's a primitive, so maybe it can inline or fold or
-				// invoke-reduce itself better than it already has, or even
-				// rewrite itself as alternative L2Instructions.
-				final boolean transformed = primitive.regenerate(
-					instruction, naiveTranslator, registerSet);
-				if (transformed)
-				{
-					return true;
-				}
-			}
-			// Convert to an L2_INVOKE_CONSTANT_FUNCTION.
-			naiveTranslator.addInstruction(
-				L2_INVOKE_CONSTANT_FUNCTION.instance,
-				new L2ReadPointerOperand(continuationReg),
-				new L2ConstantOperand(function),
-				new L2ReadVectorOperand(argumentsVector),
-				new L2ImmediateOperand(skipReturnCheck ? 1 : 0));
-			return true;
-		}
-
-		// Now see if we can identify the code (raw function) that was closed
-		// to produce the function.
-		final RegisterState state = registerSet.stateForReading(functionReg);
-		final List<L2Instruction> originsOfCode = state.sourceInstructions();
-		if (originsOfCode.size() == 1)
-		{
-			// Raw code closed into function came from exactly one place.
-			final L2Instruction originOfCode = originsOfCode.get(0);
-			if (originOfCode.operation instanceof L2_CREATE_FUNCTION)
-			{
-				final A_RawFunction code =
-					L2_CREATE_FUNCTION.getConstantCodeFrom(originOfCode);
-				naiveTranslator.addInstruction(
-					L2_INVOKE_FUNCTION_FROM_CONSTANT_CODE.instance,
-					new L2ReadPointerOperand(continuationReg),
-					new L2ConstantOperand(code),
-					new L2ReadPointerOperand(functionReg),
-					new L2ReadVectorOperand(argumentsVector),
-					new L2ImmediateOperand(skipReturnCheck ? 1 : 0));
 				return true;
 			}
 		}

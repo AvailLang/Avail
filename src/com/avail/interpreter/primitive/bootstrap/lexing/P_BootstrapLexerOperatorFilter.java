@@ -46,8 +46,7 @@ import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapLexerOperatorFilter} primitive is used for deciding
@@ -67,7 +66,7 @@ public final class P_BootstrapLexerOperatorFilter extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapLexerOperatorFilter().init(
-			1, CannotFail, Bootstrap);
+			1, CannotFail, CanFold, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (
