@@ -1724,6 +1724,7 @@ public final class Interpreter
 			{
 				// The reified stack is empty, too.  We must have returned from
 				// the outermost frame.  The fiber runner will deal with it.
+				terminateFiber(latestResult());
 				exitNow = true;
 				return;
 			}

@@ -97,8 +97,6 @@ implements Comparable<AvailTask>, Runnable
 					fiber.executionState(RUNNING);
 					interpreter.fiber(fiber);
 				});
-				final MutableOrNull<Continuation0> postExitContinuation =
-					new MutableOrNull<>();
 				try
 				{
 					transformer.value();
@@ -122,16 +120,16 @@ implements Comparable<AvailTask>, Runnable
 				}
 				finally
 				{
-					postExitContinuation.value =
+					final Continuation0 postExit =
 						interpreter.postExitContinuation();
-					interpreter.postExitContinuation(null);
-				}
-				final @Nullable Continuation0 con = postExitContinuation.value;
-				// This is the first point at which *some other* Thread may have
-				// had a chance to resume the fiber and update its state.
-				if (con != null)
-				{
-					con.value();
+					// This is the first point at which *some other* Thread may
+					// have had a chance to resume the fiber and update its
+					// state.
+					if (postExit != null)
+					{
+						interpreter.postExitContinuation(null);
+						postExit.value();
+					}
 				}
 				// If the fiber has terminated, then report its
 				// result via its result continuation.

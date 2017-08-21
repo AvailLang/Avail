@@ -43,8 +43,7 @@ import java.util.List;
 
 import static com.avail.descriptor.EnumerationTypeDescriptor.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.Private;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_ModuleHeaderPseudoMacro} primitive is used to parse module
@@ -64,7 +63,7 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_ModuleHeaderPseudoMacro().init(
-			6, Private, Bootstrap);
+			6, Private, Bootstrap, CannotFail, CanInline, CanFold);
 
 	@Override
 	public Result attempt (
