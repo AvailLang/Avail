@@ -234,6 +234,21 @@ public final class L2Chunk
 	}
 
 	/**
+	 * The level two wordcode offset to which to jump when continuing execution
+	 * of a non-reified {{@link #unoptimizedChunk()} unoptimized} frame after
+	 * reifying all of its callers.
+	 *
+	 * <p>It's hard-coded, but checked against the default chunk in {@link
+	 * L2Translator#L2Translator()} when that chunk is created.</p>
+	 *
+	 * @return A level two offset within the default chunk.
+	 */
+	public static int offsetToReenterAfterReification ()
+	{
+		return 3;
+	}
+
+	/**
 	 * The level two wordcode offset to which to jump when returning into a
 	 * continuation that's running the {@linkplain #unoptimizedChunk unoptimized
 	 * chunk}.
@@ -284,7 +299,10 @@ public final class L2Chunk
 	 */
 	public static int countdownForNewCode ()
 	{
-		return 10;
+		// TODO: [MvG] Set this back when we're ready to test Level Two
+		// optimization on the semi-stackless (reifiable) execution model.
+		return 1_000_000_000;
+//		return 10;
 	}
 
 	/**
@@ -498,7 +516,15 @@ public final class L2Chunk
 			assert interpreter.chunk == this;
 			final L2Instruction instruction =
 				executableInstructions[interpreter.offset++];
+			if (Interpreter.debugL2)
+			{
+				System.out.println("L2 start: " + instruction.operation.name());
+			}
 			instruction.action.value(interpreter);
+			if (Interpreter.debugL2)
+			{
+				System.out.println("L2 end: " + instruction.operation.name());
+			}
 		}
 	}
 }

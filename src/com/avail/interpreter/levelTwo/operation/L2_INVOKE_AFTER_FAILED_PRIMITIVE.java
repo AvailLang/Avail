@@ -102,10 +102,8 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 			interpreter.argsBuffer.add(argumentReg.in(interpreter));
 		}
 		final A_RawFunction codeToCall = function.code();
-		final int primNum = codeToCall.primitiveNumber();
-		assert primNum != 0;
-		assert !Primitive.byPrimitiveNumberOrFail(primNum).hasFlag(
-			Flag.CannotFail);
+		final Primitive prim = codeToCall.primitive();
+		assert prim != null && !prim.hasFlag(Flag.CannotFail);
 		// Put the primitive failure value somewhere that both L1 and L2
 		// will find it.
 		interpreter.pointerAtPut(PRIMITIVE_FAILURE, failureValue);

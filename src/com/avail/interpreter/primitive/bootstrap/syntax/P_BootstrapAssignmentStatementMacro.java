@@ -60,7 +60,7 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapAssignmentStatementMacro().init(
-			2, CannotFail, Bootstrap);
+			2, CannotFail, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

@@ -42,6 +42,7 @@ import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.ReifyStackThrowable;
 
 /**
  * <strong>Primitive:</strong> Restart the given {@linkplain
@@ -74,9 +75,13 @@ public final class P_RestartContinuation extends Primitive
 		assert con.pc() == 1
 			: "Labels must only occur at the start of a block.  "
 				+ "Only restart that kind of continuation.";
-		// The current continuation's reference is lost by this operation,
-		// so we don't need to mark the continuation as immutable.
-		interpreter.prepareToRestartContinuation(con);
+
+		interpreter.reifiedContinuation = con;
+		interpreter.function = con.function();
+		interpreter.chunk = con.levelTwoChunk();
+		interpreter.offset = con.levelTwoOffset();
+		interpreter.returnNow = false;
+		interpreter.latestResult(null);
 		return CONTINUATION_CHANGED;
 	}
 

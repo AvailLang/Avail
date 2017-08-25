@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -49,8 +50,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Result.FAILURE;
-import static com.avail.interpreter.Primitive.Result.SUCCESS;
+import static com.avail.interpreter.Primitive.Flag.Invokes;
+import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
+import static com.avail.interpreter.Primitive.Result.*;
 
 /**
  * Expect the AvailObject (pointers) array and int array to still reflect the
@@ -79,34 +81,113 @@ extends L2Operation
 		if (primitive == null)
 		{
 			// Not a primitive.  Exit quickly, having done nothing.
+			if (Interpreter.debugL2)
+			{
+				System.out.println("          (no prim)");
+			}
 			return;
 		}
 
+		final A_Function savedFunction = interpreter.function;
 		if (primitive.hasFlag(CanInline))
 		{
 			// It can succeed or fail, but it can't mess with the fiber's stack.
-			final Result result = primitive.attempt(
-				interpreter.argsBuffer,
-				interpreter,
-				interpreter.skipReturnCheck);
-			if (result == SUCCESS)
+			if (Interpreter.debugL2)
 			{
-				interpreter.returnNow = true;
-				return;
+				System.out.println("          inline = " + primitive.name());
 			}
-			assert result == FAILURE;
-			// The failure value was set up, and the next L2 instruction will
-			// set up the frame, including capturing that value in a local.
+			final Result result = interpreter.attemptPrimitive(
+				primitive,
+				interpreter.argsBuffer,
+				interpreter.skipReturnCheck);
+			switch (result)
+			{
+				case SUCCESS:
+				{
+					interpreter.function = savedFunction;
+					interpreter.returnNow = true;
+					return;
+				}
+				case FAILURE:
+				{
+					// The failure value was set up, and the next L2 instruction
+					// will set up the frame, including capturing it in a local.
+					interpreter.function = savedFunction;
+					interpreter.returnNow = false;
+					return;
+				}
+				case READY_TO_INVOKE:
+				{
+					// A Flag.Invokes primitive needed to invoke a function, but
+					// it's not allowed to directly.  Instead, it set up the
+					// argsBuffer and function for us to do the call.  The
+					// original primitive does not have a frame built for it in
+					// the event of reification.
+					assert primitive.hasFlag(Invokes);
+
+					final L2Chunk savedChunk = interpreter.chunk;
+					final int savedOffset = interpreter.offset;
+					final AvailObject[] savedPointers = interpreter.pointers;
+					final int[] savedInts = interpreter.integers;
+					try
+					{
+						interpreter.invokeFunction(interpreter.function);
+					}
+					finally
+					{
+						interpreter.chunk = savedChunk;
+						interpreter.offset = savedOffset;
+						interpreter.pointers = savedPointers;
+						interpreter.integers = savedInts;
+						interpreter.function = savedFunction;
+					}
+					interpreter.returnNow = true;
+					return;
+				}
+				case CONTINUATION_CHANGED:
+				{
+					// Inline primitives are allowed to change the continuation,
+					// although they can't reify the stack first.  Abort the
+					// stack here, and resume the continuation.
+					assert primitive.hasFlag(SwitchesContinuation);
+
+					final A_Continuation savedContinuation =
+						interpreter.reifiedContinuation;
+					final L2Chunk savedChunk = interpreter.chunk;
+					final int savedOffset = interpreter.offset;
+					final boolean savedReturnNow = interpreter.returnNow;
+					final @Nullable AvailObject savedReturnValue =
+						savedReturnNow ? interpreter.latestResult() : null;
+					throw interpreter.abandonStackThen(() ->
+					{
+						interpreter.reifiedContinuation = savedContinuation;
+						interpreter.function = savedContinuation.equalsNil()
+							? null
+							: savedContinuation.function();
+						interpreter.chunk = savedChunk;
+						interpreter.offset = savedOffset;
+						interpreter.returnNow = savedReturnNow;
+						interpreter.latestResult(savedReturnValue);
+					});
+				}
+				case FIBER_SUSPENDED:
+				{
+					assert false : "CanInline primitive must not suspend fiber";
+				}
+			}
 		}
 
 		// The primitive can't be safely inlined, so reify the stack and try the
 		// primitive.
+		if (Interpreter.debugL2)
+		{
+			System.out.println("          reifying for " + primitive.name());
+		}
 		interpreter.skipReturnCheck = false;
 		final L2Chunk savedChunk = interpreter.chunk;
 		final int savedOffset = interpreter.offset;
 		final AvailObject[] savedPointers = interpreter.pointers;
 		final int[] savedInts = interpreter.integers;
-		final A_Function savedFunction = interpreter.function;
 
 		throw interpreter.reifyThen(() ->
 		{
@@ -116,9 +197,14 @@ extends L2Operation
 			interpreter.integers = savedInts;
 			interpreter.function = savedFunction;
 
-			final Result result = primitive.attempt(
+			if (Interpreter.debugL2)
+			{
+				System.out.println(
+					"          reified, now starting " + primitive.name());
+			}
+			final Result result = interpreter.attemptPrimitive(
+				primitive,
 				interpreter.argsBuffer,
-				interpreter,
 				interpreter.skipReturnCheck);
 			switch (result)
 			{
@@ -134,22 +220,22 @@ extends L2Operation
 					assert !interpreter.returnNow;
 					break;
 				}
+				case READY_TO_INVOKE:
+				{
+					assert false : "Invoking primitives should be inlineable";
+					break;
+				}
 				case CONTINUATION_CHANGED:
 				{
 					// Continue in whatever frame was set up by the primitive.
-					// It's not really a return, but the returnNow flag still
-					// indicates it should reenter (or continue) the next outer
-					// frame.
-					interpreter.returnNow = true;
 					break;
 				}
 				case FIBER_SUSPENDED:
 				{
 					// Set the exitNow flag to ensure the interpreter will wind
 					// down correctly.  It should be in a state where all frames
-					// have been reified, so returnNow would be unnessary.
+					// have been reified, so returnNow would be unnecessary.
 					assert !interpreter.returnNow;
-					interpreter.exitNow = true;
 					break;
 				}
 			}

@@ -79,10 +79,9 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION);
 		}
-		final A_Function failureFunction =
-			interpreter.primitiveFunctionBeingAttempted();
+		final A_Function failureFunction = interpreter.function;
+		assert failureFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		assert failureFunction.code().primitiveNumber() == primitiveNumber;
 		interpreter.primitiveSuspend();
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(

@@ -37,11 +37,12 @@ import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelOne.L1Operation.*;
 
 import java.util.*;
-import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.VariableGetException;
@@ -67,12 +68,6 @@ public final class L1InstructionStepper
 	 * The {@link Interpreter} on whose behalf to step level one nybblecodes.
 	 */
 	final Interpreter interpreter;
-
-	/** The current function being executed. */
-	A_Function function;
-
-	/** The current raw function bing executed. */
-	A_RawFunction code;
 
 	/** The nybblecodes tuple of the current function. */
 	A_Tuple nybbles;
@@ -118,28 +113,6 @@ public final class L1InstructionStepper
 	{
 		// Reserved.
 		return 3;
-	}
-
-	/**
-	 * Read from the specified integer register.
-	 *
-	 * @param index Which integer register to read.
-	 * @return The value from that register.
-	 */
-	private int integerAt (final int index)
-	{
-		return interpreter.integerAt(index);
-	}
-
-	/**
-	 * Write to the specified integer register.
-	 *
-	 * @param index Which integer register to write.
-	 * @param value The value to write to that register.
-	 */
-	private void integerAtPut (final int index, final int value)
-	{
-		interpreter.integerAtPut(index, value);
 	}
 
 	/**
@@ -194,7 +167,7 @@ public final class L1InstructionStepper
 	 */
 	private void push (final A_BasicObject value)
 	{
-		pointerAtPut(--stackp, value);
+		interpreter.pointerAtPut(--stackp, value);
 	}
 
 	/**
@@ -207,23 +180,8 @@ public final class L1InstructionStepper
 	private AvailObject pop ()
 	{
 		final AvailObject popped = pointerAt(stackp);
-		pointerAtPut(stackp++, NilDescriptor.nil());
+		interpreter.pointerAtPut(stackp++, NilDescriptor.nil());
 		return popped;
-	}
-
-	/**
-	 * Extract the specified literal from the current function's code.
-	 *
-	 * @param literalIndex
-	 *            The index of the literal to look up in the current
-	 *            function's code.
-	 * @return
-	 *            The literal extracted from the specified literal slot of
-	 *            the code.
-	 */
-	private AvailObject literalAt (final int literalIndex)
-	{
-		return code.literalAt(literalIndex);
 	}
 
 	/**
@@ -237,6 +195,16 @@ public final class L1InstructionStepper
 	public void run ()
 	throws ReifyStackThrowable
 	{
+		final A_Function function = interpreter.function;
+		final A_RawFunction code = function.code();
+		final AvailObject[] initialPointers = interpreter.pointers;
+		nybbles = code.nybbles();
+		if (debugL1)
+		{
+			System.out.println(
+				"Started L1 run: "
+				+ function.toString().replaceAll("\\s+", " "));
+		}
 		final int nybbleCount = nybbles.tupleSize();
 		while (pc <= nybbleCount)
 		{
@@ -246,25 +214,37 @@ public final class L1InstructionStepper
 				nybble = nybbles.extractNybbleFromTupleAt(pc++) + 16;
 			}
 			final L1Operation nybblecode = L1Operation.all()[nybble];
+			if (debugL1)
+			{
+				final int savePc = pc;
+				final List<Integer> operands =
+					Arrays.stream(nybblecode.operandTypes())
+						.map(x -> getInteger())
+						.collect(Collectors.toList());
+				System.out.println(
+					"L1 step: "
+						+ nybblecode
+						+ (operands.isEmpty() ? "" : " " + operands));
+				pc = savePc;
+			}
 			switch (nybblecode)
 			{
 				case L1_doCall:
 				{
-					final A_Bundle bundle = literalAt(getInteger());
-					final A_Type expectedReturnType = literalAt(getInteger());
+					final A_Bundle bundle = code.literalAt(getInteger());
+					final A_Type expectedReturnType =
+						code.literalAt(getInteger());
 					final int numArgs = bundle.bundleMethod().numArgs();
 					if (debugL1)
 					{
-						log(
-							interpreter.fiber(),
-							Level.FINE,
-							"L1 call {0}",
-							bundle.message().atomName());
+						System.out.println(
+							"         (" + bundle.message().atomName() + ")");
 					}
 					interpreter.argsBuffer.clear();
 					for (int i = stackp + numArgs - 1; i >= stackp; i--)
 					{
 						interpreter.argsBuffer.add(interpreter.pointerAt(i));
+						interpreter.pointerAtPut(i, NilDescriptor.nil());
 					}
 					stackp += numArgs;
 					// Push the expected type, which should be replaced on the
@@ -288,23 +268,50 @@ public final class L1InstructionStepper
 					// The call returned normally, without reifications, with
 					// the resulting value in the interpreter's latestResult().
 					final AvailObject result = interpreter.latestResult();
-					assert result.isInstanceOf(expectedReturnType)
-						: "Return value disagrees with expected type";
-					assert stackp <= argumentOrLocalRegister(
-						function.code().numArgsAndLocalsAndStack());
+					if (debugL1)
+					{
+						System.out.println("Call returned: " + result);
+					}
+					if (!interpreter.skipReturnCheck)
+					{
+						if (!result.isInstanceOf(expectedReturnType))
+						{
+							final A_Function callee = matching.bodyBlock();
+							final A_Variable reportedResult =
+								VariableDescriptor.forContentType(
+									Types.ANY.o());
+							reportedResult.setValueNoCheck(result);
+							interpreter.argsBuffer.clear();
+							interpreter.argsBuffer.add((AvailObject)callee);
+							interpreter.argsBuffer.add(
+								(AvailObject)expectedReturnType);
+							interpreter.argsBuffer.add(
+								(AvailObject)reportedResult);
+							interpreter.invokeFunction(
+								interpreter.runtime()
+									.resultDisagreedWithExpectedTypeFunction());
+							// The function has to be bottom-valued, so it can't
+							// ever actually return.  However, it's reifiable.
+							// Note that the original callee is not part of the
+							// stack.  No point, since it was returning and is
+							// probably mostly evacuated.
+							throw new UnsupportedOperationException(
+								"Should not reach here");
+						}
+					}
+					assert stackp <= function.code().numArgsAndLocalsAndStack();
 					// Replace the stack slot.
 					pointerAtPut(stackp, result);
 					break;
 				}
 				case L1_doPushLiteral:
 				{
-					push(literalAt(getInteger()));
+					push(code.literalAt(getInteger()));
 					break;
 				}
 				case L1_doPushLastLocal:
 				{
-					final int localIndex =
-						argumentOrLocalRegister(getInteger());
+					final int localIndex = getInteger();
 					final AvailObject local = pointerAt(localIndex);
 					pointerAtPut(localIndex, NilDescriptor.nil());
 					push(local);
@@ -312,11 +319,8 @@ public final class L1InstructionStepper
 				}
 				case L1_doPushLocal:
 				{
-					final int localIndex =
-						argumentOrLocalRegister(getInteger());
-					final AvailObject local = pointerAt(localIndex);
-					local.makeImmutable();
-					push(local);
+					final int localIndex = getInteger();
+					push(pointerAt(localIndex).makeImmutable());
 					break;
 				}
 				case L1_doPushLastOuter:
@@ -324,17 +328,21 @@ public final class L1InstructionStepper
 					final int outerIndex = getInteger();
 					final A_BasicObject outer = function.outerVarAt(outerIndex);
 					assert !outer.equalsNil();
-					if (!function.optionallyNilOuterVar(outerIndex))
+					if (function.optionallyNilOuterVar(outerIndex))
 					{
-						outer.makeImmutable();
+						push(outer);
 					}
-					push(outer);
+					else
+					{
+						push(outer.makeImmutable());
+					}
 					break;
 				}
 				case L1_doClose:
 				{
 					final int numCopiedVars = getInteger();
-					final AvailObject codeToClose = literalAt(getInteger());
+					final AvailObject codeToClose =
+						code.literalAt(getInteger());
 					final A_Function newFunction =
 						FunctionDescriptor.createExceptOuters(
 							codeToClose, numCopiedVars);
@@ -357,16 +365,12 @@ public final class L1InstructionStepper
 				}
 				case L1_doSetLocal:
 				{
-					final int localIndex =
-						argumentOrLocalRegister(getInteger());
-					setVariable(pointerAt(localIndex), pop());
+					setVariable(pointerAt(getInteger()), pop());
 					break;
 				}
 				case L1_doGetLocalClearing:
 				{
-					final int localIndex =
-						argumentOrLocalRegister(getInteger());
-					final A_Variable localVariable = pointerAt(localIndex);
+					final A_Variable localVariable = pointerAt(getInteger());
 					final AvailObject value = getVariable(localVariable);
 					if (localVariable.traversed().descriptor().isMutable())
 					{
@@ -383,8 +387,7 @@ public final class L1InstructionStepper
 				{
 					final AvailObject outer = function.outerVarAt(getInteger());
 					assert !outer.equalsNil();
-					outer.makeImmutable();
-					push(outer);
+					push(outer.makeImmutable());
 					break;
 				}
 				case L1_doPop:
@@ -410,26 +413,19 @@ public final class L1InstructionStepper
 				}
 				case L1_doSetOuter:
 				{
-					final A_Variable outerVariable =
-						function.outerVarAt(getInteger());
-					assert !outerVariable.equalsNil();
-					setVariable(outerVariable, pop());
+					setVariable(function.outerVarAt(getInteger()), pop());
 					break;
 				}
 				case L1_doGetLocal:
 				{
-					final int localIndex =
-						argumentOrLocalRegister(getInteger());
-					push(getVariable(pointerAt(localIndex)).makeImmutable());
+					push(getVariable(pointerAt(getInteger())).makeImmutable());
 					break;
 				}
 				case L1_doMakeTuple:
 				{
-					final int count = getInteger();
-					final A_Tuple tuple =
+					push(
 						ObjectTupleDescriptor.generateReversedFrom(
-							count, this::pop);
-					push(tuple);
+							getInteger(), this::pop));
 					break;
 				}
 				case L1_doGetOuter:
@@ -447,23 +443,21 @@ public final class L1InstructionStepper
 				case L1Ext_doPushLabel:
 				{
 					final int numArgs = code.numArgs();
-					assert code.primitiveNumber() == 0;
+					assert code.primitive() == null;
 					final List<AvailObject> args = new ArrayList<>(numArgs);
 					for (int i = 1; i <= numArgs; i++)
 					{
-						args.add(pointerAt(argumentOrLocalRegister(i)));
+						args.add(pointerAt(i));
 					}
 					final int numLocals = code.numLocals();
 					final List<AvailObject> locals = new ArrayList<>(numLocals);
 					for (int i = 1; i <= numLocals; i++)
 					{
-						locals.add(
-							pointerAt(argumentOrLocalRegister(numArgs + i)));
+						locals.add(pointerAt(numArgs + i));
 					}
 					assert interpreter.chunk == L2Chunk.unoptimizedChunk();
 
 					final A_Function savedFunction = interpreter.function;
-					final int savedOffset = interpreter.offset;
 					final AvailObject[] savedPointers = interpreter.pointers;
 					final int[] savedInts = interpreter.integers;
 					final boolean savedSkip = interpreter.skipReturnCheck;
@@ -477,7 +471,9 @@ public final class L1InstructionStepper
 							// continuations.  Run this before continuing the L2
 							// interpreter.
 							interpreter.function = savedFunction;
-							interpreter.offset = savedOffset;
+							interpreter.chunk = L2Chunk.unoptimizedChunk();
+							interpreter.offset =
+								L2Chunk.offsetToReenterAfterReification();
 							interpreter.pointers = savedPointers;
 							interpreter.integers = savedInts;
 							interpreter.skipReturnCheck = savedSkip;
@@ -486,11 +482,11 @@ public final class L1InstructionStepper
 
 							final A_Continuation newContinuation =
 								ContinuationDescriptor.create(
-									function,
+									savedFunction,
 									interpreter.reifiedContinuation,
 									savedSkip,
 									L2Chunk.unoptimizedChunk(),
-									L2Chunk.offsetToReturnIntoUnoptimizedChunk(),
+									L2Chunk.offsetToResumeFromInterruptIntoUnoptimizedChunk(),
 									args,
 									locals);
 
@@ -505,18 +501,21 @@ public final class L1InstructionStepper
 								: "Caller should freeze because two "
 									+ "continuations can see it";
 							push(newContinuation);
+							interpreter.returnNow = false;
 							// ...and continue running the chunk.
 						});
 					// break;
 				}
 				case L1Ext_doGetLiteral:
 				{
-					push(getVariable(literalAt(getInteger())).makeImmutable());
+					push(
+						getVariable(
+							code.literalAt(getInteger())).makeImmutable());
 					break;
 				}
 				case L1Ext_doSetLiteral:
 				{
-					setVariable(literalAt(getInteger()), pop());
+					setVariable(code.literalAt(getInteger()), pop());
 					break;
 				}
 				case L1Ext_doDuplicate:
@@ -526,7 +525,7 @@ public final class L1InstructionStepper
 				}
 				case L1Ext_doPermute:
 				{
-					final A_Tuple permutation = literalAt(getInteger());
+					final A_Tuple permutation = code.literalAt(getInteger());
 					final int size = permutation.tupleSize();
 					final AvailObject[] values = new AvailObject[size];
 					for (int i = 1; i <= size; i++)
@@ -542,17 +541,15 @@ public final class L1InstructionStepper
 				}
 				case L1Ext_doSuperCall:
 				{
-					final A_Bundle bundle = literalAt(getInteger());
-					final A_Type expectedReturnType = literalAt(getInteger());
-					final A_Type superUnionType = literalAt(getInteger());
+					final A_Bundle bundle = code.literalAt(getInteger());
+					final A_Type expectedReturnType =
+						code.literalAt(getInteger());
+					final A_Type superUnionType = code.literalAt(getInteger());
 					final int numArgs = bundle.bundleMethod().numArgs();
 					if (debugL1)
 					{
-						log(
-							interpreter.fiber(),
-							Level.FINE,
-							"L1 supercall {0}",
-							bundle.message().atomName());
+						System.out.println(
+							"L1 supercall: " + bundle.message().atomName());
 					}
 					interpreter.argsBuffer.clear();
 					final A_Tuple typesTuple =
@@ -600,8 +597,7 @@ public final class L1InstructionStepper
 					final AvailObject result = interpreter.latestResult();
 					assert result.isInstanceOf(expectedReturnType)
 						: "Return value disagrees with expected type";
-					assert stackp <= argumentOrLocalRegister(
-						function.code().numArgsAndLocalsAndStack());
+					assert stackp <= function.code().numArgsAndLocalsAndStack();
 					// Replace the stack slot.
 					pointerAtPut(stackp, result);
 					break;
@@ -611,11 +607,19 @@ public final class L1InstructionStepper
 					assert false : "Illegal dispatch nybblecode";
 				}
 			}
+			// Make sure an instruction didn't switch contexts by accident.
+			assert initialPointers == interpreter.pointers;
 		}
 		// It ran off the end of the nybblecodes, which is how a function
 		// returns in Level One.  Capture the result and return to the Java
 		// caller.
 		interpreter.latestResult(pop());
+		assert stackp == interpreter.pointers.length;
+		interpreter.returnNow = true;
+		if (debugL1)
+		{
+			System.out.println("L1 return");
+		}
 	}
 
 	/**
@@ -698,9 +702,11 @@ public final class L1InstructionStepper
 		interpreter.skipReturnCheck = false;
 
 		final A_Function savedFunction = interpreter.function;
+		assert interpreter.chunk == L2Chunk.unoptimizedChunk();
 		final int savedOffset = interpreter.offset;
 		final AvailObject[] savedPointers = interpreter.pointers;
 		final int[] savedInts = interpreter.integers;
+		final A_Tuple savedNybbles = nybbles;
 		final int savedPc = pc;
 		final int savedStackp = stackp;
 
@@ -711,31 +717,29 @@ public final class L1InstructionStepper
 		}
 		catch (final ReifyStackThrowable reifier)
 		{
-			// At some point during the call, reification was
-			// requested.  Add this frame and rethrow.
-			final L2Chunk chunk = interpreter.chunk;
-			assert chunk == L2Chunk.unoptimizedChunk();
-			interpreter.restorePointers(savedPointers);
-			interpreter.restoreInts(savedInts);
-			final A_Continuation continuation =
-				ContinuationDescriptor.createExceptFrame(
-					functionToInvoke,
-					NilDescriptor.nil(),
-					savedPc,
-					savedStackp + 1 - argumentOrLocalRegister(1),
-					false,
-					chunk,
-					L2Chunk.offsetToReturnIntoUnoptimizedChunk());
-			for (
-				int i = code.numArgsAndLocalsAndStack();
-				i >= 1;
-				i--)
+			if (reifier.actuallyReify())
 			{
-				continuation.argOrLocalOrStackAtPut(
-					i,
-					pointerAt(argumentOrLocalRegister(i)));
+				// At some point during the call, reification was
+				// requested.  Add this frame and rethrow.
+				interpreter.restorePointers(savedPointers);
+				final A_Continuation continuation =
+					ContinuationDescriptor.createExceptFrame(
+						savedFunction,
+						NilDescriptor.nil(),
+						savedPc,
+						savedStackp,
+						false,
+						L2Chunk.unoptimizedChunk(),
+						L2Chunk.offsetToReturnIntoUnoptimizedChunk());
+				for (
+					int i = savedFunction.code().numArgsAndLocalsAndStack();
+					i >= 1;
+					i--)
+				{
+					continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
+				}
+				reifier.pushContinuation(continuation);
 			}
-			reifier.pushContinuation(continuation);
 			throw reifier;
 		}
 		finally
@@ -744,6 +748,7 @@ public final class L1InstructionStepper
 			interpreter.pointers = savedPointers;
 			interpreter.offset = savedOffset;
 			interpreter.function = savedFunction;
+			nybbles = savedNybbles;
 			pc = savedPc;
 			stackp = savedStackp;
 		}

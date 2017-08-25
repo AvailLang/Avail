@@ -56,7 +56,7 @@ public final class P_ShortCircuitHelper extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_ShortCircuitHelper().init(
-			2, Invokes, CannotFail);
+			2, Invokes, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -73,13 +73,8 @@ public final class P_ShortCircuitHelper extends Primitive
 
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear();
-
-		// "Jump" into the function, since the current primitive should not show
-		// up in the Avail stack.
 		interpreter.function = function;
-		interpreter.chunk = code.startingChunk();
-		interpreter.offset = 0;
-		return Result.CONTINUATION_CHANGED;
+		return Result.READY_TO_INVOKE;
 	}
 
 	@Override
@@ -101,8 +96,6 @@ public final class P_ShortCircuitHelper extends Primitive
 		final L1NaiveTranslator naiveTranslator)
 	{
 		assert hasFlag(Invokes);
-		assert !hasFlag(CanInline);
-		assert !hasFlag(CanFold);
 
 		final L2ObjectRegister functionReg = args.get(1);
 		args.clear();

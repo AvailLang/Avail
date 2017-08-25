@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.controlflow;
 
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 
@@ -57,7 +58,7 @@ public final class P_RestartContinuationWithArguments extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_RestartContinuationWithArguments().init(
-			2, SwitchesContinuation);
+			2, CanInline, SwitchesContinuation);
 
 	@Override
 	public Result attempt (
@@ -66,37 +67,41 @@ public final class P_RestartContinuationWithArguments extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 2;
-		final A_Continuation con = args.get(0);
+		final A_Continuation originalCon = args.get(0);
 		final A_Tuple arguments = args.get(1);
 
-		final A_RawFunction code = con.function().code();
-		assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
+		final A_RawFunction code = originalCon.function().code();
+		//TODO MvG - This should be a primitive failure.
+		assert originalCon.stackp() == code.numArgsAndLocalsAndStack() + 1
 			: "Outer continuation should have been a label- rather than "
 				+ "call-continuation";
-		assert con.pc() == 1
+		assert originalCon.pc() == 1
 			: "Labels must only occur at the start of a block.  "
 				+ "Only restart that kind of continuation.";
-		final A_RawFunction itsCode = con.function().code();
-		final int numArgs = itsCode.numArgs();
+		final int numArgs = code.numArgs();
 		if (numArgs != arguments.tupleSize())
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
 		// No need to make it immutable because current continuation's
-		// reference is lost by this.  We go ahead and make a mutable copy
-		// to allow the new arguments to be injected.
-		final A_Continuation conCopy = con.ensureMutable();
-		if (!itsCode.functionType().acceptsTupleOfArguments(arguments))
+		// reference is lost by this.  We make a mutable copy if necessary, to
+		// allow the new arguments to be injected.
+		final A_Continuation conCopy = originalCon.ensureMutable();
+		if (!code.functionType().acceptsTupleOfArguments(arguments))
 		{
-			return interpreter.primitiveFailure(
-				E_INCORRECT_ARGUMENT_TYPE);
+			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
 		for (int i = 1; i <= numArgs; i++)
 		{
 			conCopy.argOrLocalOrStackAtPut(i, arguments.tupleAt(i));
 		}
-		interpreter.prepareToRestartContinuation(conCopy);
+
+		interpreter.reifiedContinuation = conCopy;
+		interpreter.chunk = conCopy.levelTwoChunk();
+		interpreter.offset = conCopy.levelTwoOffset();
+		interpreter.returnNow = false;
+		interpreter.latestResult(null);
 		return CONTINUATION_CHANGED;
 	}
 

@@ -102,8 +102,7 @@ extends L2Operation
 		// Also, the skipReturnCheck flag doesn't come into play for infallible
 		// primitives, since we check it below instead.
 		final Result res = interpreter.attemptPrimitive(
-			primitive.primitiveNumber,
-			null,
+			primitive,
 			interpreter.argsBuffer,
 			false);
 

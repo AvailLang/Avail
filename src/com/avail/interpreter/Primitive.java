@@ -114,6 +114,14 @@ implements IntegerEnumSlotDescriptionEnum
 		CONTINUATION_CHANGED,
 
 		/**
+		 * A primitive with {@link Flag#CanInline} and {@link Flag#Invokes} has
+		 * set up the {@link Interpreter#function} and {@link
+		 * Interpreter#argsBuffer} for a call, but has not called it because
+		 * that's not permitted from within a {@code Primitive}.
+		 */
+		READY_TO_INVOKE,
+
+		/**
 		 * The current fiber has been suspended as a consequence of this
 		 * primitive executing, so the {@linkplain Interpreter interpreter}
 		 * should switch processes now.
@@ -696,6 +704,14 @@ implements IntegerEnumSlotDescriptionEnum
 				|| primitiveFlags.contains(Flag.CanInline)
 			: "Primitive " + getClass().getSimpleName()
 				+ " has CanFold without CanInline";
+		assert !primitiveFlags.contains(Flag.Invokes)
+				|| primitiveFlags.contains(Flag.CanInline)
+			: "Primitive " + getClass().getSimpleName()
+				+ " has Invokes without CanInline";
+		assert !primitiveFlags.contains(Flag.SwitchesContinuation)
+			|| primitiveFlags.contains(Flag.CanInline)
+			: "Primitive " + getClass().getSimpleName()
+			+ " has SwitchesContinuation without CanInline";
 		// Register this instance.
 		assert holder.primitive == null;
 		holder.primitive = this;
@@ -1093,12 +1109,11 @@ implements IntegerEnumSlotDescriptionEnum
 
 	/**
 	 * This primitive is being invoked.  It must have the flag {@link
-	 * Flag#Invokes}, but must not contain {@link Flag#CanInline} or {@link
-	 * Flag#CanFold}.  The specific primitive should examine the arguments to
-	 * determine which object register holds the function that is actually being
-	 * invoked, then return that register.  The arguments {@link List} should
-	 * also be updated to correspond with how the replacement function is to be
-	 * invoked.
+	 * Flag#Invokes}, but must not contain {@link Flag#CanFold}.  The specific
+	 * primitive should examine the arguments to determine which object register
+	 * holds the function that is actually being invoked, then return that
+	 * register.  The arguments {@link List} should also be updated to
+	 * correspond with how the replacement function is to be invoked.
 	 *
 	 * @param args
 	 *        The argument registers for the primitive call doing the invoking.
@@ -1115,19 +1130,19 @@ implements IntegerEnumSlotDescriptionEnum
 		final L1NaiveTranslator naiveTranslator)
 	{
 		assert hasFlag(Flag.Invokes);
-		assert !hasFlag(Flag.CanInline);
+		assert hasFlag(Flag.CanInline);
 		assert !hasFlag(Flag.CanFold);
 
 		assert false
 			: "Primitive subclass with Invokes flag should have "
-				+ "overriden foldOutInvoker()";
+				+ "overridden foldOutInvoker()";
 		throw new RuntimeException("Unreachable");
 	}
 
 	/**
 	 * An {@link L2Instruction} whose operation is {@link L2_INVOKE} now has the
 	 * opportunity to replace itself with an alternate sequence of {@link
-	 * L2Instruction}s.  This is the {@link Primitive} of the raw function in
+	 * L2Instruction}s.  This is the {@code Primitive} of the raw function in
 	 * the function to be invoked.
 	 *
 	 * @param instruction

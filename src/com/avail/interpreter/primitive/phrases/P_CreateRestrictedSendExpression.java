@@ -183,11 +183,10 @@ extends Primitive
 		}
 
 		// Merge in the (non-empty list of) semantic restriction results.
-		interpreter.primitiveSuspend();
 		final AvailRuntime runtime = AvailRuntime.current();
-		final A_Function failureFunction =
-			interpreter.primitiveFunctionBeingAttempted();
-		assert failureFunction.code().primitiveNumber() == primitiveNumber;
+		final A_Function failureFunction = interpreter.function;
+		assert failureFunction.code().primitive() == this;
+		interpreter.primitiveSuspend();
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		final AtomicInteger countdown = new AtomicInteger(restrictionsSize);
 		final List<A_String> problems = new ArrayList<>();

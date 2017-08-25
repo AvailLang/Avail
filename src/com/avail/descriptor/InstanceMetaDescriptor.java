@@ -571,6 +571,14 @@ extends AbstractEnumerationTypeDescriptor
 		writer.endObject();
 	}
 
+	@Override
+	TypeTag o_ComputeTypeTag (final AvailObject object)
+	{
+		final AvailObject instance = getInstance(object);
+		final TypeTag instanceTag = instance.typeTag();
+		return instanceTag.metaTag();
+	}
+
 	/**
 	 * Construct a new {@link InstanceMetaDescriptor}.
 	 *
@@ -579,7 +587,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	private InstanceMetaDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.UNKNOWN_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link InstanceMetaDescriptor}. */

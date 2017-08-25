@@ -39,6 +39,7 @@ import java.util.List;
 
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
@@ -53,7 +54,8 @@ public final class P_BootstrapStringLiteral extends Primitive
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public static final Primitive instance =
-		new P_BootstrapStringLiteral().init(1, CannotFail, Bootstrap);
+		new P_BootstrapStringLiteral().init(
+			1, CannotFail, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

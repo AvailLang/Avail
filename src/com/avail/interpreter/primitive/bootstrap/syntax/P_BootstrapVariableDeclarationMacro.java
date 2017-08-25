@@ -56,7 +56,7 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapVariableDeclarationMacro().init(
-			2, CannotFail, Bootstrap);
+			2, CanInline, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (

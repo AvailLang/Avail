@@ -35,8 +35,13 @@ package com.avail.descriptor;
 import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.AvailObject.multiplier;
+
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
@@ -766,6 +771,27 @@ extends AbstractEnumerationTypeDescriptor
 		writer.endObject();
 	}
 
+	@Override
+	TypeTag o_ComputeTypeTag (final AvailObject object)
+	{
+		final Set<TypeTag> tags = EnumSet.noneOf(TypeTag.class);
+		for (final AvailObject instance : getInstances(object))
+		{
+			tags.add(instance.typeTag());
+		}
+		if (tags.size() == 1)
+		{
+			return tags.iterator().next();
+		}
+		final Iterator<TypeTag> iterator = tags.iterator();
+		TypeTag ancestor = iterator.next();
+		while (iterator.hasNext())
+		{
+			ancestor = ancestor.commonAncestorWith(iterator.next());
+		}
+		return ancestor;
+	}
+
 	/**
 	 * Construct an {@linkplain EnumerationTypeDescriptor enumeration} from a
 	 * {@linkplain SetDescriptor set} with at least two instances. The set
@@ -792,7 +818,7 @@ extends AbstractEnumerationTypeDescriptor
 	 */
 	private EnumerationTypeDescriptor (final Mutability mutability)
 	{
-		super(mutability, ObjectSlots.class, null);
+		super(mutability, TypeTag.UNKNOWN_TAG, ObjectSlots.class, null);
 	}
 
 	/** The mutable {@link EnumerationTypeDescriptor}. */

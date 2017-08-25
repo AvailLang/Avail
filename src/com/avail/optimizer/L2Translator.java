@@ -700,7 +700,7 @@ public final class L2Translator
 		 * flag indicating whether this continuation can skip the type check
 		 * when returning.
 		 */
-		@InnerAccess final L2IntegerRegister skipReturnCheckRegister =
+		private final L2IntegerRegister skipReturnCheckRegister =
 			L2IntegerRegister.precolored(
 				nextUnique(),
 				L1InstructionStepper.skipReturnCheckRegister());
@@ -2273,11 +2273,11 @@ public final class L2Translator
 				}
 				// The skipReturnCheck is irrelevant if the primitive can be
 				// folded.
+				final A_Function savedFunction = interpreter.function;
+				interpreter.function = primitiveFunction;
 				final Result success = interpreter().attemptPrimitive(
-					primitive.primitiveNumber,
-					primitiveFunction,
-					argValues,
-					false);
+					primitive, argValues, false);
+				interpreter.function = savedFunction;
 				if (success == SUCCESS)
 				{
 					final AvailObject value = interpreter().latestResult();
@@ -3828,6 +3828,8 @@ public final class L2Translator
 		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
 
 		createChunk();
+		assert loopStart.offset() ==
+			L2Chunk.offsetToReenterAfterReification();
 		assert reenterFromCallLabel.offset() ==
 			L2Chunk.offsetToReturnIntoUnoptimizedChunk();
 		assert reenterFromInterruptLabel.offset() ==

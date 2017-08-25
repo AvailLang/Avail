@@ -551,12 +551,18 @@ extends AbstractEnumerationTypeDescriptor
 		return bottom();
 	}
 
+	@Override
+	TypeTag o_ComputeTypeTag (final AvailObject object)
+	{
+		return TypeTag.BOTTOM_TYPE_TAG;
+	}
+
 	/**
 	 * Construct a new {@link BottomTypeDescriptor}.
 	 */
 	private BottomTypeDescriptor ()
 	{
-		super(Mutability.SHARED, null, null);
+		super(Mutability.SHARED, TypeTag.BOTTOM_TYPE_TAG, null, null);
 	}
 
 	@Override

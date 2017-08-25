@@ -82,7 +82,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapBlockMacro().init(
-			7, Unknown, Bootstrap);
+			7, CanInline, Bootstrap);
 
 	/** The key to the client parsing data in the fiber's environment. */
 	final A_Atom clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom;

@@ -38,16 +38,9 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.FixedRegister;
 
 /**
- * Arrive here by returning from a called method into unoptimized (level
- * one) code.  Explode the current continuation's slots into the registers
- * that level one expects.
- *
- *
- *
- * This is the first instruction of the L1 interpreter's on-ramp for resuming
+ * <p>This is the first instruction of the L1 interpreter's on-ramp for resuming
  * after a callee returns.  The reified {@link A_Continuation} that was captured
  * (and is now being resumed) pointed to this {@link L2Instruction}.  That
  * continuation is current in the {@link Interpreter#reifiedContinuation}.  Pop
@@ -55,7 +48,7 @@ import com.avail.interpreter.levelTwo.register.FixedRegister;
  * registers as expected by {@link L2_INTERPRET_LEVEL_ONE}, then explode the
  * continuation's slots into those registers.  The {@link Interpreter#function}
  * should also have already been set up to agree with the continuation's
- * function.
+ * function.</p>
  *
  * <p>The value being returned is in {@link Interpreter#latestResult()}, and the
  * top-of-stack of the continuation contains the type to check it against.  If
@@ -77,29 +70,34 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 	{
 		final A_Continuation continuation = interpreter.reifiedContinuation;
 		interpreter.reifiedContinuation = continuation.caller();
+		if (debugL1)
+		{
+			System.out.println("Reenter L1 from call");
+		}
 
 		assert interpreter.function == continuation.function();
 		final int numSlots = continuation.numArgsAndLocalsAndStack();
-		interpreter.pointers = new AvailObject[fixedRegisterCount() + numSlots];
-		int registerIndex = argumentOrLocalRegister(1);
+		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
+		interpreter.pointers = new AvailObject[numSlots + 1];
+		int dest = 1;
 		for (int i = 1; i <= numSlots; i++)
 		{
-			interpreter.pointerAtPut(registerIndex++, continuation.stackAt(i));
+			interpreter.pointerAtPut(dest++, continuation.stackAt(i));
 		}
 		final L1InstructionStepper stepper = interpreter.levelOneStepper;
 		stepper.pc = continuation.pc();
 		stepper.stackp = continuation.stackp();
 		final AvailObject returnValue = interpreter.latestResult();
-		final int topOfStackIndex = argumentOrLocalRegister(stepper.stackp);
 		if (!interpreter.skipReturnCheck)
 		{
-			final A_Type type = interpreter.pointerAt(topOfStackIndex);
+			final A_Type type = interpreter.pointerAt(stepper.stackp);
 			if (!returnValue.isInstanceOf(type))
 			{
+				//TODO MvG - Better reporting, invoke special function.
 				assert false : "Failed type check returning into reified L1";
 			}
 		}
-		interpreter.pointerAtPut(topOfStackIndex, returnValue);
+		interpreter.pointerAtPut(stepper.stackp, returnValue);
 	}
 
 	@Override

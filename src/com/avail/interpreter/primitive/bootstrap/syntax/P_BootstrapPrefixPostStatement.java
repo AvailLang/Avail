@@ -54,7 +54,7 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapPrefixPostStatement().init(
-			4, Unknown, Bootstrap);
+			4, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

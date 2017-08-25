@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,7 +54,7 @@ import java.util.List;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-enum TypeTag
+public enum TypeTag
 {
 	UNKNOWN_TAG(),
 	TOP_TAG(),
@@ -143,16 +144,21 @@ enum TypeTag
 					CONTINUATION_TYPE_TAG(NONTYPE_TYPE_TAG, CONTINUATION_TAG),
 					RAW_FUNCTION_TYPE_TAG(NONTYPE_TYPE_TAG, RAW_FUNCTION_TAG),
 					FIBER_TYPE_TAG(NONTYPE_TYPE_TAG, FIBER_TAG),
-				META_TAG(ANY_TYPE_TAG, TOP_TYPE_TAG);
+				META_TAG(ANY_TYPE_TAG, TOP_TYPE_TAG),
+				BOTTOM_TYPE_TAG(ANY_TYPE_TAG);  // Special case
 
 	TypeTag ()
 	{
+		this.depth = 0;
 		this.parent = null;
 		this.highOrdinal = ordinal();
 	}
 
 	TypeTag (final TypeTag parent)
 	{
+		assert parent.metaTag == null
+			: "Children of tags with metaTags should also have metaTags";
+		this.depth = parent.depth + 1;
 		this.parent = parent;
 		this.highOrdinal = ordinal();
 		parent.addDescendant(this);
@@ -160,13 +166,11 @@ enum TypeTag
 
 	TypeTag (final TypeTag parent, final TypeTag instance)
 	{
+		this.depth = parent.depth + 1;
 		this.parent = parent;
 		this.highOrdinal = ordinal();
 		parent.addDescendant(this);
-		for (final TypeTag descendant : descendants)
-		{
-			descendant.metaTag = this;
-		}
+		instance.metaTag = this;
 	}
 
 	final void addDescendant (final TypeTag descendant)
@@ -182,20 +186,61 @@ enum TypeTag
 
 	final TypeTag parent;
 
+	@Nullable
 	private TypeTag metaTag;
+
+	final int depth;
+
+	private final List<TypeTag> descendants = new ArrayList<>();
+
+	private int highOrdinal;
 
 	public TypeTag metaTag ()
 	{
 		return metaTag;
 	}
 
-	private final List<TypeTag> descendants = new ArrayList<>();
-
-	private int highOrdinal;
-
 	public boolean isSubtagOf (final TypeTag otherTag)
 	{
 		return ordinal() >= otherTag.ordinal()
 			&& highOrdinal <= otherTag.highOrdinal;
+	}
+
+	TypeTag commonAncestorWith (final TypeTag other)
+	{
+		if (this == other)
+		{
+			return this;
+		}
+		if (this.depth > other.depth)
+		{
+			return this.parent.commonAncestorWith(other);
+		}
+		if (other.depth > this.depth)
+		{
+			return other.parent.commonAncestorWith(this);
+		}
+		// Depths are equal.
+		assert this != UNKNOWN_TAG && other != UNKNOWN_TAG;
+		return this.parent.commonAncestorWith(other.parent);
+	}
+
+	static
+	{
+		for (TypeTag tag : TypeTag.values())
+		{
+			if (tag.metaTag == null && tag != UNKNOWN_TAG)
+			{
+				tag.metaTag = tag.parent.metaTag;
+			}
+		}
+		BOTTOM_TYPE_TAG.highOrdinal = ANY_TYPE_TAG.ordinal();
+		for (TypeTag tag : TOP_TYPE_TAG.descendants)
+		{
+			if (!tag.descendants.contains(BOTTOM_TYPE_TAG))
+			{
+				tag.descendants.add(BOTTOM_TYPE_TAG);
+			}
+		}
 	}
 }

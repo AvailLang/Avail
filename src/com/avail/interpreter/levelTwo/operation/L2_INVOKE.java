@@ -121,29 +121,32 @@ public class L2_INVOKE extends L2Operation
 			}
 			catch (final ReifyStackThrowable reifier)
 			{
-				// We were somewhere inside the callee and received a
-				// reification throwable.  Run the steps at the reification
-				// off-ramp to produce this continuation, ending at an
-				// L2_Return.  None of the intervening instructions may cause
-				// reification or Avail function invocation.  The resulting
-				// continuation is "returned" by the L2_Return instruction.
-				// That continuation should know how to be reentered when the
-				// callee returns.
-				interpreter.chunk = chunk;
-				interpreter.offset = reificationOffset;
-				interpreter.pointers = savedPointers;
-				interpreter.integers = savedInts;
-				try
+				if (reifier.actuallyReify())
 				{
-					chunk.run(interpreter);
+					// We were somewhere inside the callee and received a
+					// reification throwable.  Run the steps at the reification
+					// off-ramp to produce this continuation, ending at an
+					// L2_Return.  None of the intervening instructions may
+					// cause reification or Avail function invocation.  The
+					// resulting continuation is "returned" by the L2_Return
+					// instruction.  That continuation should know how to be
+					// reentered when the callee returns.
+					interpreter.chunk = chunk;
+					interpreter.offset = reificationOffset;
+					interpreter.pointers = savedPointers;
+					interpreter.integers = savedInts;
+					try
+					{
+						chunk.run(interpreter);
+					}
+					catch (final ReifyStackThrowable innerReifier)
+					{
+						assert false : "Off-ramp must not cause reification!";
+					}
+					// The off-ramp "returned" the callerless continuation that
+					// captures this frame.
+					reifier.pushContinuation(interpreter.latestResult());
 				}
-				catch (final ReifyStackThrowable innerReifier)
-				{
-					assert false : "Off-ramp must not cause reification!";
-				}
-				// The off-ramp "returned" the callerless continuation that
-				// captures this frame.
-				reifier.pushContinuation(interpreter.latestResult());
 				throw reifier;
 			}
 		};

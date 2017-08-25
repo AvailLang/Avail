@@ -56,8 +56,6 @@ extends Exception
 	/** The serial version identifier. */
 	private static final long serialVersionUID = 7279470906495791301L;
 
-	final Interpreter interpreter;
-
 	/**
 	 * The list of mutable level one continuations that have been reified so
 	 * far.  They are added to the end during repeated throws until the
@@ -65,29 +63,47 @@ extends Exception
 	 * together by making each continuation point to its predecessor in the
 	 * list.
 	 */
-	final List<A_Continuation> continuationsNewestFirst = new ArrayList<>();
+	private final List<A_Continuation> continuationsNewestFirst =
+		new ArrayList<>();
 
 	/**
-	 * A {@link Continuation0ThrowsReification} that should be executed once the
-	 * {@link Interpreter}'s stack has been fully reified.  The interpreter
+	 * Whether to actually reify continuations during unwinding.  If false, the
+	 * frames are simply dropped, on the assumption that the {@link
+	 * #postReificationAction} will replace the entire stack anyhow.
 	 */
-	final Continuation0 postReificationAction;
+	private final boolean actuallyReify;
+
+	/**
+	 * A {@link Continuation0} that should be executed once the {@link
+	 * Interpreter}'s stack has been fully reified.  For example, this might set
+	 * up a function/chunk/offset in the interpreter.  The interpreter will then
+	 * determine if it should continue running.
+	 */
+	private final Continuation0 postReificationAction;
 
 	/**
 	 * Construct a new {@code ReifyStackThrowable}.
 	 *
-	 * @param interpreter
-	 *        The running interpreter.
 	 * @param postReificationAction
 	 *        The action to perform after the Java stack has been fully reified.
+	 * @param actuallyReify
+	 *        Whether to reify the Java frames (rather than simply drop them).
 	 */
 	public ReifyStackThrowable (
-		final Interpreter interpreter,
-		final Continuation0 postReificationAction)
+		final Continuation0 postReificationAction,
+		final boolean actuallyReify)
 	{
-		//TODO MvG - fix all Continuation0ThrowsReification references in file.
-		this.interpreter = interpreter;
 		this.postReificationAction = postReificationAction;
+		this.actuallyReify = actuallyReify;
+	}
+
+	/**
+	 * Answer whether this throwable should cause reification (rather than just
+	 * clearing the Java stack).
+	 */
+	public boolean actuallyReify ()
+	{
+		return actuallyReify;
 	}
 
 	/**
@@ -136,8 +152,8 @@ extends Exception
 	}
 
 	/**
-	 * Answer the {@link Continuation0ThrowsReification} that should be executed
-	 * after all frames have been reified.
+	 * Answer the {@link Continuation0} that should be executed after all frames
+	 * have been reified.
 	 *
 	 * @return The post-reification action, captured when this throwable was
 	 *         created.

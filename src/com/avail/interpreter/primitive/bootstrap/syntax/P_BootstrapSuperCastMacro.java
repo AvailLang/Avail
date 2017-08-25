@@ -55,7 +55,7 @@ public final class P_BootstrapSuperCastMacro extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapSuperCastMacro().init(
-			2, CannotFail, Bootstrap);
+			2, CannotFail, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

@@ -3972,7 +3972,10 @@ public final class AvailCompiler
 				syntheticFrom(bodyFunction))),
 			TOP.o());
 		evaluateModuleStatementThen(
-			state,
+			new ParserState(
+				token.nextLexingStateIn(compilationContext),
+				MapDescriptor.empty(),
+				emptyList()),
 			state,
 			send,
 			new HashMap<>(),

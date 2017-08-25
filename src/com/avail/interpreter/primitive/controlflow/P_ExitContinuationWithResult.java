@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.controlflow;
 
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
 import static com.avail.interpreter.Primitive.Result.*;
 import java.util.List;
@@ -50,7 +51,7 @@ public final class P_ExitContinuationWithResult extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_ExitContinuationWithResult().init(
-			2, SwitchesContinuation);
+			2, CanInline, SwitchesContinuation);
 
 	@Override
 	public Result attempt (
@@ -61,6 +62,7 @@ public final class P_ExitContinuationWithResult extends Primitive
 		assert args.size() == 2;
 		final A_Continuation con = args.get(0);
 		final AvailObject result = args.get(1);
+
 		final A_Function function = con.function();
 		assert con.stackp() == function.code().numArgsAndLocalsAndStack() + 1
 			: "Outer continuation should have been a label- rather than "
@@ -68,39 +70,14 @@ public final class P_ExitContinuationWithResult extends Primitive
 		assert con.pc() == 1
 			: "Labels must only occur at the start of a block.  "
 				+ "Only exit that kind of continuation.";
-		// No need to make it immutable because current continuation's
-		// reference is lost by this.  We go ahead and make a mutable copy
-		// (if necessary) because the interpreter requires the current
-		// continuation to always be mutable...
-		final A_Type expectedType = function.kind().returnType();
-		final A_Continuation caller = con.caller();
-		if (caller.equalsNil())
-		{
-			interpreter.terminateFiber(result);
-			// This looks strange, but it is correct.
-			return CONTINUATION_CHANGED;
-		}
-		final A_Type linkStrengthenedType = caller.stackAt(
-			caller.stackp());
-//		(not guaranteed by VM, just by semantic restriction on Exit_with_).
-//		assert linkStrengthenedType.isSubtypeOf(expectedType);
-		if (!result.isInstanceOf(expectedType))
-		{
-			// Wasn't strong enough to meet the block's declared type.
-			return interpreter.primitiveFailure(
-				E_CONTINUATION_EXPECTED_STRONGER_TYPE);
-		}
-		if (!result.isInstanceOf(linkStrengthenedType))
-		{
-			// Wasn't strong enough to meet the *call site's* type.
-			// A useful distinction when we start to record primitive
-			// failure reason codes.
-			return interpreter.primitiveFailure(
-				E_CONTINUATION_EXPECTED_STRONGER_TYPE);
-		}
-		final A_Continuation targetCon = caller.ensureMutable();
-		targetCon.stackAtPut(targetCon.stackp(), result);
-		interpreter.prepareToResumeContinuation(targetCon);
+
+		interpreter.reifiedContinuation = con.caller();
+		interpreter.function = null;
+		interpreter.chunk = null;
+		interpreter.offset = Integer.MAX_VALUE;
+		interpreter.returnNow = true;
+		interpreter.latestResult(result);
+		interpreter.skipReturnCheck = false;
 		return CONTINUATION_CHANGED;
 	}
 

@@ -79,7 +79,11 @@ extends L2Operation
 	{
 //		final int callReentryOffset = instruction.pcAt(0);
 //		final int interruptReentryOffset = instruction.pcAt(1);
-		return interpreter -> interpreter.levelOneStepper.run();
+		return interpreter ->
+		{
+			interpreter.offset = Integer.MAX_VALUE;  // safety
+			interpreter.levelOneStepper.run();
+		};
 	}
 
 	@Override

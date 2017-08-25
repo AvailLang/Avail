@@ -74,10 +74,12 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 		final int numArgs = code.numArgs();
 		final int numLocals = code.numLocals();
 		final int numSlots = code.numArgsAndLocalsAndStack();
-		interpreter.pointers =
-			new AvailObject[fixedRegisterCount() + numSlots];
+		// The L2 instructions that implement L1 don't reserve room for any
+		// fixed registers, but they assume [0] is unused (to simplify
+		// indexing).  I.e., pointers[1] <-> continuation.stackAt(1).
+		interpreter.pointers = new AvailObject[numSlots + 1];
 		interpreter.integers = emptyIntArray;
-		int dest = argumentOrLocalRegister(1);
+		int dest = 1;
 		// Populate the arguments from argsBuffer.
 		for (final AvailObject arg : interpreter.argsBuffer)
 		{
@@ -94,13 +96,12 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 		// encounter any kind of ordinary use, but they must still be
 		// transferred into a continuation during reification.  Therefore, don't
 		// use Java nulls here.
-		for (int i = numArgs + numLocals + 1; i <= numSlots; i++)
+		while (dest <= numSlots)
 		{
 			interpreter.pointerAtPut(dest++, NilDescriptor.nil());
 		}
-		interpreter.levelOneStepper.pc = 0;
-		interpreter.levelOneStepper.stackp =
-			argumentOrLocalRegister(numSlots + 1);
+		interpreter.levelOneStepper.pc = 1;
+		interpreter.levelOneStepper.stackp = numSlots + 1;
 		final @Nullable Primitive primitive = code.primitive();
 		if (primitive != null)
 		{
@@ -110,7 +111,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 			final A_BasicObject primitiveFailureValue =
 				interpreter.latestResult();
 			final A_Variable primitiveFailureVariable =
-				interpreter.pointerAt(argumentOrLocalRegister(numArgs + 1));
+				interpreter.pointerAt(numArgs + 1);
 			primitiveFailureVariable.setValue(primitiveFailureValue);
 		}
 	}

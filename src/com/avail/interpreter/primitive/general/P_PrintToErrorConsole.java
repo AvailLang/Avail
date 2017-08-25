@@ -83,41 +83,42 @@ extends Primitive
 		final AvailRuntime runtime = interpreter.runtime();
 		final A_Fiber fiber = interpreter.fiber();
 		final TextInterface textInterface = fiber.textInterface();
-		final A_Function failureFunction =
-			interpreter.primitiveFunctionBeingAttempted();
+		final A_Function failureFunction = interpreter.function;
+		assert failureFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		interpreter.primitiveSuspend();
-		interpreter.postExitContinuation(() -> textInterface.errorChannel().write(
-			string.asNativeString(),
-			fiber,
-			new CompletionHandler<Integer, A_Fiber>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable A_Fiber unused)
+		interpreter.postExitContinuation(
+			() -> textInterface.errorChannel().write(
+				string.asNativeString(),
+				fiber,
+				new CompletionHandler<Integer, A_Fiber>()
 				{
-					Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
-						NilDescriptor.nil(),
-						skipReturnCheck);
-				}
+					@Override
+					public void completed (
+						final @Nullable Integer result,
+						final @Nullable A_Fiber unused)
+					{
+						Interpreter.resumeFromSuccessfulPrimitive(
+							runtime,
+							fiber,
+							NilDescriptor.nil(),
+							skipReturnCheck);
+					}
 
-				@Override
-				public void failed (
-					final @Nullable Throwable exc,
-					final @Nullable A_Fiber unused)
-				{
-					Interpreter.resumeFromFailedPrimitive(
-						runtime,
-						fiber,
-						E_IO_ERROR.numericCode(),
-						failureFunction,
-						copiedArgs,
-						skipReturnCheck);
-				}
-			}));
+					@Override
+					public void failed (
+						final @Nullable Throwable exc,
+						final @Nullable A_Fiber unused)
+					{
+						Interpreter.resumeFromFailedPrimitive(
+							runtime,
+							fiber,
+							E_IO_ERROR.numericCode(),
+							failureFunction,
+							copiedArgs,
+							skipReturnCheck);
+					}
+				}));
 		return Result.FIBER_SUSPENDED;
 	}
 

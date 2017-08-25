@@ -33,6 +33,8 @@
 package com.avail.interpreter.primitive.controlflow;
 
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
+
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -51,7 +53,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_ResumeContinuation().init(
-			1, Private, CannotFail, SwitchesContinuation);
+			1, Private, CanInline, CannotFail, SwitchesContinuation);
 
 	@Override
 	public Result attempt (
@@ -60,9 +62,15 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Continuation continuation = args.get(0);
-		interpreter.prepareToResumeContinuation(continuation.ensureMutable());
-		return Result.CONTINUATION_CHANGED;
+		final A_Continuation con = args.get(0);
+
+		interpreter.reifiedContinuation = con;
+		interpreter.function = con.function();
+		interpreter.chunk = con.levelTwoChunk();
+		interpreter.offset = con.levelTwoOffset();
+		interpreter.returnNow = false;
+		interpreter.latestResult(null);
+		return CONTINUATION_CHANGED;
 	}
 
 	@Override

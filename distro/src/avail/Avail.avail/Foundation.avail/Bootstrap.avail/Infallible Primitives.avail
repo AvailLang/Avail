@@ -55,7 +55,6 @@ Uses
 		"Park current fiber",
 		"Request termination of_",
 		"Restart_",
-		"Resume_",
 		"Sleep for_millisecond|milliseconds",
 		"Terminate current fiber",
 		"Unname_from_",
@@ -103,6 +102,7 @@ Uses
 		"_'s⁇outer variables",
 		"_'s⁇parameters'type",
 		"_'s⁇permutation",
+		"_'s⁇primitive name",
 		"_'s⁇primitive number",
 		"_'s⁇priority",
 		"_'s⁇priority:=_",
@@ -437,23 +437,6 @@ Primitive "`$_" is
 |
 	Primitive FunctionTypeToContinuationType;
 ] : continuation meta;
-
-/**
- * Resume the specified continuation. The current continuation (in which this
- * primitive was invoked) is completely replaced by the resumed continuation.
- *
- * @category "Primitives" "Continuations" "Control Structures"
- * @method "Resume_"
- * @param "aContinuation" "continuation"
- *        A continuation.
- * @returns "⊥"
- */
-Primitive "Resume_" is
-[
-	aContinuation : continuation
-|
-	Primitive ContinueContinuation;
-] : ⊥;
 
 /**
  * Restart the continuation with its original arguments. Execution proceeds as
@@ -3406,24 +3389,24 @@ Primitive "_'s⁇implementation" is
 ] : function implementation;
 
 /**
- * Answer the primitive number of the primitive linked to the specified
- * function implementation. If the function implementation does not have
- * primitive linkage, then answer `0`.
+ * Answer the name of the primitive linked to the specified function 
+ * implementation. If the function implementation does not have
+ * primitive linkage, then answer the empty string.
  *
  * @category "Primitives" "Function Implementations" "Queries"
- * @method "_'s⁇primitive number"
+ * @method "_'s⁇primitive name"
  * @param "aFunctionImplementation" "function implementation"
  *        A function implementation.
- * @returns "[0..65535]"
- *    The argument's primitive number, or `0` if the argument does not have
- *    primitive linkage.
+ * @returns "string"
+ *    The argument's primitive name, or the empty string if the argument does
+ *    not have primitive linkage.
  */
-Primitive "_'s⁇primitive number" is
+Primitive "_'s⁇primitive name" is
 [
 	aFunctionImplementation : function implementation
 |
-	Primitive CompiledCodePrimitiveNumber;
-] : unsigned short;
+	Primitive CompiledCodePrimitiveName;
+] : string;
 
 /**
  * Construct and answer a set type with the specified element type and range of

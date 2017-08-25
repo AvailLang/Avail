@@ -99,6 +99,7 @@ implements Comparable<AvailTask>, Runnable
 				});
 				try
 				{
+					//TODO - Hm.  Why is the return value being ignored?
 					transformer.value();
 				}
 				catch (final PrimitiveThrownException e)

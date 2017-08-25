@@ -47,7 +47,7 @@ public final class P_PushArgument extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_PushArgument().init(
-			1, SpecialReturnSoleArgument, CanFold, CanInline, Private, CannotFail);
+			1, SpecialReturnSoleArgument, CanInline, Private, CannotFail);
 
 	@Override
 	public Result attempt (

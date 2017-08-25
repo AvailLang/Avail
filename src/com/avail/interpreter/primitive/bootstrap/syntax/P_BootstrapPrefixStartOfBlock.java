@@ -58,7 +58,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapPrefixStartOfBlock().init(
-			0, CannotFail, Bootstrap);
+			0, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

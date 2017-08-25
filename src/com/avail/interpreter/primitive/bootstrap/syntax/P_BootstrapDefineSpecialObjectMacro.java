@@ -57,7 +57,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapDefineSpecialObjectMacro().init(
-			2, Unknown, Bootstrap, CannotFail);
+			2, Bootstrap, CanInline);
 
 	@Override
 	public Result attempt (

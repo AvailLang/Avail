@@ -35,6 +35,7 @@ import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
 
+import com.avail.descriptor.A_Function;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.A_Type;
@@ -108,12 +109,14 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 			// doesn't come into play for infallible primitives, since we would
 			// check it after it runs -- but this is the no-check version
 			// anyhow, so we don't check it at all.
+			final A_Function savedFunction = interpreter.function;
+			interpreter.function = null; // Eligible primitives MUST NOT access this.
 			final Result res = interpreter.attemptPrimitive(
-				primitive.primitiveNumber,
-				null,
+				primitive,
 				interpreter.argsBuffer,
 				false);
 			assert res == SUCCESS;
+			interpreter.function = savedFunction;
 			interpreter.pointerAtPut(
 				resultRegNumber, interpreter.latestResult());
 		};

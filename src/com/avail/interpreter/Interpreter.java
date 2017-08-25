@@ -32,7 +32,6 @@
 
 package com.avail.interpreter;
 
-import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
@@ -665,6 +664,14 @@ public final class Interpreter
 	public void latestResult (final A_BasicObject newResult)
 	{
 		latestResult = (AvailObject)newResult;
+		if (debugL2)
+		{
+			System.out.println(
+				"Set latestResult: " +
+					(latestResult == null
+						 ? "null"
+						 : latestResult.typeTag().name()));
+		}
 	}
 
 	/**
@@ -779,14 +786,7 @@ public final class Interpreter
 	 * #run() run loop}?  This can happen when the fiber has completed, failed,
 	 * or been suspended.
 	 */
-	public boolean exitNow = true;
-
-	/**
-	 * This usually refers to the current function that is executing.  Early in
-	 * a function invocation it may refer to the callee, even though the
-	 * pointers and integers arrays still reflect the caller.
-	 */
-	public A_Function currentFunction;
+	private boolean exitNow = true;
 
 	/**
 	 * A {@linkplain Continuation0 continuation} to run after a {@linkplain
@@ -848,6 +848,10 @@ public final class Interpreter
 		});
 		exitNow = true;
 		startTick = -1L;
+		if (debugL2)
+		{
+			System.out.println("Clear latestResult (primitiveSuspend)");
+		}
 		latestResult = null;
 		pointers = null;
 		integers = null;
@@ -878,27 +882,6 @@ public final class Interpreter
 	public Result primitivePark ()
 	{
 		return primitiveSuspend(PARKED);
-	}
-
-	/**
-	 * A place to store the primitive {@linkplain CompiledCodeDescriptor
-	 * compiled code} being attempted.  That allows {@linkplain
-	 * P_PushConstant} to get to the first literal in order to return it
-	 * from the primitive.
-	 */
-	private @Nullable A_Function primitiveFunctionBeingAttempted;
-
-	/**
-	 * Answer the {@linkplain Primitive primitive} {@linkplain
-	 * FunctionDescriptor function} that is currently being attempted.
-	 *
-	 * @return The requested function.
-	 */
-	public A_Function primitiveFunctionBeingAttempted ()
-	{
-		final A_Function function = primitiveFunctionBeingAttempted;
-		assert function != null;
-		return function;
 	}
 
 	/**
@@ -934,6 +917,10 @@ public final class Interpreter
 		});
 		exitNow = true;
 		startTick = -1L;
+		if (debugL2)
+		{
+			System.out.println("Clear latestResult (exitFiber)");
+		}
 		latestResult = null;
 		wipeObjectRegisters();
 		postExitContinuation(() ->
@@ -987,9 +974,9 @@ public final class Interpreter
 	}
 
 	/**
-	 * Invoke an Avail primitive.  The primitive number and arguments are
-	 * passed.  If the primitive fails, use {@link
-	 * Interpreter#primitiveSuccess(A_BasicObject)} to set the primitiveResult
+	 * Invoke an Avail primitive.  The primitive and arguments are passed.  If
+	 * the primitive fails, use {@link
+	 * Interpreter#primitiveFailure(A_BasicObject)} to set the primitiveResult
 	 * to some object indicating what the problem was, and return
 	 * primitiveFailed immediately.  If the primitive causes the continuation to
 	 * change (e.g., through block invocation, continuation restart, exception
@@ -998,10 +985,8 @@ public final class Interpreter
 	 * Interpreter#primitiveSuccess(A_BasicObject)} and return {@link
 	 * Result#SUCCESS}.
 	 *
-	 * @param primitiveNumber
-	 *            The number of the primitive to invoke.
-	 * @param function
-	 *            The function whose primitive is being attempted.
+	 * @param primitive
+	 *            The {@link Primitive} to invoke.
 	 * @param args
 	 *            The list of arguments to supply to the primitive.
 	 * @param skipReturnCheck
@@ -1009,20 +994,17 @@ public final class Interpreter
 	 *            attempt succeeds.  It should only skip the check if the VM
 	 *            guarantees the type produced at the current call site will
 	 *            satisfy the expected type at the call site.  To simplify the
-	 *            design, the primitive {@linkplain FunctionDescriptor
-	 *            function}'s Avail backup code, if any, must also satisfy the
-	 *            call site.  This is usually the case anyhow, because most
-	 *            primitive backup Avail code produces type ⊥.
+	 *            design, the primitive {@link A_Function}'s Avail backup code,
+	 *            if any, must also satisfy the call site.  This is usually the
+	 *            case anyhow, because most primitive backup Avail code produces
+	 *            type ⊥.
 	 * @return The resulting status of the primitive attempt.
 	 */
 	public Result attemptPrimitive (
-		final int primitiveNumber,
-		final @Nullable A_Function function,
+		final Primitive primitive,
 		final List<AvailObject> args,
 		final boolean skipReturnCheck)
 	{
-		final Primitive primitive =
-			Primitive.byPrimitiveNumberOrFail(primitiveNumber);
 		if (debugPrimitives)
 		{
 			log(
@@ -1030,8 +1012,11 @@ public final class Interpreter
 				"attempt {0}",
 				primitive.name());
 		}
+		if (debugL2)
+		{
+			System.out.println("Clear latestResult (attemptPrimitive)");
+		}
 		latestResult = null;
-		primitiveFunctionBeingAttempted = function;
 		assert current() == this;
 		final long timeBefore = AvailRuntime.captureNanos();
 		final Result success = primitive.attempt(args, this, skipReturnCheck);
@@ -1040,7 +1025,6 @@ public final class Interpreter
 			timeAfter - timeBefore,
 			interpreterIndex);
 		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
-		primitiveFunctionBeingAttempted = null;
 		if (debugPrimitives && logger.isLoggable(Level.FINER))
 		{
 			AvailErrorCode errorCode = null;
@@ -1203,26 +1187,11 @@ public final class Interpreter
 	}
 
 	/**
-	 * Write {@code null} into each object register except the constant
-	 * {@link FixedRegister#NULL} register.
+	 * Wipe out the existing register set for safety.
 	 */
-	@Deprecated
 	public void wipeObjectRegisters ()
 	{
-		if (chunk != null)
-		{
-			pointers[CALLER.ordinal()] = null;
-			pointers[FUNCTION.ordinal()] = null;
-			// Explicitly *do not* clear the primitive failure value register.
-
-			//TODO[MvG] - Eventually we'll be running Java code and storing all
-			//variables in stack slots.
-//			Arrays.fill(
-//				pointers,
-//				numberOfFixedRegisters,
-//				pointers.length,
-//				null);
-		}
+		pointers = null;
 	}
 
 	/**
@@ -1590,34 +1559,14 @@ public final class Interpreter
 		final A_Function aFunction)
 	throws ReifyStackThrowable
 	{
+		assert !exitNow;
 		function = aFunction;
 		final A_RawFunction code = aFunction.code();
 		assert code.numArgs() == argsBuffer.size();
-		code.startingChunk().run(this);
-	}
-
-	/**
-	 * Immediately throw a {@link ReifyStackThrowable}.  Various Java stack
-	 * frames will catch and rethrow it, accumulating reified {@link
-	 * A_Continuation}s along the way.  The outer interpreter loop should catch
-	 * this, then run the provided {@link Continuation0ThrowsReification}.
-	 *
-	 * @param postReificationAction
-	 *        The action to perform (in the outer interpreter loop) after the
-	 *        entire stack is reified.
-	 * @return Pretends to return the exception, so callers can pretend to
-	 *         throw it, to help the compiler figure out it never returns.
-	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
-	 *         integrated into type signatures in a sane way, there'd be that
-	 *         many less reasons for Avail.
-	 * @throws ReifyStackThrowable
-	 *         Always, to initiate reification of the Java stack.
-	 */
-	public ReifyStackThrowable reifyThen(
-		final Continuation0 postReificationAction)
-	throws ReifyStackThrowable
-	{
-		throw new ReifyStackThrowable(this, postReificationAction);
+		chunk = code.startingChunk();
+		offset = 0;
+		returnNow = false;
+		chunk.run(this);
 	}
 
 	/**
@@ -1710,10 +1659,22 @@ public final class Interpreter
 				// Reification has been requested, and the exception has already
 				// collected all the continuations.
 				reifiedContinuation =
-					reifier.assembleContinuation(reifiedContinuation);
+					reifier.actuallyReify()
+						? reifier.assembleContinuation(reifiedContinuation)
+						: null;
 				chunk = null; // The postReificationAction should set this up.
 				reifier.postReificationAction().value();
-				continue;
+				if (exitNow)
+				{
+					// The fiber has been dealt with. Exit the interpreter loop.
+					assert fiber == null;
+					return;
+				}
+				if (!returnNow)
+				{
+					continue;
+				}
+				// Fall through to accomplish the return.
 			}
 			// We're returning from the outermost non-reified frame, either into
 			// the top reified frame or right out of the fiber.
@@ -1762,15 +1723,14 @@ public final class Interpreter
 		final boolean skipReturnCheckFlag)
 	throws ReifyStackThrowable
 	{
-		throw reifyThen(
-			() ->
-			{
-				argsBuffer.clear();
-				skipReturnCheck = skipReturnCheckFlag;
-				function = functionToCall;
-				chunk = function.code().startingChunk();
-				offset = 0;
-			});
+		throw reifyThen(() ->
+		{
+			argsBuffer.clear();
+			skipReturnCheck = skipReturnCheckFlag;
+			function = functionToCall;
+			chunk = function.code().startingChunk();
+			offset = 0;
+		});
 	}
 
 	/**
@@ -1802,18 +1762,16 @@ public final class Interpreter
 		final A_BasicObject arg2)
 	throws ReifyStackThrowable
 	{
-		throw new ReifyStackThrowable(
-			this,
-			() ->
-			{
-				argsBuffer.clear();
-				argsBuffer.add((AvailObject) arg1);
-				argsBuffer.add((AvailObject) arg2);
-				skipReturnCheck = skipReturnCheckFlag;
-				function = functionToCall;
-				chunk = function.code().startingChunk();
-				offset = 0;
-			});
+		throw reifyThen(() ->
+		{
+			argsBuffer.clear();
+			argsBuffer.add((AvailObject) arg1);
+			argsBuffer.add((AvailObject) arg2);
+			skipReturnCheck = skipReturnCheckFlag;
+			function = functionToCall;
+			chunk = function.code().startingChunk();
+			offset = 0;
+		});
 	}
 
 	/**
@@ -1848,19 +1806,66 @@ public final class Interpreter
 		final A_BasicObject arg3)
 	throws ReifyStackThrowable
 	{
-		throw new ReifyStackThrowable(
-			this,
-			() ->
-			{
-				argsBuffer.clear();
-				argsBuffer.add((AvailObject) arg1);
-				argsBuffer.add((AvailObject) arg2);
-				argsBuffer.add((AvailObject) arg3);
-				skipReturnCheck = skipReturnCheckFlag;
-				function = functionToCall;
-				chunk = function.code().startingChunk();
-				offset = 0;
-			});
+		throw reifyThen(() ->
+		{
+			argsBuffer.clear();
+			argsBuffer.add((AvailObject) arg1);
+			argsBuffer.add((AvailObject) arg2);
+			argsBuffer.add((AvailObject) arg3);
+			skipReturnCheck = skipReturnCheckFlag;
+			function = functionToCall;
+			chunk = function.code().startingChunk();
+			offset = 0;
+		});
+	}
+
+	/**
+	 * Immediately throw a {@link ReifyStackThrowable}.  Various Java stack
+	 * frames will catch and rethrow it, accumulating reified {@link
+	 * A_Continuation}s along the way.  The outer interpreter loop should catch
+	 * this, then run the provided {@link Continuation0ThrowsReification}.
+	 *
+	 * @param postReificationAction
+	 *        The action to perform (in the outer interpreter loop) after the
+	 *        entire stack is reified.
+	 * @return Pretends to return the exception, so callers can pretend to
+	 *         throw it, to help the compiler figure out it never returns.
+	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
+	 *         integrated into type signatures in a sane way, there'd be that
+	 *         many less reasons for Avail.
+	 * @throws ReifyStackThrowable
+	 *         Always, to initiate reification of the Java stack.
+	 */
+	public ReifyStackThrowable reifyThen (
+		final Continuation0 postReificationAction)
+	throws ReifyStackThrowable
+	{
+		throw new ReifyStackThrowable(postReificationAction, true);
+	}
+
+	/**
+	 * Immediately throw a {@link ReifyStackThrowable} with its {@link
+	 * ReifyStackThrowable#actuallyReify} flag set to false.  This abandons the
+	 * Java stack (out to {@link #run()}) before running the
+	 * postReificationAction, which should set up the interpreter to continue
+	 * running.
+	 *
+	 * @param postReificationAction
+	 *        The action to perform (in the outer interpreter loop) after the
+	 *        entire stack is reified.
+	 * @return Pretends to return the exception, so callers can pretend to
+	 *         throw it, to help the compiler figure out it never returns.
+	 *         Yuck.  But if exceptions (and nulls, and generics, etc) were
+	 *         integrated into type signatures in a sane way, there'd be that
+	 *         many less reasons for Avail.
+	 * @throws ReifyStackThrowable
+	 *         Always, to initiate reification of the Java stack.
+	 */
+	public ReifyStackThrowable abandonStackThen (
+		final Continuation0 postReificationAction)
+	throws ReifyStackThrowable
+	{
+		throw new ReifyStackThrowable(postReificationAction, false);
 	}
 
 	/**
@@ -1899,7 +1904,15 @@ public final class Interpreter
 					assert aFiber.executionState() == RUNNING;
 					// Run the interpreter for a while.
 					continuation.value(interpreter);
-					interpreter.run();
+					if (interpreter.exitNow)
+					{
+						assert interpreter.reifiedContinuation.equalsNil();
+						interpreter.terminateFiber(interpreter.latestResult());
+					}
+					else
+					{
+						interpreter.run();
+					}
 					interpreter.fiber = null;
 					return aFiber.executionState();
 				}));
@@ -2041,30 +2054,31 @@ public final class Interpreter
 			{
 				assert aFiber == interpreter.fiberOrNull();
 				assert aFiber.executionState() == RUNNING;
-				assert !aFiber.continuation().equalsNil();
-				final A_Continuation updatedCaller =
-					aFiber.continuation().ensureMutable();
-				final int stackp = updatedCaller.stackp();
-				if (!skipReturnCheck)
+
+				final A_Continuation continuation = aFiber.continuation();
+				interpreter.reifiedContinuation = continuation;
+				interpreter.returnNow = false;
+				interpreter.latestResult(result);
+				if (continuation.equalsNil())
 				{
-					final A_Type expectedType =
-						updatedCaller.stackAt(stackp);
-					if (!result.isInstanceOf(expectedType))
-					{
-						// Breakpoint this to trace the failed type test.
-						result.isInstanceOf(expectedType);
-						error(String.format(
-							"Return value (%s) does not agree with "
-							+ "expected type (%s)",
-							result,
-							expectedType));
-					}
+					// Return from outer function, which was the (successful)
+					// suspendable primitive itself.
+					interpreter.exitNow = true;
+					interpreter.function = null;
+					interpreter.chunk = null;
+					interpreter.offset = Integer.MAX_VALUE;
+					interpreter.skipReturnCheck = skipReturnCheck;
 				}
-				updatedCaller.stackAtPut(stackp, result);
-				interpreter.prepareToResumeContinuation(
-					updatedCaller);
-				aFiber.continuation(NilDescriptor.nil());
-				interpreter.exitNow = false;
+				else
+				{
+					interpreter.exitNow = false;
+					interpreter.function = continuation.function();
+					interpreter.chunk = continuation.levelTwoChunk();
+					interpreter.offset = continuation.levelTwoOffset();
+					interpreter.skipReturnCheck = skipReturnCheck;
+					// Clear the fiber's continuation slot while it's active.
+					aFiber.continuation(NilDescriptor.nil());
+				}
 			});
 	}
 

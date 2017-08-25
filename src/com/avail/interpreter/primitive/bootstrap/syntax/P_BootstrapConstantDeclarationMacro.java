@@ -60,7 +60,7 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapConstantDeclarationMacro().init(
-			2, CannotFail, Bootstrap);
+			2, CannotFail, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

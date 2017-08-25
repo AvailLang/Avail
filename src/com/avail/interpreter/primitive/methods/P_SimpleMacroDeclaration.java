@@ -138,10 +138,9 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_MACRO_MUST_RETURN_A_PARSE_NODE);
 		}
-		final A_Function failureFunction =
-			interpreter.primitiveFunctionBeingAttempted();
+		final A_Function failureFunction = interpreter.function;
+		assert failureFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		assert failureFunction.code().primitiveNumber() == primitiveNumber;
 		interpreter.primitiveSuspend();
 		AvailRuntime.current().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(

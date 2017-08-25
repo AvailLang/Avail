@@ -66,7 +66,7 @@ public final class P_CastIntoElse extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_CastIntoElse().init(
-			3, Invokes, CannotFail);
+			3, Invokes, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -85,16 +85,12 @@ public final class P_CastIntoElse extends Primitive
 			interpreter.argsBuffer.clear();
 			interpreter.argsBuffer.add(value);
 			interpreter.function = castFunction;
-			interpreter.chunk = castFunction.code().startingChunk();
-			interpreter.offset = 0;
-			return Result.CONTINUATION_CHANGED;
+			return Result.READY_TO_INVOKE;
 		}
 		// "Jump" into the elseFunction, to keep this frame from showing up.
 		interpreter.argsBuffer.clear();
 		interpreter.function = elseFunction;
-		interpreter.chunk = elseFunction.code().startingChunk();
-		interpreter.offset = 0;
-		return Result.CONTINUATION_CHANGED;
+		return Result.READY_TO_INVOKE;
 	}
 
 	@Override

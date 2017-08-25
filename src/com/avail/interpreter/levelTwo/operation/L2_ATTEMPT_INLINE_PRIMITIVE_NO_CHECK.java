@@ -105,23 +105,36 @@ extends L2Operation
 			interpreter.argsBuffer.add(register.in(interpreter));
 		}
 		assert function.code().primitive() == primitive;
+		final A_Function savedFunction = interpreter.function;
+		interpreter.function = function;
 		final Result res = interpreter.attemptPrimitive(
-			primitive.primitiveNumber,
-			function,
+			primitive,
 			interpreter.argsBuffer,
 			true);
 
 		switch (res)
 		{
 			case SUCCESS:
+			{
+				interpreter.function = savedFunction;
 				resultReg.set(interpreter.latestResult(), interpreter);
 				interpreter.offset(successOffset);
 				break;
+			}
 			case FAILURE:
+			{
+				interpreter.function = savedFunction;
 				failureReg.set(interpreter.latestResult(), interpreter);
 				break;
+			}
+			case READY_TO_INVOKE:
+			{
+				assert false : "Should not run Invoking primitive as inline here";
+			}
 			default:
+			{
 				assert false;
+			}
 		}
 	}
 

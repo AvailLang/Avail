@@ -33,6 +33,8 @@ package com.avail.interpreter.primitive.controlflow;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
+
 import java.util.*;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
@@ -51,7 +53,7 @@ public final class P_IfFalseThenElse extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_IfFalseThenElse().init(
-			3, Invokes, CannotFail);
+			3, Invokes, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -68,13 +70,8 @@ public final class P_IfFalseThenElse extends Primitive
 
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear();
-
-		// "Jump" into the function, since the current primitive should not show
-		// up in the Avail stack.
 		interpreter.function = falseFunction;
-		interpreter.chunk = code.startingChunk();
-		interpreter.offset = 0;
-		return Result.CONTINUATION_CHANGED;
+		return READY_TO_INVOKE;
 	}
 
 	@Override

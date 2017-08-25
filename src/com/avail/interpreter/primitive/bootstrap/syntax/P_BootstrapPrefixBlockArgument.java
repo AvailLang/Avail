@@ -36,6 +36,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 import java.util.List;
 import com.avail.compiler.AvailRejectedParseException;
@@ -59,7 +60,7 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapPrefixBlockArgument().init(
-			1, Bootstrap);
+			1, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

@@ -48,7 +48,7 @@ public final class P_PushConstant extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_PushConstant().init(
-			-1, SpecialReturnConstant, Private, CannotFail);
+			-1, SpecialReturnConstant, Private, CanInline, CanFold, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -56,8 +56,9 @@ public final class P_PushConstant extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		return interpreter.primitiveSuccess(
-			interpreter.primitiveFunctionBeingAttempted().code().literalAt(1));
+		final A_RawFunction code = interpreter.function.code();
+		assert code.primitive() == this;
+		return interpreter.primitiveSuccess(code.literalAt(1));
 	}
 
 	@Override

@@ -61,7 +61,7 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapPrefixEndOfBlockBody().init(
-			5, Unknown, Bootstrap);
+			5, CanInline, Bootstrap);
 
 	/** The key to the client parsing data in the fiber's environment. */
 	final A_Atom clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom;

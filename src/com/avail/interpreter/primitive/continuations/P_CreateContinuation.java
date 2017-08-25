@@ -66,9 +66,7 @@ public final class P_CreateContinuation extends Primitive
 		final A_Number stackp = args.get(3);
 		final A_Variable callerHolder = args.get(4);
 
-		final A_RawFunction code = function.code();
-		final Primitive primitive = Primitive.byPrimitiveNumberOrNull(
-			code.primitiveNumber());
+		final Primitive primitive = function.code().primitive();
 		if (primitive != null && primitive.hasFlag(CannotFail))
 		{
 			return interpreter.primitiveFailure(

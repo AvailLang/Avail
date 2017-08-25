@@ -61,7 +61,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapPrefixPrimitiveDeclaration().init(
-			2, CannotFail, Bootstrap);
+			2, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

@@ -33,8 +33,11 @@ package com.avail.interpreter.primitive.controlflow;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
 import static com.avail.interpreter.Primitive.Fallibility.*;
+import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
+
 import java.util.*;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
@@ -61,7 +64,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_InvokeWithTuple().init(
-			2, Invokes);
+			2, Invokes, CanInline);
 
 	@Override
 	public Result attempt (
@@ -96,13 +99,8 @@ extends Primitive
 		// feel free to clobber the argsBuffer.
 		interpreter.argsBuffer.clear();
 		argTuple.forEach(interpreter.argsBuffer::add);
-
-		// "Jump" into the function, since the current primitive should not show
-		// up in the Avail stack.
 		interpreter.function = function;
-		interpreter.chunk = code.startingChunk();
-		interpreter.offset = 0;
-		return Result.CONTINUATION_CHANGED;
+		return READY_TO_INVOKE;
 	}
 
 	/**

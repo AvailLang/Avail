@@ -265,7 +265,9 @@ public final class AvailRuntime
 	 * The maximum number of {@link Interpreter}s that can be constructed for
 	 * this runtime.
 	 */
-	public static final int maxInterpreters = availableProcessors;
+	public static final int maxInterpreters = 1;
+	//TODO MvG - Restore multithreading after debugging new interpreter.
+	//public static final int maxInterpreters = availableProcessors;
 
 	/**
 	 * A counter from which unique interpreter indices in [0..maxInterpreters)

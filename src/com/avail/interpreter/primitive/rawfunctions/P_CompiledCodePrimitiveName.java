@@ -1,5 +1,5 @@
 /**
- * P_ContinueContinuation.java
+ * P_CompiledCodePrimitiveName.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,27 +29,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.controlflow;
+package com.avail.interpreter.primitive.rawfunctions;
 
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
+import javax.annotation.Nullable;
+
 /**
- * <strong>Primitive:</strong> Make the current {@linkplain FiberDescriptor
- * fiber} continue running the specified {@linkplain ContinuationDescriptor
- * continuation}, rather than what it's doing (i.e., calling this primitive).
+ * <strong>Primitive:</strong> Answer the name of the primitive for this
+ * {@linkplain CompiledCodeDescriptor compiled code}.  Answer the empty string
+ * if this code is not a primitive.
  */
-public final class P_ContinueContinuation
-extends Primitive
+public final class P_CompiledCodePrimitiveName extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	public static final Primitive instance =
-		new P_ContinueContinuation().init(
-			1, SwitchesContinuation, CannotFail);
+		new P_CompiledCodePrimitiveName().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -58,10 +59,18 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Continuation newContinuation = args.get(0);
-
-		interpreter.prepareToResumeContinuation(newContinuation);
-		return Result.CONTINUATION_CHANGED;
+		final A_RawFunction code = args.get(0);
+		@Nullable final Primitive prim = code.primitive();
+		final A_String string;
+		if (prim == null)
+		{
+			string = TupleDescriptor.empty();
+		}
+		else
+		{
+			string = StringDescriptor.from(prim.name());
+		}
+		return interpreter.primitiveSuccess(string);
 	}
 
 	@Override
@@ -69,7 +78,7 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
-				ContinuationTypeDescriptor.mostGeneralType()),
-			BottomTypeDescriptor.bottom());
+				CompiledCodeTypeDescriptor.mostGeneralType()),
+			TupleTypeDescriptor.stringType());
 	}
 }

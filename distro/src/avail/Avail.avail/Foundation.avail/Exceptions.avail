@@ -1870,7 +1870,7 @@ Private method "unexpected result function:=_" is
 
 /* Raise a result-disagreed-with-expected-type whenever a method send produces
  * a result whose type disagrees with the expected type as determined at
- * comile time by applicable semantic restrictions.
+ * compile time by applicable semantic restrictions.
  */
 unexpected result function :=
 	[

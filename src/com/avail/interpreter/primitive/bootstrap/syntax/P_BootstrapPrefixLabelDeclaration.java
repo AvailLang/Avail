@@ -60,7 +60,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapPrefixLabelDeclaration().init(
-			3, CannotFail, Bootstrap);
+			3, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

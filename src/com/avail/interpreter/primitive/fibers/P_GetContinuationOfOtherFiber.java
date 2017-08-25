@@ -67,10 +67,9 @@ extends Primitive
 
 		final A_Fiber thisFiber = interpreter.fiber();
 		final Result suspended = interpreter.primitiveSuspend();
-		final A_Function failureFunction =
-			interpreter.primitiveFunctionBeingAttempted();
+		final A_Function failureFunction = interpreter.function;
+		assert failureFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		assert failureFunction.code().primitiveNumber() == primitiveNumber;
 		interpreter.postExitContinuation(
 			() -> otherFiber.whenContinuationIsAvailableDo(
 				theContinuation ->

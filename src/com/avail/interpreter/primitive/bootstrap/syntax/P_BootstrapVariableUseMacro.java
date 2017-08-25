@@ -58,7 +58,7 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapVariableUseMacro().init(
-			1, CannotFail, Bootstrap);
+			1, CannotFail, CanInline, Bootstrap);
 
 	@Override
 	public Result attempt (

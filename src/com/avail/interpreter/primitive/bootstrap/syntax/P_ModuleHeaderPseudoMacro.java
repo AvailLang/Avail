@@ -63,7 +63,7 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_ModuleHeaderPseudoMacro().init(
-			6, Private, Bootstrap, CannotFail, CanInline, CanFold);
+			6, Private, Bootstrap, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (

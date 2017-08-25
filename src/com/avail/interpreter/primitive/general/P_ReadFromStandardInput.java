@@ -70,8 +70,8 @@ extends Primitive
 		final AvailRuntime runtime = interpreter.runtime();
 		final A_Fiber fiber = interpreter.fiber();
 		final TextInterface textInterface = fiber.textInterface();
-		final A_Function failureFunction =
-			interpreter.primitiveFunctionBeingAttempted();
+		final A_Function failureFunction = interpreter.function;
+		assert failureFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		final CharBuffer buffer = CharBuffer.allocate(1);
 		interpreter.primitiveSuspend();

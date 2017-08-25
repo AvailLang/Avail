@@ -112,15 +112,18 @@ extends L2Operation
 			interpreter.argsBuffer.add(register.in(interpreter));
 		}
 		assert function.code().primitive() == primitive;
+		final A_Function savedFunction = interpreter.function;
+		interpreter.function = function;
 		// We'll check the return type on success, below.
 		final Result res = interpreter.attemptPrimitive(
-			primitive.primitiveNumber,
-			function,
+			primitive,
 			interpreter.argsBuffer,
 			true);
 		switch (res)
 		{
 			case SUCCESS:
+			{
+				interpreter.function = savedFunction;
 				final long before = AvailRuntime.captureNanos();
 				final AvailObject result = interpreter.latestResult();
 				final boolean checkOk = result.isInstanceOf(expectedType);
@@ -135,12 +138,25 @@ extends L2Operation
 				resultReg.set(result, interpreter);
 				interpreter.offset(successOffset);
 				break;
+			}
 			case FAILURE:
+			{
+				interpreter.function = savedFunction;
 				failureReg.set(interpreter.latestResult(), interpreter);
 				interpreter.offset(failureOffset);
 				break;
+			}
+			case READY_TO_INVOKE:
+			{
+				assert false :
+					"L2 Attempt inline prim not appropriate "
+						+ "for Invoking primitives.";
+				break;
+			}
 			default:
+			{
 				assert false;
+			}
 		}
 	}
 

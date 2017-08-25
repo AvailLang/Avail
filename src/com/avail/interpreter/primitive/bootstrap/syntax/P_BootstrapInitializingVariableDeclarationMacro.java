@@ -58,7 +58,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_BootstrapInitializingVariableDeclarationMacro().init(
-			3, CannotFail, Bootstrap);
+			3, CanInline, CannotFail, Bootstrap);
 
 	@Override
 	public Result attempt (

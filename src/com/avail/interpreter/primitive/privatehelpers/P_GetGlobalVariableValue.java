@@ -48,7 +48,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_GetGlobalVariableValue().init(
-			1, SpecialReturnGlobalValue, CanFold, CanInline, Private, CannotFail);
+			1, SpecialReturnGlobalValue, CanInline, Private, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -56,8 +56,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		final A_RawFunction code =
-			interpreter.primitiveFunctionBeingAttempted().code();
+		final A_RawFunction code = interpreter.function.code();
 		final A_Variable literalVariable = code.literalAt(1);
 		try
 		{

@@ -38,6 +38,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 
 import static com.avail.interpreter.Interpreter.argumentOrLocalRegister;
+import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.fixedRegisterCount;
 /**
  * This is the first instruction of the L1 interpreter's on-ramp for resuming
@@ -65,14 +66,19 @@ public class L2_REENTER_L1_CHUNK_FROM_INTERRUPT extends L2Operation
 	{
 		final A_Continuation continuation = interpreter.reifiedContinuation;
 		interpreter.reifiedContinuation = continuation.caller();
+		if (debugL1)
+		{
+			System.out.println("Reenter L1 from interrupt");
+		}
 
 		assert interpreter.function == continuation.function();
 		final int numSlots = continuation.numArgsAndLocalsAndStack();
-		interpreter.pointers = new AvailObject[fixedRegisterCount() + numSlots];
-		int registerIndex = argumentOrLocalRegister(1);
+		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
+		interpreter.pointers = new AvailObject[numSlots + 1];
+		int dest = 1;
 		for (int i = 1; i <= numSlots; i++)
 		{
-			interpreter.pointerAtPut(registerIndex++, continuation.stackAt(i));
+			interpreter.pointerAtPut(dest++, continuation.stackAt(i));
 		}
 		interpreter.levelOneStepper.pc = continuation.pc();
 		interpreter.levelOneStepper.stackp = continuation.stackp();
