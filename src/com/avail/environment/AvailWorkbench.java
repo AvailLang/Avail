@@ -325,6 +325,9 @@ extends JFrame
 		return d;
 	}
 
+	/** Truncate the start of the document any time it exceeds this. */
+	final int maxDocumentSize = 1_000_000;
+
 	/**
 	 * Update the {@linkplain #transcript} by appending the (non-empty) queued
 	 * text to it.  Only output what was already queued by the time the UI
@@ -352,9 +355,28 @@ extends JFrame
 			{
 				try
 				{
+					final int statusSize = perModuleStatusTextSize;
+					final int length = doc.getLength();
+					final String newString = pair.second().toString();
+					final int newStringLength = newString.length();
+					final int newLength = length + newStringLength;
+					final int amountToRemove = newLength - maxDocumentSize;
+					if (amountToRemove > 0)
+					{
+						// Remove part of the document just after the status
+						// area.  It may still be the case that the string being
+						// appended is still very large, but we'll just allow
+						// it to be big in that case.
+						final int endOfRemoval = min(
+							statusSize + amountToRemove, length);
+						if (endOfRemoval > statusSize)
+						{
+							doc.remove(statusSize, endOfRemoval - statusSize);
+						}
+					}
 					doc.insertString(
-						doc.getLength(),
-						pair.second().toString(),
+						doc.getLength(),  // The new length
+						newString,
 						pair.first().styleIn(doc));
 				}
 				catch (final BadLocationException e)
@@ -960,6 +982,21 @@ extends JFrame
 	@InnerAccess final ToggleFastLoaderAction toggleFastLoaderAction =
 		new ToggleFastLoaderAction(this);
 
+	/** The {@linkplain ToggleDebugInterpreterL1 toggle L1 debug action}. */
+	@InnerAccess final ToggleDebugInterpreterL1 toggleDebugL1 =
+		new ToggleDebugInterpreterL1(this);
+
+	/** The {@linkplain ToggleDebugInterpreterL2 toggle L2 debug action}. */
+	@InnerAccess final ToggleDebugInterpreterL2 toggleDebugL2 =
+		new ToggleDebugInterpreterL2(this);
+
+	/**
+	 * The {@linkplain ToggleDebugInterpreterPrimitives toggle primitive debug
+	 * action}.
+	 */
+	@InnerAccess final ToggleDebugInterpreterPrimitives toggleDebugPrimitives =
+		new ToggleDebugInterpreterPrimitives(this);
+
 	/**
 	 * The {@linkplain TraceSummarizeStatementsAction toggle fast-loader
 	 * summarization action}.
@@ -1065,16 +1102,21 @@ extends JFrame
 	 */
 	public void clearTranscript ()
 	{
-		final StyledDocument doc = transcript.getStyledDocument();
-		try
+		invokeLater(() ->
 		{
-			doc.remove(0, doc.getLength());
-		}
-		catch (final BadLocationException e)
-		{
-			// Shouldn't happen.
-			assert false;
-		}
+			final StyledDocument doc = document();
+			try
+			{
+				doc.remove(
+					perModuleStatusTextSize,
+					doc.getLength() - perModuleStatusTextSize);
+			}
+			catch (final BadLocationException e)
+			{
+				// Shouldn't happen.
+				assert false;
+			}
+		});
 	}
 
 	/**
@@ -2375,9 +2417,29 @@ extends JFrame
 	{
 		synchronized (updateQueue)
 		{
+			int consumed = text.length();
+			final Iterator<Pair<StreamStyle, StringBuilder>> iterator =
+				updateQueue.iterator();
+			if (iterator.hasNext())
+			{
+				iterator.next();  // Skip the first entry, the oldest one.
+				while (iterator.hasNext())
+				{
+					consumed += iterator.next().second().length();
+				}
+				// Consumed is now how many chars would be queued if the first
+				// queued entry were to be removed and the new text added.
+				if (consumed > maxDocumentSize)
+				{
+					// Remove the oldest entry, since the subsequent entries
+					// plus the new text are guaranteed to roll it off.
+					updateQueue.removeFirst();
+				}
+			}
 			final Pair<StreamStyle, StringBuilder> entry;
 			if (!updateQueue.isEmpty()
-				&& updateQueue.peekLast().first() == streamStyle)
+				&& updateQueue.peekLast().first() == streamStyle
+				&& updateQueue.peekLast().second().length() < maxDocumentSize)
 			{
 				entry = updateQueue.peekLast();
 			}
@@ -2515,6 +2577,10 @@ extends JFrame
 						new JCheckBoxMenuItem(traceSummarizeStatementsAction),
 						new JCheckBoxMenuItem(traceLoadedStatementsAction),
 						new JCheckBoxMenuItem(toggleFastLoaderAction),
+						null,
+						new JCheckBoxMenuItem(toggleDebugL1),
+						new JCheckBoxMenuItem(toggleDebugL2),
+						new JCheckBoxMenuItem(toggleDebugPrimitives),
 						null,
 					parserIntegrityCheckAction, null,
 					graphAction));

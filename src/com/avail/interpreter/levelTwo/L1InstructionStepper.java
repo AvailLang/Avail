@@ -208,6 +208,7 @@ public final class L1InstructionStepper
 		final int nybbleCount = nybbles.tupleSize();
 		while (pc <= nybbleCount)
 		{
+			assert interpreter.pointers == initialPointers;
 			int nybble = nybbles.extractNybbleFromTupleAt(pc++);
 			if (nybble == L1_doExtension.ordinal())
 			{
@@ -313,14 +314,16 @@ public final class L1InstructionStepper
 				{
 					final int localIndex = getInteger();
 					final AvailObject local = pointerAt(localIndex);
+					assert !local.equalsNil();
 					pointerAtPut(localIndex, NilDescriptor.nil());
 					push(local);
 					break;
 				}
 				case L1_doPushLocal:
 				{
-					final int localIndex = getInteger();
-					push(pointerAt(localIndex).makeImmutable());
+					final AvailObject local = pointerAt(getInteger());
+					assert !local.equalsNil();
+					push(local.makeImmutable());
 					break;
 				}
 				case L1_doPushLastOuter:
@@ -351,11 +354,11 @@ public final class L1InstructionStepper
 						// We don't assert assertObjectUnreachableIfMutable: on
 						// the popped outer variables because each outer
 						// variable's new reference from the function balances
-						// the lost reference from the wiped stack.  Likewise,
-						// we make them be immutable. The function itself should
-						// remain mutable at this point, otherwise the outer
-						// variables would have to makeImmutable() to be
-						// referenced by an immutable function.
+						// the lost reference from the continuation's stack.
+						// Likewise, we make them be immutable. The function
+						// itself should remain mutable at this point, otherwise
+						// the outer variables would have to makeImmutable() to
+						// be referenced by an immutable function.
 						final AvailObject value = pop();
 						assert !value.equalsNil();
 						newFunction.outerVarAtPut(i, value);
@@ -442,18 +445,15 @@ public final class L1InstructionStepper
 				}
 				case L1Ext_doPushLabel:
 				{
+					assert code.equals(function.code());
 					final int numArgs = code.numArgs();
 					assert code.primitive() == null;
 					final List<AvailObject> args = new ArrayList<>(numArgs);
 					for (int i = 1; i <= numArgs; i++)
 					{
-						args.add(pointerAt(i));
-					}
-					final int numLocals = code.numLocals();
-					final List<AvailObject> locals = new ArrayList<>(numLocals);
-					for (int i = 1; i <= numLocals; i++)
-					{
-						locals.add(pointerAt(numArgs + i));
+						final AvailObject arg = pointerAt(i);
+						assert !arg.equalsNil();
+						args.add(arg);
 					}
 					assert interpreter.chunk == L2Chunk.unoptimizedChunk();
 
@@ -480,15 +480,18 @@ public final class L1InstructionStepper
 							pc = savedPc;
 							stackp = savedStackp;
 
+							// Note that the locals are not present in the new
+							// continuation, just arguments.  The locals will be
+							// created by offsetToRestartUnoptimizedChunk()
+							// when the continuation is restarted.
 							final A_Continuation newContinuation =
-								ContinuationDescriptor.create(
+								ContinuationDescriptor.createLabel(
 									savedFunction,
 									interpreter.reifiedContinuation,
 									savedSkip,
 									L2Chunk.unoptimizedChunk(),
-									L2Chunk.offsetToResumeFromInterruptIntoUnoptimizedChunk(),
-									args,
-									locals);
+									L2Chunk.offsetToRestartUnoptimizedChunk(),
+									args);
 
 							// Freeze all fields of the new object, including
 							// its caller, function, and args.

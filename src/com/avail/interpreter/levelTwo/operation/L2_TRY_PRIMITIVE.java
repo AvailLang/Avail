@@ -52,7 +52,6 @@ import java.util.List;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
-import static com.avail.interpreter.Primitive.Result.*;
 
 /**
  * Expect the AvailObject (pointers) array and int array to still reflect the
@@ -97,9 +96,7 @@ extends L2Operation
 				System.out.println("          inline = " + primitive.name());
 			}
 			final Result result = interpreter.attemptPrimitive(
-				primitive,
-				interpreter.argsBuffer,
-				interpreter.skipReturnCheck);
+				primitive, interpreter.argsBuffer, interpreter.skipReturnCheck);
 			switch (result)
 			{
 				case SUCCESS:
@@ -135,11 +132,11 @@ extends L2Operation
 					}
 					finally
 					{
+						interpreter.function = savedFunction;
 						interpreter.chunk = savedChunk;
 						interpreter.offset = savedOffset;
 						interpreter.pointers = savedPointers;
 						interpreter.integers = savedInts;
-						interpreter.function = savedFunction;
 					}
 					interpreter.returnNow = true;
 					return;
@@ -151,23 +148,22 @@ extends L2Operation
 					// stack here, and resume the continuation.
 					assert primitive.hasFlag(SwitchesContinuation);
 
-					final A_Continuation savedContinuation =
+					final A_Continuation newContinuation =
 						interpreter.reifiedContinuation;
-					final L2Chunk savedChunk = interpreter.chunk;
-					final int savedOffset = interpreter.offset;
-					final boolean savedReturnNow = interpreter.returnNow;
-					final @Nullable AvailObject savedReturnValue =
-						savedReturnNow ? interpreter.latestResult() : null;
+					final A_Function newFunction = interpreter.function;
+					final L2Chunk newChunk = interpreter.chunk;
+					final int newOffset = interpreter.offset;
+					final boolean newReturnNow = interpreter.returnNow;
+					final @Nullable AvailObject newReturnValue =
+						newReturnNow ? interpreter.latestResult() : null;
 					throw interpreter.abandonStackThen(() ->
 					{
-						interpreter.reifiedContinuation = savedContinuation;
-						interpreter.function = savedContinuation.equalsNil()
-							? null
-							: savedContinuation.function();
-						interpreter.chunk = savedChunk;
-						interpreter.offset = savedOffset;
-						interpreter.returnNow = savedReturnNow;
-						interpreter.latestResult(savedReturnValue);
+						interpreter.reifiedContinuation = newContinuation;
+						interpreter.function = newFunction;
+						interpreter.chunk = newChunk;
+						interpreter.offset = newOffset;
+						interpreter.returnNow = newReturnNow;
+						interpreter.latestResult(newReturnValue);
 					});
 				}
 				case FIBER_SUSPENDED:
@@ -227,7 +223,11 @@ extends L2Operation
 				}
 				case CONTINUATION_CHANGED:
 				{
-					// Continue in whatever frame was set up by the primitive.
+					// Inline and non-inline primitives are each allowed to
+					// change the continuation.  The stack has already been
+					// reified here, so just continue in whatever frame was set
+					// up by the continuation.
+					assert primitive.hasFlag(SwitchesContinuation);
 					break;
 				}
 				case FIBER_SUSPENDED:

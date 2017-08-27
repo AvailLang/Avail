@@ -36,6 +36,8 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.optimizer.L2Translator;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.register.*;
@@ -273,9 +275,25 @@ public final class L2Chunk
 	 *
 	 * @return A level two offset within the default chunk.
 	 */
-	public static int offsetToResumeFromInterruptIntoUnoptimizedChunk ()
+	public static int offsetToResumeInterruptedUnoptimizedChunk ()
 	{
 		return 6;
+	}
+
+	/**
+	 * The level two wordcode offset to which to jump when restarting an
+	 * unoptimized {@link A_Continuation} via {@link P_RestartContinuation} or
+	 * {@link P_RestartContinuationWithArguments}.  The latter form will first
+	 * copy the continuation and replace the arguments.
+	 *
+	 * <p>It's hard-coded, but checked against the default chunk in {@link
+	 * L2Translator#L2Translator()} when that chunk is created.</p>
+	 *
+	 * @return A level two offset within the default chunk.
+	 */
+	public static int offsetToRestartUnoptimizedChunk ()
+	{
+		return 8;
 	}
 
 	/**

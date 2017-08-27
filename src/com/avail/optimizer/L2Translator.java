@@ -3797,6 +3797,8 @@ public final class L2Translator
 			newLabel("reenter L1 from call");
 		final L2Instruction reenterFromInterruptLabel =
 			newLabel("reenter L1 from interrupt");
+		final L2Instruction reenterFromRestartLabel =
+			newLabel("reenter L1 from restart primitive");
 		// First we try to run it as a primitive.
 		justAddInstruction(L2_TRY_PRIMITIVE.instance);
 		// Only if the primitive fails should we consider optimizing the
@@ -3817,14 +3819,26 @@ public final class L2Translator
 			new L2PcOperand(reenterFromCallLabel),
 			new L2PcOperand(reenterFromInterruptLabel));
 
+		// If reified, calls return here.
 		instructions.add(reenterFromCallLabel);
 		instructionRegisterSets.add(null);
 		justAddInstruction(L2_REENTER_L1_CHUNK_FROM_CALL.instance);
 		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
 
+		// If reified, interrupts return here.
 		instructions.add(reenterFromInterruptLabel);
 		instructionRegisterSets.add(null);
 		justAddInstruction(L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance);
+		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
+
+		// Labels create continuations that start here.  The continuations
+		// capture the arguments and nothing else from the original frame.
+		// The ordinary P_RestartContinuation will have to set up locals, but
+		// P_RestartContinuationWithArguments will also copy the continuation
+		// with different arguments first.
+		instructions.add(reenterFromRestartLabel);
+		instructionRegisterSets.add(null);
+		justAddInstruction(L2_REENTER_L1_CHUNK_FROM_RESTART.instance);
 		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
 
 		createChunk();
@@ -3833,7 +3847,9 @@ public final class L2Translator
 		assert reenterFromCallLabel.offset() ==
 			L2Chunk.offsetToReturnIntoUnoptimizedChunk();
 		assert reenterFromInterruptLabel.offset() ==
-			L2Chunk.offsetToResumeFromInterruptIntoUnoptimizedChunk();
+			L2Chunk.offsetToResumeInterruptedUnoptimizedChunk();
+		assert reenterFromRestartLabel.offset() ==
+			L2Chunk.offsetToRestartUnoptimizedChunk();
 	}
 
 	/**

@@ -414,61 +414,57 @@ extends Descriptor
 	/**
 	 * Create a new continuation with the given data.  The continuation should
 	 * represent the state upon entering the new context - i.e., set the pc to
-	 * the first instruction, clear the stack, and set up all local variables.
+	 * the first instruction, clear the stack, and set up new local variables.
 	 *
 	 * @param function
-	 *            The function being invoked.
+	 *        The function being invoked.
 	 * @param caller
-	 *            The calling continuation.
+	 *        The calling continuation.
 	 * @param skipReturnCheck
-	 *            Whether it's safe to skip type checking the return result from
-	 *            this continuation.
+	 *        Whether it's safe to skip type checking the return result from
+	 *        this continuation.
 	 * @param startingChunk
-	 *            The level two chunk to invoke.
+	 *        The level two chunk to invoke.
 	 * @param startingOffset
-	 *            The offset into the chunk at which to resume.
+	 *        The offset into the chunk at which to resume.
 	 * @param args
-	 *            The {@link List} of arguments
-	 * @param locals
-	 *            The {@link List} of (non-argument) local variables.
+	 *        The {@link List} of arguments
 	 * @return The new continuation.
 	 */
-	public static A_Continuation create (
+	public static A_Continuation createLabel (
 		final A_Function function,
 		final A_Continuation caller,
 		final boolean skipReturnCheck,
 		final L2Chunk startingChunk,
 		final int startingOffset,
-		final List<AvailObject> args,
-		final List<AvailObject> locals)
+		final List<AvailObject> args)
 	{
 		final A_RawFunction code = function.code();
+		assert code.primitive() == null;
 		final int frameSize = code.numArgsAndLocalsAndStack();
 		final AvailObject cont = mutable.create(frameSize);
 		cont.setSlot(CALLER, caller);
 		cont.setSlot(FUNCTION, function);
-		cont.setSlot(PROGRAM_COUNTER, 1);
+		cont.setSlot(PROGRAM_COUNTER, 0); // Indicates this is a label.
 		cont.setSlot(STACK_POINTER, frameSize + 1);
 		cont.setSlot(SKIP_RETURN_CHECK, skipReturnCheck ? 1 : 0);
 		cont.levelTwoChunkOffset(startingChunk, startingOffset);
-		for (int i = code.numArgsAndLocalsAndStack(); i >= 1; i--)
-		{
-			cont.argOrLocalOrStackAtPut(i, NilDescriptor.nil());
-		}
 		//  Set up arguments...
-		final int nArgs = args.size();
-		assert nArgs == code.numArgs();
-		for (int i = 1; i <= nArgs; i++)
+		final int numArgs = args.size();
+		assert numArgs == code.numArgs();
+		int slotIndex = 1;
+		for (final AvailObject arg : args)
 		{
-			//  arguments area
-			cont.argOrLocalOrStackAtPut(i, args.get(i - 1));
+			// Arguments area.  These are used by P_RestartContinuation, but
+			// they're replaced before resumption if using
+			// P_RestartContinuationWithArguments.
+			cont.argOrLocalOrStackAtPut(slotIndex++, arg);
 		}
-		final int nLocals = locals.size();
-		assert nLocals == code.numLocals();
-		for (int i = 1; i <= nLocals; i++)
+		while (slotIndex <= frameSize)
 		{
-			//  non-argument locals
-			cont.argOrLocalOrStackAtPut(nArgs + i, locals.get(i - 1));
+			// All the remaining slots.  DO NOT capture or build locals.
+			cont.argOrLocalOrStackAtPut(slotIndex, NilDescriptor.nil());
+			slotIndex++;
 		}
 		return cont;
 	}

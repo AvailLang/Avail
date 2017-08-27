@@ -129,7 +129,9 @@ extends L2Operation
 			}
 			case READY_TO_INVOKE:
 			{
-				assert false : "Should not run Invoking primitive as inline here";
+				assert false
+					: "Should not run invoking primitive as inline here";
+				break;
 			}
 			default:
 			{

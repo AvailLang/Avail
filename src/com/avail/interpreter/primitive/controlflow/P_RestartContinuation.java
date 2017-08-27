@@ -72,7 +72,7 @@ public final class P_RestartContinuation extends Primitive
 		assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
 			: "Outer continuation should have been a label- rather than "
 				+ "call-continuation";
-		assert con.pc() == 1
+		assert con.pc() == 0
 			: "Labels must only occur at the start of a block.  "
 				+ "Only restart that kind of continuation.";
 

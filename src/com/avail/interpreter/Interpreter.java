@@ -1434,14 +1434,14 @@ public final class Interpreter
 	}
 
 	/**
-	 * Raise an exception. Scan the stack of continuations until one is found
-	 * for a function whose code specifies {@linkplain P_CatchException}.
-	 * Get that continuation's second argument (a handler block of one
-	 * argument), and check if that handler block will accept the
-	 * exceptionValue. If not, keep looking. If it will accept it, unwind the
-	 * stack so that the primitive 200 method is the top entry, and invoke the
-	 * handler block with exceptionValue. If there is no suitable handler block,
-	 * fail the primitive.
+	 * Raise an exception. Scan the stack of continuations (which must have been
+	 * reified already) until one is found for a function whose code specifies
+	 * {@linkplain P_CatchException}. Get that continuation's second argument
+	 * (a handler block of one argument), and check if that handler block will
+	 * accept the exceptionValue. If not, keep looking. If it will accept it,
+	 * unwind the continuation stack so that the primitive catch method is the
+	 * top entry, and invoke the handler block with exceptionValue. If there is
+	 * no suitable handler block, fail the primitive.
 	 *
 	 * @param exceptionValue The exception object being raised.
 	 * @return The {@linkplain Result success state}.
@@ -1463,7 +1463,7 @@ public final class Interpreter
 				final A_Variable failureVariable =
 					continuation.argOrLocalOrStackAt(4);
 				// Scan a currently unmarked frame.
-				if (failureVariable.value().extractInt() == 0)
+				if (failureVariable.value().equalsInt(0))
 				{
 					final A_Tuple handlerTuple =
 						continuation.argOrLocalOrStackAt(2);
@@ -1481,9 +1481,14 @@ public final class Interpreter
 							// fully reified, simply jump into the chunk.  Note
 							// that the argsBuffer was already set up with just
 							// the exceptionValue.
+							reifiedContinuation = continuation;
 							function = handler;
 							chunk = handler.code().startingChunk();
-							offset = 0;
+							offset = 0;  // Invocation
+							pointers = null;
+							integers = null;
+							returnNow = false;
+							latestResult(null);
 							return CONTINUATION_CHANGED;
 						}
 					}

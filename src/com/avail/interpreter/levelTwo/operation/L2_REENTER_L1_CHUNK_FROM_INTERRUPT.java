@@ -1,5 +1,5 @@
 /**
- * L2_REENTER_L1_CHUNK_FROM_CALL.java
+ * L2_REENTER_L1_CHUNK_FROM_INTERRUPT.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *

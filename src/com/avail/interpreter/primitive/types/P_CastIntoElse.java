@@ -78,17 +78,17 @@ public final class P_CastIntoElse extends Primitive
 		final AvailObject value = args.get(0);
 		final A_Function castFunction = args.get(1);
 		final A_Function elseFunction = args.get(2);
+
+		interpreter.argsBuffer.clear();
 		if (value.isInstanceOf(
 			castFunction.code().functionType().argsTupleType().typeAtIndex(1)))
 		{
 			// "Jump" into the castFunction, to keep this frame from showing up.
-			interpreter.argsBuffer.clear();
 			interpreter.argsBuffer.add(value);
 			interpreter.function = castFunction;
 			return Result.READY_TO_INVOKE;
 		}
 		// "Jump" into the elseFunction, to keep this frame from showing up.
-		interpreter.argsBuffer.clear();
 		interpreter.function = elseFunction;
 		return Result.READY_TO_INVOKE;
 	}

@@ -708,10 +708,6 @@ implements IntegerEnumSlotDescriptionEnum
 				|| primitiveFlags.contains(Flag.CanInline)
 			: "Primitive " + getClass().getSimpleName()
 				+ " has Invokes without CanInline";
-		assert !primitiveFlags.contains(Flag.SwitchesContinuation)
-			|| primitiveFlags.contains(Flag.CanInline)
-			: "Primitive " + getClass().getSimpleName()
-			+ " has SwitchesContinuation without CanInline";
 		// Register this instance.
 		assert holder.primitive == null;
 		holder.primitive = this;

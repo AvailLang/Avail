@@ -75,9 +75,10 @@ public final class P_RestartContinuationWithArguments extends Primitive
 		assert originalCon.stackp() == code.numArgsAndLocalsAndStack() + 1
 			: "Outer continuation should have been a label- rather than "
 				+ "call-continuation";
-		assert originalCon.pc() == 1
+		assert originalCon.pc() == 0
 			: "Labels must only occur at the start of a block.  "
 				+ "Only restart that kind of continuation.";
+
 		final int numArgs = code.numArgs();
 		if (numArgs != arguments.tupleSize())
 		{
@@ -98,6 +99,7 @@ public final class P_RestartContinuationWithArguments extends Primitive
 		}
 
 		interpreter.reifiedContinuation = conCopy;
+		interpreter.function = conCopy.function();
 		interpreter.chunk = conCopy.levelTwoChunk();
 		interpreter.offset = conCopy.levelTwoOffset();
 		interpreter.returnNow = false;

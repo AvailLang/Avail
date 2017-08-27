@@ -68,12 +68,14 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final A_Continuation continuation = interpreter.reifiedContinuation;
-		interpreter.reifiedContinuation = continuation.caller();
 		if (debugL1)
 		{
 			System.out.println("Reenter L1 from call");
 		}
+
+		final A_Continuation continuation = interpreter.reifiedContinuation;
+		interpreter.reifiedContinuation = continuation.caller();
+		final AvailObject returnValue = interpreter.latestResult();
 
 		assert interpreter.function == continuation.function();
 		final int numSlots = continuation.numArgsAndLocalsAndStack();
@@ -87,7 +89,6 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 		final L1InstructionStepper stepper = interpreter.levelOneStepper;
 		stepper.pc = continuation.pc();
 		stepper.stackp = continuation.stackp();
-		final AvailObject returnValue = interpreter.latestResult();
 		if (!interpreter.skipReturnCheck)
 		{
 			final A_Type type = interpreter.pointerAt(stepper.stackp);
