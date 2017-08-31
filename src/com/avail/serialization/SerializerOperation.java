@@ -1528,11 +1528,14 @@ public enum SerializerOperation
 	/**
 	 * A reference to a {@linkplain MethodDescriptor method} that should be
 	 * looked up during deserialization.  A method can have multiple {@linkplain
-	 * MessageBundleDescriptor message bundles}, only one of which is output
-	 * during serialization, chosen arbitrarily.  During deserialization, the
-	 * message bundle is looked up, and its method is extracted.
+	 * MessageBundleDescriptor message bundles}, and <em>each</em> &lt;module
+	 * name, atom name> pair is recorded during serialization.  For system atoms
+	 * we output nil for the module name.  During deserialization, the list is
+	 * searched for a module that has been loaded, and if the corresponding name
+	 * is an atom, and if that atom has a bundle associated with it, that
+	 * bundle's method is used.
 	 */
-	METHOD (47, OBJECT_REFERENCE.as("arbitrary method bundle"))
+	METHOD (47, TUPLE_OF_OBJECTS.as("module name / atom name pairs"))
 	{
 		@Override
 		A_BasicObject[] decompose (
@@ -1540,7 +1543,25 @@ public enum SerializerOperation
 			final Serializer serializer)
 		{
 			assert object.isInstanceOf(Types.METHOD.o());
-			return array(object.chooseBundle());
+			final List<A_Tuple> pairs = new ArrayList<>();
+			for (final A_Bundle bundle : object.bundles())
+			{
+				final A_Atom atom = bundle.message();
+				final A_Module module = atom.issuingModule();
+				if (!module.equalsNil())
+				{
+					pairs.add(
+						TupleDescriptor.from(
+							module.moduleName(), atom.atomName()));
+				}
+				else
+				{
+					pairs.add(
+						TupleDescriptor.from(
+							NilDescriptor.nil(), atom.atomName()));
+				}
+			}
+			return array(TupleDescriptor.fromList(pairs));
 		}
 
 		@Override
@@ -1548,8 +1569,52 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			final A_Bundle bundle = subobjects[0];
-			return bundle.bundleMethod();
+			final A_Tuple pairs = subobjects[0];
+			final AvailRuntime runtime = deserializer.runtime();
+			for (final A_Tuple pair : pairs)
+			{
+				assert pair.tupleSize() == 2;
+				final A_String moduleName = pair.tupleAt(1);
+				final A_String atomName = pair.tupleAt(2);
+				if (!moduleName.equalsNil()
+					&& runtime.includesModuleNamed(moduleName))
+				{
+					final A_Atom atom =
+						lookupAtom(atomName, moduleName, deserializer);
+					final A_Bundle bundle = atom.bundleOrNil();
+					if (!bundle.equalsNil())
+					{
+						return bundle.bundleMethod();
+					}
+				}
+			}
+			// Look it up as a special atom instead.
+			for (final A_Tuple pair : pairs)
+			{
+				assert pair.tupleSize() == 2;
+				final A_String moduleName = pair.tupleAt(1);
+				final A_String atomName = pair.tupleAt(2);
+				if (moduleName.equalsNil())
+				{
+					for (final A_Atom specialAtom
+						: Serializer.specialAtoms.keySet())
+					{
+						if (specialAtom.atomName().equals(atomName))
+						{
+							final A_Bundle bundle = specialAtom.bundleOrNil();
+							if (!bundle.equalsNil())
+							{
+								return bundle.bundleMethod();
+							}
+						}
+					}
+					throw new RuntimeException(
+						"Method could not be found by name as a special atom "
+							+ "bundle");
+				}
+			}
+			throw new RuntimeException(
+				"None of method's bundle-defining modules were loaded");
 		}
 	},
 
@@ -1807,8 +1872,7 @@ public enum SerializerOperation
 		{
 			assert object.getAtomProperty(HERITABLE_KEY.atom)
 				.equalsNil();
-			assert object.getAtomProperty(
-				EXPLICIT_SUBCLASSING_KEY.atom)
+			assert object.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom)
 				.equals(EXPLICIT_SUBCLASSING_KEY.atom);
 			final A_Module module = object.issuingModule();
 			if (module.equalsNil())
@@ -3327,7 +3391,7 @@ public enum SerializerOperation
 	}
 
 	/**
-	 * Construct a new {@link SerializerOperation}.
+	 * Construct a new {@code SerializerOperation}.
 	 *
 	 * @param ordinal
 	 *            The ordinal of this enum value, supplied as a cross-check to
@@ -3356,7 +3420,7 @@ public enum SerializerOperation
 	 *            The serializer requesting decomposition.
 	 * @return
 	 *            An array of {@code AvailObject}s whose entries agree with this
-	 *            {@link SerializerOperation}'s operands.
+	 *            {@code SerializerOperation}'s operands.
 	 */
 	abstract A_BasicObject[] decompose (
 		final AvailObject object,
@@ -3444,7 +3508,7 @@ public enum SerializerOperation
 			final A_Set candidates = privateNames.mapAt(atomName);
 			if (candidates.setSize() == 1)
 			{
-				return candidates.asTuple().tupleAt(1);
+				return candidates.iterator().next();
 			}
 			if (candidates.setSize() > 1)
 			{

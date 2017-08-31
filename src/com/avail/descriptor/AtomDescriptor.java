@@ -324,6 +324,10 @@ extends Descriptor
 	@AvailMethod @ThreadSafe
 	final SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
+		if (object.isAtomSpecial())
+		{
+			return SerializerOperation.SPECIAL_ATOM;
+		}
 		if (!object.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
 		{
 			return SerializerOperation.HERITABLE_ATOM;

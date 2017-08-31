@@ -220,7 +220,7 @@ extends AtomWithPropertiesDescriptor
 	final boolean isSpecial;
 
 	/**
-	 * Construct a new {@link AtomWithPropertiesSharedDescriptor}.
+	 * Construct a new {@code AtomWithPropertiesSharedDescriptor}.
 	 *
 	 * @param isSpecial
 	 *        Whether this particular descriptor is used to represent an atom

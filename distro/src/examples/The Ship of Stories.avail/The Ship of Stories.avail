@@ -43,6 +43,12 @@ Uses
 	"The Detective",
 	"The Princess",
 	"The Mad Scientist"
+Extends
+	"Avail" =
+	(
+		"whitespace lexer",
+		"keyword lexer"
+	)
 Entries
 	"Play the Ship of Stories",
 	"Play the Ship of Stories by web"

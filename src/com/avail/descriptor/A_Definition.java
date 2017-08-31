@@ -128,14 +128,6 @@ extends A_BasicObject
 	boolean isMethodDefinition ();
 
 	/**
-	 * Answer the {@linkplain ModuleDescriptor module} in which this
-	 * definition occurred.
-	 *
-	 * @return The module containing this definition.
-	 */
-	A_Module module ();
-
-	/**
 	 * Answer the {@link ListNodeTypeDescriptor list phrase type} for this
 	 * definition.  The parser uses this type to produce a customized {@link
 	 * A_DefinitionParsingPlan parsing plan}, specialized to a particular {@link

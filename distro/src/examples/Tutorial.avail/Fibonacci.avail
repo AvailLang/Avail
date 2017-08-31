@@ -34,7 +34,13 @@ Module "Fibonacci"
 Uses
 	"Avail"
 Extends
-	"Avail" = ("…#")
+	"Avail" =
+	(
+		"whitespace lexer",
+		"keyword lexer",
+		"whole number lexer",
+		"…#"
+	)
 Entries
 	"_st|nd|rd|th Fibonacci number"
 Body

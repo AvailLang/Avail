@@ -74,10 +74,7 @@ extends Primitive
 		assert !module.equalsNil();
 		if (isPublic.extractBoolean())
 		{
-			for (final A_Atom name : names)
-			{
-				module.addImportedName(name);
-			}
+			module.addImportedNames(names);
 		}
 		else
 		{

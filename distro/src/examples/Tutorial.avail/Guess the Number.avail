@@ -34,7 +34,15 @@ Module "Guess the Number"
 Uses
 	"Avail"
 Extends
-	"Avail" = ("-_", "…#")
+	"Avail" =
+	(
+		"whitespace lexer",
+		"keyword lexer",
+		"operator lexer",
+		"whole number lexer",
+		"-_",
+		"…#"
+	)
 Entries
 	"Play guess a number between_and_"
 Body

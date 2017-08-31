@@ -278,9 +278,10 @@ extends A_ChunkDependable
 	 * module.  The current module is determined by the current {@link A_Fiber
 	 * fiber}'s {@link AvailLoader}.  If none are visible, choose one at random.
 	 *
+	 * @param currentModule The current module being loaded.
 	 * @return One of this method's {@link A_Bundle bundles}.
 	 */
-	A_Bundle chooseBundle ();
+	A_Bundle chooseBundle (final A_Module currentModule);
 
 	/**
 	 * Set this method's lexer to the given lexer or nil.

@@ -95,37 +95,12 @@ public class CompilationContext
 	abstract static class ParsingTask
 		extends AvailTask
 	{
-		/** The one-based source position with which this task is associated. */
-		private final int position;
-
 		/**
-		 * Construct a new {@link ParsingTask}.
-		 *
-		 * @param position
-		 *        The source position with which this task is associated.
+		 * Construct a new {@code ParsingTask}.
 		 */
-		@InnerAccess ParsingTask (
-			final int position)
+		@InnerAccess ParsingTask ()
 		{
 			super(FiberDescriptor.compilerPriority);
-			this.position = position;
-		}
-
-		@Override
-		public int compareTo (final @Nullable AvailTask o)
-		{
-			assert o != null;
-			final int priorityDelta = Integer.compare(priority, o.priority);
-			if (priorityDelta != 0)
-			{
-				return priorityDelta;
-			}
-			if (o instanceof ParsingTask)
-			{
-				final ParsingTask task = (ParsingTask) o;
-				return Integer.compare(position, task.position);
-			}
-			return priorityDelta;
 		}
 	}
 
@@ -492,7 +467,7 @@ public class CompilationContext
 			final Continuation1NotNull<Void> workUnit = workUnitCompletion(
 				lexingState, null, ignored -> continuation.value());
 			runtime.execute(
-				new ParsingTask(lexingState.position)
+				new ParsingTask()
 				{
 					@Override
 					public void value ()
@@ -506,7 +481,7 @@ public class CompilationContext
 			// We're not tracking work units, so just queue it without fiddling
 			// with the queued/completed counts.
 			runtime.execute(
-				new ParsingTask(lexingState.position)
+				new ParsingTask()
 				{
 					@Override
 					public void value ()

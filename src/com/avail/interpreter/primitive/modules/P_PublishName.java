@@ -70,8 +70,12 @@ extends Primitive
 		assert args.size() == 1;
 		final A_String name = args.get(0);
 		final AvailLoader loader = interpreter.fiber().availLoader();
-		final A_Module module;
-		if (loader == null || (module = loader.module()).equalsNil())
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
+		final A_Module module = loader.module();
+		if (module.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
 		}

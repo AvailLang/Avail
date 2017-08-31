@@ -370,10 +370,11 @@ extends Descriptor
 	}
 
 	@Override
-	A_Bundle o_ChooseBundle (final AvailObject object)
+	A_Bundle o_ChooseBundle (
+		final AvailObject object,
+		final A_Module currentModule)
 	{
-		final AvailLoader loader = Interpreter.current().availLoader();
-		final A_Set visibleModules = loader.module().allAncestors();
+		final A_Set visibleModules = currentModule.allAncestors();
 		final A_Set bundles = object.slot(OWNING_BUNDLES);
 		for (final A_Bundle bundle : bundles)
 		{
@@ -688,7 +689,7 @@ extends Descriptor
 	@Override
 	A_String o_MethodName (final AvailObject object)
 	{
-		return object.chooseBundle().message().atomName();
+		return object.chooseBundle(object.module()).message().atomName();
 	}
 
 	@Override @AvailMethod

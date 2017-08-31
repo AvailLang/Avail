@@ -417,6 +417,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	void o_AddImportedNames (
+		final AvailObject object,
+		final A_Set trueNames)
+	{
+		o_Traversed(object).addImportedNames(trueNames);
+	}
+
+	@Override
 	void o_IntroduceNewName (
 		final AvailObject object,
 		final A_Atom trueName)
@@ -4756,9 +4764,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Bundle o_ChooseBundle (final AvailObject object)
+	A_Bundle o_ChooseBundle (
+		final AvailObject object,
+		final A_Module currentModule)
 	{
-		return o_Traversed(object).chooseBundle();
+		return o_Traversed(object).chooseBundle(currentModule);
 	}
 
 	@Override

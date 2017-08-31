@@ -40,7 +40,6 @@ import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.Interpreter;
-import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
 
 /**
@@ -49,11 +48,12 @@ import com.avail.utility.evaluation.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
 public abstract class AvailTask
 implements Comparable<AvailTask>, Runnable
 {
 	/**
-	 * Answer a {@linkplain AvailTask task} suitable for resuming the specified
+	 * Answer an {@code AvailTask} suitable for resuming the specified
 	 * {@linkplain FiberDescriptor fiber} using the specified {@linkplain
 	 * Continuation0 Java continuation}. If the continuation fails for any
 	 * reason, then it {@linkplain Interpreter#abortFiber() aborts} the fiber
@@ -84,6 +84,7 @@ implements Comparable<AvailTask>, Runnable
 			public void value ()
 			{
 				final Interpreter interpreter = Interpreter.current();
+				assert interpreter.fiberOrNull() == null;
 				fiber.lock(() ->
 				{
 					assert fiber.executionState().indicatesSuspension();
@@ -95,7 +96,7 @@ implements Comparable<AvailTask>, Runnable
 							SCHEDULED, false);
 					assert wasScheduled;
 					fiber.executionState(RUNNING);
-					interpreter.fiber(fiber);
+					interpreter.fiber(fiber, "forFiberResumption");
 				});
 				try
 				{
@@ -138,18 +139,18 @@ implements Comparable<AvailTask>, Runnable
 				{
 					if (fiber.executionState() == TERMINATED)
 					{
-						fiber.resultContinuation().value(
-							fiber.fiberResult());
+						fiber.resultContinuation().value(fiber.fiberResult());
 						fiber.executionState(RETIRED);
 						interpreter.runtime().unregisterFiber(fiber);
 					}
 				});
+				assert interpreter.fiberOrNull() == null;
 			}
 		};
 	}
 
 	/**
-	 * Answer a {@linkplain AvailTask task} suitable for performing {@linkplain
+	 * Answer an {@code AvailTask} suitable for performing {@linkplain
 	 * Continuation0 activities} on behalf of an unbound {@linkplain
 	 * ExecutionState#SUSPENDED} {@linkplain FiberDescriptor fiber}. If the
 	 * continuation fails for any reason, then it transitions the fiber to the
@@ -192,30 +193,56 @@ implements Comparable<AvailTask>, Runnable
 					fiber.executionState(ABORTED);
 					fiber.failureContinuation().value(e);
 				}
+				assert Interpreter.current().fiberOrNull() == null;
 			}
 		};
 	}
 
-	/** The priority of the {@linkplain AvailTask task}. */
+	/**
+	 * The priority of the {@linkplain AvailTask task}.  It must be a value in
+	 * the range 0..255.
+	 *
+	 * @see #quasiDeadline
+	 */
 	public final int priority;
 
 	/**
-	 * Construct a new {@link AvailTask}.
+	 * The quasi-deadline of the task.  This is the moment that the task can no
+	 * longer be preceded by a new task.  Given a priority in the range 0..255,
+	 * the quasi-deadline is System.currentTimeMillis() plus a time delta.  The
+	 * delta is 1000ms * (1 - (priority / 256)).  That places it one second in
+	 * the future for priority = 0, and places it essentially at the current
+	 * moment for priority = 255.
+	 */
+	private final long quasiDeadline;
+
+	/**
+	 * Construct a new {@code AvailTask}.
 	 *
-	 * @param priority The desired priority, a nonnegative integer.
+	 * @param priority
+	 *        The desired priority, a long tied to milliseconds since the
+	 *        current epoch.
 	 */
 	public AvailTask (
 		final int priority)
 	{
-		assert priority >= 0;
+		assert priority >= 0 && priority <= 255;
 		this.priority = priority;
+		final long deltaNanos = (1_000_000_000L * (255 - priority)) >> 8;
+		this.quasiDeadline = System.nanoTime() + deltaNanos;
 	}
 
 	@Override
 	public int compareTo (final @Nullable AvailTask other)
 	{
 		assert other != null;
-		return Integer.compare(priority, other.priority);
+		// Note that using Long.compare(long) would deal with counter overflow
+		// in a way we don't want.  Instead, assume a task doesn't sit in the
+		// queue for a century or two(!), and use a technically non-transitive
+		// comparison operation, checking if the difference is negative.
+		//noinspection SubtractionInCompareTo
+
+		return Long.compare(quasiDeadline - other.quasiDeadline, 0);
 	}
 
 	@Override

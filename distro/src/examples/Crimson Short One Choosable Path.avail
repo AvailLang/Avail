@@ -36,6 +36,12 @@ Versions
 Uses
 	"Avail",
 	"Choosable Path"
+Extends
+	"Avail" =
+	(
+		"whitespace lexer",
+		"keyword lexer"
+	)
 Entries
 	"Play Crimson Short One"
 Body

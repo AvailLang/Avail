@@ -93,7 +93,7 @@ public final class P_CreateContinuation extends Primitive
 		return FunctionTypeDescriptor.create(
 			TupleDescriptor.from(
 				FunctionTypeDescriptor.mostGeneralType(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
+				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleTypeDescriptor.mostGeneralType(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				VariableTypeDescriptor.wrapInnerType(

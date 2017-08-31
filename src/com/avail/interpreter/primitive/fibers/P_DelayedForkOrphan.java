@@ -77,8 +77,7 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		final List<AvailObject> callArgs =
-			new ArrayList<>(numArgs);
+		final List<AvailObject> callArgs = new ArrayList<>(numArgs);
 		final A_Type tupleType = function.kind().argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{
@@ -126,18 +125,15 @@ extends Primitive
 		// Inherit the fiber's text interface.
 		orphan.textInterface(current.textInterface());
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
+		final AvailRuntime runtime = AvailRuntime.current();
 		if (sleepMillis.equalsInt(0))
 		{
 			Interpreter.runOutermostFunction(
-				AvailRuntime.current(),
-				orphan,
-				function,
-				callArgs);
+				runtime, orphan, function, callArgs);
 		}
 		// Otherwise, schedule the fiber to start later.
 		else
 		{
-			final AvailRuntime runtime = AvailRuntime.current();
 			AvailRuntime.current().timer.schedule(
 				new TimerTask()
 				{
@@ -147,10 +143,7 @@ extends Primitive
 						// Don't check for the termination requested interrupt
 						// here, since no fiber could have signaled it.
 						Interpreter.runOutermostFunction(
-							runtime,
-							orphan,
-							function,
-							callArgs);
+							runtime, orphan, function, callArgs);
 					}
 				},
 				sleepMillis.extractLong());

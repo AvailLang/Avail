@@ -3155,11 +3155,8 @@ public final class AvailBuilder
 			final ModuleHeader header = new ModuleHeader(loadedModule.name);
 			header.importedModules.add(moduleImport);
 			header.applyToModule(module, runtime);
-			for (final MapDescriptor.Entry entry :
-				loadedModule.module.entryPoints().mapIterable())
-			{
-				module.addImportedName(entry.value());
-			}
+			module.addImportedNames(
+				loadedModule.module.entryPoints().valuesAsTuple().asSet());
 			final AvailCompiler compiler = new AvailCompiler(
 				header,
 				module,

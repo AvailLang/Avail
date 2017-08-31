@@ -435,7 +435,7 @@ Primitive "all atoms for_" is
  * @method "`$_@pc=_stack=_[_]caller=_"
  * @param "aFunction" "function"
  *        The new continuation's current function.
- * @param "programCounter" "natural number"
+ * @param "programCounter" "whole number"
  *        {@param "aFunction"}'s program counter. This is the index of the
  *        next Level One instruction to execute when the new continuation is
  *        resumed.
@@ -456,7 +456,7 @@ Primitive "all atoms for_" is
 Primitive "`$_@pc=_stack=_[_]caller=_" is
 [
 	aFunction : function,
-	programCounter : natural number,
+	programCounter : whole number,
 	stack : tuple,
 	stackPointer : natural number,
 	caller : continuation variable

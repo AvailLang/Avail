@@ -430,10 +430,7 @@ public class ModuleHeader
 			// Actually make the atoms available in this module.
 			if (moduleImport.isExtension)
 			{
-				for (final A_Atom trueName : atomsToImport)
-				{
-					module.addImportedName(trueName);
-				}
+				module.addImportedNames(atomsToImport);
 			}
 			else
 			{

@@ -65,8 +65,9 @@ public class LoadingEffectToAddDefinition extends LoadingEffect
 	@Override
 	public void writeEffectTo (final L1InstructionWriter writer)
 	{
-		final A_Atom atom =
-			definition.definitionMethod().chooseBundle().message();
+		final A_Atom atom = definition.definitionMethod()
+			.chooseBundle(definition.definitionModule())
+			.message();
 		if (definition.isAbstractDefinition())
 		{
 			// Push the bundle's atom.

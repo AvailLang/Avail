@@ -265,10 +265,6 @@ public class Serializer
 			{
 				operation = SerializerOperation.SPECIAL_OBJECT;
 			}
-			else if (specialAtoms.containsKey(object))
-			{
-				operation = SerializerOperation.SPECIAL_ATOM;
-			}
 			else
 			{
 				operation = object.serializerOperation();

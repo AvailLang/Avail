@@ -554,7 +554,8 @@ implements
 	 * restrictions} to this {@linkplain MessageBundleDescriptor message
 	 * bundle}.
 	 *
-	 * @param grammaticalRestriction The set of grammatical restrictions to be added.
+	 * @param grammaticalRestriction
+	 *        The set of grammatical restrictions to be added.
 	 */
 	@Override
 	public void moduleAddGrammaticalRestriction (
@@ -702,6 +703,18 @@ implements
 		descriptor.o_AddImportedName(
 			this,
 			trueName);
+	}
+
+	/**
+	 * @param trueNames
+	 */
+	@Override
+	public void addImportedNames (
+		final A_Set trueNames)
+	{
+		descriptor.o_AddImportedNames(
+			this,
+			trueNames);
 	}
 
 	/**
@@ -4314,7 +4327,8 @@ implements
 	public A_Type typeUnionOfContinuationType (
 		final A_Type aContinuationType)
 	{
-		return descriptor.o_TypeUnionOfContinuationType(this, aContinuationType);
+		return descriptor.o_TypeUnionOfContinuationType(
+			this, aContinuationType);
 	}
 
 	/**
@@ -4324,7 +4338,8 @@ implements
 	public A_Type typeUnionOfIntegerRangeType (
 		final A_Type anIntegerRangeType)
 	{
-		return descriptor.o_TypeUnionOfIntegerRangeType(this, anIntegerRangeType);
+		return descriptor.o_TypeUnionOfIntegerRangeType(
+			this, anIntegerRangeType);
 	}
 
 	@Override
@@ -7094,9 +7109,9 @@ implements
 	}
 
 	@Override
-	public A_Bundle chooseBundle ()
+	public A_Bundle chooseBundle (final A_Module currentModule)
 	{
-		return descriptor.o_ChooseBundle(this);
+		return descriptor.o_ChooseBundle(this, currentModule);
 	}
 
 	@Override
@@ -7184,7 +7199,8 @@ implements
 	}
 
 	@Override
-	public void removePlanInProgress (final A_ParsingPlanInProgress planInProgress)
+	public void removePlanInProgress (
+		final A_ParsingPlanInProgress planInProgress)
 	{
 		descriptor.o_RemovePlanInProgress(this, planInProgress);
 	}

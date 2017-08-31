@@ -1980,7 +1980,7 @@ Grammatical restriction "`$_@pc=_stack=_[_]caller=_" is <∅, ∅, {"_[_]"}, ∅
 syntheticBase ::=
 	[
 		caller : continuation;
-		$[Ignore: 0;]@pc=1 stack=<⊥>[2] caller=↑caller
+		$[Ignore: 0;]@pc=0 stack=<⊥>[2] caller=↑caller
 	]();
 
 /* This completes the behavior of "Raise_" in the event that no unhandled

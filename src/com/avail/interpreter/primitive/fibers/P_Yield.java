@@ -64,11 +64,12 @@ extends Primitive
 		assert args.size() == 0;
 		final A_Fiber fiber = interpreter.fiber();
 		final Result suspended = interpreter.primitiveSuspend();
-		interpreter.postExitContinuation(() -> Interpreter.resumeFromSuccessfulPrimitive(
-			AvailRuntime.current(),
-			fiber,
-			NilDescriptor.nil(),
-			true));
+		interpreter.postExitContinuation(
+			() -> Interpreter.resumeFromSuccessfulPrimitive(
+				AvailRuntime.current(),
+				fiber,
+				NilDescriptor.nil(),
+				true));
 		return suspended;
 	}
 

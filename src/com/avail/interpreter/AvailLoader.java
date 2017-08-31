@@ -396,7 +396,8 @@ public final class AvailLoader
 					loader,
 					() -> StringDescriptor.format(
 						"Check lexer filter %s for U+%x",
-						lexer.lexerMethod().chooseBundle().message().atomName(),
+						lexer.lexerMethod().chooseBundle(loader.module())
+							.message().atomName(),
 						codePoint));
 				Continuation1NotNull<AvailObject> fiberSuccess = boolValue ->
 				{
@@ -1198,7 +1199,7 @@ public final class AvailLoader
 		recordEffect(
 			new LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.SEMANTIC_RESTRICTION.bundle,
-				method.chooseBundle().message(),
+				method.chooseBundle(module).message(),
 				restriction.function()));
 		final A_Module theModule = module;
 		theModule.lock(() -> theModule.moduleAddSemanticRestriction(restriction));

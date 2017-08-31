@@ -669,19 +669,49 @@ public final class L1InstructionStepper
 	{
 		try
 		{
-			// The value's reference from the stack is now from the
-			// variable.
+			// The value's reference from the stack is now from the variable.
 			variable.setValueNoCheck(value);
 		}
 		catch (final VariableSetException e)
 		{
 			assert e.numericCode().equals(
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
-			throw interpreter.reifyThenCall2(
-				interpreter.runtime().implicitObserveFunction(),
-				true,
-				assignmentFunction(),
-				TupleDescriptor.from(variable, value));
+			// Capture the state in a caller-less continuation.  We'll fill in
+			// the caller after reification, below.
+			final A_Function function = interpreter.function;
+			assert function != null;
+			final A_Continuation continuation =
+				ContinuationDescriptor.createExceptFrame(
+					function,
+					NilDescriptor.nil(),
+					pc,   // Right after the set-variable instruction.
+					stackp,
+					false,
+					L2Chunk.unoptimizedChunk(),
+					L2Chunk.offsetToResumeInterruptedUnoptimizedChunk());
+			for (
+				int i = function.code().numArgsAndLocalsAndStack();
+				i >= 1;
+				i--)
+			{
+				continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
+			}
+			throw interpreter.reifyThen(() ->
+			{
+				// Push the continuation from above onto the reified stack.
+				interpreter.reifiedContinuation = continuation.replacingCaller(
+					interpreter.reifiedContinuation);
+				interpreter.argsBuffer.clear();
+				interpreter.argsBuffer.add(
+					(AvailObject) assignmentFunction());
+				interpreter.argsBuffer.add(
+					(AvailObject) TupleDescriptor.from(variable, value));
+				interpreter.skipReturnCheck = true;
+				interpreter.function =
+					interpreter.runtime().implicitObserveFunction();
+				interpreter.chunk = interpreter.function.code().startingChunk();
+				interpreter.offset = 0;
+			});
 		}
 	}
 

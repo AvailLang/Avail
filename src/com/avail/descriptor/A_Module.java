@@ -72,6 +72,11 @@ extends A_BasicObject
 	void addImportedName (A_Atom trueName);
 
 	/**
+	 * @param trueNames
+	 */
+	void addImportedNames (A_Set trueNames);
+
+	/**
 	 * @param lexer
 	 */
 	void addLexer (A_Lexer lexer);

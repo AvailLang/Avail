@@ -526,8 +526,26 @@ public final class Interpreter
 	 * @param newFiber
 	 *        The fiber to run.
 	 */
-	public void fiber (final @Nullable A_Fiber newFiber)
+	public void fiber (final @Nullable A_Fiber newFiber, String temp)
 	{
+		//TODO MvG - Remove.
+		if (false)
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append("fiber: ");
+			builder.append(
+				fiber == null
+					? "null"
+					: fiber.uniqueId() + "[" + fiber.executionState() + "]");
+			builder.append(" -> ");
+			builder.append(
+				newFiber == null
+					? "null"
+					: newFiber.uniqueId() + "(" + newFiber.executionState());
+			builder.append(" (" + temp + ")");
+			System.out.println(builder);
+		}
+
 		assert fiber == null ^ newFiber == null;
 		assert newFiber == null || newFiber.executionState() == RUNNING;
 		fiber = newFiber;
@@ -844,7 +862,7 @@ public final class Interpreter
 			final boolean bound = aFiber.getAndSetSynchronizationFlag(
 				BOUND, false);
 			assert bound;
-			fiber = null;
+			fiber(null, "primitiveSuspend");
 		});
 		exitNow = true;
 		startTick = -1L;
@@ -913,7 +931,7 @@ public final class Interpreter
 			final boolean bound = aFiber.getAndSetSynchronizationFlag(
 				BOUND, false);
 			assert bound;
-			fiber = null;
+			fiber(null, "exitFiber");
 		});
 		exitNow = true;
 		startTick = -1L;
@@ -1345,7 +1363,7 @@ public final class Interpreter
 				final boolean bound = fiber().getAndSetSynchronizationFlag(
 					BOUND, false);
 				assert bound;
-				fiber = null;
+				fiber(null, "processInterrupt");
 			}
 		});
 		exitNow = true;
@@ -1659,7 +1677,7 @@ public final class Interpreter
 				// to L1 if needed.
 				chunk.run(this);
 			}
-			catch (ReifyStackThrowable reifier)
+			catch (final ReifyStackThrowable reifier)
 			{
 				// Reification has been requested, and the exception has already
 				// collected all the continuations.
@@ -1907,7 +1925,6 @@ public final class Interpreter
 					final Interpreter interpreter = current();
 					assert aFiber == interpreter.fiberOrNull();
 					assert aFiber.executionState() == RUNNING;
-					// Run the interpreter for a while.
 					continuation.value(interpreter);
 					if (interpreter.exitNow)
 					{
@@ -1916,9 +1933,10 @@ public final class Interpreter
 					}
 					else
 					{
+						// Run the interpreter for a while.
 						interpreter.run();
 					}
-					interpreter.fiber = null;
+					assert interpreter.fiber == null;
 					return aFiber.executionState();
 				}));
 	}
@@ -2019,11 +2037,17 @@ public final class Interpreter
 			{
 				assert aFiber == interpreter.fiberOrNull();
 				assert aFiber.executionState() == RUNNING;
-				assert !aFiber.continuation().equalsNil();
-				interpreter.prepareToResumeContinuation(
-					aFiber.continuation());
-				aFiber.continuation(NilDescriptor.nil());
+				final A_Continuation con = aFiber.continuation();
+				assert !con.equalsNil();
 				interpreter.exitNow = false;
+				interpreter.returnNow = false;
+				interpreter.reifiedContinuation = con;
+				interpreter.function = con.function();
+				interpreter.latestResult = null;
+				interpreter.chunk = con.levelTwoChunk();
+				interpreter.offset = con.levelTwoOffset();
+				interpreter.pointers = null;
+				aFiber.continuation(NilDescriptor.nil());
 			});
 	}
 

@@ -31,10 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.Interpreter.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.fixedRegisterCount;
-
-import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.optimizer.ReifyStackThrowable;
 import org.jetbrains.annotations.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
@@ -52,6 +49,9 @@ import com.avail.optimizer.RegisterSet;
  * and stackp, as well as local variables.  Also transfer the primitive
  * failure value into the first local variable if this is a primitive (and
  * therefore failed).
+ *
+ * <p>Also check for interrupts after all that, reifying and suspending the
+ * fiber if needed.</p>
  */
 public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 {
@@ -67,6 +67,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
+	throws ReifyStackThrowable
 	{
 		final A_Function function = interpreter.function;
 		assert function != null;
@@ -113,6 +114,37 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 			final A_Variable primitiveFailureVariable =
 				interpreter.pointerAt(numArgs + 1);
 			primitiveFailureVariable.setValue(primitiveFailureValue);
+		}
+
+		if (interpreter.isInterruptRequested())
+		{
+			// Build an interrupted continuation, reify the rest of the stack,
+			// and push the continuation onto the reified stack.  Then process
+			// the interrupt, which may or may not suspend the fiber.
+			final A_Continuation continuation =
+				ContinuationDescriptor.createExceptFrame(
+					function,
+					NilDescriptor.nil(),
+					1,  // start of function
+					numSlots + 1,   // empty stack
+					interpreter.skipReturnCheck,
+					L2Chunk.unoptimizedChunk(),
+					L2Chunk.offsetToResumeInterruptedUnoptimizedChunk());
+			for (
+				int i = function.code().numArgsAndLocalsAndStack();
+				i >= 1;
+				i--)
+			{
+				continuation.argOrLocalOrStackAtPut(
+					i, interpreter.pointerAt(i));
+			}
+			throw interpreter.reifyThen(() ->
+			{
+				// Push the continuation from above onto the reified stack.
+				interpreter.reifiedContinuation = continuation.replacingCaller(
+					interpreter.reifiedContinuation);
+				interpreter.processInterrupt(interpreter.reifiedContinuation);
+			});
 		}
 	}
 

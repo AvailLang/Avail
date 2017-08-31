@@ -471,6 +471,33 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
+	void o_AddImportedNames (
+		final AvailObject object,
+		final A_Set trueNames)
+	{
+		// Add the trueName to the current public scope.
+		synchronized (object)
+		{
+			A_Map names = object.slot(IMPORTED_NAMES);
+			for (final A_Atom trueName : trueNames)
+			{
+				final A_String string = trueName.atomName();
+				final A_Set set = names.hasKey(string)
+					? names.mapAt(string)
+					: SetDescriptor.empty();
+				names = names.mapAtPuttingCanDestroy(
+					string,
+					set.setWithElementCanDestroy(trueName, true),
+					true);
+			}
+			object.setSlot(IMPORTED_NAMES, names.makeShared());
+			A_Set visibleNames = object.slot(VISIBLE_NAMES);
+			visibleNames = visibleNames.setUnionCanDestroy(trueNames, true);
+			object.setSlot(VISIBLE_NAMES, visibleNames.makeShared());
+		}
+	}
+
+	@Override @AvailMethod
 	void o_IntroduceNewName (
 		final AvailObject object,
 		final A_Atom trueName)

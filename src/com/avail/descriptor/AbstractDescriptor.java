@@ -1333,6 +1333,14 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param trueNames
+	 */
+	abstract void o_AddImportedNames (
+		final AvailObject object,
+		final A_Set trueNames);
+
+	/**
+	 * @param object
 	 * @param trueName
 	 */
 	abstract void o_IntroduceNewName (
@@ -6355,9 +6363,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param currentModule
 	 * @return
 	 */
-	abstract A_Bundle o_ChooseBundle (AvailObject object);
+	abstract A_Bundle o_ChooseBundle (
+		AvailObject object,
+		final A_Module currentModule);
 
 	/**
 	 * @param object

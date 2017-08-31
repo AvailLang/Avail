@@ -32,18 +32,19 @@
 
 Module "CSV Data"
 Uses
-	"CSV Language" = (
+	"Avail" = (
 		/* Some of the core Avail syntax */
 		"whitespace lexer",
-		"comment lexer",
 		"string token lexer",
 		"whole number lexer",
-		"keyword lexer",
 		"operator lexer",
+	),
+	"CSV Language" = (
 		"_!;",
 		"…$",
 		/* And the simple CSV language */
-		"«_‡,»")
+		"«_‡,»"
+	)
 Body
 
 "last name", "first name", "d.o.b.";

@@ -245,6 +245,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	void o_AddImportedNames (
+		final AvailObject object,
+		final A_Set trueNames)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	void o_AddPrivateName (final AvailObject object, final A_Atom trueName)
 	{
 		throw unsupportedOperationException();
@@ -4624,7 +4632,9 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	A_Bundle o_ChooseBundle (final AvailObject object)
+	A_Bundle o_ChooseBundle (
+		final AvailObject object,
+		final A_Module currentModule)
 	{
 		throw unsupportedOperationException();
 	}

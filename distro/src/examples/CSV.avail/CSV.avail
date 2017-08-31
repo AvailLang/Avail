@@ -34,6 +34,14 @@ Module "CSV"
 Uses
 	"Avail"
 Extends
+	"Avail" =
+	(
+		"whitespace lexer",
+		"string token lexer",
+		"whole number lexer",
+		"operator lexer",
+		"keyword lexer"
+	),
 	"CSV Language" =
 	(
 		"Reset CSV processor",

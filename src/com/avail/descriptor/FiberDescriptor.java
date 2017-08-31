@@ -697,6 +697,7 @@ extends Descriptor
 		{
 			final ExecutionState current =
 				all()[(int)object.mutableSlot(EXECUTION_STATE)];
+			//noinspection AssertWithSideEffects
 			assert current.mayTransitionTo(value);
 			object.setSlot(EXECUTION_STATE, value.ordinal());
 		}
@@ -1453,6 +1454,7 @@ extends Descriptor
 		final int priority,
 		final Generator<A_String> nameGenerator)
 	{
+		assert (priority & ~255) == 0 : "Priority must be [0..255]";
 		final AvailObject fiber = FiberDescriptor.mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(

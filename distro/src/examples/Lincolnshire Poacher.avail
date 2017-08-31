@@ -39,6 +39,12 @@ Uses
 		"IPv4…#.…#.…#.…#" → "…#.…#.…#.…#",
 		…
 	)
+Extends
+	"Avail" =
+	(
+		"whitespace lexer",
+		"keyword lexer"
+	)
 Entries
 	"Start Lincolnshire Poacher",
 	"Stop Lincolnshire Poacher",
