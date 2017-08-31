@@ -45,7 +45,7 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code FusedPojoTypeDescriptor} describes synthetic points in Avail's pojo

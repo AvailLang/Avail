@@ -36,7 +36,7 @@ import static com.avail.environment.AvailWorkbench.StreamStyle.*;
 import java.awt.event.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.performance.StatisticReport;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code ResetVMReportDataAction} clears performance information obtained

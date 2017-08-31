@@ -33,7 +33,7 @@
 package com.avail.environment.actions;
 
 import com.avail.environment.AvailWorkbench;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;

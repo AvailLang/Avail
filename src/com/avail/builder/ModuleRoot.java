@@ -33,7 +33,7 @@
 package com.avail.builder;
 
 import java.io.File;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.*;
 import com.avail.utility.json.JSONWriter;

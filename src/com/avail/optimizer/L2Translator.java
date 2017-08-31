@@ -36,7 +36,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;

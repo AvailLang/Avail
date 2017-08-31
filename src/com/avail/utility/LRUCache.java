@@ -50,7 +50,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code LRUCache} implements a memory-sensitive least-recently-used cache.

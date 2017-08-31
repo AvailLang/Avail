@@ -32,7 +32,7 @@
 
 package com.avail.utility;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.io.*;
 import java.net.*;

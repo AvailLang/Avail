@@ -36,8 +36,8 @@ import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,7 +57,7 @@ implements WindowListener
 	/**
 	 * The {@link JFrame} that the {@link Scene} is in.
 	 */
-	private final @NotNull JFrame frame;
+	private final @Nonnull JFrame frame;
 
 	/**
 	 * The width of the {@link JFrame}.
@@ -119,7 +119,7 @@ implements WindowListener
 	 *
 	 * @return A {@link Scene}.
 	 */
-	public abstract @NotNull Scene newScene ();
+	public abstract @Nonnull Scene newScene ();
 
 	/**
 	 * A method that positions the {@link #frame} appropriately at creation.
@@ -147,7 +147,7 @@ implements WindowListener
 	 * @param message
 	 *        The error message.
 	 */
-	public void erroredClose (final @NotNull String message)
+	public void erroredClose (final @Nonnull String message)
 	{
 		EventQueue.invokeLater(() ->
 		{
@@ -213,8 +213,8 @@ implements WindowListener
 	 *        The height of the JFrame.
 	 */
 	public FXWindowTask (
-		final @NotNull AvailWorkbench workbench,
-		final @NotNull String title,
+		final @Nonnull AvailWorkbench workbench,
+		final @Nonnull String title,
 		final boolean resizable,
 		final int width,
 		final int height)
@@ -245,8 +245,8 @@ implements WindowListener
 	 */
 	public FXWindowTask (
 		final AvailWorkbench workbench,
-		final @NotNull ResolvedModuleName moduleName,
-		final @NotNull String title,
+		final @Nonnull ResolvedModuleName moduleName,
+		final @Nonnull String title,
 		final boolean resizable,
 		final int width,
 		final int height)

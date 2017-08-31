@@ -39,7 +39,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import com.avail.utility.Generator;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;

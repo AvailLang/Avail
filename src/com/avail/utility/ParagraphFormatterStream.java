@@ -33,7 +33,7 @@
 package com.avail.utility;
 
 import java.io.IOException;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * ParagraphFormatterStream wraps an Appendable with a ParagraphFormatter, so

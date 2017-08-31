@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 import java.util.Iterator;
 
@@ -91,7 +91,7 @@ extends A_BasicObject, Iterable<AvailObject>
 	 * @return An {@linkplain Iterator iterator}.
 	 */
 	@Override
-	@NotNull Iterator<AvailObject> iterator ();
+	@Nonnull Iterator<AvailObject> iterator ();
 
 	/**
 	 * Check if all elements of the set are all instances of the specified kind

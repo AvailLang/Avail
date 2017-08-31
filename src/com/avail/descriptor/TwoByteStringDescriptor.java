@@ -39,7 +39,7 @@ import static com.avail.descriptor.Mutability.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.utility.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of

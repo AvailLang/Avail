@@ -32,7 +32,7 @@
 
 package com.avail.compiler;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.PrimitiveThrownException;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;

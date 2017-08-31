@@ -51,7 +51,7 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.*;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is

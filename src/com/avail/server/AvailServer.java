@@ -51,7 +51,7 @@ import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FiberReference;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;

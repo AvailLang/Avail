@@ -48,8 +48,8 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
 import org.fxmisc.richtext.CodeArea;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -68,7 +68,7 @@ public class AvailArea
 	/**
 	 * A reference to the {@link AvailWorkbench}.
 	 */
-	private final @NotNull AvailWorkbench workbench;
+	private final @Nonnull AvailWorkbench workbench;
 
 	/**
 	 * The last string search value.
@@ -79,13 +79,13 @@ public class AvailArea
 	 * An {@link ArrayDeque} that represents the currently navigated path on
 	 * the {@link ReplaceTextTemplate#prefixTrie}.
 	 */
-	private final @NotNull ArrayDeque<PrefixNode<String>> path = new ArrayDeque<>();
+	private final @Nonnull ArrayDeque<PrefixNode<String>> path = new ArrayDeque<>();
 
 	/**
 	 * A {@link List} of {@link KeyComboAction}s to be performed on various
 	 * key presses.
 	 */
-	private final @NotNull List<KeyComboAction> keyComboActions =
+	private final @Nonnull List<KeyComboAction> keyComboActions =
 		new ArrayList<>();
 
 	/**
@@ -95,7 +95,7 @@ public class AvailArea
 	 *        A reference to the {@link AvailWorkbench}.
 	 */
 	public AvailArea (
-		final @NotNull AvailWorkbench workbench)
+		final @Nonnull AvailWorkbench workbench)
 	{
 		this.workbench = workbench;
 		addNode(workbench.replaceTextTemplate.prefixTrie().root());
@@ -112,7 +112,7 @@ public class AvailArea
 	 * @param actions
 	 *        The array of {@code KeyComboAction}s to add.
 	 */
-	private void addKeyCombos (final @NotNull KeyComboAction... actions)
+	private void addKeyCombos (final @Nonnull KeyComboAction... actions)
 	{
 		keyComboActions.addAll(Arrays.asList(actions));
 		setOnKeyPressed(event -> keyComboActions.forEach(a -> a.event(event)));
@@ -126,7 +126,7 @@ public class AvailArea
 	 *        it.
 	 * @return The prefix at the current caret.
 	 */
-	@NotNull String prefixAtCaret (
+	@Nonnull String prefixAtCaret (
 		final @Nullable Mutable<Integer> prefixStartHolder)
 	{
 		// Determine the intended prefix for filtering the code completion
@@ -160,8 +160,8 @@ public class AvailArea
 	 *        The prefix.
 	 * @return The requested templates.
 	 */
-	@NotNull List<String> templateMatchesFor (
-		final @NotNull String prefix)
+	@Nonnull List<String> templateMatchesFor (
+		final @Nonnull String prefix)
 	{
 		final PrefixNode<String> node = getNode(prefix);
 
@@ -178,8 +178,8 @@ public class AvailArea
 	 *        The prefix start, for configuring template expansion.
 	 * @return The requested menu items.
 	 */
-	@NotNull List<MenuItem> templateMenuItemsFor (
-		final @NotNull List<String> templates,
+	@Nonnull List<MenuItem> templateMenuItemsFor (
+		final @Nonnull List<String> templates,
 		final int prefixStart)
 	{
 		return templates.stream()
@@ -208,7 +208,7 @@ public class AvailArea
 	 *
 	 * @return A {@code KeyComboAction}.
 	 */
-	public @NotNull KeyComboAction codeCompletionAction ()
+	public @Nonnull KeyComboAction codeCompletionAction ()
 	{
 		return FXUtility.createKeyCombo(
 			() ->
@@ -284,7 +284,7 @@ public class AvailArea
 	 *
 	 * @return A {@code KeyComboAction}.
 	 */
-	private @NotNull KeyComboAction gotoLineAction ()
+	private @Nonnull KeyComboAction gotoLineAction ()
 	{
 		final Function<Integer, Integer> clamp =
 			i -> Math.max(0, Math.min(i, getLength() - 1));
@@ -324,7 +324,7 @@ public class AvailArea
 	 *
 	 * @return A {@code Continuation0}.
 	 */
-	private @NotNull Continuation0 finder ()
+	private @Nonnull Continuation0 finder ()
 	{
 		return () ->
 		{
@@ -358,7 +358,7 @@ public class AvailArea
 	 *
 	 * @return A {@code KeyComboAction}.
 	 */
-	private @NotNull KeyComboAction findAction ()
+	private @Nonnull KeyComboAction findAction ()
 	{
 		return FXUtility.createKeyCombo(
 			() ->
@@ -396,7 +396,7 @@ public class AvailArea
 	 *
 	 * @return A {@code KeyComboAction}.
 	 */
-	private @NotNull KeyComboAction findNextAction ()
+	private @Nonnull KeyComboAction findNextAction ()
 	{
 		return FXUtility.createKeyCombo(
 			() ->
@@ -427,12 +427,12 @@ public class AvailArea
 	 *
 	 * @return A {@code PrefixNode}.
 	 */
-	private @NotNull PrefixNode<String> currentNode ()
+	private @Nonnull PrefixNode<String> currentNode ()
 	{
 		return path.getLast();
 	}
 
-	private @Nullable PrefixNode<String> getNode (final @NotNull String prefix)
+	private @Nullable PrefixNode<String> getNode (final @Nonnull String prefix)
 	{
 		if (prefix.length() > 0)
 		{

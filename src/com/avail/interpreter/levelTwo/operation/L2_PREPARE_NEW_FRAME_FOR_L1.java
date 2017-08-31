@@ -32,7 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.optimizer.ReifyStackThrowable;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.Flag;

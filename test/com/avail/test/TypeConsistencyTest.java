@@ -33,7 +33,7 @@
 package com.avail.test;
 
 import com.avail.interpreter.Primitive.Result;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import static com.avail.descriptor.TypeDescriptor.Types;
 import static org.junit.jupiter.api.Assertions.*;
 

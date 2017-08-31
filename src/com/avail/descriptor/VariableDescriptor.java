@@ -50,7 +50,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold

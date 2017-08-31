@@ -74,7 +74,7 @@ import com.avail.serialization.*;
 import com.avail.stacks.StacksGenerator;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and

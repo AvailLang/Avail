@@ -45,7 +45,7 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code ModuleNameResolver} resolves fully-qualified references to Avail

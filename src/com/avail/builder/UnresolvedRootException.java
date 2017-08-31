@@ -32,7 +32,7 @@
 
 package com.avail.builder;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * UnresolvedRootException is a type of UnresolvedDependencyException that is

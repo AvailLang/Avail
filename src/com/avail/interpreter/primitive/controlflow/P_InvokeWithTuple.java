@@ -39,7 +39,7 @@ import static com.avail.interpreter.Primitive.Fallibility.*;
 import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
 
 import java.util.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;

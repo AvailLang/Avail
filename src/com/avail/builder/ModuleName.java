@@ -33,7 +33,7 @@
 package com.avail.builder;
 
 import com.avail.descriptor.ModuleDescriptor;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code ModuleName} represents the canonical name of an Avail {@linkplain

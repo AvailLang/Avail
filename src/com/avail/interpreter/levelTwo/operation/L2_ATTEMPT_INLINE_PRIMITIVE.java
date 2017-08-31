@@ -35,7 +35,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.List;
 
 import com.avail.AvailRuntime;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;

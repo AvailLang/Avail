@@ -54,7 +54,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.Describer;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code ParsingOperation} describes the operations available for parsing Avail

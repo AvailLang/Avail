@@ -33,7 +33,7 @@
 package com.avail.utility.fsm;
 
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code ExecutionContext} represents a running {@linkplain StateMachine

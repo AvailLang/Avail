@@ -36,7 +36,7 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.nodes.ModuleRootNode;
 import com.avail.environment.tasks.NewPackageTask;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

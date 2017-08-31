@@ -44,7 +44,7 @@ import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.PrefixSharingList;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.problems.Problem;

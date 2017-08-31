@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousChannel;
 import java.nio.channels.CompletionHandler;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code TextInputChannel} provides a wrapper for a synchronous input reader

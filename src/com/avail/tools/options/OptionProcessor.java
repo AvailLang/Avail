@@ -36,7 +36,7 @@ import java.io.IOException;
 import java.util.*;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * An {@code OptionProcessor} serves primarily to support command-line

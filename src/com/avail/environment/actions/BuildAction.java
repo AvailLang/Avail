@@ -39,7 +39,7 @@ import com.avail.builder.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.tasks.BuildTask;
 import com.avail.environment.editor.ModuleEditor;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code BuildAction} launches a {@linkplain BuildTask build task} in a

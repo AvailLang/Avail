@@ -47,7 +47,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer1;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

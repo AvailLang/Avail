@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.avail.descriptor.MapDescriptor.MapIterable;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;

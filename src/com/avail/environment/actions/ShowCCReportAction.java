@@ -43,7 +43,7 @@ import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor.CodeCoverageReport;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code DisplayCodeCoverageReportAction} instructs the {@linkplain

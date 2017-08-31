@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code NumericTupleDescriptor} has Avail tuples of integers as its instances.

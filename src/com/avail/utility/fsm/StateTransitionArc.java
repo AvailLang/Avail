@@ -32,7 +32,7 @@
 package com.avail.utility.fsm;
 
 import java.util.Map;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.utility.evaluation.*;
 
 /**

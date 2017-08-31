@@ -41,7 +41,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * The {@link L1Decompiler} converts a {@linkplain CompiledCodeDescriptor

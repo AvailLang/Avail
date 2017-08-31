@@ -44,7 +44,7 @@ import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.descriptor.*;
 import com.avail.exceptions.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence

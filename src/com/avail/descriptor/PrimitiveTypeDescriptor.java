@@ -44,7 +44,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * The primitive types of Avail are different from the notion of primitive types

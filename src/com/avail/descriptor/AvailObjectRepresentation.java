@@ -36,7 +36,7 @@ import java.util.Arrays;
 import java.util.Set;
 
 import com.avail.descriptor.FiberDescriptor.ObjectSlots;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 
 /**

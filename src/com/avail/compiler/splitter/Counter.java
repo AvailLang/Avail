@@ -39,7 +39,7 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.util.Collections;
 import java.util.Iterator;

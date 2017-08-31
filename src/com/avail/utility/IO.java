@@ -32,7 +32,7 @@
 
 package com.avail.utility;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code IO} is a utility class for I/O operations.

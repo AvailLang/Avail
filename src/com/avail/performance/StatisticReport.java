@@ -40,7 +40,7 @@ import java.util.List;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MessageBundleTreeDescriptor;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.utility.Pair;
 

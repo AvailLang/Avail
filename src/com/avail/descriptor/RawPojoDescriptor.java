@@ -33,7 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import java.util.*;

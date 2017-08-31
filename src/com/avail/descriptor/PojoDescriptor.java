@@ -38,7 +38,7 @@ import java.util.IdentityHashMap;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code PojoDescriptor} describes a plain-old Java object (pojo) that is

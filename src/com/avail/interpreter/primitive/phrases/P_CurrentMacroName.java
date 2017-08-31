@@ -38,7 +38,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 

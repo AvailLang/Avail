@@ -42,7 +42,7 @@ import com.avail.optimizer.L2Translator;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.register.*;
 import com.avail.optimizer.ReifyStackThrowable;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A Level Two chunk represents an optimized implementation of a {@linkplain

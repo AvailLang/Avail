@@ -37,7 +37,7 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.*;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.SignatureException;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;

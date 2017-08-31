@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import com.avail.AvailRuntime;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;

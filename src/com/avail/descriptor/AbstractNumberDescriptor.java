@@ -43,7 +43,7 @@ import java.util.Set;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.utility.MutableOrNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * The abstract class {@code AbstractNumberDescriptor} serves as an abstraction

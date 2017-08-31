@@ -37,7 +37,7 @@ import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import com.avail.environment.editor.NewPackageWindow;
 import javafx.scene.Scene;
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -57,12 +57,12 @@ extends FXWindowTask
 	/**
 	 * The {@link File} directory this new package will be placed in.
 	 */
-	private final @NotNull File directory;
+	private final @Nonnull File directory;
 
 	/**
 	 * The base portion of the qualified name.
 	 */
-	private final @NotNull String baseQualifiedName;
+	private final @Nonnull String baseQualifiedName;
 
 	/**
 	 * The {@link ModuleName#qualifiedName} of the new module.
@@ -75,13 +75,13 @@ extends FXWindowTask
 	 * @param leaf
 	 *        The name of the module.
 	 */
-	public void setQualifiedName (final @NotNull String leaf)
+	public void setQualifiedName (final @Nonnull String leaf)
 	{
 		qualifiedName = baseQualifiedName + leaf;
 	}
 
 	@Override
-	public @NotNull Scene newScene ()
+	public @Nonnull Scene newScene ()
 	{
 		return new NewPackageWindow(
 			310,
@@ -158,8 +158,8 @@ extends FXWindowTask
 	 */
 	public NewPackageTask (
 		final AvailWorkbench workbench,
-		final @NotNull File directory,
-		final @NotNull String baseQualifiedName,
+		final @Nonnull File directory,
+		final @Nonnull String baseQualifiedName,
 		final int width,
 		final int height)
 	{

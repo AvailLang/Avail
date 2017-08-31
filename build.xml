@@ -33,7 +33,9 @@ POSSIBILITY OF SUCH DAMAGE.
 <project name="Avail" default="avail">
 	<property name="path.avail" value="${basedir}" />
 	<property name="path.avail.src" value="${path.avail}/src"/>
+	<property name="path.avail.test" value="${path.avail}/test"/>
 	<property name="path.avail.bin" value="${path.avail}/bin"/>
+	<property name="path.avail.libraries" value="${path.avail}/libraries"/>
 	<property name="path.avail.distro" value="${path.avail}/distro"/>
 	<property name="path.avail.resources" value="${path.avail}/resources"/>
 	<property name="path.avail.jar" value="${path.avail.distro}/lib"/>
@@ -77,6 +79,14 @@ POSSIBILITY OF SUCH DAMAGE.
 		</and>
 	</condition>
 
+	<path id="javac-classpath">
+		<file directory="${path.avail.src}"/>
+		<file directory="${path.avail.bin}"/>
+		<fileset dir="${path.avail.libraries}">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+
 	<!--
 		Build the Avail sources.
 	-->
@@ -91,12 +101,11 @@ POSSIBILITY OF SUCH DAMAGE.
 				encoding="UTF-8"
 				includeantruntime="true"
 				includejavaruntime="true"
-				classpath="${path.avail}/libraries/richtextfx-fat-1.0.0-SNAPSHOT.jar:${path.avail.distro}/lib/annotations-java8.jar"
+				classpathref="javac-classpath"
 				debug="true"
 				optimize="true"
 				deprecation="true">
 			<src path="${path.avail.src}"/>
-			<exclude name="**/test/**"/>
 		</javac>
 	</target>
 
@@ -114,12 +123,12 @@ POSSIBILITY OF SUCH DAMAGE.
 				encoding="UTF-8"
 				includeantruntime="true"
 				includejavaruntime="true"
-				classpath="${path.avail.distro}/lib/junit.jar"
+				classpathref="javac-classpath"
 				debug="true"
 				optimize="true"
 				deprecation="true">
+			<src path="${path.avail.test}"/>
 			<src path="${path.avail.src}"/>
-			<include name="**/test/**"/>
 		</javac>
 	</target>
 
@@ -149,13 +158,11 @@ POSSIBILITY OF SUCH DAMAGE.
 				id="primitives"
 				dir="${path.primitives}"
 				includes="**/P_*.class"
-				excludes="**/*$*.class">
-		</fileset>
+				excludes="**/*$*.class"/>
 		<pathconvert
-			property="one-primitive-per-line"
-			refid="primitives"
-			pathsep="${line.separator}">
-		</pathconvert>
+				property="one-primitive-per-line"
+				refid="primitives"
+				pathsep="${line.separator}"/>
 		<echo
 			file="${path.primitives-list}"
 			append="no"

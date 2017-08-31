@@ -42,7 +42,7 @@ import java.util.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.

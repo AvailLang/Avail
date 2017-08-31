@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.register;
 
 import java.util.*;
 import com.avail.optimizer.RegisterSet;
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 /**
  * {@code L2RegisterVector} aggregates {@linkplain L2ObjectRegister object
@@ -98,7 +98,7 @@ implements Iterable<L2ObjectRegister>
 	}
 
 	@Override
-	public @NotNull Iterator<L2ObjectRegister> iterator ()
+	public @Nonnull Iterator<L2ObjectRegister> iterator ()
 	{
 		return registers.iterator();
 	}

@@ -38,7 +38,7 @@ import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import static com.avail.descriptor.CommentTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CommentTokenDescriptor.ObjectSlots.*;

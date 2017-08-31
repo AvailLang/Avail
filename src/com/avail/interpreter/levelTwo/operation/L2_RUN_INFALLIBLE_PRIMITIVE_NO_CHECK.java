@@ -37,7 +37,7 @@ import java.util.*;
 
 import com.avail.descriptor.A_Function;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;

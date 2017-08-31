@@ -49,7 +49,7 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * My instances represent occurrences of blocks (functions) encountered in code.

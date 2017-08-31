@@ -48,7 +48,7 @@ import java.util.NoSuchElementException;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.BufferKey;
 import com.avail.AvailRuntime.FileHandle;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.Mutable;

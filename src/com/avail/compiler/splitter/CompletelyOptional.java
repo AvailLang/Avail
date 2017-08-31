@@ -38,7 +38,7 @@ import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.util.Iterator;
 import java.util.List;

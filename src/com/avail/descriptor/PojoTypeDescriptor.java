@@ -41,7 +41,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
 import com.avail.exceptions.*;
 import com.avail.utility.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * An {@code PojoTypeDescriptor} describes the type of a plain-old Java

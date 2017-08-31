@@ -40,7 +40,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.MarshalingException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code CharacterDescriptor} implements an Avail character. Avail characters

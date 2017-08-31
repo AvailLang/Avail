@@ -35,7 +35,7 @@ package com.avail.environment.actions;
 import java.awt.event.*;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code CreateProgramAction} produces a program file that can be executed

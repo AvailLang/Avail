@@ -42,7 +42,7 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 double-precision

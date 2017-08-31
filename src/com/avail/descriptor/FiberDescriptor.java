@@ -53,7 +53,7 @@ import com.avail.io.TextInterface;
 import com.avail.utility.Generator;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * An Avail {@linkplain FiberDescriptor fiber} represents an independently

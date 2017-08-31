@@ -37,7 +37,7 @@ import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code DefinitionDescriptor} is an abstraction for things placed into a

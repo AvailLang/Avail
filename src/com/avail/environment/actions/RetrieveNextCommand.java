@@ -34,7 +34,7 @@ package com.avail.environment.actions;
 
 import java.awt.event.*;
 import com.avail.environment.AvailWorkbench;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Retrieve the earliest executed command, or if this action has been

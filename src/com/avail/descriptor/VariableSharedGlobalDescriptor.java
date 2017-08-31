@@ -41,7 +41,7 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.util.Map;
 import java.util.WeakHashMap;

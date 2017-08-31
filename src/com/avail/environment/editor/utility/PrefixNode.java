@@ -1,7 +1,7 @@
 package com.avail.environment.editor.utility;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +22,7 @@ public class PrefixNode<T>
 	/**
 	 * The {@link Map} that holds the next nodes in the trie.
 	 */
-	private final @NotNull Map<Character, PrefixNode<T>> children =
+	private final @Nonnull Map<Character, PrefixNode<T>> children =
 		new HashMap<>();
 
 	/**
@@ -38,7 +38,7 @@ public class PrefixNode<T>
 	/**
 	 * An object to lock editing to this {@link PrefixNode}.
 	 */
-	private final @NotNull Object lock = new Object();
+	private final @Nonnull Object lock = new Object();
 
 	/**
 	 * Answer the {@link #content}.
@@ -54,7 +54,7 @@ public class PrefixNode<T>
 	 * The list of viable complete prefix word from this point in the
 	 * {@link PrefixTrie}.
 	 */
-	private @NotNull List<String> words = new ArrayList<>();
+	private @Nonnull List<String> words = new ArrayList<>();
 
 	/**
 	 * Add a word to this {@link PrefixNode}.
@@ -62,7 +62,7 @@ public class PrefixNode<T>
 	 * @param word
 	 *        The word to add.
 	 */
-	private void addWord (final @NotNull String word)
+	private void addWord (final @Nonnull String word)
 	{
 		synchronized (lock)
 		{
@@ -77,7 +77,7 @@ public class PrefixNode<T>
 	 *
 	 * @return A {@link List}.
 	 */
-	public final @NotNull List<String> words ()
+	public final @Nonnull List<String> words ()
 	{
 		return words;
 	}
@@ -92,8 +92,8 @@ public class PrefixNode<T>
 	 *        {@code null}.
 	 */
 	public void addWord (
-		final @NotNull String word,
-		final @NotNull T contents)
+		final @Nonnull String word,
+		final @Nonnull T contents)
 	{
 
 		addWord(word);
@@ -122,7 +122,7 @@ public class PrefixNode<T>
 	 *        The word to search.
 	 */
 	public @Nullable PrefixNode<T> searchTrie (
-		final @NotNull String word)
+		final @Nonnull String word)
 	{
 		if (word.length() - 1 > depth)
 		{
@@ -147,8 +147,8 @@ public class PrefixNode<T>
 	 *        A {@link Consumer} that accepts a {@link PrefixNode}.
 	 */
 	public @Nullable PrefixNode<T> searchTrie (
-		final @NotNull String word,
-		final @NotNull Consumer<PrefixNode<T>> acceptEachNode)
+		final @Nonnull String word,
+		final @Nonnull Consumer<PrefixNode<T>> acceptEachNode)
 	{
 		if (word.length() - 1 > depth)
 		{

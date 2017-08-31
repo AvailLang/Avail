@@ -50,7 +50,7 @@ import javafx.scene.input.KeyCombination.Modifier;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 import javax.swing.*;
 import java.awt.BorderLayout;
@@ -74,9 +74,9 @@ public final class FXUtility
 	 *        that performs an action when the button is clicked.
 	 * @return A button.
 	 */
-	public static @NotNull Button button (
-		final @NotNull String name,
-		final @NotNull EventHandler<ActionEvent> eventHandler)
+	public static @Nonnull Button button (
+		final @Nonnull String name,
+		final @Nonnull EventHandler<ActionEvent> eventHandler)
 	{
 		final Button btn = new Button(name);
 		btn.defaultButtonProperty().bind(btn.focusedProperty());
@@ -97,10 +97,10 @@ public final class FXUtility
 	 *        true}, the button is disabled.
 	 * @return A button.
 	 */
-	public static @NotNull Button button (
-		final @NotNull String name,
-		final @NotNull EventHandler<ActionEvent> eventHandler,
-		final @NotNull BooleanBinding booleanBinding)
+	public static @Nonnull Button button (
+		final @Nonnull String name,
+		final @Nonnull EventHandler<ActionEvent> eventHandler,
+		final @Nonnull BooleanBinding booleanBinding)
 	{
 		final Button btn = new Button(name);
 		btn.defaultButtonProperty().bind(btn.focusedProperty());
@@ -116,7 +116,7 @@ public final class FXUtility
 	 *        The {@code Scene} to add to the panel.
 	 * @return A {@code JFXPanel}.
 	 */
-	public static @NotNull JFXPanel fxPanel (final @NotNull Scene scene)
+	public static @Nonnull JFXPanel fxPanel (final @Nonnull Scene scene)
 	{
 		final JFXPanel panel = new JFXPanel();
 		panel.setScene(scene);
@@ -132,9 +132,9 @@ public final class FXUtility
 	 *        The {@code JFXPanel} to set.
 	 * @return A {@code JFrame}.
 	 */
-	public static @NotNull JFrame jFrame (
-		final @NotNull String frameName,
-		final @NotNull JFXPanel fxPanel)
+	public static @Nonnull JFrame jFrame (
+		final @Nonnull String frameName,
+		final @Nonnull JFXPanel fxPanel)
 	{
 		final JFrame frame = new JFrame(frameName);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -163,9 +163,9 @@ public final class FXUtility
 	 *        The {@linkplain Component#height height}.
 	 * @return A {@code JFrame}.
 	 */
-	public static @NotNull JFrame jFrame (
-		final @NotNull String frameName,
-		final @NotNull JFXPanel fxPanel,
+	public static @Nonnull JFrame jFrame (
+		final @Nonnull String frameName,
+		final @Nonnull JFXPanel fxPanel,
 		final int width,
 		final int height)
 	{
@@ -197,9 +197,9 @@ public final class FXUtility
 	 *        The {@code Scene} to set.
 	 * @return A {@code JFrame}.
 	 */
-	public static @NotNull JFrame jFrame (
-		final @NotNull String frameName,
-		final @NotNull Scene scene)
+	public static @Nonnull JFrame jFrame (
+		final @Nonnull String frameName,
+		final @Nonnull Scene scene)
 	{
 		final JFrame frame = new JFrame(frameName);
 		Platform.setImplicitExit(false);
@@ -232,9 +232,9 @@ public final class FXUtility
 	 *        The {@linkplain Component#height height}.
 	 * @return A {@code JFrame}.
 	 */
-	public static @NotNull JFrame jFrame (
-		final @NotNull String frameName,
-		final @NotNull Scene scene,
+	public static @Nonnull JFrame jFrame (
+		final @Nonnull String frameName,
+		final @Nonnull Scene scene,
 		final int width,
 		final int height)
 	{
@@ -265,7 +265,7 @@ public final class FXUtility
 	 *        The {@linkplain Component#height height}.
 	 * @return A {@code JFrame}.
 	 */
-	public static @NotNull JFrame jFrame (
+	public static @Nonnull JFrame jFrame (
 		final int width,
 		final int height)
 	{
@@ -301,8 +301,8 @@ public final class FXUtility
 	 *        The the {@link Insets#left left offset}.
 	 * @return A {@code Label}.
 	 */
-	public static @NotNull Label label (
-		final @NotNull String text,
+	public static @Nonnull Label label (
+		final @Nonnull String text,
 		final double top,
 		final double right,
 		final double bottom,
@@ -330,13 +330,13 @@ public final class FXUtility
 	 *        Set the {@link Node#setStyle(String) style of the label}.
 	 * @return A {@code Label}.
 	 */
-	public static @NotNull Label label (
-		final @NotNull String text,
+	public static @Nonnull Label label (
+		final @Nonnull String text,
 		final double top,
 		final double right,
 		final double bottom,
 		final double left,
-		final @NotNull String style)
+		final @Nonnull String style)
 	{
 		final Label label = label(text, top, right, bottom, left);
 		label.setStyle(style);
@@ -360,7 +360,7 @@ public final class FXUtility
 	 *        The {@link Node#prefHeight}  preferred height} of the text field.
 	 * @return A {@code TextField}.
 	 */
-	public static @NotNull TextField textField (
+	public static @Nonnull TextField textField (
 		final double top,
 		final double right,
 		final double bottom,
@@ -395,14 +395,14 @@ public final class FXUtility
 	 *        Set the {@link Node#setStyle(String) style of the label}.
 	 * @return A {@code TextField}.
 	 */
-	public static @NotNull TextField textField (
+	public static @Nonnull TextField textField (
 		final double top,
 		final double right,
 		final double bottom,
 		final double left,
 		final double prefWidth,
 		final double prefHeight,
-		final @NotNull String style)
+		final @Nonnull String style)
 	{
 		final TextField textField =
 			textField(top, right, bottom, left, prefWidth, prefHeight);
@@ -431,14 +431,14 @@ public final class FXUtility
 	 *        The type of item held in the choice box.
 	 * @return A {@code ChoiceBox}.
 	 */
-	public static <T> @NotNull ChoiceBox<T> choiceBox (
+	public static <T> ChoiceBox<T> choiceBox (
 		final double top,
 		final double right,
 		final double bottom,
 		final double left,
 		final double prefWidth,
 		final double prefHeight,
-		final @NotNull T... choices)
+		final @Nonnull T... choices)
 	{
 		final ChoiceBox<T> choiceBox = new ChoiceBox<>(
 			FXCollections.observableArrayList(choices));
@@ -481,15 +481,15 @@ public final class FXUtility
 	 *        The type of item held in the choice box.
 	 * @return A {@code ChoiceBox}.
 	 */
-	public static <T> @NotNull ChoiceBox<T> choiceBox (
+	public static <T> ChoiceBox<T> choiceBox (
 		final double top,
 		final double right,
 		final double bottom,
 		final double left,
 		final double prefWidth,
 		final double prefHeight,
-		final @NotNull String style,
-		final @NotNull T... choices)
+		final @Nonnull String style,
+		final @Nonnull T... choices)
 	{
 		final ChoiceBox<T> choiceBox =
 			choiceBox(top, right, bottom, left, prefWidth, prefHeight, choices);
@@ -506,9 +506,9 @@ public final class FXUtility
 	 *        The {@linkplain Node Nodes} to add.
 	 * @return An {@link HBox}.
 	 */
-	public static @NotNull HBox hbox (
+	public static @Nonnull HBox hbox (
 		final double spacing,
-		final @NotNull Node... nodes)
+		final @Nonnull Node... nodes)
 	{
 		final HBox hBox = new HBox(nodes);
 		hBox.setSpacing(spacing);
@@ -526,10 +526,10 @@ public final class FXUtility
 	 *        The {@linkplain Node Nodes} to add.
 	 * @return An {@link HBox}.
 	 */
-	public static @NotNull HBox hbox (
-		final @NotNull String style,
+	public static @Nonnull HBox hbox (
+		final @Nonnull String style,
 		final double spacing,
-		final @NotNull Node... nodes)
+		final @Nonnull Node... nodes)
 	{
 		final HBox hBox = hbox(spacing, nodes);
 		hBox.setStyle(style);
@@ -545,13 +545,13 @@ public final class FXUtility
 	 *        The {@linkplain Node Nodes} to add.
 	 * @return An {@link VBox}.
 	 */
-	public static @NotNull VBox vbox (
+	public static @Nonnull VBox vbox (
 		final double top,
 		final double right,
 		final double bottom,
 		final double left,
 		final double spacing,
-		final @NotNull Node... nodes)
+		final @Nonnull Node... nodes)
 	{
 		final VBox vBox = vbox(spacing, nodes);
 		vBox.setPadding(new Insets(top, right, bottom, left));
@@ -567,9 +567,9 @@ public final class FXUtility
 	 *        The {@linkplain Node Nodes} to add.
 	 * @return An {@link VBox}.
 	 */
-	public static @NotNull VBox vbox (
+	public static @Nonnull VBox vbox (
 		final double spacing,
-		final @NotNull Node... nodes)
+		final @Nonnull Node... nodes)
 	{
 		final VBox vBox = new VBox(nodes);
 		vBox.setSpacing(spacing);
@@ -587,10 +587,10 @@ public final class FXUtility
 	 *        The {@linkplain Node Nodes} to add.
 	 * @return An {@link VBox}.
 	 */
-	public static @NotNull VBox vbox (
-		final @NotNull String style,
+	public static @Nonnull VBox vbox (
+		final @Nonnull String style,
 		final double spacing,
-		final @NotNull Node... nodes)
+		final @Nonnull Node... nodes)
 	{
 		final VBox vBox = vbox(spacing, nodes);
 		vBox.setStyle(style);
@@ -618,10 +618,10 @@ public final class FXUtility
 	 * @param modifiers
 	 *        An array of {@link Modifier}s.
 	 */
-	public static @NotNull KeyComboAction createKeyCombo (
-		final @NotNull Continuation0 action,
-		final @NotNull KeyCode keyCode,
-		final @NotNull Modifier... modifiers)
+	public static @Nonnull KeyComboAction createKeyCombo (
+		final @Nonnull Continuation0 action,
+		final @Nonnull KeyCode keyCode,
+		final @Nonnull Modifier... modifiers)
 	{
 		return new KeyComboAction(
 			new KeyCodeCombination(keyCode, modifiers), action);
@@ -636,12 +636,12 @@ public final class FXUtility
 		/**
 		 * The {@link KeyCombination}.
 		 */
-		private final @NotNull KeyCombination keyCombination;
+		private final @Nonnull KeyCombination keyCombination;
 
 		/**
 		 * The {@link Continuation0} to perform.
 		 */
-		private final @NotNull Continuation0 action;
+		private final @Nonnull Continuation0 action;
 
 		/**
 		 * Perform the {@link #action} if the given {@link KeyEvent} matches
@@ -667,8 +667,8 @@ public final class FXUtility
 		 *        The {@link Continuation0} to perform.
 		 */
 		public KeyComboAction (
-			final @NotNull KeyCombination keyCombination,
-			final @NotNull Continuation0 action)
+			final @Nonnull KeyCombination keyCombination,
+			final @Nonnull Continuation0 action)
 		{
 			this.keyCombination = keyCombination;
 			this.action = action;
@@ -683,7 +683,7 @@ public final class FXUtility
 	 * @return A {@code TextInputDialog}.
 	 */
 	public static TextInputDialog textInputDialog(
-		final @NotNull String title)
+		final @Nonnull String title)
 	{
 		final TextInputDialog textInputDialog = new TextInputDialog();
 		textInputDialog.setTitle(title);

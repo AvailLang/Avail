@@ -37,7 +37,7 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.persistence.IndexedFileException;
 import com.avail.persistence.IndexedRepositoryManager;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.awt.event.ActionEvent;
 import java.io.IOException;

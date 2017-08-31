@@ -43,7 +43,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Define the structure and behavior of {@link ParseNodeKind#LIST_NODE list

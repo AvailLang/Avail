@@ -14,7 +14,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,9 +49,9 @@ extends Scene
 	public NewPackageWindow (
 		@NamedArg("width") final double width,
 		@NamedArg("height") final double height,
-		final @NotNull File directory,
-		final @NotNull AvailWorkbench workbench,
-		final @NotNull NewPackageTask task)
+		final @Nonnull File directory,
+		final @Nonnull AvailWorkbench workbench,
+		final @Nonnull NewPackageTask task)
 	{
 		super(
 			createWindowContent(task, directory, workbench),
@@ -72,10 +72,10 @@ extends Scene
 	 *        The owning {@link AvailWorkbench}.
 	 * @return A {@code VBox}.
 	 */
-	private static @NotNull VBox createWindowContent (
-		final @NotNull NewPackageTask task,
-		final @NotNull File directory,
-		final @NotNull AvailWorkbench workbench)
+	private static @Nonnull VBox createWindowContent (
+		final @Nonnull NewPackageTask task,
+		final @Nonnull File directory,
+		final @Nonnull AvailWorkbench workbench)
 	{
 		final Label moduleNameLabel = FXUtility.label(
 			"Package Name", 5.0, 0, 0, 0);

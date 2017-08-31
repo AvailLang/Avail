@@ -40,7 +40,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;

@@ -36,7 +36,7 @@ import static com.avail.descriptor.MapBinDescriptor.IntegerSlots.*;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.MapDescriptor.MapIterable;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree

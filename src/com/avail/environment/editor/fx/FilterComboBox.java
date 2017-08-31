@@ -39,8 +39,8 @@ import javafx.event.EventHandler;
 import javafx.scene.control.ComboBox;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,12 +60,12 @@ extends ComboBox<T>
 	 * A {@link BiFunction} that accepts the typed String and an object from
 	 * the {@link ComboBox} option list.
 	 */
-	final @NotNull BiFunction<String, T, Boolean> matcher;
+	final @Nonnull BiFunction<String, T, Boolean> matcher;
 
 	/**
 	 * A {@link Continuation0} that is run when {@link KeyCode#ENTER} is hit.
 	 */
-	private @NotNull Continuation0 enterBehavior = () -> {};
+	private @Nonnull Continuation0 enterBehavior = () -> {};
 
 	/**
 	 * Perform an action when the following characters are not pressed:
@@ -126,7 +126,7 @@ extends ComboBox<T>
 	 *
 	 * @return A {@code Continuation0}.
 	 */
-	@NotNull Continuation0 enterBehavior ()
+	@Nonnull Continuation0 enterBehavior ()
 	{
 		return enterBehavior;
 	}
@@ -137,7 +137,7 @@ extends ComboBox<T>
 	 * @param enterBehavior
 	 *        A {@link Continuation0}.
 	 */
-	public void enterBehavior (final @NotNull Continuation0 enterBehavior)
+	public void enterBehavior (final @Nonnull Continuation0 enterBehavior)
 	{
 		this.enterBehavior = enterBehavior;
 	}
@@ -145,7 +145,7 @@ extends ComboBox<T>
 	/**
 	 * The initial static option list.
 	 */
-	private @NotNull ObservableList<T> optionList;
+	private @Nonnull ObservableList<T> optionList;
 
 	/**
 	 * Answer the selected {@link ComboBox} value.
@@ -171,7 +171,7 @@ extends ComboBox<T>
 	 * @param options
 	 *        The collection to add.
 	 */
-	public void addOptions (final @NotNull Collection<T> options)
+	public void addOptions (final @Nonnull Collection<T> options)
 	{
 		getItems().addAll(options);
 		optionList = getItems();
@@ -183,7 +183,7 @@ extends ComboBox<T>
 	 *
 	 * @return A {@link Collection}.
 	 */
-	protected @NotNull Collection<T> generateVisibleList ()
+	protected @Nonnull Collection<T> generateVisibleList ()
 	{
 		final List<T> list = new ArrayList<>();
 		for (final T aData : optionList)
@@ -211,8 +211,8 @@ extends ComboBox<T>
 	 *        is hit.
 	 */
 	public FilterComboBox (
-		final @NotNull  BiFunction<String, T, Boolean> matcher,
-		final @NotNull Continuation0 enterBehavior)
+		final @Nonnull  BiFunction<String, T, Boolean> matcher,
+		final @Nonnull Continuation0 enterBehavior)
 	{
 		this.matcher = matcher;
 		this.enterBehavior = enterBehavior;
@@ -240,7 +240,7 @@ extends ComboBox<T>
 	 *        from the {@link ComboBox} option list.
 	 */
 	public FilterComboBox (
-		final @NotNull  BiFunction<String, T, Boolean> matcher)
+		final @Nonnull  BiFunction<String, T, Boolean> matcher)
 	{
 		this(matcher, () -> {});
 	}
@@ -257,8 +257,8 @@ extends ComboBox<T>
 	 *        A {@link Continuation0} that is run when {@link KeyCode#ENTER}
 	 */
 	public FilterComboBox (
-		final @NotNull Collection<T> items,
-		final @NotNull BiFunction<String, T, Boolean> matcher,
+		final @Nonnull Collection<T> items,
+		final @Nonnull BiFunction<String, T, Boolean> matcher,
 		final @Nullable Continuation0 enterBehavior)
 	{
 		this(matcher, enterBehavior);
@@ -276,8 +276,8 @@ extends ComboBox<T>
 	 *        from the {@link ComboBox} option list.
 	 */
 	public FilterComboBox (
-		final @NotNull Collection<T> items,
-		final @NotNull BiFunction<String, T, Boolean> matcher)
+		final @Nonnull Collection<T> items,
+		final @Nonnull BiFunction<String, T, Boolean> matcher)
 	{
 		this(matcher, () -> {});
 		addOptions(items);
@@ -286,7 +286,7 @@ extends ComboBox<T>
 	/**
 	 * The {@link EventHandler} associated with this {@link FilterComboBox}.
 	 */
-	private final @NotNull EventHandler<KeyEvent> eventHandler =
+	private final @Nonnull EventHandler<KeyEvent> eventHandler =
 		new EventHandler<KeyEvent>()
 	{
 		/**

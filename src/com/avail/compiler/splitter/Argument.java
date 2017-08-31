@@ -35,7 +35,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.exceptions.SignatureException;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.util.IdentityHashMap;
 import java.util.Iterator;

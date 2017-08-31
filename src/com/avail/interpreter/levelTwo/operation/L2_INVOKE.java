@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.RegisterState;
 import com.avail.optimizer.ReifyStackThrowable;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.interpreter.Interpreter;

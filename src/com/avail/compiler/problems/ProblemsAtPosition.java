@@ -33,7 +33,7 @@
 package com.avail.compiler.problems;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.utility.evaluation.Describer;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.util.List;
 

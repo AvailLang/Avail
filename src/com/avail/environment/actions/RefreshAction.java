@@ -36,7 +36,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import com.avail.environment.AvailWorkbench;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code RefreshAction} updates the module tree with new information from the

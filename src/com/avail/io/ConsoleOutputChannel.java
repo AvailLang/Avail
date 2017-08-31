@@ -42,7 +42,7 @@ import java.nio.channels.CompletionHandler;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code ConsoleInputChannel} provides a faux {@linkplain

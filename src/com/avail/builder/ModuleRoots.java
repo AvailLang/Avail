@@ -40,7 +40,7 @@ import java.util.Map.Entry;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code ModuleRoots} encapsulates the Avail {@linkplain ModuleDescriptor

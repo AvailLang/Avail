@@ -32,7 +32,7 @@
 
 package com.avail.annotations;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 import javax.annotation.meta.TypeQualifierDefault;
 import java.lang.annotation.*;
 
@@ -57,6 +57,6 @@ import java.lang.annotation.*;
 		ElementType.TYPE
 	})
 @Documented
-public @NotNull @interface NotNullByDefault {
+public @Nonnull @interface NotNullByDefault {
 
 }

@@ -37,7 +37,7 @@ import java.util.Collections;
 import java.util.Set;
 import javax.xml.parsers.SAXParser;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
