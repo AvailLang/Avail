@@ -35,7 +35,7 @@ package com.avail.environment.actions;
 import java.awt.event.*;
 import com.avail.AvailRuntime;
 import com.avail.environment.AvailWorkbench;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code TraceMacrosAction} toggles the flag that indicates whether to show

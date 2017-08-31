@@ -1,8 +1,8 @@
 package com.avail.environment.editor.utility;
 
 import com.avail.utility.Pair;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -19,14 +19,14 @@ public class PrefixTrie<T>
 	/**
 	 * The root {@link PrefixNode}.
 	 */
-	private final @NotNull PrefixNode<T> root = new PrefixNode<>(-1);
+	private final @Nonnull PrefixNode<T> root = new PrefixNode<>(-1);
 
 	/**
 	 * Answer the {@link #root}.
 	 *
 	 * @return A {@link PrefixNode}.
 	 */
-	public @NotNull PrefixNode<T> root ()
+	public @Nonnull PrefixNode<T> root ()
 	{
 		return root;
 	}
@@ -46,8 +46,8 @@ public class PrefixTrie<T>
 	 *        The {@link PrefixNode#content}.
 	 */
 	public void addWord (
-		final @NotNull String word,
-		final @NotNull T content)
+		final @Nonnull String word,
+		final @Nonnull T content)
 	{
 		boolean addWord = false;
 		synchronized (lock)
@@ -77,8 +77,8 @@ public class PrefixTrie<T>
 	 * @return A {@code PrefixNode} if one exists; {@code null} otherwise.
 	 */
 	public @Nullable PrefixNode<T> searchNode (
-		final @NotNull String word,
-		final @NotNull Consumer<PrefixNode<T>> acceptEachNode)
+		final @Nonnull String word,
+		final @Nonnull Consumer<PrefixNode<T>> acceptEachNode)
 	{
 		return root.searchTrie(word, acceptEachNode);
 	}
@@ -90,7 +90,7 @@ public class PrefixTrie<T>
 	 *        The String to find.
 	 * @return A {@code PrefixNode} if one exists; {@code null} otherwise.
 	 */
-	public @Nullable PrefixNode<T> searchNode (final @NotNull String word)
+	public @Nullable PrefixNode<T> searchNode (final @Nonnull String word)
 	{
 		return root.searchTrie(word);
 	}
@@ -101,7 +101,7 @@ public class PrefixTrie<T>
 	 *
 	 * @return A list.
 	 */
-	public @NotNull List<NodeContent<T>> wordContent ()
+	public @Nonnull List<NodeContent<T>> wordContent ()
 	{
 		final List<NodeContent<T>> wordTemplates = new ArrayList<>();
 		root.words().forEach(word ->
@@ -128,12 +128,12 @@ public class PrefixTrie<T>
 		/**
 		 * The word spelled up to the originating {@link PrefixNode}.
 		 */
-		public final @NotNull String word;
+		public final @Nonnull String word;
 
 		/**
 		 * The content at the originating {@link PrefixNode}.
 		 */
-		public final @NotNull T content;
+		public final @Nonnull T content;
 
 		/**
 		 * Construct a {@link NodeContent}.
@@ -144,8 +144,8 @@ public class PrefixTrie<T>
 		 *        The {@link PrefixNode#content}.
 		 */
 		NodeContent (
-			final @NotNull String word,
-			final @NotNull T content)
+			final @Nonnull String word,
+			final @Nonnull T content)
 		{
 			this.word = word;
 			this.content = content;

@@ -32,7 +32,7 @@
 
 package com.avail.utility.evaluation;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Implementors of {@code Continuation4} provide a single arbitrary operation

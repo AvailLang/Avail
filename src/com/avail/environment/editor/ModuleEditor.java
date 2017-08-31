@@ -61,7 +61,7 @@ import org.fxmisc.richtext.model.RichTextChange;
 import org.fxmisc.richtext.model.StyleSpan;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.StyledText;
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -195,9 +195,9 @@ public final class ModuleEditor
 	 * @return A {@code ModuleEditor}.
 	 */
 	public static ModuleEditor moduleViewer (
-		final @NotNull ResolvedModuleName module,
-		final @NotNull AvailWorkbench workbench,
-		final @NotNull JFrame frame)
+		final @Nonnull ResolvedModuleName module,
+		final @Nonnull AvailWorkbench workbench,
+		final @Nonnull JFrame frame)
 	{
 		final AvailArea availArea = new AvailArea(workbench);
 		availArea.setParagraphGraphicFactory(
@@ -309,7 +309,7 @@ public final class ModuleEditor
 	 * A {@linkplain Map map} from Avail header keywords to the associated
 	 * {@link ExpectedToken}s.
 	 */
-	private static final @NotNull Map<A_String, ExpectedToken> headerKeywords;
+	private static final @Nonnull Map<A_String, ExpectedToken> headerKeywords;
 
 	static
 	{
@@ -394,10 +394,10 @@ public final class ModuleEditor
 	 *        a styling operation completes.
 	 */
 	private void asyncStyleOutputTokens (
-		final @NotNull List<A_Token> outputTokens,
-		final @NotNull Map<A_Token, ModuleEditorStyle> tokenStyles,
-		final @NotNull Map<A_String, ModuleEditorStyle> nameStyles,
-		final @NotNull Semaphore semaphore)
+		final @Nonnull List<A_Token> outputTokens,
+		final @Nonnull Map<A_Token, ModuleEditorStyle> tokenStyles,
+		final @Nonnull Map<A_String, ModuleEditorStyle> nameStyles,
+		final @Nonnull Semaphore semaphore)
 	{
 		// Override the general style for each ordinary token.
 		outputTokens.parallelStream().forEach(token ->
@@ -440,7 +440,7 @@ public final class ModuleEditor
 	/**
 	 * The {@linkplain Pattern pattern} that describes Stacks keywords.
 	 */
-	private static final @NotNull Pattern stacksKeywordPattern =
+	private static final @Nonnull Pattern stacksKeywordPattern =
 		Pattern.compile("@\\w+");
 
 	/**
@@ -494,7 +494,7 @@ public final class ModuleEditor
 //                continue;
 //				}
 //			}
-//			catch (final @NotNull StacksScannerException e)
+//			catch (final @Nonnull StacksScannerException e)
 //			{
 //				// This comment is busted — style it appropriately.
 //				styleToken(token, MALFORMED_STACKS_COMMENT);
@@ -537,8 +537,8 @@ public final class ModuleEditor
 	 *        a styling operation completes.
 	 */
 	private void asyncStyleOrdinaryComments (
-		final @NotNull List<BasicCommentPosition> positions,
-		final @NotNull Semaphore semaphore)
+		final @Nonnull List<BasicCommentPosition> positions,
+		final @Nonnull Semaphore semaphore)
 	{
 		positions.forEach(position ->
 			Platform.runLater(() ->
@@ -689,7 +689,7 @@ public final class ModuleEditor
 			semaphore.acquire();
 //			codeArea.requestFollowCaret();
 		}
-		catch (final @NotNull AvailScannerException|InterruptedException e)
+		catch (final @Nonnull AvailScannerException|InterruptedException e)
 		{
 			scannerResult = null;
 		}

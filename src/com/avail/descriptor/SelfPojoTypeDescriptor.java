@@ -40,7 +40,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ArrayPojoTypeDescriptor.PojoArray;
 import com.avail.serialization.SerializerOperation;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code SelfPojoTypeDescriptor} describes the self type of a Java class or

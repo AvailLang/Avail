@@ -36,8 +36,8 @@ import com.avail.environment.editor.utility.PrefixTrie;
 import com.avail.utility.evaluation.Continuation0;
 import javafx.scene.control.ComboBox;
 import javafx.scene.input.KeyCode;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -59,13 +59,13 @@ extends FilterComboBox<String>
 	/**
 	 * The {@link PrefixTrie} that backs
 	 */
-	private final @NotNull PrefixTrie<T> prefixTrie;
+	private final @Nonnull PrefixTrie<T> prefixTrie;
 
 	/**
 	 * An {@link ArrayDeque} that represents the currently navigated path on
 	 * the {@link #prefixTrie}.
 	 */
-	private final @NotNull ArrayDeque<PrefixNode<T>> path = new ArrayDeque<>();
+	private final @Nonnull ArrayDeque<PrefixNode<T>> path = new ArrayDeque<>();
 
 	/**
 	 * Add a {@link PrefixNode} to the {@link #path}.
@@ -84,7 +84,7 @@ extends FilterComboBox<String>
 	 *
 	 * @return A {@code PrefixNode}.
 	 */
-	private @NotNull PrefixNode<T> currentNode ()
+	private @Nonnull PrefixNode<T> currentNode ()
 	{
 		return path.getLast();
 	}
@@ -93,7 +93,7 @@ extends FilterComboBox<String>
 	 * A {@link Collection} of Strings that represent the content presently
 	 * available from this point forward in the {@link #path}.
 	 */
-	private @NotNull Collection<String> visibleWordList =
+	private @Nonnull Collection<String> visibleWordList =
 		Collections.emptyList();
 
 	/**
@@ -107,7 +107,7 @@ extends FilterComboBox<String>
 	}
 
 	@Override
-	protected @NotNull Collection<String> generateVisibleList ()
+	protected @Nonnull Collection<String> generateVisibleList ()
 	{
 		return visibleWordList;
 	}
@@ -225,9 +225,9 @@ extends FilterComboBox<String>
 	 *        The backing {@link PrefixTrie}.
 	 */
 	public FilterTrieComboBox (
-		final @NotNull BiFunction<String, String, Boolean> matcher,
-		final @NotNull Continuation0 enterBehavior,
-		final @NotNull PrefixTrie<T> prefixTrie)
+		final @Nonnull BiFunction<String, String, Boolean> matcher,
+		final @Nonnull Continuation0 enterBehavior,
+		final @Nonnull PrefixTrie<T> prefixTrie)
 	{
 		super(prefixTrie.root().words(), matcher, enterBehavior);
 		this.prefixTrie = prefixTrie;
@@ -243,8 +243,8 @@ extends FilterComboBox<String>
 	 *        The backing {@link PrefixTrie}.
 	 */
 	public FilterTrieComboBox (
-		final @NotNull BiFunction<String, String, Boolean> matcher,
-		final @NotNull PrefixTrie<T> prefixTrie)
+		final @Nonnull BiFunction<String, String, Boolean> matcher,
+		final @Nonnull PrefixTrie<T> prefixTrie)
 	{
 		super(prefixTrie.root().words(), matcher);
 		this.prefixTrie = prefixTrie;

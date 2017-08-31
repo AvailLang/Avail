@@ -42,7 +42,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import com.avail.AvailRuntime;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.utility.Mutable;

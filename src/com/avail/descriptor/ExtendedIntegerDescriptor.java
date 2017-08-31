@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 
 import com.avail.annotations.AvailMethod;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * The abstract class {@code ExtendedIntegerDescriptor} represents instances

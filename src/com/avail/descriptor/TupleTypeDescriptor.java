@@ -43,7 +43,7 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A tuple type can be the {@linkplain AvailObject#kind() type} of a {@linkplain

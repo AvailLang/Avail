@@ -42,7 +42,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At

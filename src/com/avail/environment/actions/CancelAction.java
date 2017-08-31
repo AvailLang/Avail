@@ -37,7 +37,7 @@ import javax.swing.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import com.avail.environment.tasks.BuildTask;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code CancelAction} cancels a background {@linkplain BuildTask build

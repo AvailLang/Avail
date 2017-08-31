@@ -32,7 +32,7 @@
 
 package com.avail.test;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static java.lang.Math.*;
 import static org.junit.jupiter.api.Assertions.*;

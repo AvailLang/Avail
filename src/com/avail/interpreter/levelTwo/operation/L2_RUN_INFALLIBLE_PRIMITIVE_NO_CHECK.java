@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import java.util.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.*;
 import com.avail.interpreter.Primitive.*;

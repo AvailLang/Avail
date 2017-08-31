@@ -35,7 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import static com.avail.descriptor.SetBinDescriptor.IntegerSlots.*;
 

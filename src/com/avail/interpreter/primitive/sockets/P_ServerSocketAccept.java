@@ -43,7 +43,7 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * <strong>Primitive:</strong> Accept an incoming connection on the

@@ -47,8 +47,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.Collection;
 
@@ -64,19 +64,19 @@ public class FilterDropDownDialog<
 	/**
 	 * The {@link GridPane} the {@link FilterDropDownDialog} displayed on.
 	 */
-	private final @NotNull GridPane grid;
+	private final @Nonnull GridPane grid;
 
 	/**
 	 * The label next to the {@link ComboBox}.
 	 */
-	private final @NotNull Label label;
+	private final @Nonnull Label label;
 
 	/**
 	 * The main {@link ComboBox}.
 	 */
-	private final @NotNull T comboBox;
+	private final @Nonnull T comboBox;
 
-	public @NotNull T getComboBox ()
+	public @Nonnull T getComboBox ()
 	{
 		return comboBox;
 	}
@@ -98,9 +98,9 @@ public class FilterDropDownDialog<
 	 *        The {@link FilterComboBox} used in this dialog.
 	 */
 	public FilterDropDownDialog (
-		final @NotNull S defaultChoice,
-		final @NotNull Collection<S> choices,
-		final @NotNull T comboBox)
+		final @Nonnull S defaultChoice,
+		final @Nonnull Collection<S> choices,
+		final @Nonnull T comboBox)
 	{
 		final DialogPane dialogPane = getDialogPane();
 
@@ -175,7 +175,7 @@ public class FilterDropDownDialog<
 	 * Answer the property representing the currently selected item in the
 	 * dialog.
 	 */
-	public final @NotNull ReadOnlyObjectProperty<S> selectedItemProperty()
+	public final @Nonnull ReadOnlyObjectProperty<S> selectedItemProperty()
 	{
 		return comboBox.getSelectionModel().selectedItemProperty();
 	}
@@ -186,7 +186,7 @@ public class FilterDropDownDialog<
 	 * @param item
 	 *        The item to select in the dialog.
 	 */
-	public final void setSelectedItem(final @NotNull S item)
+	public final void setSelectedItem(final @Nonnull S item)
 	{
 		comboBox.getSelectionModel().select(item);
 	}
@@ -196,7 +196,7 @@ public class FilterDropDownDialog<
 	 * can be modified by the developer to add, remove, or reorder the items
 	 * to present to the user.
 	 */
-	public final @NotNull ObservableList<S> getItems()
+	public final @Nonnull ObservableList<S> getItems()
 	{
 		return comboBox.getItems();
 	}

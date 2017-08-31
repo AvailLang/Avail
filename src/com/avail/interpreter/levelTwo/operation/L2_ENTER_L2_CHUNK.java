@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.ContinuationTypeDescriptor;

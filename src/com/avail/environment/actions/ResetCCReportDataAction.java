@@ -39,7 +39,7 @@ import com.avail.AvailTask;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code ResetCCReportDataAction} clears code coverage information obtained

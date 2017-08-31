@@ -149,13 +149,11 @@ POSSIBILITY OF SUCH DAMAGE.
 				id="primitives"
 				dir="${path.primitives}"
 				includes="**/P_*.class"
-				excludes="**/*$*.class">
-		</fileset>
+				excludes="**/*$*.class"/>
 		<pathconvert
-			property="one-primitive-per-line"
-			refid="primitives"
-			pathsep="${line.separator}">
-		</pathconvert>
+				property="one-primitive-per-line"
+				refid="primitives"
+				pathsep="${line.separator}"/>
 		<echo
 			file="${path.primitives-list}"
 			append="no"

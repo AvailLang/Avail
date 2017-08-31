@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;

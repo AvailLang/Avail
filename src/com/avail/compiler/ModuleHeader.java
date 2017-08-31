@@ -41,7 +41,7 @@ import java.util.Set;
 import com.avail.AvailRuntime;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.MapDescriptor.Entry;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ResolvedModuleName;

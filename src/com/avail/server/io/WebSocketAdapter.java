@@ -48,7 +48,7 @@ import java.util.*;
 import java.util.logging.Level;
 import javax.xml.bind.DatatypeConverter;
 import com.avail.annotations.InnerAccess;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
 import com.avail.utility.IO;

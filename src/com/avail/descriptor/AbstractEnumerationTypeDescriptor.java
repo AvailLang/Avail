@@ -36,7 +36,7 @@ import java.util.*;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 

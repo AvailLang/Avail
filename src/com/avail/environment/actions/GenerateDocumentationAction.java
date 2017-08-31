@@ -40,7 +40,7 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.tasks.DocumentationTask;
 import com.avail.stacks.StacksGenerator;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code GenerateDocumentationAction} instructs the {@linkplain

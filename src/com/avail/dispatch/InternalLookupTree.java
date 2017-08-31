@@ -32,7 +32,7 @@
 
 package com.avail.dispatch;
 import com.avail.annotations.InnerAccess;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;

@@ -45,7 +45,7 @@ import java.nio.charset.StandardCharsets;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.FiberDescriptor;
 

@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import static com.avail.utility.StackPrinter.trace;
 

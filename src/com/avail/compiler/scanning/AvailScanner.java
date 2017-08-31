@@ -41,7 +41,7 @@ import com.avail.compiler.ExpectedToken;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.LRUCache;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}

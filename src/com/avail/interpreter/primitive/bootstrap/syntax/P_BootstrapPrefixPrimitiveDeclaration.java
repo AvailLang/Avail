@@ -39,7 +39,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.TokenDescriptor.TokenType;

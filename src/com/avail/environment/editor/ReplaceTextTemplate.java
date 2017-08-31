@@ -34,7 +34,7 @@ package com.avail.environment.editor;
 
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.editor.utility.PrefixTrie;
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -54,14 +54,14 @@ public class ReplaceTextTemplate
 	/**
 	 * The {@link PrefixTrie} that contains the templates.
 	 */
-	private final @NotNull PrefixTrie<String> prefixTrie = new PrefixTrie<>();
+	private final @Nonnull PrefixTrie<String> prefixTrie = new PrefixTrie<>();
 
 	/**
 	 * Answer the {@link PrefixTrie} that contains the templates.
 	 *
 	 * @return A {@code PrefixTrie}.
 	 */
-	public @NotNull PrefixTrie<String> prefixTrie ()
+	public @Nonnull PrefixTrie<String> prefixTrie ()
 	{
 		return prefixTrie;
 	}
@@ -69,13 +69,13 @@ public class ReplaceTextTemplate
 	/**
 	 * The {@link Properties} where the templates are stored.
 	 */
-	private final @NotNull Properties properties = new Properties();
+	private final @Nonnull Properties properties = new Properties();
 
 	/**
 	 * The name of the {@link Properties} {@link File} where the templates are
 	 * stored.
 	 */
-	private static final @NotNull String propertiesFileName =
+	private static final @Nonnull String propertiesFileName =
 		AvailWorkbench.resourcePrefix + "template.properties";
 
 	/**
@@ -140,8 +140,8 @@ public class ReplaceTextTemplate
 	 * @return {@code true} if added; {@code false} otherwise.
 	 */
 	public boolean addTemplate (
-		final @NotNull String key,
-		final @NotNull String value)
+		final @Nonnull String key,
+		final @Nonnull String value)
 	{
 		if (properties.containsKey(key))
 		{
@@ -162,8 +162,8 @@ public class ReplaceTextTemplate
 	 * @return {@code true} if changed; {@code false} otherwise.
 	 */
 	public boolean editTemplate (
-		final @NotNull String key,
-		final @NotNull String value)
+		final @Nonnull String key,
+		final @Nonnull String value)
 	{
 		if (!properties.containsKey(key))
 		{
@@ -181,7 +181,7 @@ public class ReplaceTextTemplate
 	 *        The property name to remove.
 	 */
 	public void removeTemplate (
-		final @NotNull String key)
+		final @Nonnull String key)
 	{
 		if (properties.remove(key) != null)
 		{

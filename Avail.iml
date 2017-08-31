@@ -14,8 +14,7 @@
     <content url="file://$MODULE_DIR$/../../blink" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
-    <orderEntry type="library" name="annotations-java8" level="project" />
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/libraries/richtextfx-fat-1.0.0-SNAPSHOT.jar!/" />
@@ -24,8 +23,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="idea-junit" level="project" />
-    <orderEntry type="library" name="annotations" level="project" />
-    <orderEntry type="library" name="jsr305" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="annotations" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="junit" level="project" />
   </component>
 </module>

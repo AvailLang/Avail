@@ -38,7 +38,7 @@ import java.util.List;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.*;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * Every object in Avail has a type.  Types are also Avail objects.  The types

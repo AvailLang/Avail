@@ -32,7 +32,7 @@
 
 package com.avail.compiler;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 
 /**

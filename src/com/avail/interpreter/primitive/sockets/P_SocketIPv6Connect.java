@@ -40,7 +40,7 @@ import java.net.*;
 import java.nio.channels.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.*;

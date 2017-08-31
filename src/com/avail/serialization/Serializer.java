@@ -36,7 +36,6 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.utility.evaluation.*;
 
-import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
 

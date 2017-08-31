@@ -35,7 +35,7 @@ package com.avail.interpreter.levelTwo;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;

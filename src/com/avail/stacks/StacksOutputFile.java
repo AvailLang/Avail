@@ -44,7 +44,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
 

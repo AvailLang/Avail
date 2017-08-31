@@ -38,7 +38,7 @@ import java.io.IOException;
 import com.avail.builder.ModuleRoot;
 import com.avail.environment.AvailWorkbench;
 import com.avail.persistence.IndexedFileException;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code CleanAction} empties all compiled module repositories.

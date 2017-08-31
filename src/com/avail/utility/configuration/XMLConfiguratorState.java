@@ -32,7 +32,7 @@
 
 package com.avail.utility.configuration;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.lang.Thread.State;
 import java.util.ArrayDeque;

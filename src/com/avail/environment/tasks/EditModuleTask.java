@@ -38,8 +38,8 @@ import com.avail.environment.AvailWorkbench.LayoutConfiguration;
 import com.avail.environment.editor.ModuleEditor;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -57,7 +57,7 @@ public class EditModuleTask
 extends AbstractWorkbenchTask
 implements WindowListener
 {
-	private final @NotNull JFrame frame;
+	private final @Nonnull JFrame frame;
 
 	@Override
 	protected void executeTask () throws Exception

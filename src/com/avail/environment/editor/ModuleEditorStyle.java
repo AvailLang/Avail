@@ -33,8 +33,8 @@ package com.avail.environment.editor;
 
 import com.avail.compiler.ExpectedToken;
 import com.avail.environment.AvailWorkbench;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -139,7 +139,7 @@ public enum ModuleEditorStyle
 	 * sections, as a {@linkplain Map map} from {@link ExpectedToken}s to
 	 * {@link ModuleEditorStyle}s.
 	 */
-	private static final @NotNull
+	private static final @Nonnull
 	Map<ExpectedToken, ModuleEditorStyle> stylesByExpectedToken =
 		new EnumMap<>(ExpectedToken.class);
 
@@ -166,7 +166,7 @@ public enum ModuleEditorStyle
 	 *         none is appropriate.
 	 */
 	public static @Nullable ModuleEditorStyle styleFor (
-		final @NotNull ExpectedToken token)
+		final @Nonnull ExpectedToken token)
 	{
 		return stylesByExpectedToken.get(token);
 	}
@@ -174,7 +174,7 @@ public enum ModuleEditorStyle
 	/**
 	 * The CSS style class for the style.
 	 */
-	public final @NotNull String styleClass;
+	public final @Nonnull String styleClass;
 
 	/**
 	 * The {@link ExpectedToken} that governs the section associated with this
@@ -186,13 +186,13 @@ public enum ModuleEditorStyle
 	 * The {@link ModuleEditorStyle} that governs the supersection associated
 	 * with this {@link ModuleEditorStyle}.
 	 */
-	public @NotNull ModuleEditorStyle supersectionStyleClass;
+	public @Nonnull ModuleEditorStyle supersectionStyleClass;
 
 	/**
 	 * The {@link ModuleEditorStyle} that governs the subsection associated
 	 * with this {@link ModuleEditorStyle}.
 	 */
-	public final @NotNull ModuleEditorStyle subsectionStyleClass;
+	public final @Nonnull ModuleEditorStyle subsectionStyleClass;
 
 	/**
 	 * Does the {@link ModuleEditorStyle} correspond to either an imported name
@@ -209,7 +209,7 @@ public enum ModuleEditorStyle
 	/**
 	 * The {@link}
 	 */
-	public static final @NotNull String editorStyleSheet =
+	public static final @Nonnull String editorStyleSheet =
 		ModuleEditor.class.getResource(
 			AvailWorkbench.resourcePrefix +
 				"module_editor_styles.css").toExternalForm();
@@ -232,7 +232,7 @@ public enum ModuleEditorStyle
 	 * @param expectedToken
 	 *        The appropriate {@code ExpectedToken}.
 	 */
-	ModuleEditorStyle (final @NotNull ExpectedToken expectedToken)
+	ModuleEditorStyle (final @Nonnull ExpectedToken expectedToken)
 	{
 		this.styleClass = this.name().replace('_', '-').toLowerCase();
 		this.expectedToken = expectedToken;
@@ -251,8 +251,8 @@ public enum ModuleEditorStyle
 	 *        The {@code ModuleEditorStyle} for subsections.
 	 */
 	ModuleEditorStyle (
-		final @NotNull ExpectedToken expectedToken,
-		final @NotNull ModuleEditorStyle subsectionStyleClass)
+		final @Nonnull ExpectedToken expectedToken,
+		final @Nonnull ModuleEditorStyle subsectionStyleClass)
 	{
 		this.styleClass = this.name().replace('_', '-').toLowerCase();
 		this.expectedToken = expectedToken;

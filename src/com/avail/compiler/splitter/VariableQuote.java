@@ -36,7 +36,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ReferenceNodeDescriptor;
 import com.avail.descriptor.VariableDescriptor;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.util.IdentityHashMap;
 import java.util.Iterator;

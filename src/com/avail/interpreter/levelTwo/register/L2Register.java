@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.optimizer.L2Translator;

@@ -41,7 +41,7 @@ import java.util.WeakHashMap;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.serialization.Serializer;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is

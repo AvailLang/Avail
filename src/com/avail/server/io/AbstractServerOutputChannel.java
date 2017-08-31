@@ -35,7 +35,7 @@ package com.avail.server.io;
 import java.nio.CharBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.CompletionHandler;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.io.TextOutputChannel;
 import com.avail.server.messages.Message;
 import com.avail.utility.json.JSONWriter;

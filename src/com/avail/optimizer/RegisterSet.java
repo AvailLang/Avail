@@ -35,7 +35,7 @@ package com.avail.optimizer;
 import java.util.*;
 import java.util.Map.Entry;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.*;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
@@ -351,7 +351,7 @@ public final class RegisterSet
 	 * @return The set of all {@link L2Register}s known to contain the same
 	 *         value as the given register.
 	 */
-	private @NotNull Set<L2Register> allEquivalentRegisters (
+	private @Nonnull Set<L2Register> allEquivalentRegisters (
 		final L2Register register)
 	{
 		Set<L2Register> equivalents = new HashSet<>(3);

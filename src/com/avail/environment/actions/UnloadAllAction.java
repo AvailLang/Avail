@@ -36,7 +36,7 @@ import java.awt.*;
 import java.awt.event.*;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.tasks.UnloadTask;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * An {@code UnloadAllAction} launches an {@linkplain UnloadTask unload

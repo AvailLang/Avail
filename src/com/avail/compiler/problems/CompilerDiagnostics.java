@@ -55,8 +55,8 @@ import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.*;
 
@@ -262,7 +262,7 @@ public class CompilerDiagnostics
 		int supplementaryCounter = 0;
 
 		@InnerAccess
-		@NotNull String next ()
+		@Nonnull String next ()
 		{
 			final int nextLetterOffset =
 				circledLetters.offsetByCodePoints(letterOffset, 1);

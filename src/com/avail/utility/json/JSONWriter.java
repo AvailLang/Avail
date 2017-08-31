@@ -42,8 +42,8 @@ import java.util.Deque;
 import java.util.Formatter;
 import java.util.LinkedList;
 import com.avail.annotations.InnerAccess;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.avail.utility.evaluation.Continuation0;
 
 /**
@@ -1125,7 +1125,7 @@ implements AutoCloseable
 			state.checkCanEndDocument();
 			return writer.toString();
 		}
-		catch (final @NotNull Throwable e)
+		catch (final @Nonnull Throwable e)
 		{
 			// Do not allow an exception of any stripe to derail the
 			// stringification operation.

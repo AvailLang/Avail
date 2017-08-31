@@ -65,8 +65,8 @@ import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import static com.avail.utility.StackPrinter.trace;
 
@@ -2833,7 +2833,7 @@ implements
 	 * @return An {@linkplain Iterator iterator}.
 	 */
 	@Override
-	public @NotNull Iterator<AvailObject> iterator ()
+	public @Nonnull Iterator<AvailObject> iterator ()
 	{
 		return descriptor.o_Iterator(this);
 	}

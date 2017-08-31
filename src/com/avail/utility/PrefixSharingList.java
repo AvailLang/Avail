@@ -32,8 +32,8 @@
 
 package com.avail.utility;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import java.util.*;
 
@@ -206,7 +206,7 @@ public final class PrefixSharingList<E>
 	}
 
 	@Override
-	public @NotNull Iterator<E> iterator ()
+	public @Nonnull Iterator<E> iterator ()
 	{
 		final List<E> flatList = cacheFlatListOrMore();
 		final int mySize = size;
@@ -348,25 +348,25 @@ public final class PrefixSharingList<E>
 	@Override
 	public boolean addAll (
 		final int index,
-		final @NotNull Collection<? extends E> c)
+		final @Nonnull Collection<? extends E> c)
 	{
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public @NotNull ListIterator<E> listIterator ()
+	public @Nonnull ListIterator<E> listIterator ()
 	{
 		return subList(0, size).listIterator();
 	}
 
 	@Override
-	public @NotNull ListIterator<E> listIterator (final int index)
+	public @Nonnull ListIterator<E> listIterator (final int index)
 	{
 		return subList(0, size).listIterator(index);
 	}
 
 	@Override
-	public @NotNull List<E> subList (final int fromIndex, final int toIndex)
+	public @Nonnull List<E> subList (final int fromIndex, final int toIndex)
 	{
 		if (fromIndex < 0)
 		{

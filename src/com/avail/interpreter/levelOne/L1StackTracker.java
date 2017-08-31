@@ -34,7 +34,7 @@ package com.avail.interpreter.levelOne;
 
 import static com.avail.descriptor.AvailObject.error;
 import static java.lang.Math.max;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
 

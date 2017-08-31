@@ -34,7 +34,7 @@ import com.avail.compiler.ParsingOperation;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.util.Iterator;
 

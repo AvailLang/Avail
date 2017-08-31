@@ -37,7 +37,7 @@ import com.avail.AvailTask;
 import com.avail.compiler.AvailCompiler;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import java.awt.event.ActionEvent;
 

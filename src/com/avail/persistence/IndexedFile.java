@@ -54,7 +54,7 @@ import java.util.zip.Inflater;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * {@code IndexedFile}s are record journals. Records may be {@linkplain

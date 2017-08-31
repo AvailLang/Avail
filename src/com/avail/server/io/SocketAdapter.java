@@ -44,7 +44,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
 import com.avail.utility.IO;

@@ -42,7 +42,7 @@ import java.util.Map;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code RenamesFileParser} parses a {@linkplain File file} of Avail

@@ -40,7 +40,7 @@ import javax.swing.border.EmptyBorder;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_String;
 import com.avail.environment.AvailWorkbench;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 import static com.avail.environment.AvailWorkbench.resourcePrefix;
 

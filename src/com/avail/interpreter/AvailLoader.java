@@ -68,7 +68,7 @@ import com.avail.interpreter.primitive.bootstrap.lexing.*;
 import com.avail.io.TextInterface;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * An {@code AvailLoader} is responsible for orchestrating module-level

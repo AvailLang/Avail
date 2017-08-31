@@ -36,7 +36,7 @@ import java.nio.charset.Charset;
 import java.text.MessageFormat;
 
 import com.avail.utility.evaluation.Continuation1NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.CharacterDescriptor;
 

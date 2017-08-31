@@ -43,7 +43,7 @@ import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.Continuation0;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code SubmitInputAction} sends a line of text from the input field to

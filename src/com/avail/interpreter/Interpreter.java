@@ -69,7 +69,7 @@ import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a

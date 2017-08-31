@@ -46,7 +46,7 @@ import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * An Avail {@linkplain IntegerDescriptor integer} is represented by a little

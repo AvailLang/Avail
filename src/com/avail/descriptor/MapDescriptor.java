@@ -43,8 +43,8 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * An Avail {@linkplain MapDescriptor map} refers to the root of a Bagwell
@@ -733,7 +733,7 @@ extends Descriptor
 		 * class supports both protocols.
 		 */
 		@Override
-		public @NotNull MapIterable iterator ()
+		public @Nonnull MapIterable iterator ()
 		{
 			return this;
 		}

@@ -37,7 +37,7 @@ import java.awt.event.*;
 import java.util.EnumSet;
 import com.avail.environment.AvailWorkbench;
 import com.avail.performance.StatisticReport;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 /**
  * A {@code ReportAction} dumps performance information obtained from

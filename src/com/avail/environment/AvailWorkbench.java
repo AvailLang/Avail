@@ -53,8 +53,8 @@ import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 import com.sun.javafx.application.PlatformImpl;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import javax.swing.*;
 import javax.swing.text.*;
@@ -107,7 +107,7 @@ extends JFrame
 	/**
 	 * The prefix string for resources related to the workbench.
 	 */
-	public static final @NotNull String resourcePrefix = "/resources/workbench/";
+	public static final @Nonnull String resourcePrefix = "/resources/workbench/";
 
 	/** Determine at startup whether we're on a Mac. */
 	public static final boolean runningOnMac =
@@ -128,7 +128,7 @@ extends JFrame
 	 * does not permit the current working directory to be changed, it is safe
 	 * to cache the answer at class-loading time.
 	 */
-	public static final @NotNull File currentWorkingDirectory;
+	public static final @Nonnull File currentWorkingDirectory;
 
 	// Obtain the current working directory. Try to resolve this location to its
 	// real path. If resolution fails, then just use the value of the "user.dir"
@@ -675,18 +675,18 @@ extends JFrame
 	 * The documentation {@linkplain Path path} for the {@linkplain
 	 * StacksGenerator Stacks generator}.
 	 */
-	public @NotNull Path documentationPath =
+	public @Nonnull Path documentationPath =
 		StacksGenerator.defaultDocumentationPath;
 
 	/**
 	 * A {@link Map} from a module template name to a module template.
 	 */
-	public @NotNull ModuleTemplates moduleTemplates;
+	public @Nonnull ModuleTemplates moduleTemplates;
 
 	/**
 	 * The {@link ReplaceTextTemplate} for the {@link ModuleEditor}.
 	 */
-	public final @NotNull ReplaceTextTemplate replaceTextTemplate =
+	public final @Nonnull ReplaceTextTemplate replaceTextTemplate =
 		new ReplaceTextTemplate();
 
 	/**
@@ -709,8 +709,8 @@ extends JFrame
 	 *        The template file.
 	 */
 	public void addModuleTemplate (
-		final @NotNull String templateName,
-		final @NotNull File file)
+		final @Nonnull String templateName,
+		final @Nonnull File file)
 	{
 		if (!file.exists())
 		{
@@ -2200,7 +2200,7 @@ extends JFrame
 		 *        The name of the template.
 		 * @return The requested template or an empty string.
 		 */
-		public String get (final @NotNull String templateName)
+		public String get (final @Nonnull String templateName)
 		{
 			return moduleTemplates.getOrDefault(templateName, "");
 		}
@@ -2215,8 +2215,8 @@ extends JFrame
 		 * @return A string containing filled out template.
 		 */
 		public String createNewModuleFromTemplate (
-			final @NotNull String templateName,
-			final @NotNull String moduleName)
+			final @Nonnull String templateName,
+			final @Nonnull String moduleName)
 		{
 			final String year = Integer.toString(LocalDateTime.ofInstant(
 				Instant.now(), ZoneOffset.UTC).getYear());
@@ -2236,7 +2236,7 @@ extends JFrame
 			/**
 			 * The pattern that can be replaced in the template.
 			 */
-			private final @NotNull String pattern;
+			private final @Nonnull String pattern;
 
 			/**
 			 * Answer the result of a filled out template.
@@ -2248,8 +2248,8 @@ extends JFrame
 			 * @return A filled out template.
 			 */
 			static String replace (
-				final @NotNull String template,
-				final @NotNull String... replacements)
+				final @Nonnull String template,
+				final @Nonnull String... replacements)
 			{
 				final Replaceable[] replaceables = Replaceable.values();
 
@@ -2270,7 +2270,7 @@ extends JFrame
 			 * @param pattern
 			 *        The replacement pattern.
 			 */
-			Replaceable (final @NotNull String pattern)
+			Replaceable (final @Nonnull String pattern)
 			{
 				this.pattern = pattern;
 			}
@@ -2326,7 +2326,7 @@ extends JFrame
 		 *        A string in some encoding compatible with that produced
 		 *        by {@link #stringToStore()}.
 		 */
-		public ModuleTemplates (final @NotNull String input)
+		public ModuleTemplates (final @Nonnull String input)
 		{
 			if (!input.isEmpty())
 			{
@@ -2892,7 +2892,7 @@ extends JFrame
 	 * Create a menu with the given name and entries, which can be null to
 	 * indicate a separator, a JMenuItem, or an Action to wrap in a JMenuItem.
 	 */
-	private static @NotNull JMenu menu (
+	private static @Nonnull JMenu menu (
 		final String name,
 		final Object... actionsAndSubmenus)
 	{
@@ -2929,7 +2929,7 @@ extends JFrame
 	}
 
 	/** Answer the pane wrapped in a JScrollPane. */
-	private static @NotNull JScrollPane createScrollPane (
+	private static @Nonnull JScrollPane createScrollPane (
 		final Component innerComponent)
 	{
 		final JScrollPane scrollPane = new JScrollPane();

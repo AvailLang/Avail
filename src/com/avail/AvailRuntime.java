@@ -83,8 +83,9 @@ import com.avail.io.TextInterface;
 import com.avail.utility.LRUCache;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nonnull;
+
+import javax.annotation.Nullable;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -231,7 +232,7 @@ public final class AvailRuntime
 		final AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public Thread newThread (final @NotNull Runnable runnable)
+		public Thread newThread (final @Nonnull Runnable runnable)
 		{
 			return new Thread(
 				runnable, "AvailFile-" + counter.incrementAndGet());
@@ -248,7 +249,7 @@ public final class AvailRuntime
 		final AtomicInteger counter = new AtomicInteger();
 
 		@Override
-		public Thread newThread (final @NotNull Runnable runnable)
+		public Thread newThread (final @Nonnull Runnable runnable)
 		{
 			return new Thread(
 				runnable, "AvailSocket-" + counter.incrementAndGet());

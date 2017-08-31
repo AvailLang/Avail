@@ -34,7 +34,7 @@ package com.avail.interpreter.levelOne;
 
 import java.io.ByteArrayOutputStream;
 import java.util.*;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;

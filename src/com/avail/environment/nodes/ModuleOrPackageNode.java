@@ -33,7 +33,7 @@
 package com.avail.environment.nodes;
 
 import com.avail.builder.ModuleName;
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 
