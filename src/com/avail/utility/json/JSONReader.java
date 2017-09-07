@@ -32,6 +32,7 @@
 
 package com.avail.utility.json;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
@@ -41,7 +42,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 
 /**
  * A {@code JSONReader} produces {@link JSONFriendly JSON-friendly} {@linkplain
@@ -584,7 +584,7 @@ implements Closeable
 	{
 		try
 		{
-			final JSONData data = readData();
+			final @Nullable JSONData data = readData();
 			skipWhitespace();
 			final int codePoint = readCodePoint();
 			if (codePoint != -1)

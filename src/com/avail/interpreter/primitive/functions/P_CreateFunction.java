@@ -82,18 +82,18 @@ public final class P_CreateFunction extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				CompiledCodeTypeDescriptor.mostGeneralType(),
-				TupleTypeDescriptor.mostGeneralType()),
-			FunctionTypeDescriptor.mostGeneralType());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType(),
+				TupleTypeDescriptor.mostGeneralTupleType()),
+			FunctionTypeDescriptor.mostGeneralFunctionType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_WRONG_OUTERS));
 	}
 }

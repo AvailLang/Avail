@@ -35,21 +35,22 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.WrapState.*;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
+import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
 
 /**
  * A {@code NumberedChoice} is a special subgroup (i.e., not a root group)
@@ -124,8 +125,8 @@ extends Expression
 	throws SignatureException
 	{
 		if (!argumentType.isSubtypeOf(
-			IntegerRangeTypeDescriptor.inclusive(
-				1, alternation.alternatives().size())))
+			inclusive(1,
+				alternation.alternatives().size())))
 		{
 			// The declared type of the subexpression must be a subtype of
 			// [1..N] where N is the number of alternatives.
@@ -189,7 +190,7 @@ extends Expression
 				SHOULD_NOT_HAVE_ARGUMENTS);
 			generator.emit(
 				this, PUSH_LITERAL, MessageSplitter.indexForConstant(
-					IntegerDescriptor.fromInt(index + 1)));
+					fromInt(index + 1)));
 			if (!last)
 			{
 				generator.emit(this, JUMP, $exit);
@@ -248,6 +249,6 @@ extends Expression
 	boolean mightBeEmpty (
 		final A_Type phraseType)
 	{
-		return alternation.mightBeEmpty(BottomTypeDescriptor.bottom());
+		return alternation.mightBeEmpty(bottom());
 	}
 }

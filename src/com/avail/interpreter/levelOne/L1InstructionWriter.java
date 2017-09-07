@@ -403,13 +403,13 @@ public class L1InstructionWriter
 			nybbles(),
 			localTypes.size(),
 			stackTracker.maxDepth(),
-			FunctionTypeDescriptor.create(
-				TupleDescriptor.fromList(argumentTypes),
+			FunctionTypeDescriptor.functionType(
+				TupleDescriptor.tupleFromList(argumentTypes),
 				returnType()),
 			primitive,
-			TupleDescriptor.fromList(literals),
-			TupleDescriptor.fromList(localTypes),
-			TupleDescriptor.fromList(outerTypes),
+			TupleDescriptor.tupleFromList(literals),
+			TupleDescriptor.tupleFromList(localTypes),
+			TupleDescriptor.tupleFromList(outerTypes),
 			module,
 			startingLineNumber,
 			phrase);

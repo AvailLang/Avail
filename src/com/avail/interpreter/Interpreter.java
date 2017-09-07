@@ -32,32 +32,22 @@
 
 package com.avail.interpreter;
 
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
-import static com.avail.descriptor.FiberDescriptor.TraceFlag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import static com.avail.interpreter.Primitive.Result.*;
-
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.*;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.*;
-import com.avail.exceptions.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.IntegerSlots;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.AvailException;
+import com.avail.exceptions.AvailRuntimeException;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
-import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.Continuation0ThrowsReification;
@@ -65,9 +55,47 @@ import com.avail.optimizer.ReifyStackThrowable;
 import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.utility.evaluation.*;
-import com.avail.utility.*;
+import com.avail.utility.MutableOrNull;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
+	.REIFICATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
+	.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.TraceFlag
+	.TRACE_VARIABLE_READS_BEFORE_WRITES;
+import static com.avail.descriptor.FiberDescriptor.TraceFlag
+	.TRACE_VARIABLE_WRITES;
+import static com.avail.descriptor.FiberDescriptor.stringificationPriority;
+import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.StringDescriptor.format;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
+import static com.avail.interpreter.Primitive.Result.*;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import static com.avail.utility.Nulls.stripNull;
+import static java.util.Arrays.asList;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a
@@ -101,7 +129,7 @@ import javax.annotation.Nullable;
  * <p>
  * To accomplish these goals, the stack-oriented architecture of Level One maps
  * onto a register transfer language for Level Two. At runtime the idealized
- * {@linkplain Interpreter interpreter} has an arbitrarily large bank of
+ * {@code Interpreter interpreter} has an arbitrarily large bank of
  * pointer registers (that point to {@linkplain AvailObject Avail objects}),
  * plus a separate bank for {@code int}s (unboxed 32-bit signed integers), and a
  * similar bank for {@code double}s (unboxed double-precision floating point
@@ -246,11 +274,11 @@ public final class Interpreter
 		if (logger.isLoggable(level))
 		{
 			final @Nullable A_Fiber runningFiber =
-				FiberDescriptor.currentOrNull();
+				FiberDescriptor.currentFiberOrNull();
 			final StringBuilder builder = new StringBuilder();
 			builder.append(
 				runningFiber != null
-					? String.format(
+					? format(
 						"%6d ",
 						runningFiber.traversed().slot(
 							IntegerSlots.DEBUG_UNIQUE_ID))
@@ -258,7 +286,7 @@ public final class Interpreter
 			builder.append('→');
 			builder.append(
 				affectedFiber != null
-					? String.format(
+					? format(
 						"%6d ",
 						affectedFiber.traversed().slot(
 							IntegerSlots.DEBUG_UNIQUE_ID))
@@ -385,14 +413,13 @@ public final class Interpreter
 				frame = frame.caller();
 			}
 		}
-		outerArray[FakeStackTraceSlots.FRAMES.ordinal()] =
-			TupleDescriptor.fromList(frames);
+		outerArray[FRAMES.ordinal()] =
+			tupleFromList(frames);
 
 		// Now collect the pointer register values, wrapped in 1-tuples to
 		// suppress printing by the Eclipse debugger...
-		outerArray[FakeStackTraceSlots.POINTERS.ordinal()] =
-			TupleDescriptor.fromList(
-				Arrays.asList(pointers).subList(0, chunk.numObjects()));
+		outerArray[POINTERS.ordinal()] =
+			tupleFromList(asList(pointers).subList(0, chunk.numObjects()));
 
 		// May as well show the integer registers too...
 		final int numInts = chunk.numIntegers();
@@ -401,10 +428,10 @@ public final class Interpreter
 		{
 			integersList.add(integers[i]);
 		}
-		outerArray[FakeStackTraceSlots.INTEGERS.ordinal()] =
-			TupleDescriptor.fromIntegerList(integersList);
+		outerArray[INTEGERS.ordinal()] =
+			tupleFromIntegerList(integersList);
 
-		outerArray[FakeStackTraceSlots.LOADER.ordinal()] = availLoaderOrNull();
+		outerArray[LOADER.ordinal()] = availLoaderOrNull();
 
 		// Now put all the top level constructs together...
 		final AvailObjectFieldHelper[] helpers =
@@ -412,7 +439,7 @@ public final class Interpreter
 		for (final FakeStackTraceSlots field : FakeStackTraceSlots.values())
 		{
 			helpers[field.ordinal()] = new AvailObjectFieldHelper(
-				NilDescriptor.nil(),
+				nil(),
 				field,
 				-1,
 				outerArray[field.ordinal()]);
@@ -474,9 +501,7 @@ public final class Interpreter
 	 */
 	public AvailLoader availLoader ()
 	{
-		final AvailLoader loader = availLoader;
-		assert loader != null;
-		return loader;
+		return stripNull(availLoader);
 	}
 
 	/**
@@ -514,9 +539,7 @@ public final class Interpreter
 	 */
 	public A_Fiber fiber ()
 	{
-		final A_Fiber f = fiber;
-		assert f != null;
-		return f;
+		return stripNull(fiber);
 	}
 
 	/**
@@ -526,23 +549,25 @@ public final class Interpreter
 	 * @param newFiber
 	 *        The fiber to run.
 	 */
-	public void fiber (final @Nullable A_Fiber newFiber, String temp)
+	public void fiber (final @Nullable A_Fiber newFiber, final String tempDebug)
 	{
 		//TODO MvG - Remove.
 		if (false)
 		{
 			final StringBuilder builder = new StringBuilder();
-			builder.append("fiber: ");
-			builder.append(
-				fiber == null
+			builder
+				.append("[")
+				.append(interpreterIndex)
+				.append("] fiber: ")
+				.append(fiber == null
 					? "null"
-					: fiber.uniqueId() + "[" + fiber.executionState() + "]");
-			builder.append(" -> ");
-			builder.append(
-				newFiber == null
+					: fiber.uniqueId() + "[" + fiber.executionState() + "]")
+				.append(" -> ")
+				.append(newFiber == null
 					? "null"
-					: newFiber.uniqueId() + "(" + newFiber.executionState());
-			builder.append(" (" + temp + ")");
+					: newFiber.uniqueId()
+						+ "[" + newFiber.executionState() + "]")
+				.append(" (").append(tempDebug).append(")");
 			System.out.println(builder);
 		}
 
@@ -655,10 +680,10 @@ public final class Interpreter
 	 */
 	public A_Module module()
 	{
-		final AvailLoader loader = fiber().availLoader();
+		final @Nullable AvailLoader loader = fiber().availLoader();
 		if (loader == null)
 		{
-			return NilDescriptor.nil();
+			return nil();
 		}
 		return loader.module();
 	}
@@ -672,14 +697,23 @@ public final class Interpreter
 	private @Nullable AvailObject latestResult;
 
 	/**
+	 * A field that captures which {@link A_RawFunction} is returning.  This is
+	 * only used for statistics collection.
+	 */
+	public @Nullable A_RawFunction returningRawFunction;
+
+	/**
 	 * Set the latest result due to a {@linkplain Result#SUCCESS successful}
 	 * {@linkplain Primitive primitive}, or the latest {@linkplain
 	 * AvailErrorCode error code} produced by a {@linkplain Result#FAILURE
-	 * failed} primitive.  The value must not be Java's {@code null}.
+	 * failed} primitive.
+	 *
+	 * <p>The value may be Java's {@code null} to indicate this field should be
+	 * cleared, to detect accidental use.</p>
 	 *
 	 * @param newResult The latest result to record.
 	 */
-	public void latestResult (final A_BasicObject newResult)
+	public void latestResult (final @Nullable A_BasicObject newResult)
 	{
 		latestResult = (AvailObject)newResult;
 		if (debugL2)
@@ -702,9 +736,7 @@ public final class Interpreter
 	 */
 	public AvailObject latestResult ()
 	{
-		final AvailObject result = latestResult;
-		assert result != null;
-		return result;
+		return stripNull(latestResult);
 	}
 
 	/**
@@ -718,7 +750,6 @@ public final class Interpreter
 	public Result primitiveSuccess (final A_BasicObject result)
 	{
 		assert fiber().executionState() == RUNNING;
-		assert result != null;
 		latestResult(result);
 		return SUCCESS;
 	}
@@ -736,7 +767,6 @@ public final class Interpreter
 	{
 		assert fiber().executionState() == RUNNING;
 		latestResult(code.numericCode());
-		assert latestResult != null;
 		return FAILURE;
 	}
 
@@ -754,7 +784,6 @@ public final class Interpreter
 	{
 		assert fiber().executionState() == RUNNING;
 		latestResult(exception.numericCode());
-		assert latestResult != null;
 		return FAILURE;
 	}
 
@@ -797,7 +826,7 @@ public final class Interpreter
 	 * detects this, it should resume the top reified continuation's chunk,
 	 * giving it an opportunity to accept the return value and de-reify.
 	 */
-	public boolean returnNow = true;
+	public boolean returnNow = false;
 
 	/**
 	 * Should the {@linkplain Interpreter interpreter} exit its {@linkplain
@@ -870,7 +899,7 @@ public final class Interpreter
 		{
 			System.out.println("Clear latestResult (primitiveSuspend)");
 		}
-		latestResult = null;
+		latestResult(null);
 		pointers = null;
 		integers = null;
 		return FIBER_SUSPENDED;
@@ -882,10 +911,13 @@ public final class Interpreter
 	 * A_Continuation} will be available in {@link #reifiedContinuation}, and
 	 * will be installed into the current fiber.
 	 *
+	 * @param suspendingRawFunction
+	 *        The primitive {@link A_RawFunction} causing the fiber suspension.
 	 * @return {@link Result#FIBER_SUSPENDED}, for convenience.
 	 */
-	public Result primitiveSuspend ()
+	public Result primitiveSuspend (final A_RawFunction suspendingRawFunction)
 	{
+		fiber.suspendingRawFunction(suspendingRawFunction);
 		return primitiveSuspend(SUSPENDED);
 	}
 
@@ -919,14 +951,13 @@ public final class Interpreter
 		final ExecutionState state)
 	{
 		assert !exitNow;
-		assert finalObject != null;
 		assert state.indicatesTermination();
 		final A_Fiber aFiber = fiber();
 		aFiber.lock(() ->
 		{
 			assert aFiber.executionState() == RUNNING;
 			aFiber.executionState(state);
-			aFiber.continuation(NilDescriptor.nil());
+			aFiber.continuation(nil());
 			aFiber.fiberResult(finalObject);
 			final boolean bound = aFiber.getAndSetSynchronizationFlag(
 				BOUND, false);
@@ -939,12 +970,12 @@ public final class Interpreter
 		{
 			System.out.println("Clear latestResult (exitFiber)");
 		}
-		latestResult = null;
+		latestResult(null);
 		wipeObjectRegisters();
 		postExitContinuation(() ->
 		{
 			final A_Set joining = aFiber.joiningFibers().makeShared();
-			aFiber.joiningFibers(NilDescriptor.nil());
+			aFiber.joiningFibers(nil());
 			// Wake up all fibers trying to join this one.
 			for (final A_Fiber joiner : joining)
 			{
@@ -961,7 +992,8 @@ public final class Interpreter
 						Interpreter.resumeFromSuccessfulPrimitive(
 							AvailRuntime.current(),
 							joiner,
-							NilDescriptor.nil(),
+							nil(),
+							joiner.suspendingRawFunction(),
 							true);
 					}
 				});
@@ -988,7 +1020,7 @@ public final class Interpreter
 	 */
 	public void abortFiber ()
 	{
-		exitFiber(NilDescriptor.nil(), ABORTED);
+		exitFiber(nil(), ABORTED);
 	}
 
 	/**
@@ -1029,12 +1061,13 @@ public final class Interpreter
 				Level.FINER,
 				"attempt {0}",
 				primitive.name());
+			System.out.println("Trying prim: " + primitive.name());
 		}
 		if (debugL2)
 		{
 			System.out.println("Clear latestResult (attemptPrimitive)");
 		}
-		latestResult = null;
+		latestResult(null);
 		assert current() == this;
 		final long timeBefore = AvailRuntime.captureNanos();
 		final Result success = primitive.attempt(args, this, skipReturnCheck);
@@ -1043,32 +1076,39 @@ public final class Interpreter
 			timeAfter - timeBefore,
 			interpreterIndex);
 		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
-		if (debugPrimitives && logger.isLoggable(Level.FINER))
+		if (debugPrimitives)
 		{
-			AvailErrorCode errorCode = null;
-			if (success == FAILURE)
+			if (logger.isLoggable(Level.FINER))
 			{
-				if (latestResult().isInt())
+				@Nullable AvailErrorCode errorCode = null;
+				if (success == FAILURE)
 				{
-					final int errorInt = latestResult().extractInt();
-					errorCode = byNumericCode(errorInt);
+					if (latestResult().isInt())
+					{
+						final int errorInt = latestResult().extractInt();
+						errorCode = byNumericCode(errorInt);
+					}
 				}
+				final String failPart = errorCode != null
+					? " (" + errorCode + ")"
+					: "";
+				log(
+					Level.FINER,
+					"... completed primitive {0} => {1}{2}",
+					primitive.getClass().getSimpleName(),
+					success.name(),
+					failPart);
 			}
-			final String failPart = errorCode != null
-				? " (" + errorCode + ")"
-				: "";
-			log(
-				Level.FINER,
-				"... completed primitive {0} => {1}{2}",
-				primitive.getClass().getSimpleName(),
-				success.name(),
-				failPart);
+			if (success != SUCCESS)
+			{
+				System.out.println("      (" + success.name() + ")");
+			}
 		}
 		return success;
 	}
 
 	/** The (bottom) portion of the call stack that has been reified. */
-	public A_Continuation reifiedContinuation;
+	public A_Continuation reifiedContinuation = nil();
 
 	/** The {@link A_Function} being executed. */
 	public @Nullable A_Function function;
@@ -1368,7 +1408,7 @@ public final class Interpreter
 		});
 		exitNow = true;
 		startTick = -1L;
-		latestResult = null;
+		latestResult(null);
 		wipeObjectRegisters();
 		postExitContinuation(() ->
 		{
@@ -1556,7 +1596,7 @@ public final class Interpreter
 				// Mark this frame: we don't want it to handle exceptions
 				// anymore.
 				failureVariable.setValueNoCheck(marker);
-				return primitiveSuccess(NilDescriptor.nil());
+				return primitiveSuccess(nil());
 			}
 			continuation = continuation.caller();
 		}
@@ -1675,7 +1715,9 @@ public final class Interpreter
 				// Run the chunk to completion (dealing with reification).
 				// The chunk will do its own invalidation checks and off-ramp
 				// to L1 if needed.
+				final A_RawFunction calledCode = function.code();
 				chunk.run(this);
+				returningRawFunction = calledCode;
 			}
 			catch (final ReifyStackThrowable reifier)
 			{
@@ -1684,7 +1726,7 @@ public final class Interpreter
 				reifiedContinuation =
 					reifier.actuallyReify()
 						? reifier.assembleContinuation(reifiedContinuation)
-						: null;
+						: nil();
 				chunk = null; // The postReificationAction should set this up.
 				reifier.postReificationAction().value();
 				if (exitNow)
@@ -1751,7 +1793,7 @@ public final class Interpreter
 			argsBuffer.clear();
 			skipReturnCheck = skipReturnCheckFlag;
 			function = functionToCall;
-			chunk = function.code().startingChunk();
+			chunk = functionToCall.code().startingChunk();
 			offset = 0;
 		});
 	}
@@ -1792,7 +1834,7 @@ public final class Interpreter
 			argsBuffer.add((AvailObject) arg2);
 			skipReturnCheck = skipReturnCheckFlag;
 			function = functionToCall;
-			chunk = function.code().startingChunk();
+			chunk = functionToCall.code().startingChunk();
 			offset = 0;
 		});
 	}
@@ -1837,7 +1879,7 @@ public final class Interpreter
 			argsBuffer.add((AvailObject) arg3);
 			skipReturnCheck = skipReturnCheckFlag;
 			function = functionToCall;
-			chunk = function.code().startingChunk();
+			chunk = functionToCall.code().startingChunk();
 			offset = 0;
 		});
 	}
@@ -1937,7 +1979,6 @@ public final class Interpreter
 						interpreter.run();
 					}
 					assert interpreter.fiber == null;
-					return aFiber.executionState();
 				}));
 	}
 
@@ -1976,7 +2017,7 @@ public final class Interpreter
 			() ->
 			{
 				final A_RawFunction code = function.code();
-				return StringDescriptor.format(
+				return format(
 					"Outermost %s @ %s:%d",
 					code.methodName().asNativeString(),
 					code.module().equalsNil()
@@ -1997,7 +2038,7 @@ public final class Interpreter
 				// result continuation with the primitive's result.
 				interpreter.exitNow = false;
 				interpreter.returnNow = false;
-				interpreter.reifiedContinuation = NilDescriptor.nil();
+				interpreter.reifiedContinuation = nil();
 				interpreter.function = function;
 				interpreter.argsBuffer.clear();
 				for (final A_BasicObject arg : arguments)
@@ -2043,11 +2084,11 @@ public final class Interpreter
 				interpreter.returnNow = false;
 				interpreter.reifiedContinuation = con;
 				interpreter.function = con.function();
-				interpreter.latestResult = null;
+				interpreter.latestResult(null);
 				interpreter.chunk = con.levelTwoChunk();
 				interpreter.offset = con.levelTwoOffset();
 				interpreter.pointers = null;
-				aFiber.continuation(NilDescriptor.nil());
+				aFiber.continuation(nil());
 			});
 	}
 
@@ -2072,6 +2113,7 @@ public final class Interpreter
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
 		final A_BasicObject result,
+		final A_RawFunction returner,
 		final boolean skipReturnCheck)
 	{
 		assert !aFiber.continuation().equalsNil();
@@ -2088,6 +2130,7 @@ public final class Interpreter
 				interpreter.reifiedContinuation = continuation;
 				interpreter.returnNow = false;
 				interpreter.latestResult(result);
+				interpreter.returningRawFunction = returner;
 				if (continuation.equalsNil())
 				{
 					// Return from outer function, which was the (successful)
@@ -2106,7 +2149,7 @@ public final class Interpreter
 					interpreter.offset = continuation.levelTwoOffset();
 					interpreter.skipReturnCheck = skipReturnCheck;
 					// Clear the fiber's continuation slot while it's active.
-					aFiber.continuation(NilDescriptor.nil());
+					aFiber.continuation(nil());
 				}
 			});
 	}
@@ -2156,7 +2199,7 @@ public final class Interpreter
 					args,
 					aFiber.continuation(),
 					skipReturnCheck);
-				aFiber.continuation(NilDescriptor.nil());
+				aFiber.continuation(nil());
 				interpreter.exitNow = false;
 			});
 	}
@@ -2201,9 +2244,9 @@ public final class Interpreter
 		}
 		// Create the fiber that will execute the function.
 		final A_Fiber fiber = FiberDescriptor.newFiber(
-			TupleTypeDescriptor.stringType(),
-			FiberDescriptor.stringificationPriority,
-			() -> StringDescriptor.from("Stringification"));
+			stringType(),
+			stringificationPriority,
+			() -> stringFrom("Stringification"));
 		fiber.textInterface(textInterface);
 		fiber.resultContinuation(
 			string -> continuation.value(string.asNativeString()));
@@ -2285,7 +2328,7 @@ public final class Interpreter
 					if (outstanding.decrementAndGet() == 0)
 					{
 						final List<String> stringList =
-							Arrays.asList(strings);
+							asList(strings);
 						continuation.value(stringList);
 					}
 				});
@@ -2305,10 +2348,10 @@ public final class Interpreter
 		}
 		else
 		{
-			builder.append(String.format(" [%s]", fiber().fiberName()));
+			builder.append(format(" [%s]", fiber().fiberName()));
 			if (pointers[CALLER.ordinal()] == null)
 			{
-				builder.append(String.format("%n\t«no stack»"));
+				builder.append(format("%n\t«no stack»"));
 			}
 			builder.append("\n\n");
 		}
@@ -2382,9 +2425,12 @@ public final class Interpreter
 	 * returnee, the return value was checked against the expected type, and it
 	 * took the specified number of nanoseconds.
 	 *
-	 * @param returner The {@link A_RawFunction} which was returning.
-	 * @param returnee The {@link A_RawFunction} being returned into.
-	 * @param nanos The number of nanoseconds it took to check the result type.
+	 * @param returner
+	 *        The {@link A_RawFunction} which was returning.
+	 * @param returnee
+	 *        The {@link A_RawFunction} being returned into.
+	 * @param nanos
+	 *        The number of nanoseconds it took to check the result type.
 	 */
 	public void recordCheckedReturnFromTo (
 		final A_RawFunction returner,
@@ -2398,13 +2444,12 @@ public final class Interpreter
 		PerInterpreterStatistic perInterpreterStatistic = submap.get(returnee);
 		if (perInterpreterStatistic == null)
 		{
-			final StringBuilder builder = new StringBuilder();
-			builder.append("Return from ");
-			builder.append(returner.methodName().asNativeString());
-			builder.append(" to ");
-			builder.append(returnee.methodName().asNativeString());
-			final String nameString = builder.toString();
-			final A_String stringKey = StringDescriptor.from(nameString);
+			final String nameString =
+				"Return from "
+					+ returner.methodName().asNativeString()
+					+ " to "
+					+ returnee.methodName().asNativeString();
+			final A_String stringKey = stringFrom(nameString);
 			synchronized (checkedReturnMapsByString)
 			{
 				final Statistic statistic =
@@ -2472,10 +2517,7 @@ public final class Interpreter
 	 * restart implicitly observed assignments.
 	 */
 	private static final A_Function assignmentFunction =
-		FunctionDescriptor.newPrimitiveFunction(
-			P_SetValue.instance,
-			NilDescriptor.nil(),
-			0);
+		newPrimitiveFunction(P_SetValue.instance, nil(), 0);
 
 	/**
 	 * Answer the bootstrapped {@linkplain P_SetValue assignment function}

@@ -32,17 +32,20 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.MarkerNodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.MarkerNodeDescriptor.ObjectSlots.MARKER_VALUE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.MARKER_NODE;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
  * My instances represent a parsing marker that can be pushed onto the parse

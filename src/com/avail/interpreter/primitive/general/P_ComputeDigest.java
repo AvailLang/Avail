@@ -91,10 +91,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				AbstractEnumerationTypeDescriptor.withInstances(
-					SetDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				AbstractEnumerationTypeDescriptor.enumerationWith(
+					SetDescriptor.set(
 						IntegerDescriptor.fromInt(1),
 						IntegerDescriptor.fromInt(256),
 						IntegerDescriptor.fromInt(384),

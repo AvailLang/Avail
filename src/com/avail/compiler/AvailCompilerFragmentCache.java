@@ -32,8 +32,10 @@
 
 package com.avail.compiler;
 
-import java.util.*;
 import com.avail.compiler.AvailCompiler.Con;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * An {@code AvailCompilerFragmentCache} implements a memoization mechanism for

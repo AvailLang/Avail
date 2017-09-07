@@ -32,17 +32,19 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.DoubleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AbstractNumberDescriptor.*;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.*;
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.DoubleDescriptor.IntegerSlots.LONG_BITS;
+import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 double-precision
@@ -88,6 +90,7 @@ extends AbstractNumberDescriptor
 		final double double1,
 		final double double2)
 	{
+		//noinspection FloatingPointEquality
 		if (double1 == double2)
 		{
 			return Order.EQUAL;
@@ -133,7 +136,7 @@ extends AbstractNumberDescriptor
 		if (aDouble == 0.0)
 		{
 			// Zeros are easy.
-			return IntegerDescriptor.zero().numericCompare(anInteger);
+			return zero().numericCompare(anInteger);
 		}
 		// The integer is beyond an int's range.  Perhaps even beyond a double.
 		// For boundary purposes, check now if it's exactly integral.
@@ -147,11 +150,11 @@ extends AbstractNumberDescriptor
 		final int exponentAdjustment = Math.max(exponent - 60, 0);
 		final double normalD = Math.scalb(floorD, -exponentAdjustment);
 		assert Long.MIN_VALUE < normalD && normalD < Long.MAX_VALUE;
-		A_Number integer = IntegerDescriptor.fromLong((long)normalD);
+		A_Number integer = fromLong((long) normalD);
 		if (exponentAdjustment > 0)
 		{
 			integer = integer.bitShift(
-				IntegerDescriptor.fromInt(exponentAdjustment), true);
+				fromInt(exponentAdjustment), true);
 		}
 		// We now have an Avail integer representing the exact same quantity as
 		// floorD.
@@ -312,9 +315,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision positive infinity.
 	 */
-	public static A_Number positiveInfinity ()
+	public static A_Number doublePositiveInfinity ()
 	{
-		return Sign.POSITIVE.limitDoubleObject();
+		return POSITIVE.limitDoubleObject();
 	}
 
 	/**
@@ -322,9 +325,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision negative infinity.
 	 */
-	public static A_Number negativeInfinity ()
+	public static A_Number doubleNegativeInfinity ()
 	{
-		return Sign.NEGATIVE.limitDoubleObject();
+		return NEGATIVE.limitDoubleObject();
 	}
 
 	/**
@@ -332,9 +335,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision not-a-number.
 	 */
-	public static A_Number notANumber ()
+	public static A_Number doubleNotANumber ()
 	{
-		return Sign.INDETERMINATE.limitDoubleObject();
+		return INDETERMINATE.limitDoubleObject();
 	}
 
 	/**
@@ -342,9 +345,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for double-precision (positive) zero.
 	 */
-	public static A_Number zero ()
+	public static A_Number doubleZero ()
 	{
-		return Sign.ZERO.limitDoubleObject();
+		return ZERO.limitDoubleObject();
 	}
 
 	@Override

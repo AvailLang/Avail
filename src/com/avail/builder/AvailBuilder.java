@@ -328,7 +328,7 @@ public final class AvailBuilder
 			new ArrayList<>(moduleGraph.vertices()))
 		{
 			final A_String qualifiedAvailName =
-				StringDescriptor.from(graphModuleName.qualifiedName());
+				StringDescriptor.stringFrom(graphModuleName.qualifiedName());
 			assert allLoadedModules.containsKey(graphModuleName);
 			assert loadedRuntimeModules.hasKey(qualifiedAvailName);
 			assert allLoadedModules.get(graphModuleName).module.equals(
@@ -1663,7 +1663,7 @@ public final class AvailBuilder
 				isLoaded = getLoadedModule(moduleName) != null;
 			}
 			assert isLoaded == runtime.includesModuleNamed(
-				StringDescriptor.from(moduleName.qualifiedName()));
+				StringDescriptor.stringFrom(moduleName.qualifiedName()));
 			if (isLoaded)
 			{
 				// The module is already loaded.
@@ -1782,7 +1782,7 @@ public final class AvailBuilder
 		{
 			localTracker.value(moduleName, moduleName.moduleSize(), 0L);
 			final A_Module module = ModuleDescriptor.newModule(
-				StringDescriptor.from(moduleName.qualifiedName()));
+				StringDescriptor.stringFrom(moduleName.qualifiedName()));
 			final AvailLoader availLoader =
 				new AvailLoader(module, textInterface);
 			availLoader.createFilteredBundleTree();
@@ -2001,7 +2001,7 @@ public final class AvailBuilder
 						// TODO MvG - Capture "/**" comments for Stacks.
 //						final A_Tuple comments = TupleDescriptor.fromList(
 //							module.commentTokens());
-						final A_Tuple comments = TupleDescriptor.empty();
+						final A_Tuple comments = TupleDescriptor.emptyTuple();
 						serializer.serialize(comments);
 						final ModuleVersion version =
 							archive.getVersion(versionKey);
@@ -3147,7 +3147,7 @@ public final class AvailBuilder
 		for (final LoadedModule loadedModule : modulesWithEntryPoints)
 		{
 			final A_Module module = ModuleDescriptor.newModule(
-				StringDescriptor.from(
+				StringDescriptor.stringFrom(
 					loadedModule.module.moduleName().asNativeString()
 						+ " (command)"));
 			final ModuleImport moduleImport =
@@ -3160,7 +3160,7 @@ public final class AvailBuilder
 			final AvailCompiler compiler = new AvailCompiler(
 				header,
 				module,
-				StringDescriptor.from(command),
+				StringDescriptor.stringFrom(command),
 				textInterface,
 				pollForAbort,
 				(moduleName, moduleSize, position) ->
@@ -3444,7 +3444,7 @@ public final class AvailBuilder
 				A_Map fiberGlobals = fiber.fiberGlobals();
 				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 					CLIENT_DATA_GLOBAL_KEY.atom,
-					MapDescriptor.empty(),
+					MapDescriptor.emptyMap(),
 					true);
 				fiber.fiberGlobals(fiberGlobals);
 				fiber.textInterface(textInterface);

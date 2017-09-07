@@ -616,7 +616,7 @@ extends TypeDescriptor
 			sizeRange2.lowerBound(), false);
 		final A_Number upper = sizeRange1.upperBound().noFailPlusCanDestroy(
 			sizeRange2.upperBound(), false);
-		return IntegerRangeTypeDescriptor.create(
+		return IntegerRangeTypeDescriptor.integerRangeType(
 			lower,
 			true,
 			upper,

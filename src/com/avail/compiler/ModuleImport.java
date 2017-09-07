@@ -163,12 +163,12 @@ public class ModuleImport
 			final ModuleName name =
 				new ModuleName(module.moduleName().asNativeString());
 			return new ModuleImport(
-				StringDescriptor.from(name.localName()),
+				StringDescriptor.stringFrom(name.localName()),
 				module.versions(),
 				true,
-				SetDescriptor.empty(),
-				MapDescriptor.empty(),
-				SetDescriptor.empty(),
+				SetDescriptor.emptySet(),
+				MapDescriptor.emptyMap(),
+				SetDescriptor.emptySet(),
 				true);
 		}
 		catch (final ImportValidationException e)
@@ -266,7 +266,7 @@ public class ModuleImport
 	 */
 	A_Tuple tupleForSerialization ()
 	{
-		return TupleDescriptor.from(
+		return TupleDescriptor.tuple(
 			moduleName,
 			acceptableVersions,
 			AtomDescriptor.objectFromBoolean(isExtension),

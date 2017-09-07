@@ -146,8 +146,8 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		// If the lookup fails, then only the error code register changes.
 		registerSets.get(0).typeAtPut(
 			errorCodeReg,
-			AbstractEnumerationTypeDescriptor.withInstances(
-				TupleDescriptor.from(
+			AbstractEnumerationTypeDescriptor.enumerationWith(
+				TupleDescriptor.tuple(
 						E_NO_METHOD.numericCode(),
 						E_NO_METHOD_DEFINITION.numericCode(),
 						E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
@@ -192,7 +192,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		else
 		{
 			final A_Type enumType =
-				AbstractEnumerationTypeDescriptor.withInstances(
+				AbstractEnumerationTypeDescriptor.enumerationWith(
 					SetDescriptor.fromCollection(possibleFunctions));
 			registerSet.typeAtPut(functionReg, enumType, instruction);
 		}

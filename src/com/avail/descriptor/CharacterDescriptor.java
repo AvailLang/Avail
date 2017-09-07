@@ -251,7 +251,7 @@ extends Descriptor
 	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
-		writer.write(TupleDescriptor.from(object));
+		writer.write(TupleDescriptor.tuple(object));
 	}
 
 	/**

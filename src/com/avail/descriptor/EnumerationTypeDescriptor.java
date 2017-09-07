@@ -37,7 +37,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -57,7 +56,7 @@ import javax.annotation.Nullable;
  *
  * <p>
  * An enumeration is created from a set of objects that are considered instances
- * of the resulting type.  For example, Avail's {@linkplain #booleanObject()
+ * of the resulting type.  For example, Avail's {@linkplain #booleanType()
  * boolean type} is simply an enumeration whose instances are {@linkplain
  * AtomDescriptor atoms} representing {@linkplain AtomDescriptor#trueObject()
  * true} and {@linkplain AtomDescriptor#falseObject() false}.  This flexibility
@@ -72,7 +71,7 @@ import javax.annotation.Nullable;
  * that contain a type as a member (i.e., that type is an instance of the union)
  * also automatically include all subtypes as members.  Thus, an enumeration
  * whose instances are {5, "cheese", {@linkplain
- * TupleTypeDescriptor#mostGeneralType() tuple}} also has the type {@linkplain
+ * TupleTypeDescriptor#mostGeneralTupleType() tuple}} also has the type {@linkplain
  * TupleTypeDescriptor#stringType() string} as a member (string being one
  * of the many subtypes of tuple).  This condition ensures that enumerations
  * satisfy metacovariance, which states that types' types vary the same way as
@@ -201,7 +200,7 @@ extends AbstractEnumerationTypeDescriptor
 		final int indent)
 	{
 		// Print boolean specially.
-		if (object.equals(booleanObject()))
+		if (object.equals(booleanType()))
 		{
 			aStream.append("boolean");
 			return;
@@ -321,7 +320,7 @@ extends AbstractEnumerationTypeDescriptor
 		final A_Type another)
 	{
 		assert another.isType();
-		A_Set set = SetDescriptor.empty();
+		A_Set set = SetDescriptor.emptySet();
 		final A_Set elements = getInstances(object);
 		if (another.isEnumeration())
 		{
@@ -330,7 +329,7 @@ extends AbstractEnumerationTypeDescriptor
 			// intersections of all pairs of types in the product of the sets.
 			// This should even correctly deal with bottom as an element.
 			final A_Set otherElements = another.instances();
-			A_Set myTypes = SetDescriptor.empty();
+			A_Set myTypes = SetDescriptor.emptySet();
 			for (final AvailObject element : elements)
 			{
 				if (element.isType())
@@ -384,10 +383,10 @@ extends AbstractEnumerationTypeDescriptor
 				&& another.isSubtypeOf(InstanceMetaDescriptor.topMeta())
 				&& !another.isBottom())
 			{
-				return InstanceMetaDescriptor.on(BottomTypeDescriptor.bottom());
+				return InstanceMetaDescriptor.instanceMetaOn(BottomTypeDescriptor.bottom());
 			}
 		}
-		return AbstractEnumerationTypeDescriptor.withInstances(set);
+		return AbstractEnumerationTypeDescriptor.enumerationWith(set);
 	}
 
 	/**
@@ -412,7 +411,7 @@ extends AbstractEnumerationTypeDescriptor
 		{
 			// Create a new enumeration containing all elements from both
 			// enumerations.
-			return AbstractEnumerationTypeDescriptor.withInstances(
+			return AbstractEnumerationTypeDescriptor.enumerationWith(
 				getInstances(object).setUnionCanDestroy(
 					another.instances(),
 					false));
@@ -706,7 +705,7 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		if (object.isSubtypeOf(booleanObject()))
+		if (object.isSubtypeOf(booleanType()))
 		{
 			return Boolean.TYPE;
 		}
@@ -871,10 +870,10 @@ extends AbstractEnumerationTypeDescriptor
 
 	static
 	{
-		final A_Tuple tuple = TupleDescriptor.from(
+		final A_Tuple tuple = TupleDescriptor.tuple(
 			AtomDescriptor.trueObject(),
 			AtomDescriptor.falseObject());
-		booleanObject = withInstances(tuple.asSet()).makeShared();
+		booleanObject = enumerationWith(tuple.asSet()).makeShared();
 		trueType = withInstance(AtomDescriptor.trueObject()).makeShared();
 		falseType = withInstance(AtomDescriptor.falseObject()).makeShared();
 	}
@@ -885,7 +884,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @return The {@linkplain EnumerationTypeDescriptor enumeration} that
 	 *         acts as Avail's boolean type.
 	 */
-	public static A_Type booleanObject ()
+	public static A_Type booleanType ()
 	{
 		return booleanObject;
 	}

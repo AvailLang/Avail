@@ -66,10 +66,10 @@ public final class P_SetDifference extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				SetTypeDescriptor.mostGeneralType(),
-				SetTypeDescriptor.mostGeneralType()),
-			SetTypeDescriptor.mostGeneralType());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				SetTypeDescriptor.mostGeneralSetType(),
+				SetTypeDescriptor.mostGeneralSetType()),
+			SetTypeDescriptor.mostGeneralSetType());
 	}
 }

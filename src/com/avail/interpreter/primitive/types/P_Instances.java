@@ -70,10 +70,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				InstanceMetaDescriptor.topMeta()),
-			SetTypeDescriptor.mostGeneralType());
+			SetTypeDescriptor.mostGeneralSetType());
 	}
 
 	@Override
@@ -89,8 +89,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_NOT_AN_ENUMERATION));
 	}
 }

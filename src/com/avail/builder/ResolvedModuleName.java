@@ -32,9 +32,13 @@
 
 package com.avail.builder;
 
-import java.io.File;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
+
+import java.io.File;
+
+import static com.avail.builder.ModuleNameResolver.availExtension;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code ResolvedModuleName} represents the canonical name of an Avail
@@ -77,14 +81,13 @@ extends ModuleName
 	public File sourceReference ()
 	{
 		final StringBuilder builder = new StringBuilder(100);
-		final File sourceDirectory = moduleRoot().sourceDirectory();
-		assert sourceDirectory != null;
+		final File sourceDirectory = stripNull(moduleRoot().sourceDirectory());
 		builder.append(sourceDirectory);
 		for (final String part : rootRelativeName().split("/"))
 		{
 			builder.append('/');
 			builder.append(part);
-			builder.append(ModuleNameResolver.availExtension);
+			builder.append(availExtension);
 		}
 		return new File(builder.toString());
 	}

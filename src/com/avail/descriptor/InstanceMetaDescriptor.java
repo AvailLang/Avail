@@ -158,7 +158,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		if (another.isInstanceMeta())
 		{
-			return on(getInstance(object).typeIntersection(another.instance()));
+			return instanceMetaOn(getInstance(object).typeIntersection(another.instance()));
 		}
 		// Another is not an enumeration, and definitely not a meta, and the
 		// only possible superkinds of object (a meta) are ANY and TOP.
@@ -194,7 +194,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		if (another.isInstanceMeta())
 		{
-			return on(getInstance(object).typeUnion(another.instance()));
+			return instanceMetaOn(getInstance(object).typeUnion(another.instance()));
 		}
 		// Unless another is top, then the answer will be any.
 		return ANY.o().typeUnion(another);
@@ -286,7 +286,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	A_Set o_Instances (final AvailObject object)
 	{
-		return SetDescriptor.empty().setWithElementCanDestroy(
+		return SetDescriptor.emptySet().setWithElementCanDestroy(
 			getInstance(object),
 			true);
 	}
@@ -623,7 +623,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * ⊤'s type, cached statically for convenience.
 	 */
-	private static final A_Type topMeta = on(TOP.o()).makeShared();
+	private static final A_Type topMeta = instanceMetaOn(TOP.o()).makeShared();
 
 	/**
 	 * Answer ⊤'s type, the most general metatype.
@@ -638,7 +638,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * Any's type, cached statically for convenience.
 	 */
-	private static final A_Type anyMeta = on(ANY.o()).makeShared();
+	private static final A_Type anyMeta = instanceMetaOn(ANY.o()).makeShared();
 
 	/**
 	 * Answer any's type, a metatype.
@@ -657,7 +657,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param instance The object whose type to represent.
 	 * @return An {@link AvailObject} representing the type of the argument.
 	 */
-	public static A_Type on (final A_Type instance)
+	public static A_Type instanceMetaOn (final A_Type instance)
 	{
 		assert instance.isType();
 		final AvailObject result = mutable.create();

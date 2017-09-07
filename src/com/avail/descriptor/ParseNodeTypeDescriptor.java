@@ -123,7 +123,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return FunctionTypeDescriptor.mostGeneralType();
+				return FunctionTypeDescriptor.mostGeneralFunctionType();
 			}
 		},
 
@@ -151,7 +151,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return VariableTypeDescriptor.mostGeneralType();
+				return VariableTypeDescriptor.mostGeneralVariableType();
 			}
 		},
 
@@ -185,7 +185,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return TupleTypeDescriptor.mostGeneralType();
+				return TupleTypeDescriptor.mostGeneralTupleType();
 			}
 
 			@Override
@@ -225,7 +225,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return TupleTypeDescriptor.mostGeneralType();
+				return TupleTypeDescriptor.mostGeneralTupleType();
 			}
 
 			@Override

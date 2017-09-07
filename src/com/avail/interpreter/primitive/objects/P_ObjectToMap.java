@@ -64,9 +64,9 @@ public final class P_ObjectToMap extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ObjectTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				ObjectTypeDescriptor.mostGeneralObjectType()),
 			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				ATOM.o(),

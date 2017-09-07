@@ -36,9 +36,9 @@ import com.avail.environment.editor.utility.PrefixTrie;
 import com.avail.utility.evaluation.Continuation0;
 import javafx.scene.control.ComboBox;
 import javafx.scene.input.KeyCode;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;

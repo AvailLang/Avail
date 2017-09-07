@@ -32,19 +32,30 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.utility.MutableOrNull;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.*;
-import com.avail.interpreter.*;
-import com.avail.utility.*;
+
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
  * <strong>Primitive:</strong> Attempt to acquire the {@linkplain
  * SynchronizationFlag#PERMIT_UNAVAILABLE permit} associated with the
- * {@linkplain FiberDescriptor#current() current} {@linkplain FiberDescriptor
+ * {@linkplain FiberDescriptor#currentFiber() current} {@linkplain FiberDescriptor
  * fiber}. If the permit is available, then consume it and return immediately.
  * If the permit is not available, then {@linkplain ExecutionState#PARKED park}
  * the current fiber. A fiber suspended in this fashion may be resumed only by
@@ -85,7 +96,7 @@ extends Primitive
 			else
 			{
 				result.value = interpreter.primitiveSuccess(
-					NilDescriptor.nil());
+					nil());
 			}
 		});
 		return result.value();
@@ -94,8 +105,6 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			TOP.o());
+		return functionType(emptyTuple(), TOP.o());
 	}
 }

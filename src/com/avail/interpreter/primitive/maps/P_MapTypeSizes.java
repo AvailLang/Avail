@@ -67,10 +67,10 @@ public final class P_MapTypeSizes extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MapTypeDescriptor.meta()),
-			InstanceMetaDescriptor.on(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				MapTypeDescriptor.mapMeta()),
+			InstanceMetaDescriptor.instanceMetaOn(
 				IntegerRangeTypeDescriptor.wholeNumbers()));
 	}
 }

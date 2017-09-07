@@ -32,10 +32,14 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher;
+import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Transformer2;
+
+import static java.lang.String.format;
 
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link L2OperandType#PC}.
@@ -100,7 +104,7 @@ public class L2PcOperand extends L2Operand
 		// Extract the comment from the target label.
 		final L2CommentOperand commentOperand =
 			(L2CommentOperand)label.operands[0];
-		return String.format("Pc(%s=%d)",
+		return format("Pc(%s=%d)",
 			commentOperand.comment,
 			label.offset());
 	}

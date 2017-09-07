@@ -103,14 +103,14 @@ public final class P_IfFalseThenElse extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.emptyTuple(),
 					TOP.o()),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.emptyTuple(),
 					TOP.o())),
 			TOP.o());
 	}

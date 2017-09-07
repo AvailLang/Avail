@@ -64,9 +64,9 @@ public final class P_TupleSize extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				TupleTypeDescriptor.mostGeneralTupleType()),
 			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 

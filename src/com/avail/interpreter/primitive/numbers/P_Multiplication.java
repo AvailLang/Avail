@@ -76,8 +76,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				NUMBER.o(),
 				NUMBER.o()),
 			NUMBER.o());
@@ -98,7 +98,7 @@ extends Primitive
 			// be few enough entries.
 			if (aInstances.setSize() * (long)bInstances.setSize() < 100)
 			{
-				A_Set answers = SetDescriptor.empty();
+				A_Set answers = SetDescriptor.emptySet();
 				for (final A_Number aInstance : aInstances)
 				{
 					for (final A_Number bInstance : bInstances)
@@ -116,7 +116,7 @@ extends Primitive
 						}
 					}
 				}
-				return AbstractEnumerationTypeDescriptor.withInstances(
+				return AbstractEnumerationTypeDescriptor.enumerationWith(
 					answers);
 			}
 		}
@@ -142,7 +142,7 @@ extends Primitive
 					final boolean highInclusive =
 						aType.upperInclusive()
 							&& bType.upperInclusive();
-					return IntegerRangeTypeDescriptor.create(
+					return IntegerRangeTypeDescriptor.integerRangeType(
 						low, true, high, highInclusive);
 				}
 				catch (final ArithmeticException e)
@@ -192,8 +192,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_CANNOT_MULTIPLY_ZERO_AND_INFINITY));
 	}
 }

@@ -35,13 +35,12 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ListNodeTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.Pair;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -51,10 +50,11 @@ import java.util.Set;
 
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.WrapState.*;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.exceptions.AvailErrorCode.*;
 
 /**
- * A {@link Sequence} is the juxtaposition of any number of other {@link
+ * A {@code Sequence} is the juxtaposition of any number of other {@link
  * Expression}s.  It is not itself a repetition, but it can be the left or
  * right half of a {@link Group} (bounded by the double-dagger (‡)).
  */
@@ -227,7 +227,7 @@ extends Expression
 	 * present or not along that path) until just before merging control flow.
 	 *
 	 * <p>Also capture the corresponding indices into the tuple type with each
-	 * expression in each run.  A zero indicates that no type is consumed for
+	 * expression in each run.  A floatZero indicates that no type is consumed for
 	 * that expression.</p>
 	 *
 	 * @return The runs of expressions within which to perform code splitting,
@@ -429,7 +429,7 @@ extends Expression
 		{
 			assert listIsPushed;
 			final A_Tuple permutationTuple =
-				TupleDescriptor.fromIntegerList(permutedArguments);
+				tupleFromIntegerList(permutedArguments);
 			final int permutationIndex =
 				LookupTree.indexForPermutation(permutationTuple);
 			// This sequence was already collected into a list node as the

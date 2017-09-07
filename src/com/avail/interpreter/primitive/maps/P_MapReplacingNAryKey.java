@@ -149,7 +149,7 @@ extends Primitive
 				targetIndex, newValue, true);
 		}
 		final A_BasicObject targetElement = targetMap.mapAt(targetIndex);
-		if (targetElement.isInstanceOf(TupleTypeDescriptor.mostGeneralType()))
+		if (targetElement.isInstanceOf(TupleTypeDescriptor.mostGeneralTupleType()))
 		{
 			final A_BasicObject newTuple = recursivelyUpdateTuple(
 				(A_Tuple)targetElement, pathTuple, pathIndex + 1, newValue);
@@ -157,7 +157,7 @@ extends Primitive
 				targetIndex, newTuple, true);
 		}
 		else if (targetElement.isInstanceOf(
-			MapTypeDescriptor.mostGeneralType()))
+			MapTypeDescriptor.mostGeneralMapType()))
 		{
 			final A_BasicObject newMap = recursivelyUpdateMap(
 				(A_Map)targetElement, pathTuple, pathIndex + 1, newValue);
@@ -194,19 +194,19 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MapTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				MapTypeDescriptor.mostGeneralMapType(),
 				TupleTypeDescriptor.oneOrMoreOf(ANY.o()),
 				ANY.o()),
-			MapTypeDescriptor.mostGeneralType());
+			MapTypeDescriptor.mostGeneralMapType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS,
 				E_INCORRECT_ARGUMENT_TYPE,
 				E_KEY_NOT_FOUND));

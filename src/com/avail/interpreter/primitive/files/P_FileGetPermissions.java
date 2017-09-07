@@ -100,7 +100,7 @@ extends Primitive
 	private static A_Set ordinalsFromPosixPermissions (
 		final Set<PosixFilePermission> permissions)
 	{
-		A_Set permissionOrdinals = SetDescriptor.empty();
+		A_Set permissionOrdinals = SetDescriptor.emptySet();
 		for (final PosixFilePermission permission : permissions)
 		{
 			final A_Number ordinal = permissionMap.get(permission);
@@ -156,10 +156,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
-				EnumerationTypeDescriptor.booleanObject()),
+				EnumerationTypeDescriptor.booleanType()),
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				IntegerRangeTypeDescriptor.inclusive(1, 9)));
@@ -168,8 +168,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INVALID_PATH,
 				E_PERMISSION_DENIED,
 				E_IO_ERROR,

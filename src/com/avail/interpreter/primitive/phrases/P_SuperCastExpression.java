@@ -66,8 +66,8 @@ public final class P_SuperCastExpression extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				SUPER_CAST_NODE.mostGeneralType()),
 			EXPRESSION_NODE.create(ANY.o()));
 	}

@@ -31,22 +31,28 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.Primitive.Result.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.*;
-
 import com.avail.descriptor.A_Function;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import javax.annotation.Nullable;
 import com.avail.descriptor.A_Type;
-import com.avail.interpreter.*;
-import com.avail.interpreter.Primitive.*;
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
+import com.avail.interpreter.Primitive.Result;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.interpreter.Primitive.Result.SUCCESS;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Execute a primitive with the provided arguments, writing the result into
@@ -109,12 +115,11 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 			// doesn't come into play for infallible primitives, since we would
 			// check it after it runs -- but this is the no-check version
 			// anyhow, so we don't check it at all.
-			final A_Function savedFunction = interpreter.function;
-			interpreter.function = null; // Eligible primitives MUST NOT access this.
+			final A_Function savedFunction = stripNull(interpreter.function);
+			// Eligible primitives MUST NOT access this.
+			interpreter.function = null;
 			final Result res = interpreter.attemptPrimitive(
-				primitive,
-				interpreter.argsBuffer,
-				false);
+				primitive, interpreter.argsBuffer, false);
 			assert res == SUCCESS;
 			interpreter.function = savedFunction;
 			interpreter.pointerAtPut(

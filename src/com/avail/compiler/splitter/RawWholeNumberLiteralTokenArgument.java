@@ -32,15 +32,15 @@
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.LiteralTokenTypeDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 
 import static com.avail.compiler.ParsingOperation.PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 
 /**
- * A {@linkplain RawWholeNumberLiteralTokenArgument} is an occurrence of
+ * A {@code RawWholeNumberLiteralTokenArgument} is an occurrence of
  * {@linkplain Metacharacter#ELLIPSIS ellipsis} (…) in a message name,
  * followed by an {@linkplain Metacharacter#OCTOTHORP octothorp} (#).
  * It indicates where a raw whole number literal token argument is expected.
@@ -73,8 +73,8 @@ extends RawTokenArgument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN);
-		if (!LiteralTokenTypeDescriptor.create(
-				IntegerRangeTypeDescriptor.wholeNumbers())
+		if (!LiteralTokenTypeDescriptor.literalTokenType(
+			wholeNumbers())
 			.isSubtypeOf(phraseType))
 		{
 			generator.emitDelayed(

@@ -73,11 +73,11 @@ public final class P_RemoveTypeName extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
-				InstanceMetaDescriptor.on(
-					ObjectTypeDescriptor.mostGeneralType())),
+				InstanceMetaDescriptor.instanceMetaOn(
+					ObjectTypeDescriptor.mostGeneralObjectType())),
 			TOP.o());
 	}
 }

@@ -31,16 +31,33 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ObjectTupleDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.utility.Generator;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Create a {@link TupleDescriptor tuple} from the {@linkplain AvailObject
@@ -95,7 +112,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 
 		final List<L2ObjectRegister> registers = elementsVector.registers();
 		final int size = registers.size();
-		final A_Type sizeRange = IntegerDescriptor.fromInt(size).kind();
+		final A_Type sizeRange = fromInt(size).kind();
 		final List<A_Type> types = new ArrayList<>(size);
 		for (final L2ObjectRegister register : registers)
 		{
@@ -109,10 +126,8 @@ public class L2_CREATE_TUPLE extends L2Operation
 			}
 		}
 		final A_Type tupleType =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				sizeRange,
-				TupleDescriptor.fromList(types),
-				BottomTypeDescriptor.bottom());
+			tupleTypeForSizesTypesDefaultType(sizeRange,
+				tupleFromList(types), bottom());
 		tupleType.makeImmutable();
 		registerSet.removeConstantAt(destinationReg);
 		registerSet.typeAtPut(
@@ -126,12 +141,12 @@ public class L2_CREATE_TUPLE extends L2Operation
 			{
 				constants.add(registerSet.constantAt(register));
 			}
-			final A_Tuple tuple = TupleDescriptor.fromList(constants);
+			final A_Tuple tuple = tupleFromList(constants);
 			tuple.makeImmutable();
 			assert tuple.isInstanceOf(tupleType);
 			registerSet.typeAtPut(
 				destinationReg,
-				InstanceTypeDescriptor.on(tuple),
+				instanceTypeOn(tuple),
 				instruction);
 			registerSet.constantAtPut(destinationReg, tuple, instruction);
 		}

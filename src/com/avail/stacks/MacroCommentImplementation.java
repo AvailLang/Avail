@@ -32,10 +32,11 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.ArrayList;
 
 /**
  * A comment that describes a particular macro implementation
@@ -122,8 +123,7 @@ public class MacroCommentImplementation extends AbstractCommentImplementation
 			concatenatedInputParams.append(param);
 		}
 
-		this.hashID = StringDescriptor.from(
-			concatenatedInputParams.toString()).hash();
+		this.hashID = StringDescriptor.stringFrom(concatenatedInputParams.toString()).hash();
 	}
 
 	@Override

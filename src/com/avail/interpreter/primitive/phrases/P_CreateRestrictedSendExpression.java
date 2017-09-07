@@ -32,12 +32,6 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import com.avail.AvailRuntime;
 import com.avail.compiler.AvailAcceptedParseException;
 import com.avail.compiler.AvailRejectedParseException;
@@ -45,11 +39,39 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.MalformedMessageException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FiberDescriptor.currentFiber;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.SEND_NODE;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
+import static com.avail.interpreter.Interpreter.*;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive CreateRestrictedSendExpression</strong>: Create a
@@ -107,16 +129,15 @@ extends Primitive
 			if (splitter.numberOfArguments() != argsCount)
 			{
 				return interpreter.primitiveFailure(
-					StringDescriptor.from(
+					stringFrom(
 						"Incorrect number of arguments supplied for "
-						+ messageName));
+							+ messageName));
 			}
 		}
 		catch (final MalformedMessageException e)
 		{
 			return interpreter.primitiveFailure(
-				StringDescriptor.from(
-					"Malformed message name: "
+				stringFrom("Malformed message name: "
 					+ messageName
 					+ "("
 					+ e.describeProblem()
@@ -125,14 +146,12 @@ extends Primitive
 		final A_Type argsTupleType = argsListNode.expressionType();
 		final A_Tuple argTypesTuple =
 			argsTupleType.tupleOfTypesFromTo(1, argsCount);
-		final List<A_Type> argTypesList =
-			TupleDescriptor.toList(argTypesTuple);
+		final List<A_Type> argTypesList = toList(argTypesTuple);
 		// Compute the intersection of the supplied type, applicable definition
 		// return types, and semantic restriction types.  Start with the
 		// supplied type.
-		final A_Fiber originalFiber = FiberDescriptor.current();
-		final AvailLoader loader = originalFiber.availLoader();
-		assert loader != null;
+		final A_Fiber originalFiber = currentFiber();
+		final AvailLoader loader = stripNull(originalFiber.availLoader());
 		final A_Module currentModule = loader.module();
 		final A_Set allVisibleModules = currentModule.allAncestors();
 		final Mutable<A_Type> intersection = new Mutable<>(returnType);
@@ -176,7 +195,7 @@ extends Primitive
 			// No semantic restrictions.  Trivial success.
 			return interpreter.primitiveSuccess(
 				SendNodeDescriptor.from(
-					TupleDescriptor.empty(),
+					emptyTuple(),
 					bundle,
 					argsListNode,
 					intersection.value));
@@ -184,9 +203,9 @@ extends Primitive
 
 		// Merge in the (non-empty list of) semantic restriction results.
 		final AvailRuntime runtime = AvailRuntime.current();
-		final A_Function failureFunction = interpreter.function;
-		assert failureFunction.code().primitive() == this;
-		interpreter.primitiveSuspend();
+		final A_Function primitiveFunction = stripNull(interpreter.function);
+		assert primitiveFunction.code().primitive() == this;
+		interpreter.primitiveSuspend(primitiveFunction.code());
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		final AtomicInteger countdown = new AtomicInteger(restrictionsSize);
 		final List<A_String> problems = new ArrayList<>();
@@ -203,14 +222,15 @@ extends Primitive
 			{
 				// There were no problems.  Succeed the primitive with a
 				// send node yielding the intersection type.
-				Interpreter.resumeFromSuccessfulPrimitive(
+				resumeFromSuccessfulPrimitive(
 					runtime,
 					originalFiber,
 					SendNodeDescriptor.from(
-						TupleDescriptor.empty(),
+						emptyTuple(),
 						bundle,
 						argsListNode,
 						intersection.value),
+					primitiveFunction.code(),
 					skipReturnCheck);
 			}
 			else
@@ -227,8 +247,8 @@ extends Primitive
 				{
 					builder.append(
 						"send phrase creation primitive not to have "
-						+ "encountered multiple problems in "
-						+ "semantic restrictions:");
+							+ "encountered multiple problems in "
+							+ "semantic restrictions:");
 					for (final A_String problem : problems)
 					{
 						builder.append("\n\t");
@@ -237,12 +257,12 @@ extends Primitive
 					}
 				}
 				final A_String problemReport =
-					StringDescriptor.from(builder.toString());
-				Interpreter.resumeFromFailedPrimitive(
+					stringFrom(builder.toString());
+				resumeFromFailedPrimitive(
 					runtime,
 					originalFiber,
 					problemReport,
-					failureFunction,
+					primitiveFunction,
 					copiedArgs,
 					skipReturnCheck);
 			}
@@ -263,10 +283,10 @@ extends Primitive
 					synchronized (problems)
 					{
 						problems.add(
-							StringDescriptor.from(
+							stringFrom(
 								"Semantic restriction failed to produce "
-								+ "a type, and instead produced: "
-								+ resultType));
+									+ "a type, and instead produced: "
+									+ resultType));
 					}
 				}
 				decrement.value();
@@ -275,19 +295,19 @@ extends Primitive
 		for (final A_SemanticRestriction restriction : applicableRestrictions)
 		{
 			final int finalCount = fiberCount++;
-			final A_Fiber forkedFiber = FiberDescriptor.newFiber(
-				InstanceMetaDescriptor.topMeta(),
+			final A_Fiber forkedFiber = newFiber(
+				topMeta(),
 				originalFiber.priority(),
 				new Generator<A_String>()
 				{
 					@Override
 					public A_String value ()
 					{
-						return StringDescriptor.from(
+						return stringFrom(
 							"Semantic restriction checker (#"
-							+ finalCount
-							+ ") for primitive "
-							+ this.getClass().getSimpleName());
+								+ finalCount
+								+ ") for primitive "
+								+ this.getClass().getSimpleName());
 					}
 				});
 			forkedFiber.availLoader(originalFiber.availLoader());
@@ -300,7 +320,7 @@ extends Primitive
 				if (throwable instanceof AvailRejectedParseException)
 				{
 					final AvailRejectedParseException rejected =
-						(AvailRejectedParseException)throwable;
+						(AvailRejectedParseException) throwable;
 					final A_String string = rejected.rejectionString();
 					synchronized (problems)
 					{
@@ -311,32 +331,32 @@ extends Primitive
 				{
 					synchronized (problems)
 					{
-						problems.add(StringDescriptor.from(
+						problems.add(stringFrom(
 							"evaluation of macro body not to raise an "
-							+ "unhandled exception:\n\t"
-							+ throwable));
+								+ "unhandled exception:\n\t"
+								+ throwable));
 					}
 				}
 				// Success without type narrowing – do nothing.
 				// Now that we've fully dealt with it,
 			});
-			Interpreter.runOutermostFunction(
+			runOutermostFunction(
 				runtime,
 				forkedFiber,
 				restriction.function(),
 				argTypesList);
 		}
-		return Result.FIBER_SUSPENDED;
+		return FIBER_SUSPENDED;
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return functionType(
+			tuple(
 				ATOM.o(),
 				LIST_NODE.mostGeneralType(),
-				InstanceMetaDescriptor.topMeta()),
+				topMeta()),
 			SEND_NODE.mostGeneralType());
 	}
 
@@ -356,8 +376,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return enumerationWith(
+			set(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS,
 					E_NO_METHOD_DEFINITION)
 				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));

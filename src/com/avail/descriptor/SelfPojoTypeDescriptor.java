@@ -271,7 +271,7 @@ extends PojoTypeDescriptor
 	@Override
 	A_Map o_TypeVariables (final AvailObject object)
 	{
-		return MapDescriptor.empty();
+		return MapDescriptor.emptyMap();
 	}
 
 	@Override
@@ -404,17 +404,17 @@ extends PojoTypeDescriptor
 		else
 		{
 			final Class<?> javaClass = (Class<?>)pojoClass.javaObjectNotNull();
-			mainClassName = StringDescriptor.from(javaClass.getName());
+			mainClassName = StringDescriptor.stringFrom(javaClass.getName());
 		}
-		A_Set ancestorNames = SetDescriptor.empty();
+		A_Set ancestorNames = SetDescriptor.emptySet();
 		for (final A_BasicObject ancestor : selfPojo.javaAncestors())
 		{
 			final Class<?> javaClass = (Class<?>)ancestor.javaObjectNotNull();
 			ancestorNames = ancestorNames.setWithElementCanDestroy(
-				StringDescriptor.from(javaClass.getName()),
+				StringDescriptor.stringFrom(javaClass.getName()),
 				true);
 		}
-		return TupleDescriptor.from(mainClassName, ancestorNames);
+		return TupleDescriptor.tuple(mainClassName, ancestorNames);
 	}
 
 	/**
@@ -448,7 +448,7 @@ extends PojoTypeDescriptor
 				classLoader);
 			mainRawType = RawPojoDescriptor.equalityWrap(mainClass);
 		}
-		A_Set ancestorTypes = SetDescriptor.empty();
+		A_Set ancestorTypes = SetDescriptor.emptySet();
 		for (final A_String ancestorClassName : selfPojoProxy.tupleAt(2))
 		{
 			final Class<?> ancestorClass = Class.forName(

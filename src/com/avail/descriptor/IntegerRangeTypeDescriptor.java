@@ -352,7 +352,7 @@ extends TypeDescriptor
 			isMaxInc = another.upperInclusive();
 		}
 		// At least two references now.
-		return IntegerRangeTypeDescriptor.create(
+		return IntegerRangeTypeDescriptor.integerRangeType(
 			minObject.makeImmutable(),
 			isMinInc,
 			maxObject.makeImmutable(),
@@ -412,7 +412,7 @@ extends TypeDescriptor
 			maxObject = another.upperBound();
 			isMaxInc = another.upperInclusive();
 		}
-		return IntegerRangeTypeDescriptor.create(
+		return IntegerRangeTypeDescriptor.integerRangeType(
 			minObject,
 			isMinInc,
 			maxObject,
@@ -488,7 +488,7 @@ extends TypeDescriptor
 	public static A_Type singleInteger (final A_Number integerObject)
 	{
 		integerObject.makeImmutable();
-		return create(integerObject, true, integerObject, true);
+		return integerRangeType(integerObject, true, integerObject, true);
 	}
 
 	/**
@@ -501,7 +501,7 @@ extends TypeDescriptor
 	{
 		final A_Number integerObject = IntegerDescriptor.fromInt(anInt);
 		integerObject.makeImmutable();
-		return create(integerObject, true, integerObject, true);
+		return integerRangeType(integerObject, true, integerObject, true);
 	}
 
 	/**
@@ -520,7 +520,7 @@ extends TypeDescriptor
 	 * @return
 	 *            The new normalized integer range type.
 	 */
-	public static A_Type create (
+	public static A_Type integerRangeType (
 		final A_Number lowerBound,
 		final boolean lowerInclusive,
 		final A_Number upperBound,
@@ -598,7 +598,7 @@ extends TypeDescriptor
 		final A_Number lowerBound,
 		final A_Number upperBound)
 	{
-		return create(lowerBound, true, upperBound, true);
+		return integerRangeType(lowerBound, true, upperBound, true);
 	}
 
 	/**
@@ -612,7 +612,7 @@ extends TypeDescriptor
 		final long lowerBound,
 		final long upperBound)
 	{
-		return create(
+		return integerRangeType(
 			IntegerDescriptor.fromLong(lowerBound),
 			true,
 			IntegerDescriptor.fromLong(upperBound),
@@ -818,7 +818,7 @@ extends TypeDescriptor
 	}
 
 	/** The range of integers not including infinities, (∞..∞). */
-	private static final A_Type integers = create(
+	private static final A_Type integers = integerRangeType(
 		InfinityDescriptor.negativeInfinity(),
 		false,
 		InfinityDescriptor.positiveInfinity(),
@@ -835,7 +835,7 @@ extends TypeDescriptor
 	}
 
 	/** The range of natural numbers, [1..∞). */
-	private static final A_Type naturalNumbers = create(
+	private static final A_Type naturalNumbers = integerRangeType(
 		IntegerDescriptor.one(),
 		true,
 		InfinityDescriptor.positiveInfinity(),
@@ -879,7 +879,7 @@ extends TypeDescriptor
 	}
 
 	/** The range of whole numbers, [0..∞). */
-	private static final A_Type wholeNumbers = create(
+	private static final A_Type wholeNumbers = integerRangeType(
 		IntegerDescriptor.zero(),
 		true,
 		InfinityDescriptor.positiveInfinity(),
@@ -930,7 +930,7 @@ extends TypeDescriptor
 	 * instances.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.on(extendedIntegers).makeShared();
+		InstanceMetaDescriptor.instanceMetaOn(extendedIntegers).makeShared();
 
 	/**
 	 * Return the metatype for all integer range types.

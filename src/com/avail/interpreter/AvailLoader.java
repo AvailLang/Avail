@@ -374,7 +374,7 @@ public final class AvailLoader
 			if (countdown.value == 0)
 			{
 				continuation.value(
-					SetDescriptor.empty(),
+					SetDescriptor.emptySet(),
 					Collections.emptyMap());
 				return;
 			}
@@ -392,7 +392,7 @@ public final class AvailLoader
 			for (final A_Lexer lexer : allVisibleLexers)
 			{
 				final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
-					EnumerationTypeDescriptor.booleanObject(),
+					EnumerationTypeDescriptor.booleanType(),
 					loader,
 					() -> StringDescriptor.format(
 						"Check lexer filter %s for U+%x",
@@ -808,7 +808,7 @@ public final class AvailLoader
 	}
 
 	/** The unresolved forward method declarations. */
-	public A_Set pendingForwards = SetDescriptor.empty();
+	public A_Set pendingForwards = SetDescriptor.emptySet();
 
 	/**
 	 * The given forward is in the process of being resolved. A real definition
@@ -1275,7 +1275,7 @@ public final class AvailLoader
 			new ArrayList<>(illegalArgMsgs.tupleSize());
 		for (final A_Set atomsSet : illegalArgMsgs)
 		{
-			A_Set bundleSet = SetDescriptor.empty();
+			A_Set bundleSet = SetDescriptor.emptySet();
 			for (final A_Atom atom : atomsSet)
 			{
 				bundleSet = bundleSet.setWithElementCanDestroy(
@@ -1283,7 +1283,7 @@ public final class AvailLoader
 			}
 			bundleSetList.add(bundleSet.makeShared());
 		}
-		final A_Tuple bundleSetTuple = TupleDescriptor.fromList(bundleSetList);
+		final A_Tuple bundleSetTuple = TupleDescriptor.tupleFromList(bundleSetList);
 		for (final A_Atom parentAtom : parentAtoms)
 		{
 			final A_Bundle bundle = parentAtom.bundleOrCreate();
@@ -1509,17 +1509,17 @@ public final class AvailLoader
 			{
 				final A_Set newNames =
 					module.newNames().hasKey(stringName)
-						? SetDescriptor.empty().setWithElementCanDestroy(
+						? SetDescriptor.emptySet().setWithElementCanDestroy(
 							module.newNames().mapAt(stringName), true)
-						: SetDescriptor.empty();
+						: SetDescriptor.emptySet();
 				final A_Set publics =
 					module.importedNames().hasKey(stringName)
 						? module.importedNames().mapAt(stringName)
-						: SetDescriptor.empty();
+						: SetDescriptor.emptySet();
 				final A_Set privates =
 					module.privateNames().hasKey(stringName)
 						? module.privateNames().mapAt(stringName)
-						: SetDescriptor.empty();
+						: SetDescriptor.emptySet();
 				who.value = newNames
 					.setUnionCanDestroy(publics, true)
 					.setUnionCanDestroy(privates, true);

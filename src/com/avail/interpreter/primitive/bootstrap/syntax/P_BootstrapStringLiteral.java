@@ -77,10 +77,10 @@ public final class P_BootstrapStringLiteral extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				LITERAL_NODE.create(
-					LiteralTokenTypeDescriptor.create(
+					LiteralTokenTypeDescriptor.literalTokenType(
 						TupleTypeDescriptor.stringType()))),
 			LITERAL_NODE.create(TupleTypeDescriptor.stringType()));
 	}

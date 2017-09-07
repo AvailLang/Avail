@@ -126,10 +126,10 @@ extends Primitive
 			raw = temp;
 			rawClass = Path.class;
 		}
-		final A_Tuple tuple = TupleDescriptor.from(
+		final A_Tuple tuple = TupleDescriptor.tuple(
 			PojoDescriptor.newPojo(
 				RawPojoDescriptor.equalityWrap(raw),
-				PojoTypeDescriptor.forClass(rawClass)),
+				PojoTypeDescriptor.pojoTypeForClass(rawClass)),
 			IntegerDescriptor.fromInt(
 				attributes.isRegularFile() ? 1
 				: attributes.isDirectory() ? 2
@@ -149,14 +149,14 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
-				EnumerationTypeDescriptor.booleanObject()),
+				EnumerationTypeDescriptor.booleanType()),
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.singleInt(6),
-				TupleDescriptor.from(
-					PojoTypeDescriptor.mostGeneralType(),
+				TupleDescriptor.tuple(
+					PojoTypeDescriptor.mostGeneralPojoType(),
 					IntegerRangeTypeDescriptor.inclusive(1, 4)),
 				IntegerRangeTypeDescriptor.inclusive(0, Long.MAX_VALUE)));
 	}
@@ -164,8 +164,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INVALID_PATH,
 				E_PERMISSION_DENIED,
 				E_IO_ERROR));

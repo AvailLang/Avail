@@ -31,10 +31,11 @@
  */
 
 package com.avail.stacks;
-import java.util.HashMap;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.Pair;
+
+import java.util.HashMap;
 
 /**
  * A grouping of all implementationGroups originating from the names section of
@@ -239,7 +240,7 @@ public abstract class StacksImportModule
 				{
 					newHashNameMap.put(name, newHashNameMap.get(name) + 1);
 					nameToBeHashed =
-						StringDescriptor.from(name.asNativeString()
+						StringDescriptor.stringFrom(name.asNativeString()
 							+ newHashNameMap.get(name));
 				}
 				else

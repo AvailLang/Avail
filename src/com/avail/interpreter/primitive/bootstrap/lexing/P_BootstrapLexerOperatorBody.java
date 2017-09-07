@@ -82,26 +82,26 @@ public final class P_BootstrapLexerOperatorBody extends Primitive
 				&& source.tupleCodePointAt(startPosition + 1) == '*')
 			{
 				// No solution in this case, but don't complain.
-				return interpreter.primitiveSuccess(TupleDescriptor.empty());
+				return interpreter.primitiveSuccess(TupleDescriptor.emptyTuple());
 			}
 		}
 		final A_Token token = TokenDescriptor.create(
 			(A_String)source.copyTupleFromToCanDestroy(
 				startPosition, startPosition, false),
-			TupleDescriptor.empty(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
+			TupleDescriptor.emptyTuple(),
 			startPosition,
 			lineNumberInteger.extractInt(),
 			TokenType.OPERATOR);
 		return interpreter.primitiveSuccess(
-			TupleDescriptor.from(token.makeShared()));
+			TupleDescriptor.tuple(token.makeShared()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),

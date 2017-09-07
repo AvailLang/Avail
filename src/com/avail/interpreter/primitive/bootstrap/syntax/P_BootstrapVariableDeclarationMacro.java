@@ -103,8 +103,8 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				/* Variable name phrase. */
 				LITERAL_NODE.create(TOKEN.o()),
 				/* Variable type's literal phrase. */

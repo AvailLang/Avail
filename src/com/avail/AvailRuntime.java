@@ -32,9 +32,53 @@
 
 package com.avail;
 
+import static com.avail.descriptor.AtomDescriptor.falseObject;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.*;
+import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.two;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.MapTypeDescriptor.mapMeta;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.SetTypeDescriptor.setMeta;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
+import static com.avail.descriptor.VariableTypeDescriptor.variableMeta;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.min;
@@ -155,11 +199,11 @@ public final class AvailRuntime
 	 */
 	public static A_Set activeVersions ()
 	{
-		A_Set versions = SetDescriptor.empty();
+		A_Set versions = SetDescriptor.emptySet();
 		for (final String version : activeVersions)
 		{
 			versions = versions.setWithElementCanDestroy(
-				StringDescriptor.from(version),
+				StringDescriptor.stringFrom(version),
 				true);
 		}
 		return versions;
@@ -1188,31 +1232,31 @@ public final class AvailRuntime
 	{
 		unassignedVariableReadFunction = FunctionDescriptor.newCrashFunction(
 			"attempted to read from unassigned variable",
-			TupleDescriptor.empty());
+			emptyTuple());
 		resultDisagreedWithExpectedTypeFunction =
 			FunctionDescriptor.newCrashFunction(
 				"return result disagreed with expected type",
-				TupleDescriptor.from(
-					FunctionTypeDescriptor.mostGeneralType(),
-					InstanceMetaDescriptor.topMeta(),
-					VariableTypeDescriptor.wrapInnerType(ANY.o())));
+				tuple(
+					mostGeneralFunctionType(),
+					topMeta(),
+					VariableTypeDescriptor.variableTypeFor(ANY.o())));
 		implicitObserveFunction = FunctionDescriptor.newCrashFunction(
 			"variable with a write reactor was written with write-tracing off",
-			TupleDescriptor.from(
-				FunctionTypeDescriptor.mostGeneralType(),
-				TupleTypeDescriptor.mostGeneralType()));
+			tuple(
+				mostGeneralFunctionType(),
+				mostGeneralTupleType()));
 		invalidMessageSendFunction = FunctionDescriptor.newCrashFunction(
 			"failed method lookup",
-			TupleDescriptor.from(
-				AbstractEnumerationTypeDescriptor.withInstances(
-					SetDescriptor.from(
+			tuple(
+				AbstractEnumerationTypeDescriptor.enumerationWith(
+					SetDescriptor.set(
 						E_NO_METHOD,
 						E_NO_METHOD_DEFINITION,
 						E_AMBIGUOUS_METHOD_DEFINITION,
 						E_FORWARD_METHOD_DEFINITION,
 						E_ABSTRACT_METHOD_DEFINITION)),
 				METHOD.o(),
-				TupleTypeDescriptor.mostGeneralType()));
+				mostGeneralTupleType()));
 	}
 
 	/**
@@ -1428,46 +1472,44 @@ public final class AvailRuntime
 		// Set up the special objects.
 		final A_BasicObject[] specials = specialObjects;
 		specials[1] = ANY.o();
-		specials[2] = EnumerationTypeDescriptor.booleanObject();
+		specials[2] = booleanType();
 		specials[3] = CHARACTER.o();
-		specials[4] = FunctionTypeDescriptor.mostGeneralType();
-		specials[5] = FunctionTypeDescriptor.meta();
-		specials[6] = CompiledCodeTypeDescriptor.mostGeneralType();
-		specials[7] = VariableTypeDescriptor.mostGeneralType();
-		specials[8] = VariableTypeDescriptor.meta();
-		specials[9] = ContinuationTypeDescriptor.mostGeneralType();
-		specials[10] = ContinuationTypeDescriptor.meta();
+		specials[4] = mostGeneralFunctionType();
+		specials[5] = functionMeta();
+		specials[6] = mostGeneralCompiledCodeType();
+		specials[7] = mostGeneralVariableType();
+		specials[8] = variableMeta();
+		specials[9] = mostGeneralContinuationType();
+		specials[10] = continuationMeta();
 		specials[11] = ATOM.o();
 		specials[12] = DOUBLE.o();
-		specials[13] = IntegerRangeTypeDescriptor.extendedIntegers();
-		specials[14] = InstanceMetaDescriptor.on(
-			TupleTypeDescriptor.zeroOrMoreOf(InstanceMetaDescriptor.anyMeta()));
+		specials[13] = extendedIntegers();
+		specials[14] = instanceMetaOn(zeroOrMoreOf(anyMeta()));
 		specials[15] = FLOAT.o();
 		specials[16] = NUMBER.o();
-		specials[17] = IntegerRangeTypeDescriptor.integers();
+		specials[17] = integers();
 		specials[18] = IntegerRangeTypeDescriptor.meta();
-		specials[19] = MapTypeDescriptor.meta();
+		specials[19] = mapMeta();
 		specials[20] = MODULE.o();
-		specials[21] = TupleDescriptor.fromIntegerList(
-			allNumericCodes());
-		specials[22] = ObjectTypeDescriptor.mostGeneralType();
+		specials[21] = tupleFromIntegerList(allNumericCodes());
+		specials[22] = ObjectTypeDescriptor.mostGeneralObjectType();
 		specials[23] = ObjectTypeDescriptor.meta();
-		specials[24] = ObjectTypeDescriptor.exceptionType();
-		specials[25] = FiberTypeDescriptor.mostGeneralType();
-		specials[26] = SetTypeDescriptor.mostGeneralType();
-		specials[27] = SetTypeDescriptor.meta();
-		specials[28] = TupleTypeDescriptor.stringType();
-		specials[29] = BottomTypeDescriptor.bottom();
-		specials[30] = InstanceMetaDescriptor.on(BottomTypeDescriptor.bottom());
+		specials[24] = exceptionType();
+		specials[25] = mostGeneralFiberType();
+		specials[26] = mostGeneralSetType();
+		specials[27] = setMeta();
+		specials[28] = stringType();
+		specials[29] = bottom();
+		specials[30] = instanceMetaOn(bottom());
 		specials[31] = NONTYPE.o();
-		specials[32] = TupleTypeDescriptor.mostGeneralType();
-		specials[33] = TupleTypeDescriptor.meta();
-		specials[34] = InstanceMetaDescriptor.topMeta();
+		specials[32] = mostGeneralTupleType();
+		specials[33] = tupleMeta();
+		specials[34] = topMeta();
 		specials[35] = TOP.o();
-		specials[36] = IntegerRangeTypeDescriptor.wholeNumbers();
-		specials[37] = IntegerRangeTypeDescriptor.naturalNumbers();
-		specials[38] = IntegerRangeTypeDescriptor.characterCodePoints();
-		specials[39] = MapTypeDescriptor.mostGeneralType();
+		specials[36] = wholeNumbers();
+		specials[37] = naturalNumbers();
+		specials[38] = characterCodePoints();
+		specials[39] = mostGeneralMapType();
 		specials[40] = MESSAGE_BUNDLE.o();
 		specials[41] = MESSAGE_BUNDLE_TREE.o();
 		specials[42] = METHOD.o();
@@ -1476,8 +1518,7 @@ public final class AvailRuntime
 		specials[45] = FORWARD_DEFINITION.o();
 		specials[46] = METHOD_DEFINITION.o();
 		specials[47] = MACRO_DEFINITION.o();
-		specials[48] = TupleTypeDescriptor.zeroOrMoreOf(
-			FunctionTypeDescriptor.mostGeneralType());
+		specials[48] = zeroOrMoreOf(mostGeneralFunctionType());
 		specials[50] = PARSE_NODE.mostGeneralType();
 		specials[51] = SEQUENCE_NODE.mostGeneralType();
 		specials[52] = EXPRESSION_NODE.mostGeneralType();
@@ -1486,8 +1527,7 @@ public final class AvailRuntime
 		specials[55] = LITERAL_NODE.mostGeneralType();
 		specials[56] = REFERENCE_NODE.mostGeneralType();
 		specials[57] = SEND_NODE.mostGeneralType();
-		specials[58] = InstanceMetaDescriptor.on(
-			LiteralTokenTypeDescriptor.mostGeneralType());
+		specials[58] = instanceMetaOn(mostGeneralLiteralTokenType());
 		specials[59] = LIST_NODE.mostGeneralType();
 		specials[60] = VARIABLE_USE_NODE.mostGeneralType();
 		specials[61] = DECLARATION_NODE.mostGeneralType();
@@ -1498,183 +1538,98 @@ public final class AvailRuntime
 		specials[66] = MODULE_VARIABLE_NODE.mostGeneralType();
 		specials[67] = MODULE_CONSTANT_NODE.mostGeneralType();
 		specials[68] = PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType();
-		specials[69] = InstanceMetaDescriptor.anyMeta();
-		specials[70] = AtomDescriptor.trueObject();
-		specials[71] = AtomDescriptor.falseObject();
-		specials[72] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.stringType());
-		specials[73] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				InstanceMetaDescriptor.topMeta());
-		specials[74] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					TupleTypeDescriptor.stringType()));
-		specials[75] =
-			SetTypeDescriptor.setTypeForSizesContentType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.stringType());
-		specials[76] =
-			FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					IntegerRangeTypeDescriptor.naturalNumbers()),
-				BottomTypeDescriptor.bottom());
-		specials[77] = SetDescriptor.empty();
-		specials[78] = InfinityDescriptor.negativeInfinity();
-		specials[79] = InfinityDescriptor.positiveInfinity();
-		specials[80] = PojoTypeDescriptor.mostGeneralType();
-		specials[81] = BottomPojoTypeDescriptor.pojoBottom();
+		specials[69] = anyMeta();
+		specials[70] = trueObject();
+		specials[71] = falseObject();
+		specials[72] = zeroOrMoreOf(stringType());
+		specials[73] = zeroOrMoreOf(topMeta());
+		specials[74] = zeroOrMoreOf(
+			setTypeForSizesContentType(wholeNumbers(), stringType()));
+		specials[75] = setTypeForSizesContentType(wholeNumbers(), stringType());
+		specials[76] = functionType(tuple(naturalNumbers()), bottom());
+		specials[77] = SetDescriptor.emptySet();
+		specials[78] = negativeInfinity();
+		specials[79] = positiveInfinity();
+		specials[80] = mostGeneralPojoType();
+		specials[81] = pojoBottom();
 		specials[82] = PojoDescriptor.nullObject();
-		specials[83] = PojoTypeDescriptor.selfType();
-		specials[84] = InstanceMetaDescriptor.on(
-			PojoTypeDescriptor.mostGeneralType());
-		specials[85] = InstanceMetaDescriptor.on(
-			PojoTypeDescriptor.mostGeneralArrayType());
-		specials[86] = FunctionTypeDescriptor.forReturnType(
-			PojoTypeDescriptor.mostGeneralType());
-		specials[87] = PojoTypeDescriptor.mostGeneralArrayType();
-		specials[88] = PojoTypeDescriptor.selfAtom();
-		specials[89] = PojoTypeDescriptor.forClass(Throwable.class);
-		specials[90] = FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			TOP.o());
-		specials[91] = FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			EnumerationTypeDescriptor.booleanObject());
-		specials[92] = VariableTypeDescriptor.wrapInnerType(
-			ContinuationTypeDescriptor.mostGeneralType());
-		specials[93] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-			IntegerRangeTypeDescriptor.wholeNumbers(),
-			ATOM.o(),
-			ANY.o());
-		specials[94] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-			IntegerRangeTypeDescriptor.wholeNumbers(),
-			ATOM.o(),
-			InstanceMetaDescriptor.anyMeta());
-		specials[95] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.singleInt(2),
-					TupleDescriptor.empty(),
-					ANY.o()));
-		specials[96] = MapDescriptor.empty();
-		specials[97] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-			IntegerRangeTypeDescriptor.naturalNumbers(),
-			ANY.o(),
-			ANY.o());
-		specials[98] = InstanceMetaDescriptor.on(
-			IntegerRangeTypeDescriptor.wholeNumbers());
-		specials[99] = SetTypeDescriptor.setTypeForSizesContentType(
-			IntegerRangeTypeDescriptor.naturalNumbers(),
-			ANY.o());
-		specials[100] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
-				TupleTypeDescriptor.mostGeneralType());
-		specials[101] = IntegerRangeTypeDescriptor.nybbles();
-		specials[102] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				IntegerRangeTypeDescriptor.nybbles());
-		specials[103] = IntegerRangeTypeDescriptor.unsignedShorts();
-		specials[104] = TupleDescriptor.empty();
-		specials[105] = FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				BottomTypeDescriptor.bottom()),
-			TOP.o());
-		specials[106] = InstanceTypeDescriptor.on(IntegerDescriptor.zero());
-		specials[107] = FunctionTypeDescriptor.forReturnType(
-			InstanceMetaDescriptor.topMeta());
-		specials[108] =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleDescriptor.empty(),
-				FunctionTypeDescriptor.forReturnType(
-					InstanceMetaDescriptor.topMeta()));
-		specials[109] = FunctionTypeDescriptor.forReturnType(
-			PARSE_NODE.mostGeneralType());
-		specials[110] = InstanceTypeDescriptor.on(IntegerDescriptor.two());
-		specials[111] = DoubleDescriptor.fromDouble(Math.E);
-		specials[112] = InstanceTypeDescriptor.on(
-			DoubleDescriptor.fromDouble(Math.E));
-		specials[113] = InstanceMetaDescriptor.on(PARSE_NODE.mostGeneralType());
-		specials[114] = SetTypeDescriptor.setTypeForSizesContentType(
-			IntegerRangeTypeDescriptor.wholeNumbers(),
-			ATOM.o());
+		specials[83] = pojoSelfType();
+		specials[84] = instanceMetaOn(mostGeneralPojoType());
+		specials[85] = instanceMetaOn(mostGeneralPojoArrayType());
+		specials[86] = functionTypeReturning(mostGeneralPojoType());
+		specials[87] = mostGeneralPojoArrayType();
+		specials[88] = pojoSelfTypeAtom();
+		specials[89] = pojoTypeForClass(Throwable.class);
+		specials[90] = functionType(emptyTuple(), TOP.o());
+		specials[91] = functionType(emptyTuple(), booleanType());
+		specials[92] = VariableTypeDescriptor.variableTypeFor(
+			mostGeneralContinuationType());
+		specials[93] = mapTypeForSizesKeyTypeValueType(
+			wholeNumbers(), ATOM.o(), ANY.o());
+		specials[94] = mapTypeForSizesKeyTypeValueType(
+			wholeNumbers(),ATOM.o(), anyMeta());
+		specials[95] = tupleTypeForSizesTypesDefaultType(
+			wholeNumbers(),
+			emptyTuple(),
+			tupleTypeForSizesTypesDefaultType(
+				singleInt(2), emptyTuple(), ANY.o()));
+		specials[96] = emptyMap();
+		specials[97] = mapTypeForSizesKeyTypeValueType(
+			naturalNumbers(), ANY.o(), ANY.o());
+		specials[98] = instanceMetaOn(wholeNumbers());
+		specials[99] = setTypeForSizesContentType(naturalNumbers(), ANY.o());
+		specials[100] = tupleTypeForSizesTypesDefaultType(
+			wholeNumbers(), emptyTuple(), mostGeneralTupleType());
+		specials[101] = nybbles();
+		specials[102] = zeroOrMoreOf(nybbles());
+		specials[103] = unsignedShorts();
+		specials[104] = emptyTuple();
+		specials[105] = functionType(tuple(bottom()), TOP.o());
+		specials[106] = instanceTypeOn(zero());
+		specials[107] = functionTypeReturning(topMeta());
+		specials[108] = tupleTypeForSizesTypesDefaultType(
+			wholeNumbers(), emptyTuple(), functionTypeReturning(topMeta()));
+		specials[109] = functionTypeReturning(PARSE_NODE.mostGeneralType());
+		specials[110] = instanceTypeOn(two());
+		specials[111] = fromDouble(Math.E);
+		specials[112] = instanceTypeOn(fromDouble(Math.E));
+		specials[113] = instanceMetaOn(PARSE_NODE.mostGeneralType());
+		specials[114] = setTypeForSizesContentType(wholeNumbers(), ATOM.o());
 		specials[115] = TOKEN.o();
-		specials[116] = LiteralTokenTypeDescriptor.mostGeneralType();
-		specials[117] =
-			TupleTypeDescriptor.zeroOrMoreOf(InstanceMetaDescriptor.anyMeta());
-		specials[118] =
-			IntegerRangeTypeDescriptor.inclusive(
-				IntegerDescriptor.zero(),
-				InfinityDescriptor.positiveInfinity());
-		specials[119] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.singleInt(2),
-					TupleDescriptor.from(ATOM.o()),
-					InstanceMetaDescriptor.anyMeta()));
-		specials[120] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.singleInt(2),
-					TupleDescriptor.from(ATOM.o()),
-					ANY.o()));
-		specials[121] =
-			TupleTypeDescriptor.zeroOrMoreOf(PARSE_NODE.mostGeneralType());
-		specials[122] =
-			TupleTypeDescriptor.zeroOrMoreOf(ARGUMENT_NODE.mostGeneralType());
-		specials[123] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				DECLARATION_NODE.mostGeneralType());
-		specials[124] =
-			VariableTypeDescriptor.fromReadAndWriteTypes(
-				TOP.o(),
-				BottomTypeDescriptor.bottom());
-		specials[125] =
-			TupleTypeDescriptor.zeroOrMoreOf(EXPRESSION_NODE.create(ANY.o()));
+		specials[116] = mostGeneralLiteralTokenType();
+		specials[117] = zeroOrMoreOf(anyMeta());
+		specials[118] = inclusive(zero(), positiveInfinity());
+		specials[119] = zeroOrMoreOf(
+			tupleTypeForSizesTypesDefaultType(
+				singleInt(2), tuple(ATOM.o()), anyMeta()));
+		specials[120] = zeroOrMoreOf(
+			tupleTypeForSizesTypesDefaultType(
+				singleInt(2), tuple(ATOM.o()), ANY.o()));
+		specials[121] = zeroOrMoreOf(PARSE_NODE.mostGeneralType());
+		specials[122] = zeroOrMoreOf(ARGUMENT_NODE.mostGeneralType());
+		specials[123] = zeroOrMoreOf(DECLARATION_NODE.mostGeneralType());
+		specials[124] = variableReadWriteType(TOP.o(), bottom());
+		specials[125] = zeroOrMoreOf(EXPRESSION_NODE.create(ANY.o()));
 		specials[126] = EXPRESSION_NODE.create(ANY.o());
-		specials[127] =
-			FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					PojoTypeDescriptor.forClass(Throwable.class)),
-				BottomTypeDescriptor.bottom());
-		specials[128] =
-			TupleTypeDescriptor.zeroOrMoreOf(
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					ATOM.o()));
-		specials[129] = IntegerRangeTypeDescriptor.bytes();
-		specials[130] = TupleTypeDescriptor.zeroOrMoreOf(
-			TupleTypeDescriptor.zeroOrMoreOf(
-				InstanceMetaDescriptor.anyMeta()));
-		specials[131] = VariableTypeDescriptor.fromReadAndWriteTypes(
-			IntegerRangeTypeDescriptor.extendedIntegers(),
-			BottomTypeDescriptor.bottom());
-		specials[132] = FiberTypeDescriptor.meta();
-		specials[133] = TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o());
-		specials[134] = SetTypeDescriptor.setTypeForSizesContentType(
-			IntegerRangeTypeDescriptor.wholeNumbers(),
-			ObjectTypeDescriptor.exceptionType());
-		specials[135] = SetTypeDescriptor.setTypeForSizesContentType(
-			IntegerRangeTypeDescriptor.naturalNumbers(),
-			TupleTypeDescriptor.stringType());
-		specials[136] = SetTypeDescriptor.setTypeForSizesContentType(
-			IntegerRangeTypeDescriptor.naturalNumbers(),
-			ATOM.o());
-		specials[137] = TupleTypeDescriptor.oneOrMoreOf(ANY.o());
-		specials[138] = TupleTypeDescriptor.zeroOrMoreOf(
-			IntegerRangeTypeDescriptor.integers());
-		specials[139] = TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.create(
-				IntegerDescriptor.fromInt(2), true,
-				InfinityDescriptor.positiveInfinity(),false),
-			TupleDescriptor.empty(),
+		specials[127] = functionType(
+			tuple(pojoTypeForClass(Throwable.class)), bottom());
+		specials[128] = zeroOrMoreOf(
+			setTypeForSizesContentType(wholeNumbers(), ATOM.o()));
+		specials[129] = bytes();
+		specials[130] = zeroOrMoreOf(zeroOrMoreOf(anyMeta()));
+		specials[131] = variableReadWriteType(extendedIntegers(), bottom());
+		specials[132] = fiberMeta();
+		specials[133] = oneOrMoreOf(CHARACTER.o());
+		specials[134] = setTypeForSizesContentType(
+			wholeNumbers(), exceptionType());
+		specials[135] = setTypeForSizesContentType(
+			naturalNumbers(), stringType());
+		specials[136] = setTypeForSizesContentType(naturalNumbers(), ATOM.o());
+		specials[137] = oneOrMoreOf(ANY.o());
+		specials[138] = zeroOrMoreOf(integers());
+		specials[139] = tupleTypeForSizesTypesDefaultType(
+			integerRangeType(fromInt(2), true, positiveInfinity(),false),
+			emptyTuple(),
 			ANY.o());
 		// Some of these entries may need to be shuffled into earlier slots to
 		// maintain reasonable topical consistency.
@@ -1684,23 +1639,18 @@ public final class AvailRuntime
 		specials[143] = SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom;
 		specials[144] = SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom;
 		specials[145] = SpecialAtom.ALL_TOKENS_KEY.atom;
-		specials[146] = IntegerRangeTypeDescriptor.int32();
-		specials[147] = IntegerRangeTypeDescriptor.int64();
+		specials[146] = int32();
+		specials[147] = int64();
 		specials[148] = STATEMENT_NODE.mostGeneralType();
 		specials[149] = SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom;
 		specials[150] = EXPRESSION_AS_STATEMENT_NODE.mostGeneralType();
-		specials[151] = TupleTypeDescriptor.oneOrMoreOf(
-			IntegerRangeTypeDescriptor.naturalNumbers());
-		specials[152] = TupleTypeDescriptor.zeroOrMoreOf(DEFINITION.o());
-		specials[153] = MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-			IntegerRangeTypeDescriptor.wholeNumbers(),
-			TupleTypeDescriptor.stringType(),
-			ATOM.o());
+		specials[151] = oneOrMoreOf(naturalNumbers());
+		specials[152] = zeroOrMoreOf(DEFINITION.o());
+		specials[153] = mapTypeForSizesKeyTypeValueType(
+			wholeNumbers(), stringType(), ATOM.o());
 		specials[154] = SpecialAtom.MACRO_BUNDLE_KEY.atom;
 		specials[155] = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom;
-		specials[156] = VariableTypeDescriptor.fromReadAndWriteTypes(
-			MapTypeDescriptor.mostGeneralType(),
-			BottomTypeDescriptor.bottom());
+		specials[156] = variableReadWriteType(mostGeneralMapType(), bottom());
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
@@ -1747,7 +1697,7 @@ public final class AvailRuntime
 			SpecialMethodAtom.LEXER_DEFINER.atom,
 			ObjectTypeDescriptor.exceptionAtom(),
 			ObjectTypeDescriptor.stackDumpAtom(),
-			PojoTypeDescriptor.selfAtom()));
+			pojoSelfTypeAtom()));
 
 		for (final A_Atom atom : specialAtomsList)
 		{
@@ -1775,7 +1725,7 @@ public final class AvailRuntime
 	 * {@linkplain MapDescriptor map} from {@linkplain TupleDescriptor module
 	 * names} to {@linkplain ModuleDescriptor modules}.
 	 */
-	private A_Map modules = MapDescriptor.empty();
+	private A_Map modules = emptyMap();
 
 	/**
 	 * Add the specified {@linkplain ModuleDescriptor module} to the

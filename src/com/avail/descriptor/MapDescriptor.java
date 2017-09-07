@@ -410,7 +410,7 @@ extends Descriptor
 	A_Type o_Kind (final AvailObject object)
 	{
 		final int size = object.mapSize();
-		final A_Type sizeRange = InstanceTypeDescriptor.on(
+		final A_Type sizeRange = InstanceTypeDescriptor.instanceTypeOn(
 			IntegerDescriptor.fromInt(size));
 		final A_Map root = rootBin(object);
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -479,7 +479,7 @@ extends Descriptor
 	{
 		// Answer a set with all my keys.  Mark the keys as immutable because
 		// they'll be shared with the new set.
-		A_Set result = SetDescriptor.empty();
+		A_Set result = SetDescriptor.emptySet();
 		for (final Entry entry : object.mapIterable())
 		{
 			result = result.setWithElementCanDestroy(
@@ -798,7 +798,7 @@ extends Descriptor
 		final A_Tuple tupleOfBindings)
 	{
 		assert tupleOfBindings.isTuple();
-		A_Map newMap = empty();
+		A_Map newMap = emptyMap();
 		for (final A_Tuple binding : tupleOfBindings)
 		{
 			assert binding.isTuple();
@@ -822,7 +822,7 @@ extends Descriptor
 	public static A_Map fromPairs (final A_BasicObject... keysAndValues)
 	{
 		assert (keysAndValues.length & 1) == 0;
-		A_Map newMap = empty();
+		A_Map newMap = emptyMap();
 		for (int i = 0; i < keysAndValues.length; i += 2)
 		{
 			newMap = newMap.mapAtPuttingCanDestroy(
@@ -907,7 +907,7 @@ extends Descriptor
 	 *
 	 * @return The empty map.
 	 */
-	public static A_Map empty ()
+	public static A_Map emptyMap ()
 	{
 		return emptyMap;
 	}

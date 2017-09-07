@@ -34,9 +34,8 @@ import com.avail.compiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.exceptions.SignatureException;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
@@ -44,7 +43,7 @@ import static com.avail.compiler.ParsingOperation.PREPARE_TO_RUN_PREFIX_FUNCTION
 import static com.avail.compiler.ParsingOperation.RUN_PREFIX_FUNCTION;
 
 /**
- * An {@linkplain SectionCheckpoint} expression is an occurrence of the
+ * An {@code SectionCheckpoint} expression is an occurrence of the
  * {@linkplain Metacharacter#SECTION_SIGN section sign} (§) in a message
  * name.  It indicates a position at which to save the argument expressions
  * for the message <em>up to this point</em>.  This value is captured in the

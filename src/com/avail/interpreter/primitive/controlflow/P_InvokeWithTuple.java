@@ -47,7 +47,6 @@ import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
 import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
-import sun.security.x509.AVA;
 
 /**
  * <strong>Primitive:</strong> {@linkplain FunctionDescriptor Function}
@@ -199,10 +198,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FunctionTypeDescriptor.mostGeneralType(),
-				TupleTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				FunctionTypeDescriptor.mostGeneralFunctionType(),
+				TupleTypeDescriptor.mostGeneralTupleType()),
 			TOP.o());
 	}
 

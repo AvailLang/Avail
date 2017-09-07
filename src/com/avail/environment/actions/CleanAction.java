@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,13 +32,16 @@
 
 package com.avail.environment.actions;
 
-import static com.avail.environment.AvailWorkbench.StreamStyle.*;
-import java.awt.event.*;
-import java.io.IOException;
 import com.avail.builder.ModuleRoot;
 import com.avail.environment.AvailWorkbench;
 import com.avail.persistence.IndexedFileException;
+
 import javax.annotation.Nullable;
+import java.awt.event.ActionEvent;
+import java.io.IOException;
+
+import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
+import static java.lang.String.format;
 
 /**
  * A {@code CleanAction} empties all compiled module repositories.
@@ -66,7 +69,7 @@ extends AbstractWorkbenchAction
 			throw new IndexedFileException(e);
 		}
 		workbench.writeText(
-			String.format("Repository has been cleared.%n"),
+			format("Repository has been cleared.%n"),
 			INFO);
 	}
 

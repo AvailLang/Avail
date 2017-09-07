@@ -32,14 +32,24 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
- * <strong>Primitive:</strong> Is the {@linkplain FiberDescriptor#current()
+ * <strong>Primitive:</strong> Is the {@linkplain FiberDescriptor#currentFiber()
  * current} able to reject an ongoing parse?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -70,8 +80,7 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			EnumerationTypeDescriptor.booleanObject());
+		return functionType(emptyTuple(),
+			booleanType());
 	}
 }

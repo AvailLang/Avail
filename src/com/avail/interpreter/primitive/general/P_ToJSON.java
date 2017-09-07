@@ -65,15 +65,15 @@ extends Primitive
 		final A_BasicObject value = args.get(0);
 		final JSONWriter writer = new JSONWriter();
 		value.writeTo(writer);
-		final A_String json = StringDescriptor.from(writer.toString());
+		final A_String json = StringDescriptor.stringFrom(writer.toString());
 		return interpreter.primitiveSuccess(json);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o()),
 			TupleTypeDescriptor.stringType());
 	}

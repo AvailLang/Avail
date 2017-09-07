@@ -160,13 +160,13 @@ public class ModuleHeader
 	 */
 	public void serializeHeaderOn (final Serializer serializer)
 	{
-		serializer.serialize(StringDescriptor.from(moduleName.qualifiedName()));
-		serializer.serialize(TupleDescriptor.fromList(versions));
+		serializer.serialize(StringDescriptor.stringFrom(moduleName.qualifiedName()));
+		serializer.serialize(TupleDescriptor.tupleFromList(versions));
 		serializer.serialize(tuplesForSerializingModuleImports());
 		serializer.serialize(
-			TupleDescriptor.fromList(new ArrayList<>(exportedNames)));
-		serializer.serialize(TupleDescriptor.fromList(entryPoints));
-		serializer.serialize(TupleDescriptor.fromList(pragmas));
+			TupleDescriptor.tupleFromList(new ArrayList<>(exportedNames)));
+		serializer.serialize(TupleDescriptor.tupleFromList(entryPoints));
+		serializer.serialize(TupleDescriptor.tupleFromList(pragmas));
 		serializer.serialize(IntegerDescriptor.fromInt(startOfBodyPosition));
 		serializer.serialize(IntegerDescriptor.fromInt(startOfBodyLineNumber));
 	}
@@ -184,7 +184,7 @@ public class ModuleHeader
 		{
 			list.add(moduleImport.tupleForSerialization());
 		}
-		return TupleDescriptor.fromList(list);
+		return TupleDescriptor.tupleFromList(list);
 	}
 
 	/**
@@ -249,8 +249,8 @@ public class ModuleHeader
 		{
 			pragmas.add(LiteralTokenDescriptor.create(
 				pragmaString,
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				0,
 				0,
 				LITERAL,
@@ -304,7 +304,7 @@ public class ModuleHeader
 				assert false : "This never happens";
 				throw new RuntimeException(e);
 			}
-			final A_String availRef = StringDescriptor.from(
+			final A_String availRef = StringDescriptor.stringFrom(
 				ref.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
 			{
@@ -350,7 +350,7 @@ public class ModuleHeader
 
 			// Look up the strings to get existing atoms.  Don't complain
 			// about ambiguity, just export all that match.
-			A_Set atomsToImport = SetDescriptor.empty();
+			A_Set atomsToImport = SetDescriptor.emptySet();
 			for (final A_String string : stringsToImport)
 			{
 				if (!importedNamesMultimap.hasKey(string))

@@ -65,9 +65,9 @@ public final class P_ContinuationTypeToFunctionType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ContinuationTypeDescriptor.meta()),
-			FunctionTypeDescriptor.meta());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				ContinuationTypeDescriptor.continuationMeta()),
+			FunctionTypeDescriptor.functionMeta());
 	}
 }

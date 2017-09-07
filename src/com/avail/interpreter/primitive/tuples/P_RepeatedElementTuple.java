@@ -79,18 +79,18 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				ANY.o()),
-			TupleTypeDescriptor.mostGeneralType());
+			TupleTypeDescriptor.mostGeneralTupleType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_EXCEEDS_VM_LIMIT));
 	}
 
@@ -106,13 +106,13 @@ extends Primitive
 		if (sizeType.instanceCount().equalsInt(1)
 			&& elementType.instanceCount().equalsInt(1))
 		{
-			return InstanceTypeDescriptor.on(
+			return InstanceTypeDescriptor.instanceTypeOn(
 				RepeatedElementTupleDescriptor.createRepeatedElementTuple(
 					sizeType.instance().extractInt(), elementType.instance()));
 		}
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			sizeType,
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			elementType);
 	}
 }

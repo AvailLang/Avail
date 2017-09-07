@@ -32,18 +32,22 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.SuperCastNodeDescriptor.ObjectSlots.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SUPER_CAST_NODE;
+import static com.avail.descriptor.SuperCastNodeDescriptor.ObjectSlots.EXPRESSION;
+import static com.avail.descriptor.SuperCastNodeDescriptor.ObjectSlots.TYPE_FOR_LOOKUP;
 
 /**
  * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which

@@ -32,9 +32,10 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 import java.util.ArrayList;
 import java.util.List;
-import com.avail.utility.json.JSONWriter;
 
 /**
  * The "@link" tag use in an Avail comment to link to an external web page.

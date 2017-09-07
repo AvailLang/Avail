@@ -120,10 +120,10 @@ extends Descriptor
 	}
 
 	private static final A_Type lexerFilterFunctionType =
-		FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				Types.CHARACTER.o()),
-			EnumerationTypeDescriptor.booleanObject()
+			EnumerationTypeDescriptor.booleanType()
 		).makeShared();
 
 	public static A_Type lexerFilterFunctionType ()
@@ -132,8 +132,8 @@ extends Descriptor
 	}
 
 	private static final A_Type lexerBodyFunctionType =
-		FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),

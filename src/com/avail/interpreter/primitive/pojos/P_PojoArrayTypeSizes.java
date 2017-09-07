@@ -39,7 +39,7 @@ import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Answer the cardinality restriction of the
- * specified {@linkplain PojoTypeDescriptor#mostGeneralArrayType() pojo array
+ * specified {@linkplain PojoTypeDescriptor#mostGeneralPojoArrayType() pojo array
  * type}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -68,11 +68,11 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				InstanceMetaDescriptor.on(
-					PojoTypeDescriptor.mostGeneralArrayType())),
-			InstanceMetaDescriptor.on(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				InstanceMetaDescriptor.instanceMetaOn(
+					PojoTypeDescriptor.mostGeneralPojoArrayType())),
+			InstanceMetaDescriptor.instanceMetaOn(
 				IntegerRangeTypeDescriptor.wholeNumbers()));
 	}
 }

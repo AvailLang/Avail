@@ -32,15 +32,24 @@
 
 package com.avail.interpreter.primitive.files;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain
@@ -82,8 +91,7 @@ extends Primitive
 		{
 			realPathString = userDir;
 		}
-		currentWorkingDirectory =
-			StringDescriptor.from(realPathString).makeShared();
+		currentWorkingDirectory = StringDescriptor.stringFrom(realPathString).makeShared();
 	}
 
 	@Override
@@ -99,8 +107,6 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			TupleTypeDescriptor.stringType());
+		return functionType(emptyTuple(), stringType());
 	}
 }

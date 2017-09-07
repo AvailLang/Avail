@@ -212,7 +212,7 @@ extends ParseNodeDescriptor
 	public static AvailObject fromToken (final A_Token token)
 	{
 		assert token.isInstanceOfKind(
-			LiteralTokenTypeDescriptor.mostGeneralType());
+			LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType());
 		final AvailObject node = mutable.create();
 		node.setSlot(TOKEN, token);
 		return node.makeShared();
@@ -231,9 +231,9 @@ extends ParseNodeDescriptor
 		final AvailObject token = LiteralTokenDescriptor.create(
 			literalValue.isString()
 				? (A_String)literalValue
-				: StringDescriptor.from(literalValue.toString()),
-			TupleDescriptor.empty(),
-			TupleDescriptor.empty(),
+				: StringDescriptor.stringFrom(literalValue.toString()),
+			TupleDescriptor.emptyTuple(),
+			TupleDescriptor.emptyTuple(),
 			0,
 			-1,
 			TokenType.SYNTHETIC_LITERAL,

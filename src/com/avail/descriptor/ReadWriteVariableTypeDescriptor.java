@@ -183,7 +183,7 @@ extends TypeDescriptor
 		// The intersection of two variable types is variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
-		return VariableTypeDescriptor.fromReadAndWriteTypes(
+		return VariableTypeDescriptor.variableReadWriteType(
 			object.slot(READ_TYPE).typeIntersection(aVariableType.readType()),
 			object.slot(WRITE_TYPE).typeUnion(aVariableType.writeType()));
 	}
@@ -212,7 +212,7 @@ extends TypeDescriptor
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
 		// write type is the type intersection of the two incoming write types.
-		return VariableTypeDescriptor.fromReadAndWriteTypes(
+		return VariableTypeDescriptor.variableReadWriteType(
 			object.slot(READ_TYPE).typeUnion(aVariableType.readType()),
 			object.slot(WRITE_TYPE).typeIntersection(
 				aVariableType.writeType()));
@@ -320,7 +320,7 @@ extends TypeDescriptor
 	{
 		if (readType.equals(writeType))
 		{
-			return VariableTypeDescriptor.wrapInnerType(readType);
+			return VariableTypeDescriptor.variableTypeFor(readType);
 		}
 		final AvailObject result = mutable.create();
 		result.setSlot(READ_TYPE, readType);

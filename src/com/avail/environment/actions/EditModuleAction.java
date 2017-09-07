@@ -34,14 +34,16 @@ package com.avail.environment.actions;
 
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.tasks.EditModuleTask;
 import com.avail.environment.editor.ModuleEditor;
-import javax.annotation.Nullable;
+import com.avail.environment.tasks.EditModuleTask;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code EditModuleAction} launches a {@linkplain ModuleEditor module viewer}
@@ -58,8 +60,8 @@ extends AbstractWorkbenchAction
 	{
 		assert workbench.backgroundTask == null;
 
-		final ResolvedModuleName selectedModule = workbench.selectedModule();
-		assert selectedModule != null;
+		final ResolvedModuleName selectedModule =
+			stripNull(workbench.selectedModule());
 
 		final JFrame frame = workbench.openedSourceModules.get(selectedModule);
 		if (frame != null)

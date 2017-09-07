@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,12 +32,13 @@
 
 package com.avail.environment.actions;
 
-import java.awt.event.*;
-import java.io.File;
+import com.avail.environment.AvailWorkbench;
+
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import com.avail.environment.AvailWorkbench;
-import javax.annotation.Nullable;
+import java.awt.event.ActionEvent;
+import java.io.File;
 
 /**
  * A {@code SetDocumentationPathAction} displays a {@linkplain

@@ -32,12 +32,25 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Yield the current {@linkplain FiberDescriptor
@@ -63,12 +76,16 @@ extends Primitive
 	{
 		assert args.size() == 0;
 		final A_Fiber fiber = interpreter.fiber();
-		final Result suspended = interpreter.primitiveSuspend();
+		final A_RawFunction primitiveRawFunction =
+			stripNull(interpreter.function).code();
+		final Result suspended =
+			interpreter.primitiveSuspend(primitiveRawFunction);
 		interpreter.postExitContinuation(
 			() -> Interpreter.resumeFromSuccessfulPrimitive(
 				AvailRuntime.current(),
 				fiber,
-				NilDescriptor.nil(),
+				nil(),
+				primitiveRawFunction,
 				true));
 		return suspended;
 	}
@@ -76,8 +93,6 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			TOP.o());
+		return functionType(emptyTuple(), TOP.o());
 	}
 }

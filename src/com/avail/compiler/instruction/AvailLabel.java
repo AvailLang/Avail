@@ -32,9 +32,10 @@
 
 package com.avail.compiler.instruction;
 
-import java.io.ByteArrayOutputStream;
-import com.avail.descriptor.*;
+import com.avail.descriptor.BlockNodeDescriptor;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+
+import java.io.ByteArrayOutputStream;
 
 /**
  * An {@code AvailLabel} is a pseudo-instruction in the {@linkplain

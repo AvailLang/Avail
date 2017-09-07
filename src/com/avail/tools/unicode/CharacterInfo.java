@@ -32,11 +32,14 @@
 
 package com.avail.tools.unicode;
 
-import javax.annotation.Nullable;
 import com.avail.utility.json.JSONArray;
 import com.avail.utility.json.JSONData;
 import com.avail.utility.json.JSONFriendly;
 import com.avail.utility.json.JSONWriter;
+
+import javax.annotation.Nullable;
+
+import static java.lang.String.format;
 
 /**
  * A {@code CharacterInfo} collects information about a Unicode code point.
@@ -122,7 +125,7 @@ implements Comparable<CharacterInfo>, JSONFriendly
 	 */
 	public String htmlEntityDecimal ()
 	{
-		return String.format("&#%d;", codePoint);
+		return format("&#%d;", codePoint);
 	}
 
 	/**
@@ -133,7 +136,7 @@ implements Comparable<CharacterInfo>, JSONFriendly
 	 */
 	public String htmlEntityHexadecimal ()
 	{
-		return String.format("&#x%x;", codePoint);
+		return format("&#x%x;", codePoint);
 	}
 
 	/** The HTML entity name of the code point. */
@@ -199,6 +202,6 @@ implements Comparable<CharacterInfo>, JSONFriendly
 	@Override
 	public String toString ()
 	{
-		return String.format("U+%04x", codePoint);
+		return format("U+%04x", codePoint);
 	}
 }

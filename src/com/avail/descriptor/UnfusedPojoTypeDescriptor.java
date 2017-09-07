@@ -443,7 +443,7 @@ extends PojoTypeDescriptor
 		A_Map typeVars = object.slot(TYPE_VARIABLES);
 		if (typeVars.equalsNil())
 		{
-			typeVars = MapDescriptor.empty();
+			typeVars = MapDescriptor.emptyMap();
 			for (final Entry entry
 				: object.slot(JAVA_ANCESTORS).mapIterable())
 			{
@@ -455,7 +455,7 @@ extends PojoTypeDescriptor
 				for (int i = 0; i < vars.length; i++)
 				{
 					typeVars = typeVars.mapAtPuttingCanDestroy(
-						StringDescriptor.from(
+						StringDescriptor.stringFrom(
 							ancestor.getName() + "." + vars[i].getName()),
 						typeArgs.tupleAt(i + 1),
 						true);
@@ -565,7 +565,7 @@ extends PojoTypeDescriptor
 
 	/** The most general {@linkplain PojoTypeDescriptor pojo type}. */
 	static final A_Type mostGeneralType =
-		forClass(Object.class).makeShared();
+		pojoTypeForClass(Object.class).makeShared();
 
 	/**
 	 * Create a new {@link AvailObject} that represents an {@linkplain

@@ -40,7 +40,7 @@ import com.avail.interpreter.*;
  * <strong>Primitive:</strong> Answer the {@linkplain
  * IntegerRangeTypeDescriptor integer range} constrained by the specified
  * upper and lower bounds. The provided {@linkplain
- * EnumerationTypeDescriptor#booleanObject() booleans} indicate whether their
+ * EnumerationTypeDescriptor#booleanType() booleans} indicate whether their
  * corresponding bounds are inclusive ({@code true}) or exclusive ({@code
  * false}).
  */
@@ -65,7 +65,7 @@ public final class P_CreateIntegerRange extends Primitive
 		final A_Number max = args.get(2);
 		final A_Atom maxInc = args.get(3);
 		return interpreter.primitiveSuccess(
-			IntegerRangeTypeDescriptor.create(
+			IntegerRangeTypeDescriptor.integerRangeType(
 				min,
 				minInc.extractBoolean(),
 				max,
@@ -75,12 +75,12 @@ public final class P_CreateIntegerRange extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				IntegerRangeTypeDescriptor.extendedIntegers(),
-				EnumerationTypeDescriptor.booleanObject(),
+				EnumerationTypeDescriptor.booleanType(),
 				IntegerRangeTypeDescriptor.extendedIntegers(),
-				EnumerationTypeDescriptor.booleanObject()),
+				EnumerationTypeDescriptor.booleanType()),
 			IntegerRangeTypeDescriptor.meta());
 	}
 }

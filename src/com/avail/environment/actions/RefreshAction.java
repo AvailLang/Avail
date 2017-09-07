@@ -32,11 +32,12 @@
 
 package com.avail.environment.actions;
 
-import java.awt.event.*;
-import javax.swing.*;
-
 import com.avail.environment.AvailWorkbench;
+
 import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 /**
  * A {@code RefreshAction} updates the module tree with new information from the

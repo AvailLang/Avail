@@ -64,11 +64,11 @@ public final class P_ConcatenateTuples extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.zeroOrMoreOf(
-					TupleTypeDescriptor.mostGeneralType())),
-			TupleTypeDescriptor.mostGeneralType());
+					TupleTypeDescriptor.mostGeneralTupleType())),
+			TupleTypeDescriptor.mostGeneralTupleType());
 	}
 
 	@Override
@@ -95,7 +95,7 @@ public final class P_ConcatenateTuples extends Primitive
 			final int bound = lowerBound.extractInt();
 			if (bound == 0)
 			{
-				return InstanceTypeDescriptor.on(TupleDescriptor.empty());
+				return InstanceTypeDescriptor.instanceTypeOn(TupleDescriptor.emptyTuple());
 			}
 			A_Type concatenatedType = tuplesType.typeAtIndex(1);
 			for (int i = 2; i <= bound; i++)
@@ -124,14 +124,14 @@ public final class P_ConcatenateTuples extends Primitive
 					tuplesSizes.upperBound().timesCanDestroy(
 						innerSizes.upperBound(),
 						false);
-				final A_Type newSizeRange = IntegerRangeTypeDescriptor.create(
+				final A_Type newSizeRange = IntegerRangeTypeDescriptor.integerRangeType(
 					minSize,
 					true,
 					maxSize.plusCanDestroy(IntegerDescriptor.one(), true),
 					false);
 				return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					newSizeRange,
-					TupleDescriptor.empty(),
+					TupleDescriptor.emptyTuple(),
 					innerTupleType.defaultType());
 			}
 		}

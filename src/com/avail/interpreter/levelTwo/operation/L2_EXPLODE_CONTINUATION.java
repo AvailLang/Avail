@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -31,17 +31,27 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ContinuationTypeDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Given a continuation, extract its caller, function, and all of its slots
@@ -129,7 +139,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		// into registers.
 		registerSet.typeAtPut(
 			targetCallerReg,
-			ContinuationTypeDescriptor.mostGeneralType(),
+			ContinuationTypeDescriptor.mostGeneralContinuationType(),
 			instruction);
 		registerSet.typeAtPut(targetFunctionReg, functionType, instruction);
 		final List<L2ObjectRegister> slotRegs = explodedSlotsVector.registers();
@@ -155,7 +165,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		{
 			registerSet.constantAtPut(
 				slotRegs.get(indexObject.extractInt() - 1),
-				NilDescriptor.nil(),
+				nil(),
 				instruction);
 		}
 	}

@@ -65,19 +65,19 @@ public final class P_MapBindings extends Primitive
 		int index = 0;
 		for (final Entry entry : map.mapIterable())
 		{
-			bindings[index++] = TupleDescriptor.from(entry.key(), entry.value());
+			bindings[index++] = TupleDescriptor.tuple(entry.key(), entry.value());
 		}
-		return interpreter.primitiveSuccess(TupleDescriptor.from(bindings));
+		return interpreter.primitiveSuccess(TupleDescriptor.tuple(bindings));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MapTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				MapTypeDescriptor.mostGeneralMapType()),
 			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.forTypes(
+				TupleTypeDescriptor.tupleTypeForTypes(
 					ANY.o(),
 					ANY.o())));
 	}

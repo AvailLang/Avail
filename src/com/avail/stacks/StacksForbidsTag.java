@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,8 +32,9 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.ArrayList;
 
 /**
  * The "@forbids" tag in an Avail Class comment.

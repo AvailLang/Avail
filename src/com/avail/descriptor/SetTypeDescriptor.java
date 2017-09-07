@@ -431,7 +431,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most general set type.
 	 */
-	public static A_Type mostGeneralType ()
+	public static A_Type mostGeneralSetType ()
 	{
 		return mostGeneralType;
 	}
@@ -440,14 +440,14 @@ extends TypeDescriptor
 	 * The metatype for all set types.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.on(mostGeneralType);
+		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType);
 
 	/**
 	 * Answer the metatype for all set types.
 	 *
 	 * @return The statically referenced metatype.
 	 */
-	public static A_Type meta ()
+	public static A_Type setMeta ()
 	{
 		return meta;
 	}

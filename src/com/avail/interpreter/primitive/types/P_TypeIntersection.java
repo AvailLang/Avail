@@ -65,8 +65,8 @@ public final class P_TypeIntersection extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				InstanceMetaDescriptor.topMeta(),
 				InstanceMetaDescriptor.topMeta()),
 			InstanceMetaDescriptor.topMeta());

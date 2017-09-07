@@ -32,14 +32,18 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
 import com.avail.descriptor.A_Map;
-import com.avail.descriptor.MapDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+
+import java.util.List;
+
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Create a map from the specified key object registers and the corresponding
@@ -73,7 +77,7 @@ public class L2_CREATE_MAP extends L2Operation
 		final List<L2ObjectRegister> valueRegs = valuesVector.registers();
 		final int size = keyRegs.size();
 		assert size == valueRegs.size();
-		A_Map map = MapDescriptor.empty();
+		A_Map map = emptyMap();
 		for (int i = 0; i < size; i++)
 		{
 			map = map.mapAtPuttingCanDestroy(

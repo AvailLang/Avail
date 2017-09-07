@@ -70,13 +70,13 @@ public final class P_CreateTupleType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta()),
 				InstanceMetaDescriptor.anyMeta(),
-				InstanceMetaDescriptor.on(
+				InstanceMetaDescriptor.instanceMetaOn(
 					IntegerRangeTypeDescriptor.wholeNumbers())),
-			TupleTypeDescriptor.meta());
+			TupleTypeDescriptor.tupleMeta());
 	}
 }

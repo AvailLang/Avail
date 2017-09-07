@@ -84,9 +84,9 @@ public final class P_ContinuationStackData extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ContinuationTypeDescriptor.mostGeneralType()),
-			TupleTypeDescriptor.mostGeneralType());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				ContinuationTypeDescriptor.mostGeneralContinuationType()),
+			TupleTypeDescriptor.mostGeneralTupleType());
 	}
 }

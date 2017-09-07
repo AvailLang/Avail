@@ -339,16 +339,12 @@ Public method "Repeat__times" is
 	action : []→⊤,
 	count : [0..∞]
 |
-	index : natural number := 1;
+	$loop;
+	If count > 0 then
 	[
-		$loop;
-		If index ≤ count then
-		[
-			action();
-			index++;
-			Restart loop
-		];
-	]();
+		action();
+		Restart loop with <action, cast count - 1 into [i : [0..∞] | i]>
+	];
 ] : ⊤;
 
 /**
@@ -423,19 +419,14 @@ Public method "From_to_by_do_" is
 	step : [0..∞),
 	action : [⊥]→boolean
 |
-	value : extended integer := start;
+	$loop;
+	If start ≤ end then
 	[
-		$loop;
-		If value ≤ end then
+		If action(start) then
 		[
-			continue ::= action(value);
-			If continue then
-			[
-				value := eject value + step;
-				Restart loop
-			];
+			Restart loop with <start + step, end, step, action>
 		];
-	]();
+	];
 ] : ⊤;
 
 /**
@@ -465,19 +456,14 @@ Public method "From_to_by_do_" is
 	step : (-∞..-1],
 	action : [⊥]→boolean
 |
-	value : extended integer := start;
+	$loop;
+	If start ≥ end then
 	[
-		$loop;
-		If value ≥ end then
+		If action(start) then
 		[
-			continue ::= action(value);
-			If continue then
-			[
-				value := eject value + step;
-				Restart loop
-			];
+			Restart loop with <start + step, end, step, action>
 		];
-	]();
+	];
 ] : ⊤;
 
 /**
@@ -596,16 +582,12 @@ Public method "From_to_by_do_" is
 	step : [0..∞),
 	action : [⊥]→⊤
 |
-	value : extended integer := start;
+	$loop;
+	If start ≤ end then
 	[
-		$loop;
-		If value ≤ end then
-		[
-			action(value);
-			value := eject value + step;
-			Restart loop
-		];
-	]();
+		action(start);
+		Restart loop with <start + step, end, step, action>
+	];
 ];
 
 /**
@@ -631,16 +613,12 @@ Public method "From_to_by_do_" is
 	step : (-∞..-1],
 	action : [⊥]→⊤
 |
-	value : extended integer := start;
+	$loop;
+	If start ≥ end then
 	[
-		$loop;
-		If value ≥ end then
-		[
-			action(value);
-			value := eject value + step;
-			Restart loop
-		];
-	]();
+		action(start);
+		Restart loop with <start + step, end, step, action>
+	];
 ];
 
 /**
@@ -836,19 +814,14 @@ Public method "From_to_do_" is
 	end : extended integer,
 	action : [⊥]→boolean
 |
-	value : extended integer := start;
+	$loop;
+	If start ≤ end then
 	[
-		$loop;
-		If value ≤ end then
+		If action(start) then
 		[
-			continue ::= action(value);
-			If continue then
-			[
-				value++;
-				Restart loop
-			];
+			Restart loop with <start + 1, end, action>
 		];
-	]();
+	];
 ];
 
 /**
@@ -896,16 +869,12 @@ Public method "From_to_do_" is
 	end : extended integer,
 	action : [⊥]→⊤
 |
-	value : extended integer := start;
+	$loop;
+	If start ≤ end then
 	[
-		$loop;
-		If value ≤ end then
-		[
-			action(value);
-			value++;
-			Restart loop
-		];
-	]();
+		action(start);
+		Restart loop with <start + 1, end, action>
+	];
 ];
 
 /**

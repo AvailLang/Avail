@@ -32,14 +32,20 @@
 
 package com.avail.environment.actions;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import com.avail.builder.*;
+import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
-import com.avail.environment.tasks.BuildTask;
 import com.avail.environment.editor.ModuleEditor;
+import com.avail.environment.tasks.BuildTask;
+
 import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+
+import static com.avail.utility.Nulls.stripNull;
+import static java.awt.Cursor.WAIT_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
 
 /**
  * A {@code BuildAction} launches a {@linkplain BuildTask build task} in a
@@ -59,14 +65,13 @@ extends AbstractWorkbenchAction
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
 		assert workbench.backgroundTask == null;
-		final ResolvedModuleName selectedModule =
+		final ResolvedModuleName selectedModule = stripNull(
 			forEntryPointModule
 				? workbench.selectedEntryPointModule()
-				: workbench.selectedModule();
-		assert selectedModule != null;
+				: workbench.selectedModule());
 
 		// Update the UI.
-		workbench.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		workbench.setCursor(getPredefinedCursor(WAIT_CURSOR));
 		workbench.buildProgress.setValue(0);
 		workbench.inputField.requestFocusInWindow();
 		workbench.clearTranscript();
@@ -99,8 +104,6 @@ extends AbstractWorkbenchAction
 	{
 		if (workbench.backgroundTask == null)
 		{
-			assert resolvedModuleName != null;
-
 			// Update the UI.
 			workbench.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			workbench.buildProgress.setValue(0);

@@ -321,7 +321,7 @@ extends Descriptor
 		final AvailObject code = writer.compiledCode();
 		final A_Function newFunction = FunctionDescriptor.create(
 			code,
-			TupleDescriptor.empty());
+			TupleDescriptor.emptyTuple());
 		newFunction.makeImmutable();
 		return newFunction;
 	}
@@ -347,7 +347,7 @@ extends Descriptor
 			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
 		}
 		final A_Type tupleType =
-			TupleTypeDescriptor.forTypes(argTypesArray);
+			TupleTypeDescriptor.tupleTypeForTypes(argTypesArray);
 		final A_Type returnType = function.kind().returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			NilDescriptor.nil(),
@@ -368,7 +368,7 @@ extends Descriptor
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function newFunction = FunctionDescriptor.create(
 			code,
-			TupleDescriptor.empty());
+			TupleDescriptor.emptyTuple());
 		newFunction.makeImmutable();
 		return newFunction;
 	}
@@ -436,7 +436,7 @@ extends Descriptor
 			0,
 			Collections.singletonList(phrase),
 			TOP.o(),
-			SetDescriptor.empty(),
+			SetDescriptor.emptySet(),
 			lineNumber);
 		BlockNodeDescriptor.recursivelyValidate(block);
 		final A_RawFunction compiledBlock = block.generateInModule(module);
@@ -446,7 +446,7 @@ extends Descriptor
 		assert compiledBlock.numOuters() == 0;
 		final A_Function function = FunctionDescriptor.create(
 			compiledBlock,
-			TupleDescriptor.empty());
+			TupleDescriptor.emptyTuple());
 		function.makeImmutable();
 		return function;
 	}
@@ -488,7 +488,7 @@ extends Descriptor
 			// Produce failure code.  First declare the local that holds
 			// primitive failure information.
 			final int failureLocal = writer.createLocal(
-				VariableTypeDescriptor.wrapInnerType(
+				VariableTypeDescriptor.variableTypeFor(
 					IntegerRangeTypeDescriptor.naturalNumbers()));
 			for (int i = 1; i <= numArgs; i++)
 			{
@@ -505,7 +505,7 @@ extends Descriptor
 		}
 		final A_Function function = FunctionDescriptor.create(
 			writer.compiledCode(),
-			TupleDescriptor.empty());
+			TupleDescriptor.emptyTuple());
 		function.makeShared();
 		return function;
 	}
@@ -533,7 +533,7 @@ extends Descriptor
 		writer.returnType(BottomTypeDescriptor.bottom());
 		writer.write(
 			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(StringDescriptor.from(messageString)));
+			writer.addLiteral(StringDescriptor.stringFrom(messageString)));
 		final int numArgs = paramTypes.tupleSize();
 		for (int i = 1; i <= numArgs; i++)
 		{
@@ -546,11 +546,11 @@ extends Descriptor
 			writer.addLiteral(SpecialMethodAtom.CRASH.bundle),
 			writer.addLiteral(BottomTypeDescriptor.bottom()));
 		final A_RawFunction code = writer.compiledCode();
-		code.setMethodName(StringDescriptor.from(
+		code.setMethodName(StringDescriptor.stringFrom(
 			"VM crash function: " + messageString));
 		final A_Function function = FunctionDescriptor.create(
 			code,
-			TupleDescriptor.empty());
+			TupleDescriptor.emptyTuple());
 		function.makeShared();
 		return function;
 	}

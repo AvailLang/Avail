@@ -58,16 +58,16 @@ public final class P_CreateEnumeration extends Primitive
 		assert args.size() == 1;
 		final A_Set instanceSet = args.get(0);
 		final A_Type enumeration =
-			AbstractEnumerationTypeDescriptor.withInstances(instanceSet);
+			AbstractEnumerationTypeDescriptor.enumerationWith(instanceSet);
 		return interpreter.primitiveSuccess(enumeration);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				SetTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				SetTypeDescriptor.mostGeneralSetType()),
 			InstanceMetaDescriptor.anyMeta());
 	}
 
@@ -82,7 +82,7 @@ public final class P_CreateEnumeration extends Primitive
 		// the set's element type's type.  Note that this works especially well
 		// when the set's element type is an enumeration.
 		final A_Type elementType = setType.contentType();
-		final A_Type metaType = InstanceMetaDescriptor.on(elementType);
+		final A_Type metaType = InstanceMetaDescriptor.instanceMetaOn(elementType);
 		return metaType.makeImmutable();
 	}
 }

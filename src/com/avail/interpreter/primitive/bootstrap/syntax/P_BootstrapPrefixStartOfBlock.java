@@ -83,7 +83,7 @@ extends Primitive
 		final A_Map bindings = clientData.mapAt(compilerScopeMapKey);
 		A_Tuple stack = clientData.hasKey(compilerScopeStackKey)
 			? clientData.mapAt(compilerScopeStackKey)
-			: TupleDescriptor.empty();
+			: TupleDescriptor.emptyTuple();
 		stack = stack.appendCanDestroy(bindings, false);
 		clientData = clientData.mapAtPuttingCanDestroy(
 			compilerScopeStackKey, stack, true);
@@ -96,8 +96,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(),
 			TOP.o());
 	}
 }

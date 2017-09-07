@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -36,15 +36,15 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.nodes.ModuleRootNode;
 import com.avail.environment.tasks.NewModuleTask;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 
 /**
  * A {@code NewModuleAction} displays a {@linkplain
- * JOptionPane modal dialog} that prompts the user to create a new Avail module.
+ * JOptionPane modal dialog} that prompts the user to functionType a new Avail module.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */

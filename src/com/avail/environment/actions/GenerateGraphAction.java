@@ -32,13 +32,17 @@
 
 package com.avail.environment.actions;
 
-import java.awt.*;
-import java.awt.event.*;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.tasks.GraphTask;
+
 import javax.annotation.Nullable;
+import java.awt.event.ActionEvent;
+
+import static com.avail.utility.Nulls.stripNull;
+import static java.awt.Cursor.WAIT_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
 
 /**
  * A {@code GenerateGraphAction} instructs the {@linkplain
@@ -53,11 +57,11 @@ extends AbstractWorkbenchAction
 	public void actionPerformed (final @Nullable ActionEvent event)
 	{
 		assert workbench.backgroundTask == null;
-		final ResolvedModuleName selectedModule = workbench.selectedModule();
-		assert selectedModule != null;
+		final ResolvedModuleName selectedModule =
+			stripNull(workbench.selectedModule());
 
 		// Update the UI.
-		workbench.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		workbench.setCursor(getPredefinedCursor(WAIT_CURSOR));
 		workbench.setEnablements();
 		workbench.buildProgress.setValue(0);
 		workbench.clearTranscript();

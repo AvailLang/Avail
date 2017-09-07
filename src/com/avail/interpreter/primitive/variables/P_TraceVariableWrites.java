@@ -43,7 +43,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive:</strong> Enable {@linkplain
  * TraceFlag#TRACE_VARIABLE_WRITES variable write tracing} for the {@linkplain
- * FiberDescriptor#current() current fiber}.
+ * FiberDescriptor#currentFiber() current fiber}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -76,16 +76,16 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.emptyTuple(),
 			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_ILLEGAL_TRACE_MODE));
 	}
 }

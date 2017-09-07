@@ -397,11 +397,11 @@ public class TreeTupleTest
 	{
 		//Test ByteStringDescriptor
 		final A_Tuple byteString = StringDescriptor
-			.from("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz")
+			.stringFrom("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz")
 			.makeImmutable();
 
 		final A_Tuple byteStringReverse = StringDescriptor
-			.from("zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba")
+			.stringFrom("zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba")
 			.makeImmutable();
 
 		final A_Tuple shouldBeSame = byteString.tupleReverse().tupleReverse();
@@ -413,11 +413,11 @@ public class TreeTupleTest
 
 		//Small size ByteStringDescriptor where copies are made
 		final A_Tuple byteStringSmall = StringDescriptor
-			.from("abcd")
+			.stringFrom("abcd")
 			.makeImmutable();
 
 		final A_Tuple byteStringReverseSmall = StringDescriptor
-			.from("dcba")
+			.stringFrom("dcba")
 			.makeImmutable();
 
 		final A_Tuple shouldBeSameSmall =
@@ -430,11 +430,11 @@ public class TreeTupleTest
 
 		//Test TwoByteStringDescriptor
 		final A_Tuple twoByteString = StringDescriptor
-			.from("ĀbcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxĐz")
+			.stringFrom("ĀbcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxĐz")
 			.makeImmutable();
 
 		final A_Tuple twoByteStringReverse = StringDescriptor
-			.from("zĐxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcbĀ")
+			.stringFrom("zĐxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcbĀ")
 			.makeImmutable();
 
 		final A_Tuple twoShouldBeSame =
@@ -448,11 +448,11 @@ public class TreeTupleTest
 
 		//Small size TwoByteStringDescriptor where copies are made
 		final A_Tuple twoByteStringSmall = StringDescriptor
-			.from("abĐd")
+			.stringFrom("abĐd")
 			.makeImmutable();
 
 		final A_Tuple twoByteStringReverseSmall = StringDescriptor
-			.from("dĐba")
+			.stringFrom("dĐba")
 			.makeImmutable();
 
 		final A_Tuple twoShouldBeSameSmall =
@@ -529,7 +529,7 @@ public class TreeTupleTest
 	public void testTreeTupleDescriptorReverse ()
 	{
 		final A_Tuple byteString = StringDescriptor
-			.from("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz")
+			.stringFrom("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz")
 			.makeImmutable();
 
 		final A_Tuple byteStringReversed = byteString.tupleReverse();

@@ -35,6 +35,7 @@ package com.avail.compiler.instruction;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
+
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 

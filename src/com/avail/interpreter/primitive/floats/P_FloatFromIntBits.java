@@ -70,8 +70,8 @@ public final class P_FloatFromIntBits extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				IntegerRangeTypeDescriptor.int32()),
 			FLOAT.o());
 	}

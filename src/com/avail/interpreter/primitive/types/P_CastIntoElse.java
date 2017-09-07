@@ -252,15 +252,15 @@ public final class P_CastIntoElse extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.tuple(
 						BottomTypeDescriptor.bottom()),
 					TOP.o()),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.emptyTuple(),
 					TOP.o())),
 			TOP.o());
 	}

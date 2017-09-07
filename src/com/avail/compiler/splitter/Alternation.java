@@ -34,14 +34,14 @@ import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.descriptor.ListNodeTypeDescriptor;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 
 /**
  * An {@code Alternation} is a special {@linkplain Expression expression}
@@ -140,7 +140,7 @@ extends Expression
 		for (final Expression alternative : alternatives)
 		{
 			needsProgressCheck |= alternative.mightBeEmpty(
-				BottomTypeDescriptor.bottom());
+				bottom());
 		}
 		generator.flushDelayed();
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
@@ -237,7 +237,7 @@ extends Expression
 	{
 		for (final Expression alternative : alternatives)
 		{
-			if (alternative.mightBeEmpty(BottomTypeDescriptor.bottom()))
+			if (alternative.mightBeEmpty(bottom()))
 			{
 				return true;
 			}

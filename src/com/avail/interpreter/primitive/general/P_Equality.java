@@ -44,7 +44,7 @@ import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**
  * <strong>Primitive:</strong> Compare for equality. Answer a {@linkplain
- * EnumerationTypeDescriptor#booleanObject() boolean}.
+ * EnumerationTypeDescriptor#booleanType() boolean}.
  */
 public final class P_Equality extends Primitive
 {
@@ -156,10 +156,10 @@ public final class P_Equality extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o(),
 				ANY.o()),
-			EnumerationTypeDescriptor.booleanObject());
+			EnumerationTypeDescriptor.booleanType());
 	}
 }

@@ -34,13 +34,13 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.LiteralTokenTypeDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TupleTypeDescriptor;
 
 import static com.avail.compiler.ParsingOperation.PARSE_RAW_STRING_LITERAL_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 
 /**
- * A {@linkplain RawStringLiteralTokenArgument} is an occurrence of {@linkplain
+ * A {@code RawStringLiteralTokenArgument} is an occurrence of {@linkplain
  * Metacharacter#ELLIPSIS ellipsis} (…) in a message name, followed by a
  * {@linkplain Metacharacter#DOLLAR_SIGN dollar sign} ($). It indicates where a
  * raw string literal token argument is expected. Like its superclass, the
@@ -71,7 +71,8 @@ extends RawTokenArgument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_STRING_LITERAL_TOKEN);
-		if (!LiteralTokenTypeDescriptor.create(TupleTypeDescriptor.stringType())
+		if (!LiteralTokenTypeDescriptor.literalTokenType(
+			stringType())
 			.isSubtypeOf(phraseType))
 		{
 			generator.emitDelayed(

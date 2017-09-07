@@ -236,7 +236,7 @@ extends Expression
 			MessageSplitter.throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
 		}
 
-		final A_Type requiredRange = IntegerRangeTypeDescriptor.create(
+		final A_Type requiredRange = IntegerRangeTypeDescriptor.integerRangeType(
 			IntegerDescriptor.zero(),
 			true,
 			maximumCardinality == Integer.MAX_VALUE
@@ -410,9 +410,9 @@ extends Expression
 				final A_Type singularListType =
 					ListNodeTypeDescriptor.createListNodeType(
 						LIST_NODE,
-						TupleTypeDescriptor.forTypes(
+						TupleTypeDescriptor.tupleTypeForTypes(
 							innerPhraseType.expressionType()),
-						TupleTypeDescriptor.forTypes(innerPhraseType));
+						TupleTypeDescriptor.tupleTypeForTypes(innerPhraseType));
 				beforeDagger.emitOn(
 					singularListType,
 					generator,
@@ -452,9 +452,9 @@ extends Expression
 			final A_Type singularListType =
 				ListNodeTypeDescriptor.createListNodeType(
 					LIST_NODE,
-					TupleTypeDescriptor.forTypes(
+					TupleTypeDescriptor.tupleTypeForTypes(
 						innerPhraseType.expressionType()),
-					TupleTypeDescriptor.forTypes(innerPhraseType));
+					TupleTypeDescriptor.tupleTypeForTypes(innerPhraseType));
 			beforeDagger.emitOn(singularListType, generator, PUSHED_LIST);
 			if (endOfVariation < maxSize)
 			{
@@ -703,7 +703,7 @@ extends Expression
 		{
 			// Permute the list on top of stack.
 			final A_Tuple permutationTuple =
-				TupleDescriptor.fromIntegerList(
+				TupleDescriptor.tupleFromIntegerList(
 					beforeDagger.permutedArguments);
 			final int permutationIndex =
 				LookupTree.indexForPermutation(permutationTuple);
@@ -788,7 +788,7 @@ extends Expression
 						+ leftArgCount);
 			}
 			final A_Tuple permutationTuple =
-				TupleDescriptor.fromIntegerList(
+				TupleDescriptor.tupleFromIntegerList(
 					adjustedPermutationList);
 			final int permutationIndex =
 				LookupTree.indexForPermutation(permutationTuple);

@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,10 +32,11 @@
 
 package com.avail.environment.actions;
 
-import java.awt.event.*;
 import com.avail.AvailRuntime;
 import com.avail.environment.AvailWorkbench;
+
 import javax.annotation.Nullable;
+import java.awt.event.ActionEvent;
 
 /**
  * A {@code TraceMacrosAction} toggles the flag that indicates whether to show

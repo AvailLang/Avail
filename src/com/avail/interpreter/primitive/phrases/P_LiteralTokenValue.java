@@ -64,9 +64,9 @@ public final class P_LiteralTokenValue extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				LiteralTokenTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType()),
 			ANY.o());
 	}
 }

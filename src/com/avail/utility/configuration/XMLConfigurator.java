@@ -34,9 +34,9 @@ package com.avail.utility.configuration;
 
 import org.xml.sax.Attributes;
 
-import java.io.InputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import java.io.InputStream;
 
 /**
  * An {@code XMLConfigurator} obtains a {@linkplain Configuration configuration}
@@ -56,7 +56,7 @@ import javax.xml.parsers.SAXParserFactory;
  * XMLConfiguratorState, Attributes) startElement} and {@link
  * XMLElement#endElement(XMLConfiguratorState) endElement}.</li>
  * <li>An {@link XMLConfiguratorState} that maintains any state required by the
- * {@link XMLConfigurator} during the processing of an XML document. This state
+ * {@code XMLConfigurator} during the processing of an XML document. This state
  * may be interrogated by the {@code XMLElement}s.</li>
  * </ul>
  *

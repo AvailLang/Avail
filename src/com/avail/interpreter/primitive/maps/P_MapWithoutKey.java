@@ -67,11 +67,11 @@ public final class P_MapWithoutKey extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MapTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				MapTypeDescriptor.mostGeneralMapType(),
 				ANY.o()),
-			MapTypeDescriptor.mostGeneralType());
+			MapTypeDescriptor.mostGeneralMapType());
 	}
 
 
@@ -96,7 +96,7 @@ public final class P_MapWithoutKey extends Primitive
 			minSize = minSize.minusCanDestroy(
 				IntegerDescriptor.one(), false);
 		}
-		final A_Type newSizeRange = IntegerRangeTypeDescriptor.create(
+		final A_Type newSizeRange = IntegerRangeTypeDescriptor.integerRangeType(
 			minSize, true, mapSizes.upperBound(), mapSizes.upperInclusive());
 		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 			newSizeRange, mapType.keyType(), mapType.valueType());

@@ -32,8 +32,11 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.withInstance;
 import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 import com.avail.annotations.AvailMethod;
@@ -181,8 +184,7 @@ extends TokenDescriptor
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{
-		return LiteralTokenTypeDescriptor.create(
-			AbstractEnumerationTypeDescriptor.withInstance(object));
+		return literalTokenType(withInstance(object));
 	}
 
 	@Override @AvailMethod

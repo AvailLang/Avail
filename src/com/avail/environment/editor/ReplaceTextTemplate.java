@@ -34,8 +34,8 @@ package com.avail.environment.editor;
 
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.editor.utility.PrefixTrie;
-import javax.annotation.Nonnull;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

@@ -142,7 +142,7 @@ extends TupleDescriptor
 			return createSubrange(basisTuple, startIndex, originalSize + 1);
 		}
 		// Fall back to concatenating with a singleton.
-		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
 		return object.concatenateWith(singleton, canDestroy);
 	}
 
@@ -327,7 +327,7 @@ extends TupleDescriptor
 		final int newSize = end - start + 1;
 		if (newSize == 0)
 		{
-			return TupleDescriptor.empty();
+			return TupleDescriptor.emptyTuple();
 		}
 		final int oldStartIndex = object.slot(START_INDEX);
 		if (canDestroy && isMutable() && newSize >= minSize)

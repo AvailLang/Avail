@@ -40,7 +40,7 @@ import com.avail.utility.*;
 
 /**
  * <strong>Primitive:</strong> Convert the specified {@linkplain
- * PojoTypeDescriptor#mostGeneralArrayType() pojo array} to a {@linkplain
+ * PojoTypeDescriptor#mostGeneralPojoArrayType() pojo array} to a {@linkplain
  * TupleDescriptor tuple}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -64,7 +64,7 @@ extends Primitive
 		assert args.size() == 1;
 		final AvailObject array = args.get(0);
 		final MutableOrNull<A_Tuple> tuple = new MutableOrNull<>();
-		array.lock(() -> tuple.value = TupleDescriptor.from(
+		array.lock(() -> tuple.value = TupleDescriptor.tuple(
 			(AvailObject[]) array.javaObject()));
 		return interpreter.primitiveSuccess(tuple.value());
 	}
@@ -72,9 +72,9 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				PojoTypeDescriptor.mostGeneralArrayType()),
-			TupleTypeDescriptor.mostGeneralType());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				PojoTypeDescriptor.mostGeneralPojoArrayType()),
+			TupleTypeDescriptor.mostGeneralTupleType());
 	}
 }

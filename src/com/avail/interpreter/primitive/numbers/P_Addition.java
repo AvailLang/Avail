@@ -77,8 +77,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				NUMBER.o(),
 				NUMBER.o()),
 			NUMBER.o());
@@ -101,7 +101,7 @@ extends Primitive
 				// be few enough entries.
 				if (aInstances.setSize() * (long)bInstances.setSize() < 100)
 				{
-					A_Set answers = SetDescriptor.empty();
+					A_Set answers = SetDescriptor.emptySet();
 					for (final A_Number aInstance : aInstances)
 					{
 						for (final A_Number bInstance : bInstances)
@@ -111,7 +111,7 @@ extends Primitive
 								false);
 						}
 					}
-					return AbstractEnumerationTypeDescriptor.withInstances(
+					return AbstractEnumerationTypeDescriptor.enumerationWith(
 						answers);
 				}
 			}
@@ -129,7 +129,7 @@ extends Primitive
 				final boolean includesInfinity =
 					positiveInfinity().isInstanceOf(aType)
 					|| positiveInfinity().isInstanceOf(bType);
-				return IntegerRangeTypeDescriptor.create(
+				return IntegerRangeTypeDescriptor.integerRangeType(
 					low.minusCanDestroy(IntegerDescriptor.one(), false),
 					includesNegativeInfinity,
 					high.plusCanDestroy(IntegerDescriptor.one(), false),
@@ -170,8 +170,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_CANNOT_ADD_UNLIKE_INFINITIES));
 	}
 }

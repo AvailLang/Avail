@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
-import com.avail.optimizer.ReifyStackThrowable;
 
 /**
  * <strong>Primitive:</strong> Restart the given {@linkplain
@@ -111,9 +110,9 @@ public final class P_RestartContinuation extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ContinuationTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				ContinuationTypeDescriptor.mostGeneralContinuationType()),
 			BottomTypeDescriptor.bottom());
 	}
 }

@@ -65,9 +65,9 @@ public final class P_CreateVariable extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				InstanceMetaDescriptor.anyMeta()),
-			VariableTypeDescriptor.mostGeneralType());
+			VariableTypeDescriptor.mostGeneralVariableType());
 	}
 }

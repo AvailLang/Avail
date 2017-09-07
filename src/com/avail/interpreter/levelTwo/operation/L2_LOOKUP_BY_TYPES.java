@@ -101,7 +101,7 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		try
 		{
 			definitionToCall = method.lookupByTypesFromTuple(
-				TupleDescriptor.fromList(interpreter.argsBuffer));
+				TupleDescriptor.tupleFromList(interpreter.argsBuffer));
 		}
 		catch (final MethodDefinitionException e)
 		{
@@ -135,8 +135,8 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 
 	/** The type of failure codes that a failed lookup can produce. */
 	private final A_Type failureCodesType =
-		AbstractEnumerationTypeDescriptor.withInstances(
-			TupleDescriptor.from(
+		AbstractEnumerationTypeDescriptor.enumerationWith(
+			TupleDescriptor.tuple(
 					E_NO_METHOD.numericCode(),
 					E_NO_METHOD_DEFINITION.numericCode(),
 					E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
@@ -199,7 +199,7 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		else
 		{
 			final A_Type enumType =
-				AbstractEnumerationTypeDescriptor.withInstances(
+				AbstractEnumerationTypeDescriptor.enumerationWith(
 					SetDescriptor.fromCollection(possibleFunctions));
 			registerSet.typeAtPut(functionReg, enumType, instruction);
 		}

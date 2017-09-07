@@ -111,7 +111,7 @@ extends Primitive
 			return IntegerRangeTypeDescriptor.singleInt(0);
 		}
 		final long maxValue = (highOneBit - 1) | highOneBit;
-		return IntegerRangeTypeDescriptor.create(
+		return IntegerRangeTypeDescriptor.integerRangeType(
 			IntegerDescriptor.zero(),
 			true,
 			IntegerDescriptor.fromLong(maxValue),
@@ -121,8 +121,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				IntegerRangeTypeDescriptor.integers(),
 				IntegerRangeTypeDescriptor.integers()),
 			IntegerRangeTypeDescriptor.integers());

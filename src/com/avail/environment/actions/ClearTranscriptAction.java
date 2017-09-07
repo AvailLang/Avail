@@ -32,9 +32,10 @@
 
 package com.avail.environment.actions;
 
-import java.awt.event.*;
 import com.avail.environment.AvailWorkbench;
+
 import javax.annotation.Nullable;
+import java.awt.event.ActionEvent;
 
 /**
  * A {@code ClearTranscriptAction} clears the {@link AvailWorkbench}'s

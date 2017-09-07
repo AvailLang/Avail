@@ -84,12 +84,12 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VariableTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				VariableTypeDescriptor.mostGeneralVariableType(),
 				ATOM.o(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.emptyTuple(),
 					TOP.o())),
 			TOP.o());
 	}
@@ -97,8 +97,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_SPECIAL_ATOM));
 	}
 

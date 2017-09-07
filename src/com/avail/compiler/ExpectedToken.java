@@ -182,6 +182,6 @@ public enum ExpectedToken
 	{
 		this.tokenType = tokenType;
 		this.lexemeJavaString = lexemeJavaString;
-		this.lexeme = StringDescriptor.from(lexemeJavaString).makeShared();
+		this.lexeme = StringDescriptor.stringFrom(lexemeJavaString).makeShared();
 	}
 }

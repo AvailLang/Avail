@@ -32,9 +32,10 @@
 
 package com.avail.io;
 
-import java.nio.charset.StandardCharsets;
 import com.avail.builder.AvailBuilder;
 import com.avail.descriptor.A_Fiber;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * A {@code TextInterface} represents an interface between an external process,

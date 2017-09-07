@@ -32,8 +32,6 @@
 
 package com.avail.descriptor;
 
-import java.util.TimerTask;
-import javax.annotation.Nullable;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
@@ -42,7 +40,11 @@ import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.io.TextInterface;
 import com.avail.utility.Generator;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+
+import javax.annotation.Nullable;
+import java.util.TimerTask;
 
 /**
  * {@code A_Fiber} is an interface that specifies the fiber-specific operations
@@ -308,16 +310,14 @@ extends A_BasicObject
 	A_Set getAndClearReificationWaiters ();
 
 	/**
-	 * Answer the {@linkplain TextInterface text interface} for this {@linkplain
-	 * A_Fiber fiber}.
+	 * Answer the {@linkplain TextInterface text interface} for this fiber.
 	 *
 	 * @return The fiber's text interface.
 	 */
 	TextInterface textInterface ();
 
 	/**
-	 * Set the {@linkplain TextInterface text interface} for this {@linkplain
-	 * A_Fiber fiber}.
+	 * Set the {@linkplain TextInterface text interface} for this fiber.
 	 *
 	 * @param textInterface
 	 *        A text interface.
@@ -325,9 +325,25 @@ extends A_BasicObject
 	void textInterface (TextInterface textInterface);
 
 	/**
-	 * Answer the unique identifier of this {@linkplain A_Fiber fiber}.
+	 * Answer the unique identifier of this {@code A_Fiber fiber}.
 	 *
 	 * @return The unique identifier, a {@code long}.
 	 */
 	long uniqueId ();
+
+	/**
+	 * Set the {@link A_RawFunction} that's suspending the fiber.
+	 *
+	 * @param suspendingRawFunction
+	 *        The raw function that's suspending the fiber.
+	 */
+	void suspendingRawFunction (A_RawFunction suspendingRawFunction);
+
+	/**
+	 * Answer the {@link A_RawFunction} that was saved in the fiber when it was
+	 * suspended.
+	 *
+	 * @return The raw function that suspended the fiber.
+	 */
+	A_RawFunction suspendingRawFunction ();
 }

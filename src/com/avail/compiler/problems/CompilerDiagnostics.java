@@ -325,9 +325,9 @@ public class CompilerDiagnostics
 		{
 			final LexingState state = startLexingStates.iterator().next();
 			final A_Token emptyToken = TokenDescriptor.create(
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				state.position,
 				state.lineNumber,
 				TokenType.WHITESPACE);
@@ -601,7 +601,7 @@ public class CompilerDiagnostics
 			parts.add(
 				source.copyTupleFromToCanDestroy(
 					sourcePosition, newPosition - 1, false));
-			parts.add(StringDescriptor.from(eachProblem.indicator));
+			parts.add(StringDescriptor.stringFrom(eachProblem.indicator));
 			sourcePosition = newPosition;
 		}
 		parts.add(
@@ -609,7 +609,7 @@ public class CompilerDiagnostics
 				sourcePosition, startOfSecondNextLine - 1, false));
 		// Ensure the last character is a newline.
 		A_Tuple unnumbered =
-			TupleDescriptor.fromList(parts).concatenateTuplesCanDestroy(true);
+			TupleDescriptor.tupleFromList(parts).concatenateTuplesCanDestroy(true);
 		if (unnumbered.tupleSize() == 0
 			|| unnumbered.tupleCodePointAt(unnumbered.tupleSize()) != '\n')
 		{

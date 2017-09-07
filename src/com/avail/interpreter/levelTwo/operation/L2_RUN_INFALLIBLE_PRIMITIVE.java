@@ -31,20 +31,23 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.Primitive.Result.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.*;
-import com.avail.interpreter.Primitive.*;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Result;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.interpreter.Primitive.Result.SUCCESS;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Execute a primitive with the provided arguments, writing the result into

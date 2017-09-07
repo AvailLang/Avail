@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,9 +32,11 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import java.util.*;
 import com.avail.optimizer.RegisterSet;
+
 import javax.annotation.Nonnull;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * {@code L2RegisterVector} aggregates {@linkplain L2ObjectRegister object

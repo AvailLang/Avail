@@ -32,13 +32,14 @@
 
 package com.avail.environment.tasks;
 
-import java.awt.*;
-import java.io.File;
-import javax.annotation.Nullable;
-import com.avail.builder.*;
-import com.avail.descriptor.*;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
+
+import javax.annotation.Nullable;
+import java.awt.*;
+import java.io.File;
 
 /**
  * A {@code GraphTask} generates a .gv file describing a visual graph of

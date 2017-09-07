@@ -68,9 +68,9 @@ public final class P_SetWith extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				SetTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				SetTypeDescriptor.mostGeneralSetType(),
 				ANY.o()),
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.naturalNumbers(),
@@ -88,7 +88,7 @@ public final class P_SetWith extends Primitive
 		final boolean mightBePresent =
 			!setContentType.typeIntersection(newElementType).isBottom();
 		final A_Type sizes = setType.sizeRange();
-		final A_Type unionSize = IntegerRangeTypeDescriptor.create(
+		final A_Type unionSize = IntegerRangeTypeDescriptor.integerRangeType(
 			mightBePresent
 				? sizes.lowerBound()
 				: sizes.lowerBound().plusCanDestroy(

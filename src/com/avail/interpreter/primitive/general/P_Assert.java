@@ -31,18 +31,28 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.AvailAssertionFailedException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.String.format;
 
 /**
  * <strong>Primitive:</strong> Assert the specified {@link
- * EnumerationTypeDescriptor#booleanObject() predicate} or raise an
+ * EnumerationTypeDescriptor#booleanType() predicate} or raise an
  * {@link AvailAssertionFailedException} (in Java) that contains the
  * provided {@linkplain TupleTypeDescriptor#stringType() message}.
  */
@@ -68,7 +78,8 @@ public final class P_Assert extends Primitive
 		{
 			final A_Fiber fiber = interpreter.fiber();
 			final A_Continuation continuation = interpreter.reifiedContinuation;
-			interpreter.primitiveSuspend();
+			interpreter.primitiveSuspend(
+				stripNull(interpreter.function).code());
 			ContinuationDescriptor.dumpStackThen(
 				interpreter.runtime(),
 				fiber.textInterface(),
@@ -79,7 +90,7 @@ public final class P_Assert extends Primitive
 					builder.append(failureMessage.asNativeString());
 					for (final String frame : stack)
 					{
-						builder.append(String.format("%n\t-- %s", frame));
+						builder.append(format("%n\t-- %s", frame));
 					}
 					builder.append("\n\n");
 					final AvailAssertionFailedException killer =
@@ -91,16 +102,16 @@ public final class P_Assert extends Primitive
 				});
 			return Result.FIBER_SUSPENDED;
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				EnumerationTypeDescriptor.booleanObject(),
-				TupleTypeDescriptor.stringType()),
+		return functionType(
+			tuple(
+				booleanType(),
+				stringType()),
 			TOP.o());
 	}
 }

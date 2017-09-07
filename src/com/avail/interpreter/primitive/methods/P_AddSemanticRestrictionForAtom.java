@@ -83,7 +83,7 @@ extends Primitive
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
 			if (!tupleType.typeAtIndex(i).isInstanceOf(
-				InstanceMetaDescriptor.on(InstanceMetaDescriptor.topMeta())))
+				InstanceMetaDescriptor.instanceMetaOn(InstanceMetaDescriptor.topMeta())))
 			{
 				return interpreter.primitiveFailure(
 					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);
@@ -113,10 +113,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ATOM.o(),
-				FunctionTypeDescriptor.forReturnType(
+				FunctionTypeDescriptor.functionTypeReturning(
 					InstanceMetaDescriptor.topMeta())),
 			TOP.o());
 	}
@@ -124,8 +124,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 					E_LOADING_IS_OVER,
 					E_CANNOT_DEFINE_DURING_COMPILATION,
 					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES,

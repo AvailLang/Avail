@@ -32,11 +32,15 @@
 
 package com.avail.interpreter.levelTwo;
 
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.register.*;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+
+import java.util.List;
 
 
 /**

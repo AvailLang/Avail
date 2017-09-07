@@ -34,8 +34,8 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.LiteralNodeDescriptor;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
@@ -44,7 +44,7 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
 
 /**
- * A {@linkplain ArgumentInModuleScope} is an occurrence of an {@linkplain
+ * A {@code ArgumentInModuleScope} is an occurrence of an {@linkplain
  * Metacharacter#UNDERSCORE underscore} (_) in a message name, followed
  * immediately by a {@linkplain Metacharacter#SINGLE_DAGGER single dagger} (†).
  * It indicates where an argument is expected, but the argument must not make

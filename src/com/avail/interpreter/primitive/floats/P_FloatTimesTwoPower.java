@@ -76,10 +76,10 @@ public final class P_FloatTimesTwoPower extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				FLOAT.o(),
-				InstanceTypeDescriptor.on(IntegerDescriptor.two()),
+				InstanceTypeDescriptor.instanceTypeOn(IntegerDescriptor.two()),
 				IntegerRangeTypeDescriptor.integers()),
 			FLOAT.o());
 	}

@@ -49,7 +49,7 @@ extends A_BasicObject
 	 * Answer the {@linkplain CompiledCodeDescriptor raw function (also known as
 	 * compiled code)} on which this function is based.  The raw function holds
 	 * the information that is common to all functions, and each function
-	 * additionally holds zero or more captured variables and values from its
+	 * additionally holds zero or more captured variables and values tuple its
 	 * lexical context.
 	 *
 	 * @return This function's raw function.

@@ -342,7 +342,7 @@ extends Descriptor
 	@Override
 	boolean o_IsBoolean (final AvailObject object)
 	{
-		return object.isInstanceOf(EnumerationTypeDescriptor.booleanObject());
+		return object.isInstanceOf(EnumerationTypeDescriptor.booleanType());
 	}
 
 	@Override
@@ -504,7 +504,7 @@ extends Descriptor
 		final String name)
 	{
 		AvailObject atom = mutable.create();
-		atom.setSlot(NAME, StringDescriptor.from(name).makeShared());
+		atom.setSlot(NAME, StringDescriptor.stringFrom(name).makeShared());
 		atom.setSlot(HASH_OR_ZERO, 0);
 		atom.setSlot(ISSUING_MODULE, NilDescriptor.nil());
 		atom = atom.makeShared();
@@ -530,7 +530,7 @@ extends Descriptor
 		final boolean booleanValue)
 	{
 		AvailObject atom = mutable.create();
-		atom.setSlot(NAME, StringDescriptor.from(name).makeShared());
+		atom.setSlot(NAME, StringDescriptor.stringFrom(name).makeShared());
 		atom.setSlot(HASH_OR_ZERO, 0);
 		atom.setSlot(ISSUING_MODULE, NilDescriptor.nil());
 		atom = atom.makeShared();

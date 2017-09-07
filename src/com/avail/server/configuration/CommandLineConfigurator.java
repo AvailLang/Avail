@@ -32,9 +32,6 @@
 
 package com.avail.server.configuration;
 
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.*;
-import static java.util.Arrays.asList;
-import java.io.File;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
@@ -47,6 +44,11 @@ import com.avail.tools.options.OptionProcessorFactory;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
+
+import java.io.File;
+
+import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.*;
+import static java.util.Arrays.asList;
 
 /**
  * Provides the {@linkplain AvailServerConfiguration configuration} for the

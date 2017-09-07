@@ -37,8 +37,9 @@ import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
 import com.avail.environment.editor.NewPackageWindow;
 import javafx.scene.Scene;
-import javax.annotation.Nonnull;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -46,7 +47,7 @@ import java.awt.*;
 import java.io.File;
 
 /**
- * A {@code NewPackageTask} is a {@link AbstractWorkbenchTask} used to create
+ * A {@code NewPackageTask} is a {@link AbstractWorkbenchTask} used to functionType
  * a new package.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
@@ -67,7 +68,7 @@ extends FXWindowTask
 	/**
 	 * The {@link ModuleName#qualifiedName} of the new module.
 	 */
-	private String qualifiedName;
+	private @Nullable String qualifiedName;
 
 	/**
 	 * Create the {@link ModuleName#qualifiedName} of the new module.
@@ -94,7 +95,8 @@ extends FXWindowTask
 	@Override
 	public void cleanCloseTask ()
 	{
-		final ResolvedModuleName selection = workbench.selectedModule();
+		final @Nullable ResolvedModuleName selection =
+			workbench.selectedModule();
 		final TreeNode modules = workbench.newModuleTree();
 		workbench.moduleTree.setModel(new DefaultTreeModel(modules));
 		for (int i = workbench.moduleTree.getRowCount() - 1; i >= 0; i--)
@@ -103,8 +105,8 @@ extends FXWindowTask
 		}
 		if (selection != null)
 		{
-			final TreePath path = workbench.modulePath(
-				selection.qualifiedName());
+			final @Nullable TreePath path =
+				workbench.modulePath(selection.qualifiedName());
 			if (path != null)
 			{
 				workbench.moduleTree.setSelectionPath(path);

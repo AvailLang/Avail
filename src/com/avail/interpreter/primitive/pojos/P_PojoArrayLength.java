@@ -67,9 +67,9 @@ public final class P_PojoArrayLength extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				PojoTypeDescriptor.mostGeneralArrayType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				PojoTypeDescriptor.mostGeneralPojoArrayType()),
 			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

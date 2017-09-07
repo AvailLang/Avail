@@ -31,10 +31,18 @@
  */
 package com.avail.interpreter.primitive.privatehelpers;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> The first literal is being returned.
@@ -65,6 +73,6 @@ public final class P_PushConstant extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		// This primitive is suitable for any block signature.
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 }

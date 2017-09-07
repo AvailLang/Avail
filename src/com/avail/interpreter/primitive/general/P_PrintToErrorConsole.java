@@ -32,19 +32,36 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.AvailRuntime;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.io.TextInterface;
+import com.avail.io.TextOutputChannel;
+
+import javax.annotation.Nullable;
 import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.List;
-import com.avail.AvailRuntime;
-import javax.annotation.Nullable;
-import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.interpreter.*;
-import com.avail.io.TextInterface;
-import com.avail.io.TextOutputChannel;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Print the specified {@linkplain
@@ -74,7 +91,7 @@ extends Primitive
 		assert args.size() == 1;
 		final A_String string = args.get(0);
 
-		final AvailLoader loader = interpreter.availLoaderOrNull();
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
 		{
 			loader.statementCanBeSummarized(false);
@@ -83,10 +100,10 @@ extends Primitive
 		final AvailRuntime runtime = interpreter.runtime();
 		final A_Fiber fiber = interpreter.fiber();
 		final TextInterface textInterface = fiber.textInterface();
-		final A_Function failureFunction = interpreter.function;
-		assert failureFunction.code().primitive() == this;
+		final A_Function primitiveFunction = stripNull(interpreter.function);
+		assert primitiveFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		interpreter.primitiveSuspend();
+		interpreter.primitiveSuspend(primitiveFunction.code());
 		interpreter.postExitContinuation(
 			() -> textInterface.errorChannel().write(
 				string.asNativeString(),
@@ -101,7 +118,8 @@ extends Primitive
 						Interpreter.resumeFromSuccessfulPrimitive(
 							runtime,
 							fiber,
-							NilDescriptor.nil(),
+							nil(),
+							primitiveFunction.code(),
 							skipReturnCheck);
 					}
 
@@ -114,7 +132,7 @@ extends Primitive
 							runtime,
 							fiber,
 							E_IO_ERROR.numericCode(),
-							failureFunction,
+							primitiveFunction,
 							copiedArgs,
 							skipReturnCheck);
 					}
@@ -125,17 +143,15 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.stringType()),
+		return functionType(
+			tuple(stringType()),
 			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_IO_ERROR));
+		return enumerationWith(
+			set(E_IO_ERROR));
 	}
 }

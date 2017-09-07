@@ -32,17 +32,22 @@
 
 package com.avail.descriptor;
 
-import static java.lang.Long.bitCount;
-import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.AvailObjectRepresentation.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
+
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.NoSuchElementException;
+
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_;
+import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.BIN_UNION_TYPE_OR_NULL;
+import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static java.lang.Long.bitCount;
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
@@ -87,12 +92,12 @@ extends SetBinDescriptor
 
 		/**
 		 * A bit vector indicating which (masked, shifted) hash values are
-		 * non-empty and represented by a slot.
+		 * non-emptySet and represented by a slot.
 		 */
 		BIT_VECTOR;
 
 		/**
-		 * A slot to hold the bin's hash value, or zero if it has not been
+		 * A slot to hold the bin's hash value, or floatZero if it has not been
 		 * computed.
 		 */
 		static final BitField BIN_HASH = bitField(BIN_HASH_AND_MORE, 0, 32);
@@ -280,8 +285,9 @@ extends SetBinDescriptor
 				{
 					object.makeSubobjectsImmutable();
 				}
-				objectToModify = newLike(
-					descriptorFor(MUTABLE, level), object, 0, 0);
+				objectToModify = newLike(descriptorFor(
+					MUTABLE,
+					level), object, 0, 0);
 			}
 			objectToModify.setSlot(BIN_HASH, previousTotalHash + hashDelta);
 			objectToModify.setSlot(BIN_SIZE, newSize);
@@ -339,7 +345,7 @@ extends SetBinDescriptor
 			return false;
 		}
 		// There's an entry.  Count the 1-bits below it to compute its
-		// zero-relative physicalIndex.
+		// floatZero-relative physicalIndex.
 		final long masked = vector & (logicalBitValue - 1);
 		final int physicalIndex = bitCount(masked) + 1;
 		final A_BasicObject subBin =
@@ -403,7 +409,7 @@ extends SetBinDescriptor
 				oldTotalSize + deltaSize,
 				oldTotalHash + deltaHash,
 				vector ^ logicalBitValue,
-				NilDescriptor.nil());
+				nil());
 			int writeIndex = 1;
 			for (int readIndex = 1; readIndex <= objectEntryCount; readIndex++)
 			{
@@ -435,12 +441,14 @@ extends SetBinDescriptor
 				{
 					object.makeSubobjectsImmutable();
 				}
-				result = newLike(descriptorFor(MUTABLE, level), object, 0, 0);
+				result = newLike(descriptorFor(
+					MUTABLE,
+					level), object, 0, 0);
 			}
 			result.setSlot(BIN_ELEMENT_AT_, physicalIndex, replacementEntry);
 			result.setSlot(BIN_HASH, oldTotalHash + deltaHash);
 			result.setSlot(BIN_SIZE, oldTotalSize + deltaSize);
-			result.setSlot(BIN_UNION_TYPE_OR_NULL, NilDescriptor.nil());
+			result.setSlot(BIN_UNION_TYPE_OR_NULL, nil());
 		}
 		return result;
 	}
@@ -606,7 +614,7 @@ extends SetBinDescriptor
 	/**
 	 * Create a new hashed set bin with the given level, local size, total
 	 * recursive number of elements, hash, bit vector, and either the bin union
-	 * kind or null.  Initialize each sub-bin to the empty bin at level + 1.
+	 * kind or null.  Initialize each sub-bin to the emptySet bin at level + 1.
 	 *
 	 * @param level The tree level at which this hashed bin occurs.
 	 * @param localSize The number of slots to allocate.
@@ -616,7 +624,7 @@ extends SetBinDescriptor
 	 * @param unionKindOrNil
 	 *            Either nil or the kind that is nearest to the
 	 *            union of the elements' types.
-	 * @return A new hashed set bin with empty linear sub-bins.
+	 * @return A new hashed set bin with emptySet linear sub-bins.
 	 */
 	public static AvailObject createInitializedBin (
 		final byte level,

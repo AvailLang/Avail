@@ -99,19 +99,19 @@ extends Primitive
 			ByteArrayTupleDescriptor.forByteArray(addressBytes);
 		final A_Number port = IntegerDescriptor.fromInt(peer.getPort());
 		return interpreter.primitiveSuccess(
-			TupleDescriptor.from(addressTuple, port));
+			TupleDescriptor.tuple(addressTuple, port));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ATOM.o()),
-			TupleTypeDescriptor.forTypes(
+			TupleTypeDescriptor.tupleTypeForTypes(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.inclusive(4, 16),
-					TupleDescriptor.empty(),
+					TupleDescriptor.emptyTuple(),
 					IntegerRangeTypeDescriptor.bytes()),
 				IntegerRangeTypeDescriptor.unsignedShorts()));
 	}
@@ -120,8 +120,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR));

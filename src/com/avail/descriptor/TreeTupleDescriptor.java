@@ -115,7 +115,7 @@ extends TupleDescriptor
 		final boolean canDestroy)
 	{
 		// Fall back to concatenating a singleton tuple.
-		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
 		return concatenateAtLeastOneTree(object, singleton, canDestroy);
 	}
 
@@ -335,7 +335,7 @@ extends TupleDescriptor
 		assert 0 <= end && end <= object.tupleSize();
 		if (start - 1 == end)
 		{
-			return TupleDescriptor.empty();
+			return TupleDescriptor.emptyTuple();
 		}
 		if (!canDestroy)
 		{

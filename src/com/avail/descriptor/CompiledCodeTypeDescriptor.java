@@ -297,7 +297,7 @@ extends TypeDescriptor
 	 * type bottom.
 	 */
 	private static final A_Type mostGeneralType = forFunctionType(
-		FunctionTypeDescriptor.mostGeneralType()).makeShared();
+		FunctionTypeDescriptor.mostGeneralFunctionType()).makeShared();
 
 	/**
 	 * Answer the most general {@linkplain CompiledCodeTypeDescriptor compiled
@@ -306,7 +306,7 @@ extends TypeDescriptor
 	 * @return A {@linkplain CompiledCodeTypeDescriptor compiled code type}
 	 *         which has no supertypes that are themselves compiled code types.
 	 */
-	public static A_Type mostGeneralType ()
+	public static A_Type mostGeneralCompiledCodeType ()
 	{
 		return mostGeneralType;
 	}
@@ -317,7 +317,7 @@ extends TypeDescriptor
 	 * #mostGeneralType most general compiled code type}.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all compiled code types.

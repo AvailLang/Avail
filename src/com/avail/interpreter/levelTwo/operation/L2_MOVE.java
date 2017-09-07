@@ -31,12 +31,17 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.optimizer.*;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.RegisterSet;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Move an {@link AvailObject} from the source to the destination.  The

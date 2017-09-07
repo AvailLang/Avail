@@ -32,13 +32,14 @@
 
 package com.avail.optimizer;
 
-import java.util.ArrayList;
-import java.util.List;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.utility.evaluation.Continuation0;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The level two execution machinery allows limited use of the Java stack during

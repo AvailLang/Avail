@@ -77,9 +77,9 @@ public final class P_BootstrapLexerKeywordFilter extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				Types.CHARACTER.o()),
-			EnumerationTypeDescriptor.booleanObject());
+			EnumerationTypeDescriptor.booleanType());
 	}
 }

@@ -93,18 +93,18 @@ public final class P_Swap extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VariableTypeDescriptor.mostGeneralType(),
-				VariableTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				VariableTypeDescriptor.mostGeneralVariableType(),
+				VariableTypeDescriptor.mostGeneralVariableType()),
 			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
 	}

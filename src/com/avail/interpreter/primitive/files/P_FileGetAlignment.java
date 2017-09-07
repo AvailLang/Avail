@@ -80,8 +80,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ATOM.o()),
 			IntegerRangeTypeDescriptor.naturalNumbers());
 	}
@@ -89,6 +89,6 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return InstanceTypeDescriptor.on(E_INVALID_HANDLE.numericCode());
+		return InstanceTypeDescriptor.instanceTypeOn(E_INVALID_HANDLE.numericCode());
 	}
 }

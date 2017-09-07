@@ -32,17 +32,21 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Jump to the target if the object equals the constant.
@@ -97,8 +101,7 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		else
 		{
 			assert registerSet.hasTypeAt(objectReg);
-			final A_Type knownType = registerSet.typeAt(objectReg);
-			assert knownType != null;
+			final A_Type knownType = stripNull(registerSet.typeAt(objectReg));
 			canJump = value.isInstanceOf(knownType);
 			mustJump = false;
 		}

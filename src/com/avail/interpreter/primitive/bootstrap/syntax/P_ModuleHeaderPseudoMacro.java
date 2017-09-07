@@ -83,10 +83,10 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 			ExpressionAsStatementNodeDescriptor.fromExpression(
 				SendNodeDescriptor.from(
 					// Don't bother collecting tokens in header.
-					TupleDescriptor.empty(),
+					TupleDescriptor.emptyTuple(),
 					SpecialMethodAtom.MODULE_HEADER_METHOD.bundle,
 					ListNodeDescriptor.newExpressions(
-						TupleDescriptor.from(
+						TupleDescriptor.tuple(
 							moduleNameLiteral,
 							optionalVersions,
 							allImports,
@@ -114,7 +114,7 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 	{
 		return ListNodeTypeDescriptor.createListNodeType(
 			LIST_NODE,
-			TupleTypeDescriptor.forTypes(types));
+			TupleTypeDescriptor.tupleTypeForTypes(types));
 	}
 
 	@Override
@@ -122,10 +122,10 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 	{
 		final A_Type stringTokenType =
 			LITERAL_NODE.create(
-				LiteralTokenTypeDescriptor.create(
+				LiteralTokenTypeDescriptor.literalTokenType(
 					TupleTypeDescriptor.stringType()));
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				/* Module name */
 				stringTokenType,
 				/* Optional versions */
@@ -148,14 +148,14 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 											list(
 												// Negated import
 												LITERAL_NODE.create(
-													booleanObject()),
+													booleanType()),
 												// Name
 												stringTokenType,
 												// Replacement name
 												zeroOrOneOf(stringTokenType))),
 										// Final ellipsis (import all the rest)
 										LITERAL_NODE.create(
-											booleanObject()))))))),
+											booleanType()))))))),
 				/* Optional names */
 				zeroOrOneOf(zeroOrMoreOf(stringTokenType)),
 				/* Optional entries */

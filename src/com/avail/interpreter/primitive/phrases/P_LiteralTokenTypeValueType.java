@@ -68,10 +68,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				InstanceMetaDescriptor.on(
-					LiteralTokenTypeDescriptor.mostGeneralType())),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				InstanceMetaDescriptor.instanceMetaOn(
+					LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType())),
 			InstanceMetaDescriptor.anyMeta());
 	}
 }

@@ -32,23 +32,21 @@
 
 package com.avail.descriptor;
 
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
-import com.avail.compiler.*;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.AbstractNumberDescriptor.*;
+import com.avail.descriptor.AbstractNumberDescriptor.Order;
+import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.MapDescriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -67,11 +65,27 @@ import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
+import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
-import com.avail.utility.visitor.*;
+import com.avail.utility.visitor.AvailSubobjectVisitor;
+import com.avail.utility.visitor.BeImmutableSubobjectVisitor;
+import com.avail.utility.visitor.BeSharedSubobjectVisitor;
+
 import javax.annotation.Nullable;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.TimerTask;
+
+import static java.lang.String.format;
 
 /**
  * This is the primary subclass of {@linkplain AbstractDescriptor}. It has the
@@ -82,7 +96,7 @@ import javax.annotation.Nullable;
  * {@linkplain Override @Override} annotation. That way the project will
  * indicate errors until an abstract declaration is added to
  * {@linkplain AbstractDescriptor}, a default implementation is added to
- * {@linkplain Descriptor}, and a redirecting implementation is added to
+ * {@code Descriptor}, and a redirecting implementation is added to
  * {@linkplain IndirectionDescriptor}. Any code attempting to send the
  * corresponding message to an {@linkplain AvailObject} will also indicate a
  * problem until a suitable implementation is added to AvailObject.
@@ -2751,7 +2765,7 @@ extends AbstractDescriptor
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
-	Iterator<AvailObject> o_Iterator (final AvailObject object)
+	IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3783,9 +3797,9 @@ extends AbstractDescriptor
 		}
 		if (object.showValueInNameForDebugger())
 		{
-			return String.format("(%s) = %s", typeName, object);
+			return format("(%s) = %s", typeName, object);
 		}
-		return String.format("(%s)", typeName);
+		return format("(%s)", typeName);
 	}
 
 	@Override
@@ -4889,6 +4903,20 @@ extends AbstractDescriptor
 
 	@Override
 	A_Lexer o_Lexer (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_SuspendingRawFunction (
+		final AvailObject object,
+		final A_RawFunction suspendingRawFunction)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_RawFunction o_SuspendingRawFunction (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

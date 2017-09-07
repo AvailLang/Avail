@@ -86,7 +86,7 @@ extends Primitive
 		A_Tuple excludedAtomSets = excludedStringSets.makeShared();
 		for (int i = excludedStringSets.tupleSize(); i >= 1; i--)
 		{
-			A_Set atomSet = SetDescriptor.empty();
+			A_Set atomSet = SetDescriptor.emptySet();
 			for (final A_String string : excludedStringSets.tupleAt(i))
 			{
 				try
@@ -102,7 +102,7 @@ extends Primitive
 			excludedAtomSets = excludedAtomSets.tupleAtPuttingCanDestroy(
 				i, atomSet, true);
 		}
-		A_Set parentAtoms = SetDescriptor.empty();
+		A_Set parentAtoms = SetDescriptor.emptySet();
 		try
 		{
 			for (final A_String string : parentStrings)
@@ -125,8 +125,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.naturalNumbers(),
 					TupleTypeDescriptor.stringType()),
@@ -140,8 +140,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 					E_LOADING_IS_OVER,
 					E_CANNOT_DEFINE_DURING_COMPILATION,
 					E_AMBIGUOUS_NAME,

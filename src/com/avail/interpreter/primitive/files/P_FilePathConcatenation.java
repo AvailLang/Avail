@@ -90,17 +90,17 @@ extends Primitive
 		}
 		if (path == null)
 		{
-			return interpreter.primitiveSuccess(TupleDescriptor.empty());
+			return interpreter.primitiveSuccess(TupleDescriptor.emptyTuple());
 		}
-		return interpreter.primitiveSuccess(StringDescriptor.from(
+		return interpreter.primitiveSuccess(StringDescriptor.stringFrom(
 			path.toString()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.zeroOrMoreOf(
 					TupleTypeDescriptor.stringType())),
 			TupleTypeDescriptor.stringType());
@@ -109,7 +109,7 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(E_INVALID_PATH));
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(E_INVALID_PATH));
 	}
 }

@@ -79,9 +79,9 @@ public final class P_GetClearing extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VariableTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				VariableTypeDescriptor.mostGeneralVariableType()),
 			ANY.o());
 	}
 
@@ -97,8 +97,8 @@ public final class P_GetClearing extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE,
 				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
 				E_JAVA_MARSHALING_FAILED,

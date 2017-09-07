@@ -32,16 +32,47 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.lang.reflect.*;
-import java.math.BigInteger;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
-import com.avail.exceptions.*;
-import com.avail.utility.*;
+import com.avail.exceptions.MarshalingException;
+import com.avail.utility.LRUCache;
+import com.avail.utility.Mutable;
+
 import javax.annotation.Nullable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.GenericDeclaration;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
+import static com.avail.descriptor.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FloatDescriptor.fromFloat;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.Short.MAX_VALUE;
 
 /**
  * An {@code PojoTypeDescriptor} describes the type of a plain-old Java
@@ -192,7 +223,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most general pojo type.
 	 */
-	public static A_Type mostGeneralType ()
+	public static A_Type mostGeneralPojoType ()
 	{
 		return UnfusedPojoTypeDescriptor.mostGeneralType;
 	}
@@ -203,7 +234,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most general pojo array type.
 	 */
-	public static A_Type mostGeneralArrayType ()
+	public static A_Type mostGeneralPojoArrayType ()
 	{
 		return ArrayPojoTypeDescriptor.mostGeneralType;
 	}
@@ -213,8 +244,8 @@ extends TypeDescriptor
 	 * InstanceTypeDescriptor instance type} represents the self type of a
 	 * {@linkplain Class Java class or interface}.
 	 */
-	private static final A_Atom selfAtom =
-		AtomDescriptor.createSpecialAtom("pojo self");
+	private static final A_Atom selfTypeAtom =
+		createSpecialAtom("pojo self");
 
 	/**
 	 * Answer a special {@linkplain AtomDescriptor atom} whose {@linkplain
@@ -223,9 +254,9 @@ extends TypeDescriptor
 	 *
 	 * @return The pojo self type atom.
 	 */
-	public static A_Atom selfAtom ()
+	public static A_Atom pojoSelfTypeAtom ()
 	{
-		return selfAtom;
+		return selfTypeAtom;
 	}
 
 	/**
@@ -233,7 +264,7 @@ extends TypeDescriptor
 	 * represents the self type of a {@linkplain Class Java class or interface}.
 	 */
 	private static final A_Type selfType =
-		InstanceTypeDescriptor.on(selfAtom).makeShared();
+		instanceTypeOn(selfTypeAtom).makeShared();
 
 	/**
 	 * Answer a special {@linkplain InstanceTypeDescriptor instance type} that
@@ -241,7 +272,7 @@ extends TypeDescriptor
 	 *
 	 * @return The pojo self type atom.
 	 */
-	public static A_Type selfType ()
+	public static A_Type pojoSelfType ()
 	{
 		return selfType;
 	}
@@ -251,8 +282,7 @@ extends TypeDescriptor
 	 * corresponds to Java {@code byte}.
 	 */
 	private static final A_Type byteRange =
-		IntegerRangeTypeDescriptor.inclusive(Byte.MIN_VALUE, Byte.MAX_VALUE)
-			.makeShared();
+		inclusive(Byte.MIN_VALUE, Byte.MAX_VALUE).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -270,8 +300,7 @@ extends TypeDescriptor
 	 * corresponds to Java {@code short}.
 	 */
 	private static final A_Type shortRange =
-		IntegerRangeTypeDescriptor.inclusive(Short.MIN_VALUE, Short.MAX_VALUE)
-			.makeShared();
+		inclusive(Short.MIN_VALUE, MAX_VALUE).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -288,7 +317,7 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code int}.
 	 */
-	private static final A_Type intRange = IntegerRangeTypeDescriptor.int32();
+	private static final A_Type intRange = int32();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -305,7 +334,7 @@ extends TypeDescriptor
 	 * The {@linkplain IntegerRangeTypeDescriptor integer range type} that
 	 * corresponds to Java {@code long}.
 	 */
-	private static final A_Type longRange = IntegerRangeTypeDescriptor.int64();
+	private static final A_Type longRange = int64();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -323,9 +352,7 @@ extends TypeDescriptor
 	 * corresponds to Java {@code char}.
 	 */
 	private static final A_Type charRange =
-		IntegerRangeTypeDescriptor.inclusive(
-				Character.MIN_VALUE, Character.MAX_VALUE)
-			.makeShared();
+		inclusive(Character.MIN_VALUE, Character.MAX_VALUE).makeShared();
 
 	/**
 	 * Answer the {@linkplain IntegerRangeTypeDescriptor integer range type}
@@ -353,10 +380,10 @@ extends TypeDescriptor
 		// ancestry with java.lang.Object.
 		final Canon canon = new Canon();
 		final Mutable<A_Map> ancestors = new Mutable<>(
-			MapDescriptor.empty());
+			emptyMap());
 		ancestors.value = ancestors.value.mapAtPuttingCanDestroy(
 			canon.get(Object.class),
-			TupleDescriptor.empty(),
+			emptyTuple(),
 			true);
 		computeAncestry(
 			key.javaClass, key.typeArgs, ancestors, canon);
@@ -599,7 +626,7 @@ extends TypeDescriptor
 		final A_Set otherJavaClasses = otherAncestors.keysAsSet();
 		final A_Set union = javaClasses.setUnionCanDestroy(
 			otherJavaClasses, false);
-		A_Map unionAncestors = MapDescriptor.empty();
+		A_Map unionAncestors = emptyMap();
 		for (final AvailObject javaClass : union)
 		{
 			final A_Tuple params = ancestors.hasKey(javaClass)
@@ -625,7 +652,7 @@ extends TypeDescriptor
 			}
 			unionAncestors = unionAncestors.mapAtPuttingCanDestroy(
 				javaClass,
-				TupleDescriptor.fromList(intersectionParams),
+				tupleFromList(intersectionParams),
 				true);
 		}
 		return unionAncestors;
@@ -656,7 +683,7 @@ extends TypeDescriptor
 		final A_Set otherJavaClasses = otherAncestors.keysAsSet();
 		final A_Set intersection = javaClasses.setIntersectionCanDestroy(
 			otherJavaClasses, false);
-		A_Map intersectionAncestors = MapDescriptor.empty();
+		A_Map intersectionAncestors = emptyMap();
 		for (final AvailObject javaClass : intersection)
 		{
 			final A_Tuple params = ancestors.mapAt(javaClass);
@@ -674,7 +701,7 @@ extends TypeDescriptor
 			intersectionAncestors =
 				intersectionAncestors.mapAtPuttingCanDestroy(
 					javaClass.makeImmutable(),
-					TupleDescriptor.fromList(unionParams),
+					tupleFromList(unionParams),
 					true);
 		}
 		return intersectionAncestors;
@@ -755,7 +782,7 @@ extends TypeDescriptor
 					(Class<?>) rawType.javaObjectNotNull();
 				if (!javaClass.isAssignableFrom(mostSpecific))
 				{
-					return NilDescriptor.nil();
+					return nil();
 				}
 			}
 		}
@@ -849,27 +876,27 @@ extends TypeDescriptor
 		}
 		else if (javaClass.equals(Byte.class))
 		{
-			availObject = IntegerDescriptor.fromInt((Byte) object);
+			availObject = fromInt((Byte) object);
 		}
 		else if (javaClass.equals(Short.class))
 		{
-			availObject = IntegerDescriptor.fromInt((Short) object);
+			availObject = fromInt((Short) object);
 		}
 		else if (javaClass.equals(Integer.class))
 		{
-			availObject = IntegerDescriptor.fromInt((Integer) object);
+			availObject = fromInt((Integer) object);
 		}
 		else if (javaClass.equals(Long.class))
 		{
-			availObject = IntegerDescriptor.fromLong((Long) object);
+			availObject = fromLong((Long) object);
 		}
 		else if (javaClass.equals(Float.class))
 		{
-			availObject = FloatDescriptor.fromFloat((Float) object);
+			availObject = fromFloat((Float) object);
 		}
 		else if (javaClass.equals(Double.class))
 		{
-			availObject = DoubleDescriptor.fromDouble((Double) object);
+			availObject = fromDouble((Double) object);
 		}
 		else if (javaClass.equals(Character.class))
 		{
@@ -878,7 +905,7 @@ extends TypeDescriptor
 		}
 		else if (javaClass.equals(String.class))
 		{
-			availObject = StringDescriptor.from((String) object);
+			availObject = StringDescriptor.stringFrom((String) object);
 		}
 		else if (javaClass.equals(BigInteger.class))
 		{
@@ -932,7 +959,7 @@ extends TypeDescriptor
 				}
 				else if (aClass.equals(Boolean.TYPE))
 				{
-					return EnumerationTypeDescriptor.booleanObject();
+					return booleanType();
 				}
 				else if (aClass.equals(Byte.TYPE))
 				{
@@ -970,13 +997,13 @@ extends TypeDescriptor
 			}
 			if (aClass.equals(String.class))
 			{
-				return TupleTypeDescriptor.stringType();
+				return stringType();
 			}
 			if (aClass.equals(BigInteger.class))
 			{
-				return IntegerRangeTypeDescriptor.integers();
+				return integers();
 			}
-			return forClass((Class<?>) type);
+			return pojoTypeForClass((Class<?>) type);
 		}
 		// If type is a type variable, then resolve it using the map of type
 		// variables.
@@ -1007,8 +1034,9 @@ extends TypeDescriptor
 					+ "type variable!";
 				throw new RuntimeException();
 			}
-			final A_String name = StringDescriptor.from(
-				javaClass.getName() + "." + var.getName());
+			final A_String name = StringDescriptor.stringFrom(javaClass.getName()
+				+ "."
+				+ var.getName());
 			return typeVars.mapAt(name);
 		}
 		// If type is a parameterized type, then recursively resolve it using
@@ -1025,7 +1053,7 @@ extends TypeDescriptor
 			}
 			return forClassWithTypeArguments(
 				(Class<?>) parameterized.getRawType(),
-				TupleDescriptor.fromList(resolved));
+				tupleFromList(resolved));
 		}
 		assert false : "Unsupported generic declaration";
 		throw new RuntimeException();
@@ -1072,7 +1100,7 @@ extends TypeDescriptor
 				final A_Type typeArg =
 					canon.containsKey(javaClass)
 						? selfTypeForClass(javaClass)
-						: forClass(javaClass);
+						: pojoTypeForClass(javaClass);
 				propagation.add(typeArg);
 			}
 			// class Target<A, ...> extends Supertype<A, ...> { ... }
@@ -1084,8 +1112,7 @@ extends TypeDescriptor
 			else if (arg instanceof TypeVariable<?>)
 			{
 				final Integer index =
-					vars.get(((TypeVariable<?>) arg).getName());
-				assert index != null;
+					stripNull(vars.get(((TypeVariable<?>) arg).getName()));
 				propagation.add(typeArgs.tupleAt(index + 1));
 			}
 			// class Target<A, ...>
@@ -1115,7 +1142,7 @@ extends TypeDescriptor
 				throw new RuntimeException();
 			}
 		}
-		return TupleDescriptor.fromList(propagation);
+		return tupleFromList(propagation);
 	}
 
 	/**
@@ -1147,7 +1174,7 @@ extends TypeDescriptor
 		// answer an empty type parameterization tuple.
 		if (supertype instanceof Class<?>)
 		{
-			return TupleDescriptor.empty();
+			return emptyTuple();
 		}
 		// class Target<A, B, ...> extends GenericSupertype<A, B, ...> { ... }
 		//
@@ -1260,7 +1287,7 @@ extends TypeDescriptor
 	 *        A Java class or interface.
 	 * @return The requested pojo type.
 	 */
-	public static AvailObject forClass (final Class<?> target)
+	public static AvailObject pojoTypeForClass (final Class<?> target)
 	{
 		final int paramCount = target.getTypeParameters().length;
 		final List<AvailObject> params;
@@ -1274,7 +1301,7 @@ extends TypeDescriptor
 			params = Collections.emptyList();
 		}
 		return forClassWithTypeArguments(
-			target, TupleDescriptor.fromList(params));
+			target, tupleFromList(params));
 	}
 
 	/**
@@ -1296,7 +1323,7 @@ extends TypeDescriptor
 		final A_Type elementType,
 		final A_Type sizeRange)
 	{
-		assert sizeRange.isSubtypeOf(IntegerRangeTypeDescriptor.wholeNumbers());
+		assert sizeRange.isSubtypeOf(wholeNumbers());
 		return ArrayPojoTypeDescriptor.create(elementType, sizeRange);
 	}
 

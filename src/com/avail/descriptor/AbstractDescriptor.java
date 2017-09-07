@@ -78,6 +78,7 @@ import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
+import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.*;
@@ -4229,7 +4230,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract Iterator<AvailObject> o_Iterator (
+	abstract IteratorNotNull<AvailObject> o_Iterator (
 		AvailObject object);
 
 	/**
@@ -6636,4 +6637,19 @@ public abstract class AbstractDescriptor
 	 * @return
 	 */
 	abstract A_Lexer o_Lexer (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @param suspendingRawFunction
+	 */
+	abstract void o_SuspendingRawFunction (
+		final AvailObject object,
+		final A_RawFunction suspendingRawFunction);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_RawFunction o_SuspendingRawFunction (
+		final AvailObject object);
 }

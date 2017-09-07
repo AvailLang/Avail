@@ -32,8 +32,12 @@
 
 package com.avail.annotations;
 
-import java.lang.annotation.*;
 import com.avail.descriptor.AvailObjectFieldHelper;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * {@code HideFieldInDebugger} annotation is used to indicate that a slot should

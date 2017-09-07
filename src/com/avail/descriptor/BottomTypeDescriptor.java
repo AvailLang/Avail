@@ -152,7 +152,7 @@ extends AbstractEnumerationTypeDescriptor
 		// function type. In particular, if ⊥ is viewed as a function type, it
 		// can take any number of arguments of any type (since there are no
 		// complying function instances).
-		return TupleTypeDescriptor.mostGeneralType();
+		return TupleTypeDescriptor.mostGeneralTupleType();
 	}
 
 	/**
@@ -189,7 +189,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	A_Set o_DeclaredExceptions (final AvailObject object)
 	{
-		return SetDescriptor.empty();
+		return SetDescriptor.emptySet();
 	}
 
 	@Override @AvailMethod
@@ -294,7 +294,7 @@ extends AbstractEnumerationTypeDescriptor
 	A_Set o_Instances (final AvailObject object)
 	{
 		// ⊥ is the empty enumeration.
-		return SetDescriptor.empty();
+		return SetDescriptor.emptySet();
 	}
 
 	@Override
@@ -488,7 +488,7 @@ extends AbstractEnumerationTypeDescriptor
 	A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		// Since I'm a degenerate tuple type, I have no leading types.
-		return TupleDescriptor.empty();
+		return TupleDescriptor.emptyTuple();
 	}
 
 	@Override @AvailMethod

@@ -32,9 +32,10 @@
 
 package com.avail.environment.nodes;
 
-import javax.annotation.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ResolvedModuleName;
+
+import javax.annotation.Nullable;
 
 /**
  * This is a tree node representing a module that has one or more entry points,

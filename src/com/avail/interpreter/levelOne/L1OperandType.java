@@ -32,7 +32,9 @@
 
 package com.avail.interpreter.levelOne;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 
 
 

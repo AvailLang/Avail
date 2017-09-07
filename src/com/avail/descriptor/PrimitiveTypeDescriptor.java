@@ -41,7 +41,6 @@ import java.util.IdentityHashMap;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
@@ -482,7 +481,7 @@ extends TypeDescriptor
 	static AvailObject createMutablePrimitiveObjectNamed (
 		final String typeNameString)
 	{
-		final A_String name = StringDescriptor.from(typeNameString);
+		final A_String name = StringDescriptor.stringFrom(typeNameString);
 		final AvailObject object = transientMutable.create();
 		object.setSlot(NAME, name.makeShared());
 		object.setSlot(PARENT, NilDescriptor.nil());

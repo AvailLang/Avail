@@ -32,18 +32,21 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.utility.Generator;
-import com.avail.utility.evaluation.Transformer1;
+import com.avail.utility.IteratorNotNull;
+
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;
 
 /**
  * This is a representation for {@linkplain TupleDescriptor tuples} that can
@@ -114,7 +117,7 @@ extends TupleDescriptor
 		if (originalSize >= maximumCopySize)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			final A_Tuple singleton = tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		if (!canDestroy)
@@ -125,7 +128,10 @@ extends TupleDescriptor
 				object.makeImmutable();
 			}
 		}
-		final AvailObject newTuple = newLike(mutable, object, 1, 0);
+		final AvailObject newTuple = newLike(mutable,
+			object,
+			1,
+			0);
 		newTuple.setSlot(TUPLE_AT_, originalSize + 1, newElement);
 		newTuple.setSlot(HASH_OR_ZERO, 0);
 		return newTuple;
@@ -226,8 +232,10 @@ extends TupleDescriptor
 		{
 			// Copy the objects.
 			final int deltaSlots = newSize - object.variableObjectSlotsCount();
-			final AvailObject result = newLike(
-				mutable(), object, deltaSlots, 0);
+			final AvailObject result = newLike(mutable(),
+				object,
+				deltaSlots,
+				0);
 			int dest = size1 + 1;
 			for (int src = 1; src <= size2; src++, dest++)
 			{
@@ -403,7 +411,7 @@ extends TupleDescriptor
 	 * A simple {@link Iterator} over an object-tuple's elements.
 	 */
 	private static final class ObjectTupleIterator
-	implements Iterator<AvailObject>
+	implements IteratorNotNull<AvailObject>
 	{
 		/**
 		 * The tuple over which to iterate.
@@ -421,7 +429,7 @@ extends TupleDescriptor
 		int index = 1;
 
 		/**
-		 * Construct a new {@link ObjectTupleIterator} on the given {@linkplain
+		 * Construct a new {@code ObjectTupleIterator} on the given {@linkplain
 		 * TupleDescriptor tuple}, which must be have an {@linkplain
 		 * ObjectTupleDescriptor} as its descriptor.
 		 *
@@ -462,7 +470,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	public Iterator<AvailObject> o_Iterator (final AvailObject object)
+	public IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
 	{
 		object.makeImmutable();
 		return new ObjectTupleIterator(object);
@@ -495,7 +503,7 @@ extends TupleDescriptor
 			result = newLike(mutable, object, 0, 0);
 			if (isMutable())
 			{
-				result.setSlot(TUPLE_AT_, index, NilDescriptor.nil());
+				result.setSlot(TUPLE_AT_, index, nil());
 				result.makeSubobjectsImmutable();
 			}
 		}
@@ -523,7 +531,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Create an {@linkplain ObjectTupleDescriptor object tuple} whose slots
+	 * Create an {@code ObjectTupleDescriptor object tuple} whose slots
 	 * have not been initialized.
 	 *
 	 * @param size The number of elements in the resulting tuple.
@@ -536,7 +544,7 @@ extends TupleDescriptor
 
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link ObjectTupleDescriptor}.  Run the generator for each position in
+	 * of {@code ObjectTupleDescriptor}.  Run the generator for each position in
 	 * ascending order to produce the {@link AvailObject}s with which to
 	 * populate the tuple.
 	 *
@@ -553,7 +561,7 @@ extends TupleDescriptor
 		{
 			// Initialize it for safe GC within the loop below.  Might be
 			// unnecessary if the substrate already initialized it safely.
-			result.setSlot(TUPLE_AT_, i, NilDescriptor.nil());
+			result.setSlot(TUPLE_AT_, i, nil());
 		}
 		for (int i = 1; i <= size; i++)
 		{
@@ -564,7 +572,7 @@ extends TupleDescriptor
 
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link ObjectTupleDescriptor}.  Run the generator for each position in
+	 * of {@code ObjectTupleDescriptor}.  Run the generator for each position in
 	 * descending order to produce the {@link AvailObject}s with which to
 	 * populate the tuple.
 	 *
@@ -581,7 +589,7 @@ extends TupleDescriptor
 		{
 			// Initialize it for safe GC within the loop below.  Might be
 			// unnecessary if the substrate already initialized it safely.
-			result.setSlot(TUPLE_AT_, i, NilDescriptor.nil());
+			result.setSlot(TUPLE_AT_, i, nil());
 		}
 		for (int i = size; i >= 1; i--)
 		{
@@ -591,36 +599,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Transform each element of a {@link A_Tuple tuple} to form another tuple.
-	 *
-	 * @param tuple
-	 *        The tuple whose elemnts are to be transformed.
-	 * @param transformer
-	 *        The transformation to apply to each element of the tuple.
-	 * @return The tuple of transformed elements.
-	 */
-	public static A_Tuple mapElements (
-		final A_Tuple tuple,
-		final Transformer1<? super AvailObject, ? extends A_BasicObject>
-			transformer)
-	{
-		return ObjectTupleDescriptor.generateFrom(
-			tuple.tupleSize(),
-			new Generator<A_BasicObject>()
-			{
-				private int index = 1;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					return transformer.valueNotNull(tuple.tupleAt(index++));
-				}
-			});
-	}
-
-
-	/**
-	 * Construct a new {@link ObjectTupleDescriptor}.
+	 * Construct a new {@code ObjectTupleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -630,7 +609,7 @@ extends TupleDescriptor
 		super(mutability, ObjectSlots.class, IntegerSlots.class);
 	}
 
-	/** The mutable {@link ObjectTupleDescriptor}. */
+	/** The mutable {@code ObjectTupleDescriptor}. */
 	public static final ObjectTupleDescriptor mutable =
 		new ObjectTupleDescriptor(Mutability.MUTABLE);
 
@@ -640,7 +619,7 @@ extends TupleDescriptor
 		return mutable;
 	}
 
-	/** The immutable {@link ObjectTupleDescriptor}. */
+	/** The immutable {@code ObjectTupleDescriptor}. */
 	private static final ObjectTupleDescriptor immutable =
 		new ObjectTupleDescriptor(Mutability.IMMUTABLE);
 
@@ -650,7 +629,7 @@ extends TupleDescriptor
 		return immutable;
 	}
 
-	/** The shared {@link ObjectTupleDescriptor}. */
+	/** The shared {@code ObjectTupleDescriptor}. */
 	private static final ObjectTupleDescriptor shared =
 		new ObjectTupleDescriptor(Mutability.SHARED);
 

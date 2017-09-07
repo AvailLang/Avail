@@ -36,8 +36,9 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.*;
+import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
 
 /**
@@ -113,12 +114,12 @@ extends TupleDescriptor
 	 * @param aNativeString A Java {@link String}.
 	 * @return A corresponding Avail {@linkplain StringDescriptor string}.
 	 */
-	public static A_String from (final String aNativeString)
+	public static A_String stringFrom (final String aNativeString)
 	{
 		final int charCount = aNativeString.length();
 		if (charCount == 0)
 		{
-			return empty();
+			return emptyTuple();
 		}
 		int maxCodePoint = 0;
 		int count = 0;
@@ -170,7 +171,7 @@ extends TupleDescriptor
 	 */
 	public static A_String format (final String pattern, final Object... args)
 	{
-		return from(String.format(pattern, args));
+		return stringFrom(String.format(pattern, args));
 	}
 
 	/**

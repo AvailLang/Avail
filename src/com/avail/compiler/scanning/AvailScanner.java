@@ -101,7 +101,7 @@ public class AvailScanner
 	@InnerAccess boolean encounteredBodyToken;
 
 	/** The previously scanned whitespace. */
-	private A_String previousWhitespace = TupleDescriptor.empty();
+	private A_String previousWhitespace = TupleDescriptor.emptyTuple();
 
 	/** The previously added {@linkplain A_Token token}. */
 	private @Nullable A_Token previousToken;
@@ -168,9 +168,9 @@ public class AvailScanner
 		final TokenType tokenType)
 	{
 		final A_Token token = TokenDescriptor.create(
-			StringDescriptor.from(currentTokenString()),
+			StringDescriptor.stringFrom(currentTokenString()),
 			previousWhitespace,
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			startOfToken + 1,
 			lineNumber,
 			tokenType);
@@ -193,9 +193,9 @@ public class AvailScanner
 		final A_BasicObject anAvailObject)
 	{
 		final A_Token token = LiteralTokenDescriptor.create(
-			StringDescriptor.from(currentTokenString()),
+			StringDescriptor.stringFrom(currentTokenString()),
 			previousWhitespace,
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			startOfToken + 1,
 			lineNumber,
 			TokenType.LITERAL,
@@ -216,9 +216,9 @@ public class AvailScanner
 	void addCurrentCommentToken (final int startLine)
 	{
 		final A_Token token = CommentTokenDescriptor.create(
-			StringDescriptor.from(currentTokenString()),
+			StringDescriptor.stringFrom(currentTokenString()),
 			previousWhitespace,
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			startOfToken + 1,
 			startLine);
 		token.makeShared();
@@ -391,7 +391,7 @@ public class AvailScanner
 			whitespace ->
 			{
 				assert whitespace != null;
-				return StringDescriptor.from(whitespace).makeShared();
+				return StringDescriptor.stringFrom(whitespace).makeShared();
 			});
 
 	/**
@@ -416,7 +416,7 @@ public class AvailScanner
 	 */
 	@InnerAccess void forgetWhitespace ()
 	{
-		previousWhitespace = TupleDescriptor.empty();
+		previousWhitespace = TupleDescriptor.emptyTuple();
 	}
 
 	/**
@@ -621,7 +621,7 @@ public class AvailScanner
 					c = scanner.next();
 				}
 				final String string = stringBuilder.toString();
-				final A_String availValue = StringDescriptor.from(string);
+				final A_String availValue = StringDescriptor.stringFrom(string);
 				availValue.makeImmutable();
 				final int lineAfterToken = scanner.lineNumber;
 				scanner.lineNumber = literalStartingLine;

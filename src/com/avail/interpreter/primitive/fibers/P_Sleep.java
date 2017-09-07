@@ -32,18 +32,31 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
-import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+import java.util.TimerTask;
+
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.ASLEEP;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
- * <strong>Primitive:</strong> Put the {@linkplain FiberDescriptor#current()
+ * <strong>Primitive:</strong> Put the {@linkplain FiberDescriptor#currentFiber()
  * current} {@linkplain FiberDescriptor fiber} to {@linkplain
  * ExecutionState#ASLEEP sleep} for at least the specified number of
  * milliseconds. If the sleep time is zero ({@code 0}), then return immediately.
@@ -75,13 +88,15 @@ extends Primitive
 		// make sleep and yield behave differently.
 		if (sleepMillis.equalsInt(0))
 		{
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			return interpreter.primitiveSuccess(nil());
 		}
 		final A_Fiber fiber = interpreter.fiber();
 		// If the requested sleep time isn't colossally big, then arrange for
 		// the fiber to resume later. If the delay is too big, then the fiber
 		// will only awaken due to interruption.
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = interpreter.runtime();
+		final A_RawFunction primitiveRawFunction =
+			stripNull(interpreter.function).code();
 		if (sleepMillis.isLong())
 		{
 			// Otherwise, delay the resumption of this task.
@@ -103,7 +118,8 @@ extends Primitive
 							Interpreter.resumeFromSuccessfulPrimitive(
 								runtime,
 								fiber,
-								NilDescriptor.nil(),
+								nil(),
+								primitiveRawFunction,
 								true);
 						}
 					});
@@ -122,7 +138,8 @@ extends Primitive
 					Interpreter.resumeFromSuccessfulPrimitive(
 						runtime,
 						fiber,
-						NilDescriptor.nil(),
+						nil(),
+						primitiveRawFunction,
 						true);
 					return;
 				}
@@ -148,7 +165,8 @@ extends Primitive
 					Interpreter.resumeFromSuccessfulPrimitive(
 						runtime,
 						fiber,
-						NilDescriptor.nil(),
+						nil(),
+						primitiveRawFunction,
 						true);
 					return;
 				}
@@ -158,17 +176,14 @@ extends Primitive
 		// Don't actually transition the fiber to the sleeping state, which
 		// can only occur at task-scheduling time. This happens after the
 		// fiber is unbound from the interpreter. Instead, suspend the fiber.
-		return interpreter.primitiveSuspend();
+		return interpreter.primitiveSuspend(primitiveRawFunction);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				IntegerRangeTypeDescriptor.inclusive(
-					IntegerDescriptor.zero(),
-					InfinityDescriptor.positiveInfinity())),
-			TOP.o());
+		return functionType(tuple(inclusive(
+			zero(),
+			positiveInfinity())), TOP.o());
 	}
 }

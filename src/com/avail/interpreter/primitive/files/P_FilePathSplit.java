@@ -80,17 +80,17 @@ extends Primitive
 		final List<A_String> components = new ArrayList<>();
 		for (final Path component : path)
 		{
-			components.add(StringDescriptor.from(component.toString()));
+			components.add(StringDescriptor.stringFrom(component.toString()));
 		}
-		final A_Tuple tuple = TupleDescriptor.fromList(components);
+		final A_Tuple tuple = TupleDescriptor.tupleFromList(components);
 		return interpreter.primitiveSuccess(tuple);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType()),
 			TupleTypeDescriptor.oneOrMoreOf(
 				TupleTypeDescriptor.stringType()));
@@ -99,8 +99,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INVALID_PATH));
 	}
 }

@@ -32,8 +32,6 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.compiler.instruction.AvailInstruction;
-
 /**
  * This abstract subclass of {@link AvailInstruction} introduces a generic
  * index whose interpretation is left to subclasses.

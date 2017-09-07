@@ -32,15 +32,23 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import java.util.List;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation3;
+import com.avail.utility.evaluation.Transformer1;
+
 import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
 
 /**
  * I'm used to implement the abstract notion of parse nodes. All concrete parse
@@ -65,7 +73,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Atom o_ApparentSendName (final AvailObject object)
 	{
-		return NilDescriptor.nil();
+		return nil();
 	}
 
 	/**
@@ -117,7 +125,7 @@ extends Descriptor
 		{
 			return object;
 		}
-		return AvailObjectRepresentation.newLike(mutable(), object, 0, 0);
+		return newLike(mutable(), object, 0, 0);
 	}
 
 	/**
@@ -278,7 +286,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Type o_SuperUnionType (final AvailObject object)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	/**

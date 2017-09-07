@@ -32,8 +32,9 @@
 
 package com.avail.exceptions;
 
-import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
 import com.avail.descriptor.AvailObject;
+
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
 
 /**
  * {@code MarshalingException} indicates that an error occurred during the

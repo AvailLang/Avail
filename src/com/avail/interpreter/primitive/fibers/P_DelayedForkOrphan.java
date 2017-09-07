@@ -154,13 +154,13 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				IntegerRangeTypeDescriptor.inclusive(
 					IntegerDescriptor.zero(),
 					InfinityDescriptor.positiveInfinity()),
-				FunctionTypeDescriptor.forReturnType(TOP.o()),
-				TupleTypeDescriptor.mostGeneralType(),
+				FunctionTypeDescriptor.functionTypeReturning(TOP.o()),
+				TupleTypeDescriptor.mostGeneralTupleType(),
 				IntegerRangeTypeDescriptor.bytes()),
 			TOP.o());
 	}
@@ -168,8 +168,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_INCORRECT_ARGUMENT_TYPE));
 	}

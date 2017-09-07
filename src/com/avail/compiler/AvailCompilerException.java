@@ -32,9 +32,10 @@
 
 package com.avail.compiler;
 
-import java.io.File;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.ModuleDescriptor;
+
+import java.io.File;
 
 /**
  * An {@code AvailCompilerException} is thrown by the {@linkplain

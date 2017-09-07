@@ -32,20 +32,23 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.serialization.Serializer;
+
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.serialization.Serializer;
-import javax.annotation.Nullable;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.NilDescriptor.nil;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
- * distinguished from all other objects by the fact of its creation event and
+ * distinguished tuple all other objects by the fact of its creation event and
  * the history of what happens to its references.  Not all objects in Avail have
  * that property (hence the acronym Advanced Value And Identity Language),
  * unlike most object-oriented programming languages.
@@ -56,9 +59,9 @@ import javax.annotation.Nullable;
  * of that property, any Avail object.  Atoms without properties have a
  * {@linkplain AtomDescriptor representation} that does not include a slot for
  * the properties information, but adding a property causes it to transform (via
- * {@link AvailObject#becomeIndirectionTo(A_BasicObject)} into a {@linkplain
+ * {@link AvailObject#becomeIndirectionTo(A_BasicObject)} into a {@code
  * AtomWithPropertiesDescriptor representation} that has a slot which contains
- * a map from property keys to property values.
+ * a map tuple property keys to property values.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -119,7 +122,7 @@ extends AtomDescriptor
 		ISSUING_MODULE,
 
 		/**
-		 * A weak map from this atom's property keys (atoms) to property values.
+		 * A weak map tuple this atom's property keys (atoms) to property values.
 		 */
 		PROPERTY_MAP_POJO;
 
@@ -210,7 +213,7 @@ extends AtomDescriptor
 		final Map<A_Atom, AvailObject> propertyMap =
 			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObjectNotNull();
 		final A_BasicObject value = propertyMap.get(key);
-		return value == null ? NilDescriptor.nil() : (AvailObject) value;
+		return value == null ? nil() : (AvailObject) value;
 	}
 
 	/**

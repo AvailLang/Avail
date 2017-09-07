@@ -32,19 +32,31 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Result.*;
-import java.util.ArrayList;
-import java.util.List;
-import com.avail.*;
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.Phase;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Declare method as {@linkplain
@@ -73,7 +85,7 @@ extends Primitive
 		final A_Atom atom = args.get(0);
 		final A_Type blockSignature = args.get(1);
 		final A_Fiber fiber = interpreter.fiber();
-		final AvailLoader loader = fiber.availLoader();
+		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null || loader.module().equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -83,11 +95,11 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION);
 		}
-		final A_Function failureFunction = interpreter.function;
-		assert failureFunction.code().primitive() == this;
+		final A_Function primitiveFunction = stripNull(interpreter.function);
+		assert primitiveFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		interpreter.primitiveSuspend();
-		AvailRuntime.current().whenLevelOneSafeDo(
+		interpreter.primitiveSuspend(primitiveFunction.code());
+		interpreter.runtime().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
 				() ->
@@ -98,7 +110,8 @@ extends Primitive
 						Interpreter.resumeFromSuccessfulPrimitive(
 							AvailRuntime.current(),
 							fiber,
-							NilDescriptor.nil(),
+							nil(),
+							primitiveFunction.code(),
 							skipReturnCheck);
 					}
 					catch (
@@ -109,7 +122,7 @@ extends Primitive
 							AvailRuntime.current(),
 							fiber,
 							e.numericCode(),
-							failureFunction,
+							primitiveFunction,
 							copiedArgs,
 							skipReturnCheck);
 					}
@@ -120,19 +133,16 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ATOM.o(),
-				FunctionTypeDescriptor.meta()),
+		return functionType(tuple(ATOM.o(), functionMeta()),
 			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-					E_LOADING_IS_OVER,
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor
+				.set(E_LOADING_IS_OVER,
 					E_CANNOT_DEFINE_DURING_COMPILATION,
 					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,

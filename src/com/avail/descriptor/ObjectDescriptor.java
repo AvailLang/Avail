@@ -271,7 +271,7 @@ extends Descriptor
 	A_Map o_FieldMap (final AvailObject object)
 	{
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
-		A_Map fieldMap = MapDescriptor.empty();
+		A_Map fieldMap = MapDescriptor.emptyMap();
 		for (final Map.Entry<A_Atom, Integer> entry
 			: variant.fieldToSlotIndex.entrySet())
 		{
@@ -300,7 +300,7 @@ extends Descriptor
 					fieldIterator.next();
 				final A_Atom field = entry.getKey();
 				final int slotIndex = entry.getValue();
-				return TupleDescriptor.from(
+				return TupleDescriptor.tuple(
 					field,
 					slotIndex == 0
 						? field
@@ -469,7 +469,7 @@ extends Descriptor
 			builder.append("object");
 		}
 		final A_Atom explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom;
-		A_Set ignoreKeys = SetDescriptor.empty();
+		A_Set ignoreKeys = SetDescriptor.emptySet();
 		for (final A_Type baseType : baseTypes)
 		{
 			final A_Map fieldTypes = baseType.fieldTypeMap();
@@ -548,7 +548,7 @@ extends Descriptor
 	 */
 	public static AvailObject objectFromTuple (final A_Tuple tuple)
 	{
-		A_Map map = MapDescriptor.empty();
+		A_Map map = MapDescriptor.emptyMap();
 		for (final A_Tuple fieldAssignment : tuple)
 		{
 			final A_Atom fieldAtom = fieldAssignment.tupleAt(1);

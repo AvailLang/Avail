@@ -69,10 +69,10 @@ public final class P_TupleTypeConcatenate extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.meta(),
-				TupleTypeDescriptor.meta()),
-			TupleTypeDescriptor.meta());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				TupleTypeDescriptor.tupleMeta(),
+				TupleTypeDescriptor.tupleMeta()),
+			TupleTypeDescriptor.tupleMeta());
 	}
 }

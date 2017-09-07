@@ -130,7 +130,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 		final A_Type functionType = afterCreation.typeAt(functionReg);
 		assert functionType != null;
 		assert functionType.isSubtypeOf(
-			FunctionTypeDescriptor.mostGeneralType());
+			FunctionTypeDescriptor.mostGeneralFunctionType());
 		afterCreation.removeConstantAt(destReg);
 		afterCreation.typeAtPut(
 			destReg,

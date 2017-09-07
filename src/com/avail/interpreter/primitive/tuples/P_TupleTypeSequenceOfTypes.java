@@ -94,9 +94,9 @@ public final class P_TupleTypeSequenceOfTypes extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.meta(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				TupleTypeDescriptor.tupleMeta(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.wholeNumbers()),
 			TupleTypeDescriptor.zeroOrMoreOf(
@@ -106,8 +106,8 @@ public final class P_TupleTypeSequenceOfTypes extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS,
 				E_NEGATIVE_SIZE));
 	}

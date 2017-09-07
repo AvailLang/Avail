@@ -266,7 +266,7 @@ extends TypeDescriptor
 	/**
 	 * The most general {@linkplain FiberTypeDescriptor fiber type}.
 	 */
-	private static final A_Type mostGeneralType =
+	private static final A_Type mostGeneralFiberType =
 		forResultType(TOP.o()).makeShared();
 
 	/**
@@ -274,23 +274,23 @@ extends TypeDescriptor
 	 *
 	 * @return The most general fiber type.
 	 */
-	public static A_Type mostGeneralType ()
+	public static A_Type mostGeneralFiberType ()
 	{
-		return mostGeneralType;
+		return mostGeneralFiberType;
 	}
 
 	/**
 	 * The metatype for all {@linkplain FiberTypeDescriptor fiber types}.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+		InstanceMetaDescriptor.instanceMetaOn(mostGeneralFiberType).makeShared();
 
 	/**
 	 * Answer the metatype for all {@linkplain FiberTypeDescriptor fiber types}.
 	 *
 	 * @return The metatype for all fiber types.
 	 */
-	public static A_Type meta ()
+	public static A_Type fiberMeta ()
 	{
 		return meta;
 	}

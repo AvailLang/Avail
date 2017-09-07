@@ -77,8 +77,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				IntegerRangeTypeDescriptor.integers(),
 				IntegerRangeTypeDescriptor.wholeNumbers()),
@@ -88,8 +88,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE,
 				E_TOO_LARGE_TO_REPRESENT));
 	}

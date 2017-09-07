@@ -64,9 +64,9 @@ public final class P_CompiledCodeFunctionType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				CompiledCodeTypeDescriptor.mostGeneralType()),
-			FunctionTypeDescriptor.meta());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()),
+			FunctionTypeDescriptor.functionMeta());
 	}
 }

@@ -32,11 +32,12 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
-import java.util.TreeMap;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -97,8 +98,7 @@ public class GrammaticalRestrictionCommentImplementation extends
 		this.forbids = forbids;
 		this.modules = new ArrayList<>();
 		this.modules.add(signature().module());
-		this.hashID = StringDescriptor.from(
-			signature.name()).hash();
+		this.hashID = StringDescriptor.stringFrom(signature.name()).hash();
 	}
 
 	@Override

@@ -64,8 +64,8 @@ public final class P_Type extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o()),
 			InstanceMetaDescriptor.topMeta());
 	}
@@ -75,6 +75,6 @@ public final class P_Type extends Primitive
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type argType = argumentTypes.get(0);
-		return InstanceMetaDescriptor.on(argType);
+		return InstanceMetaDescriptor.instanceMetaOn(argType);
 	}
 }

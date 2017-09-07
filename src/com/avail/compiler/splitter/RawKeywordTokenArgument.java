@@ -40,7 +40,7 @@ import static com.avail.compiler.ParsingOperation.PARSE_RAW_KEYWORD_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 
 /**
- * A {@linkplain RawKeywordTokenArgument} is an occurrence of {@linkplain
+ * A {@code RawKeywordTokenArgument} is an occurrence of {@linkplain
  * Metacharacter#ELLIPSIS ellipsis} (…) in a message name. It indicates
  * where a raw keyword token argument is expected. Like its superclass, the
  * {@link RawTokenArgument}, the token is captured after being placed in a
@@ -70,7 +70,7 @@ extends RawTokenArgument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_KEYWORD_TOKEN);
-		if (!LiteralTokenTypeDescriptor.create(Types.TOKEN.o()).isSubtypeOf(
+		if (!LiteralTokenTypeDescriptor.literalTokenType(Types.TOKEN.o()).isSubtypeOf(
 			phraseType))
 		{
 			generator.emitDelayed(

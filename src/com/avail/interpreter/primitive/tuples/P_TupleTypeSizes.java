@@ -67,10 +67,10 @@ public final class P_TupleTypeSizes extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.meta()),
-			InstanceMetaDescriptor.on(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				TupleTypeDescriptor.tupleMeta()),
+			InstanceMetaDescriptor.instanceMetaOn(
 				IntegerRangeTypeDescriptor.wholeNumbers()));
 	}
 }

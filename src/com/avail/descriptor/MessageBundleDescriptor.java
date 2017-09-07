@@ -41,7 +41,6 @@ import java.util.Map;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.exceptions.MalformedMessageException;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
@@ -407,8 +406,8 @@ extends Descriptor
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_SPLITTER_POJO, splitterPojo);
-		result.setSlot(GRAMMATICAL_RESTRICTIONS, SetDescriptor.empty());
-		A_Map plans = MapDescriptor.empty();
+		result.setSlot(GRAMMATICAL_RESTRICTIONS, SetDescriptor.emptySet());
+		A_Map plans = MapDescriptor.emptyMap();
 		for (final A_Definition definition : method.definitionsTuple())
 		{
 			final A_DefinitionParsingPlan plan =
@@ -428,7 +427,7 @@ extends Descriptor
 		// Look up the statistic by name, so that multiple loads of a module
 		// will accumulate.
 		final String nameString = methodName.toString();
-		final A_String name = StringDescriptor.from(nameString).makeShared();
+		final A_String name = StringDescriptor.stringFrom(nameString).makeShared();
 		final Statistic stat;
 		synchronized (dynamicLookupStatsByString)
 		{

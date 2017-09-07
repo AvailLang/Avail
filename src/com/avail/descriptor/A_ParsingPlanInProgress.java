@@ -44,7 +44,6 @@ package com.avail.descriptor;
 public interface A_ParsingPlanInProgress
 extends A_BasicObject
 {
-
 	/**
 	 * Answer the program counter that this plan-in-progress represents.
 	 *

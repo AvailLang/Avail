@@ -66,10 +66,10 @@ public final class P_KeyInMap extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o(),
-				MapTypeDescriptor.mostGeneralType()),
-			EnumerationTypeDescriptor.booleanObject());
+				MapTypeDescriptor.mostGeneralMapType()),
+			EnumerationTypeDescriptor.booleanType());
 	}
 }

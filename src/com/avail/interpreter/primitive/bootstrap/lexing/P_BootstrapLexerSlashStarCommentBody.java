@@ -75,7 +75,7 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		if (position > sourceSize || source.tupleCodePointAt(position) != '*')
 		{
 			// It didn't start with "/*", so it's not a comment.
-			return interpreter.primitiveSuccess(TupleDescriptor.empty());
+			return interpreter.primitiveSuccess(TupleDescriptor.emptyTuple());
 		}
 		position++;
 
@@ -119,19 +119,19 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		final A_Token token = CommentTokenDescriptor.create(
 			(A_String)source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
-			TupleDescriptor.empty(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
+			TupleDescriptor.emptyTuple(),
 			startPosition,
 			startingLineNumber.extractInt());
 		token.makeShared();
-		return interpreter.primitiveSuccess(TupleDescriptor.from(token));
+		return interpreter.primitiveSuccess(TupleDescriptor.tuple(token));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),

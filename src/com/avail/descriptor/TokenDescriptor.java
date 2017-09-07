@@ -226,7 +226,7 @@ extends Descriptor
 		{
 			final String nativeOriginal = token.slot(STRING).asNativeString();
 			final String nativeLowerCase = nativeOriginal.toLowerCase();
-			lowerCase = StringDescriptor.from(nativeLowerCase);
+			lowerCase = StringDescriptor.stringFrom(nativeLowerCase);
 			if (isShared())
 			{
 				lowerCase = lowerCase.traversed().makeShared();

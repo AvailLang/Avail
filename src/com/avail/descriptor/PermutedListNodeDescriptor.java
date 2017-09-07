@@ -32,18 +32,22 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.PermutedListNodeDescriptor.ObjectSlots.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PERMUTED_LIST_NODE;
+import static com.avail.descriptor.PermutedListNodeDescriptor.ObjectSlots.*;
 
 /**
  * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which
@@ -113,7 +117,7 @@ extends ParseNodeDescriptor
 				adjustedTypes[permutation.tupleIntAt(i) - 1] =
 					originalTupleType.typeAtIndex(i);
 			}
-			expressionType = TupleTypeDescriptor.forTypes(adjustedTypes);
+			expressionType = TupleTypeDescriptor.tupleTypeForTypes(adjustedTypes);
 			object.setMutableSlot(EXPRESSION_TYPE, expressionType.makeShared());
 		}
 		return expressionType;
@@ -293,7 +297,7 @@ extends ParseNodeDescriptor
 			final int index = permutation.tupleIntAt(i);
 			types[index - 1] = t;
 		}
-		return TupleTypeDescriptor.forTypes(types);
+		return TupleTypeDescriptor.tupleTypeForTypes(types);
 	}
 
 	@Override @AvailMethod
@@ -348,7 +352,7 @@ extends ParseNodeDescriptor
 		final AvailObject instance = mutable.create();
 		instance.setSlot(LIST, list);
 		instance.setSlot(PERMUTATION, permutation);
-		instance.setSlot(EXPRESSION_TYPE, NilDescriptor.nil());
+		instance.setSlot(EXPRESSION_TYPE, nil());
 		instance.makeShared();
 		return instance;
 	}

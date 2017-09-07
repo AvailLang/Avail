@@ -32,7 +32,10 @@
 
 package com.avail.exceptions;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.StringDescriptor;
+
+import static java.lang.String.format;
 
 /**
  * An {@code AvailAssertionFailedException} is thrown when an Avail assertion
@@ -89,13 +92,13 @@ extends Exception
 	public AvailAssertionFailedException (
 		final String assertionString)
 	{
-		this.assertionString = StringDescriptor.from(assertionString);
+		this.assertionString = StringDescriptor.stringFrom(assertionString);
 	}
 
 	@Override
 	public String getMessage ()
 	{
-		return String.format(
+		return format(
 			"An assertion failed: %s%n",
 			assertionString.asNativeString());
 	}

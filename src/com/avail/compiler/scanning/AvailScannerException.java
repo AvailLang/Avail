@@ -32,7 +32,7 @@
 
 package com.avail.compiler.scanning;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.TokenDescriptor;
 
 /**
  * An {@code AvailScannerException} is thrown if a problem occurs while

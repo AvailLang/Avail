@@ -41,14 +41,15 @@ import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.evaluation.Continuation0;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.WrapState.*;
+import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
 
 /**
@@ -58,7 +59,7 @@ import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_G
  * Metacharacter#DOUBLE_DAGGER double dagger} (‡).
  *
  * <p>At a call site, an optional produces a {@linkplain
- * EnumerationTypeDescriptor#booleanObject() boolean} that indicates whether
+ * EnumerationTypeDescriptor#booleanType() boolean} that indicates whether
  * there was an occurrence of the group.  For example, the message
  * "«very»?good" accepts a single argument: a boolean that is {@linkplain
  * AtomDescriptor#trueObject() true} if the token "very" occurred and
@@ -122,7 +123,7 @@ extends Expression
 	throws SignatureException
 	{
 		if (!argumentType.isSubtypeOf(
-			EnumerationTypeDescriptor.booleanObject()))
+			booleanType()))
 		{
 			// The declared type of the subexpression must be a subtype of
 			// boolean.

@@ -32,9 +32,10 @@
 
 package com.avail.server.io;
 
-import java.nio.channels.AsynchronousSocketChannel;
 import com.avail.annotations.InnerAccess;
 import com.avail.server.messages.Message;
+
+import java.nio.channels.AsynchronousSocketChannel;
 
 /**
  * A {@code SocketChannel} encapsulates an {@link AsynchronousSocketChannel}

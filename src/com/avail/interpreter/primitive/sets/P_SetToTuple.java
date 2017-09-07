@@ -72,15 +72,15 @@ public final class P_SetToTuple extends Primitive
 		// elements, and bound each element to the set's element type.
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			setType.sizeRange(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			setType.contentType());
 	}
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				SetTypeDescriptor.mostGeneralType()),
-			TupleTypeDescriptor.mostGeneralType());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				SetTypeDescriptor.mostGeneralSetType()),
+			TupleTypeDescriptor.mostGeneralTupleType());
 	}
 }

@@ -38,7 +38,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 
 /**
  * A {@link Problem} has a {@link ProblemType}, indicating its basic nature
- * and severity.  This helps a {@link ProblemHandler} decide how best to respond
+ * and severity.  This helps a {@code ProblemHandler} decide how best to respond
  * to the Problem, such as deciding whether to continue parsing to discover
  * subsequent problems or to give up building the modules.
  *

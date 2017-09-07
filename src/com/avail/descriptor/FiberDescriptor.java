@@ -1113,7 +1113,7 @@ extends Descriptor
 		@SuppressWarnings("unchecked")
 		final WeakHashMap<A_Variable, Boolean> map =
 			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObjectNotNull();
-		A_Set set = SetDescriptor.empty();
+		A_Set set = SetDescriptor.emptySet();
 		for (final Entry<A_Variable, Boolean> entry : map.entrySet())
 		{
 			if (entry.getValue())
@@ -1133,7 +1133,7 @@ extends Descriptor
 		@SuppressWarnings("unchecked")
 		final WeakHashMap<A_Variable, Boolean> map =
 			(WeakHashMap<A_Variable, Boolean>) rawPojo.javaObjectNotNull();
-		A_Set set = SetDescriptor.empty();
+		A_Set set = SetDescriptor.emptySet();
 		for (final Entry<A_Variable, Boolean> entry : map.entrySet())
 		{
 			set = set.setWithElementCanDestroy(entry.getKey(), true);
@@ -1240,7 +1240,7 @@ extends Descriptor
 		synchronized (object)
 		{
 			previousSet = object.slot(REIFICATION_WAITERS);
-			object.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
+			object.setSlot(REIFICATION_WAITERS, SetDescriptor.emptySet());
 		}
 		return previousSet;
 	}
@@ -1338,7 +1338,7 @@ extends Descriptor
 	public static @Nullable A_Phrase lookupBindingOrNull (
 		final A_String name)
 	{
-		final A_Fiber fiber = current();
+		final A_Fiber fiber = currentFiber();
 		final A_Map fiberGlobals = fiber.fiberGlobals();
 		final A_Map clientData = fiberGlobals.mapAt(
 			CLIENT_DATA_GLOBAL_KEY.atom);
@@ -1367,7 +1367,7 @@ extends Descriptor
 			CLIENT_DATA_GLOBAL_KEY.atom;
 		final A_Atom compilerScopeMapKey =
 			COMPILER_SCOPE_MAP_KEY.atom;
-		final A_Fiber fiber = current();
+		final A_Fiber fiber = currentFiber();
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);
 		A_Map bindings = clientData.mapAt(compilerScopeMapKey);
@@ -1464,19 +1464,19 @@ extends Descriptor
 		fiber.setSlot(CONTINUATION, NilDescriptor.nil());
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
 		fiber.setSlot(BREAKPOINT_BLOCK, NilDescriptor.nil());
-		fiber.setSlot(FIBER_GLOBALS, MapDescriptor.empty());
-		fiber.setSlot(HERITABLE_FIBER_GLOBALS, MapDescriptor.empty());
+		fiber.setSlot(FIBER_GLOBALS, MapDescriptor.emptyMap());
+		fiber.setSlot(HERITABLE_FIBER_GLOBALS, MapDescriptor.emptyMap());
 		fiber.setSlot(RESULT, NilDescriptor.nil());
 		fiber.setSlot(LOADER, NilDescriptor.nil());
 		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
 		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
-		fiber.setSlot(JOINING_FIBERS, SetDescriptor.empty());
+		fiber.setSlot(JOINING_FIBERS, SetDescriptor.emptySet());
 		fiber.setSlot(WAKEUP_TASK, NilDescriptor.nil());
 		fiber.setSlot(
 			TRACED_VARIABLES,
 			RawPojoDescriptor.identityWrap(
 				new WeakHashMap<A_Variable, Boolean>()));
-		fiber.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
+		fiber.setSlot(REIFICATION_WAITERS, SetDescriptor.emptySet());
 		fiber.setSlot(
 			TEXT_INTERFACE, AvailRuntime.current().textInterfacePojo());
 		final int id = uniqueDebugCounter.incrementAndGet();
@@ -1518,19 +1518,19 @@ extends Descriptor
 		fiber.setSlot(CONTINUATION, NilDescriptor.nil());
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
 		fiber.setSlot(BREAKPOINT_BLOCK, NilDescriptor.nil());
-		fiber.setSlot(FIBER_GLOBALS, MapDescriptor.empty());
-		fiber.setSlot(HERITABLE_FIBER_GLOBALS, MapDescriptor.empty());
+		fiber.setSlot(FIBER_GLOBALS, MapDescriptor.emptyMap());
+		fiber.setSlot(HERITABLE_FIBER_GLOBALS, MapDescriptor.emptyMap());
 		fiber.setSlot(RESULT, NilDescriptor.nil());
 		fiber.setSlot(LOADER, RawPojoDescriptor.identityWrap(loader));
 		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
 		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
-		fiber.setSlot(JOINING_FIBERS, SetDescriptor.empty());
+		fiber.setSlot(JOINING_FIBERS, SetDescriptor.emptySet());
 		fiber.setSlot(WAKEUP_TASK, NilDescriptor.nil());
 		fiber.setSlot(
 			TRACED_VARIABLES,
 			RawPojoDescriptor.identityWrap(
 				new WeakHashMap<A_Variable, Boolean>()));
-		fiber.setSlot(REIFICATION_WAITERS, SetDescriptor.empty());
+		fiber.setSlot(REIFICATION_WAITERS, SetDescriptor.emptySet());
 		fiber.setSlot(
 			TEXT_INTERFACE, AvailRuntime.current().textInterfacePojo());
 		final int id = uniqueDebugCounter.incrementAndGet();
@@ -1545,7 +1545,7 @@ extends Descriptor
 	 *
 	 * @return A fiber.
 	 */
-	public static A_Fiber current ()
+	public static A_Fiber currentFiber ()
 	{
 		return ((AvailThread) Thread.currentThread()).interpreter.fiber();
 	}
@@ -1556,7 +1556,7 @@ extends Descriptor
 	 *
 	 * @return A fiber, or {@code null} if no fiber is currently bound.
 	 */
-	public static @Nullable A_Fiber currentOrNull ()
+	public static @Nullable A_Fiber currentFiberOrNull ()
 	{
 		final @Nullable Interpreter interpreter = Interpreter.currentOrNull();
 		final @Nullable A_Fiber fiber = interpreter != null

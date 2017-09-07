@@ -32,13 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.BlockNodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
@@ -47,9 +40,29 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.PRIMITIVE;
+import static com.avail.descriptor.BlockNodeDescriptor.IntegerSlots.STARTING_LINE_NUMBER;
+import static com.avail.descriptor.BlockNodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.MODULE_CONSTANT;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.MODULE_VARIABLE;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
 /**
  * My instances represent occurrences of blocks (functions) encountered in code.
@@ -324,8 +337,7 @@ extends ParseNodeDescriptor
 		{
 			argumentTypes.add(argDeclaration.declaredType());
 		}
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.fromList(argumentTypes),
+		return functionType(tupleFromList(argumentTypes),
 			object.resultType());
 	}
 
@@ -351,7 +363,7 @@ extends ParseNodeDescriptor
 		{
 			final A_Function function = FunctionDescriptor.create(
 				compiledBlock,
-				TupleDescriptor.empty());
+				emptyTuple());
 			function.makeImmutable();
 			codeGenerator.emitPushLiteral(function);
 		}
@@ -552,10 +564,10 @@ extends ParseNodeDescriptor
 
 	/**
 	 * Answer the labels present in this block's list of statements. There is
-	 * either zero or one label, and it must be the first statement.
+	 * either floatZero or one label, and it must be the first statement.
 	 *
 	 * @param object The block node to examine.
-	 * @return A list of between zero and one labels.
+	 * @return A list of between floatZero and one labels.
 	 */
 	public static List<A_Phrase> labels (final A_Phrase object)
 	{
@@ -623,9 +635,9 @@ extends ParseNodeDescriptor
 		final int lineNumber)
 	{
 		return newBlockNode(
-			TupleDescriptor.fromList(argumentsList),
+			tupleFromList(argumentsList),
 			primitive,
-			TupleDescriptor.fromList(statementsList),
+			tupleFromList(statementsList),
 			resultType,
 			declaredExceptions,
 			lineNumber);
@@ -683,9 +695,10 @@ extends ParseNodeDescriptor
 		block.setSlot(ARGUMENTS_TUPLE, arguments);
 		block.setSlot(PRIMITIVE, primitive);
 		block.setSlot(
-			STATEMENTS_TUPLE, TupleDescriptor.fromList(flattenedStatements));
+			STATEMENTS_TUPLE,
+			tupleFromList(flattenedStatements));
 		block.setSlot(RESULT_TYPE, resultType);
-		block.setSlot(NEEDED_VARIABLES, NilDescriptor.nil());
+		block.setSlot(NEEDED_VARIABLES, nil());
 		block.setSlot(DECLARED_EXCEPTIONS, declaredExceptions);
 		block.setSlot(STARTING_LINE_NUMBER, lineNumber);
 		block.makeShared();
@@ -757,7 +770,7 @@ extends ParseNodeDescriptor
 				node.childrenDo(this);
 			}
 		});
-		object.neededVariables(TupleDescriptor.fromList(neededDeclarations));
+		object.neededVariables(tupleFromList(neededDeclarations));
 	}
 
 	/**

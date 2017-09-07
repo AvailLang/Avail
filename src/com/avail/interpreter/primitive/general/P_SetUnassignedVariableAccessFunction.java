@@ -66,7 +66,7 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Function function = args.get(0);
 		function.code().setMethodName(
-			StringDescriptor.from("«cannot read unassigned variable»"));
+			StringDescriptor.stringFrom("«cannot read unassigned variable»"));
 		AvailRuntime.current().setUnassignedVariableReadFunction(function);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
@@ -74,10 +74,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.emptyTuple(),
 					BottomTypeDescriptor.bottom())),
 			TOP.o());
 	}

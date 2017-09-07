@@ -180,7 +180,7 @@ extends Primitive
 			throw new AvailException(E_KEY_NOT_FOUND);
 		}
 		final A_BasicObject targetElement = targetMap.mapAt(targetIndex);
-		if (targetElement.isInstanceOf(TupleTypeDescriptor.mostGeneralType()))
+		if (targetElement.isInstanceOf(TupleTypeDescriptor.mostGeneralTupleType()))
 		{
 			final A_BasicObject newTuple = recursivelyUpdateTuple(
 				(A_Tuple)targetElement, pathTuple, headLastIndex,
@@ -189,7 +189,7 @@ extends Primitive
 				targetIndex, newTuple, true);
 		}
 		else if (targetElement.isInstanceOf(
-			MapTypeDescriptor.mostGeneralType()))
+			MapTypeDescriptor.mostGeneralMapType()))
 		{
 			final A_BasicObject newMap = recursivelyUpdateMap(
 				(A_Map)targetElement, pathTuple, headLastIndex, tailFirstIndex,
@@ -246,35 +246,35 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				TupleTypeDescriptor.mostGeneralTupleType(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.integerRangeType(
 						IntegerDescriptor.fromInt(1),
 						true,
 						InfinityDescriptor.positiveInfinity(),
 						false),
-					TupleDescriptor.empty(),
+					TupleDescriptor.emptyTuple(),
 					ANY.o()),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.create(
+					IntegerRangeTypeDescriptor.integerRangeType(
 						IntegerDescriptor.fromInt(2),
 						true,
 						InfinityDescriptor.positiveInfinity(),
 						false),
-					TupleDescriptor.empty(),
+					TupleDescriptor.emptyTuple(),
 					ANY.o())),
-			TupleTypeDescriptor.mostGeneralType());
+			TupleTypeDescriptor.mostGeneralTupleType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS,
 				E_INCORRECT_ARGUMENT_TYPE,
 				E_KEY_NOT_FOUND,

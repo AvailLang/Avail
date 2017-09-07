@@ -32,9 +32,14 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.*;
-import com.avail.utility.evaluation.*;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher;
+import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.utility.evaluation.Transformer2;
+
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.String.format;
 
 /**
  * An {@code L2ReadWritePointerOperand} is an operand of type {@link
@@ -79,12 +84,13 @@ public class L2ReadWritePointerOperand extends L2Operand
 		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
 	{
 		return new L2ReadWritePointerOperand(
-			(L2ObjectRegister)transformer.value(register, operandType()));
+			(L2ObjectRegister) stripNull(
+				transformer.value(register, operandType())));
 	}
 
 	@Override
 	public String toString ()
 	{
-		return String.format("ReadWriteObject(%s)", register);
+		return format("ReadWriteObject(%s)", register);
 	}
 }

@@ -36,17 +36,15 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.ReferenceNodeDescriptor;
 import com.avail.descriptor.VariableDescriptor;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
-import static com.avail.compiler.ParsingOperation.CHECK_ARGUMENT;
-import static com.avail.compiler.ParsingOperation.PARSE_VARIABLE_REFERENCE;
-import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.compiler.ParsingOperation.*;
 
 /**
- * A {@linkplain VariableQuote} is an occurrence of {@linkplain
+ * A {@code VariableQuote} is an occurrence of {@linkplain
  * Metacharacter#UP_ARROW up arrow} (↑) after an underscore in a
  * message name. It indicates that the expression must be the name of a
  * {@linkplain VariableDescriptor variable} that is currently in-scope. It

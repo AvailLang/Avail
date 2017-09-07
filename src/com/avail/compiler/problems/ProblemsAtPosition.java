@@ -33,15 +33,14 @@
 package com.avail.compiler.problems;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.utility.evaluation.Describer;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * An aggregate of problems at a specific token.  It also includes the {@link
  * String} used to mark the location of the problem in the source text.
  */
-@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
 public final class ProblemsAtPosition
 	implements Comparable<ProblemsAtPosition>
 {

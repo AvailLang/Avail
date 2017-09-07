@@ -32,15 +32,21 @@
 
 package com.avail.descriptor;
 
-import static java.lang.Long.bitCount;
+import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.MapDescriptor.MapIterable;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.NoSuchElementException;
+
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.Mutability.*;
-import java.util.*;
-
-import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.MapDescriptor.Entry;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static java.lang.Long.bitCount;
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
@@ -233,8 +239,8 @@ extends MapBinDescriptor
 	 */
 	private void computeKeyAndValueKinds (final AvailObject object)
 	{
-		A_Type keyType = BottomTypeDescriptor.bottom();
-		A_Type valueType = BottomTypeDescriptor.bottom();
+		A_Type keyType = bottom();
+		A_Type valueType = bottom();
 		final int binCount =
 			object.objectSlotsCount() - numberOfFixedObjectSlots;
 		for (int i = 1; i <= binCount; i++)
@@ -367,8 +373,9 @@ extends MapBinDescriptor
 				{
 					object.makeSubobjectsImmutable();
 				}
-				objectToModify = AvailObjectRepresentation.newLike(
-					descriptorFor(MUTABLE, level), object, 0, 0);
+				objectToModify = newLike(descriptorFor(
+					MUTABLE,
+					level), object, 0, 0);
 			}
 			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSubBin);
 		}
@@ -406,9 +413,9 @@ extends MapBinDescriptor
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + hashDelta);
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
 		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
-		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, NilDescriptor.nil());
+		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
 		objectToModify.setSlot(
-			BIN_VALUE_UNION_KIND_OR_NULL, NilDescriptor.nil());
+			BIN_VALUE_UNION_KIND_OR_NULL, nil());
 		check(objectToModify);
 		return objectToModify;
 	}
@@ -425,7 +432,7 @@ extends MapBinDescriptor
 		if ((vector & (1L << logicalIndex)) == 0)
 		{
 			// Not found.  Answer nil.
-			return NilDescriptor.nil();
+			return nil();
 		}
 		// There's an entry.  Count the 1-bits below it to compute its
 		// zero-relative physicalIndex.
@@ -480,7 +487,7 @@ extends MapBinDescriptor
 			if (oldSlotCount == 1)
 			{
 				// ...and so must this one.
-				return NilDescriptor.nil();
+				return nil();
 			}
 			objectToModify = AvailObject.newIndexedDescriptor(
 				bitCount(vector) - 1,
@@ -513,8 +520,9 @@ extends MapBinDescriptor
 			}
 			else
 			{
-				objectToModify = AvailObjectRepresentation.newLike(
-					descriptorFor(MUTABLE, level), object, 0, 0);
+				objectToModify = newLike(descriptorFor(
+					MUTABLE,
+					level), object, 0, 0);
 			}
 			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSubBin);
 		}
@@ -522,9 +530,9 @@ extends MapBinDescriptor
 		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + deltaHash);
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
-		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, NilDescriptor.nil());
+		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
 		objectToModify.setSlot(
-			BIN_VALUE_UNION_KIND_OR_NULL, NilDescriptor.nil());
+			BIN_VALUE_UNION_KIND_OR_NULL, nil());
 		check(objectToModify);
 		return objectToModify;
 	}
@@ -719,11 +727,11 @@ extends MapBinDescriptor
 		result.setSlot(VALUES_HASH_OR_ZERO, 0);
 		result.setSlot(BIN_SIZE, 0);
 		result.setSlot(BIT_VECTOR, bitVector);
-		result.setSlot(BIN_KEY_UNION_KIND_OR_NULL, NilDescriptor.nil());
-		result.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, NilDescriptor.nil());
+		result.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
+		result.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil());
 		for (int i = 1; i <= newSize; i++)
 		{
-			result.setSlot(SUB_BINS_, i, NilDescriptor.nil());
+			result.setSlot(SUB_BINS_, i, nil());
 		}
 		check(result);
 		return result;

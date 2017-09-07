@@ -377,11 +377,11 @@ public final class AvailCodeGenerator
 			else
 			{
 				localsArray[i - numArgs - 1] =
-					VariableTypeDescriptor.wrapInnerType(argDeclType);
+					VariableTypeDescriptor.variableTypeFor(argDeclType);
 			}
 		}
-		final A_Tuple argsTuple = TupleDescriptor.from(argsArray);
-		final A_Tuple localsTuple = TupleDescriptor.from(localsArray);
+		final A_Tuple argsTuple = TupleDescriptor.tuple(argsArray);
+		final A_Tuple localsTuple = TupleDescriptor.tuple(localsArray);
 		final A_Type [] outerArray = new A_Type[outerMap.size()];
 		for (final Entry<A_Phrase, Integer> entry : outerMap.entrySet())
 		{
@@ -396,10 +396,10 @@ public final class AvailCodeGenerator
 			else
 			{
 				outerArray[i - 1] =
-					VariableTypeDescriptor.wrapInnerType(argDeclType);
+					VariableTypeDescriptor.variableTypeFor(argDeclType);
 			}
 		}
-		final A_Tuple outerTuple = TupleDescriptor.from(outerArray);
+		final A_Tuple outerTuple = TupleDescriptor.tuple(outerArray);
 		final A_Type functionType =
 			FunctionTypeDescriptor.create(argsTuple, resultType, exceptionSet);
 		final A_RawFunction code = CompiledCodeDescriptor.create(
@@ -408,7 +408,7 @@ public final class AvailCodeGenerator
 			maxDepth,
 			functionType,
 			primitive,
-			TupleDescriptor.fromList(literals),
+			TupleDescriptor.tupleFromList(literals),
 			localsTuple,
 			outerTuple,
 			module,

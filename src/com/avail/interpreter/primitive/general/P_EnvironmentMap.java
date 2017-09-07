@@ -81,13 +81,13 @@ extends Primitive
 		if (result == null)
 		{
 			final Map<String, String> map = System.getenv();
-			A_Tuple bindings = TupleDescriptor.empty();
+			A_Tuple bindings = TupleDescriptor.emptyTuple();
 			for (final Entry<String, String> entry : map.entrySet())
 			{
 				bindings = bindings.appendCanDestroy(
-					TupleDescriptor.from(
-						StringDescriptor.from(entry.getKey()),
-						StringDescriptor.from(entry.getValue())),
+					TupleDescriptor.tuple(
+						StringDescriptor.stringFrom(entry.getKey()),
+						StringDescriptor.stringFrom(entry.getValue())),
 					true);
 			}
 			result = MapDescriptor.newWithBindings(bindings).makeShared();
@@ -109,8 +109,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.emptyTuple(),
 			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleTypeDescriptor.stringType(),

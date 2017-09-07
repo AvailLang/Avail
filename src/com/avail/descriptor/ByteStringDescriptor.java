@@ -115,7 +115,7 @@ extends StringDescriptor
 			|| ((intValue = ((A_Character)newElement).codePoint()) & ~255) != 0)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			final A_Tuple singleton = TupleDescriptor.tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int newSize = originalSize + 1;

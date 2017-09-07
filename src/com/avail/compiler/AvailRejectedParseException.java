@@ -32,11 +32,16 @@
 
 package com.avail.compiler;
 
-import javax.annotation.Nullable;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.StringDescriptor;
 import com.avail.exceptions.PrimitiveThrownException;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.utility.Generator;
+
+import javax.annotation.Nullable;
+
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.String.format;
 
 /**
  * An {@code AvailRejectedParseException} is thrown by primitive {@link
@@ -75,13 +80,10 @@ extends PrimitiveThrownException
 	{
 		if (rejectionString == null)
 		{
-			final Generator<A_String> generator = rejectionGenerator;
-			assert generator != null;
+			final Generator<A_String> generator = stripNull(rejectionGenerator);
 			rejectionString = generator.value();
 		}
-		final A_String availString = rejectionString;
-		assert availString != null;
-		return availString;
+		return stripNull(rejectionString);
 	}
 
 	/**
@@ -118,9 +120,8 @@ extends PrimitiveThrownException
 	{
 		this.rejectionGenerator = () ->
 		{
-			final String string = String.format(
-				rejectionPattern, rejectionArguments);
-			return StringDescriptor.from(string);
+			final String string = format(rejectionPattern, rejectionArguments);
+			return StringDescriptor.stringFrom(string);
 		};
 		this.rejectionString = null;
 	}

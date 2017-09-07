@@ -33,8 +33,6 @@
 package com.avail.dispatch;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import javax.annotation.Nullable;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Tuple;
@@ -42,8 +40,10 @@ import com.avail.descriptor.A_Type;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer2;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 

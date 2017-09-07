@@ -32,22 +32,26 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-import java.util.List;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+import java.util.List;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.ObjectSlots.MACRO_ORIGINAL_SEND;
+import static com.avail.descriptor.MacroSubstitutionNodeDescriptor.ObjectSlots.OUTPUT_PARSE_NODE;
 
 /**
- * A {@linkplain MacroSubstitutionNodeDescriptor macro substitution node}
+ * A {@code MacroSubstitutionNodeDescriptor macro substitution node}
  * represents the result of applying a {@linkplain MacroDefinitionDescriptor
  * macro} to its argument {@linkplain ParseNodeDescriptor expressions} to
  * produce an {@linkplain ObjectSlots#OUTPUT_PARSE_NODE output parse node}.

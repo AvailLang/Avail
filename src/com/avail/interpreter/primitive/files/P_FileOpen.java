@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Set;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
-import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 
@@ -214,8 +213,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				SetTypeDescriptor.setTypeForSizesContentType(
@@ -230,8 +229,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_EXCEEDS_VM_LIMIT,
 				E_INVALID_PATH,
 				E_ILLEGAL_OPTION,

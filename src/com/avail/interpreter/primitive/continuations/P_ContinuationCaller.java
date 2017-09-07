@@ -61,7 +61,7 @@ public final class P_ContinuationCaller extends Primitive
 		final A_Continuation con = args.get(0);
 		final A_Continuation caller = con.caller();
 		final A_Variable callerHolder = VariableDescriptor.forContentType(
-			ContinuationTypeDescriptor.mostGeneralType());
+			ContinuationTypeDescriptor.mostGeneralContinuationType());
 		if (!caller.equalsNil())
 		{
 			callerHolder.setValueNoCheck(caller);
@@ -72,10 +72,10 @@ public final class P_ContinuationCaller extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ContinuationTypeDescriptor.mostGeneralType()),
-			VariableTypeDescriptor.wrapInnerType(
-				ContinuationTypeDescriptor.mostGeneralType()));
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				ContinuationTypeDescriptor.mostGeneralContinuationType()),
+			VariableTypeDescriptor.variableTypeFor(
+				ContinuationTypeDescriptor.mostGeneralContinuationType()));
 	}
 }

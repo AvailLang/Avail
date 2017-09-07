@@ -32,7 +32,8 @@
 
 package com.avail.exceptions;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.InfinityDescriptor;
+import com.avail.descriptor.IntegerDescriptor;
 
 /**
  * An {@code ArithmeticException} is thrown by arithmetic operations.

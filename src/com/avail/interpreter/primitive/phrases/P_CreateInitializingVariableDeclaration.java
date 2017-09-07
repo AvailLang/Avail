@@ -76,8 +76,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TOKEN.o(),
 				InstanceMetaDescriptor.anyMeta(),
 				EXPRESSION_NODE.create(ANY.o())),

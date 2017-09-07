@@ -478,7 +478,7 @@ extends TypeDescriptor
 			}
 			if (newLeadingSizeObject.lessThan(newSizesObject.upperBound()))
 			{
-				newSizesObject = IntegerRangeTypeDescriptor.create(
+				newSizesObject = IntegerRangeTypeDescriptor.integerRangeType(
 					newSizesObject.lowerBound(),
 					newSizesObject.lowerInclusive(),
 					newLeadingSizeObject,
@@ -621,7 +621,7 @@ extends TypeDescriptor
 		{
 			return privateTupleTypeForSizesTypesDefaultType(
 				sizeRange,
-				TupleDescriptor.empty(),
+				TupleDescriptor.emptyTuple(),
 				BottomTypeDescriptor.bottom());
 		}
 		final int typeTupleSize = typeTuple.tupleSize();
@@ -671,7 +671,7 @@ extends TypeDescriptor
 	{
 		return tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.zeroOrOne(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			aType);
 	}
 
@@ -686,7 +686,7 @@ extends TypeDescriptor
 	{
 		return tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.wholeNumbers(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			aType);
 	}
 
@@ -701,7 +701,7 @@ extends TypeDescriptor
 	{
 		return tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.naturalNumbers(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			aType);
 	}
 
@@ -709,16 +709,16 @@ extends TypeDescriptor
 	 * Answer a fixed size tuple type consisting of the given element types.
 	 *
 	 * @param types
-	 *            A variable number of types corresponding to the elements of
-	 *            the resulting tuple type.
+	 *        A variable number of types corresponding to the elements of the
+	 *        resulting tuple type.
 	 * @return A fixed-size tuple type.
 	 *
 	 */
-	public static A_Type forTypes (final A_Type... types)
+	public static A_Type tupleTypeForTypes (final A_Type... types)
 	{
 		return tupleTypeForSizesTypesDefaultType(
 			IntegerRangeTypeDescriptor.singleInt(types.length),
-			TupleDescriptor.from(types),
+			TupleDescriptor.tuple(types),
 			BottomTypeDescriptor.bottom());
 	}
 
@@ -809,13 +809,13 @@ extends TypeDescriptor
 	 *            TupleTypeDescriptor tuple type} being hashed.
 	 * @param typeTupleHash
 	 *            The hash of the tuple of types of the leading arguments of
-	 *            tuples that conform to some {@linkplain TupleTypeDescriptor
+	 *            tuples that conform to some {@code TupleTypeDescriptor
 	 *            tuple type} being hashed.
 	 * @param defaultTypeHash
 	 *            The hash of the type that remaining elements of conforming
 	 *            types must have.
 	 * @return
-	 *            The hash of the {@linkplain TupleTypeDescriptor tuple type}
+	 *            The hash of the {@code TupleTypeDescriptor tuple type}
 	 *            whose component hash values were provided.
 	 */
 	private static int hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash (
@@ -827,7 +827,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link TupleTypeDescriptor}.
+	 * Construct a new {@code TupleTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -837,7 +837,7 @@ extends TypeDescriptor
 		super(mutability, TypeTag.TUPLE_TYPE_TAG, ObjectSlots.class, null);
 	}
 
-	/** The mutable {@link TupleTypeDescriptor}. */
+	/** The mutable {@code TupleTypeDescriptor}. */
 	private static final TupleTypeDescriptor mutable =
 		new TupleTypeDescriptor(Mutability.MUTABLE);
 
@@ -847,7 +847,7 @@ extends TypeDescriptor
 		return mutable;
 	}
 
-	/** The immutable {@link TupleTypeDescriptor}. */
+	/** The immutable {@code TupleTypeDescriptor}. */
 	private static final TupleTypeDescriptor immutable =
 		new TupleTypeDescriptor(Mutability.IMMUTABLE);
 
@@ -857,7 +857,7 @@ extends TypeDescriptor
 		return immutable;
 	}
 
-	/** The shared {@link TupleTypeDescriptor}. */
+	/** The shared {@code TupleTypeDescriptor}. */
 	private static final TupleTypeDescriptor shared =
 		new TupleTypeDescriptor(Mutability.SHARED);
 
@@ -877,7 +877,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most general tuple type.
 	 */
-	public static A_Type mostGeneralType ()
+	public static A_Type mostGeneralTupleType ()
 	{
 		return mostGeneralType;
 	}
@@ -899,14 +899,14 @@ extends TypeDescriptor
 
 	/** The metatype for all tuple types. */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all tuple types.
 	 *
 	 * @return The statically referenced metatype.
 	 */
-	public static A_Type meta ()
+	public static A_Type tupleMeta ()
 	{
 		return meta;
 	}

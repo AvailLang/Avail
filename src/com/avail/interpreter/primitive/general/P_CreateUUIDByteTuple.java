@@ -32,12 +32,25 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ByteBufferTupleDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.UUID;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer a cryptographically strong
@@ -75,11 +88,9 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.singleInt(16),
-				TupleDescriptor.empty(),
-				IntegerRangeTypeDescriptor.bytes()));
+		return functionType(
+			emptyTuple(),
+			tupleTypeForSizesTypesDefaultType(
+				singleInt(16), emptyTuple(), bytes()));
 	}
 }

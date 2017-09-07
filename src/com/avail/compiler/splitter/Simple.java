@@ -34,15 +34,15 @@ import com.avail.compiler.ParsingOperation;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 
 import static com.avail.compiler.ParsingOperation.PARSE_PART;
 import static com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY;
 
 /**
- * A {@linkplain Simple} is an {@linkplain Expression expression} that
+ * A {@code Simple} is an {@linkplain Expression expression} that
  * represents a single token, except for the double-dagger character.
  */
 final class Simple

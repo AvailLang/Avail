@@ -32,12 +32,12 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
+
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * {@code AbstractTypeDescriptor} explicitly defines the responsibilities of all

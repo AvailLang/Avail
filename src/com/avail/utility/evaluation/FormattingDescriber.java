@@ -34,6 +34,8 @@ package com.avail.utility.evaluation;
 
 import java.util.Formatter;
 
+import static java.lang.String.format;
+
 /**
  * A {@code FormattingDescriber} is a {@link Describer} that is given a {@link
  * String} to act as a {@link Formatter} pattern, and an array of {@link
@@ -73,6 +75,6 @@ public final class FormattingDescriber implements Describer
 	@Override
 	public void describeThen (final Continuation1NotNull<String> continuation)
 	{
-		continuation.value(String.format(patternString, arguments));
+		continuation.value(format(patternString, arguments));
 	}
 }

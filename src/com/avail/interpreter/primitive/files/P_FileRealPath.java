@@ -96,25 +96,25 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
-		return interpreter.primitiveSuccess(StringDescriptor.from(
+		return interpreter.primitiveSuccess(StringDescriptor.stringFrom(
 			realPath.toString()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
-				EnumerationTypeDescriptor.booleanObject()),
+				EnumerationTypeDescriptor.booleanType()),
 			TupleTypeDescriptor.stringType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INVALID_PATH,
 				E_PERMISSION_DENIED,
 				E_IO_ERROR));

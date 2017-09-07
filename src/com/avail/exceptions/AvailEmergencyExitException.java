@@ -35,6 +35,8 @@ package com.avail.exceptions;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 
+import static java.lang.String.format;
+
 /**
  * An {@code AvailEmergencyExitException} is thrown when a primitive fails
  * during system bootstrapping.
@@ -86,13 +88,13 @@ extends Exception
 	 */
 	public AvailEmergencyExitException (final String failureString)
 	{
-		this.failureString = StringDescriptor.from(failureString);
+		this.failureString = StringDescriptor.stringFrom(failureString);
 	}
 
 	@Override
 	public String getMessage ()
 	{
-		return String.format(
+		return format(
 			"A bootstrap operation failed: %s%n",
 			failureString.asNativeString());
 	}

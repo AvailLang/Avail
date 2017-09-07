@@ -63,9 +63,9 @@ public final class P_ReturnType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FunctionTypeDescriptor.meta()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				FunctionTypeDescriptor.functionMeta()),
 			InstanceMetaDescriptor.topMeta());
 	}
 
@@ -77,6 +77,6 @@ public final class P_ReturnType extends Primitive
 
 		final A_Type functionType = functionMeta.instance();
 		final A_Type returnType = functionType.returnType();
-		return InstanceMetaDescriptor.on(returnType);
+		return InstanceMetaDescriptor.instanceMetaOn(returnType);
 	}
 }

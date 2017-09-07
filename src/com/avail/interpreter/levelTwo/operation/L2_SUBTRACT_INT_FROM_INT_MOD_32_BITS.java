@@ -32,10 +32,13 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.READWRITE_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 
 /**
  * Subtract the subtrahend from the minuend, converting the result to a signed

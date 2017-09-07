@@ -32,14 +32,14 @@
 
 package com.avail.test;
 
+import com.avail.utility.Graph;
+import com.avail.utility.Graph.GraphPreconditionFailure;
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-
-import com.avail.utility.*;
-import com.avail.utility.Graph.GraphPreconditionFailure;
-import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class GraphTest
 {
 	/**
-	 * Test: Check properties of the empty graph.
+	 * Test: Check properties of the emptyTuple graph.
 	 */
 	@Test
 	public void emptyGraphTest ()

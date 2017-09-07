@@ -32,17 +32,27 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.ListNodeDescriptor.ObjectSlots.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.IdentityHashMap;
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ListNodeDescriptor.ObjectSlots.EXPRESSIONS_TUPLE;
+import static com.avail.descriptor.ListNodeDescriptor.ObjectSlots.TUPLE_TYPE;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**
  * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which
@@ -100,11 +110,11 @@ extends ParseNodeDescriptor
 				final A_Type expressionType = expression.expressionType();
 				if (expressionType.isBottom())
 				{
-					return BottomTypeDescriptor.bottom();
+					return bottom();
 				}
 				types.add(expressionType);
 			}
-			tupleType = TupleTypeDescriptor.forTypes(
+			tupleType = TupleTypeDescriptor.tupleTypeForTypes(
 					types.toArray(new A_Type[types.size()]));
 			object.setMutableSlot(TUPLE_TYPE, tupleType.makeShared());
 		}
@@ -337,17 +347,17 @@ extends ParseNodeDescriptor
 			{
 				// An element has a superunion type; build the tuple type.
 				final A_Type [] types = new A_Type[size];
-				Arrays.fill(types, 0, i - 1, BottomTypeDescriptor.bottom());
+				Arrays.fill(types, 0, i - 1, bottom());
 				types[i - 1] = lookupType;
 				for (int j = i + 1; j <= size; j++)
 				{
 					types[j - 1] = expressions.tupleAt(j).superUnionType();
 				}
-				return TupleTypeDescriptor.forTypes(types);
+				return TupleTypeDescriptor.tupleTypeForTypes(types);
 			}
 		}
 		// The elements' superunion types were all bottom, so answer bottom.
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -400,7 +410,7 @@ extends ParseNodeDescriptor
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(EXPRESSIONS_TUPLE, expressions);
-		instance.setSlot(TUPLE_TYPE, NilDescriptor.nil());
+		instance.setSlot(TUPLE_TYPE, nil());
 		instance.makeShared();
 		return instance;
 	}
@@ -438,7 +448,7 @@ extends ParseNodeDescriptor
 
 	/** The empty {@link ListNodeDescriptor list node}. */
 	private static final AvailObject empty =
-		newExpressions(TupleDescriptor.empty()).makeShared();
+		newExpressions(emptyTuple()).makeShared();
 
 	/**
 	 * Answer the empty {@link ListNodeDescriptor list node}.

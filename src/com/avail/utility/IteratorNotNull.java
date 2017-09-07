@@ -1,5 +1,5 @@
 /**
- * NotNullByDefault.java
+ * IteratorNotNull.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,33 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.annotations;
+package com.avail.utility;
 
-import javax.annotation.Nonnull;
-import javax.annotation.meta.TypeQualifierDefault;
-import java.lang.annotation.*;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
- * {@code NotNullByDefault} is an annotation that indicates that the compiler
- * should infer that elements within the indicated domain not specifically
- * annotated for nullability are {@link NotNull} by default.
+ * A sub-interface of Iterator that does not produce {@code null} elements.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @param <E> The type of elements produced by the iterator – never null.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@Retention(RetentionPolicy.CLASS)
-@TypeQualifierDefault(
-	{
-		ElementType.ANNOTATION_TYPE,
-		ElementType.CONSTRUCTOR,
-		ElementType.FIELD,
-		ElementType.LOCAL_VARIABLE,
-		ElementType.METHOD,
-		ElementType.PACKAGE,
-		ElementType.PARAMETER,
-		ElementType.TYPE
-	})
-@Documented
-public @Nonnull @interface NotNullByDefault {
-
+public interface IteratorNotNull<E> extends Iterator<E>
+{
+	@Override
+	E next ()
+	throws NoSuchElementException;
 }
+

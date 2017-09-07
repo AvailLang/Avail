@@ -32,18 +32,22 @@
 
 package com.avail.server.io;
 
+import com.avail.io.TextInterface;
+import com.avail.server.AvailServer;
+import com.avail.server.messages.CommandMessage;
+import com.avail.server.messages.Message;
+import com.avail.utility.evaluation.Continuation0;
+
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
-import javax.annotation.Nullable;
-import com.avail.io.TextInterface;
-import com.avail.server.AvailServer;
-import com.avail.server.messages.CommandMessage;
-import com.avail.server.messages.Message;
-import com.avail.utility.evaluation.Continuation0;
+
+import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.singleton;
 
 /**
  * An {@code AvailServerChannel} represents an abstract connection between an
@@ -104,7 +108,7 @@ implements AutoCloseable
 			@Override
 			Set<ProtocolState> allowedSuccessorStates ()
 			{
-				return Collections.singleton(ELIGIBLE_FOR_UPGRADE);
+				return singleton(ELIGIBLE_FOR_UPGRADE);
 			}
 
 			@Override
@@ -251,9 +255,7 @@ implements AutoCloseable
 	 */
 	public TextInterface textInterface ()
 	{
-		final TextInterface io = textInterface;
-		assert io != null;
-		return io;
+		return stripNull(textInterface);
 	}
 
 	/**

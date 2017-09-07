@@ -32,17 +32,19 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.FloatDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.*;
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.FloatDescriptor.IntegerSlots.RAW_INT;
+import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 floating point values.
@@ -186,9 +188,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float positive infinity.
 	 */
-	public static A_Number positiveInfinity ()
+	public static A_Number floatPositiveInfinity ()
 	{
-		return Sign.POSITIVE.limitFloatObject();
+		return POSITIVE.limitFloatObject();
 	}
 
 	/**
@@ -196,9 +198,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float negative infinity.
 	 */
-	public static A_Number negativeInfinity ()
+	public static A_Number floatNegativeInfinity ()
 	{
-		return Sign.NEGATIVE.limitFloatObject();
+		return NEGATIVE.limitFloatObject();
 	}
 
 	/**
@@ -206,9 +208,9 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float not-a-number.
 	 */
-	public static A_Number notANumber ()
+	public static A_Number floatNotANumber ()
 	{
-		return Sign.INDETERMINATE.limitFloatObject();
+		return INDETERMINATE.limitFloatObject();
 	}
 
 	/**
@@ -218,7 +220,7 @@ extends AbstractNumberDescriptor
 	 */
 	public static A_Number zero ()
 	{
-		return Sign.ZERO.limitFloatObject();
+		return ZERO.limitFloatObject();
 	}
 
 	@Override @AvailMethod
@@ -512,6 +514,7 @@ extends AbstractNumberDescriptor
 		final double double1)
 	{
 		final double thisDouble = getDouble(object);
+		//noinspection FloatingPointEquality
 		if (thisDouble == double1)
 		{
 			return Order.EQUAL;
@@ -646,7 +649,7 @@ extends AbstractNumberDescriptor
 	}
 
 	/**
-	 * Construct a new {@link FloatDescriptor}.
+	 * Construct a new {@code FloatDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

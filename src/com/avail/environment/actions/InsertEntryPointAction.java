@@ -32,12 +32,16 @@
 
 package com.avail.environment.actions;
 
-import java.awt.*;
-import java.awt.event.*;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.tasks.BuildTask;
+
 import javax.annotation.Nullable;
+import java.awt.event.ActionEvent;
+
+import static com.avail.utility.Nulls.stripNull;
+import static java.awt.Cursor.WAIT_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
 
 /**
  * An {@code InsertEntryPointAction} inserts a string based on the currently
@@ -62,11 +66,10 @@ extends AbstractWorkbenchAction
 		// considered a word character, so we want \B to see if the
 		// character adjacent to the underscore is also a word character.
 		// We could do more, but this should be sufficient for now.
-		final String entryPointText = selectedEntryPoint
+		final String entryPointText = stripNull(selectedEntryPoint
 			.replaceAll("`", "")
 			.replaceAll("\\B_", " _")
-			.replaceAll("_\\B", "_ ");
-		assert entryPointText != null;
+			.replaceAll("_\\B", "_ "));
 		workbench.inputField.setText(entryPointText);
 		final int offsetToUnderscore = entryPointText.indexOf('_');
 		final int offset;
@@ -91,7 +94,7 @@ extends AbstractWorkbenchAction
 			{
 				// Start loading the module as a convenience.
 				workbench.setCursor(
-					Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+					getPredefinedCursor(WAIT_CURSOR));
 				workbench.buildProgress.setValue(0);
 				workbench.inputField.requestFocusInWindow();
 				workbench.clearTranscript();

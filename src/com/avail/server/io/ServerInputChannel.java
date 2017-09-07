@@ -32,6 +32,11 @@
 
 package com.avail.server.io;
 
+import com.avail.io.TextInputChannel;
+import com.avail.server.messages.Message;
+import com.avail.utility.evaluation.Continuation0;
+
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.BufferOverflowException;
 import java.nio.CharBuffer;
@@ -41,10 +46,6 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import javax.annotation.Nullable;
-import com.avail.io.TextInputChannel;
-import com.avail.server.messages.Message;
-import com.avail.utility.evaluation.Continuation0;
 
 /**
  * A {@code ServerInputChannel} adapts an {@link AvailServerChannel} for use as

@@ -32,7 +32,11 @@
 
 package com.avail.exceptions;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Descriptor;
+
+import static java.lang.String.format;
 
 /**
  * An {@code AvailUnsupportedOperationException} is thrown whenever an
@@ -60,7 +64,7 @@ extends RuntimeException
 		final Class<? extends AbstractDescriptor> descriptorClass,
 		final String messageName)
 	{
-		super(String.format(
+		super(format(
 			"%s does not meaningfully implement %s",
 			descriptorClass.getSimpleName(),
 			messageName));

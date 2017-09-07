@@ -35,16 +35,16 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ListNodeTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.SignatureException;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCONSISTENT_ARGUMENT_REORDERING;
 
 /**
  * A {@code CompletelyOptional} is a special {@linkplain Expression
@@ -52,7 +52,7 @@ import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDE
  * double question mark} (⁇) following a {@linkplain Simple simple} or
  * {@linkplain Group simple group}. It may not contain {@linkplain Argument
  * arguments} or non-simple subgroups and it may not contain a {@linkplain
- * Metacharacter#DOUBLE_DAGGER double dagger}. The expression may appear zero or
+ * Metacharacter#DOUBLE_DAGGER double dagger}. The expression may appear floatZero or
  * one times.
  *
  * <p>A completely optional does not produce any information. No facility is
@@ -182,14 +182,14 @@ extends Expression
 		{
 			// A single optional token.
 			sequence.printWithArguments(
-				TupleDescriptor.empty().iterator(), builder, indent);
+				emptyTuple().iterator(), builder, indent);
 		}
 		else
 		{
 			// A sequence of tokens that are optional (in aggregate).
 			builder.append("«");
 			sequence.printWithArguments(
-				TupleDescriptor.empty().iterator(), builder, indent);
+				emptyTuple().iterator(), builder, indent);
 			builder.append("»");
 		}
 		builder.append("⁇");

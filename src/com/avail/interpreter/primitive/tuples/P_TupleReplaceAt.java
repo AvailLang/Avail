@@ -80,12 +80,12 @@ public final class P_TupleReplaceAt extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				TupleTypeDescriptor.mostGeneralTupleType(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				ANY.o()),
-			TupleTypeDescriptor.mostGeneralType());
+			TupleTypeDescriptor.mostGeneralTupleType());
 	}
 
 	/**
@@ -160,15 +160,15 @@ public final class P_TupleReplaceAt extends Primitive
 			: originalTupleType.defaultType().typeUnion(newElementType);
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 			originalTupleType.sizeRange(),
-			TupleDescriptor.fromList(typeList),
+			TupleDescriptor.tupleFromList(typeList),
 			newDefaultType);
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS));
 	}
 }

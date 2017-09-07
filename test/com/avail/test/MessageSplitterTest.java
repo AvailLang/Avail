@@ -142,8 +142,8 @@ public final class MessageSplitterTest
 			? IntegerDescriptor.fromLong(upperBound + 1L)
 			: InfinityDescriptor.positiveInfinity();
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.create(lower, true, upperPlusOne, false),
-			TupleDescriptor.from(values),
+			IntegerRangeTypeDescriptor.integerRangeType(lower, true, upperPlusOne, false),
+			TupleDescriptor.tuple(values),
 			values.length > 0
 				? values[values.length - 1]
 				: BottomTypeDescriptor.bottom());
@@ -175,16 +175,16 @@ public final class MessageSplitterTest
 			: InfinityDescriptor.positiveInfinity();
 		final A_Type subexpressionsTupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.create(
+				IntegerRangeTypeDescriptor.integerRangeType(
 					lower, true, upperPlusOne, false),
-				TupleDescriptor.from(subexpressionPhraseTypes),
+				TupleDescriptor.tuple(subexpressionPhraseTypes),
 				subexpressionPhraseTypes.length > 0
 					? subexpressionPhraseTypes[
 						subexpressionPhraseTypes.length - 1]
 					: BottomTypeDescriptor.bottom());
 		return ListNodeTypeDescriptor.createListNodeType(
 			LIST_NODE,
-			TupleTypeDescriptor.mostGeneralType(),
+			TupleTypeDescriptor.mostGeneralTupleType(),
 			subexpressionsTupleType);
 	}
 
@@ -212,7 +212,7 @@ public final class MessageSplitterTest
 	static A_Type LiteralToken(
 		final A_Type valueType)
 	{
-		return LiteralTokenTypeDescriptor.create(valueType);
+		return LiteralTokenTypeDescriptor.literalTokenType(valueType);
 	}
 
 	/**

@@ -39,13 +39,14 @@ import javafx.event.EventHandler;
 import javafx.scene.control.ComboBox;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An {@code FilterComboBox} is a {@link ComboBox} that filters the options as
@@ -134,18 +135,18 @@ extends ComboBox<T>
 	/**
 	 * Set the {@link #enterBehavior}.
 	 *
-	 * @param enterBehavior
+	 * @param behavior
 	 *        A {@link Continuation0}.
 	 */
-	public void enterBehavior (final @Nonnull Continuation0 enterBehavior)
+	public void enterBehavior (final @Nonnull Continuation0 behavior)
 	{
-		this.enterBehavior = enterBehavior;
+		this.enterBehavior = behavior;
 	}
 
 	/**
 	 * The initial static option list.
 	 */
-	private @Nonnull ObservableList<T> optionList;
+	private ObservableList<T> optionList;
 
 	/**
 	 * Answer the selected {@link ComboBox} value.
@@ -171,7 +172,7 @@ extends ComboBox<T>
 	 * @param options
 	 *        The collection to add.
 	 */
-	public void addOptions (final @Nonnull Collection<T> options)
+	public final void addOptions (final @Nonnull Collection<T> options)
 	{
 		getItems().addAll(options);
 		optionList = getItems();
@@ -186,7 +187,7 @@ extends ComboBox<T>
 	protected @Nonnull Collection<T> generateVisibleList ()
 	{
 		final List<T> list = new ArrayList<>();
-		for (final T aData : optionList)
+		for (final T aData : stripNull(optionList))
 		{
 			if (aData != null
 				&& getEditor().getText() != null
@@ -201,7 +202,7 @@ extends ComboBox<T>
 	}
 
 	/**
-	 * Construct a {@link FilterComboBox}.
+	 * Construct a {@code FilterComboBox}.
 	 *
 	 * @param matcher
 	 *        A {@link BiFunction} that accepts the typed String and an object
@@ -233,7 +234,7 @@ extends ComboBox<T>
 	}
 
 	/**
-	 * Construct a {@link FilterComboBox}.
+	 * Construct a {@code FilterComboBox}.
 	 *
 	 * @param matcher
 	 *        A {@link BiFunction} that accepts the typed String and an object
@@ -246,7 +247,7 @@ extends ComboBox<T>
 	}
 
 	/**
-	 * Construct a {@link FilterComboBox}.
+	 * Construct a {@code FilterComboBox}.
 	 *
 	 * @param items
 	 *        The items in the list.
@@ -259,11 +260,10 @@ extends ComboBox<T>
 	public FilterComboBox (
 		final @Nonnull Collection<T> items,
 		final @Nonnull BiFunction<String, T, Boolean> matcher,
-		final @Nullable Continuation0 enterBehavior)
+		final @Nonnull Continuation0 enterBehavior)
 	{
 		this(matcher, enterBehavior);
 		addOptions(items);
-
 	}
 
 	/**

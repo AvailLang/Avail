@@ -32,19 +32,21 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.SequenceNodeDescriptor.ObjectSlots.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
+
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.SEQUENCE_NODE;
+import static com.avail.descriptor.SequenceNodeDescriptor.ObjectSlots.STATEMENTS;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
  * My instances represent a sequence of {@linkplain ParseNodeDescriptor parse

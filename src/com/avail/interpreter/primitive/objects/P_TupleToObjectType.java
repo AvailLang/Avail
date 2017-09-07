@@ -72,10 +72,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.zeroOrMoreOf(
-					TupleTypeDescriptor.forTypes(
+					TupleTypeDescriptor.tupleTypeForTypes(
 						ATOM.o(),
 						InstanceMetaDescriptor.anyMeta()))),
 			ObjectTypeDescriptor.meta());
@@ -95,7 +95,7 @@ extends Primitive
 			return super.returnTypeGuaranteedByVM(argumentTypes);
 		}
 		final int tupleSize = tupleSizeLowerBound.extractInt();
-		A_Map fieldTypeMap = MapDescriptor.empty();
+		A_Map fieldTypeMap = MapDescriptor.emptyMap();
 		for (int i = 1; i <= tupleSize; i++)
 		{
 			final A_Type pairType = tupleType.typeAtIndex(i);
@@ -123,7 +123,7 @@ extends Primitive
 				valueType,
 				true);
 		}
-		return InstanceMetaDescriptor.on(
+		return InstanceMetaDescriptor.instanceMetaOn(
 			ObjectTypeDescriptor.objectTypeFromMap(fieldTypeMap));
 	}
 }

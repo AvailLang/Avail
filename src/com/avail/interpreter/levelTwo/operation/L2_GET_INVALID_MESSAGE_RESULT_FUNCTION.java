@@ -32,17 +32,18 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Store the {@linkplain AvailRuntime#resultDisagreedWithExpectedTypeFunction()
@@ -83,9 +84,7 @@ extends L2Operation
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
 			destination,
-			FunctionTypeDescriptor.create(
-				TupleDescriptor.empty(),
-				BottomTypeDescriptor.bottom()),
+			functionType(emptyTuple(), bottom()),
 			instruction);
 	}
 }

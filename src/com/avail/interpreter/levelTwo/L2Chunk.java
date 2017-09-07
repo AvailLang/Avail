@@ -482,7 +482,7 @@ public final class L2Chunk
 		assert invalidationLock.isHeldByCurrentThread();
 		valid = false;
 		final A_Set contingents = contingentValues.makeImmutable();
-		contingentValues = SetDescriptor.empty();
+		contingentValues = SetDescriptor.emptySet();
 		for (final A_ChunkDependable value : contingents)
 		{
 			value.removeDependentChunk(this);

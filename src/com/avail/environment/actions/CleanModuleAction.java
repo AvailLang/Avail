@@ -37,12 +37,14 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
 import com.avail.persistence.IndexedFileException;
 import com.avail.persistence.IndexedRepositoryManager;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.String.format;
 
 /**
  * A {@code CleanModuleAction} removes from the repository file all compiled
@@ -66,25 +68,25 @@ extends AbstractWorkbenchAction
 			{
 				root.repository().clear();
 			}
-			catch (IOException|IndexedFileException e)
+			catch (IOException | IndexedFileException e)
 			{
 				// Ignore problem for now.
 			}
 			workbench.writeText(
-				String.format("Repository %s has been cleaned.%n", root.name()),
+				format("Repository %s has been cleaned.%n", root.name()),
 				INFO);
 			return;
 		}
 
 		// Delete a module or package (and everything inside it).
-		final ResolvedModuleName selectedModule = workbench.selectedModule();
-		assert selectedModule != null;
+		final ResolvedModuleName selectedModule =
+			stripNull(workbench.selectedModule());
 		final String rootRelative = selectedModule.rootRelativeName();
 		final IndexedRepositoryManager repository = selectedModule.repository();
 		repository.cleanModulesUnder(rootRelative);
 		repository.commit();
 		workbench.writeText(
-			String.format(
+			format(
 				"Module or package %s has been cleaned.%n",
 				selectedModule.qualifiedName()),
 			INFO);

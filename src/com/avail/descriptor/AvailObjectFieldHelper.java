@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import javax.annotation.Nullable;
 
 import static com.avail.utility.StackPrinter.trace;
+import static java.lang.String.format;
 
 /**
  * This class assists with the presentation of {@link AvailObject}s in the
@@ -208,7 +209,7 @@ public class AvailObjectFieldHelper
 			}
 			else
 			{
-				builder.append(String.format(
+				builder.append(format(
 					" *** UNKNOWN FIELD VALUE TYPE: %s ***",
 					val.getClass().getCanonicalName()));
 			}

@@ -72,7 +72,7 @@ public class L2_CREATE_TUPLE_TYPE extends L2Operation
 		{
 			types[i] = registers.get(i).in(interpreter);
 		}
-		final A_Type tupleType = TupleTypeDescriptor.forTypes(types);
+		final A_Type tupleType = TupleTypeDescriptor.tupleTypeForTypes(types);
 		destinationReg.set(tupleType, interpreter);
 	}
 
@@ -97,7 +97,7 @@ public class L2_CREATE_TUPLE_TYPE extends L2Operation
 			{
 				constants.add(registerSet.constantAt(register));
 			}
-			final A_Type tupleType = TupleTypeDescriptor.forTypes(
+			final A_Type tupleType = TupleTypeDescriptor.tupleTypeForTypes(
 				constants.toArray(new A_Type[size]));
 			tupleType.makeImmutable();
 			registerSet.constantAtPut(destinationReg, tupleType, instruction);
@@ -118,9 +118,9 @@ public class L2_CREATE_TUPLE_TYPE extends L2Operation
 					types.add(ANY.o());
 				}
 			}
-			final A_Type tupleType = TupleTypeDescriptor.forTypes(
+			final A_Type tupleType = TupleTypeDescriptor.tupleTypeForTypes(
 				types.toArray(new A_Type[size]));
-			final A_Type tupleMeta = InstanceMetaDescriptor.on(tupleType);
+			final A_Type tupleMeta = InstanceMetaDescriptor.instanceMetaOn(tupleType);
 			tupleMeta.makeImmutable();
 			registerSet.removeConstantAt(destinationReg);
 			registerSet.typeAtPut(destinationReg, tupleMeta, instruction);

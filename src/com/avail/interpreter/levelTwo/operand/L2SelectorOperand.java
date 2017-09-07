@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,10 +32,16 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.*;
-import com.avail.utility.evaluation.*;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.MethodDefinitionDescriptor;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher;
+import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.utility.evaluation.Transformer2;
+
+import static java.lang.String.format;
 
 /**
  * An {@code L2SelectorOperand} is an operand of type {@link
@@ -89,6 +95,6 @@ public class L2SelectorOperand extends L2Operand
 	@Override
 	public String toString ()
 	{
-		return String.format("Selector(%s)", bundle.message().atomName());
+		return format("Selector(%s)", bundle.message().atomName());
 	}
 }

@@ -103,8 +103,8 @@ extends L2Operation
 			instruction.writeObjectRegisterAt(1);
 		registerSet.typeAtPut(
 			errorCodeReg,
-			AbstractEnumerationTypeDescriptor.withInstances(
-				TupleDescriptor.from(
+			AbstractEnumerationTypeDescriptor.enumerationWith(
+				TupleDescriptor.tuple(
 						E_NO_METHOD.numericCode(),
 						E_NO_METHOD_DEFINITION.numericCode(),
 						E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),

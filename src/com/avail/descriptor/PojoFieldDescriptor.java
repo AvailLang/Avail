@@ -32,14 +32,20 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
-import java.lang.reflect.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.AvailRuntimeException;
+import com.avail.exceptions.MarshalingException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.utility.json.JSONWriter;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.exceptions.*;
-import com.avail.utility.json.JSONWriter;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 
 /**
  * A {@code PojoFieldDescriptor} is an Avail {@linkplain VariableDescriptor
@@ -107,7 +113,7 @@ extends Descriptor
 			else
 			{
 				defaultValue =
-					IntegerDescriptor.zero().marshalToJava(fieldType);
+					zero().marshalToJava(fieldType);
 			}
 		}
 		// Reference types have a default value of null.
@@ -386,6 +392,6 @@ extends Descriptor
 				field, receiver, innerType);
 		}
 		return forOuterType(
-			field, receiver, VariableTypeDescriptor.wrapInnerType(innerType));
+			field, receiver, VariableTypeDescriptor.variableTypeFor(innerType));
 	}
 }

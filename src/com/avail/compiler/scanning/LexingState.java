@@ -219,9 +219,9 @@ public class LexingState
 			assert position == source.tupleSize() + 1;
 			nextTokens.add(
 				TokenDescriptor.create(
-					TupleDescriptor.empty(),
-					TupleDescriptor.empty(),
-					TupleDescriptor.empty(),
+					TupleDescriptor.emptyTuple(),
+					TupleDescriptor.emptyTuple(),
+					TupleDescriptor.emptyTuple(),
 					position,
 					lineNumber,
 					TokenType.END_OF_FILE));

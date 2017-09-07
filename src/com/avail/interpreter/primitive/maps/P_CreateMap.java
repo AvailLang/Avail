@@ -66,12 +66,12 @@ public final class P_CreateMap extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.zeroOrMoreOf(
-					TupleTypeDescriptor.forTypes(
+					TupleTypeDescriptor.tupleTypeForTypes(
 						ANY.o(),
 						ANY.o()))),
-			MapTypeDescriptor.mostGeneralType());
+			MapTypeDescriptor.mostGeneralMapType());
 	}
 }

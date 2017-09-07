@@ -32,6 +32,15 @@
 
 package com.avail.server.configuration;
 
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ModuleRoots;
+import com.avail.builder.RenamesFileParser;
+import com.avail.builder.RenamesFileParserException;
+import com.avail.server.AvailServer;
+import com.avail.tools.compiler.configuration.CompilerConfiguration;
+import com.avail.utility.configuration.Configuration;
+
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,14 +49,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import javax.annotation.Nullable;
-import com.avail.builder.ModuleNameResolver;
-import com.avail.builder.ModuleRoots;
-import com.avail.builder.RenamesFileParser;
-import com.avail.builder.RenamesFileParserException;
-import com.avail.server.AvailServer;
-import com.avail.tools.compiler.configuration.CompilerConfiguration;
-import com.avail.utility.configuration.Configuration;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An {@code AvailServerConfiguration} specifies the operational parameters of
@@ -117,9 +120,7 @@ implements Configuration
 	 */
 	public String renamesFilePath ()
 	{
-		final String path = renamesFilePath;
-		assert path != null;
-		return path;
+		return stripNull(renamesFilePath);
 	}
 
 	/**
@@ -263,7 +264,7 @@ implements Configuration
 	@Override
 	public boolean isValid ()
 	{
-		// Just try to create a module name resolver. If this fails, then the
+		// Just try to functionType a module name resolver. If this fails, then the
 		// configuration is invalid. Otherwise, it should be okay.
 		try
 		{

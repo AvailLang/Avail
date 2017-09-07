@@ -32,11 +32,14 @@
 
 package com.avail.interpreter.levelOne;
 
-import static com.avail.descriptor.AvailObject.error;
-import static java.lang.Math.max;
-import javax.annotation.Nullable;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
+
+import javax.annotation.Nullable;
+
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.Math.max;
 
 /**
  * An {@code L1StackTracker} verifies the integrity of a sequence of {@link
@@ -56,9 +59,7 @@ abstract class L1StackTracker implements L1OperationDispatcher
 	 */
 	int [] currentOperands ()
 	{
-		final int [] operands = currentOperands;
-		assert operands != null;
-		return operands;
+		return stripNull(currentOperands);
 	}
 
 	/**

@@ -65,9 +65,9 @@ public final class P_MapSize extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MapTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				MapTypeDescriptor.mostGeneralMapType()),
 			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

@@ -66,9 +66,9 @@ public final class P_MethodDefinitionBody extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				METHOD_DEFINITION.o()),
-			FunctionTypeDescriptor.mostGeneralType());
+			FunctionTypeDescriptor.mostGeneralFunctionType());
 	}
 }

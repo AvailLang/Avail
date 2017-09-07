@@ -32,12 +32,12 @@
 
 package com.avail.exceptions;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.MethodDefinitionDescriptor;
 import com.avail.descriptor.MethodDescriptor;
+
+import static com.avail.exceptions.AvailErrorCode.*;
 
 /**
  * A {@code MethodDefinitionException} is raised whenever an error condition is

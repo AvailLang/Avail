@@ -32,14 +32,22 @@
 
 package com.avail.tools.bootstrap;
 
-import static com.avail.tools.bootstrap.Resources.*;
-import static com.avail.tools.bootstrap.Resources.Key.*;
-import java.io.*;
-import java.text.MessageFormat;
-import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
+
+import java.io.PrintWriter;
+import java.text.MessageFormat;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+import java.util.Set;
+
+import static com.avail.tools.bootstrap.Resources.Key.*;
+import static com.avail.tools.bootstrap.Resources.*;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that

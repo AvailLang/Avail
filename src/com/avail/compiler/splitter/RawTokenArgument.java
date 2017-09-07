@@ -39,7 +39,7 @@ import static com.avail.compiler.ParsingOperation.PARSE_ANY_RAW_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 
 /**
- * A {@linkplain RawTokenArgument} is an occurrence of {@linkplain
+ * A {@code RawTokenArgument} is an occurrence of {@linkplain
  * Metacharacter#ELLIPSIS ellipsis} (…) in a message name, followed by
  * an {@linkplain Metacharacter#EXCLAMATION_MARK exclamation mark} (!).
  * It indicates where <em>any</em> raw token is expected, which gets
@@ -69,7 +69,7 @@ extends Argument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_ANY_RAW_TOKEN);
-		if (!LiteralTokenTypeDescriptor.create(Types.TOKEN.o()).isSubtypeOf(
+		if (!LiteralTokenTypeDescriptor.literalTokenType(Types.TOKEN.o()).isSubtypeOf(
 			phraseType))
 		{
 			generator.emitDelayed(

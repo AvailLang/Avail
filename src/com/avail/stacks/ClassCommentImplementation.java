@@ -32,10 +32,11 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.ArrayList;
 
 /**
  * A comment that describes a particular class.
@@ -103,8 +104,7 @@ public class ClassCommentImplementation extends AbstractCommentImplementation
 		this.supertypes = supertypes;
 		this.fields = fields;
 
-		this.hashID = StringDescriptor.from(
-			signature.name()).hash();
+		this.hashID = StringDescriptor.stringFrom(signature.name()).hash();
 	}
 
 	@Override

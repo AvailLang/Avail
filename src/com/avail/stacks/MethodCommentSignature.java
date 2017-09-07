@@ -34,6 +34,8 @@ package com.avail.stacks;
 
 import java.util.ArrayList;
 
+import static java.lang.String.format;
+
 /**
  * The defining characteristic of a method comment as it pertains to the
  * implementation it describes.
@@ -78,7 +80,9 @@ public class MethodCommentSignature extends CommentSignature
 	@Override
 	public String toString ()
 	{
-		return String.format("%s -> %s : %s", name(),
+		return format(
+			"%s -> %s : %s",
+			name(),
 			orderedInputTypes.toString(),returnType);
 	}
 }

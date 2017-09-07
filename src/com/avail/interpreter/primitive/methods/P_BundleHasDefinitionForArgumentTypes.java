@@ -94,19 +94,19 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ATOM.o(),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta())),
-			EnumerationTypeDescriptor.booleanObject());
+			EnumerationTypeDescriptor.booleanType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_AMBIGUOUS_METHOD_DEFINITION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_NO_METHOD,

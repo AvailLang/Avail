@@ -32,12 +32,14 @@
 
 package com.avail.environment.actions;
 
-import static com.avail.environment.AvailWorkbench.StreamStyle.*;
-import java.awt.event.*;
-import java.util.EnumSet;
 import com.avail.environment.AvailWorkbench;
 import com.avail.performance.StatisticReport;
+
 import javax.annotation.Nullable;
+import java.awt.event.ActionEvent;
+import java.util.EnumSet;
+
+import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 
 /**
  * A {@code ReportAction} dumps performance information obtained from

@@ -93,8 +93,8 @@ public final class P_CreateAssignmentStatement extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				VARIABLE_USE_NODE.mostGeneralType(),
 				EXPRESSION_NODE.create(ANY.o())),
 			ASSIGNMENT_NODE.mostGeneralType());
@@ -103,8 +103,8 @@ public final class P_CreateAssignmentStatement extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE));
 	}

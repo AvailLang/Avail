@@ -68,10 +68,10 @@ public final class P_SetWithout extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				SetTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				SetTypeDescriptor.mostGeneralSetType(),
 				ANY.o()),
-			SetTypeDescriptor.mostGeneralType());
+			SetTypeDescriptor.mostGeneralSetType());
 	}
 }

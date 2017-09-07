@@ -36,12 +36,13 @@ import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
 
 import static com.avail.descriptor.CommentTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.CommentTokenDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.NilDescriptor.nil;
 
 /**
  * This is a token of an Avail method/class comment.  More specifically, this
@@ -214,11 +215,11 @@ extends TokenDescriptor
 		instance.setSlot(STRING, string);
 		instance.setSlot(LEADING_WHITESPACE, leadingWhitespace);
 		instance.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
-		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
+		instance.setSlot(LOWER_CASE_STRING, nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, TokenType.COMMENT.ordinal());
-		instance.setSlot(NEXT_LEXING_STATE_POJO, NilDescriptor.nil());
+		instance.setSlot(NEXT_LEXING_STATE_POJO, nil());
 		return instance;
 	}
 

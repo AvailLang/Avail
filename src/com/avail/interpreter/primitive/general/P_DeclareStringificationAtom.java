@@ -89,7 +89,7 @@ extends Primitive
 		}
 		final A_Function function = FunctionDescriptor.create(
 			writer.compiledCode(),
-			TupleDescriptor.empty());
+			TupleDescriptor.emptyTuple());
 		function.makeShared();
 		// Set the stringification function.
 		AvailRuntime.current().setStringificationFunction(function);
@@ -104,8 +104,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ATOM.o()),
 			TOP.o());
 	}

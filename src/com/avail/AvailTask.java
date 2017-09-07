@@ -32,15 +32,20 @@
 
 package com.avail;
 
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
-
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.PrimitiveThrownException;
-import javax.annotation.Nullable;
-import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.interpreter.Interpreter;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation0;
+
+import javax.annotation.Nullable;
+
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
+	.SCHEDULED;
 
 /**
  * An {@code AvailTask} extends {@link Runnable} with a priority. Instances are
@@ -48,7 +53,6 @@ import com.avail.utility.evaluation.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("ComparableImplementedButEqualsNotOverridden")
 public abstract class AvailTask
 implements Comparable<AvailTask>, Runnable
 {
@@ -62,9 +66,8 @@ implements Comparable<AvailTask>, Runnable
 	 *
 	 * @param fiber
 	 *        A fiber.
-	 * @param transformer
-	 *        What to do to resume execution of the fiber.  The fiber's {@link
-	 *        ExecutionState} is returned by it.
+	 * @param body
+	 *        What to do to resume execution of the fiber.
 	 * @return A task that sets the execution state of the fiber to {@linkplain
 	 *         ExecutionState#RUNNING running}, binds it to this {@linkplain
 	 *         AvailThread thread}'s {@linkplain Interpreter interpreter}, and
@@ -72,7 +75,7 @@ implements Comparable<AvailTask>, Runnable
 	 */
 	public static AvailTask forFiberResumption (
 		final A_Fiber fiber,
-		final Transformer0<ExecutionState> transformer)
+		final Continuation0 body)
 	{
 		assert fiber.executionState().indicatesSuspension();
 		final boolean scheduled =
@@ -100,8 +103,7 @@ implements Comparable<AvailTask>, Runnable
 				});
 				try
 				{
-					//TODO - Hm.  Why is the return value being ignored?
-					transformer.value();
+					body.value();
 				}
 				catch (final PrimitiveThrownException e)
 				{
@@ -122,7 +124,7 @@ implements Comparable<AvailTask>, Runnable
 				}
 				finally
 				{
-					final Continuation0 postExit =
+					final @Nullable Continuation0 postExit =
 						interpreter.postExitContinuation();
 					// This is the first point at which *some other* Thread may
 					// have had a chance to resume the fiber and update its

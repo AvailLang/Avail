@@ -5,6 +5,7 @@
     <bytecodeTargetLevel target="1.8" />
   </component>
   <component name="JavacSettings">
+    <option name="DEPRECATION" value="false" />
     <option name="ADDITIONAL_OPTIONS_STRING" value="-Xlint:unchecked" />
   </component>
 </project>

@@ -357,21 +357,20 @@ Public method "From_to_do_" is
 	end : integer range from 0 (inclusive=true) to ∞ (inclusive=true),
 	action : function accepting <⊥> and returning boolean
 |
-	value : natural number := start;
-	Invoke
+	$loop;
+	If start ≤ end then
 	[
-		$loop;
-		If value ≤ end then
+		continue ::= invoke action with <start>;
+		If continue then
 		[
-			continue ::= invoke action with <value>;
-			If continue then
-			[
-				value := cast value + 1 into [ i : natural number | i ];
-				Restart loop
-			];
+			Restart loop with
+			<
+				cast start + 1 into [ i : natural number | i ],
+				end,
+				action
+			>
 		];
-	] : ⊤
-	with <>;
+	];
 ] : ⊤;
 
 /**

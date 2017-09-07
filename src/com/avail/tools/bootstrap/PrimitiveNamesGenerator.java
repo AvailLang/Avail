@@ -32,14 +32,23 @@
 
 package com.avail.tools.bootstrap;
 
-import static com.avail.tools.bootstrap.Resources.*;
-import static com.avail.tools.bootstrap.Resources.Key.*;
-import java.io.*;
-import java.text.MessageFormat;
-import java.util.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
+
+import java.io.PrintWriter;
+import java.text.MessageFormat;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+import java.util.Set;
+
+import static com.avail.tools.bootstrap.Resources.Key.*;
+import static com.avail.tools.bootstrap.Resources.*;
+import static java.lang.String.format;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that
@@ -141,9 +150,8 @@ extends PropertiesFileGenerator
 						{
 							builder.append(MessageFormat.format(
 								parameterTemplate,
-								String.format("{%d}", templateParameters),
-								String.format(
-									"{%d}", templateParameters + argCount)));
+								format("{%d}", templateParameters),
+								format("{%d}", templateParameters + argCount)));
 							templateParameters++;
 						}
 						templateParameters += argCount;
@@ -159,7 +167,7 @@ extends PropertiesFileGenerator
 						methodCommentReturnsTemplate.name());
 					final String returns = MessageFormat.format(
 						returnsTemplate,
-						String.format("{%d}", templateParameters));
+						format("{%d}", templateParameters));
 					templateParameters++;
 					// If the primitive failure type is an enumeration, then
 					// exceptions contribute one argument to the final template
@@ -183,7 +191,7 @@ extends PropertiesFileGenerator
 							{
 								builder.append(MessageFormat.format(
 									raisesTemplate,
-									String.format("{%d}", templateParameters)));
+									format("{%d}", templateParameters)));
 								templateParameters++;
 							}
 							raises = builder.toString();
@@ -192,7 +200,7 @@ extends PropertiesFileGenerator
 						{
 							raises = MessageFormat.format(
 								raisesTemplate,
-								String.format("{%d}", templateParameters));
+								format("{%d}", templateParameters));
 						}
 					}
 					else

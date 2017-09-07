@@ -87,10 +87,10 @@ extends L2Operation
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
 			destination,
-			FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					AbstractEnumerationTypeDescriptor.withInstances(
-						TupleDescriptor.from(
+			FunctionTypeDescriptor.functionType(
+				TupleDescriptor.tuple(
+					AbstractEnumerationTypeDescriptor.enumerationWith(
+						TupleDescriptor.tuple(
 								E_NO_METHOD.numericCode(),
 								E_NO_METHOD_DEFINITION.numericCode(),
 								E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
@@ -98,7 +98,7 @@ extends L2Operation
 								E_ABSTRACT_METHOD_DEFINITION.numericCode())
 							.asSet()),
 					Types.METHOD.o(),
-					TupleTypeDescriptor.mostGeneralType()),
+					TupleTypeDescriptor.mostGeneralTupleType()),
 				BottomTypeDescriptor.bottom()),
 			instruction);
 	}

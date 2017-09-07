@@ -63,8 +63,8 @@ public final class P_InstanceCount extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				InstanceMetaDescriptor.topMeta()),
 			IntegerRangeTypeDescriptor.inclusive(
 				IntegerDescriptor.zero(),

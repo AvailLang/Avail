@@ -32,19 +32,23 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.InstanceMetaDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Jump to the target if the object (a type) is not a subtype of the constant
@@ -102,8 +106,7 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 		else
 		{
 			assert registerSet.hasTypeAt(typeReg);
-			final A_Type knownMeta = registerSet.typeAt(typeReg);
-			assert knownMeta != null;
+			final A_Type knownMeta = stripNull(registerSet.typeAt(typeReg));
 			final A_Type knownType = knownMeta.instance();
 			intersection = constantType.typeIntersection(knownType);
 			if (intersection.isBottom())
@@ -183,7 +186,7 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 			final A_Type intersectionType =
 				existingType.typeIntersection(constantType);
 			final A_Type intersectionMeta =
-				InstanceMetaDescriptor.on(intersectionType);
+				InstanceMetaDescriptor.instanceMetaOn(intersectionType);
 			fallThroughSet.strengthenTestedTypeAtPut(typeReg, intersectionMeta);
 		}
 	}

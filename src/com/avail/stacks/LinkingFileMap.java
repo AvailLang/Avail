@@ -32,8 +32,9 @@
 
 package com.avail.stacks;
 
-import static com.avail.utility.Strings.tabs;
-import static java.nio.file.StandardOpenOption.*;
+import com.avail.utility.Pair;
+import com.avail.utility.json.JSONWriter;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -44,8 +45,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
-import com.avail.utility.Pair;
-import com.avail.utility.json.JSONWriter;
+
+import static com.avail.utility.Strings.tabs;
+import static java.nio.file.StandardOpenOption.*;
 
 /**
  * A holder for all categories in stacks

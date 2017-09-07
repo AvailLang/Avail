@@ -32,9 +32,10 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 import java.util.HashSet;
 import java.util.List;
-import com.avail.utility.json.JSONWriter;
 
 /**
  * The Avail comment "@category" tag

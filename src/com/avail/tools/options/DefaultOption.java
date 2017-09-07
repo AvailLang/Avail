@@ -32,8 +32,9 @@
 
 package com.avail.tools.options;
 
+import com.avail.utility.evaluation.Continuation2;
+
 import static java.util.Arrays.asList;
-import com.avail.utility.evaluation.*;
 
 /**
  * A {@code DefaultOption} is the {@linkplain Option option} that an {@linkplain

@@ -35,6 +35,8 @@ package com.avail.utility.evaluation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * Implementors of {@code Transformer3} provide a single arbitrary operation
  * that accepts three arguments and produces a result.
@@ -62,7 +64,7 @@ public interface Transformer3 <W,X,Y,Z>
 		@Nullable Y arg3);
 
 	/**
-	 * Perform the operation, then assert a {@link NotNull} condition for the
+	 * Perform the operation, then assert a {@link Nonnull} condition for the
 	 * result as a convenience.
 	 *
 	 * @param arg1 The first argument to the operation.
@@ -75,8 +77,6 @@ public interface Transformer3 <W,X,Y,Z>
 		final @Nullable X arg2,
 		final @Nullable Y arg3)
 	{
-		final Z result = value(arg1, arg2, arg3);
-		assert result != null;
-		return result;
+		return stripNull(value(arg1, arg2, arg3));
 	}
 }

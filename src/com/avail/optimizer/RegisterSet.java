@@ -591,7 +591,7 @@ public final class RegisterSet
 			instruction);
 		typeAtPut(
 			fixed(FixedRegister.CALLER),
-			ContinuationTypeDescriptor.mostGeneralType(),
+			ContinuationTypeDescriptor.mostGeneralContinuationType(),
 			instruction);
 	}
 

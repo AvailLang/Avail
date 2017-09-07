@@ -68,8 +68,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				PERMUTED_LIST_NODE.mostGeneralType()),
 			LIST_NODE.mostGeneralType());
 	}

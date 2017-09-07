@@ -32,8 +32,11 @@
 
 package com.avail.builder;
 
-import javax.annotation.Nullable;
 import com.avail.descriptor.ModuleDescriptor;
+
+import javax.annotation.Nullable;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code UnresolvedDependencyException} is thrown by the {@linkplain
@@ -67,9 +70,7 @@ extends Exception
 	 */
 	public ResolvedModuleName referringModuleName()
 	{
-		final ResolvedModuleName name = referringModuleName;
-		assert name != null;
-		return name;
+		return stripNull(referringModuleName);
 	}
 
 	/**

@@ -386,7 +386,7 @@ public final class L2Translator
 	 * All {@link A_ChunkDependable contingent values} for which changes should
 	 * cause the current {@linkplain L2Chunk level two chunk} to be invalidated.
 	 */
-	@InnerAccess A_Set contingentValues = SetDescriptor.empty();
+	@InnerAccess A_Set contingentValues = SetDescriptor.emptySet();
 
 	/**
 	 * The architectural registers, representing the fixed registers followed by
@@ -1682,9 +1682,9 @@ public final class L2Translator
 			// Now deduce what the registers will look like after the
 			// non-primitive call.  That should be similar to the preSlots'
 			// registers.
-			A_Map postSlotTypesMap = MapDescriptor.empty();
-			A_Map postSlotConstants = MapDescriptor.empty();
-			A_Set nullPostSlots = SetDescriptor.empty();
+			A_Map postSlotTypesMap = MapDescriptor.emptyMap();
+			A_Map postSlotConstants = MapDescriptor.emptyMap();
+			A_Set nullPostSlots = SetDescriptor.emptySet();
 			final List<L2ObjectRegister> postSlots = new ArrayList<>(numSlots);
 			for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 			{
@@ -1851,9 +1851,9 @@ public final class L2Translator
 			// Now deduce what the registers will look like after the
 			// non-primitive call.  That should be similar to the preSlots'
 			// registers.
-			A_Map postSlotTypesMap = MapDescriptor.empty();
-			A_Map postSlotConstants = MapDescriptor.empty();
-			A_Set nullPostSlots = SetDescriptor.empty();
+			A_Map postSlotTypesMap = MapDescriptor.emptyMap();
+			A_Map postSlotConstants = MapDescriptor.emptyMap();
+			A_Set nullPostSlots = SetDescriptor.emptySet();
 			final List<L2ObjectRegister> postSlots = new ArrayList<>(numSlots);
 			for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 			{
@@ -2373,9 +2373,9 @@ public final class L2Translator
 			addInstruction(
 				L2_REENTER_L2_CHUNK.instance,
 				new L2WritePointerOperand(fixed(CALLER)));
-			A_Map typesMap = MapDescriptor.empty();
-			A_Map constants = MapDescriptor.empty();
-			A_Set nullSlots = SetDescriptor.empty();
+			A_Map typesMap = MapDescriptor.emptyMap();
+			A_Map constants = MapDescriptor.emptyMap();
+			A_Set nullSlots = SetDescriptor.emptySet();
 			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
 			{
 				final A_Type type = savedSlotTypes.get(slotIndex - 1);
@@ -2543,9 +2543,9 @@ public final class L2Translator
 			addInstruction(
 				L2_REENTER_L2_CHUNK.instance,
 				new L2WritePointerOperand(fixed(CALLER)));
-			A_Map typesMap = MapDescriptor.empty();
-			A_Map constants = MapDescriptor.empty();
-			A_Set nullSlots = SetDescriptor.empty();
+			A_Map typesMap = MapDescriptor.emptyMap();
+			A_Map constants = MapDescriptor.emptyMap();
+			A_Set nullSlots = SetDescriptor.emptySet();
 			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
 			{
 				final A_Type type = savedSlotTypes.get(slotIndex - 1);
@@ -2681,10 +2681,10 @@ public final class L2Translator
 			if (restartLabel != null)
 			{
 				addLabel(restartLabel);
-				A_Map typesMap = MapDescriptor.empty();
+				A_Map typesMap = MapDescriptor.emptyMap();
 				final List<L2ObjectRegister> slots = new ArrayList<>(numSlots);
 				final A_Type argsType = code.functionType().argsTupleType();
-				A_Set nullSlots = SetDescriptor.empty();
+				A_Set nullSlots = SetDescriptor.emptySet();
 				for (int i = 1; i <= numSlots; i++)
 				{
 					slots.add(continuationSlot(i));
@@ -2710,7 +2710,7 @@ public final class L2Translator
 					new L2WritePointerOperand(fixed(FUNCTION)),
 					new L2WriteIntOperand(skipReturnCheckRegister),
 					new L2ConstantOperand(typesMap),
-					new L2ConstantOperand(MapDescriptor.empty()),
+					new L2ConstantOperand(MapDescriptor.emptyMap()),
 					new L2ConstantOperand(nullSlots),
 					new L2ConstantOperand(code.functionType()));
 				addInstruction(
@@ -2927,7 +2927,7 @@ public final class L2Translator
 			if (constants.size() == count)
 			{
 				// The tuple elements are all constants.  Fold it.
-				final A_Tuple tuple = TupleDescriptor.fromList(constants);
+				final A_Tuple tuple = TupleDescriptor.tupleFromList(constants);
 				addInstruction(
 					L2_MOVE_CONSTANT.instance,
 					new L2ConstantOperand(tuple),

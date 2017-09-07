@@ -31,12 +31,21 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.exceptions.AvailBreakpointException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
  * <strong>Primitive:</strong> Pause the VM.
@@ -66,16 +75,13 @@ public final class P_BreakPoint extends Primitive
 		}
 		catch (final AvailBreakpointException e)
 		{
-			return interpreter.primitiveSuccess(
-				NilDescriptor.nil());
+			return interpreter.primitiveSuccess(nil());
 		}
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			TOP.o());
+		return functionType(emptyTuple(), TOP.o());
 	}
 }

@@ -31,15 +31,30 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.String.format;
 
 /**
  * <strong>Primitive:</strong> Exit the current {@linkplain
@@ -65,7 +80,7 @@ public final class P_EmergencyExit extends Primitive
 		final A_BasicObject errorMessageProducer = args.get(0);
 		final A_Fiber fiber = interpreter.fiber();
 		final A_Continuation continuation = interpreter.reifiedContinuation;
-		interpreter.primitiveSuspend();
+		interpreter.primitiveSuspend(stripNull(interpreter.function).code());
 		ContinuationDescriptor.dumpStackThen(
 			interpreter.runtime(),
 			fiber.textInterface(),
@@ -73,7 +88,7 @@ public final class P_EmergencyExit extends Primitive
 			stack ->
 			{
 				final StringBuilder builder = new StringBuilder();
-				builder.append(String.format(
+				builder.append(format(
 					"A fiber (%s) has exited: %s",
 					fiber.fiberName(),
 					errorMessageProducer));
@@ -106,9 +121,6 @@ public final class P_EmergencyExit extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ANY.o()),
-			BottomTypeDescriptor.bottom());
+		return functionType(tuple(ANY.o()), bottom());
 	}
 }

@@ -63,16 +63,16 @@ extends Primitive
 		final A_Type readType = args.get(0);
 		final A_Type writeType = args.get(1);
 		return interpreter.primitiveSuccess(
-			VariableTypeDescriptor.fromReadAndWriteTypes(readType, writeType));
+			VariableTypeDescriptor.variableReadWriteType(readType, writeType));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				InstanceMetaDescriptor.topMeta(),
 				InstanceMetaDescriptor.topMeta()),
-			VariableTypeDescriptor.meta());
+			VariableTypeDescriptor.variableMeta());
 	}
 }

@@ -32,11 +32,16 @@
 
 package com.avail.interpreter.levelOne;
 
-import static com.avail.descriptor.AvailObject.error;
+import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.NybbleTupleDescriptor;
+
 import java.util.IdentityHashMap;
 
-import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
+import static com.avail.descriptor.AvailObject.error;
 
 /**
  * An instance of {@code L1Disassembler} converts a {@linkplain

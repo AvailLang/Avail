@@ -65,7 +65,7 @@ public class L2_CREATE_SET extends L2Operation
 		final L2ObjectRegister destinationSetReg =
 			instruction.writeObjectRegisterAt(1);
 
-		A_Set set = SetDescriptor.empty();
+		A_Set set = SetDescriptor.emptySet();
 		for (final L2ObjectRegister reg : elementsVector.registers())
 		{
 			set = set.setWithElementCanDestroy(reg.in(interpreter), true);

@@ -70,10 +70,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				AbstractEnumerationTypeDescriptor.withInstances(
-					SetDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				AbstractEnumerationTypeDescriptor.enumerationWith(
+					SetDescriptor.set(
 						E_HANDLER_SENTINEL,
 						E_UNWIND_SENTINEL))),
 			TOP.o());
@@ -82,8 +82,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_CANNOT_MARK_HANDLER_FRAME,
 				E_NO_HANDLER_FRAME));
 	}

@@ -181,7 +181,7 @@ extends NumericTupleDescriptor
 			// Too big; fall through and make a tree-tuple.
 		}
 		// Fall back to concatenating a singleton.
-		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
 		return object.concatenateWith(singleton, canDestroy);
 	}
 

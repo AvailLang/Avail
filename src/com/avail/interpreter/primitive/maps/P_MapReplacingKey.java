@@ -71,9 +71,9 @@ public final class P_MapReplacingKey extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				MapTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				MapTypeDescriptor.mostGeneralMapType(),
 				ANY.o(),
 				ANY.o()),
 			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
@@ -107,7 +107,7 @@ public final class P_MapReplacingKey extends Primitive
 		final A_Number newMaxPlusOne =
 			oldSizes.upperBound().plusCanDestroy(
 				IntegerDescriptor.two(), false);
-		final A_Type newSizes = IntegerRangeTypeDescriptor.create(
+		final A_Type newSizes = IntegerRangeTypeDescriptor.integerRangeType(
 			newMin.makeImmutable(),
 			true,
 			newMaxPlusOne.makeImmutable(),

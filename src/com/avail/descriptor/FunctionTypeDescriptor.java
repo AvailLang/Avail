@@ -504,7 +504,7 @@ extends TypeDescriptor
 		final A_Type returnType =
 			object.slot(RETURN_TYPE).typeIntersection(
 				aFunctionType.returnType());
-		A_Set exceptions = SetDescriptor.empty();
+		A_Set exceptions = SetDescriptor.emptySet();
 		for (final A_Type outer : object.slot(DECLARED_EXCEPTIONS))
 		{
 			for (final A_Type inner : aFunctionType.declaredExceptions())
@@ -644,7 +644,7 @@ extends TypeDescriptor
 	 * The most general {@linkplain FunctionTypeDescriptor function type}.
 	 */
 	private static final A_Type mostGeneralType =
-		forReturnType(TOP.o()).makeShared();
+		functionTypeReturning(TOP.o()).makeShared();
 
 	/**
 	 * Answer the top (i.e., most general) {@linkplain FunctionTypeDescriptor
@@ -652,7 +652,7 @@ extends TypeDescriptor
 	 *
 	 * @return The function type "[…]→⊤".
 	 */
-	public static A_Type mostGeneralType ()
+	public static A_Type mostGeneralFunctionType ()
 	{
 		return mostGeneralType;
 	}
@@ -661,16 +661,16 @@ extends TypeDescriptor
 	 * The metatype of any function types.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all function types.  This is just an {@linkplain
 	 * InstanceTypeDescriptor instance type} on the {@linkplain
-	 * #mostGeneralType() most general type}.
+	 * #mostGeneralFunctionType() most general type}.
 	 *
 	 * @return The function type "[…]→⊤".
 	 */
-	public static A_Type meta ()
+	public static A_Type functionMeta ()
 	{
 		return meta;
 	}
@@ -701,14 +701,14 @@ extends TypeDescriptor
 		{
 			if (exceptionSet.iterator().next().isBottom())
 			{
-				return SetDescriptor.empty();
+				return SetDescriptor.emptySet();
 			}
 			return exceptionSet;
 		}
 
 		// Actually normalize the set. That is, eliminate types for which a
 		// supertype is already present. Also, eliminate bottom.
-		A_Set normalizedSet = SetDescriptor.empty();
+		A_Set normalizedSet = SetDescriptor.emptySet();
 		each_outer:
 		for (final AvailObject outer : exceptionSet)
 		{
@@ -813,14 +813,14 @@ extends TypeDescriptor
 	 *        should produce.
 	 * @return A {@linkplain FunctionTypeDescriptor function type}.
 	 */
-	public static A_Type create (
+	public static A_Type functionType (
 		final A_Tuple argTypes,
 		final A_Type returnType)
 	{
 		return create(
 			argTypes,
 			returnType,
-			SetDescriptor.empty());
+			SetDescriptor.emptySet());
 	}
 
 	/**
@@ -834,13 +834,13 @@ extends TypeDescriptor
 	 * @return
 	 *            A {@linkplain FunctionTypeDescriptor function type}
 	 */
-	public static A_Type forReturnType (
+	public static A_Type functionTypeReturning (
 		final A_Type returnType)
 	{
 		return createWithArgumentTupleType(
 			BottomTypeDescriptor.bottom(),
 			returnType,
 			// TODO: [MvG] Probably should allow any exception.
-			SetDescriptor.empty());
+			SetDescriptor.emptySet());
 	}
 }

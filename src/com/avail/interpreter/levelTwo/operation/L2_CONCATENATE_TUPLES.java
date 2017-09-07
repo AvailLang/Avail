@@ -32,15 +32,22 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.ConcatenatedTupleTypeDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Concatenate the tuples in the vector of object registers to produce a single
@@ -72,7 +79,7 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 		A_Tuple accumulator;
 		if (tupleCount == 0)
 		{
-			accumulator = TupleDescriptor.empty();
+			accumulator = emptyTuple();
 		}
 		else
 		{
@@ -103,7 +110,7 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 		{
 			registerSet.constantAtPut(
 				targetTupleReg,
-				TupleDescriptor.empty(),
+				emptyTuple(),
 				instruction);
 			return;
 		}

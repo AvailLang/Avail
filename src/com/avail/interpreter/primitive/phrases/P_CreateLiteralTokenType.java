@@ -32,10 +32,22 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.LiteralTokenTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Construct a {@linkplain
@@ -63,16 +75,14 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Type literalValueType = args.get(0);
 		return interpreter.primitiveSuccess(
-			LiteralTokenTypeDescriptor.create(literalValueType));
+			literalTokenType(literalValueType));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				InstanceMetaDescriptor.anyMeta()),
-			InstanceMetaDescriptor.on(
-				LiteralTokenTypeDescriptor.mostGeneralType()));
+		return functionType(
+			tuple(anyMeta()),
+			instanceMetaOn(mostGeneralLiteralTokenType()));
 	}
 }

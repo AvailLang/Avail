@@ -32,12 +32,15 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
-import javax.annotation.Nullable;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.interpreter.Primitive;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * {@code A_Atom} is an interface that specifies the atom-specific operations

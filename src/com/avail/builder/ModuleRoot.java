@@ -32,11 +32,13 @@
 
 package com.avail.builder;
 
-import java.io.File;
-import javax.annotation.Nullable;
 import com.avail.descriptor.ModuleDescriptor;
-import com.avail.persistence.*;
+import com.avail.persistence.IndexedFileException;
+import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.json.JSONWriter;
+
+import javax.annotation.Nullable;
+import java.io.File;
 
 /**
  * A {@code ModuleRoot} represents a vendor of Avail modules and/or the vended

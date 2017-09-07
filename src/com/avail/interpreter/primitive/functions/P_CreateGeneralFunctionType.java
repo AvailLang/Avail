@@ -61,15 +61,15 @@ public final class P_CreateGeneralFunctionType extends Primitive
 			FunctionTypeDescriptor.createWithArgumentTupleType(
 				BottomTypeDescriptor.bottom(),
 				returnType,
-				SetDescriptor.empty()));
+				SetDescriptor.emptySet()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				InstanceMetaDescriptor.topMeta()),
-			FunctionTypeDescriptor.meta());
+			FunctionTypeDescriptor.functionMeta());
 	}
 }

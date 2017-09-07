@@ -96,18 +96,18 @@ public final class P_BindPojoInstanceField extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				PojoTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				PojoTypeDescriptor.mostGeneralPojoType(),
 				TupleTypeDescriptor.stringType()),
-			VariableTypeDescriptor.mostGeneralType());
+			VariableTypeDescriptor.mostGeneralVariableType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_JAVA_FIELD_NOT_AVAILABLE));
 	}
 }

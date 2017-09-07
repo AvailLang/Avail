@@ -154,9 +154,9 @@ public class L1Decompiler
 		{
 			final String argName = tempGenerator.value("arg");
 			final A_Token token = TokenDescriptor.create(
-				StringDescriptor.from(argName),
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				StringDescriptor.stringFrom(argName),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				0,
 				0,
 				TokenType.KEYWORD);
@@ -170,9 +170,9 @@ public class L1Decompiler
 		{
 			final String localName = tempGenerator.value("local");
 			final A_Token token = TokenDescriptor.create(
-				StringDescriptor.from(localName),
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				StringDescriptor.stringFrom(localName),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				0,
 				0,
 				TokenType.KEYWORD);
@@ -358,7 +358,7 @@ public class L1Decompiler
 				permutationTuple = permutationLiteral.token().literal();
 			}
 			final A_Tuple argsTuple =
-				TupleDescriptor.fromList(popExpressions(nArgs));
+				TupleDescriptor.tupleFromList(popExpressions(nArgs));
 			A_Phrase listNode = ListNodeDescriptor.newExpressions(argsTuple);
 			if (permutationTuple != null)
 			{
@@ -366,7 +366,7 @@ public class L1Decompiler
 					listNode, permutationTuple);
 			}
 			final A_Phrase sendNode = SendNodeDescriptor.from(
-				TupleDescriptor.empty(), bundle, listNode, type);
+				TupleDescriptor.emptyTuple(), bundle, listNode, type);
 			pushExpression(sendNode);
 		}
 
@@ -375,7 +375,7 @@ public class L1Decompiler
 		{
 			final AvailObject value = code.literalAt(getInteger());
 			if (value.isInstanceOfKind(
-				FunctionTypeDescriptor.mostGeneralType()))
+				FunctionTypeDescriptor.mostGeneralFunctionType()))
 			{
 				final List<A_Phrase> functionOuters =
 					new ArrayList<>(value.numOuterVars());
@@ -386,14 +386,14 @@ public class L1Decompiler
 					final AvailObject varObject = value.outerVarAt(i);
 					final A_Token token =
 						LiteralTokenDescriptor.create(
-							StringDescriptor.from(
+							StringDescriptor.stringFrom(
 								"OuterOfUncleanConstantFunction#"
 								+ i
 								+ " (with value "
 								+ varObject
 								+ ")"),
-							TupleDescriptor.empty(),
-							TupleDescriptor.empty(),
+							TupleDescriptor.emptyTuple(),
+							TupleDescriptor.emptyTuple(),
 							0,
 							0,
 							TokenType.LITERAL,
@@ -426,9 +426,9 @@ public class L1Decompiler
 				{
 					final AvailObject token =
 						LiteralTokenDescriptor.create(
-							StringDescriptor.from(value.toString()),
-							TupleDescriptor.empty(),
-							TupleDescriptor.empty(),
+							StringDescriptor.stringFrom(value.toString()),
+							TupleDescriptor.emptyTuple(),
+							TupleDescriptor.emptyTuple(),
 							0,
 							0,
 							TokenType.LITERAL,
@@ -572,7 +572,7 @@ public class L1Decompiler
 				else
 				{
 					// Create a two-element FirstOfSequence node.
-					newStatements = TupleDescriptor.from(
+					newStatements = TupleDescriptor.tuple(
 						penultimateExpression, lastExpression);
 				}
 				pushExpression(
@@ -599,7 +599,7 @@ public class L1Decompiler
 				final A_Token token = outerExpr.token();
 				final A_BasicObject variableObject = token.literal();
 				assert variableObject.isInstanceOfKind(
-					VariableTypeDescriptor.mostGeneralType());
+					VariableTypeDescriptor.mostGeneralVariableType());
 				outerDecl = DeclarationNodeDescriptor.newModuleVariable(
 					token,
 					variableObject,
@@ -661,7 +661,7 @@ public class L1Decompiler
 			}
 			final List<A_Phrase> expressions = popExpressions(count);
 			A_Phrase listNode = ListNodeDescriptor.newExpressions(
-				TupleDescriptor.fromList(expressions));
+				TupleDescriptor.tupleFromList(expressions));
 			if (permutationTuple != null)
 			{
 				listNode = PermutedListNodeDescriptor.fromListAndPermutation(
@@ -707,9 +707,9 @@ public class L1Decompiler
 			else
 			{
 				final A_Token labelToken = TokenDescriptor.create(
-					StringDescriptor.from(tempGenerator.valueNotNull("label")),
-					TupleDescriptor.empty(),
-					TupleDescriptor.empty(),
+					StringDescriptor.stringFrom(tempGenerator.valueNotNull("label")),
+					TupleDescriptor.emptyTuple(),
+					TupleDescriptor.emptyTuple(),
 					0,
 					0,
 					TokenType.KEYWORD);
@@ -731,9 +731,9 @@ public class L1Decompiler
 		public void L1Ext_doGetLiteral ()
 		{
 			final A_Token globalToken = TokenDescriptor.create(
-				StringDescriptor.from("SomeGlobal"),
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				StringDescriptor.stringFrom("SomeGlobal"),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				0,
 				0,
 				TokenType.KEYWORD);
@@ -754,9 +754,9 @@ public class L1Decompiler
 		public void L1Ext_doSetLiteral ()
 		{
 			final A_Token globalToken = TokenDescriptor.create(
-				StringDescriptor.from("SomeGlobal"),
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				StringDescriptor.stringFrom("SomeGlobal"),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				0,
 				0,
 				TokenType.KEYWORD);
@@ -828,7 +828,7 @@ public class L1Decompiler
 			final A_Phrase argsNode =
 				reconstructListWithSuperUnionType(nArgs, superUnionType);
 			final A_Phrase sendNode = SendNodeDescriptor.from(
-				TupleDescriptor.empty(), bundle, argsNode, type);
+				TupleDescriptor.emptyTuple(), bundle, argsNode, type);
 			pushExpression(sendNode);
 		}
 
@@ -893,7 +893,7 @@ public class L1Decompiler
 			}
 			final List<A_Phrase> argsList = popExpressions(nArgs);
 			final A_Phrase listNode = ListNodeDescriptor.newExpressions(
-				TupleDescriptor.fromList(argsList));
+				TupleDescriptor.tupleFromList(argsList));
 			final A_Phrase argsNode = permutationTuple != null
 				? PermutedListNodeDescriptor.fromListAndPermutation(
 					listNode, permutationTuple)
@@ -932,7 +932,7 @@ public class L1Decompiler
 				}
 				return PermutedListNodeDescriptor.fromListAndPermutation(
 					ListNodeDescriptor.newExpressions(
-						TupleDescriptor.from(outputArray)),
+						TupleDescriptor.tuple(outputArray)),
 						permutation);
 			}
 			else if (phrase.parseNodeKindIsUnder(LIST_NODE))
@@ -947,7 +947,7 @@ public class L1Decompiler
 						element, superUnionType.typeAtIndex(i));
 				}
 				return ListNodeDescriptor.newExpressions(
-					TupleDescriptor.from(outputArray));
+					TupleDescriptor.tuple(outputArray));
 			}
 			else
 			{
@@ -984,9 +984,9 @@ public class L1Decompiler
 		{
 			final A_BasicObject outerObject = aFunction.outerVarAt(i);
 			final A_Token token = LiteralTokenDescriptor.create(
-				StringDescriptor.from("Outer#" + i),
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				StringDescriptor.stringFrom("Outer#" + i),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				0,
 				0,
 				TokenType.SYNTHETIC_LITERAL,

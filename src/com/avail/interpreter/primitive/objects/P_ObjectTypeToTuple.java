@@ -81,11 +81,11 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ObjectTypeDescriptor.meta()),
 			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.forTypes(
+				TupleTypeDescriptor.tupleTypeForTypes(
 					ATOM.o(),
 					InstanceMetaDescriptor.anyMeta())));
 	}

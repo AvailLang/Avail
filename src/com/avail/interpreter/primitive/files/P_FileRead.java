@@ -41,7 +41,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import com.avail.AvailRuntime;
@@ -243,7 +242,7 @@ extends Primitive
 		{
 			// We began with buffer hits, so don't fetch anything.
 			// Concatenate the buffers we have.
-			final A_Tuple buffersTuple = TupleDescriptor.fromList(buffers);
+			final A_Tuple buffersTuple = TupleDescriptor.tupleFromList(buffers);
 			final A_Tuple concatenated =
 				buffersTuple.concatenateTuplesCanDestroy(false);
 			Interpreter.runOutermostFunction(
@@ -281,7 +280,7 @@ extends Primitive
 						// We started reading after the last byte of the file.
 						// Avail expects an empty buffer in this case.
 						assert buffer.remaining() == 0;
-						bytesTuple = TupleDescriptor.empty();
+						bytesTuple = TupleDescriptor.emptyTuple();
 					}
 					else
 					{
@@ -350,20 +349,20 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.inclusive(
 					IntegerDescriptor.one(),
 					InfinityDescriptor.positiveInfinity()),
 				ATOM.o(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.tuple(
 						TupleTypeDescriptor.zeroOrMoreOf(
 							IntegerRangeTypeDescriptor.bytes())),
 					TOP.o()),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.tuple(
 						AbstractEnumerationTypeDescriptor.withInstance(
 							E_IO_ERROR.numericCode())),
 					TOP.o()),
@@ -374,8 +373,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_NOT_OPEN_FOR_READ,

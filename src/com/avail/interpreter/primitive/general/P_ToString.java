@@ -59,15 +59,15 @@ public final class P_ToString extends Primitive
 		assert args.size() == 1;
 		final A_BasicObject objectToPrint = args.get(0);
 		final String string = objectToPrint.toString();
-		final A_String availString = StringDescriptor.from(string);
+		final A_String availString = StringDescriptor.stringFrom(string);
 		return interpreter.primitiveSuccess(availString);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o()),
 			TupleTypeDescriptor.stringType());
 	}

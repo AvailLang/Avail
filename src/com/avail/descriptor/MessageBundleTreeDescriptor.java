@@ -448,10 +448,10 @@ extends Descriptor
 		final A_Definition definition = plan.definition();
 		A_Map submap = outerMap.hasKey(bundle)
 			? outerMap.mapAt(bundle)
-			: MapDescriptor.empty();
+			: MapDescriptor.emptyMap();
 		A_Set inProgressSet = submap.hasKey(definition)
 			? submap.mapAt(definition)
-			: SetDescriptor.empty();
+			: SetDescriptor.emptySet();
 		inProgressSet = inProgressSet.setWithElementCanDestroy(
 			planInProgress, true);
 		submap = submap.mapAtPuttingCanDestroy(definition, inProgressSet, true);
@@ -553,7 +553,7 @@ extends Descriptor
 					}
 				}
 			}
-			object.setVolatileSlot(UNCLASSIFIED, MapDescriptor.empty());
+			object.setVolatileSlot(UNCLASSIFIED, MapDescriptor.emptyMap());
 			object.setSlot(LAZY_COMPLETE, complete.value.makeShared());
 			object.setSlot(LAZY_INCOMPLETE, incomplete.value.makeShared());
 			object.setSlot(
@@ -702,14 +702,14 @@ extends Descriptor
 		final long timeBefore = AvailRuntime.captureNanos();
 		synchronized (object)
 		{
-			final A_Map emptyMap = MapDescriptor.empty();
-			object.setSlot(LAZY_COMPLETE, SetDescriptor.empty());
+			final A_Map emptyMap = MapDescriptor.emptyMap();
+			object.setSlot(LAZY_COMPLETE, SetDescriptor.emptySet());
 			object.setSlot(LAZY_INCOMPLETE, emptyMap);
 			object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
 			object.setSlot(LAZY_ACTIONS, emptyMap);
 			object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
 			object.setSlot(
-				LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.empty());
+				LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.emptyTuple());
 			object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
 			object.setSlot(UNCLASSIFIED, object.slot(ALL_PLANS_IN_PROGRESS));
 		}
@@ -1024,7 +1024,7 @@ extends Descriptor
 					IntegerDescriptor.fromInt(instruction);
 				A_Tuple successors = actionMap.value.hasKey(instructionObject)
 					? actionMap.value.mapAt(instructionObject)
-					: TupleDescriptor.empty();
+					: TupleDescriptor.emptyTuple();
 				successors = successors.appendCanDestroy(newTarget, true);
 				actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 					instructionObject, successors, true);
@@ -1041,7 +1041,7 @@ extends Descriptor
 					MessageSplitter.constantForIndex(typeIndex);
 				final A_ParsingPlanInProgress planInProgress =
 					ParsingPlanInProgressDescriptor.create(plan, pc + 1);
-				final A_Tuple pair = TupleDescriptor.from(
+				final A_Tuple pair = TupleDescriptor.tuple(
 					phraseType, planInProgress);
 				typeFilterTuples.value =
 					typeFilterTuples.value.appendCanDestroy(pair, true);
@@ -1068,10 +1068,10 @@ extends Descriptor
 					successor = createEmpty();
 					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 						instructionObject,
-						TupleDescriptor.from(successor),
+						TupleDescriptor.tuple(successor),
 						true);
 				}
-				A_Set forbiddenBundles = SetDescriptor.empty();
+				A_Set forbiddenBundles = SetDescriptor.emptySet();
 				for (final A_GrammaticalRestriction restriction
 					: plan.bundle().grammaticalRestrictions())
 				{
@@ -1169,7 +1169,7 @@ extends Descriptor
 				else
 				{
 					successor = createEmpty();
-					final A_Tuple successors = TupleDescriptor.from(successor);
+					final A_Tuple successors = TupleDescriptor.tuple(successor);
 					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 						instructionObject, successors, true);
 				}
@@ -1187,8 +1187,8 @@ extends Descriptor
 	public static AvailObject createEmpty ()
 	{
 		final AvailObject result = mutable.create();
-		final A_Map emptyMap = MapDescriptor.empty();
-		final A_Set emptySet = SetDescriptor.empty();
+		final A_Map emptyMap = MapDescriptor.emptyMap();
+		final A_Set emptySet = SetDescriptor.emptySet();
 		result.setSlot(HASH_OR_ZERO, 0);
 		result.setSlot(ALL_PLANS_IN_PROGRESS, emptyMap);
 		result.setSlot(UNCLASSIFIED, emptyMap);
@@ -1197,7 +1197,7 @@ extends Descriptor
 		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
 		result.setSlot(LAZY_ACTIONS, emptyMap);
 		result.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-		result.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.empty());
+		result.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.emptyTuple());
 		result.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
 		return result.makeShared();
 	}

@@ -38,9 +38,9 @@ import com.avail.environment.AvailWorkbench.LayoutConfiguration;
 import com.avail.environment.editor.ModuleEditor;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowEvent;

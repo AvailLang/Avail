@@ -32,16 +32,20 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
-import java.util.List;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 
 /**
  * Restart the given {@link A_Continuation continuation}, which already has the

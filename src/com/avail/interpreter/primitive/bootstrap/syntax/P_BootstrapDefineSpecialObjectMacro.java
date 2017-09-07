@@ -88,64 +88,64 @@ extends Primitive
 		// Create a send of the bootstrap method definer that, when actually
 		// sent, will produce a method that answers the special object.
 		final A_Phrase defineMethod = SendNodeDescriptor.from(
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			SpecialMethodAtom.METHOD_DEFINER.bundle,
 			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.from(
+				TupleDescriptor.tuple(
 					nameLiteral,
 					BlockNodeDescriptor.newBlockNode(
-						TupleDescriptor.empty(),
+						TupleDescriptor.emptyTuple(),
 						0,
-						TupleDescriptor.from(specialObjectLiteral),
+						TupleDescriptor.tuple(specialObjectLiteral),
 						specialObjectLiteral.expressionType(),
-						SetDescriptor.empty(),
+						SetDescriptor.emptySet(),
 						0))),
 			TOP.o());
 		// Create a send of the bootstrap macro definer that, when actually
 		// sent, will produce a method that literalizes the special object.
 		final A_Phrase getValue = SendNodeDescriptor.from(
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			bundle,
 			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.empty()),
+				TupleDescriptor.emptyTuple()),
 			specialObjectLiteral.expressionType());
 		final A_Phrase createLiteralToken = SendNodeDescriptor.from(
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			SpecialMethodAtom.CREATE_LITERAL_TOKEN.bundle,
 			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.from(
+				TupleDescriptor.tuple(
 					getValue,
 					LiteralNodeDescriptor.syntheticFrom(
 						specialObjectLiteral.token().string()))),
-			LiteralTokenTypeDescriptor.create(
+			LiteralTokenTypeDescriptor.literalTokenType(
 				specialObjectLiteral.expressionType()));
 		final A_Phrase createLiteralNode = SendNodeDescriptor.from(
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			SpecialMethodAtom.CREATE_LITERAL_PHRASE.bundle,
 			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.from(
+				TupleDescriptor.tuple(
 					createLiteralToken)),
 			LITERAL_NODE.create(
 				specialObjectLiteral.expressionType()));
 		final A_Phrase defineMacro = SendNodeDescriptor.from(
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			SpecialMethodAtom.MACRO_DEFINER.bundle,
 			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.from(
+				TupleDescriptor.tuple(
 					nameLiteral,
 					ListNodeDescriptor.empty(),
 					BlockNodeDescriptor.newBlockNode(
-						TupleDescriptor.empty(),
+						TupleDescriptor.emptyTuple(),
 						0,
-						TupleDescriptor.from(createLiteralNode),
+						TupleDescriptor.tuple(createLiteralNode),
 						LITERAL_NODE.create(
 							specialObjectLiteral.expressionType()),
-						SetDescriptor.empty(),
+						SetDescriptor.emptySet(),
 						0))),
 			TOP.o());
 		return interpreter.primitiveSuccess(
 			SequenceNodeDescriptor.newStatements(
-				TupleDescriptor.from(
+				TupleDescriptor.tuple(
 					ExpressionAsStatementNodeDescriptor.fromExpression(
 						defineMethod),
 					ExpressionAsStatementNodeDescriptor.fromExpression(
@@ -155,8 +155,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				LITERAL_NODE.create(
 					TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
 				LITERAL_NODE.create(ANY.o())),

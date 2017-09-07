@@ -33,6 +33,7 @@
 package com.avail.compiler.instruction;
 
 import com.avail.interpreter.levelOne.L1Operation;
+
 import java.io.ByteArrayOutputStream;
 
 /**

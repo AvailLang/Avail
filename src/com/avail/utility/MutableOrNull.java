@@ -34,6 +34,8 @@ package com.avail.utility;
 
 import javax.annotation.Nullable;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * Just like {@link Mutable}, but allows {@linkplain #value} to hold {@code
  * null}.  Also provides a default constructor.
@@ -76,9 +78,7 @@ public class MutableOrNull<T>
 	 */
 	public T value ()
 	{
-		final T v = value;
-		assert v != null;
-		return v;
+		return stripNull(value);
 	}
 
 	@Override

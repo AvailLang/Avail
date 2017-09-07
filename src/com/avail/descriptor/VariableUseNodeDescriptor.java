@@ -32,20 +32,26 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.DECLARATION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots.FLAGS;
+import static com.avail.descriptor.VariableUseNodeDescriptor.IntegerSlots.LAST_USE;
+import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots.DECLARATION;
+import static com.avail.descriptor.VariableUseNodeDescriptor.ObjectSlots.USE_TOKEN;
 
 /**
  * My instances represent the use of some {@linkplain DeclarationNodeDescriptor

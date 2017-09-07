@@ -63,9 +63,9 @@ public final class P_ContinuationFunction extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ContinuationTypeDescriptor.mostGeneralType()),
-			FunctionTypeDescriptor.mostGeneralType());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				ContinuationTypeDescriptor.mostGeneralContinuationType()),
+			FunctionTypeDescriptor.mostGeneralFunctionType());
 	}
 }

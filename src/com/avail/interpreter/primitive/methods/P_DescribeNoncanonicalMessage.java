@@ -68,16 +68,16 @@ public final class P_DescribeNoncanonicalMessage extends Primitive
 		catch (final MalformedMessageException e)
 		{
 			return interpreter.primitiveSuccess(
-				StringDescriptor.from(e.describeProblem()));
+				StringDescriptor.stringFrom(e.describeProblem()));
 		}
-		return interpreter.primitiveSuccess(TupleDescriptor.empty());
+		return interpreter.primitiveSuccess(TupleDescriptor.emptyTuple());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType()),
 			TupleTypeDescriptor.stringType());
 	}

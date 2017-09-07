@@ -31,14 +31,15 @@
  */
 
 package com.avail.dispatch;
-import javax.annotation.Nullable;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.AvailObject.error;
+import static java.lang.String.format;
 
 /**
  * A {@code LookupTree} representing a solution.
@@ -131,17 +132,17 @@ extends LookupTree<Element, Result, Memento>
 			if (tupleSize == 1)
 			{
 				// Assume for now that it's a tuple of definitions.
-				return String.format(
+				return format(
 					"Success: %s",
 					finalTuple.tupleAt(1).bodySignature().argsTupleType());
 			}
-			return String.format(
+			return format(
 				"Failure: (%d solutions)",
 				tupleSize);
 		}
 		else
 		{
-			return String.format("Result: %s", finalResult);
+			return format("Result: %s", finalResult);
 		}
 	}
 }

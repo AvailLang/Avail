@@ -48,7 +48,6 @@ import com.avail.AvailTask;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -326,7 +325,7 @@ extends Descriptor
 				object,
 				FakeSlots.ALL_LITERALS,
 				-1,
-				TupleDescriptor.fromList(allLiterals)));
+				TupleDescriptor.tupleFromList(allLiterals)));
 		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
@@ -816,7 +815,7 @@ extends Descriptor
 				subCode = literal.code();
 			}
 			else if (literal.isInstanceOf(
-				CompiledCodeTypeDescriptor.mostGeneralType()))
+				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()))
 			{
 				subCode = literal;
 			}
@@ -829,7 +828,7 @@ extends Descriptor
 				final String suffix = String.format("[%d]", counter);
 				counter++;
 				final A_Tuple newName = methodName.concatenateWith(
-					StringDescriptor.from(suffix),
+					StringDescriptor.stringFrom(suffix),
 					true);
 				subCode.setMethodName((A_String)newName);
 			}
@@ -844,7 +843,7 @@ extends Descriptor
 			propertyAtom.getAtomProperty(methodNameKeyAtom());
 		if (methodName.equalsNil())
 		{
-			return StringDescriptor.from("Unknown function");
+			return StringDescriptor.stringFrom("Unknown function");
 		}
 		return methodName;
 	}
@@ -1067,7 +1066,7 @@ extends Descriptor
 		assert dest == literalsSize + outersSize + locals + 1;
 
 		final A_Atom propertyAtom = AtomWithPropertiesDescriptor.create(
-			TupleDescriptor.empty(), module);
+			TupleDescriptor.emptyTuple(), module);
 		propertyAtom.setAtomProperty(
 			lineNumberKeyAtom(), IntegerDescriptor.fromInt(lineNumber));
 		if (!originatingPhrase.equalsNil())

@@ -33,7 +33,7 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.instruction.AvailVariableAccessNote;
+
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 

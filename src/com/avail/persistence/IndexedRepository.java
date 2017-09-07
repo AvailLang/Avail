@@ -32,8 +32,9 @@
 
 package com.avail.persistence;
 
-import java.nio.charset.Charset;
 import com.avail.descriptor.ModuleDescriptor;
+
+import java.nio.charset.Charset;
 
 /**
  * An {@code IndexedRepository} represents an indexed collection of compiled

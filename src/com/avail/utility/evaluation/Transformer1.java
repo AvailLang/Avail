@@ -35,6 +35,8 @@ package com.avail.utility.evaluation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * Implementors of {@code Transformer1} provide a single arbitrary operation
  * that accepts one argument and produces a result.
@@ -55,7 +57,7 @@ public interface Transformer1 <X,Y>
 	@Nullable Y value (@Nullable X arg);
 
 	/**
-	 * Perform the operation, then assert a {@link NotNull} condition for the
+	 * Perform the operation, then assert a {@link Nonnull} condition for the
 	 * result as a convenience.
 	 *
 	 * @param arg The argument to transform.
@@ -63,8 +65,6 @@ public interface Transformer1 <X,Y>
 	 */
 	default Y valueNotNull (final @Nullable X arg)
 	{
-		final Y result = value(arg);
-		assert result != null;
-		return result;
+		return stripNull(value(arg));
 	}
 }

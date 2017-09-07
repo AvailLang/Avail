@@ -205,7 +205,7 @@ extends TypeDescriptor
 			FunctionTypeDescriptor.createWithArgumentTupleType(
 				argsTupleType,
 				returnType,
-				SetDescriptor.empty());
+				SetDescriptor.emptySet());
 		return forFunctionType(intersection);
 	}
 
@@ -242,7 +242,7 @@ extends TypeDescriptor
 				functionType2.argsTupleType()),
 			functionType1.returnType().typeIntersection(
 				functionType2.returnType()),
-			SetDescriptor.empty());
+			SetDescriptor.emptySet());
 		return forFunctionType(union);
 	}
 
@@ -332,7 +332,7 @@ extends TypeDescriptor
 	 * type bottom.
 	 */
 	private static final A_Type mostGeneralType = forFunctionType(
-		FunctionTypeDescriptor.forReturnType(
+		FunctionTypeDescriptor.functionTypeReturning(
 			BottomTypeDescriptor.bottom())).makeShared();
 
 	/**
@@ -342,7 +342,7 @@ extends TypeDescriptor
 	 * @return A {@linkplain ContinuationTypeDescriptor continuation type} which
 	 *         has no supertypes that are themselves continuation types.
 	 */
-	public static A_Type mostGeneralType ()
+	public static A_Type mostGeneralContinuationType ()
 	{
 		return mostGeneralType;
 	}
@@ -353,14 +353,14 @@ extends TypeDescriptor
 	 * #mostGeneralType most general continuation type}.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all continuation types.
 	 *
 	 * @return The statically referenced metatype.
 	 */
-	public static A_Type meta ()
+	public static A_Type continuationMeta ()
 	{
 		return meta;
 	}

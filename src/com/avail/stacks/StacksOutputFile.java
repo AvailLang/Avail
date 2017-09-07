@@ -32,6 +32,12 @@
 
 package com.avail.stacks;
 
+import com.avail.AvailRuntime;
+import com.avail.annotations.InnerAccess;
+import com.avail.utility.IO;
+import com.avail.utility.Mutable;
+
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
@@ -42,11 +48,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
-import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
-import javax.annotation.Nullable;
-import com.avail.utility.IO;
-import com.avail.utility.Mutable;
 
 /**
  * The way a file is created.

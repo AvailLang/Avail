@@ -95,13 +95,13 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				LiteralTokenTypeDescriptor.create(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				LiteralTokenTypeDescriptor.literalTokenType(
 					IntegerRangeTypeDescriptor.wholeNumbers()),
-				LiteralTokenTypeDescriptor.create(
+				LiteralTokenTypeDescriptor.literalTokenType(
 					IntegerRangeTypeDescriptor.wholeNumbers()),
-				LiteralTokenTypeDescriptor.create(
+				LiteralTokenTypeDescriptor.literalTokenType(
 					IntegerRangeTypeDescriptor.integers())),
 			DOUBLE.o());
 	}

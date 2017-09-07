@@ -31,12 +31,20 @@
  */
 package com.avail.interpreter.primitive.privatehelpers;
 
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.exceptions.VariableGetException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.VariableGetException;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> A global variable's value is being returned.
@@ -83,6 +91,6 @@ public final class P_GetGlobalVariableValue extends Primitive
 	{
 		// This primitive is suitable for any function with any as the return
 		// type.  We can't express that yet, so we allow any function.
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 }

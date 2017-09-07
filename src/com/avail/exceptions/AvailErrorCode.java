@@ -430,14 +430,14 @@ public enum AvailErrorCode
 	E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS (63),
 
 	/**
-	 * The {@linkplain FiberDescriptor#current() current fiber} attempted to
+	 * The {@linkplain FiberDescriptor#currentFiber() current fiber} attempted to
 	 * {@linkplain P_AcceptParsing accept the current parse}, but it isn't
 	 * actually running a semantic restriction.
 	 */
 	E_UNTIMELY_PARSE_ACCEPTANCE (64),
 
 	/**
-	 * The {@linkplain FiberDescriptor#current() current fiber} attempted to
+	 * The {@linkplain FiberDescriptor#currentFiber() current fiber} attempted to
 	 * determine the {@linkplain P_CurrentMacroName current macro name}, the
 	 * name (atom) of a send node which was undergoing macro substitution, but
 	 * this fiber is not performing a macro substitution.
@@ -479,7 +479,7 @@ public enum AvailErrorCode
 	E_LOADING_IS_OVER (70),
 
 	/**
-	 * The {@linkplain FiberDescriptor#current() current fiber} attempted to
+	 * The {@linkplain FiberDescriptor#currentFiber() current fiber} attempted to
 	 * {@linkplain P_RejectParsing reject the current parse}, but it isn't
 	 * actually running a semantic restriction.
 	 */
@@ -609,7 +609,7 @@ public enum AvailErrorCode
 	/**
 	 * A {@linkplain A_Variable variable} which has write reactors was written
 	 * when write tracing was not active for the {@linkplain
-	 * FiberDescriptor#current() current fiber}.
+	 * FiberDescriptor#currentFiber() current fiber}.
 	 */
 	E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED (88),
 

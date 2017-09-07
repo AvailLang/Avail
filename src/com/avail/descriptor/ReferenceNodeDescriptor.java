@@ -32,19 +32,23 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.ReferenceNodeDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.REFERENCE_NODE;
+import static com.avail.descriptor.ReferenceNodeDescriptor.ObjectSlots.VARIABLE;
 
 /**
  * My instances represent a reference-taking expression.  A variable itself is
@@ -101,10 +105,11 @@ extends ParseNodeDescriptor
 		final DeclarationKind kind = declaration.declarationKind();
 		if (kind == DeclarationKind.MODULE_VARIABLE)
 		{
-			return InstanceTypeDescriptor.on(declaration.literalObject());
+			return
+				instanceTypeOn(declaration.literalObject());
 		}
 		assert kind == DeclarationKind.LOCAL_VARIABLE;
-		return VariableTypeDescriptor.wrapInnerType(variable.expressionType());
+		return VariableTypeDescriptor.variableTypeFor(variable.expressionType());
 	}
 
 	@Override @AvailMethod

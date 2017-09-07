@@ -33,6 +33,8 @@
 package com.avail.utility;
 
 import java.util.Formatter;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * {@code Strings} provides various string utilities.
@@ -207,5 +209,34 @@ public final class Strings
 		{
 			builder.append(string);
 		}
+	}
+
+	/** A regex {@link Pattern} containing just a line break. */
+	private static final Pattern lineBreakPattern =
+		Pattern.compile("\n", Pattern.LITERAL);
+
+	/**
+	 * Increase the indentation by the given non-negative amount.  The first
+	 * line of the string (prior to the first line break) is not affected.
+	 *
+	 * @param originalString
+	 *        The {@link String} to adjust.
+	 * @param increasedIndentation
+	 *        The number of additional tabs (&ge; 0) to add after each line break.
+	 * @return The newly indented string.
+	 */
+	public static String increaseIndentation (
+		final String originalString,
+		final int increasedIndentation)
+	{
+		assert increasedIndentation >= 0;
+		if (increasedIndentation == 0)
+		{
+			return originalString;
+		}
+		return lineBreakPattern
+			.matcher(originalString)
+			.replaceAll(
+				Matcher.quoteReplacement("\n" + tabs(increasedIndentation)));
 	}
 }

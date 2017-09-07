@@ -49,9 +49,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.Invokes;
-import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Expect the AvailObject (pointers) array and int array to still reflect the
@@ -76,7 +75,8 @@ extends L2Operation
 		final Interpreter interpreter)
 	throws ReifyStackThrowable
 	{
-		final Primitive primitive = interpreter.function.code().primitive();
+		final A_Function function = stripNull(interpreter.function);
+		final @Nullable Primitive primitive = function.code().primitive();
 		if (primitive == null)
 		{
 			// Not a primitive.  Exit quickly, having done nothing.
@@ -87,7 +87,6 @@ extends L2Operation
 			return;
 		}
 
-		final A_Function savedFunction = interpreter.function;
 		if (primitive.hasFlag(CanInline))
 		{
 			// It can succeed or fail, but it can't mess with the fiber's stack.
@@ -101,15 +100,16 @@ extends L2Operation
 			{
 				case SUCCESS:
 				{
-					interpreter.function = savedFunction;
+					interpreter.function = function;
 					interpreter.returnNow = true;
+					interpreter.returningRawFunction = function.code();
 					return;
 				}
 				case FAILURE:
 				{
 					// The failure value was set up, and the next L2 instruction
 					// will set up the frame, including capturing it in a local.
-					interpreter.function = savedFunction;
+					interpreter.function = function;
 					interpreter.returnNow = false;
 					return;
 				}
@@ -122,7 +122,7 @@ extends L2Operation
 					// the event of reification.
 					assert primitive.hasFlag(Invokes);
 
-					final L2Chunk savedChunk = interpreter.chunk;
+					final @Nullable L2Chunk savedChunk = interpreter.chunk;
 					final int savedOffset = interpreter.offset;
 					final AvailObject[] savedPointers = interpreter.pointers;
 					final int[] savedInts = interpreter.integers;
@@ -132,13 +132,14 @@ extends L2Operation
 					}
 					finally
 					{
-						interpreter.function = savedFunction;
+						interpreter.function = function;
 						interpreter.chunk = savedChunk;
 						interpreter.offset = savedOffset;
 						interpreter.pointers = savedPointers;
 						interpreter.integers = savedInts;
 					}
 					interpreter.returnNow = true;
+					interpreter.returningRawFunction = function.code();
 					return;
 				}
 				case CONTINUATION_CHANGED:
@@ -151,7 +152,7 @@ extends L2Operation
 					final A_Continuation newContinuation =
 						interpreter.reifiedContinuation;
 					final A_Function newFunction = interpreter.function;
-					final L2Chunk newChunk = interpreter.chunk;
+					final @Nullable L2Chunk newChunk = interpreter.chunk;
 					final int newOffset = interpreter.offset;
 					final boolean newReturnNow = interpreter.returnNow;
 					final @Nullable AvailObject newReturnValue =
@@ -180,7 +181,7 @@ extends L2Operation
 			System.out.println("          reifying for " + primitive.name());
 		}
 		interpreter.skipReturnCheck = false;
-		final L2Chunk savedChunk = interpreter.chunk;
+		final L2Chunk savedChunk = stripNull(interpreter.chunk);
 		final int savedOffset = interpreter.offset;
 		final AvailObject[] savedPointers = interpreter.pointers;
 		final int[] savedInts = interpreter.integers;
@@ -191,7 +192,7 @@ extends L2Operation
 			interpreter.offset = savedOffset;
 			interpreter.pointers = savedPointers;
 			interpreter.integers = savedInts;
-			interpreter.function = savedFunction;
+			interpreter.function = function;
 
 			if (Interpreter.debugL2)
 			{
@@ -207,6 +208,7 @@ extends L2Operation
 				case SUCCESS:
 				{
 					interpreter.returnNow = true;
+					interpreter.returningRawFunction = function.code();
 					break;
 				}
 				case FAILURE:

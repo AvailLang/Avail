@@ -36,8 +36,6 @@ import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.*;
 
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.optimizer.ReifyStackThrowable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.*;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -105,11 +103,11 @@ public final class P_ShortCircuitHelper extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.emptyTuple(),
 					TOP.o())),
 			TOP.o());
 	}

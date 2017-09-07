@@ -32,13 +32,15 @@
 
 package com.avail.environment.tasks;
 
-import java.awt.*;
-import com.avail.builder.*;
-import com.avail.compiler.AvailCompiler.*;
-import com.avail.descriptor.*;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation3;
+
+import java.awt.*;
 
 /**
  * A {@code BuildTask} launches the actual build of the target {@linkplain

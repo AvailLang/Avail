@@ -38,7 +38,7 @@ import com.avail.descriptor.ListNodeDescriptor;
 import static com.avail.compiler.ParsingOperation.*;
 
 /**
- * An {@linkplain ArgumentForMacroOnly} is the translation of an {@linkplain
+ * An {@code ArgumentForMacroOnly} is the translation of an {@linkplain
  * Metacharacter#UNDERSCORE underscore} (_) in a message name, followed
  * immediately by an {@linkplain Metacharacter#EXCLAMATION_MARK
  * exclamation mark} (!).  It indicates where an argument is expected – but

@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive:</strong> Disable {@linkplain
  * TraceFlag#TRACE_VARIABLE_WRITES variable write tracing} for the {@linkplain
- * FiberDescriptor#current() current fiber}. For each {@linkplain
+ * FiberDescriptor#currentFiber() current fiber}. For each {@linkplain
  * VariableDescriptor variable} that survived tracing, accumulate the variable's
  * {@linkplain VariableAccessReactor write reactor} {@linkplain
  * FunctionDescriptor functions} into a {@linkplain SetDescriptor set}. Clear
@@ -76,7 +76,7 @@ extends Primitive
 		}
 		interpreter.setTraceVariableWrites(false);
 		final A_Set written = fiber.variablesWritten();
-		A_Set functions = SetDescriptor.empty();
+		A_Set functions = SetDescriptor.emptySet();
 		for (final A_Variable var : written)
 		{
 			functions = functions.setUnionCanDestroy(
@@ -89,20 +89,20 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.emptyTuple(),
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.emptyTuple(),
 					TOP.o())));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_ILLEGAL_TRACE_MODE));
 	}
 }

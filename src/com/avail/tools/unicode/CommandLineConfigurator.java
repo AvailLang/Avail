@@ -32,9 +32,6 @@
 
 package com.avail.tools.unicode;
 
-import static com.avail.tools.unicode.CommandLineConfigurator.OptionKey.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import com.avail.annotations.InnerAccess;
 import com.avail.tools.options.DefaultOption;
 import com.avail.tools.options.GenericHelpOption;
@@ -43,6 +40,12 @@ import com.avail.tools.options.OptionProcessorFactory;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static com.avail.tools.unicode.CommandLineConfigurator.OptionKey.HELP;
+import static com.avail.tools.unicode.CommandLineConfigurator.OptionKey.TARGET_PATH;
 
 /**
  * {@code CommandLineConfigurator} provides the command-line configuration for

@@ -32,8 +32,7 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.NilDescriptor;
 
 /**
  * A collection of representatives of {@link L2ObjectRegister}s, occupying

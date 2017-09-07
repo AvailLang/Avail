@@ -37,8 +37,8 @@ import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;
 import com.avail.environment.AvailWorkbench;
 import com.avail.persistence.IndexedFileException;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.border.EmptyBorder;

@@ -185,18 +185,18 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
 				TupleTypeDescriptor.stringType(),
-				EnumerationTypeDescriptor.booleanObject(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+				EnumerationTypeDescriptor.booleanType(),
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.emptyTuple(),
 					TOP.o()),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
-						AbstractEnumerationTypeDescriptor.withInstances(
-							SetDescriptor.from(
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.tuple(
+						AbstractEnumerationTypeDescriptor.enumerationWith(
+							SetDescriptor.set(
 								E_PERMISSION_DENIED,
 								E_FILE_EXISTS,
 								E_NO_FILE,
@@ -209,8 +209,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INVALID_PATH));
 	}
 }

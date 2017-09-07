@@ -32,14 +32,16 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.ObjectSlots.LITERAL_TYPE;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 
 /**
  * I represent the type of some {@link LiteralTokenDescriptor literal tokens}.
@@ -178,7 +180,7 @@ extends TypeDescriptor
 		final A_Type instance = object.literalType().typeIntersection(
 			aLiteralTokenType.literalType());
 		instance.makeImmutable();
-		return LiteralTokenTypeDescriptor.create(instance);
+		return LiteralTokenTypeDescriptor.literalTokenType(instance);
 	}
 
 	@Override @AvailMethod
@@ -188,7 +190,7 @@ extends TypeDescriptor
 	{
 		return TOKEN.superTests[primitiveTypeEnum.ordinal()]
 			? object
-			: BottomTypeDescriptor.bottom();
+			: bottom();
 	}
 
 	@Override
@@ -218,7 +220,7 @@ extends TypeDescriptor
 		final A_Type instance = object.literalType().typeUnion(
 			aLiteralTokenType.literalType());
 		instance.makeImmutable();
-		return LiteralTokenTypeDescriptor.create(instance);
+		return LiteralTokenTypeDescriptor.literalTokenType(instance);
 	}
 
 	@Override @AvailMethod
@@ -247,7 +249,7 @@ extends TypeDescriptor
 	 * @param literalType The type with which to constrain literal values.
 	 * @return A {@link LiteralTokenTypeDescriptor literal token type}.
 	 */
-	public static AvailObject create (final A_Type literalType)
+	public static AvailObject literalTokenType (final A_Type literalType)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(LITERAL_TYPE, literalType.makeImmutable());
@@ -293,7 +295,7 @@ extends TypeDescriptor
 	}
 
 	/** The most general literal token type */
-	private static final A_Type mostGeneralType = create(ANY.o()).makeShared();
+	private static final A_Type mostGeneralType = literalTokenType(ANY.o()).makeShared();
 
 	/**
 	 * Answer the most general literal token type, specifically the literal
@@ -302,7 +304,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most general literal token type.
 	 */
-	public static A_Type mostGeneralType()
+	public static A_Type mostGeneralLiteralTokenType ()
 	{
 		return mostGeneralType;
 	}

@@ -32,13 +32,14 @@
 
 package com.avail.server.io;
 
-import java.nio.CharBuffer;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.CompletionHandler;
-import javax.annotation.Nullable;
 import com.avail.io.TextOutputChannel;
 import com.avail.server.messages.Message;
 import com.avail.utility.json.JSONWriter;
+
+import javax.annotation.Nullable;
+import java.nio.CharBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.CompletionHandler;
 
 /**
  * A {@code AbstractServerOutputChannel} adapts an {@link AvailServerChannel

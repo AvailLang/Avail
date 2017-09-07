@@ -32,14 +32,20 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
-import java.lang.reflect.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.AvailRuntimeException;
+import com.avail.exceptions.VariableSetException;
+import com.avail.utility.json.JSONWriter;
+
+import javax.annotation.Nullable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.exceptions.*;
-import com.avail.utility.json.JSONWriter;
+import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 
 /**
  * A {@code PojoFinalFieldDescriptor} is an Avail {@linkplain VariableDescriptor
@@ -291,7 +297,7 @@ extends Descriptor
 	{
 		final Field javaField = (Field) field.javaObjectNotNull();
 		assert Modifier.isFinal(javaField.getModifiers());
-		final Object javaReceiver = receiver.javaObject();
+		final @Nullable Object javaReceiver = receiver.javaObject();
 		final AvailObject value;
 		try
 		{
@@ -303,10 +309,6 @@ extends Descriptor
 				AvailErrorCode.E_JAVA_MARSHALING_FAILED,
 				e);
 		}
-		return forOuterType(
-			field,
-			receiver,
-			value,
-			VariableTypeDescriptor.wrapInnerType(innerType));
+		return forOuterType(field, receiver, value, variableTypeFor(innerType));
 	}
 }

@@ -32,20 +32,20 @@
 
 package com.avail.tools.unicode;
 
-import static java.nio.file.StandardOpenOption.*;
-import java.io.Reader;
+import com.avail.utility.json.JSONData;
+import com.avail.utility.json.JSONFriendly;
+import com.avail.utility.json.JSONReader;
+import com.avail.utility.json.JSONWriter;
+
+import javax.annotation.Nullable;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import javax.annotation.Nullable;
-import com.avail.utility.IO;
-import com.avail.utility.json.JSONData;
-import com.avail.utility.json.JSONFriendly;
-import com.avail.utility.json.JSONReader;
-import com.avail.utility.json.JSONWriter;
+
+import static java.nio.file.StandardOpenOption.*;
 
 /**
  * The Unicode catalog generator: it emits, as a JSON file, every code point in
@@ -55,6 +55,12 @@ import com.avail.utility.json.JSONWriter;
  */
 public final class CatalogGenerator
 {
+	/** Prevent instantiation. */
+	private CatalogGenerator ()
+	{
+		assert false : "Static class; do not instantiate";
+	}
+
 	/**
 	 * Read {@code "allCodePoints.json"} from the specified {@linkplain Path
 	 * directory} to obtain a {@linkplain Catalog catalog}.
@@ -68,23 +74,18 @@ public final class CatalogGenerator
 	private static @Nullable Catalog readCatalog (final Path directory)
 		throws Exception
 	{
-		JSONReader reader = null;
-		try
+		try (
+			final JSONReader reader =
+				new JSONReader(Files.newBufferedReader(
+					directory.resolve("allCodePoints.json"),
+					StandardCharsets.UTF_8)))
 		{
-			final Path catalogPath = directory.resolve("allCodePoints.json");
-			final Reader fileReader = Files.newBufferedReader(
-				catalogPath, StandardCharsets.UTF_8);
-			reader = new JSONReader(fileReader);
-			final JSONData data = reader.read();
+			final @Nullable JSONData data = reader.read();
 			return Catalog.readFrom(data);
 		}
 		catch (final NoSuchFileException e)
 		{
 			return null;
-		}
-		finally
-		{
-			IO.closeIfNotNull(reader);
 		}
 	}
 
@@ -133,7 +134,7 @@ public final class CatalogGenerator
 					configuration, commandLineArguments, System.out);
 		configurator.updateConfiguration();
 		// Read an existing catalog file.
-		final Catalog oldCatalog = readCatalog(configuration.catalogPath);
+		final @Nullable Catalog oldCatalog = readCatalog(configuration.catalogPath);
 		// Update the catalog.
 		final Catalog catalog;
 		if (oldCatalog == null)

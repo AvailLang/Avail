@@ -86,9 +86,9 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VariableTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				VariableTypeDescriptor.mostGeneralVariableType(),
 				ANY.o()),
 			TOP.o());
 	}
@@ -154,8 +154,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
 				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
 				E_JAVA_MARSHALING_FAILED,

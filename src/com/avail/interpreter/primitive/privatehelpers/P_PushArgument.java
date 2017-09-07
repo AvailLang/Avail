@@ -79,8 +79,8 @@ public final class P_PushArgument extends Primitive
 		// strengthening it by appending a return type declaration like ": map".
 		// However, the L2 translator will have to ignore the primitive block
 		// type restriction for this particular primitive.
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o()),
 			BottomTypeDescriptor.bottom());
 	}

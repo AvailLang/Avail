@@ -44,7 +44,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive:</strong> Disable {@linkplain
  * TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES variable read-before-write
- * tracing} for the {@linkplain FiberDescriptor#current() current fiber}. To
+ * tracing} for the {@linkplain FiberDescriptor#currentFiber() current fiber}. To
  * each {@linkplain VariableDescriptor variable} that survived tracing, add a
  * {@linkplain VariableAccessReactor write reactor} that wraps the specified
  * {@linkplain FunctionDescriptor function}, associating it with the specified
@@ -90,11 +90,11 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ATOM.o(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.emptyTuple(),
 					TOP.o())),
 			TOP.o());
 	}
@@ -102,8 +102,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_ILLEGAL_TRACE_MODE));
 	}
 }

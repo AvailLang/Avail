@@ -32,11 +32,11 @@
 
 package com.avail.server.io;
 
-import java.nio.channels.AsynchronousSocketChannel;
-import com.avail.utility.IO;
 import com.avail.annotations.InnerAccess;
-import com.avail.server.io.AbstractTransportChannel;
 import com.avail.server.messages.Message;
+import com.avail.utility.IO;
+
+import java.nio.channels.AsynchronousSocketChannel;
 
 /**
  * A {@code WebSocketChannel} encapsulates an {@link AsynchronousSocketChannel}

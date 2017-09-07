@@ -94,9 +94,9 @@ public final class P_PojoArraySet extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				PojoTypeDescriptor.mostGeneralArrayType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				PojoTypeDescriptor.mostGeneralPojoArrayType(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				ANY.o()),
 			TOP.o());
@@ -105,8 +105,8 @@ public final class P_PojoArraySet extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
 				E_JAVA_MARSHALING_FAILED));

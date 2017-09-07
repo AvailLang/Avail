@@ -14,8 +14,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
-import javax.annotation.Nonnull;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A {@code NewModuleWindow} is a {@link Scene} used to create a new module.
+ * A {@code NewModuleWindow} is a {@link Scene} used to functionType a new module.
  *
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
  */

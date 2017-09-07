@@ -80,16 +80,16 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType()),
-			EnumerationTypeDescriptor.booleanObject());
+			EnumerationTypeDescriptor.booleanType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
 			MessageSplitter.possibleErrors);
 	}
 }

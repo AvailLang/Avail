@@ -34,6 +34,8 @@ package com.avail.stacks;
 
 import com.avail.utility.json.JSONWriter;
 
+import static java.lang.String.format;
+
 /**
  * GLOBAL Comment Signature
  *
@@ -62,7 +64,9 @@ public class GlobalCommentSignature extends CommentSignature
 	@Override
 	public String toString ()
 	{
-		return String.format("%s -> %s", name(),
+		return format(
+			"%s -> %s",
+			name(),
 			globalType);
 	}
 

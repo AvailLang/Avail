@@ -63,10 +63,10 @@ public final class P_TupleToSet extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.mostGeneralType()),
-			SetTypeDescriptor.mostGeneralType());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				TupleTypeDescriptor.mostGeneralTupleType()),
+			SetTypeDescriptor.mostGeneralSetType());
 	}
 
 	@Override
@@ -96,7 +96,7 @@ public final class P_TupleToSet extends Primitive
 			tupleSizes.lowerBound().equalsInt(0)
 				? IntegerDescriptor.zero()
 				: IntegerDescriptor.one();
-		final A_Type setSizes = IntegerRangeTypeDescriptor.create(
+		final A_Type setSizes = IntegerRangeTypeDescriptor.integerRangeType(
 			minSize,
 			true,
 			tupleSizes.upperBound(),

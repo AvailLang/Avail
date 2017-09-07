@@ -80,19 +80,19 @@ extends Primitive
 			}
 		}
 		return interpreter.primitiveSuccess(
-			TupleDescriptor.fromList(applicable));
+			TupleDescriptor.tupleFromList(applicable));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				METHOD.o(),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta())),
 			TupleTypeDescriptor.zeroOrMoreOf(
-				FunctionTypeDescriptor.forReturnType(
+				FunctionTypeDescriptor.functionTypeReturning(
 					InstanceMetaDescriptor.topMeta())));
 	}
 
@@ -100,8 +100,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS));
 	}
 }

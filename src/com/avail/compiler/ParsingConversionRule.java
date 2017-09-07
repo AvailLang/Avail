@@ -85,9 +85,9 @@ public enum ParsingConversionRule
 				expressions.tupleSize());
 			final AvailObject token =
 				LiteralTokenDescriptor.create(
-					StringDescriptor.from(count.toString()),
-					TupleDescriptor.empty(),
-					TupleDescriptor.empty(),
+					StringDescriptor.stringFrom(count.toString()),
+					TupleDescriptor.emptyTuple(),
+					TupleDescriptor.emptyTuple(),
 					lexingState.position,
 					lexingState.lineNumber,
 					LITERAL,

@@ -71,7 +71,7 @@ public enum ParsingOperation
 
 	/**
 	 * {@code 0} - Push a new {@linkplain ListNodeDescriptor list} that
-	 * contains an {@linkplain TupleDescriptor#empty() empty tuple} of
+	 * contains an {@linkplain TupleDescriptor#emptyTuple() empty tuple} of
 	 * {@linkplain ParseNodeDescriptor phrases} onto the parse stack.
 	 */
 	EMPTY_LIST(0, true, true)
@@ -1535,7 +1535,7 @@ public enum ParsingOperation
 			final List<A_Phrase> popped =
 				argsSoFar.subList(totalSize - listSize, totalSize);
 			final A_Phrase newListNode = ListNodeDescriptor.newExpressions(
-				TupleDescriptor.fromList(popped));
+				TupleDescriptor.tupleFromList(popped));
 			final List<A_Phrase> newArgsSoFar =
 				append(unpopped, newListNode);
 			compiler.eventuallyParseRestOfSendNode(
@@ -1575,9 +1575,9 @@ public enum ParsingOperation
 			final AvailObject constant = MessageSplitter.constantForIndex(
 				operand(instruction));
 			final A_Token token = LiteralTokenDescriptor.create(
-				StringDescriptor.from(constant.toString()),
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				StringDescriptor.stringFrom(constant.toString()),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				initialTokenPosition.position(),
 				initialTokenPosition.lineNumber(),
 				LITERAL,

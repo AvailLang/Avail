@@ -478,8 +478,8 @@ extends ParseNodeTypeDescriptor
 		/** The empty list phrase's type. */
 		@InnerAccess static final A_Type empty = createListNodeTypeNoCheck(
 				LIST_NODE,
-				TupleTypeDescriptor.forTypes(),
-				TupleTypeDescriptor.forTypes()
+				TupleTypeDescriptor.tupleTypeForTypes(),
+				TupleTypeDescriptor.tupleTypeForTypes()
 			).makeShared();
 
 		private Empty ()

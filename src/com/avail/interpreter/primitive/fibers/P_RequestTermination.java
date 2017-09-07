@@ -38,9 +38,29 @@ import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.TimerTask;
+
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Request termination of the given
@@ -66,6 +86,8 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
+		final A_RawFunction primitiveRawFunction =
+			stripNull(interpreter.function).code();
 		fiber.lock(() ->
 		{
 			// Set the interrupt request flag.
@@ -78,7 +100,7 @@ extends Primitive
 				case ASLEEP:
 					// Try to cancel the task (if any). This is best
 					// effort only.
-					final TimerTask task = fiber.wakeupTask();
+					final @Nullable TimerTask task = fiber.wakeupTask();
 					if (task != null)
 					{
 						task.cancel();
@@ -88,7 +110,8 @@ extends Primitive
 					Interpreter.resumeFromSuccessfulPrimitive(
 						AvailRuntime.current(),
 						fiber,
-						NilDescriptor.nil(),
+						nil(),
+						primitiveRawFunction,
 						true);
 					break;
 				case PARKED:
@@ -99,7 +122,8 @@ extends Primitive
 					Interpreter.resumeFromSuccessfulPrimitive(
 						AvailRuntime.current(),
 						fiber,
-						NilDescriptor.nil(),
+						nil(),
+						primitiveRawFunction,
 						true);
 					break;
 				case UNSTARTED:
@@ -112,15 +136,14 @@ extends Primitive
 					break;
 			}
 		});
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FiberTypeDescriptor.mostGeneralType()),
+		return functionType(
+			tuple(mostGeneralFiberType()),
 			TOP.o());
 	}
 }

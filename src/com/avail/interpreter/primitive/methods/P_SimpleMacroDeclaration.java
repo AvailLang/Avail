@@ -31,20 +31,35 @@
  */
 package com.avail.interpreter.primitive.methods;
 
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
+import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.*;
+import com.avail.exceptions.AmbiguousNameException;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.Phase;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import static com.avail.descriptor.FunctionTypeDescriptor.*;
+import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.StringDescriptor.format;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
-import static com.avail.interpreter.Primitive.Result.*;
-import java.util.ArrayList;
-import java.util.List;
-import com.avail.*;
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
-import com.avail.exceptions.*;
-import com.avail.interpreter.*;
-import com.avail.interpreter.AvailLoader.Phase;
+import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Simple macro definition.  The first argument
@@ -77,7 +92,7 @@ extends Primitive
 		final A_Function function = args.get(2);
 
 		final A_Fiber fiber = interpreter.fiber();
-		final AvailLoader loader = fiber.availLoader();
+		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -138,11 +153,11 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_MACRO_MUST_RETURN_A_PARSE_NODE);
 		}
-		final A_Function failureFunction = interpreter.function;
-		assert failureFunction.code().primitive() == this;
+		final A_Function primitiveFunction = stripNull(interpreter.function);
+		assert primitiveFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		interpreter.primitiveSuspend();
-		AvailRuntime.current().whenLevelOneSafeDo(
+		interpreter.primitiveSuspend(primitiveFunction.code());
+		interpreter.runtime().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
 				() ->
@@ -157,19 +172,18 @@ extends Primitive
 							: prefixFunctions)
 						{
 							prefixFunction.code().setMethodName(
-								StringDescriptor.format(
-									"Macro prefix #%d of %s",
+								format("Macro prefix #%d of %s",
 									counter,
 									string));
 							counter++;
 						}
 						function.code().setMethodName(
-							StringDescriptor.format(
-								"Macro body of %s", string));
+							format("Macro body of %s", string));
 						Interpreter.resumeFromSuccessfulPrimitive(
 							AvailRuntime.current(),
 							fiber,
-							NilDescriptor.nil(),
+							nil(),
+							primitiveFunction.code(),
 							skipReturnCheck);
 					}
 					catch (
@@ -181,7 +195,7 @@ extends Primitive
 							AvailRuntime.current(),
 							fiber,
 							e.numericCode(),
-							failureFunction,
+							primitiveFunction,
 							copiedArgs,
 							skipReturnCheck);
 					}
@@ -192,22 +206,18 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.stringType(),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					FunctionTypeDescriptor.mostGeneralType()),
-				FunctionTypeDescriptor.forReturnType(
-					PARSE_NODE.mostGeneralType())),
-			TOP.o());
+		return functionType(tuple(
+			stringType(),
+			zeroOrMoreOf(mostGeneralFunctionType()),
+			functionTypeReturning(PARSE_NODE.mostGeneralType())), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-					E_LOADING_IS_OVER,
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor
+				.set(E_LOADING_IS_OVER,
 					E_CANNOT_DEFINE_DURING_COMPILATION,
 					E_AMBIGUOUS_NAME,
 					E_INCORRECT_NUMBER_OF_ARGUMENTS,

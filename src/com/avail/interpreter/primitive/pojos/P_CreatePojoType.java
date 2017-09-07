@@ -99,7 +99,7 @@ public final class P_CreatePojoType extends Primitive
 		{
 			final A_BasicObject originalParameter = classParameters.tupleAt(i);
 			final AvailObject realParameter;
-			if (originalParameter.equals(PojoTypeDescriptor.selfType()))
+			if (originalParameter.equals(PojoTypeDescriptor.pojoSelfType()))
 			{
 				realParameter = PojoTypeDescriptor.selfTypeForClass(rawClass);
 			}
@@ -120,20 +120,20 @@ public final class P_CreatePojoType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta())),
-			InstanceMetaDescriptor.on(
-				PojoTypeDescriptor.mostGeneralType()));
+			InstanceMetaDescriptor.instanceMetaOn(
+				PojoTypeDescriptor.mostGeneralPojoType()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_JAVA_CLASS_NOT_AVAILABLE,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS));
 	}

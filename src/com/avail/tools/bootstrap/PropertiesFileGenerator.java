@@ -32,14 +32,27 @@
 
 package com.avail.tools.bootstrap;
 
-import static com.avail.tools.bootstrap.Resources.*;
-import static com.avail.tools.bootstrap.Resources.Key.*;
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.text.MessageFormat;
-import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.utility.UTF8ResourceBundleControl;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.ResourceBundle;
+
+import static com.avail.tools.bootstrap.Resources.Key.generatedPropertiesNotice;
+import static com.avail.tools.bootstrap.Resources.Key.propertiesCopyright;
+import static com.avail.tools.bootstrap.Resources.localName;
+import static com.avail.tools.bootstrap.Resources.preambleBaseName;
+import static java.lang.String.format;
 /**
  * {@code PropertiesFileGenerator} defines state and operations common to the
  * Avail properties file generators.
@@ -103,13 +116,13 @@ abstract class PropertiesFileGenerator
 	{
 		// Force correct initialization order... sigh.
 		AvailRuntime.nextHash();
-		final File fileName = new File(String.format(
+		final File fileName = new File(format(
 			"src/%s_%s.properties",
 			baseName.replace('.', '/'),
 			locale.getLanguage()));
 		System.out.println(fileName.getAbsolutePath());
 		final String[] components = baseName.split("\\.");
-		final File tempFileName = new File(String.format(
+		final File tempFileName = new File(format(
 			"%s/%s_%s.propertiesTEMP",
 			System.getProperty("java.io.tmpdir"),
 			components[components.length - 1],
@@ -138,14 +151,14 @@ abstract class PropertiesFileGenerator
 		boolean worked = fileName.delete();
 		if (!worked)
 		{
-			System.err.println(String.format(
+			System.err.println(format(
 				"deleting the original properties file failed: %s",
 				fileName));
 		}
 		worked = tempFileName.renameTo(fileName);
 		if (!worked)
 		{
-			throw new RuntimeException(String.format(
+			throw new RuntimeException(format(
 				"moving the temporary properties file failed: %s -> %s",
 				tempFileName,
 				fileName));

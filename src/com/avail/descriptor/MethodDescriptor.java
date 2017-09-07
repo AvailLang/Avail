@@ -43,8 +43,6 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
-import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
@@ -248,7 +246,7 @@ extends Descriptor
 			final List<? extends A_Definition> elements,
 			final Void ignored)
 		{
-			return TupleDescriptor.fromList(elements);
+			return TupleDescriptor.tupleFromList(elements);
 		}
 
 		@Override
@@ -867,11 +865,11 @@ extends Descriptor
 		final AvailObject result = mutable.create();
 		result.setSlot(HASH, AvailRuntime.nextHash());
 		result.setSlot(NUM_ARGS, numArgs);
-		result.setSlot(OWNING_BUNDLES, SetDescriptor.empty());
-		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.empty());
-		result.setSlot(SEMANTIC_RESTRICTIONS_SET, SetDescriptor.empty());
-		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.empty());
-		result.setSlot(MACRO_DEFINITIONS_TUPLE, TupleDescriptor.empty());
+		result.setSlot(OWNING_BUNDLES, SetDescriptor.emptySet());
+		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.emptyTuple());
+		result.setSlot(SEMANTIC_RESTRICTIONS_SET, SetDescriptor.emptySet());
+		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.emptyTuple());
+		result.setSlot(MACRO_DEFINITIONS_TUPLE, TupleDescriptor.emptyTuple());
 		final Set<L2Chunk> chunkSet = Collections.newSetFromMap(
 			new WeakHashMap<L2Chunk, Boolean>());
 		result.setSlot(
@@ -1258,7 +1256,7 @@ extends Descriptor
 						method,
 						NilDescriptor.nil(),  // System defs have no module.
 						function,
-						TupleDescriptor.empty());
+						TupleDescriptor.emptyTuple());
 				}
 
 				try

@@ -66,10 +66,10 @@ public final class P_TypeNames extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				InstanceMetaDescriptor.on(
-					ObjectTypeDescriptor.mostGeneralType())),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				InstanceMetaDescriptor.instanceMetaOn(
+					ObjectTypeDescriptor.mostGeneralObjectType())),
 			SetTypeDescriptor.setTypeForSizesContentType(
 				IntegerRangeTypeDescriptor.wholeNumbers(),
 				TupleTypeDescriptor.stringType()));

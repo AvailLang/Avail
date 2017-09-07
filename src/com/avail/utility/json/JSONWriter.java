@@ -32,7 +32,11 @@
 
 package com.avail.utility.json;
 
-import static com.avail.utility.json.JSONWriter.JSONState.*;
+import com.avail.annotations.InnerAccess;
+import com.avail.utility.evaluation.Continuation0;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -41,10 +45,8 @@ import java.math.BigInteger;
 import java.util.Deque;
 import java.util.Formatter;
 import java.util.LinkedList;
-import com.avail.annotations.InnerAccess;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import com.avail.utility.evaluation.Continuation0;
+
+import static com.avail.utility.json.JSONWriter.JSONState.*;
 
 /**
  * A {@code JSONWriter} produces ASCII-only documents that adhere strictly to

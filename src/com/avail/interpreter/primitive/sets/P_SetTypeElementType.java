@@ -63,9 +63,9 @@ public final class P_SetTypeElementType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				SetTypeDescriptor.meta()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				SetTypeDescriptor.setMeta()),
 			InstanceMetaDescriptor.anyMeta());
 	}
 }

@@ -118,7 +118,7 @@ extends NumericTupleDescriptor
 		if (!newElement.isInt())
 		{
 			// Transition to a tree tuple because it's not an int.
-			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			final A_Tuple singleton = TupleDescriptor.tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int intValue = ((AvailObject)newElement).extractInt();

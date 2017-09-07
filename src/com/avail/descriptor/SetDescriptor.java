@@ -32,15 +32,19 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.SetDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.serialization.SerializerOperation;
+import com.avail.utility.IteratorNotNull;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+
+import static com.avail.descriptor.SetDescriptor.ObjectSlots.ROOT_BIN;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 
 /**
  * An Avail {@linkplain SetDescriptor set} refers to the root of a Bagwell Ideal
@@ -90,7 +94,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Replace the {@linkplain SetDescriptor set}'s root {@linkplain
+	 * Replace the {@code SetDescriptor set}'s root {@linkplain
 	 * SetBinDescriptor bin}. The replacement may be the {@link
 	 * NilDescriptor#nil() nil} to indicate an empty map.
 	 *
@@ -290,11 +294,11 @@ extends Descriptor
 	A_Type o_Kind (final AvailObject object)
 	{
 		final int size = object.setSize();
-		final AvailObject sizeRange = InstanceTypeDescriptor.on(
+		final AvailObject sizeRange = InstanceTypeDescriptor.instanceTypeOn(
 			IntegerDescriptor.fromInt(size));
 		return SetTypeDescriptor.setTypeForSizesContentType(
 			sizeRange,
-			AbstractEnumerationTypeDescriptor.withInstances(object));
+			AbstractEnumerationTypeDescriptor.enumerationWith(object));
 	}
 
 	/**
@@ -389,7 +393,6 @@ extends Descriptor
 			{
 				if (!intersected)
 				{
-					assert result == object;
 					result.makeImmutable();
 					intersected = true;
 				}
@@ -523,12 +526,12 @@ extends Descriptor
 	}
 
 	/**
-	 * A {@link SetIterator} is returned when a {@link SetDescriptor set} is
+	 * A {@code SetIterator} is returned when a {@link SetDescriptor set} is
 	 * asked for its {@link AvailObject#iterator()}.  Among other uses, this is
 	 * useful when combined with Java's "foreach" control structure.
 	 */
 	public abstract static class SetIterator
-	implements Iterator<AvailObject>
+		implements IteratorNotNull<AvailObject>
 	{
 		@Override
 		public void remove ()
@@ -549,7 +552,7 @@ extends Descriptor
 		final int size = object.setSize();
 		if (size == 0)
 		{
-			return TupleDescriptor.empty();
+			return TupleDescriptor.emptyTuple();
 		}
 		final Iterator<AvailObject> iterator = object.iterator();
 		return ObjectTupleDescriptor.generateFrom(
@@ -603,7 +606,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@linkplain SetDescriptor set} from the specified
+	 * Construct a new {@code SetDescriptor set} from the specified
 	 * {@linkplain Collection collection} of {@linkplain AvailObject objects}.
 	 * Neither the elements nor the resultant set are made immutable.
 	 *
@@ -613,7 +616,7 @@ extends Descriptor
 	public static A_Set fromCollection (
 		final Collection<? extends A_BasicObject> collection)
 	{
-		A_Set set = empty();
+		A_Set set = emptySet();
 		for (final A_BasicObject element : collection)
 		{
 			set = set.setWithElementCanDestroy(element, true);
@@ -629,10 +632,10 @@ extends Descriptor
 	 *        The array of Avail values from which to construct a set.
 	 * @return The new mutable set.
 	 */
-	public static A_Set from (
+	public static A_Set set (
 		final A_BasicObject... elements)
 	{
-		A_Set set = empty();
+		A_Set set = emptySet();
 		for (final A_BasicObject element : elements)
 		{
 			set = set.setWithElementCanDestroy(element, true);
@@ -649,10 +652,10 @@ extends Descriptor
 	 *        The array of AvailErrorCodes from which to construct a set.
 	 * @return The new mutable set.
 	 */
-	public static A_Set from (
+	public static A_Set set (
 		final AvailErrorCode... errorCodeElements)
 	{
-		A_Set set = empty();
+		A_Set set = emptySet();
 		for (final AvailErrorCode element : errorCodeElements)
 		{
 			set = set.setWithElementCanDestroy(element.numericCode(), true);
@@ -661,7 +664,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link SetDescriptor}.
+	 * Construct a new {@code SetDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -717,7 +720,7 @@ extends Descriptor
 	 *
 	 * @return The empty set.
 	 */
-	public static A_Set empty ()
+	public static A_Set emptySet ()
 	{
 		return emptySet;
 	}

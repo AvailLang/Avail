@@ -204,7 +204,7 @@ extends AbstractEnumerationTypeDescriptor
 			}
 			// Create a new enumeration containing all elements from both
 			// enumerations.
-			return AbstractEnumerationTypeDescriptor.withInstances(
+			return AbstractEnumerationTypeDescriptor.enumerationWith(
 				another.instances().setWithElementCanDestroy(
 					getInstance(object),
 					false));
@@ -391,7 +391,7 @@ extends AbstractEnumerationTypeDescriptor
 			return AbstractEnumerationTypeDescriptor.withInstance(
 				tuple.tupleAt(startIndex));
 		}
-		A_Set set = SetDescriptor.empty();
+		A_Set set = SetDescriptor.emptySet();
 		for (
 			int i = max(startIndex, 1), end = min(endIndex, upperIndex);
 			i <= end;
@@ -401,7 +401,7 @@ extends AbstractEnumerationTypeDescriptor
 				tuple.tupleAt(i),
 				true);
 		}
-		return AbstractEnumerationTypeDescriptor.withInstances(set);
+		return AbstractEnumerationTypeDescriptor.enumerationWith(set);
 	}
 
 	@Override @AvailMethod
@@ -493,7 +493,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	A_Set o_Instances (final AvailObject object)
 	{
-		return SetDescriptor.empty().setWithElementCanDestroy(
+		return SetDescriptor.emptySet().setWithElementCanDestroy(
 			getInstance(object),
 			true);
 	}
@@ -575,7 +575,7 @@ extends AbstractEnumerationTypeDescriptor
 		 */
 		final AvailObject set = getInstance(object);
 		assert set.isSet();
-		return AbstractEnumerationTypeDescriptor.withInstances(set);
+		return AbstractEnumerationTypeDescriptor.enumerationWith(set);
 	}
 
 	@Override @AvailMethod
@@ -717,7 +717,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param instance The object whose type to represent.
 	 * @return An {@link AvailObject} representing the type of the argument.
 	 */
-	public static AvailObject on (final A_BasicObject instance)
+	public static AvailObject instanceTypeOn (final A_BasicObject instance)
 	{
 		assert !instance.isType();
 		final AvailObject result = mutable.create();

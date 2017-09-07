@@ -57,12 +57,8 @@ import com.avail.serialization.Serializer;
 import com.avail.utility.Generator;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
+
 import javax.annotation.Nullable;
-
-import static com.avail.compiler.problems.ProblemType.*;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.utility.StackPrinter.trace;
-
 import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,6 +70,16 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.avail.compiler.problems.ProblemType.EXECUTION;
+import static com.avail.compiler.problems.ProblemType.INTERNAL;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.StackPrinter.trace;
+import static java.lang.String.format;
 
 /**
  * A {@code CompilationContext} lasts for a module's entire compilation
@@ -124,7 +130,7 @@ public class CompilationContext
 
 	public ModuleHeader getModuleHeader ()
 	{
-		return moduleHeader;
+		return stripNull(moduleHeader);
 	}
 
 	/**
@@ -169,9 +175,7 @@ public class CompilationContext
 	 */
 	@InnerAccess public AvailLoader loader ()
 	{
-		final AvailLoader theLoader = loader;
-		assert theLoader != null;
-		return theLoader;
+		return stripNull(loader);
 	}
 
 	/**
@@ -218,7 +222,7 @@ public class CompilationContext
 	 */
 	@InnerAccess volatile @Nullable Continuation0 noMoreWorkUnits = null;
 
-	public Continuation0 getNoMoreWorkUnits ()
+	public @Nullable Continuation0 getNoMoreWorkUnits ()
 	{
 		return noMoreWorkUnits;
 	}
@@ -251,7 +255,7 @@ public class CompilationContext
 
 	public Continuation0 getSuccessReporter ()
 	{
-		return successReporter;
+		return stripNull(successReporter);
 	}
 
 	public void setSuccessReporter (final Continuation0 theSuccessReporter)
@@ -347,7 +351,7 @@ public class CompilationContext
 		workUnitsQueued.incrementAndGet();
 		logger.log(
 			Level.FINEST,
-			String.format(
+			format(
 				"Started work unit: %d/%d%n",
 				workUnitsCompleted.get(),
 				workUnitsQueued.get()));
@@ -419,7 +423,7 @@ public class CompilationContext
 				assert completed <= queued;
 				logger.log(
 					Level.FINEST,
-					String.format(
+					format(
 						"Completed work unit: %d/%d%n",
 						completed,
 						queued));
@@ -595,8 +599,7 @@ public class CompilationContext
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader(),
-			() -> StringDescriptor.format(
-				"Eval fn=%s, in %s:%d",
+			() -> StringDescriptor.format("Eval fn=%s, in %s:%d",
 				code.methodName(),
 				code.module().moduleName(),
 				code.startingLineNumber()));
@@ -656,11 +659,11 @@ public class CompilationContext
 		final Continuation1NotNull<Throwable> onFailure)
 	{
 		evaluateFunctionThen(
-			FunctionDescriptor.createFunctionForPhrase(
+			createFunctionForPhrase(
 				expressionNode, module(), lineNumber),
 			lineNumber,
 			Collections.<AvailObject>emptyList(),
-			MapDescriptor.empty(),
+			emptyMap(),
 			shouldSerialize,
 			onSuccess,
 			onFailure);
@@ -739,7 +742,7 @@ public class CompilationContext
 				final A_Function summaryFunction =
 					FunctionDescriptor.create(
 						writer.compiledCode(),
-						TupleDescriptor.empty());
+						emptyTuple());
 				if (AvailLoader.debugUnsummarizedStatements)
 				{
 					System.out.println(

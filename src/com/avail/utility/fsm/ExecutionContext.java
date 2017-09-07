@@ -32,8 +32,12 @@
 
 package com.avail.utility.fsm;
 
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Transformer1;
+
 import javax.annotation.Nullable;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code ExecutionContext} represents a running {@linkplain StateMachine
@@ -144,9 +148,7 @@ public final class ExecutionContext <
 		{
 			return true;
 		}
-		final Boolean result = guard.value(memento);
-		assert result != null;
-		return result;
+		return stripNull(guard.value(memento));
 	}
 
 	/**

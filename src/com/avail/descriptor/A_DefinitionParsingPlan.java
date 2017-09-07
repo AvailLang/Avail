@@ -75,5 +75,4 @@ extends A_BasicObject
 	 * @return A tuple of integers encoding this plan's parsing instructions.
 	 */
 	A_Tuple parsingInstructions ();
-
 }

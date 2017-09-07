@@ -32,16 +32,17 @@
 
 package com.avail.environment.nodes;
 
-import java.awt.Image;
-import java.net.URL;
-import javax.swing.ImageIcon;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.annotation.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.environment.AvailWorkbench;
 import com.avail.utility.LRUCache;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Transformer1;
+
+import javax.annotation.Nullable;
+import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import java.awt.*;
+import java.net.URL;
 
 /**
  * An {@code AbstractBuilderFrameTreeNode} is a tree node used within some

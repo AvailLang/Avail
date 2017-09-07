@@ -32,18 +32,20 @@
 
 package com.avail.dispatch;
 import com.avail.annotations.InnerAccess;
-import javax.annotation.Nullable;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.TupleTypeDescriptor;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.lang.String.format;
 
 /**
  * A {@code LookupTree} representing an incomplete search.  To further the
@@ -120,9 +122,7 @@ public class InternalLookupTree<
 	 */
 	@InnerAccess final A_Type argumentTypeToTest ()
 	{
-		final A_Type testType = argumentTypeToTest;
-		assert testType != null;
-		return testType;
+		return stripNull(argumentTypeToTest);
 	}
 
 	/**
@@ -132,9 +132,7 @@ public class InternalLookupTree<
 	 */
 	final LookupTree<Element, Result, Memento> ifCheckHolds ()
 	{
-		final LookupTree<Element, Result, Memento> subtree = ifCheckHolds;
-		assert subtree != null;
-		return subtree;
+		return stripNull(ifCheckHolds);
 	}
 
 	/**
@@ -145,9 +143,7 @@ public class InternalLookupTree<
 	 */
 	final LookupTree<Element, Result, Memento> ifCheckFails ()
 	{
-		final LookupTree<Element, Result, Memento> subtree = ifCheckFails;
-		assert subtree != null;
-		return subtree;
+		return stripNull(ifCheckFails);
 	}
 
 	/**
@@ -305,9 +301,9 @@ public class InternalLookupTree<
 			newPositiveKnownTypes = new ArrayList<>(knownArgumentTypes);
 			newPositiveKnownTypes.set(
 				argumentPositionToTest - 1, replacementArgType);
-			criterionSignature = TupleTypeDescriptor.forTypes(
+			criterionSignature = TupleTypeDescriptor.tupleTypeForTypes(
 				newPositiveKnownTypes.toArray(new A_Type[numArgs]));
-			knownSignature = TupleTypeDescriptor.forTypes(
+			knownSignature = TupleTypeDescriptor.tupleTypeForTypes(
 				knownArgumentTypes.toArray(new A_Type[numArgs]));
 		}
 		else
@@ -445,13 +441,13 @@ public class InternalLookupTree<
 	{
 		if (argumentTypeToTest == null)
 		{
-			return String.format(
+			return format(
 				"Lazy internal node: known=%s",
 				knownArgumentTypes);
 		}
 		final StringBuilder builder = new StringBuilder();
 		builder.append(
-			String.format(
+			format(
 				"#%d ∈ %s: known=%s%n",
 				argumentPositionToTest,
 				argumentTypeToTest,
@@ -461,7 +457,7 @@ public class InternalLookupTree<
 			builder.append("\t");
 		}
 		builder.append(ifCheckHolds().toString(indent + 1));
-		builder.append(String.format("%n"));
+		builder.append(format("%n"));
 		for (int i = 0; i <= indent; i++)
 		{
 			builder.append("\t");

@@ -86,7 +86,7 @@ public final class P_ReverseTuple extends Primitive
 			// should be sufficient.
 			return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				tupleSizes,
-				TupleDescriptor.empty(),
+				TupleDescriptor.emptyTuple(),
 				tupleType.unionOfTypesAtThrough(1, Integer.MAX_VALUE));
 		}
 		final int tupleSize = tupleSizeLowerBound.extractInt();
@@ -99,9 +99,9 @@ public final class P_ReverseTuple extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.mostGeneralType()),
-			TupleTypeDescriptor.mostGeneralType());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				TupleTypeDescriptor.mostGeneralTupleType()),
+			TupleTypeDescriptor.mostGeneralTupleType());
 	}
 }

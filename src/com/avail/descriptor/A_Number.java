@@ -32,10 +32,11 @@
 
 package com.avail.descriptor;
 
-import java.math.BigInteger;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.interpreter.primitive.numbers.P_LessOrEqual;
+
+import java.math.BigInteger;
 
 /**
  * {@code A_Number} is an interface that specifies the number-specific

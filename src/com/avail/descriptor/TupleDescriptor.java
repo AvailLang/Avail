@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -48,6 +49,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
+import com.avail.utility.IteratorNotNull;
 import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 
@@ -705,7 +707,7 @@ extends Descriptor
 		final int tupleSize = object.tupleSize();
 		if (tupleSize == 0)
 		{
-			return TupleDescriptor.empty();
+			return TupleDescriptor.emptyTuple();
 		}
 		A_Tuple accumulator = object.tupleAt(1);
 		if (canDestroy)
@@ -750,7 +752,7 @@ extends Descriptor
 			{
 				object.assertObjectUnreachableIfMutable();
 			}
-			return TupleDescriptor.empty();
+			return TupleDescriptor.emptyTuple();
 		}
 		if (size == tupleSize)
 		{
@@ -815,10 +817,10 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Set o_AsSet (final AvailObject object)
 	{
-		A_Set result = SetDescriptor.empty();
-		for (int i = 1, end = object.tupleSize(); i <= end; i++)
+		A_Set result = emptySet();
+		for (final AvailObject element : object)
 		{
-			result = result.setWithElementCanDestroy(object.tupleAt(i), true);
+			result = result.setWithElementCanDestroy(element, true);
 		}
 		return result;
 	}
@@ -1110,7 +1112,8 @@ extends Descriptor
 	/**
 	 * A simple {@link Iterator} over a tuple's elements.
 	 */
-	private static final class TupleIterator implements Iterator<AvailObject>
+	private static final class TupleIterator
+		implements IteratorNotNull<AvailObject>
 	{
 		/**
 		 * The tuple over which to iterate.
@@ -1164,7 +1167,7 @@ extends Descriptor
 	}
 
 	@Override
-	public Iterator<AvailObject> o_Iterator (final AvailObject object)
+	public IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
 	{
 		object.makeImmutable();
 		return new TupleIterator(object);
@@ -1301,7 +1304,7 @@ extends Descriptor
 	 *
 	 * @return The tuple of size zero.
 	 */
-	public static AvailObject empty ()
+	public static AvailObject emptyTuple ()
 	{
 		return Empty.emptyTuple;
 	}
@@ -1314,12 +1317,12 @@ extends Descriptor
 	 *        The array of Avail values from which to construct a tuple.
 	 * @return The new mutable tuple.
 	 */
-	public static A_Tuple from (
+	public static A_Tuple tuple (
 		final A_BasicObject... elements)
 	{
 		if (elements.length == 0)
 		{
-			return empty();
+			return emptyTuple();
 		}
 		return ObjectTupleDescriptor.generateFrom(
 			elements.length,
@@ -1345,13 +1348,13 @@ extends Descriptor
 	 *        to construct a tuple.
 	 * @return The corresponding tuple of objects.
 	 */
-	public static <E extends A_BasicObject> A_Tuple fromList (
+	public static <E extends A_BasicObject> A_Tuple tupleFromList (
 		final List<E> list)
 	{
 		final int size = list.size();
 		if (size == 0)
 		{
-			return empty();
+			return emptyTuple();
 		}
 		return ObjectTupleDescriptor.generateFrom(
 			size,
@@ -1463,11 +1466,11 @@ extends Descriptor
 	 *        The list of Java {@linkplain Integer}s to assemble in a tuple.
 	 * @return A new mutable tuple of integers.
 	 */
-	public static A_Tuple fromIntegerList (final List<Integer> list)
+	public static A_Tuple tupleFromIntegerList (final List<Integer> list)
 	{
 		if (list.size() == 0)
 		{
-			return empty();
+			return emptyTuple();
 		}
 		final AvailObject tuple;
 		final int minValue = min(list);

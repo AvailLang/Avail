@@ -32,7 +32,15 @@
 
 package com.avail.server.io;
 
-import static com.avail.server.AvailServer.logger;
+import com.avail.annotations.InnerAccess;
+import com.avail.server.AvailServer;
+import com.avail.server.messages.Message;
+import com.avail.utility.IO;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -42,14 +50,8 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
-import com.avail.annotations.InnerAccess;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import javax.annotation.Nullable;
-import com.avail.server.AvailServer;
-import com.avail.server.messages.Message;
-import com.avail.utility.IO;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
+
+import static com.avail.server.AvailServer.logger;
 
 /**
  * A {@code SocketAdapter} provides a low-level {@linkplain
@@ -211,7 +213,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						buffer.flip();
 						final int payloadLength = buffer.getInt();
-						// A payload length of zero means that the client has
+						// A payload length of floatZero means that the client has
 						// done a polite shutdown.
 						if (payloadLength == 0)
 						{

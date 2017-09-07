@@ -32,7 +32,8 @@
 
 package com.avail.utility;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * A {@code NullOutputStream} discards everything written to it.

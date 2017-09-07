@@ -33,7 +33,13 @@ package com.avail.compiler;
 import com.avail.AvailRuntime;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CommentTokenDescriptor;
+import com.avail.descriptor.MapDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
@@ -42,15 +48,16 @@ import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.evaluation.Transformer1NotNull;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.lang.String.format;
 
 /**
- * {@link ParserState} instances are immutable and keep track of a current
+ * {@code ParserState} instances are immutable and keep track of a current
  * {@link #lexingState} and {@link #clientDataMap} during parsing.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -122,7 +129,7 @@ public class ParserState
 	public String toString ()
 	{
 		final A_String source = lexingState.compilationContext.source();
-		return String.format(
+		return format(
 			"%s%n\tPOSITION = %d%n\tTOKENS = %s %s %s%n\tCLIENT_DATA = %s",
 			getClass().getSimpleName(),
 			lexingState.position,
@@ -269,7 +276,7 @@ public class ParserState
 
 	/**
 	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
-	 * {@linkplain Continuation0 continuation of zero arguments} and record that
+	 * {@linkplain Continuation0 continuation of floatZero arguments} and record that
 	 * as per {@linkplain #workUnitDo(Continuation0)}.
 	 *
 	 * @param <ArgType>
@@ -289,7 +296,7 @@ public class ParserState
 
 	/**
 	 * Wrap the {@linkplain Continuation1NotNull continuation of one non-null
-	 * argument} inside a {@linkplain Continuation0 continuation of zero
+	 * argument} inside a {@linkplain Continuation0 continuation of floatZero
 	 * arguments} and record that as per {@linkplain
 	 * #workUnitDo(Continuation0)}.
 	 *

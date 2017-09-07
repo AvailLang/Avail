@@ -84,20 +84,20 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o(),
-				VariableTypeDescriptor.fromReadAndWriteTypes(
-					MapTypeDescriptor.mostGeneralType(),
+				VariableTypeDescriptor.variableReadWriteType(
+					MapTypeDescriptor.mostGeneralMapType(),
 					BottomTypeDescriptor.bottom())),
-			EnumerationTypeDescriptor.booleanObject());
+			EnumerationTypeDescriptor.booleanType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE));
 	}
 }

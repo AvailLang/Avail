@@ -304,7 +304,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Set o_ExportedNames (final AvailObject object)
 	{
-		A_Set exportedNames = SetDescriptor.empty();
+		A_Set exportedNames = SetDescriptor.emptySet();
 		synchronized (object)
 		{
 			for (final Entry entry
@@ -359,7 +359,7 @@ extends Descriptor
 		synchronized (object)
 		{
 			assert constantBinding.kind().isSubtypeOf(
-				VariableTypeDescriptor.mostGeneralType());
+				VariableTypeDescriptor.mostGeneralVariableType());
 			A_Map constantBindings = object.slot(CONSTANT_BINDINGS);
 			constantBindings = constantBindings.mapAtPuttingCanDestroy(
 				name,
@@ -398,7 +398,7 @@ extends Descriptor
 			}
 			else
 			{
-				tuple = TupleDescriptor.empty();
+				tuple = TupleDescriptor.emptyTuple();
 			}
 			tuple = tuple.appendCanDestroy(argumentTypes, true);
 			seals = seals.mapAtPuttingCanDestroy(methodName, tuple, true);
@@ -431,7 +431,7 @@ extends Descriptor
 		synchronized (object)
 		{
 			assert variableBinding.kind().isSubtypeOf(
-				VariableTypeDescriptor.mostGeneralType());
+				VariableTypeDescriptor.mostGeneralVariableType());
 			A_Map variableBindings = object.slot(VARIABLE_BINDINGS);
 			variableBindings = variableBindings.mapAtPuttingCanDestroy(
 				name,
@@ -458,7 +458,7 @@ extends Descriptor
 			}
 			else
 			{
-				set = SetDescriptor.empty();
+				set = SetDescriptor.emptySet();
 			}
 			set = set.setWithElementCanDestroy(trueName, false);
 			names = names.mapAtPuttingCanDestroy(string, set, true);
@@ -484,7 +484,7 @@ extends Descriptor
 				final A_String string = trueName.atomName();
 				final A_Set set = names.hasKey(string)
 					? names.mapAt(string)
-					: SetDescriptor.empty();
+					: SetDescriptor.emptySet();
 				names = names.mapAtPuttingCanDestroy(
 					string,
 					set.setWithElementCanDestroy(trueName, true),
@@ -535,7 +535,7 @@ extends Descriptor
 			}
 			else
 			{
-				set = SetDescriptor.empty();
+				set = SetDescriptor.emptySet();
 			}
 			set = set.setWithElementCanDestroy(trueName, false);
 			privateNames = privateNames.mapAtPuttingCanDestroy(
@@ -564,7 +564,7 @@ extends Descriptor
 				final A_String string = trueName.atomName();
 				A_Set set = privateNames.hasKey(string)
 					? privateNames.mapAt(string)
-					: SetDescriptor.empty();
+					: SetDescriptor.emptySet();
 				set = set.setWithElementCanDestroy(trueName, true);
 				privateNames = privateNames.mapAtPuttingCanDestroy(
 					string,
@@ -817,7 +817,7 @@ extends Descriptor
 			assert stringName.isTuple();
 			if (object.slot(NEW_NAMES).hasKey(stringName))
 			{
-				return SetDescriptor.empty().setWithElementCanDestroy(
+				return SetDescriptor.emptySet().setWithElementCanDestroy(
 					object.slot(NEW_NAMES).mapAt(stringName),
 					false);
 			}
@@ -828,7 +828,7 @@ extends Descriptor
 			}
 			else
 			{
-				publics = SetDescriptor.empty();
+				publics = SetDescriptor.emptySet();
 			}
 			if (!object.slot(PRIVATE_NAMES).hasKey(stringName))
 			{
@@ -975,7 +975,7 @@ extends Descriptor
 	 */
 	public static A_Module anonymousModule ()
 	{
-		return newModule(StringDescriptor.from("/«fake-root»/«anonymous»"));
+		return newModule(StringDescriptor.stringFrom("/«fake-root»/«anonymous»"));
 	}
 
 	/**
@@ -990,9 +990,9 @@ extends Descriptor
 	 */
 	public static A_Module newModule (final A_String moduleName)
 	{
-		final A_Map emptyMap = MapDescriptor.empty();
-		final A_Set emptySet = SetDescriptor.empty();
-		final A_Tuple emptyTuple = TupleDescriptor.empty();
+		final A_Map emptyMap = MapDescriptor.emptyMap();
+		final A_Set emptySet = SetDescriptor.emptySet();
+		final A_Tuple emptyTuple = TupleDescriptor.emptyTuple();
 		final AvailObject module = mutable.create();
 		module.setSlot(NAME, moduleName);
 		module.setSlot(ALL_ANCESTORS, NilDescriptor.nil());
@@ -1062,7 +1062,7 @@ extends Descriptor
 	/**
 	 * Answer the {@linkplain ModuleDescriptor module} currently undergoing
 	 * {@linkplain AvailLoader loading} on the {@linkplain
-	 * FiberDescriptor#current() current} {@linkplain FiberDescriptor fiber}.
+	 * FiberDescriptor#currentFiber() current} {@linkplain FiberDescriptor fiber}.
 	 *
 	 * @return The module currently undergoing loading, or {@linkplain
 	 *         NilDescriptor#nil() nil} if the current fiber is not a loader
@@ -1070,7 +1070,7 @@ extends Descriptor
 	 */
 	public static A_Module current ()
 	{
-		final A_Fiber fiber = FiberDescriptor.current();
+		final A_Fiber fiber = FiberDescriptor.currentFiber();
 		final AvailLoader loader = fiber.availLoader();
 		if (loader == null)
 		{

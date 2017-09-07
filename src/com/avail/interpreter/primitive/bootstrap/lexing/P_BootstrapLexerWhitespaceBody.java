@@ -86,20 +86,20 @@ public final class P_BootstrapLexerWhitespaceBody extends Primitive
 		final A_Token token = TokenDescriptor.create(
 			(A_String)source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
-			TupleDescriptor.empty(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
+			TupleDescriptor.emptyTuple(),
 			startPosition,
 			lineNumberInteger.extractInt(),
 			TokenType.WHITESPACE);
 		return interpreter.primitiveSuccess(
-			TupleDescriptor.from(token.makeShared()));
+			TupleDescriptor.tuple(token.makeShared()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),

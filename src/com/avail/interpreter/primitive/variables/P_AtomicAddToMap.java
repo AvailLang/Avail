@@ -101,10 +101,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VariableTypeDescriptor.fromReadAndWriteTypes(
-					MapTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				VariableTypeDescriptor.variableReadWriteType(
+					MapTypeDescriptor.mostGeneralMapType(),
 					BottomTypeDescriptor.bottom()),
 				ANY.o(),
 				ANY.o()),
@@ -114,8 +114,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE));
 	}

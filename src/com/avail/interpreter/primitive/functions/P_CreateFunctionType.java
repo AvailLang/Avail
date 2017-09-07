@@ -59,7 +59,7 @@ public final class P_CreateFunctionType extends Primitive
 		final AvailObject argTypes = args.get(0);
 		final AvailObject returnType = args.get(1);
 		return interpreter.primitiveSuccess(
-			FunctionTypeDescriptor.create(
+			FunctionTypeDescriptor.functionType(
 				argTypes,
 				returnType));
 	}
@@ -67,11 +67,11 @@ public final class P_CreateFunctionType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.zeroOrMoreOf(
 					InstanceMetaDescriptor.anyMeta()),
 				InstanceMetaDescriptor.topMeta()),
-			FunctionTypeDescriptor.meta());
+			FunctionTypeDescriptor.functionMeta());
 	}
 }

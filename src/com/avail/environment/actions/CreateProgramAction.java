@@ -32,10 +32,11 @@
 
 package com.avail.environment.actions;
 
-import java.awt.event.*;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.environment.AvailWorkbench;
+
 import javax.annotation.Nullable;
+import java.awt.event.ActionEvent;
 
 /**
  * A {@code CreateProgramAction} produces a program file that can be executed

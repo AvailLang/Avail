@@ -109,7 +109,7 @@ public final class P_ExtractSubtuple extends Primitive
 				? IntegerDescriptor.zero()
 				: newLower;
 			final A_Number newEnd = oldEnd.minusCanDestroy(adjustment, false);
-			final A_Type newSizes = IntegerRangeTypeDescriptor.create(
+			final A_Type newSizes = IntegerRangeTypeDescriptor.integerRangeType(
 				realLower,
 				true,
 				newEnd.plusCanDestroy(IntegerDescriptor.one(), true),
@@ -131,19 +131,19 @@ public final class P_ExtractSubtuple extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				TupleTypeDescriptor.mostGeneralTupleType(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.wholeNumbers()),
-			TupleTypeDescriptor.mostGeneralType());
+			TupleTypeDescriptor.mostGeneralTupleType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS));
 	}
 }

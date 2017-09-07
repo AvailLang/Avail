@@ -32,7 +32,8 @@
 
 package com.avail.serialization;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 
 /**
  * A {@code SerializerInstruction} combines an {@link AvailObject} and a

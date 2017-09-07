@@ -33,10 +33,11 @@
 package com.avail.utility.configuration;
 
 import javax.annotation.Nullable;
-
 import java.lang.Thread.State;
 import java.util.ArrayDeque;
 import java.util.Deque;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An {@code XMLConfiguratorState} encapsulates the state of an
@@ -47,7 +48,7 @@ import java.util.Deque;
  * @param <ElementType>
  *        A concrete {@link XMLElement} class.
  * @param <StateType>
- *        A concrete {@link XMLConfiguratorState} class.
+ *        A concrete {@code XMLConfiguratorState} class.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public class XMLConfiguratorState<
@@ -72,13 +73,7 @@ public class XMLConfiguratorState<
 	public XMLDocumentModel<ConfigurationType, ElementType, StateType>
 	documentModel ()
 	{
-		final XMLDocumentModel<
-				ConfigurationType,
-				ElementType,
-				StateType>
-			documentModel = model;
-		assert documentModel != null;
-		return documentModel;
+		return stripNull(model);
 	}
 
 	/**
@@ -127,7 +122,7 @@ public class XMLConfiguratorState<
 	 * @param buffer
 	 *        A buffer containing character data.
 	 * @param start
-	 *        The zero-based offset of the first element of the buffer that
+	 *        The floatZero-based offset of the first element of the buffer that
 	 *        should be copied to the accumulator.
 	 * @param length
 	 *        The number of characters that should be copied to the

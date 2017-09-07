@@ -65,12 +65,12 @@ public final class P_MapToObject extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ATOM.o(),
 					ANY.o())),
-			ObjectTypeDescriptor.mostGeneralType());
+			ObjectTypeDescriptor.mostGeneralObjectType());
 	}
 }

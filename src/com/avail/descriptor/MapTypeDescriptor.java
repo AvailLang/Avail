@@ -499,7 +499,7 @@ extends TypeDescriptor
 	 *
 	 * @return The most general map type.
 	 */
-	public static A_Type mostGeneralType ()
+	public static A_Type mostGeneralMapType ()
 	{
 		return mostGeneralType;
 	}
@@ -508,14 +508,14 @@ extends TypeDescriptor
 	 * The metatype for all map types.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all map types.
 	 *
 	 * @return The statically referenced metatype.
 	 */
-	public static A_Type meta ()
+	public static A_Type mapMeta ()
 	{
 		return meta;
 	}

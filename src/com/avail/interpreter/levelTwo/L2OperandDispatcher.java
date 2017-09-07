@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,13 +34,14 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
 
 
 /**
- * An {@link L2OperandDispatcher} acts as a visitor for the actual operands of
+ * An {@code L2OperandDispatcher} acts as a visitor for the actual operands of
  * {@linkplain L2Instruction level two instructions}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

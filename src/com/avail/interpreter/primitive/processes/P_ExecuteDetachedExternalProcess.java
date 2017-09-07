@@ -133,8 +133,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.oneOrMoreOf(
 					TupleTypeDescriptor.stringType()),
 				TupleTypeDescriptor.zeroOrOneOf(
@@ -156,8 +156,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_PERMISSION_DENIED,
 				E_NO_EXTERNAL_PROCESS));
 	}

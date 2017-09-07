@@ -32,15 +32,17 @@
 
 package com.avail.utility.configuration;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import javax.xml.parsers.SAXParser;
-
-import javax.annotation.Nullable;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import javax.annotation.Nullable;
+import javax.xml.parsers.SAXParser;
+import java.util.Collection;
+import java.util.Set;
+
+import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.singleton;
 
 /**
  * An {@link XMLConfigurator} uses a {@code XMLEventHandler} to interface with
@@ -73,14 +75,14 @@ extends DefaultHandler
 	private final StateType state;
 
 	/**
-	 * Construct a new {@link XMLEventHandler}.
+	 * Construct a new {@code XMLEventHandler}.
 	 *
 	 * @param model
 	 *        The {@linkplain XMLDocumentModel document model}.
 	 * @param state
 	 *        The {@linkplain XMLConfiguratorState configurator state}.
 	 */
-	public XMLEventHandler (
+	XMLEventHandler (
 		final XMLDocumentModel<
 			ConfigurationType, ElementType, StateType> model,
 		final StateType state)
@@ -128,9 +130,9 @@ extends DefaultHandler
 	{
 		assert qName != null;
 		assert attributes != null;
-		final ElementType parent = state.peek();
+		final @Nullable ElementType parent = state.peek();
 		final Set<ElementType> allowedChildren = parent == null
-			? Collections.singleton(model.rootElement())
+			? singleton(model.rootElement())
 			: model.allowedChildrenOf(parent);
 		final ElementType element = model.elementWithQName(qName);
 		if (!allowedChildren.contains(element))
@@ -149,8 +151,7 @@ extends DefaultHandler
 	throws SAXException
 	{
 		assert qName != null;
-		final ElementType element = model.elementWithQName(qName);
-		assert element != null;
+		final ElementType element = stripNull(model.elementWithQName(qName));
 		assert element == state.peek();
 		element.endElement(state);
 		state.pop();

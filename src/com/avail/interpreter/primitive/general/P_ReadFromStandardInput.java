@@ -31,19 +31,31 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.AvailRuntime;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CharacterDescriptor;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.io.TextInterface;
+
+import javax.annotation.Nullable;
 import java.nio.CharBuffer;
 import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.List;
-import com.avail.AvailRuntime;
-import javax.annotation.Nullable;
-import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.interpreter.*;
-import com.avail.io.TextInterface;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Read one character from the standard input
@@ -70,11 +82,11 @@ extends Primitive
 		final AvailRuntime runtime = interpreter.runtime();
 		final A_Fiber fiber = interpreter.fiber();
 		final TextInterface textInterface = fiber.textInterface();
-		final A_Function failureFunction = interpreter.function;
-		assert failureFunction.code().primitive() == this;
+		final A_Function primitiveFunction = stripNull(interpreter.function);
+		assert primitiveFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		final CharBuffer buffer = CharBuffer.allocate(1);
-		interpreter.primitiveSuspend();
+		interpreter.primitiveSuspend(primitiveFunction.code());
 		interpreter.postExitContinuation(() -> textInterface.inputChannel().read(
 			buffer,
 			fiber,
@@ -88,8 +100,8 @@ extends Primitive
 					Interpreter.resumeFromSuccessfulPrimitive(
 						runtime,
 						fiber,
-						CharacterDescriptor.fromCodePoint(
-							buffer.get(0)),
+						CharacterDescriptor.fromCodePoint(buffer.get(0)),
+						primitiveFunction.code(),
 						skipReturnCheck);
 				}
 
@@ -102,7 +114,7 @@ extends Primitive
 						runtime,
 						fiber,
 						E_IO_ERROR.numericCode(),
-						failureFunction,
+						primitiveFunction,
 						copiedArgs,
 						skipReturnCheck);
 				}
@@ -113,16 +125,13 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			CHARACTER.o());
+		return functionType(emptyTuple(), CHARACTER.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_IO_ERROR));
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			set(E_IO_ERROR));
 	}
 }

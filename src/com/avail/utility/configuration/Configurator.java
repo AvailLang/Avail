@@ -35,7 +35,7 @@ package com.avail.utility.configuration;
 
 /**
  * A {@code Configurator} produces a {@linkplain Configuration configuration}
- * from information provided during construction of a concrete implementation.
+ * tuple information provided during construction of a concrete implementation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param <ConfigurationType>

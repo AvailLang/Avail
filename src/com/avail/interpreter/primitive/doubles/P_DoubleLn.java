@@ -67,8 +67,8 @@ public final class P_DoubleLn extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				DOUBLE.o()),
 			DOUBLE.o());
 	}

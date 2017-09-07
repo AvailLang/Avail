@@ -32,11 +32,12 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.MapBinDescriptor.IntegerSlots.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.MapDescriptor.MapIterable;
+
 import javax.annotation.Nullable;
+
+import static com.avail.descriptor.MapBinDescriptor.IntegerSlots.KEYS_HASH;
 
 /**
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree
@@ -55,7 +56,7 @@ extends Descriptor
 	{
 		/**
 		 * A long holding {@link BitField}s containing the combined keys hash
-		 * and the combined values hash or zero.
+		 * and the combined values hash or floatZero.
 		 */
 		COMBINED_HASHES;
 
@@ -67,7 +68,7 @@ extends Descriptor
 
 		/**
 		 * The sum of the hashes of the elements recursively within this bin,
-		 * or zero if not computed.
+		 * or floatZero if not computed.
 		 */
 		public static final BitField VALUES_HASH_OR_ZERO = bitField(
 			COMBINED_HASHES, 32, 32);
@@ -107,7 +108,7 @@ extends Descriptor
 	/**
 	 * The level of my objects in their enclosing bin trees. The top node is
 	 * level 0 (using hash bits 0..5), and the bottom hashed node is level 5
-	 * (using hash bits 30..35, the top four of which are always zero). There
+	 * (using hash bits 30..35, the top four of which are always floatZero). There
 	 * can be a level 6 {@linkplain LinearMapBinDescriptor linear bin}, but it
 	 * represents elements which all have the same hash value, so it should
 	 * never be hashed.

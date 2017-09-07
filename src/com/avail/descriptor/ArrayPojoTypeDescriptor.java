@@ -359,7 +359,7 @@ extends PojoTypeDescriptor
 	@Override
 	A_Map o_TypeVariables (final AvailObject object)
 	{
-		return MapDescriptor.empty();
+		return MapDescriptor.emptyMap();
 	}
 
 	@SuppressWarnings("StatementWithEmptyBody")
@@ -459,18 +459,18 @@ extends PojoTypeDescriptor
 
 	static
 	{
-		A_Map javaAncestors = MapDescriptor.empty();
+		A_Map javaAncestors = MapDescriptor.emptyMap();
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 			RawPojoDescriptor.rawObjectClass(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			true);
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 			RawPojoDescriptor.equalityWrap(Cloneable.class),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			true);
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 			RawPojoDescriptor.equalityWrap(Serializable.class),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
 			true);
 		arrayBaseAncestorMap = javaAncestors.makeShared();
 	}
@@ -502,7 +502,7 @@ extends PojoTypeDescriptor
 		A_Map javaAncestors = arrayBaseAncestorMap;
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
 			RawPojoDescriptor.equalityWrap(PojoArray.class),
-			TupleDescriptor.from(elementType),
+			TupleDescriptor.tuple(elementType),
 			false);
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(JAVA_ANCESTORS, javaAncestors);

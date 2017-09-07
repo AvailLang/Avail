@@ -79,10 +79,10 @@ public final class P_RecordNewTypeName extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				InstanceMetaDescriptor.on(
-					ObjectTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				InstanceMetaDescriptor.instanceMetaOn(
+					ObjectTypeDescriptor.mostGeneralObjectType()),
 				TupleTypeDescriptor.stringType()),
 			TOP.o());
 	}

@@ -66,11 +66,11 @@ public final class P_SetUnion extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				SetTypeDescriptor.mostGeneralType(),
-				SetTypeDescriptor.mostGeneralType()),
-			SetTypeDescriptor.mostGeneralType());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				SetTypeDescriptor.mostGeneralSetType(),
+				SetTypeDescriptor.mostGeneralSetType()),
+			SetTypeDescriptor.mostGeneralSetType());
 	}
 
 	@Override
@@ -96,7 +96,7 @@ public final class P_SetUnion extends Primitive
 		final A_Number maxSize = sizes1.upperBound().plusCanDestroy(
 			sizes2.upperBound(),
 			false);
-		final A_Type unionSize = IntegerRangeTypeDescriptor.create(
+		final A_Type unionSize = IntegerRangeTypeDescriptor.integerRangeType(
 			minSize,
 			true,
 			maxSize.plusCanDestroy(IntegerDescriptor.one(), false),

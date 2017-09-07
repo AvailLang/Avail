@@ -120,7 +120,7 @@ extends NumericTupleDescriptor
 				!= intValue)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = TupleDescriptor.from(newElement);
+			final A_Tuple singleton = TupleDescriptor.tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		// Convert to a ByteTupleDescriptor.

@@ -32,14 +32,17 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.MapDescriptor.MapIterable;
+import com.avail.serialization.SerializerOperation;
+
 import java.util.IdentityHashMap;
 import java.util.NoSuchElementException;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.MapDescriptor.*;
-import com.avail.serialization.SerializerOperation;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
  * {@code NilDescriptor} implements the Avail {@linkplain #nil() null
@@ -108,13 +111,13 @@ extends Descriptor
 	@Override
 	A_Type o_MapBinKeyUnionKind (final AvailObject object)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override
 	A_Type o_MapBinValueUnionKind (final AvailObject object)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override

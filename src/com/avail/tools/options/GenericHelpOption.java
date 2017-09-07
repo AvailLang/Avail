@@ -32,11 +32,13 @@
 
 package com.avail.tools.options;
 
-import static java.util.Arrays.asList;
+import com.avail.annotations.InnerAccess;
+import com.avail.utility.MutableOrNull;
+
 import java.io.IOException;
 
-import com.avail.annotations.InnerAccess;
-import com.avail.utility.*;
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
 
 /**
  * A {@code GenericHelpOption} provides an application help message that
@@ -73,7 +75,7 @@ extends GenericOption<OptionKeyType>
 			final Appendable appendable)
 		throws IOException
 	{
-		appendable.append(String.format("%s%n%n", preamble));
+		appendable.append(format("%s%n%n", preamble));
 		optionProcessor.writeOptionDescriptions(appendable);
 	}
 

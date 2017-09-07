@@ -64,11 +64,11 @@ public final class P_CompiledCodePrimitiveName extends Primitive
 		final A_String string;
 		if (prim == null)
 		{
-			string = TupleDescriptor.empty();
+			string = TupleDescriptor.emptyTuple();
 		}
 		else
 		{
-			string = StringDescriptor.from(prim.name());
+			string = StringDescriptor.stringFrom(prim.name());
 		}
 		return interpreter.primitiveSuccess(string);
 	}
@@ -76,9 +76,9 @@ public final class P_CompiledCodePrimitiveName extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				CompiledCodeTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()),
 			TupleTypeDescriptor.stringType());
 	}
 }

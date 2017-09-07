@@ -32,19 +32,23 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Jump to the target if the object is not an instance of the constant type.
@@ -104,8 +108,7 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		else
 		{
 			assert registerSet.hasTypeAt(objectReg);
-			final A_Type knownType = registerSet.typeAt(objectReg);
-			assert knownType != null;
+			final A_Type knownType = stripNull(registerSet.typeAt(objectReg));
 			intersection = type.typeIntersection(knownType);
 			if (intersection.isBottom())
 			{

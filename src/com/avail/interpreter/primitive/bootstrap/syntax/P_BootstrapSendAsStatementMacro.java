@@ -96,8 +96,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				/* The send node to treat as a statement */
 				LITERAL_NODE.create(SEND_NODE.mostGeneralType())),
 			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
@@ -106,8 +106,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_LOADING_IS_OVER));
 	}
 }

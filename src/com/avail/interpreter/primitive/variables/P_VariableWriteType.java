@@ -63,9 +63,9 @@ public final class P_VariableWriteType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VariableTypeDescriptor.meta()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				VariableTypeDescriptor.variableMeta()),
 			InstanceMetaDescriptor.topMeta());
 	}
 }

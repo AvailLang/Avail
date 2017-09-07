@@ -32,15 +32,28 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
-import java.util.List;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.PARKED;
+import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Unpark the specified {@linkplain
@@ -74,6 +87,8 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
+		final A_RawFunction primitiveRawFunction =
+			stripNull(interpreter.function).code();
 		fiber.lock(() ->
 		{
 			// Restore the permit. If the fiber is parked, then unpark it.
@@ -85,7 +100,8 @@ extends Primitive
 				Interpreter.resumeFromSuccessfulPrimitive(
 					AvailRuntime.current(),
 					fiber,
-					NilDescriptor.nil(),
+					nil(),
+					primitiveRawFunction,
 					skipReturnCheck);
 			}
 			else
@@ -95,15 +111,14 @@ extends Primitive
 					PERMIT_UNAVAILABLE, false);
 			}
 		});
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FiberTypeDescriptor.mostGeneralType()),
+		return functionType(
+			tuple(mostGeneralFiberType()),
 			TOP.o());
 	}
 }

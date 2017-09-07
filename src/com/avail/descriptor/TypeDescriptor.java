@@ -32,13 +32,18 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.compiler.AvailCompiler;
+import com.avail.interpreter.AvailLoader.LexicalScanner;
+
+import javax.annotation.Nullable;
 import java.util.List;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.compiler.*;
-import com.avail.interpreter.AvailLoader.LexicalScanner;
-import javax.annotation.Nullable;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Every object in Avail has a type.  Types are also Avail objects.  The types
@@ -128,18 +133,18 @@ extends AbstractTypeDescriptor
 		/**
 		 * The type of all double-precision floating point numbers.  This
 		 * includes the double precision {@linkplain
-		 * DoubleDescriptor#positiveInfinity() positive} and {@linkplain
-		 * DoubleDescriptor#negativeInfinity() negative} infinities and
-		 * {@linkplain DoubleDescriptor#notANumber() Not-a-Number}.
+		 * DoubleDescriptor#doublePositiveInfinity() positive} and {@linkplain
+		 * DoubleDescriptor#doubleNegativeInfinity() negative} infinities and
+		 * {@linkplain DoubleDescriptor#doubleNotANumber() Not-a-Number}.
 		 */
 		DOUBLE(NUMBER, TypeTag.NUMBER_TYPE_TAG),
 
 		/**
 		 * The type of all single-precision floating point numbers.  This
 		 * includes the single precision {@linkplain
-		 * FloatDescriptor#positiveInfinity() positive} and {@linkplain
-		 * FloatDescriptor#negativeInfinity() negative} infinities and
-		 * {@linkplain FloatDescriptor#notANumber() Not-a-Number}.
+		 * FloatDescriptor#floatPositiveInfinity() positive} and {@linkplain
+		 * FloatDescriptor#floatNegativeInfinity() negative} infinities and
+		 * {@linkplain FloatDescriptor#floatNotANumber() Not-a-Number}.
 		 */
 		FLOAT(NUMBER, TypeTag.NUMBER_TYPE_TAG),
 
@@ -271,9 +276,7 @@ extends AbstractTypeDescriptor
 		 */
 		public final Types parent ()
 		{
-			final Types p = parent;
-			assert p != null;
-			return p;
+			return stripNull(parent);
 		}
 
 		/**
@@ -375,17 +378,15 @@ extends AbstractTypeDescriptor
 						? new TopTypeDescriptor(spec.typeTag, spec)
 						: new PrimitiveTypeDescriptor(spec.typeTag, spec);
 				descriptor.finishInitializingPrimitiveTypeWithParent(
-					(AvailObject)o,
+					(AvailObject) o,
 					spec.parent == null
-						? NilDescriptor.nil()
+						? nil()
 						: spec.parent.o());
-				final boolean[] supersRow = spec.superTests;
-				assert supersRow != null;
-				Types pointer = spec;
+				@Nullable Types pointer = spec;
 				while (pointer != null)
 				{
 					final int ancestorOrdinal = pointer.ordinal();
-					supersRow[ancestorOrdinal] = true;
+					spec.superTests[ancestorOrdinal] = true;
 					pointer = pointer.parent;
 				}
 			}
@@ -430,7 +431,7 @@ extends AbstractTypeDescriptor
 					a.intersectionTypes[bOrdinal] =
 						a.superTests[bOrdinal] ? a.o() :
 							b.superTests[a.ordinal()] ? b.o() :
-								BottomTypeDescriptor.bottom();
+								bottom();
 				}
 			}
 			// Now make all the objects shared.
@@ -556,7 +557,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	A_Number o_InstanceCount (final AvailObject object)
 	{
-		return InfinityDescriptor.positiveInfinity();
+		return positiveInfinity();
 	}
 
 	@Override @AvailMethod
@@ -844,7 +845,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aFiberType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -852,7 +853,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aFunctionType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -860,7 +861,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aVariableType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -868,7 +869,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aContinuationType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -876,7 +877,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aCompiledCodeType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -884,7 +885,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type anIntegerRangeType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -892,7 +893,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -900,7 +901,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -908,7 +909,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aMapType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -916,7 +917,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -924,7 +925,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aParseNodeType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -932,7 +933,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -942,7 +943,7 @@ extends AbstractTypeDescriptor
 	{
 		return NONTYPE.superTests[primitiveTypeEnum.ordinal()]
 			? object
-			: BottomTypeDescriptor.bottom();
+			: bottom();
 	}
 
 	@Override @AvailMethod
@@ -950,7 +951,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aSetType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -958,7 +959,7 @@ extends AbstractTypeDescriptor
 		final AvailObject object,
 		final A_Type aTupleType)
 	{
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -1076,8 +1077,7 @@ extends AbstractTypeDescriptor
 			{
 				return anotherAncestor.o();
 			}
-			anotherAncestor = anotherAncestor.parent;
-			assert anotherAncestor != null;
+			anotherAncestor = stripNull(anotherAncestor.parent);
 		}
 	}
 

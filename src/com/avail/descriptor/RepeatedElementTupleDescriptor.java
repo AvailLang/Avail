@@ -395,7 +395,7 @@ extends TupleDescriptor
 			if (element.isInt())
 			{
 				// Make it a numeric tuple.
-				result = TupleDescriptor.fromIntegerList(
+				result = TupleDescriptor.tupleFromIntegerList(
 					Collections.nCopies(size, element.extractInt()));
 			}
 			else if (element.isCharacter())
@@ -451,7 +451,7 @@ extends TupleDescriptor
 			return result;
 		}
 		// Transition to a tree tuple.
-		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
 		return object.concatenateWith(singleton, canDestroy);
 	}
 
@@ -539,14 +539,14 @@ extends TupleDescriptor
 		// If there are no members in the range, return the empty tuple.
 		if (size == 0)
 		{
-			return TupleDescriptor.empty();
+			return TupleDescriptor.emptyTuple();
 		}
 
 		// If there are fewer than minimumRepeatSize members in this tuple,
 		// create a normal tuple with them in it instead.
 		if (size < minimumRepeatSize)
 		{
-			return TupleDescriptor.fromList(Collections.nCopies(size, element));
+			return TupleDescriptor.tupleFromList(Collections.nCopies(size, element));
 		}
 
 		// No other efficiency shortcuts. Create a repeated element tuple.

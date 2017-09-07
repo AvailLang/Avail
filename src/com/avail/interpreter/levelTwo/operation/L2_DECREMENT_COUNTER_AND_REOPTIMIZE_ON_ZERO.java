@@ -31,18 +31,24 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.OptimizationLevel;
-import com.avail.utility.*;
+import com.avail.utility.Mutable;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Explicitly decrement the current compiled code's countdown via {@link
- * AvailObject#countdownToReoptimize(int)}.  If it reaches zero then
+ * AvailObject#countdownToReoptimize(int)}.  If it reaches floatZero then
  * re-optimize the code.
  */
 public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
@@ -62,8 +68,7 @@ extends L2Operation
 		final int targetOptimizationLevel = instruction.immediateAt(0);
 		return interpreter ->
 		{
-			final A_Function function = interpreter.function;
-			assert function != null;
+			final A_Function function = stripNull(interpreter.function);
 			final A_RawFunction theCode = function.code();
 			final Mutable<Boolean> translated = new Mutable<>(false);
 			theCode.decrementCountdownToReoptimize(() ->

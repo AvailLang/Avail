@@ -77,7 +77,7 @@ public final class P_TupleAppend extends Primitive
 		final A_Type anElementTupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 				IntegerRangeTypeDescriptor.singleInt(1),
-				TupleDescriptor.empty(),
+				TupleDescriptor.emptyTuple(),
 				anElementType);
 
 		return ConcatenatedTupleTypeDescriptor.concatenatingAnd(
@@ -88,10 +88,10 @@ public final class P_TupleAppend extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				TupleTypeDescriptor.mostGeneralType(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				TupleTypeDescriptor.mostGeneralTupleType(),
 				ANY.o()),
-			TupleTypeDescriptor.mostGeneralType());
+			TupleTypeDescriptor.mostGeneralTupleType());
 	}
 }

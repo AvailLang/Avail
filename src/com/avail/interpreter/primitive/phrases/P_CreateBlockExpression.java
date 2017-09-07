@@ -108,8 +108,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.zeroOrMoreOf(
 					ARGUMENT_NODE.mostGeneralType()),
 				TupleTypeDescriptor.stringType(),
@@ -125,8 +125,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS,
 				E_INVALID_PRIMITIVE_NUMBER));
 	}

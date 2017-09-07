@@ -32,11 +32,11 @@
 
 package com.avail.io;
 
+import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousChannel;
 import java.nio.channels.CompletionHandler;
-import javax.annotation.Nullable;
 
 /**
  * {@code TextOutputChannel} provides a wrapper for a standard output

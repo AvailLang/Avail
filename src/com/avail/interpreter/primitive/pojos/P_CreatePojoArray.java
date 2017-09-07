@@ -77,10 +77,10 @@ public final class P_CreatePojoArray extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				InstanceMetaDescriptor.anyMeta(),
 				IntegerRangeTypeDescriptor.wholeNumbers()),
-			PojoTypeDescriptor.mostGeneralArrayType());
+			PojoTypeDescriptor.mostGeneralPojoArrayType());
 	}
 }

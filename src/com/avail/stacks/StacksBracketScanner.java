@@ -32,11 +32,12 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
-import java.util.List;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.TokenDescriptor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**

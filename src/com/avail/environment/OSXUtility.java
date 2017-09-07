@@ -32,10 +32,13 @@
 
 package com.avail.environment;
 
-import java.lang.reflect.*;
 import com.avail.annotations.InnerAccess;
-import javax.annotation.Nullable;
 import com.avail.utility.evaluation.Transformer1;
+
+import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 /**
  * Exposes the Mac OS X-specific functionality for gracefully handling normal

@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,12 +32,12 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-import javax.annotation.Nullable;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -45,6 +45,12 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.RegisterState;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Given an input register containing a function (not a function type), extract
@@ -126,7 +132,7 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 		// We don't know the exact type of the block argument, so since it's
 		// contravariant we can only assume it's some non-top type.
 		registerSet.typeAtPut(
-			outputParamTypeReg, InstanceMetaDescriptor.anyMeta(), instruction);
+			outputParamTypeReg, anyMeta(), instruction);
 	}
 
 	@Override

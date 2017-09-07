@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
@@ -40,7 +39,6 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
@@ -52,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * The given immediate function is invoked. The function may be a primitive, and
@@ -102,12 +101,11 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 			}
 			interpreter.skipReturnCheck = skipReturnCheck;
 
-			final L2Chunk chunk = interpreter.chunk;
+			final L2Chunk chunk = stripNull(interpreter.chunk);
 			final int offset = interpreter.offset;
 			final AvailObject[] savedPointers = interpreter.pointers;
 			final int[] savedInts = interpreter.integers;
 
-			assert chunk != null;
 			assert chunk.executableInstructions[offset] == instruction;
 
 			interpreter.chunk = code.startingChunk();

@@ -107,8 +107,8 @@ public final class P_FloatTruncatedAsInteger extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				FLOAT.o()),
 			IntegerRangeTypeDescriptor.extendedIntegers());
 	}
@@ -116,8 +116,8 @@ public final class P_FloatTruncatedAsInteger extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER));
 	}
 }

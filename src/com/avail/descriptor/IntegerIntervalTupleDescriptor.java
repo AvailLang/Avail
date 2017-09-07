@@ -163,7 +163,7 @@ extends NumericTupleDescriptor
 			return result;
 		}
 		// Transition to a tree tuple.
-		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
 		return object.concatenateWith(singleton, canDestroy);
 	}
 
@@ -553,14 +553,14 @@ extends NumericTupleDescriptor
 		// its own tuple.
 		if (difference.equalsInt(0))
 		{
-			return TupleDescriptor.from(start);
+			return TupleDescriptor.tuple(start);
 		}
 
 		// If the progression is in a different direction than the delta, there
 		// are no members of this interval, so return the empty tuple.
 		if (difference.greaterThan(zero) != delta.greaterThan(zero))
 		{
-			return TupleDescriptor.empty();
+			return TupleDescriptor.emptyTuple();
 		}
 
 		// If there are fewer than maximumCopySize members in this interval,
@@ -576,7 +576,7 @@ extends NumericTupleDescriptor
 				members.add(newMember);
 				newMember = newMember.addToIntegerCanDestroy(delta, false);
 			}
-			return TupleDescriptor.fromList(members);
+			return TupleDescriptor.tupleFromList(members);
 		}
 
 		// If the slot contents are small enough, create a

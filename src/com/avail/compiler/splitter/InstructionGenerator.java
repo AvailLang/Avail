@@ -406,7 +406,7 @@ class InstructionGenerator
 			: "A placeholder instruction using a label was not resolved";
 		assert instructions.size() == expressionList.size();
 		assert delayedExpressionList.isEmpty();
-		return TupleDescriptor.fromIntegerList(instructions).makeShared();
+		return TupleDescriptor.tupleFromIntegerList(instructions).makeShared();
 	}
 
 	/**

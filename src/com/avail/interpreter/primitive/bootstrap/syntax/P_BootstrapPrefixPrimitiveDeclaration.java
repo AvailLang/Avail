@@ -181,8 +181,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				/* Macro argument is a parse node. */
 				LIST_NODE.create(
 					/* Optional arguments section. */
@@ -190,7 +190,7 @@ extends Primitive
 						/* Arguments are present. */
 						TupleTypeDescriptor.oneOrMoreOf(
 							/* An argument. */
-							TupleTypeDescriptor.forTypes(
+							TupleTypeDescriptor.tupleTypeForTypes(
 								/* Argument name, a token. */
 								TOKEN.o(),
 								/* Argument type. */
@@ -200,13 +200,13 @@ extends Primitive
 					/* Optional primitive declaration. */
 					TupleTypeDescriptor.zeroOrOneOf(
 						/* Primitive declaration */
-						TupleTypeDescriptor.forTypes(
+						TupleTypeDescriptor.tupleTypeForTypes(
 							/* Primitive number. */
 							TOKEN.o(),
 							/* Optional failure variable declaration. */
 							TupleTypeDescriptor.zeroOrOneOf(
 								/* Primitive failure variable parts. */
-								TupleTypeDescriptor.forTypes(
+								TupleTypeDescriptor.tupleTypeForTypes(
 									/* Primitive failure variable name token */
 									TOKEN.o(),
 									/* Primitive failure variable type */

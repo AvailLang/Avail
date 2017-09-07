@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,12 +32,14 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.A_Number;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Divide the dividend value by the divisor value.  If the calculation causes an
@@ -93,7 +95,7 @@ public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// It jumps for division by zero.
+		// It jumps for division by floatZero.
 		return true;
 	}
 }

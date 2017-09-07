@@ -32,9 +32,10 @@
 
 package com.avail.utility.configuration;
 
-import java.util.Set;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+
+import java.util.Set;
 
 /**
  * {@code XMLElement} is designed to be implemented only by {@linkplain Enum
@@ -45,7 +46,7 @@ import org.xml.sax.SAXException;
  * @param <ConfigurationType>
  *        A concrete {@link Configuration} class.
  * @param <ElementType>
- *        A concrete {@link XMLElement} class.
+ *        A concrete {@code XMLElement} class.
  * @param <StateType>
  *        A concrete {@link XMLConfiguratorState} class.
  * @author Todd L Smith &lt;todd@availlang.org&gt;

@@ -33,11 +33,10 @@ package com.avail.environment.editor;
 
 import com.avail.compiler.ExpectedToken;
 import com.avail.environment.AvailWorkbench;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 
 /**

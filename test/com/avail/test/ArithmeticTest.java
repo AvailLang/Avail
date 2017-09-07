@@ -32,11 +32,18 @@
 
 package com.avail.test;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FloatDescriptor;
+import com.avail.descriptor.IntegerDescriptor;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.math.BigInteger;
-import com.avail.descriptor.*;
+
+import static com.avail.descriptor.FloatDescriptor.fromFloat;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Unit tests for the Avail arithmetic types.
@@ -137,11 +144,11 @@ public final class ArithmeticTest
 	{
 		for (final float f1 : sampleFloats)
 		{
-			final A_Number F1 = FloatDescriptor.fromFloat(f1);
+			final A_Number F1 = fromFloat(f1);
 			assertEquals(F1, F1);
 			for (final float f2 : sampleFloats)
 			{
-				final A_Number F2 = FloatDescriptor.fromFloat(f2);
+				final A_Number F2 = fromFloat(f2);
 				assertEqualFloatsOrNan(
 					F1.plusCanDestroy(F2, false).extractFloat(),
 					f1+f2);
@@ -281,7 +288,7 @@ public final class ArithmeticTest
 		final int leftShift)
 	{
 		final A_Number availInt = IntegerDescriptor.fromBigInteger(base);
-		final A_Number availShift = IntegerDescriptor.fromInt(leftShift);
+		final A_Number availShift = fromInt(leftShift);
 		final A_Number shiftedAvailInt = availInt.bitShift(availShift, true);
 		final A_Number availInt2 = IntegerDescriptor.fromBigInteger(base);
 		final A_Number shiftedAvailInt2 = availInt2.bitShift(availShift, false);

@@ -110,18 +110,18 @@ public final class P_RestartContinuationWithArguments extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ContinuationTypeDescriptor.mostGeneralType(),
-				TupleTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				ContinuationTypeDescriptor.mostGeneralContinuationType(),
+				TupleTypeDescriptor.mostGeneralTupleType()),
 			BottomTypeDescriptor.bottom());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_INCORRECT_ARGUMENT_TYPE));
 	}

@@ -32,8 +32,9 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.ArrayList;
 
 /**
  * A collection of {@linkplain AbstractStacksToken tokens} that make up a

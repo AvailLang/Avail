@@ -421,7 +421,7 @@ extends PojoTypeDescriptor
 		A_Map typeVars = object.slot(TYPE_VARIABLES);
 		if (typeVars.equalsNil())
 		{
-			typeVars = MapDescriptor.empty();
+			typeVars = MapDescriptor.emptyMap();
 			for (final Entry entry
 				: object.slot(JAVA_ANCESTORS).mapIterable())
 			{
@@ -433,7 +433,7 @@ extends PojoTypeDescriptor
 				for (int i = 0; i < vars.length; i++)
 				{
 					typeVars = typeVars.mapAtPuttingCanDestroy(
-						StringDescriptor.from(
+						StringDescriptor.stringFrom(
 							ancestor.getName() + "." + vars[i].getName()),
 						typeArgs.tupleAt(i + 1),
 						true);
@@ -491,7 +491,7 @@ extends PojoTypeDescriptor
 				((Class<?>) javaClass.javaObjectNotNull()).getName());
 			final A_Tuple params = ancestors.hasKey(javaClass)
 				? ancestors.mapAt(javaClass)
-				: TupleDescriptor.empty();
+				: TupleDescriptor.emptyTuple();
 			if (params.tupleSize() != 0)
 			{
 				builder.append('<');

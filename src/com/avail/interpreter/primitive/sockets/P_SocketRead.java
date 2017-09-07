@@ -54,7 +54,7 @@ import com.avail.interpreter.*;
  * priority}. If the operation succeeds, then eventually start the new fiber to
  * apply the {@linkplain FunctionDescriptor success function} to the {@linkplain
  * ByteBufferTupleDescriptor result tuple} and a {@linkplain
- * EnumerationTypeDescriptor#booleanObject() boolean} that is {@linkplain
+ * EnumerationTypeDescriptor#booleanType() boolean} that is {@linkplain
  * AtomDescriptor#trueObject() true} if the socket is exhausted. If the
  * operation fails, then eventually start the new fiber to apply the {@linkplain
  * FunctionDescriptor failure function} to the {@linkplain IntegerDescriptor
@@ -172,30 +172,30 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				IntegerRangeTypeDescriptor.inclusive(0, Integer.MAX_VALUE),
 				ATOM.o(),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.tuple(
 						TupleTypeDescriptor.zeroOrMoreOf(
 							IntegerRangeTypeDescriptor.bytes()),
-						EnumerationTypeDescriptor.booleanObject()),
+						EnumerationTypeDescriptor.booleanType()),
 					TOP.o()),
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.tuple(
 						AbstractEnumerationTypeDescriptor.withInstance(
 							E_IO_ERROR.numericCode())),
 					TOP.o()),
 				IntegerRangeTypeDescriptor.bytes()),
-			FiberTypeDescriptor.mostGeneralType());
+			FiberTypeDescriptor.mostGeneralFiberType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR));

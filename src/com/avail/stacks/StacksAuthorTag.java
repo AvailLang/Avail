@@ -32,8 +32,9 @@
 
 package com.avail.stacks;
 
-import java.util.List;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.List;
 
 /**
  * he Avail comment "@author" tag

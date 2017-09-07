@@ -63,9 +63,9 @@ public final class P_VariableReadType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				VariableTypeDescriptor.meta()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				VariableTypeDescriptor.variableMeta()),
 			InstanceMetaDescriptor.topMeta());
 	}
 
@@ -75,6 +75,6 @@ public final class P_VariableReadType extends Primitive
 	{
 		final A_Type varMeta = argumentTypes.get(0);
 		final A_Type varType = varMeta.instance();
-		return InstanceMetaDescriptor.on(varType.readType());
+		return InstanceMetaDescriptor.instanceMetaOn(varType.readType());
 	}
 }

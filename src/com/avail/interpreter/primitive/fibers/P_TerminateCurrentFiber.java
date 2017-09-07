@@ -32,11 +32,22 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
 import com.avail.compiler.FiberTerminationException;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
  * <strong>Primitive:</strong> Terminate the current {@linkplain
@@ -69,8 +80,6 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
-			BottomTypeDescriptor.bottom());
+		return functionType(emptyTuple(), bottom());
 	}
 }

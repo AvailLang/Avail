@@ -32,11 +32,19 @@
 
 package com.avail.optimizer;
 
-import java.util.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.register.L2Register;
+
 import javax.annotation.Nullable;
-import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import static com.avail.utility.PrefixSharingList.*;
 
 /**
@@ -311,7 +319,7 @@ public final class RegisterState
 	/**
 	 * Answer whether writing is allowed to this {@link RegisterState}.  {@link
 	 * RegisterSet}s that wish to write to a shared RegisterState must first
-	 * create a copy.  Cloning a RegisterState causes {@link #share()} to be
+	 * functionType a copy.  Cloning a RegisterState causes {@link #share()} to be
 	 * sent to each of its RegisterStates.
 	 *
 	 * @return

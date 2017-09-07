@@ -87,13 +87,13 @@ public final class P_PrivateCreateModuleVariable extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				Types.MODULE.o(),
 				TupleTypeDescriptor.stringType(),
-				VariableTypeDescriptor.meta(),
-				EnumerationTypeDescriptor.booleanObject(),
-				EnumerationTypeDescriptor.booleanObject()),
+				VariableTypeDescriptor.variableMeta(),
+				EnumerationTypeDescriptor.booleanType(),
+				EnumerationTypeDescriptor.booleanType()),
 			Types.TOP.o());
 	}
 }

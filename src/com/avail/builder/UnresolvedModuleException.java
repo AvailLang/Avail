@@ -32,8 +32,8 @@
 
 package com.avail.builder;
 
-import java.util.ArrayList;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 
 /**
  * UnresolvedModuleException is a type of UnresolvedDependencyException that is

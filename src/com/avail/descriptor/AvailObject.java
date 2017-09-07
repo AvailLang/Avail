@@ -61,6 +61,7 @@ import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.*;
 import com.avail.utility.Generator;
+import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.*;
 import com.avail.utility.json.JSONWriter;
@@ -68,6 +69,8 @@ import com.avail.utility.visitor.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 
 /**
@@ -138,7 +141,7 @@ implements
 	}
 
 	/**
-	 * Recursively print the {@linkplain AvailObject receiver} to the {@link
+	 * Recursively print the {@code AvailObject receiver} to the {@link
 	 * StringBuilder} unless it is already present in the {@linkplain List
 	 * recursion list}. Printing will begin at the specified indent level,
 	 * measured in horizontal tab characters.
@@ -363,7 +366,7 @@ implements
 	 */
 	void assertObjectUnreachableIfMutable ()
 	{
-		assertObjectUnreachableIfMutableExcept(NilDescriptor.nil());
+		assertObjectUnreachableIfMutableExcept(nil());
 	}
 
 	/**
@@ -1466,7 +1469,7 @@ implements
 			// intention of this method.
 			assert false;
 			error("noFailDivideCanDestroy failed!");
-			return NilDescriptor.nil();
+			return nil();
 		}
 	}
 
@@ -2032,7 +2035,7 @@ implements
 	{
 		// Was a dispatch that took indirections into account, but even when we
 		// rebuild the memory substrate we can keep nil from moving around.
-		return this == NilDescriptor.nil();
+		return this == nil();
 	}
 
 	/**
@@ -2846,7 +2849,7 @@ implements
 	 * @return An {@linkplain Iterator iterator}.
 	 */
 	@Override
-	public @Nonnull Iterator<AvailObject> iterator ()
+	public IteratorNotNull<AvailObject> iterator ()
 	{
 		return descriptor.o_Iterator(this);
 	}
@@ -3188,7 +3191,7 @@ implements
 			// intention of this method.
 			assert false;
 			error("noFailMinusCanDestroy failed!");
-			return NilDescriptor.nil();
+			return nil();
 		}
 	}
 
@@ -3472,7 +3475,7 @@ implements
 			// intention of this method.
 			assert false;
 			error("noFailPlusCanDestroy failed!");
-			return NilDescriptor.nil();
+			return nil();
 		}
 	}
 
@@ -4000,7 +4003,7 @@ implements
 			// intention of this method.
 			assert false;
 			error("noFailTimesCanDestroy failed!");
-			return NilDescriptor.nil();
+			return nil();
 		}
 	}
 
@@ -5807,9 +5810,7 @@ implements
 	@Override
 	public Object javaObjectNotNull ()
 	{
-		final Object value = descriptor.o_JavaObject(this);
-		assert value != null;
-		return value;
+		return stripNull(descriptor.o_JavaObject(this));
 	}
 
 	/**
@@ -7345,5 +7346,18 @@ implements
 	public A_Lexer lexer ()
 	{
 		return descriptor.o_Lexer(this);
+	}
+
+	@Override
+	public void suspendingRawFunction (
+		final A_RawFunction suspendingRawFunction)
+	{
+		descriptor.o_SuspendingRawFunction(this, suspendingRawFunction);
+	}
+
+	@Override
+	public A_RawFunction suspendingRawFunction ()
+	{
+		return descriptor.o_SuspendingRawFunction(this);
 	}
 }

@@ -32,9 +32,10 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
+
 import java.io.ByteArrayOutputStream;
 
 /**

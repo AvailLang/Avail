@@ -123,7 +123,7 @@ public final class P_BindPojoStaticField extends Primitive
 		// variables are expected.
 		final A_Type fieldType = PojoTypeDescriptor.resolve(
 			field.getGenericType(),
-			MapDescriptor.empty());
+			MapDescriptor.emptyMap());
 		final AvailObject var = PojoFieldDescriptor.forInnerType(
 			RawPojoDescriptor.equalityWrap(field),
 			RawPojoDescriptor.rawNullObject(),
@@ -134,19 +134,19 @@ public final class P_BindPojoStaticField extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				InstanceMetaDescriptor.on(
-					PojoTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				InstanceMetaDescriptor.instanceMetaOn(
+					PojoTypeDescriptor.mostGeneralPojoType()),
 				TupleTypeDescriptor.stringType()),
-			VariableTypeDescriptor.mostGeneralType());
+			VariableTypeDescriptor.mostGeneralVariableType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_JAVA_FIELD_NOT_AVAILABLE,
 				E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS));
 	}

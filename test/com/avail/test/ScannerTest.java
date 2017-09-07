@@ -160,9 +160,9 @@ public final class ScannerTest
 	{
 		return () ->
 			TokenDescriptor.create(
-				StringDescriptor.from(string),
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				StringDescriptor.stringFrom(string),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				start,
 				1,
 				tokenType);
@@ -298,7 +298,7 @@ public final class ScannerTest
 			}
 			else if (object instanceof String)
 			{
-				literal = StringDescriptor.from((String)object);
+				literal = StringDescriptor.stringFrom((String)object);
 			}
 			else
 			{
@@ -309,9 +309,9 @@ public final class ScannerTest
 			}
 			assert literal != null;
 			return (A_Token) LiteralTokenDescriptor.create(
-				StringDescriptor.from(string),
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				StringDescriptor.stringFrom(string),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				start,
 				1,
 				LITERAL,
@@ -422,9 +422,9 @@ public final class ScannerTest
 				assertEquals(
 					scannedTokens.get(scannedTokens.size() - 1),
 					TokenDescriptor.create(
-						TupleDescriptor.empty(),
-						TupleDescriptor.empty(),
-						TupleDescriptor.empty(),
+						TupleDescriptor.emptyTuple(),
+						TupleDescriptor.emptyTuple(),
+						TupleDescriptor.emptyTuple(),
 						input.length() + 1,
 						1,
 						END_OF_FILE),
@@ -468,36 +468,36 @@ public final class ScannerTest
 	@Test
 	public void testLiteralComparison ()
 	{
-		final A_String string = StringDescriptor.from("xxx");
+		final A_String string = StringDescriptor.stringFrom("xxx");
 		final List<AvailObject> literals = new ArrayList<>(4);
 		literals.add(LiteralTokenDescriptor.create(
 			string,
-			TupleDescriptor.empty(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
+			TupleDescriptor.emptyTuple(),
 			0,
 			0,
 			LITERAL,
 			FloatDescriptor.fromFloat(1.5f)));
 		literals.add(LiteralTokenDescriptor.create(
 			string,
-			TupleDescriptor.empty(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
+			TupleDescriptor.emptyTuple(),
 			0,
 			0,
 			LITERAL,
 			FloatDescriptor.fromFloat(1.5f)));
 		literals.add(LiteralTokenDescriptor.create(
 			string,
-			TupleDescriptor.empty(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
+			TupleDescriptor.emptyTuple(),
 			0,
 			0,
 			LITERAL,
 			FloatDescriptor.fromFloat(2.5f)));
 		literals.add(LiteralTokenDescriptor.create(
 			string,
-			TupleDescriptor.empty(),
-			TupleDescriptor.empty(),
+			TupleDescriptor.emptyTuple(),
+			TupleDescriptor.emptyTuple(),
 			0,
 			0,
 			LITERAL,

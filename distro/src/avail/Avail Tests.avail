@@ -44,7 +44,9 @@ Extends
 		"string token lexer",
 		"whole number lexer",
 		"keyword lexer",
-		"operator lexer"
+		"operator lexer",
+		"…#",
+		"`$…$"
 	),
 	"Tests" =
 	(

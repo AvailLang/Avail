@@ -32,6 +32,13 @@
 
 package com.avail.io;
 
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
+import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.FiberDescriptor;
+
+import javax.annotation.Nullable;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -42,12 +49,6 @@ import java.nio.channels.CompletionHandler;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
-import com.avail.AvailRuntime;
-import com.avail.AvailTask;
-import com.avail.annotations.InnerAccess;
-import javax.annotation.Nullable;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.FiberDescriptor;
 
 /**
  * A {@code ProcessInputChannel} provides a faux {@linkplain
@@ -119,7 +120,7 @@ implements TextOutputChannel
 		final CompletionHandler<Integer, A> handler)
 	{
 		final AvailRuntime runtime = AvailRuntime.current();
-		final A_Fiber fiber = FiberDescriptor.current();
+		final A_Fiber fiber = FiberDescriptor.currentFiber();
 		runtime.executeFileTask(AvailTask.forUnboundFiber(
 			fiber,
 			() ->

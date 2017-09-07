@@ -32,13 +32,14 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.*;
 
 /**
  * This is a forward declaration of a method.  An actual method must be defined

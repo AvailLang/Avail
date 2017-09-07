@@ -32,14 +32,27 @@
 
 package com.avail.interpreter.primitive.controlflow;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.ArrayList;
-import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.exceptions.MapException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
+import static com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Get the {@linkplain
@@ -79,7 +92,9 @@ extends Primitive
 			assert e.numericCode().extractInt() == E_KEY_NOT_FOUND.nativeCode();
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
-		interpreter.primitiveSuspend();
+		final A_RawFunction primitiveRawFunction =
+			stripNull(interpreter.function).code();
+		interpreter.primitiveSuspend(primitiveRawFunction);
 		ContinuationDescriptor.dumpStackThen(
 			runtime,
 			fiber.textInterface(),
@@ -89,13 +104,14 @@ extends Primitive
 				final List<A_String> frames = new ArrayList<>(stack.size());
 				for (int i = stack.size() - 1; i >= 0; i--)
 				{
-					frames.add(StringDescriptor.from(stack.get(i)));
+					frames.add(stringFrom(stack.get(i)));
 				}
-				final A_Tuple stackDump = TupleDescriptor.fromList(frames);
+				final A_Tuple stackDump = tupleFromList(frames);
 				Interpreter.resumeFromSuccessfulPrimitive(
 					runtime,
 					fiber,
 					stackDump,
+					primitiveRawFunction,
 					skipReturnCheck);
 			});
 		return Result.FIBER_SUSPENDED;
@@ -104,18 +120,14 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ObjectTypeDescriptor.exceptionType()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.stringType()));
+		return functionType(tuple(exceptionType()),
+			zeroOrMoreOf(stringType()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
-				E_INCORRECT_ARGUMENT_TYPE));
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			set(E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

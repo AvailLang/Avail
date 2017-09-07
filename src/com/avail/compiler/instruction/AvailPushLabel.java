@@ -33,13 +33,13 @@
 package com.avail.compiler.instruction;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.compiler.instruction.AvailInstruction;
-import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 

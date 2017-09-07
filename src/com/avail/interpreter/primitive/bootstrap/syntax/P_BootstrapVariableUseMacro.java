@@ -148,7 +148,7 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 						first = false;
 					}
 					builder.append(")");
-					return StringDescriptor.from(builder.toString());
+					return StringDescriptor.stringFrom(builder.toString());
 				});
 		}
 		final A_BasicObject variableObject =
@@ -167,8 +167,8 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				/* Variable name */
 				LITERAL_NODE.create(TOKEN.o())),
 			VARIABLE_USE_NODE.mostGeneralType());

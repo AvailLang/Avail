@@ -32,15 +32,17 @@
 
 package com.avail.environment.actions;
 
-import java.awt.*;
-import java.awt.Dialog.ModalityType;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_String;
 import com.avail.environment.AvailWorkbench;
+
 import javax.annotation.Nullable;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.awt.Dialog.ModalityType;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import static com.avail.environment.AvailWorkbench.resourcePrefix;
 

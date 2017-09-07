@@ -32,8 +32,9 @@
 
 package com.avail.compiler.instruction;
 
-import javax.annotation.Nullable;
 import com.avail.descriptor.BlockNodeDescriptor;
+
+import javax.annotation.Nullable;
 
 
 /**

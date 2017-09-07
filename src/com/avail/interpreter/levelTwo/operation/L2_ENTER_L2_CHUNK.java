@@ -31,23 +31,25 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
-import java.util.List;
-
-import javax.annotation.Nullable;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.ContinuationTypeDescriptor;
-import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry,
@@ -104,11 +106,11 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 		}
 		registerSet.constantAtPut(
 			translator.fixed(NULL),
-			NilDescriptor.nil(),
+			nil(),
 			instruction);
 		registerSet.typeAtPut(
 			translator.fixed(CALLER),
-			ContinuationTypeDescriptor.mostGeneralType(),
+			ContinuationTypeDescriptor.mostGeneralContinuationType(),
 			instruction);
 		registerSet.typeAtPut(
 			translator.fixed(FUNCTION),

@@ -32,13 +32,14 @@
 
 package com.avail.descriptor;
 
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
-import javax.annotation.Nullable;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 
 /**
  * I represent the abstract concept of enumerations. In particular, every object
@@ -75,7 +76,7 @@ extends AbstractTypeDescriptor
 
 	/**
 	 * Compute the type intersection of the {@linkplain AvailObject object}
-	 * which is an {@linkplain AbstractEnumerationTypeDescriptor enumeration},
+	 * which is an {@code AbstractEnumerationTypeDescriptor enumeration},
 	 * and the argument, which may or may not be an enumeration (but must be a
 	 * {@linkplain TypeDescriptor type}).
 	 *
@@ -92,7 +93,7 @@ extends AbstractTypeDescriptor
 
 	/**
 	 * Compute the type union of the {@linkplain AvailObject object} which is an
-	 * {@linkplain AbstractEnumerationTypeDescriptor enumeration}, and the
+	 * {@code AbstractEnumerationTypeDescriptor enumeration}, and the
 	 * argument, which may or may not be an enumeration (but must be a
 	 * {@linkplain TypeDescriptor type}).
 	 *
@@ -727,7 +728,7 @@ extends AbstractTypeDescriptor
 	 * @return An {@link AvailObject} representing the type whose instances are
 	 *         those objects specified in the argument.
 	 */
-	public static A_Type withInstances (final A_Set instancesSet)
+	public static A_Type enumerationWith (final A_Set instancesSet)
 	{
 		final int setSize = instancesSet.setSize();
 		if (setSize == 0)
@@ -746,7 +747,7 @@ extends AbstractTypeDescriptor
 		{
 			if (setSize == 1)
 			{
-				return InstanceTypeDescriptor.on(
+				return InstanceTypeDescriptor.instanceTypeOn(
 					instancesSet.iterator().next());
 			}
 			return EnumerationTypeDescriptor.fromNormalizedSet(instancesSet);
@@ -760,7 +761,7 @@ extends AbstractTypeDescriptor
 			{
 				typesUnion = typesUnion.typeUnion(iterator.next());
 			}
-			return InstanceMetaDescriptor.on(typesUnion);
+			return InstanceMetaDescriptor.instanceMetaOn(typesUnion);
 		}
 		// It's a mix of types and non-types.
 		return ANY.o();
@@ -781,13 +782,13 @@ extends AbstractTypeDescriptor
 	{
 		if (instance.isType())
 		{
-			return InstanceMetaDescriptor.on((A_Type)instance);
+			return InstanceMetaDescriptor.instanceMetaOn((A_Type)instance);
 		}
-		return InstanceTypeDescriptor.on(instance);
+		return InstanceTypeDescriptor.instanceTypeOn(instance);
 	}
 
 	/**
-	 * Construct a new {@link AbstractEnumerationTypeDescriptor}.
+	 * Construct a new {@code AbstractEnumerationTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

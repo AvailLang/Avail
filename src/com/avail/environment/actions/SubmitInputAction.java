@@ -32,10 +32,6 @@
 
 package com.avail.environment.actions;
 
-import static javax.swing.SwingUtilities.invokeLater;
-import java.awt.event.*;
-import java.util.Arrays;
-import javax.swing.*;
 import com.avail.builder.AvailBuilder.CompiledCommand;
 import com.avail.environment.AvailWorkbench;
 import com.avail.interpreter.Interpreter;
@@ -43,7 +39,14 @@ import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.Continuation0;
+
 import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.util.Arrays;
+
+import static javax.swing.SwingUtilities.invokeLater;
 
 /**
  * A {@code SubmitInputAction} sends a line of text from the input field to

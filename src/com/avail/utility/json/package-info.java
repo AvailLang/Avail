@@ -29,5 +29,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NotNullByDefault package com.avail.utility.json;
-import com.avail.annotations.NotNullByDefault;
+@NonnullByDefault
+package com.avail.utility.json;
+import com.avail.annotations.NonnullByDefault;

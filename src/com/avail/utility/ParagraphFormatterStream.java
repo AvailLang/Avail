@@ -32,8 +32,8 @@
 
 package com.avail.utility;
 
-import java.io.IOException;
 import javax.annotation.Nullable;
+import java.io.IOException;
 
 /**
  * ParagraphFormatterStream wraps an Appendable with a ParagraphFormatter, so

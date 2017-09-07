@@ -60,11 +60,11 @@ implements Iterable<JSONData>
 		this.array = array;
 	}
 
-	/** The canonical {@linkplain #empty() empty} {@link JSONArray}. */
+	/** The canonical {@linkplain #empty() emptySet} {@link JSONArray}. */
 	private static final JSONArray empty = new JSONArray(new JSONData[0]);
 
 	/**
-	 * Answer an empty {@link JSONArray}.
+	 * Answer an emptySet {@link JSONArray}.
 	 *
 	 * @return The {@code JSONArray}.
 	 */

@@ -258,7 +258,7 @@ public class StacksCommentsModule
 	void addImplementation(final AbstractCommentImplementation comment)
 	{
 		final A_String nameToCheck =
-			StringDescriptor.from(comment.signature().name());
+			StringDescriptor.stringFrom(comment.signature().name());
 
 		if (extendsMethodLeafNameToModuleName.containsKey(nameToCheck))
 		{
@@ -510,7 +510,7 @@ public class StacksCommentsModule
 				if (moduleImport.isExtension)
 				{
 					A_Set collectedExtendedNames =
-						SetDescriptor.empty();
+						SetDescriptor.emptySet();
 
 					if (moduleImport.wildcard)
 					{
@@ -530,7 +530,7 @@ public class StacksCommentsModule
 											.keySet()),
 								true);
 					}
-					if (!moduleImport.excludes.equals(SetDescriptor.empty()))
+					if (!moduleImport.excludes.equals(SetDescriptor.emptySet()))
 					{
 						collectedExtendedNames = collectedExtendedNames
 							.setMinusCanDestroy(moduleImport.excludes, true);
@@ -659,7 +659,7 @@ public class StacksCommentsModule
 				else
 				{
 					A_Set collectedUsesNames =
-						SetDescriptor.empty();
+						SetDescriptor.emptySet();
 
 					if (moduleImport.wildcard)
 					{
@@ -678,7 +678,7 @@ public class StacksCommentsModule
 											.keySet()),
 							true);
 					}
-					if (!moduleImport.excludes.equals(SetDescriptor.empty()))
+					if (!moduleImport.excludes.equals(SetDescriptor.emptySet()))
 					{
 						collectedUsesNames = collectedUsesNames
 							.setMinusCanDestroy(moduleImport.excludes, true);
@@ -1030,7 +1030,7 @@ public class StacksCommentsModule
 				newHashNameMap.put(pair.first(), newHashNameMap
 					.get(pair.first()) + 1);
 				nameToBeHashed =
-					StringDescriptor.from(pair.first().asNativeString()
+					StringDescriptor.stringFrom(pair.first().asNativeString()
 						+ newHashNameMap.get(pair.first()));
 			}
 			else
@@ -1076,7 +1076,7 @@ public class StacksCommentsModule
 			{
 				newHashNameMap.put(key, newHashNameMap.get(key) + 1);
 				nameToBeHashed =
-					StringDescriptor.from(key.asNativeString()
+					StringDescriptor.stringFrom(key.asNativeString()
 						+ newHashNameMap.get(key));
 			}
 			else
@@ -1579,7 +1579,7 @@ public class StacksCommentsModule
 				jsonWriter.endArray();
 				jsonWriter.endObject();
 				final String fileName =
-					(StringDescriptor.from(ambiguousAliasKey).hash()
+					(StringDescriptor.stringFrom(ambiguousAliasKey).hash()
 							& 0xFFFFFFFFL)
 						+ "." + fileExtensionName;
 

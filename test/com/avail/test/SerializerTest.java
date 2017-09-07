@@ -283,21 +283,21 @@ public final class SerializerTest
 	public void testStrings ()
 	throws MalformedSerialStreamException
 	{
-		checkObject(StringDescriptor.from(""));
+		checkObject(StringDescriptor.stringFrom(""));
 		for (int i = 1; i < 100; i++)
 		{
-			checkObject(StringDescriptor.from(String.valueOf(i)));
+			checkObject(StringDescriptor.stringFrom(String.valueOf(i)));
 		}
-		checkObject(StringDescriptor.from("\u0000"));
-		checkObject(StringDescriptor.from("\u0001"));
-		checkObject(StringDescriptor.from("\u0003\u0002\u0001\u0000"));
-		checkObject(StringDescriptor.from("Cheese \"cake\" surprise"));
-		checkObject(StringDescriptor.from("\u00FF"));
-		checkObject(StringDescriptor.from("\u0100"));
-		checkObject(StringDescriptor.from("\u0101"));
-		checkObject(StringDescriptor.from("I like peace ☮"));
-		checkObject(StringDescriptor.from("I like music 𝄞"));
-		checkObject(StringDescriptor.from("I really like music 𝄞𝄞"));
+		checkObject(StringDescriptor.stringFrom("\u0000"));
+		checkObject(StringDescriptor.stringFrom("\u0001"));
+		checkObject(StringDescriptor.stringFrom("\u0003\u0002\u0001\u0000"));
+		checkObject(StringDescriptor.stringFrom("Cheese \"cake\" surprise"));
+		checkObject(StringDescriptor.stringFrom("\u00FF"));
+		checkObject(StringDescriptor.stringFrom("\u0100"));
+		checkObject(StringDescriptor.stringFrom("\u0101"));
+		checkObject(StringDescriptor.stringFrom("I like peace ☮"));
+		checkObject(StringDescriptor.stringFrom("I like music 𝄞"));
+		checkObject(StringDescriptor.stringFrom("I really like music 𝄞𝄞"));
 	}
 
 
@@ -310,23 +310,23 @@ public final class SerializerTest
 	public void testNumericTuples ()
 	throws MalformedSerialStreamException
 	{
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(0)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(1)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(2)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(3)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(10, 20)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(10, 20, 10)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(100, 200)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(100, 2000)));
-		checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(999999999)));
+		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(0)));
+		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(1)));
+		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(2)));
+		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(3)));
+		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(10, 20)));
+		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(10, 20, 10)));
+		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(100, 200)));
+		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(100, 2000)));
+		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(999999999)));
 		for (int i = -500; i < 500; i++)
 		{
-			checkObject(TupleDescriptor.fromIntegerList(Arrays.asList(i)));
+			checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(i)));
 		}
-		checkObject(TupleDescriptor.from(
+		checkObject(TupleDescriptor.tuple(
 			IntegerDescriptor.fromLong(Integer.MIN_VALUE),
 			IntegerDescriptor.fromLong(Integer.MAX_VALUE)));
-		checkObject(TupleDescriptor.from(
+		checkObject(TupleDescriptor.tuple(
 			IntegerDescriptor.fromLong(Long.MIN_VALUE),
 			IntegerDescriptor.fromLong(Long.MAX_VALUE)));
 	}
@@ -377,7 +377,7 @@ public final class SerializerTest
 					}
 					if (choice == 2)
 					{
-						newObject = TupleDescriptor.fromList(members);
+						newObject = TupleDescriptor.tupleFromList(members);
 					}
 					else if (choice == 3)
 					{
@@ -385,7 +385,7 @@ public final class SerializerTest
 					}
 					else if (choice == 4)
 					{
-						A_Map map = MapDescriptor.empty();
+						A_Map map = MapDescriptor.emptyMap();
 						for (int i = 0; i < size; i+=2)
 						{
 							map = map.mapAtPuttingCanDestroy(
@@ -415,18 +415,18 @@ public final class SerializerTest
 	throws MalformedSerialStreamException
 	{
 		final A_Module inputModule = ModuleDescriptor.newModule(
-			StringDescriptor.from("Imported"));
+			StringDescriptor.stringFrom("Imported"));
 		final A_Module currentModule = ModuleDescriptor.newModule(
-			StringDescriptor.from("Current"));
+			StringDescriptor.stringFrom("Current"));
 		final A_Atom atom1 = AtomDescriptor.create(
-			StringDescriptor.from("importAtom1"),
+			StringDescriptor.stringFrom("importAtom1"),
 			inputModule);
 		inputModule.addPrivateName(atom1);
 		final A_Atom atom2 = AtomDescriptor.create(
-			StringDescriptor.from("currentAtom2"),
+			StringDescriptor.stringFrom("currentAtom2"),
 			currentModule);
 		currentModule.addPrivateName(atom2);
-		final A_Tuple tuple = TupleDescriptor.from(atom1, atom2);
+		final A_Tuple tuple = TupleDescriptor.tuple(atom1, atom2);
 
 		prepareToWrite();
 		serializer().serialize(tuple);
@@ -458,7 +458,7 @@ public final class SerializerTest
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function function = FunctionDescriptor.create(
 			code,
-			TupleDescriptor.empty());
+			TupleDescriptor.emptyTuple());
 		final @Nullable A_Function newFunction = roundTrip(function);
 		assert newFunction != null;
 		final A_RawFunction code2 = newFunction.code();

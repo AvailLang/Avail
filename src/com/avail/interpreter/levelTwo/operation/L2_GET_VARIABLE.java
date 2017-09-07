@@ -31,16 +31,22 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Extract the value of a variable. If the variable is unassigned, then branch
@@ -101,7 +107,7 @@ public class L2_GET_VARIABLE extends L2Operation
 		{
 			final A_Type oldType = registerSet.typeAt(variableReg);
 			final A_Type varType = oldType.typeIntersection(
-				VariableTypeDescriptor.mostGeneralType());
+				VariableTypeDescriptor.mostGeneralVariableType());
 			registerSet.typeAtPut(destReg, varType.readType(), instruction);
 		}
 		else

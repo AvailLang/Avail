@@ -33,7 +33,6 @@
 package com.avail.descriptor;
 
 import javax.annotation.Nonnull;
-
 import java.util.Iterator;
 
 /**

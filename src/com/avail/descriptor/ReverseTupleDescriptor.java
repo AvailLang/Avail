@@ -122,7 +122,7 @@ extends TupleDescriptor
 		{
 			object.makeImmutable();
 		}
-		final A_Tuple singleton = TupleDescriptor.from(newElement);
+		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
 		return object.concatenateWith(singleton, canDestroy);
 	}
 
@@ -280,7 +280,7 @@ extends TupleDescriptor
 			{
 				object.assertObjectUnreachableIfMutable();
 			}
-			return TupleDescriptor.empty();
+			return TupleDescriptor.emptyTuple();
 		}
 		if (subrangeSize == tupleSize)
 		{

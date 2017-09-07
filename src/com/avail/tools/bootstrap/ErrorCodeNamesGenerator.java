@@ -67,7 +67,7 @@ extends PropertiesFileGenerator
 		// This forces initialization of Avail.
 		//noinspection ResultOfMethodCallIgnored
 		AvailRuntime.specialObjects();
-		A_Set allErrorCodes = SetDescriptor.empty();
+		A_Set allErrorCodes = SetDescriptor.emptySet();
 		for (final AvailErrorCode code : AvailErrorCode.all())
 		{
 			if (!code.isCausedByInstructionFailure())
@@ -77,7 +77,7 @@ extends PropertiesFileGenerator
 					true);
 			}
 		}
-		A_Set reachableErrorCodes = SetDescriptor.empty();
+		A_Set reachableErrorCodes = SetDescriptor.emptySet();
 		for (
 			int primitiveNumber = 1;
 			primitiveNumber <= Primitive.maxPrimitiveNumber();

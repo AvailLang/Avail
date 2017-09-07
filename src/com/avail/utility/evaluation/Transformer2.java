@@ -35,6 +35,8 @@ package com.avail.utility.evaluation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * Implementors of {@code Transformer2} provide a single arbitrary operation
  * that accepts two arguments and produces a result.
@@ -58,7 +60,7 @@ public interface Transformer2 <X,Y,Z>
 		@Nullable Y arg2);
 
 	/**
-	 * Perform the operation, then assert a {@link NotNull} condition for the
+	 * Perform the operation, then assert a {@link Nonnull} condition for the
 	 * result as a convenience.
 	 *
 	 * @param arg1 The first argument to the operation.
@@ -69,8 +71,6 @@ public interface Transformer2 <X,Y,Z>
 		final @Nullable X arg1,
 		final @Nullable Y arg2)
 	{
-		final Z result = value(arg1, arg2);
-		assert result != null;
-		return result;
+		return stripNull(value(arg1, arg2));
 	}
 }

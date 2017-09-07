@@ -65,8 +65,8 @@ public final class P_TokenLexeme extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TOKEN.o()),
 			TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()));
 	}

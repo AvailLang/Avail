@@ -32,20 +32,26 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.AssignmentNodeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AssignmentNodeDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AssignmentNodeDescriptor.IntegerSlots.IS_INLINE;
+import static com.avail.descriptor.AssignmentNodeDescriptor.ObjectSlots.EXPRESSION;
+import static com.avail.descriptor.AssignmentNodeDescriptor.ObjectSlots.VARIABLE;
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.NilDescriptor.nil;
 
 /**
  * My instances represent assignment statements.
@@ -192,7 +198,7 @@ extends ParseNodeDescriptor
 			// the assigned value, since it's *not* an inlined assignment.
 			declarationKind.emitVariableAssignmentForOn(
 				declaration, codeGenerator);
-			codeGenerator.emitPushLiteral(NilDescriptor.nil());
+			codeGenerator.emitPushLiteral(nil());
 		}
 	}
 

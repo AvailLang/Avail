@@ -58,15 +58,15 @@ public final class P_CreateVariableType extends Primitive
 		assert args.size() == 1;
 		final A_Type type = args.get(0);
 		return interpreter.primitiveSuccess(
-			VariableTypeDescriptor.wrapInnerType(type));
+			VariableTypeDescriptor.variableTypeFor(type));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				InstanceMetaDescriptor.anyMeta()),
-			VariableTypeDescriptor.meta());
+			VariableTypeDescriptor.variableMeta());
 	}
 }

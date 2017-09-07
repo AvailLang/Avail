@@ -95,7 +95,7 @@ extends Primitive
 		}
 		final A_Function function = FunctionDescriptor.create(
 			compiledCode,
-			TupleDescriptor.empty());
+			TupleDescriptor.emptyTuple());
 		function.makeImmutable();
 		return interpreter.primitiveSuccess(function);
 	}
@@ -103,17 +103,17 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				BLOCK_NODE.mostGeneralType()),
-			FunctionTypeDescriptor.mostGeneralType());
+			FunctionTypeDescriptor.mostGeneralFunctionType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_BLOCK_IS_INVALID,
 				E_BLOCK_MUST_NOT_CONTAIN_OUTERS,
 				E_BLOCK_COMPILATION_FAILED));

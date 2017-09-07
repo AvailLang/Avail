@@ -567,7 +567,7 @@ public final class BootstrapGenerator
 			}
 			final A_Type type = parameterTypes.typeAtIndex(i);
 			final A_Type paramType = forSemanticRestriction
-				? InstanceMetaDescriptor.on(type)
+				? InstanceMetaDescriptor.instanceMetaOn(type)
 				: type;
 			final String typeName = specialObjectName(paramType);
 			builder.append('\t');
@@ -673,7 +673,7 @@ public final class BootstrapGenerator
 					preamble.getString(
 						invokePrimitiveFailureFunctionMethodUse.name()),
 					argName,
-					namesBySpecialObject.get(TupleDescriptor.empty())));
+					namesBySpecialObject.get(TupleDescriptor.emptyTuple())));
 			}
 			else
 			{
@@ -970,8 +970,8 @@ public final class BootstrapGenerator
 	 */
 	private void generatePrimitiveFailureFunction (final PrintWriter writer)
 	{
-		final A_BasicObject functionType = FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		final A_BasicObject functionType = FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			BottomTypeDescriptor.bottom());
 		writer.print(
@@ -1014,8 +1014,8 @@ public final class BootstrapGenerator
 		final String block = block(
 			"",
 			statements.toString(),
-			FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
+			FunctionTypeDescriptor.functionType(
+				TupleDescriptor.tuple(
 					IntegerRangeTypeDescriptor.naturalNumbers()),
 				BottomTypeDescriptor.bottom()));
 		generateMethod(
@@ -1038,8 +1038,8 @@ public final class BootstrapGenerator
 		declarations.append('\t');
 		declarations.append(argName);
 		declarations.append(" : ");
-		final A_BasicObject functionType = FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		final A_BasicObject functionType = FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				IntegerRangeTypeDescriptor.naturalNumbers()),
 			BottomTypeDescriptor.bottom());
 		declarations.append(specialObjectName(functionType));

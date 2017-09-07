@@ -35,8 +35,8 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.exceptions.SignatureException;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
@@ -44,7 +44,7 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 
 /**
- * An {@linkplain Argument} is an occurrence of {@linkplain
+ * An {@code Argument} is an occurrence of {@linkplain
  * Metacharacter#UNDERSCORE underscore} (_) in a message name. It
  * indicates where an argument is expected.
  */

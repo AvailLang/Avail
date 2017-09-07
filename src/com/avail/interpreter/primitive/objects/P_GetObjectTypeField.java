@@ -73,8 +73,8 @@ public final class P_GetObjectTypeField extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ObjectTypeDescriptor.meta(),
 				ATOM.o()),
 			InstanceMetaDescriptor.anyMeta());
@@ -106,7 +106,7 @@ public final class P_GetObjectTypeField extends Primitive
 				union = union.typeUnion(fieldTypeMap.mapAt(possibleField));
 			}
 			// Shift it up; a primitive invocation will return the field's type.
-			return InstanceMetaDescriptor.on(union);
+			return InstanceMetaDescriptor.instanceMetaOn(union);
 		}
 		return super.returnTypeGuaranteedByVM(argumentTypes);
 	}
@@ -138,8 +138,8 @@ public final class P_GetObjectTypeField extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_NO_SUCH_FIELD));
 	}
 }

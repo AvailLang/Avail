@@ -68,10 +68,10 @@ public final class P_CreateStubFunction extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FunctionTypeDescriptor.meta(),
-				FunctionTypeDescriptor.mostGeneralType()),
-			FunctionTypeDescriptor.mostGeneralType());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				FunctionTypeDescriptor.functionMeta(),
+				FunctionTypeDescriptor.mostGeneralFunctionType()),
+			FunctionTypeDescriptor.mostGeneralFunctionType());
 	}
 }

@@ -32,8 +32,11 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.ArrayList;
+
+import static java.lang.String.format;
 
 /**
  * The defining characteristic of a semantic restriction comment as it pertains
@@ -70,7 +73,9 @@ public class SemanticRestrictionCommentSignature extends CommentSignature
 	@Override
 	public String toString ()
 	{
-		return String.format("%s -> %s", name(),
+		return format(
+			"%s -> %s",
+			name(),
 			orderedInputTypes.toString());
 	}
 

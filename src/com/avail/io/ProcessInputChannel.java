@@ -32,6 +32,12 @@
 
 package com.avail.io;
 
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
+import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.A_Fiber;
+
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,11 +48,6 @@ import java.nio.channels.CompletionHandler;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
-import com.avail.AvailRuntime;
-import com.avail.AvailTask;
-import com.avail.annotations.InnerAccess;
-import javax.annotation.Nullable;
-import com.avail.descriptor.A_Fiber;
 
 /**
  * A {@code ProcessInputChannel} provides a faux {@linkplain

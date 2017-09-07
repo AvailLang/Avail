@@ -47,7 +47,7 @@ import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 
 /**
  * <strong>Primitive:</strong> Compare two extended integers and answer
- * a {@linkplain EnumerationTypeDescriptor#booleanObject() boolean}.
+ * a {@linkplain EnumerationTypeDescriptor#booleanType() boolean}.
  */
 public final class P_LessOrEqual extends Primitive
 {
@@ -74,11 +74,11 @@ public final class P_LessOrEqual extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				NUMBER.o(),
 				NUMBER.o()),
-			EnumerationTypeDescriptor.booleanObject());
+			EnumerationTypeDescriptor.booleanType());
 	}
 
 	@Override
@@ -95,7 +95,7 @@ public final class P_LessOrEqual extends Primitive
 		assert canBeTrue || canBeFalse;
 		return canBeTrue
 			? (canBeFalse
-				? EnumerationTypeDescriptor.booleanObject()
+				? EnumerationTypeDescriptor.booleanType()
 				: EnumerationTypeDescriptor.trueType())
 			: EnumerationTypeDescriptor.falseType();
 	}

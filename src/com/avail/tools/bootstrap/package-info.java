@@ -30,5 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NotNullByDefault package com.avail.tools.bootstrap;
-import com.avail.annotations.NotNullByDefault;
+@NonnullByDefault
+package com.avail.tools.bootstrap;
+import com.avail.annotations.NonnullByDefault;

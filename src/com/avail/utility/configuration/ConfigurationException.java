@@ -32,11 +32,9 @@
 
 package com.avail.utility.configuration;
 
-import com.avail.utility.configuration.Configurator;
-
 /**
  * A {@code ConfigurationException} is thrown when a {@linkplain Configurator
- * configurator} fails to {@linkplain Configurator#updateConfiguration() create}
+ * configurator} fails to {@linkplain Configurator#updateConfiguration() functionType}
  * a {@linkplain Configuration configuration} for any reason.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

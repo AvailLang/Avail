@@ -32,12 +32,14 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Jump to the target if the object is numerically less than the constant.

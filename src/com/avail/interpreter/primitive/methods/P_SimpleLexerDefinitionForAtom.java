@@ -44,13 +44,23 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.LexerDescriptor.*;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.format;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Simple lexer definition.  The first argument
@@ -86,7 +96,7 @@ extends Primitive
 		final A_Function bodyFunction = args.get(2);
 
 		final A_Fiber fiber = interpreter.fiber();
-		final AvailLoader loader = fiber.availLoader();
+		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -106,20 +116,22 @@ extends Primitive
 			return interpreter.primitiveFailure(e.errorCode());
 		}
 		final A_Method method = bundle.bundleMethod();
-		final A_Lexer lexer = LexerDescriptor.newLexer(
+		final A_Lexer lexer = newLexer(
 			filterFunction, bodyFunction, method, loader.module());
-		interpreter.primitiveSuspend();
-		AvailRuntime.current().whenLevelOneSafeDo(
+		final A_RawFunction primitiveRawFunction =
+			stripNull(interpreter.function).code();
+		interpreter.primitiveSuspend(primitiveRawFunction);
+		interpreter.runtime().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
 				() ->
 				{
 					filterFunction.code().setMethodName(
-						StringDescriptor.format(
-							"Filter for lexer %s", atom.atomName()));
+						format("Filter for lexer %s",
+							atom.atomName()));
 					bodyFunction.code().setMethodName(
-						StringDescriptor.format(
-							"Body for lexer %s", atom.atomName()));
+						format("Body for lexer %s",
+							atom.atomName()));
 					loader.lexicalScanner().addLexer(lexer);
 					loader.recordEffect(
 						new LoadingEffectToRunPrimitive(
@@ -130,7 +142,8 @@ extends Primitive
 					Interpreter.resumeFromSuccessfulPrimitive(
 						AvailRuntime.current(),
 						fiber,
-						NilDescriptor.nil(),
+						nil(),
+						primitiveRawFunction,
 						skipReturnCheck);
 				}));
 		return FIBER_SUSPENDED;
@@ -139,19 +152,17 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				ATOM.o(),
-				LexerDescriptor.lexerFilterFunctionType(),
-				LexerDescriptor.lexerBodyFunctionType()),
-			TOP.o());
+		return functionType(tuple(
+			ATOM.o(),
+			lexerFilterFunctionType(),
+			lexerBodyFunctionType()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return enumerationWith(
+			set(
 					E_LOADING_IS_OVER,
 					E_CANNOT_DEFINE_DURING_COMPILATION,
 					E_INCORRECT_NUMBER_OF_ARGUMENTS,

@@ -32,6 +32,7 @@
 
 package com.avail.io;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +43,6 @@ import java.nio.channels.CompletionHandler;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
-import javax.annotation.Nullable;
 
 /**
  * A {@code ConsoleInputChannel} provides a faux {@linkplain

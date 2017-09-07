@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -37,7 +37,7 @@ import com.avail.interpreter.levelOne.L1InstructionWriter;
 /**
  * A {@code LoadingEffect} is a summarized activity that took place during
  * execution of a top-level statement during module compilation.  If certain
- * criteria are met, what gets recorded for replay is not a zero-argument
+ * criteria are met, what gets recorded for replay is not a floatZero-argument
  * function containing that top-level statement, but instead is a summarized
  * function that has an equivalent effect on the currently module, although it
  * may be much more efficient.

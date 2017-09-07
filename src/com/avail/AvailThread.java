@@ -32,8 +32,9 @@
 
 package com.avail;
 
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import com.avail.interpreter.Interpreter;
+
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
  * An {@code AvailThread} is a {@linkplain Thread thread} managed by a

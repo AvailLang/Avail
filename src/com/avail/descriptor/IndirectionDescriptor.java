@@ -32,26 +32,22 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.*;
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.compiler.*;
+import com.avail.compiler.AvailCodeGenerator;
+import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
+import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -70,14 +66,27 @@ import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
+import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
+
 import javax.annotation.Nullable;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.TimerTask;
+
+import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.INDIRECTION_TARGET;
 
 /**
- * An {@link AvailObject} with an {@link IndirectionDescriptor} keeps track of
+ * An {@link AvailObject} with an {@code IndirectionDescriptor} keeps track of
  * its target, that which it is pretending to be.  Almost all messages are
  * routed to the target, making it an ideal proxy.
  * <p>
@@ -87,7 +96,7 @@ import javax.annotation.Nullable;
  * version that uses {@link AvailObjectRepresentation}.  If so, it immediately
  * returns true.  If not, a more detailed, potentially expensive comparison
  * takes place.  If the objects are found to be equal, one of them is mutated
- * into an indirection (by replacing its descriptor with an {@link
+ * into an indirection (by replacing its descriptor with an {@code
  * IndirectionDescriptor}) to cause subsequent comparisons to be faster.
  * </p>
  * <p>
@@ -1311,7 +1320,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	Iterator<AvailObject> o_Iterator (final AvailObject object)
+	IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
 	{
 		return o_Traversed(object).iterator();
 	}
@@ -5058,5 +5067,19 @@ extends AbstractDescriptor
 	A_Lexer o_Lexer (final AvailObject object)
 	{
 		return o_Traversed(object).lexer();
+	}
+
+	@Override
+	void o_SuspendingRawFunction (
+		final AvailObject object,
+		final A_RawFunction suspendingRawFunction)
+	{
+		o_Traversed(object).suspendingRawFunction(suspendingRawFunction);
+	}
+
+	@Override
+	A_RawFunction o_SuspendingRawFunction (final AvailObject object)
+	{
+		return o_Traversed(object).suspendingRawFunction();
 	}
 }

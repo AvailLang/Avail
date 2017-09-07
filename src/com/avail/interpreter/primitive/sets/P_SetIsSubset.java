@@ -66,10 +66,10 @@ public final class P_SetIsSubset extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				SetTypeDescriptor.mostGeneralType(),
-				SetTypeDescriptor.mostGeneralType()),
-			EnumerationTypeDescriptor.booleanObject());
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				SetTypeDescriptor.mostGeneralSetType(),
+				SetTypeDescriptor.mostGeneralSetType()),
+			EnumerationTypeDescriptor.booleanType());
 	}
 }

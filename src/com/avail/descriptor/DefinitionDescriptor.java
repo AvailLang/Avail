@@ -32,12 +32,14 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
+
 import javax.annotation.Nullable;
+
+import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
+import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.MODULE;
 
 /**
  * {@code DefinitionDescriptor} is an abstraction for things placed into a
@@ -87,7 +89,7 @@ extends Descriptor
 	}
 
 	static final A_String builtInNoModuleName =
-		StringDescriptor.from("(built-in)").makeShared();
+		StringDescriptor.stringFrom("(built-in)").makeShared();
 
 	@Override @AvailMethod
 	public A_String o_DefinitionModuleName (final AvailObject object)

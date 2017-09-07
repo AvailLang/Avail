@@ -87,14 +87,14 @@ public final class P_BootstrapLexerStringBody extends Primitive
 					final A_Token token = LiteralTokenDescriptor.create(
 						(A_String) source.copyTupleFromToCanDestroy(
 							startPosition, scanner.position - 1, false),
-						TupleDescriptor.empty(),
-						TupleDescriptor.empty(),
+						TupleDescriptor.emptyTuple(),
+						TupleDescriptor.emptyTuple(),
 						startPosition,
 						startLineNumber,
 						TokenType.LITERAL,
-						StringDescriptor.from(builder.toString()));
+						StringDescriptor.stringFrom(builder.toString()));
 					return interpreter.primitiveSuccess(
-						TupleDescriptor.from(token.makeShared()));
+						TupleDescriptor.tuple(token.makeShared()));
 				case '\\':
 					if (!scanner.hasNext())
 					{
@@ -320,8 +320,8 @@ public final class P_BootstrapLexerStringBody extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
 				IntegerRangeTypeDescriptor.naturalNumbers(),
 				IntegerRangeTypeDescriptor.naturalNumbers()),

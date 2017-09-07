@@ -45,7 +45,7 @@ import com.avail.interpreter.*;
  * included in the current module's {@linkplain
  * ObjectSlots#IMPORTED_NAMES public names} or {@linkplain
  * ObjectSlots#PRIVATE_NAMES private names}, depending on the
- * value of the supplied {@linkplain EnumerationTypeDescriptor#booleanObject()
+ * value of the supplied {@linkplain EnumerationTypeDescriptor#booleanType()
  * boolean} ({@link AtomDescriptor#trueObject() true} for public, {@link
  * AtomDescriptor#falseObject() false} for private).
  *
@@ -86,12 +86,12 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				SetTypeDescriptor.setTypeForSizesContentType(
 					IntegerRangeTypeDescriptor.wholeNumbers(),
 					ATOM.o()),
-				EnumerationTypeDescriptor.booleanObject()),
+				EnumerationTypeDescriptor.booleanType()),
 			TOP.o());
 	}
 }

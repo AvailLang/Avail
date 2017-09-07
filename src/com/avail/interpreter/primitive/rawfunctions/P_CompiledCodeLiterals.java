@@ -82,9 +82,9 @@ public final class P_CompiledCodeLiterals extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				CompiledCodeTypeDescriptor.mostGeneralType()),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()),
 			TupleTypeDescriptor.zeroOrMoreOf(
 				ANY.o()));
 	}

@@ -32,10 +32,21 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static java.lang.System.nanoTime;
 
 /**
  * <strong>Primitive:</strong> Get the current time, in nanoseconds, from the
@@ -62,14 +73,14 @@ extends Primitive
 	{
 		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromLong(System.nanoTime()));
+			fromLong(nanoTime()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.empty(),
+		return functionType(
+			emptyTuple(),
 			IntegerRangeTypeDescriptor.wholeNumbers());
 	}
 }

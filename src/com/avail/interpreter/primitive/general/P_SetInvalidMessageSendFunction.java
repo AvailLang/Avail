@@ -66,7 +66,7 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Function function = args.get(0);
 		function.code().setMethodName(
-			StringDescriptor.from("«invalid message send»"));
+			StringDescriptor.stringFrom("«invalid message send»"));
 		AvailRuntime.current().setInvalidMessageSendFunction(function);
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
@@ -74,19 +74,19 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.from(
-						AbstractEnumerationTypeDescriptor.withInstances(
-							SetDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.tuple(
+						AbstractEnumerationTypeDescriptor.enumerationWith(
+							SetDescriptor.set(
 								E_NO_METHOD,
 								E_NO_METHOD_DEFINITION,
 								E_AMBIGUOUS_METHOD_DEFINITION,
 								E_FORWARD_METHOD_DEFINITION,
 								E_ABSTRACT_METHOD_DEFINITION)),
 						METHOD.o(),
-						TupleTypeDescriptor.mostGeneralType()),
+						TupleTypeDescriptor.mostGeneralTupleType()),
 					BottomTypeDescriptor.bottom())),
 			TOP.o());
 	}

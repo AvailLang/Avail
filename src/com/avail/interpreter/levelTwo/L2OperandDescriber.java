@@ -32,12 +32,16 @@
 
 package com.avail.interpreter.levelTwo;
 
-import javax.annotation.Nullable;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Bundle;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+
+import javax.annotation.Nullable;
+
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.String.format;
 
 /**
  * An {@code L2OperandDescriber} uses the {@link L2OperandTypeDispatcher}
@@ -50,7 +54,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	/**
 	 * The operand being described.
 	 */
-	private L2Operand _operand;
+	private @Nullable L2Operand _operand;
 
 	/**
 	 * The {@link StringBuilder} on which to write an operand description.
@@ -70,9 +74,8 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		final String format,
 		final Object... arguments)
 	{
-		final StringBuilder builder = _description;
-		assert builder != null;
-		builder.append(String.format(format, arguments));
+		final StringBuilder builder = stripNull(_description);
+		builder.append(format(format, arguments));
 	}
 
 	/**
@@ -83,8 +86,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	 */
 	private void printVector (final L2RegisterVector vector)
 	{
-		final StringBuilder builder = _description;
-		assert builder != null;
+		final StringBuilder builder = stripNull(_description);
 		print("Vec=(");
 		boolean first = true;
 		for (final L2ObjectRegister reg : vector.registers())
@@ -120,7 +122,7 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 		_operand = operand;
 		_description = stream;
 		stream.append(
-			String.format(
+			format(
 				"%n\t%s = ",
 				namedOperandType.name()));
 		namedOperandType.operandType().dispatch(this);
@@ -130,19 +132,20 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doConstant()
 	{
-		print("Const(%s)", ((L2ConstantOperand)_operand).object);
+		print("Const(%s)", ((L2ConstantOperand)stripNull(_operand)).object);
 	}
 
 	@Override
 	public void doImmediate()
 	{
-		print("Immediate(%d)", ((L2ImmediateOperand)_operand).value);
+		print("Immediate(%d)", ((L2ImmediateOperand)stripNull(_operand)).value);
 	}
 
 	@Override
 	public void doPC()
 	{
-		final L2Instruction targetLabel = ((L2PcOperand)_operand).targetLabel();
+		final L2Instruction targetLabel =
+			((L2PcOperand)stripNull(_operand)).targetLabel();
 		if (targetLabel.operation instanceof L2_LABEL)
 		{
 			// Print as a symbolic label.
@@ -163,13 +166,14 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doPrimitive()
 	{
-		print("Prim(%s)", ((L2PrimitiveOperand)_operand).primitive.name());
+		print("Prim(%s)",
+			((L2PrimitiveOperand)stripNull(_operand)).primitive.name());
 	}
 
 	@Override
 	public void doSelector()
 	{
-		final A_Bundle bundle = ((L2SelectorOperand)_operand).bundle;
+		final A_Bundle bundle = ((L2SelectorOperand)stripNull(_operand)).bundle;
 		print("Message(%s)", bundle.message().atomName().asNativeString());
 	}
 
@@ -212,29 +216,28 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doReadVector()
 	{
-		printVector(((L2ReadVectorOperand)_operand).vector);
+		printVector(((L2ReadVectorOperand)stripNull(_operand)).vector);
 		print("[r]");
 	}
 
 	@Override
 	public void doWriteVector()
 	{
-		printVector(((L2WriteVectorOperand)_operand).vector);
+		printVector(((L2WriteVectorOperand)stripNull(_operand)).vector);
 		print("[w]");
 	}
 
 	@Override
 	public void doReadWriteVector()
 	{
-		printVector(((L2ReadWriteVectorOperand)_operand).vector);
+		printVector(((L2ReadWriteVectorOperand)stripNull(_operand)).vector);
 		print("[r/w]");
 	}
 
 	@Override
 	public void doComment ()
 	{
-		print(String.format(
-			"[comment: %s]",
-			((L2CommentOperand)_operand).comment));
+		print(format(
+			"[comment: %s]", ((L2CommentOperand)stripNull(_operand)).comment));
 	}
 }

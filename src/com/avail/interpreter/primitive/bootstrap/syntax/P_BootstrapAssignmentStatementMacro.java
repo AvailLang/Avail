@@ -157,8 +157,8 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				/* Variable name for assignment */
 				LITERAL_NODE.create(TOKEN.o()),
 				/* Assignment value */

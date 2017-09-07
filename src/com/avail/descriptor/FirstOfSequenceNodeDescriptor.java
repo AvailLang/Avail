@@ -221,7 +221,7 @@ extends ParseNodeDescriptor
 		{
 			final A_Phrase newFirstOfSequence =
 				FirstOfSequenceNodeDescriptor.newStatements(
-					TupleDescriptor.fromList(myFlatStatements));
+					TupleDescriptor.tupleFromList(myFlatStatements));
 			accumulatedStatements.add(newFirstOfSequence);
 		}
 	}

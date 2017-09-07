@@ -32,21 +32,26 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
+import static com.avail.descriptor.DeclarationNodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
  * My instances represent variable and constant statements.  There are several
@@ -441,7 +446,7 @@ extends ParseNodeDescriptor
 			this.isVariable = isVariable;
 			this.isModuleScoped = isModuleScoped;
 			this.kindEnumeration = kindEnumeration;
-			this.kindName = StringDescriptor.from(nativeKindName).makeShared();
+			this.kindName = StringDescriptor.stringFrom(nativeKindName).makeShared();
 		}
 
 		/**
@@ -707,7 +712,7 @@ extends ParseNodeDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.emitEffectOn(codeGenerator);
-		codeGenerator.emitPushLiteral(NilDescriptor.nil());
+		codeGenerator.emitPushLiteral(nil());
 	}
 
 	@Override @AvailMethod
@@ -913,8 +918,8 @@ extends ParseNodeDescriptor
 			token,
 			declaredType,
 			typeExpression,
-			NilDescriptor.nil(),
-			NilDescriptor.nil());
+			nil(),
+			nil());
 	}
 
 	/**
@@ -949,7 +954,7 @@ extends ParseNodeDescriptor
 			declaredType,
 			typeExpression,
 			initializationExpression,
-			NilDescriptor.nil());
+			nil());
 	}
 
 	/**
@@ -972,9 +977,9 @@ extends ParseNodeDescriptor
 			LOCAL_CONSTANT,
 			token,
 			initializationExpression.expressionType(),
-			NilDescriptor.nil(),
+			nil(),
 			initializationExpression,
-			NilDescriptor.nil());
+			nil());
 	}
 
 	/**
@@ -1005,8 +1010,8 @@ extends ParseNodeDescriptor
 			token,
 			type,
 			typeExpression,
-			NilDescriptor.nil(),
-			NilDescriptor.nil());
+			nil(),
+			nil());
 	}
 
 	/**
@@ -1040,8 +1045,8 @@ extends ParseNodeDescriptor
 			token,
 			declaredType,
 			returnTypeExpression,
-			NilDescriptor.nil(),
-			NilDescriptor.nil());
+			nil(),
+			nil());
 	}
 
 	/**
@@ -1102,7 +1107,7 @@ extends ParseNodeDescriptor
 			MODULE_CONSTANT,
 			token,
 			literalVariable.kind().readType(),
-			NilDescriptor.nil(),
+			nil(),
 			initializationExpression,
 			literalVariable);
 	}

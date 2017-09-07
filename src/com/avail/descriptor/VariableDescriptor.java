@@ -577,7 +577,7 @@ extends Descriptor
 			final Map<A_Atom, VariableAccessReactor> writeReactors =
 				(Map<A_Atom, VariableAccessReactor>)
 					rawPojo.javaObjectNotNull();
-			A_Set set = SetDescriptor.empty();
+			A_Set set = SetDescriptor.emptySet();
 			for (final Entry<A_Atom, VariableAccessReactor> entry :
 				writeReactors.entrySet())
 			{
@@ -591,7 +591,7 @@ extends Descriptor
 			writeReactors.clear();
 			return set;
 		}
-		return SetDescriptor.empty();
+		return SetDescriptor.emptySet();
 	}
 
 	@Override @AvailMethod
@@ -697,7 +697,7 @@ extends Descriptor
 	public static AvailObject forContentType (final A_Type contentType)
 	{
 		return VariableDescriptor.forVariableType(
-			VariableTypeDescriptor.wrapInnerType(contentType));
+			VariableTypeDescriptor.variableTypeFor(contentType));
 	}
 
 	/**

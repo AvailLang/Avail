@@ -68,8 +68,8 @@ extends Primitive
 		return interpreter.primitiveSuccess(
 			LiteralTokenDescriptor.create(
 				fakeText,
-				TupleDescriptor.empty(),
-				TupleDescriptor.empty(),
+				TupleDescriptor.emptyTuple(),
+				TupleDescriptor.emptyTuple(),
 				0,
 				0,
 				TokenType.SYNTHETIC_LITERAL,
@@ -79,10 +79,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				ANY.o(),
 				TupleTypeDescriptor.stringType()),
-			LiteralTokenTypeDescriptor.mostGeneralType());
+			LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType());
 	}
 }

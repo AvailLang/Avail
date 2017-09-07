@@ -91,7 +91,7 @@ public final class P_InvokePojoConstructor extends Primitive
 			return interpreter.primitiveFailure(
 				PojoDescriptor.newPojo(
 					RawPojoDescriptor.identityWrap(e),
-					PojoTypeDescriptor.forClass(e.getClass())));
+					PojoTypeDescriptor.pojoTypeForClass(e.getClass())));
 		}
 		// Invoke the constructor.
 		final Object newObject;
@@ -105,7 +105,7 @@ public final class P_InvokePojoConstructor extends Primitive
 			return interpreter.primitiveFailure(
 				PojoDescriptor.newPojo(
 					RawPojoDescriptor.identityWrap(cause),
-					PojoTypeDescriptor.forClass(cause.getClass())));
+					PojoTypeDescriptor.pojoTypeForClass(cause.getClass())));
 		}
 		catch (final Throwable e)
 		{
@@ -122,20 +122,20 @@ public final class P_InvokePojoConstructor extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				RAW_POJO.o(),
-				TupleTypeDescriptor.mostGeneralType(),
+				TupleTypeDescriptor.mostGeneralTupleType(),
 				TupleTypeDescriptor.zeroOrMoreOf(
 					RAW_POJO.o()),
-				InstanceMetaDescriptor.on(
-					PojoTypeDescriptor.mostGeneralType())),
-			PojoTypeDescriptor.mostGeneralType());
+				InstanceMetaDescriptor.instanceMetaOn(
+					PojoTypeDescriptor.mostGeneralPojoType())),
+			PojoTypeDescriptor.mostGeneralPojoType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return PojoTypeDescriptor.forClass(Throwable.class);
+		return PojoTypeDescriptor.pojoTypeForClass(Throwable.class);
 	}
 }

@@ -32,9 +32,9 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.compiler.instruction.AvailInstruction;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
+
 import java.io.ByteArrayOutputStream;
 
 /**

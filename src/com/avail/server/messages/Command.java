@@ -32,14 +32,7 @@
 
 package com.avail.server.messages;
 
-import java.util.ArrayList;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import com.avail.AvailRuntime;
-import javax.annotation.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoot;
 import com.avail.builder.ModuleRoots;
@@ -49,6 +42,17 @@ import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.server.AvailServer;
 import com.avail.server.io.AvailServerChannel;
 import com.avail.utility.json.JSONWriter;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.String.format;
 
 /**
  * To direct the activities of an {@linkplain AvailServer Avail server}, a
@@ -354,8 +358,7 @@ public enum Command
 		// This method should be overridden by any member that requires special
 		// parsing.
 		assert !requiresSpecialParsing();
-		final String[] tokens = syntax;
-		assert tokens != null;
+		final String[] tokens = stripNull(syntax);
 		final StringBuilder builder = new StringBuilder();
 		boolean first = true;
 		for (final String token : tokens)
@@ -416,7 +419,7 @@ public enum Command
 					lowercase, k -> new TrieNode());
 			}
 			final Command existingCommand = node.command;
-			assert existingCommand == null : String.format(
+			assert existingCommand == null : format(
 				"Commands %s and %s have the same syntax!",
 				existingCommand.name(),
 				command.name());

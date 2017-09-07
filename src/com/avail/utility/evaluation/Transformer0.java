@@ -35,9 +35,11 @@ package com.avail.utility.evaluation;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * Implementors of {@code Transformer0} provide a single arbitrary operation
- * that accepts zero arguments and produces a result.
+ * that accepts floatZero arguments and produces a result.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -53,15 +55,13 @@ public interface Transformer0 <X>
 	@Nullable X value ();
 
 	/**
-	 * Perform the operation, then assert a {@link NotNull} condition for the
+	 * Perform the operation, then assert a {@link Nonnull} condition for the
 	 * result as a convenience.
 	 *
 	 * @return The non-null transformed value.
 	 */
 	default X valueNotNull ()
 	{
-		final X result = value();
-		assert result != null;
-		return result;
+		return stripNull(value());
 	}
 }

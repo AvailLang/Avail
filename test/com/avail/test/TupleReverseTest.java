@@ -32,12 +32,14 @@
 
 package com.avail.test;
 
-import java.nio.ByteBuffer;
 import com.avail.descriptor.*;
 import com.avail.utility.Generator;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.nio.ByteBuffer;
+
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * A test of TupleReverseDescriptor as it is implemented on all other
@@ -56,14 +58,14 @@ public class TupleReverseTest
 	{
 		final A_Tuple integerInterval =
 			IntegerIntervalTupleDescriptor.createInterval(
-				IntegerDescriptor.fromInt(1),
-				IntegerDescriptor.fromInt(23),
-				IntegerDescriptor.fromInt(1));
+				fromInt(1),
+				fromInt(23),
+				fromInt(1));
 		final A_Tuple integerIntervalOppositeDirection =
 			IntegerIntervalTupleDescriptor.createInterval(
-				IntegerDescriptor.fromInt(23),
-				IntegerDescriptor.fromInt(1),
-				IntegerDescriptor.fromInt(-1));
+				fromInt(23),
+				fromInt(1),
+				fromInt(-1));
 
 		final A_Tuple shouldBeSame =
 			integerInterval.tupleReverse().tupleReverse();
@@ -81,13 +83,13 @@ public class TupleReverseTest
 		//Small size where copies are made
 		assertEquals(
 			IntegerIntervalTupleDescriptor.createInterval(
-				IntegerDescriptor.fromInt(1),
-				IntegerDescriptor.fromInt(3),
-				IntegerDescriptor.fromInt(1)).tupleReverse(),
+				fromInt(1),
+				fromInt(3),
+				fromInt(1)).tupleReverse(),
 			IntegerIntervalTupleDescriptor.createInterval(
-				IntegerDescriptor.fromInt(3),
-				IntegerDescriptor.fromInt(1),
-				IntegerDescriptor.fromInt(-1)));
+				fromInt(3),
+				fromInt(1),
+				fromInt(-1)));
 	}
 
 	/**
@@ -129,15 +131,15 @@ public class TupleReverseTest
 	{
 		final A_Tuple integerInterval =
 			IntegerIntervalTupleDescriptor.createInterval(
-				IntegerDescriptor.fromInt(1),
-				IntegerDescriptor.fromInt(36),
-				IntegerDescriptor.fromInt(1));
+				fromInt(1),
+				fromInt(36),
+				fromInt(1));
 
 		final A_Tuple integerIntervalReversed =
 			IntegerIntervalTupleDescriptor.createInterval(
-				IntegerDescriptor.fromInt(36),
-				IntegerDescriptor.fromInt(1),
-				IntegerDescriptor.fromInt(-1));
+				fromInt(36),
+				fromInt(1),
+				fromInt(-1));
 
 		final A_Tuple anObjectTupleReversed =
 			integerIntervalReversed.tupleAtPuttingCanDestroy(
@@ -181,17 +183,17 @@ public class TupleReverseTest
 		assertEquals(
 			IntegerIntervalTupleDescriptor
 				.createInterval(
-					IntegerDescriptor.fromInt(1),
-					IntegerDescriptor.fromInt(5),
-					IntegerDescriptor.fromInt(1))
+					fromInt(1),
+					fromInt(5),
+					fromInt(1))
 				.tupleAtPuttingCanDestroy(
 					2, CharacterDescriptor.fromCodePoint(97), false)
 				.makeImmutable().tupleReverse(),
 			IntegerIntervalTupleDescriptor
 				.createInterval(
-					IntegerDescriptor.fromInt(5),
-					IntegerDescriptor.fromInt(1),
-					IntegerDescriptor.fromInt(-1))
+					fromInt(5),
+					fromInt(1),
+					fromInt(-1))
 				.tupleAtPuttingCanDestroy(
 					4, CharacterDescriptor.fromCodePoint(97), false)
 				.makeImmutable());
@@ -207,7 +209,7 @@ public class TupleReverseTest
 		for (int i = 1; i < 37; i++)
 		{
 			myByteTuple = myByteTuple.tupleAtPuttingCanDestroy(
-				i, IntegerDescriptor.fromInt(1 + i), true);
+				i, fromInt(1 + i), true);
 		}
 		myByteTuple.makeImmutable();
 
@@ -216,7 +218,7 @@ public class TupleReverseTest
 		for (int i = 36; i > 0; i--)
 		{
 			myByteTupleReverse = myByteTupleReverse.tupleAtPuttingCanDestroy(
-				37 - i, IntegerDescriptor.fromInt(1 + i), true);
+				37 - i, fromInt(1 + i), true);
 		}
 		myByteTupleReverse.makeImmutable();
 
@@ -397,12 +399,12 @@ public class TupleReverseTest
 	public void testStringDescriptorReverse()
 	{
 		//Test ByteStringDescriptor
-		final A_Tuple byteString = StringDescriptor
-			.from("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz")
+		final A_Tuple byteString =
+			StringDescriptor.stringFrom("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz")
 			.makeImmutable();
 
-		final A_Tuple byteStringReverse = StringDescriptor
-			.from("zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba")
+		final A_Tuple byteStringReverse =
+			StringDescriptor.stringFrom("zyxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcba")
 			.makeImmutable();
 
 		final A_Tuple shouldBeSame = byteString.tupleReverse().tupleReverse();
@@ -413,13 +415,12 @@ public class TupleReverseTest
 			byteString.tupleReverse().tupleAt(2));
 
 		//Small size ByteStringDescriptor where copies are made
-		final A_Tuple byteStringSmall = StringDescriptor
-			.from("abcd")
+		final A_Tuple byteStringSmall = StringDescriptor.stringFrom("abcd")
 			.makeImmutable();
 
-		final A_Tuple byteStringReverseSmall = StringDescriptor
-			.from("dcba")
-			.makeImmutable();
+		final A_Tuple byteStringReverseSmall =
+			StringDescriptor.stringFrom("dcba")
+				.makeImmutable();
 
 		final A_Tuple shouldBeSameSmall =
 			byteStringSmall.tupleReverse().tupleReverse();
@@ -430,12 +431,12 @@ public class TupleReverseTest
 			byteStringSmall.tupleReverse().tupleAt(3));
 
 		//Test TwoByteStringDescriptor
-		final A_Tuple twoByteString = StringDescriptor
-			.from("ĀbcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxĐz")
+		final A_Tuple twoByteString =
+			StringDescriptor.stringFrom("ĀbcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxĐz")
 			.makeImmutable();
 
-		final A_Tuple twoByteStringReverse = StringDescriptor
-			.from("zĐxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcbĀ")
+		final A_Tuple twoByteStringReverse =
+			StringDescriptor.stringFrom("zĐxwvutsrqponmlkjihgfedcbazyxwvutsrqponmlkjihgfedcbĀ")
 			.makeImmutable();
 
 		final A_Tuple twoShouldBeSame =
@@ -448,13 +449,12 @@ public class TupleReverseTest
 			twoByteString.tupleReverse().tupleAt(2));
 
 		//Small size TwoByteStringDescriptor where copies are made
-		final A_Tuple twoByteStringSmall = StringDescriptor
-			.from("abĐd")
+		final A_Tuple twoByteStringSmall = StringDescriptor.stringFrom("abĐd")
 			.makeImmutable();
 
-		final A_Tuple twoByteStringReverseSmall = StringDescriptor
-			.from("dĐba")
-			.makeImmutable();
+		final A_Tuple twoByteStringReverseSmall =
+			StringDescriptor.stringFrom("dĐba")
+				.makeImmutable();
 
 		final A_Tuple twoShouldBeSameSmall =
 			twoByteStringSmall.tupleReverse().tupleReverse();
@@ -475,17 +475,17 @@ public class TupleReverseTest
 		A_Tuple nybbleTuple =
 			NybbleTupleDescriptor.mutableObjectOfSize(17);
 		nybbleTuple = nybbleTuple
-			.tupleAtPuttingCanDestroy(1, IntegerDescriptor.fromInt(1), true)
-			.tupleAtPuttingCanDestroy(2, IntegerDescriptor.fromInt(7), true)
-			.tupleAtPuttingCanDestroy(17, IntegerDescriptor.fromInt(9), true)
+			.tupleAtPuttingCanDestroy(1, fromInt(1), true)
+			.tupleAtPuttingCanDestroy(2, fromInt(7), true)
+			.tupleAtPuttingCanDestroy(17, fromInt(9), true)
 			.makeImmutable();
 
 		A_Tuple nybbleTupleReverse =
 			NybbleTupleDescriptor.mutableObjectOfSize(17);
 		nybbleTupleReverse = nybbleTupleReverse
-			.tupleAtPuttingCanDestroy(1, IntegerDescriptor.fromInt(9), true)
-			.tupleAtPuttingCanDestroy(16, IntegerDescriptor.fromInt(7), true)
-			.tupleAtPuttingCanDestroy(17, IntegerDescriptor.fromInt(1), true)
+			.tupleAtPuttingCanDestroy(1, fromInt(9), true)
+			.tupleAtPuttingCanDestroy(16, fromInt(7), true)
+			.tupleAtPuttingCanDestroy(17, fromInt(1), true)
 			.makeImmutable();
 
 		final A_Tuple shouldBeSame = nybbleTuple.tupleReverse().tupleReverse();
@@ -505,13 +505,13 @@ public class TupleReverseTest
 		A_Tuple nybbleTupleSmall =
 			NybbleTupleDescriptor.mutableObjectOfSize(5);
 		nybbleTupleSmall = nybbleTupleSmall
-			.tupleAtPuttingCanDestroy(2, IntegerDescriptor.fromInt(7), true)
+			.tupleAtPuttingCanDestroy(2, fromInt(7), true)
 			.makeImmutable();
 
 		A_Tuple nybbleTupleReverseSmall =
 			NybbleTupleDescriptor.mutableObjectOfSize(5);
 		nybbleTupleReverseSmall = nybbleTupleReverseSmall
-			.tupleAtPuttingCanDestroy(4, IntegerDescriptor.fromInt(7), true)
+			.tupleAtPuttingCanDestroy(4, fromInt(7), true)
 			.makeImmutable();
 
 		final A_Tuple shouldBeSameSmall =
@@ -529,17 +529,17 @@ public class TupleReverseTest
 	@Test
 	public void testTreeTupleDescriptorReverse ()
 	{
-		final A_Tuple byteString = StringDescriptor
-			.from("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz")
+		final A_Tuple byteString =
+			StringDescriptor.stringFrom("abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz")
 			.makeImmutable();
 
 		final A_Tuple byteStringReversed = byteString.tupleReverse();
 
 		final A_Tuple integerInterval =
 			IntegerIntervalTupleDescriptor.createInterval(
-				IntegerDescriptor.fromInt(1),
-				IntegerDescriptor.fromInt(36),
-				IntegerDescriptor.fromInt(1));
+				fromInt(1),
+				fromInt(36),
+				fromInt(1));
 
 		final A_Tuple anObjectTuple =
 			integerInterval.tupleAtPuttingCanDestroy(

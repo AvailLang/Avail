@@ -86,7 +86,7 @@ public final class MessageSplitter
 
 		Metacharacter (final String javaString)
 		{
-			string = StringDescriptor.from(javaString).makeShared();
+			string = StringDescriptor.stringFrom(javaString).makeShared();
 		}
 	}
 
@@ -94,7 +94,7 @@ public final class MessageSplitter
 	 * The {@linkplain A_Set set} of all {@linkplain AvailErrorCode errors} that
 	 * can happen during {@linkplain MessageSplitter message splitting}.
 	 */
-	public static final A_Set possibleErrors = SetDescriptor.from(
+	public static final A_Set possibleErrors = SetDescriptor.set(
 		E_INCORRECT_ARGUMENT_TYPE,
 		E_INCORRECT_TYPE_FOR_GROUP,
 		E_INCORRECT_TYPE_FOR_COMPLEX_GROUP,
@@ -263,7 +263,7 @@ public final class MessageSplitter
 	 * always be marked as shared.  This mechanism is thread-safe.</p>
 	 */
 	public static final AtomicReference<A_Tuple> permutations =
-		new AtomicReference<>(TupleDescriptor.empty());
+		new AtomicReference<>(TupleDescriptor.emptyTuple());
 
 	/**
 	 * A statically-scoped {@link List} of unique constants needed as operands
@@ -426,7 +426,7 @@ public final class MessageSplitter
 				"Encountered " + encountered);
 		}
 		messagePartsTuple =
-			TupleDescriptor.fromList(messagePartsList).makeShared();
+			TupleDescriptor.tupleFromList(messagePartsList).makeShared();
 	}
 
 	/**
@@ -611,7 +611,7 @@ public final class MessageSplitter
 			string.substring(0, zeroBasedPosition)
 				+ CompilerDiagnostics.errorIndicatorSymbol
 				+ string.substring(zeroBasedPosition);
-		return StringDescriptor.from(annotatedString).toString();
+		return StringDescriptor.stringFrom(annotatedString).toString();
 	}
 
 	/**
@@ -734,7 +734,7 @@ public final class MessageSplitter
 							}
 						}
 						messagePartsList.add(
-							StringDescriptor.from(builder.toString()));
+							StringDescriptor.stringFrom(builder.toString()));
 						messagePartPositions.add(position);
 					}
 					else
@@ -796,7 +796,7 @@ public final class MessageSplitter
 							builder.appendCodePoint(cp);
 						}
 					}
-					messagePartsList.add(StringDescriptor.from(builder.toString()));
+					messagePartsList.add(StringDescriptor.stringFrom(builder.toString()));
 				}
 				else
 				{

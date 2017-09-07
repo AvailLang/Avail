@@ -32,14 +32,14 @@
 
 package com.avail.compiler.scanning;
 
-import java.util.Collections;
-import java.util.List;
-
 import com.avail.compiler.scanning.AvailScanner.BasicCommentPosition;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TokenDescriptor;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An {@code AvailScannerResult} holds the results of a {@linkplain

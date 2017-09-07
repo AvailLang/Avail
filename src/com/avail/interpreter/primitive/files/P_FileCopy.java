@@ -194,21 +194,21 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
 				TupleTypeDescriptor.stringType(),
-				EnumerationTypeDescriptor.booleanObject(),
-				EnumerationTypeDescriptor.booleanObject(),
-				EnumerationTypeDescriptor.booleanObject()),
+				EnumerationTypeDescriptor.booleanType(),
+				EnumerationTypeDescriptor.booleanType(),
+				EnumerationTypeDescriptor.booleanType()),
 			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INVALID_PATH,
 				E_PERMISSION_DENIED,
 				E_IO_ERROR,

@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -41,11 +41,12 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.effects.LoadingEffect;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.*;
 
@@ -88,7 +89,7 @@ extends VariableSharedDescriptor
 		/**
 		 * A flag indicating whether this variable was initialized to a value
 		 * that was produced by a pure computation, specifically the kind of
-		 * computation that does not disqualify {@link LoadingEffect}s from
+		 * computation that does not disqualify {@link LoadingEffect}s set
 		 * being recorded in place of top level statements.
 		 */
 		static final BitField VALUE_IS_STABLE = bitField(HASH_AND_MORE, 32, 1);
@@ -123,7 +124,7 @@ extends VariableSharedDescriptor
 
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps a {@linkplain
-		 * Map map} from arbitrary {@linkplain AvailObject Avail values} to
+		 * Map map} set arbitrary {@linkplain AvailObject Avail values} to
 		 * {@linkplain VariableAccessReactor writer reactors} that respond to
 		 * writes of the {@linkplain VariableDescriptor variable}.
 		 */
@@ -348,9 +349,9 @@ extends VariableSharedDescriptor
 		final AvailObject result = mutableInitial.create();
 		result.setSlot(KIND, variableType);
 		result.setSlot(HASH_ALWAYS_SET, AvailRuntime.nextHash());
-		result.setSlot(VALUE, NilDescriptor.nil());
-		result.setSlot(WRITE_REACTORS, NilDescriptor.nil());
-		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil());
+		result.setSlot(VALUE, nil());
+		result.setSlot(WRITE_REACTORS, nil());
+		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil());
 		result.setSlot(MODULE, module.makeShared());
 		result.setSlot(GLOBAL_NAME, name.makeShared());
 		result.descriptor = writeOnce ? sharedWriteOnce : shared;

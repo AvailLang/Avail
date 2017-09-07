@@ -30,6 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NotNullByDefault
+@NonnullByDefault
 package com.avail.interpreter.primitive.processes;
-import com.avail.annotations.NotNullByDefault;
+import com.avail.annotations.NonnullByDefault;

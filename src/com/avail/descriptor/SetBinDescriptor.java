@@ -35,9 +35,10 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
+
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.SetBinDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.SetBinDescriptor.IntegerSlots.BIN_HASH;
 
 /**
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree
@@ -63,7 +64,7 @@ extends Descriptor
 		BIN_HASH_AND_MORE;
 
 		/**
-		 * A slot to hold the bin's hash value, or zero if it has not been
+		 * A slot to hold the bin's hash value, or floatZero if it has not been
 		 * computed.
 		 */
 		static final BitField BIN_HASH = bitField(BIN_HASH_AND_MORE, 0, 32);
@@ -103,7 +104,7 @@ extends Descriptor
 	/**
 	 * The level of my objects in their enclosing bin trees. The top node is
 	 * level 0 (using hash bits 0..5), and the bottom hashed node is level 5
-	 * (using hash bits 30..34, the top three of which are always zero). There
+	 * (using hash bits 30..34, the top three of which are always floatZero). There
 	 * can be a level 6 {@linkplain LinearSetBinDescriptor linear bin}, but it
 	 * represents elements which all have the same hash value, so it should
 	 * never be hashed.

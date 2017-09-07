@@ -1,10 +1,13 @@
 package com.avail.environment.editor.utility;
 
 import com.avail.utility.Pair;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -40,7 +43,7 @@ public class PrefixTrie<T>
 	 * Add a template to this {@link PrefixTrie}.
 	 *
 	 * @param word
-	 *        The search text, the characters that will create the {@link
+	 *        The search text, the characters that will functionType the {@link
 	 *        PrefixNode}s.
 	 * @param content
 	 *        The {@link PrefixNode#content}.

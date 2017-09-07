@@ -32,13 +32,15 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.PojoDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.PojoDescriptor.ObjectSlots.KIND;
+import static com.avail.descriptor.PojoDescriptor.ObjectSlots.RAW_POJO;
 
 /**
  * A {@code PojoDescriptor} describes a plain-old Java object (pojo) that is

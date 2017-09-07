@@ -176,7 +176,7 @@ extends TypeDescriptor
 		// The intersection of two variable types is a variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
-		return VariableTypeDescriptor.fromReadAndWriteTypes(
+		return VariableTypeDescriptor.variableReadWriteType(
 			innerType.typeIntersection(aVariableType.readType()),
 			innerType.typeUnion(aVariableType.writeType()));
 	}
@@ -207,7 +207,7 @@ extends TypeDescriptor
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
 		// write type is the type intersection of the two incoming write types.
-		return VariableTypeDescriptor.fromReadAndWriteTypes(
+		return VariableTypeDescriptor.variableReadWriteType(
 			innerType.typeUnion(aVariableType.readType()),
 			innerType.typeIntersection(aVariableType.writeType()));
 	}
@@ -266,7 +266,7 @@ extends TypeDescriptor
 	 * @return
 	 *        The new variable type.
 	 */
-	public static A_Type wrapInnerType (final A_Type innerType)
+	public static A_Type variableTypeFor (final A_Type innerType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(
@@ -285,13 +285,13 @@ extends TypeDescriptor
 	 *        The write type.
 	 * @return The new variable type.
 	 */
-	public static A_Type fromReadAndWriteTypes (
+	public static A_Type variableReadWriteType (
 		final A_Type readType,
 		final A_Type writeType)
 	{
 		if (readType.equals(writeType))
 		{
-			return wrapInnerType(readType);
+			return variableTypeFor(readType);
 		}
 		return ReadWriteVariableTypeDescriptor.fromReadAndWriteTypes(
 			readType, writeType);
@@ -339,7 +339,7 @@ extends TypeDescriptor
 	 * The most general {@linkplain ReadWriteVariableTypeDescriptor variable
 	 * type}.
 	 */
-	private static final A_Type mostGeneralType = fromReadAndWriteTypes(
+	private static final A_Type mostGeneralType = variableReadWriteType(
 		TOP.o(),
 		BottomTypeDescriptor.bottom()).makeShared();
 
@@ -350,7 +350,7 @@ extends TypeDescriptor
 	 * @return The most general {@linkplain ReadWriteVariableTypeDescriptor
 	 *         variable type}.
 	 */
-	public static A_Type mostGeneralType ()
+	public static A_Type mostGeneralVariableType ()
 	{
 		return mostGeneralType;
 	}
@@ -360,7 +360,7 @@ extends TypeDescriptor
 	 * ReadWriteVariableTypeDescriptor variable} metatype.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.on(mostGeneralType).makeShared();
+		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the (instance) type of the most general {@linkplain
@@ -370,7 +370,7 @@ extends TypeDescriptor
 	 *         The instance type containing the most general {@linkplain
 	 *         ReadWriteVariableTypeDescriptor variable} metatype.
 	 */
-	public static A_Type meta ()
+	public static A_Type variableMeta ()
 	{
 		return meta;
 	}

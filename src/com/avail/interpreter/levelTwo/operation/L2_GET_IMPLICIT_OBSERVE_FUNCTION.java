@@ -84,10 +84,10 @@ extends L2Operation
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
 			destination,
-			FunctionTypeDescriptor.create(
-				TupleDescriptor.from(
-					FunctionTypeDescriptor.mostGeneralType(),
-					TupleTypeDescriptor.mostGeneralType()),
+			FunctionTypeDescriptor.functionType(
+				TupleDescriptor.tuple(
+					FunctionTypeDescriptor.mostGeneralFunctionType(),
+					TupleTypeDescriptor.mostGeneralTupleType()),
 				BottomTypeDescriptor.bottom()),
 			instruction);
 	}

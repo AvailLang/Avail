@@ -32,9 +32,10 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
 import com.avail.descriptor.A_String;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.ArrayList;
 
 /**
  * A comment that describes a particular module

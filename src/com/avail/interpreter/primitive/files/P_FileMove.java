@@ -52,7 +52,7 @@ import com.avail.interpreter.*;
 /**
  * <strong>Primitive:</strong> Move the source {@linkplain Path path} to the
  * destination path. Use the supplied {@linkplain
- * EnumerationTypeDescriptor#booleanObject() boolean} to decide whether to
+ * EnumerationTypeDescriptor#booleanType() boolean} to decide whether to
  * permit the destination to be overwritten.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -123,11 +123,11 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
 				TupleTypeDescriptor.stringType(),
 				TupleTypeDescriptor.stringType(),
-				EnumerationTypeDescriptor.booleanObject()),
+				EnumerationTypeDescriptor.booleanType()),
 			TOP.o());
 	}
 
@@ -135,8 +135,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_INVALID_PATH,
 				E_PERMISSION_DENIED,
 				E_NO_FILE,

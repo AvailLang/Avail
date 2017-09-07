@@ -76,21 +76,21 @@ public final class P_CatchException extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.create(
-			TupleDescriptor.from(
-				FunctionTypeDescriptor.create(
-					TupleDescriptor.empty(),
+		return FunctionTypeDescriptor.functionType(
+			TupleDescriptor.tuple(
+				FunctionTypeDescriptor.functionType(
+					TupleDescriptor.emptyTuple(),
 					TOP.o()),
 				TupleTypeDescriptor.zeroOrMoreOf(
-					FunctionTypeDescriptor.create(
-						TupleDescriptor.from(
+					FunctionTypeDescriptor.functionType(
+						TupleDescriptor.tuple(
 							BottomTypeDescriptor.bottom()),
 						TOP.o())),
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor.zeroOrOne(),
-					TupleDescriptor.empty(),
-					FunctionTypeDescriptor.create(
-						TupleDescriptor.empty(),
+					TupleDescriptor.emptyTuple(),
+					FunctionTypeDescriptor.functionType(
+						TupleDescriptor.emptyTuple(),
 						TOP.o()))),
 			TOP.o());
 	}
@@ -98,8 +98,8 @@ public final class P_CatchException extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstances(
-			SetDescriptor.from(
+		return AbstractEnumerationTypeDescriptor.enumerationWith(
+			SetDescriptor.set(
 				E_REQUIRED_FAILURE,
 				E_INCORRECT_ARGUMENT_TYPE,
 				E_HANDLER_SENTINEL,

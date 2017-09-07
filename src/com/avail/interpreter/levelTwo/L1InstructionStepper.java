@@ -705,7 +705,7 @@ public final class L1InstructionStepper
 				interpreter.argsBuffer.add(
 					(AvailObject) assignmentFunction());
 				interpreter.argsBuffer.add(
-					(AvailObject) TupleDescriptor.from(variable, value));
+					(AvailObject) TupleDescriptor.tuple(variable, value));
 				interpreter.skipReturnCheck = true;
 				interpreter.function =
 					interpreter.runtime().implicitObserveFunction();
@@ -815,6 +815,6 @@ public final class L1InstructionStepper
 			true,
 			errorCode.numericCode(),
 			method,
-			TupleDescriptor.fromList(interpreter.argsBuffer));
+			TupleDescriptor.tupleFromList(interpreter.argsBuffer));
 	}
 }
