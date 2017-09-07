@@ -34,15 +34,13 @@ package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.interpreter.Primitive.Flag;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import javax.annotation.Nullable;
 import com.avail.descriptor.*;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelOne.L1OperationDispatcher;
@@ -61,23 +59,35 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.utility.Mutable;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
 import com.avail.utility.evaluation.Transformer2;
 import com.avail.utility.evaluation.Transformer3;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.increaseIndentation;
 import static java.lang.Math.max;
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 /**
  * The {@code L2Translator} converts a level one {@linkplain FunctionDescriptor
@@ -181,7 +191,7 @@ public final class L2Translator
 		{
 			if (shouldLog && logger.isLoggable(level))
 			{
-				logger.log(level, String.format(format, args), exception);
+				logger.log(level, format(format, args), exception);
 			}
 		}
 
@@ -337,9 +347,7 @@ public final class L2Translator
 	 */
 	@InnerAccess Interpreter interpreter ()
 	{
-		final Interpreter theInterpreter = interpreter;
-		assert theInterpreter != null;
-		return theInterpreter;
+		return stripNull(interpreter);
 	}
 
 	/**
@@ -750,9 +758,7 @@ public final class L2Translator
 		 */
 		public RegisterSet naiveRegisters ()
 		{
-			final RegisterSet r = naiveRegisters;
-			assert r != null;
-			return r;
+			return stripNull(naiveRegisters);
 		}
 
 		/**
@@ -830,17 +836,6 @@ public final class L2Translator
 		public L2ObjectRegister stackRegister (final int stackIndex)
 		{
 			return L2Translator.this.stackRegister(stackIndex);
-		}
-
-		/**
-		 * Allocate a fresh {@linkplain L2IntegerRegister integer register} that
-		 * nobody else has used yet.
-		 *
-		 * @return The new register.
-		 */
-		public L2IntegerRegister newIntegerRegister ()
-		{
-			return L2Translator.this.newIntegerRegister();
 		}
 
 		/**
@@ -967,9 +962,9 @@ public final class L2Translator
 					final StringBuilder builder = new StringBuilder(100);
 					finalNaiveRegs.debugOn(builder);
 					log.value(
-						String.format(
+						format(
 							"%s%n\t#%d = %s",
-							builder.toString().replace("\n", "\n\t"),
+							increaseIndentation(builder.toString(), 1),
 							instructions.size(),
 							normalizedInstruction),
 						null);
@@ -1061,9 +1056,9 @@ public final class L2Translator
 						naiveRegisters.debugOn(builder);
 					}
 					log.value(
-						String.format(
+						format(
 							"%s%n\t#%d = %s",
-							builder.toString().replace("\n", "\n\t"),
+							increaseIndentation(builder.toString(), 1),
 							instructions.size() - 1,
 							label),
 						null);
@@ -1682,9 +1677,9 @@ public final class L2Translator
 			// Now deduce what the registers will look like after the
 			// non-primitive call.  That should be similar to the preSlots'
 			// registers.
-			A_Map postSlotTypesMap = MapDescriptor.emptyMap();
-			A_Map postSlotConstants = MapDescriptor.emptyMap();
-			A_Set nullPostSlots = SetDescriptor.emptySet();
+			A_Map postSlotTypesMap = emptyMap();
+			A_Map postSlotConstants = emptyMap();
+			A_Set nullPostSlots = emptySet();
 			final List<L2ObjectRegister> postSlots = new ArrayList<>(numSlots);
 			for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 			{
@@ -1701,7 +1696,7 @@ public final class L2Translator
 				if (slotType != null)
 				{
 					postSlotTypesMap = postSlotTypesMap.mapAtPuttingCanDestroy(
-						IntegerDescriptor.fromInt(slotIndex),
+						fromInt(slotIndex),
 						slotType,
 						true);
 				}
@@ -1713,14 +1708,14 @@ public final class L2Translator
 					if (constant.equalsNil())
 					{
 						nullPostSlots = nullPostSlots.setWithElementCanDestroy(
-							IntegerDescriptor.fromInt(slotIndex),
+							fromInt(slotIndex),
 							true);
 					}
 					else
 					{
 						postSlotConstants =
 							postSlotConstants.mapAtPuttingCanDestroy(
-								IntegerDescriptor.fromInt(slotIndex),
+								fromInt(slotIndex),
 								constant,
 								true);
 					}
@@ -1851,9 +1846,9 @@ public final class L2Translator
 			// Now deduce what the registers will look like after the
 			// non-primitive call.  That should be similar to the preSlots'
 			// registers.
-			A_Map postSlotTypesMap = MapDescriptor.emptyMap();
-			A_Map postSlotConstants = MapDescriptor.emptyMap();
-			A_Set nullPostSlots = SetDescriptor.emptySet();
+			A_Map postSlotTypesMap = emptyMap();
+			A_Map postSlotConstants = emptyMap();
+			A_Set nullPostSlots = emptySet();
 			final List<L2ObjectRegister> postSlots = new ArrayList<>(numSlots);
 			for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 			{
@@ -1870,7 +1865,7 @@ public final class L2Translator
 				if (slotType != null)
 				{
 					postSlotTypesMap = postSlotTypesMap.mapAtPuttingCanDestroy(
-						IntegerDescriptor.fromInt(slotIndex),
+						fromInt(slotIndex),
 						slotType,
 						true);
 				}
@@ -1882,14 +1877,14 @@ public final class L2Translator
 					if (constant.equalsNil())
 					{
 						nullPostSlots = nullPostSlots.setWithElementCanDestroy(
-							IntegerDescriptor.fromInt(slotIndex),
+							fromInt(slotIndex),
 							true);
 					}
 					else
 					{
 						postSlotConstants =
 							postSlotConstants.mapAtPuttingCanDestroy(
-								IntegerDescriptor.fromInt(slotIndex),
+								fromInt(slotIndex),
 								constant,
 								true);
 					}
@@ -2098,9 +2093,8 @@ public final class L2Translator
 			final Mutable<Boolean> canFailPrimitive,
 			final RegisterSet registerSet)
 		{
-			final @Nullable Primitive primitive =
-				primitiveFunction.code().primitive();
-			assert primitive != null;
+			final @Nullable Primitive primitive = stripNull(
+				primitiveFunction.code().primitive());
 			if (primitive.hasFlag(SpecialReturnConstant))
 			{
 				// Use the first literal as the return value.
@@ -2133,7 +2127,7 @@ public final class L2Translator
 					L2_INVOKE.instance,
 					new L2ReadPointerOperand(reifiedRegister),
 					new L2ReadPointerOperand(invalidResultFunction),
-					new L2ReadVectorOperand(createVector(Arrays.asList(
+					new L2ReadVectorOperand(createVector(asList(
 						fixed(FUNCTION),
 						expectedTypeRegister,
 						resultRegister))),
@@ -2238,7 +2232,7 @@ public final class L2Translator
 						new L2ReadPointerOperand(reifiedRegister),
 						new L2ReadPointerOperand(invalidResultFunction),
 						new L2ReadVectorOperand(createVector(
-							Collections.emptyList())),
+							emptyList())),
 						new L2ImmediateOperand(1));
 					unreachableCode(unreachable);
 					addLabel(returnWasOkLabel);
@@ -2373,16 +2367,16 @@ public final class L2Translator
 			addInstruction(
 				L2_REENTER_L2_CHUNK.instance,
 				new L2WritePointerOperand(fixed(CALLER)));
-			A_Map typesMap = MapDescriptor.emptyMap();
-			A_Map constants = MapDescriptor.emptyMap();
-			A_Set nullSlots = SetDescriptor.emptySet();
+			A_Map typesMap = emptyMap();
+			A_Map constants = emptyMap();
+			A_Set nullSlots = emptySet();
 			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
 			{
 				final A_Type type = savedSlotTypes.get(slotIndex - 1);
 				if (type != null)
 				{
 					typesMap = typesMap.mapAtPuttingCanDestroy(
-						IntegerDescriptor.fromInt(slotIndex),
+						fromInt(slotIndex),
 						type,
 						true);
 				}
@@ -2393,12 +2387,12 @@ public final class L2Translator
 					if (constant.equalsNil())
 					{
 						nullSlots = nullSlots.setWithElementCanDestroy(
-							IntegerDescriptor.fromInt(slotIndex),
+							fromInt(slotIndex),
 							true);
 					} else
 					{
 						constants = constants.mapAtPuttingCanDestroy(
-							IntegerDescriptor.fromInt(slotIndex),
+							fromInt(slotIndex),
 							constant,
 							true);
 					}
@@ -2543,16 +2537,16 @@ public final class L2Translator
 			addInstruction(
 				L2_REENTER_L2_CHUNK.instance,
 				new L2WritePointerOperand(fixed(CALLER)));
-			A_Map typesMap = MapDescriptor.emptyMap();
-			A_Map constants = MapDescriptor.emptyMap();
-			A_Set nullSlots = SetDescriptor.emptySet();
+			A_Map typesMap = emptyMap();
+			A_Map constants = emptyMap();
+			A_Set nullSlots = emptySet();
 			for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
 			{
 				final A_Type type = savedSlotTypes.get(slotIndex - 1);
 				if (type != null)
 				{
 					typesMap = typesMap.mapAtPuttingCanDestroy(
-						IntegerDescriptor.fromInt(slotIndex),
+						fromInt(slotIndex),
 						type,
 						true);
 				}
@@ -2563,13 +2557,13 @@ public final class L2Translator
 					if (constant.equalsNil())
 					{
 						nullSlots = nullSlots.setWithElementCanDestroy(
-							IntegerDescriptor.fromInt(slotIndex),
+							fromInt(slotIndex),
 							true);
 					}
 					else
 					{
 						constants = constants.mapAtPuttingCanDestroy(
-							IntegerDescriptor.fromInt(slotIndex),
+							fromInt(slotIndex),
 							constant,
 							true);
 					}
@@ -2681,24 +2675,24 @@ public final class L2Translator
 			if (restartLabel != null)
 			{
 				addLabel(restartLabel);
-				A_Map typesMap = MapDescriptor.emptyMap();
+				A_Map typesMap = emptyMap();
 				final List<L2ObjectRegister> slots = new ArrayList<>(numSlots);
 				final A_Type argsType = code.functionType().argsTupleType();
-				A_Set nullSlots = SetDescriptor.emptySet();
+				A_Set nullSlots = emptySet();
 				for (int i = 1; i <= numSlots; i++)
 				{
 					slots.add(continuationSlot(i));
 					if (i <= numArgs)
 					{
 						typesMap = typesMap.mapAtPuttingCanDestroy(
-							IntegerDescriptor.fromInt(i),
+							fromInt(i),
 							argsType.typeAtIndex(i),
 							true);
 					}
 					else
 					{
 						nullSlots = nullSlots.setWithElementCanDestroy(
-							IntegerDescriptor.fromInt(i),
+							fromInt(i),
 							true);
 					}
 				}
@@ -2710,7 +2704,7 @@ public final class L2Translator
 					new L2WritePointerOperand(fixed(FUNCTION)),
 					new L2WriteIntOperand(skipReturnCheckRegister),
 					new L2ConstantOperand(typesMap),
-					new L2ConstantOperand(MapDescriptor.emptyMap()),
+					new L2ConstantOperand(emptyMap()),
 					new L2ConstantOperand(nullSlots),
 					new L2ConstantOperand(code.functionType()));
 				addInstruction(
@@ -2727,7 +2721,7 @@ public final class L2Translator
 			generateCall(
 				method,
 				expectedType,
-				BottomTypeDescriptor.bottom());
+				bottom());
 		}
 
 		@Override
@@ -2927,7 +2921,7 @@ public final class L2Translator
 			if (constants.size() == count)
 			{
 				// The tuple elements are all constants.  Fold it.
-				final A_Tuple tuple = TupleDescriptor.tupleFromList(constants);
+				final A_Tuple tuple = tupleFromList(constants);
 				addInstruction(
 					L2_MOVE_CONSTANT.instance,
 					new L2ConstantOperand(tuple),
@@ -3204,10 +3198,10 @@ public final class L2Translator
 						final StringBuilder builder = new StringBuilder(100);
 						targetRegisterSet.debugOn(builder);
 						log.value(
-							String.format(
+							format(
 								"\t->#%d:%s%n",
 								targetInstructionNumber,
-								builder.toString().replace("\n", "\n\t")),
+								increaseIndentation(builder.toString(), 1)),
 							null);
 					});
 				final RegisterSet existing =
@@ -3312,7 +3306,7 @@ public final class L2Translator
 							? "+"
 							: "-",
 						i,
-						instruction.toString().replace("\n", "\n\t\t"));
+						increaseIndentation(instruction.toString(), 2));
 				}
 				log.value(formatter.toString(), null);
 			});
@@ -3413,12 +3407,12 @@ public final class L2Translator
 					formatter.format(
 						"\t%s: #%d %s%n",
 						(instructionsToVisit.contains(instruction)
-							? "Forced "
-							: (reachableInstructions.contains(instruction)
-								? "Reach  "
-								: "pending")),
+							 ? "Forced "
+							 : (reachableInstructions.contains(instruction)
+								    ? "Reach  "
+								    : "pending")),
 						i,
-						instruction.toString().replace("\n", "\n\t\t"));
+						increaseIndentation(instruction.toString(), 2));
 				}
 				log.value(formatter.toString(), null);
 				log.value("Propagation of needed instructions:", null);
@@ -3453,7 +3447,7 @@ public final class L2Translator
 									providerIndices.add(need.offset());
 								}
 								log.value(
-									String.format(
+									format(
 										"\t\t#%d (%s) -> %s%n",
 										instruction.offset(),
 										sourceRegister,
@@ -3709,12 +3703,6 @@ public final class L2Translator
 			}
 		}
 
-		// Install an action inside each executable L2Instruction.
-		for (final L2Instruction instruction : executableInstructions)
-		{
-			instruction.action = instruction.operation.actionFor(instruction);
-		}
-
 		// Clean up a little.
 		instructionRegisterSets.clear();
 		chunk = L2Chunk.allocate(
@@ -3735,9 +3723,7 @@ public final class L2Translator
 	 */
 	private L2Chunk chunk ()
 	{
-		final L2Chunk c = chunk;
-		assert c != null;
-		return c;
+		return stripNull(chunk);
 	}
 
 	/**

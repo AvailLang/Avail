@@ -52,7 +52,7 @@ import static com.avail.exceptions.AvailErrorCode
  * double question mark} (⁇) following a {@linkplain Simple simple} or
  * {@linkplain Group simple group}. It may not contain {@linkplain Argument
  * arguments} or non-simple subgroups and it may not contain a {@linkplain
- * Metacharacter#DOUBLE_DAGGER double dagger}. The expression may appear floatZero or
+ * Metacharacter#DOUBLE_DAGGER double dagger}. The expression may appear zero or
  * one times.
  *
  * <p>A completely optional does not produce any information. No facility is

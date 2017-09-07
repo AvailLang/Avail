@@ -32,26 +32,9 @@
 
 package com.avail.server;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.Semaphore;
-import java.util.logging.Logger;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FiberReference;
 import com.avail.annotations.InnerAccess;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import javax.annotation.Nullable;
 import com.avail.builder.AvailBuilder;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
@@ -71,9 +54,9 @@ import com.avail.server.configuration.AvailServerConfiguration;
 import com.avail.server.configuration.CommandLineConfigurator;
 import com.avail.server.configuration.EnvironmentConfigurator;
 import com.avail.server.io.AvailServerChannel;
+import com.avail.server.io.AvailServerChannel.ProtocolState;
 import com.avail.server.io.ServerInputChannel;
 import com.avail.server.io.WebSocketAdapter;
-import com.avail.server.io.AvailServerChannel.ProtocolState;
 import com.avail.server.messages.*;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
@@ -81,9 +64,27 @@ import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
 import com.avail.utility.evaluation.Continuation3;
 import com.avail.utility.json.JSONWriter;
+
+import javax.annotation.Nullable;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Semaphore;
+import java.util.logging.Logger;
 
 /**
  * A {@code AvailServer} manages an Avail environment.

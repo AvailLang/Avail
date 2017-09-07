@@ -32,14 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AtomDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AtomDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.nio.channels.*;
-import java.util.*;
-import java.util.regex.Pattern;
-
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
 import com.avail.annotations.AvailMethod;
@@ -49,9 +41,23 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.exceptions.MalformedMessageException;
-import com.avail.serialization.*;
+import com.avail.serialization.Serializer;
+import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.nio.channels.AsynchronousServerSocketChannel;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.util.IdentityHashMap;
+import java.util.regex.Pattern;
+
+import static com.avail.descriptor.AtomDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.AtomDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.AtomDescriptor.ObjectSlots.ISSUING_MODULE;
+import static com.avail.descriptor.AtomDescriptor.ObjectSlots.NAME;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -342,7 +348,7 @@ extends Descriptor
 	@Override
 	boolean o_IsBoolean (final AvailObject object)
 	{
-		return object.isInstanceOf(EnumerationTypeDescriptor.booleanType());
+		return object.isInstanceOf(booleanType());
 	}
 
 	@Override

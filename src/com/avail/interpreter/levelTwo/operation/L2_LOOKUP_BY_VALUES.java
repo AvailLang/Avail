@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -193,7 +194,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		{
 			final A_Type enumType =
 				AbstractEnumerationTypeDescriptor.enumerationWith(
-					SetDescriptor.fromCollection(possibleFunctions));
+					setFromCollection(possibleFunctions));
 			registerSet.typeAtPut(functionReg, enumType, instruction);
 		}
 	}

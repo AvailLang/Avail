@@ -32,8 +32,12 @@
 
 package com.avail.interpreter.primitive.phrases;
 
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -92,12 +96,12 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				VariableTypeDescriptor.variableReadWriteType(
+			tuple(
+				variableReadWriteType(
 					TOP.o(),
-					BottomTypeDescriptor.bottom()),
+					bottom()),
 				DECLARATION_NODE.mostGeneralType()),
-			EnumerationTypeDescriptor.booleanType());
+			booleanType());
 	}
 
 	@Override

@@ -31,6 +31,9 @@
  */
 package com.avail.interpreter.primitive.types;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -72,10 +75,10 @@ public final class P_IsSubtypeOf extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.topMeta(),
-				InstanceMetaDescriptor.topMeta()),
-			EnumerationTypeDescriptor.booleanType());
+			tuple(
+				topMeta(),
+				topMeta()),
+			booleanType());
 	}
 
 	/**

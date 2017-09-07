@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.primitive.atoms;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
@@ -73,10 +75,10 @@ public final class P_AtomHasProperty extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+			tuple(
 				ATOM.o(),
 				ATOM.o()),
-			EnumerationTypeDescriptor.booleanType());
+			booleanType());
 	}
 
 	@Override

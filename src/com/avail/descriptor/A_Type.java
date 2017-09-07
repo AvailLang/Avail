@@ -32,9 +32,10 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TypeDescriptor.Types;
+
+import java.util.List;
 
 /**
  * {@code A_Type} is an interface that specifies the operations specific to all

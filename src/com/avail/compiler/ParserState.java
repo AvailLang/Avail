@@ -276,7 +276,7 @@ public class ParserState
 
 	/**
 	 * Wrap the {@linkplain Continuation1 continuation of one argument} inside a
-	 * {@linkplain Continuation0 continuation of floatZero arguments} and record that
+	 * {@linkplain Continuation0 continuation of zero arguments} and record that
 	 * as per {@linkplain #workUnitDo(Continuation0)}.
 	 *
 	 * @param <ArgType>
@@ -296,7 +296,7 @@ public class ParserState
 
 	/**
 	 * Wrap the {@linkplain Continuation1NotNull continuation of one non-null
-	 * argument} inside a {@linkplain Continuation0 continuation of floatZero
+	 * argument} inside a {@linkplain Continuation0 continuation of zero
 	 * arguments} and record that as per {@linkplain
 	 * #workUnitDo(Continuation0)}.
 	 *

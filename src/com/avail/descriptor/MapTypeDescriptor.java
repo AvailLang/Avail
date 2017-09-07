@@ -32,13 +32,14 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 
 /**
  * An object instance of {@code MapTypeDescriptor} is a type which maps may

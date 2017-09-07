@@ -73,6 +73,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
+import static com.avail.descriptor.FiberDescriptor.IntegerSlots.DEBUG_UNIQUE_ID;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
 	.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
@@ -85,7 +86,7 @@ import static com.avail.descriptor.FiberDescriptor.TraceFlag
 import static com.avail.descriptor.FiberDescriptor.stringificationPriority;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.StringDescriptor.format;
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
@@ -278,18 +279,16 @@ public final class Interpreter
 			final StringBuilder builder = new StringBuilder();
 			builder.append(
 				runningFiber != null
-					? format(
-						"%6d ",
-						runningFiber.traversed().slot(
-							IntegerSlots.DEBUG_UNIQUE_ID))
+					?
+					formatString("%6d ", runningFiber.traversed().slot(
+						DEBUG_UNIQUE_ID))
 					: "?????? ");
 			builder.append('→');
 			builder.append(
 				affectedFiber != null
-					? format(
-						"%6d ",
-						affectedFiber.traversed().slot(
-							IntegerSlots.DEBUG_UNIQUE_ID))
+					?
+					formatString("%6d ", affectedFiber.traversed().slot(
+						DEBUG_UNIQUE_ID))
 					: "?????? ");
 			logger.log(level, builder + message, arguments);
 		}
@@ -2017,8 +2016,7 @@ public final class Interpreter
 			() ->
 			{
 				final A_RawFunction code = function.code();
-				return format(
-					"Outermost %s @ %s:%d",
+				return formatString("Outermost %s @ %s:%d",
 					code.methodName().asNativeString(),
 					code.module().equalsNil()
 						? "«vm»"
@@ -2348,10 +2346,11 @@ public final class Interpreter
 		}
 		else
 		{
-			builder.append(format(" [%s]", fiber().fiberName()));
+			builder.append(
+				formatString(" [%s]", fiber().fiberName()));
 			if (pointers[CALLER.ordinal()] == null)
 			{
-				builder.append(format("%n\t«no stack»"));
+				builder.append(formatString("%n\t«no stack»"));
 			}
 			builder.append("\n\n");
 		}

@@ -48,7 +48,7 @@ import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Explicitly decrement the current compiled code's countdown via {@link
- * AvailObject#countdownToReoptimize(int)}.  If it reaches floatZero then
+ * AvailObject#countdownToReoptimize(int)}.  If it reaches zero then
  * re-optimize the code.
  */
 public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO

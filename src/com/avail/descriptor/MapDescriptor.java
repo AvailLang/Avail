@@ -32,19 +32,22 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.MapDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.exceptions.MapException;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.MapException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+
+import static com.avail.descriptor.MapDescriptor.ObjectSlots.ROOT_BIN;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 
 /**
  * An Avail {@linkplain MapDescriptor map} refers to the root of a Bagwell

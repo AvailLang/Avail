@@ -37,6 +37,10 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import java.util.List;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
+import static com.avail.descriptor.VariableTypeDescriptor.variableMeta;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -89,11 +93,11 @@ public final class P_PrivateCreateModuleVariable extends Primitive
 	{
 		return FunctionTypeDescriptor.functionType(
 			TupleDescriptor.tuple(
-				Types.MODULE.o(),
-				TupleTypeDescriptor.stringType(),
-				VariableTypeDescriptor.variableMeta(),
-				EnumerationTypeDescriptor.booleanType(),
-				EnumerationTypeDescriptor.booleanType()),
+				MODULE.o(),
+				stringType(),
+				variableMeta(),
+				booleanType(),
+				booleanType()),
 			Types.TOP.o());
 	}
 }

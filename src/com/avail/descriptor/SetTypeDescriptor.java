@@ -32,13 +32,15 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.SetTypeDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.SetTypeDescriptor.ObjectSlots.CONTENT_TYPE;
+import static com.avail.descriptor.SetTypeDescriptor.ObjectSlots.SIZE_RANGE;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 
 /**
  * A {@code SetTypeDescriptor} object instance is a type that some {@linkplain

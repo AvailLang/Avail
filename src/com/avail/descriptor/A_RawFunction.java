@@ -32,12 +32,13 @@
 
 package com.avail.descriptor;
 
-import javax.annotation.Nullable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.L2Translator;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation0;
+
+import javax.annotation.Nullable;
 
 /**
  * {@code A_RawFunction} is an interface that specifies the operations specific

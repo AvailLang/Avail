@@ -97,7 +97,7 @@ extends SetBinDescriptor
 		BIT_VECTOR;
 
 		/**
-		 * A slot to hold the bin's hash value, or floatZero if it has not been
+		 * A slot to hold the bin's hash value, or zero if it has not been
 		 * computed.
 		 */
 		static final BitField BIN_HASH = bitField(BIN_HASH_AND_MORE, 0, 32);
@@ -345,7 +345,7 @@ extends SetBinDescriptor
 			return false;
 		}
 		// There's an entry.  Count the 1-bits below it to compute its
-		// floatZero-relative physicalIndex.
+		// zero-relative physicalIndex.
 		final long masked = vector & (logicalBitValue - 1);
 		final int physicalIndex = bitCount(masked) + 1;
 		final A_BasicObject subBin =

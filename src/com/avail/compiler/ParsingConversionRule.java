@@ -32,11 +32,12 @@
 
 package com.avail.compiler;
 
-import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
-
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.*;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1NotNull;
+
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 
 /**
  * A {@code ParsingConversionRule} describes how to convert the argument at the
@@ -111,8 +112,7 @@ public enum ParsingConversionRule
 			final Continuation1NotNull<A_Phrase> continuation,
 			final Continuation1NotNull<Throwable> onProblem)
 		{
-			assert input.expressionType().isSubtypeOf(
-				InstanceMetaDescriptor.topMeta());
+			assert input.expressionType().isSubtypeOf(topMeta());
 			compilationContext.evaluatePhraseAtThen(
 				lexingState,
 				input,

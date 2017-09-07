@@ -32,6 +32,9 @@
 package com.avail.interpreter.primitive.numbers;
 
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.EnumerationTypeDescriptor.trueType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -75,10 +78,10 @@ public final class P_LessThan extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+			tuple(
 				NUMBER.o(),
 				NUMBER.o()),
-			EnumerationTypeDescriptor.booleanType());
+			booleanType());
 	}
 
 	@Override
@@ -96,8 +99,8 @@ public final class P_LessThan extends Primitive
 		assert canBeTrue || canBeFalse;
 		return canBeTrue
 			? (canBeFalse
-				? EnumerationTypeDescriptor.booleanType()
-				: EnumerationTypeDescriptor.trueType())
+				   ? booleanType()
+				   : trueType())
 			: EnumerationTypeDescriptor.falseType();
 	}
 

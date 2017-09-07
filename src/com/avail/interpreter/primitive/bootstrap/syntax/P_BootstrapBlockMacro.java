@@ -187,7 +187,7 @@ public final class P_BootstrapBlockMacro extends Primitive
 					+ "literal keyword token");
 			}
 			final A_String primName = primNamePhrase.token().string();
-			prim = Primitive.byName(primName.asNativeString());
+			prim = Primitive.primitiveByName(primName.asNativeString());
 			if (prim == null)
 			{
 				return interpreter.primitiveFailure(

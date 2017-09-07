@@ -32,19 +32,23 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.levelOne.L1Decompiler;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.Collections;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.CODE;
+import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * A function associates {@linkplain CompiledCodeDescriptor compiled code} with

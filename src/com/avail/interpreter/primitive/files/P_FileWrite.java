@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.files;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -130,9 +131,8 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			() -> StringDescriptor.format(
-				"Asynchronous file write, %s",
-				handle.filename));
+			() ->
+				formatString("Asynchronous file write, %s", handle.filename));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());

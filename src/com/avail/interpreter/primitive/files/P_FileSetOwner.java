@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.primitive.files;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -126,9 +128,9 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.functionType(
 			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				TupleTypeDescriptor.stringType(),
-				EnumerationTypeDescriptor.booleanType()),
+				stringType(),
+				stringType(),
+				booleanType()),
 			TOP.o());
 	}
 

@@ -32,13 +32,6 @@
 
 package com.avail.interpreter.levelTwo;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Interpreter.*;
-import static com.avail.interpreter.levelOne.L1Operation.*;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
@@ -48,12 +41,25 @@ import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
 import com.avail.optimizer.ReifyStackThrowable;
-import com.avail.performance.Statistic;
-import com.avail.performance.StatisticReport;
 import com.avail.utility.Generator;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Interpreter.assignmentFunction;
+import static com.avail.interpreter.Interpreter.debugL1;
+import static com.avail.interpreter.levelOne.L1Operation.L1_doExtension;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * This class is used to simulate the effect of level one nybblecodes during
@@ -70,19 +76,13 @@ public final class L1InstructionStepper
 	final Interpreter interpreter;
 
 	/** The nybblecodes tuple of the current function. */
-	A_Tuple nybbles;
+	private A_Tuple nybbles = nil();
 
 	/** The current one-based index into the nybblecodes. */
 	public int pc;
 
 	/** The current stack position as would be seen in a continuation. */
 	public int stackp;
-
-	/** Statistic for recording checked non-primitive returns from L1. */
-	private static final Statistic checkedNonPrimitiveReturn =
-		new Statistic(
-			"Checked non-primitive return from L1",
-			StatisticReport.NON_PRIMITIVE_RETURN_LEVELS);
 
 	/**
 	 * Construct a new {@code L1InstructionStepper}.
@@ -180,9 +180,14 @@ public final class L1InstructionStepper
 	private AvailObject pop ()
 	{
 		final AvailObject popped = pointerAt(stackp);
-		interpreter.pointerAtPut(stackp++, NilDescriptor.nil());
+		interpreter.pointerAtPut(stackp++, nil());
 		return popped;
 	}
+
+	/**
+	 * A pre-compilable regex that matches one or more whitespace characters.
+	 */
+	private static final Pattern whitespaces = Pattern.compile("\\s+");
 
 	/**
 	 * Run the current code until it reaches the end.  Individual instructions,
@@ -195,7 +200,7 @@ public final class L1InstructionStepper
 	public void run ()
 	throws ReifyStackThrowable
 	{
-		final A_Function function = interpreter.function;
+		final A_Function function = stripNull(interpreter.function);
 		final A_RawFunction code = function.code();
 		final AvailObject[] initialPointers = interpreter.pointers;
 		nybbles = code.nybbles();
@@ -203,7 +208,7 @@ public final class L1InstructionStepper
 		{
 			System.out.println(
 				"Started L1 run: "
-				+ function.toString().replaceAll("\\s+", " "));
+				+ whitespaces.matcher(function.toString()).replaceAll(" "));
 		}
 		final int nybbleCount = nybbles.tupleSize();
 		while (pc <= nybbleCount)
@@ -224,8 +229,9 @@ public final class L1InstructionStepper
 						.collect(Collectors.toList());
 				System.out.println(
 					"L1 step: "
-						+ nybblecode
-						+ (operands.isEmpty() ? "" : " " + operands));
+						+ (operands.isEmpty()
+							? nybblecode
+							: nybblecode + " " + operands));
 				pc = savePc;
 			}
 			switch (nybblecode)
@@ -245,7 +251,7 @@ public final class L1InstructionStepper
 					for (int i = stackp + numArgs - 1; i >= stackp; i--)
 					{
 						interpreter.argsBuffer.add(interpreter.pointerAt(i));
-						interpreter.pointerAtPut(i, NilDescriptor.nil());
+						interpreter.pointerAtPut(i, nil());
 					}
 					stackp += numArgs;
 					// Push the expected type, which should be replaced on the
@@ -254,6 +260,7 @@ public final class L1InstructionStepper
 					push(expectedReturnType);
 					final A_Method method = bundle.bundleMethod();
 					final A_Definition matching;
+					final long before = System.nanoTime();
 					try
 					{
 						matching = method.lookupByValuesFromList(
@@ -262,6 +269,13 @@ public final class L1InstructionStepper
 					catch (final MethodDefinitionException e)
 					{
 						throw reifyAndReportFailedLookup(method, e.errorCode());
+					}
+					finally
+					{
+						final long after = System.nanoTime();
+						bundle.dynamicLookupStatistic().record(
+							after - before,
+							interpreter.interpreterIndex);
 					}
 
 					callMethodAfterLookup(method, matching);
@@ -300,7 +314,7 @@ public final class L1InstructionStepper
 								"Should not reach here");
 						}
 					}
-					assert stackp <= function.code().numArgsAndLocalsAndStack();
+					assert stackp <= code.numArgsAndLocalsAndStack();
 					// Replace the stack slot.
 					pointerAtPut(stackp, result);
 					break;
@@ -315,7 +329,7 @@ public final class L1InstructionStepper
 					final int localIndex = getInteger();
 					final AvailObject local = pointerAt(localIndex);
 					assert !local.equalsNil();
-					pointerAtPut(localIndex, NilDescriptor.nil());
+					pointerAtPut(localIndex, nil());
 					push(local);
 					break;
 				}
@@ -445,7 +459,6 @@ public final class L1InstructionStepper
 				}
 				case L1Ext_doPushLabel:
 				{
-					assert code.equals(function.code());
 					final int numArgs = code.numArgs();
 					assert code.primitive() == null;
 					final List<AvailObject> args = new ArrayList<>(numArgs);
@@ -457,7 +470,8 @@ public final class L1InstructionStepper
 					}
 					assert interpreter.chunk == L2Chunk.unoptimizedChunk();
 
-					final A_Function savedFunction = interpreter.function;
+					final A_Function savedFunction =
+						stripNull(interpreter.function);
 					final AvailObject[] savedPointers = interpreter.pointers;
 					final int[] savedInts = interpreter.integers;
 					final boolean savedSkip = interpreter.skipReturnCheck;
@@ -600,7 +614,7 @@ public final class L1InstructionStepper
 					final AvailObject result = interpreter.latestResult();
 					assert result.isInstanceOf(expectedReturnType)
 						: "Return value disagrees with expected type";
-					assert stackp <= function.code().numArgsAndLocalsAndStack();
+					assert stackp <= code.numArgsAndLocalsAndStack();
 					// Replace the stack slot.
 					pointerAtPut(stackp, result);
 					break;
@@ -619,6 +633,7 @@ public final class L1InstructionStepper
 		interpreter.latestResult(pop());
 		assert stackp == interpreter.pointers.length;
 		interpreter.returnNow = true;
+		interpreter.returningRawFunction = code;
 		if (debugL1)
 		{
 			System.out.println("L1 return");
@@ -678,19 +693,19 @@ public final class L1InstructionStepper
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
 			// Capture the state in a caller-less continuation.  We'll fill in
 			// the caller after reification, below.
-			final A_Function function = interpreter.function;
-			assert function != null;
+			final A_Function function = stripNull(interpreter.function);
+			final A_RawFunction code = function.code();
 			final A_Continuation continuation =
 				ContinuationDescriptor.createExceptFrame(
 					function,
-					NilDescriptor.nil(),
+					nil(),
 					pc,   // Right after the set-variable instruction.
 					stackp,
 					false,
 					L2Chunk.unoptimizedChunk(),
 					L2Chunk.offsetToResumeInterruptedUnoptimizedChunk());
 			for (
-				int i = function.code().numArgsAndLocalsAndStack();
+				int i = code.numArgsAndLocalsAndStack();
 				i >= 1;
 				i--)
 			{
@@ -705,11 +720,11 @@ public final class L1InstructionStepper
 				interpreter.argsBuffer.add(
 					(AvailObject) assignmentFunction());
 				interpreter.argsBuffer.add(
-					(AvailObject) TupleDescriptor.tuple(variable, value));
+					(AvailObject) tuple(variable, value));
 				interpreter.skipReturnCheck = true;
 				interpreter.function =
 					interpreter.runtime().implicitObserveFunction();
-				interpreter.chunk = interpreter.function.code().startingChunk();
+				interpreter.chunk = code.startingChunk();
 				interpreter.offset = 0;
 			});
 		}
@@ -734,7 +749,7 @@ public final class L1InstructionStepper
 		// but we've set up argsBuffer.
 		interpreter.skipReturnCheck = false;
 
-		final A_Function savedFunction = interpreter.function;
+		final A_Function savedFunction = stripNull(interpreter.function);
 		assert interpreter.chunk == L2Chunk.unoptimizedChunk();
 		final int savedOffset = interpreter.offset;
 		final AvailObject[] savedPointers = interpreter.pointers;
@@ -758,7 +773,7 @@ public final class L1InstructionStepper
 				final A_Continuation continuation =
 					ContinuationDescriptor.createExceptFrame(
 						savedFunction,
-						NilDescriptor.nil(),
+						nil(),
 						savedPc,
 						savedStackp,
 						false,
@@ -815,6 +830,6 @@ public final class L1InstructionStepper
 			true,
 			errorCode.numericCode(),
 			method,
-			TupleDescriptor.tupleFromList(interpreter.argsBuffer));
+			tupleFromList(interpreter.argsBuffer));
 	}
 }

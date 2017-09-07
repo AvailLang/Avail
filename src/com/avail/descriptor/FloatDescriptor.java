@@ -218,7 +218,7 @@ extends AbstractNumberDescriptor
 	 *
 	 * @return The Avail object for float (positive) zero.
 	 */
-	public static A_Number zero ()
+	public static A_Number floatZero ()
 	{
 		return ZERO.limitFloatObject();
 	}

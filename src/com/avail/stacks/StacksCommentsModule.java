@@ -32,18 +32,6 @@
 
 package com.avail.stacks;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 import com.avail.AvailRuntime;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
@@ -59,6 +47,21 @@ import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.Pair;
 import com.avail.utility.json.JSONWriter;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static com.avail.descriptor.SetDescriptor.setFromCollection;
 
 /**
  * A representation of all the fully parsed {@linkplain CommentTokenDescriptor
@@ -516,18 +519,18 @@ public class StacksCommentsModule
 					{
 						collectedExtendedNames =
 							collectedExtendedNames.setUnionCanDestroy(
-								SetDescriptor.fromCollection(
+								setFromCollection(
 									moduleToComments.get(moduleImportName)
 										.extendsMethodLeafNameToModuleName()
-											.keySet()),
+										.keySet()),
 								true);
 
 						collectedExtendedNames =
 							collectedExtendedNames.setUnionCanDestroy(
-								SetDescriptor.fromCollection(moduleToComments
+								setFromCollection(moduleToComments
 									.get(moduleImportName)
-										.namedPublicCommentImplementations()
-											.keySet()),
+									.namedPublicCommentImplementations()
+									.keySet()),
 								true);
 					}
 					if (!moduleImport.excludes.equals(SetDescriptor.emptySet()))
@@ -578,7 +581,7 @@ public class StacksCommentsModule
 									moduleImport.renames.mapAt(rename)));
 					}
 
-					A_Set removeSet = SetDescriptor.fromCollection(
+					A_Set removeSet = setFromCollection(
 						stacksExtends.extendsMethodLeafNameToModuleName()
 							.keySet());
 
@@ -665,18 +668,18 @@ public class StacksCommentsModule
 					{
 						collectedUsesNames =
 							collectedUsesNames.setUnionCanDestroy(
-								SetDescriptor.fromCollection(
+								setFromCollection(
 									moduleToComments.get(moduleImportName)
 										.extendsMethodLeafNameToModuleName()
-											.keySet()),
+										.keySet()),
 								true);
 						collectedUsesNames =
 							collectedUsesNames.setUnionCanDestroy(
-								SetDescriptor.fromCollection(
+								setFromCollection(
 									moduleToComments.get(moduleImportName)
 										.namedPublicCommentImplementations
-											.keySet()),
-							true);
+										.keySet()),
+								true);
 					}
 					if (!moduleImport.excludes.equals(SetDescriptor.emptySet()))
 					{
@@ -725,7 +728,7 @@ public class StacksCommentsModule
 								moduleImport.renames.mapAt(rename)));
 					}
 
-					A_Set removeSet = SetDescriptor.fromCollection(
+					A_Set removeSet = setFromCollection(
 						stacksUses.extendsMethodLeafNameToModuleName()
 							.keySet());
 

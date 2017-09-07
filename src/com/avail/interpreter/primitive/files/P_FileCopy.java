@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.primitive.files;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static java.nio.file.FileVisitResult.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
@@ -196,11 +198,11 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.functionType(
 			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				TupleTypeDescriptor.stringType(),
-				EnumerationTypeDescriptor.booleanType(),
-				EnumerationTypeDescriptor.booleanType(),
-				EnumerationTypeDescriptor.booleanType()),
+				stringType(),
+				stringType(),
+				booleanType(),
+				booleanType(),
+				booleanType()),
 			TOP.o());
 	}
 

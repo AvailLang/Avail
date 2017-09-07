@@ -31,6 +31,16 @@
  */
 package com.avail.interpreter.primitive.files;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -104,10 +114,9 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			() -> StringDescriptor.format(
-				"Asynchronous file rename, %s → %s",
-				sourcePath,
-				destinationPath));
+			() ->
+				formatString("Asynchronous file rename, %s → %s", sourcePath,
+					destinationPath));
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
@@ -187,22 +196,22 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.functionType(
 			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				TupleTypeDescriptor.stringType(),
-				EnumerationTypeDescriptor.booleanType(),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.emptyTuple(),
+				stringType(),
+				stringType(),
+				booleanType(),
+				functionType(
+					emptyTuple(),
 					TOP.o()),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
-						AbstractEnumerationTypeDescriptor.enumerationWith(
-							SetDescriptor.set(
+				functionType(
+					tuple(
+						enumerationWith(
+							set(
 								E_PERMISSION_DENIED,
 								E_FILE_EXISTS,
 								E_NO_FILE,
 								E_IO_ERROR))),
 					TOP.o()),
-				IntegerRangeTypeDescriptor.bytes()),
+				bytes()),
 			FiberTypeDescriptor.forResultType(TOP.o()));
 	}
 

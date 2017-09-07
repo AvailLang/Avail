@@ -32,12 +32,34 @@
 
 package com.avail.interpreter;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.AvailLoader.Phase.*;
-import static com.avail.utility.StackPrinter.trace;
+import com.avail.AvailRuntime;
+import com.avail.annotations.InnerAccess;
+import com.avail.compiler.CompilationContext;
+import com.avail.compiler.scanning.LexingState;
+import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.*;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
+import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.exceptions.AmbiguousNameException;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.effects.LoadingEffect;
+import com.avail.interpreter.effects.LoadingEffectToAddDefinition;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+import com.avail.interpreter.primitive.bootstrap.lexing.*;
+import com.avail.io.TextInterface;
+import com.avail.utility.Mutable;
+import com.avail.utility.MutableOrNull;
+import com.avail.utility.Pair;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Continuation2;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,26 +71,18 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.avail.AvailRuntime;
-import com.avail.annotations.InnerAccess;
-import com.avail.compiler.CompilationContext;
-import com.avail.compiler.scanning.LexingState;
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
-import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.AtomDescriptor.SpecialAtom;
-import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.exceptions.*;
-import com.avail.interpreter.effects.LoadingEffect;
-import com.avail.interpreter.effects.LoadingEffectToAddDefinition;
-import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
-import com.avail.interpreter.primitive.bootstrap.lexing.*;
-import com.avail.io.TextInterface;
-import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
-import javax.annotation.Nullable;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
+import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.AvailLoader.Phase.INITIALIZING;
+import static com.avail.interpreter.AvailLoader.Phase.UNLOADING;
+import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.StackPrinter.trace;
 
 /**
  * An {@code AvailLoader} is responsible for orchestrating module-level
@@ -88,7 +102,6 @@ public final class AvailLoader
 		 */
 		public final List<A_Lexer> allVisibleLexers = new ArrayList<>();
 
-
 		boolean frozen = false;
 
 		public void freezeFromChanges()
@@ -96,7 +109,6 @@ public final class AvailLoader
 			assert !frozen;
 			frozen = true;
 		}
-
 
 		/**
 		 * A 256-way dispatch table that takes a Latin-1 character's Unicode
@@ -391,17 +403,17 @@ public final class AvailLoader
 			final AvailLoader loader = compilationContext.loader();
 			for (final A_Lexer lexer : allVisibleLexers)
 			{
-				final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
-					EnumerationTypeDescriptor.booleanType(),
+				final A_Fiber fiber = newLoaderFiber(
+					booleanType(),
 					loader,
-					() -> StringDescriptor.format(
-						"Check lexer filter %s for U+%x",
+					() -> formatString(
+						"Check lexer filter %s for U+%04x",
 						lexer.lexerMethod().chooseBundle(loader.module())
 							.message().atomName(),
 						codePoint));
 				Continuation1NotNull<AvailObject> fiberSuccess = boolValue ->
 				{
-					assert boolValue != null && boolValue.isBoolean();
+					assert boolValue.isBoolean();
 					final boolean countdownHitZero;
 					synchronized (joinLock)
 					{
@@ -415,10 +427,9 @@ public final class AvailLoader
 					}
 					if (countdownHitZero)
 					{
-						// This was the fiber reporting the last
-						// result.
+						// This was the fiber reporting the last result.
 						continuation.value(
-							SetDescriptor.fromCollection(applicableLexers),
+							setFromCollection(applicableLexers),
 							failureMap.value);
 					}
 				};
@@ -441,7 +452,7 @@ public final class AvailLoader
 						// This was the fiber reporting the last
 						// result (a fiber failure).
 						continuation.value(
-							SetDescriptor.fromCollection(applicableLexers),
+							setFromCollection(applicableLexers),
 							failureMap.value);
 					}
 				};
@@ -558,7 +569,7 @@ public final class AvailLoader
 
 	/**
 	 * Answer the {@linkplain ModuleDescriptor module} undergoing loading by
-	 * this {@linkplain AvailLoader loader}.
+	 * this {@code AvailLoader}.
 	 *
 	 * @return A module.
 	 */
@@ -615,29 +626,27 @@ public final class AvailLoader
 
 	/**
 	 * The {@linkplain TextInterface text interface} for any {@linkplain A_Fiber
-	 * fibers} started by this {@linkplain AvailLoader loader}.
+	 * fibers} started by this {@code AvailLoader}.
 	 */
 	@InnerAccess final TextInterface textInterface;
 
 	/**
 	 * The {@linkplain MessageBundleTreeDescriptor message bundle tree} that
-	 * this {@linkplain AvailLoader loader} is using to parse its {@linkplain
+	 * this {@code AvailLoader} is using to parse its {@linkplain
 	 * ModuleDescriptor module}.
 	 */
 	@InnerAccess @Nullable A_BundleTree rootBundleTree;
 
 	/**
 	 * Answer the {@linkplain MessageBundleTreeDescriptor message bundle tree}
-	 * that this {@linkplain AvailLoader loader} is using to parse its
+	 * that this {@code AvailLoader} is using to parse its
 	 * {@linkplain ModuleDescriptor module}.
 	 *
 	 * @return A message bundle tree.
 	 */
 	public A_BundleTree rootBundleTree ()
 	{
-		final A_BundleTree tree = rootBundleTree;
-		assert tree != null;
-		return tree;
+		return stripNull(rootBundleTree);
 	}
 
 	/**
@@ -743,11 +752,11 @@ public final class AvailLoader
 	}
 
 	/**
-	 * Construct a new {@link AvailLoader}.
+	 * Construct a new {@code AvailLoader}.
 	 *
 	 * @param module
 	 *        The Avail {@linkplain ModuleDescriptor module} undergoing loading
-	 *        by this {@linkplain AvailLoader loader}.
+	 *        by this {@code AvailLoader}.
 	 * @param textInterface
 	 *        The {@linkplain TextInterface text interface} for any {@linkplain
 	 *        A_Fiber fibers} started by this loader.
@@ -767,7 +776,7 @@ public final class AvailLoader
 	}
 
 	/**
-	 * Create an {@link AvailLoader} suitable for unloading the specified
+	 * Create an {@code AvailLoader} suitable for unloading the specified
 	 * {@linkplain ModuleDescriptor module}.
 	 *
 	 * @param module
@@ -1383,10 +1392,9 @@ public final class AvailLoader
 					final A_Fiber fiber = FiberDescriptor.newFiber(
 						Types.TOP.o(),
 						FiberDescriptor.loaderPriority,
-						() -> StringDescriptor.format(
-							"Unload function #%d for module %s",
-							index,
-							module().moduleName()));
+						() ->
+							formatString("Unload function #%d for module %s",
+								index, module().moduleName()));
 					fiber.textInterface(textInterface);
 					fiber.resultContinuation(
 						unused ->

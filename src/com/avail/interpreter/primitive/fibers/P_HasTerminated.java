@@ -32,6 +32,9 @@
 
 package com.avail.interpreter.primitive.fibers;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -72,8 +75,8 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FiberTypeDescriptor.mostGeneralFiberType()),
-			EnumerationTypeDescriptor.booleanType());
+			tuple(
+				mostGeneralFiberType()),
+			booleanType());
 	}
 }

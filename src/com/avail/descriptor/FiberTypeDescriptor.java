@@ -32,14 +32,16 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.FiberTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import java.util.IdentityHashMap;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.FiberTypeDescriptor.ObjectSlots.RESULT_TYPE;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
  * {@code FiberTypeDescriptor} represents the type of a {@linkplain

@@ -32,17 +32,22 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static java.lang.Math.*;
-import java.nio.ByteBuffer;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
+
+import java.nio.ByteBuffer;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObject.newLike;
+import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots
+	.RAW_LONG_AT_;
+import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static java.lang.Math.min;
 
 /**
  * {@code ByteTupleDescriptor} represents a tuple of integers that happen to

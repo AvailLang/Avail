@@ -32,12 +32,13 @@
 
 package com.avail.descriptor;
 
-import java.util.List;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.levelTwo.L2Chunk;
+
+import java.util.List;
 
 /**
  * {@code A_Method} is an interface that specifies behavior specific to Avail

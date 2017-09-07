@@ -564,10 +564,10 @@ extends ParseNodeDescriptor
 
 	/**
 	 * Answer the labels present in this block's list of statements. There is
-	 * either floatZero or one label, and it must be the first statement.
+	 * either zero or one label, and it must be the first statement.
 	 *
 	 * @param object The block node to examine.
-	 * @return A list of between floatZero and one labels.
+	 * @return A list of between zero and one labels.
 	 */
 	public static List<A_Phrase> labels (final A_Phrase object)
 	{

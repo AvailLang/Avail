@@ -33,6 +33,8 @@
 package com.avail.interpreter.primitive.fibers;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -82,9 +84,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+			tuple(
 				ATOM.o()),
-			EnumerationTypeDescriptor.booleanType());
+			booleanType());
 	}
 
 

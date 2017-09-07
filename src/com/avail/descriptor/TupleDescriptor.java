@@ -32,17 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.TupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.util.Collections.min;
-import static java.util.Collections.max;
-import java.nio.ByteBuffer;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
@@ -51,7 +40,25 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+import static java.util.Collections.max;
+import static java.util.Collections.min;
 
 /**
  * {@code TupleDescriptor} is an abstract descriptor class under which all tuple
@@ -430,14 +437,12 @@ extends Descriptor
 			return true;
 		}
 		final A_Type defaultTypeObject = aTypeObject.defaultType();
-		if (!defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(ANY))
+		if (defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(ANY))
 		{
-			return object.tupleElementsInRangeAreInstancesOf(
-				breakIndex + 1,
-				tupleSize,
-				defaultTypeObject);
+			return true;
 		}
-		return true;
+		return object.tupleElementsInRangeAreInstancesOf(
+			breakIndex + 1, tupleSize, defaultTypeObject);
 	}
 
 	/**
@@ -1131,7 +1136,7 @@ extends Descriptor
 		int index = 1;
 
 		/**
-		 * Construct a new {@link TupleIterator} on the given {@linkplain
+		 * Construct a new {@code TupleIterator} on the given {@linkplain
 		 * TupleDescriptor tuple}.
 		 *
 		 * @param tuple The tuple to iterate over.
@@ -1298,7 +1303,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Return the empty {@linkplain TupleDescriptor tuple}.  Other empty tuples
+	 * Return the empty {@code TupleDescriptor tuple}.  Other empty tuples
 	 * can be created, but if you know the tuple is empty you can save time and
 	 * space by returning this one.
 	 *
@@ -1382,8 +1387,7 @@ extends Descriptor
 	public static <X extends A_BasicObject> List<X> toList (
 		final A_Tuple tuple)
 	{
-		final List<X> list =
-			new ArrayList<>(tuple.tupleSize());
+		final List<X> list = new ArrayList<>(tuple.tupleSize());
 		for (final AvailObject element : tuple)
 		{
 			list.add((X) element);
@@ -1393,7 +1397,7 @@ extends Descriptor
 
 	/**
 	 * Construct an {@linkplain AvailObject AvailObject[]} from the specified
-	 * {@linkplain TupleDescriptor tuple}. The elements are not made immutable.
+	 * {@link A_Tuple}. The elements are not made immutable.
 	 *
 	 * @param tuple
 	 *        A tuple.
@@ -1573,7 +1577,7 @@ extends Descriptor
 	static final int preToggle = 0x71E570A6;
 
 	/**
-	 * Construct a new {@link TupleDescriptor}.
+	 * Construct a new {@code TupleDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

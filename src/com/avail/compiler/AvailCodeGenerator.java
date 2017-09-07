@@ -32,22 +32,36 @@
 
 package com.avail.compiler;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
-import java.io.ByteArrayOutputStream;
-import java.util.*;
-import java.util.Map.Entry;
-
-import com.avail.utility.Generator;
-import javax.annotation.Nullable;
 import com.avail.compiler.instruction.*;
 import com.avail.descriptor.*;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
-import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
+import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
+import com.avail.utility.Generator;
+
+import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind
+	.ARGUMENT;
+import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind
+	.LABEL;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.ASSIGNMENT_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LABEL_NODE;
 
 /**
  * An {@link AvailCodeGenerator} is used to convert a {@linkplain
@@ -401,7 +415,7 @@ public final class AvailCodeGenerator
 		}
 		final A_Tuple outerTuple = TupleDescriptor.tuple(outerArray);
 		final A_Type functionType =
-			FunctionTypeDescriptor.create(argsTuple, resultType, exceptionSet);
+			FunctionTypeDescriptor.functionType(argsTuple, resultType, exceptionSet);
 		final A_RawFunction code = CompiledCodeDescriptor.create(
 			nybbleTuple.makeShared(),
 			varMap.size() - numArgs,

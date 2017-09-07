@@ -32,25 +32,29 @@
 
 package com.avail.compiler;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
-import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 import com.avail.AvailRuntime;
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.MapDescriptor.Entry;
-import javax.annotation.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.MalformedSerialStreamException;
 import com.avail.serialization.Serializer;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.MESSAGE_BUNDLE_KEY;
+import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 
 /**
  * A module's header information.
@@ -278,7 +282,7 @@ public class ModuleHeader
 		final AvailRuntime runtime)
 	{
 		final ModuleNameResolver resolver = runtime.moduleNameResolver();
-		module.versions(SetDescriptor.fromCollection(versions));
+		module.versions(setFromCollection(versions));
 
 		for (final A_String name : exportedNames)
 		{

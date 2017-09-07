@@ -41,6 +41,8 @@ import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 
+import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+
 /**
  * {@code StringDescriptor} has Avail strings as its instances. The actual
  * representation of Avail strings is determined by subclasses.
@@ -102,8 +104,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Convert the specified Java {@link String} to an Avail {@linkplain
-	 * StringDescriptor string}.
+	 * Convert the specified Java {@link String} to an Avail {@link A_String}.
 	 *
 	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual
 	 * instance returned varies with the contents of the Java {@code String}. If
@@ -112,7 +113,7 @@ extends TupleDescriptor
 	 * {@link TwoByteStringDescriptor}.</p>
 	 *
 	 * @param aNativeString A Java {@link String}.
-	 * @return A corresponding Avail {@linkplain StringDescriptor string}.
+	 * @return A corresponding Avail {@code StringDescriptor string}.
 	 */
 	public static A_String stringFrom (final String aNativeString)
 	{
@@ -154,7 +155,7 @@ extends TupleDescriptor
 				{
 					final int codePoint = aNativeString.codePointAt(charIndex);
 					charIndex += Character.charCount(codePoint);
-					return CharacterDescriptor.fromCodePoint(codePoint);
+					return fromCodePoint(codePoint);
 				}
 			});
 	}
@@ -169,7 +170,9 @@ extends TupleDescriptor
 	 * @param args The arguments to substitute into the pattern.
 	 * @return An Avail string.
 	 */
-	public static A_String format (final String pattern, final Object... args)
+	public static A_String formatString (
+		final String pattern,
+		final Object... args)
 	{
 		return stringFrom(String.format(pattern, args));
 	}
@@ -189,8 +192,7 @@ extends TupleDescriptor
 		final int size,
 		final Generator<Character> generator)
 	{
-		return ByteStringDescriptor.generateByteString(
-			size, generator);
+		return ByteStringDescriptor.generateByteString(size, generator);
 	}
 
 	/**
@@ -208,8 +210,7 @@ extends TupleDescriptor
 		final int size,
 		final Generator<Character> generator)
 	{
-		return TwoByteStringDescriptor.generateTwoByteString(
-			size, generator);
+		return TwoByteStringDescriptor.generateTwoByteString(size, generator);
 	}
 
 	/**

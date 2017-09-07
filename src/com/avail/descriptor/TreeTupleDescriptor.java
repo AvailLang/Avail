@@ -35,12 +35,19 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.TreeTupleDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.Mutability.*;
-import static java.lang.Math.*;
 import java.nio.ByteBuffer;
+
+import static com.avail.descriptor.AvailObject.newLike;
+import static com.avail.descriptor.AvailObject
+	.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots
+	.CUMULATIVE_SIZES_AREA_;
+import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.TreeTupleDescriptor.ObjectSlots.SUBTUPLE_AT_;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * A tree tuple is a tuple organized as a constant height tree, similar to the

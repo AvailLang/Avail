@@ -90,5 +90,5 @@ Semantic restriction "_queens" is
 Test "eight queens" in backtracking test suite is
 [
 	solution : <[1..8]…|8> := 8 queens;
-	Require: solution = <1, 3, 5, 2, 8, 6, 4, 7>;
+	Require: solution = <1, 5, 8, 6, 3, 7, 2, 4>;
 ];

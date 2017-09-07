@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.primitive.methods;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -68,8 +70,8 @@ public final class P_BundleHasRestrictions extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+			tuple(
 				MESSAGE_BUNDLE.o()),
-			EnumerationTypeDescriptor.booleanType());
+			booleanType());
 	}
 }

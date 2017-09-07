@@ -48,7 +48,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
- * distinguished tuple all other objects by the fact of its creation event and
+ * distinguished from all other objects by the fact of its creation event and
  * the history of what happens to its references.  Not all objects in Avail have
  * that property (hence the acronym Advanced Value And Identity Language),
  * unlike most object-oriented programming languages.
@@ -61,7 +61,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
  * the properties information, but adding a property causes it to transform (via
  * {@link AvailObject#becomeIndirectionTo(A_BasicObject)} into a {@code
  * AtomWithPropertiesDescriptor representation} that has a slot which contains
- * a map tuple property keys to property values.
+ * a map from property keys to property values.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -122,7 +122,7 @@ extends AtomDescriptor
 		ISSUING_MODULE,
 
 		/**
-		 * A weak map tuple this atom's property keys (atoms) to property values.
+		 * A weak map from this atom's property keys (atoms) to property values.
 		 */
 		PROPERTY_MAP_POJO;
 

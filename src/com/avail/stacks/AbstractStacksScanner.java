@@ -32,9 +32,11 @@
 
 package com.avail.stacks;
 
-import java.util.ArrayList;
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
+import com.avail.descriptor.CharacterDescriptor;
+import com.avail.descriptor.CommentTokenDescriptor;
+
+import java.util.ArrayList;
 
 /**
  * The basics of a Stacks scanner.

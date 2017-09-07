@@ -33,6 +33,10 @@
 package com.avail.interpreter.primitive.sockets;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -98,9 +102,8 @@ extends Primitive
 		final A_Fiber newFiber = FiberDescriptor.newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			() -> StringDescriptor.format(
-				"Socket read, %s",
-				handle.atomName()));
+			() ->
+				formatString("Socket read, %s", handle.atomName()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -178,9 +181,9 @@ extends Primitive
 				ATOM.o(),
 				FunctionTypeDescriptor.functionType(
 					TupleDescriptor.tuple(
-						TupleTypeDescriptor.zeroOrMoreOf(
-							IntegerRangeTypeDescriptor.bytes()),
-						EnumerationTypeDescriptor.booleanType()),
+						zeroOrMoreOf(
+							bytes()),
+						booleanType()),
 					TOP.o()),
 				FunctionTypeDescriptor.functionType(
 					TupleDescriptor.tuple(

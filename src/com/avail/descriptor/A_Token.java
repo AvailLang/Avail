@@ -36,6 +36,7 @@ import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
+
 import javax.annotation.Nullable;
 
 

@@ -32,6 +32,18 @@
 
 package com.avail.stacks;
 
+import com.avail.AvailRuntime;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.compiler.ModuleHeader;
+import com.avail.compiler.ModuleImport;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.CommentTokenDescriptor;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.utility.IO;
+import com.avail.utility.Pair;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -45,17 +57,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
-import com.avail.AvailRuntime;
-import com.avail.builder.ModuleName;
-import com.avail.builder.ModuleNameResolver;
-import com.avail.compiler.ModuleHeader;
-import com.avail.compiler.ModuleImport;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.CommentTokenDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.utility.IO;
-import com.avail.utility.Pair;
 
 /**
  * An Avail documentation generator.  It takes tokenized method/class comments

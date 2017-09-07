@@ -31,6 +31,9 @@
  */
 package com.avail.interpreter.primitive.maps;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -67,9 +70,9 @@ public final class P_KeyInMap extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+			tuple(
 				ANY.o(),
-				MapTypeDescriptor.mostGeneralMapType()),
-			EnumerationTypeDescriptor.booleanType());
+				mostGeneralMapType()),
+			booleanType());
 	}
 }

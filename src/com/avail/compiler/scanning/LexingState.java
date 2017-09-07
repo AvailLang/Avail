@@ -30,14 +30,12 @@
  */
 
 package com.avail.compiler.scanning;
-import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.CompilationContext;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
-import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Interpreter;
@@ -47,17 +45,25 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
 import com.avail.utility.evaluation.Transformer1;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.String.format;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * {@link LexingState} instances represent the lexing state between tokens.
@@ -92,7 +98,7 @@ public class LexingState
 	 * <p>This is generally {@code null} until it has been computed by lexing
 	 * fibers.</p>
 	 */
-	@InnerAccess List<A_Token> nextTokens = null;
+	private @Nullable List<A_Token> nextTokens = null;
 
 	/**
 	 * The collection of actions that should run when the {@link #nextTokens}
@@ -102,11 +108,11 @@ public class LexingState
 	 * running the waiting actions.  Newer actions are launched upon arrival
 	 * after the tokens have been computed.</p>
 	 */
-	@InnerAccess List<Continuation1NotNull<List<A_Token>>> actions =
+	private  @Nullable List<Continuation1NotNull<List<A_Token>>> actions =
 		new ArrayList<>();
 
 	/**
-	 * Construct a new immutable {@link LexingState}.  It starts in a state
+	 * Construct a new immutable {@code LexingState}.  It starts in a state
 	 * where the potential tokens at this position have not yet been computed,
 	 * and no actions have been queued to run against that eventual list of
 	 * tokens.
@@ -190,12 +196,12 @@ public class LexingState
 	public synchronized void withTokensDo (
 		final Continuation1NotNull<List<A_Token>> newAction)
 	{
+		final List<A_Token> theNextTokens;
 		if (actions == null)
 		{
 			// The complete list of tokens was already computed, and actions
 			// that arrived before that completed have already been started.
-			assert nextTokens != null;
-			workUnitDo(() -> newAction.value(nextTokens));
+			workUnitDo(newAction, stripNull(nextTokens));
 			return;
 		}
 		// Postpone the action until the tokens have been computed.
@@ -209,7 +215,8 @@ public class LexingState
 		}
 		// This was the first action, so launch the lexers to produce the list
 		// of nextTokens and then run the queued actions.
-		nextTokens = new ArrayList<>(2);
+		theNextTokens = new ArrayList<>(2);
+		nextTokens = theNextTokens;
 		final LexicalScanner scanner =
 			compilationContext.loader().lexicalScanner();
 		final A_String source = compilationContext.source();
@@ -217,17 +224,17 @@ public class LexingState
 		{
 			// The end of the source code.  Produce an end-of-file token.
 			assert position == source.tupleSize() + 1;
-			nextTokens.add(
+			theNextTokens.add(
 				TokenDescriptor.create(
-					TupleDescriptor.emptyTuple(),
-					TupleDescriptor.emptyTuple(),
-					TupleDescriptor.emptyTuple(),
+					emptyTuple(),
+					emptyTuple(),
+					emptyTuple(),
 					position,
 					lineNumber,
-					TokenType.END_OF_FILE));
+					END_OF_FILE));
 			for (final Continuation1NotNull<List<A_Token>> action : actions)
 			{
-				workUnitDo(() -> action.value(nextTokens));
+				workUnitDo(action, theNextTokens);
 			}
 			actions = null;
 			return;
@@ -237,64 +244,56 @@ public class LexingState
 		scanner.getLexersForCodePointThen(
 			this,
 			codePoint,
-			applicableLexers ->
+			this::evaluateLexers,
+			this::reportLexerFilterFailures);
+	}
+
+	/**
+	 * The lexer filters
+	 * A lexer has just run and produced zero or more tokens at this position.
+	 *
+	 * @param applicableLexers
+	 *        The lexers that passed their filter functions.
+	 */
+	private synchronized void evaluateLexers (
+		final A_Tuple applicableLexers)
+	{
+		final List<A_Token> theNextTokens = stripNull(nextTokens);
+		if (applicableLexers.tupleSize() == 0)
+		{
+			// No applicable lexers.
+			final LexicalScanner scanner =
+				compilationContext.loader().lexicalScanner();
+			final int codePoint =
+				compilationContext.source().tupleCodePointAt(position);
+			expected(
+				format(
+					"an applicable lexer, but all %d filter functions returned "
+						+ "false.  Code point = \'%c\' (U+%2$04x).",
+					scanner.allVisibleLexers.size(),
+					codePoint));
+			for (final Continuation1NotNull<List<A_Token>> action
+				: stripNull(actions))
 			{
-				synchronized (LexingState.this)
-				{
-					if (applicableLexers.tupleSize() == 0)
-					{
-						// No applicable lexers.
-						expected(
-							"an applicable lexer, but all ("
-								+ scanner.allVisibleLexers.size()
-								+ ") filter functions returned false"
-								+ " (code point = " + codePoint + ").");
-						for (final Continuation1NotNull<List<A_Token>> action
-							: actions)
-						{
-							workUnitDo(action, nextTokens);
-						}
-						actions = null;
-						return;
-					}
-					// There's at least one applicable lexer.  Launch
-					// fibers which, when the last one completes, will
-					// capture the list of tokens and run the actions.
-					final AtomicInteger countdown =
-						new AtomicInteger(applicableLexers.tupleSize());
-					final List<A_BasicObject> arguments =
-						Arrays.asList(
-							compilationContext.source(),
-							IntegerDescriptor.fromInt(position),
-							IntegerDescriptor.fromInt(lineNumber));
-					for (final A_Lexer lexer : applicableLexers)
-					{
-						evaluateLexerAndRunActionsWhenZero(
-							lexer, arguments, countdown);
-					}
-				}
-			},
-			filterFailures ->
-			{
-				for (final Entry<A_Lexer, Throwable> entry
-					: filterFailures.entrySet())
-				{
-					expected(
-						afterDescribing ->
-						{
-							final StringWriter stringWriter =
-								new StringWriter();
-							entry.getValue().printStackTrace(
-								new PrintWriter(stringWriter));
-							final String text = String.format(
-								"%s not to have failed while "
-								+ "evaluating its filter function:\n%s",
-								entry.getKey().toString(),
-								stringWriter.toString());
-							afterDescribing.value(text);
-						});
-				}
-			});
+				workUnitDo(action, theNextTokens);
+			}
+			actions = null;
+			return;
+		}
+		// There's at least one applicable lexer.  Launch
+		// fibers which, when the last one completes, will
+		// capture the list of tokens and run the actions.
+		final AtomicInteger countdown =
+			new AtomicInteger(applicableLexers.tupleSize());
+		final List<A_BasicObject> arguments =
+			Arrays.asList(
+				compilationContext.source(),
+				fromInt(position),
+				fromInt(lineNumber));
+		for (final A_Lexer lexer : applicableLexers)
+		{
+			evaluateLexerAndRunActionsWhenZero(lexer, arguments, countdown);
+		}
 	}
 
 	@InnerAccess void evaluateLexerAndRunActionsWhenZero (
@@ -306,17 +305,18 @@ public class LexingState
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			LexerDescriptor.lexerBodyFunctionType().returnType(),
 			loader,
-			() -> StringDescriptor.format(
-				"Lexer body on line %d for %s.", lineNumber, lexer));
+			() ->
+				formatString("Lexer body on line %d for %s.", lineNumber,
+					lexer));
 		// TODO MvG - Set up fiber variables for lexing?
 //		A_Map fiberGlobals = fiber.fiberGlobals();
 //		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 //			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
 //		fiber.fiberGlobals(fiberGlobals);
 		fiber.textInterface(compilationContext.getTextInterface());
-		Continuation1NotNull<AvailObject> onSuccess =
+		final Continuation1NotNull<AvailObject> onSuccess =
 			newTokens -> lexerBodyWasSuccessful(newTokens, countdown);
-		Continuation1NotNull<Throwable> onFailure =
+		final Continuation1NotNull<Throwable> onFailure =
 			throwable ->
 			{
 				if (throwable instanceof AvailRejectedParseException)
@@ -332,7 +332,7 @@ public class LexingState
 					{
 						final StringWriter writer = new StringWriter();
 						throwable.printStackTrace(new PrintWriter(writer));
-						final String text = String.format(
+						final String text = format(
 							"%s not to have failed while "
 								+ "evaluating its body:\n%s",
 							lexer.toString(),
@@ -340,24 +340,17 @@ public class LexingState
 						afterDescribing.value(text);
 					});
 			};
-		if (compilationContext.getNoMoreWorkUnits() != null)
-		{
-			// Wrap onSuccess and onFailure to maintain queued/completed counts.
-			compilationContext.startWorkUnit();
-			final AtomicBoolean oneWay = new AtomicBoolean();
-			onSuccess = compilationContext.workUnitCompletion(
-				this, oneWay, onSuccess);
-			onFailure = compilationContext.workUnitCompletion(
-				this, oneWay, onFailure);
-		}
-		fiber.resultContinuation(onSuccess);
-		fiber.failureContinuation(onFailure);
+		assert compilationContext.getNoMoreWorkUnits() != null;
+		// Wrap onSuccess and onFailure to maintain queued/completed counts.
+		compilationContext.startWorkUnit();
+		final AtomicBoolean oneWay = new AtomicBoolean();
+		fiber.resultContinuation(
+			compilationContext.workUnitCompletion(this, oneWay, onSuccess));
+		fiber.failureContinuation(
+			compilationContext.workUnitCompletion(this, oneWay, onFailure));
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		Interpreter.runOutermostFunction(
-			loader.runtime(),
-			fiber,
-			lexer.lexerBodyFunction(),
-			arguments);
+			loader.runtime(), fiber, lexer.lexerBodyFunction(), arguments);
 	}
 
 	/**
@@ -372,29 +365,50 @@ public class LexingState
 	 *        successful invocation (not each token), then runs all outstanding
 	 *        actions once.
 	 */
-	final void lexerBodyWasSuccessful (
+	final synchronized void lexerBodyWasSuccessful (
 		final A_Tuple newTokens,
 		final AtomicInteger countdown)
 	{
-		synchronized (this)
+		final List<A_Token> theNextTokens = stripNull(nextTokens);
+		for (final A_Token token : newTokens)
 		{
-			for (final A_Token token : newTokens)
-			{
-				nextTokens.add(token);
-			}
+			theNextTokens.add(token);
 		}
-		if (countdown.decrementAndGet() != 0)
+		if (countdown.decrementAndGet() == 0)
 		{
-			return;
-		}
-		// We just heard from the last lexer.  Run the actions once.
-		synchronized (this)
-		{
-			for (final Continuation1NotNull<List<A_Token>> action : actions)
+			// We just heard from the last lexer.  Run the actions once.
+			for (final Continuation1NotNull<List<A_Token>> action
+				: stripNull(actions))
 			{
-				workUnitDo(() -> action.value(nextTokens));
+				workUnitDo(action, theNextTokens);
 			}
 			actions = null;
+		}
+	}
+
+	/**
+	 * Record the fact that at least one filter body failed.
+	 *
+	 * @param filterFailures
+	 *        A non-empty map from each failed {@link A_Lexer} to the {@link
+	 *        Throwable} that it threw.
+	 */
+	private void reportLexerFilterFailures (
+		final Map<A_Lexer, Throwable> filterFailures)
+	{
+		for (final Entry<A_Lexer, Throwable> entry : filterFailures.entrySet())
+		{
+			expected(afterDescribing ->
+			{
+				final StringWriter stringWriter = new StringWriter();
+				entry.getValue().printStackTrace(new PrintWriter(stringWriter));
+				final String text = format(
+					"%s not to have failed while evaluating its filter "
+						+ "function:\n%s",
+					entry.getKey().toString(),
+					stringWriter.toString());
+				afterDescribing.value(text);
+			});
 		}
 	}
 
@@ -413,7 +427,7 @@ public class LexingState
 	{
 		return nextTokens == null
 			? null
-			: Collections.unmodifiableList(new ArrayList<>(nextTokens));
+			: unmodifiableList(new ArrayList<>(nextTokens));
 	}
 
 	/**
@@ -452,11 +466,12 @@ public class LexingState
 		final List<? extends A_BasicObject> values,
 		final Transformer1<List<String>, String> transformer)
 	{
-		expected(continuation -> Interpreter.stringifyThen(
-			AvailRuntime.current(),
-			compilationContext.getTextInterface(),
-			values,
-			list -> continuation.value(transformer.value(list))));
+		expected(continuation ->
+			Interpreter.stringifyThen(
+				compilationContext.loader().runtime(),
+				compilationContext.getTextInterface(),
+				values,
+				list -> continuation.value(transformer.value(list))));
 	}
 
 	/**

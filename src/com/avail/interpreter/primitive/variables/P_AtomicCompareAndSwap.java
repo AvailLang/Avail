@@ -32,7 +32,10 @@
 
 package com.avail.interpreter.primitive.variables;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -84,11 +87,11 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				VariableTypeDescriptor.mostGeneralVariableType(),
+			tuple(
+				mostGeneralVariableType(),
 				ANY.o(),
 				ANY.o()),
-			EnumerationTypeDescriptor.booleanType());
+			booleanType());
 	}
 
 	@Override

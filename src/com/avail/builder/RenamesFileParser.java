@@ -32,17 +32,17 @@
 
 package com.avail.builder;
 
+import com.avail.annotations.InnerAccess;
+import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.ModuleDescriptor;
+
+import javax.annotation.Nullable;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.MalformedInputException;
 import java.util.Map;
-
-import com.avail.annotations.InnerAccess;
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.ModuleDescriptor;
-import javax.annotation.Nullable;
 
 /**
  * A {@code RenamesFileParser} parses a {@linkplain File file} of Avail

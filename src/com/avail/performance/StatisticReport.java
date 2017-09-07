@@ -32,17 +32,17 @@
 
 package com.avail.performance;
 
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MessageBundleTreeDescriptor;
+import com.avail.utility.Pair;
+
+import javax.annotation.Nullable;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MessageBundleTreeDescriptor;
-import javax.annotation.Nullable;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.utility.Pair;
 
 /**
  * The statistic reports requested of the compiler:
@@ -77,13 +77,13 @@ public enum StatisticReport
 	 * A_Module) expanding} ParsingOperations.
 	 */
 	EXPANDING_PARSING_INSTRUCTIONS
+	{
+		@Override
+		public String keyword ()
 		{
-			@Override
-			public String keyword ()
-			{
-				return "Expanding Parsing Operations";
-			}
-		},
+			return "Expanding Parsing Operations";
+		}
+	},
 
 	/** Level-Two Operations report. */
 	L2_OPERATIONS
@@ -91,7 +91,7 @@ public enum StatisticReport
 		@Override
 		public String keyword ()
 		{
-			return "L2Operations";
+			return "L2 Operations";
 		}
 	},
 
@@ -101,7 +101,7 @@ public enum StatisticReport
 		@Override
 		public String keyword ()
 		{
-			return "DynamicLookups";
+			return "Dynamic Lookups";
 		}
 	},
 
@@ -121,32 +121,7 @@ public enum StatisticReport
 		@Override
 		public String keyword ()
 		{
-			return "PrimitiveReturnTypeChecks";
-		}
-	},
-
-	/** Report for outermost statements of modules that are loaded. */
-	TOP_LEVEL_STATEMENTS
-	{
-		@Override
-		public String keyword ()
-		{
-			return "TopLevelStatements";
-		}
-	},
-
-	/**
-	 * The Non-primitive Return Type Checks report.  This collects timings for
-	 * non-primitive returns that had to check the type of the return result,
-	 * summarized as L1 (unoptimized) versus L2 (optimized) code doing the
-	 * returning.
-	 */
-	NON_PRIMITIVE_RETURN_LEVELS
-	{
-		@Override
-		public String keyword ()
-		{
-			return "ReturnTypeChecksSummary";
+			return "Primitive Return Type Checks";
 		}
 	},
 
@@ -161,7 +136,17 @@ public enum StatisticReport
 		@Override
 		public String keyword ()
 		{
-			return "NonprimitiveReturnTypeChecksDetail";
+			return "Nonprimitive Return Type Checks";
+		}
+	},
+
+	/** Report for outermost statements of modules that are loaded. */
+	TOP_LEVEL_STATEMENTS
+	{
+		@Override
+		public String keyword ()
+		{
+			return "Top Level Statements";
 		}
 	};
 
@@ -242,11 +227,10 @@ public enum StatisticReport
 			final PerInterpreterStatistic aggregate = stat.aggregate();
 			if (aggregate.count() > 0)
 			{
-				namedSnapshots.add(
-					new Pair<>(
-						stat.name(), aggregate));
+				namedSnapshots.add(new Pair<>(stat.name(), aggregate));
 			}
 		}
+		final Collator collator = Collator.getInstance();
 		namedSnapshots.sort((pair1, pair2) ->
 		{
 			assert pair1 != null && pair2 != null;
@@ -255,8 +239,7 @@ public enum StatisticReport
 			{
 				return byStat;
 			}
-			return Collator.getInstance().compare(
-				pair1.first(), pair2.first());
+			return collator.compare(pair1.first(), pair2.first());
 		});
 		return namedSnapshots;
 	}
@@ -280,6 +263,16 @@ public enum StatisticReport
 			builder.append('\n');
 			final List<Pair<String, PerInterpreterStatistic>> pairs =
 				report.sortedPairs();
+			if (!pairs.isEmpty())
+			{
+				final PerInterpreterStatistic total =
+					new PerInterpreterStatistic();
+				for (final Pair<String, PerInterpreterStatistic> pair : pairs)
+				{
+					pair.second().addTo(total);
+				}
+				pairs.add(0, new Pair<>("TOTAL", total));
+			}
 			for (final Pair<String, PerInterpreterStatistic> pair : pairs)
 			{
 				pair.second().describeNanosecondsOn(builder);

@@ -32,17 +32,25 @@
 
 package com.avail.interpreter.levelTwo;
 
-import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.operation.L2_LABEL;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.optimizer.L2Translator;
-import com.avail.interpreter.levelTwo.operation.L2_LABEL;
-import com.avail.interpreter.levelTwo.register.*;
 import com.avail.optimizer.ReifyStackThrowable;
+
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
+
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.utility.Strings.increaseIndentation;
+import static java.lang.String.format;
 
 /**
  * A Level Two chunk represents an optimized implementation of a {@linkplain
@@ -215,7 +223,7 @@ public final class L2Chunk
 		{
 			return "Default chunk";
 		}
-		builder.append(String.format(
+		builder.append(format(
 			"Chunk #%08x%n",
 			System.identityHashCode(this)));
 		if (!isValid())
@@ -226,10 +234,10 @@ public final class L2Chunk
 			new L2InstructionDescriber();
 		for (final L2Instruction instruction : instructions)
 		{
-			builder.append(String.format("\t#%-3d ", instruction.offset()));
+			builder.append(format("\t#%-3d ", instruction.offset()));
 			final StringBuilder tempStream = new StringBuilder(100);
 			describer.describe(instruction, this, tempStream);
-			builder.append(tempStream.toString().replace("\n", "\n\t\t"));
+			builder.append(increaseIndentation(tempStream.toString(), 2));
 			builder.append("\n");
 		}
 		return builder.toString();
@@ -482,7 +490,7 @@ public final class L2Chunk
 		assert invalidationLock.isHeldByCurrentThread();
 		valid = false;
 		final A_Set contingents = contingentValues.makeImmutable();
-		contingentValues = SetDescriptor.emptySet();
+		contingentValues = emptySet();
 		for (final A_ChunkDependable value : contingents)
 		{
 			value.removeDependentChunk(this);
@@ -538,7 +546,24 @@ public final class L2Chunk
 			{
 				System.out.println("L2 start: " + instruction.operation.name());
 			}
-			instruction.action.value(interpreter);
+
+			final long timeBefore = System.nanoTime();
+			try
+			{
+				instruction.action.value(interpreter);
+			}
+			finally
+			{
+				// Even though some primitives may suspend the current fiber,
+				// the code still returns here after suspending.  Close enough.
+				// Also, this chunk may call other chunks (on the Java stack),
+				// so there will be multiple-counting of call instructions.
+				final long timeAfter = System.nanoTime();
+				instruction.operation.statisticInNanoseconds.record(
+					timeAfter - timeBefore,
+					interpreter.interpreterIndex);
+			}
+
 			if (Interpreter.debugL2)
 			{
 				System.out.println("L2 end: " + instruction.operation.name());

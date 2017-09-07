@@ -32,16 +32,20 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.*;
+import com.avail.utility.Generator;
+
 import javax.annotation.Nullable;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObject.newLike;
+import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.RAW_LONGS_;
+import static com.avail.descriptor.Mutability.*;
 
 /**
  * {@code ByteStringDescriptor} represents a string of Latin-1 characters.

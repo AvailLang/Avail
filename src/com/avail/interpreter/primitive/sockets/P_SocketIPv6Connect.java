@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.sockets;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -127,10 +128,9 @@ extends Primitive
 			() ->
 			{
 				// TODO Auto-generated method stub
-				return StringDescriptor.format(
-					"Socket IPv6 connect, %s:%d",
-					addressTuple.toString(),
-					port.extractInt());
+				return
+					formatString("Socket IPv6 connect, %s:%d",
+						addressTuple.toString(), port.extractInt());
 			});
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.

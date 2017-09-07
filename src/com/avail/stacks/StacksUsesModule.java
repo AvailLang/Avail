@@ -32,11 +32,12 @@
 
 package com.avail.stacks;
 
-import java.util.HashMap;
 import com.avail.descriptor.A_Map;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.StringDescriptor;
+
+import java.util.HashMap;
 
 /**
  * A grouping of all implementationGroups originating from the names section of

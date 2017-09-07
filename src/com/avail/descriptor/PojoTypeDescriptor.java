@@ -67,6 +67,7 @@ import static com.avail.descriptor.IntegerDescriptor.fromLong;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
@@ -1395,6 +1396,6 @@ extends TypeDescriptor
 		ancestors.add(canon.get(Object.class));
 		computeUnparameterizedAncestry(target, ancestors, canon);
 		return SelfPojoTypeDescriptor.create(
-			canon.get(target), SetDescriptor.fromCollection(ancestors));
+			canon.get(target), setFromCollection(ancestors));
 	}
 }

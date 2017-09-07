@@ -39,9 +39,7 @@ import com.avail.utility.json.JSONWriter;
 
 import java.nio.ByteBuffer;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObject.newIndexedDescriptor;
-import static com.avail.descriptor.AvailObject.newLike;
+import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.IntTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
 import static com.avail.descriptor.Mutability.*;

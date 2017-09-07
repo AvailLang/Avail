@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.methods;
 
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
@@ -104,7 +105,7 @@ extends Primitive
 			return interpreter.primitiveFailure(e);
 		}
 		function.code().setMethodName(
-			StringDescriptor.format("Semantic restriction of %s", string));
+			formatString("Semantic restriction of %s", string));
 		return interpreter.primitiveSuccess(NilDescriptor.nil());
 	}
 

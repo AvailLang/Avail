@@ -32,14 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
@@ -47,6 +39,23 @@ import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.FIELD_VALUES_;
+import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.KIND;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 
 /**
  * Avail {@linkplain ObjectTypeDescriptor user-defined object types} are novel.

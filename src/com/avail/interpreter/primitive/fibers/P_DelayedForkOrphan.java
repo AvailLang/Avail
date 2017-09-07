@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.fibers;
 
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -110,11 +111,10 @@ extends Primitive
 			() ->
 			{
 				final A_RawFunction code = function.code();
-				return StringDescriptor.format(
-					"Delayed fork orphan, %s, %s:%d",
-					code.methodName(),
-					code.module().moduleName(),
-					code.startingLineNumber());
+				return
+					formatString("Delayed fork orphan, %s, %s:%d",
+						code.methodName(), code.module().moduleName(),
+						code.startingLineNumber());
 			});
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.

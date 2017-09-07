@@ -32,11 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.TokenDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.TokenDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
@@ -44,7 +39,13 @@ import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.TokenDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.TokenDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 
 
 /**

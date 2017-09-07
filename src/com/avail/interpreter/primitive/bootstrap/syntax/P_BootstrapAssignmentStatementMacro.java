@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.bootstrap.syntax;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -130,19 +131,19 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		if (!declaration.declarationKind().isVariable())
 		{
 			throw new AvailRejectedParseException(
-				() -> StringDescriptor.format(
-					"a name of a variable, not a %s",
-					declarationFinal.declarationKind().nativeKindName()));
+				() ->
+					formatString("a name of a variable, not a %s",
+						declarationFinal.declarationKind().nativeKindName()));
 		}
 		if (!valueExpression.expressionType().isSubtypeOf(
 			declaration.declaredType()))
 		{
 			throw new AvailRejectedParseException(
-				() -> StringDescriptor.format(
-					"assignment expression's type (%s) "
-					+ "to match variable type (%s)",
-					valueExpression.expressionType(),
-					declarationFinal.declaredType()));
+				() ->
+					formatString("assignment expression's type (%s) "
+							+ "to match variable type (%s)",
+						valueExpression.expressionType(),
+						declarationFinal.declaredType()));
 		}
 		final A_Phrase assignment = AssignmentNodeDescriptor.from(
 			VariableUseNodeDescriptor.newUse(actualToken, declaration),

@@ -32,12 +32,13 @@
 
 package com.avail.stacks;
 
+import com.avail.utility.json.JSONWriter;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.avail.utility.json.JSONWriter;
 
 /**
  * A stacks token representing a bracketed region in the comment.  This region

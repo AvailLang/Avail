@@ -41,8 +41,11 @@ import com.avail.utility.json.JSONWriter;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.LexerDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.LexerDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.LexerDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.descriptor.TypeDescriptor.Types.LEXER;
 
 /**
@@ -121,9 +124,9 @@ extends Descriptor
 
 	private static final A_Type lexerFilterFunctionType =
 		FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				Types.CHARACTER.o()),
-			EnumerationTypeDescriptor.booleanType()
+			tuple(
+				CHARACTER.o()),
+			booleanType()
 		).makeShared();
 
 	public static A_Type lexerFilterFunctionType ()

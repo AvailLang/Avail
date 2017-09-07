@@ -32,14 +32,16 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.exceptions.ArithmeticException;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.utility.json.JSONWriter;
+
 import java.util.IdentityHashMap;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.exceptions.*;
-import com.avail.exceptions.ArithmeticException;
-import com.avail.utility.json.JSONWriter;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.LESS;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.MORE;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 
 /**
  * I represent the {@linkplain ExtendedIntegerDescriptor extended integers}

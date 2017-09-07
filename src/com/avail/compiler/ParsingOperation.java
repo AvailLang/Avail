@@ -32,19 +32,6 @@
 
 package com.avail.compiler;
 
-import static com.avail.compiler.AvailCompiler.Con;
-import static com.avail.compiler.ParsingConversionRule.*;
-import static com.avail.descriptor.LiteralNodeDescriptor.fromToken;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.VARIABLE_USE_NODE;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.utility.PrefixSharingList.append;
-import static com.avail.utility.PrefixSharingList.last;
-import static com.avail.utility.PrefixSharingList.withoutLast;
-import static com.avail.utility.StackPrinter.trace;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.avail.compiler.AvailCompiler.Con;
 import com.avail.compiler.AvailCompiler.PartialSubexpressionList;
 import com.avail.compiler.splitter.MessageSplitter;
@@ -54,7 +41,22 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.Describer;
+
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.avail.compiler.AvailCompiler.Con;
+import static com.avail.compiler.ParsingConversionRule.ruleNumber;
+import static com.avail.descriptor.LiteralNodeDescriptor.fromToken;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.VARIABLE_USE_NODE;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.utility.PrefixSharingList.*;
+import static com.avail.utility.StackPrinter.trace;
 
 /**
  * {@code ParsingOperation} describes the operations available for parsing Avail
@@ -1188,7 +1190,6 @@ public enum ParsingOperation
 				replacementExpression ->
 				{
 					assert sanityFlag.compareAndSet(false, true);
-					assert replacementExpression != null;
 					final List<A_Phrase> newArgsSoFar =
 						append(withoutLast(argsSoFar), replacementExpression);
 					compiler.eventuallyParseRestOfSendNode(
@@ -1208,7 +1209,6 @@ public enum ParsingOperation
 					// this can only happen during an expression
 					// evaluation.
 					assert sanityFlag.compareAndSet(false, true);
-					assert e != null;
 					start.expected(withString -> withString.value(
 						"evaluation of expression not to have "
 							+ "thrown Java exception:\n"

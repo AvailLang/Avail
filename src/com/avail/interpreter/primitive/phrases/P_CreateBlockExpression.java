@@ -84,7 +84,7 @@ extends Primitive
 		if (primitiveName.tupleSize() > 0)
 		{
 			final Primitive primitive =
-				Primitive.byName(primitiveName.asNativeString());
+				Primitive.primitiveByName(primitiveName.asNativeString());
 			if (primitive == null)
 			{
 				return interpreter.primitiveFailure(E_INVALID_PRIMITIVE_NUMBER);

@@ -33,6 +33,8 @@
 package com.avail.test;
 
 import javax.annotation.Nullable;
+
+import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static java.lang.Math.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -381,7 +383,7 @@ public final class SerializerTest
 					}
 					else if (choice == 3)
 					{
-						newObject = SetDescriptor.fromCollection(members);
+						newObject = setFromCollection(members);
 					}
 					else if (choice == 4)
 					{

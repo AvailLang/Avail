@@ -32,21 +32,25 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static java.lang.Math.*;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
-import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.Mutability.*;
-import java.math.BigInteger;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
-import com.avail.exceptions.*;
 import com.avail.exceptions.ArithmeticException;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.MarshalingException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.math.BigInteger;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObject.newLike;
+import static com.avail.descriptor.IntegerDescriptor.IntegerSlots
+	.RAW_LONG_SLOTS_;
+import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static java.lang.Math.*;
 
 /**
  * An Avail {@linkplain IntegerDescriptor integer} is represented by a little

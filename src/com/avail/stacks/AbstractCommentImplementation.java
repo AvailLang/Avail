@@ -32,11 +32,12 @@
 
 package com.avail.stacks;
 
+import com.avail.descriptor.A_String;
+import com.avail.utility.json.JSONWriter;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import com.avail.descriptor.A_String;
-import com.avail.utility.json.JSONWriter;
 
 /**
  * An Avail comment implementation

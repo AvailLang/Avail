@@ -32,13 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Set;
-
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
@@ -50,6 +43,14 @@ import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Set;
+
+import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_DEFINITION;
+import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
 
 /**
  * A {@linkplain ModuleDescriptor module} is the mechanism by which Avail code

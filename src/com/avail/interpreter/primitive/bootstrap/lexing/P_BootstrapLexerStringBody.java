@@ -35,13 +35,20 @@ package com.avail.interpreter.primitive.bootstrap.lexing;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -87,14 +94,14 @@ public final class P_BootstrapLexerStringBody extends Primitive
 					final A_Token token = LiteralTokenDescriptor.create(
 						(A_String) source.copyTupleFromToCanDestroy(
 							startPosition, scanner.position - 1, false),
-						TupleDescriptor.emptyTuple(),
-						TupleDescriptor.emptyTuple(),
+						emptyTuple(),
+						emptyTuple(),
 						startPosition,
 						startLineNumber,
-						TokenType.LITERAL,
-						StringDescriptor.stringFrom(builder.toString()));
+						LITERAL,
+						stringFrom(builder.toString()));
 					return interpreter.primitiveSuccess(
-						TupleDescriptor.tuple(token.makeShared()));
+						tuple(token.makeShared()));
 				case '\\':
 					if (!scanner.hasNext())
 					{
@@ -221,7 +228,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 
 		@InnerAccess boolean hasNext ()
 		{
-			return position < sourceSize;
+			return position <= sourceSize;
 		}
 
 		@InnerAccess int peek ()
@@ -320,12 +327,9 @@ public final class P_BootstrapLexerStringBody extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				Types.TOKEN.o()));
+		return functionType(tuple(
+			stringType(),
+			naturalNumbers(),
+			naturalNumbers()), zeroOrMoreOf(TOKEN.o()));
 	}
 }

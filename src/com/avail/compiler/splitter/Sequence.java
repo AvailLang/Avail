@@ -227,7 +227,7 @@ extends Expression
 	 * present or not along that path) until just before merging control flow.
 	 *
 	 * <p>Also capture the corresponding indices into the tuple type with each
-	 * expression in each run.  A floatZero indicates that no type is consumed for
+	 * expression in each run.  A zero indicates that no type is consumed for
 	 * that expression.</p>
 	 *
 	 * @return The runs of expressions within which to perform code splitting,

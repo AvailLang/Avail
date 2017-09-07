@@ -51,7 +51,7 @@ import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
-import static com.avail.descriptor.StringDescriptor.format;
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -172,13 +172,12 @@ extends Primitive
 							: prefixFunctions)
 						{
 							prefixFunction.code().setMethodName(
-								format("Macro prefix #%d of %s",
-									counter,
-									string));
+								formatString("Macro prefix #%d of %s",
+									counter, string));
 							counter++;
 						}
 						function.code().setMethodName(
-							format("Macro body of %s", string));
+							formatString("Macro body of %s", string));
 						Interpreter.resumeFromSuccessfulPrimitive(
 							AvailRuntime.current(),
 							fiber,

@@ -122,7 +122,7 @@ public class XMLConfiguratorState<
 	 * @param buffer
 	 *        A buffer containing character data.
 	 * @param start
-	 *        The floatZero-based offset of the first element of the buffer that
+	 *        The zero-based offset of the first element of the buffer that
 	 *        should be copied to the accumulator.
 	 * @param length
 	 *        The number of characters that should be copied to the

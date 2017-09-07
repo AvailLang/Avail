@@ -32,15 +32,17 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.descriptor.CharacterDescriptor.IntegerSlots.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.exceptions.MarshalingException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.Formatter;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.CharacterDescriptor.IntegerSlots.CODE_POINT;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 
 /**
  * {@code CharacterDescriptor} implements an Avail character. Avail characters

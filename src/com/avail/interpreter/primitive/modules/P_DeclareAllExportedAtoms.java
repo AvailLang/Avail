@@ -32,6 +32,9 @@
 
 package com.avail.interpreter.primitive.modules;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -88,10 +91,10 @@ extends Primitive
 	{
 		return FunctionTypeDescriptor.functionType(
 			TupleDescriptor.tuple(
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
+				setTypeForSizesContentType(
+					wholeNumbers(),
 					ATOM.o()),
-				EnumerationTypeDescriptor.booleanType()),
+				booleanType()),
 			TOP.o());
 	}
 }

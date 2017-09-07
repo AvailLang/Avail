@@ -613,7 +613,7 @@ extends Descriptor
 	 * @param collection A collection.
 	 * @return A new mutable set containing the elements of the collection.
 	 */
-	public static A_Set fromCollection (
+	public static A_Set setFromCollection (
 		final Collection<? extends A_BasicObject> collection)
 	{
 		A_Set set = emptySet();

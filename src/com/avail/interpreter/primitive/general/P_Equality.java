@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.primitive.general;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -157,9 +159,9 @@ public final class P_Equality extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+			tuple(
 				ANY.o(),
 				ANY.o()),
-			EnumerationTypeDescriptor.booleanType());
+			booleanType());
 	}
 }

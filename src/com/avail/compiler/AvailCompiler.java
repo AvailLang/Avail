@@ -35,39 +35,46 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
-import com.avail.compiler.scanning.LexingState;
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.AtomDescriptor.SpecialAtom;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.exceptions.MalformedPragmaException;
-import com.avail.performance.Statistic;
-import com.avail.performance.StatisticReport;
-import com.avail.utility.PrefixSharingList;
-import com.avail.utility.evaluation.*;
-import javax.annotation.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
+import com.avail.compiler.scanning.LexingState;
+import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.MalformedPragmaException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.io.TextInterface;
+import com.avail.performance.Statistic;
+import com.avail.performance.StatisticReport;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.Pair;
+import com.avail.utility.PrefixSharingList;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation3;
+import com.avail.utility.evaluation.Describer;
+import com.avail.utility.evaluation.FormattingDescriber;
+import com.avail.utility.evaluation.SimpleDescriber;
+import com.avail.utility.evaluation.Transformer3;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -85,18 +92,25 @@ import java.util.stream.Collectors;
 
 import static com.avail.compiler.ExpectedToken.*;
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.problems.ProblemType.*;
+import static com.avail.compiler.problems.ProblemType.EXTERNAL;
+import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import static com.avail.descriptor.LiteralNodeDescriptor.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
+import static com.avail.descriptor.LiteralNodeDescriptor.fromToken;
+import static com.avail.descriptor.LiteralNodeDescriptor.syntheticFrom;
+import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
-import static com.avail.interpreter.AvailLoader.Phase.*;
-import static com.avail.utility.PrefixSharingList.*;
+import static com.avail.interpreter.AvailLoader.Phase.COMPILING;
+import static com.avail.interpreter.AvailLoader.Phase.EXECUTING;
+import static com.avail.interpreter.Primitive.primitiveByName;
+import static com.avail.utility.PrefixSharingList.append;
+import static com.avail.utility.PrefixSharingList.last;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -1006,14 +1020,13 @@ public final class AvailCompiler
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			compilationContext.loader(),
-			() -> StringDescriptor.format(
-				"Semantic restriction %s, in %s:%d",
-				restriction.definitionMethod().bundles()
-					.iterator().next().message(),
-				mod.equals(NilDescriptor.nil())
-					? "no module"
-					: mod.moduleName(),
-				code.startingLineNumber()));
+			() ->
+				formatString("Semantic restriction %s, in %s:%d",
+					restriction.definitionMethod().bundles()
+						.iterator().next().message(),
+					mod.equals(nil())
+						? "no module"
+						: mod.moduleName(), code.startingLineNumber()));
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		fiber.textInterface(compilationContext.getTextInterface());
 		fiber.resultContinuation(onSuccess);
@@ -1059,14 +1072,12 @@ public final class AvailCompiler
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			compilationContext.loader(),
-			() -> StringDescriptor.format(
-				"Macro evaluation %s, in %s:%d",
+			() -> formatString("Macro evaluation %s, in %s:%d",
 				macro.definitionMethod().bundles()
 					.iterator().next().message(),
-				mod.equals(NilDescriptor.nil())
+				mod.equals(nil())
 					? "no module"
-					: mod.moduleName(),
-				code.startingLineNumber()));
+					: mod.moduleName(), code.startingLineNumber()));
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		fiber.setGeneralFlag(GeneralFlag.IS_EVALUATING_MACRO);
 		A_Map fiberGlobals = fiber.fiberGlobals();
@@ -2416,11 +2427,10 @@ public final class AvailCompiler
 			() ->
 			{
 				final A_RawFunction code = prefixFunction.code();
-				return StringDescriptor.format(
-					"Macro prefix %s, in %s:%d",
-					code.methodName(),
-					code.module().moduleName(),
-					code.startingLineNumber());
+				return
+					formatString("Macro prefix %s, in %s:%d",
+						code.methodName(), code.module().moduleName(),
+						code.startingLineNumber());
 			});
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		final A_Map withTokens = start.clientDataMap.mapAtPuttingCanDestroy(
@@ -3755,7 +3765,7 @@ public final class AvailCompiler
 		final A_String availName = StringDescriptor.stringFrom(methodName);
 		final A_Phrase nameLiteral =
 			syntheticFrom(availName);
-		final Primitive primitive = Primitive.byName(primitiveName);
+		final Primitive primitive = primitiveByName(primitiveName);
 		assert primitive != null;
 		final A_Function function =
 			FunctionDescriptor.newPrimitiveFunction(
@@ -3823,7 +3833,7 @@ public final class AvailCompiler
 		{
 			for (final String primitiveName: primitiveNames)
 			{
-				final Primitive prim = Primitive.byName(primitiveName);
+				final Primitive prim = primitiveByName(primitiveName);
 				assert prim != null : "Invalid bootstrap macro primitive name";
 				functionLiterals.add(
 					syntheticFrom(
@@ -3907,7 +3917,7 @@ public final class AvailCompiler
 	throws MalformedPragmaException
 	{
 		// Process the filter primitive.
-		final Primitive filterPrimitive = Primitive.byName(filterPrimitiveName);
+		final Primitive filterPrimitive = primitiveByName(filterPrimitiveName);
 		if (filterPrimitive == null)
 		{
 			throw new MalformedPragmaException(
@@ -3934,7 +3944,7 @@ public final class AvailCompiler
 				token.lineNumber());
 
 		// Process the body primitive.
-		final Primitive bodyPrimitive = Primitive.byName(bodyPrimitiveName);
+		final Primitive bodyPrimitive = primitiveByName(bodyPrimitiveName);
 		if (bodyPrimitive == null)
 		{
 			throw new MalformedPragmaException(
@@ -4088,7 +4098,7 @@ public final class AvailCompiler
 		for (int i = 0; i < primNames.length; i++)
 		{
 			final String primName = primNameStrings[i];
-			final @Nullable Primitive prim = Primitive.byName(primName);
+			final @Nullable Primitive prim = primitiveByName(primName);
 			if (prim == null)
 			{
 				compilationContext.diagnostics.reportError(
@@ -4473,30 +4483,36 @@ public final class AvailCompiler
 		final Continuation0 afterFail)
 	{
 		compilationContext.loader().setPhase(COMPILING);
+		final MutableOrNull<List<ParserState>> afterWhitespaceHolder =
+			new MutableOrNull<>();
+		compilationContext.setNoMoreWorkUnits(() ->
+		{
+			final List<ParserState> afterWhitespace =
+				afterWhitespaceHolder.value();
+			if (afterWhitespace.size() == 1)
+			{
+				parseOutermostStatementWithoutWhitespace(
+					afterWhitespace.get(0), afterFail);
+			}
+			else if (afterWhitespace.isEmpty())
+			{
+				// It should have already reported a problem trying to lex.
+				compilationContext.diagnostics.reportError(afterFail);
+			}
+			else
+			{
+				final ParserState earliest = Collections.min(
+					afterWhitespace,
+					Comparator.comparingInt(ParserState::position));
+				earliest.expected(
+					"unambiguous lexical scan of whitespace and comments "
+						+ "between top-level statements");
+				afterFail.value();
+			}
+		});
 		skipWhitespaceAndComments(
 			start,
-			afterWhitespaceList ->
-			{
-				if (afterWhitespaceList.size() == 0)
-				{
-					// It should have already reported a problem trying to lex.
-					compilationContext.diagnostics.reportError(afterFail);
-					return;
-				}
-				if (afterWhitespaceList.size() > 1)
-				{
-					final ParserState earliest = afterWhitespaceList.stream()
-						.min(Comparator.comparing(ParserState::position))
-						.get();
-					earliest.expected(
-						"unambiguous lexical scan of whitespace and comments "
-							+ "between top-level statements");
-					afterFail.value();
-					return;
-				}
-				parseOutermostStatementWithoutWhitespace(
-					afterWhitespaceList.get(0), afterFail);
-			},
+			positions -> afterWhitespaceHolder.value = positions,
 			new AtomicBoolean(false));
 	}
 
@@ -4566,10 +4582,9 @@ public final class AvailCompiler
 							moduleName(),
 							(long) source().tupleSize(),
 							(long) afterStatement.position());
-						afterStatement.workUnitDo(
-							() -> parseAndExecuteOutermostStatements(
-								afterStatement.withMap(start.clientDataMap),
-								afterFail));
+						parseAndExecuteOutermostStatements(
+							afterStatement.withMap(start.clientDataMap),
+							afterFail);
 					};
 
 					// What to do after running a simple statement (or to get

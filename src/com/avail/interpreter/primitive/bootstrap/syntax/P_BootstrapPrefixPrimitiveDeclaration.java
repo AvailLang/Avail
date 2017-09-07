@@ -89,7 +89,7 @@ extends Primitive
 		}
 		final A_String primName = primNamePhrase.token().string();
 		final @Nullable Primitive prim =
-			Primitive.byName(primName.asNativeString());
+			Primitive.primitiveByName(primName.asNativeString());
 		if (prim == null)
 		{
 			throw new AvailRejectedParseException(

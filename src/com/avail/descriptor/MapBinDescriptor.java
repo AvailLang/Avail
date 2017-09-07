@@ -56,7 +56,7 @@ extends Descriptor
 	{
 		/**
 		 * A long holding {@link BitField}s containing the combined keys hash
-		 * and the combined values hash or floatZero.
+		 * and the combined values hash or zero.
 		 */
 		COMBINED_HASHES;
 
@@ -68,7 +68,7 @@ extends Descriptor
 
 		/**
 		 * The sum of the hashes of the elements recursively within this bin,
-		 * or floatZero if not computed.
+		 * or zero if not computed.
 		 */
 		public static final BitField VALUES_HASH_OR_ZERO = bitField(
 			COMBINED_HASHES, 32, 32);
@@ -108,7 +108,7 @@ extends Descriptor
 	/**
 	 * The level of my objects in their enclosing bin trees. The top node is
 	 * level 0 (using hash bits 0..5), and the bottom hashed node is level 5
-	 * (using hash bits 30..35, the top four of which are always floatZero). There
+	 * (using hash bits 30..35, the top four of which are always zero). There
 	 * can be a level 6 {@linkplain LinearMapBinDescriptor linear bin}, but it
 	 * represents elements which all have the same hash value, so it should
 	 * never be hashed.

@@ -213,7 +213,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						buffer.flip();
 						final int payloadLength = buffer.getInt();
-						// A payload length of floatZero means that the client has
+						// A payload length of zero means that the client has
 						// done a polite shutdown.
 						if (payloadLength == 0)
 						{

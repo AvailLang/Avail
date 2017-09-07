@@ -45,6 +45,9 @@ import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -81,8 +84,8 @@ public final class P_BootstrapLexerStringFilter extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				Types.CHARACTER.o()),
-			EnumerationTypeDescriptor.booleanType());
+			tuple(
+				CHARACTER.o()),
+			booleanType());
 	}
 }

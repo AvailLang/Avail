@@ -39,7 +39,7 @@ import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Implementors of {@code Transformer0} provide a single arbitrary operation
- * that accepts floatZero arguments and produces a result.
+ * that accepts zero arguments and produces a result.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *

@@ -65,7 +65,7 @@ extends MapBinDescriptor
 	{
 		/**
 		 * A long holding {@link BitField}s containing the combined keys hash
-		 * and the combined values hash or floatZero.
+		 * and the combined values hash or zero.
 		 */
 		COMBINED_HASHES,
 
@@ -83,7 +83,7 @@ extends MapBinDescriptor
 
 		/**
 		 * The sum of the hashes of the elements recursively within this bin,
-		 * or floatZero if not computed.
+		 * or zero if not computed.
 		 */
 		public static final BitField VALUES_HASH_OR_ZERO = bitField(
 			COMBINED_HASHES, 32, 32);

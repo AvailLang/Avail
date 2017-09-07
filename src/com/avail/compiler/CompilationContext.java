@@ -76,6 +76,7 @@ import static com.avail.compiler.problems.ProblemType.INTERNAL;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
@@ -599,10 +600,9 @@ public class CompilationContext
 		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
 			function.kind().returnType(),
 			loader(),
-			() -> StringDescriptor.format("Eval fn=%s, in %s:%d",
-				code.methodName(),
-				code.module().moduleName(),
-				code.startingLineNumber()));
+			() ->
+				formatString("Eval fn=%s, in %s:%d", code.methodName(),
+					code.module().moduleName(), code.startingLineNumber()));
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);

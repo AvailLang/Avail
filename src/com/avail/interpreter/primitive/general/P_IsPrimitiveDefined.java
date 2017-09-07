@@ -31,6 +31,9 @@
  */
 package com.avail.interpreter.primitive.general;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -60,7 +63,7 @@ extends Primitive
 		final A_String primitiveName = args.get(0);
 
 		final Primitive primitive =
-			Primitive.byName(primitiveName.asNativeString());
+			Primitive.primitiveByName(primitiveName.asNativeString());
 		final boolean defined =
 			primitive != null && !primitive.hasFlag(Private);
 		return interpreter.primitiveSuccess(
@@ -71,8 +74,8 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType()),
-			EnumerationTypeDescriptor.booleanType());
+			tuple(
+				stringType()),
+			booleanType());
 	}
 }

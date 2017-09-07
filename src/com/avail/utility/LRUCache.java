@@ -32,6 +32,11 @@
 
 package com.avail.utility;
 
+import com.avail.annotations.InnerAccess;
+import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Transformer1;
+
+import javax.annotation.Nullable;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
@@ -41,16 +46,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
-
-import com.avail.annotations.InnerAccess;
-import com.avail.utility.evaluation.*;
-import javax.annotation.Nullable;
 
 /**
  * {@code LRUCache} implements a memory-sensitive least-recently-used cache.

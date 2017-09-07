@@ -32,15 +32,16 @@
 
 package com.avail.stacks;
 
+import com.avail.AvailRuntime;
+import com.avail.descriptor.A_String;
+import com.avail.utility.json.JSONWriter;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import com.avail.AvailRuntime;
-import com.avail.descriptor.A_String;
-import com.avail.utility.json.JSONWriter;
 
 /**
  * A grouping of {@linkplain AbstractCommentImplementation implementations}

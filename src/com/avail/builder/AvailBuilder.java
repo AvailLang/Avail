@@ -32,13 +32,49 @@
 
 package com.avail.builder;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static java.nio.file.FileVisitResult.*;
-import static com.avail.compiler.problems.ProblemType.*;
-import static com.avail.descriptor.FiberDescriptor.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.utility.StackPrinter.*;
-import java.io.*;
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
+import com.avail.annotations.InnerAccess;
+import com.avail.compiler.AvailCompiler;
+import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
+import com.avail.compiler.FiberTerminationException;
+import com.avail.compiler.ModuleHeader;
+import com.avail.compiler.ModuleImport;
+import com.avail.compiler.problems.Problem;
+import com.avail.compiler.problems.ProblemHandler;
+import com.avail.compiler.problems.ProblemType;
+import com.avail.descriptor.*;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.Phase;
+import com.avail.interpreter.Interpreter;
+import com.avail.io.TextInterface;
+import com.avail.persistence.IndexedRepositoryManager;
+import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
+import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation;
+import com.avail.persistence.IndexedRepositoryManager.ModuleCompilationKey;
+import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
+import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
+import com.avail.serialization.Deserializer;
+import com.avail.serialization.MalformedSerialStreamException;
+import com.avail.serialization.Serializer;
+import com.avail.stacks.StacksGenerator;
+import com.avail.utility.Generator;
+import com.avail.utility.Graph;
+import com.avail.utility.Mutable;
+import com.avail.utility.MutableOrNull;
+import com.avail.utility.Strings;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Continuation2;
+import com.avail.utility.evaluation.Continuation3;
+import com.avail.utility.evaluation.Continuation4;
+
+import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
@@ -52,29 +88,22 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
-import com.avail.*;
-import com.avail.annotations.InnerAccess;
-import com.avail.compiler.*;
-import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
-import com.avail.compiler.problems.Problem;
-import com.avail.compiler.problems.ProblemHandler;
-import com.avail.compiler.problems.ProblemType;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.interpreter.AvailLoader.Phase;
-import com.avail.io.TextInterface;
-import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.persistence.IndexedRepositoryManager.*;
-import com.avail.serialization.*;
-import com.avail.stacks.StacksGenerator;
-import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
-import javax.annotation.Nullable;
+
+import static com.avail.compiler.problems.ProblemType.*;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.FiberDescriptor.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.SEND_NODE;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.utility.StackPrinter.trace;
+import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 
 /**
  * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and
@@ -1877,11 +1906,11 @@ public final class AvailBuilder
 						() ->
 						{
 							final A_RawFunction code = function.code();
-							return StringDescriptor.format(
-								"Load repo module %s, in %s:%d",
-								code.methodName(),
-								code.module().moduleName(),
-								code.startingLineNumber());
+							return
+								formatString("Load repo module %s, in %s:%d",
+									code.methodName(),
+									code.module().moduleName(),
+									code.startingLineNumber());
 						});
 					fiber.textInterface(textInterface);
 					fiber.failureContinuation(fail);
@@ -3438,9 +3467,8 @@ public final class AvailBuilder
 				final A_Fiber fiber = newFiber(
 					function.kind().returnType(),
 					commandPriority,
-					() -> StringDescriptor.format(
-						"Running command: %s",
-						phrase));
+					() ->
+						formatString("Running command: %s", phrase));
 				A_Map fiberGlobals = fiber.fiberGlobals();
 				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 					CLIENT_DATA_GLOBAL_KEY.atom,

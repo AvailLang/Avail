@@ -31,6 +31,9 @@
  */
 package com.avail.interpreter.primitive.sets;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
@@ -69,9 +72,9 @@ public final class P_ElementInSet extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+			tuple(
 				ANY.o(),
-				SetTypeDescriptor.mostGeneralSetType()),
-			EnumerationTypeDescriptor.booleanType());
+				mostGeneralSetType()),
+			booleanType());
 	}
 }

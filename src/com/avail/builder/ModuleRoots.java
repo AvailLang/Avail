@@ -32,15 +32,23 @@
 
 package com.avail.builder;
 
-import static com.avail.persistence.IndexedRepositoryManager.isIndexedRepositoryFile;
-import java.io.*;
-import java.util.*;
-import java.util.Map.Entry;
-
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static com.avail.persistence.IndexedRepositoryManager
+	.isIndexedRepositoryFile;
 
 /**
  * {@code ModuleRoots} encapsulates the Avail {@linkplain ModuleDescriptor

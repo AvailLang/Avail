@@ -35,6 +35,7 @@ package com.avail.exceptions;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static java.lang.String.format;
 
 /**
@@ -69,7 +70,7 @@ extends Exception
 	}
 
 	/**
-	 * Construct a new {@link AvailAssertionFailedException}.
+	 * Construct a new {@code AvailAssertionFailedException}.
 	 *
 	 * @param assertionString
 	 *        The {@linkplain StringDescriptor error message} describing the
@@ -83,7 +84,7 @@ extends Exception
 	}
 
 	/**
-	 * Construct a new {@link AvailAssertionFailedException}.
+	 * Construct a new {@code AvailAssertionFailedException}.
 	 *
 	 * @param assertionString
 	 *        The {@linkplain StringDescriptor error message} describing the
@@ -92,7 +93,7 @@ extends Exception
 	public AvailAssertionFailedException (
 		final String assertionString)
 	{
-		this.assertionString = StringDescriptor.stringFrom(assertionString);
+		this.assertionString = stringFrom(assertionString);
 	}
 
 	@Override

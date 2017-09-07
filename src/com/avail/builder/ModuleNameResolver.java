@@ -32,6 +32,13 @@
 
 package com.avail.builder;
 
+import com.avail.annotations.InnerAccess;
+import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.persistence.IndexedRepositoryManager;
+import com.avail.utility.LRUCache;
+
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,13 +46,6 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
-
-import com.avail.annotations.InnerAccess;
-import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.utility.*;
-import javax.annotation.Nullable;
 
 /**
  * A {@code ModuleNameResolver} resolves fully-qualified references to Avail

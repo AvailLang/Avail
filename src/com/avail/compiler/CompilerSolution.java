@@ -32,8 +32,10 @@
 
 package com.avail.compiler;
 
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.ParseNodeDescriptor;
+
 import javax.annotation.Nullable;
-import com.avail.descriptor.*;
 
 /**
  * An {@code CompilerSolution} is a record of having parsed some

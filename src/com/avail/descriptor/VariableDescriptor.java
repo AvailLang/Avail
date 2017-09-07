@@ -32,13 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.descriptor.VariableDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicReference;
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
@@ -50,7 +43,18 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static com.avail.descriptor.VariableDescriptor.IntegerSlots
+	.HASH_AND_MORE;
+import static com.avail.descriptor.VariableDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
+import static com.avail.exceptions.AvailErrorCode.*;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold

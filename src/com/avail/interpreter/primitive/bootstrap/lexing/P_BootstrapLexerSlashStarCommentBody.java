@@ -40,6 +40,12 @@ import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -75,7 +81,7 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		if (position > sourceSize || source.tupleCodePointAt(position) != '*')
 		{
 			// It didn't start with "/*", so it's not a comment.
-			return interpreter.primitiveSuccess(TupleDescriptor.emptyTuple());
+			return interpreter.primitiveSuccess(emptyTuple());
 		}
 		position++;
 
@@ -119,23 +125,22 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		final A_Token token = CommentTokenDescriptor.create(
 			(A_String)source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
-			TupleDescriptor.emptyTuple(),
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
+			emptyTuple(),
 			startPosition,
 			startingLineNumber.extractInt());
 		token.makeShared();
-		return interpreter.primitiveSuccess(TupleDescriptor.tuple(token));
+		return interpreter.primitiveSuccess(tuple(token));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				Types.TOKEN.o()));
+			tuple(
+				stringType(),
+				naturalNumbers(),
+				naturalNumbers()),
+			zeroOrMoreOf(TOKEN.o()));
 	}
 }

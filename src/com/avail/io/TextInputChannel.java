@@ -32,11 +32,11 @@
 
 package com.avail.io;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.nio.channels.AsynchronousChannel;
 import java.nio.channels.CompletionHandler;
-import javax.annotation.Nullable;
 
 /**
  * {@code TextInputChannel} provides a wrapper for a synchronous input reader

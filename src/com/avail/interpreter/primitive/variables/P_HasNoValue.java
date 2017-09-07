@@ -31,6 +31,9 @@
  */
 package com.avail.interpreter.primitive.variables;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -67,8 +70,8 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				VariableTypeDescriptor.mostGeneralVariableType()),
-			EnumerationTypeDescriptor.booleanType());
+			tuple(
+				mostGeneralVariableType()),
+			booleanType());
 	}
 }

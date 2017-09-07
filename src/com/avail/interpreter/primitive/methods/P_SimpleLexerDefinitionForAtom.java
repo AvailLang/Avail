@@ -53,7 +53,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.LexerDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.StringDescriptor.format;
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -127,11 +127,10 @@ extends Primitive
 				() ->
 				{
 					filterFunction.code().setMethodName(
-						format("Filter for lexer %s",
+						formatString("Filter for lexer %s",
 							atom.atomName()));
 					bodyFunction.code().setMethodName(
-						format("Body for lexer %s",
-							atom.atomName()));
+						formatString("Body for lexer %s", atom.atomName()));
 					loader.lexicalScanner().addLexer(lexer);
 					loader.recordEffect(
 						new LoadingEffectToRunPrimitive(

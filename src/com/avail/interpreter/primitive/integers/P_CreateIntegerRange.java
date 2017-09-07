@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.primitive.integers;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -77,10 +79,10 @@ public final class P_CreateIntegerRange extends Primitive
 	{
 		return FunctionTypeDescriptor.functionType(
 			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.extendedIntegers(),
-				EnumerationTypeDescriptor.booleanType(),
-				IntegerRangeTypeDescriptor.extendedIntegers(),
-				EnumerationTypeDescriptor.booleanType()),
+				extendedIntegers(),
+				booleanType(),
+				extendedIntegers(),
+				booleanType()),
 			IntegerRangeTypeDescriptor.meta());
 	}
 }

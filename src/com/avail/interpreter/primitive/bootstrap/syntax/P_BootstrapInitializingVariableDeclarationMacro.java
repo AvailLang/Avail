@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
+import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
@@ -97,10 +98,8 @@ extends Primitive
 		if (!initializationType.isSubtypeOf(type))
 		{
 			throw new AvailRejectedParseException(
-				StringDescriptor.format(
-					"initialization expression's type (%s) "
-					+ "to match variable type (%s)",
-					initializationType,
+				formatString("initialization expression's type (%s) "
+						+ "to match variable type (%s)", initializationType,
 					type));
 		}
 		final A_Phrase variableDeclaration =

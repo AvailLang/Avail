@@ -32,10 +32,13 @@
 
 package com.avail.stacks;
 
+import com.avail.annotations.InnerAccess;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.CharacterDescriptor;
+import com.avail.descriptor.CommentTokenDescriptor;
+
 import java.util.ArrayList;
 import java.util.List;
-import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
 
 /**
  * A scanner for Stacks comments.

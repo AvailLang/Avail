@@ -32,58 +32,31 @@
 
 package com.avail;
 
-import static com.avail.descriptor.AtomDescriptor.falseObject;
-import static com.avail.descriptor.AtomDescriptor.trueObject;
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor
-	.mostGeneralCompiledCodeType;
-import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
-import static com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
-import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
-import static com.avail.descriptor.FunctionTypeDescriptor.*;
-import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
-import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
-import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerDescriptor.two;
-import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor
-	.mostGeneralLiteralTokenType;
-import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MapTypeDescriptor.mapMeta;
-import static com.avail.descriptor.MapTypeDescriptor
-	.mapTypeForSizesKeyTypeValueType;
-import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
-import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.PojoTypeDescriptor.*;
-import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
-import static com.avail.descriptor.SetTypeDescriptor.setMeta;
-import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
-import static com.avail.descriptor.VariableTypeDescriptor
-	.mostGeneralVariableType;
-import static com.avail.descriptor.VariableTypeDescriptor.variableMeta;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.utility.StackPrinter.trace;
-import static java.lang.Math.min;
-import static java.nio.file.attribute.PosixFilePermission.*;
-import java.io.*;
+import com.avail.annotations.InnerAccess;
+import com.avail.annotations.ThreadSafe;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ModuleRoots;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.descriptor.*;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.io.TextInterface;
+import com.avail.utility.LRUCache;
+import com.avail.utility.MutableOrNull;
+import com.avail.utility.evaluation.Continuation0;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.lang.ref.PhantomReference;
@@ -111,27 +84,43 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.avail.annotations.InnerAccess;
-import com.avail.annotations.ThreadSafe;
-import com.avail.builder.*;
-import com.avail.descriptor.*;
-import com.avail.descriptor.AtomDescriptor.SpecialAtom;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.exceptions.*;
-import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.io.TextInterface;
-import com.avail.utility.LRUCache;
-import com.avail.utility.MutableOrNull;
-import com.avail.utility.evaluation.*;
-import javax.annotation.Nonnull;
-
-import javax.annotation.Nullable;
+import static com.avail.descriptor.AtomDescriptor.falseObject;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.*;
+import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.InstanceMetaDescriptor.*;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.MapTypeDescriptor.*;
+import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.SetTypeDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.VariableTypeDescriptor.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.utility.StackPrinter.trace;
+import static java.lang.Math.min;
+import static java.nio.file.attribute.PosixFilePermission.*;
 
 /**
  * An {@code AvailRuntime} comprises the {@linkplain ModuleDescriptor
@@ -310,9 +299,7 @@ public final class AvailRuntime
 	 * The maximum number of {@link Interpreter}s that can be constructed for
 	 * this runtime.
 	 */
-	public static final int maxInterpreters = 1;
-	//TODO MvG - Restore multithreading after debugging new interpreter.
-	//public static final int maxInterpreters = availableProcessors;
+	public static final int maxInterpreters = availableProcessors;
 
 	/**
 	 * A counter from which unique interpreter indices in [0..maxInterpreters)
@@ -1374,7 +1361,8 @@ public final class AvailRuntime
 				}
 				catch (final InterruptedException e)
 				{
-					// Ignore the interrupt.
+					// Stop the thread if interrupted.
+					return;
 				}
 			}
 		},
@@ -1561,7 +1549,8 @@ public final class AvailRuntime
 		specials[88] = pojoSelfTypeAtom();
 		specials[89] = pojoTypeForClass(Throwable.class);
 		specials[90] = functionType(emptyTuple(), TOP.o());
-		specials[91] = functionType(emptyTuple(), booleanType());
+		specials[91] = functionType(
+			emptyTuple(), booleanType());
 		specials[92] = VariableTypeDescriptor.variableTypeFor(
 			mostGeneralContinuationType());
 		specials[93] = mapTypeForSizesKeyTypeValueType(

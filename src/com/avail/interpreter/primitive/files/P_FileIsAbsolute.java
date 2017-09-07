@@ -32,6 +32,9 @@
 
 package com.avail.interpreter.primitive.files;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.nio.file.InvalidPathException;
@@ -84,9 +87,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType()),
-			EnumerationTypeDescriptor.booleanType());
+			tuple(
+				stringType()),
+			booleanType());
 	}
 
 	@Override

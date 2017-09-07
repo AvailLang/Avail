@@ -33,8 +33,11 @@
 package com.avail.performance;
 
 import com.avail.AvailRuntime;
-import javax.annotation.Nullable;
 import com.avail.interpreter.Interpreter;
+
+import javax.annotation.Nullable;
+
+import static java.lang.String.format;
 
 /**
  * A {@code PerInterpreterStatistic} is an incremental, summarized recording of
@@ -172,15 +175,16 @@ implements Comparable<PerInterpreterStatistic>
 	public void describeNanosecondsOn (
 		final StringBuilder builder)
 	{
-		final double nanoseconds;
-		final long sampleCount;
+		final long capturedCount;
+		final double capturedMean;
 		// Read multiple fields coherently.
 		synchronized (this)
 		{
-			nanoseconds = sum();
-			sampleCount = count;
+			capturedCount = count;
+			capturedMean = mean;
 		}
-		builder.append(String.format(
+		final double nanoseconds = capturedMean * capturedCount;
+		builder.append(format(
 			nanoseconds >= 999_999_500.0
 				? "%1$, 8.3f s  "
 				: nanoseconds >= 999_999.5
@@ -189,7 +193,16 @@ implements Comparable<PerInterpreterStatistic>
 			nanoseconds / 1.0e9,
 			nanoseconds / 1.0e6,
 			nanoseconds / 1.0e3));
-		builder.append(String.format("[N=%,10d] ", sampleCount));
+		builder.append(format("[N=%,10d] ", capturedCount));
+		builder.append(format(
+			capturedMean >= 999_999_500.0
+				? "(\u0304x=%1$, 8.3f s)"
+				: capturedMean >= 999_999.5
+					? "(\u0304x=%2$, 8.3f ms)"
+					: "(\u0304x=%3$, 8.3f \u00b5s)",
+			capturedMean / 1.0e9,
+			capturedMean / 1.0e6,
+			capturedMean / 1.0e3));
 	}
 
 	/**
@@ -211,7 +224,7 @@ implements Comparable<PerInterpreterStatistic>
 	}
 
 	/**
-	 * Add my information to another {@link PerInterpreterStatistic}.  This is
+	 * Add my information to another {@code PerInterpreterStatistic}.  This is
 	 * thread-safe for the receiver, and assumes the argument does not need to
 	 * be treated thread-safely.
 	 *

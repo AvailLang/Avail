@@ -32,20 +32,20 @@
 
 package com.avail.descriptor;
 
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
-
-import com.avail.descriptor.MapDescriptor.MapIterable;
-import javax.annotation.Nullable;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.json.JSONFriendly;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
+
+import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
 
 /**
  * {@code A_BasicObject} is an interface that specifies all generally applicable

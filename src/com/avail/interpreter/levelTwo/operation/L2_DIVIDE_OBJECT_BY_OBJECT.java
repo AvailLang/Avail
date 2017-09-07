@@ -95,7 +95,7 @@ public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// It jumps for division by floatZero.
+		// It jumps for division by zero.
 		return true;
 	}
 }

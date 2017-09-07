@@ -32,10 +32,12 @@
 
 package com.avail.compiler;
 
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+
+import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
+import static com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR;
 
 /**
  * These are the tokens that are understood directly by the Avail compiler.

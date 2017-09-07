@@ -32,21 +32,30 @@
 
 package com.avail.interpreter.levelTwo;
 
-import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
-
-import com.avail.utility.evaluation.Continuation1NotNull;
-import javax.annotation.Nullable;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.optimizer.*;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.ReifyStackThrowable;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
+import com.avail.utility.evaluation.Continuation1NotNull;
+
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * The instruction set for the {@linkplain Interpreter level two Avail
@@ -74,9 +83,7 @@ public abstract class L2Operation
 	 */
 	public L2NamedOperandType[] operandTypes ()
 	{
-		final L2NamedOperandType[] types = namedOperandTypes;
-		assert types != null;
-		return types;
+		return stripNull(namedOperandTypes);
 	}
 
 	/**
@@ -93,9 +100,7 @@ public abstract class L2Operation
 	 */
 	public String name ()
 	{
-		final String string = name;
-		assert string != null;
-		return string;
+		return stripNull(name);
 	}
 
 	/**

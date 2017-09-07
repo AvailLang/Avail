@@ -45,12 +45,27 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
+import javax.annotation.Nullable;
+
 /**
  * Function types are the types of {@linkplain FunctionDescriptor functions}.
  * They contain information about the {@linkplain TypeDescriptor types} of
  * arguments that may be accepted, the types of {@linkplain AvailObject values}
  * that may be produced upon successful execution, and the types of exceptions
  * that may be raised to signal unsuccessful execution.
+ *
+ * <p>Function types are contravariant by {@linkplain A_Type#argsTupleType()
+ * argument types}, covariant by {@linkplain A_Type#returnType() return type},
+ * and covariant by the coverage of types that are members of the {@linkplain
+ * A_Type#declaredExceptions() exception set}.  I.e., if there is a type in the
+ * exception set of A that isn't equal to or a subtype of an element of the
+ * exception set of B, then A can't be a subtype of B.</p>
+ *
+ * <p>Note that the {@link A_Type#argsTupleType()} can be {@linkplain
+ * BottomTypeDescriptor#bottom() bottom} (⊥) instead of a tuple type.  Because
+ * bottom is more specific than any tuple type, the resulting function type is
+ * considered more general than one with a tuple type (if the other variances
+ * also hold).</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -87,7 +102,7 @@ extends TypeDescriptor
 		 * The normalized {@linkplain SetDescriptor set} of checked exceptions
 		 * that may be raised by message sends performed from within a
 		 * {@linkplain FunctionDescriptor function} described by this
-		 * {@linkplain FunctionTypeDescriptor function type}.
+		 * function type.
 		 */
 		DECLARED_EXCEPTIONS,
 
@@ -95,7 +110,7 @@ extends TypeDescriptor
 		 * The most general {@linkplain TypeDescriptor type} of {@linkplain
 		 * AvailObject value} that may be produced by a successful completion of
 		 * a {@linkplain FunctionDescriptor function} described by this
-		 * {@linkplain FunctionTypeDescriptor function type}.
+		 * function type.
 		 */
 		RETURN_TYPE,
 
@@ -130,7 +145,7 @@ extends TypeDescriptor
 		final int objectCount = objects.size();
 		boolean anyBreaks = false;
 		final List<String> tempStrings = new ArrayList<>(objectCount);
-		for (final A_BasicObject elem : objects)
+		for (final @Nullable A_BasicObject elem : objects)
 		{
 			final String str = elem != null ? elem.toString() : "…";
 			tempStrings.add(str);
@@ -430,16 +445,6 @@ extends TypeDescriptor
 		return aType.isSupertypeOfFunctionType(object);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * {@linkplain FunctionTypeDescriptor Function types} are contravariant by
-	 * {@linkplain AvailObject#argsTupleType() argument types}, covariant by
-	 * {@linkplain AvailObject#returnType() return type}, and covariant by
-	 * normalized {@linkplain AvailObject#declaredExceptions() raise types}. If
-	 * {@linkplain AvailObject#numArgs() argument count} differs, they are
-	 * incomparable (i.e., not a subclass).
-	 */
 	@Override @AvailMethod
 	boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
@@ -595,7 +600,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link FunctionTypeDescriptor}.
+	 * Construct a new function type.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -612,7 +617,6 @@ extends TypeDescriptor
 	/** The mutable {@link FunctionTypeDescriptor}. */
 	private static final FunctionTypeDescriptor mutable =
 		new FunctionTypeDescriptor(Mutability.MUTABLE);
-
 
 	@Override
 	FunctionTypeDescriptor mutable ()
@@ -641,14 +645,13 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The most general {@linkplain FunctionTypeDescriptor function type}.
+	 * The most general function type.
 	 */
 	private static final A_Type mostGeneralType =
 		functionTypeReturning(TOP.o()).makeShared();
 
 	/**
-	 * Answer the top (i.e., most general) {@linkplain FunctionTypeDescriptor
-	 * function type}.
+	 * Answer the top (i.e., most general) function type.
 	 *
 	 * @return The function type "[…]→⊤".
 	 */
@@ -668,7 +671,7 @@ extends TypeDescriptor
 	 * InstanceTypeDescriptor instance type} on the {@linkplain
 	 * #mostGeneralFunctionType() most general type}.
 	 *
-	 * @return The function type "[…]→⊤".
+	 * @return The (meta-)type of the function type "[…]→⊤".
 	 */
 	public static A_Type functionMeta ()
 	{
@@ -722,8 +725,7 @@ extends TypeDescriptor
 					}
 				}
 				normalizedSet = normalizedSet.setWithElementCanDestroy(
-					outer,
-					true);
+					outer, true);
 			}
 		}
 
@@ -731,13 +733,12 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer a new {@linkplain FunctionTypeDescriptor function type} whose
-	 * instances accept arguments which, if collected in a tuple, match the
-	 * specified {@linkplain TupleTypeDescriptor tuple type}.  The instances of
-	 * this function type should also produce {@linkplain AvailObject values}
-	 * that conform to the return type, and may only raise checked exceptions
-	 * whose instances are subtypes of one or more members of the supplied
-	 * exception set.
+	 * Answer a new function type whose instances accept arguments which, if
+	 * collected in a tuple, match the specified {@linkplain TupleTypeDescriptor
+	 * tuple type}.  The instances of this function type should also produce
+	 * values that conform to the return type, and may only raise checked
+	 * exceptions whose instances are subtypes of one or more members of the
+	 * supplied exception set.
 	 *
 	 * @param argsTupleType
 	 *        A {@linkplain TupleTypeDescriptor tuple type} describing the
@@ -749,7 +750,7 @@ extends TypeDescriptor
 	 * @param exceptionSet
 	 *        The {@linkplain SetDescriptor set} of checked {@linkplain
 	 *        ObjectTypeDescriptor exception types} that an instance may raise.
-	 * @return A {@linkplain FunctionTypeDescriptor function type}.
+	 * @return A function type.
 	 */
 	public static A_Type createWithArgumentTupleType (
 		final A_Type argsTupleType,
@@ -768,11 +769,11 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Answer a new {@linkplain FunctionTypeDescriptor function type} whose
-	 * instances accept arguments of the specified {@linkplain TypeDescriptor
-	 * types}, produce {@linkplain AvailObject values} that conform to the
-	 * return type, and may only raise checked exceptions whose instances are
-	 * subtypes of one or more members of the supplied exception set.
+	 * Answer a new function type whose instances accept arguments whose types
+	 * conform to the corresponding entries in the provided tuple of types,
+	 * produce values that conform to the return type, and may only raise
+	 * checked exceptions whose instances are subtypes of one or more members of
+	 * the supplied exception set.
 	 *
 	 * @param argTypes
 	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor
@@ -783,27 +784,26 @@ extends TypeDescriptor
 	 * @param exceptionSet
 	 *        The {@linkplain SetDescriptor set} of checked {@linkplain
 	 *        ObjectTypeDescriptor exception types} that an instance may raise.
-	 * @return A {@linkplain FunctionTypeDescriptor function type}.
+	 * @return A function type.
 	 */
-	public static A_Type create (
+	public static A_Type functionType (
 		final A_Tuple argTypes,
 		final A_Type returnType,
 		final A_Set exceptionSet)
 	{
 		final A_Type tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.singleInt(
-					argTypes.tupleSize()),
+				IntegerRangeTypeDescriptor.singleInt(argTypes.tupleSize()),
 				argTypes,
 				BottomTypeDescriptor.bottom());
 		return createWithArgumentTupleType(tupleType, returnType, exceptionSet);
 	}
 
 	/**
-	 * Answer a new {@linkplain FunctionTypeDescriptor function type} whose
-	 * instances accept arguments of the specified {@linkplain TypeDescriptor
-	 * types}, produce {@linkplain AvailObject values} that conform to the
-	 * return type, and raise <em>no</em> checked exceptions.
+	 * Answer a new function type whose instances accept arguments whose types
+	 * conform to the corresponding entries in the provided tuple of types,
+	 * produce values that conform to the return type, and raise no checked
+	 * exceptions.
 	 *
 	 * @param argTypes
 	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain TypeDescriptor
@@ -811,28 +811,27 @@ extends TypeDescriptor
 	 * @param returnType
 	 *        The {@linkplain TypeDescriptor type} of value that an instance
 	 *        should produce.
-	 * @return A {@linkplain FunctionTypeDescriptor function type}.
+	 * @return A function type.
 	 */
 	public static A_Type functionType (
 		final A_Tuple argTypes,
 		final A_Type returnType)
 	{
-		return create(
+		return functionType(
 			argTypes,
 			returnType,
 			SetDescriptor.emptySet());
 	}
 
 	/**
-	 * Answer a new {@linkplain FunctionTypeDescriptor function type} whose
-	 * instances can't be invoked because they have an impossible number of
-	 * arguments specified.
+	 * Answer a new function type that doesn't specify how many arguments its
+	 * conformant functions have.  This is a useful kind of function type for
+	 * discussing things like a general function invocation operation.
 	 *
 	 * @param returnType
-	 *            The type of object returned by a function that conforms to the
-	 *            {@linkplain FunctionTypeDescriptor function type} being defined.
-	 * @return
-	 *            A {@linkplain FunctionTypeDescriptor function type}
+	 *        The type of object returned by a function that conforms to the
+	 *        function type being defined.
+	 * @return A function type.
 	 */
 	public static A_Type functionTypeReturning (
 		final A_Type returnType)

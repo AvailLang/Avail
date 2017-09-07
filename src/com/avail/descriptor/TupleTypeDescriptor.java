@@ -32,18 +32,21 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static java.lang.Math.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * A tuple type can be the {@linkplain AvailObject#kind() type} of a {@linkplain

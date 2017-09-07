@@ -31,21 +31,19 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-
-import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.FixedRegister;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.performance.Statistic;
-import com.avail.performance.StatisticReport;
+
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Return into the provided continuation with the given return value.  The
@@ -60,12 +58,6 @@ public class L2_RETURN extends L2Operation
 		new L2_RETURN().init(
 			READ_POINTER.is("return value"));
 
-	/** Statistic for recording checked non-primitive returns from L2. */
-	private static final Statistic checkedNonPrimitiveReturn =
-		new Statistic(
-			"Checked non-primitive return from L2",
-			StatisticReport.NON_PRIMITIVE_RETURN_LEVELS);
-
 	@Override
 	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
 		final L2Instruction instruction)
@@ -79,6 +71,10 @@ public class L2_RETURN extends L2Operation
 			final AvailObject value = interpreter.pointerAt(valueRegNumber);
 			interpreter.latestResult(value);
 			interpreter.returnNow = true;
+			//TODO MvG - Something like this, if we even keep this instruction
+			//around in the semistackless regime.
+			final A_Function function = stripNull(interpreter.function);
+			interpreter.returningRawFunction = function.code();
 		};
 	}
 

@@ -31,6 +31,9 @@
  */
 package com.avail.interpreter.primitive.sets;
 
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
 import java.util.List;
 import com.avail.descriptor.*;
@@ -67,9 +70,9 @@ public final class P_SetIsSubset extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				SetTypeDescriptor.mostGeneralSetType(),
-				SetTypeDescriptor.mostGeneralSetType()),
-			EnumerationTypeDescriptor.booleanType());
+			tuple(
+				mostGeneralSetType(),
+				mostGeneralSetType()),
+			booleanType());
 	}
 }

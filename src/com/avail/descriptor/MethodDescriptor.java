@@ -47,7 +47,8 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty;
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty;
-import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro;
+import com.avail.interpreter.primitive.bootstrap.syntax
+	.P_ModuleHeaderPseudoMacro;
 import com.avail.interpreter.primitive.continuations.P_ContinuationCaller;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
@@ -74,11 +75,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import static com.avail.descriptor.MethodDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
+	.CREATE_MACRO;
+import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
+	.CREATE_METHOD;
+import static com.avail.descriptor.MethodDescriptor.IntegerSlots.HASH;
+import static com.avail.descriptor.MethodDescriptor.IntegerSlots.NUM_ARGS;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
-import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.*;
 
 /**
  * A method maintains all definitions that have the same name.  At compile time

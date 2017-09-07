@@ -32,20 +32,27 @@
 
 package com.avail.interpreter.levelTwo;
 
-import java.util.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.utility.evaluation.*;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.RegisterSet;
+import com.avail.utility.evaluation.Transformer2;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
@@ -108,7 +115,7 @@ public final class L2Instruction
 	 * interim measure helps alleviate some of the runtime instruction decoding
 	 * cost, until we're able to generate JVM instructions directly.
 	 */
-	public Continuation1NotNullThrowsReification<Interpreter> action;
+	public final Continuation1NotNullThrowsReification<Interpreter> action;
 
 	/**
 	 * Construct a new {@code L2Instruction}.
@@ -124,8 +131,8 @@ public final class L2Instruction
 		final L2Operation operation,
 		final L2Operand... operands)
 	{
-		final L2NamedOperandType[] operandTypes = operation.namedOperandTypes;
-		assert operandTypes != null;
+		final L2NamedOperandType[] operandTypes =
+			stripNull(operation.namedOperandTypes);
 		assert operandTypes.length == operands.length;
 		for (int i = 0; i < operands.length; i++)
 		{
@@ -133,6 +140,7 @@ public final class L2Instruction
 		}
 		this.operation = operation;
 		this.operands = operands;
+		action = operation.actionFor(this);
 	}
 
 	/**

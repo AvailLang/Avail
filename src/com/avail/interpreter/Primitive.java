@@ -32,13 +32,6 @@
 
 package com.avail.interpreter;
 
-import static com.avail.descriptor.AvailObject.*;
-import java.io.*;
-import java.net.*;
-import java.nio.charset.*;
-import java.util.*;
-import java.util.regex.*;
-
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -51,23 +44,47 @@ import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadWriteVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE;
-import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK;
-import com.avail.interpreter.levelTwo.operation.L2_GET_INVALID_MESSAGE_RESULT_FUNCTION;
+import com.avail.interpreter.levelTwo.operation
+	.L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK;
+import com.avail.interpreter.levelTwo.operation
+	.L2_GET_INVALID_MESSAGE_RESULT_FUNCTION;
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
-import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK;
+import com.avail.interpreter.levelTwo.operation
+	.L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
 import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
-import com.avail.optimizer.*;
+import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.RegisterSet;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.Serializer;
+
 import javax.annotation.Nullable;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.utility.Nulls.stripNull;
+import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 
 /**
@@ -393,7 +410,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	protected A_Type privateFailureVariableType ()
 	{
-		return IntegerRangeTypeDescriptor.naturalNumbers();
+		return naturalNumbers();
 	}
 
 	/**
@@ -495,10 +512,10 @@ implements IntegerEnumSlotDescriptionEnum
 		@InnerAccess final String className;
 
 		/**
-		 * The numeric index of the primitive in the {@link
-		 * Primitive#holdersByNumber} array.  This ordering may be arbitrary,
-		 * and should not be included in any serialization of primitive
-		 * functions.
+		 * The numeric index of the primitive in the {@link #holdersByNumber}
+		 * array.  This ordering may be arbitrary, specific to the currently
+		 * running Java VM instance.  The number should never be included in any
+		 * serialization of primitive functions.
 		 */
 		@InnerAccess final int number;
 
@@ -508,18 +525,18 @@ implements IntegerEnumSlotDescriptionEnum
 		 * Java class loading to happen, and we'd rather smear out that startup
 		 * performance cost.
 		 */
-		@InnerAccess @Nullable Primitive primitive = null;
+		@InnerAccess @Nullable volatile Primitive primitive = null;
 
 		/**
-		 * Get the {@link Primitive} from this {@link PrimitiveHolder}.  Load
+		 * Get the {@link Primitive} from this {@code PrimitiveHolder}.  Load
 		 * the appropriate class if necessary, which will install
 		 *
 		 * @return The singleton instance of the requested subclass of {@link
 		 *         Primitive}
 		 */
-		public Primitive primitive ()
+		public @Nullable Primitive primitive ()
 		{
-			Primitive p = primitive;
+			@Nullable Primitive p = primitive;
 			if (p != null)
 			{
 				return p;
@@ -532,18 +549,16 @@ implements IntegerEnumSlotDescriptionEnum
 				p = primitive;
 				if (p == null)
 				{
-					final ClassLoader loader =
-						Primitive.class.getClassLoader();
+					final ClassLoader loader = Primitive.class.getClassLoader();
 					try
 					{
-						final Class<?> primClass =
-							loader.loadClass(className);
+						final Class<?> primClass = loader.loadClass(className);
 						// Trigger the linker.
 						primClass.getField("instance").get(null);
 						p = primitive;
 						assert p != null
 							: "PrimitiveHolder.primitive field should have "
-							+ "been set during class loading";
+								+ "been set during class loading";
 					}
 					catch (final ClassNotFoundException e)
 					{
@@ -560,7 +575,7 @@ implements IntegerEnumSlotDescriptionEnum
 		}
 
 		/**
-		 * Construct a new {@link PrimitiveHolder}.
+		 * Construct a new {@code PrimitiveHolder}.
 		 *
 		 * @param name The primitive's textual name.
 		 * @param className The fully qualified name of the Primitive subclass.
@@ -620,8 +635,6 @@ implements IntegerEnumSlotDescriptionEnum
 	{
 		final List<PrimitiveHolder> byNumbers = new ArrayList<>();
 		byNumbers.add(null);  // Entry zero is reserved for not-a-primitive.
-		final ClassLoader classLoader = Primitive.class.getClassLoader();
-		assert classLoader != null;
 		int counter = 1;
 		final Map<String, PrimitiveHolder> byNames = new HashMap<>();
 		final Map<String, PrimitiveHolder> byClassNames = new HashMap<>();
@@ -629,13 +642,18 @@ implements IntegerEnumSlotDescriptionEnum
 		{
 			final URL resource =
 				Primitive.class.getResource(allPrimitivesFileName);
-			try (BufferedReader input = new BufferedReader(
-				new InputStreamReader(
-					resource.openStream(), StandardCharsets.UTF_8)))
+			try (
+				BufferedReader input = new BufferedReader(
+					new InputStreamReader(
+						resource.openStream(), UTF_8)))
 			{
-				String className;
-				while ((className = input.readLine()) != null)
+				while (true)
 				{
+					final @Nullable String className = input.readLine();
+					if (className == null)
+					{
+						break;
+					}
 					final String[] parts = className.split("\\.");
 					final String lastPart = parts[parts.length - 1];
 					final Matcher matcher =
@@ -664,7 +682,7 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * Initialize a newly constructed {@link Primitive}.  The first argument is
+	 * Initialize a newly constructed {@code Primitive}.  The first argument is
 	 * a primitive number, the second is the number of arguments with which the
 	 * primitive expects to be invoked, and the remaining arguments are
 	 * {@linkplain Flag flags}.
@@ -725,20 +743,20 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * Given a primitive name, look it up and answer the {@link Primitive} if
+	 * Given a primitive name, look it up and answer the {@code Primitive} if
 	 * found, or {@code null} if not found.
 	 *
 	 * @param name The primitive name to look up.
 	 * @return The primitive, or null if the name is not a valid primitive.
 	 */
-	public static @Nullable Primitive byName (final String name)
+	public static @Nullable Primitive primitiveByName (final String name)
 	{
 		final PrimitiveHolder holder =  holdersByName.get(name);
 		return holder == null ? null : holder.primitive();
 	}
 
 	/**
-	 * Given a primitive number, look it up and answer the {@link Primitive} if
+	 * Given a primitive number, look it up and answer the {@code Primitive} if
 	 * found, or {@code null} if not found.
 	 *
 	 * @param primitiveNumber The primitive number to look up.
@@ -760,7 +778,7 @@ implements IntegerEnumSlotDescriptionEnum
 	public static Primitive byPrimitiveNumberOrFail (
 		final int primitiveNumber)
 	{
-		return holdersByNumber[primitiveNumber].primitive();
+		return stripNull(holdersByNumber[primitiveNumber].primitive());
 	}
 
 	/**
@@ -811,8 +829,7 @@ implements IntegerEnumSlotDescriptionEnum
 		final List<A_Phrase> arguments)
 	{
 		final Primitive primitive =
-			Primitive.byPrimitiveNumberOrNull(primitiveNumber);
-		assert primitive != null;
+			stripNull(byPrimitiveNumberOrNull(primitiveNumber));
 		final int expected = primitive.argCount();
 		if (expected == -1)
 		{
@@ -820,9 +837,9 @@ implements IntegerEnumSlotDescriptionEnum
 		}
 		if (arguments.size() != expected)
 		{
-			return String.format(
+			return format(
 				"number of declared arguments (%d) to agree with primitive's"
-				+ " required number of arguments (%d).",
+					+ " required number of arguments (%d).",
 				arguments.size(),
 				expected);
 		}
@@ -841,9 +858,9 @@ implements IntegerEnumSlotDescriptionEnum
 					builder.append("\n");
 				}
 				builder.append(
-					String.format(
+					format(
 						"argument #%d (%s) of primitive %s to be a subtype"
-						+ " of %s, not %s.",
+							+ " of %s, not %s.",
 						i,
 						arguments.get(i - 1).token().string(),
 						primitive.name(),
@@ -870,9 +887,7 @@ implements IntegerEnumSlotDescriptionEnum
 	@Override
 	public String name ()
 	{
-		final String str = name;
-		assert str != null;
-		return str;
+		return stripNull(name);
 	}
 
 	/**
@@ -930,7 +945,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * @param deltaNanoseconds
 	 *        The amount of time just spent checking the result type.
 	 * @param interpreterIndex
-	 *        The
+	 *        The interpreterIndex of the current thread's interpreter.
 	 */
 	public void addNanosecondsCheckingResultType (
 		final long deltaNanoseconds,
