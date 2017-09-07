@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -47,6 +46,8 @@ import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -100,8 +101,7 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 			final AvailObject constant = registerSet.constantAt(objectReg);
 			mustJump = constant.isInstanceOf(type);
 			canJump = mustJump;
-			final A_Type knownType =
-				AbstractEnumerationTypeDescriptor.withInstance(constant);
+			final A_Type knownType = instanceTypeOrMetaOn(constant);
 			intersection = type.typeIntersection(knownType);
 		}
 		else

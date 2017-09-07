@@ -31,13 +31,28 @@
  */
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.InstanceMetaDescriptor;
+import com.avail.descriptor.ParseNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import static com.avail.exceptions.AvailErrorCode.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.PARSE_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.exceptions.AvailErrorCode.E_BAD_YIELD_TYPE;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Create a variation of a {@linkplain
@@ -78,17 +93,16 @@ public final class P_CreateParseNodeType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.instanceMetaOn(PARSE_NODE.mostGeneralType()),
-				InstanceMetaDescriptor.topMeta()),
-			InstanceMetaDescriptor.instanceMetaOn(PARSE_NODE.mostGeneralType()));
+		return functionType(
+			tuple(
+				instanceMetaOn(PARSE_NODE.mostGeneralType()),
+				topMeta()),
+			instanceMetaOn(PARSE_NODE.mostGeneralType()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			E_BAD_YIELD_TYPE.numericCode());
+		return instanceTypeOn(E_BAD_YIELD_TYPE.numericCode());
 	}
 }

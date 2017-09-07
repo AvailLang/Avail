@@ -47,17 +47,28 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.OBJECT_TYPE_NAME_PROPERTY_KEY;
+import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots
 	.HASH_AND_MORE;
 import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots
 	.HASH_OR_ZERO;
 import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots
 	.FIELD_TYPES_;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 
 /**
  * {@code ObjectTypeDescriptor} represents an Avail object type. An object type
@@ -147,7 +158,7 @@ extends TypeDescriptor
 			builder.append("object");
 		}
 		final A_Atom explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom;
-		A_Set ignoreKeys = SetDescriptor.emptySet();
+		A_Set ignoreKeys = emptySet();
 		for (final A_Type baseType : baseTypes)
 		{
 			final A_Map fieldTypes = baseType.fieldTypeMap();
@@ -264,7 +275,7 @@ extends TypeDescriptor
 	A_Map o_FieldTypeMap (final AvailObject object)
 	{
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
-		A_Map fieldTypeMap = MapDescriptor.emptyMap();
+		A_Map fieldTypeMap = emptyMap();
 		for (final Map.Entry<A_Atom, Integer> entry
 			: variant.fieldToSlotIndex.entrySet())
 		{
@@ -273,7 +284,7 @@ extends TypeDescriptor
 			fieldTypeMap = fieldTypeMap.mapAtPuttingCanDestroy(
 				field,
 				slotIndex == 0
-					? InstanceTypeDescriptor.instanceTypeOn(field)
+					? instanceTypeOn(field)
 					: object.slot(FIELD_TYPES_, slotIndex),
 				true);
 		}
@@ -293,10 +304,10 @@ extends TypeDescriptor
 					fieldIterator.next();
 				final A_Atom field = entry.getKey();
 				final int slotIndex = entry.getValue();
-				return TupleDescriptor.tuple(
+				return tuple(
 					field,
 					slotIndex == 0
-						? InstanceTypeDescriptor.instanceTypeOn(field)
+						? instanceTypeOn(field)
 						: object.slot(FIELD_TYPES_, slotIndex));
 			});
 		assert !fieldIterator.hasNext();
@@ -530,7 +541,7 @@ extends TypeDescriptor
 				if (fieldIntersaction.isBottom())
 				{
 					// Abandon the partially built object type.
-					return BottomTypeDescriptor.bottom();
+					return bottom();
 				}
 				intersection.setSlot(FIELD_TYPES_, i, fieldIntersaction);
 			}
@@ -574,7 +585,7 @@ extends TypeDescriptor
 							anObjectType.slot(FIELD_TYPES_, otherSlotIndex));
 					if (fieldType.isBottom())
 					{
-						return BottomTypeDescriptor.bottom();
+						return bottom();
 					}
 				}
 				result.setSlot(FIELD_TYPES_, resultEntry.getValue(), fieldType);
@@ -748,7 +759,7 @@ extends TypeDescriptor
 	 */
 	public static AvailObject objectTypeFromTuple (final A_Tuple tuple)
 	{
-		A_Map map = MapDescriptor.emptyMap();
+		A_Map map = emptyMap();
 		for (final A_Tuple fieldTypeAssignment : tuple)
 		{
 			final A_Atom fieldAtom = fieldTypeAssignment.tupleAt(1);
@@ -773,8 +784,7 @@ extends TypeDescriptor
 		{
 			final A_BasicObject fieldValue =
 				ObjectDescriptor.getField(object, i);
-			final A_Type fieldType =
-				AbstractEnumerationTypeDescriptor.withInstance(fieldValue);
+			final A_Type fieldType = instanceTypeOrMetaOn(fieldValue);
 			result.setSlot(FIELD_TYPES_, i, fieldType);
 		}
 		result.setSlot(HASH_OR_ZERO, 0);
@@ -822,7 +832,7 @@ extends TypeDescriptor
 					if (namesMap.equalsNil())
 					{
 						keyAtomWithLeastNames = atom;
-						keyAtomNamesMap = MapDescriptor.emptyMap();
+						keyAtomNamesMap = emptyMap();
 						break;
 					}
 					final int mapSize = namesMap.mapSize();
@@ -836,10 +846,9 @@ extends TypeDescriptor
 			}
 			if (keyAtomWithLeastNames != null)
 			{
-				assert keyAtomNamesMap != null;
 				A_Set namesSet = keyAtomNamesMap.hasKey(anObjectType)
 					? keyAtomNamesMap.mapAt(anObjectType)
-					: SetDescriptor.emptySet();
+					: emptySet();
 				namesSet = namesSet.setWithElementCanDestroy(aString, false);
 				keyAtomNamesMap = keyAtomNamesMap.mapAtPuttingCanDestroy(
 					anObjectType, namesSet, true);
@@ -849,15 +858,14 @@ extends TypeDescriptor
 		}
 	}
 	/**
-	 * Remove a type name from the specified {@linkplain ObjectTypeDescriptor
-	 * user-defined object type}.  If the object type does not currently have
-	 * the specified type name, or if this name has already been removed, do
-	 * nothing.
+	 * Remove a type name from the specified user-defined object type.  If the
+	 * object type does not currently have the specified type name, or if this
+	 * name has already been removed, do nothing.
 	 *
 	 * @param aString
 	 *        A name to disassociate from the type.
 	 * @param anObjectType
-	 *        A {@linkplain ObjectTypeDescriptor user-defined object type}.
+	 *        An Avail object type.
 	 */
 	public static void removeNameFromType (
 		final A_String aString,
@@ -900,20 +908,19 @@ extends TypeDescriptor
 
 	/**
 	 * Answer information about the user-assigned name of the specified
-	 * {@linkplain ObjectTypeDescriptor user-defined object type}.
+	 * user-defined object type.
 	 *
-	 * @param anObjectType A {@linkplain ObjectTypeDescriptor user-defined
-	 *                     object type}.
-	 * @return A tuple with two elements:  (1) A set of names of the {@linkplain
-	 *         ObjectTypeDescriptor user-defined object type}, excluding names
-	 *         for which a strictly more specific named type is known, and (2)
-	 *         A set of object types corresponding to those names.
+	 * @param anObjectType A user-defined object type.
+	 * @return A tuple with two elements:  (1) A set of names of the
+	 *         user-defined object type, excluding names for which a strictly
+	 *         more specific named type is known, and (2) A set of object types
+	 *         corresponding to those names.
 	 */
 	public static A_Tuple namesAndBaseTypesForType (
 		final A_Type anObjectType)
 	{
 		final A_Atom propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom;
-		A_Map applicableTypesAndNames = MapDescriptor.emptyMap();
+		A_Map applicableTypesAndNames = emptyMap();
 		synchronized (propertyKey)
 		{
 			for (final Entry entry
@@ -961,14 +968,14 @@ extends TypeDescriptor
 				}
 			}
 		}
-		A_Set names = SetDescriptor.emptySet();
-		A_Set baseTypes = SetDescriptor.emptySet();
+		A_Set names = emptySet();
+		A_Set baseTypes = emptySet();
 		for (final Entry entry : filtered.mapIterable())
 		{
 			names = names.setUnionCanDestroy(entry.value(), true);
 			baseTypes = baseTypes.setWithElementCanDestroy(entry.key(), true);
 		}
-		return TupleDescriptor.tuple(names, baseTypes);
+		return tuple(names, baseTypes);
 	}
 
 	/**
@@ -1047,11 +1054,10 @@ extends TypeDescriptor
 	 * The most general {@linkplain ObjectTypeDescriptor object type}.
 	 */
 	private static final A_Type mostGeneralType =
-		objectTypeFromMap(MapDescriptor.emptyMap()).makeShared();
+		objectTypeFromMap(emptyMap()).makeShared();
 
 	/**
-	 * Answer the top (i.e., most general) {@linkplain ObjectTypeDescriptor
-	 * object type}.
+	 * Answer the top (i.e., most general) object type.
 	 *
 	 * @return The object type that makes no constraints on its fields.
 	 */
@@ -1064,14 +1070,14 @@ extends TypeDescriptor
 	 * The metatype of all object types.
 	 */
 	private static final A_Type objectMeta =
-		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
+		instanceMetaOn(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all object types.  This is just an {@linkplain
-	 * InstanceTypeDescriptor instance type} on the {@linkplain
-	 * #mostGeneralObjectType() most general type}.
+	 * InstanceMetaDescriptor instance meta} on the {@linkplain
+	 * #mostGeneralObjectType() most general object type}.
 	 *
-	 * @return The type of the most general object type.
+	 * @return The (meta)type of the most general object type.
 	 */
 	public static A_Type meta ()
 	{
@@ -1079,17 +1085,17 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * The {@linkplain AtomDescriptor atom} that identifies the {@linkplain
-	 * #exceptionType exception type}.
+	 * The {@link A_Atom} that identifies the {@linkplain #exceptionType
+	 * exception type}.
 	 */
 	private static final A_Atom exceptionAtom =
-		AtomDescriptor.createSpecialAtom("explicit-exception");
+		createSpecialAtom("explicit-exception");
 
 	static
 	{
 		exceptionAtom.setAtomProperty(
 			EXPLICIT_SUBCLASSING_KEY.atom,
-			AtomDescriptor.trueObject());
+			trueObject());
 	}
 
 	/**
@@ -1108,13 +1114,11 @@ extends TypeDescriptor
 	 * AtomDescriptor stack dump field} of an {@link #exceptionType() exception
 	 * type}.
 	 */
-	private static final A_Atom stackDumpAtom =
-		AtomDescriptor.createSpecialAtom("stack dump");
+	private static final A_Atom stackDumpAtom = createSpecialAtom("stack dump");
 
 	/**
-	 * Answer the {@linkplain AtomDescriptor atom} that identifies the
-	 * {@linkplain AtomDescriptor stack dump field} of an {@link
-	 * #exceptionType() exception type}.
+	 * Answer the {@link A_Atom} that identifies the stack dump field of an
+	 * {@link #exceptionType() exception type}.
 	 *
 	 * @return The special stack dump atom.
 	 */
@@ -1131,11 +1135,11 @@ extends TypeDescriptor
 	static
 	{
 		final A_Type type = objectTypeFromTuple(
-			TupleDescriptor.tuple(
-				TupleDescriptor.tuple(
+			tuple(
+				tuple(
 					exceptionAtom,
-					InstanceTypeDescriptor.instanceTypeOn(exceptionAtom))));
-		setNameForType(type, StringDescriptor.stringFrom("exception"), true);
+					instanceTypeOn(exceptionAtom))));
+		setNameForType(type, stringFrom("exception"), true);
 		exceptionType = type.makeShared();
 	}
 
@@ -1154,8 +1158,7 @@ extends TypeDescriptor
 	/**
 	 * The type of the most general exception type.
 	 */
-	private static final A_Type exceptionMeta =
-		InstanceMetaDescriptor.instanceMetaOn(exceptionType);
+	private static final A_Type exceptionMeta = instanceMetaOn(exceptionType);
 
 	/**
 	 * Answer the most general exception type's type.

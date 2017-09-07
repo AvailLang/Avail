@@ -48,6 +48,8 @@ import com.avail.interpreter.*;
 import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
+import javax.annotation.Nullable;
+
 /**
  * <strong>Primitive:</strong> Alias a {@linkplain A_String name} to another
  * {@linkplain A_Atom name}.
@@ -73,7 +75,7 @@ extends Primitive
 		final A_String newString = args.get(0);
 		final A_Atom oldAtom = args.get(1);
 
-		final AvailLoader loader = interpreter.fiber().availLoader();
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);

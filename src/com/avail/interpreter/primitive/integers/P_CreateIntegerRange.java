@@ -31,12 +31,22 @@
  */
 package com.avail.interpreter.primitive.integers;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.EnumerationTypeDescriptor;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain
@@ -67,7 +77,7 @@ public final class P_CreateIntegerRange extends Primitive
 		final A_Number max = args.get(2);
 		final A_Atom maxInc = args.get(3);
 		return interpreter.primitiveSuccess(
-			IntegerRangeTypeDescriptor.integerRangeType(
+			integerRangeType(
 				min,
 				minInc.extractBoolean(),
 				max,
@@ -77,12 +87,12 @@ public final class P_CreateIntegerRange extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				extendedIntegers(),
 				booleanType(),
 				extendedIntegers(),
 				booleanType()),
-			IntegerRangeTypeDescriptor.meta());
+			extendedIntegersMeta());
 	}
 }

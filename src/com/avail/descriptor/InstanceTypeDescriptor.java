@@ -32,16 +32,23 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.InstanceTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static java.lang.Math.*;
-import java.util.IdentityHashMap;
-import java.util.List;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+import java.util.List;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceTypeDescriptor.ObjectSlots.INSTANCE;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * My instances are called <em>instance types</em>, the types of individual
@@ -146,8 +153,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *        The most general type that is a subtype of both object and
 	 *        another.
 	 */
-	@Override final
-	A_Type computeIntersectionWith (
+	@Override A_Type computeIntersectionWith (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -157,7 +163,7 @@ extends AbstractEnumerationTypeDescriptor
 			{
 				// Intersection of an instance type and an instance meta is
 				// always bottom.
-				return BottomTypeDescriptor.bottom();
+				return bottom();
 			}
 			// Create a new enumeration containing all elements that are
 			// simultaneously present in object and another.
@@ -165,7 +171,7 @@ extends AbstractEnumerationTypeDescriptor
 			{
 				return object;
 			}
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		// Keep the instance if it complies with another, which is not an
 		// enumeration.
@@ -173,7 +179,7 @@ extends AbstractEnumerationTypeDescriptor
 		{
 			return object;
 		}
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	/**
@@ -190,8 +196,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *        The most specific type that is a supertype of both {@code object}
 	 *        and {@code another}.
 	 */
-	@Override final
-	A_Type computeUnionWith (
+	@Override A_Type computeUnionWith (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -204,10 +209,9 @@ extends AbstractEnumerationTypeDescriptor
 			}
 			// Create a new enumeration containing all elements from both
 			// enumerations.
-			return AbstractEnumerationTypeDescriptor.enumerationWith(
+			return enumerationWith(
 				another.instances().setWithElementCanDestroy(
-					getInstance(object),
-					false));
+					getInstance(object), false));
 		}
 		// Another is a kind.
 		if (getInstance(object).isInstanceOfKind(another))
@@ -360,10 +364,9 @@ extends AbstractEnumerationTypeDescriptor
 		assert tuple.isTuple();
 		if (1 <= index && index <= tuple.tupleSize())
 		{
-			return AbstractEnumerationTypeDescriptor.withInstance(
-				tuple.tupleAt(index));
+			return instanceTypeOrMetaOn(tuple.tupleAt(index));
 		}
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -379,29 +382,26 @@ extends AbstractEnumerationTypeDescriptor
 		assert tuple.isTuple();
 		if (startIndex > endIndex)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		final int upperIndex = tuple.tupleSize();
 		if (startIndex > upperIndex)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		if (startIndex == endIndex)
 		{
-			return AbstractEnumerationTypeDescriptor.withInstance(
-				tuple.tupleAt(startIndex));
+			return instanceTypeOrMetaOn(tuple.tupleAt(startIndex));
 		}
-		A_Set set = SetDescriptor.emptySet();
+		A_Set set = emptySet();
 		for (
 			int i = max(startIndex, 1), end = min(endIndex, upperIndex);
 			i <= end;
 			i++)
 		{
-			set = set.setWithElementCanDestroy(
-				tuple.tupleAt(i),
-				true);
+			set = set.setWithElementCanDestroy(tuple.tupleAt(i), true);
 		}
-		return AbstractEnumerationTypeDescriptor.enumerationWith(set);
+		return enumerationWith(set);
 	}
 
 	@Override @AvailMethod
@@ -412,10 +412,9 @@ extends AbstractEnumerationTypeDescriptor
 		final int tupleSize = tuple.tupleSize();
 		if (tupleSize == 0)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
-		return AbstractEnumerationTypeDescriptor.withInstance(
-			tuple.tupleAt(tupleSize));
+		return instanceTypeOrMetaOn(tuple.tupleAt(tupleSize));
 	}
 
 	@Override @AvailMethod
@@ -424,21 +423,18 @@ extends AbstractEnumerationTypeDescriptor
 		final A_BasicObject instance = getInstance(object);
 		if (instance.isTuple())
 		{
-			return IntegerRangeTypeDescriptor.singleInt(
-				getInstance(object).tupleSize());
+			return singleInt(getInstance(object).tupleSize());
 		}
 		if (instance.isSet())
 		{
-			return IntegerRangeTypeDescriptor.singleInt(
-				getInstance(object).setSize());
+			return singleInt(getInstance(object).setSize());
 		}
 		if (instance.isMap())
 		{
-			return IntegerRangeTypeDescriptor.singleInt(
-				getInstance(object).mapSize());
+			return singleInt(getInstance(object).mapSize());
 		}
 		assert false : "Unexpected instance for sizeRange";
-		return NilDescriptor.nil();
+		return nil();
 	}
 
 	@Override @AvailMethod
@@ -487,13 +483,13 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	A_Number o_InstanceCount (final AvailObject object)
 	{
-		return IntegerDescriptor.one();
+		return one();
 	}
 
 	@Override @AvailMethod
 	A_Set o_Instances (final AvailObject object)
 	{
-		return SetDescriptor.emptySet().setWithElementCanDestroy(
+		return emptySet().setWithElementCanDestroy(
 			getInstance(object),
 			true);
 	}
@@ -511,7 +507,8 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object,
 		final A_Type functionType)
 	{
-		return getSuperkind(object).acceptsArgTypesFromFunctionType(functionType);
+		return getSuperkind(object).acceptsArgTypesFromFunctionType(
+			functionType);
 	}
 
 	@Override @AvailMethod
@@ -573,9 +570,9 @@ extends AbstractEnumerationTypeDescriptor
 		 * (since it's technically a set type) and it reports an enumeration
 		 * whose sole instance is this set again.
 		 */
-		final AvailObject set = getInstance(object);
+		final A_Set set = getInstance(object);
 		assert set.isSet();
-		return AbstractEnumerationTypeDescriptor.enumerationWith(set);
+		return enumerationWith(set);
 	}
 
 	@Override @AvailMethod
@@ -670,7 +667,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link InstanceTypeDescriptor}.
+	 * Construct a new {@code InstanceTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

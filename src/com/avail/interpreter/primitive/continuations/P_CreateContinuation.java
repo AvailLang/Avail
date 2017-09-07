@@ -31,12 +31,17 @@
  */
 package com.avail.interpreter.primitive.continuations;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
+
+import java.util.List;
+
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain ContinuationDescriptor
@@ -104,7 +109,7 @@ public final class P_CreateContinuation extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.withInstance(
+		return instanceTypeOn(
 			E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
 				.numericCode());
 	}

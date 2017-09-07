@@ -57,6 +57,7 @@ import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
+import static com.avail.descriptor.FunctionTypeDescriptor.Types;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.InstanceMetaDescriptor.*;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
@@ -734,7 +735,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return IntegerRangeTypeDescriptor.meta();
+				return extendedIntegersMeta();
 			}
 		};
 

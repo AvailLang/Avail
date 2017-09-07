@@ -95,6 +95,8 @@ import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.problems.ProblemType.EXTERNAL;
 import static com.avail.compiler.problems.ProblemType.PARSE;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.LiteralNodeDescriptor.fromToken;
 import static com.avail.descriptor.LiteralNodeDescriptor.syntheticFrom;
@@ -104,6 +106,7 @@ import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 import static com.avail.interpreter.AvailLoader.Phase.COMPILING;
@@ -1216,11 +1219,8 @@ public final class AvailCompiler
 						loader.stopRecordingEffects();
 						final boolean canSummarize =
 							loader.statementCanBeSummarized();
-						final A_Type innerType =
-							AbstractEnumerationTypeDescriptor
-								.withInstance(val);
-						final A_Type varType =
-							VariableTypeDescriptor.variableTypeFor(innerType);
+						final A_Type innerType = instanceTypeOrMetaOn(val);
+						final A_Type varType = variableTypeFor(innerType);
 						final A_Phrase creationSend = SendNodeDescriptor.from(
 							TupleDescriptor.emptyTuple(),
 							SpecialMethodAtom.CREATE_MODULE_VARIABLE.bundle,
@@ -1297,7 +1297,7 @@ public final class AvailCompiler
 					compilationContext.diagnostics.reportError(afterFail);
 					return;
 				}
-				final A_Type varType = VariableTypeDescriptor.variableTypeFor(
+				final A_Type varType = variableTypeFor(
 					replacement.declaredType());
 				final A_Phrase creationSend = SendNodeDescriptor.from(
 					TupleDescriptor.emptyTuple(),
@@ -3019,8 +3019,8 @@ public final class AvailCompiler
 				for (final A_Phrase argPhrase :
 					argumentsListNode.expressionsTuple())
 				{
-					phraseTypes.add(AbstractEnumerationTypeDescriptor
-						.withInstance(argPhrase));
+					phraseTypes.add(
+						instanceTypeOrMetaOn(argPhrase));
 				}
 				final List<A_Definition> filtered = new ArrayList<>();
 				for (final A_Definition macroDefinition : visibleDefinitions)
@@ -3112,9 +3112,7 @@ public final class AvailCompiler
 					for (final A_Phrase argPhrase :
 						argumentsListNode.expressionsTuple())
 					{
-						phraseTypes.add(
-							AbstractEnumerationTypeDescriptor.withInstance(
-								argPhrase));
+						phraseTypes.add(instanceTypeOrMetaOn(argPhrase));
 					}
 					stateAfterCall.expected(
 						describeWhyDefinitionsAreInapplicable(

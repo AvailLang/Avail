@@ -70,7 +70,7 @@ public abstract class L2JavaTranslation
 	 * @param thisContinuation
 	 *        Either {@code null} in the case that this is an initial call, or
 	 *        else the {@link A_Continuation} to resume.
-	 * @throws ReifyStackThrowable
+	 * @throws ReifyStackThrowable If the stack needs to be reified.
 	 */
 	abstract void startOrResume (
 		final Interpreter interpreter,

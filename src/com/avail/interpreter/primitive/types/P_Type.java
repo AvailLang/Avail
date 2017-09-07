@@ -31,11 +31,20 @@
  */
 package com.avail.interpreter.primitive.types;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.InstanceMetaDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the type of the given object.
@@ -57,8 +66,7 @@ public final class P_Type extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject value = args.get(0);
-		return interpreter.primitiveSuccess(
-			AbstractEnumerationTypeDescriptor.withInstance(value));
+		return interpreter.primitiveSuccess(instanceTypeOrMetaOn(value));
 	}
 
 	@Override

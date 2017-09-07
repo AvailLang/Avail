@@ -49,14 +49,23 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.ReverseTupleDescriptor.createReverseTuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SubrangeTupleDescriptor.createSubrange;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.lang.String.format;
 import static java.util.Collections.max;
 import static java.util.Collections.min;
 
@@ -178,7 +187,7 @@ extends Descriptor
 				}
 				else if ((c >= 0 && c < 32) || c == 127)
 				{
-					aStream.append(String.format("\\(%x)", c));
+					aStream.append(format("\\(%x)", c));
 				}
 				else
 				{
@@ -485,14 +494,13 @@ extends Descriptor
 		{
 			tupleOfTypes.tupleAtPuttingCanDestroy(
 				i,
-				AbstractEnumerationTypeDescriptor.withInstance(
-					object.tupleAt(i)),
+				instanceTypeOrMetaOn(object.tupleAt(i)),
 				true);
 		}
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			IntegerDescriptor.fromInt(object.tupleSize()).kind(),
+		return tupleTypeForSizesTypesDefaultType(
+			fromInt(object.tupleSize()).kind(),
 			tupleOfTypes,
-			BottomTypeDescriptor.bottom());
+			bottom());
 	}
 
 	@Override @AvailMethod
@@ -712,7 +720,7 @@ extends Descriptor
 		final int tupleSize = object.tupleSize();
 		if (tupleSize == 0)
 		{
-			return TupleDescriptor.emptyTuple();
+			return emptyTuple();
 		}
 		A_Tuple accumulator = object.tupleAt(1);
 		if (canDestroy)
@@ -757,7 +765,7 @@ extends Descriptor
 			{
 				object.assertObjectUnreachableIfMutable();
 			}
-			return TupleDescriptor.emptyTuple();
+			return emptyTuple();
 		}
 		if (size == tupleSize)
 		{
@@ -767,7 +775,7 @@ extends Descriptor
 			}
 			return object;
 		}
-		return SubrangeTupleDescriptor.createSubrange(object, start, size);
+		return createSubrange(object, start, size);
 	}
 
 	@Override @AvailMethod
@@ -853,7 +861,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Tuple o_TupleReverse(final AvailObject object)
 	{
-		return ReverseTupleDescriptor.createReverseTuple(object);
+		return createReverseTuple(object);
 	}
 
 	@Override @AvailMethod
@@ -874,23 +882,25 @@ extends Descriptor
 		int maxInteger = 0;
 		for (int i = 1; i <= size; i++)
 		{
-			final int intValue;
 			final AvailObject element = object.tupleAt(i);
 			if (allChars && element.isCharacter())
 			{
 				allInts = false;
 				maxCodePoint = max(maxCodePoint, element.codePoint());
 			}
-			else if (allInts
-				&& element.isInt()
-				&& (intValue = element.extractInt()) >= 0)
+			else if (!allInts || !element.isInt())
 			{
-				allChars = false;
-				maxInteger = max(maxInteger, intValue);
+				return SerializerOperation.GENERAL_TUPLE;
 			}
 			else
 			{
-				return SerializerOperation.GENERAL_TUPLE;
+				final int intValue = element.extractInt();
+				if (intValue < 0)
+				{
+					return SerializerOperation.GENERAL_TUPLE;
+				}
+				allChars = false;
+				maxInteger = max(maxInteger, intValue);
 			}
 		}
 		if (allInts)
@@ -918,7 +928,6 @@ extends Descriptor
 		return SerializerOperation.ARBITRARY_STRING;
 	}
 
-
 	/**
 	 * Compute the object's hash value.
 	 *
@@ -929,7 +938,6 @@ extends Descriptor
 	{
 		return object.computeHashFromTo(1, object.tupleSize());
 	}
-
 
 	/**
 	 * Compute the hash value from the object's data. The result should be an

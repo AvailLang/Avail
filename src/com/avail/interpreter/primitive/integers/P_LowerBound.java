@@ -31,10 +31,20 @@
  */
 package com.avail.interpreter.primitive.integers;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor
+	.extendedIntegersMeta;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the lower bound. The client can ask the
@@ -64,9 +74,9 @@ public final class P_LowerBound extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.meta()),
-			IntegerRangeTypeDescriptor.extendedIntegers());
+		return functionType(
+			tuple(
+				extendedIntegersMeta()),
+			extendedIntegers());
 	}
 }

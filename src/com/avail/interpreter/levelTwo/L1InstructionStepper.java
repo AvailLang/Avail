@@ -35,7 +35,6 @@ package com.avail.interpreter.levelTwo;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.VariableGetException;
@@ -52,6 +51,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
@@ -260,7 +261,7 @@ public final class L1InstructionStepper
 					push(expectedReturnType);
 					final A_Method method = bundle.bundleMethod();
 					final A_Definition matching;
-					final long before = System.nanoTime();
+					final long beforeLookup = System.nanoTime();
 					try
 					{
 						matching = method.lookupByValuesFromList(
@@ -272,9 +273,9 @@ public final class L1InstructionStepper
 					}
 					finally
 					{
-						final long after = System.nanoTime();
+						final long afterLookup = System.nanoTime();
 						bundle.dynamicLookupStatistic().record(
-							after - before,
+							afterLookup - beforeLookup,
 							interpreter.interpreterIndex);
 					}
 
@@ -289,30 +290,8 @@ public final class L1InstructionStepper
 					}
 					if (!interpreter.skipReturnCheck)
 					{
-						if (!result.isInstanceOf(expectedReturnType))
-						{
-							final A_Function callee = matching.bodyBlock();
-							final A_Variable reportedResult =
-								VariableDescriptor.forContentType(
-									Types.ANY.o());
-							reportedResult.setValueNoCheck(result);
-							interpreter.argsBuffer.clear();
-							interpreter.argsBuffer.add((AvailObject)callee);
-							interpreter.argsBuffer.add(
-								(AvailObject)expectedReturnType);
-							interpreter.argsBuffer.add(
-								(AvailObject)reportedResult);
-							interpreter.invokeFunction(
-								interpreter.runtime()
-									.resultDisagreedWithExpectedTypeFunction());
-							// The function has to be bottom-valued, so it can't
-							// ever actually return.  However, it's reifiable.
-							// Note that the original callee is not part of the
-							// stack.  No point, since it was returning and is
-							// probably mostly evacuated.
-							throw new UnsupportedOperationException(
-								"Should not reach here");
-						}
+						interpreter.checkReturnType(
+							result, expectedReturnType, function);
 					}
 					assert stackp <= code.numArgsAndLocalsAndStack();
 					// Replace the stack slot.
@@ -584,20 +563,19 @@ public final class L1InstructionStepper
 									final AvailObject arg =
 										pointerAt(--reversedStackp);
 									interpreter.argsBuffer.add(arg);
-									return AbstractEnumerationTypeDescriptor
-										.withInstance(arg)
-										.typeUnion(
-											superUnionType.typeAtIndex(
-												tupleIndex++));
+									return instanceTypeOrMetaOn(arg).typeUnion(
+										superUnionType.typeAtIndex(
+											tupleIndex++));
 								}
 							});
 					stackp += numArgs;
-					// Push the expected return type.  This will be used when
-					// the method returns, and it also helps distinguish label
-					// continuations from call continuations.
+					// Push the expected type, which should be replaced on the
+					// stack with the actual value when the call completes
+					// (after ensuring it complies).
 					push(expectedReturnType);
 					final A_Method method = bundle.bundleMethod();
 					final A_Definition matching;
+					final long beforeLookup = System.nanoTime();
 					try
 					{
 						matching = method.lookupByTypesFromTuple(typesTuple);
@@ -606,14 +584,28 @@ public final class L1InstructionStepper
 					{
 						throw reifyAndReportFailedLookup(method, e.errorCode());
 					}
+					finally
+					{
+						final long afterLookup = System.nanoTime();
+						bundle.dynamicLookupStatistic().record(
+							afterLookup - beforeLookup,
+							interpreter.interpreterIndex);
+					}
 
 					callMethodAfterLookup(method, matching);
 
 					// The call returned normally, without reifications, with
 					// the resulting value in the interpreter's latestResult().
 					final AvailObject result = interpreter.latestResult();
-					assert result.isInstanceOf(expectedReturnType)
-						: "Return value disagrees with expected type";
+					if (debugL1)
+					{
+						System.out.println("Call returned: " + result);
+					}
+					if (!interpreter.skipReturnCheck)
+					{
+						interpreter.checkReturnType(
+							result, expectedReturnType, function);
+					}
 					assert stackp <= code.numArgsAndLocalsAndStack();
 					// Replace the stack slot.
 					pointerAtPut(stackp, result);

@@ -31,13 +31,21 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.InstanceMetaDescriptor;
+import com.avail.descriptor.InstanceTypeDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Extract the {@link InstanceTypeDescriptor exact type} of an object in a
@@ -62,8 +70,7 @@ public class L2_GET_TYPE extends L2Operation
 		final L2ObjectRegister typeReg = instruction.writeObjectRegisterAt(1);
 
 		final AvailObject value = valueReg.in(interpreter);
-		final A_Type type =
-			AbstractEnumerationTypeDescriptor.withInstance(value);
+		final A_Type type = instanceTypeOrMetaOn(value);
 		typeReg.set(type, interpreter);
 	}
 
@@ -102,8 +109,7 @@ public class L2_GET_TYPE extends L2Operation
 		{
 			registerSet.constantAtPut(
 				typeReg,
-				AbstractEnumerationTypeDescriptor.withInstance(
-					registerSet.constantAt(valueReg)),
+				instanceTypeOrMetaOn(registerSet.constantAt(valueReg)),
 				instruction);
 		}
 	}

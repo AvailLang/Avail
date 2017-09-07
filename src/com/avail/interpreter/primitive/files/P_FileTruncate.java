@@ -32,20 +32,30 @@
 
 package com.avail.interpreter.primitive.files;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
-import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.*;
+import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.FileHandle;
+import com.avail.AvailTask;
+import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.util.Collections;
 import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.AvailTask;
-import com.avail.AvailRuntime.FileHandle;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> If the specified size is less than the size
@@ -155,19 +165,18 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				ATOM.o(),
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(),
+				wholeNumbers(),
+				functionType(
+					tuple(),
 					TOP.o()),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
-						AbstractEnumerationTypeDescriptor.withInstance(
-							E_IO_ERROR.numericCode())),
+				functionType(
+					tuple(
+						instanceTypeOn(E_IO_ERROR.numericCode())),
 					TOP.o()),
-				IntegerRangeTypeDescriptor.bytes()),
+				bytes()),
 			FiberTypeDescriptor.forResultType(TOP.o()));
 	}
 

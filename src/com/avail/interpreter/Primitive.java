@@ -729,6 +729,11 @@ implements IntegerEnumSlotDescriptionEnum
 		// Register this instance.
 		assert holder.primitive == null;
 		holder.primitive = this;
+		runningNanos = new Statistic(
+			(hasFlag(Flag.CanInline) ? "" : "[NOT INLINE]")
+				+ getClass().getSimpleName()
+				+ " (running)",
+			StatisticReport.PRIMITIVES);
 		return this;
 	}
 
@@ -909,9 +914,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 * A performance metric indicating how long was spent executing each
 	 * primitive.
 	 */
-	final Statistic runningNanos = new Statistic(
-		getClass().getSimpleName() + " (running)",
-		StatisticReport.PRIMITIVES);
+	@Nullable Statistic runningNanos = null;
 
 	/**
 	 * Record that some number of nanoseconds were just expended running this
@@ -924,7 +927,7 @@ implements IntegerEnumSlotDescriptionEnum
 		final long deltaNanoseconds,
 		final int interpreterIndex)
 	{
-		runningNanos.record(deltaNanoseconds, interpreterIndex);
+		stripNull(runningNanos).record(deltaNanoseconds, interpreterIndex);
 	}
 
 	/**

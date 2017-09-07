@@ -32,13 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.withInstance;
-import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
@@ -46,6 +39,13 @@ import com.avail.compiler.CompilationContext;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 
 /**
  * I represent a token that's a literal representation of some object.
@@ -184,7 +184,7 @@ extends TokenDescriptor
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{
-		return literalTokenType(withInstance(object));
+		return literalTokenType(instanceTypeOn(object));
 	}
 
 	@Override @AvailMethod
@@ -258,8 +258,7 @@ extends TokenDescriptor
 	}
 
 	/**
-	 * Create and initialize a new {@linkplain LiteralTokenDescriptor literal
-	 * token}.
+	 * Create and initialize a new {@code LiteralTokenDescriptor literal token}.
 	 *
 	 * @param string
 	 *        The token text.
@@ -289,17 +288,17 @@ extends TokenDescriptor
 		instance.setSlot(STRING, string);
 		instance.setSlot(LEADING_WHITESPACE, leadingWhitespace);
 		instance.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
-		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
+		instance.setSlot(LOWER_CASE_STRING, nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
 		instance.setSlot(LITERAL, literal);
-		instance.setSlot(NEXT_LEXING_STATE_POJO, NilDescriptor.nil());
+		instance.setSlot(NEXT_LEXING_STATE_POJO, nil());
 		return instance;
 	}
 
 	/**
-	 * Construct a new {@link LiteralTokenDescriptor}.
+	 * Construct a new {@code LiteralTokenDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

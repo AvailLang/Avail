@@ -84,6 +84,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
@@ -98,6 +100,7 @@ import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionDescriptor.newCrashFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
@@ -112,6 +115,7 @@ import static com.avail.descriptor.MapTypeDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.*;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
@@ -1080,7 +1084,10 @@ public final class AvailRuntime
 	 * The {@linkplain FunctionDescriptor function} to invoke whenever an
 	 * unassigned variable is read.
 	 */
-	private volatile A_Function unassignedVariableReadFunction;
+	private volatile A_Function unassignedVariableReadFunction =
+		newCrashFunction(
+			"attempted to read from unassigned variable",
+			emptyTuple());
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever an
@@ -1111,7 +1118,13 @@ public final class AvailRuntime
 	 * The {@linkplain FunctionDescriptor function} to invoke whenever an
 	 * unassigned variable is read.
 	 */
-	private volatile A_Function resultDisagreedWithExpectedTypeFunction;
+	private volatile A_Function resultDisagreedWithExpectedTypeFunction =
+		newCrashFunction(
+			"return result disagreed with expected type",
+			tuple(
+				mostGeneralFunctionType(),
+				topMeta(),
+				variableTypeFor(ANY.o())));
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
@@ -1148,7 +1161,12 @@ public final class AvailRuntime
 	 * VariableAccessReactor write reactors} is written when {@linkplain
 	 * TraceFlag#TRACE_VARIABLE_WRITES write tracing} is not enabled.
 	 */
-	private volatile A_Function implicitObserveFunction;
+	private volatile A_Function implicitObserveFunction =
+		newCrashFunction(
+			"variable with a write reactor was written with write-tracing off",
+			tuple(
+				mostGeneralFunctionType(),
+				mostGeneralTupleType()));
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
@@ -1181,11 +1199,22 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain FunctionDescriptor function} to invoke whenever a
-	 * {@linkplain MethodDescriptor method} send fails for a definitional
-	 * reason.
+	 * The {@link A_Function} to invoke whenever a {@linkplain A_Method} send
+	 * fails for a definitional reason.
 	 */
-	private volatile A_Function invalidMessageSendFunction;
+	private volatile A_Function invalidMessageSendFunction =
+		newCrashFunction(
+			"failed method lookup",
+			tuple(
+				enumerationWith(
+					set(
+						E_NO_METHOD,
+						E_NO_METHOD_DEFINITION,
+						E_AMBIGUOUS_METHOD_DEFINITION,
+						E_FORWARD_METHOD_DEFINITION,
+						E_ABSTRACT_METHOD_DEFINITION)),
+				METHOD.o(),
+				mostGeneralTupleType()));
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever a
@@ -1214,36 +1243,6 @@ public final class AvailRuntime
 	public void setInvalidMessageSendFunction (final A_Function function)
 	{
 		invalidMessageSendFunction = function;
-	}
-
-	{
-		unassignedVariableReadFunction = FunctionDescriptor.newCrashFunction(
-			"attempted to read from unassigned variable",
-			emptyTuple());
-		resultDisagreedWithExpectedTypeFunction =
-			FunctionDescriptor.newCrashFunction(
-				"return result disagreed with expected type",
-				tuple(
-					mostGeneralFunctionType(),
-					topMeta(),
-					VariableTypeDescriptor.variableTypeFor(ANY.o())));
-		implicitObserveFunction = FunctionDescriptor.newCrashFunction(
-			"variable with a write reactor was written with write-tracing off",
-			tuple(
-				mostGeneralFunctionType(),
-				mostGeneralTupleType()));
-		invalidMessageSendFunction = FunctionDescriptor.newCrashFunction(
-			"failed method lookup",
-			tuple(
-				AbstractEnumerationTypeDescriptor.enumerationWith(
-					SetDescriptor.set(
-						E_NO_METHOD,
-						E_NO_METHOD_DEFINITION,
-						E_AMBIGUOUS_METHOD_DEFINITION,
-						E_FORWARD_METHOD_DEFINITION,
-						E_ABSTRACT_METHOD_DEFINITION)),
-				METHOD.o(),
-				mostGeneralTupleType()));
 	}
 
 	/**
@@ -1332,7 +1331,7 @@ public final class AvailRuntime
 	 * retired}.  Retired fibers will be garbage collected when there are no
 	 * remaining references.
 	 *
-	 * @return All fibers belonging to this {@linkplain AvailRuntime runtime}.
+	 * @return All fibers belonging to this {@code AvailRuntime}.
 	 */
 	public HashMap<Long, FiberReference> allFibers ()
 	{
@@ -1373,8 +1372,8 @@ public final class AvailRuntime
 	 *
 	 * @param moduleNameResolver
 	 *        The {@linkplain ModuleNameResolver module name resolver} that this
-	 *        {@linkplain AvailRuntime runtime} should use to resolve
-	 *        unqualified {@linkplain ModuleDescriptor module} names.
+	 *        {@code AvailRuntime} should use to resolve unqualified {@linkplain
+	 *        ModuleDescriptor module} names.
 	 */
 	public AvailRuntime (final ModuleNameResolver moduleNameResolver)
 	{
@@ -1476,7 +1475,7 @@ public final class AvailRuntime
 		specials[15] = FLOAT.o();
 		specials[16] = NUMBER.o();
 		specials[17] = integers();
-		specials[18] = IntegerRangeTypeDescriptor.meta();
+		specials[18] = extendedIntegersMeta();
 		specials[19] = mapMeta();
 		specials[20] = MODULE.o();
 		specials[21] = tupleFromIntegerList(allNumericCodes());
@@ -1549,10 +1548,8 @@ public final class AvailRuntime
 		specials[88] = pojoSelfTypeAtom();
 		specials[89] = pojoTypeForClass(Throwable.class);
 		specials[90] = functionType(emptyTuple(), TOP.o());
-		specials[91] = functionType(
-			emptyTuple(), booleanType());
-		specials[92] = VariableTypeDescriptor.variableTypeFor(
-			mostGeneralContinuationType());
+		specials[91] = functionType(emptyTuple(), booleanType());
+		specials[92] = variableTypeFor(mostGeneralContinuationType());
 		specials[93] = mapTypeForSizesKeyTypeValueType(
 			wholeNumbers(), ATOM.o(), ANY.o());
 		specials[94] = mapTypeForSizesKeyTypeValueType(
@@ -2290,6 +2287,4 @@ public final class AvailRuntime
 			? threadBean.getCurrentThreadCpuTime()
 			: System.nanoTime();
 	}
-
-
 }

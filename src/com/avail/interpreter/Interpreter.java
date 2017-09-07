@@ -38,7 +38,7 @@ import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.FiberDescriptor.IntegerSlots;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailRuntimeException;
@@ -48,6 +48,7 @@ import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
+import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.Continuation0ThrowsReification;
@@ -73,7 +74,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.IntegerSlots.DEBUG_UNIQUE_ID;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
 	.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
@@ -96,6 +96,7 @@ import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static com.avail.utility.Nulls.stripNull;
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 
 /**
@@ -279,25 +280,21 @@ public final class Interpreter
 			final StringBuilder builder = new StringBuilder();
 			builder.append(
 				runningFiber != null
-					?
-					formatString("%6d ", runningFiber.traversed().slot(
-						DEBUG_UNIQUE_ID))
+					? format("%6d ", runningFiber.uniqueId())
 					: "?????? ");
 			builder.append('→');
 			builder.append(
 				affectedFiber != null
-					?
-					formatString("%6d ", affectedFiber.traversed().slot(
-						DEBUG_UNIQUE_ID))
+					? format("%6d ", affectedFiber.uniqueId())
 					: "?????? ");
 			logger.log(level, builder + message, arguments);
 		}
 	}
 
 	/**
-	 * Answer the {@linkplain Interpreter Level Two interpreter} associated
-	 * with {@linkplain Thread#currentThread() this} {@linkplain Thread thread}.
-	 * If this thread is not an {@link AvailThread}, then fail.
+	 * Answer the Avail interpreter associated with the {@linkplain
+	 * Thread#currentThread() current thread}.  If this thread is not an {@link
+	 * AvailThread}, then fail.
 	 *
 	 * @return The current Level Two interpreter.
 	 */
@@ -307,9 +304,9 @@ public final class Interpreter
 	}
 
 	/**
-	 * Answer the {@linkplain Interpreter Level Two interpreter} associated
-	 * with {@linkplain Thread#currentThread() this} {@linkplain Thread thread}.
-	 * If this thread is not an {@link AvailThread}, then answer {@code null}.
+	 * Answer the Avail interpreter associated with the {@linkplain
+	 * Thread#currentThread() current thread}.  If this thread is not an {@link
+	 * AvailThread}, then answer {@code null}.
 	 *
 	 * @return The current Level Two interpreter, or {@code null} if the current
 	 *         thread is not an {@code AvailThread}.
@@ -469,7 +466,7 @@ public final class Interpreter
 	public final int interpreterIndex;
 
 	/**
-	 * Construct a new {@link Interpreter}.
+	 * Construct a new {@code Interpreter}.
 	 *
 	 * @param runtime
 	 *        An {@link AvailRuntime}.
@@ -1072,8 +1069,7 @@ public final class Interpreter
 		final Result success = primitive.attempt(args, this, skipReturnCheck);
 		final long timeAfter = AvailRuntime.captureNanos();
 		primitive.addNanosecondsRunning(
-			timeAfter - timeBefore,
-			interpreterIndex);
+			timeAfter - timeBefore, interpreterIndex);
 		assert success != FAILURE || !primitive.hasFlag(Flag.CannotFail);
 		if (debugPrimitives)
 		{
@@ -1643,7 +1639,7 @@ public final class Interpreter
 	 * has already been reified. If the function is a primitive, then it was
 	 * already attempted and must have failed, so the failure value must be in
 	 * {@link #latestResult}. Move it somewhere more appropriate for the
-	 * specialization of {@link Interpreter}, but not into the primitive
+	 * specialization of {@code Interpreter}, but not into the primitive
 	 * failure variable (since that local has not been created yet).</p>
 	 *
 	 * @param aFunction
@@ -2203,6 +2199,59 @@ public final class Interpreter
 	}
 
 	/**
+	 * Check that the result is an instance of the expected type.  If it is,
+	 * return.  If not, invoke the resultDisagreedWithExpectedTypeFunction.
+	 * Also accumulate statistics related to the return type check.  The {@link
+	 * Interpreter#returningRawFunction} must have been set by the client.
+	 *
+	 * @param result
+	 *        The value that was just returned.
+	 * @param expectedReturnType
+	 *        The expected type to check the value against.
+	 * @param returnee
+	 *        The {@link A_Function} that we're returning into.
+	 * @throws ReifyStackThrowable If reification is needed.
+	 */
+	public void checkReturnType (
+		final AvailObject result,
+		final A_Type expectedReturnType,
+		final A_Function returnee)
+	throws ReifyStackThrowable
+	{
+		final long before = AvailRuntime.captureNanos();
+		final boolean checkOk = result.isInstanceOf(expectedReturnType);
+		final long after = AvailRuntime.captureNanos();
+		final A_RawFunction returner = stripNull(returningRawFunction);
+		final @Nullable Primitive calledPrimitive = returner.primitive();
+		if (calledPrimitive != null)
+		{
+			calledPrimitive.addNanosecondsCheckingResultType(
+				after - before, interpreterIndex);
+		}
+		else
+		{
+			recordCheckedReturnFromTo(
+				returner, returnee.code(), after - before);
+		}
+		if (!checkOk)
+		{
+			final A_Variable reportedResult =
+				VariableDescriptor.forContentType(Types.ANY.o());
+			reportedResult.setValueNoCheck(result);
+			argsBuffer.clear();
+			argsBuffer.add((AvailObject) returner);
+			argsBuffer.add((AvailObject) expectedReturnType);
+			argsBuffer.add((AvailObject) reportedResult);
+			invokeFunction(runtime.resultDisagreedWithExpectedTypeFunction());
+			// The function has to be bottom-valued, so it can't ever actually
+			// return.  However, it's reifiable.  Note that the original callee
+			// is not part of the stack.  No point, since it was returning and
+			// is probably mostly evacuated.
+			throw new UnsupportedOperationException("Should not reach here");
+		}
+	}
+
+	/**
 	 * Stringify an {@linkplain AvailObject Avail value}, using the
 	 * {@linkplain AvailRuntime#stringificationFunction() stringification
 	 * function} associated with the specified {@linkplain AvailRuntime
@@ -2235,7 +2284,7 @@ public final class Interpreter
 		// mechanism for stringification.
 		if (stringifierFunction == null)
 		{
-			continuation.value(String.format(
+			continuation.value(format(
 				"(stringifier undefined) %s",
 				value.toString()));
 			return;
@@ -2249,7 +2298,7 @@ public final class Interpreter
 		fiber.resultContinuation(
 			string -> continuation.value(string.asNativeString()));
 		fiber.failureContinuation(
-			e -> continuation.value(String.format(
+			e -> continuation.value(format(
 				"(stringification failed [%s]) %s",
 				e.getClass().getSimpleName(),
 				value.toString())));
@@ -2325,8 +2374,7 @@ public final class Interpreter
 					}
 					if (outstanding.decrementAndGet() == 0)
 					{
-						final List<String> stringList =
-							asList(strings);
+						final List<String> stringList = asList(strings);
 						continuation.value(stringList);
 					}
 				});
@@ -2346,8 +2394,7 @@ public final class Interpreter
 		}
 		else
 		{
-			builder.append(
-				formatString(" [%s]", fiber().fiberName()));
+			builder.append(formatString(" [%s]", fiber().fiberName()));
 			if (pointers[CALLER.ordinal()] == null)
 			{
 				builder.append(formatString("%n\t«no stack»"));

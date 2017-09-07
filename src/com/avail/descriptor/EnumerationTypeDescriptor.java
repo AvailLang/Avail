@@ -32,20 +32,26 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.AvailObject.multiplier;
+import com.avail.annotations.AvailMethod;
+import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
 
+import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.serialization.SerializerOperation;
-import com.avail.utility.json.JSONWriter;
-import javax.annotation.Nullable;
+import static com.avail.descriptor.AtomDescriptor.falseObject;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots
+	.CACHED_SUPERKIND;
+import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots
+	.INSTANCES;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 
 /**
  * My instances are called <em>enumerations</em>. This descriptor family is
@@ -870,12 +876,10 @@ extends AbstractEnumerationTypeDescriptor
 
 	static
 	{
-		final A_Tuple tuple = TupleDescriptor.tuple(
-			AtomDescriptor.trueObject(),
-			AtomDescriptor.falseObject());
-		booleanObject = enumerationWith(tuple.asSet()).makeShared();
-		trueType = withInstance(AtomDescriptor.trueObject()).makeShared();
-		falseType = withInstance(AtomDescriptor.falseObject()).makeShared();
+		final A_Set set = set(trueObject(), falseObject());
+		booleanObject = enumerationWith(set).makeShared();
+		trueType = instanceTypeOrMetaOn(trueObject()).makeShared();
+		falseType = instanceTypeOrMetaOn(falseObject()).makeShared();
 	}
 
 	/**

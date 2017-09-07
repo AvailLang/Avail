@@ -32,19 +32,31 @@
 
 package com.avail.interpreter.primitive.sockets;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
-import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.nio.channels.*;
-import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
 import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import javax.annotation.Nullable;
+import java.nio.channels.AsynchronousServerSocketChannel;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
+import java.util.Collections;
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Accept an incoming connection on the
@@ -168,20 +180,19 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				ATOM.o(),
-				TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o()),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
+				oneOrMoreOf(CHARACTER.o()),
+				functionType(
+					tuple(
 						ATOM.o()),
 					TOP.o()),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
-						AbstractEnumerationTypeDescriptor.withInstance(
-							E_IO_ERROR.numericCode())),
+				functionType(
+					tuple(
+						instanceTypeOn(E_IO_ERROR.numericCode())),
 					TOP.o()),
-				IntegerRangeTypeDescriptor.bytes()),
+				bytes()),
 			FiberTypeDescriptor.mostGeneralFiberType());
 	}
 

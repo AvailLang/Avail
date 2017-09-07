@@ -194,12 +194,15 @@ implements Comparable<PerInterpreterStatistic>
 			nanoseconds / 1.0e6,
 			nanoseconds / 1.0e3));
 		builder.append(format("[N=%,10d] ", capturedCount));
+		// We could use a chi (x) with a line over it, "\u0304x", but this makes
+		// the text area REALLY SLOW.  Like, over ten seconds to insert a report
+		// from running Avail for five seconds.  So we spell out "mean".
 		builder.append(format(
 			capturedMean >= 999_999_500.0
-				? "(\u0304x=%1$, 8.3f s)"
+				? "(mean=%1$, 8.3f s)"
 				: capturedMean >= 999_999.5
-					? "(\u0304x=%2$, 8.3f ms)"
-					: "(\u0304x=%3$, 8.3f \u00b5s)",
+					? "(mean=%2$, 8.3f ms)"
+					: "(mean=%3$, 8.3f \u00b5s)",
 			capturedMean / 1.0e9,
 			capturedMean / 1.0e6,
 			capturedMean / 1.0e3));

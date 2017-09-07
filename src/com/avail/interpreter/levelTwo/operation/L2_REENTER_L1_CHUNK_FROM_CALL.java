@@ -31,13 +31,18 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.Interpreter.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L1InstructionStepper;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.optimizer.ReifyStackThrowable;
+
+import static com.avail.interpreter.Interpreter.debugL1;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <p>This is the first instruction of the L1 interpreter's on-ramp for resuming
@@ -67,6 +72,7 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
+	throws ReifyStackThrowable
 	{
 		if (debugL1)
 		{
@@ -77,7 +83,8 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 		interpreter.reifiedContinuation = continuation.caller();
 		final AvailObject returnValue = interpreter.latestResult();
 
-		assert interpreter.function == continuation.function();
+		final A_Function returneeFunction = stripNull(interpreter.function);
+		assert returneeFunction == continuation.function();
 		final int numSlots = continuation.numArgsAndLocalsAndStack();
 		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
 		interpreter.pointers = new AvailObject[numSlots + 1];
@@ -91,12 +98,9 @@ public class L2_REENTER_L1_CHUNK_FROM_CALL extends L2Operation
 		stepper.stackp = continuation.stackp();
 		if (!interpreter.skipReturnCheck)
 		{
-			final A_Type type = interpreter.pointerAt(stepper.stackp);
-			if (!returnValue.isInstanceOf(type))
-			{
-				//TODO MvG - Better reporting, invoke special function.
-				assert false : "Failed type check returning into reified L1";
-			}
+			final A_Type expectedType = interpreter.pointerAt(stepper.stackp);
+			interpreter.checkReturnType(
+				returnValue, expectedType, returneeFunction);
 		}
 		interpreter.pointerAtPut(stepper.stackp, returnValue);
 	}

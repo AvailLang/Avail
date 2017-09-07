@@ -31,26 +31,43 @@
  */
 package com.avail.interpreter.primitive.files;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
-import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static java.lang.Math.min;
-import java.io.*;
+import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.BufferKey;
+import com.avail.AvailRuntime.FileHandle;
+import com.avail.descriptor.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.utility.MutableOrNull;
+
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.AvailRuntime.BufferKey;
-import com.avail.AvailRuntime.FileHandle;
-import javax.annotation.Nullable;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.utility.MutableOrNull;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Interpreter.runOutermostFunction;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static java.lang.Math.min;
 
 /**
  * <strong>Primitive:</strong> Read the requested number of bytes from the
@@ -129,7 +146,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT);
 		}
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = interpreter.runtime();
 		final long oneBasedPositionLong = positionObject.extractLong();
 		// Guaranteed positive by argument constraint.
 		assert oneBasedPositionLong > 0L;
@@ -221,11 +238,10 @@ extends Primitive
 			buffers.add(buffer);
 		}
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			() ->
-				formatString("Asynchronous file read, %s", handle.filename));
+			() -> formatString("Asynchronous file read, %s", handle.filename));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -242,10 +258,10 @@ extends Primitive
 		{
 			// We began with buffer hits, so don't fetch anything.
 			// Concatenate the buffers we have.
-			final A_Tuple buffersTuple = TupleDescriptor.tupleFromList(buffers);
+			final A_Tuple buffersTuple = tupleFromList(buffers);
 			final A_Tuple concatenated =
 				buffersTuple.concatenateTuplesCanDestroy(false);
-			Interpreter.runOutermostFunction(
+			runOutermostFunction(
 				runtime,
 				newFiber,
 				succeed,
@@ -280,7 +296,7 @@ extends Primitive
 						// We started reading after the last byte of the file.
 						// Avail expects an empty buffer in this case.
 						assert buffer.remaining() == 0;
-						bytesTuple = TupleDescriptor.emptyTuple();
+						bytesTuple = emptyTuple();
 					}
 					else
 					{
@@ -322,7 +338,7 @@ extends Primitive
 							offsetInBuffer += alignment;
 						}
 					}
-					Interpreter.runOutermostFunction(
+					runOutermostFunction(
 						runtime,
 						newFiber,
 						succeed,
@@ -335,7 +351,7 @@ extends Primitive
 					final @Nullable Void attachment)
 				{
 					assert killer != null;
-					Interpreter.runOutermostFunction(
+					runOutermostFunction(
 						runtime,
 						newFiber,
 						fail,
@@ -349,32 +365,28 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.inclusive(
-					IntegerDescriptor.one(),
-					InfinityDescriptor.positiveInfinity()),
+		return functionType(
+			tuple(
+				naturalNumbers(),
+				inclusive(one(), positiveInfinity()),
 				ATOM.o(),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
-						TupleTypeDescriptor.zeroOrMoreOf(
-							IntegerRangeTypeDescriptor.bytes())),
+				functionType(
+					tuple(
+						zeroOrMoreOf(bytes())),
 					TOP.o()),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
-						AbstractEnumerationTypeDescriptor.withInstance(
-							E_IO_ERROR.numericCode())),
+				functionType(
+					tuple(
+						instanceTypeOn(E_IO_ERROR.numericCode())),
 					TOP.o()),
-				IntegerRangeTypeDescriptor.bytes()),
+				bytes()),
 			FiberTypeDescriptor.forResultType(TOP.o()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_NOT_OPEN_FOR_READ,

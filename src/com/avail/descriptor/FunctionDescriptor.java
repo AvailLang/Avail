@@ -456,10 +456,10 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a bootstrapped {@linkplain FunctionDescriptor function} that
-	 * uses the specified primitive.  The primitive failure code should invoke
-	 * the {@link SpecialMethodAtom#CRASH}'s bundle with a tuple of passed
-	 * arguments followed by the primitive failure value.
+	 * Construct a bootstrapped {@link A_Function} that uses the specified
+	 * primitive.  The primitive failure code should invoke the {@link
+	 * SpecialMethodAtom#CRASH}'s bundle with a tuple of passed arguments
+	 * followed by the primitive failure value.
 	 *
 	 * @param primitive
 	 *        The {@link Primitive} to use.
@@ -515,7 +515,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a bootstrap {@linkplain FunctionDescriptor function} that
+	 * Construct a bootstrap {@code FunctionDescriptor function} that
 	 * crashes when invoked.
 	 *
 	 * @param messageString

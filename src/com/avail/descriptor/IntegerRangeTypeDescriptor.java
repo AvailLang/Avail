@@ -929,7 +929,7 @@ extends TypeDescriptor
 	 * extended integer}, and therefore has all integer range types as
 	 * instances.
 	 */
-	private static final A_Type meta =
+	private static final A_Type extendedIntegersMeta =
 		InstanceMetaDescriptor.instanceMetaOn(extendedIntegers).makeShared();
 
 	/**
@@ -937,8 +937,8 @@ extends TypeDescriptor
 	 *
 	 * @return The integer metatype.
 	 */
-	public static A_Type meta ()
+	public static A_Type extendedIntegersMeta ()
 	{
-		return meta;
+		return extendedIntegersMeta;
 	}
 }

@@ -32,17 +32,26 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.LiteralNodeDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.LiteralNodeDescriptor.ObjectSlots.TOKEN;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**
  * My instances are occurrences of literals parsed from Avail source code.  At
@@ -88,8 +97,7 @@ extends ParseNodeDescriptor
 		assert token.tokenType() == TokenType.LITERAL
 			|| token.tokenType() == TokenType.SYNTHETIC_LITERAL;
 		final AvailObject literal = token.literal();
-		return AbstractEnumerationTypeDescriptor.withInstance(literal)
-			.makeImmutable();
+		return instanceTypeOrMetaOn(literal).makeImmutable();
 	}
 
 	@Override @AvailMethod
@@ -211,8 +219,7 @@ extends ParseNodeDescriptor
 	 */
 	public static AvailObject fromToken (final A_Token token)
 	{
-		assert token.isInstanceOfKind(
-			LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType());
+		assert token.isInstanceOfKind(mostGeneralLiteralTokenType());
 		final AvailObject node = mutable.create();
 		node.setSlot(TOKEN, token);
 		return node.makeShared();
@@ -231,9 +238,9 @@ extends ParseNodeDescriptor
 		final AvailObject token = LiteralTokenDescriptor.create(
 			literalValue.isString()
 				? (A_String)literalValue
-				: StringDescriptor.stringFrom(literalValue.toString()),
-			TupleDescriptor.emptyTuple(),
-			TupleDescriptor.emptyTuple(),
+				: stringFrom(literalValue.toString()),
+			emptyTuple(),
+			emptyTuple(),
 			0,
 			-1,
 			TokenType.SYNTHETIC_LITERAL,

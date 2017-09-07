@@ -34,7 +34,6 @@ package com.avail.optimizer;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationTypeDescriptor;
 import com.avail.descriptor.NilDescriptor;
@@ -51,6 +50,9 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
+import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;
 
 /**
@@ -214,8 +216,7 @@ public final class RegisterSet
 		state.constant(strongValue);
 		if (!strongValue.equalsNil())
 		{
-			final A_Type type =
-				AbstractEnumerationTypeDescriptor.withInstance(strongValue);
+			final A_Type type = instanceTypeOrMetaOn(strongValue);
 			assert !type.isTop();
 			assert !type.isBottom();
 			state.type(type);
@@ -243,8 +244,7 @@ public final class RegisterSet
 		state.constant(strongValue);
 		if (!strongValue.equalsNil())
 		{
-			final A_Type type =
-				AbstractEnumerationTypeDescriptor.withInstance(strongValue);
+			final A_Type type = instanceTypeOrMetaOn(strongValue);
 			assert !type.isTop();
 			assert !type.isBottom();
 			state.type(type);
@@ -262,9 +262,7 @@ public final class RegisterSet
 	public AvailObject constantAt (
 		final L2Register register)
 	{
-		final AvailObject value = stateForReading(register).constant();
-		assert value != null;
-		return value;
+		return stripNull(stateForReading(register).constant());
 	}
 
 	/**
