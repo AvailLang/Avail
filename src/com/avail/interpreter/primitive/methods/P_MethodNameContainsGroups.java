@@ -32,16 +32,27 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
 
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.interpreter.*;
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Treating the argument as a {@linkplain
@@ -76,23 +87,21 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
-			splitter.containsGroups()));
+		return interpreter.primitiveSuccess(
+			objectFromBoolean(splitter.containsGroups()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				stringType()),
+		return functionType(
+			tuple(stringType()),
 			booleanType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			MessageSplitter.possibleErrors);
+		return enumerationWith(possibleErrors);
 	}
 }

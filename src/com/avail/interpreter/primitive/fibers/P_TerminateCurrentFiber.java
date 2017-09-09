@@ -35,9 +35,7 @@ package com.avail.interpreter.primitive.fibers;
 import com.avail.compiler.FiberTerminationException;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BottomTypeDescriptor;
 import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 

@@ -57,9 +57,11 @@ import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots
 	.HASH_AND_MORE;
 import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots
@@ -131,7 +133,7 @@ extends TypeDescriptor
 		final int indent)
 	{
 		final A_Map myFieldTypeMap = object.fieldTypeMap();
-		final A_Tuple pair = namesAndBaseTypesForType(object);
+		final A_Tuple pair = namesAndBaseTypesForObjectType(object);
 		final A_Set names = pair.tupleAt(1);
 		final A_Set baseTypes = pair.tupleAt(2);
 		final List<String> sortedNames = new ArrayList<>(names.setSize());
@@ -284,7 +286,7 @@ extends TypeDescriptor
 			fieldTypeMap = fieldTypeMap.mapAtPuttingCanDestroy(
 				field,
 				slotIndex == 0
-					? instanceTypeOn(field)
+					? instanceType(field)
 					: object.slot(FIELD_TYPES_, slotIndex),
 				true);
 		}
@@ -296,18 +298,17 @@ extends TypeDescriptor
 	{
 		final Iterator<Map.Entry<A_Atom, Integer>> fieldIterator =
 			variant.fieldToSlotIndex.entrySet().iterator();
-		final A_Tuple resultTuple = ObjectTupleDescriptor.generateFrom(
+		final A_Tuple resultTuple = generateObjectTupleFrom(
 			variant.fieldToSlotIndex.size(),
-			() ->
+			index ->
 			{
-				final Map.Entry<A_Atom, Integer> entry =
-					fieldIterator.next();
+				final Map.Entry<A_Atom, Integer> entry = fieldIterator.next();
 				final A_Atom field = entry.getKey();
 				final int slotIndex = entry.getValue();
 				return tuple(
 					field,
 					slotIndex == 0
-						? instanceTypeOn(field)
+						? instanceType(field)
 						: object.slot(FIELD_TYPES_, slotIndex));
 			});
 		assert !fieldIterator.hasNext();
@@ -916,7 +917,7 @@ extends TypeDescriptor
 	 *         more specific named type is known, and (2) A set of object types
 	 *         corresponding to those names.
 	 */
-	public static A_Tuple namesAndBaseTypesForType (
+	public static A_Tuple namesAndBaseTypesForObjectType (
 		final A_Type anObjectType)
 	{
 		final A_Atom propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom;
@@ -991,7 +992,7 @@ extends TypeDescriptor
 	 */
 	public static A_Set namesForType (final A_Type anObjectType)
 	{
-		return namesAndBaseTypesForType(anObjectType).tupleAt(1);
+		return namesAndBaseTypesForObjectType(anObjectType).tupleAt(1);
 	}
 
 	/**
@@ -1008,7 +1009,7 @@ extends TypeDescriptor
 	public static A_BasicObject namedBaseTypesForType (
 		final A_Type anObjectType)
 	{
-		return namesAndBaseTypesForType(anObjectType).tupleAt(2);
+		return namesAndBaseTypesForObjectType(anObjectType).tupleAt(2);
 	}
 
 	/** This descriptor's {@link ObjectLayoutVariant}. */
@@ -1069,8 +1070,8 @@ extends TypeDescriptor
 	/**
 	 * The metatype of all object types.
 	 */
-	private static final A_Type objectMeta =
-		instanceMetaOn(mostGeneralType).makeShared();
+	private static final A_Type mostGeneralMeta =
+		instanceMeta(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all object types.  This is just an {@linkplain
@@ -1079,9 +1080,9 @@ extends TypeDescriptor
 	 *
 	 * @return The (meta)type of the most general object type.
 	 */
-	public static A_Type meta ()
+	public static A_Type mostGeneralObjectMeta ()
 	{
-		return objectMeta;
+		return mostGeneralMeta;
 	}
 
 	/**
@@ -1135,10 +1136,9 @@ extends TypeDescriptor
 	static
 	{
 		final A_Type type = objectTypeFromTuple(
-			tuple(
-				tuple(
-					exceptionAtom,
-					instanceTypeOn(exceptionAtom))));
+			tuple(tuple(
+				exceptionAtom,
+				instanceType(exceptionAtom))));
 		setNameForType(type, stringFrom("exception"), true);
 		exceptionType = type.makeShared();
 	}
@@ -1158,7 +1158,7 @@ extends TypeDescriptor
 	/**
 	 * The type of the most general exception type.
 	 */
-	private static final A_Type exceptionMeta = instanceMetaOn(exceptionType);
+	private static final A_Type exceptionMeta = instanceMeta(exceptionType);
 
 	/**
 	 * Answer the most general exception type's type.

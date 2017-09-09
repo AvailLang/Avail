@@ -44,6 +44,7 @@ import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import java.util.List;
 
 import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
@@ -89,7 +90,7 @@ public class L2_CREATE_OBJECT extends L2Operation
 				valueRegs.get(i).in(interpreter),
 				true);
 		}
-		final AvailObject object = ObjectDescriptor.objectFromMap(map);
+		final AvailObject object = objectFromMap(map);
 		destinationObjectReg.set(object, interpreter);
 	}
 }

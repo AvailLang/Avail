@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -45,6 +44,8 @@ import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
@@ -112,7 +113,7 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 		// are probably not doing things right.
 		assert registerSet.hasTypeAt(variableReg);
 		final A_Type varType = registerSet.typeAt(variableReg);
-		assert varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralVariableType());
+		assert varType.isSubtypeOf(mostGeneralVariableType());
 		registerSet.removeConstantAt(destReg);
 		registerSet.typeAtPut(destReg, varType.readType(), instruction);
 	}

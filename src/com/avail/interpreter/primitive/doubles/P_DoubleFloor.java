@@ -31,11 +31,19 @@
  */
 package com.avail.interpreter.primitive.doubles;
 
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.DoubleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.DoubleDescriptor.fromDoubleRecycling;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Answer the largest integral {@linkplain
@@ -62,15 +70,14 @@ public final class P_DoubleFloor extends Primitive
 		final double d = a.extractDouble();
 		final double floor = Math.floor(d);
 		return interpreter.primitiveSuccess(
-			DoubleDescriptor.objectFromDoubleRecycling(floor, a, true));
+			fromDoubleRecycling(floor, a, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				DOUBLE.o()),
+		return functionType(
+			tuple(DOUBLE.o()),
 			DOUBLE.o());
 	}
 }

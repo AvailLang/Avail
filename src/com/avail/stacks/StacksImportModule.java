@@ -32,10 +32,13 @@
 
 package com.avail.stacks;
 import com.avail.descriptor.A_String;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.Pair;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 
 /**
  * A grouping of all implementationGroups originating from the names section of
@@ -54,12 +57,12 @@ public abstract class StacksImportModule
 	 * The map of {@linkplain ImplementationGroup ImplementationGroups} keyed
 	 * by the implementation name as exported by this module.
 	 */
-	private final HashMap<A_String,ImplementationGroup> implementationGroups;
+	private final Map<A_String,ImplementationGroup> implementationGroups;
 
 	/**
 	 * @return the implementationGroups
 	 */
-	public HashMap<A_String,ImplementationGroup> implementations ()
+	public Map<A_String, ImplementationGroup> implementations ()
 	{
 		return implementationGroups;
 	}
@@ -69,13 +72,13 @@ public abstract class StacksImportModule
 	 * path it is originally named from.  These are all the extends method
 	 * names.
 	 */
-	private final HashMap<A_String, HashMap<String, ImplementationGroup>>
+	private final Map<A_String, Map<String, ImplementationGroup>>
 		extendsMethodLeafNameToModuleName;
 
 	/**
 	 * @return the extendsMethodLeafNameToModuleName
 	 */
-	public HashMap<A_String, HashMap<String, ImplementationGroup>>
+	public Map<A_String, Map<String, ImplementationGroup>>
 		extendsMethodLeafNameToModuleName ()
 	{
 		return extendsMethodLeafNameToModuleName;
@@ -86,13 +89,13 @@ public abstract class StacksImportModule
 	 * path it is originally named from.  These are all the uses method
 	 * names in scope in this module.
 	 */
-	private final HashMap<A_String, HashMap<String, ImplementationGroup>>
+	private final Map<A_String, Map<String, ImplementationGroup>>
 		usesMethodLeafNameToModuleName;
 
 	/**
 	 * @return the usesMethodLeafNameToModuleName
 	 */
-	public HashMap<A_String, HashMap<String, ImplementationGroup>>
+	public Map<A_String, Map<String, ImplementationGroup>>
 		usesMethodLeafNameToModuleName ()
 	{
 		return usesMethodLeafNameToModuleName;
@@ -102,12 +105,12 @@ public abstract class StacksImportModule
 	 * A map of module names to other {@linkplain StacksExtendsModule modules}
 	 * extended by this module.
 	 */
-	private final HashMap<String,StacksExtendsModule> moduleNameToExtendsList;
+	private final Map<String,StacksExtendsModule> moduleNameToExtendsList;
 
 	/**
 	 * @return the moduleNameToExtendsList
 	 */
-	public HashMap<String,StacksExtendsModule> moduleNameToExtendsList ()
+	public Map<String,StacksExtendsModule> moduleNameToExtendsList ()
 	{
 		return moduleNameToExtendsList;
 	}
@@ -116,12 +119,12 @@ public abstract class StacksImportModule
 	 * A map of module names to other {@linkplain StacksUsesModule modules}
 	 * used by this module.
 	 */
-	private final HashMap<String,StacksUsesModule> moduleNameToUsesList;
+	private final Map<String,StacksUsesModule> moduleNameToUsesList;
 
 	/**
 	 * @return the moduleNameToExtendsList
 	 */
-	public HashMap<String,StacksUsesModule> moduleNameToUsesList ()
+	public Map<String,StacksUsesModule> moduleNameToUsesList ()
 	{
 		return moduleNameToUsesList;
 	}
@@ -131,7 +134,8 @@ public abstract class StacksImportModule
 	 * ImplementationGroup in the map.
 	 * @param implementation the method implementation to add.
 	 */
-	public abstract void addMethodImplementation (final A_String key,
+	public abstract void addMethodImplementation (
+		final A_String key,
 		final MethodCommentImplementation implementation);
 
 	/**
@@ -139,7 +143,8 @@ public abstract class StacksImportModule
 	 * ImplementationGroup in the map.
 	 * @param implementation the method implementation to add.
 	 */
-	public abstract void addMacroImplementation (final A_String key,
+	public abstract void addMacroImplementation (
+		final A_String key,
 		final MacroCommentImplementation implementation);
 
 	/**
@@ -148,7 +153,8 @@ public abstract class StacksImportModule
 	 * @param implementation the semantic restriction implementation to
 	 * add.
 	 */
-	public abstract void addSemanticImplementation (final A_String key,
+	public abstract void addSemanticImplementation (
+		final A_String key,
 		final SemanticRestrictionCommentImplementation implementation);
 
 	/**
@@ -156,24 +162,27 @@ public abstract class StacksImportModule
 	 * ImplementationGroup in the map.
 	 * @param implementation the grammatical restriction implementation to add.
 	 */
-	public abstract void addGrammaticalImplementation (final A_String key,
+	public abstract void addGrammaticalImplementation (
+		final A_String key,
 		final GrammaticalRestrictionCommentImplementation implementation);
 
 	/**
 	 * @param key The name of the class
-	 * @param classImplementationGroup The {@linkPlain ImplementationGroup}
+	 * @param classImplementationGroup The {@linkplain ImplementationGroup}
 	 * 		holding a class that is added to implementationGroups.
 	 */
-	public abstract void addClassImplementationGroup (final A_String key,
+	public abstract void addClassImplementationGroup (
+		final A_String key,
 		final ImplementationGroup classImplementationGroup);
 
 	/**
 	 * @param key The name of the module global variable
-	 * @param globalImplementationGroup The {@linkPlain ImplementationGroup}
+	 * @param globalImplementationGroup The {@linkplain ImplementationGroup}
 	 * 		holding a module global variable that is added to
 	 * 		implementationGroups.
 	 */
-	public abstract void addGlobalImplementationGroup (final A_String key,
+	public abstract void addGlobalImplementationGroup (
+		final A_String key,
 		final ImplementationGroup globalImplementationGroup);
 
 	/**
@@ -187,9 +196,12 @@ public abstract class StacksImportModule
 	 * @param deleteOriginal
 	 * 		Is the original name to be deleted?
 	 */
-	public abstract void renameImplementation (final A_String key,
-		final A_String newName, final StacksCommentsModule newlyDefinedModule,
-		final StacksFilename newFileName, boolean deleteOriginal);
+	public abstract void renameImplementation (
+		final A_String key,
+		final A_String newName,
+		final StacksCommentsModule newlyDefinedModule,
+		final StacksFilename newFileName,
+		boolean deleteOriginal);
 
 	/**
 	 * @param key
@@ -221,44 +233,40 @@ public abstract class StacksImportModule
 	 * @return
 	 * 		A map with keyed by the method qualified name to the implementation.
 	 */
-	public Pair<HashMap<String,Pair<String,ImplementationGroup>>,
-		HashMap<String,String>> qualifiedImplementationNameToImplementation()
+	public Pair<
+			Map<String, Pair<String, ImplementationGroup>>,
+			Map<String, String>>
+		qualifiedImplementationNameToImplementation()
 	{
-			final HashMap<String,Pair<String,ImplementationGroup>> newMap =
-				new HashMap<>();
-
-			final HashMap<A_String,Integer> newHashNameMap =
-				new HashMap<>();
-
-			final HashMap<String,String> nameToLinkMap =
-				new HashMap<>();
-
-			for (final A_String name : implementationGroups.keySet())
+		final Map<String, Pair<String, ImplementationGroup>> newMap =
+			new HashMap<>();
+		final Map<A_String, Integer> newHashNameMap = new HashMap<>();
+		final Map<String, String> nameToLinkMap = new HashMap<>();
+		for (final Entry<A_String, ImplementationGroup> entry :
+			implementationGroups.entrySet())
+		{
+			final A_String name = entry.getKey();
+			A_String nameToBeHashed = name;
+			if (newHashNameMap.containsKey(name))
 			{
-				A_String nameToBeHashed = name;
-				if (newHashNameMap.containsKey(name))
-				{
-					newHashNameMap.put(name, newHashNameMap.get(name) + 1);
-					nameToBeHashed =
-						StringDescriptor.stringFrom(name.asNativeString()
-							+ newHashNameMap.get(name));
-				}
-				else
-				{
-					newHashNameMap.put(nameToBeHashed, 0);
-				}
-
-				long hashedName = nameToBeHashed.hash();
-				hashedName &= 0xFFFFFFFFL;
-
-				final String qualifiedName = moduleName + "/"
-					+ String.valueOf(hashedName) + ".json";
-				newMap.put(qualifiedName,
-					new Pair<>(
-						name.asNativeString(), implementationGroups.get(name)));
-				nameToLinkMap.put(name.asNativeString(), qualifiedName);
+				newHashNameMap.put(name, newHashNameMap.get(name) + 1);
+				nameToBeHashed = stringFrom(
+					name.asNativeString() + newHashNameMap.get(name));
 			}
-			return new Pair<>(newMap, nameToLinkMap);
+			else
+			{
+				newHashNameMap.put(nameToBeHashed, 0);
+			}
+			long hashedName = nameToBeHashed.hash();
+			hashedName &= 0xFFFFFFFFL;
+			final String qualifiedName = moduleName + "/"
+				+ String.valueOf(hashedName) + ".json";
+			newMap.put(
+				qualifiedName,
+				new Pair<>(name.asNativeString(), entry.getValue()));
+			nameToLinkMap.put(name.asNativeString(), qualifiedName);
+		}
+		return new Pair<>(newMap, nameToLinkMap);
 	}
 
 	/**
@@ -268,36 +276,33 @@ public abstract class StacksImportModule
 	 * @return
 	 * 		A pair with both maps.
 	 */
-	public Pair<HashMap<String,Pair<String,ImplementationGroup>>,
-		HashMap<String,String>> flattenImplementationGroups()
+	public Pair<
+			Map<String, Pair<String, ImplementationGroup>>,
+			Map<String, String>>
+		flattenImplementationGroups ()
 	{
-		final HashMap<String,Pair<String,ImplementationGroup>> newMap =
+		final Map<String, Pair<String, ImplementationGroup>> newMap =
 			new HashMap<>();
-
-		final HashMap<String,String> nameToLinkMap =
-			new HashMap<>();
-
+		final Map<String,String> nameToLinkMap = new HashMap<>();
 		for (final StacksExtendsModule extendsModule :
 			moduleNameToExtendsList.values())
 		{
-			final Pair<HashMap<String, Pair<String,ImplementationGroup>>,
-				HashMap<String, String>> pair =
-					extendsModule.flattenImplementationGroups();
+			final Pair<Map<String, Pair<String, ImplementationGroup>>,
+					Map<String, String>> pair =
+				extendsModule.flattenImplementationGroups();
 			newMap.putAll(pair.first());
 			nameToLinkMap.putAll(pair.second());
 		}
-
-		final Pair<HashMap<String,Pair<String,ImplementationGroup>>,
-			HashMap<String,String>> aPair =
-				qualifiedImplementationNameToImplementation();
+		final Pair<Map<String, Pair<String, ImplementationGroup>>,
+				Map<String, String>> aPair =
+			qualifiedImplementationNameToImplementation();
 		newMap.putAll(aPair.first());
 		nameToLinkMap.putAll(aPair.second());
-
 		return new Pair<>(newMap, nameToLinkMap);
 	}
 
 	/**
-	 * Construct a new {@link StacksImportModule}.
+	 * Construct a new {@code StacksImportModule}.
 	 *
 	 * @param moduleImportName The name of the module
 	 * @param implementationGroups
@@ -316,13 +321,14 @@ public abstract class StacksImportModule
 	 * 		A map keyed by visible (uses) method names with no path to the
 	 * 		qualified module path it is originally named from.
 	 */
-	public StacksImportModule (final String moduleImportName,
-		final HashMap<A_String,ImplementationGroup> implementationGroups,
-		final HashMap<String,StacksExtendsModule> moduleNameToExtendsList,
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
+	public StacksImportModule (
+		final String moduleImportName,
+		final Map<A_String,ImplementationGroup> implementationGroups,
+		final Map<String,StacksExtendsModule> moduleNameToExtendsList,
+		final Map<A_String, Map<String, ImplementationGroup>>
 			extendsMethodLeafNameToModuleName,
-		final HashMap<String,StacksUsesModule> moduleNameToUsesList,
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
+		final Map<String,StacksUsesModule> moduleNameToUsesList,
+		final Map<A_String, Map<String, ImplementationGroup>>
 			usesMethodLeafNameToModuleName)
 	{
 		this.moduleName = moduleImportName;

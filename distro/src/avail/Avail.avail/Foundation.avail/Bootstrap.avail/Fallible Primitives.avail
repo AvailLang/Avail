@@ -1083,9 +1083,9 @@ Primitive "_[_]" is
  * @param "pathTuple" "nonempty tuple"
  *        The tuple providing the path to follow to reach the location
  *        to be updated.
- * @param "replaceStartIndex" "natural number"
+ * @param "replaceStartIndex" "whole number"
  *        The start index of the range to replace.
- * @param "replaceEndIndex" "whole number"
+ * @param "replaceEndIndex" "natural number"
  *        The end index of the range to replace.
  * @param "newValues" "two or more tuple"
  *        The replacement values.
@@ -1100,8 +1100,8 @@ Primitive "_«[_]»(_.._)→_" is
 [
 	aMap : map,
 	pathTuple : nonempty tuple,
-	replaceStartIndex : natural number,
-	replaceEndIndex : whole number,
+	replaceStartIndex : whole number,
+	replaceEndIndex : natural number,
 	newValues : two or more tuple
 |
 	Primitive MapReplaceRangeNAryKey (failureCode : {

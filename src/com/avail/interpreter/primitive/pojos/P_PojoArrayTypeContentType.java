@@ -32,10 +32,20 @@
 
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the content type of the specified
@@ -67,10 +77,7 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.instanceMetaOn(
-					PojoTypeDescriptor.mostGeneralPojoArrayType())),
-			InstanceMetaDescriptor.anyMeta());
+		return functionType(tuple(instanceMeta(
+			mostGeneralPojoArrayType())), anyMeta());
 	}
 }

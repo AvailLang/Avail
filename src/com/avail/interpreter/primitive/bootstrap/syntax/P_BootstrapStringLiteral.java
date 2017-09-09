@@ -31,16 +31,23 @@
  */
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a string literal phrase from a string
@@ -69,19 +76,17 @@ public final class P_BootstrapStringLiteral extends Primitive
 		final A_Token outerToken = stringTokenLiteral.token();
 		final A_Token innerToken = outerToken.literal();
 		assert innerToken.literal().isString();
-		final A_Phrase stringLiteral = LiteralNodeDescriptor.fromToken(
-			innerToken);
+		final A_Phrase stringLiteral = literalNodeFromToken(innerToken);
 		return interpreter.primitiveSuccess(stringLiteral);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				LITERAL_NODE.create(
-					LiteralTokenTypeDescriptor.literalTokenType(
-						TupleTypeDescriptor.stringType()))),
-			LITERAL_NODE.create(TupleTypeDescriptor.stringType()));
+				literalTokenType(stringType()))),
+			LITERAL_NODE.create(stringType()));
 	}
 }

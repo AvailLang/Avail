@@ -57,6 +57,10 @@ import static com.avail.descriptor.AtomDescriptor.ObjectSlots.ISSUING_MODULE;
 import static com.avail.descriptor.AtomDescriptor.ObjectSlots.NAME;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.MessageBundleDescriptor.newBundle;
+import static com.avail.descriptor.MethodDescriptor.newMethod;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 
 /**
@@ -323,7 +327,7 @@ extends Descriptor
 		final AvailObject object,
 		final A_Atom key)
 	{
-		return NilDescriptor.nil();
+		return nil();
 	}
 
 	@Override
@@ -383,10 +387,8 @@ extends Descriptor
 		{
 			final A_String name = object.slot(NAME);
 			final MessageSplitter splitter = new MessageSplitter(name);
-			final A_Method method = MethodDescriptor.newMethod(
-				splitter.numberOfArguments());
-			bundle =
-				MessageBundleDescriptor.newBundle(object, method, splitter);
+			final A_Method method = newMethod(splitter.numberOfArguments());
+			bundle = newBundle(object, method, splitter);
 			object.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, bundle);
 		}
 		return bundle;
@@ -484,7 +486,7 @@ extends Descriptor
 	 *        The new atom, not equal to any object in use before this method
 	 *        was invoked.
 	 */
-	public static AvailObject create (
+	public static AvailObject createAtom (
 		final A_String name,
 		final A_Module issuingModule)
 	{
@@ -510,9 +512,9 @@ extends Descriptor
 		final String name)
 	{
 		AvailObject atom = mutable.create();
-		atom.setSlot(NAME, StringDescriptor.stringFrom(name).makeShared());
+		atom.setSlot(NAME, stringFrom(name).makeShared());
 		atom.setSlot(HASH_OR_ZERO, 0);
-		atom.setSlot(ISSUING_MODULE, NilDescriptor.nil());
+		atom.setSlot(ISSUING_MODULE, nil());
 		atom = atom.makeShared();
 		atom.descriptor = AtomWithPropertiesSharedDescriptor.sharedAndSpecial;
 		return atom;
@@ -536,9 +538,9 @@ extends Descriptor
 		final boolean booleanValue)
 	{
 		AvailObject atom = mutable.create();
-		atom.setSlot(NAME, StringDescriptor.stringFrom(name).makeShared());
+		atom.setSlot(NAME, stringFrom(name).makeShared());
 		atom.setSlot(HASH_OR_ZERO, 0);
-		atom.setSlot(ISSUING_MODULE, NilDescriptor.nil());
+		atom.setSlot(ISSUING_MODULE, nil());
 		atom = atom.makeShared();
 		atom.descriptor = booleanValue
 			? AtomWithPropertiesSharedDescriptor.sharedAndSpecialForTrue

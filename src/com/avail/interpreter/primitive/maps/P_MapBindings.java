@@ -31,12 +31,25 @@
  */
 package com.avail.interpreter.primitive.maps;
 
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Answer the bindings of this {@linkplain
@@ -65,19 +78,18 @@ public final class P_MapBindings extends Primitive
 		int index = 0;
 		for (final Entry entry : map.mapIterable())
 		{
-			bindings[index++] = TupleDescriptor.tuple(entry.key(), entry.value());
+			bindings[index++] =
+				tuple(entry.key(), entry.value());
 		}
-		return interpreter.primitiveSuccess(TupleDescriptor.tuple(bindings));
+		return interpreter.primitiveSuccess(tuple(bindings));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				MapTypeDescriptor.mostGeneralMapType()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.tupleTypeForTypes(
+		return
+			functionType(tuple(mostGeneralMapType()), zeroOrMoreOf(
+				tupleTypeForTypes(
 					ANY.o(),
 					ANY.o())));
 	}

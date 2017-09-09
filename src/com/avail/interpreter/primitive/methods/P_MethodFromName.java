@@ -31,12 +31,27 @@
  */
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain
@@ -73,17 +88,13 @@ public final class P_MethodFromName extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ATOM.o()),
-			METHOD.o());
+		return functionType(tuple(ATOM.o()), METHOD.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_NO_METHOD));
+		return
+			enumerationWith(set(E_NO_METHOD));
 	}
 }

@@ -32,12 +32,24 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BlockNodeDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.BLOCK_NODE;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the specified {@linkplain
@@ -70,12 +82,11 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				BLOCK_NODE.mostGeneralType()),
-			SetTypeDescriptor.setTypeForSizesContentType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				// TODO: [MvG] Update with primitive exception type.
-				ANY.o()));
+		return
+			functionType(tuple(BLOCK_NODE.mostGeneralType()),
+				setTypeForSizesContentType(
+					wholeNumbers(),
+					// TODO: [MvG] Update with primitive exception type.
+					ANY.o()));
 	}
 }

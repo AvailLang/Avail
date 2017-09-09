@@ -33,7 +33,6 @@
 package com.avail.interpreter.primitive.fibers;
 
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.interpreter.Interpreter;
@@ -41,6 +40,7 @@ import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -72,16 +72,13 @@ extends Primitive
 	{
 		assert args.size() == 0;
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(
-				interpreter.fiber().generalFlag(
-					CAN_REJECT_PARSE)));
+			objectFromBoolean(
+				interpreter.fiber().generalFlag(CAN_REJECT_PARSE)));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			emptyTuple(),
-			booleanType());
+		return functionType(emptyTuple(), booleanType());
 	}
 }

@@ -44,6 +44,8 @@ import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.HashedMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedMapBinDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.LinearMapBinDescriptor
+	.createSingleLinearMapBin;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static java.lang.Long.bitCount;
@@ -86,7 +88,7 @@ extends MapBinDescriptor
 	 *
 	 * @param object A hashed bin used by maps.
 	 */
-	static void check (final AvailObject object)
+	static void checkHashedMapBin (final AvailObject object)
 	{
 		if (shouldCheck)
 		{
@@ -336,7 +338,7 @@ extends MapBinDescriptor
 		final boolean canDestroy)
 	{
 		assert myLevel == level;
-		check(object);
+		checkHashedMapBin(object);
 		// First, grab the appropriate 6 bits from the hash.
 		final int oldKeysHash = object.mapBinKeysHash();
 		final int oldSize = object.binSize();
@@ -397,11 +399,8 @@ extends MapBinDescriptor
 				objectToModify.setSlot(SUB_BINS_, i, object.slot(SUB_BINS_,i));
 			}
 			final A_BasicObject newSingleBin =
-				LinearMapBinDescriptor.createSingle(
-					key,
-					keyHash,
-					value,
-					(byte)(myLevel + 1));
+				createSingleLinearMapBin(
+					key, keyHash, value, (byte)(myLevel + 1));
 			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSingleBin);
 			for (int i = physicalIndex; i <= objectEntryCount; i++)
 			{
@@ -416,7 +415,7 @@ extends MapBinDescriptor
 		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
 		objectToModify.setSlot(
 			BIN_VALUE_UNION_KIND_OR_NULL, nil());
-		check(objectToModify);
+		checkHashedMapBin(objectToModify);
 		return objectToModify;
 	}
 
@@ -453,7 +452,7 @@ extends MapBinDescriptor
 		final int keyHash,
 		final boolean canDestroy)
 	{
-		check(object);
+		checkHashedMapBin(object);
 		if (isMutable() && !canDestroy)
 		{
 			object.makeImmutable();
@@ -533,7 +532,7 @@ extends MapBinDescriptor
 		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
 		objectToModify.setSlot(
 			BIN_VALUE_UNION_KIND_OR_NULL, nil());
-		check(objectToModify);
+		checkHashedMapBin(objectToModify);
 		return objectToModify;
 	}
 
@@ -733,7 +732,7 @@ extends MapBinDescriptor
 		{
 			result.setSlot(SUB_BINS_, i, nil());
 		}
-		check(result);
+		checkHashedMapBin(result);
 		return result;
 	}
 

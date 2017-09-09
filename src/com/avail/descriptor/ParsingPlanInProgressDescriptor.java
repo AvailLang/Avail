@@ -173,7 +173,7 @@ extends Descriptor
 	 * @param pc The definition for this plan.
 	 * @return A new {@linkplain ParsingPlanInProgressDescriptor plan}.
 	 */
-	public static A_ParsingPlanInProgress create (
+	public static A_ParsingPlanInProgress newPlanInProgress (
 		final A_DefinitionParsingPlan plan,
 		final int pc)
 	{

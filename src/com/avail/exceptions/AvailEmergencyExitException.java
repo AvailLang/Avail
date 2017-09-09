@@ -35,6 +35,7 @@ package com.avail.exceptions;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static java.lang.String.format;
 
 /**
@@ -88,7 +89,7 @@ extends Exception
 	 */
 	public AvailEmergencyExitException (final String failureString)
 	{
-		this.failureString = StringDescriptor.stringFrom(failureString);
+		this.failureString = stringFrom(failureString);
 	}
 
 	@Override

@@ -31,11 +31,21 @@
  */
 package com.avail.interpreter.primitive.phrases;
 
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TokenDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Get the specified {@linkplain
@@ -59,16 +69,14 @@ public final class P_TokenStart extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Token token = args.get(0);
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(token.start()));
+		return interpreter.primitiveSuccess(fromInt(token.start()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TOKEN.o()),
-			IntegerRangeTypeDescriptor.naturalNumbers());
+		return functionType(
+			tuple(TOKEN.o()),
+			naturalNumbers());
 	}
 }

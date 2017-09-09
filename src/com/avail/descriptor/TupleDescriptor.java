@@ -37,7 +37,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
+import com.avail.utility.IndexedGenerator;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.json.JSONWriter;
 
@@ -53,7 +53,13 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
+import static com.avail.descriptor.IntTupleDescriptor.generateIntTupleFrom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.NybbleTupleDescriptor
+	.generateNybbleTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
 import static com.avail.descriptor.ReverseTupleDescriptor.createReverseTuple;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SubrangeTupleDescriptor.createSubrange;
@@ -1066,18 +1072,8 @@ extends Descriptor
 	A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
 	{
 		final int size = object.tupleSize();
-		final AvailObject result = IntTupleDescriptor.generateFrom(
-			size,
-			new Generator<Integer>()
-			{
-				int index = 1;
-
-				@Override
-				public Integer value ()
-				{
-					return object.tupleIntAt(index++);
-				}
-			});
+		final AvailObject result = generateIntTupleFrom(
+			size, i -> object.tupleIntAt(i));
 		result.hashOrZero(object.hashOrZero());
 		return result;
 	}
@@ -1089,18 +1085,8 @@ extends Descriptor
 	A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		final int size = object.tupleSize();
-		final AvailObject result = ObjectTupleDescriptor.generateFrom(
-			size,
-			new Generator<A_BasicObject>()
-			{
-				int index = 1;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					return object.tupleAt(index++);
-				}
-			});
+		final AvailObject result = generateObjectTupleFrom(
+			size, object::tupleAt);
 		result.hashOrZero(object.hashOrZero());
 		return result;
 	}
@@ -1293,12 +1279,12 @@ extends Descriptor
 		/** Create the empty tuple. */
 		static
 		{
-			final A_Tuple t = NybbleTupleDescriptor.generateFrom(
+			final A_Tuple t = generateNybbleTupleFrom(
 				0,
-				() ->
+				ignored ->
 				{
 					assert false : "This should be an empty nybble tuple";
-					return (byte)0;
+					return 0;
 				});
 			t.hash();
 			emptyTuple = t.makeShared();
@@ -1337,18 +1323,7 @@ extends Descriptor
 		{
 			return emptyTuple();
 		}
-		return ObjectTupleDescriptor.generateFrom(
-			elements.length,
-			new Generator<A_BasicObject>()
-			{
-				private int index = 0;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					return elements[index++];
-				}
-			});
+		return generateObjectTupleFrom(elements.length, i -> elements[i - 1]);
 	}
 
 	/**
@@ -1369,18 +1344,7 @@ extends Descriptor
 		{
 			return emptyTuple();
 		}
-		return ObjectTupleDescriptor.generateFrom(
-			size,
-			new Generator<A_BasicObject>()
-			{
-				private int index = 0;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					return list.get(index++);
-				}
-			});
+		return generateObjectTupleFrom(size, i -> list.get(i - 1));
 	}
 
 	/**
@@ -1438,7 +1402,7 @@ extends Descriptor
 	 *        the new tuple, if it was present.
 	 * @return The new tuple.
 	 */
-	public static A_Tuple without (
+	public static A_Tuple tupleWithout (
 		final A_Tuple originalTuple,
 		final A_BasicObject elementToExclude)
 	{
@@ -1448,14 +1412,14 @@ extends Descriptor
 			if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
 			{
 				final int finalSeekIndex = seekIndex;
-				return ObjectTupleDescriptor.generateFrom(
+				return generateObjectTupleFrom(
 					originalSize - 1,
-					new Generator<A_BasicObject>()
+					new IndexedGenerator<A_BasicObject>()
 					{
 						private int index = 1;
 
 						@Override
-						public A_BasicObject value ()
+						public A_BasicObject value (final int ignored)
 						{
 							if (index == finalSeekIndex)
 							{
@@ -1491,49 +1455,18 @@ extends Descriptor
 			final int maxValue = max(list);
 			if (maxValue <= 15)
 			{
-				tuple = NybbleTupleDescriptor.generateFrom(
-					list.size(),
-					new Generator<Byte>()
-					{
-						private int index = 0;
-
-						@Override
-						public Byte value ()
-						{
-							return list.get(index++).byteValue();
-						}
-					});
+				tuple = generateNybbleTupleFrom(
+					list.size(), i -> list.get(i - 1).byteValue());
 				return tuple;
 			}
 			if (maxValue <= 255)
 			{
-				tuple = ByteTupleDescriptor.generateFrom(
-					list.size(),
-					new Generator<Short>()
-					{
-						private int index = 0;
-
-						@Override
-						public Short value ()
-						{
-							return list.get(index++).shortValue();
-						}
-					});
+				tuple = generateByteTupleFrom(
+					list.size(), index -> list.get(index - 1).shortValue());
 				return tuple;
 			}
 		}
-		tuple = IntTupleDescriptor.generateFrom(
-			list.size(),
-			new Generator<Integer>()
-			{
-				private int index = 0;
-
-				@Override
-				public Integer value ()
-				{
-					return list.get(index++);
-				}
-			});
+		tuple = generateIntTupleFrom(list.size(), i -> list.get(i - 1));
 		return tuple;
 	}
 

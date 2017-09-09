@@ -32,24 +32,41 @@
 
 package com.avail.tools.bootstrap;
 
-import static com.avail.tools.bootstrap.Resources.*;
-import static com.avail.tools.bootstrap.Resources.Key.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.io.*;
-import java.text.MessageFormat;
-import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.*;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.primitive.controlflow.P_InvokeWithTuple;
 import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.methods.P_AddSemanticRestriction;
 import com.avail.interpreter.primitive.sets.P_TupleToSet;
 import com.avail.interpreter.primitive.types.P_CreateEnumeration;
 import com.avail.utility.UTF8ResourceBundleControl;
+
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.MessageFormat;
+import java.util.*;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.tools.bootstrap.Resources.*;
+import static com.avail.tools.bootstrap.Resources.Key.*;
 
 /**
  * Generate the Avail system {@linkplain ModuleDescriptor modules} that
@@ -567,7 +584,7 @@ public final class BootstrapGenerator
 			}
 			final A_Type type = parameterTypes.typeAtIndex(i);
 			final A_Type paramType = forSemanticRestriction
-				? InstanceMetaDescriptor.instanceMetaOn(type)
+				? instanceMeta(type)
 				: type;
 			final String typeName = specialObjectName(paramType);
 			builder.append('\t');
@@ -609,8 +626,7 @@ public final class BootstrapGenerator
 			final A_Type varType = primitive.failureVariableType();
 			if (varType.isEnumeration())
 			{
-				if (varType.isSubtypeOf(
-					IntegerRangeTypeDescriptor.naturalNumbers()))
+				if (varType.isSubtypeOf(naturalNumbers()))
 				{
 					builder.append("{");
 					final A_Set instances = varType.instances();
@@ -673,7 +689,7 @@ public final class BootstrapGenerator
 					preamble.getString(
 						invokePrimitiveFailureFunctionMethodUse.name()),
 					argName,
-					namesBySpecialObject.get(TupleDescriptor.emptyTuple())));
+					namesBySpecialObject.get(emptyTuple())));
 			}
 			else
 			{
@@ -784,8 +800,7 @@ public final class BootstrapGenerator
 				final A_Type varType = primitive.failureVariableType();
 				if (varType.isEnumeration())
 				{
-					if (varType.isSubtypeOf(
-						IntegerRangeTypeDescriptor.naturalNumbers()))
+					if (varType.isSubtypeOf(naturalNumbers()))
 					{
 						final A_Set instances = varType.instances();
 						final List<A_Number> codes = new ArrayList<>();
@@ -970,10 +985,8 @@ public final class BootstrapGenerator
 	 */
 	private void generatePrimitiveFailureFunction (final PrintWriter writer)
 	{
-		final A_BasicObject functionType = FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			BottomTypeDescriptor.bottom());
+		final A_BasicObject functionType =
+			functionType(tuple(naturalNumbers()), bottom());
 		writer.print(
 			preamble.getString(primitiveFailureFunctionName.name()));
 		writer.print(" : ");
@@ -992,7 +1005,7 @@ public final class BootstrapGenerator
 			preamble.getString(parameterPrefix.name()) + 1));
 		writer.println("");
 		writer.print("\t] : ");
-		writer.print(specialObjectName(BottomTypeDescriptor.bottom()));
+		writer.print(specialObjectName(bottom()));
 		writer.println(';');
 		writer.println();
 	}
@@ -1014,10 +1027,7 @@ public final class BootstrapGenerator
 		final String block = block(
 			"",
 			statements.toString(),
-			FunctionTypeDescriptor.functionType(
-				TupleDescriptor.tuple(
-					IntegerRangeTypeDescriptor.naturalNumbers()),
-				BottomTypeDescriptor.bottom()));
+			functionType(tuple(naturalNumbers()), bottom()));
 		generateMethod(
 			preamble.getString(primitiveFailureFunctionGetterMethod.name()),
 			block,
@@ -1038,10 +1048,8 @@ public final class BootstrapGenerator
 		declarations.append('\t');
 		declarations.append(argName);
 		declarations.append(" : ");
-		final A_BasicObject functionType = FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			BottomTypeDescriptor.bottom());
+		final A_BasicObject functionType =
+			functionType(tuple(naturalNumbers()), bottom());
 		declarations.append(specialObjectName(functionType));
 		declarations.append('\n');
 		final StringBuilder statements = new StringBuilder();
@@ -1123,7 +1131,7 @@ public final class BootstrapGenerator
 			preamble.getString(primitiveFailureVariableName.name()));
 		statements.append(" : ");
 		statements.append(
-			specialObjectName(IntegerRangeTypeDescriptor.naturalNumbers()));
+			specialObjectName(naturalNumbers()));
 		statements.append(')');
 		statements.append(";\n");
 		statements.append('\t');
@@ -1141,7 +1149,7 @@ public final class BootstrapGenerator
 			writer);
 		statements = new StringBuilder();
 		statements.append('\t');
-		statements.append(specialObjectName(BottomTypeDescriptor.bottom()));
+		statements.append(specialObjectName(bottom()));
 		statements.append("\n");
 		block = block(
 			primitiveMethodParameterDeclarations(

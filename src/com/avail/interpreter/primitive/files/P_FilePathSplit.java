@@ -32,16 +32,32 @@
 
 package com.avail.interpreter.primitive.files;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.AvailRuntime;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.nio.file.FileSystem;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Split the specified {@linkplain Path path}
@@ -80,27 +96,23 @@ extends Primitive
 		final List<A_String> components = new ArrayList<>();
 		for (final Path component : path)
 		{
-			components.add(StringDescriptor.stringFrom(component.toString()));
+			components.add(stringFrom(component.toString()));
 		}
-		final A_Tuple tuple = TupleDescriptor.tupleFromList(components);
+		final A_Tuple tuple = tupleFromList(components);
 		return interpreter.primitiveSuccess(tuple);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType()),
-			TupleTypeDescriptor.oneOrMoreOf(
-				TupleTypeDescriptor.stringType()));
+		return functionType(
+			tuple(stringType()),
+			oneOrMoreOf(stringType()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_INVALID_PATH));
+		return enumerationWith(set(E_INVALID_PATH));
 	}
 }

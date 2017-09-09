@@ -33,20 +33,17 @@ package com.avail.interpreter.primitive.phrases;
 
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.InstanceMetaDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.PARSE_NODE;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -94,15 +91,13 @@ public final class P_CreateParseNodeType extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(
-				instanceMetaOn(PARSE_NODE.mostGeneralType()),
-				topMeta()),
-			instanceMetaOn(PARSE_NODE.mostGeneralType()));
+			tuple(instanceMeta(PARSE_NODE.mostGeneralType()), topMeta()),
+			instanceMeta(PARSE_NODE.mostGeneralType()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return instanceTypeOn(E_BAD_YIELD_TYPE.numericCode());
+		return instanceType(E_BAD_YIELD_TYPE.numericCode());
 	}
 }

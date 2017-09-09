@@ -31,14 +31,33 @@
  */
 package com.avail.interpreter.primitive.continuations;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 import java.util.List;
 
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.ContinuationDescriptor
+	.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode
 	.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -77,7 +96,7 @@ public final class P_CreateContinuation extends Primitive
 			return interpreter.primitiveFailure(
 				E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION);
 		}
-		final A_Continuation cont = ContinuationDescriptor.createExceptFrame(
+		final A_Continuation cont = createContinuationExceptFrame(
 			function,
 			callerHolder.value(),
 			pc.extractInt(),
@@ -95,21 +114,19 @@ public final class P_CreateContinuation extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FunctionTypeDescriptor.mostGeneralFunctionType(),
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.mostGeneralTupleType(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				VariableTypeDescriptor.variableTypeFor(
-					ContinuationTypeDescriptor.mostGeneralContinuationType())),
-			ContinuationTypeDescriptor.mostGeneralContinuationType());
+		return functionType(tuple(
+			mostGeneralFunctionType(),
+			wholeNumbers(),
+			mostGeneralTupleType(),
+			naturalNumbers(),
+			variableTypeFor(
+				mostGeneralContinuationType())), mostGeneralContinuationType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return instanceTypeOn(
+		return instanceType(
 			E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
 				.numericCode());
 	}

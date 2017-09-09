@@ -31,13 +31,22 @@
  */
 package com.avail.interpreter.primitive.methods;
 
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Answer whether precedence restrictions
@@ -62,16 +71,14 @@ public final class P_BundleHasRestrictions extends Primitive
 		assert args.size() == 1;
 		final A_Bundle bundle = args.get(0);
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(
-				bundle.hasGrammaticalRestrictions()));
+			objectFromBoolean(bundle.hasGrammaticalRestrictions()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				MESSAGE_BUNDLE.o()),
+		return functionType(
+			tuple(MESSAGE_BUNDLE.o()),
 			booleanType());
 	}
 }

@@ -178,7 +178,7 @@ extends Descriptor
 	 *            semantic restriction was defined.
 	 * @return The new semantic restriction.
 	 */
-	public static A_SemanticRestriction create (
+	public static A_SemanticRestriction newSemanticRestriction (
 		final A_Function function,
 		final A_Method method,
 		final A_Module module)

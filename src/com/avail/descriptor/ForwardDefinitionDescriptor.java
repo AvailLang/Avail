@@ -179,7 +179,7 @@ extends DefinitionDescriptor
 	 *        The function type at which this forward definition should occur.
 	 * @return The new forward declaration signature.
 	 */
-	public static AvailObject create (
+	public static AvailObject newForwardDefinition (
 		final A_BasicObject definitionMethod,
 		final A_Module definitionModule,
 		final A_Type bodySignature)

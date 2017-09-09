@@ -36,7 +36,6 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.FiberDescriptor;
 
 import javax.annotation.Nullable;
 import java.io.BufferedWriter;
@@ -49,6 +48,10 @@ import java.nio.channels.CompletionHandler;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.FiberDescriptor.currentFiber;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code ProcessInputChannel} provides a faux {@linkplain
@@ -64,7 +67,7 @@ implements TextOutputChannel
 	@InnerAccess final Writer out;
 
 	/**
-	 * Construct a new {@link ProcessOutputChannel} that wraps the specified
+	 * Construct a new {@code ProcessOutputChannel} that wraps the specified
 	 * {@linkplain PrintStream output stream}.
 	 *
 	 * @param stream
@@ -93,9 +96,10 @@ implements TextOutputChannel
 		final @Nullable A attachment,
 		final CompletionHandler<Integer, A> handler)
 	{
-		final AvailRuntime runtime = AvailRuntime.current();
-		final A_Fiber fiber = (A_Fiber) attachment;
-		runtime.executeFileTask(AvailTask.forUnboundFiber(
+		final AvailRuntime runtime = currentRuntime();
+		final A_Fiber fiber = stripNull((A_Fiber) attachment);
+		runtime.executeFileTask(
+			AvailTask.forUnboundFiber(
 			fiber,
 			() ->
 			{
@@ -119,24 +123,25 @@ implements TextOutputChannel
 		final @Nullable A attachment,
 		final CompletionHandler<Integer, A> handler)
 	{
-		final AvailRuntime runtime = AvailRuntime.current();
-		final A_Fiber fiber = FiberDescriptor.currentFiber();
-		runtime.executeFileTask(AvailTask.forUnboundFiber(
-			fiber,
-			() ->
-			{
-				try
+		final AvailRuntime runtime = currentRuntime();
+		final A_Fiber fiber = currentFiber();
+		runtime.executeFileTask(
+			AvailTask.forUnboundFiber(
+				fiber,
+				() ->
 				{
-					out.write(data);
-					out.flush();
-				}
-				catch (final IOException e)
-				{
-					handler.failed(e, attachment);
-					return;
-				}
-				handler.completed(data.length(), attachment);
-			}));
+					try
+					{
+						out.write(data);
+						out.flush();
+					}
+					catch (final IOException e)
+					{
+						handler.failed(e, attachment);
+						return;
+					}
+					handler.completed(data.length(), attachment);
+				}));
 	}
 
 	@Override

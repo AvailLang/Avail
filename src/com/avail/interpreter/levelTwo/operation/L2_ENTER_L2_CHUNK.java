@@ -33,7 +33,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ContinuationTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -47,6 +46,8 @@ import com.avail.optimizer.RegisterSet;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
@@ -110,7 +111,7 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 			instruction);
 		registerSet.typeAtPut(
 			translator.fixed(CALLER),
-			ContinuationTypeDescriptor.mostGeneralContinuationType(),
+			mostGeneralContinuationType(),
 			instruction);
 		registerSet.typeAtPut(
 			translator.fixed(FUNCTION),

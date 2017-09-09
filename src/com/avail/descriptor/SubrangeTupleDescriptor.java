@@ -35,9 +35,14 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 
-import static com.avail.descriptor.SubrangeTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.SubrangeTupleDescriptor.ObjectSlots.*;
 import java.nio.ByteBuffer;
+
+import static com.avail.descriptor.SubrangeTupleDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.SubrangeTupleDescriptor.ObjectSlots
+	.BASIS_TUPLE;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 
 /**
  * A subrange tuple holds a reference to a "basis" tuple, the subrange's
@@ -142,7 +147,7 @@ extends TupleDescriptor
 			return createSubrange(basisTuple, startIndex, originalSize + 1);
 		}
 		// Fall back to concatenating with a singleton.
-		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+		final A_Tuple singleton = tuple(newElement);
 		return object.concatenateWith(singleton, canDestroy);
 	}
 
@@ -297,16 +302,9 @@ extends TupleDescriptor
 			// No tree tuples are involved yet.  Create a bottom-level tree
 			// tuple on these two level zero tuples (the tuples may be flat or
 			// subranges).
-			return TreeTupleDescriptor.createPair(
-				object,
-				otherTuple,
-				1,
-				0);
+			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
-			otherTuple,
-			true);
+		return concatenateAtLeastOneTree(object, otherTuple, true);
 	}
 
 	/**
@@ -327,7 +325,7 @@ extends TupleDescriptor
 		final int newSize = end - start + 1;
 		if (newSize == 0)
 		{
-			return TupleDescriptor.emptyTuple();
+			return emptyTuple();
 		}
 		final int oldStartIndex = object.slot(START_INDEX);
 		if (canDestroy && isMutable() && newSize >= minSize)

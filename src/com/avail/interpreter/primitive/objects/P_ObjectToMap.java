@@ -31,11 +31,25 @@
  */
 package com.avail.interpreter.primitive.objects;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.ObjectDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Convert an {@linkplain ObjectDescriptor
@@ -64,12 +78,10 @@ public final class P_ObjectToMap extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ObjectTypeDescriptor.mostGeneralObjectType()),
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				ATOM.o(),
-				ANY.o()));
+		return functionType(tuple(mostGeneralObjectType
+			()), mapTypeForSizesKeyTypeValueType(
+			wholeNumbers(),
+			ATOM.o(),
+			ANY.o()));
 	}
 }

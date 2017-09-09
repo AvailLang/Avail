@@ -32,12 +32,17 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.CompiledCodeTypeDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.CompiledCodeTypeDescriptor.ObjectSlots
+	.FUNCTION_TYPE;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 
 /**
  * A {@linkplain CompiledCodeTypeDescriptor compiled code type} is the type for
@@ -169,7 +174,7 @@ extends TypeDescriptor
 		{
 			return object;
 		}
-		return forFunctionType(functionType1.typeIntersection(functionType2));
+		return compiledCodeTypeForFunctionType(functionType1.typeIntersection(functionType2));
 	}
 
 	@Override @AvailMethod
@@ -200,7 +205,7 @@ extends TypeDescriptor
 			// Optimization only
 			return object;
 		}
-		return forFunctionType(functionType1.typeUnion(functionType2));
+		return compiledCodeTypeForFunctionType(functionType1.typeUnion(functionType2));
 	}
 
 	@Override @AvailMethod
@@ -242,7 +247,7 @@ extends TypeDescriptor
 	 *        type}.
 	 * @return A new {@linkplain CompiledCodeTypeDescriptor compiled code type}.
 	 */
-	public static AvailObject forFunctionType (final A_BasicObject functionType)
+	public static AvailObject compiledCodeTypeForFunctionType (final A_BasicObject functionType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(FUNCTION_TYPE, functionType.makeImmutable());
@@ -296,8 +301,8 @@ extends TypeDescriptor
 	 * (i.e., not specific enough to be able to call it), and having the return
 	 * type bottom.
 	 */
-	private static final A_Type mostGeneralType = forFunctionType(
-		FunctionTypeDescriptor.mostGeneralFunctionType()).makeShared();
+	private static final A_Type mostGeneralType =
+		compiledCodeTypeForFunctionType(mostGeneralFunctionType()).makeShared();
 
 	/**
 	 * Answer the most general {@linkplain CompiledCodeTypeDescriptor compiled
@@ -317,7 +322,7 @@ extends TypeDescriptor
 	 * #mostGeneralType most general compiled code type}.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
+		instanceMeta(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all compiled code types.

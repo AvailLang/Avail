@@ -32,14 +32,19 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.ContinuationTypeDescriptor
 	.mostGeneralContinuationType;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
@@ -88,7 +93,7 @@ extends Primitive
 					if (!theContinuation.equalsNil())
 					{
 						Interpreter.resumeFromSuccessfulPrimitive(
-							AvailRuntime.current(),
+							currentRuntime(),
 							thisFiber,
 							theContinuation,
 							primitiveFunction.code(),
@@ -97,7 +102,7 @@ extends Primitive
 					else
 					{
 						Interpreter.resumeFromFailedPrimitive(
-							AvailRuntime.current(),
+							currentRuntime(),
 							thisFiber,
 							E_FIBER_IS_TERMINATED.numericCode(),
 							primitiveFunction,
@@ -111,15 +116,15 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			set(E_FIBER_IS_TERMINATED));
+		return
+			enumerationWith(set(E_FIBER_IS_TERMINATED));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			tuple(mostGeneralFiberType()),
-			mostGeneralContinuationType());
+		return
+			functionType(tuple(mostGeneralFiberType()),
+				mostGeneralContinuationType());
 	}
 }

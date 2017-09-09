@@ -31,10 +31,23 @@
  */
 package com.avail.interpreter.primitive.maps;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.MapTypeDescriptor.mapMeta;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain MapTypeDescriptor map
@@ -60,21 +73,17 @@ public final class P_CreateMapType extends Primitive
 		final AvailObject valueType = args.get(1);
 		final AvailObject sizes = args.get(2);
 		return interpreter.primitiveSuccess(
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				sizes,
-				keyType,
-				valueType));
+			mapTypeForSizesKeyTypeValueType(sizes, keyType, valueType));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.anyMeta(),
-				InstanceMetaDescriptor.anyMeta(),
-				InstanceMetaDescriptor.instanceMetaOn(
-					IntegerRangeTypeDescriptor.wholeNumbers())),
-			MapTypeDescriptor.mapMeta());
+		return functionType(
+			tuple(
+				anyMeta(),
+				anyMeta(),
+				instanceMeta(wholeNumbers())),
+			mapMeta());
 	}
 }

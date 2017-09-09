@@ -32,10 +32,20 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain FiberTypeDescriptor
@@ -61,16 +71,14 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Type resultType = args.get(0);
-		return interpreter.primitiveSuccess(
-			FiberTypeDescriptor.forResultType(resultType));
+		return interpreter.primitiveSuccess(fiberType(resultType));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.topMeta()),
-			FiberTypeDescriptor.fiberMeta());
+		return functionType(
+			tuple(topMeta()),
+			fiberMeta());
 	}
 }

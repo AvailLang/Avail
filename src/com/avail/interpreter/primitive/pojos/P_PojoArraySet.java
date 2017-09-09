@@ -31,14 +31,32 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.exceptions.MarshalingException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.lang.reflect.Array;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.MarshalingException;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Overwrite the {@linkplain AvailObject
@@ -88,27 +106,23 @@ public final class P_PojoArraySet extends Primitive
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				PojoTypeDescriptor.mostGeneralPojoArrayType(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				ANY.o()),
-			TOP.o());
+		return
+			functionType(tuple(mostGeneralPojoArrayType(),
+				naturalNumbers(), ANY.o()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_SUBSCRIPT_OUT_OF_BOUNDS,
-				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
-				E_JAVA_MARSHALING_FAILED));
+		return enumerationWith(set(
+			E_SUBSCRIPT_OUT_OF_BOUNDS,
+			E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
+			E_JAVA_MARSHALING_FAILED));
 	}
 }

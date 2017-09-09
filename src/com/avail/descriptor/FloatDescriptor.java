@@ -43,6 +43,7 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AbstractNumberDescriptor.Sign.*;
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.DoubleDescriptor.*;
 import static com.avail.descriptor.FloatDescriptor.IntegerSlots.RAW_INT;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 
@@ -128,7 +129,7 @@ extends AbstractNumberDescriptor
 	 * @return
 	 *            The boxed Avail {@code FloatDescriptor floating point object}.
 	 */
-	public static A_Number objectFromFloatRecycling (
+	public static A_Number fromFloatRecycling (
 		final float aFloat,
 		final A_Number recyclable1,
 		final boolean canDestroy)
@@ -239,7 +240,7 @@ extends AbstractNumberDescriptor
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return objectFromFloatRecycling(
+		return fromFloatRecycling(
 			sign.limitFloat() + getFloat(object),
 			object,
 			canDestroy);
@@ -251,11 +252,11 @@ extends AbstractNumberDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		final double sum = DoubleDescriptor.addDoubleAndIntegerCanDestroy(
+		final double sum = addDoubleAndIntegerCanDestroy(
 			getDouble(object),
 			anInteger,
 			canDestroy);
-		return objectFromFloatRecycling((float)sum, object, canDestroy);
+		return fromFloatRecycling((float)sum, object, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -264,7 +265,7 @@ extends AbstractNumberDescriptor
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return DoubleDescriptor.objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			doubleObject.extractDouble() + getFloat(object),
 			doubleObject,
 			canDestroy);
@@ -300,7 +301,7 @@ extends AbstractNumberDescriptor
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return FloatDescriptor.objectFromFloatRecycling(
+		return fromFloatRecycling(
 			sign.limitFloat() / getFloat(object),
 			object,
 			canDestroy);
@@ -317,7 +318,7 @@ extends AbstractNumberDescriptor
 		// though the quotient wouldn't, but the expanded range of a double
 		// should safely hold any integer that wouldn't cause the quotient to go
 		// out of finite float range.
-		return objectFromFloatRecycling(
+		return fromFloatRecycling(
 			(float)(anInteger.extractDouble() / getDouble(object)),
 			object,
 			canDestroy);
@@ -329,7 +330,7 @@ extends AbstractNumberDescriptor
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return DoubleDescriptor.objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			doubleObject.extractDouble() / getDouble(object),
 			doubleObject,
 			canDestroy);
@@ -456,7 +457,7 @@ extends AbstractNumberDescriptor
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return objectFromFloatRecycling(
+		return fromFloatRecycling(
 			(float)(sign.limitDouble() * getFloat(object)),
 			object,
 			canDestroy);
@@ -471,7 +472,7 @@ extends AbstractNumberDescriptor
 		// Do the math with doubles to avoid intermediate overflow of the
 		// integer in the case that the product could still be represented as a
 		// float.
-		return objectFromFloatRecycling(
+		return fromFloatRecycling(
 			(float)(anInteger.extractDouble() * getDouble(object)),
 			object,
 			canDestroy);
@@ -483,7 +484,7 @@ extends AbstractNumberDescriptor
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return DoubleDescriptor.objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			doubleObject.extractDouble() * getDouble(object),
 			doubleObject,
 			canDestroy);
@@ -558,7 +559,7 @@ extends AbstractNumberDescriptor
 		final A_Number anInteger)
 	{
 		final double thisDouble = getDouble(object);
-		return DoubleDescriptor.compareDoubleAndInteger(thisDouble, anInteger);
+		return compareDoubleAndInteger(thisDouble, anInteger);
 	}
 
 	@Override @AvailMethod
@@ -585,7 +586,7 @@ extends AbstractNumberDescriptor
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return objectFromFloatRecycling(
+		return fromFloatRecycling(
 			((float)sign.limitDouble()) - getFloat(object),
 			object,
 			canDestroy);
@@ -597,11 +598,9 @@ extends AbstractNumberDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		return objectFromFloatRecycling(
-			(float)(DoubleDescriptor.addDoubleAndIntegerCanDestroy(
-				0.0d - getDouble(object),
-				anInteger,
-				canDestroy)),
+		return fromFloatRecycling(
+			(float)(addDoubleAndIntegerCanDestroy(
+				0.0d - getDouble(object), anInteger, canDestroy)),
 			object,
 			canDestroy);
 	}
@@ -612,7 +611,7 @@ extends AbstractNumberDescriptor
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return DoubleDescriptor.objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			doubleObject.extractDouble() - getFloat(object),
 			doubleObject,
 			canDestroy);

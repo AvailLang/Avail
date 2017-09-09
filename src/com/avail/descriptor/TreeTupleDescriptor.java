@@ -122,7 +122,7 @@ extends TupleDescriptor
 		final boolean canDestroy)
 	{
 		// Fall back to concatenating a singleton tuple.
-		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+		final A_Tuple singleton = tuple(newElement);
 		return concatenateAtLeastOneTree(object, singleton, canDestroy);
 	}
 
@@ -312,7 +312,7 @@ extends TupleDescriptor
 			int sectionHash =
 				child.hashFromTo(startIndexInChild, endIndexInChild);
 			final int indexAdjustment = startOfChild + startIndexInChild - 2;
-			sectionHash *= TupleDescriptor.multiplierRaisedTo(indexAdjustment);
+			sectionHash *= multiplierRaisedTo(indexAdjustment);
 			hash += sectionHash;
 		}
 		return hash;
@@ -342,7 +342,7 @@ extends TupleDescriptor
 		assert 0 <= end && end <= object.tupleSize();
 		if (start - 1 == end)
 		{
-			return TupleDescriptor.emptyTuple();
+			return emptyTuple();
 		}
 		if (!canDestroy)
 		{
@@ -708,7 +708,7 @@ extends TupleDescriptor
 		{
 			// They're each big enough to be non-roots.  Do the cheapest thing
 			// and create a 2-way node holding both.
-			return createPair(tuple1, tuple2, level + 1, newHash);
+			return createTwoPartTreeTuple(tuple1, tuple2, level + 1, newHash);
 		}
 		if (count1 + count2 <= maxWidth)
 		{
@@ -766,7 +766,7 @@ extends TupleDescriptor
 		assert dest == destLimit + 1;
 		check(target);
 		// And tape them back together.
-		return createPair(newLeft, newRight, level + 1, newHash);
+		return createTwoPartTreeTuple(newLeft, newRight, level + 1, newHash);
 	}
 
 	/**
@@ -979,7 +979,7 @@ extends TupleDescriptor
 	 * @param newHashOrZero The new hash, or zero if inconvenient to produce.
 	 * @return A new tree tuple at newLevel.
 	 */
-	public static AvailObject createPair (
+	public static AvailObject createTwoPartTreeTuple (
 		final A_Tuple left,
 		final A_Tuple right,
 		final int newLevel,
@@ -1009,8 +1009,7 @@ extends TupleDescriptor
 	{
 		final int childCount = object.childCount();
 		final AvailObject newTree =
-			TreeTupleDescriptor.createUninitializedTree(
-				object.treeTupleLevel(), childCount);
+			createUninitializedTree(object.treeTupleLevel(), childCount);
 		int cumulativeSize = 0;
 		for (int src = childCount, dest = 1; src > 0; src--, dest++)
 		{

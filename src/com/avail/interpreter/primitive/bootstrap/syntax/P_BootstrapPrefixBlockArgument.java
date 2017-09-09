@@ -32,19 +32,39 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-
-import java.util.List;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.DeclarationNodeDescriptor.newArgument;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * The {@code P_BootstrapPrefixBlockArgument} primitive is used as a prefix
@@ -71,7 +91,7 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 		assert args.size() == 1;
 		final A_Phrase optionalBlockArgumentsList = args.get(0);
 
-		final AvailLoader loader = interpreter.fiber().availLoader();
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -88,8 +108,7 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 		final A_Phrase typePhrase = lastPair.expressionAt(2);
 
 		assert namePhrase.isInstanceOfKind(LITERAL_NODE.create(TOKEN.o()));
-		assert typePhrase.isInstanceOfKind(
-			LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()));
+		assert typePhrase.isInstanceOfKind(LITERAL_NODE.create(anyMeta()));
 		final A_Token outerArgToken = namePhrase.token();
 		final A_Token argToken = outerArgToken.literal();
 		final A_String argName = argToken.string();
@@ -109,10 +128,9 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 		}
 
 		final A_Phrase argDeclaration =
-			DeclarationNodeDescriptor.newArgument(
-				argToken, argType, typePhrase);
+			newArgument(argToken, argType, typePhrase);
 		// Add the binding and we're done.
-		final A_Phrase conflictingDeclaration =
+		final @Nullable A_Phrase conflictingDeclaration =
 			FiberDescriptor.addDeclaration(argDeclaration);
 		if (conflictingDeclaration != null)
 		{
@@ -123,34 +141,31 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 				conflictingDeclaration.declarationKind().nativeKindName(),
 				conflictingDeclaration.token().lineNumber());
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(tuple(
 				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+			LIST_NODE.create(
 					/* Optional arguments section. */
-					TupleTypeDescriptor.zeroOrOneOf(
+				zeroOrOneOf(
 						/* Arguments are present. */
-						TupleTypeDescriptor.oneOrMoreOf(
+					oneOrMoreOf(
 							/* An argument. */
-							TupleTypeDescriptor.tupleTypeForTypes(
+						tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o(),
+							TOKEN.o(),
 								/* Argument type. */
-								InstanceMetaDescriptor.anyMeta()))))),
-			TOP.o());
+							anyMeta()))))), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_LOADING_IS_OVER));
+		return
+			enumerationWith(set(E_LOADING_IS_OVER));
 	}
 }

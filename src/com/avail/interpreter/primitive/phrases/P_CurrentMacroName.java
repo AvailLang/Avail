@@ -31,16 +31,31 @@
  */
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY;
-import static com.avail.descriptor.FiberDescriptor.GeneralFlag.*;
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import javax.annotation.Nullable;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY;
+import static com.avail.descriptor.FiberDescriptor.GeneralFlag
+	.IS_EVALUATING_MACRO;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.exceptions.AvailErrorCode.E_NOT_EVALUATING_MACRO;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
  * <strong>Primitive:</strong> Answer the {@link A_Atom} for which a send node
@@ -82,16 +97,14 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.emptyTuple(),
-			ATOM.o());
+		return
+			functionType(emptyTuple(), ATOM.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_NOT_EVALUATING_MACRO));
+		return
+			enumerationWith(set(E_NOT_EVALUATING_MACRO));
 	}
 }

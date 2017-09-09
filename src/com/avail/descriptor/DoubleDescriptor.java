@@ -200,8 +200,7 @@ extends AbstractNumberDescriptor
 		// zero and residue,  Add the truncation (as an integer) to the
 		// integer, convert to double, and add the residue (-1<r<1).
 		final double adjustment = Math.floor(aDouble);
-		final A_Number adjustmentAsInteger =
-			IntegerDescriptor.truncatedFromDouble(adjustment);
+		final A_Number adjustmentAsInteger = truncatedFromDouble(adjustment);
 		final A_Number adjustedInteger =
 			anInteger.minusCanDestroy(adjustmentAsInteger, canDestroy);
 		final double adjustedIntegerAsDouble =
@@ -253,7 +252,7 @@ extends AbstractNumberDescriptor
 	 *            The boxed Avail {@code DoubleDescriptor double-precision
 	 *            floating point object}.
 	 */
-	public static A_Number objectFromDoubleRecycling (
+	public static A_Number fromDoubleRecycling (
 		final double aDouble,
 		final A_Number recyclable1,
 		final boolean canDestroy)
@@ -356,7 +355,7 @@ extends AbstractNumberDescriptor
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			sign.limitDouble() + getDouble(object),
 			object,
 			canDestroy);
@@ -372,7 +371,7 @@ extends AbstractNumberDescriptor
 			getDouble(object),
 			anInteger,
 			canDestroy);
-		return objectFromDoubleRecycling(sum, object, canDestroy);
+		return fromDoubleRecycling(sum, object, canDestroy);
 	}
 
 	@Override
@@ -394,7 +393,7 @@ extends AbstractNumberDescriptor
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			getDouble(object) + floatObject.extractDouble(),
 			object,
 			canDestroy);
@@ -417,7 +416,7 @@ extends AbstractNumberDescriptor
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			sign.limitDouble() / getDouble(object),
 			object,
 			canDestroy);
@@ -429,7 +428,7 @@ extends AbstractNumberDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			anInteger.extractDouble() / getDouble(object),
 			object,
 			canDestroy);
@@ -454,7 +453,7 @@ extends AbstractNumberDescriptor
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			floatObject.extractDouble() / getDouble(object),
 			object,
 			canDestroy);
@@ -571,7 +570,7 @@ extends AbstractNumberDescriptor
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			sign.limitDouble() * getDouble(object),
 			object,
 			canDestroy);
@@ -583,7 +582,7 @@ extends AbstractNumberDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			anInteger.extractDouble() * getDouble(object),
 			object,
 			canDestroy);
@@ -608,7 +607,7 @@ extends AbstractNumberDescriptor
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			floatObject.extractDouble() * getDouble(object),
 			object,
 			canDestroy);
@@ -684,7 +683,7 @@ extends AbstractNumberDescriptor
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			sign.limitDouble() - getDouble(object),
 			object,
 			canDestroy);
@@ -696,7 +695,7 @@ extends AbstractNumberDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			addDoubleAndIntegerCanDestroy(
 				0.0d - getDouble(object),
 				anInteger,
@@ -724,7 +723,7 @@ extends AbstractNumberDescriptor
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			floatObject.extractDouble() - getDouble(object),
 			object,
 			canDestroy);

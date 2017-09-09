@@ -32,12 +32,33 @@
 
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.RepeatedElementTupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.RepeatedElementTupleDescriptor
+	.createRepeatedElementTuple;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain
@@ -72,26 +93,25 @@ extends Primitive
 		}
 		final int sizeAsInt = size.extractInt();
 		return interpreter.primitiveSuccess(
-			RepeatedElementTupleDescriptor.createRepeatedElementTuple(
+			createRepeatedElementTuple(
 				sizeAsInt, element));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
+		return functionType(
+			tuple(
+				wholeNumbers(),
 				ANY.o()),
-			TupleTypeDescriptor.mostGeneralTupleType());
+			mostGeneralTupleType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_EXCEEDS_VM_LIMIT));
+		return
+			enumerationWith(set(E_EXCEEDS_VM_LIMIT));
 	}
 
 	@Override
@@ -106,13 +126,11 @@ extends Primitive
 		if (sizeType.instanceCount().equalsInt(1)
 			&& elementType.instanceCount().equalsInt(1))
 		{
-			return InstanceTypeDescriptor.instanceTypeOn(
-				RepeatedElementTupleDescriptor.createRepeatedElementTuple(
+			return instanceType(
+				createRepeatedElementTuple(
 					sizeType.instance().extractInt(), elementType.instance()));
 		}
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			sizeType,
-			TupleDescriptor.emptyTuple(),
-			elementType);
+		return tupleTypeForSizesTypesDefaultType(
+			sizeType, emptyTuple(), elementType);
 	}
 }

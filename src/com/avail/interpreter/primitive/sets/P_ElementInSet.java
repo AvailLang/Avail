@@ -31,14 +31,23 @@
  */
 package com.avail.interpreter.primitive.sets;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Check if the {@linkplain AvailObject
@@ -64,14 +73,13 @@ public final class P_ElementInSet extends Primitive
 		final A_Set set = args.get(1);
 
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(
-				set.hasElement(element)));
+			objectFromBoolean(set.hasElement(element)));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
+		return functionType(
 			tuple(
 				ANY.o(),
 				mostGeneralSetType()),

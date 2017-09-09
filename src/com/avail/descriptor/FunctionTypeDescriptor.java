@@ -32,12 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
@@ -46,6 +40,23 @@ import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots
+	.HASH_AND_MORE;
+import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
  * Function types are the types of {@linkplain FunctionDescriptor functions}.
@@ -509,7 +520,7 @@ extends TypeDescriptor
 		final A_Type returnType =
 			object.slot(RETURN_TYPE).typeIntersection(
 				aFunctionType.returnType());
-		A_Set exceptions = SetDescriptor.emptySet();
+		A_Set exceptions = emptySet();
 		for (final A_Type outer : object.slot(DECLARED_EXCEPTIONS))
 		{
 			for (final A_Type inner : aFunctionType.declaredExceptions())
@@ -520,7 +531,7 @@ extends TypeDescriptor
 			}
 		}
 		exceptions = normalizeExceptionSet(exceptions);
-		return createWithArgumentTupleType(
+		return functionTypeFromArgumentTupleType(
 			tupleTypeUnion,
 			returnType,
 			exceptions);
@@ -557,7 +568,7 @@ extends TypeDescriptor
 		final A_Set exceptions = normalizeExceptionSet(
 			object.slot(DECLARED_EXCEPTIONS).setUnionCanDestroy(
 				aFunctionType.declaredExceptions(), true));
-		return createWithArgumentTupleType(
+		return functionTypeFromArgumentTupleType(
 			tupleTypeIntersection,
 			returnType,
 			exceptions);
@@ -664,7 +675,7 @@ extends TypeDescriptor
 	 * The metatype of any function types.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
+		instanceMeta(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all function types.  This is just an {@linkplain
@@ -704,14 +715,14 @@ extends TypeDescriptor
 		{
 			if (exceptionSet.iterator().next().isBottom())
 			{
-				return SetDescriptor.emptySet();
+				return emptySet();
 			}
 			return exceptionSet;
 		}
 
 		// Actually normalize the set. That is, eliminate types for which a
 		// supertype is already present. Also, eliminate bottom.
-		A_Set normalizedSet = SetDescriptor.emptySet();
+		A_Set normalizedSet = emptySet();
 		each_outer:
 		for (final AvailObject outer : exceptionSet)
 		{
@@ -752,7 +763,7 @@ extends TypeDescriptor
 	 *        ObjectTypeDescriptor exception types} that an instance may raise.
 	 * @return A function type.
 	 */
-	public static A_Type createWithArgumentTupleType (
+	public static A_Type functionTypeFromArgumentTupleType (
 		final A_Type argsTupleType,
 		final A_Type returnType,
 		final A_Set exceptionSet)
@@ -791,12 +802,10 @@ extends TypeDescriptor
 		final A_Type returnType,
 		final A_Set exceptionSet)
 	{
-		final A_Type tupleType =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.singleInt(argTypes.tupleSize()),
-				argTypes,
-				BottomTypeDescriptor.bottom());
-		return createWithArgumentTupleType(tupleType, returnType, exceptionSet);
+		final A_Type tupleType = tupleTypeForSizesTypesDefaultType(
+			singleInt(argTypes.tupleSize()), argTypes, bottom());
+		return functionTypeFromArgumentTupleType(
+			tupleType, returnType, exceptionSet);
 	}
 
 	/**
@@ -817,10 +826,8 @@ extends TypeDescriptor
 		final A_Tuple argTypes,
 		final A_Type returnType)
 	{
-		return functionType(
-			argTypes,
-			returnType,
-			SetDescriptor.emptySet());
+		return
+			functionType(argTypes, returnType, emptySet());
 	}
 
 	/**
@@ -836,10 +843,10 @@ extends TypeDescriptor
 	public static A_Type functionTypeReturning (
 		final A_Type returnType)
 	{
-		return createWithArgumentTupleType(
-			BottomTypeDescriptor.bottom(),
+		return functionTypeFromArgumentTupleType(
+			bottom(),
 			returnType,
 			// TODO: [MvG] Probably should allow any exception.
-			SetDescriptor.emptySet());
+			emptySet());
 	}
 }

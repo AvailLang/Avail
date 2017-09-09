@@ -32,16 +32,36 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.SignatureException;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.Phase;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import java.util.List;
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
-import com.avail.exceptions.*;
-import com.avail.interpreter.*;
-import com.avail.interpreter.AvailLoader.Phase;
+
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
  * <strong>Primitive:</strong> Message precedence declaration with
@@ -91,32 +111,27 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.naturalNumbers(),
-					ATOM.o()),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					SetTypeDescriptor.setTypeForSizesContentType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						ATOM.o()))),
-			TOP.o());
+		return
+			functionType(tuple(setTypeForSizesContentType(
+				naturalNumbers(),
+				ATOM.o()), zeroOrMoreOf(
+				setTypeForSizesContentType(
+					wholeNumbers(),
+					ATOM.o()))), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-					E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_INCORRECT_NUMBER_OF_ARGUMENTS)
-				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+		return enumerationWith(
+			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_INCORRECT_NUMBER_OF_ARGUMENTS)
+				.setUnionCanDestroy(possibleErrors, true));
 	}
 }

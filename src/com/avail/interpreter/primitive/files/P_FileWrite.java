@@ -51,11 +51,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -132,18 +138,17 @@ extends Primitive
 			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT);
 		}
 		final int alignment = handle.alignment;
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		final long oneBasedPositionLong = positionObject.extractLong();
 		// Guaranteed positive by argument constraint.
 		assert oneBasedPositionLong > 0L;
 		// Write the tuple of bytes, possibly split up into manageable sections.
 		// Also update the buffer cache to reflect the modified file content.
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			() ->
-				formatString("Asynchronous file write, %s", handle.filename));
+			() -> formatString("Asynchronous file write, %s", handle.filename));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -222,9 +227,7 @@ extends Primitive
 						}
 					}
 					bytes.transferIntoByteBuffer(
-						nextSubscript,
-						nextSubscript + count - 1,
-						buffer);
+						nextSubscript, nextSubscript + count - 1, buffer);
 					buffer.flip();
 					assert buffer.limit() == count;
 					nextSubscript += count;
@@ -322,7 +325,7 @@ extends Primitive
 						handle, startOfBuffer);
 					final MutableOrNull<A_Tuple> bufferHolder =
 						runtime.getBuffer(key);
-					A_Tuple tuple = bufferHolder.value;
+					@Nullable A_Tuple tuple = bufferHolder.value;
 					if (offsetInBuffer == 1
 						&& consumedThisTime == alignment)
 					{
@@ -378,10 +381,7 @@ extends Primitive
 				}
 				assert subscriptInTuple == totalBytes + 1;
 				Interpreter.runOutermostFunction(
-					runtime,
-					newFiber,
-					succeed,
-					Collections.emptyList());
+					runtime, newFiber, succeed, Collections.emptyList());
 			}
 		};
 		continueWriting.value().value();
@@ -400,18 +400,17 @@ extends Primitive
 					emptyTuple(),
 					TOP.o()),
 				functionType(
-					tuple(
-						instanceTypeOn(E_IO_ERROR.numericCode())),
+					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o()),
 				bytes()),
-			FiberTypeDescriptor.forResultType(TOP.o()));
+			fiberType(TOP.o()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_NOT_OPEN_FOR_WRITE,

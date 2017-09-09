@@ -32,19 +32,31 @@
 
 package com.avail.compiler.splitter;
 
-import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.descriptor.*;
-import com.avail.exceptions.*;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.SignatureException;
+
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import static com.avail.compiler.splitter.MessageSplitter.Metacharacter.*;
+import static com.avail.descriptor.AtomDescriptor.falseObject;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.exceptions.AvailErrorCode.*;
 
 /**
  * {@code MessageSplitter} is used to split Avail message names into a sequence
@@ -86,7 +98,7 @@ public final class MessageSplitter
 
 		Metacharacter (final String javaString)
 		{
-			string = StringDescriptor.stringFrom(javaString).makeShared();
+			string = stringFrom(javaString).makeShared();
 		}
 	}
 
@@ -94,7 +106,7 @@ public final class MessageSplitter
 	 * The {@linkplain A_Set set} of all {@linkplain AvailErrorCode errors} that
 	 * can happen during {@linkplain MessageSplitter message splitting}.
 	 */
-	public static final A_Set possibleErrors = SetDescriptor.set(
+	public static final A_Set possibleErrors = set(
 		E_INCORRECT_ARGUMENT_TYPE,
 		E_INCORRECT_TYPE_FOR_GROUP,
 		E_INCORRECT_TYPE_FOR_COMPLEX_GROUP,
@@ -263,7 +275,7 @@ public final class MessageSplitter
 	 * always be marked as shared.  This mechanism is thread-safe.</p>
 	 */
 	public static final AtomicReference<A_Tuple> permutations =
-		new AtomicReference<>(TupleDescriptor.emptyTuple());
+		new AtomicReference<>(emptyTuple());
 
 	/**
 	 * A statically-scoped {@link List} of unique constants needed as operands
@@ -347,7 +359,7 @@ public final class MessageSplitter
 
 	/** The position at which true is stored in the {@link #constantsList}. */
 	private static final int indexForTrue =
-		indexForConstant(AtomDescriptor.trueObject());
+		indexForConstant(trueObject());
 
 	/** The position at which true is stored in the {@link #constantsList}. */
 	static int indexForTrue ()
@@ -357,7 +369,7 @@ public final class MessageSplitter
 
 	/** The position at which false is stored in the {@link #constantsList}. */
 	private static final int indexForFalse =
-		indexForConstant(AtomDescriptor.falseObject());
+		indexForConstant(falseObject());
 
 	/** The position at which false is stored in the {@link #constantsList}. */
 	static int indexForFalse ()
@@ -386,7 +398,7 @@ public final class MessageSplitter
 	}
 
 	/**
-	 * Construct a new {@link MessageSplitter}, parsing the provided message
+	 * Construct a new {@code MessageSplitter}, parsing the provided message
 	 * into token strings and generating {@linkplain ParsingOperation parsing
 	 * instructions} for parsing occurrences of this message.
 	 *
@@ -425,13 +437,12 @@ public final class MessageSplitter
 				E_UNBALANCED_GUILLEMETS,
 				"Encountered " + encountered);
 		}
-		messagePartsTuple =
-			TupleDescriptor.tupleFromList(messagePartsList).makeShared();
+		messagePartsTuple = tupleFromList(messagePartsList).makeShared();
 	}
 
 	/**
-	* Dump debugging information about this {@linkplain MessageSplitter} to
-	* the specified {@linkplain StringBuilder builder}.
+	* Dump debugging information about this {@code MessageSplitter} to the
+	 * specified {@linkplain StringBuilder builder}.
 	*
 	* @param builder
 	*        The accumulator.
@@ -543,7 +554,7 @@ public final class MessageSplitter
 	/**
 	 * Answer a {@linkplain TupleDescriptor tuple} of Avail {@linkplain
 	 * IntegerDescriptor integers} describing how to parse this message.
-	 * See {@link MessageSplitter} and {@link ParsingOperation} for an
+	 * See {@code MessageSplitter} and {@link ParsingOperation} for an
 	 * understanding of the parse instructions.
 	 *
 	 * @param phraseType
@@ -607,11 +618,12 @@ public final class MessageSplitter
 			final Expression expression = expressions.get(pc - 1);
 			zeroBasedPosition = expression.positionInName - 1;
 		}
+		@SuppressWarnings("StringConcatenationMissingWhitespace")
 		final String annotatedString =
 			string.substring(0, zeroBasedPosition)
 				+ CompilerDiagnostics.errorIndicatorSymbol
 				+ string.substring(zeroBasedPosition);
-		return StringDescriptor.stringFrom(annotatedString).toString();
+		return stringFrom(annotatedString).toString();
 	}
 
 	/**
@@ -734,7 +746,7 @@ public final class MessageSplitter
 							}
 						}
 						messagePartsList.add(
-							StringDescriptor.stringFrom(builder.toString()));
+							stringFrom(builder.toString()));
 						messagePartPositions.add(position);
 					}
 					else
@@ -796,7 +808,7 @@ public final class MessageSplitter
 							builder.appendCodePoint(cp);
 						}
 					}
-					messagePartsList.add(StringDescriptor.stringFrom(builder.toString()));
+					messagePartsList.add(stringFrom(builder.toString()));
 				}
 				else
 				{

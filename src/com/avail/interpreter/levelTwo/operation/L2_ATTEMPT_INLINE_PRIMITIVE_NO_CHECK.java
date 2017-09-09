@@ -31,19 +31,23 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.*;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Attempt to perform the specified primitive, using the provided arguments.
@@ -166,7 +170,7 @@ extends L2Operation
 		}
 		// We can at least believe what the primitive itself says it returns.
 		final A_Type guaranteedType =
-			primitive.returnTypeGuaranteedByVM(argTypes);
+			primitive.returnTypeGuaranteedByVM(argTypes).makeImmutable();
 
 		// Figure out what the primitive failure values are allowed to be.
 		final A_Type failureType = primitive.failureVariableType();

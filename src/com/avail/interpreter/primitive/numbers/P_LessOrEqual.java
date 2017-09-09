@@ -31,22 +31,32 @@
  */
 package com.avail.interpreter.primitive.numbers;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.EnumerationTypeDescriptor.trueType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import java.util.Set;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
-import com.avail.interpreter.*;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.EnumerationTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+import java.util.Set;
+
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import static com.avail.descriptor.AbstractNumberDescriptor
+	.possibleOrdersWhenComparingInstancesOf;
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
+import static com.avail.descriptor.EnumerationTypeDescriptor.*;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Compare two extended integers and answer
@@ -71,13 +81,13 @@ public final class P_LessOrEqual extends Primitive
 		final A_Number a = args.get(0);
 		final A_Number b = args.get(1);
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(a.lessOrEqual(b)));
+			objectFromBoolean(a.lessOrEqual(b)));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
+		return functionType(
 			tuple(
 				NUMBER.o(),
 				NUMBER.o()),
@@ -88,19 +98,16 @@ public final class P_LessOrEqual extends Primitive
 	public A_Type returnTypeGuaranteedByVM (
 		final List<? extends A_Type> argumentTypes)
 	{
-		final Set<Order> possible =
-			AbstractNumberDescriptor.possibleOrdersWhenComparingInstancesOf(
-				argumentTypes.get(0), argumentTypes.get(1));
+		final Set<Order> possible = possibleOrdersWhenComparingInstancesOf(
+			argumentTypes.get(0), argumentTypes.get(1));
 		final boolean canBeTrue =
 			possible.contains(LESS) || possible.contains(EQUAL);
 		final boolean canBeFalse =
 			possible.contains(MORE) || possible.contains(INCOMPARABLE);
 		assert canBeTrue || canBeFalse;
 		return canBeTrue
-			? (canBeFalse
-				   ? booleanType()
-				   : trueType())
-			: EnumerationTypeDescriptor.falseType();
+			? (canBeFalse ? booleanType() : trueType())
+			: falseType();
 	}
 
 	@Override
@@ -122,9 +129,8 @@ public final class P_LessOrEqual extends Primitive
 			levelOneNaiveTranslator.naiveRegisters();
 		final A_Type firstType = registerSet.typeAt(firstReg);
 		final A_Type secondType = registerSet.typeAt(secondReg);
-		final Set<Order> possible =
-			AbstractNumberDescriptor.possibleOrdersWhenComparingInstancesOf(
-				firstType, secondType);
+		final Set<Order> possible = possibleOrdersWhenComparingInstancesOf(
+			firstType, secondType);
 		final boolean canBeTrue =
 			possible.contains(LESS) || possible.contains(EQUAL);
 		final boolean canBeFalse =
@@ -133,7 +139,7 @@ public final class P_LessOrEqual extends Primitive
 		if (!canBeTrue || !canBeFalse)
 		{
 			levelOneNaiveTranslator.moveConstant(
-				AtomDescriptor.objectFromBoolean(canBeTrue),
+				objectFromBoolean(canBeTrue),
 				resultRegister);
 			return;
 		}

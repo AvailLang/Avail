@@ -32,17 +32,29 @@
 
 package com.avail.interpreter.primitive.variables;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.VariableDescriptor;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Atomically read and conditionally overwrite
@@ -74,7 +86,7 @@ extends Primitive
 		try
 		{
 			return interpreter.primitiveSuccess(
-				AtomDescriptor.objectFromBoolean(
+				objectFromBoolean(
 					var.compareAndSwapValues(reference, newValue)));
 		}
 		catch (final VariableGetException|VariableSetException e)
@@ -86,7 +98,7 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
+		return functionType(
 			tuple(
 				mostGeneralVariableType(),
 				ANY.o(),
@@ -97,8 +109,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
 				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,

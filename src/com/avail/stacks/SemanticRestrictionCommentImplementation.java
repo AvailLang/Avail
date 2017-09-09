@@ -33,10 +33,11 @@
 package com.avail.stacks;
 
 import com.avail.descriptor.A_String;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.ArrayList;
+
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 
 /**
  * A comment implementation of grammatical restrictions
@@ -107,7 +108,7 @@ public class SemanticRestrictionCommentImplementation extends
 			concatenatedInputParams.append(param);
 		}
 
-		this.hashID = StringDescriptor.stringFrom(concatenatedInputParams.toString()).hash();
+		this.hashID = stringFrom(concatenatedInputParams.toString()).hash();
 	}
 
 	@Override

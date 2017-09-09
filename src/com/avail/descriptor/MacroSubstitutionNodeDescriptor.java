@@ -464,7 +464,7 @@ extends ParseNodeDescriptor
 	 *        The expression produced by the macro body.
 	 * @return The new macro substitution node.
 	 */
-	public static AvailObject fromOriginalSendAndReplacement (
+	public static AvailObject newMacroSubstitution (
 		final A_Phrase macroSend,
 		final A_Phrase outputParseNode)
 	{

@@ -32,18 +32,44 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import com.avail.compiler.AvailRejectedParseException;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.VariableUseNodeDescriptor;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
+import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.VARIABLE_USE_NODE;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.toList;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import javax.annotation.Nullable;
-import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.interpreter.*;
 
 /**
  * The {@code P_BootstrapVariableUseMacro} primitive is used to create
@@ -69,7 +95,7 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 		assert args.size() == 1;
 		final A_Phrase variableNameLiteral = args.get(0);
 
-		final @Nullable AvailLoader loader = interpreter.fiber().availLoader();
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -89,13 +115,11 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
 		final A_Map clientData = fiberGlobals.mapAt(
 			CLIENT_DATA_GLOBAL_KEY.atom);
-		final A_Map scopeMap =
-			clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom);
+		final A_Map scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom);
 		if (scopeMap.hasKey(variableNameString))
 		{
-			final AvailObject variableUse = VariableUseNodeDescriptor.newUse(
-				actualToken,
-				scopeMap.mapAt(variableNameString));
+			final AvailObject variableUse = newUse(
+				actualToken, scopeMap.mapAt(variableNameString));
 			variableUse.makeImmutable();
 			return interpreter.primitiveSuccess(variableUse);
 		}
@@ -107,14 +131,12 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 			final A_BasicObject variableObject =
 				module.variableBindings().mapAt(variableNameString);
 			final A_Phrase moduleVarDecl =
-				DeclarationNodeDescriptor.newModuleVariable(
+				newModuleVariable(
 					actualToken,
 					variableObject,
-					NilDescriptor.nil(),
-					NilDescriptor.nil());
-			final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
-				actualToken,
-				moduleVarDecl);
+					nil(),
+					nil());
+			final A_Phrase variableUse = newUse(actualToken, moduleVarDecl);
 			variableUse.makeImmutable();
 			return interpreter.primitiveSuccess(variableUse);
 		}
@@ -129,7 +151,7 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 					builder.append(" to be in scope (local scope is: ");
 					final List<A_String> scope = new ArrayList<>();
 					scope.addAll(
-						TupleDescriptor.toList(
+						toList(
 							scopeMap.keysAsSet().asTuple()));
 					scope.sort((s1, s2) ->
 					{
@@ -148,29 +170,23 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 						first = false;
 					}
 					builder.append(")");
-					return StringDescriptor.stringFrom(builder.toString());
+					return stringFrom(builder.toString());
 				});
 		}
 		final A_BasicObject variableObject =
 			module.constantBindings().mapAt(variableNameString);
 		final A_Phrase moduleConstDecl =
-			DeclarationNodeDescriptor.newModuleConstant(
-				actualToken,
-				variableObject,
-				NilDescriptor.nil());
-		final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
-			actualToken,
-			moduleConstDecl);
+			newModuleConstant(actualToken, variableObject, nil());
+		final A_Phrase variableUse = newUse(actualToken, moduleConstDecl);
 		return interpreter.primitiveSuccess(variableUse);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(tuple(
 				/* Variable name */
-				LITERAL_NODE.create(TOKEN.o())),
+			LITERAL_NODE.create(TOKEN.o())),
 			VARIABLE_USE_NODE.mostGeneralType());
 	}
 }

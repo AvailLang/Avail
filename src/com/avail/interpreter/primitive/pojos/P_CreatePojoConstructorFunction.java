@@ -31,7 +31,14 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -41,17 +48,19 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.FunctionDescriptor.create;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.APPLY;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
-import static com.avail.descriptor.RawPojoDescriptor.equalityWrap;
+import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
@@ -133,7 +142,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		for (final Class<?> paramClass : marshaledTypes)
 		{
 			marshaledTypePojos.add(
-				equalityWrap(paramClass));
+				equalityPojo(paramClass));
 		}
 		final A_Tuple marshaledTypesTuple =
 			tupleFromList(marshaledTypePojos);
@@ -147,7 +156,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 			RAW_POJO.o(),
 			mostGeneralTupleType(),
 			zeroOrMoreOf(RAW_POJO.o()),
-			instanceMetaOn(mostGeneralPojoType()));
+			instanceMeta(mostGeneralPojoType()));
 		writer.returnType(mostGeneralPojoType());
 		writer.write(
 			L1_doPushLiteral,
@@ -161,9 +170,8 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 			L1_doCall,
 			writer.addLiteral(APPLY.bundle),
 			writer.addLiteral(bottom()));
-		final A_Function innerFunction = create(
-			writer.compiledCode(),
-			emptyTuple()).makeImmutable();
+		final A_Function innerFunction =
+			createFunction(writer.compiledCode(), emptyTuple()).makeImmutable();
 		// Create the outer function that pushes the arguments expected by
 		// the constructor invocation primitive. Various objects that we do
 		// not want to expose to the Avail program are embedded in this
@@ -178,7 +186,7 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 		writer.write(
 			L1_doPushLiteral,
 			writer.addLiteral(
-				equalityWrap(constructor)));
+				equalityPojo(constructor)));
 		for (int i = 1; i <= paramTypes.tupleSize(); i++)
 		{
 			writer.write(L1_doPushLocal, i);
@@ -193,9 +201,8 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 			L1_doCall,
 			writer.addLiteral(APPLY.bundle),
 			writer.addLiteral(pojoType));
-		final A_Function outerFunction = create(
-			writer.compiledCode(),
-			emptyTuple()).makeImmutable();
+		final A_Function outerFunction =
+			createFunction(writer.compiledCode(), emptyTuple()).makeImmutable();
 		// TODO: [TLS] When functions can be made non-reflective, then make
 		// both these functions non-reflective for safety.
 		return interpreter.primitiveSuccess(outerFunction);
@@ -204,12 +211,13 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
+		return functionType(
 			tuple(
-				instanceMetaOn(mostGeneralPojoType()),
+				instanceMeta(mostGeneralPojoType()),
 				zeroOrMoreOf(anyMeta()),
-				functionType(tuple(
-					pojoTypeForClass(Throwable.class)), bottom())),
+				functionType(
+					tuple(pojoTypeForClass(Throwable.class)),
+					bottom())),
 			// TODO: [TLS] Answer a function type that answers pojo and
 			// can raise java.lang.Throwable.
 			functionTypeReturning(mostGeneralPojoType()));
@@ -218,8 +226,9 @@ public final class P_CreatePojoConstructorFunction extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			set(E_POJO_TYPE_IS_ABSTRACT,
+		return enumerationWith(
+			set(
+				E_POJO_TYPE_IS_ABSTRACT,
 				E_JAVA_METHOD_NOT_AVAILABLE));
 	}
 }

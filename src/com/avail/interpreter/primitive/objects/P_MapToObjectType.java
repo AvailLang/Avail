@@ -31,11 +31,28 @@
  */
 package com.avail.interpreter.primitive.objects;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.InstanceTypeDescriptor;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.ObjectTypeDescriptor;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectMeta;
+import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Convert a {@linkplain MapDescriptor map}
@@ -60,19 +77,17 @@ public final class P_MapToObjectType extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject map = args.get(0);
-		return interpreter.primitiveSuccess(
-			ObjectTypeDescriptor.objectTypeFromMap(map));
+		return interpreter.primitiveSuccess(objectTypeFromMap(map));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					ATOM.o(),
-					InstanceMetaDescriptor.anyMeta())),
-			ObjectTypeDescriptor.meta());
+		return
+			functionType(
+				tuple(
+					mapTypeForSizesKeyTypeValueType(
+						wholeNumbers(), ATOM.o(), anyMeta())),
+				mostGeneralObjectMeta());
 	}
 }

@@ -172,7 +172,7 @@ extends ParseNodeDescriptor
 	 * @param markerValue The value to wrap.
 	 * @return A new immutable marker node.
 	 */
-	public static AvailObject create (final A_BasicObject markerValue)
+	public static AvailObject newMarkerNode (final A_BasicObject markerValue)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(MARKER_VALUE, markerValue);

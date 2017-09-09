@@ -32,12 +32,18 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ReadWriteVariableTypeDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.ReadWriteVariableTypeDescriptor
+	.ObjectSlots.READ_TYPE;
+import static com.avail.descriptor.ReadWriteVariableTypeDescriptor
+	.ObjectSlots.WRITE_TYPE;
+import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 
 /**
  * A {@code ReadWriteVariableTypeDescriptor read-write variable type} is
@@ -183,7 +189,7 @@ extends TypeDescriptor
 		// The intersection of two variable types is variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
-		return VariableTypeDescriptor.variableReadWriteType(
+		return variableReadWriteType(
 			object.slot(READ_TYPE).typeIntersection(aVariableType.readType()),
 			object.slot(WRITE_TYPE).typeUnion(aVariableType.writeType()));
 	}
@@ -212,7 +218,7 @@ extends TypeDescriptor
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
 		// write type is the type intersection of the two incoming write types.
-		return VariableTypeDescriptor.variableReadWriteType(
+		return variableReadWriteType(
 			object.slot(READ_TYPE).typeUnion(aVariableType.readType()),
 			object.slot(WRITE_TYPE).typeIntersection(
 				aVariableType.writeType()));
@@ -320,7 +326,7 @@ extends TypeDescriptor
 	{
 		if (readType.equals(writeType))
 		{
-			return VariableTypeDescriptor.variableTypeFor(readType);
+			return variableTypeFor(readType);
 		}
 		final AvailObject result = mutable.create();
 		result.setSlot(READ_TYPE, readType);

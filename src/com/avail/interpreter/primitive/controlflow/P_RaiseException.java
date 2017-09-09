@@ -31,10 +31,25 @@
  */
 package com.avail.interpreter.primitive.controlflow;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
+import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
+import static com.avail.descriptor.ObjectTypeDescriptor.stackDumpAtom;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
-import java.util.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Raise an exception. Scan the stack of
@@ -70,11 +85,10 @@ extends Primitive
 		// dump can be obtained later.
 		final A_Map fieldMap = exception.fieldMap();
 		final A_Map newFieldMap = fieldMap.mapAtPuttingCanDestroy(
-			ObjectTypeDescriptor.stackDumpAtom(),
+			stackDumpAtom(),
 			interpreter.reifiedContinuation.makeImmutable(),
 			false);
-		final AvailObject newException =
-			ObjectDescriptor.objectFromMap(newFieldMap);
+		final AvailObject newException = objectFromMap(newFieldMap);
 		// Search for an applicable exception handler, and invoke it if found.
 		return interpreter.searchForExceptionHandler(newException);
 	}
@@ -82,15 +96,13 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ObjectTypeDescriptor.exceptionType()),
-			BottomTypeDescriptor.bottom());
+		return
+			functionType(tuple(exceptionType()), bottom());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return ObjectTypeDescriptor.exceptionType();
+		return exceptionType();
 	}
 }

@@ -31,11 +31,27 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.lang.reflect.Array;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.PojoDescriptor.newPojo;
+import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
+import static com.avail.descriptor.PojoTypeDescriptor.pojoArrayType;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain
@@ -61,26 +77,21 @@ public final class P_CreatePojoArray extends Primitive
 		assert args.size() == 2;
 		final AvailObject elementType = args.get(0);
 		final AvailObject length = args.get(1);
-		final AvailObject pojoType =
-			PojoTypeDescriptor.forArrayTypeWithSizeRange(
-				elementType,
-				IntegerRangeTypeDescriptor.singleInteger(length));
+		final AvailObject pojoType = pojoArrayType(
+			elementType, singleInteger(length));
 		final Object array = Array.newInstance(
-			(Class<?>) elementType.marshalToJava(null),
-			length.extractInt());
-		final AvailObject pojo = PojoDescriptor.newPojo(
-			RawPojoDescriptor.identityWrap(array),
-			pojoType);
+			(Class<?>) elementType.marshalToJava(null), length.extractInt());
+		final AvailObject pojo = newPojo(identityPojo(array), pojoType);
 		return interpreter.primitiveSuccess(pojo);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.anyMeta(),
-				IntegerRangeTypeDescriptor.wholeNumbers()),
-			PojoTypeDescriptor.mostGeneralPojoArrayType());
+		return functionType(
+			tuple(
+				anyMeta(),
+				wholeNumbers()),
+			mostGeneralPojoArrayType());
 	}
 }

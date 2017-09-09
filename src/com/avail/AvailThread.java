@@ -39,7 +39,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 /**
  * An {@code AvailThread} is a {@linkplain Thread thread} managed by a
  * particular {@linkplain AvailRuntime Avail runtime}. Instances may obtain the
- * managing runtime through the static accessor {@link AvailRuntime#current()}.
+ * managing runtime through the static accessor {@link AvailRuntime#currentRuntime()}.
  * New instances will be created as necessary by an Avail runtime's {@linkplain
  * ScheduledThreadPoolExecutor executor}.
  *

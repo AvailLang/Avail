@@ -34,7 +34,13 @@ import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.CompilationContext;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Lexer;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
@@ -57,9 +63,12 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
+import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
@@ -225,7 +234,7 @@ public class LexingState
 			// The end of the source code.  Produce an end-of-file token.
 			assert position == source.tupleSize() + 1;
 			theNextTokens.add(
-				TokenDescriptor.create(
+				newToken(
 					emptyTuple(),
 					emptyTuple(),
 					emptyTuple(),
@@ -302,8 +311,8 @@ public class LexingState
 		final AtomicInteger countdown)
 	{
 		final AvailLoader loader = compilationContext.loader();
-		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
-			LexerDescriptor.lexerBodyFunctionType().returnType(),
+		final A_Fiber fiber = newLoaderFiber(
+			lexerBodyFunctionType().returnType(),
 			loader,
 			() ->
 				formatString("Lexer body on line %d for %s.", lineNumber,

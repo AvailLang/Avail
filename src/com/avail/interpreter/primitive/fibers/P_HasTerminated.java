@@ -32,14 +32,23 @@
 
 package com.avail.interpreter.primitive.fibers;
 
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.interpreter.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Has the specified {@linkplain FiberDescriptor
@@ -67,16 +76,14 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(
-				fiber.executionState().indicatesTermination()));
+			objectFromBoolean(fiber.executionState().indicatesTermination()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				mostGeneralFiberType()),
+		return functionType(
+			tuple(mostGeneralFiberType()),
 			booleanType());
 	}
 }

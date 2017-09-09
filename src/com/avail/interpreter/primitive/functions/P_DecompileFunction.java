@@ -32,12 +32,25 @@
 
 package com.avail.interpreter.primitive.functions;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BlockNodeDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Decompiler;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.BLOCK_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain BlockNodeDescriptor
@@ -71,9 +84,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FunctionTypeDescriptor.mostGeneralFunctionType()),
-			BLOCK_NODE.mostGeneralType());
+		return
+			functionType(tuple(mostGeneralFunctionType()),
+				BLOCK_NODE.mostGeneralType());
 	}
 }

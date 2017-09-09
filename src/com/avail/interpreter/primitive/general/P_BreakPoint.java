@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive.general;
 
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.exceptions.AvailBreakpointException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

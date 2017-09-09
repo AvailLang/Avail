@@ -31,16 +31,32 @@
  */
 package com.avail.interpreter.primitive.numbers;
 
-import static com.avail.descriptor.InfinityDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.exceptions.ArithmeticException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.ArithmeticException;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AbstractNumberDescriptor
+	.binaryNumericOperationTypeBound;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Divide an extended integer by another one.
@@ -66,8 +82,7 @@ extends Primitive
 		final A_Number b = args.get(1);
 		try
 		{
-			return interpreter.primitiveSuccess(
-				a.divideCanDestroy(b, true));
+			return interpreter.primitiveSuccess(a.divideCanDestroy(b, true));
 		}
 		catch (final ArithmeticException e)
 		{
@@ -78,8 +93,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				NUMBER.o(),
 				NUMBER.o()),
 			NUMBER.o());
@@ -92,8 +107,7 @@ extends Primitive
 		final A_Type aType = argumentTypes.get(0);
 		final A_Type bType = argumentTypes.get(1);
 
-		return AbstractNumberDescriptor.binaryNumericOperationTypeBound(
-			aType, bType);
+		return binaryNumericOperationTypeBound(aType, bType);
 	}
 
 	@Override
@@ -105,12 +119,11 @@ extends Primitive
 
 		final boolean aTypeIncludesInfinity =
 			negativeInfinity().isInstanceOf(aType)
-			|| positiveInfinity().isInstanceOf(aType);
+				|| positiveInfinity().isInstanceOf(aType);
 		final boolean bTypeIncludesInfinity =
 			negativeInfinity().isInstanceOf(bType)
-			|| positiveInfinity().isInstanceOf(bType);
-		final boolean bTypeIncludesZero =
-			IntegerDescriptor.zero().isInstanceOf(bType);
+				|| positiveInfinity().isInstanceOf(bType);
+		final boolean bTypeIncludesZero = zero().isInstanceOf(bType);
 		if (bTypeIncludesZero
 			|| (aTypeIncludesInfinity && bTypeIncludesInfinity))
 		{
@@ -122,8 +135,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_CANNOT_DIVIDE_BY_ZERO,
 				E_CANNOT_DIVIDE_INFINITIES));
 	}

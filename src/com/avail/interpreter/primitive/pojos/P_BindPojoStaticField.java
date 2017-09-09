@@ -31,12 +31,44 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.lang.reflect.*;
-import java.util.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.PojoFieldDescriptor;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.PojoFieldDescriptor
+	.pojoFieldVariableForInnerType;
+import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
+import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.RawPojoDescriptor.rawNullPojo;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Bind the static {@linkplain Field Java
@@ -121,33 +153,28 @@ public final class P_BindPojoStaticField extends Primitive
 		// A static field cannot have a type parametric on type variables
 		// of the declaring class, so pass an empty map where the type
 		// variables are expected.
-		final A_Type fieldType = PojoTypeDescriptor.resolve(
-			field.getGenericType(),
-			MapDescriptor.emptyMap());
-		final AvailObject var = PojoFieldDescriptor.forInnerType(
-			RawPojoDescriptor.equalityWrap(field),
-			RawPojoDescriptor.rawNullObject(),
-			fieldType);
+		final A_Type fieldType = resolvePojoType(
+			field.getGenericType(), emptyMap());
+		final AvailObject var = pojoFieldVariableForInnerType(
+			equalityPojo(field), rawNullPojo(), fieldType);
 		return interpreter.primitiveSuccess(var);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.instanceMetaOn(
-					PojoTypeDescriptor.mostGeneralPojoType()),
-				TupleTypeDescriptor.stringType()),
-			VariableTypeDescriptor.mostGeneralVariableType());
+		return functionType(
+			tuple(
+				instanceMeta(mostGeneralPojoType()),
+				stringType()),
+			mostGeneralVariableType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_JAVA_FIELD_NOT_AVAILABLE,
-				E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS));
+		return enumerationWith(set(
+			E_JAVA_FIELD_NOT_AVAILABLE,
+			E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS));
 	}
 }

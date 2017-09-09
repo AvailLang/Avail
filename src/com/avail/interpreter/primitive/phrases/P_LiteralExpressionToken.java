@@ -32,11 +32,23 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.LiteralNodeDescriptor;
+import com.avail.descriptor.LiteralTokenDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain LiteralTokenDescriptor
@@ -69,9 +81,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				LITERAL_NODE.mostGeneralType()),
-			LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType());
+		return
+			functionType(tuple(LITERAL_NODE.mostGeneralType()),
+				mostGeneralLiteralTokenType());
 	}
 }

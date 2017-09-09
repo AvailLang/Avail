@@ -46,9 +46,10 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.REFERENCE_NODE;
 import static com.avail.descriptor.ReferenceNodeDescriptor.ObjectSlots.VARIABLE;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 
 /**
  * My instances represent a reference-taking expression.  A variable itself is
@@ -106,10 +107,10 @@ extends ParseNodeDescriptor
 		if (kind == DeclarationKind.MODULE_VARIABLE)
 		{
 			return
-				instanceTypeOn(declaration.literalObject());
+				instanceType(declaration.literalObject());
 		}
 		assert kind == DeclarationKind.LOCAL_VARIABLE;
-		return VariableTypeDescriptor.variableTypeFor(variable.expressionType());
+		return variableTypeFor(variable.expressionType());
 	}
 
 	@Override @AvailMethod
@@ -231,7 +232,7 @@ extends ParseNodeDescriptor
 	 *        A variable use node for which to construct a reference node.
 	 * @return The new reference node.
 	 */
-	public static A_Phrase fromUse (final A_Phrase variableUse)
+	public static A_Phrase referenceNodeFromUse (final A_Phrase variableUse)
 	{
 		final AvailObject newReferenceNode = mutable.create();
 		newReferenceNode.setSlot(VARIABLE, variableUse);

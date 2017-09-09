@@ -33,13 +33,18 @@
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -122,8 +127,8 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 		}
 
 		// A comment was successfully parsed.
-		final A_Token token = CommentTokenDescriptor.create(
-			(A_String)source.copyTupleFromToCanDestroy(
+		final A_Token token = newCommentToken(
+			(A_String) source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
 			emptyTuple(),
 			emptyTuple(),
@@ -136,11 +141,8 @@ public final class P_BootstrapLexerSlashStarCommentBody extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				stringType(),
-				naturalNumbers(),
-				naturalNumbers()),
+		return functionType(
+			tuple(stringType(), naturalNumbers(), naturalNumbers()),
 			zeroOrMoreOf(TOKEN.o()));
 	}
 }

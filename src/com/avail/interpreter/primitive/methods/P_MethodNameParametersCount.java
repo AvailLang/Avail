@@ -32,13 +32,28 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
 
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.interpreter.*;
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Treating the {@linkplain StringDescriptor
@@ -74,23 +89,21 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(e);
 		}
-		return interpreter.primitiveSuccess(IntegerDescriptor.fromInt(
-			splitter.numberOfArguments()));
+		return interpreter.primitiveSuccess(
+			fromInt(splitter.numberOfArguments()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType()),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+		return functionType(
+			tuple(stringType()),
+			wholeNumbers());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			MessageSplitter.possibleErrors);
+		return enumerationWith(possibleErrors);
 	}
 }

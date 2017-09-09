@@ -46,7 +46,6 @@ import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -171,7 +170,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 	}
 
 	@Override
-	public @Nullable L2ObjectRegister primitiveResultRegister (
+	public L2ObjectRegister primitiveResultRegister (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == instance;

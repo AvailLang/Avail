@@ -32,18 +32,28 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ByteArrayTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ByteArrayTupleDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static java.lang.Math.min;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.utility.json.JSONWriter;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.Generator;
-import com.avail.utility.json.JSONWriter;
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.ByteArrayTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ByteArrayTupleDescriptor.ObjectSlots
+	.BYTE_ARRAY_POJO;
+import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
+import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
+import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static java.lang.Math.min;
 
 /**
  * {@code ByteArrayTupleDescriptor} represents a tuple of integers that happen
@@ -116,31 +126,20 @@ extends NumericTupleDescriptor
 		final int intValue;
 		if (originalSize >= maximumCopySize
 			|| !newElement.isInt()
-			|| ((intValue = ((A_Number) newElement).extractInt()) & 255)
-				!= intValue)
+			|| ((intValue = ((A_Number) newElement).extractInt()) & ~255) != 0)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+			final A_Tuple singleton = tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		// Convert to a ByteTupleDescriptor.
 		final byte[] array =
 			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		final int newSize = originalSize + 1;
-		return ByteTupleDescriptor.generateFrom(
-			newSize,
-			new Generator<Short>()
-			{
-				private int index = 0;
-
-				@Override
-				public Short value ()
-				{
-					return index < newSize
-						? (short)(array[index++] & 255)
-						: (short)intValue;
-				}
-			});
+		return generateByteTupleFrom(
+			originalSize + 1,
+			index -> index <= originalSize
+				? (short)(array[index - 1] & 255)
+				: (short)intValue);
 	}
 
 	@Override @AvailMethod
@@ -213,7 +212,7 @@ extends NumericTupleDescriptor
 		int hash = 0;
 		for (int index = end - 1, first = start - 1; index >= first; index--)
 		{
-			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
+			final int itemHash = hashOfUnsignedByte(
 				(short) (array[index] & 0xFF)) ^ preToggle;
 			hash = (hash + itemHash) * multiplier;
 		}
@@ -250,7 +249,7 @@ extends NumericTupleDescriptor
 			System.arraycopy(object.byteArray(), 0, bytes, 0, size1);
 			System.arraycopy(
 				otherTuple.byteArray(), 0, bytes, size1, size2);
-			return forByteArray(bytes);
+			return tupleForByteArray(bytes);
 		}
 		if (!canDestroy)
 		{
@@ -259,12 +258,9 @@ extends NumericTupleDescriptor
 		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
-			otherTuple,
-			true);
+		return concatenateAtLeastOneTree(object, otherTuple, true);
 	}
 
 	@Override @AvailMethod
@@ -285,18 +281,8 @@ extends NumericTupleDescriptor
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
 			final byte[] originalBytes = object.byteArray();
-			final AvailObject result = ByteTupleDescriptor.generateFrom(
-				size,
-				new Generator<Short>()
-				{
-					private int index = start - 1;
-
-					@Override
-					public Short value ()
-					{
-						return (short)(originalBytes[index++] & 255);
-					}
-				});
+			final AvailObject result = generateByteTupleFrom(
+				size, i -> (short)(originalBytes[i + start - 2] & 255));
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();
@@ -401,7 +387,7 @@ extends NumericTupleDescriptor
 			}
 		}
 		final A_Type defaultTypeObject = aType.defaultType();
-		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(defaultTypeObject))
+		if (bytes().isSubtypeOf(defaultTypeObject))
 		{
 			return true;
 		}
@@ -457,7 +443,7 @@ extends NumericTupleDescriptor
 		// Answer the element at the given index in the tuple object.
 		final byte[] array =
 			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
-		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
+		return (AvailObject) fromUnsignedByte(
 			(short) (array[index - 1] & 0xFF));
 	}
 
@@ -506,7 +492,7 @@ extends NumericTupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		return IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type)
+		return bytes().isSubtypeOf(type)
 			|| super.o_TupleElementsInRangeAreInstancesOf(
 				object,
 				startIndex,
@@ -539,18 +525,8 @@ extends NumericTupleDescriptor
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
 		final byte[] originalBytes = object.byteArray();
-		final AvailObject result = ByteTupleDescriptor.generateFrom(
-			size,
-			new Generator<Short>()
-			{
-				private int index = size - 1;
-
-				@Override
-				public Short value ()
-				{
-					return (short)(originalBytes[index--] & 255);
-				}
-			});
+		final AvailObject result = generateByteTupleFrom(
+			size, i -> (short)(originalBytes[size - i] & 255));
 		result.hashOrZero(0);
 		return result;
 
@@ -630,7 +606,7 @@ extends NumericTupleDescriptor
 		final byte[] array =
 			(byte[]) object.slot(BYTE_ARRAY_POJO).javaObjectNotNull();
 		final byte[] copy = Arrays.copyOf(array, array.length);
-		final AvailObject result = forByteArray(copy);
+		final AvailObject result = tupleForByteArray(copy);
 		result.setSlot(HASH_OR_ZERO, object.hashOrZero());
 		return result;
 	}
@@ -642,9 +618,9 @@ extends NumericTupleDescriptor
 	 * @param array A Java byte array.
 	 * @return The requested {@linkplain ByteArrayTupleDescriptor tuple}.
 	 */
-	public static AvailObject forByteArray (final byte[] array)
+	public static AvailObject tupleForByteArray (final byte[] array)
 	{
-		final AvailObject wrapped = RawPojoDescriptor.identityWrap(array);
+		final AvailObject wrapped = identityPojo(array);
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(HASH_OR_ZERO, 0);
 		newObject.setSlot(BYTE_ARRAY_POJO, wrapped);

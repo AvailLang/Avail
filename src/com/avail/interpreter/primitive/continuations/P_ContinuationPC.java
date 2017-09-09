@@ -31,10 +31,25 @@
  */
 package com.avail.interpreter.primitive.continuations;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the program counter of a
@@ -60,16 +75,14 @@ public final class P_ContinuationPC extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Continuation con = args.get(0);
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(con.pc()));
+		return interpreter.primitiveSuccess(fromInt(con.pc()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ContinuationTypeDescriptor.mostGeneralContinuationType()),
-			IntegerRangeTypeDescriptor.naturalNumbers());
+		return functionType(
+			tuple(mostGeneralContinuationType()),
+			naturalNumbers());
 	}
 }

@@ -32,11 +32,24 @@
 
 package com.avail.interpreter.primitive.integers;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Given any integer B, and a shift factor S,
@@ -66,25 +79,23 @@ extends Primitive
 		final A_Number shiftFactor = args.get(1);
 		return interpreter.primitiveSuccess(
 			baseInteger.bitShift(
-				IntegerDescriptor.zero().minusCanDestroy(shiftFactor, true),
+				zero().minusCanDestroy(shiftFactor, true),
 				true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.integers(),
-				IntegerRangeTypeDescriptor.integers()),
-			IntegerRangeTypeDescriptor.integers());
+		return functionType(
+			tuple(
+				integers(),
+				integers()),
+			integers());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_TOO_LARGE_TO_REPRESENT));
+		return enumerationWith(set(E_TOO_LARGE_TO_REPRESENT));
 	}
 }

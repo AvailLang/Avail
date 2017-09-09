@@ -32,11 +32,31 @@
 
 package com.avail.interpreter.primitive.objects;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ObjectDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.ObjectDescriptor.objectFromTuple;
+import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
+import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Convert a {@linkplain TupleDescriptor tuple}
@@ -64,20 +84,19 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Tuple tuple = args.get(0);
-		return interpreter.primitiveSuccess(
-			ObjectDescriptor.objectFromTuple(tuple));
+		return interpreter.primitiveSuccess(objectFromTuple(tuple));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.zeroOrMoreOf(
-					TupleTypeDescriptor.tupleTypeForTypes(
+		return functionType(
+			tuple(
+				zeroOrMoreOf(
+					tupleTypeForTypes(
 						ATOM.o(),
 						ANY.o()))),
-			ObjectTypeDescriptor.mostGeneralObjectType());
+			mostGeneralObjectType());
 	}
 
 	@Override
@@ -94,7 +113,7 @@ extends Primitive
 			return super.returnTypeGuaranteedByVM(argumentTypes);
 		}
 		final int tupleSize = tupleSizeLowerBound.extractInt();
-		A_Map fieldTypeMap = MapDescriptor.emptyMap();
+		A_Map fieldTypeMap = emptyMap();
 		for (int i = 1; i <= tupleSize; i++)
 		{
 			final A_Type pairType = tupleType.typeAtIndex(i);
@@ -116,10 +135,8 @@ extends Primitive
 			assert keyValue.isAtom();
 			final A_Type valueType = pairType.typeAtIndex(2);
 			fieldTypeMap = fieldTypeMap.mapAtPuttingCanDestroy(
-				keyValue,
-				valueType,
-				true);
+				keyValue, valueType, true);
 		}
-		return ObjectTypeDescriptor.objectTypeFromMap(fieldTypeMap);
+		return objectTypeFromMap(fieldTypeMap);
 	}
 }

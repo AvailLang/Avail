@@ -40,7 +40,7 @@ import com.avail.compiler.scanning.LexingState;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
@@ -184,7 +184,7 @@ extends TokenDescriptor
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{
-		return literalTokenType(instanceTypeOn(object));
+		return literalTokenType(instanceType(object));
 	}
 
 	@Override @AvailMethod
@@ -275,7 +275,7 @@ extends TokenDescriptor
 	 * @param literal The literal value.
 	 * @return The new literal token.
 	 */
-	public static AvailObject create (
+	public static AvailObject literalToken (
 		final A_String string,
 		final A_String leadingWhitespace,
 		final A_String trailingWhitespace,

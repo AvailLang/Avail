@@ -32,21 +32,23 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
-import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Store the {@linkplain AvailRuntime#invalidMessageSendFunction() invalid
@@ -87,19 +89,15 @@ extends L2Operation
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
 			destination,
-			FunctionTypeDescriptor.functionType(
-				TupleDescriptor.tuple(
-					AbstractEnumerationTypeDescriptor.enumerationWith(
-						TupleDescriptor.tuple(
-								E_NO_METHOD.numericCode(),
-								E_NO_METHOD_DEFINITION.numericCode(),
-								E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
-								E_FORWARD_METHOD_DEFINITION.numericCode(),
-								E_ABSTRACT_METHOD_DEFINITION.numericCode())
-							.asSet()),
-					Types.METHOD.o(),
-					TupleTypeDescriptor.mostGeneralTupleType()),
-				BottomTypeDescriptor.bottom()),
+			functionType(tuple(
+				enumerationWith(tuple(
+					E_NO_METHOD.numericCode(),
+					E_NO_METHOD_DEFINITION.numericCode(),
+					E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
+					E_FORWARD_METHOD_DEFINITION.numericCode(),
+					E_ABSTRACT_METHOD_DEFINITION.numericCode())
+					.asSet()), METHOD.o(),
+				mostGeneralTupleType()), bottom()),
 			instruction);
 	}
 }

@@ -31,11 +31,28 @@
  */
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.DefinitionDescriptor;
+import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION;
+import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain SetDescriptor set}
@@ -70,11 +87,9 @@ public final class P_BundleSignatures extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				MESSAGE_BUNDLE.o()),
-			SetTypeDescriptor.setTypeForSizesContentType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
+		return
+			functionType(tuple(MESSAGE_BUNDLE.o()), setTypeForSizesContentType(
+				wholeNumbers(),
 				DEFINITION.o()));
 	}
 }

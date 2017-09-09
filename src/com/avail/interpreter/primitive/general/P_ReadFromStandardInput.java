@@ -35,9 +35,7 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -49,11 +47,16 @@ import java.nio.channels.CompletionHandler;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.interpreter.Interpreter.resumeFromFailedPrimitive;
+import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -87,51 +90,53 @@ extends Primitive
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		final CharBuffer buffer = CharBuffer.allocate(1);
 		interpreter.primitiveSuspend(primitiveFunction.code());
-		interpreter.postExitContinuation(() -> textInterface.inputChannel().read(
-			buffer,
-			fiber,
-			new CompletionHandler<Integer, A_Fiber>()
-			{
-				@Override
-				public void completed (
-					final @Nullable Integer result,
-					final @Nullable A_Fiber unused)
+		interpreter.postExitContinuation(() ->
+			textInterface.inputChannel().read(
+				buffer,
+				fiber,
+				new CompletionHandler<Integer, A_Fiber>()
 				{
-					Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
-						CharacterDescriptor.fromCodePoint(buffer.get(0)),
-						primitiveFunction.code(),
-						skipReturnCheck);
-				}
+					@Override
+					public void completed (
+						final @Nullable Integer result,
+						final @Nullable A_Fiber unused)
+					{
+						resumeFromSuccessfulPrimitive(
+							runtime,
+							fiber,
+							fromCodePoint(buffer.get(0)),
+							primitiveFunction.code(),
+							skipReturnCheck);
+					}
 
-				@Override
-				public void failed (
-					final @Nullable Throwable exc,
-					final @Nullable A_Fiber unused)
-				{
-					Interpreter.resumeFromFailedPrimitive(
-						runtime,
-						fiber,
-						E_IO_ERROR.numericCode(),
-						primitiveFunction,
-						copiedArgs,
-						skipReturnCheck);
-				}
-			}));
+					@Override
+					public void failed (
+						final @Nullable Throwable exc,
+						final @Nullable A_Fiber unused)
+					{
+						resumeFromFailedPrimitive(
+							runtime,
+							fiber,
+							E_IO_ERROR.numericCode(),
+							primitiveFunction,
+							copiedArgs,
+							skipReturnCheck);
+					}
+				}));
 		return Result.FIBER_SUSPENDED;
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(emptyTuple(), CHARACTER.o());
+		return functionType(
+			emptyTuple(),
+			CHARACTER.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			set(E_IO_ERROR));
+		return enumerationWith(set(E_IO_ERROR));
 	}
 }

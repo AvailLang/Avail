@@ -32,12 +32,12 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.*;
 
 
 /**
@@ -156,7 +156,7 @@ extends DefinitionDescriptor
 	 * @return
 	 *            An abstract method signature.
 	 */
-	public static AvailObject create (
+	public static AvailObject newAbstractDefinition (
 		final A_BasicObject definitionMethod,
 		final A_Module definitionModule,
 		final A_Type bodySignature)

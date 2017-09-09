@@ -45,14 +45,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
-import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
@@ -60,7 +63,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
-import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
+import static com.avail.exceptions.AvailErrorCode
+	.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
@@ -168,8 +172,7 @@ extends Primitive
 			new ArrayList<>(marshaledTypes.length);
 		for (final Class<?> paramClass : marshaledTypes)
 		{
-			marshaledTypePojos.add(
-				RawPojoDescriptor.equalityWrap(paramClass));
+			marshaledTypePojos.add(equalityPojo(paramClass));
 		}
 		final A_Tuple marshaledTypesTuple =
 			tupleFromList(marshaledTypePojos);
@@ -197,15 +200,13 @@ extends Primitive
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(bottom()));
-		final A_Function innerFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			emptyTuple()).makeImmutable();
+		final A_Function innerFunction = createFunction(
+			writer.compiledCode(), emptyTuple()).makeImmutable();
 		// Create the outer function that pushes the arguments expected by
 		// the method invocation primitive. Various objects that we do
 		// not want to expose to the Avail program are embedded in this
 		// function as literals.
-		writer = new L1InstructionWriter(
-			nil(), 0, nil());
+		writer = new L1InstructionWriter(nil(), 0, nil());
 		final List<A_Type> allParamTypes =
 			new ArrayList<>(paramTypes.tupleSize() + 1);
 		allParamTypes.add(pojoType);
@@ -213,19 +214,16 @@ extends Primitive
 		{
 			allParamTypes.add(paramType);
 		}
-		writer.argumentTypesTuple(
-			tupleFromList(allParamTypes));
-		final A_Type returnType = PojoTypeDescriptor.resolve(
-			method.getGenericReturnType(),
-			pojoType.typeVariables());
+		writer.argumentTypesTuple(tupleFromList(allParamTypes));
+		final A_Type returnType = resolvePojoType(
+			method.getGenericReturnType(), pojoType.typeVariables());
 		writer.returnType(returnType);
 		writer.write(
 			L1Operation.L1_doPushLiteral,
 			writer.addLiteral(innerFunction));
 		writer.write(
 			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(
-				RawPojoDescriptor.equalityWrap(method)));
+			writer.addLiteral(equalityPojo(method)));
 		final int limit = allParamTypes.size();
 		for (int i = 1; i <= limit; i++)
 		{
@@ -242,9 +240,8 @@ extends Primitive
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
 			writer.addLiteral(returnType));
-		final A_Function outerFunction = FunctionDescriptor.create(
-			writer.compiledCode(),
-			emptyTuple()).makeImmutable();
+		final A_Function outerFunction =
+			createFunction(writer.compiledCode(), emptyTuple()).makeImmutable();
 		// TODO: [TLS] When functions can be made non-reflective, then make
 		// both these functions non-reflective for safety.
 		return interpreter.primitiveSuccess(outerFunction);
@@ -255,12 +252,11 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				instanceMetaOn(mostGeneralPojoType()),
+				instanceMeta(mostGeneralPojoType()),
 				stringType(),
 				zeroOrMoreOf(anyMeta()),
 				functionType(
-					tuple(
-						pojoTypeForClass(Throwable.class)),
+					tuple(pojoTypeForClass(Throwable.class)),
 					bottom())),
 			functionTypeReturning(TOP.o()));
 	}
@@ -268,8 +264,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			set(E_JAVA_METHOD_NOT_AVAILABLE,
-				E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS));
+		return enumerationWith(set(
+			E_JAVA_METHOD_NOT_AVAILABLE,
+			E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS));
 	}
 }

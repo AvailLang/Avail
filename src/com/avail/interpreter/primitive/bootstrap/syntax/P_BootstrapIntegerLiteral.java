@@ -35,20 +35,19 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.LiteralNodeDescriptor;
-import com.avail.descriptor.LiteralTokenTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LITERAL_NODE;
-import static com.avail.interpreter.Primitive.Flag.Bootstrap;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a non-negative integer literal phrase from
@@ -76,21 +75,17 @@ public final class P_BootstrapIntegerLiteral extends Primitive
 
 		final A_Token outerToken = integerTokenLiteral.token();
 		final A_Token innerToken = outerToken.literal();
-		assert innerToken.literal().isInstanceOfKind(
-			IntegerRangeTypeDescriptor.wholeNumbers());
-		final A_Phrase integerLiteral = LiteralNodeDescriptor.fromToken(
-			innerToken);
+		assert innerToken.literal().isInstanceOfKind(wholeNumbers());
+		final A_Phrase integerLiteral = literalNodeFromToken(innerToken);
 		return interpreter.primitiveSuccess(integerLiteral);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				LITERAL_NODE.create(
-					LiteralTokenTypeDescriptor.literalTokenType(
-						IntegerRangeTypeDescriptor.wholeNumbers()))),
-			LITERAL_NODE.create(IntegerRangeTypeDescriptor.wholeNumbers()));
+		return functionType(
+			tuple(
+				LITERAL_NODE.create(literalTokenType(wholeNumbers()))),
+			LITERAL_NODE.create(wholeNumbers()));
 	}
 }

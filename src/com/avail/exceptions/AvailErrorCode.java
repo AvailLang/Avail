@@ -32,9 +32,6 @@
 
 package com.avail.exceptions;
 
-import java.lang.reflect.*;
-import java.nio.file.Path;
-import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
@@ -46,6 +43,18 @@ import com.avail.interpreter.primitive.phrases.P_CurrentMacroName;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.Serializer;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 
 /**
  * {@code AvailErrorCode} is an enumeration of all possible failures of
@@ -846,7 +855,7 @@ public enum AvailErrorCode
 	 */
 	public A_Number numericCode ()
 	{
-		return IntegerDescriptor.fromInt(code);
+		return fromInt(code);
 	}
 
 	/**

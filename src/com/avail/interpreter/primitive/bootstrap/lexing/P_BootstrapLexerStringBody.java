@@ -34,7 +34,12 @@ package com.avail.interpreter.primitive.bootstrap.lexing;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CharacterDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
@@ -42,6 +47,7 @@ import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -91,7 +97,7 @@ public final class P_BootstrapLexerStringBody extends Primitive
 			switch (c)
 			{
 				case '\"':
-					final A_Token token = LiteralTokenDescriptor.create(
+					final A_Token token = literalToken(
 						(A_String) source.copyTupleFromToCanDestroy(
 							startPosition, scanner.position - 1, false),
 						emptyTuple(),
@@ -327,9 +333,8 @@ public final class P_BootstrapLexerStringBody extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			stringType(),
-			naturalNumbers(),
-			naturalNumbers()), zeroOrMoreOf(TOKEN.o()));
+		return functionType(
+			tuple(stringType(), naturalNumbers(), naturalNumbers()),
+			zeroOrMoreOf(TOKEN.o()));
 	}
 }

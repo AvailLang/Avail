@@ -32,8 +32,10 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.utility.MutableOrNull;
+
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -41,9 +43,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.utility.MutableOrNull;
-import javax.annotation.Nullable;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.FloatDescriptor.fromFloat;
+import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
+import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
+import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * The abstract class {@code AbstractNumberDescriptor} serves as an abstraction
@@ -134,11 +143,9 @@ extends Descriptor
 		Sign (final double limitDouble)
 		{
 			this.limitDouble = limitDouble;
-			this.limitDoubleObject =
-				DoubleDescriptor.fromDouble(limitDouble).makeShared();
+			this.limitDoubleObject = fromDouble(limitDouble).makeShared();
 			this.limitFloat = (float)limitDouble;
-			this.limitFloatObject =
-				FloatDescriptor.fromFloat(limitFloat).makeShared();
+			this.limitFloatObject = fromFloat(limitFloat).makeShared();
 		}
 
 		/**
@@ -215,9 +222,7 @@ extends Descriptor
 		 */
 		public final Order reverse ()
 		{
-			final Order rev = reverse;
-			assert rev != null;
-			return rev;
+			return stripNull(reverse);
 		}
 
 		/**
@@ -408,8 +413,8 @@ extends Descriptor
 		final A_Type firstType,
 		final A_Type secondType)
 	{
-		assert !firstType.equals(BottomTypeDescriptor.bottom());
-		assert !secondType.equals(BottomTypeDescriptor.bottom());
+		assert !firstType.equals(bottom());
+		assert !secondType.equals(bottom());
 		final Set<Order> possibleResults = EnumSet.noneOf(Order.class);
 		// Note that we can't intersect the two types to determine, in either
 		// conservative sense, whether numeric equality is possible.  It fails
@@ -529,8 +534,8 @@ extends Descriptor
 					// The value is infinite.
 					final A_Number integerInfinity =
 						firstValue.isPositive()
-							? InfinityDescriptor.positiveInfinity()
-							: InfinityDescriptor.negativeInfinity();
+							? positiveInfinity()
+							: negativeInfinity();
 					{
 						if (integerInfinity.isInstanceOf(secondType))
 						{
@@ -571,8 +576,8 @@ extends Descriptor
 					// The value is infinite.
 					final A_Number integerInfinity =
 						secondValue.isPositive()
-							? InfinityDescriptor.positiveInfinity()
-							: InfinityDescriptor.negativeInfinity();
+							? positiveInfinity()
+							: negativeInfinity();
 					{
 						if (integerInfinity.isInstanceOf(firstType))
 						{
@@ -585,8 +590,7 @@ extends Descriptor
 			return possibleResults;
 		}
 		// They're both integer ranges.  Just check for non-empty intersection.
-		if (!firstType.typeIntersection(secondType).equals(
-			BottomTypeDescriptor.bottom()))
+		if (!firstType.typeIntersection(secondType).equals(bottom()))
 		{
 			possibleResults.add(EQUAL);
 		}
@@ -606,7 +610,7 @@ extends Descriptor
 		final A_Type aType,
 		final A_Type bType)
 	{
-		A_Type union = BottomTypeDescriptor.bottom();
+		A_Type union = bottom();
 		if (!aType.typeIntersection(DOUBLE.o()).isBottom()
 			|| !bType.typeIntersection(DOUBLE.o()).isBottom())
 		{
@@ -638,8 +642,7 @@ extends Descriptor
 			// Add float as a possibility.
 			union = union.typeUnion(FLOAT.o());
 		}
-		final A_Type extendedIntegers =
-			IntegerRangeTypeDescriptor.extendedIntegers();
+		final A_Type extendedIntegers = extendedIntegers();
 		if (!aType.typeIntersection(extendedIntegers).isBottom()
 			&& !bType.typeIntersection(extendedIntegers).isBottom())
 		{

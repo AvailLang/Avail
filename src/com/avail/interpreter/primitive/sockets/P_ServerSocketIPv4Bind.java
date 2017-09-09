@@ -32,16 +32,38 @@
 
 package com.avail.interpreter.primitive.sockets;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.io.IOException;
-import java.net.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.PojoTypeDescriptor.intRange;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Bind the {@linkplain
@@ -99,7 +121,7 @@ extends Primitive
 			final SocketAddress address =
 				new InetSocketAddress(inetAddress, port.extractUnsignedShort());
 			socket.bind(address, backlogInt);
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			return interpreter.primitiveSuccess(nil());
 		}
 		catch (final IllegalStateException e)
 		{
@@ -125,26 +147,21 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ATOM.o(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.singleInt(4),
-					TupleDescriptor.emptyTuple(),
-					IntegerRangeTypeDescriptor.bytes()),
-				IntegerRangeTypeDescriptor.unsignedShorts(),
-				PojoTypeDescriptor.intRange()),
-			TOP.o());
+		return functionType(tuple(
+			ATOM.o(),
+			tupleTypeForSizesTypesDefaultType(
+				singleInt(4),
+				emptyTuple(),
+				bytes()),
+			unsignedShorts(),
+			intRange()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_INVALID_HANDLE,
-				E_SPECIAL_ATOM,
-				E_IO_ERROR,
+		return
+			enumerationWith(set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_IO_ERROR,
 				E_PERMISSION_DENIED));
 	}
 }

@@ -32,17 +32,21 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AvailObjectRepresentation.*;
-import static com.avail.descriptor.Mutability.*;
-import static java.lang.Long.bitCount;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 
 import java.util.NoSuchElementException;
+
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.HashedSetBinDescriptor.checkHashedSetBin;
+import static com.avail.descriptor.HashedSetBinDescriptor.createInitializedBin;
+import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.BIN_HASH;
+import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots
+	.BIN_ELEMENT_AT_;
+import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static java.lang.Long.bitCount;
 
 /**
  * A {@code LinearSetBinDescriptor} is a leaf bin in a {@link SetDescriptor
@@ -175,8 +179,8 @@ extends SetBinDescriptor
 				bitVector |= 1L << bitPosition;
 			}
 			final int newLocalSize = bitCount(bitVector);
-			result = HashedSetBinDescriptor.createInitializedBin(
-				myLevel, newLocalSize, 0, 0, bitVector, NilDescriptor.nil());
+			result = createInitializedBin(
+				myLevel, newLocalSize, 0, 0, bitVector, nil());
 			for (int i = 0; i <= oldSize; i++)
 			{
 				final A_BasicObject eachElement;
@@ -201,7 +205,7 @@ extends SetBinDescriptor
 			assert object.binHash() == oldHash;
 			final int newHash = oldHash + elementObjectHash;
 			assert result.binHash() == newHash;
-			HashedSetBinDescriptor.checkBinHash(result);
+			checkHashedSetBin(result);
 			return result;
 		}
 		// Make a slightly larger linear bin and populate it.
@@ -412,7 +416,7 @@ extends SetBinDescriptor
 	 * @param secondElement The second element of the new bin.
 	 * @return A 2-element set bin.
 	 */
-	public static AvailObject createPair (
+	public static AvailObject createLinearSetBinPair (
 		final byte level,
 		final A_BasicObject firstElement,
 		final A_BasicObject secondElement)
@@ -525,7 +529,7 @@ extends SetBinDescriptor
 	 * @param level The level at which this bin occurs.
 	 * @return An empty bin.
 	 */
-	static AvailObject emptyBinForLevel (final byte level)
+	static AvailObject emptyLinearSetBin (final byte level)
 	{
 		return emptyBins[level];
 	}

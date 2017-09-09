@@ -32,10 +32,13 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import com.avail.AvailRuntime;
 import com.avail.AvailTask;
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AbstractDefinitionDescriptor;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
@@ -47,9 +50,14 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -108,7 +116,7 @@ extends Primitive
 					{
 						loader.addAbstractSignature(atom, blockSignature);
 						Interpreter.resumeFromSuccessfulPrimitive(
-							AvailRuntime.current(),
+							currentRuntime(),
 							fiber,
 							nil(),
 							primitiveFunction.code(),
@@ -119,7 +127,7 @@ extends Primitive
 							| SignatureException e)
 					{
 						Interpreter.resumeFromFailedPrimitive(
-							AvailRuntime.current(),
+							currentRuntime(),
 							fiber,
 							e.numericCode(),
 							primitiveFunction,
@@ -133,20 +141,18 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(ATOM.o(), functionMeta()),
-			TOP.o());
+		return
+			functionType(tuple(ATOM.o(), functionMeta()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor
-				.set(E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-					E_METHOD_IS_SEALED)
-				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+		return enumerationWith(
+			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
+				E_METHOD_IS_SEALED)
+				.setUnionCanDestroy(possibleErrors, true));
 	}
 }

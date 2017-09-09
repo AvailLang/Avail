@@ -42,6 +42,8 @@ import java.util.Formatter;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.CharacterDescriptor.IntegerSlots.CODE_POINT;
+import static com.avail.descriptor.IntegerDescriptor.computeHashOfInt;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 
 /**
@@ -122,7 +124,7 @@ extends Descriptor
 	 */
 	static int computeHashOfCharacterWithCodePoint (final int codePoint)
 	{
-		return IntegerDescriptor.computeHashOfInt(codePoint ^ 0xD68E9947);
+		return computeHashOfInt(codePoint ^ 0xD68E9947);
 	}
 
 	/**
@@ -253,7 +255,7 @@ extends Descriptor
 	@Override
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
-		writer.write(TupleDescriptor.tuple(object));
+		writer.write(tuple(object));
 	}
 
 	/**

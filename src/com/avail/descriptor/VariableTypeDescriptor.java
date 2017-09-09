@@ -32,13 +32,19 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.VariableTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.ReadWriteVariableTypeDescriptor
+	.fromReadAndWriteTypes;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.VariableTypeDescriptor.ObjectSlots
+	.INNER_TYPE;
 
 /**
  * A {@code VariableTypeDescriptor variable type} is the {@linkplain
@@ -176,7 +182,7 @@ extends TypeDescriptor
 		// The intersection of two variable types is a variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
-		return VariableTypeDescriptor.variableReadWriteType(
+		return variableReadWriteType(
 			innerType.typeIntersection(aVariableType.readType()),
 			innerType.typeUnion(aVariableType.writeType()));
 	}
@@ -207,7 +213,7 @@ extends TypeDescriptor
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
 		// write type is the type intersection of the two incoming write types.
-		return VariableTypeDescriptor.variableReadWriteType(
+		return variableReadWriteType(
 			innerType.typeUnion(aVariableType.readType()),
 			innerType.typeIntersection(aVariableType.writeType()));
 	}
@@ -258,8 +264,8 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain VariableTypeDescriptor variable type} based on
-	 * the given content {@linkplain TypeDescriptor type}.
+	 * Create a variable type based on the given content {@linkplain
+	 * TypeDescriptor type}.
 	 *
 	 * @param innerType
 	 *        The content type on which to base the variable type.
@@ -269,15 +275,13 @@ extends TypeDescriptor
 	public static A_Type variableTypeFor (final A_Type innerType)
 	{
 		final AvailObject result = mutable.create();
-		result.setSlot(
-			INNER_TYPE,
-			innerType.makeImmutable());
+		result.setSlot(INNER_TYPE, innerType.makeImmutable());
 		return result;
 	}
 
 	/**
-	 * Create a {@linkplain VariableTypeDescriptor variable type} based on the
-	 * given read and write {@linkplain TypeDescriptor types}.
+	 * Create a variable type based on the given read and write {@linkplain
+	 * TypeDescriptor types}.
 	 *
 	 * @param readType
 	 *        The read type.
@@ -293,12 +297,11 @@ extends TypeDescriptor
 		{
 			return variableTypeFor(readType);
 		}
-		return ReadWriteVariableTypeDescriptor.fromReadAndWriteTypes(
-			readType, writeType);
+		return fromReadAndWriteTypes(readType, writeType);
 	}
 
 	/**
-	 * Construct a new {@link VariableTypeDescriptor}.
+	 * Construct a new {@codeVariableTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -339,9 +342,8 @@ extends TypeDescriptor
 	 * The most general {@linkplain ReadWriteVariableTypeDescriptor variable
 	 * type}.
 	 */
-	private static final A_Type mostGeneralType = variableReadWriteType(
-		TOP.o(),
-		BottomTypeDescriptor.bottom()).makeShared();
+	private static final A_Type mostGeneralType =
+		variableReadWriteType(TOP.o(), bottom()).makeShared();
 
 	/**
 	 * Answer the most general {@linkplain ReadWriteVariableTypeDescriptor
@@ -359,8 +361,8 @@ extends TypeDescriptor
 	 * The (instance) type of the most general {@linkplain
 	 * ReadWriteVariableTypeDescriptor variable} metatype.
 	 */
-	private static final A_Type meta =
-		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
+	private static final A_Type variableMeta =
+		instanceMeta(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the (instance) type of the most general {@linkplain
@@ -372,6 +374,6 @@ extends TypeDescriptor
 	 */
 	public static A_Type variableMeta ()
 	{
-		return meta;
+		return variableMeta;
 	}
 }

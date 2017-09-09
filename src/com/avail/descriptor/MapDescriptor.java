@@ -45,7 +45,16 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.MapDescriptor.ObjectSlots.ROOT_BIN;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 
@@ -413,10 +422,9 @@ extends Descriptor
 	A_Type o_Kind (final AvailObject object)
 	{
 		final int size = object.mapSize();
-		final A_Type sizeRange = InstanceTypeDescriptor.instanceTypeOn(
-			IntegerDescriptor.fromInt(size));
+		final A_Type sizeRange = instanceType(fromInt(size));
 		final A_Map root = rootBin(object);
-		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+		return mapTypeForSizesKeyTypeValueType(
 			sizeRange,
 			root.mapBinKeyUnionKind(),
 			root.mapBinValueUnionKind());
@@ -474,7 +482,7 @@ extends Descriptor
 		{
 			object.makeImmutable();
 		}
-		return MapDescriptor.createFromBin(newRoot);
+		return createFromBin(newRoot);
 	}
 
 	@Override @AvailMethod
@@ -482,12 +490,11 @@ extends Descriptor
 	{
 		// Answer a set with all my keys.  Mark the keys as immutable because
 		// they'll be shared with the new set.
-		A_Set result = SetDescriptor.emptySet();
+		A_Set result = emptySet();
 		for (final Entry entry : object.mapIterable())
 		{
 			result = result.setWithElementCanDestroy(
-				entry.key().makeImmutable(),
-				true);
+				entry.key().makeImmutable(), true);
 		}
 		return result;
 	}
@@ -501,9 +508,8 @@ extends Descriptor
 	{
 		final int size = object.mapSize();
 		final MapIterable mapIterable = object.mapIterable();
-		return ObjectTupleDescriptor.generateFrom(
-			size,
-			() -> mapIterable.next().value().makeImmutable());
+		return generateObjectTupleFrom(
+			size, index -> mapIterable.next().value().makeImmutable());
 	}
 
 	@Override @AvailMethod
@@ -574,8 +580,7 @@ extends Descriptor
 		writer.startObject();
 		writer.write("kind");
 		writer.write("map");
-		if (object.kind().keyType().isSubtypeOf(
-			TupleTypeDescriptor.stringType()))
+		if (object.kind().keyType().isSubtypeOf(stringType()))
 		{
 			writer.write("map");
 			writer.startObject();
@@ -609,7 +614,7 @@ extends Descriptor
 		writer.write("kind");
 		writer.write("map");
 		if (object.kind().keyType().isSubtypeOf(
-			TupleTypeDescriptor.stringType()))
+			stringType()))
 		{
 			writer.write("map");
 			writer.startObject();
@@ -797,7 +802,7 @@ extends Descriptor
 	 *        A tuple of key-value bindings, i.e. 2-element tuples.
 	 * @return A new map.
 	 */
-	public static A_Map newWithBindings (
+	public static A_Map mapWithBindings (
 		final A_Tuple tupleOfBindings)
 	{
 		assert tupleOfBindings.isTuple();
@@ -822,7 +827,7 @@ extends Descriptor
 	 *        A tuple of key-value bindings, i.e. 2-element tuples.
 	 * @return A new map.
 	 */
-	public static A_Map fromPairs (final A_BasicObject... keysAndValues)
+	public static A_Map mapFromPairs (final A_BasicObject... keysAndValues)
 	{
 		assert (keysAndValues.length & 1) == 0;
 		A_Map newMap = emptyMap();
@@ -900,7 +905,7 @@ extends Descriptor
 
 	static
 	{
-		final A_Map map = createFromBin(NilDescriptor.nil());
+		final A_Map map = createFromBin(nil());
 		map.hash();
 		emptyMap = map.makeShared();
 	}

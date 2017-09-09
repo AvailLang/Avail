@@ -238,7 +238,7 @@ extends ParseNodeDescriptor
 	 *        expression, in order to look up the method.
 	 * @return The resulting super cast node.
 	 */
-	public static AvailObject create (
+	public static AvailObject newSuperCastNode (
 		final A_Phrase expression,
 		final A_Type superUnionType)
 	{

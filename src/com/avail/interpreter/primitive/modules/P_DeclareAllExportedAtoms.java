@@ -32,15 +32,30 @@
 
 package com.avail.interpreter.primitive.modules;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.descriptor.ModuleDescriptor.ObjectSlots;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.ModuleDescriptor.currentModule;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Private;
 
 /**
  * <strong>Primitive:</strong> This private primitive is used to ensure that
@@ -73,7 +88,7 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Set names = args.get(0);
 		final A_Atom isPublic = args.get(1);
-		final A_Module module = ModuleDescriptor.current();
+		final A_Module module = currentModule();
 		assert !module.equalsNil();
 		if (isPublic.extractBoolean())
 		{
@@ -83,14 +98,14 @@ extends Primitive
 		{
 			module.addPrivateNames(names);
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				setTypeForSizesContentType(
 					wholeNumbers(),
 					ATOM.o()),

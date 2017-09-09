@@ -31,12 +31,23 @@
  */
 package com.avail.interpreter.primitive.floats;
 
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FloatDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static java.lang.Math.E;
 import static java.lang.Math.exp;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Compute {@code e^a}, the natural
@@ -60,20 +71,14 @@ public final class P_FloatExp extends Primitive
 		assert args.size() == 1;
 		final AvailObject a = args.get(0);
 		return interpreter.primitiveSuccess(
-			FloatDescriptor.objectFromFloatRecycling(
-				(float) exp(a.extractFloat()),
-				a,
-				true));
+			fromFloatRecycling((float) exp(a.extractFloat()), a, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceTypeDescriptor.instanceTypeOn(
-					DoubleDescriptor.fromDouble(Math.E)),
-				FLOAT.o()),
+		return functionType(
+			tuple(instanceType(fromDouble(E)), FLOAT.o()),
 			FLOAT.o());
 	}
 }

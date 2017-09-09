@@ -41,6 +41,7 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.RawPojoDescriptor.rawNullPojo;
 
 /**
  * {@code BottomPojoTypeDescriptor} describes the type of Java {@code null},
@@ -121,7 +122,7 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	AvailObject o_JavaClass (final AvailObject object)
 	{
-		return RawPojoDescriptor.rawNullObject();
+		return rawNullPojo();
 	}
 
 	@Override @AvailMethod

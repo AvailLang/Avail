@@ -32,16 +32,34 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.serialization.Deserializer;
+
+import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.serialization.Deserializer;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
+import static com.avail.exceptions.AvailErrorCode.E_DESERIALIZATION_FAILED;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain A_Tuple tuple}
@@ -103,35 +121,33 @@ extends Primitive
 		final List<A_BasicObject> values = new ArrayList<>();
 		try
 		{
-			A_BasicObject value;
-			while ((value = deserializer.deserialize()) != null)
+			@Nullable A_BasicObject value = deserializer.deserialize();
+			while (value != null)
 			{
 				values.add(value);
+				value = deserializer.deserialize();
 			}
 		}
 		catch (final Exception e)
 		{
 			return interpreter.primitiveFailure(E_DESERIALIZATION_FAILED);
 		}
-		return interpreter.primitiveSuccess(TupleDescriptor.tupleFromList(values));
+		return interpreter.primitiveSuccess(tupleFromList(values));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.zeroOrMoreOf(
-					IntegerRangeTypeDescriptor.bytes()),
+		return functionType(
+			tuple(
+				zeroOrMoreOf(bytes()),
 				MODULE.o()),
-			TupleTypeDescriptor.zeroOrMoreOf(ANY.o()));
+			zeroOrMoreOf(ANY.o()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_DESERIALIZATION_FAILED));
+		return enumerationWith(set(E_DESERIALIZATION_FAILED));
 	}
 }

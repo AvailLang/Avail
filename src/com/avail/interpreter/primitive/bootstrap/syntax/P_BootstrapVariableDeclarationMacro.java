@@ -32,15 +32,32 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.DeclarationNodeDescriptor.newVariable;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.DECLARATION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapVariableDeclarationMacro} primitive is used
@@ -84,9 +101,8 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 				type);
 		}
 		final A_Phrase variableDeclaration =
-			DeclarationNodeDescriptor.newVariable(
-				nameToken, type, typeLiteral, NilDescriptor.nil());
-		final A_Phrase conflictingDeclaration =
+			newVariable(nameToken, type, typeLiteral, nil());
+		final @Nullable A_Phrase conflictingDeclaration =
 			FiberDescriptor.addDeclaration(variableDeclaration);
 		if (conflictingDeclaration != null)
 		{
@@ -103,12 +119,11 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(tuple(
 				/* Variable name phrase. */
-				LITERAL_NODE.create(TOKEN.o()),
+			LITERAL_NODE.create(TOKEN.o()),
 				/* Variable type's literal phrase. */
-				LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta())),
+			LITERAL_NODE.create(anyMeta())),
 			DECLARATION_NODE.mostGeneralType());
 	}
 }

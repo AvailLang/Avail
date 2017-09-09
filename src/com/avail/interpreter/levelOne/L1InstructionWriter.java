@@ -32,13 +32,24 @@
 
 package com.avail.interpreter.levelOne;
 
-import java.io.ByteArrayOutputStream;
-import java.util.*;
-import javax.annotation.Nullable;
 import com.avail.descriptor.*;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.utility.Generator;
+
+import javax.annotation.Nullable;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.NybbleTupleDescriptor
+	.generateNybbleTupleFrom;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
 /**
  * An instance of this class can be used to construct a {@linkplain
@@ -169,7 +180,7 @@ public class L1InstructionWriter
 	 */
 	public int createLocal (final A_Type localType)
 	{
-		assert localType.isInstanceOf(InstanceMetaDescriptor.topMeta());
+		assert localType.isInstanceOf(topMeta());
 		localTypes.add(localType);
 		return localTypes.size() + argumentTypes.size();
 	}
@@ -358,18 +369,8 @@ public class L1InstructionWriter
 	{
 		final int size = stream.size();
 		final byte [] byteArray = stream.toByteArray();
-		final AvailObject nybbles = NybbleTupleDescriptor.generateFrom(
-			size,
-			new Generator<Byte>()
-			{
-				private int i = 0;
-
-				@Override
-				public Byte value ()
-				{
-					return byteArray[i++];
-				}
-			});
+		final AvailObject nybbles = generateNybbleTupleFrom(
+			size, i -> byteArray[i - 1]);
 		nybbles.makeImmutable();
 		return nybbles;
 	}
@@ -399,17 +400,15 @@ public class L1InstructionWriter
 				// safety check.
 			}
 		}
-		return CompiledCodeDescriptor.create(
+		return newCompiledCode(
 			nybbles(),
 			localTypes.size(),
 			stackTracker.maxDepth(),
-			FunctionTypeDescriptor.functionType(
-				TupleDescriptor.tupleFromList(argumentTypes),
-				returnType()),
+			functionType(tupleFromList(argumentTypes), returnType()),
 			primitive,
-			TupleDescriptor.tupleFromList(literals),
-			TupleDescriptor.tupleFromList(localTypes),
-			TupleDescriptor.tupleFromList(outerTypes),
+			tupleFromList(literals),
+			tupleFromList(localTypes),
+			tupleFromList(outerTypes),
 			module,
 			startingLineNumber,
 			phrase);

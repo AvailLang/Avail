@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ConcatenatedTupleTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -45,6 +44,8 @@ import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
+	.concatenatingAnd;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -118,7 +119,7 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 		A_Type resultType = registerSet.typeAt(registers.get(index));
 		while (--index >= 0)
 		{
-			resultType = ConcatenatedTupleTypeDescriptor.concatenatingAnd(
+			resultType = concatenatingAnd(
 				registerSet.typeAt(registers.get(index)),
 				resultType);
 		}

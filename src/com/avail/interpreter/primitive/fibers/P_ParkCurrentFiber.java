@@ -44,7 +44,8 @@ import com.avail.utility.MutableOrNull;
 
 import java.util.List;
 
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
+	.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -95,8 +96,7 @@ extends Primitive
 			}
 			else
 			{
-				result.value = interpreter.primitiveSuccess(
-					nil());
+				result.value = interpreter.primitiveSuccess(nil());
 			}
 		});
 		return result.value();

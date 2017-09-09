@@ -32,16 +32,21 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.InstanceMetaDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.IdentityHashMap;
-import java.util.List;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+import java.util.List;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceMetaDescriptor.ObjectSlots.INSTANCE;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
  * My instances are called <em>instance metas</em>, the types of types.  These
@@ -158,7 +163,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		if (another.isInstanceMeta())
 		{
-			return instanceMetaOn(getInstance(object).typeIntersection(another.instance()));
+			return instanceMeta(getInstance(object).typeIntersection(another.instance()));
 		}
 		// Another is not an enumeration, and definitely not a meta, and the
 		// only possible superkinds of object (a meta) are ANY and TOP.
@@ -166,7 +171,7 @@ extends AbstractEnumerationTypeDescriptor
 		{
 			return object;
 		}
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	/**
@@ -194,7 +199,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		if (another.isInstanceMeta())
 		{
-			return instanceMetaOn(getInstance(object).typeUnion(another.instance()));
+			return instanceMeta(getInstance(object).typeUnion(another.instance()));
 		}
 		// Unless another is top, then the answer will be any.
 		return ANY.o().typeUnion(another);
@@ -280,13 +285,13 @@ extends AbstractEnumerationTypeDescriptor
 		// Technically my instance is the instance I specify, which is a type,
 		// *plus* all subtypes of it.  However, to distinguish metas from kinds
 		// we need it to answer one here.
-		return IntegerDescriptor.one();
+		return one();
 	}
 
 	@Override @AvailMethod
 	A_Set o_Instances (final AvailObject object)
 	{
-		return SetDescriptor.emptySet().setWithElementCanDestroy(
+		return emptySet().setWithElementCanDestroy(
 			getInstance(object),
 			true);
 	}
@@ -623,7 +628,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * ⊤'s type, cached statically for convenience.
 	 */
-	private static final A_Type topMeta = instanceMetaOn(TOP.o()).makeShared();
+	private static final A_Type topMeta = instanceMeta(TOP.o()).makeShared();
 
 	/**
 	 * Answer ⊤'s type, the most general metatype.
@@ -638,7 +643,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * Any's type, cached statically for convenience.
 	 */
-	private static final A_Type anyMeta = instanceMetaOn(ANY.o()).makeShared();
+	private static final A_Type anyMeta = instanceMeta(ANY.o()).makeShared();
 
 	/**
 	 * Answer any's type, a metatype.
@@ -657,7 +662,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param instance The object whose type to represent.
 	 * @return An {@link AvailObject} representing the type of the argument.
 	 */
-	public static A_Type instanceMetaOn (final A_Type instance)
+	public static A_Type instanceMeta (final A_Type instance)
 	{
 		assert instance.isType();
 		final AvailObject result = mutable.create();

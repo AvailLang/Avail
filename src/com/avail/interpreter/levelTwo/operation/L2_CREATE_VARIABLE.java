@@ -42,6 +42,7 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
+import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
@@ -67,7 +68,7 @@ public class L2_CREATE_VARIABLE extends L2Operation
 		final A_Type outerType = instruction.constantAt(0);
 		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(1);
 
-		final A_Variable newVar = VariableDescriptor.forVariableType(outerType);
+		final A_Variable newVar = newVariableWithOuterType(outerType);
 		destReg.set(newVar, interpreter);
 	}
 

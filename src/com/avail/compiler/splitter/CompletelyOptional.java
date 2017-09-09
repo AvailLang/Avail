@@ -34,7 +34,6 @@ import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 
 import javax.annotation.Nullable;
@@ -42,6 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.exceptions.AvailErrorCode
 	.E_INCONSISTENT_ARGUMENT_REORDERING;
@@ -136,7 +136,7 @@ extends Expression
 		 * @expressionSkip:
 		 */
 		final boolean needsProgressCheck =
-			sequence.mightBeEmpty(ListNodeTypeDescriptor.empty());
+			sequence.mightBeEmpty(emptyListNodeType());
 		final Label $expressionSkip = new Label();
 		generator.emit(this, BRANCH, $expressionSkip);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
@@ -150,7 +150,7 @@ extends Expression
 		for (final Expression expression : sequence.expressions)
 		{
 			expression.emitOn(
-				ListNodeTypeDescriptor.empty(),
+				emptyListNodeType(),
 				generator,
 				WrapState.SHOULD_NOT_HAVE_ARGUMENTS);
 		}

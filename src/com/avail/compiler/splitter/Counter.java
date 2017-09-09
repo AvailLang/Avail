@@ -36,19 +36,21 @@ import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IntegerRangeTypeDescriptor;
-import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.compiler.ParsingConversionRule.LIST_TO_SIZE;
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP;
+import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_TYPE_FOR_COUNTING_GROUP;
 
 /**
  * A {@code Counter} is a special subgroup (i.e., not a root group)
@@ -122,8 +124,7 @@ extends Expression
 		final int sectionNumber)
 	throws SignatureException
 	{
-		if (!argumentType.isSubtypeOf(
-			IntegerRangeTypeDescriptor.wholeNumbers()))
+		if (!argumentType.isSubtypeOf(wholeNumbers()))
 		{
 			// The declared type for the subexpression must be a subtype of
 			// whole number.
@@ -176,7 +177,7 @@ extends Expression
 			assert !expression.isArgumentOrGroup();
 			generator.partialListsCount = Integer.MIN_VALUE;
 			expression.emitOn(
-				ListNodeTypeDescriptor.empty(),
+				emptyListNodeType(),
 				generator,
 				SHOULD_NOT_HAVE_ARGUMENTS);
 		}
@@ -187,7 +188,7 @@ extends Expression
 		{
 			assert !expression.isArgumentOrGroup();
 			expression.emitOn(
-				ListNodeTypeDescriptor.empty(),
+				emptyListNodeType(),
 				generator,
 				SHOULD_NOT_HAVE_ARGUMENTS);
 		}

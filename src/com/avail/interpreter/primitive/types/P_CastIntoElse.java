@@ -31,12 +31,11 @@
  */
 package com.avail.interpreter.primitive.types;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import javax.annotation.Nullable;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -48,11 +47,24 @@ import com.avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION;
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE;
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT;
+import com.avail.interpreter.levelTwo.operation
+	.L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.RegisterSet;
+
+import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> If the second argument, a {@linkplain A_Function
@@ -252,16 +264,11 @@ public final class P_CastIntoElse extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ANY.o(),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
-						BottomTypeDescriptor.bottom()),
-					TOP.o()),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.emptyTuple(),
-					TOP.o())),
-			TOP.o());
+		return functionType(tuple(ANY.o(), functionType(
+			tuple(
+				bottom()),
+			TOP.o()), functionType(
+			emptyTuple(),
+			TOP.o())), TOP.o());
 	}
 }

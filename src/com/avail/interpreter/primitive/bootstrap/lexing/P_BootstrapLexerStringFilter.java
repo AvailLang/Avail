@@ -34,18 +34,15 @@ package com.avail.interpreter.primitive.bootstrap.lexing;
 
 import com.avail.descriptor.A_Character;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.EnumerationTypeDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -77,15 +74,13 @@ public final class P_BootstrapLexerStringFilter extends Primitive
 
 		final int codePoint = character.codePoint();
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(codePoint == '\"'));
+			objectFromBoolean(codePoint == '\"'));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				CHARACTER.o()),
-			booleanType());
+		return
+			functionType(tuple(CHARACTER.o()), booleanType());
 	}
 }

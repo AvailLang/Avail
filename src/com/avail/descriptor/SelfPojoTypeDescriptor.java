@@ -32,15 +32,28 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots.*;
-import java.lang.reflect.Modifier;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ArrayPojoTypeDescriptor.PojoArray;
 import com.avail.serialization.SerializerOperation;
+
 import javax.annotation.Nullable;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+
+import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots
+	.JAVA_ANCESTORS;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.ObjectSlots
+	.JAVA_CLASS;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 
 /**
  * {@code SelfPojoTypeDescriptor} describes the self type of a Java class or
@@ -125,9 +138,7 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	boolean o_IsPojoArrayType (final AvailObject object)
 	{
-		return object.slot(JAVA_CLASS).equals(
-			RawPojoDescriptor.equalityWrap(
-				PojoArray.class));
+		return object.slot(JAVA_CLASS).equals(equalityPojo(PojoArray.class));
 	}
 
 	@Override @AvailMethod
@@ -208,7 +219,7 @@ extends PojoTypeDescriptor
 			final int modifiers = javaClass.getModifiers();
 			if (Modifier.isFinal(modifiers))
 			{
-				return BottomPojoTypeDescriptor.pojoBottom();
+				return pojoBottom();
 			}
 		}
 		for (final A_BasicObject ancestor : otherAncestors)
@@ -217,11 +228,11 @@ extends PojoTypeDescriptor
 			final int modifiers = javaClass.getModifiers();
 			if (Modifier.isFinal(modifiers))
 			{
-				return BottomPojoTypeDescriptor.pojoBottom();
+				return pojoBottom();
 			}
 		}
-		return create(
-			NilDescriptor.nil(),
+		return newSelfPojoType(
+			nil(),
 			ancestors.setUnionCanDestroy(otherAncestors, false));
 	}
 
@@ -249,7 +260,7 @@ extends PojoTypeDescriptor
 		final A_Set intersection =
 			object.slot(JAVA_ANCESTORS).setIntersectionCanDestroy(
 				aPojoType.pojoSelfType().javaAncestors(), false);
-		return create(mostSpecificOf(intersection), intersection);
+		return newSelfPojoType(mostSpecificOf(intersection), intersection);
 	}
 
 	@Override @AvailMethod
@@ -271,7 +282,7 @@ extends PojoTypeDescriptor
 	@Override
 	A_Map o_TypeVariables (final AvailObject object)
 	{
-		return MapDescriptor.emptyMap();
+		return emptyMap();
 	}
 
 	@Override
@@ -374,7 +385,7 @@ extends PojoTypeDescriptor
 	 *        types to omit type parameterization information.
 	 * @return The requested pojo type.
 	 */
-	static AvailObject create (
+	static AvailObject newSelfPojoType (
 		final AvailObject javaClass,
 		final A_Set javaAncestors)
 	{
@@ -391,7 +402,7 @@ extends PojoTypeDescriptor
 	 * @param selfPojo The self pojo to convert.
 	 * @return A 2-tuple suitable for serialization.
 	 */
-	public static A_Tuple toSerializationProxy (
+	public static A_Tuple pojoSerializationProxy (
 		final A_BasicObject selfPojo)
 	{
 		assert selfPojo.isPojoSelfType();
@@ -399,27 +410,26 @@ extends PojoTypeDescriptor
 		final A_String mainClassName;
 		if (pojoClass.equalsNil())
 		{
-			mainClassName = NilDescriptor.nil();
+			mainClassName = nil();
 		}
 		else
 		{
 			final Class<?> javaClass = (Class<?>)pojoClass.javaObjectNotNull();
-			mainClassName = StringDescriptor.stringFrom(javaClass.getName());
+			mainClassName = stringFrom(javaClass.getName());
 		}
-		A_Set ancestorNames = SetDescriptor.emptySet();
+		A_Set ancestorNames = emptySet();
 		for (final A_BasicObject ancestor : selfPojo.javaAncestors())
 		{
 			final Class<?> javaClass = (Class<?>)ancestor.javaObjectNotNull();
 			ancestorNames = ancestorNames.setWithElementCanDestroy(
-				StringDescriptor.stringFrom(javaClass.getName()),
-				true);
+				stringFrom(javaClass.getName()), true);
 		}
-		return TupleDescriptor.tuple(mainClassName, ancestorNames);
+		return tuple(mainClassName, ancestorNames);
 	}
 
 	/**
 	 * Convert a proxy previously created by {@link
-	 * #toSerializationProxy(A_BasicObject)} back into a self pojo type.
+	 * #pojoSerializationProxy(A_BasicObject)} back into a self pojo type.
 	 *
 	 * @param selfPojoProxy
 	 *            A 2-tuple with the class name (or null) and a set of ancestor
@@ -429,7 +439,7 @@ extends PojoTypeDescriptor
 	 * @return A self pojo type.
 	 * @throws ClassNotFoundException If a class can't be loaded.
 	 */
-	public static AvailObject fromSerializationProxy (
+	public static AvailObject pojoFromSerializationProxy (
 		final A_Tuple selfPojoProxy,
 		final ClassLoader classLoader)
 	throws ClassNotFoundException
@@ -438,28 +448,23 @@ extends PojoTypeDescriptor
 		final AvailObject mainRawType;
 		if (className.equalsNil())
 		{
-			mainRawType = NilDescriptor.nil();
+			mainRawType = nil();
 		}
 		else
 		{
 			final Class<?> mainClass = Class.forName(
-				className.asNativeString(),
-				true,
-				classLoader);
-			mainRawType = RawPojoDescriptor.equalityWrap(mainClass);
+				className.asNativeString(), true, classLoader);
+			mainRawType = equalityPojo(mainClass);
 		}
-		A_Set ancestorTypes = SetDescriptor.emptySet();
+		A_Set ancestorTypes = emptySet();
 		for (final A_String ancestorClassName : selfPojoProxy.tupleAt(2))
 		{
 			final Class<?> ancestorClass = Class.forName(
-				ancestorClassName.asNativeString(),
-				true,
-				classLoader);
+				ancestorClassName.asNativeString(), true, classLoader);
 			ancestorTypes = ancestorTypes.setWithElementCanDestroy(
-				RawPojoDescriptor.equalityWrap(ancestorClass),
-				true);
+				equalityPojo(ancestorClass), true);
 		}
-		return SelfPojoTypeDescriptor.create(mainRawType, ancestorTypes);
+		return newSelfPojoType(mainRawType, ancestorTypes);
 	}
 
 }

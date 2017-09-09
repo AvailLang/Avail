@@ -31,12 +31,20 @@
  */
 package com.avail.interpreter.primitive.doubles;
 
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.DoubleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.DoubleDescriptor.objectFromDoubleRecycling;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.floor;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Divide {@linkplain DoubleDescriptor
@@ -65,14 +73,14 @@ public final class P_DoubleModulus extends Primitive
 		final double div = da / db;
 		final double mod = da - floor(div) * db;
 		return interpreter.primitiveSuccess(
-			DoubleDescriptor.objectFromDoubleRecycling(mod, a, b, true));
+			objectFromDoubleRecycling(mod, a, b, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				DOUBLE.o(),
 				DOUBLE.o()),
 			DOUBLE.o());

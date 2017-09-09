@@ -34,7 +34,15 @@ package com.avail.interpreter.primitive.files;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
 import com.avail.AvailTask;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
@@ -43,9 +51,15 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.util.Collections;
 import java.util.List;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -116,11 +130,10 @@ extends Primitive
 		// never be blocked waiting for I/O.
 		final int priorityInt = priority.extractInt();
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			() ->
-				formatString("Asynchronous file sync, %s", handle.filename));
+			() -> formatString("Asynchronous file sync, %s", handle.filename));
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
@@ -162,27 +175,18 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
+		return functionType(tuple(ATOM.o(), functionType(
+			emptyTuple(),
+			TOP.o()), functionType(
 			tuple(
-				ATOM.o(),
-				functionType(
-					emptyTuple(),
-					TOP.o()),
-				functionType(
-					tuple(
-						instanceTypeOn(E_IO_ERROR.numericCode())),
-					TOP.o()),
-				IntegerRangeTypeDescriptor.bytes()),
-			FiberTypeDescriptor.forResultType(TOP.o()));
+				instanceType(E_IO_ERROR.numericCode())),
+			TOP.o()), bytes()), fiberType(TOP.o()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_INVALID_HANDLE,
-				E_SPECIAL_ATOM,
-				E_NOT_OPEN_FOR_WRITE));
+		return enumerationWith(
+			set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_NOT_OPEN_FOR_WRITE));
 	}
 }

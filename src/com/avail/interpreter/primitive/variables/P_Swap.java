@@ -31,14 +31,32 @@
  */
 package com.avail.interpreter.primitive.variables;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.VariableDescriptor;
+import com.avail.exceptions.VariableSetException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES;
+import static com.avail.exceptions.AvailErrorCode
+	.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Swap the contents of two {@linkplain
@@ -82,7 +100,7 @@ public final class P_Swap extends Primitive
 		{
 			var1.setValue(value2);
 			var2.setValue(value1);
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			return interpreter.primitiveSuccess(nil());
 		}
 		catch (final VariableSetException e)
 		{
@@ -93,19 +111,16 @@ public final class P_Swap extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				VariableTypeDescriptor.mostGeneralVariableType(),
-				VariableTypeDescriptor.mostGeneralVariableType()),
-			TOP.o());
+		return functionType(tuple(
+			mostGeneralVariableType(),
+			mostGeneralVariableType()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES,
-				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
+		return enumerationWith(set(
+			E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES,
+			E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
 	}
 }

@@ -32,14 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.exceptions.AvailException;
@@ -49,7 +41,21 @@ import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots
+	.HASH_ALWAYS_SET;
+import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots
+	.HASH_AND_MORE;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
 
 /**
  * My {@linkplain AvailObject object instances} are {@linkplain
@@ -381,7 +387,7 @@ extends VariableDescriptor
 					new WeakHashMap<L2Chunk, Boolean>());
 				object.setSlot(
 					DEPENDENT_CHUNKS_WEAK_SET_POJO,
-					RawPojoDescriptor.identityWrap(chunkSet).makeShared());
+					identityPojo(chunkSet).makeShared());
 			}
 			else
 			{
@@ -541,9 +547,9 @@ extends VariableDescriptor
 		newVariable.setSlot(KIND, kind);
 		newVariable.setSlot(HASH_ALWAYS_SET, hash);
 		newVariable.setSlot(VALUE, value);
-		newVariable.setSlot(WRITE_REACTORS, NilDescriptor.nil());
+		newVariable.setSlot(WRITE_REACTORS, nil());
 		newVariable.setSlot(
-			DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil());
+			DEPENDENT_CHUNKS_WEAK_SET_POJO, nil());
 
 		// Redirect the old to the new to allow cyclic structures.
 		assert !oldVariable.descriptor.isShared();

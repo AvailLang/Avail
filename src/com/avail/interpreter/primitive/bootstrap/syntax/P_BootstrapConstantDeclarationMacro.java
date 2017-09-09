@@ -32,17 +32,29 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.DeclarationNodeDescriptor.newConstant;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapConstantDeclarationMacro} primitive is used for
@@ -90,9 +102,8 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 				initializationType);
 		}
 		final A_Phrase constantDeclaration =
-			DeclarationNodeDescriptor.newConstant(
-				nameToken, initializationExpression);
-		final A_Phrase conflictingDeclaration =
+			newConstant(nameToken, initializationExpression);
+		final @Nullable A_Phrase conflictingDeclaration =
 			FiberDescriptor.addDeclaration(constantDeclaration);
 		if (conflictingDeclaration != null)
 		{
@@ -109,12 +120,11 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(tuple(
 				/* Constant name token as a literal node */
-				LITERAL_NODE.create(TOKEN.o()),
+			LITERAL_NODE.create(TOKEN.o()),
 				/* Initialization expression */
-				EXPRESSION_NODE.create(ANY.o())),
+			EXPRESSION_NODE.create(ANY.o())),
 			LOCAL_CONSTANT_NODE.mostGeneralType());
 	}
 }

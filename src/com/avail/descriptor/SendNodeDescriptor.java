@@ -274,7 +274,7 @@ extends ParseNodeDescriptor
 	 *        The target method's expected return type.
 	 * @return A new send node.
 	 */
-	public static A_Phrase from (
+	public static A_Phrase newSendNode (
 		final A_Tuple tokens,
 		final A_Bundle bundle,
 		final A_Phrase argsListNode,

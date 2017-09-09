@@ -31,11 +31,21 @@
  */
 package com.avail.interpreter.primitive.continuations;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.utility.Generator;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.ContinuationDescriptor.nilSubstitute;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain TupleDescriptor
@@ -61,21 +71,14 @@ public final class P_ContinuationStackData extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Continuation con = args.get(0);
-		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
+		final A_Tuple tuple = generateObjectTupleFrom(
 			con.function().code().numArgsAndLocalsAndStack(),
-			new Generator<A_BasicObject>()
+			index ->
 			{
-				private int index = 1;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					final A_BasicObject entry =
-						con.argOrLocalOrStackAt(index++);
-					return entry.equalsNil()
-						? ContinuationDescriptor.nilSubstitute()
-						: entry;
-				}
+				final A_BasicObject entry = con.argOrLocalOrStackAt(index);
+				return entry.equalsNil()
+					? nilSubstitute()
+					: entry;
 			});
 		tuple.makeSubobjectsImmutable();
 		return interpreter.primitiveSuccess(tuple);
@@ -84,9 +87,8 @@ public final class P_ContinuationStackData extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ContinuationTypeDescriptor.mostGeneralContinuationType()),
-			TupleTypeDescriptor.mostGeneralTupleType());
+		return functionType(
+			tuple(mostGeneralContinuationType()),
+			mostGeneralTupleType());
 	}
 }

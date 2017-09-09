@@ -31,14 +31,31 @@
  */
 package com.avail.interpreter.primitive.atoms;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Within the first {@linkplain
@@ -73,8 +90,8 @@ public final class P_AtomRemoveProperty extends Primitive
 		{
 			return interpreter.primitiveFailure(E_KEY_NOT_FOUND);
 		}
-		atom.setAtomProperty(propertyKey, NilDescriptor.nil());
-		final AvailLoader loader = interpreter.availLoaderOrNull();
+		atom.setAtomProperty(propertyKey, nil());
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
 		{
 			loader.recordEffect(
@@ -83,25 +100,21 @@ public final class P_AtomRemoveProperty extends Primitive
 					atom,
 					propertyKey));
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ATOM.o(),
-				ATOM.o()),
-			TOP.o());
+		return functionType(tuple(
+			ATOM.o(),
+			ATOM.o()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_NO_SUCH_FIELD,
-				E_KEY_NOT_FOUND));
+		return
+			enumerationWith(set(E_NO_SUCH_FIELD, E_KEY_NOT_FOUND));
 	}
 }

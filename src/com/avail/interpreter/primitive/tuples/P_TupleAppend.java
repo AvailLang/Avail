@@ -32,11 +32,27 @@
 
 package com.avail.interpreter.primitive.tuples;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
+	.concatenatingAnd;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import java.util.List;
 
 /**
  * <strong>Primitive:</strong> Answer a new {@linkplain TupleDescriptor
@@ -75,23 +91,18 @@ public final class P_TupleAppend extends Primitive
 		final A_Type anElementType = argumentTypes.get(1);
 
 		final A_Type anElementTupleType =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.singleInt(1),
-				TupleDescriptor.emptyTuple(),
-				anElementType);
-
-		return ConcatenatedTupleTypeDescriptor.concatenatingAnd(
-			aTupleType,
-			anElementTupleType);
+			tupleTypeForSizesTypesDefaultType(
+				singleInt(1), emptyTuple(), anElementType);
+		return concatenatingAnd(aTupleType, anElementTupleType);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.mostGeneralTupleType(),
+		return functionType(
+			tuple(
+				mostGeneralTupleType(),
 				ANY.o()),
-			TupleTypeDescriptor.mostGeneralTupleType());
+			mostGeneralTupleType());
 	}
 }

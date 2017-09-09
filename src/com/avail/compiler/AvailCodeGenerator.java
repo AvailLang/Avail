@@ -40,7 +40,6 @@ import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
 import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
-import com.avail.utility.Generator;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -54,14 +53,22 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind
 	.ARGUMENT;
 import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind
 	.LABEL;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.NybbleTupleDescriptor
+	.generateNybbleTupleFrom;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.ASSIGNMENT_NODE;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.LABEL_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 
 /**
  * An {@link AvailCodeGenerator} is used to convert a {@linkplain
@@ -218,7 +225,7 @@ public final class AvailCodeGenerator
 		if (statementsCount == 0
 			&& (primitive == null || primitive.canHaveNybblecodes()))
 		{
-			generator.emitPushLiteral(NilDescriptor.nil());
+			generator.emitPushLiteral(nil());
 		}
 		else
 		{
@@ -239,7 +246,7 @@ public final class AvailCodeGenerator
 					// 2) is top-valued and ends with an assignment. Push the
 					// nil object as the return value.
 					lastStatement.emitEffectOn(generator);
-					generator.emitPushLiteral(NilDescriptor.nil());
+					generator.emitPushLiteral(nil());
 				}
 				else
 				{
@@ -363,19 +370,8 @@ public final class AvailCodeGenerator
 				: "Some outers were unused: " + unusedOuterDeclarations;
 		}
 		final byte[] nybblesArray = nybbles.toByteArray();
-		final A_Tuple nybbleTuple = NybbleTupleDescriptor.generateFrom(
-			nybblesArray.length,
-			new Generator<Byte>()
-			{
-				int i = 0;
-
-				@Override
-				public Byte value ()
-				{
-					return nybblesArray[i++];
-				}
-			}
-		);
+		final A_Tuple nybbleTuple = generateNybbleTupleFrom(
+			nybblesArray.length, i -> nybblesArray[i - 1]);
 		assert resultType.isType();
 		final A_Type[] argsArray = new A_Type[numArgs];
 		final A_Type[] localsArray = new A_Type[varMap.size() - numArgs];
@@ -390,12 +386,11 @@ public final class AvailCodeGenerator
 			}
 			else
 			{
-				localsArray[i - numArgs - 1] =
-					VariableTypeDescriptor.variableTypeFor(argDeclType);
+				localsArray[i - numArgs - 1] = variableTypeFor(argDeclType);
 			}
 		}
-		final A_Tuple argsTuple = TupleDescriptor.tuple(argsArray);
-		final A_Tuple localsTuple = TupleDescriptor.tuple(localsArray);
+		final A_Tuple argsTuple = tuple(argsArray);
+		final A_Tuple localsTuple = tuple(localsArray);
 		final A_Type [] outerArray = new A_Type[outerMap.size()];
 		for (final Entry<A_Phrase, Integer> entry : outerMap.entrySet())
 		{
@@ -409,20 +404,19 @@ public final class AvailCodeGenerator
 			}
 			else
 			{
-				outerArray[i - 1] =
-					VariableTypeDescriptor.variableTypeFor(argDeclType);
+				outerArray[i - 1] = variableTypeFor(argDeclType);
 			}
 		}
-		final A_Tuple outerTuple = TupleDescriptor.tuple(outerArray);
+		final A_Tuple outerTuple = tuple(outerArray);
 		final A_Type functionType =
-			FunctionTypeDescriptor.functionType(argsTuple, resultType, exceptionSet);
-		final A_RawFunction code = CompiledCodeDescriptor.create(
+			functionType(argsTuple, resultType, exceptionSet);
+		final A_RawFunction code = newCompiledCode(
 			nybbleTuple.makeShared(),
 			varMap.size() - numArgs,
 			maxDepth,
 			functionType,
 			primitive,
-			TupleDescriptor.tupleFromList(literals),
+			tupleFromList(literals),
 			localsTuple,
 			outerTuple,
 			module,

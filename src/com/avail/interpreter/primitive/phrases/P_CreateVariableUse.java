@@ -32,12 +32,26 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.DeclarationNodeDescriptor;
+import com.avail.descriptor.TokenDescriptor;
+import com.avail.descriptor.VariableUseNodeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.DECLARATION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.VARIABLE_USE_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain
@@ -66,15 +80,14 @@ extends Primitive
 		assert args.size() == 2;
 		final AvailObject decl = args.get(0);
 		final A_Token token = args.get(1);
-		return interpreter.primitiveSuccess(
-			VariableUseNodeDescriptor.newUse(token, decl));
+		return interpreter.primitiveSuccess(newUse(token, decl));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				DECLARATION_NODE.mostGeneralType(),
 				TOKEN.o()),
 			VARIABLE_USE_NODE.mostGeneralType());

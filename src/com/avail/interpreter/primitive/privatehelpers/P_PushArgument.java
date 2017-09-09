@@ -31,11 +31,18 @@
  */
 package com.avail.interpreter.primitive.privatehelpers;
 
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> The only argument is being returned.
@@ -79,9 +86,6 @@ public final class P_PushArgument extends Primitive
 		// strengthening it by appending a return type declaration like ": map".
 		// However, the L2 translator will have to ignore the primitive block
 		// type restriction for this particular primitive.
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ANY.o()),
-			BottomTypeDescriptor.bottom());
+		return functionType(tuple(ANY.o()), bottom());
 	}
 }

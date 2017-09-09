@@ -290,7 +290,7 @@ extends Descriptor
 	 *        The types of values that can be read.
 	 * @return A new variable able to read values of the specified types.
 	 */
-	static AvailObject forInnerType (
+	static AvailObject pojoFinalFieldForInnerType (
 		final AvailObject field,
 		final AvailObject receiver,
 		final A_Type innerType)

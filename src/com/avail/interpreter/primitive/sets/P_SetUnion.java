@@ -31,10 +31,23 @@
  */
 package com.avail.interpreter.primitive.sets;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the union of two {@linkplain
@@ -66,11 +79,11 @@ public final class P_SetUnion extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				SetTypeDescriptor.mostGeneralSetType(),
-				SetTypeDescriptor.mostGeneralSetType()),
-			SetTypeDescriptor.mostGeneralSetType());
+		return functionType(
+			tuple(
+				mostGeneralSetType(),
+				mostGeneralSetType()),
+			mostGeneralSetType());
 	}
 
 	@Override
@@ -94,14 +107,10 @@ public final class P_SetUnion extends Primitive
 		final A_Number minSize = min1.numericCompare(min2).isMore()
 			? min1 : min2;
 		final A_Number maxSize = sizes1.upperBound().plusCanDestroy(
-			sizes2.upperBound(),
-			false);
-		final A_Type unionSize = IntegerRangeTypeDescriptor.integerRangeType(
-			minSize,
-			true,
-			maxSize.plusCanDestroy(IntegerDescriptor.one(), false),
-			false);
-		final A_Type unionType = SetTypeDescriptor.setTypeForSizesContentType(
+			sizes2.upperBound(), false);
+		final A_Type unionSize = integerRangeType(
+			minSize, true, maxSize.plusCanDestroy(one(), false), false);
+		final A_Type unionType = setTypeForSizesContentType(
 			unionSize,
 			setType1.contentType().typeUnion(setType2.contentType()));
 		return unionType.makeImmutable();

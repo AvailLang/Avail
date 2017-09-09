@@ -32,19 +32,37 @@
 
 package com.avail.interpreter.primitive.modules;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.interpreter.*;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.Phase;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_DEFINE_DURING_COMPILATION;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Add the specified {@linkplain A_Function
- * unload function} to the {@linkplain ModuleDescriptor#current() current
+ * unload function} to the {@linkplain ModuleDescriptor#currentModule() current
  * module}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -82,24 +100,20 @@ extends Primitive
 		loader.recordEffect(
 			new LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ADD_UNLOADER.bundle, unloadFunction));
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FunctionTypeDescriptor.functionTypeReturning(TOP.o())),
-			TOP.o());
+		return
+			functionType(tuple(functionTypeReturning(TOP.o())), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION));
+		return enumerationWith(
+			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION));
 	}
 }

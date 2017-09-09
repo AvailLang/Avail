@@ -32,14 +32,22 @@
 
 package com.avail.interpreter.primitive.atoms;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.MalformedMessageException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.falseObject;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Is the specified {@linkplain A_Atom atom} a
@@ -71,20 +79,18 @@ extends Primitive
 			// canonical; attempting to create the bundle and its associated
 			// MessageSplitter should suffice.
 			name.bundleOrCreate();
-			return interpreter.primitiveSuccess(AtomDescriptor.trueObject());
+			return interpreter.primitiveSuccess(trueObject());
 		}
 		catch (final MalformedMessageException e)
 		{
-			return interpreter.primitiveSuccess(AtomDescriptor.falseObject());
+			return interpreter.primitiveSuccess(falseObject());
 		}
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				ATOM.o()),
-			booleanType());
+		return
+			functionType(tuple(ATOM.o()), booleanType());
 	}
 }

@@ -32,14 +32,27 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
 import java.lang.ref.SoftReference;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain A_Map map} that
@@ -77,21 +90,19 @@ extends Primitive
 		// Don't bother to synchronize. If there's a race, then some redundant
 		// work will be done. Big deal. This is likely to be cheaper in general
 		// than repeatedly entering and leaving a critical section.
-		A_Map result = environmentMap.get();
+		@Nullable A_Map result = environmentMap.get();
 		if (result == null)
 		{
+			result = emptyMap();
 			final Map<String, String> map = System.getenv();
-			A_Tuple bindings = TupleDescriptor.emptyTuple();
 			for (final Entry<String, String> entry : map.entrySet())
 			{
-				bindings = bindings.appendCanDestroy(
-					TupleDescriptor.tuple(
-						StringDescriptor.stringFrom(entry.getKey()),
-						StringDescriptor.stringFrom(entry.getValue())),
+				result = result.mapAtPuttingCanDestroy(
+					stringFrom(entry.getKey()),
+					stringFrom(entry.getValue()),
 					true);
 			}
-			result = MapDescriptor.newWithBindings(bindings).makeShared();
-			environmentMap = new SoftReference<>(result);
+			environmentMap = new SoftReference<>(result.makeShared());
 		}
 		return result;
 	}
@@ -109,11 +120,9 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.emptyTuple(),
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.stringType(),
-				TupleTypeDescriptor.stringType()));
+		return functionType(
+			emptyTuple(),
+			mapTypeForSizesKeyTypeValueType(
+				wholeNumbers(), stringType(), stringType()));
 	}
 }

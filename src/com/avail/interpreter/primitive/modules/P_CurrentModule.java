@@ -32,12 +32,24 @@
 
 package com.avail.interpreter.primitive.modules;
 
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ModuleDescriptor.currentModule;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain ModuleDescriptor
@@ -63,7 +75,7 @@ extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 0;
-		final A_Module module = ModuleDescriptor.current();
+		final A_Module module = currentModule();
 		if (module.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -74,16 +86,14 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.emptyTuple(),
+		return functionType(
+			emptyTuple(),
 			MODULE.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_LOADING_IS_OVER));
+		return enumerationWith(set(E_LOADING_IS_OVER));
 	}
 }

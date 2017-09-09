@@ -31,11 +31,28 @@
  */
 package com.avail.interpreter.primitive.maps;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerDescriptor.two;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Answer a new {@linkplain MapDescriptor
@@ -62,22 +79,20 @@ public final class P_MapReplacingKey extends Primitive
 		final A_Map map = args.get(0);
 		final A_BasicObject key = args.get(1);
 		final A_BasicObject value = args.get(2);
-		return interpreter.primitiveSuccess(map.mapAtPuttingCanDestroy(
-			key,
-			value,
-			true));
+		return interpreter.primitiveSuccess(
+			map.mapAtPuttingCanDestroy(key, value, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				MapTypeDescriptor.mostGeneralMapType(),
+		return functionType(
+			tuple(
+				mostGeneralMapType(),
 				ANY.o(),
 				ANY.o()),
-			MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-				IntegerRangeTypeDescriptor.naturalNumbers(),
+			mapTypeForSizesKeyTypeValueType(
+				naturalNumbers(),
 				ANY.o(),
 				ANY.o()));
 	}
@@ -100,22 +115,16 @@ public final class P_MapReplacingKey extends Primitive
 		if (oldMapKeyType.typeIntersection(newKeyType).isBottom()
 			|| newMin.equalsInt(0))
 		{
-			newMin = newMin.plusCanDestroy(IntegerDescriptor.one(), false);
+			newMin = newMin.plusCanDestroy(one(), false);
 		}
 		// ...and at most one more element.  We add two and make the bound
 		// exclusive to accommodate positive infinity.
 		final A_Number newMaxPlusOne =
-			oldSizes.upperBound().plusCanDestroy(
-				IntegerDescriptor.two(), false);
-		final A_Type newSizes = IntegerRangeTypeDescriptor.integerRangeType(
-			newMin.makeImmutable(),
-			true,
-			newMaxPlusOne.makeImmutable(),
-			false);
+			oldSizes.upperBound().plusCanDestroy(two(), false);
+		final A_Type newSizes = integerRangeType(
+			newMin, true, newMaxPlusOne, false);
 
-		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-			newSizes,
-			newKeyType.makeImmutable(),
-			newValueType.makeImmutable());
+		return mapTypeForSizesKeyTypeValueType(
+			newSizes, newKeyType, newValueType);
 	}
 }

@@ -32,19 +32,24 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.FirstOfSequenceNodeDescriptor.ObjectSlots.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.avail.descriptor.FirstOfSequenceNodeDescriptor.ObjectSlots
+	.STATEMENTS;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.FIRST_OF_SEQUENCE_NODE;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
 /**
  * My instances represent a sequence of {@linkplain ParseNodeDescriptor parse
@@ -220,8 +225,7 @@ extends ParseNodeDescriptor
 		else
 		{
 			final A_Phrase newFirstOfSequence =
-				FirstOfSequenceNodeDescriptor.newStatements(
-					TupleDescriptor.tupleFromList(myFlatStatements));
+				newFirstOfSequenceNode(tupleFromList(myFlatStatements));
 			accumulatedStatements.add(newFirstOfSequence);
 		}
 	}
@@ -271,7 +275,7 @@ extends ParseNodeDescriptor
 	 *        <em>first</em> of which provides the value.
 	 * @return The resulting first-of-sequence node.
 	 */
-	public static A_Phrase newStatements (final A_Tuple statements)
+	public static A_Phrase newFirstOfSequenceNode (final A_Tuple statements)
 	{
 		final AvailObject instance = mutable.create();
 		assert statements.tupleSize() > 1;

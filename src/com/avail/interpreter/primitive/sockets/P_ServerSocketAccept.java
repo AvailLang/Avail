@@ -45,16 +45,26 @@ import java.nio.channels.CompletionHandler;
 import java.util.Collections;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
+import static com.avail.descriptor.AtomDescriptor.createAtom;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.ModuleDescriptor.currentModule;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -102,18 +112,15 @@ extends Primitive
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				handle.isAtomSpecial()
-				? E_SPECIAL_ATOM
-				: E_INVALID_HANDLE);
+				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
 		final AsynchronousServerSocketChannel socket =
 			(AsynchronousServerSocketChannel) pojo.javaObjectNotNull();
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			() ->
-				formatString("Server socket accept, name=%s", name));
+			() -> formatString("Server socket accept, name=%s", name));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -127,10 +134,10 @@ extends Primitive
 		succeed.makeShared();
 		fail.makeShared();
 		// Now start the asynchronous accept.
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		try
 		{
-			final A_Module module = ModuleDescriptor.current();
+			final A_Module module = currentModule();
 			socket.accept(
 				null,
 				new CompletionHandler<AsynchronousSocketChannel, Void>()
@@ -141,14 +148,10 @@ extends Primitive
 						final @Nullable Void unused)
 					{
 						assert newSocket != null;
-						final A_Atom newHandle =
-							AtomDescriptor.create(name, module);
-						final AvailObject newPojo =
-							RawPojoDescriptor.identityWrap(newSocket);
-						newHandle.setAtomProperty(
-							SOCKET_KEY.atom,
-							newPojo);
-						Interpreter.runOutermostFunction(
+						final A_Atom newHandle = createAtom(name, module);
+						final AvailObject newPojo = identityPojo(newSocket);
+						newHandle.setAtomProperty(SOCKET_KEY.atom, newPojo);
+						runOutermostFunction(
 							runtime,
 							newFiber,
 							succeed,
@@ -161,7 +164,7 @@ extends Primitive
 						final @Nullable Void unused)
 					{
 						assert killer != null;
-						Interpreter.runOutermostFunction(
+						runOutermostFunction(
 							runtime,
 							newFiber,
 							fail,
@@ -185,22 +188,20 @@ extends Primitive
 				ATOM.o(),
 				oneOrMoreOf(CHARACTER.o()),
 				functionType(
-					tuple(
-						ATOM.o()),
+					tuple(ATOM.o()),
 					TOP.o()),
 				functionType(
-					tuple(
-						instanceTypeOn(E_IO_ERROR.numericCode())),
+					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o()),
 				bytes()),
-			FiberTypeDescriptor.mostGeneralFiberType());
+			mostGeneralFiberType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR));

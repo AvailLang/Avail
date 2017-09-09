@@ -46,8 +46,13 @@ import java.util.IdentityHashMap;
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
+import static com.avail.descriptor.DoubleDescriptor.*;
+import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
+import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.IntegerSlots
 	.RAW_LONG_SLOTS_;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static java.lang.Math.*;
@@ -353,7 +358,7 @@ extends ExtendedIntegerDescriptor
 	A_Type o_Kind (final AvailObject object)
 	{
 		object.makeImmutable();
-		return IntegerRangeTypeDescriptor.singleInteger(object);
+		return singleInteger(object);
 	}
 
 	@Override @AvailMethod
@@ -632,9 +637,7 @@ extends ExtendedIntegerDescriptor
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return sign == Sign.POSITIVE
-			? InfinityDescriptor.positiveInfinity()
-			: InfinityDescriptor.negativeInfinity();
+		return sign == Sign.POSITIVE ? positiveInfinity() : negativeInfinity();
 	}
 
 	/**
@@ -653,7 +656,7 @@ extends ExtendedIntegerDescriptor
 	{
 		final int objectSize = intCount(object);
 		final int anIntegerSize = intCount(another);
-		final AvailObject output;
+		final @Nullable AvailObject output;
 		if (objectSize == anIntegerSize)
 		{
 			output =
@@ -700,7 +703,7 @@ extends ExtendedIntegerDescriptor
 				// object if they were both immutable...
 				if (output == null)
 				{
-					output = createUninitialized(1);
+					output = createUninitializedInteger(1);
 				}
 				assert intCount(output) == 1;
 				output.rawSignedIntegerAtPut(1, (int)sum);
@@ -714,7 +717,7 @@ extends ExtendedIntegerDescriptor
 		// be pretty rare, and they're handled by output.trimExcessInts().
 		if (output == null)
 		{
-			output = createUninitialized(max(objectSize, anIntegerSize));
+			output = createUninitializedInteger(max(objectSize, anIntegerSize));
 		}
 		final int outputSize = intCount(output);
 		final long extendedObject =
@@ -743,7 +746,7 @@ extends ExtendedIntegerDescriptor
 		{
 			// Top bit of last word no longer agrees with sign of result. Extend
 			// it.
-			final AvailObject newOutput = createUninitialized(outputSize + 1);
+			final AvailObject newOutput = createUninitializedInteger(outputSize + 1);
 			for (int i = 1; i <= outputSize; i++)
 			{
 				newOutput.setIntSlot(
@@ -765,14 +768,9 @@ extends ExtendedIntegerDescriptor
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		final double d = DoubleDescriptor.addDoubleAndIntegerCanDestroy(
-			doubleObject.extractDouble(),
-			object,
-			canDestroy);
-		return DoubleDescriptor.objectFromDoubleRecycling(
-			d,
-			doubleObject,
-			canDestroy);
+		final double d = addDoubleAndIntegerCanDestroy(
+			doubleObject.extractDouble(), object, canDestroy);
+		return fromDoubleRecycling(d, doubleObject, canDestroy);
 	}
 
 	@Override
@@ -781,14 +779,9 @@ extends ExtendedIntegerDescriptor
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		final double d = DoubleDescriptor.addDoubleAndIntegerCanDestroy(
-			floatObject.extractDouble(),
-			object,
-			canDestroy);
-		return FloatDescriptor.objectFromFloatRecycling(
-			(float)d,
-			floatObject,
-			canDestroy);
+		final double d = addDoubleAndIntegerCanDestroy(
+			floatObject.extractDouble(), object, canDestroy);
+		return fromFloatRecycling((float)d, floatObject, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -803,8 +796,8 @@ extends ExtendedIntegerDescriptor
 				AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO);
 		}
 		return object.greaterThan(zero()) ^ (sign == Sign.POSITIVE)
-			? InfinityDescriptor.negativeInfinity()
-			: InfinityDescriptor.positiveInfinity();
+			? negativeInfinity()
+			: positiveInfinity();
 	}
 
 	/**
@@ -883,7 +876,7 @@ extends ExtendedIntegerDescriptor
 					: null;
 				if (output == null)
 				{
-					output = createUninitialized(1);
+					output = createUninitializedInteger(1);
 				}
 				assert intCount(output) == 1;
 				output.rawSignedIntegerAtPut(1, (int)quotient);
@@ -986,7 +979,7 @@ extends ExtendedIntegerDescriptor
 			assert quotientScale >= 0L;
 
 			// Include room for sign bit plus safety margin.
-			final A_Number partialQuotient = createUninitialized(
+			final A_Number partialQuotient = createUninitializedInteger(
 				(int)((quotientScale + 2 >> 5) + 1));
 
 			final long bitShift = quotientScale
@@ -1069,16 +1062,13 @@ extends ExtendedIntegerDescriptor
 		// that is still in range.  Avoid the overflow in that case by working
 		// with a scaled down version of the integer: target a "significand"
 		// below about 2^96.
-		final int scale = max(intCount(object) - 4, 0) * 32;
+		final int scale = max(intCount(object) - 4, 0) << 5;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledQuotient =
 			doubleObject.extractDouble() / scaledIntAsDouble;
 		final double quotient = scalb(scaledQuotient, scale);
-		return DoubleDescriptor.objectFromDoubleRecycling(
-			quotient,
-			doubleObject,
-			canDestroy);
+		return fromDoubleRecycling(quotient, doubleObject, canDestroy);
 	}
 
 	@Override
@@ -1093,16 +1083,13 @@ extends ExtendedIntegerDescriptor
 		// possible, but it's easier to just make it match the double case.
 		// Avoid the overflow by working with a scaled down version of the
 		// integer: target a "significand" below about 2^96.
-		final int scale = max(intCount(object) - 4, 0) * 32;
+		final int scale = max(intCount(object) - 4, 0) << 5;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledQuotient =
 			floatObject.extractDouble() / scaledIntAsDouble;
 		final double quotient = scalb(scaledQuotient, scale);
-		return FloatDescriptor.objectFromFloatRecycling(
-			(float)quotient,
-			floatObject,
-			canDestroy);
+		return fromFloatRecycling((float)quotient, floatObject, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -1117,8 +1104,8 @@ extends ExtendedIntegerDescriptor
 				AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY);
 		}
 		return object.greaterThan(zero()) ^ (sign == Sign.POSITIVE)
-			? InfinityDescriptor.negativeInfinity()
-			: InfinityDescriptor.positiveInfinity();
+			? negativeInfinity()
+			: positiveInfinity();
 	}
 
 	@Override @AvailMethod
@@ -1141,7 +1128,7 @@ extends ExtendedIntegerDescriptor
 				output = canDestroy ? mutableOf(object, anInteger) : null;
 				if (output == null)
 				{
-					output = createUninitialized(1);
+					output = createUninitializedInteger(1);
 				}
 				assert intCount(output) == 1;
 				output.rawSignedIntegerAtPut(1, (int)prod);
@@ -1155,7 +1142,7 @@ extends ExtendedIntegerDescriptor
 		final int size2 = intCount(anInteger);
 		// The following is a safe upper bound.  See below.
 		final int targetSize = size1 + size2;
-		output = createUninitialized(targetSize);
+		output = createUninitializedInteger(targetSize);
 		final long extension1 =
 			(object.rawSignedIntegerAt(size1) >> 31) & 0xFFFFFFFFL;
 		final long extension2 =
@@ -1226,14 +1213,13 @@ extends ExtendedIntegerDescriptor
 		// that is still in range.  Avoid the overflow in that case by working
 		// with a scaled down version of the integer: target a "significand"
 		// below about 2^96.
-		final int scale = max(intCount(object) - 4, 0) * 32;
+		final int scale = max(intCount(object) - 4, 0) << 5;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledProduct =
 			doubleObject.extractDouble() * scaledIntAsDouble;
 		final double product = scalb(scaledProduct, scale);
-		return DoubleDescriptor.objectFromDoubleRecycling(
-			product, doubleObject, canDestroy);
+		return fromDoubleRecycling(product, doubleObject, canDestroy);
 	}
 
 	@Override
@@ -1248,14 +1234,13 @@ extends ExtendedIntegerDescriptor
 		// possible, but it's easier to just make it match the double case.
 		// Avoid the overflow by working with a scaled down version of the
 		// integer: target a "significand" below about 2^96.
-		final int scale = max(intCount(object) - 4, 0) * 32;
+		final int scale = max(intCount(object) - 4, 0) << 5;
 		final double scaledIntAsDouble = extractDoubleScaled(object, scale);
 		assert !Double.isInfinite(scaledIntAsDouble);
 		final double scaledProduct =
 			floatObject.extractDouble() * scaledIntAsDouble;
 		final double product = scalb(scaledProduct, scale);
-		return FloatDescriptor.objectFromFloatRecycling(
-			(float)product, floatObject, canDestroy);
+		return fromFloatRecycling((float)product, floatObject, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -1265,8 +1250,8 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return sign == Sign.POSITIVE
-			? InfinityDescriptor.positiveInfinity()
-			: InfinityDescriptor.negativeInfinity();
+			? positiveInfinity()
+			: negativeInfinity();
 	}
 
 	@Override @AvailMethod
@@ -1281,7 +1266,7 @@ extends ExtendedIntegerDescriptor
 		// is to use 64-bit arithmetic.
 		final int objectSize = intCount(object);
 		final int anIntegerSize = intCount(anInteger);
-		AvailObject output = canDestroy
+		@Nullable AvailObject output = canDestroy
 			? largerMutableOf(object, (AvailObject)anInteger)
 			: null;
 		if (objectSize == 1 && anIntegerSize == 1)
@@ -1295,14 +1280,14 @@ extends ExtendedIntegerDescriptor
 				// object if they were both immutable...
 				if (output == null)
 				{
-					output = createUninitialized(1);
+					output = createUninitializedInteger(1);
 				}
 				assert intCount(output) == 1;
 				output.rawSignedIntegerAtPut(1, (int)diff);
 				return output;
 			}
 			// Doesn't fit in 32 bits; use two 32-bit words.
-			output = createUninitialized(2);
+			output = createUninitializedInteger(2);
 			output.rawSignedIntegerAtPut(1, (int)diff);
 			output.rawSignedIntegerAtPut(2, (int)(diff>>32));
 			return output;
@@ -1312,7 +1297,7 @@ extends ExtendedIntegerDescriptor
 		// be pretty rare, and they're handled by output.trimExcessInts().
 		if (output == null)
 		{
-			output = createUninitialized(max(objectSize, anIntegerSize));
+			output = createUninitializedInteger(max(objectSize, anIntegerSize));
 		}
 		final int outputSize = intCount(output);
 		final long extendedObject =
@@ -1341,7 +1326,7 @@ extends ExtendedIntegerDescriptor
 		{
 			// Top bit of last word no longer agrees with sign of result.
 			// Extend it.
-			final AvailObject newOutput = createUninitialized(outputSize + 1);
+			final AvailObject newOutput = createUninitializedInteger(outputSize + 1);
 			for (int i = 1; i <= outputSize; i++)
 			{
 				newOutput.rawSignedIntegerAtPut(
@@ -1362,15 +1347,10 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		// Compute the negative (i.e., int-double)
-		final double d = DoubleDescriptor.addDoubleAndIntegerCanDestroy(
-			-doubleObject.extractDouble(),
-			object,
-			canDestroy);
+		final double d = addDoubleAndIntegerCanDestroy(
+			-doubleObject.extractDouble(), object, canDestroy);
 		// Negate it to produce (double-int).
-		return DoubleDescriptor.objectFromDoubleRecycling(
-			-d,
-			doubleObject,
-			canDestroy);
+		return fromDoubleRecycling(-d, doubleObject, canDestroy);
 	}
 
 	@Override
@@ -1380,15 +1360,10 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		// Compute the negative (i.e., int-float)
-		final double d = DoubleDescriptor.addDoubleAndIntegerCanDestroy(
-			-floatObject.extractDouble(),
-			object,
-			canDestroy);
+		final double d = addDoubleAndIntegerCanDestroy(
+			-floatObject.extractDouble(), object, canDestroy);
 		// Negate it to produce (float-int).
-		return FloatDescriptor.objectFromFloatRecycling(
-			(float)-d,
-			floatObject,
-			canDestroy);
+		return fromFloatRecycling((float)-d, floatObject, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -1438,8 +1413,7 @@ extends ExtendedIntegerDescriptor
 		final AvailObject object,
 		final double aDouble)
 	{
-		return
-			DoubleDescriptor.compareDoubleAndInteger(aDouble, object).reverse();
+		return compareDoubleAndInteger(aDouble, object).reverse();
 	}
 
 	@Override @AvailMethod
@@ -1450,7 +1424,7 @@ extends ExtendedIntegerDescriptor
 	{
 		final int objectSize = intCount(object);
 		final int anIntegerSize = intCount(anInteger);
-		AvailObject output = canDestroy
+		@Nullable AvailObject output = canDestroy
 			? largerMutableOf(object, (AvailObject)anInteger)
 			: null;
 		// Both integers are 32 bits. This is by far the most common case.
@@ -1460,7 +1434,7 @@ extends ExtendedIntegerDescriptor
 				& anInteger.rawSignedIntegerAt(1);
 			if (output == null)
 			{
-				output = createUninitialized(1);
+				output = createUninitializedInteger(1);
 			}
 			output.rawSignedIntegerAtPut(1, result);
 			return output;
@@ -1469,7 +1443,7 @@ extends ExtendedIntegerDescriptor
 		// a new one whose size is that of the larger input.
 		if (output == null)
 		{
-			output = createUninitialized(max(objectSize, anIntegerSize));
+			output = createUninitializedInteger(max(objectSize, anIntegerSize));
 		}
 		// Handle larger integers.
 		final int outputSize = intCount(output);
@@ -1509,7 +1483,7 @@ extends ExtendedIntegerDescriptor
 				| anInteger.rawSignedIntegerAt(1);
 			if (output == null)
 			{
-				output = createUninitialized(1);
+				output = createUninitializedInteger(1);
 			}
 			output.rawSignedIntegerAtPut(1, result);
 			return output;
@@ -1518,7 +1492,7 @@ extends ExtendedIntegerDescriptor
 		// a new one whose size is that of the larger input.
 		if (output == null)
 		{
-			output = createUninitialized(max(objectSize, anIntegerSize));
+			output = createUninitializedInteger(max(objectSize, anIntegerSize));
 		}
 		// Handle larger integers.
 		final int outputSize = intCount(output);
@@ -1558,7 +1532,7 @@ extends ExtendedIntegerDescriptor
 				^ anInteger.rawSignedIntegerAt(1);
 			if (output == null)
 			{
-				output = createUninitialized(1);
+				output = createUninitializedInteger(1);
 			}
 			output.rawSignedIntegerAtPut(1, result);
 			return output;
@@ -1567,7 +1541,7 @@ extends ExtendedIntegerDescriptor
 		// a new one whose size is that of the larger input.
 		if (output == null)
 		{
-			output = createUninitialized(max(objectSize, anIntegerSize));
+			output = createUninitializedInteger(max(objectSize, anIntegerSize));
 		}
 		// Handle larger integers.
 		final int outputSize = intCount(output);
@@ -1711,7 +1685,7 @@ extends ExtendedIntegerDescriptor
 		estimatedBits = min(estimatedBits, truncationInt + 1);
 		estimatedBits = max(estimatedBits, 1);
 		final int slotCount = (estimatedBits + 31) >> 5;
-		final A_Number result = createUninitialized(slotCount);
+		final A_Number result = createUninitializedInteger(slotCount);
 		final int shortShift = shiftInt & 31;
 		int sourceIndex = slotCount - (shiftInt >> 5);
 		long accumulator = 0xDEADCAFEBABEBEEFL;
@@ -1840,7 +1814,7 @@ extends ExtendedIntegerDescriptor
 		int estimatedBits = (sourceSlots << 5) + shiftInt;
 		estimatedBits = max(estimatedBits, 1);
 		final int intSlotCount = (estimatedBits + 31) >> 5;
-		final A_Number result = createUninitialized(intSlotCount);
+		final A_Number result = createUninitializedInteger(intSlotCount);
 		final int shortShift = shiftInt & 31;
 		int sourceIndex = intSlotCount - (shiftInt >> 5);
 		long accumulator = 0xDEADCAFEBABEBEEFL;
@@ -2034,11 +2008,11 @@ extends ExtendedIntegerDescriptor
 		}
 		if (aLong == (int)aLong)
 		{
-			final AvailObject result = createUninitialized(1);
+			final AvailObject result = createUninitializedInteger(1);
 			result.setIntSlot(RAW_LONG_SLOTS_, 1, (int) aLong);
 			return result;
 		}
-		final AvailObject result = createUninitialized(2);
+		final AvailObject result = createUninitializedInteger(2);
 		result.setIntSlot(RAW_LONG_SLOTS_, 1, (int) aLong);
 		result.setIntSlot(RAW_LONG_SLOTS_, 2, (int) (aLong >> 32L));
 		return result;
@@ -2059,7 +2033,7 @@ extends ExtendedIntegerDescriptor
 			return fromLong(bigInteger.longValue());
 		}
 		final int intCount = (bytes.length + 3) >> 2;
-		final AvailObject result = createUninitialized(intCount);
+		final AvailObject result = createUninitializedInteger(intCount);
 		// Start with the least significant bits.
 		int byteIndex = bytes.length;
 		int destIndex;
@@ -2110,14 +2084,14 @@ extends ExtendedIntegerDescriptor
 		if (truncated >= Long.MIN_VALUE && truncated <= Long.MAX_VALUE)
 		{
 			// Common case -- it fits in a long.
-			return IntegerDescriptor.fromLong((long)truncated);
+			return fromLong((long)truncated);
 		}
 		final boolean neg = truncated < 0.0d;
 		truncated = abs(truncated);
 		final int exponent = getExponent(truncated);
-		final int slots = (exponent + 31) / 32;  // probably needs work
-		final AvailObject out = createUninitialized(slots);
-		truncated = scalb(truncated, (1 - slots) * 32);
+		final int slots = (exponent + 31) >> 5;  // probably needs work
+		final AvailObject out = createUninitializedInteger(slots);
+		truncated = scalb(truncated, (1 - slots) << 5);
 		for (int i = slots; i >= 1; --i)
 		{
 			final long intSlice = (int) truncated;
@@ -2147,7 +2121,7 @@ extends ExtendedIntegerDescriptor
 		{
 			return immutableByteObjects[anInteger];
 		}
-		final AvailObject result = createUninitialized(1);
+		final AvailObject result = createUninitializedInteger(1);
 		result.setIntSlot(RAW_LONG_SLOTS_, 1, anInteger);
 		return result;
 	}
@@ -2305,7 +2279,7 @@ extends ExtendedIntegerDescriptor
 	 * @param size The number of int slots to have in the result.
 	 * @return An uninitialized, mutable integer.
 	 */
-	public static AvailObject createUninitialized (final int size)
+	public static AvailObject createUninitializedInteger (final int size)
 	{
 		final IntegerDescriptor descriptor = descriptorFor(MUTABLE, size);
 		return descriptor.create((size + 1) >> 1);
@@ -2418,7 +2392,7 @@ extends ExtendedIntegerDescriptor
 	{
 		for (int i = 0; i <= 255; i++)
 		{
-			final AvailObject object = createUninitialized(1);
+			final AvailObject object = createUninitializedInteger(1);
 			object.rawSignedIntegerAtPut(1, i);
 			immutableByteObjects[i] = object.makeShared();
 		}
@@ -2441,7 +2415,7 @@ extends ExtendedIntegerDescriptor
 
 	static
 	{
-		final AvailObject neg = createUninitialized(1);
+		final AvailObject neg = createUninitializedInteger(1);
 		neg.rawSignedIntegerAtPut(1, -1);
 		negativeOne = neg.makeShared();
 	}
@@ -2501,5 +2475,5 @@ extends ExtendedIntegerDescriptor
 	 * for which {@link #o_IsLong(AvailObject)} returns true.
 	 */
 	private static final A_Number quintillionInteger =
-		IntegerDescriptor.fromLong(quintillionLong).makeShared();
+		fromLong(quintillionLong).makeShared();
 }

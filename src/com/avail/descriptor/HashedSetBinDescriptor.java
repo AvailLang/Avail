@@ -43,8 +43,11 @@ import java.util.NoSuchElementException;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_;
-import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.BIN_UNION_TYPE_OR_NULL;
+import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots
+	.BIN_ELEMENT_AT_;
+import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots
+	.BIN_UNION_TYPE_OR_NULL;
+import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static java.lang.Long.bitCount;
@@ -141,7 +144,7 @@ extends SetBinDescriptor
 	 *
 	 * @param object A linear set bin.
 	 */
-	static void checkBinHash (final AvailObject object)
+	static void checkHashedSetBin (final AvailObject object)
 	{
 		assert object.descriptor instanceof HashedSetBinDescriptor;
 		final int stored = object.binHash();
@@ -305,7 +308,7 @@ extends SetBinDescriptor
 		{
 			typeUnion = typeUnion.typeUnion(elementObject.kind());
 		}
-		objectToModify = HashedSetBinDescriptor.createUninitializedBin(
+		objectToModify = createUninitializedBin(
 			level,
 			objectEntryCount + 1,
 			object.binSize() + 1,
@@ -401,9 +404,9 @@ extends SetBinDescriptor
 			if (objectEntryCount == 1)
 			{
 				// That was the last entry that we just removed.
-				return LinearSetBinDescriptor.emptyBinForLevel(level);
+				return emptyLinearSetBin(level);
 			}
-			result = HashedSetBinDescriptor.createUninitializedBin(
+			result = createUninitializedBin(
 				level,
 				objectEntryCount - 1,
 				oldTotalSize + deltaSize,
@@ -636,8 +639,7 @@ extends SetBinDescriptor
 	{
 		final AvailObject instance = createUninitializedBin(
 			level, localSize, totalSize, hash, bitVector, unionKindOrNil);
-		final AvailObject subBin =
-			LinearSetBinDescriptor.emptyBinForLevel((byte)(level + 1));
+		final AvailObject subBin = emptyLinearSetBin((byte)(level + 1));
 		for (int i = 1; i <= localSize; i++)
 		{
 			instance.setSlot(BIN_ELEMENT_AT_, i, subBin);

@@ -31,10 +31,19 @@
  */
 package com.avail.interpreter.primitive.sets;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the intersection of two
@@ -66,10 +75,8 @@ public final class P_SetIntersection extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				SetTypeDescriptor.mostGeneralSetType(),
-				SetTypeDescriptor.mostGeneralSetType()),
-			SetTypeDescriptor.mostGeneralSetType());
+		return functionType(tuple(
+			mostGeneralSetType(),
+			mostGeneralSetType()), mostGeneralSetType());
 	}
 }

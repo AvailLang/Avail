@@ -35,7 +35,6 @@ package com.avail.environment.actions;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.builder.AvailBuilder;
-import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.CompiledCodeDescriptor.CodeCoverageReport;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
@@ -44,6 +43,8 @@ import javax.annotation.Nullable;
 import java.awt.event.ActionEvent;
 import java.util.Collections;
 
+import static com.avail.descriptor.CompiledCodeDescriptor
+	.codeCoverageReportsThen;
 import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 
 /**
@@ -67,7 +68,7 @@ extends AbstractWorkbenchAction
 			@Override
 			public void value ()
 			{
-				CompiledCodeDescriptor.codeCoverageReportsThen(
+				codeCoverageReportsThen(
 					reports ->
 					{
 						// Order the report items using the natural sort defined

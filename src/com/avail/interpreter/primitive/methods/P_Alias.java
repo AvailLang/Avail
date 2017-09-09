@@ -32,23 +32,45 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-
-import java.util.List;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_BundleTree;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.Phase;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
 import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.MESSAGE_BUNDLE_KEY;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.MessageBundleDescriptor.newBundle;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor
+	.newPlanInProgress;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Alias a {@linkplain A_String name} to another
@@ -107,7 +129,7 @@ extends Primitive
 		{
 			final A_Bundle oldBundle = oldAtom.bundleOrCreate();
 			final A_Method method = oldBundle.bundleMethod();
-			newBundle = MessageBundleDescriptor.newBundle(
+			newBundle = newBundle(
 				newAtom, method, new MessageSplitter(newString));
 			loader.recordEffect(
 				new LoadingEffectToRunPrimitive(
@@ -124,20 +146,18 @@ extends Primitive
 			for (final Entry entry
 				: newBundle.definitionParsingPlans().mapIterable())
 			{
-				root.addPlanInProgress(
-					ParsingPlanInProgressDescriptor.create(
-						entry.value(), 1));
+				root.addPlanInProgress(newPlanInProgress(entry.value(), 1));
 			}
 		});
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
+		return functionType(
+			tuple(
+				stringType(),
 				ATOM.o()),
 			TOP.o());
 	}
@@ -145,13 +165,13 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-					E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_SPECIAL_ATOM,
-					E_AMBIGUOUS_NAME,
-					E_ATOM_ALREADY_EXISTS)
-				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+		return enumerationWith(
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_SPECIAL_ATOM,
+				E_AMBIGUOUS_NAME,
+				E_ATOM_ALREADY_EXISTS
+			).setUnionCanDestroy(possibleErrors, true));
 	}
 }

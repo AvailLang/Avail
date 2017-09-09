@@ -32,18 +32,38 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import javax.annotation.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.DeclarationNodeDescriptor
+	.newPrimitiveFailureVariable;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapPrefixVariableDeclaration} primitive is used for
@@ -153,10 +173,9 @@ extends Primitive
 				throw new AvailRejectedParseException(
 					"primitive failure variable type not to be " + failureType);
 			}
-			final A_Phrase failureDeclaration =
-				DeclarationNodeDescriptor.newPrimitiveFailureVariable(
-					failureName, failureTypePhrase, failureType);
-			final A_Phrase conflictingDeclaration =
+			final A_Phrase failureDeclaration = newPrimitiveFailureVariable(
+				failureName, failureTypePhrase, failureType);
+			final @Nullable A_Phrase conflictingDeclaration =
 				FiberDescriptor.addDeclaration(failureDeclaration);
 			if (conflictingDeclaration != null)
 			{
@@ -167,7 +186,7 @@ extends Primitive
 					conflictingDeclaration.declarationKind().nativeKindName(),
 					conflictingDeclaration.token().lineNumber());
 			}
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			return interpreter.primitiveSuccess(nil());
 		}
 		if (!prim.hasFlag(CannotFail))
 		{
@@ -175,42 +194,40 @@ extends Primitive
 				"a primitive failure variable declaration for this "
 				+ "fallible primitive");
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(tuple(
 				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+			LIST_NODE.create(
 					/* Optional arguments section. */
-					TupleTypeDescriptor.zeroOrOneOf(
+				zeroOrOneOf(
 						/* Arguments are present. */
-						TupleTypeDescriptor.oneOrMoreOf(
+					oneOrMoreOf(
 							/* An argument. */
-							TupleTypeDescriptor.tupleTypeForTypes(
+						tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o(),
-								/* Argument type. */
-								InstanceMetaDescriptor.anyMeta())))),
-				/* Macro argument is a parse node. */
-				LIST_NODE.create(
-					/* Optional primitive declaration. */
-					TupleTypeDescriptor.zeroOrOneOf(
-						/* Primitive declaration */
-						TupleTypeDescriptor.tupleTypeForTypes(
-							/* Primitive number. */
 							TOKEN.o(),
+								/* Argument type. */
+							anyMeta())))),
+				/* Macro argument is a parse node. */
+			LIST_NODE.create(
+					/* Optional primitive declaration. */
+				zeroOrOneOf(
+						/* Primitive declaration */
+					tupleTypeForTypes(
+							/* Primitive number. */
+						TOKEN.o(),
 							/* Optional failure variable declaration. */
-							TupleTypeDescriptor.zeroOrOneOf(
+						zeroOrOneOf(
 								/* Primitive failure variable parts. */
-								TupleTypeDescriptor.tupleTypeForTypes(
+							tupleTypeForTypes(
 									/* Primitive failure variable name token */
-									TOKEN.o(),
+								TOKEN.o(),
 									/* Primitive failure variable type */
-									InstanceMetaDescriptor.anyMeta())))))),
-			TOP.o());
+								anyMeta())))))), TOP.o());
 	}
 }

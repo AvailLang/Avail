@@ -32,20 +32,42 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
+import com.avail.compiler.AvailRejectedParseException;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import javax.annotation.Nullable;
-import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.interpreter.*;
+import java.util.List;
+
+import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
+import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+	.newExpressionAsStatement;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapAssignmentStatementMacro} primitive is used for
@@ -93,8 +115,7 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		final A_Map fiberGlobals = interpreter.fiber().fiberGlobals();
 		final A_Map clientData = fiberGlobals.mapAt(
 			CLIENT_DATA_GLOBAL_KEY.atom);
-		final A_Map scopeMap =
-			clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom);
+		final A_Map scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom);
 		final A_Module module = loader.module();
 		A_Phrase declaration = null;
 		if (scopeMap.hasKey(variableNameString))
@@ -105,20 +126,20 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 		{
 			final A_BasicObject variableObject =
 				module.variableBindings().mapAt(variableNameString);
-			declaration = DeclarationNodeDescriptor.newModuleVariable(
+			declaration = newModuleVariable(
 				actualToken,
 				variableObject,
-				NilDescriptor.nil(),
-				NilDescriptor.nil());
+				nil(),
+				nil());
 		}
 		else if (module.constantBindings().hasKey(variableNameString))
 		{
 			final A_BasicObject variableObject =
 				module.constantBindings().mapAt(variableNameString);
-			declaration = DeclarationNodeDescriptor.newModuleConstant(
+			declaration = newModuleConstant(
 				actualToken,
 				variableObject,
-				NilDescriptor.nil());
+				nil());
 		}
 
 		if (declaration == null)
@@ -145,25 +166,23 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 						valueExpression.expressionType(),
 						declarationFinal.declaredType()));
 		}
-		final A_Phrase assignment = AssignmentNodeDescriptor.from(
-			VariableUseNodeDescriptor.newUse(actualToken, declaration),
+		final A_Phrase assignment = newAssignment(
+			newUse(actualToken, declaration),
 			valueExpression,
 			false);
 		assignment.makeImmutable();
-		final A_Phrase assignmentAsStatement =
-			ExpressionAsStatementNodeDescriptor.fromExpression(assignment);
+		final A_Phrase assignmentAsStatement = newExpressionAsStatement(assignment);
 		return interpreter.primitiveSuccess(assignmentAsStatement);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(tuple(
 				/* Variable name for assignment */
-				LITERAL_NODE.create(TOKEN.o()),
+			LITERAL_NODE.create(TOKEN.o()),
 				/* Assignment value */
-				EXPRESSION_NODE.create(ANY.o())),
+			EXPRESSION_NODE.create(ANY.o())),
 			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
 	}
 }

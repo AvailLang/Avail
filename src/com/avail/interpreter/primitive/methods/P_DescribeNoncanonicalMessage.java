@@ -31,12 +31,23 @@
  */
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MessageBundleDescriptor;
 import com.avail.exceptions.MalformedMessageException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer a string describing why the given
@@ -68,17 +79,16 @@ public final class P_DescribeNoncanonicalMessage extends Primitive
 		catch (final MalformedMessageException e)
 		{
 			return interpreter.primitiveSuccess(
-				StringDescriptor.stringFrom(e.describeProblem()));
+				stringFrom(e.describeProblem()));
 		}
-		return interpreter.primitiveSuccess(TupleDescriptor.emptyTuple());
+		return interpreter.primitiveSuccess(emptyTuple());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType()),
-			TupleTypeDescriptor.stringType());
+		return functionType(
+			tuple(stringType()),
+			stringType());
 	}
 }

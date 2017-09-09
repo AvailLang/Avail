@@ -31,10 +31,21 @@
  */
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
+	.concatenatingAnd;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleMeta;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain TypeDescriptor
@@ -61,18 +72,16 @@ public final class P_TupleTypeConcatenate extends Primitive
 		final A_Type tupleType1 = args.get(0);
 		final A_Type tupleType2 = args.get(1);
 		return interpreter.primitiveSuccess(
-			ConcatenatedTupleTypeDescriptor.concatenatingAnd(
-				tupleType1,
-				tupleType2));
+			concatenatingAnd(tupleType1, tupleType2));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.tupleMeta(),
-				TupleTypeDescriptor.tupleMeta()),
-			TupleTypeDescriptor.tupleMeta());
+		return functionType(
+			tuple(
+				tupleMeta(),
+				tupleMeta()),
+			tupleMeta());
 	}
 }

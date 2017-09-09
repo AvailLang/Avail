@@ -31,12 +31,20 @@
  */
 package com.avail.interpreter.primitive.files;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
-import static java.nio.file.StandardOpenOption.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.io.*;
+import com.avail.AvailRuntime;
+import com.avail.AvailRuntime.FileHandle;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystem;
@@ -50,10 +58,27 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import com.avail.AvailRuntime;
-import com.avail.AvailRuntime.FileHandle;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.AtomDescriptor.createAtom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static java.nio.file.StandardOpenOption.READ;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * <strong>Primitive:</strong> Open an {@linkplain AsynchronousFileChannel
@@ -159,7 +184,7 @@ extends Primitive
 			alignmentInt = 4096;
 		}
 		assert alignmentInt > 0;
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		final Set<? extends OpenOption> fileOptions = openOptionsFor(options);
 		final FileAttribute<?>[] fileAttributes = permissionsFor(permissions);
 		if (!fileOptions.contains(READ) && !fileOptions.contains(WRITE))
@@ -176,8 +201,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final A_Atom atom =
-			AtomDescriptor.create(filename, NilDescriptor.nil());
+		final A_Atom atom = createAtom(filename, nil());
 		final AsynchronousFileChannel channel;
 		try
 		{
@@ -205,7 +229,7 @@ extends Primitive
 			fileOptions.contains(READ),
 			fileOptions.contains(WRITE),
 			channel);
-		final AvailObject pojo = RawPojoDescriptor.identityWrap(fileHandle);
+		final AvailObject pojo = identityPojo(fileHandle);
 		atom.setAtomProperty(FILE_KEY.atom, pojo);
 		return interpreter.primitiveSuccess(atom);
 	}
@@ -213,24 +237,24 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					IntegerRangeTypeDescriptor.inclusive(0, 9)),
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					IntegerRangeTypeDescriptor.inclusive(1, 9))),
+		return functionType(
+			tuple(
+				stringType(),
+				wholeNumbers(),
+				setTypeForSizesContentType(
+					wholeNumbers(),
+					inclusive(0, 9)),
+				setTypeForSizesContentType(
+					wholeNumbers(),
+					inclusive(1, 9))),
 			ATOM.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_EXCEEDS_VM_LIMIT,
 				E_INVALID_PATH,
 				E_ILLEGAL_OPTION,

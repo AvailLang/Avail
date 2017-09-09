@@ -330,10 +330,10 @@ extends VariableSharedDescriptor
 	}
 
 	/**
-	 * Create a write-once {@linkplain VariableSharedGlobalDescriptor variable}. This
-	 * method should only be used to create module constants, and <em>maybe</em>
-	 * eventually local constants.  It should <em>not</em> be used for
-	 * converting existing variables to be shared.
+	 * Create a write-once, shared variable. This method should only be used to
+	 * create module constants, and <em>maybe</em> eventually local constants.
+	 * It should <em>not</em> be used for converting existing variables to be
+	 * shared.
 	 *
 	 * @param variableType
 	 *        The {@linkplain VariableTypeDescriptor variable type}.
@@ -359,23 +359,23 @@ extends VariableSharedDescriptor
 	}
 
 	/**
-	 * Construct a new {@link VariableSharedGlobalDescriptor}.
+	 * Construct a new {@code VariableSharedGlobalDescriptor}.
 	 *
 	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param typeTag
-	 *            The {@link TypeTag} to embed in the new descriptor.
+	 *        The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            ObjectSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
+	 *        null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *            The Java {@link Class} which is a subclass of {@link
-	 *            IntegerSlotsEnum} and defines this object's object slots
-	 *            layout, or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link
+	 *        IntegerSlotsEnum} and defines this object's object slots layout,
+	 *        or null if there are no integer slots.
 	 * @param writeOnce
-	 *            Whether the variable can only be assigned once.  This is only
-	 *            intended to be used to implement module constants.
+	 *        Whether the variable can only be assigned once.  This is only
+	 *        intended to be used to implement module constants.
 	 */
 	protected VariableSharedGlobalDescriptor (
 		final Mutability mutability,

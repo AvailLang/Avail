@@ -35,18 +35,20 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.LexerDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.LexerDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.descriptor.TypeDescriptor.Types.LEXER;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
  * A method maintains all definitions that have the same name.  At compile time
@@ -123,9 +125,8 @@ extends Descriptor
 	}
 
 	private static final A_Type lexerFilterFunctionType =
-		FunctionTypeDescriptor.functionType(
-			tuple(
-				CHARACTER.o()),
+		functionType(
+			tuple(CHARACTER.o()),
 			booleanType()
 		).makeShared();
 
@@ -135,13 +136,12 @@ extends Descriptor
 	}
 
 	private static final A_Type lexerBodyFunctionType =
-		FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				Types.TOKEN.o())
+		functionType(
+			tuple(
+				stringType(),
+				naturalNumbers(),
+				naturalNumbers()),
+			zeroOrMoreOf(TOKEN.o())
 		).makeShared();
 
 	public static A_Type lexerBodyFunctionType ()
@@ -277,9 +277,9 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer a new, fully populated {@linkplain LexerDescriptor lexer}.  Also
-	 * install it in the given module and method.  Note that the references from
-	 * the lexer to the module and method should be considered back-pointers.
+	 * Answer a new, fully populated lexer.  Also install it in the given module
+	 * and method.  Note that the references from the lexer to the module and
+	 * method should be considered back-pointers.
 	 *
 	 * @param lexerFilterFunction
 	 *        A function that tests the character at the current lexing point to
@@ -321,7 +321,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link LexerDescriptor}.
+	 * Construct a new {@code LexerDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

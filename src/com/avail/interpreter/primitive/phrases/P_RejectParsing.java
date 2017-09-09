@@ -31,13 +31,25 @@
  */
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import java.util.List;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.exceptions.AvailErrorCode.E_UNTIMELY_PARSE_REJECTION;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
  * <strong>Primitive:</strong> Reject current macro substitution with
@@ -71,17 +83,14 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType()),
-			BottomTypeDescriptor.bottom());
+		return
+			functionType(tuple(stringType()), bottom());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_UNTIMELY_PARSE_REJECTION));
+		return
+			enumerationWith(set(E_UNTIMELY_PARSE_REJECTION));
 	}
 }

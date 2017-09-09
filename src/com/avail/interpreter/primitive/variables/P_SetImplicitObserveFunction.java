@@ -32,17 +32,38 @@
 
 package com.avail.interpreter.primitive.variables;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
+
+import java.util.List;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Set the {@linkplain FunctionDescriptor
@@ -71,16 +92,14 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Function function = args.get(0);
 		function.code().setMethodName(
-			StringDescriptor.stringFrom("«implicit observe function»"));
+			stringFrom("«implicit observe function»"));
 		// Produce a wrapper that will invoke the supplied function, and then
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(), 0, NilDescriptor.nil());
-		writer.argumentTypes(
-			FunctionTypeDescriptor.mostGeneralFunctionType(),
-			TupleTypeDescriptor.mostGeneralTupleType());
-		writer.returnType(BottomTypeDescriptor.bottom());
+			nil(), 0, nil());
+		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType());
+		writer.returnType(bottom());
 		writer.write(L1Operation.L1_doPushLiteral, writer.addLiteral(function));
 		writer.write(L1Operation.L1_doPushLocal, 1);
 		writer.write(L1Operation.L1_doPushLocal, 2);
@@ -94,36 +113,35 @@ extends Primitive
 		writer.write(
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.CONTINUATION_CALLER.bundle),
-			writer.addLiteral(
-				VariableTypeDescriptor.variableTypeFor(
-					ContinuationTypeDescriptor.mostGeneralContinuationType())));
+			writer.addLiteral(variableTypeFor(mostGeneralContinuationType())));
 		writer.write(
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.GET_VARIABLE.bundle),
-			writer.addLiteral(ContinuationTypeDescriptor.mostGeneralContinuationType()));
+			writer.addLiteral(mostGeneralContinuationType()));
 		writer.write(
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.RESUME_CONTINUATION.bundle),
-			writer.addLiteral(BottomTypeDescriptor.bottom()));
-		final A_Function wrapper = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.emptyTuple());
+			writer.addLiteral(bottom()));
+		final A_Function wrapper =
+			createFunction(
+				writer.compiledCode(),
+				emptyTuple());
 		wrapper.code().setMethodName(
-			StringDescriptor.stringFrom("«implicit observe function wrapper»"));
+			stringFrom("«implicit observe function wrapper»"));
 		// Now set the wrapper as the implicit observe function.
-		AvailRuntime.current().setImplicitObserveFunction(wrapper);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		currentRuntime().setImplicitObserveFunction(wrapper);
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
-						FunctionTypeDescriptor.mostGeneralFunctionType(),
-						TupleTypeDescriptor.mostGeneralTupleType()),
+		return functionType(
+			tuple(
+				functionType(
+					tuple(
+						mostGeneralFunctionType(),
+						mostGeneralTupleType()),
 					TOP.o())),
 			TOP.o());
 	}

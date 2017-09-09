@@ -32,17 +32,32 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.*;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+	.newExpressionAsStatement;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.ListNodeDescriptor.newListNode;
+import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
+	.MODULE_HEADER_METHOD;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -80,41 +95,31 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 		final A_Phrase optionalPragmas = args.get(5);
 
 		return interpreter.primitiveSuccess(
-			ExpressionAsStatementNodeDescriptor.fromExpression(
-				SendNodeDescriptor.from(
+			newExpressionAsStatement(
+				newSendNode(
 					// Don't bother collecting tokens in header.
-					TupleDescriptor.emptyTuple(),
-					SpecialMethodAtom.MODULE_HEADER_METHOD.bundle,
-					ListNodeDescriptor.newExpressions(
-						TupleDescriptor.tuple(
-							moduleNameLiteral,
-							optionalVersions,
-							allImports,
-							optionalNames,
-							optionalEntries,
+					emptyTuple(),
+					MODULE_HEADER_METHOD.bundle,
+					newListNode(
+						tuple(moduleNameLiteral, optionalVersions,
+							allImports, optionalNames, optionalEntries,
 							optionalPragmas)),
-					Types.TOP.o())));
+					TOP.o())));
 	}
 
-	static A_Type zeroOrMoreOf (final A_Type type)
+	static A_Type zeroOrMoreList (final A_Type type)
 	{
-		return ListNodeTypeDescriptor.createListNodeType(
-			LIST_NODE,
-			TupleTypeDescriptor.zeroOrMoreOf(type));
+		return createListNodeType(LIST_NODE, zeroOrMoreOf(type));
 	}
 
-	static A_Type zeroOrOneOf (final A_Type type)
+	static A_Type zeroOrOneList (final A_Type type)
 	{
-		return ListNodeTypeDescriptor.createListNodeType(
-			LIST_NODE,
-			TupleTypeDescriptor.zeroOrOneOf(type));
+		return createListNodeType(LIST_NODE, zeroOrOneOf(type));
 	}
 
 	static A_Type list (final A_Type... types)
 	{
-		return ListNodeTypeDescriptor.createListNodeType(
-			LIST_NODE,
-			TupleTypeDescriptor.tupleTypeForTypes(types));
+		return createListNodeType(LIST_NODE, tupleTypeForTypes(types));
 	}
 
 	@Override
@@ -122,29 +127,29 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 	{
 		final A_Type stringTokenType =
 			LITERAL_NODE.create(
-				LiteralTokenTypeDescriptor.literalTokenType(
-					TupleTypeDescriptor.stringType()));
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+				literalTokenType(
+					stringType()));
+		return functionType(
+			tuple(
 				/* Module name */
 				stringTokenType,
 				/* Optional versions */
-				zeroOrOneOf(zeroOrMoreOf(stringTokenType)),
+				zeroOrOneList(zeroOrMoreList(stringTokenType)),
 				/* All imports */
-				zeroOrMoreOf(
+				zeroOrMoreList(
 					list(
 						LITERAL_NODE.create(
-							IntegerRangeTypeDescriptor.inclusive(1, 2)),
-						zeroOrMoreOf(
+							inclusive(1, 2)),
+						zeroOrMoreList(
 							list(
 								// Imported module name
 								stringTokenType,
 								// Imported module versions
-								zeroOrOneOf(zeroOrMoreOf(stringTokenType)),
+								zeroOrOneList(zeroOrMoreList(stringTokenType)),
 								// Imported names
-								zeroOrOneOf(
+								zeroOrOneList(
 									list(
-										zeroOrMoreOf(
+										zeroOrMoreList(
 											list(
 												// Negated import
 												LITERAL_NODE.create(
@@ -152,16 +157,17 @@ public final class P_ModuleHeaderPseudoMacro extends Primitive
 												// Name
 												stringTokenType,
 												// Replacement name
-												zeroOrOneOf(stringTokenType))),
+												zeroOrOneList(
+													stringTokenType))),
 										// Final ellipsis (import all the rest)
 										LITERAL_NODE.create(
 											booleanType()))))))),
 				/* Optional names */
-				zeroOrOneOf(zeroOrMoreOf(stringTokenType)),
+				zeroOrOneList(zeroOrMoreList(stringTokenType)),
 				/* Optional entries */
-				zeroOrOneOf(zeroOrMoreOf(stringTokenType)),
+				zeroOrOneList(zeroOrMoreList(stringTokenType)),
 				/* Optional pragma */
-				zeroOrOneOf(zeroOrMoreOf(stringTokenType))),
+				zeroOrOneList(zeroOrMoreList(stringTokenType))),
 			/* Shouldn't be invoked, so always fail. */
 			STATEMENT_NODE.mostGeneralType());
 	}

@@ -35,7 +35,14 @@ package com.avail.interpreter.primitive.files;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.FileHandle;
 import com.avail.AvailTask;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
@@ -44,12 +51,19 @@ import java.nio.channels.AsynchronousFileChannel;
 import java.util.Collections;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -90,8 +104,7 @@ extends Primitive
 		final A_Function fail = args.get(3);
 		final A_Number priority = args.get(4);
 
-		final A_BasicObject pojo =
-			atom.getAtomProperty(FILE_KEY.atom);
+		final A_BasicObject pojo = atom.getAtomProperty(FILE_KEY.atom);
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
@@ -108,17 +121,16 @@ extends Primitive
 		final long size = sizeObject.isLong()
 			? sizeObject.extractLong()
 			: Long.MAX_VALUE;
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		// Guaranteed non-negative by argument constraint.
 		assert size >= 0L;
 
 		final int priorityInt = priority.extractInt();
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			() ->
-				formatString("Asynchronous truncate, %s", handle.filename));
+			() -> formatString("Asynchronous truncate, %s", handle.filename));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -152,10 +164,7 @@ extends Primitive
 					return;
 				}
 				Interpreter.runOutermostFunction(
-					runtime,
-					newFiber,
-					succeed,
-					Collections.emptyList());
+					runtime, newFiber, succeed, Collections.emptyList());
 			}
 		});
 
@@ -170,21 +179,20 @@ extends Primitive
 				ATOM.o(),
 				wholeNumbers(),
 				functionType(
-					tuple(),
+					emptyTuple(),
 					TOP.o()),
 				functionType(
-					tuple(
-						instanceTypeOn(E_IO_ERROR.numericCode())),
+					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o()),
 				bytes()),
-			FiberTypeDescriptor.forResultType(TOP.o()));
+			fiberType(TOP.o()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_INVALID_HANDLE,
 				E_NOT_OPEN_FOR_WRITE,
 				E_SPECIAL_ATOM));

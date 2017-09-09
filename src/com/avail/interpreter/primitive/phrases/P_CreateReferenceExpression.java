@@ -31,12 +31,27 @@
  */
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ReferenceNodeDescriptor;
+import com.avail.descriptor.VariableUseNodeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.exceptions.AvailErrorCode
+	.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Transform a {@linkplain
@@ -70,24 +85,22 @@ public final class P_CreateReferenceExpression extends Primitive
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE);
 		}
-		final A_Phrase reference = ReferenceNodeDescriptor.fromUse(variableUse);
+		final A_Phrase reference = referenceNodeFromUse(variableUse);
 		return interpreter.primitiveSuccess(reference);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				VARIABLE_USE_NODE.mostGeneralType()),
+		return functionType(
+			tuple(VARIABLE_USE_NODE.mostGeneralType()),
 			REFERENCE_NODE.mostGeneralType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE));
+		return enumerationWith(
+			set(E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE));
 	}
 }

@@ -32,10 +32,20 @@
 
 package com.avail.interpreter.primitive.variables;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.VariableTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.VariableTypeDescriptor.variableMeta;
+import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain VariableTypeDescriptor
@@ -63,16 +73,16 @@ extends Primitive
 		final A_Type readType = args.get(0);
 		final A_Type writeType = args.get(1);
 		return interpreter.primitiveSuccess(
-			VariableTypeDescriptor.variableReadWriteType(readType, writeType));
+			variableReadWriteType(readType, writeType));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.topMeta(),
-				InstanceMetaDescriptor.topMeta()),
-			VariableTypeDescriptor.variableMeta());
+		return functionType(
+			tuple(
+				topMeta(),
+				topMeta()),
+			variableMeta());
 	}
 }

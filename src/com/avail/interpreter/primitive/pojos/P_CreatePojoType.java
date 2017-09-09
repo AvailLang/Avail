@@ -31,13 +31,34 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.lang.reflect.TypeVariable;
 import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain
@@ -76,7 +97,7 @@ public final class P_CreatePojoType extends Primitive
 			rawClass = Class.forName(
 				className.asNativeString(),
 				true,
-				AvailRuntime.current().classLoader());
+				currentRuntime().classLoader());
 		}
 		catch (final ClassNotFoundException e)
 		{
@@ -99,9 +120,9 @@ public final class P_CreatePojoType extends Primitive
 		{
 			final A_BasicObject originalParameter = classParameters.tupleAt(i);
 			final AvailObject realParameter;
-			if (originalParameter.equals(PojoTypeDescriptor.pojoSelfType()))
+			if (originalParameter.equals(pojoSelfType()))
 			{
-				realParameter = PojoTypeDescriptor.selfTypeForClass(rawClass);
+				realParameter = selfTypeForClass(rawClass);
 			}
 			else
 			{
@@ -112,29 +133,25 @@ public final class P_CreatePojoType extends Primitive
 		}
 		// Construct and answer the pojo type.
 		final A_Type newPojoType =
-			PojoTypeDescriptor.forClassWithTypeArguments(
-				rawClass, realParameters);
+			pojoTypeForClassWithTypeArguments(rawClass, realParameters);
 		return interpreter.primitiveSuccess(newPojoType);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					InstanceMetaDescriptor.anyMeta())),
-			InstanceMetaDescriptor.instanceMetaOn(
-				PojoTypeDescriptor.mostGeneralPojoType()));
+		return functionType(
+			tuple(
+				stringType(),
+				zeroOrMoreOf(anyMeta())),
+			instanceMeta(mostGeneralPojoType()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_JAVA_CLASS_NOT_AVAILABLE,
-				E_INCORRECT_NUMBER_OF_ARGUMENTS));
+		return enumerationWith(set(
+			E_JAVA_CLASS_NOT_AVAILABLE,
+			E_INCORRECT_NUMBER_OF_ARGUMENTS));
 	}
 }

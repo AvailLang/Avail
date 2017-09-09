@@ -31,13 +31,21 @@
  */
 package com.avail.interpreter.primitive.general;
 
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Is there a {@linkplain Primitive
@@ -62,20 +70,18 @@ extends Primitive
 		assert args.size() == 1;
 		final A_String primitiveName = args.get(0);
 
-		final Primitive primitive =
-			Primitive.primitiveByName(primitiveName.asNativeString());
+		final @Nullable Primitive primitive =
+			primitiveByName(primitiveName.asNativeString());
 		final boolean defined =
 			primitive != null && !primitive.hasFlag(Private);
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(defined));
+		return interpreter.primitiveSuccess(objectFromBoolean(defined));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				stringType()),
+		return functionType(
+			tuple(stringType()),
 			booleanType());
 	}
 }

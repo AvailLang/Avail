@@ -51,10 +51,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.avail.compiler.AvailCompiler.Con;
 import static com.avail.compiler.ParsingConversionRule.ruleNumber;
-import static com.avail.descriptor.LiteralNodeDescriptor.fromToken;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.ListNodeDescriptor.emptyListNode;
+import static com.avail.descriptor.ListNodeDescriptor.newListNode;
+import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
+import static com.avail.descriptor.MacroSubstitutionNodeDescriptor
+	.newMacroSubstitution;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.VARIABLE_USE_NODE;
+import static com.avail.descriptor.PermutedListNodeDescriptor
+	.newPermutedListNode;
+import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.utility.PrefixSharingList.*;
 import static com.avail.utility.StackPrinter.trace;
 
@@ -95,7 +107,7 @@ public enum ParsingOperation
 			// Push an empty list node and continue.
 			assert successorTrees.tupleSize() == 1;
 			final List<A_Phrase> newArgsSoFar =
-				append(argsSoFar, ListNodeDescriptor.empty());
+				append(argsSoFar, emptyListNode());
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -465,13 +477,13 @@ public enum ParsingOperation
 						}
 						// Create a variable reference from this use.
 						final A_Phrase rawVariableReference =
-							ReferenceNodeDescriptor.fromUse(rawVariableUse);
+							referenceNodeFromUse(rawVariableUse);
 						final A_Phrase variableReference =
 							variableUse.isMacroSubstitutionNode()
-								? MacroSubstitutionNodeDescriptor
-									.fromOriginalSendAndReplacement(
-										variableUse.macroOriginalSendNode(),
-										rawVariableReference)
+								?
+								newMacroSubstitution(
+									variableUse.macroOriginalSendNode(),
+									rawVariableReference)
 								: rawVariableReference;
 						compiler.eventuallyParseRestOfSendNode(
 							afterUse,
@@ -567,7 +579,7 @@ public enum ParsingOperation
 								for (final A_Token token : nextTokens)
 								{
 									final A_Token syntheticToken =
-										LiteralTokenDescriptor.create(
+										literalToken(
 											token.string(),
 											token.leadingWhitespace(),
 											token.trailingWhitespace(),
@@ -576,7 +588,7 @@ public enum ParsingOperation
 											SYNTHETIC_LITERAL,
 											token);
 									final A_Phrase literalNode =
-										fromToken(syntheticToken);
+										literalNodeFromToken(syntheticToken);
 									final List<A_Phrase> newArgsSoFar =
 										append(argsSoFar, literalNode);
 									compiler.eventuallyParseRestOfSendNode(
@@ -655,7 +667,7 @@ public enum ParsingOperation
 										continue;
 									}
 									final A_Token syntheticToken =
-										LiteralTokenDescriptor.create(
+										literalToken(
 											token.string(),
 											token.leadingWhitespace(),
 											token.trailingWhitespace(),
@@ -664,7 +676,7 @@ public enum ParsingOperation
 											SYNTHETIC_LITERAL,
 											token);
 									final A_Phrase literalNode =
-										fromToken(syntheticToken);
+										literalNodeFromToken(syntheticToken);
 									final List<A_Phrase> newArgsSoFar =
 										append(argsSoFar, literalNode);
 									compiler.eventuallyParseRestOfSendNode(
@@ -734,7 +746,7 @@ public enum ParsingOperation
 									final TokenType tokenType = token.tokenType();
 									if (tokenType != LITERAL
 										|| !token.literal().isInstanceOf(
-											TupleTypeDescriptor.stringType()))
+											stringType()))
 									{
 										if (consumedAnything)
 										{
@@ -747,7 +759,7 @@ public enum ParsingOperation
 										continue;
 									}
 									final A_Token syntheticToken =
-										LiteralTokenDescriptor.create(
+										literalToken(
 											token.string(),
 											token.leadingWhitespace(),
 											token.trailingWhitespace(),
@@ -756,7 +768,7 @@ public enum ParsingOperation
 											SYNTHETIC_LITERAL,
 											token);
 									final A_Phrase literalNode =
-										fromToken(syntheticToken);
+										literalNodeFromToken(syntheticToken);
 									final List<A_Phrase> newArgsSoFar =
 										append(argsSoFar, literalNode);
 									compiler.eventuallyParseRestOfSendNode(
@@ -823,25 +835,26 @@ public enum ParsingOperation
 							{
 								for (final A_Token token : nextTokens)
 								{
-									final TokenType tokenType = token.tokenType();
+									final TokenType tokenType =
+										token.tokenType();
 									if (tokenType != LITERAL
 										|| !token.literal().isInstanceOf(
-											IntegerRangeTypeDescriptor
-												.wholeNumbers()))
+											wholeNumbers()))
 									{
 										if (consumedAnything)
 										{
 											start.expected(
-												"a whole number literal token, not "
+												"a whole number literal token, "
+													+ "not "
 													+ (token.tokenType()
 														   != LITERAL
-														   ? token.string()
-														   : token.literal()));
+													   ? token.string()
+													   : token.literal()));
 										}
 										continue;
 									}
 									final A_Token syntheticToken =
-										LiteralTokenDescriptor.create(
+										literalToken(
 											token.string(),
 											token.leadingWhitespace(),
 											token.trailingWhitespace(),
@@ -850,7 +863,7 @@ public enum ParsingOperation
 											SYNTHETIC_LITERAL,
 											token);
 									final A_Phrase literalNode =
-										fromToken(syntheticToken);
+										literalNodeFromToken(syntheticToken);
 									final List<A_Phrase> newArgsSoFar =
 										append(argsSoFar, literalNode);
 									compiler.eventuallyParseRestOfSendNode(
@@ -1322,7 +1335,7 @@ public enum ParsingOperation
 			final A_Phrase prefixArgumentsList = last(argsSoFar);
 			final List<A_Phrase> withoutPrefixArguments =
 				withoutLast(argsSoFar);
-			final List<AvailObject> listOfArgs = TupleDescriptor.toList(
+			final List<AvailObject> listOfArgs = toList(
 				prefixArgumentsList.expressionsTuple());
 			compiler.runPrefixFunctionThen(
 				start,
@@ -1366,10 +1379,7 @@ public enum ParsingOperation
 				MessageSplitter.permutationAtIndex(permutationIndex);
 			final A_Phrase poppedList = last(argsSoFar);
 			List<A_Phrase> stack = withoutLast(argsSoFar);
-			stack = append(
-				stack,
-				PermutedListNodeDescriptor.fromListAndPermutation(
-					poppedList, permutation));
+			stack = append(stack, newPermutedListNode(poppedList, permutation));
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -1534,8 +1544,7 @@ public enum ParsingOperation
 				argsSoFar.subList(0, totalSize - listSize);
 			final List<A_Phrase> popped =
 				argsSoFar.subList(totalSize - listSize, totalSize);
-			final A_Phrase newListNode = ListNodeDescriptor.newExpressions(
-				TupleDescriptor.tupleFromList(popped));
+			final A_Phrase newListNode = newListNode(tupleFromList(popped));
 			final List<A_Phrase> newArgsSoFar =
 				append(unpopped, newListNode);
 			compiler.eventuallyParseRestOfSendNode(
@@ -1574,15 +1583,15 @@ public enum ParsingOperation
 		{
 			final AvailObject constant = MessageSplitter.constantForIndex(
 				operand(instruction));
-			final A_Token token = LiteralTokenDescriptor.create(
-				StringDescriptor.stringFrom(constant.toString()),
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
+			final A_Token token = literalToken(
+				stringFrom(constant.toString()),
+				emptyTuple(),
+				emptyTuple(),
 				initialTokenPosition.position(),
 				initialTokenPosition.lineNumber(),
 				LITERAL,
 				constant);
-			final A_Phrase literalNode = fromToken(token);
+			final A_Phrase literalNode = literalNodeFromToken(token);
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),

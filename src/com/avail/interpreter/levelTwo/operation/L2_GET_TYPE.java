@@ -44,6 +44,7 @@ import com.avail.optimizer.RegisterSet;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
@@ -90,18 +91,14 @@ public class L2_GET_TYPE extends L2Operation
 			// Apply the rule of metacovariance. It says that given types T1
 			// and T2, T1 <= T2 implies T1 type <= T2 type. It is guaranteed
 			// true for all types in Avail.
-			final A_Type meta = InstanceMetaDescriptor.instanceMetaOn(type);
+			final A_Type meta = instanceMeta(type);
 			registerSet.typeAtPut(
-				typeReg,
-				meta,
-				instruction);
+				typeReg, meta, instruction);
 		}
 		else
 		{
 			registerSet.typeAtPut(
-				typeReg,
-				InstanceMetaDescriptor.topMeta(),
-				instruction);
+				typeReg, InstanceMetaDescriptor.topMeta(), instruction);
 		}
 
 		if (registerSet.hasConstantAt(valueReg)

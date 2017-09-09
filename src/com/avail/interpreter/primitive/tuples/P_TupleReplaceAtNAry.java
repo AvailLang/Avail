@@ -32,14 +32,35 @@
 
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.exceptions.AvailException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.AvailException;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Replace the value with a new value in the
@@ -151,15 +172,14 @@ extends Primitive
 				targetIndex, newValue, true);
 		}
 		final A_BasicObject targetElement = targetMap.mapAt(targetIndex);
-		if (targetElement.isInstanceOf(TupleTypeDescriptor.mostGeneralTupleType()))
+		if (targetElement.isTuple())
 		{
 			final A_BasicObject newTuple = recursivelyUpdateTuple(
 				(A_Tuple)targetElement, pathTuple, pathIndex + 1, newValue);
 			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newTuple, true);
 		}
-		else if (targetElement.isInstanceOf(
-			MapTypeDescriptor.mostGeneralMapType()))
+		else if (targetElement.isMap())
 		{
 			final A_BasicObject newMap = recursivelyUpdateMap(
 				(A_Map)targetElement, pathTuple, pathIndex + 1, newValue);
@@ -196,28 +216,22 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.mostGeneralTupleType(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.integerRangeType(
-						IntegerDescriptor.fromInt(2),
-						true,
-						InfinityDescriptor.positiveInfinity(),
-						false),
-					TupleDescriptor.emptyTuple(),
-					ANY.o()),
-				ANY.o()),
-			TupleTypeDescriptor.mostGeneralTupleType());
+		return functionType(tuple(mostGeneralTupleType(),
+			tupleTypeForSizesTypesDefaultType(
+				integerRangeType(
+					fromInt(2),
+					true,
+					positiveInfinity(),
+					false),
+				emptyTuple(),
+				ANY.o()), ANY.o()), mostGeneralTupleType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_SUBSCRIPT_OUT_OF_BOUNDS,
-				E_INCORRECT_ARGUMENT_TYPE,
+		return enumerationWith(
+			set(E_SUBSCRIPT_OUT_OF_BOUNDS, E_INCORRECT_ARGUMENT_TYPE,
 				E_KEY_NOT_FOUND));
 	}
 }

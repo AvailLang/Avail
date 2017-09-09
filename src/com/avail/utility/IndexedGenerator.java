@@ -1,5 +1,5 @@
 /**
- * P_BitwiseOr.java
+ * IndexedGenerator.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,55 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.integers;
-
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-
-import java.util.List;
-
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.interpreter.Primitive.Flag.*;
+package com.avail.utility;
 
 /**
- * <strong>Primitive:</strong> Compute the bitwise OR of the {@linkplain
- * IntegerDescriptor arguments}.
+ * I represent the ability to generate something in the future, when my {@link
+ * #value(int)} operation is invoked.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @param <X> The kind of thing to generate.
  */
-public final class P_BitwiseOr
-extends Primitive
+@FunctionalInterface
+public interface IndexedGenerator<X>
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * Request that the value be produced.
+	 *
+	 * @param index An index, which may be used in calculating the value.
+	 * @return The generated value.
 	 */
-	public static final Primitive instance =
-		new P_BitwiseOr().init(
-			2, CannotFail, CanFold, CanInline);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 2;
-		final A_Number a = args.get(0);
-		final A_Number b = args.get(1);
-		return interpreter.primitiveSuccess(a.bitwiseOr(b, true));
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return functionType(tuple(
-			integers(),
-			integers()), integers());
-	}
+	X value (int index);
 }

@@ -31,14 +31,32 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.exceptions.MarshalingException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.lang.reflect.Array;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.MarshalingException;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
+import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
+import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Get the {@linkplain AvailObject element}
@@ -64,7 +82,7 @@ public final class P_PojoArrayGet extends Primitive
 		final A_BasicObject pojo = args.get(0);
 		final A_Number subscript = args.get(1);
 		final A_BasicObject rawPojo = pojo.rawPojo();
-		final Object array = rawPojo.javaObject();
+		final Object array = rawPojo.javaObjectNotNull();
 		final int index = subscript.extractInt();
 		if (index > Array.getLength(array))
 		{
@@ -74,8 +92,7 @@ public final class P_PojoArrayGet extends Primitive
 		final AvailObject unmarshaled;
 		try
 		{
-			unmarshaled = PojoTypeDescriptor.unmarshal(
-				element, pojo.kind().contentType());
+			unmarshaled = unmarshal(element, pojo.kind().contentType());
 		}
 		catch (final MarshalingException e)
 		{
@@ -87,18 +104,18 @@ public final class P_PojoArrayGet extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				PojoTypeDescriptor.mostGeneralPojoArrayType(),
-				IntegerRangeTypeDescriptor.naturalNumbers()),
+		return functionType(
+			tuple(
+				mostGeneralPojoArrayType(),
+				naturalNumbers()),
 			ANY.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS,
 				E_JAVA_MARSHALING_FAILED));
 	}

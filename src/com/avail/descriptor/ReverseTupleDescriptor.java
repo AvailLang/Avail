@@ -32,12 +32,18 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.Generator;
+import com.avail.utility.IndexedGenerator;
+
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.SIZE;
+import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots
+	.ORIGIN_TUPLE;
+import static com.avail.descriptor.TreeTupleDescriptor.*;
 
 /**
  * A reverse tuple holds a reference to an "origin" tuple and the origin
@@ -122,7 +128,7 @@ extends TupleDescriptor
 		{
 			object.makeImmutable();
 		}
-		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+		final A_Tuple singleton = tuple(newElement);
 		return object.concatenateWith(singleton, canDestroy);
 	}
 
@@ -141,8 +147,7 @@ extends TupleDescriptor
 		if (!object.descriptor.isShared())
 		{
 			final AvailObject treeTuple =
-				TreeTupleDescriptor
-					.internalTreeReverse(object.slot(ORIGIN_TUPLE));
+				internalTreeReverse(object.slot(ORIGIN_TUPLE));
 			treeTuple.hashOrZero(object.slot(HASH_OR_ZERO));
 			object.becomeIndirectionTo(treeTuple);
 			return treeTuple.childAt(childIndex);
@@ -212,16 +217,16 @@ extends TupleDescriptor
 		if (newSize <= maximumCopySize)
 		{
 			// Copy the objects.
-			return ObjectTupleDescriptor.generateFrom(
+			return generateObjectTupleFrom(
 				newSize,
-				new Generator<A_BasicObject>()
+				new IndexedGenerator<A_BasicObject>()
 				{
 					private A_Tuple currentTuple = object.slot(ORIGIN_TUPLE);
 					private int sourceIndex = size1;
 					private int direction = -1;
 
 					@Override
-					public A_BasicObject value ()
+					public A_BasicObject value (final int ignored)
 					{
 						if (sourceIndex == 0)
 						{
@@ -247,20 +252,14 @@ extends TupleDescriptor
 		{
 			if (otherTuple.treeTupleLevel() == 0)
 			{
-				return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+				return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 			}
-			return TreeTupleDescriptor.concatenateAtLeastOneTree(
-				object,
-				otherTuple,
-				true);
+			return concatenateAtLeastOneTree(object, otherTuple, true);
 		}
 
 		final AvailObject newTree =
-			TreeTupleDescriptor.internalTreeReverse(object.slot(ORIGIN_TUPLE));
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			newTree,
-			otherTuple,
-			true);
+			internalTreeReverse(object.slot(ORIGIN_TUPLE));
+		return concatenateAtLeastOneTree(newTree, otherTuple, true);
 	}
 
 	@Override @AvailMethod
@@ -280,7 +279,7 @@ extends TupleDescriptor
 			{
 				object.assertObjectUnreachableIfMutable();
 			}
-			return TupleDescriptor.emptyTuple();
+			return emptyTuple();
 		}
 		if (subrangeSize == tupleSize)
 		{
@@ -294,18 +293,8 @@ extends TupleDescriptor
 		{
 			// It's not empty, it's not a total copy, and it's reasonably small.
 			// Just copy the applicable entries out.
-			final AvailObject result = ObjectTupleDescriptor.generateFrom(
-				subrangeSize,
-				new Generator<A_BasicObject>()
-				{
-					private int src = start;
-
-					@Override
-					public A_BasicObject value ()
-					{
-						return object.tupleAt(src++);
-					}
-				});
+			final AvailObject result = generateObjectTupleFrom(
+				subrangeSize, index -> object.tupleAt(index + start - 1));
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();

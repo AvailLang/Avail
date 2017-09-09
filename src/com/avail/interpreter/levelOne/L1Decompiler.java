@@ -32,16 +32,46 @@
 
 package com.avail.interpreter.levelOne;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import java.util.*;
-
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
-import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.utility.evaluation.*;
+import com.avail.descriptor.DeclarationNodeDescriptor.*;
+import com.avail.utility.evaluation.Transformer1;
+
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.continuationTypeForFunctionType;
+import static com.avail.descriptor.DeclarationNodeDescriptor.*;
+import static com.avail.descriptor.FirstOfSequenceNodeDescriptor
+	.newFirstOfSequenceNode;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.ListNodeDescriptor.newListNode;
+import static com.avail.descriptor.LiteralNodeDescriptor.*;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
+import static com.avail.descriptor.MarkerNodeDescriptor.newMarkerNode;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PermutedListNodeDescriptor
+	.newPermutedListNode;
+import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.SuperCastNodeDescriptor.newSuperCastNode;
+import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TokenDescriptor.newToken;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
+import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
 
 /**
  * The {@link L1Decompiler} converts a {@linkplain CompiledCodeDescriptor
@@ -153,34 +183,34 @@ public class L1Decompiler
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{
 			final String argName = tempGenerator.value("arg");
-			final A_Token token = TokenDescriptor.create(
-				StringDescriptor.stringFrom(argName),
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
+			final A_Token token = newToken(
+				stringFrom(argName),
+				emptyTuple(),
+				emptyTuple(),
 				0,
 				0,
-				TokenType.KEYWORD);
-			final A_Phrase decl = DeclarationNodeDescriptor.newArgument(
+				KEYWORD);
+			final A_Phrase decl = newArgument(
 				token,
 				tupleType.typeAtIndex(i),
-				NilDescriptor.nil());
+				nil());
 			args.add(decl);
 		}
 		for (int i = 1, end = code.numLocals(); i <= end; i++)
 		{
 			final String localName = tempGenerator.value("local");
-			final A_Token token = TokenDescriptor.create(
-				StringDescriptor.stringFrom(localName),
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
+			final A_Token token = newToken(
+				stringFrom(localName),
+				emptyTuple(),
+				emptyTuple(),
 				0,
 				0,
-				TokenType.KEYWORD);
-			final A_Phrase decl = DeclarationNodeDescriptor.newVariable(
+				KEYWORD);
+			final A_Phrase decl = newVariable(
 				token,
 				code.localTypeAt(i).writeType(),
-				NilDescriptor.nil(),
-				NilDescriptor.nil());
+				nil(),
+				nil());
 			locals.add(decl);
 		}
 		statements.addAll(locals);
@@ -202,7 +232,7 @@ public class L1Decompiler
 		assert expressionStack.size() == 0
 		: "There should be nothing on the stack after the final return";
 
-		block = BlockNodeDescriptor.newBlockNode(
+		block = newBlockNode(
 			args,
 			code.primitiveNumber(),
 			statements,
@@ -323,8 +353,7 @@ public class L1Decompiler
 		/**
 		 * A pre-built marker for this enumeration value.
 		 */
-		public final A_Phrase marker = MarkerNodeDescriptor.create(
-			IntegerDescriptor.fromInt(ordinal()));
+		public final A_Phrase marker = newMarkerNode(fromInt(ordinal()));
 	}
 
 	/**
@@ -357,16 +386,14 @@ public class L1Decompiler
 				assert permutationLiteral.parseNodeKindIsUnder(LITERAL_NODE);
 				permutationTuple = permutationLiteral.token().literal();
 			}
-			final A_Tuple argsTuple =
-				TupleDescriptor.tupleFromList(popExpressions(nArgs));
-			A_Phrase listNode = ListNodeDescriptor.newExpressions(argsTuple);
+			final A_Tuple argsTuple = tupleFromList(popExpressions(nArgs));
+			A_Phrase listNode = newListNode(argsTuple);
 			if (permutationTuple != null)
 			{
-				listNode = PermutedListNodeDescriptor.fromListAndPermutation(
-					listNode, permutationTuple);
+				listNode = newPermutedListNode(listNode, permutationTuple);
 			}
-			final A_Phrase sendNode = SendNodeDescriptor.from(
-				TupleDescriptor.emptyTuple(), bundle, listNode, type);
+			final A_Phrase sendNode = newSendNode(
+				emptyTuple(), bundle, listNode, type);
 			pushExpression(sendNode);
 		}
 
@@ -374,8 +401,7 @@ public class L1Decompiler
 		public void L1_doPushLiteral ()
 		{
 			final AvailObject value = code.literalAt(getInteger());
-			if (value.isInstanceOfKind(
-				FunctionTypeDescriptor.mostGeneralFunctionType()))
+			if (value.isInstanceOfKind(mostGeneralFunctionType()))
 			{
 				final List<A_Phrase> functionOuters =
 					new ArrayList<>(value.numOuterVars());
@@ -385,21 +411,20 @@ public class L1Decompiler
 				{
 					final AvailObject varObject = value.outerVarAt(i);
 					final A_Token token =
-						LiteralTokenDescriptor.create(
-							StringDescriptor.stringFrom(
+						literalToken(
+							stringFrom(
 								"OuterOfUncleanConstantFunction#"
-								+ i
-								+ " (with value "
-								+ varObject
-								+ ")"),
-							TupleDescriptor.emptyTuple(),
-							TupleDescriptor.emptyTuple(),
+									+ i
+									+ " (with value "
+									+ varObject
+									+ ")"),
+							emptyTuple(),
+							emptyTuple(),
 							0,
 							0,
-							TokenType.LITERAL,
+							LITERAL,
 							varObject);
-					final A_Phrase literalNode =
-						LiteralNodeDescriptor.fromToken(token);
+					final A_Phrase literalNode = literalNodeFromToken(token);
 					functionOuters.add(literalNode);
 				}
 				final A_Phrase blockNode =
@@ -425,16 +450,15 @@ public class L1Decompiler
 				else
 				{
 					final AvailObject token =
-						LiteralTokenDescriptor.create(
-							StringDescriptor.stringFrom(value.toString()),
-							TupleDescriptor.emptyTuple(),
-							TupleDescriptor.emptyTuple(),
+						literalToken(
+							stringFrom(value.toString()),
+							emptyTuple(),
+							emptyTuple(),
 							0,
 							0,
-							TokenType.LITERAL,
+							LITERAL,
 							value);
-					final AvailObject literalNode =
-						LiteralNodeDescriptor.fromToken(token);
+					final AvailObject literalNode = literalNodeFromToken(token);
 					pushExpression(literalNode);
 				}
 			}
@@ -448,8 +472,7 @@ public class L1Decompiler
 			final A_Phrase decl = isArg
 				? args.get(index - 1)
 				: locals.get(index - code.numArgs() - 1);
-			final A_Phrase use = VariableUseNodeDescriptor.newUse(
-				decl.token(), decl);
+			final A_Phrase use = newUse(decl.token(), decl);
 			use.isLastUse(true);
 			if (isArg)
 			{
@@ -457,7 +480,7 @@ public class L1Decompiler
 			}
 			else
 			{
-				final A_Phrase ref = ReferenceNodeDescriptor.fromUse(use);
+				final A_Phrase ref = referenceNodeFromUse(use);
 				pushExpression(ref);
 			}
 		}
@@ -470,17 +493,14 @@ public class L1Decompiler
 			final A_Phrase decl = isArg
 				? args.get(index - 1)
 				: locals.get(index - code.numArgs() - 1);
-			final AvailObject use = VariableUseNodeDescriptor.newUse(
-				decl.token(),
-				decl);
+			final AvailObject use = newUse(decl.token(), decl);
 			if (isArg)
 			{
 				pushExpression(use);
 			}
 			else
 			{
-				final A_Phrase ref = ReferenceNodeDescriptor.fromUse(use);
-				pushExpression(ref);
+				pushExpression(referenceNodeFromUse(use));
 			}
 		}
 
@@ -514,9 +534,8 @@ public class L1Decompiler
 			final A_Phrase localDecl = locals.get(
 				getInteger() - code.numArgs() - 1);
 			final A_Phrase valueNode = popExpression();
-			final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
-				localDecl.token(), localDecl);
-			final A_Phrase assignmentNode = AssignmentNodeDescriptor.from(
+			final A_Phrase variableUse = newUse(localDecl.token(), localDecl);
+			final A_Phrase assignmentNode = newAssignment(
 				variableUse, valueNode, false);
 			if (expressionStack.isEmpty()
 				|| peekExpression().parseNodeKind() != MARKER_NODE)
@@ -572,12 +591,10 @@ public class L1Decompiler
 				else
 				{
 					// Create a two-element FirstOfSequence node.
-					newStatements = TupleDescriptor.tuple(
-						penultimateExpression, lastExpression);
+					newStatements =
+						tuple(penultimateExpression, lastExpression);
 				}
-				pushExpression(
-					FirstOfSequenceNodeDescriptor.newStatements(
-						newStatements));
+				pushExpression(newFirstOfSequenceNode(newStatements));
 			}
 		}
 
@@ -599,12 +616,9 @@ public class L1Decompiler
 				final A_Token token = outerExpr.token();
 				final A_BasicObject variableObject = token.literal();
 				assert variableObject.isInstanceOfKind(
-					VariableTypeDescriptor.mostGeneralVariableType());
-				outerDecl = DeclarationNodeDescriptor.newModuleVariable(
-					token,
-					variableObject,
-					NilDescriptor.nil(),
-					NilDescriptor.nil());
+					mostGeneralVariableType());
+				outerDecl = newModuleVariable(
+					token, variableObject, nil(), nil());
 			}
 			else
 			{
@@ -612,11 +626,10 @@ public class L1Decompiler
 					REFERENCE_NODE.mostGeneralType());
 				outerDecl = outerExpr.variable().declaration();
 			}
-			final A_Phrase variableUse = VariableUseNodeDescriptor.newUse(
-				outerDecl.token(), outerDecl);
+			final A_Phrase variableUse = newUse(outerDecl.token(), outerDecl);
 			final A_Phrase valueExpr = popExpression();
 			final A_Phrase assignmentNode =
-				AssignmentNodeDescriptor.from(variableUse, valueExpr, false);
+				newAssignment(variableUse, valueExpr, false);
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode);
@@ -637,8 +650,7 @@ public class L1Decompiler
 		{
 			final A_Phrase localDecl =
 				locals.get(getInteger() - code.numArgs() - 1);
-			final AvailObject useNode = VariableUseNodeDescriptor.newUse(
-				localDecl.token(), localDecl);
+			final AvailObject useNode = newUse(localDecl.token(), localDecl);
 			pushExpression(useNode);
 		}
 
@@ -660,12 +672,10 @@ public class L1Decompiler
 				permutationTuple = permutationLiteral.token().literal();
 			}
 			final List<A_Phrase> expressions = popExpressions(count);
-			A_Phrase listNode = ListNodeDescriptor.newExpressions(
-				TupleDescriptor.tupleFromList(expressions));
+			A_Phrase listNode = newListNode(tupleFromList(expressions));
 			if (permutationTuple != null)
 			{
-				listNode = PermutedListNodeDescriptor.fromListAndPermutation(
-					listNode, permutationTuple);
+				listNode = newPermutedListNode(listNode, permutationTuple);
 			}
 			pushExpression(listNode);
 		}
@@ -681,8 +691,7 @@ public class L1Decompiler
 				return;
 			}
 			final A_Phrase outerDecl = outer.variable().declaration();
-			final A_Phrase use = VariableUseNodeDescriptor.newUse(
-				outerDecl.token(), outerDecl);
+			final A_Phrase use = newUse(outerDecl.token(), outerDecl);
 			pushExpression(use);
 		}
 
@@ -706,71 +715,57 @@ public class L1Decompiler
 			}
 			else
 			{
-				final A_Token labelToken = TokenDescriptor.create(
-					StringDescriptor.stringFrom(tempGenerator.valueNotNull("label")),
-					TupleDescriptor.emptyTuple(),
-					TupleDescriptor.emptyTuple(),
+				final A_Token labelToken = newToken(
+					stringFrom(tempGenerator.valueNotNull("label")),
+					emptyTuple(),
+					emptyTuple(),
 					0,
 					0,
-					TokenType.KEYWORD);
-				label = DeclarationNodeDescriptor.newLabel(
+					KEYWORD);
+				label = newLabel(
 					labelToken,
-					NilDescriptor.nil(),
-					ContinuationTypeDescriptor.forFunctionType(
-						code.functionType()));
+					nil(),
+					continuationTypeForFunctionType(code.functionType()));
 				statements.add(0, label);
 			}
 
-			final A_Phrase useNode = VariableUseNodeDescriptor.newUse(
-				label.token(),
-				label);
-			pushExpression(useNode);
+			pushExpression(newUse(label.token(), label));
 		}
 
 		@Override
 		public void L1Ext_doGetLiteral ()
 		{
-			final A_Token globalToken = TokenDescriptor.create(
-				StringDescriptor.stringFrom("SomeGlobal"),
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
+			final A_Token globalToken = newToken(
+				stringFrom("SomeGlobal"),
+				emptyTuple(),
+				emptyTuple(),
 				0,
 				0,
-				TokenType.KEYWORD);
+				KEYWORD);
 			final A_BasicObject globalVar = code.literalAt(getInteger());
 
 			final A_Phrase decl =
-				DeclarationNodeDescriptor.newModuleVariable(
-					globalToken,
-					globalVar,
-					NilDescriptor.nil(),
-					NilDescriptor.nil());
-			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
-				globalToken, decl);
-			pushExpression(varUse);
+				newModuleVariable(globalToken, globalVar, nil(), nil());
+			pushExpression(newUse(globalToken, decl));
 		}
 
 		@Override
 		public void L1Ext_doSetLiteral ()
 		{
-			final A_Token globalToken = TokenDescriptor.create(
-				StringDescriptor.stringFrom("SomeGlobal"),
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
+			final A_Token globalToken = newToken(
+				stringFrom("SomeGlobal"),
+				emptyTuple(),
+				emptyTuple(),
 				0,
 				0,
-				TokenType.KEYWORD);
+				KEYWORD);
 			final AvailObject globalVar = code.literalAt(getInteger());
 			final A_Phrase declaration =
-				DeclarationNodeDescriptor.newModuleVariable(
-					globalToken,
-					globalVar,
-					NilDescriptor.nil(),
-					NilDescriptor.nil());
-			final A_Phrase varUse = VariableUseNodeDescriptor.newUse(
+				newModuleVariable(globalToken, globalVar, nil(), nil());
+			final A_Phrase varUse = newUse(
 				globalToken, declaration);
 			final A_Phrase assignmentNode =
-				AssignmentNodeDescriptor.from(varUse, popExpression(), false);
+				newAssignment(varUse, popExpression(), false);
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode);
@@ -812,7 +807,7 @@ public class L1Decompiler
 			// permuting both the arguments and their types in the case of a
 			// super-call to a bundle containing permutations.
 			final A_Tuple permutation = code.literalAt(getInteger());
-			pushExpression(LiteralNodeDescriptor.syntheticFrom(permutation));
+			pushExpression(syntheticLiteralNodeFor(permutation));
 			pushExpression(MarkerTypes.permute.marker);
 		}
 
@@ -827,8 +822,8 @@ public class L1Decompiler
 			final int nArgs = method.numArgs();
 			final A_Phrase argsNode =
 				reconstructListWithSuperUnionType(nArgs, superUnionType);
-			final A_Phrase sendNode = SendNodeDescriptor.from(
-				TupleDescriptor.emptyTuple(), bundle, argsNode, type);
+			final A_Phrase sendNode = newSendNode(
+				emptyTuple(), bundle, argsNode, type);
 			pushExpression(sendNode);
 		}
 
@@ -892,11 +887,9 @@ public class L1Decompiler
 				permutationTuple = permutationLiteral.token().literal();
 			}
 			final List<A_Phrase> argsList = popExpressions(nArgs);
-			final A_Phrase listNode = ListNodeDescriptor.newExpressions(
-				TupleDescriptor.tupleFromList(argsList));
+			final A_Phrase listNode = newListNode(tupleFromList(argsList));
 			final A_Phrase argsNode = permutationTuple != null
-				? PermutedListNodeDescriptor.fromListAndPermutation(
-					listNode, permutationTuple)
+				? newPermutedListNode(listNode, permutationTuple)
 				: listNode;
 			return adjustSuperCastsIn(argsNode, superUnionType);
 		}
@@ -930,10 +923,8 @@ public class L1Decompiler
 					outputArray[index - 1] = adjustSuperCastsIn(
 						element, superUnionType.typeAtIndex(i));
 				}
-				return PermutedListNodeDescriptor.fromListAndPermutation(
-					ListNodeDescriptor.newExpressions(
-						TupleDescriptor.tuple(outputArray)),
-						permutation);
+				return newPermutedListNode(
+					newListNode(tuple(outputArray)), permutation);
 			}
 			else if (phrase.parseNodeKindIsUnder(LIST_NODE))
 			{
@@ -946,12 +937,11 @@ public class L1Decompiler
 					outputArray[i - 1] = adjustSuperCastsIn(
 						element, superUnionType.typeAtIndex(i));
 				}
-				return ListNodeDescriptor.newExpressions(
-					TupleDescriptor.tuple(outputArray));
+				return newListNode(tuple(outputArray));
 			}
 			else
 			{
-				return SuperCastNodeDescriptor.create(phrase, superUnionType);
+				return newSuperCastNode(phrase, superUnionType);
 			}
 		}
 	};
@@ -983,16 +973,15 @@ public class L1Decompiler
 		for (int i = 1; i <= outerCount; i++)
 		{
 			final A_BasicObject outerObject = aFunction.outerVarAt(i);
-			final A_Token token = LiteralTokenDescriptor.create(
-				StringDescriptor.stringFrom("Outer#" + i),
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
+			final A_Token token = literalToken(
+				stringFrom("Outer#" + i),
+				emptyTuple(),
+				emptyTuple(),
 				0,
 				0,
-				TokenType.SYNTHETIC_LITERAL,
+				SYNTHETIC_LITERAL,
 				outerObject);
-			final A_Phrase literalNode =
-				LiteralNodeDescriptor.fromTokenForDecompiler(token);
+			final A_Phrase literalNode = fromTokenForDecompiler(token);
 			functionOuters.add(literalNode);
 		}
 		return new L1Decompiler(

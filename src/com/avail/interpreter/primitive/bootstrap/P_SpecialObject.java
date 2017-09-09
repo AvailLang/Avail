@@ -31,13 +31,29 @@
  */
 package com.avail.interpreter.primitive.bootstrap;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.E_NO_SPECIAL_OBJECT;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.LiteralNodeDescriptor
+	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.exceptions.AvailErrorCode.E_NO_SPECIAL_OBJECT;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Retrieve the {@linkplain
@@ -76,25 +92,21 @@ public final class P_SpecialObject extends Primitive
 			return interpreter.primitiveFailure(
 				E_NO_SPECIAL_OBJECT);
 		}
-		return interpreter.primitiveSuccess(
-			LiteralNodeDescriptor.syntheticFrom(result));
+		return interpreter.primitiveSuccess(syntheticLiteralNodeFor(result));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				LITERAL_NODE.create(
-					IntegerRangeTypeDescriptor.naturalNumbers())),
+		return functionType(
+			tuple(
+				LITERAL_NODE.create(naturalNumbers())),
 			LITERAL_NODE.mostGeneralType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_NO_SPECIAL_OBJECT));
+		return enumerationWith(set(E_NO_SPECIAL_OBJECT));
 	}
 }

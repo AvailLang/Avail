@@ -47,6 +47,7 @@ import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
+import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
@@ -83,8 +84,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		}
 		return interpreter ->
 		{
-			final A_Function function = FunctionDescriptor.createExceptOuters(
-				code, numOuters);
+			final A_Function function = createExceptOuters(code, numOuters);
 			for (int i = 0; i < numOuters; i++)
 			{
 				function.outerVarAtPut(
@@ -115,9 +115,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 			final List<L2ObjectRegister> outerRegs = outersVector.registers();
 			final int numOuters = outerRegs.size();
 			assert numOuters == code.numOuters();
-			final A_Function function = FunctionDescriptor.createExceptOuters(
-				code,
-				numOuters);
+			final A_Function function = createExceptOuters(code, numOuters);
 			for (int i = 1; i <= numOuters; i++)
 			{
 				function.outerVarAtPut(

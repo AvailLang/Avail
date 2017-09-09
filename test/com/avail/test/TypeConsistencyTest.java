@@ -53,23 +53,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.avail.descriptor.AtomDescriptor.createAtom;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
-import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
+import static com.avail.descriptor.FiberTypeDescriptor.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.Types;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.InstanceMetaDescriptor.*;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor
 	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.mapMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
+import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
 import static com.avail.descriptor.SetTypeDescriptor.setMeta;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
@@ -242,7 +247,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return instanceMetaOn(NONTYPE.o());
+				return instanceMeta(NONTYPE.o());
 			}
 		};
 
@@ -294,7 +299,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return SetTypeDescriptor.mostGeneralSetType();
+				return mostGeneralSetType();
 			}
 		};
 
@@ -305,7 +310,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return FiberTypeDescriptor.mostGeneralFiberType();
+				return mostGeneralFiberType();
 			}
 		};
 
@@ -329,9 +334,8 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return functionType(
-					emptyTuple(),
-					integers());
+				return
+					functionType(emptyTuple(), integers());
 			}
 		};
 
@@ -344,9 +348,8 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return functionType(
-					tuple(integers()),
-					integers());
+				return
+					functionType(tuple(integers()), integers());
 			}
 		};
 
@@ -359,11 +362,8 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return functionType(
-					tuple(
-						integers(),
-						integers()),
-					integers());
+				return
+					functionType(tuple(integers(), integers()), integers());
 			}
 		};
 
@@ -376,7 +376,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return FunctionTypeDescriptor.createWithArgumentTupleType(
+				return functionTypeFromArgumentTupleType(
 					mostGeneralTupleType(),
 					bottom(),
 					emptySet());
@@ -412,8 +412,8 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return instanceTypeOn(
-					AtomDescriptor.create(
+				return instanceType(
+					createAtom(
 						stringFrom("something"),
 						nil()));
 			}
@@ -429,8 +429,8 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return instanceTypeOn(
-					AtomDescriptor.create(
+				return instanceType(
+					createAtom(
 						stringFrom("another"),
 						nil()));
 			}
@@ -445,7 +445,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return ObjectTypeDescriptor.mostGeneralObjectType();
+				return mostGeneralObjectType();
 			}
 		};
 
@@ -458,7 +458,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return ObjectTypeDescriptor.objectTypeFromMap(
+				return objectTypeFromMap(
 					emptyMap().mapAtPuttingCanDestroy(
 						SOME_ATOM_TYPE.t().instance(),
 						Types.ANY.o(),
@@ -475,7 +475,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return ObjectTypeDescriptor.objectTypeFromMap(
+				return objectTypeFromMap(
 					emptyMap().mapAtPuttingCanDestroy(
 						SOME_ATOM_TYPE.t().instance(),
 						integers(),
@@ -492,7 +492,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return ObjectTypeDescriptor.objectTypeFromMap(
+				return objectTypeFromMap(
 					emptyMap().mapAtPuttingCanDestroy(
 						ANOTHER_ATOM_TYPE.t().instance(),
 						Types.ANY.o(),
@@ -524,10 +524,9 @@ public class TypeConsistencyTest
 			@Override
 			A_Type get ()
 			{
-				return PojoTypeDescriptor.forClassWithTypeArguments(
+				return pojoTypeForClassWithTypeArguments(
 					Comparable.class,
-					tuple(
-						mostGeneralPojoType()));
+					tuple(mostGeneralPojoType()));
 			}
 		};
 
@@ -541,10 +540,9 @@ public class TypeConsistencyTest
 			@Override
 			A_Type get ()
 			{
-				return PojoTypeDescriptor.forClassWithTypeArguments(
+				return pojoTypeForClassWithTypeArguments(
 					Comparable.class,
-					tuple(
-						pojoTypeForClass(Integer.class)));
+					tuple(pojoTypeForClass(Integer.class)));
 			}
 		};
 
@@ -572,10 +570,9 @@ public class TypeConsistencyTest
 			@Override
 			A_Type get ()
 			{
-				return PojoTypeDescriptor.forClassWithTypeArguments(
+				return pojoTypeForClassWithTypeArguments(
 					Comparable.class,
-					tuple(
-						pojoTypeForClass(String.class)));
+					tuple(pojoTypeForClass(String.class)));
 			}
 		};
 
@@ -608,7 +605,7 @@ public class TypeConsistencyTest
 			@Override
 			A_Type get ()
 			{
-				return PojoTypeDescriptor.forClassWithTypeArguments(
+				return pojoTypeForClassWithTypeArguments(
 					Enum.class,
 					tuple(selfTypeForClass(
 						Enum.class)));
@@ -642,7 +639,7 @@ public class TypeConsistencyTest
 			@Override
 			A_Type get ()
 			{
-				return PojoTypeDescriptor.forClassWithTypeArguments(
+				return pojoTypeForClassWithTypeArguments(
 					Comparable.class,
 					tuple(integers()));
 			}
@@ -659,7 +656,7 @@ public class TypeConsistencyTest
 			@Override
 			A_Type get ()
 			{
-				return PojoTypeDescriptor.forArrayTypeWithSizeRange(
+				return pojoArrayType(
 					mostGeneralPojoType(),
 					wholeNumbers());
 			}
@@ -676,7 +673,7 @@ public class TypeConsistencyTest
 			@Override
 			A_Type get ()
 			{
-				return PojoTypeDescriptor.forArrayTypeWithSizeRange(
+				return pojoArrayType(
 					JAVA_STRING_POJO.t(),
 					wholeNumbers());
 			}
@@ -746,7 +743,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return instanceMetaOn(wholeNumbers());
+				return instanceMeta(wholeNumbers());
 			}
 		};
 
@@ -761,7 +758,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return instanceMetaOn(instanceMetaOn(wholeNumbers()));
+				return instanceMeta(instanceMeta(wholeNumbers()));
 			}
 		};
 
@@ -944,7 +941,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return instanceMetaOn(bottom());
+				return instanceMeta(bottom());
 			}
 		};
 
@@ -1031,10 +1028,10 @@ public class TypeConsistencyTest
 					if (parseNodeKind.isSubkindOf(ParseNodeKind.LIST_NODE))
 					{
 						final A_Type subexpressionsTupleType =
-							TupleTypeDescriptor.mappingElementTypes(
+							tupleTypeFromTupleOfTypes(
 								innerType,
 								ParseNodeKind.PARSE_NODE::create);
-						newType = ListNodeTypeDescriptor.createListNodeType(
+						newType = createListNodeType(
 							parseNodeKind,
 							innerType,
 							subexpressionsTupleType);
@@ -2083,7 +2080,7 @@ public class TypeConsistencyTest
 			@Override
 			public A_Type transform (final A_Type type)
 			{
-				return FiberTypeDescriptor.forResultType(type);
+				return fiberType(type);
 			}
 		});
 	}
@@ -2138,9 +2135,8 @@ public class TypeConsistencyTest
 			@Override
 			A_Type transform (final A_Type type)
 			{
-				return PojoTypeDescriptor.forClassWithTypeArguments(
-					Comparable.class,
-					tuple(type));
+				return pojoTypeForClassWithTypeArguments(
+					Comparable.class, tuple(type));
 			}
 		});
 	}
@@ -2160,8 +2156,8 @@ public class TypeConsistencyTest
 			@Override
 			A_Type transform (final A_Type type)
 			{
-				return functionType(tuple(type),
-					TOP.o());
+				return
+					functionType(tuple(type), TOP.o());
 			}
 		});
 	}
@@ -2182,7 +2178,7 @@ public class TypeConsistencyTest
 			@Override
 			A_Type transform (final A_Type type)
 			{
-				return instanceMetaOn(type);
+				return instanceMeta(type);
 			}
 		});
 	}
@@ -2201,11 +2197,11 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final A_Type Tx = instanceMetaOn(x.t());
-				final A_Type Ty = instanceMetaOn(y.t());
+				final A_Type Tx = instanceMeta(x.t());
+				final A_Type Ty = instanceMeta(y.t());
 				final A_Type xuy = x.t().typeUnion(y.t());
 				final A_BasicObject T_xuy =
-					instanceMetaOn(xuy);
+					instanceMeta(xuy);
 				final A_BasicObject TxuTy = Tx.typeUnion(Ty);
 				assertEQ(
 					T_xuy,
@@ -2234,10 +2230,10 @@ public class TypeConsistencyTest
 		{
 			for (final Node y : Node.values)
 			{
-				final A_Type Tx = instanceMetaOn(x.t());
-				final A_Type Ty = instanceMetaOn(y.t());
+				final A_Type Tx = instanceMeta(x.t());
+				final A_Type Ty = instanceMeta(y.t());
 				final A_Type xny = x.t().typeIntersection(y.t());
-				final A_Type T_xny = instanceMetaOn
+				final A_Type T_xny = instanceMeta
 					(xny);
 				final A_Type TxnTy = Tx.typeIntersection(Ty);
 				assertEQ(

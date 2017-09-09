@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
@@ -44,14 +43,17 @@ import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.PARKED;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
+	.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -97,8 +99,8 @@ extends Primitive
 			{
 				// Wake up the fiber.
 				fiber.executionState(SUSPENDED);
-				Interpreter.resumeFromSuccessfulPrimitive(
-					AvailRuntime.current(),
+				resumeFromSuccessfulPrimitive(
+					currentRuntime(),
 					fiber,
 					nil(),
 					primitiveRawFunction,
@@ -117,8 +119,6 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			tuple(mostGeneralFiberType()),
-			TOP.o());
+		return functionType(tuple(mostGeneralFiberType()), TOP.o());
 	}
 }

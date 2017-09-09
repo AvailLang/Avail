@@ -32,18 +32,24 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.HASH;
+import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.NAME;
+import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.PARENT;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
  * The primitive types of Avail are different from the notion of primitive types
@@ -333,7 +339,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_BasicObject anEnumerationType)
 	{
-		return InstanceMetaDescriptor.topMeta().isSubtypeOf(object);
+		return topMeta().isSubtypeOf(object);
 	}
 
 	@Override
@@ -419,7 +425,7 @@ extends TypeDescriptor
 		{
 			return aListNodeType;
 		}
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -431,7 +437,7 @@ extends TypeDescriptor
 		{
 			return aParseNodeType;
 		}
-		return BottomTypeDescriptor.bottom();
+		return bottom();
 	}
 
 	@Override @AvailMethod
@@ -481,10 +487,10 @@ extends TypeDescriptor
 	static AvailObject createMutablePrimitiveObjectNamed (
 		final String typeNameString)
 	{
-		final A_String name = StringDescriptor.stringFrom(typeNameString);
+		final A_String name = stringFrom(typeNameString);
 		final AvailObject object = transientMutable.create();
 		object.setSlot(NAME, name.makeShared());
-		object.setSlot(PARENT, NilDescriptor.nil());
+		object.setSlot(PARENT, nil());
 		object.setSlot(HASH, typeNameString.hashCode() * multiplier);
 		return object;
 	}

@@ -41,6 +41,7 @@ import com.avail.utility.json.JSONWriter;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.FiberTypeDescriptor.ObjectSlots.RESULT_TYPE;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
@@ -132,7 +133,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aType)
 	{
-		return FiberTypeDescriptor.forResultType(
+		return fiberType(
 			object.slot(RESULT_TYPE).typeIntersection(aType.resultType()));
 	}
 
@@ -155,7 +156,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aType)
 	{
-		return FiberTypeDescriptor.forResultType(
+		return fiberType(
 			object.slot(RESULT_TYPE).typeUnion(aType.resultType()));
 	}
 
@@ -257,7 +258,7 @@ extends TypeDescriptor
 	 *        The result type.
 	 * @return A new fiber type.
 	 */
-	public static AvailObject forResultType (final A_Type resultType)
+	public static AvailObject fiberType (final A_Type resultType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(RESULT_TYPE, resultType.makeImmutable());
@@ -269,7 +270,7 @@ extends TypeDescriptor
 	 * The most general {@linkplain FiberTypeDescriptor fiber type}.
 	 */
 	private static final A_Type mostGeneralFiberType =
-		forResultType(TOP.o()).makeShared();
+		fiberType(TOP.o()).makeShared();
 
 	/**
 	 * Answer the most general {@linkplain FiberDescriptor fiber type}.
@@ -285,7 +286,7 @@ extends TypeDescriptor
 	 * The metatype for all {@linkplain FiberTypeDescriptor fiber types}.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.instanceMetaOn(mostGeneralFiberType).makeShared();
+		instanceMeta(mostGeneralFiberType).makeShared();
 
 	/**
 	 * Answer the metatype for all {@linkplain FiberTypeDescriptor fiber types}.

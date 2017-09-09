@@ -32,14 +32,33 @@
 
 package com.avail.interpreter.primitive.variables;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
+import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
+import static com.avail.interpreter.Primitive.Fallibility.*;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Add a {@linkplain VariableAccessReactor
@@ -78,28 +97,24 @@ extends Primitive
 		final VariableAccessReactor writeReactor =
 			new VariableAccessReactor(sharedFunction);
 		var.addWriteReactor(key, writeReactor);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				VariableTypeDescriptor.mostGeneralVariableType(),
-				ATOM.o(),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.emptyTuple(),
-					TOP.o())),
-			TOP.o());
+		return
+			functionType(tuple(mostGeneralVariableType(),
+				ATOM.o(), functionType(
+					emptyTuple(),
+					TOP.o())), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_SPECIAL_ATOM));
+		return
+			enumerationWith(set(E_SPECIAL_ATOM));
 	}
 
 	@Override

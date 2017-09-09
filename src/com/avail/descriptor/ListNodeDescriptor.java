@@ -53,6 +53,7 @@ import static com.avail.descriptor.ListNodeDescriptor.ObjectSlots.TUPLE_TYPE;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 
 /**
  * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which
@@ -114,8 +115,8 @@ extends ParseNodeDescriptor
 				}
 				types.add(expressionType);
 			}
-			tupleType = TupleTypeDescriptor.tupleTypeForTypes(
-					types.toArray(new A_Type[types.size()]));
+			tupleType = tupleTypeForTypes(
+				types.toArray(new A_Type[types.size()]));
 			object.setMutableSlot(TUPLE_TYPE, tupleType.makeShared());
 		}
 		return tupleType;
@@ -190,7 +191,7 @@ extends ParseNodeDescriptor
 		final A_Tuple newTuple = oldTuple.appendCanDestroy(
 			newParseNode,
 			true);
-		return ListNodeDescriptor.newExpressions(newTuple);
+		return newListNode(newTuple);
 	}
 
 	@Override
@@ -330,7 +331,7 @@ extends ParseNodeDescriptor
 		}
 		if (anyStripped)
 		{
-			return newExpressions(expressionsTuple);
+			return newListNode(expressionsTuple);
 		}
 		return object;
 	}
@@ -353,7 +354,7 @@ extends ParseNodeDescriptor
 				{
 					types[j - 1] = expressions.tupleAt(j).superUnionType();
 				}
-				return TupleTypeDescriptor.tupleTypeForTypes(types);
+				return tupleTypeForTypes(types);
 			}
 		}
 		// The elements' superunion types were all bottom, so answer bottom.
@@ -406,7 +407,7 @@ extends ParseNodeDescriptor
 	 *        list node}.
 	 * @return The resulting list node.
 	 */
-	public static AvailObject newExpressions (final A_Tuple expressions)
+	public static AvailObject newListNode (final A_Tuple expressions)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(EXPRESSIONS_TUPLE, expressions);
@@ -448,14 +449,14 @@ extends ParseNodeDescriptor
 
 	/** The empty {@link ListNodeDescriptor list node}. */
 	private static final AvailObject empty =
-		newExpressions(emptyTuple()).makeShared();
+		newListNode(emptyTuple()).makeShared();
 
 	/**
 	 * Answer the empty {@link ListNodeDescriptor list node}.
 	 *
 	 * @return The empty list node.
 	 */
-	public static AvailObject empty ()
+	public static AvailObject emptyListNode ()
 	{
 		return empty;
 	}

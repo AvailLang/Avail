@@ -32,12 +32,12 @@
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.LiteralTokenTypeDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 import static com.avail.compiler.ParsingOperation.PARSE_RAW_KEYWORD_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 
 /**
  * A {@code RawKeywordTokenArgument} is an occurrence of {@linkplain
@@ -70,7 +70,7 @@ extends RawTokenArgument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_RAW_KEYWORD_TOKEN);
-		if (!LiteralTokenTypeDescriptor.literalTokenType(Types.TOKEN.o()).isSubtypeOf(
+		if (!literalTokenType(TOKEN.o()).isSubtypeOf(
 			phraseType))
 		{
 			generator.emitDelayed(

@@ -31,23 +31,45 @@
  */
 package com.avail.interpreter.primitive.files;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static java.nio.file.FileVisitResult.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.AvailRuntime;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.utility.Mutable;
+
+import javax.annotation.Nullable;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import com.avail.AvailRuntime;
-import javax.annotation.Nullable;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.utility.Mutable;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static java.nio.file.FileVisitResult.CONTINUE;
 
 /**
  * <strong>Primitive:</strong> Unlink the specified {@linkplain Path path}
@@ -74,7 +96,7 @@ extends Primitive
 		final A_String filename = args.get(1);
 		final A_Atom requireExistence = args.get(2);
 		final A_Atom followSymlinks = args.get(3);
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		final Path path;
 		try
 		{
@@ -194,31 +216,22 @@ extends Primitive
 				return interpreter.primitiveFailure(E_IO_ERROR);
 			}
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				booleanType(),
-				stringType(),
-				booleanType(),
-				booleanType()),
-			TOP.o());
+		return
+			functionType(tuple(booleanType(), stringType(), booleanType(),
+				booleanType()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_INVALID_PATH,
-				E_PERMISSION_DENIED,
-				E_NO_FILE,
-				E_DIRECTORY_NOT_EMPTY,
-				E_IO_ERROR,
-				E_PARTIAL_SUCCESS));
+		return
+			enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED, E_NO_FILE,
+				E_DIRECTORY_NOT_EMPTY, E_IO_ERROR, E_PARTIAL_SUCCESS));
 	}
 }

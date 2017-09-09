@@ -35,7 +35,6 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
-import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -47,6 +46,8 @@ import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 
@@ -101,7 +102,7 @@ extends L2Operation
 		final RegisterSet registerSet = registerSets.get(0);
 		assert registerSet.hasTypeAt(variableReg);
 		final A_Type varType = registerSet.typeAt(variableReg);
-		assert varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralVariableType());
+		assert varType.isSubtypeOf(mostGeneralVariableType());
 	}
 
 	@Override

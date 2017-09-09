@@ -384,9 +384,9 @@ implements IntegerEnumSlotDescriptionEnum
 	 * return type in the primitive's basic function type.
 	 *
 	 * @param argumentTypes
-	 *            A {@link List} of argument {@linkplain TypeDescriptor types}.
+	 *        A {@link List} of argument {@linkplain TypeDescriptor types}.
 	 * @return
-	 *            The return type guaranteed by the VM at some call site.
+	 *         The return type guaranteed by the VM at some call site.
 	 */
 	public A_Type returnTypeGuaranteedByVM (
 		final List<? extends A_Type> argumentTypes)
@@ -401,12 +401,12 @@ implements IntegerEnumSlotDescriptionEnum
 	 * request and should be accessed via {@link #failureVariableType()}.
 	 *
 	 * <p>
-	 * By default, expect the primitive to fail with a string.
+	 * By default, expect the primitive to fail with a natural number.
 	 * </p>
 	 *
 	 * @return
-	 *             A type which is at least as specific as the type of the
-	 *             failure variable declared in a block using this primitive.
+	 *         A type which is at least as specific as the type of the failure
+	 *         variable declared in a block using this primitive.
 	 */
 	protected A_Type privateFailureVariableType ()
 	{
@@ -427,12 +427,12 @@ implements IntegerEnumSlotDescriptionEnum
 	 * type is acceptable for the variable.  The type is cached for performance.
 	 *
 	 * @return
-	 *             A type which is at least as specific as the type of the
-	 *             failure variable declared in a block using this primitive.
+	 *         A type which is at least as specific as the type of the failure
+	 *         variable declared in a block using this primitive.
 	 */
 	public final A_Type failureVariableType ()
 	{
-		A_Type failureType = cachedFailureVariableType;
+		@Nullable A_Type failureType = cachedFailureVariableType;
 		if (failureType == null)
 		{
 			failureType = privateFailureVariableType().makeShared();

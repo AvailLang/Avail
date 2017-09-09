@@ -32,15 +32,30 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.utility.Mutable;
+import com.avail.utility.MutableOrNull;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.*;
-import com.avail.interpreter.*;
-import com.avail.utility.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
+	.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
  * <strong>Primitive:</strong> If the {@linkplain FiberDescriptor fiber} has
@@ -100,13 +115,13 @@ extends Primitive
 				else
 				{
 					result.value =
-						interpreter.primitiveSuccess(NilDescriptor.nil());
+						interpreter.primitiveSuccess(nil());
 				}
 			});
 		}
 		else
 		{
-			result.value = interpreter.primitiveSuccess(NilDescriptor.nil());
+			result.value = interpreter.primitiveSuccess(nil());
 		}
 		return result.value();
 	}
@@ -114,17 +129,14 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FiberTypeDescriptor.mostGeneralFiberType()),
-			TOP.o());
+		return
+			functionType(tuple(mostGeneralFiberType()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_FIBER_CANNOT_JOIN_ITSELF));
+		return
+			enumerationWith(set(E_FIBER_CANNOT_JOIN_ITSELF));
 	}
 }

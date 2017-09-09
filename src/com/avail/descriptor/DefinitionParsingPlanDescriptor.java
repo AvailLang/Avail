@@ -32,20 +32,23 @@
 
 package com.avail.descriptor;
 
-import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION_PARSING_PLAN;
-import static com.avail.utility.StackPrinter.trace;
+import com.avail.annotations.AvailMethod;
+import com.avail.compiler.AvailCompilerFragmentCache;
+import com.avail.compiler.ParsingConversionRule;
+import com.avail.compiler.ParsingOperation;
+import com.avail.compiler.splitter.MessageSplitter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.List;
-import com.avail.annotations.AvailMethod;
-import com.avail.compiler.AvailCompilerFragmentCache;
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.compiler.ParsingConversionRule;
-import com.avail.compiler.ParsingOperation;
+
+import static com.avail.compiler.ParsingOperation.decode;
+import static com.avail.compiler.ParsingOperation.operand;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor
+	.ObjectSlots.*;
+import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION_PARSING_PLAN;
+import static com.avail.utility.StackPrinter.trace;
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
@@ -285,7 +288,7 @@ extends Descriptor
 	 * @param definition The definition for this plan.
 	 * @return A new {@linkplain DefinitionParsingPlanDescriptor plan}.
 	 */
-	static A_DefinitionParsingPlan createPlan (
+	static A_DefinitionParsingPlan newParsingPlan (
 		final A_Bundle bundle,
 		final A_Definition definition)
 	{

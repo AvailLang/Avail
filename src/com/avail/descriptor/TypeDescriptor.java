@@ -42,6 +42,8 @@ import java.util.List;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.PrimitiveTypeDescriptor
+	.createMutablePrimitiveObjectNamed;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -306,22 +308,20 @@ extends AbstractTypeDescriptor
 		public final A_Type[] intersectionTypes = new A_Type[enumCount];
 
 		/**
-		 * Construct the new top {@linkplain Types} instance.
+		 * Construct the new top {@code Types} instance.
 		 *
 		 * @param typeTag
-		 *        The {@link TypeTag} for this {@link Types primitive type}'s
-		 *        descriptor.
+		 *        The {@link TypeTag} for this primitive type's descriptor.
 		 */
 		Types (final TypeTag typeTag)
 		{
 			this.parent = null;
 			this.typeTag = typeTag;
-			this.o =
-				PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed("⊤");
+			this.o = createMutablePrimitiveObjectNamed("⊤");
 		}
 
 		/**
-		 * Construct a new {@linkplain Types} instance with the specified
+		 * Construct a new {@code Types} instance with the specified
 		 * parent.  Use {@link PrimitiveTypeDescriptor} for the new type's
 		 * descriptor.
 		 *
@@ -335,7 +335,7 @@ extends AbstractTypeDescriptor
 		{
 			this.parent = parent;
 			this.typeTag = typeTag;
-			this.o = PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed(
+			this.o = createMutablePrimitiveObjectNamed(
 				name().toLowerCase().replace('_', ' '));
 		}
 

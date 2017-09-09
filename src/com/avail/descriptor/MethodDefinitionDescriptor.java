@@ -160,7 +160,7 @@ extends DefinitionDescriptor
 	 * @return
 	 *            A method signature.
 	 */
-	public static AvailObject create (
+	public static AvailObject newMethodDefinition (
 		final A_Method definitionMethod,
 		final A_Module definitionModule,
 		final A_Function bodyBlock)

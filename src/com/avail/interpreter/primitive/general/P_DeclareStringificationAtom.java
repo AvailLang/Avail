@@ -32,16 +32,31 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MethodDescriptor;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Inform the VM of the {@linkplain
@@ -71,42 +86,38 @@ extends Primitive
 		// Generate a function that will invoke the stringifier method for
 		// the specified value.
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(), 0, NilDescriptor.nil());
+			nil(), 0, nil());
 		writer.argumentTypes(ANY.o());
-		writer.returnType(TupleTypeDescriptor.stringType());
+		writer.returnType(stringType());
 		writer.write(L1Operation.L1_doPushLocal, 1);
 		try
 		{
 			writer.write(
 				L1Operation.L1_doCall,
 				writer.addLiteral(atom.bundleOrCreate()),
-				writer.addLiteral(TupleTypeDescriptor.stringType()));
+				writer.addLiteral(stringType()));
 		}
 		catch (final MalformedMessageException e)
 		{
 			assert false : "This should never happen!";
 			throw new AvailRuntimeException(e.errorCode());
 		}
-		final A_Function function = FunctionDescriptor.create(
-			writer.compiledCode(),
-			TupleDescriptor.emptyTuple());
+		final A_Function function =
+			createFunction(writer.compiledCode(), emptyTuple());
 		function.makeShared();
 		// Set the stringification function.
-		AvailRuntime.current().setStringificationFunction(function);
-		final AvailLoader loader = interpreter.availLoaderOrNull();
+		interpreter.runtime().setStringificationFunction(function);
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
 		{
 			loader.statementCanBeSummarized(false);
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ATOM.o()),
-			TOP.o());
+		return functionType(tuple(ATOM.o()), TOP.o());
 	}
 }

@@ -43,7 +43,6 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.utility.Generator;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -51,35 +50,77 @@ import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
+import static com.avail.descriptor.AssignmentNodeDescriptor.isInline;
+import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor
+	.createAtomWithProperties;
 import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
+import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
+import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.compiledCodeTypeForFunctionType;
+import static com.avail.descriptor.ContinuationDescriptor
+	.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.continuationTypeForFunctionType;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newDeclaration;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+	.newExpressionAsStatement;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
+import static com.avail.descriptor.FirstOfSequenceNodeDescriptor
+	.newFirstOfSequenceNode;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.functionTypeFromArgumentTupleType;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.ListNodeDescriptor.newListNode;
 import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.MacroSubstitutionNodeDescriptor
+	.newMacroSubstitution;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor
 	.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectDescriptor.objectFromMap;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
+import static com.avail.descriptor.PermutedListNodeDescriptor
+	.newPermutedListNode;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.ReferenceNodeDescriptor.referenceNodeFromUse;
+import static com.avail.descriptor.SelfPojoTypeDescriptor
+	.pojoFromSerializationProxy;
+import static com.avail.descriptor.SelfPojoTypeDescriptor
+	.pojoSerializationProxy;
+import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
+import static com.avail.descriptor.SequenceNodeDescriptor.newSequence;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.SuperCastNodeDescriptor.newSuperCastNode;
+import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor
 	.tupleTypeForSizesTypesDefaultType;
-import static com.avail.descriptor.VariableDescriptor.forVariableType;
+import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
+import static com.avail.descriptor.VariableUseNodeDescriptor.newUse;
 import static com.avail.interpreter.Primitive.primitiveByName;
 import static com.avail.serialization.SerializerOperandEncoding.*;
 import static com.avail.utility.Nulls.stripNull;
@@ -564,7 +605,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return CharacterDescriptor.fromCodePoint(
+			return fromCodePoint(
 				subobjects[0].extractInt());
 		}
 	},
@@ -590,7 +631,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return CharacterDescriptor.fromCodePoint(
+			return fromCodePoint(
 				subobjects[0].extractInt());
 		}
 	},
@@ -621,7 +662,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return CharacterDescriptor.fromCodePoint(
+			return fromCodePoint(
 				(subobjects[0].extractUnsignedByte() << 16)
 				+ (subobjects[1].extractUnsignedByte() << 8)
 				+ subobjects[2].extractUnsignedByte());
@@ -1030,42 +1071,12 @@ public enum SerializerOperation
 			final int numOuters = object.numOuters();
 			final int numRegularLiterals =
 				object.numLiterals() - numLocals - numOuters;
-			final A_Tuple regularLiterals = ObjectTupleDescriptor.generateFrom(
-				numRegularLiterals,
-				new Generator<A_BasicObject>()
-				{
-					private int index = 1;
-
-					@Override
-					public A_BasicObject value ()
-					{
-						return object.literalAt(index++);
-					}
-				});
-			final A_Tuple localTypes = ObjectTupleDescriptor.generateFrom(
-				numLocals,
-				new Generator<A_BasicObject>()
-				{
-					private int index = 1;
-
-					@Override
-					public A_BasicObject value ()
-					{
-						return object.localTypeAt(index++);
-					}
-				});
-			final A_Tuple outerTypes = ObjectTupleDescriptor.generateFrom(
-				numOuters,
-				new Generator<A_BasicObject>()
-				{
-					private int index = 1;
-
-					@Override
-					public A_BasicObject value ()
-					{
-						return object.outerTypeAt(index++);
-					}
-				});
+			final A_Tuple regularLiterals = generateObjectTupleFrom(
+				numRegularLiterals, object::literalAt);
+			final A_Tuple localTypes = generateObjectTupleFrom(
+				numLocals, object::localTypeAt);
+			final A_Tuple outerTypes = generateObjectTupleFrom(
+				numOuters, object::outerTypeAt);
 			final A_Module module = object.module();
 			final A_String moduleName = module.equalsNil()
 				? emptyTuple()
@@ -1117,7 +1128,7 @@ public enum SerializerOperation
 			final A_Module module = moduleName.tupleSize() == 0
 				? nil()
 				: deserializer.moduleNamed(moduleName);
-			return CompiledCodeDescriptor.create(
+			return newCompiledCode(
 				nybbles,
 				localTypes.tupleSize(),
 				numArgsAndLocalsAndStack - numLocals - numArgs,
@@ -1155,7 +1166,7 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final AvailObject code = subobjects[0];
-			return FunctionDescriptor.create(code, emptyTuple());
+			return createFunction(code, emptyTuple());
 		}
 	},
 
@@ -1172,18 +1183,8 @@ public enum SerializerOperation
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			final A_Tuple outers = ObjectTupleDescriptor.generateFrom(
-				object.numOuterVars(),
-				new Generator<A_BasicObject>()
-				{
-					private int index = 1;
-
-					@Override
-					public A_BasicObject value ()
-					{
-						return object.outerVarAt(index++);
-					}
-				});
+			final A_Tuple outers = generateObjectTupleFrom(
+				object.numOuterVars(), object::outerVarAt);
 			return array(
 				object.code(),
 				outers);
@@ -1196,7 +1197,7 @@ public enum SerializerOperation
 		{
 			final AvailObject code = subobjects[0];
 			final A_Tuple outers = subobjects[1];
-			return FunctionDescriptor.create(code, outers);
+			return createFunction(code, outers);
 		}
 	},
 
@@ -1223,7 +1224,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return forVariableType(subobjects[0]);
+			return newVariableWithOuterType(subobjects[0]);
 		}
 
 		@Override
@@ -1367,7 +1368,7 @@ public enum SerializerOperation
 			final int start = subobjects[3].extractInt();
 			final int lineNumber = subobjects[4].extractInt();
 			final int tokenTypeOrdinal = subobjects[5].extractInt();
-			return TokenDescriptor.create(
+			return newToken(
 				string,
 				leadingWhitespace,
 				trailingWhitespace,
@@ -1416,7 +1417,7 @@ public enum SerializerOperation
 			final int start = subobjects[4].extractInt();
 			final int lineNumber = subobjects[5].extractInt();
 			final int tokenTypeOrdinal = subobjects[6].extractInt();
-			return LiteralTokenDescriptor.create(
+			return literalToken(
 				string,
 				leadingWhitespace,
 				trailingWhitespace,
@@ -1460,12 +1461,8 @@ public enum SerializerOperation
 			final A_String trailing = subobjects[2];
 			final int start = subobjects[3].extractInt();
 			final int lineNumber = subobjects[4].extractInt();
-			return CommentTokenDescriptor.create(
-				string,
-				leading,
-				trailing,
-				start,
-				lineNumber);
+			return newCommentToken(
+				string, leading, trailing, start, lineNumber);
 		}
 	},
 
@@ -1542,7 +1539,7 @@ public enum SerializerOperation
 			final A_Number stackpInteger = subobjects[4];
 			final int frameSlotCount = frameSlots.tupleSize();
 			final A_Continuation continuation =
-				ContinuationDescriptor.createExceptFrame(
+				createContinuationExceptFrame(
 					function,
 					caller,
 					pcInteger.extractInt(),
@@ -1584,7 +1581,8 @@ public enum SerializerOperation
 				final A_Module module = atom.issuingModule();
 				if (!module.equalsNil())
 				{
-					pairs.add(tuple(module.moduleName(), atom.atomName()));
+					pairs.add(
+						tuple(module.moduleName(), atom.atomName()));
 				}
 				else
 				{
@@ -2050,8 +2048,7 @@ public enum SerializerOperation
 			final AvailObject object,
 			final Serializer serializer)
 		{
-			final boolean isInline =
-				AssignmentNodeDescriptor.isInline(object);
+			final boolean isInline = isInline(object);
 			return array(
 				fromInt(isInline ? 1 : 0),
 				object.variable(),
@@ -2066,7 +2063,7 @@ public enum SerializerOperation
 			final A_Number isInline = subobjects[0];
 			final A_Phrase variableUse = subobjects[1];
 			final A_Phrase expression = subobjects[2];
-			return AssignmentNodeDescriptor.from(
+			return newAssignment(
 				variableUse, expression, !isInline.equalsInt(0));
 		}
 	},
@@ -2211,8 +2208,7 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Phrase expression = subobjects[0];
-			return ExpressionAsStatementNodeDescriptor.fromExpression(
-				expression);
+			return newExpressionAsStatement(expression);
 		}
 	},
 
@@ -2237,7 +2233,7 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Tuple statements = subobjects[0];
-			return FirstOfSequenceNodeDescriptor.newStatements(statements);
+			return newFirstOfSequenceNode(statements);
 		}
 	},
 
@@ -2262,7 +2258,7 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Tuple expressionsTuple = subobjects[0];
-			return ListNodeDescriptor.newExpressions(expressionsTuple);
+			return newListNode(expressionsTuple);
 		}
 	},
 
@@ -2287,7 +2283,7 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Token literalToken = subobjects[0];
-			return LiteralNodeDescriptor.fromToken(literalToken);
+			return literalNodeFromToken(literalToken);
 		}
 	},
 
@@ -2315,9 +2311,7 @@ public enum SerializerOperation
 		{
 			final A_Phrase macroOriginalSendPhrase = subobjects[0];
 			final A_Phrase outputPhrase = subobjects[0];
-			return MacroSubstitutionNodeDescriptor
-				.fromOriginalSendAndReplacement(
-					macroOriginalSendPhrase, outputPhrase);
+			return newMacroSubstitution(macroOriginalSendPhrase, outputPhrase);
 		}
 	},
 
@@ -2345,8 +2339,7 @@ public enum SerializerOperation
 		{
 			final A_Phrase list = subobjects[0];
 			final A_Tuple permutation = subobjects[1];
-			return PermutedListNodeDescriptor.fromListAndPermutation(
-				list, permutation);
+			return newPermutedListNode(list, permutation);
 		}
 	},
 
@@ -2371,7 +2364,7 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Phrase variableUse = subobjects[0];
-			return ReferenceNodeDescriptor.fromUse(variableUse);
+			return referenceNodeFromUse(variableUse);
 		}
 	},
 
@@ -2405,8 +2398,7 @@ public enum SerializerOperation
 			final A_Phrase argsListNode = subobjects[1];
 			final A_Type returnType = subobjects[2];
 			final A_Tuple tokens = subobjects[3];
-			return SendNodeDescriptor.from(
-				tokens, bundle, argsListNode, returnType);
+			return newSendNode(tokens, bundle, argsListNode, returnType);
 		}
 	},
 
@@ -2431,7 +2423,7 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Tuple statements = subobjects[0];
-			return SequenceNodeDescriptor.newStatements(statements);
+			return newSequence(statements);
 		}
 	},
 
@@ -2459,8 +2451,7 @@ public enum SerializerOperation
 		{
 			final A_Phrase expression = subobjects[0];
 			final A_Type superUnionType = subobjects[1];
-			return SuperCastNodeDescriptor.create(
-				expression, superUnionType);
+			return newSuperCastNode(expression, superUnionType);
 		}
 	},
 
@@ -2488,8 +2479,7 @@ public enum SerializerOperation
 		{
 			final A_Token token = subobjects[0];
 			final A_Phrase declaration = subobjects[1];
-			return VariableUseNodeDescriptor.newUse(
-				token, declaration);
+			return newUse(token, declaration);
 		}
 	},
 
@@ -2645,7 +2635,7 @@ public enum SerializerOperation
 			final Deserializer deserializer)
 		{
 			final A_Type resultType = subobjects[0];
-			return FiberTypeDescriptor.forResultType(resultType);
+			return fiberType(resultType);
 		}
 	},
 
@@ -2676,10 +2666,8 @@ public enum SerializerOperation
 			final A_Type argsTupleType = subobjects[0];
 			final A_Type returnType = subobjects[1];
 			final A_Tuple checkedExceptionsTuple = subobjects[2];
-			return FunctionTypeDescriptor.createWithArgumentTupleType(
-				argsTupleType,
-				returnType,
-				checkedExceptionsTuple.asSet());
+			return functionTypeFromArgumentTupleType(
+				argsTupleType, returnType, checkedExceptionsTuple.asSet());
 		}
 	},
 
@@ -2791,8 +2779,7 @@ public enum SerializerOperation
 				assert !parameter.isTuple();
 				if (parameter.isPojoSelfType())
 				{
-					processedParameters.add(
-						SelfPojoTypeDescriptor.toSerializationProxy(parameter));
+					processedParameters.add(pojoSerializationProxy(parameter));
 				}
 				else
 				{
@@ -2819,13 +2806,12 @@ public enum SerializerOperation
 				{
 					processedParameters.add(
 						parameter.isTuple()
-							? SelfPojoTypeDescriptor.fromSerializationProxy(
-								parameter, classLoader)
+							? pojoFromSerializationProxy(parameter, classLoader)
 							: parameter);
 				}
 				final Class<?> baseClass = Class.forName(
 					subobjects[0].asNativeString(), true, classLoader);
-				return PojoTypeDescriptor.forClassWithTypeArguments(
+				return pojoTypeForClassWithTypeArguments(
 					baseClass, tupleFromList(processedParameters));
 			}
 			catch (final ClassNotFoundException e)
@@ -2878,8 +2864,7 @@ public enum SerializerOperation
 					if (parameter.isPojoSelfType())
 					{
 						processedParameters.add(
-							SelfPojoTypeDescriptor.toSerializationProxy(
-								parameter));
+							pojoSerializationProxy(parameter));
 					}
 					else
 					{
@@ -2904,15 +2889,11 @@ public enum SerializerOperation
 			A_Map ancestorMap = emptyMap();
 			try
 			{
-				for (final Entry entry
-					: subobjects[0].mapIterable())
+				for (final Entry entry : subobjects[0].mapIterable())
 				{
 					final Class<?> baseClass = Class.forName(
-						entry.key().asNativeString(),
-						true,
-						classLoader);
-					final AvailObject rawPojo =
-						RawPojoDescriptor.equalityWrap(baseClass);
+						entry.key().asNativeString(), true, classLoader);
+					final AvailObject rawPojo = equalityPojo(baseClass);
 					final List<AvailObject> processedParameters =
 						new ArrayList<>(entry.value().tupleSize());
 					for (final AvailObject parameter : entry.value())
@@ -2920,9 +2901,8 @@ public enum SerializerOperation
 						if (parameter.isTuple())
 						{
 							processedParameters.add(
-								SelfPojoTypeDescriptor.fromSerializationProxy(
-									parameter,
-									classLoader));
+								pojoFromSerializationProxy(
+									parameter, classLoader));
 						}
 						else
 						{
@@ -2930,17 +2910,14 @@ public enum SerializerOperation
 						}
 					}
 					ancestorMap = ancestorMap.mapAtPuttingCanDestroy(
-						rawPojo,
-						tupleFromList(processedParameters),
-						true);
+						rawPojo, tupleFromList(processedParameters), true);
 				}
 			}
 			catch (final ClassNotFoundException e)
 			{
 				throw new RuntimeException(e);
 			}
-			return PojoTypeDescriptor.fusedTypeFromAncestorMap(
-				ancestorMap);
+			return fusedTypeFromAncestorMap(ancestorMap);
 		}
 	},
 
@@ -2972,9 +2949,7 @@ public enum SerializerOperation
 		{
 			final AvailObject contentType = subobjects[0];
 			final AvailObject sizeRange = subobjects[1];
-			return PojoTypeDescriptor.forArrayTypeWithSizeRange(
-				contentType,
-				sizeRange);
+			return pojoArrayType(contentType, sizeRange);
 		}
 	},
 
@@ -3052,7 +3027,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return CompiledCodeTypeDescriptor.forFunctionType(subobjects[0]);
+			return compiledCodeTypeForFunctionType(subobjects[0]);
 		}
 	},
 
@@ -3076,7 +3051,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return ContinuationTypeDescriptor.forFunctionType(subobjects[0]);
+			return continuationTypeForFunctionType(subobjects[0]);
 		}
 	},
 
@@ -3100,8 +3075,8 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return enumerationWith(
-				subobjects[0].asSet());
+			return
+				enumerationWith(subobjects[0].asSet());
 		}
 	},
 
@@ -3125,7 +3100,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return instanceTypeOn(subobjects[0]);
+			return instanceType(subobjects[0]);
 		}
 	},
 
@@ -3150,7 +3125,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return instanceMetaOn(subobjects[0]);
+			return instanceMeta(subobjects[0]);
 		}
 	},
 
@@ -3509,7 +3484,7 @@ public enum SerializerOperation
 			{
 				return trueNames.asTuple().tupleAt(1);
 			}
-			final A_Atom atom = AtomWithPropertiesDescriptor.create(
+			final A_Atom atom = createAtomWithProperties(
 				atomName, currentModule);
 			atom.makeImmutable();
 			currentModule.addPrivateName(atom);

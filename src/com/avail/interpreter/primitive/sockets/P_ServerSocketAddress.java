@@ -32,16 +32,36 @@
 
 package com.avail.interpreter.primitive.sockets;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.io.IOException;
-import java.net.*;
-import java.nio.channels.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.nio.channels.AsynchronousServerSocketChannel;
+import java.nio.channels.ClosedChannelException;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY;
+import static com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain InetSocketAddress
@@ -95,33 +115,30 @@ extends Primitive
 		}
 		final InetAddress address = peer.getAddress();
 		final byte[] addressBytes = address.getAddress();
-		final AvailObject addressTuple =
-			ByteArrayTupleDescriptor.forByteArray(addressBytes);
-		final A_Number port = IntegerDescriptor.fromInt(peer.getPort());
-		return interpreter.primitiveSuccess(
-			TupleDescriptor.tuple(addressTuple, port));
+		final AvailObject addressTuple = tupleForByteArray(addressBytes);
+		final A_Number port = fromInt(peer.getPort());
+		return interpreter.primitiveSuccess(tuple(addressTuple, port));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ATOM.o()),
-			TupleTypeDescriptor.tupleTypeForTypes(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.inclusive(4, 16),
-					TupleDescriptor.emptyTuple(),
-					IntegerRangeTypeDescriptor.bytes()),
-				IntegerRangeTypeDescriptor.unsignedShorts()));
+		return functionType(
+			tuple(ATOM.o()),
+			tupleTypeForTypes(
+				tupleTypeForSizesTypesDefaultType(
+					inclusive(4, 16),
+					emptyTuple(),
+					bytes()),
+				unsignedShorts()));
 	}
 
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR));

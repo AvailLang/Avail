@@ -58,6 +58,7 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
@@ -66,9 +67,10 @@ import static com.avail.descriptor.FiberDescriptor.ExecutionState.all;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.RawPojoDescriptor.identityWrap;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 
 /**
@@ -897,7 +899,7 @@ extends Descriptor
 	{
 		object.setMutableSlot(
 			NAME_GENERATOR,
-			identityWrap(generator));
+			identityPojo(generator));
 		// And clear the cached name.
 		object.setMutableSlot(NAME_OR_NIL, nil());
 	}
@@ -971,8 +973,8 @@ extends Descriptor
 		object.setMutableSlot(
 			LOADER,
 			loader == null
-			? nil()
-			: identityWrap(loader));
+				? nil()
+				: identityPojo(loader));
 	}
 
 	/**
@@ -980,7 +982,7 @@ extends Descriptor
 	 * result continuation is {@link NilDescriptor#nil()}  nil}.
 	 */
 	private static final A_BasicObject defaultResultContinuation =
-		identityWrap(
+		identityPojo(
 			(Continuation1NotNull<AvailObject>)
 				ignored ->
 				{
@@ -1014,7 +1016,7 @@ extends Descriptor
 			assert oldPojo == defaultResultContinuation;
 			object.setSlot(
 				RESULT_CONTINUATION,
-				identityWrap(continuation));
+				identityPojo(continuation));
 		}
 	}
 
@@ -1024,7 +1026,7 @@ extends Descriptor
 	 * NilDescriptor nil}.
 	 */
 	private static final A_BasicObject defaultFailureContinuation =
-		identityWrap((Continuation1<Throwable>) ignored ->
+		identityPojo((Continuation1<Throwable>) ignored ->
 		{
 			// Do nothing; errors in fibers should be handled by Avail
 			// code.
@@ -1057,7 +1059,7 @@ extends Descriptor
 			assert oldPojo == defaultFailureContinuation;
 			object.setSlot(
 				FAILURE_CONTINUATION,
-				identityWrap(continuation));
+				identityPojo(continuation));
 		}
 	}
 
@@ -1090,8 +1092,8 @@ extends Descriptor
 		object.setMutableSlot(
 			WAKEUP_TASK,
 			task == null
-			? nil()
-			: identityWrap(task));
+				? nil()
+				: identityPojo(task));
 	}
 
 	@Override
@@ -1107,7 +1109,7 @@ extends Descriptor
 		final AvailObject object,
 		final TextInterface textInterface)
 	{
-		final AvailObject pojo = identityWrap(textInterface);
+		final AvailObject pojo = identityPojo(textInterface);
 		object.setMutableSlot(TEXT_INTERFACE, pojo);
 	}
 
@@ -1216,7 +1218,7 @@ extends Descriptor
 	@Override @AvailMethod
 	AvailObject o_Kind (final AvailObject object)
 	{
-		return FiberTypeDescriptor.forResultType(object.slot(RESULT_TYPE));
+		return fiberType(object.slot(RESULT_TYPE));
 	}
 
 	@Override
@@ -1243,7 +1245,7 @@ extends Descriptor
 				case RUNNING:
 				{
 					final A_BasicObject pojo =
-						identityWrap(whenReified);
+						identityPojo(whenReified);
 					final A_Set oldSet = object.slot(REIFICATION_WAITERS);
 					final A_Set newSet =
 						oldSet.setWithElementCanDestroy(pojo, true);
@@ -1495,7 +1497,7 @@ extends Descriptor
 		assert (priority & ~255) == 0 : "Priority must be [0..255]";
 		final AvailObject fiber = FiberDescriptor.mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
-		fiber.setSlot(NAME_GENERATOR, identityWrap(nameGenerator));
+		fiber.setSlot(NAME_GENERATOR, identityPojo(nameGenerator));
 		fiber.setSlot(NAME_OR_NIL, nil());
 		fiber.setSlot(PRIORITY, priority);
 		fiber.setSlot(CONTINUATION, nil());
@@ -1512,9 +1514,9 @@ extends Descriptor
 		fiber.setSlot(WAKEUP_TASK, nil());
 		fiber.setSlot(
 			TRACED_VARIABLES,
-			identityWrap(new WeakHashMap<A_Variable, Boolean>()));
+			identityPojo(new WeakHashMap<A_Variable, Boolean>()));
 		fiber.setSlot(REIFICATION_WAITERS, emptySet());
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		fiber.setSlot(TEXT_INTERFACE, runtime.textInterfacePojo());
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		runtime.registerFiber(fiber);
@@ -1546,7 +1548,7 @@ extends Descriptor
 	{
 		final AvailObject fiber = mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
-		fiber.setSlot(NAME_GENERATOR, identityWrap(nameGenerator));
+		fiber.setSlot(NAME_GENERATOR, identityPojo(nameGenerator));
 		fiber.setSlot(PRIORITY, loaderPriority);
 		fiber.setSlot(CONTINUATION, nil());
 		fiber.setSlot(SUSPENDING_RAW_FUNCTION, nil());
@@ -1555,16 +1557,16 @@ extends Descriptor
 		fiber.setSlot(FIBER_GLOBALS, emptyMap());
 		fiber.setSlot(HERITABLE_FIBER_GLOBALS, emptyMap());
 		fiber.setSlot(RESULT, nil());
-		fiber.setSlot(LOADER, identityWrap(loader));
+		fiber.setSlot(LOADER, identityPojo(loader));
 		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
 		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
 		fiber.setSlot(JOINING_FIBERS, emptySet());
 		fiber.setSlot(WAKEUP_TASK, nil());
 		fiber.setSlot(
 			TRACED_VARIABLES,
-			identityWrap(new WeakHashMap<A_Variable, Boolean>()));
+			identityPojo(new WeakHashMap<A_Variable, Boolean>()));
 		fiber.setSlot(REIFICATION_WAITERS, emptySet());
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		fiber.setSlot(TEXT_INTERFACE, runtime.textInterfacePojo());
 		fiber.setSlot(DEBUG_UNIQUE_ID, uniqueDebugCounter.incrementAndGet());
 		runtime.registerFiber(fiber);

@@ -37,7 +37,6 @@ import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.AvailEmergencyExitException;
@@ -48,6 +47,7 @@ import com.avail.interpreter.Primitive;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ContinuationDescriptor.dumpStackThen;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
@@ -81,7 +81,7 @@ public final class P_EmergencyExit extends Primitive
 		final A_Fiber fiber = interpreter.fiber();
 		final A_Continuation continuation = interpreter.reifiedContinuation;
 		interpreter.primitiveSuspend(stripNull(interpreter.function).code());
-		ContinuationDescriptor.dumpStackThen(
+		dumpStackThen(
 			interpreter.runtime(),
 			fiber.textInterface(),
 			continuation,
@@ -99,14 +99,14 @@ public final class P_EmergencyExit extends Primitive
 					if (intValue >= 0 &&
 						intValue < AvailErrorCode.all().length)
 					{
-						builder.append(String.format(
+						builder.append(format(
 							" (= %s)",
 							AvailErrorCode.byNumericCode(intValue).name()));
 					}
 				}
 				for (final String frame : stack)
 				{
-					builder.append(String.format("%n\t-- %s", frame));
+					builder.append(format("%n\t-- %s", frame));
 				}
 				builder.append("\n\n");
 				final AvailEmergencyExitException killer =
@@ -121,6 +121,8 @@ public final class P_EmergencyExit extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(ANY.o()), bottom());
+		return functionType(
+			tuple(ANY.o()),
+			bottom());
 	}
 }

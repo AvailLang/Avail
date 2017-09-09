@@ -73,7 +73,7 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(emptyTuple(),
-			mostGeneralFiberType());
+		return functionType(
+			emptyTuple(), mostGeneralFiberType());
 	}
 }

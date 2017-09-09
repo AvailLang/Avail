@@ -32,19 +32,30 @@
 
 package com.avail.descriptor;
 
-import static java.lang.reflect.Modifier.*;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.*;
-import java.lang.reflect.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.lang.reflect.TypeVariable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
+import static com.avail.descriptor.FusedPojoTypeDescriptor.createFusedPojoType;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.RawPojoDescriptor.rawObjectClass;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.newSelfPojoType;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots
+	.HASH_AND_MORE;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor.ObjectSlots.*;
+import static java.lang.reflect.Modifier.*;
 
 /**
  * {@code UnfusedPojoTypeDescriptor} describes a fully-parameterized Java
@@ -256,7 +267,7 @@ extends PojoTypeDescriptor
 		AvailObject selfType = object.slot(SELF_TYPE);
 		if (selfType.equalsNil())
 		{
-			selfType = SelfPojoTypeDescriptor.create(
+			selfType = newSelfPojoType(
 				object.slot(JAVA_CLASS),
 				object.slot(JAVA_ANCESTORS).keysAsSet());
 			if (isShared())
@@ -300,7 +311,7 @@ extends PojoTypeDescriptor
 		// of a pojo array type and a singleton pojo type is pojo bottom.
 		if (aPojoType.isPojoArrayType())
 		{
-			return BottomPojoTypeDescriptor.pojoBottom();
+			return pojoBottom();
 		}
 		return aPojoType.typeIntersectionOfPojoUnfusedType(object);
 	}
@@ -317,7 +328,7 @@ extends PojoTypeDescriptor
 		// pojo bottom.
 		if (isFinal(modifiers))
 		{
-			return BottomPojoTypeDescriptor.pojoBottom();
+			return pojoBottom();
 		}
 		// If the unfused pojo type is a class, then check that none of the
 		// fused pojo type's ancestors are classes.
@@ -329,14 +340,14 @@ extends PojoTypeDescriptor
 				aFusedPojoType.javaAncestors().keysAsSet())
 			{
 				// Ignore java.lang.Object.
-				if (!ancestor.equals(RawPojoDescriptor.rawObjectClass()))
+				if (!ancestor.equals(rawObjectClass()))
 				{
 					final Class<?> otherJavaClass =
 						(Class<?>) ancestor.javaObjectNotNull();
 					final int otherModifiers = otherJavaClass.getModifiers();
 					if (isFinal(otherModifiers) || !isInterface(otherModifiers))
 					{
-						return BottomPojoTypeDescriptor.pojoBottom();
+						return pojoBottom();
 					}
 				}
 			}
@@ -345,11 +356,11 @@ extends PojoTypeDescriptor
 			computeIntersection(object, aFusedPojoType);
 		if (intersection.equalsPojoBottomType())
 		{
-			return BottomPojoTypeDescriptor.pojoBottom();
+			return pojoBottom();
 		}
 		// The result will be a pojo fused type. Find the union of the key sets
 		// and the intersection of their parameterizations.
-		return FusedPojoTypeDescriptor.create((A_Map)intersection);
+		return createFusedPojoType((A_Map)intersection);
 	}
 
 	@Override @AvailMethod
@@ -367,24 +378,24 @@ extends PojoTypeDescriptor
 		// bottom.
 		if (isFinal(modifiers) || isFinal(otherModifiers))
 		{
-			return BottomPojoTypeDescriptor.pojoBottom();
+			return pojoBottom();
 		}
 		// If neither class is an interface, then the intersection is pojo
 		// bottom (because Java doesn't support multiple inheritance of
 		// classes).
 		if (!isInterface(modifiers) && !isInterface(otherModifiers))
 		{
-			return BottomPojoTypeDescriptor.pojoBottom();
+			return pojoBottom();
 		}
 		final A_BasicObject intersection =
 			computeIntersection(object, anUnfusedPojoType);
 		if (intersection.equalsPojoBottomType())
 		{
-			return BottomPojoTypeDescriptor.pojoBottom();
+			return pojoBottom();
 		}
 		// The result will be a pojo fused type. Find the union of the key sets
 		// and the intersection of their parameterizations.
-		return FusedPojoTypeDescriptor.create((A_Map)intersection);
+		return createFusedPojoType((A_Map)intersection);
 	}
 
 	@Override @AvailMethod
@@ -411,8 +422,8 @@ extends PojoTypeDescriptor
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
 		return !javaClass.equalsNil()
-			? create(javaClass, intersectionAncestors)
-			: FusedPojoTypeDescriptor.create(intersectionAncestors);
+			? createUnfusedPojoType(javaClass, intersectionAncestors)
+			: createFusedPojoType(intersectionAncestors);
 	}
 
 	@Override @AvailMethod
@@ -427,8 +438,8 @@ extends PojoTypeDescriptor
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
 		return !javaClass.equalsNil()
-			? create(javaClass, intersectionAncestors)
-			: FusedPojoTypeDescriptor.create(intersectionAncestors);
+			? createUnfusedPojoType(javaClass, intersectionAncestors)
+			: createFusedPojoType(intersectionAncestors);
 	}
 
 	/**
@@ -443,7 +454,7 @@ extends PojoTypeDescriptor
 		A_Map typeVars = object.slot(TYPE_VARIABLES);
 		if (typeVars.equalsNil())
 		{
-			typeVars = MapDescriptor.emptyMap();
+			typeVars = emptyMap();
 			for (final Entry entry
 				: object.slot(JAVA_ANCESTORS).mapIterable())
 			{
@@ -455,7 +466,7 @@ extends PojoTypeDescriptor
 				for (int i = 0; i < vars.length; i++)
 				{
 					typeVars = typeVars.mapAtPuttingCanDestroy(
-						StringDescriptor.stringFrom(
+						stringFrom(
 							ancestor.getName() + "." + vars[i].getName()),
 						typeArgs.tupleAt(i + 1),
 						true);
@@ -583,7 +594,7 @@ extends PojoTypeDescriptor
 	 *        complete {@linkplain SetDescriptor ancestry} of Java types.
 	 * @return The requested pojo type.
 	 */
-	static AvailObject create (
+	static AvailObject createUnfusedPojoType (
 		final AvailObject javaClass,
 		final A_BasicObject javaAncestors)
 	{
@@ -591,8 +602,8 @@ extends PojoTypeDescriptor
 		newObject.setSlot(HASH_OR_ZERO, 0);
 		newObject.setSlot(JAVA_CLASS, javaClass);
 		newObject.setSlot(JAVA_ANCESTORS, javaAncestors);
-		newObject.setSlot(TYPE_VARIABLES, NilDescriptor.nil());
-		newObject.setSlot(SELF_TYPE, NilDescriptor.nil());
+		newObject.setSlot(TYPE_VARIABLES, nil());
+		newObject.setSlot(SELF_TYPE, nil());
 		return newObject.makeImmutable();
 	}
 }

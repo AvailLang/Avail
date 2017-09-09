@@ -31,15 +31,27 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.descriptor.ContinuationDescriptor
+	.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.continuationTypeForFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
@@ -96,7 +108,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			final boolean skipReturnCheck =
 				interpreter.integerAt(skipReturnRegNumber) != 0;
 			final A_Continuation continuation =
-				ContinuationDescriptor.createExceptFrame(
+				createContinuationExceptFrame(
 					function,
 					interpreter.pointerAt(callerRegNumber),
 					levelOnePC,
@@ -128,13 +140,11 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 		final RegisterSet afterCreation = registerSets.get(0);
 		final RegisterSet afterResumption = registerSets.get(1);
 		final A_Type functionType = afterCreation.typeAt(functionReg);
-		assert functionType != null;
-		assert functionType.isSubtypeOf(
-			FunctionTypeDescriptor.mostGeneralFunctionType());
+		assert functionType.isSubtypeOf(mostGeneralFunctionType());
 		afterCreation.removeConstantAt(destReg);
 		afterCreation.typeAtPut(
 			destReg,
-			ContinuationTypeDescriptor.forFunctionType(functionType),
+			continuationTypeForFunctionType(functionType),
 			instruction);
 		afterResumption.clearEverythingFor(instruction);
 	}

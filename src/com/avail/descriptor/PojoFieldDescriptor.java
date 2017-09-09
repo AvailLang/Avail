@@ -45,7 +45,10 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.PojoFinalFieldDescriptor
+	.pojoFinalFieldForInnerType;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 
 /**
  * A {@code PojoFieldDescriptor} is an Avail {@linkplain VariableDescriptor
@@ -380,7 +383,7 @@ extends Descriptor
 	 *        The types of values that can be read/written.
 	 * @return A new variable able to read/write values of the specified types.
 	 */
-	public static AvailObject forInnerType (
+	public static AvailObject pojoFieldVariableForInnerType (
 		final AvailObject field,
 		final AvailObject receiver,
 		final A_Type innerType)
@@ -388,10 +391,8 @@ extends Descriptor
 		final Field javaField = (Field) field.javaObjectNotNull();
 		if (Modifier.isFinal(javaField.getModifiers()))
 		{
-			return PojoFinalFieldDescriptor.forInnerType(
-				field, receiver, innerType);
+			return pojoFinalFieldForInnerType(field, receiver, innerType);
 		}
-		return forOuterType(
-			field, receiver, VariableTypeDescriptor.variableTypeFor(innerType));
+		return forOuterType(field, receiver, variableTypeFor(innerType));
 	}
 }

@@ -32,14 +32,17 @@
 
 package com.avail.environment.actions;
 
-import static com.avail.environment.AvailWorkbench.StreamStyle.*;
-import java.awt.event.*;
 import com.avail.AvailRuntime;
 import com.avail.AvailTask;
-import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.environment.AvailWorkbench;
+
 import javax.annotation.Nullable;
+import java.awt.event.ActionEvent;
+
+import static com.avail.descriptor.CompiledCodeDescriptor
+	.resetCodeCoverageDetailsThen;
+import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
 
 /**
  * A {@code ResetCCReportDataAction} clears code coverage information obtained
@@ -60,8 +63,9 @@ extends AbstractWorkbenchAction
 			@Override
 			public void value ()
 			{
-				CompiledCodeDescriptor.ResetCodeCoverageDetailsThen(
-					() -> workbench.writeText("Code coverage data reset.\n", INFO));
+				resetCodeCoverageDetailsThen(
+					() -> workbench.writeText("Code coverage data reset.\n",
+						INFO));
 			}
 		});
 	}

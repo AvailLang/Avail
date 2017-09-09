@@ -38,6 +38,11 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.SetTypeDescriptor.ObjectSlots.CONTENT_TYPE;
 import static com.avail.descriptor.SetTypeDescriptor.ObjectSlots.SIZE_RANGE;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
@@ -83,8 +88,7 @@ extends TypeDescriptor
 		final int indent)
 	{
 		if (object.slot(CONTENT_TYPE).equals(ANY.o())
-			&& object.slot(SIZE_RANGE).equals(
-				IntegerRangeTypeDescriptor.wholeNumbers()))
+			&& object.slot(SIZE_RANGE).equals(wholeNumbers()))
 		{
 			aStream.append("set");
 			return;
@@ -94,7 +98,7 @@ extends TypeDescriptor
 			aStream, recursionMap, indent + 1);
 		aStream.append('|');
 		final A_Type sizeRange = object.slot(SIZE_RANGE);
-		if (sizeRange.equals(IntegerRangeTypeDescriptor.wholeNumbers()))
+		if (sizeRange.equals(wholeNumbers()))
 		{
 			aStream.append('}');
 			return;
@@ -197,7 +201,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aSetType)
 	{
-		return SetTypeDescriptor.setTypeForSizesContentType(
+		return setTypeForSizesContentType(
 			object.slot(SIZE_RANGE).typeIntersection(aSetType.sizeRange()),
 			object.slot(CONTENT_TYPE).typeIntersection(aSetType.contentType()));
 	}
@@ -227,7 +231,7 @@ extends TypeDescriptor
 		final AvailObject object,
 		final A_Type aSetType)
 	{
-		return SetTypeDescriptor.setTypeForSizesContentType(
+		return setTypeForSizesContentType(
 			object.slot(SIZE_RANGE).typeUnion(aSetType.sizeRange()),
 			object.slot(CONTENT_TYPE).typeUnion(aSetType.contentType()));
 	}
@@ -308,10 +312,10 @@ extends TypeDescriptor
 	{
 		if (sizeRange.isBottom())
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		assert sizeRange.lowerBound().isFinite();
-		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
+		assert zero().lessOrEqual(sizeRange.lowerBound());
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
 
 		final A_Type sizeRangeKind = sizeRange.isEnumeration()
@@ -323,7 +327,7 @@ extends TypeDescriptor
 		if (sizeRangeKind.upperBound().equalsInt(0))
 		{
 			newSizeRange = sizeRangeKind;
-			newContentType = BottomTypeDescriptor.bottom();
+			newContentType = bottom();
 		}
 		else if (contentType.isBottom())
 		{
@@ -331,16 +335,15 @@ extends TypeDescriptor
 			{
 				// sizeRange includes at least 0 and 1, but the content type is
 				// bottom, so no contents exist.
-				newSizeRange = IntegerRangeTypeDescriptor.singleInteger(
-					IntegerDescriptor.zero());
-				newContentType = BottomTypeDescriptor.bottom();
+				newSizeRange = singleInteger(zero());
+				newContentType = bottom();
 			}
 			else
 			{
 				// sizeRange does not include 0, and bottom is not the
 				// content type, so the whole type is inconsistent.  Answer
 				// bottom.
-				return BottomTypeDescriptor.bottom();
+				return bottom();
 			}
 		}
 		else
@@ -350,8 +353,8 @@ extends TypeDescriptor
 			{
 				// There can't ever be more elements in the set than there are
 				// distinct possible values.
-				contentRestrictedSizes = IntegerRangeTypeDescriptor.inclusive(
-					IntegerDescriptor.zero(), contentType.instanceCount());
+				contentRestrictedSizes = inclusive(
+					zero(), contentType.instanceCount());
 			}
 			else if (contentType.isIntegerRangeType()
 				&& (contentType.lowerBound().isFinite()
@@ -362,17 +365,16 @@ extends TypeDescriptor
 				// We had already ruled out ⊥, and the latest test rules out
 				// [-∞..∞], [-∞..∞), (-∞..∞], and (-∞..∞), allowing safe
 				// subtraction.
-				contentRestrictedSizes = IntegerRangeTypeDescriptor.inclusive(
-					IntegerDescriptor.zero(),
+				contentRestrictedSizes = inclusive(
+					zero(),
 					contentType.upperBound().minusCanDestroy(
 							contentType.lowerBound(), false)
-						.plusCanDestroy(IntegerDescriptor.one(), false));
+						.plusCanDestroy(one(), false));
 			}
 			else
 			{
 				// Otherwise don't narrow the size range.
-				contentRestrictedSizes =
-					IntegerRangeTypeDescriptor.wholeNumbers();
+				contentRestrictedSizes = wholeNumbers();
 			}
 			newSizeRange = sizeRangeKind.typeIntersection(
 				contentRestrictedSizes);
@@ -424,9 +426,8 @@ extends TypeDescriptor
 	}
 
 	/** The most general set type. */
-	private static final A_Type mostGeneralType = setTypeForSizesContentType(
-		IntegerRangeTypeDescriptor.wholeNumbers(),
-		ANY.o()).makeShared();
+	private static final A_Type mostGeneralType =
+		setTypeForSizesContentType(wholeNumbers(), ANY.o()).makeShared();
 
 	/**
 	 * Answer the most general set type.
@@ -441,8 +442,7 @@ extends TypeDescriptor
 	/**
 	 * The metatype for all set types.
 	 */
-	private static final A_Type meta =
-		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType);
+	private static final A_Type meta = instanceMeta(mostGeneralType);
 
 	/**
 	 * Answer the metatype for all set types.

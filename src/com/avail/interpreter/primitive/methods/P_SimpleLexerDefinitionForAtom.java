@@ -32,10 +32,16 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import com.avail.AvailRuntime;
 import com.avail.AvailTask;
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Lexer;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
@@ -47,6 +53,8 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -139,7 +147,7 @@ extends Primitive
 							filterFunction,
 							bodyFunction));
 					Interpreter.resumeFromSuccessfulPrimitive(
-						AvailRuntime.current(),
+						currentRuntime(),
 						fiber,
 						nil(),
 						primitiveRawFunction,
@@ -151,25 +159,25 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			ATOM.o(),
-			lexerFilterFunctionType(),
-			lexerBodyFunctionType()), TOP.o());
+		return functionType(
+			tuple(
+				ATOM.o(),
+				lexerFilterFunctionType(),
+				lexerBodyFunctionType()),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(
-					E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_INCORRECT_NUMBER_OF_ARGUMENTS,
-					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
-					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
-					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
-					E_MACRO_MUST_RETURN_A_PARSE_NODE)
-				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_INCORRECT_NUMBER_OF_ARGUMENTS,
+				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
+				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
+				E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
+				E_MACRO_MUST_RETURN_A_PARSE_NODE)
+				.setUnionCanDestroy(possibleErrors, true));
 	}
 }

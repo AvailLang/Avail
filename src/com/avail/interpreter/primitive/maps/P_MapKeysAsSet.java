@@ -31,10 +31,22 @@
  */
 package com.avail.interpreter.primitive.maps;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the keys of this {@linkplain
@@ -69,7 +81,7 @@ public final class P_MapKeysAsSet extends Primitive
 
 		// There can't be any duplicate keys in the map, so the size range is
 		// the same for the set.
-		return SetTypeDescriptor.setTypeForSizesContentType(
+		return setTypeForSizesContentType(
 			mapType.sizeRange(),
 			mapType.keyType());
 	}
@@ -77,9 +89,8 @@ public final class P_MapKeysAsSet extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				MapTypeDescriptor.mostGeneralMapType()),
-			SetTypeDescriptor.mostGeneralSetType());
+		return functionType(
+			tuple(mostGeneralMapType()),
+			mostGeneralSetType());
 	}
 }

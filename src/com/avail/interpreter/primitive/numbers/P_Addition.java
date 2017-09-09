@@ -31,15 +31,36 @@
  */
 package com.avail.interpreter.primitive.numbers;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
-import static com.avail.descriptor.InfinityDescriptor.*;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AbstractNumberDescriptor;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.ArithmeticException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AbstractNumberDescriptor
+	.binaryNumericOperationTypeBound;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_ADD_UNLIKE_INFINITIES;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Add two {@linkplain
@@ -77,8 +98,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				NUMBER.o(),
 				NUMBER.o()),
 			NUMBER.o());
@@ -101,7 +122,7 @@ extends Primitive
 				// be few enough entries.
 				if (aInstances.setSize() * (long)bInstances.setSize() < 100)
 				{
-					A_Set answers = SetDescriptor.emptySet();
+					A_Set answers = emptySet();
 					for (final A_Number aInstance : aInstances)
 					{
 						for (final A_Number bInstance : bInstances)
@@ -111,28 +132,25 @@ extends Primitive
 								false);
 						}
 					}
-					return AbstractEnumerationTypeDescriptor.enumerationWith(
-						answers);
+					return enumerationWith(answers);
 				}
 			}
 			if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
 			{
 				final A_Number low = aType.lowerBound().plusCanDestroy(
-					bType.lowerBound(),
-					false);
+					bType.lowerBound(), false);
 				final A_Number high = aType.upperBound().plusCanDestroy(
-					bType.upperBound(),
-					false);
+					bType.upperBound(), false);
 				final boolean includesNegativeInfinity =
 					negativeInfinity().isInstanceOf(aType)
-					|| negativeInfinity().isInstanceOf(bType);
+						|| negativeInfinity().isInstanceOf(bType);
 				final boolean includesInfinity =
 					positiveInfinity().isInstanceOf(aType)
-					|| positiveInfinity().isInstanceOf(bType);
-				return IntegerRangeTypeDescriptor.integerRangeType(
-					low.minusCanDestroy(IntegerDescriptor.one(), false),
+						|| positiveInfinity().isInstanceOf(bType);
+				return integerRangeType(
+					low.minusCanDestroy(one(), false),
 					includesNegativeInfinity,
-					high.plusCanDestroy(IntegerDescriptor.one(), false),
+					high.plusCanDestroy(one(), false),
 					includesInfinity);
 			}
 		}
@@ -140,8 +158,7 @@ extends Primitive
 		{
 			// $FALL-THROUGH$
 		}
-		return AbstractNumberDescriptor.binaryNumericOperationTypeBound(
-			aType, bType);
+		return binaryNumericOperationTypeBound(aType, bType);
 	}
 
 	@Override
@@ -170,8 +187,6 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_CANNOT_ADD_UNLIKE_INFINITIES));
+		return enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES));
 	}
 }

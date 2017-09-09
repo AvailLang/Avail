@@ -33,9 +33,6 @@ package com.avail.interpreter.primitive.types;
 
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.InstanceMetaDescriptor;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
@@ -43,6 +40,10 @@ import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -72,10 +73,9 @@ public final class P_Type extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ANY.o()),
-			InstanceMetaDescriptor.topMeta());
+		return functionType(
+			tuple(ANY.o()),
+			topMeta());
 	}
 
 	@Override
@@ -83,6 +83,6 @@ public final class P_Type extends Primitive
 		final List<? extends A_Type> argumentTypes)
 	{
 		final A_Type argType = argumentTypes.get(0);
-		return InstanceMetaDescriptor.instanceMetaOn(argType);
+		return instanceMeta(argType);
 	}
 }

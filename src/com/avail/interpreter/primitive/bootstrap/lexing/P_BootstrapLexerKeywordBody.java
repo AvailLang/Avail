@@ -32,7 +32,11 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
@@ -41,6 +45,7 @@ import java.util.List;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
+import static com.avail.descriptor.TokenDescriptor.newToken;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
@@ -84,7 +89,7 @@ public final class P_BootstrapLexerKeywordBody extends Primitive
 		{
 			position++;
 		}
-		final A_Token token = TokenDescriptor.create(
+		final A_Token token = newToken(
 			(A_String) source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
 			emptyTuple(),
@@ -100,10 +105,7 @@ public final class P_BootstrapLexerKeywordBody extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(
-				stringType(),
-				naturalNumbers(),
-				naturalNumbers()),
+			tuple(stringType(), naturalNumbers(), naturalNumbers()),
 			zeroOrMoreOf(TOKEN.o()));
 	}
 }

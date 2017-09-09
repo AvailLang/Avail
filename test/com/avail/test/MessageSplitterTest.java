@@ -32,17 +32,35 @@
 
 package com.avail.test;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-
+import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.ListNodeTypeDescriptor;
+import com.avail.descriptor.LiteralTokenTypeDescriptor;
+import com.avail.descriptor.ParseNodeTypeDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.exceptions.MalformedMessageException;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-
-import java.util.*;
-import com.avail.compiler.*;
-import com.avail.descriptor.*;
-import com.avail.exceptions.MalformedMessageException;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.PARSE_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 
 /**
@@ -137,16 +155,16 @@ public final class MessageSplitterTest
 		final A_Type... values)
 	{
 		assert upperBound >= -1;
-		final A_Number lower = IntegerDescriptor.fromInt(lowerBound);
+		final A_Number lower = fromInt(lowerBound);
 		final A_Number upperPlusOne = upperBound >= 0
-			? IntegerDescriptor.fromLong(upperBound + 1L)
-			: InfinityDescriptor.positiveInfinity();
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.integerRangeType(lower, true, upperPlusOne, false),
-			TupleDescriptor.tuple(values),
+			? fromLong(upperBound + 1L)
+			: positiveInfinity();
+		return tupleTypeForSizesTypesDefaultType(
+			integerRangeType(lower, true, upperPlusOne, false),
+			tuple(values),
 			values.length > 0
 				? values[values.length - 1]
-				: BottomTypeDescriptor.bottom());
+				: bottom());
 	}
 
 	/**
@@ -157,7 +175,7 @@ public final class MessageSplitterTest
 	 *        The smallest this tuple can be.
 	 * @param upperBound
 	 *        The largest this tuple can be, or -1 if it's unbounded.
-	 * @param subexpressionPhraseTypes
+	 * @param expressionPhraseTypes
 	 *        The vararg array of subexpression phrase types, the last one being
 	 *        implicitly repeated if the upperBound is bigger than the length of
 	 *        the array.
@@ -166,26 +184,22 @@ public final class MessageSplitterTest
 	static A_Type List(
 		final int lowerBound,
 		final int upperBound,
-		final A_Type... subexpressionPhraseTypes)
+		final A_Type... expressionPhraseTypes)
 	{
 		assert upperBound >= -1;
-		final A_Number lower = IntegerDescriptor.fromInt(lowerBound);
-		final A_Number upperPlusOne = upperBound >= 0
-			? IntegerDescriptor.fromLong(upperBound + 1L)
-			: InfinityDescriptor.positiveInfinity();
+		final A_Number lower = fromInt(lowerBound);
+		final A_Number upperPlusOne = (upperBound >= 0)
+			? fromLong(upperBound + 1L)
+			: positiveInfinity();
 		final A_Type subexpressionsTupleType =
-			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				IntegerRangeTypeDescriptor.integerRangeType(
-					lower, true, upperPlusOne, false),
-				TupleDescriptor.tuple(subexpressionPhraseTypes),
-				subexpressionPhraseTypes.length > 0
-					? subexpressionPhraseTypes[
-						subexpressionPhraseTypes.length - 1]
-					: BottomTypeDescriptor.bottom());
-		return ListNodeTypeDescriptor.createListNodeType(
-			LIST_NODE,
-			TupleTypeDescriptor.mostGeneralTupleType(),
-			subexpressionsTupleType);
+			tupleTypeForSizesTypesDefaultType(
+				integerRangeType(lower, true, upperPlusOne, false),
+				tuple(expressionPhraseTypes),
+				expressionPhraseTypes.length > 0
+					? expressionPhraseTypes[expressionPhraseTypes.length - 1]
+					: bottom());
+		return createListNodeType(
+			LIST_NODE, mostGeneralTupleType(), subexpressionsTupleType);
 	}
 
 	/**
@@ -212,7 +226,7 @@ public final class MessageSplitterTest
 	static A_Type LiteralToken(
 		final A_Type valueType)
 	{
-		return LiteralTokenTypeDescriptor.literalTokenType(valueType);
+		return literalTokenType(valueType);
 	}
 
 	/**
@@ -230,240 +244,263 @@ public final class MessageSplitterTest
 
 	/** Test cases. */
 	private static final Case[] splitCases =
-	{
-		C("Foo",
-			List(0, 0),
-			A("Foo"),
-			A(
-				PARSE_PART.encoding(1))),
+		new Case[] {
+			C(
+				"Foo",
+				List(0, 0),
+				A("Foo"),
+				A(
+					PARSE_PART.encoding(1))),
 		/* Backticked underscores */
-		C("Moo`_Sauce",
-			List(0, 0),
-			A("Moo_Sauce"),
-			A(
-				PARSE_PART.encoding(1))),
-		C("`_Moo`_Saucier",
-			List(0, 0),
-			A("_Moo_Saucier"),
-			A(
-				PARSE_PART.encoding(1))),
-		C("Moo`_`_`_Sauciest",
-			List(0, 0),
-			A("Moo___Sauciest"),
-			A(
-				PARSE_PART.encoding(1))),
-		C("Most`_Sauceulent`_",
-			List(0, 0),
-			A("Most_Sauceulent_"),
-			A(
-				PARSE_PART.encoding(1))),
-		C("Most `_Sauceulent",
-			List(0, 0),
-			A("Most", "_Sauceulent"),
-			A(
-				PARSE_PART.encoding(1),
-				PARSE_PART.encoding(2))),
+			C(
+				"Moo`_Sauce",
+				List(0, 0),
+				A("Moo_Sauce"),
+				A(
+					PARSE_PART.encoding(1))),
+			C(
+				"`_Moo`_Saucier",
+				List(0, 0),
+				A("_Moo_Saucier"),
+				A(
+					PARSE_PART.encoding(1))),
+			C(
+				"Moo`_`_`_Sauciest",
+				List(0, 0),
+				A("Moo___Sauciest"),
+				A(
+					PARSE_PART.encoding(1))),
+			C(
+				"Most`_Sauceulent`_",
+				List(0, 0),
+				A("Most_Sauceulent_"),
+				A(
+					PARSE_PART.encoding(1))),
+			C(
+				"Most `_Sauceulent",
+				List(0, 0),
+				A("Most", "_Sauceulent"),
+				A(
+					PARSE_PART.encoding(1),
+					PARSE_PART.encoding(2))),
 		/* Simple keywords and underscores. */
-		C("Print_",
-			List(1, 1, Phrase(TupleTypeDescriptor.stringType())),
-			A("Print", "_"),
-			A(
-				PARSE_PART.encoding(1),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding())),
-		C("_+_",
-			List(2, 2, Phrase(NUMBER.o())),
-			A("_", "+", "_"),
-			A(
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding(),
-				PARSE_PART.encoding(2),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(2),
-				APPEND_ARGUMENT.encoding())),
-		C("_+_*_",
-			List(3, 3, Phrase(NUMBER.o())),
-			A("_", "+", "_", "*", "_"),
-			A(
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding(),
-				PARSE_PART.encoding(2),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(2),
-				APPEND_ARGUMENT.encoding(),
-				PARSE_PART.encoding(4),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(3),
-				APPEND_ARGUMENT.encoding())),
-		C("_;",
-			List(1, 1, Phrase(Phrase(TOP.o()))),
-			A("_", ";"),
-			A(
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding(),
-				PARSE_PART.encoding(2))),
-		C("__",
-			List(2, 2, Phrase(TupleTypeDescriptor.stringType())),
-			A("_", "_"),
-			A(
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding(),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(2),
-				APPEND_ARGUMENT.encoding())),
+			C(
+				"Print_",
+				List(1, 1, Phrase(stringType())),
+				A("Print", "_"),
+				A(
+					PARSE_PART.encoding(1),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"_+_",
+				List(2, 2, Phrase(NUMBER.o())),
+				A("_", "+", "_"),
+				A(
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding(),
+					PARSE_PART.encoding(2),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(2),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"_+_*_",
+				List(3, 3, Phrase(NUMBER.o())),
+				A("_", "+", "_", "*", "_"),
+				A(
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding(),
+					PARSE_PART.encoding(2),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(2),
+					APPEND_ARGUMENT.encoding(),
+					PARSE_PART.encoding(4),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(3),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"_;",
+				List(1, 1, Phrase(Phrase(TOP.o()))),
+				A("_", ";"),
+				A(
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding(),
+					PARSE_PART.encoding(2))),
+			C(
+				"__",
+				List(2, 2, Phrase(stringType())),
+				A("_", "_"),
+				A(
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(2),
+					APPEND_ARGUMENT.encoding())),
 		/* Literals */
-		C("…#",
-			List(
-				1,
-				1,
-				Phrase(LiteralToken(IntegerRangeTypeDescriptor.wholeNumbers()))),
-			A("…", "#"),
-			A(
-				PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding(),
-				APPEND_ARGUMENT.encoding())),
-		C("…$",
-			List(
-				1,
-				1,
-				Phrase(LiteralToken(TupleTypeDescriptor.stringType()))),
-			A("…", "$"),
-			A(
-				PARSE_RAW_STRING_LITERAL_TOKEN.encoding(),
-				APPEND_ARGUMENT.encoding())),
+			C(
+				"…#",
+				List(
+					1,
+					1,
+					Phrase(LiteralToken(wholeNumbers()))),
+				A("…", "#"),
+				A(
+					PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding(),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"…$",
+				List(
+					1,
+					1,
+					Phrase(LiteralToken(stringType()))),
+				A("…", "$"),
+				A(
+					PARSE_RAW_STRING_LITERAL_TOKEN.encoding(),
+					APPEND_ARGUMENT.encoding())),
 		/* Backquotes. */
-		C("`__",
-			List(1, 1, Phrase(TupleTypeDescriptor.stringType())),
-			A("`", "_", "_"),
-			A(
-				PARSE_PART.encoding(2),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding())),
-		C("`$_",
-			List(1, 1, Phrase(TupleTypeDescriptor.stringType())),
-			A("`", "$", "_"),
-			A(
-				PARSE_PART.encoding(2),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding())),
-		C("_`«_",
-			List(2, 2, Phrase(TupleTypeDescriptor.stringType())),
-			A("_", "`", "«", "_"),
-			A(
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding(),
-				PARSE_PART.encoding(3),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(2),
-				APPEND_ARGUMENT.encoding())),
-		C("_``_",
-			List(1, 1, Phrase(TupleTypeDescriptor.stringType())),
-			A("_", "`", "`", "_"),
-			A(
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding(),
-				PARSE_PART.encoding(3),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(2),
-				APPEND_ARGUMENT.encoding())),
-		C("`#`?`~",
-			List(0, 0),
-			A("`", "#", "`", "?", "`", "~"),
-			A(
-				PARSE_PART.encoding(2),
-				PARSE_PART.encoding(4),
-				PARSE_PART.encoding(6))),
+			C(
+				"`__",
+				List(1, 1, Phrase(stringType())),
+				A("`", "_", "_"),
+				A(
+					PARSE_PART.encoding(2),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"`$_",
+				List(1, 1, Phrase(stringType())),
+				A("`", "$", "_"),
+				A(
+					PARSE_PART.encoding(2),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"_`«_",
+				List(2, 2, Phrase(stringType())),
+				A("_", "`", "«", "_"),
+				A(
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding(),
+					PARSE_PART.encoding(3),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(2),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"_``_",
+				List(1, 1, Phrase(stringType())),
+				A("_", "`", "`", "_"),
+				A(
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding(),
+					PARSE_PART.encoding(3),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(2),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"`#`?`~",
+				List(0, 0),
+				A("`", "#", "`", "?", "`", "~"),
+				A(
+					PARSE_PART.encoding(2),
+					PARSE_PART.encoding(4),
+					PARSE_PART.encoding(6))),
 
-		C("`|`|_`|`|",
-			List(1, 1, Phrase(NUMBER.o())),
-			A("`", "|", "`", "|", "_", "`", "|", "`", "|"),
-			A(
-				PARSE_PART.encoding(2),
-				PARSE_PART.encoding(4),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding(),
-				PARSE_PART.encoding(7),
-				PARSE_PART.encoding(9))),
+			C(
+				"`|`|_`|`|",
+				List(1, 1, Phrase(NUMBER.o())),
+				A("`", "|", "`", "|", "_", "`", "|", "`", "|"),
+				A(
+					PARSE_PART.encoding(2),
+					PARSE_PART.encoding(4),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding(),
+					PARSE_PART.encoding(7),
+					PARSE_PART.encoding(9))),
 		/* Repeated groups. */
-		C("«_;»",
-			List(1, 1, Phrase(NUMBER.o())),
-			A("«", "_", ";", "»"),
-			A(
-				SAVE_PARSE_POSITION.encoding(),
-				EMPTY_LIST.encoding(),
-				BRANCH.encoding(12),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding(),
-				PARSE_PART.encoding(3),
-				BRANCH.encoding(11),
-				ENSURE_PARSE_PROGRESS.encoding(),
-				JUMP.encoding(4),
-				ENSURE_PARSE_PROGRESS.encoding(),
-				DISCARD_SAVED_PARSE_POSITION.encoding(),
-				APPEND_ARGUMENT.encoding())),
-		C("«x»",
-			List(1, 1, List(0, -1, List(0, 0))),
-			A("«", "x", "»"),
-			A(
-				SAVE_PARSE_POSITION.encoding(),
-				EMPTY_LIST.encoding(),
-				BRANCH.encoding(12),
-				EMPTY_LIST.encoding(),
-				PARSE_PART.encoding(2),
-				BRANCH.encoding(10),
-				APPEND_ARGUMENT.encoding(),
-				ENSURE_PARSE_PROGRESS.encoding(),
-				JUMP.encoding(4),
-				APPEND_ARGUMENT.encoding(),
-				ENSURE_PARSE_PROGRESS.encoding(),
-				DISCARD_SAVED_PARSE_POSITION.encoding(),
-				APPEND_ARGUMENT.encoding())),
-		C("«x y»",
-			List(1, 1, List(0, -1, List(0, 0))),
-			A("«", "x", "y", "»"),
-			A(
-				SAVE_PARSE_POSITION.encoding(),
-				EMPTY_LIST.encoding(),
-				BRANCH.encoding(13),
-				EMPTY_LIST.encoding(),
-				PARSE_PART.encoding(2),
-				PARSE_PART.encoding(3),
-				BRANCH.encoding(11),
-				APPEND_ARGUMENT.encoding(),
-				ENSURE_PARSE_PROGRESS.encoding(),
-				JUMP.encoding(4),
-				APPEND_ARGUMENT.encoding(),
-				ENSURE_PARSE_PROGRESS.encoding(),
-				DISCARD_SAVED_PARSE_POSITION.encoding(),
-				APPEND_ARGUMENT.encoding())),
-		C("«x_y»",
-			List(1, 1, List(0, -1, List(1, 1, Phrase(NUMBER.o())))),
-			A("«", "x", "_", "y", "»"),
-			A(
-				SAVE_PARSE_POSITION.encoding(),
-				EMPTY_LIST.encoding(),
-				BRANCH.encoding(13),
-				PARSE_PART.encoding(2),
-				PARSE_ARGUMENT.encoding(),
-				CHECK_ARGUMENT.encoding(1),
-				APPEND_ARGUMENT.encoding(),
-				PARSE_PART.encoding(4),
-				BRANCH.encoding(12),
-				ENSURE_PARSE_PROGRESS.encoding(),
-				JUMP.encoding(4),
-				ENSURE_PARSE_PROGRESS.encoding(),
-				DISCARD_SAVED_PARSE_POSITION.encoding(),
-				APPEND_ARGUMENT.encoding())),
+			C(
+				"«_;»",
+				List(1, 1, Phrase(NUMBER.o())),
+				A("«", "_", ";", "»"),
+				A(
+					SAVE_PARSE_POSITION.encoding(),
+					EMPTY_LIST.encoding(),
+					BRANCH.encoding(12),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding(),
+					PARSE_PART.encoding(3),
+					BRANCH.encoding(11),
+					ENSURE_PARSE_PROGRESS.encoding(),
+					JUMP.encoding(4),
+					ENSURE_PARSE_PROGRESS.encoding(),
+					DISCARD_SAVED_PARSE_POSITION.encoding(),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"«x»",
+				List(1, 1, List(0, -1, List(0, 0))),
+				A("«", "x", "»"),
+				A(
+					SAVE_PARSE_POSITION.encoding(),
+					EMPTY_LIST.encoding(),
+					BRANCH.encoding(12),
+					EMPTY_LIST.encoding(),
+					PARSE_PART.encoding(2),
+					BRANCH.encoding(10),
+					APPEND_ARGUMENT.encoding(),
+					ENSURE_PARSE_PROGRESS.encoding(),
+					JUMP.encoding(4),
+					APPEND_ARGUMENT.encoding(),
+					ENSURE_PARSE_PROGRESS.encoding(),
+					DISCARD_SAVED_PARSE_POSITION.encoding(),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"«x y»",
+				List(1, 1, List(0, -1, List(0, 0))),
+				A("«", "x", "y", "»"),
+				A(
+					SAVE_PARSE_POSITION.encoding(),
+					EMPTY_LIST.encoding(),
+					BRANCH.encoding(13),
+					EMPTY_LIST.encoding(),
+					PARSE_PART.encoding(2),
+					PARSE_PART.encoding(3),
+					BRANCH.encoding(11),
+					APPEND_ARGUMENT.encoding(),
+					ENSURE_PARSE_PROGRESS.encoding(),
+					JUMP.encoding(4),
+					APPEND_ARGUMENT.encoding(),
+					ENSURE_PARSE_PROGRESS.encoding(),
+					DISCARD_SAVED_PARSE_POSITION.encoding(),
+					APPEND_ARGUMENT.encoding())),
+			C(
+				"«x_y»",
+				List(1, 1, List(0, -1, List(1, 1, Phrase(NUMBER.o())))),
+				A("«", "x", "_", "y", "»"),
+				A(
+					SAVE_PARSE_POSITION.encoding(),
+					EMPTY_LIST.encoding(),
+					BRANCH.encoding(13),
+					PARSE_PART.encoding(2),
+					PARSE_ARGUMENT.encoding(),
+					CHECK_ARGUMENT.encoding(1),
+					APPEND_ARGUMENT.encoding(),
+					PARSE_PART.encoding(4),
+					BRANCH.encoding(12),
+					ENSURE_PARSE_PROGRESS.encoding(),
+					JUMP.encoding(4),
+					ENSURE_PARSE_PROGRESS.encoding(),
+					DISCARD_SAVED_PARSE_POSITION.encoding(),
+					APPEND_ARGUMENT.encoding())),
 //		C("«_:_»",
 //			A("«", "_", ":", "_", "»"),
 //			A(
@@ -1018,7 +1055,8 @@ public final class MessageSplitterTest
 //				ENSURE_PARSE_PROGRESS.encoding(),
 //				DISCARD_SAVED_PARSE_POSITION.encoding())),
 //		C("«fruit bats»|sloths|carp|«breakfast cereals»",
-//			A("«", "fruit", "bats", "»", "|", "sloths", "|", "carp", "|", "«", "breakfast", "cereals", "»"),
+//			A("«", "fruit", "bats", "»", "|", "sloths", "|", "carp", "|", "«",
+// "breakfast", "cereals", "»"),
 //			A(
 //				SAVE_PARSE_POSITION.encoding(),
 //				BRANCH.encoding(17),
@@ -1067,13 +1105,16 @@ public final class MessageSplitterTest
 //				PARSE_PART.encoding(4),
 //				PUSH_INTEGER_LITERAL.encoding(2),
 //				APPEND_ARGUMENT.encoding())),
-//		C("[««…:_†§‡,»`|»?«Primitive…#«(…:_†)»?§;»?«`$…«:_†»?;§»?«_!»«_!»?]«:_†»?«^«_†‡,»»?",
+//		C("[««…:_†§‡,»`|»?«Primitive…#«(…:_†)»?§;»?«`$…«:_†»?;
+// §»?«_!»«_!»?]«:_†»?«^«_†‡,»»?",
 //			A("[",
 //					"«", "«", "…", ":", "_", "†", "§", "‡", ",", "»",
 //						"`", "|", "»", "?",
 //					"«", "Primitive", "…", "#",
-//						"«", "(", "…", ":", "_", "†", ")", "»", "?", "§", ";", "»", "?",
-//					"«", "`", "$", "…", "«", ":", "_", "†", "»", "?", ";", "§", "»", "?",
+//						"«", "(", "…", ":", "_", "†", ")", "»", "?", "§", ";",
+// "»", "?",
+//					"«", "`", "$", "…", "«", ":", "_", "†", "»", "?", ";",
+// "§", "»", "?",
 //					"«", "_", "!", "»",
 //					"«", "_", "!", "»", "?",
 //				"]",
@@ -1265,7 +1306,7 @@ public final class MessageSplitterTest
 //				DISCARD_SAVED_PARSE_POSITION.encoding(),
 //				APPEND_ARGUMENT.encoding()
 //			))
-	};
+		};
 
 	/**
 	 * Describe a sequence of instructions, one per line, and answer the

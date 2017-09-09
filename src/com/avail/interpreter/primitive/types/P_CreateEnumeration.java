@@ -31,10 +31,24 @@
  */
 package com.avail.interpreter.primitive.types;
 
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.Enumeration;
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Create an {@linkplain Enumeration
@@ -57,18 +71,16 @@ public final class P_CreateEnumeration extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Set instanceSet = args.get(0);
-		final A_Type enumeration =
-			AbstractEnumerationTypeDescriptor.enumerationWith(instanceSet);
+		final A_Type enumeration = enumerationWith(instanceSet);
 		return interpreter.primitiveSuccess(enumeration);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				SetTypeDescriptor.mostGeneralSetType()),
-			InstanceMetaDescriptor.anyMeta());
+		return functionType(
+			tuple(mostGeneralSetType()),
+			anyMeta());
 	}
 
 	@Override
@@ -82,7 +94,7 @@ public final class P_CreateEnumeration extends Primitive
 		// the set's element type's type.  Note that this works especially well
 		// when the set's element type is an enumeration.
 		final A_Type elementType = setType.contentType();
-		final A_Type metaType = InstanceMetaDescriptor.instanceMetaOn(elementType);
+		final A_Type metaType = instanceMeta(elementType);
 		return metaType.makeImmutable();
 	}
 }

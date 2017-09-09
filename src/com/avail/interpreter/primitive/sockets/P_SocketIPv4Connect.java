@@ -49,10 +49,16 @@ import java.nio.channels.CompletionHandler;
 import java.util.Collections;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -61,6 +67,7 @@ import static com.avail.descriptor.TupleTypeDescriptor
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -140,7 +147,7 @@ extends Primitive
 			return interpreter.primitiveFailure(E_IO_ERROR);
 		}
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
 			() -> formatString("Socket IPv4 connect, %s:%d",
@@ -158,7 +165,7 @@ extends Primitive
 		succeed.makeShared();
 		fail.makeShared();
 		// Now start the asynchronous connect.
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		try
 		{
 			socket.connect(
@@ -171,11 +178,11 @@ extends Primitive
 						final @Nullable Void unused1,
 						final @Nullable Void unused2)
 					{
-						Interpreter.runOutermostFunction(
+						runOutermostFunction(
 							runtime,
 							newFiber,
 							succeed,
-							Collections.<AvailObject>emptyList());
+							Collections.emptyList());
 					}
 
 					@Override
@@ -184,7 +191,7 @@ extends Primitive
 						final @Nullable Void unused)
 					{
 						assert killer != null;
-						Interpreter.runOutermostFunction(
+						runOutermostFunction(
 							runtime,
 							newFiber,
 							fail,
@@ -211,30 +218,30 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			tuple(
-				ATOM.o(),
-				tupleTypeForSizesTypesDefaultType(
-					singleInt(4),
-					emptyTuple(),
+		return
+			functionType(
+				tuple(
+					ATOM.o(),
+					tupleTypeForSizesTypesDefaultType(
+						singleInt(4),
+						emptyTuple(),
+						bytes()),
+					unsignedShorts(),
+					functionType(
+						emptyTuple(),
+						TOP.o()),
+					functionType(
+						tuple(instanceType(E_IO_ERROR.numericCode())),
+						TOP.o()),
 					bytes()),
-				unsignedShorts(),
-				functionType(
-					emptyTuple(),
-					TOP.o()),
-				functionType(
-					tuple(
-						instanceTypeOn(E_IO_ERROR.numericCode())),
-					TOP.o()),
-				bytes()),
-			FiberTypeDescriptor.mostGeneralFiberType());
+				mostGeneralFiberType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_INCORRECT_ARGUMENT_TYPE,

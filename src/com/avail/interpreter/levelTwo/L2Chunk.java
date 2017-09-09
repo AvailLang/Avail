@@ -32,14 +32,23 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_ChunkDependable;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.PojoDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow
+	.P_RestartContinuationWithArguments;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.ReifyStackThrowable;
 
@@ -48,6 +57,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.lang.String.format;
@@ -154,7 +164,7 @@ public final class L2Chunk
 	 * L2Chunk.
 	 */
 	public final AvailObject chunkPojo =
-		RawPojoDescriptor.identityWrap(this).makeShared();
+		identityPojo(this).makeShared();
 
 	/**
 	 * Answer the number of floating point registers used by this chunk.

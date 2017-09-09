@@ -31,18 +31,27 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.EnumerationTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.*;
+import static com.avail.descriptor.EnumerationTypeDescriptor.*;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Compare for equality. Answer a {@linkplain
@@ -66,8 +75,7 @@ public final class P_Equality extends Primitive
 		assert args.size() == 2;
 		final A_BasicObject a = args.get(0);
 		final AvailObject b = args.get(1);
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(a.equals(b)));
+		return interpreter.primitiveSuccess(objectFromBoolean(a.equals(b)));
 	}
 
 	@Override
@@ -81,7 +89,7 @@ public final class P_Equality extends Primitive
 		if (type1.typeIntersection(type2).isBottom())
 		{
 			// The actual values cannot be equal at runtime.
-			return EnumerationTypeDescriptor.falseType();
+			return falseType();
 		}
 		if (type1.isEnumeration()
 			&& type1.equals(type2)
@@ -94,7 +102,7 @@ public final class P_Equality extends Primitive
 			if (!value.isType())
 			{
 				// The actual values will have to be equal at runtime.
-				return EnumerationTypeDescriptor.trueType();
+				return trueType();
 			}
 		}
 		return super.returnTypeGuaranteedByVM(argumentTypes);
@@ -122,8 +130,7 @@ public final class P_Equality extends Primitive
 		if (type1.typeIntersection(type2).isBottom())
 		{
 			// The actual values cannot be equal at runtime.
-			levelOneNaiveTranslator.moveConstant(
-				AtomDescriptor.falseObject(), resultRegister);
+			levelOneNaiveTranslator.moveConstant(falseObject(), resultRegister);
 			return;
 		}
 		if (type1.isEnumeration()
@@ -138,7 +145,7 @@ public final class P_Equality extends Primitive
 			{
 				// The actual values will have to be equal at runtime.
 				levelOneNaiveTranslator.moveConstant(
-					AtomDescriptor.trueObject(), resultRegister);
+					trueObject(), resultRegister);
 				return;
 			}
 		}
@@ -158,7 +165,7 @@ public final class P_Equality extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
+		return functionType(
 			tuple(
 				ANY.o(),
 				ANY.o()),

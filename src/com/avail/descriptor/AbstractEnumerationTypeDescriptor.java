@@ -39,8 +39,9 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 
 /**
@@ -735,7 +736,7 @@ extends AbstractTypeDescriptor
 		final int setSize = instancesSet.setSize();
 		if (setSize == 0)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		int typeCount = 0;
 		for (final A_BasicObject element : instancesSet)
@@ -749,7 +750,7 @@ extends AbstractTypeDescriptor
 		{
 			if (setSize == 1)
 			{
-				return instanceTypeOn(instancesSet.iterator().next());
+				return instanceType(instancesSet.iterator().next());
 			}
 			return EnumerationTypeDescriptor.fromNormalizedSet(instancesSet);
 		}
@@ -762,7 +763,7 @@ extends AbstractTypeDescriptor
 			{
 				typesUnion = typesUnion.typeUnion(iterator.next());
 			}
-			return instanceMetaOn(typesUnion);
+			return instanceMeta(typesUnion);
 		}
 		// It's a mix of types and non-types.
 		return ANY.o();
@@ -783,9 +784,9 @@ extends AbstractTypeDescriptor
 	{
 		if (instance.isType())
 		{
-			return instanceMetaOn((A_Type)instance);
+			return instanceMeta((A_Type)instance);
 		}
-		return instanceTypeOn(instance);
+		return instanceType(instance);
 	}
 
 	/**

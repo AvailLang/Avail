@@ -32,23 +32,59 @@
 
 package com.avail.test;
 
-import javax.annotation.Nullable;
-
-import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static java.lang.Math.*;
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.io.*;
-import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.builder.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.levelOne.*;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ModuleRoots;
+import com.avail.builder.RenamesFileParser;
+import com.avail.builder.RenamesFileParserException;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.primitive.floats.P_FloatFloor;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.serialization.*;
-import org.junit.jupiter.api.*;
+import com.avail.serialization.Deserializer;
+import com.avail.serialization.MalformedSerialStreamException;
+import com.avail.serialization.Serializer;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
+import static com.avail.descriptor.AtomDescriptor.falseObject;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
+import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.ModuleDescriptor.newModule;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
+import static java.lang.Integer.MAX_VALUE;
+import static java.lang.Integer.MIN_VALUE;
+import static java.lang.Math.min;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Unit tests for object serialization.
@@ -247,8 +283,8 @@ public final class SerializerTest
 	public void testBooleans ()
 	throws MalformedSerialStreamException
 	{
-		checkObject(AtomDescriptor.trueObject());
-		checkObject(AtomDescriptor.falseObject());
+		checkObject(trueObject());
+		checkObject(falseObject());
 	}
 
 	/**
@@ -262,18 +298,18 @@ public final class SerializerTest
 	{
 		for (int i = -500; i < 500; i++)
 		{
-			checkObject(IntegerDescriptor.fromInt(i));
+			checkObject(fromInt(i));
 		}
-		checkObject(IntegerDescriptor.fromInt(10000));
-		checkObject(IntegerDescriptor.fromInt(100000));
-		checkObject(IntegerDescriptor.fromInt(1000000));
-		checkObject(IntegerDescriptor.fromInt(10000000));
-		checkObject(IntegerDescriptor.fromInt(100000000));
-		checkObject(IntegerDescriptor.fromInt(1000000000));
-		checkObject(IntegerDescriptor.fromInt(Integer.MAX_VALUE));
-		checkObject(IntegerDescriptor.fromInt(Integer.MIN_VALUE));
-		checkObject(IntegerDescriptor.fromLong(Long.MIN_VALUE));
-		checkObject(IntegerDescriptor.fromLong(Long.MAX_VALUE));
+		checkObject(fromInt(10000));
+		checkObject(fromInt(100000));
+		checkObject(fromInt(1000000));
+		checkObject(fromInt(10000000));
+		checkObject(fromInt(100000000));
+		checkObject(fromInt(1000000000));
+		checkObject(fromInt(Integer.MAX_VALUE));
+		checkObject(fromInt(Integer.MIN_VALUE));
+		checkObject(fromLong(Long.MIN_VALUE));
+		checkObject(fromLong(Long.MAX_VALUE));
 	}
 
 	/**
@@ -285,21 +321,21 @@ public final class SerializerTest
 	public void testStrings ()
 	throws MalformedSerialStreamException
 	{
-		checkObject(StringDescriptor.stringFrom(""));
+		checkObject(stringFrom(""));
 		for (int i = 1; i < 100; i++)
 		{
-			checkObject(StringDescriptor.stringFrom(String.valueOf(i)));
+			checkObject(stringFrom(String.valueOf(i)));
 		}
-		checkObject(StringDescriptor.stringFrom("\u0000"));
-		checkObject(StringDescriptor.stringFrom("\u0001"));
-		checkObject(StringDescriptor.stringFrom("\u0003\u0002\u0001\u0000"));
-		checkObject(StringDescriptor.stringFrom("Cheese \"cake\" surprise"));
-		checkObject(StringDescriptor.stringFrom("\u00FF"));
-		checkObject(StringDescriptor.stringFrom("\u0100"));
-		checkObject(StringDescriptor.stringFrom("\u0101"));
-		checkObject(StringDescriptor.stringFrom("I like peace ☮"));
-		checkObject(StringDescriptor.stringFrom("I like music 𝄞"));
-		checkObject(StringDescriptor.stringFrom("I really like music 𝄞𝄞"));
+		checkObject(stringFrom("\u0000"));
+		checkObject(stringFrom("\u0001"));
+		checkObject(stringFrom("\u0003\u0002\u0001\u0000"));
+		checkObject(stringFrom("Cheese \"cake\" surprise"));
+		checkObject(stringFrom("\u00FF"));
+		checkObject(stringFrom("\u0100"));
+		checkObject(stringFrom("\u0101"));
+		checkObject(stringFrom("I like peace ☮"));
+		checkObject(stringFrom("I like music 𝄞"));
+		checkObject(stringFrom("I really like music 𝄞𝄞"));
 	}
 
 
@@ -312,25 +348,27 @@ public final class SerializerTest
 	public void testNumericTuples ()
 	throws MalformedSerialStreamException
 	{
-		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(0)));
-		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(1)));
-		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(2)));
-		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(3)));
-		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(10, 20)));
-		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(10, 20, 10)));
-		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(100, 200)));
-		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(100, 2000)));
-		checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(999999999)));
+		checkObject(tupleFromIntegerList(Arrays.asList(0)));
+		checkObject(tupleFromIntegerList(Arrays.asList(1)));
+		checkObject(tupleFromIntegerList(Arrays.asList(2)));
+		checkObject(tupleFromIntegerList(Arrays.asList(3)));
+		checkObject(tupleFromIntegerList(Arrays.asList(10, 20)));
+		checkObject(tupleFromIntegerList(Arrays.asList(10, 20, 10)));
+		checkObject(tupleFromIntegerList(Arrays.asList(100, 200)));
+		checkObject(tupleFromIntegerList(Arrays.asList(100, 2000)));
+		checkObject(tupleFromIntegerList(Arrays.asList(999999999)));
 		for (int i = -500; i < 500; i++)
 		{
-			checkObject(TupleDescriptor.tupleFromIntegerList(Arrays.asList(i)));
+			checkObject(tupleFromIntegerList(Arrays.asList(i)));
 		}
-		checkObject(TupleDescriptor.tuple(
-			IntegerDescriptor.fromLong(Integer.MIN_VALUE),
-			IntegerDescriptor.fromLong(Integer.MAX_VALUE)));
-		checkObject(TupleDescriptor.tuple(
-			IntegerDescriptor.fromLong(Long.MIN_VALUE),
-			IntegerDescriptor.fromLong(Long.MAX_VALUE)));
+		checkObject(
+			tuple(
+				fromLong(MIN_VALUE),
+				fromLong(MAX_VALUE)));
+		checkObject(
+			tuple(
+				fromLong(Long.MIN_VALUE),
+				fromLong(Long.MAX_VALUE)));
 	}
 
 	/**
@@ -356,12 +394,11 @@ public final class SerializerTest
 					: random.nextInt(5);
 				if (choice == 0)
 				{
-					newObject = IntegerDescriptor.fromInt(random.nextInt());
+					newObject = fromInt(random.nextInt());
 				}
 				else if (choice == 1)
 				{
-					newObject = CharacterDescriptor.fromCodePoint(
-						random.nextInt(0x110000));
+					newObject = fromCodePoint(random.nextInt(0x110000));
 				}
 				else
 				{
@@ -379,7 +416,7 @@ public final class SerializerTest
 					}
 					if (choice == 2)
 					{
-						newObject = TupleDescriptor.tupleFromList(members);
+						newObject = tupleFromList(members);
 					}
 					else if (choice == 3)
 					{
@@ -387,7 +424,7 @@ public final class SerializerTest
 					}
 					else if (choice == 4)
 					{
-						A_Map map = MapDescriptor.emptyMap();
+						A_Map map = emptyMap();
 						for (int i = 0; i < size; i+=2)
 						{
 							map = map.mapAtPuttingCanDestroy(
@@ -416,19 +453,19 @@ public final class SerializerTest
 	public void testAtoms ()
 	throws MalformedSerialStreamException
 	{
-		final A_Module inputModule = ModuleDescriptor.newModule(
-			StringDescriptor.stringFrom("Imported"));
-		final A_Module currentModule = ModuleDescriptor.newModule(
-			StringDescriptor.stringFrom("Current"));
-		final A_Atom atom1 = AtomDescriptor.create(
-			StringDescriptor.stringFrom("importAtom1"),
+		final A_Module inputModule = newModule(
+			stringFrom("Imported"));
+		final A_Module currentModule = newModule(
+			stringFrom("Current"));
+		final A_Atom atom1 = AtomDescriptor.createAtom(
+			stringFrom("importAtom1"),
 			inputModule);
 		inputModule.addPrivateName(atom1);
-		final A_Atom atom2 = AtomDescriptor.create(
-			StringDescriptor.stringFrom("currentAtom2"),
+		final A_Atom atom2 = AtomDescriptor.createAtom(
+			stringFrom("currentAtom2"),
 			currentModule);
 		currentModule.addPrivateName(atom2);
-		final A_Tuple tuple = TupleDescriptor.tuple(atom1, atom2);
+		final A_Tuple tuple = tuple(atom1, atom2);
 
 		prepareToWrite();
 		serializer().serialize(tuple);
@@ -453,14 +490,13 @@ public final class SerializerTest
 	throws MalformedSerialStreamException
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			NilDescriptor.nil(), 0, NilDescriptor.nil());
+			nil(), 0, nil());
 		writer.argumentTypes(FLOAT.o());
 		writer.primitive(P_FloatFloor.instance);
 		writer.returnType(FLOAT.o());
 		final A_RawFunction code = writer.compiledCode();
-		final A_Function function = FunctionDescriptor.create(
-			code,
-			TupleDescriptor.emptyTuple());
+		final A_Function function =
+			createFunction(code, emptyTuple());
 		final @Nullable A_Function newFunction = roundTrip(function);
 		assert newFunction != null;
 		final A_RawFunction code2 = newFunction.code();

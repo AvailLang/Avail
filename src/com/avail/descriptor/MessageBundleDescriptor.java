@@ -32,19 +32,25 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
-
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Map;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Map;
+
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor
+	.newParsingPlan;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 
 /**
  * A message bundle is how a message name is bound to a {@linkplain
@@ -400,26 +406,23 @@ extends Descriptor
 		assert splitter.numberOfArguments() == method.numArgs();
 		assert splitter.messageName().equals(methodName.atomName());
 
-		final AvailObject splitterPojo =
-			RawPojoDescriptor.identityWrap(splitter);
+		final AvailObject splitterPojo = identityPojo(splitter);
 		final AvailObject result = mutable.create();
 		result.setSlot(METHOD, method);
 		result.setSlot(MESSAGE, methodName);
 		result.setSlot(MESSAGE_SPLITTER_POJO, splitterPojo);
-		result.setSlot(GRAMMATICAL_RESTRICTIONS, SetDescriptor.emptySet());
-		A_Map plans = MapDescriptor.emptyMap();
+		result.setSlot(GRAMMATICAL_RESTRICTIONS, emptySet());
+		A_Map plans = emptyMap();
 		for (final A_Definition definition : method.definitionsTuple())
 		{
 			final A_DefinitionParsingPlan plan =
-				DefinitionParsingPlanDescriptor.createPlan(
-					result, definition);
+				newParsingPlan(result, definition);
 			plans = plans.mapAtPuttingCanDestroy(definition, plan, true);
 		}
 		for (final A_Definition definition : method.macroDefinitionsTuple())
 		{
 			final A_DefinitionParsingPlan plan =
-				DefinitionParsingPlanDescriptor.createPlan(
-					result, definition);
+				newParsingPlan(result, definition);
 			plans = plans.mapAtPuttingCanDestroy(definition, plan, true);
 		}
 		result.setSlot(DEFINITION_PARSING_PLANS, plans);
@@ -427,7 +430,7 @@ extends Descriptor
 		// Look up the statistic by name, so that multiple loads of a module
 		// will accumulate.
 		final String nameString = methodName.toString();
-		final A_String name = StringDescriptor.stringFrom(nameString).makeShared();
+		final A_String name = stringFrom(nameString).makeShared();
 		final Statistic stat;
 		synchronized (dynamicLookupStatsByString)
 		{
@@ -437,7 +440,7 @@ extends Descriptor
 					"Lookup " + nameString,
 					StatisticReport.DYNAMIC_LOOKUPS));
 		}
-		final A_BasicObject pojo = RawPojoDescriptor.identityWrap(stat);
+		final A_BasicObject pojo = identityPojo(stat);
 		result.setSlot(DYNAMIC_LOOKUP_STATS_POJO, pojo);
 
 		result.makeShared();

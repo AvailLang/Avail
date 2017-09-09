@@ -31,10 +31,26 @@
  */
 package com.avail.interpreter.primitive.sets;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Convert a {@linkplain TupleDescriptor
@@ -63,10 +79,8 @@ public final class P_TupleToSet extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.mostGeneralTupleType()),
-			SetTypeDescriptor.mostGeneralSetType());
+		return
+			functionType(tuple(mostGeneralTupleType()), mostGeneralSetType());
 	}
 
 	@Override
@@ -93,15 +107,12 @@ public final class P_TupleToSet extends Primitive
 		// the empty tuple can produce the empty set, and the set size is never
 		// greater than the tuple size.
 		final A_Number minSize =
-			tupleSizes.lowerBound().equalsInt(0)
-				? IntegerDescriptor.zero()
-				: IntegerDescriptor.one();
-		final A_Type setSizes = IntegerRangeTypeDescriptor.integerRangeType(
+			tupleSizes.lowerBound().equalsInt(0)? zero() : one();
+		final A_Type setSizes = integerRangeType(
 			minSize,
 			true,
 			tupleSizes.upperBound(),
 			tupleSizes.upperInclusive());
-		return SetTypeDescriptor.setTypeForSizesContentType(
-			setSizes, unionType);
+		return setTypeForSizesContentType(setSizes, unionType);
 	}
 }

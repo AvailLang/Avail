@@ -180,7 +180,7 @@ extends TypeDescriptor
 		final A_Type instance = object.literalType().typeIntersection(
 			aLiteralTokenType.literalType());
 		instance.makeImmutable();
-		return LiteralTokenTypeDescriptor.literalTokenType(instance);
+		return literalTokenType(instance);
 	}
 
 	@Override @AvailMethod
@@ -220,7 +220,7 @@ extends TypeDescriptor
 		final A_Type instance = object.literalType().typeUnion(
 			aLiteralTokenType.literalType());
 		instance.makeImmutable();
-		return LiteralTokenTypeDescriptor.literalTokenType(instance);
+		return literalTokenType(instance);
 	}
 
 	@Override @AvailMethod

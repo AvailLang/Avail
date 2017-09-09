@@ -32,10 +32,21 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Answer the name of the specified {@linkplain
@@ -67,9 +78,7 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FiberTypeDescriptor.mostGeneralFiberType()),
-			TupleTypeDescriptor.stringType());
+		return
+			functionType(tuple(mostGeneralFiberType()), stringType());
 	}
 }

@@ -231,7 +231,7 @@ extends ParseNodeDescriptor
 	 *        SequenceNodeDescriptor sequence node}.
 	 * @return The resulting sequence node.
 	 */
-	public static A_Phrase newStatements (final A_Tuple statements)
+	public static A_Phrase newSequence (final A_Tuple statements)
 	{
 		final AvailObject instance = mutable.create();
 		instance.setSlot(STATEMENTS, statements);

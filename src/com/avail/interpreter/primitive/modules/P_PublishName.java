@@ -32,15 +32,33 @@
 
 package com.avail.interpreter.primitive.modules;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.exceptions.AmbiguousNameException;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.AvailLoader.Phase;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.AmbiguousNameException;
-import com.avail.interpreter.*;
-import com.avail.interpreter.AvailLoader.Phase;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Publish the {@linkplain AtomDescriptor atom}
@@ -89,7 +107,7 @@ extends Primitive
 			final A_Atom trueName = loader.lookupName(name);
 			module.introduceNewName(trueName);
 			module.addImportedName(trueName);
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			return interpreter.primitiveSuccess(nil());
 		}
 		catch (final AmbiguousNameException e)
 		{
@@ -100,19 +118,15 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType()),
-			TOP.o());
+		return
+			functionType(tuple(stringType()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION,
+		return enumerationWith(
+			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_AMBIGUOUS_NAME));
 	}
 }

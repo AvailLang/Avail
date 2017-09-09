@@ -32,18 +32,36 @@
 
 package com.avail.interpreter.primitive.processes;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.avail.descriptor.*;
-import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS;
+import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive</strong>: Execute a detached external {@linkplain Process
@@ -127,38 +145,34 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_NO_EXTERNAL_PROCESS);
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.oneOrMoreOf(
-					TupleTypeDescriptor.stringType()),
-				TupleTypeDescriptor.zeroOrOneOf(
-					TupleTypeDescriptor.stringType()),
-				TupleTypeDescriptor.zeroOrOneOf(
-					TupleTypeDescriptor.stringType()),
-				TupleTypeDescriptor.zeroOrOneOf(
-					TupleTypeDescriptor.stringType()),
-				TupleTypeDescriptor.zeroOrOneOf(
-					TupleTypeDescriptor.stringType()),
-				TupleTypeDescriptor.zeroOrOneOf(
-					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						TupleTypeDescriptor.stringType(),
-						TupleTypeDescriptor.stringType()))),
-			TOP.o());
+		return functionType(tuple(
+			oneOrMoreOf(
+				stringType()),
+			zeroOrOneOf(
+				stringType()),
+			zeroOrOneOf(
+				stringType()),
+			zeroOrOneOf(
+				stringType()),
+			zeroOrOneOf(
+				stringType()),
+			zeroOrOneOf(
+				mapTypeForSizesKeyTypeValueType(
+					wholeNumbers(),
+					stringType(),
+					stringType()))), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_PERMISSION_DENIED,
-				E_NO_EXTERNAL_PROCESS));
+		return
+			enumerationWith(set(E_PERMISSION_DENIED, E_NO_EXTERNAL_PROCESS));
 	}
 }

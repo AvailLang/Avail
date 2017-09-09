@@ -43,8 +43,6 @@ import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CommentTokenDescriptor;
-import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.StringDescriptor;
 import com.avail.utility.Pair;
 import com.avail.utility.json.JSONWriter;
 
@@ -58,10 +56,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 
 /**
  * A representation of all the fully parsed {@linkplain CommentTokenDescriptor
@@ -163,14 +164,14 @@ public class StacksCommentsModule
 	/**
 	 * All public methods/classes from this module.
 	 */
-	private final HashMap<A_String,ImplementationGroup>
+	private final Map<A_String,ImplementationGroup>
 		namedPublicCommentImplementations;
 
 	/**
 	 * Get namedPublicCommentImplementations
 	 * @return
 	 */
-	public HashMap<A_String,ImplementationGroup>
+	public Map<A_String, ImplementationGroup>
 		namedPublicCommentImplementations()
 	{
 		return namedPublicCommentImplementations;
@@ -179,13 +180,13 @@ public class StacksCommentsModule
 	/**
 	 * A map keyed by exported method names to the file path-name.
 	 */
-	private final HashMap<A_String, StacksFilename>
+	private final Map<A_String, StacksFilename>
 		inScopeMethodsToFileNames;
 
 	/**
 	 * @return the inScopeMethodsToFileNames
 	 */
-	public HashMap<A_String, StacksFilename>
+	public Map<A_String, StacksFilename>
 		exportedMethodsTofileNames ()
 	{
 		return inScopeMethodsToFileNames;
@@ -197,7 +198,7 @@ public class StacksCommentsModule
 	 *  The outermost {@linkplain StacksCommentsModule module} for the
 	 *  generation request.
 	 */
-	private HashMap<A_String, HashMap<String, ImplementationGroup>>
+	private Map<A_String, Map<String, ImplementationGroup>>
 		finalImplementationsGroupMap;
 
 	/**
@@ -206,13 +207,13 @@ public class StacksCommentsModule
 	 * ImplementationGroup}.  These are all the methods exported from this
 	 * {@linkplain StacksCommentsModule module}
 	 */
-	private final HashMap<A_String, HashMap<String, ImplementationGroup>>
+	private final Map<A_String, Map<String, ImplementationGroup>>
 		extendsMethodLeafNameToModuleName;
 
 	/**
 	 * @return the extendsMethodLeafNameToModuleName
 	 */
-	public HashMap<A_String, HashMap<String, ImplementationGroup>>
+	public Map<A_String, Map<String, ImplementationGroup>>
 		extendsMethodLeafNameToModuleName ()
 	{
 		return extendsMethodLeafNameToModuleName;
@@ -225,13 +226,13 @@ public class StacksCommentsModule
 	 * {@linkplain StacksCommentsModule module} and are "public" because
 	 * it uses a module where the name is exported from.
 	 */
-	private final HashMap<A_String, HashMap<String, ImplementationGroup>>
+	private final Map<A_String, Map<String, ImplementationGroup>>
 		usesMethodLeafNameToModuleName;
 
 	/**
 	 * @return the extendsMethodLeafNameToModuleName
 	 */
-	public HashMap<A_String, HashMap<String, ImplementationGroup>>
+	public Map<A_String, Map<String, ImplementationGroup>>
 		usesMethodLeafNameToModuleName ()
 	{
 		return usesMethodLeafNameToModuleName;
@@ -240,13 +241,13 @@ public class StacksCommentsModule
 	/**
 	 * All private methods/classes from this module.
 	 */
-	private final HashMap<A_String,ImplementationGroup>
+	private final Map<A_String, ImplementationGroup>
 		privateCommentImplementations;
 
 	/**
 	 * @return the privateCommentImplementations
 	 */
-	public HashMap<A_String,ImplementationGroup> privateCommentImplementations()
+	public Map<A_String, ImplementationGroup> privateCommentImplementations()
 	{
 		return privateCommentImplementations;
 	}
@@ -261,7 +262,7 @@ public class StacksCommentsModule
 	void addImplementation(final AbstractCommentImplementation comment)
 	{
 		final A_String nameToCheck =
-			StringDescriptor.stringFrom(comment.signature().name());
+			stringFrom(comment.signature().name());
 
 		if (extendsMethodLeafNameToModuleName.containsKey(nameToCheck))
 		{
@@ -513,7 +514,7 @@ public class StacksCommentsModule
 				if (moduleImport.isExtension)
 				{
 					A_Set collectedExtendedNames =
-						SetDescriptor.emptySet();
+						emptySet();
 
 					if (moduleImport.wildcard)
 					{
@@ -533,7 +534,7 @@ public class StacksCommentsModule
 									.keySet()),
 								true);
 					}
-					if (!moduleImport.excludes.equals(SetDescriptor.emptySet()))
+					if (!moduleImport.excludes.equals(emptySet()))
 					{
 						collectedExtendedNames = collectedExtendedNames
 							.setMinusCanDestroy(moduleImport.excludes, true);
@@ -591,7 +592,7 @@ public class StacksCommentsModule
 					for (final A_String name : removeSet)
 					{
 						stacksExtends.extendsMethodLeafNameToModuleName()
-								.remove(name);
+							.remove(name);
 					}
 
 					extendsMap.put(moduleImportName,stacksExtends);
@@ -599,12 +600,12 @@ public class StacksCommentsModule
 						stacksExtends.extendsMethodLeafNameToModuleName()
 							.keySet())
 					{
-						final HashMap<A_String,HashMap<String,ImplementationGroup>>
+						final Map<A_String, Map<String,ImplementationGroup>>
 							addOn =
 							stacksExtends.extendsMethodLeafNameToModuleName();
 						if (extendsMethodLeafNameToModuleName.containsKey(key))
 						{
-							final HashMap<String, ImplementationGroup>
+							final Map<String, ImplementationGroup>
 								modToImplement = addOn.get(key);
 							for (final Entry<String, ImplementationGroup>
 									stringImplementationGroupEntry
@@ -617,8 +618,8 @@ public class StacksCommentsModule
 						}
 						else
 						{
-							extendsMethodLeafNameToModuleName.put(key,
-								addOn.get(key));
+							extendsMethodLeafNameToModuleName.put(
+								key, addOn.get(key));
 						}
 					}
 
@@ -662,7 +663,7 @@ public class StacksCommentsModule
 				else
 				{
 					A_Set collectedUsesNames =
-						SetDescriptor.emptySet();
+						emptySet();
 
 					if (moduleImport.wildcard)
 					{
@@ -681,7 +682,7 @@ public class StacksCommentsModule
 										.keySet()),
 								true);
 					}
-					if (!moduleImport.excludes.equals(SetDescriptor.emptySet()))
+					if (!moduleImport.excludes.equals(emptySet()))
 					{
 						collectedUsesNames = collectedUsesNames
 							.setMinusCanDestroy(moduleImport.excludes, true);
@@ -747,23 +748,23 @@ public class StacksCommentsModule
 						stacksUses.extendsMethodLeafNameToModuleName()
 							.keySet())
 					{
-						final HashMap<A_String,HashMap<String,ImplementationGroup>>
+						final Map<A_String, Map<String,ImplementationGroup>>
 							addOn =
 								stacksUses.extendsMethodLeafNameToModuleName();
 						if (usesMethodLeafNameToModuleName.containsKey(key))
 						{
-							final HashMap<String, ImplementationGroup>
+							final Map<String, ImplementationGroup>
 								modToImplement = addOn.get(key);
 							for (final String mod : modToImplement.keySet())
 							{
 								usesMethodLeafNameToModuleName.get(key)
-								.put(mod,modToImplement.get(mod));
+									.put(mod,modToImplement.get(mod));
 							}
 						}
 						else
 						{
-							usesMethodLeafNameToModuleName.put(key,
-								addOn.get(key));
+							usesMethodLeafNameToModuleName.put(
+								key, addOn.get(key));
 						}
 					}
 
@@ -829,7 +830,7 @@ public class StacksCommentsModule
 					if (usesModule.extendsMethodLeafNameToModuleName()
 						.containsKey(nameToCheck))
 					{
-						final HashMap<String, ImplementationGroup>
+						final Map<String, ImplementationGroup>
 							moduleToImplementation =
 								usesModule.extendsMethodLeafNameToModuleName()
 									.get(nameToCheck);
@@ -860,7 +861,7 @@ public class StacksCommentsModule
 										 * would be ambiguous between the two
 										 * names.
 										 */
-										final HashMap<A_String,HashMap<String,
+										final Map<A_String, Map<String,
 											ImplementationGroup>>
 											extendsLeaves =
 											extendsModule
@@ -871,11 +872,15 @@ public class StacksCommentsModule
 											extendsLeaves
 												.containsKey(nameToCheck))
 										{
-											final HashMap<String,
-											ImplementationGroup> extendsLeaf =
-												extendsLeaves.get(nameToCheck);
+											final Map<
+													String,
+													ImplementationGroup>
+												extendsLeaf =
+													extendsLeaves.get(
+														nameToCheck);
 
-											if (extendsLeaf.containsKey(usesModName))
+											if (extendsLeaf.containsKey(
+												usesModName))
 											{
 												extendsLeaf.get(usesModName)
 													.mergeWith(
@@ -898,7 +903,7 @@ public class StacksCommentsModule
 				for (final StacksExtendsModule usesExtendsModule :
 					usesModule.moduleNameToExtendsList().values())
 				{
-					final HashMap<String, Pair<String,ImplementationGroup>>
+					final Map<String, Pair<String, ImplementationGroup>>
 						first =
 						usesExtendsModule.flattenImplementationGroups().first();
 
@@ -952,11 +957,11 @@ public class StacksCommentsModule
 			for (final StacksUsesModule uses :
 				usesNamesImplementations.values())
 			{
-				final HashMap<String,StacksUsesModule> usesModules =
+				final Map<String,StacksUsesModule> usesModules =
 					uses.moduleNameToUsesList();
 				if(usesModules.containsKey(extendsModuleName))
 				{
-					final HashMap<A_String,ImplementationGroup>
+					final Map<A_String,ImplementationGroup>
 						nameToImplementations = usesModules
 							.get(extendsModuleName).implementations();
 
@@ -979,13 +984,13 @@ public class StacksCommentsModule
 			{
 				if (!otherExtendsModuleName.equals(extendsModuleName))
 				{
-					final HashMap<String,StacksUsesModule> usesModules =
+					final Map<String,StacksUsesModule> usesModules =
 						extendedNamesImplementations.get(otherExtendsModuleName)
 							.moduleNameToUsesList();
 
 					if(usesModules.containsKey(otherExtendsModuleName))
 					{
-						final HashMap<A_String,ImplementationGroup>
+						final Map<A_String,ImplementationGroup>
 							nameToImplementations = usesModules
 								.get(otherExtendsModuleName).implementations();
 
@@ -1033,7 +1038,7 @@ public class StacksCommentsModule
 				newHashNameMap.put(pair.first(), newHashNameMap
 					.get(pair.first()) + 1);
 				nameToBeHashed =
-					StringDescriptor.stringFrom(pair.first().asNativeString()
+					stringFrom(pair.first().asNativeString()
 						+ newHashNameMap.get(pair.first()));
 			}
 			else
@@ -1079,8 +1084,7 @@ public class StacksCommentsModule
 			{
 				newHashNameMap.put(key, newHashNameMap.get(key) + 1);
 				nameToBeHashed =
-					StringDescriptor.stringFrom(key.asNativeString()
-						+ newHashNameMap.get(key));
+					stringFrom(key.asNativeString() + newHashNameMap.get(key));
 			}
 			else
 			{
@@ -1123,25 +1127,22 @@ public class StacksCommentsModule
 			final String topLevelLinkFolderPath)
 		throws IOException
 	{
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
-			filteredMap =
+		final Map<A_String, Map<String, ImplementationGroup>> filteredMap =
 			new HashMap<>();
 
-		final HashMap<String,ImplementationGroup> notPopulated =
-			new HashMap<>();
+		final Map<String, ImplementationGroup> notPopulated = new HashMap<>();
 
 		int fileCount = 0;
 
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
-		ambiguousMethodFileMap = new
-			HashMap<>();
+		final Map<A_String, Map<String, ImplementationGroup>>
+			ambiguousMethodFileMap = new HashMap<>();
 
 		for (final A_String key : extendsMethodLeafNameToModuleName.keySet())
 		{
-			final HashMap<String, ImplementationGroup> tempMap =
+			final Map<String, ImplementationGroup> tempMap =
 				extendsMethodLeafNameToModuleName.get(key);
 
-			final HashMap<String, ImplementationGroup> stickyMap =
+			final Map<String, ImplementationGroup> stickyMap =
 				stickyNamesImplementations.get(key);
 
 			/* If there is a sticky implementation group, force it into
@@ -1206,7 +1207,7 @@ public class StacksCommentsModule
 			final HashMap<String, ImplementationGroup> tempMap =
 				stickyNamesImplementations.get(key);
 
-			final HashMap<String, ImplementationGroup> exportMap =
+			final Map<String, ImplementationGroup> exportMap =
 				extendsMethodLeafNameToModuleName.get(key);
 
 			if (exportMap == null)
@@ -1271,14 +1272,20 @@ public class StacksCommentsModule
 			final StacksSynchronizer synchronizer =
 				new StacksSynchronizer(ambiguousFileCount);
 
-			writeAmbiguousMethodsJSONFiles(outputPath,synchronizer,
-				runtime, ambiguousMethodFileMap,
+			writeAmbiguousMethodsJSONFiles(
+				outputPath,
+				synchronizer,
+				runtime,
+				ambiguousMethodFileMap,
 				linkingFileMap);
 
 			synchronizer.waitForWorkUnitsToComplete();
 		}
-		writeAmbiguousAliasJSONFiles(outputPath,
-			runtime, ambiguousMethodFileMap, topLevelLinkFolderPath,
+		writeAmbiguousAliasJSONFiles(
+			outputPath,
+			runtime,
+			ambiguousMethodFileMap,
+			topLevelLinkFolderPath,
 			linkingFileMap);
 
 		return fileCount;
@@ -1322,7 +1329,7 @@ public class StacksCommentsModule
 		for (final A_String implementationName :
 			finalImplementationsGroupMap.keySet())
 		{
-			final HashMap<String, ImplementationGroup> tempImplementationMap =
+			final Map<String, ImplementationGroup> tempImplementationMap =
 				finalImplementationsGroupMap.get(implementationName);
 
 			for (final String modulePath : tempImplementationMap.keySet())
@@ -1366,7 +1373,7 @@ public class StacksCommentsModule
 		final Path outputPath,
 		final StacksSynchronizer synchronizer,
 		final AvailRuntime runtime,
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
+		final Map<A_String, Map<String, ImplementationGroup>>
 			ambiguousMethodFileMap,
 		final LinkingFileMap linkingFileMap)
 		throws IOException
@@ -1380,10 +1387,9 @@ public class StacksCommentsModule
 		final String linkLocation = linkPrefix + "/_Ambiguities";
 
 		//Get aliases from ambiguous implementations
-		for (final A_String key :
-			ambiguousMethodFileMap.keySet())
+		for (final A_String key : ambiguousMethodFileMap.keySet())
 		{
-			final HashMap<String, ImplementationGroup> tempImplementationMap =
+			final Map<String, ImplementationGroup> tempImplementationMap =
 				ambiguousMethodFileMap.get(key);
 
 			for (final String modulePath : tempImplementationMap.keySet())
@@ -1405,7 +1411,7 @@ public class StacksCommentsModule
 		for (final A_String key :
 			ambiguousMethodFileMap.keySet())
 		{
-			final HashMap<String, ImplementationGroup> tempImplementationMap =
+			final Map<String, ImplementationGroup> tempImplementationMap =
 				ambiguousMethodFileMap.get(key);
 
 			final HashSet<Pair<String, String>> ambiguousLinks =
@@ -1511,21 +1517,17 @@ public class StacksCommentsModule
 	private void writeAmbiguousAliasJSONFiles (
 			final Path outputPath,
 			final AvailRuntime runtime,
-			final HashMap<A_String, HashMap<String, ImplementationGroup>>
+			final Map<A_String, Map<String, ImplementationGroup>>
 				ambiguousMethodFileMap,
 			final String topLevelLinkFolderPath,
 			final LinkingFileMap linkingFileMap)
 		throws IOException
 	{
 
-		final HashMap<String,String> internalLinks =
-			new HashMap<>();
-
-		final Path outputFolder = outputPath
-			.resolve("library-documentation/_Ambiguities");
-
-		final HashMap<String,HashSet<String>> tempAmbiguousAliasMap =
-			new HashMap<>();
+		final Map<String, String> internalLinks = new HashMap<>();
+		final Path outputFolder = outputPath.resolve(
+			"library-documentation/_Ambiguities");
+		final Map<String, Set<String>> tempAmbiguousAliasMap = new HashMap<>();
 
 		for (final String key : linkingFileMap.namedFileLinks().keySet())
 		{
@@ -1559,7 +1561,7 @@ public class StacksCommentsModule
 
 			for (final String ambiguousAliasKey : tempAmbiguousAliasMap.keySet())
 			{
-				final HashSet<String> ambiguousLinks =
+				final Set<String> ambiguousLinks =
 					tempAmbiguousAliasMap.get(ambiguousAliasKey);
 
 				final JSONWriter jsonWriter = new JSONWriter();
@@ -1582,8 +1584,7 @@ public class StacksCommentsModule
 				jsonWriter.endArray();
 				jsonWriter.endObject();
 				final String fileName =
-					(StringDescriptor.stringFrom(ambiguousAliasKey).hash()
-							& 0xFFFFFFFFL)
+					(stringFrom(ambiguousAliasKey).hash() & 0xFFFFFFFFL)
 						+ "." + fileExtensionName;
 
 				internalLinks.put(ambiguousAliasKey,

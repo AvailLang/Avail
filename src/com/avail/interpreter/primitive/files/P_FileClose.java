@@ -31,16 +31,29 @@
  */
 package com.avail.interpreter.primitive.files;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.AvailRuntime.FileHandle;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
 import java.util.List;
-import com.avail.AvailRuntime.FileHandle;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Close the {@linkplain AsynchronousFileChannel
@@ -67,8 +80,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Atom atom = args.get(0);
-		final A_BasicObject pojo =
-			atom.getAtomProperty(FILE_KEY.atom);
+		final A_BasicObject pojo = atom.getAtomProperty(FILE_KEY.atom);
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
@@ -84,23 +96,19 @@ extends Primitive
 			// we've already forgotten about the handle. There's no reason
 			// to fail the primitive.
 		}
-		atom.setAtomProperty(
-			FILE_KEY.atom, NilDescriptor.nil());
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		atom.setAtomProperty(FILE_KEY.atom, nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ATOM.o()),
-			TOP.o());
+		return functionType(tuple(ATOM.o()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return InstanceTypeDescriptor.instanceTypeOn(E_INVALID_HANDLE.numericCode());
+		return instanceType(E_INVALID_HANDLE.numericCode());
 	}
 }

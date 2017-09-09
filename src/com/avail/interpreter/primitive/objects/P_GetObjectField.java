@@ -31,13 +31,32 @@
  */
 package com.avail.interpreter.primitive.objects;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
-import static com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ObjectDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Extract the specified {@linkplain
@@ -81,9 +100,9 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ObjectTypeDescriptor.mostGeneralObjectType(),
+		return functionType(
+			tuple(
+				mostGeneralObjectType(),
 				ATOM.o()),
 			ANY.o());
 	}
@@ -97,12 +116,12 @@ extends Primitive
 
 		if (objectType.isBottom())
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		final A_Map fieldTypeMap = objectType.fieldTypeMap();
 		if (fieldType.isEnumeration())
 		{
-			A_Type union = BottomTypeDescriptor.bottom();
+			A_Type union = bottom();
 			for (final A_Atom possibleField : fieldType.instances())
 			{
 				if (!fieldTypeMap.hasKey(possibleField))
@@ -143,8 +162,6 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_NO_SUCH_FIELD));
+		return enumerationWith(set(E_NO_SUCH_FIELD));
 	}
 }

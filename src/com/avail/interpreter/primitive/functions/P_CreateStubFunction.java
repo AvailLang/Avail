@@ -31,10 +31,20 @@
  */
 package com.avail.interpreter.primitive.functions;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionDescriptor.createStubWithArgTypes;
+import static com.avail.descriptor.FunctionTypeDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Construct a {@linkplain FunctionDescriptor
@@ -61,17 +71,16 @@ public final class P_CreateStubFunction extends Primitive
 		final A_Type newFunctionType = args.get(0);
 		final A_Function function = args.get(1);
 		return interpreter.primitiveSuccess(
-			FunctionDescriptor.createStubWithArgTypes(
-				newFunctionType, function));
+			createStubWithArgTypes(newFunctionType, function));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FunctionTypeDescriptor.functionMeta(),
-				FunctionTypeDescriptor.mostGeneralFunctionType()),
-			FunctionTypeDescriptor.mostGeneralFunctionType());
+		return functionType(
+			tuple(
+				functionMeta(),
+				mostGeneralFunctionType()),
+			mostGeneralFunctionType());
 	}
 }

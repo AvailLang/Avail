@@ -32,14 +32,29 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import javax.annotation.Nullable;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ExpressionAsStatementNodeDescriptor;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+	.newExpressionAsStatement;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * The {@code P_BootstrapSendAsStatementMacro} primitive is used to allow
@@ -88,16 +103,15 @@ extends Primitive
 				sendPhrase.expressionType(),
 				sendPhrase);
 		}
-		final A_Phrase sendAsStatement =
-			ExpressionAsStatementNodeDescriptor.fromExpression(sendPhrase);
+		final A_Phrase sendAsStatement = newExpressionAsStatement(sendPhrase);
 		return interpreter.primitiveSuccess(sendAsStatement);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				/* The send node to treat as a statement */
 				LITERAL_NODE.create(SEND_NODE.mostGeneralType())),
 			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
@@ -106,8 +120,7 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_LOADING_IS_OVER));
+		return
+			enumerationWith(set(E_LOADING_IS_OVER));
 	}
 }

@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -46,6 +45,8 @@ import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
@@ -107,7 +108,7 @@ public class L2_GET_VARIABLE extends L2Operation
 		{
 			final A_Type oldType = registerSet.typeAt(variableReg);
 			final A_Type varType = oldType.typeIntersection(
-				VariableTypeDescriptor.mostGeneralVariableType());
+				mostGeneralVariableType());
 			registerSet.typeAtPut(destReg, varType.readType(), instruction);
 		}
 		else

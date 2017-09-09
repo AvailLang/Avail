@@ -31,18 +31,25 @@
  */
 package com.avail.interpreter.primitive.types;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.*;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer whether type1 is a subtype of type2
@@ -67,14 +74,13 @@ public final class P_IsSubtypeOf extends Primitive
 		final A_Type type1 = args.get(0);
 		final A_Type type2 = args.get(1);
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(
-				type1.isSubtypeOf(type2)));
+			objectFromBoolean(type1.isSubtypeOf(type2)));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
+		return functionType(
 			tuple(
 				topMeta(),
 				topMeta()),
@@ -118,8 +124,7 @@ public final class P_IsSubtypeOf extends Primitive
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
 				levelOneNaiveTranslator.moveConstant(
-					AtomDescriptor.trueObject(),
-					resultRegister);
+					trueObject(), resultRegister);
 				return;
 			}
 		}
@@ -135,8 +140,7 @@ public final class P_IsSubtypeOf extends Primitive
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
 				levelOneNaiveTranslator.moveConstant(
-					AtomDescriptor.falseObject(),
-					resultRegister);
+					falseObject(), resultRegister);
 				return;
 			}
 		}

@@ -32,15 +32,27 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.ObjectSlots.*;
-import static java.lang.Math.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
+	.IntegerSlots.TUPLE_TYPE_COMPLEXITY;
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
+	.ObjectSlots.FIRST_TUPLE_TYPE;
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
+	.ObjectSlots.SECOND_TUPLE_TYPE;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 
 /**
  * An object instance of {@code ConcatenatedTupleTypeDescriptor} is an
@@ -357,12 +369,10 @@ extends TypeDescriptor
 					aTupleType.typeAtIndex(i));
 			if (intersectionObject.isBottom())
 			{
-				return BottomTypeDescriptor.bottom();
+				return bottom();
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
-				i,
-				intersectionObject,
-				true);
+				i, intersectionObject, true);
 		}
 		// Make sure entries in newLeading are immutable, as typeIntersection
 		// can answer one of its arguments.
@@ -371,10 +381,8 @@ extends TypeDescriptor
 			object.typeAtIndex(newLeadingSize + 1).typeIntersection(
 				aTupleType.typeAtIndex(newLeadingSize + 1));
 		newDefault.makeImmutable();
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			newSizesObject,
-			newLeading,
-			newDefault);
+		return tupleTypeForSizesTypesDefaultType(
+			newSizesObject, newLeading, newDefault);
 	}
 
 	/**
@@ -444,10 +452,8 @@ extends TypeDescriptor
 			object.typeAtIndex(newLeadingSize + 1).typeUnion(
 				aTupleType.typeAtIndex(newLeadingSize + 1));
 		newDefault.makeImmutable();
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			newSizesObject,
-			newLeading,
-			newDefault);
+		return tupleTypeForSizesTypesDefaultType(
+			newSizesObject, newLeading, newDefault);
 	}
 
 	@Override @AvailMethod
@@ -468,7 +474,7 @@ extends TypeDescriptor
 		}
 		if (endIndex <= 0)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		final A_Type firstTupleType = object.slot(FIRST_TUPLE_TYPE);
 		final A_Type secondTupleType = object.slot(SECOND_TUPLE_TYPE);
@@ -476,12 +482,12 @@ extends TypeDescriptor
 		final A_Number secondUpper = secondTupleType.sizeRange().upperBound();
 		final A_Number totalUpper =
 			firstUpper.noFailPlusCanDestroy(secondUpper, false);
-		final A_Number startIndexObject = IntegerDescriptor.fromInt(startIndex);
+		final A_Number startIndexObject = fromInt(startIndex);
 		if (totalUpper.isFinite())
 		{
 			if (startIndexObject.greaterThan(totalUpper))
 			{
-				return BottomTypeDescriptor.bottom();
+				return bottom();
 			}
 		}
 		A_Type typeUnion =
@@ -489,15 +495,15 @@ extends TypeDescriptor
 		final A_Number startInSecondObject =
 			startIndexObject.minusCanDestroy(firstUpper, false);
 		final int startInSecond =
-			startInSecondObject.lessThan(IntegerDescriptor.one())
+			startInSecondObject.lessThan(one())
 				? 1
 				: startInSecondObject.extractInt();
 		final A_Number endInSecondObject =
-			IntegerDescriptor.fromInt(endIndex).minusCanDestroy(
+			fromInt(endIndex).minusCanDestroy(
 				firstTupleType.sizeRange().lowerBound(),
 				false);
 		final int endInSecond =
-			endInSecondObject.lessThan(IntegerDescriptor.one())
+			endInSecondObject.lessThan(one())
 				? 1
 				: endInSecondObject.isInt()
 					? endInSecondObject.extractInt()
@@ -560,7 +566,7 @@ extends TypeDescriptor
 	{
 		if (index <= 0)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		final A_Type firstSizeRange = firstTupleType.sizeRange();
 		final A_Number firstUpper = firstSizeRange.upperBound();
@@ -569,10 +575,10 @@ extends TypeDescriptor
 			firstUpper.noFailPlusCanDestroy(secondUpper, false);
 		if (totalUpper.isFinite())
 		{
-			final A_Number indexObject = IntegerDescriptor.fromInt(index);
+			final A_Number indexObject = fromInt(index);
 			if (indexObject.greaterThan(totalUpper))
 			{
-				return BottomTypeDescriptor.bottom();
+				return bottom();
 			}
 		}
 		final A_Number firstLower = firstSizeRange.lowerBound();
@@ -616,11 +622,7 @@ extends TypeDescriptor
 			sizeRange2.lowerBound(), false);
 		final A_Number upper = sizeRange1.upperBound().noFailPlusCanDestroy(
 			sizeRange2.upperBound(), false);
-		return IntegerRangeTypeDescriptor.integerRangeType(
-			lower,
-			true,
-			upper,
-			upper.isFinite());
+		return integerRangeType(lower, true, upper, upper.isFinite());
 	}
 
 	/**
@@ -682,23 +684,12 @@ extends TypeDescriptor
 			: part2.typeTuple().tupleSize() + 1;
 		final int total = limit1 + limit2;
 		final int section1 = min(sizes1.lowerBound().extractInt(), limit1);
-		final A_Tuple typeTuple = ObjectTupleDescriptor.generateFrom(
+		final A_Tuple typeTuple = generateObjectTupleFrom(
 			total,
-			new Generator<A_BasicObject>()
-			{
-				private int index = 1;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					if (index <= section1)
-					{
-						return part1.typeAtIndex(index++);
-					}
-					return elementOfConcatenation(part1, part2, index++);
-				}
-			});
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			index -> index <= section1
+				? part1.typeAtIndex(index)
+				: elementOfConcatenation(part1, part2, index));
+		return tupleTypeForSizesTypesDefaultType(
 			sizeRangeOfConcatenation(sizes1, sizes2),
 			typeTuple,
 			defaultTypeOfConcatenation(part1, part2));

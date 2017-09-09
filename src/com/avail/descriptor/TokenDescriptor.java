@@ -43,6 +43,9 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -227,7 +230,7 @@ extends Descriptor
 		{
 			final String nativeOriginal = token.slot(STRING).asNativeString();
 			final String nativeLowerCase = nativeOriginal.toLowerCase();
-			lowerCase = StringDescriptor.stringFrom(nativeLowerCase);
+			lowerCase = stringFrom(nativeLowerCase);
 			if (isShared())
 			{
 				lowerCase = lowerCase.traversed().makeShared();
@@ -320,8 +323,7 @@ extends Descriptor
 				compilationContext.lexingStateAt(positionAfter, line);
 			// Cache it for faster access next time.
 			object.setSlot(
-				NEXT_LEXING_STATE_POJO,
-				RawPojoDescriptor.identityWrap(state).makeShared());
+				NEXT_LEXING_STATE_POJO, identityPojo(state).makeShared());
 			return state;
 		}
 		return (LexingState) pojo.javaObjectNotNull();
@@ -333,8 +335,8 @@ extends Descriptor
 		final @Nullable LexingState lexingState)
 	{
 		final AvailObject pojo = lexingState == null
-			? NilDescriptor.nil()
-			: RawPojoDescriptor.identityWrap(lexingState).makeShared();
+			? nil()
+			: identityPojo(lexingState).makeShared();
 		object.setSlot(NEXT_LEXING_STATE_POJO, pojo);
 	}
 
@@ -420,7 +422,7 @@ extends Descriptor
 	 *        The type of token to create.
 	 * @return The new token.
 	 */
-	public static A_Token create (
+	public static A_Token newToken (
 		final A_String string,
 		final A_String leadingWhitespace,
 		final A_String trailingWhitespace,
@@ -432,11 +434,11 @@ extends Descriptor
 		instance.setSlot(STRING, string);
 		instance.setSlot(LEADING_WHITESPACE, leadingWhitespace);
 		instance.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
-		instance.setSlot(LOWER_CASE_STRING, NilDescriptor.nil());
+		instance.setSlot(LOWER_CASE_STRING, nil());
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
-		instance.setSlot(NEXT_LEXING_STATE_POJO, NilDescriptor.nil());
+		instance.setSlot(NEXT_LEXING_STATE_POJO, nil());
 		return instance;
 	}
 

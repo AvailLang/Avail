@@ -49,6 +49,8 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 
+import static com.avail.AvailRuntime.currentRuntime;
+
 /**
  * A {@code ProcessInputChannel} provides a faux {@linkplain
  * TextInputChannel asynchronous interface} to a synchronous {@linkplain Process
@@ -92,7 +94,7 @@ implements TextInputChannel
 		final @Nullable A attachment,
 		final CompletionHandler<Integer, A> handler)
 	{
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		final A_Fiber fiber = (A_Fiber) attachment;
 		runtime.executeFileTask(AvailTask.forUnboundFiber(
 			fiber,

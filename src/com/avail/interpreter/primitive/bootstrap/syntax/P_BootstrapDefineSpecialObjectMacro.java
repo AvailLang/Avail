@@ -32,16 +32,45 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
+import static com.avail.descriptor.ExpressionAsStatementNodeDescriptor
+	.newExpressionAsStatement;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ListNodeDescriptor.emptyListNode;
+import static com.avail.descriptor.ListNodeDescriptor.newListNode;
+import static com.avail.descriptor.LiteralNodeDescriptor
+	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.SEQUENCE_NODE;
+import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
+import static com.avail.descriptor.SequenceNodeDescriptor.newSequence;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive</strong>: Construct a method and an accompanying
@@ -69,7 +98,7 @@ extends Primitive
 		final A_Phrase nameLiteral = args.get(0);
 		final A_Phrase specialObjectLiteral = args.get(1);
 		final A_Fiber fiber = interpreter.fiber();
-		final AvailLoader loader = fiber.availLoader();
+		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null || loader.module().equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -87,79 +116,69 @@ extends Primitive
 		}
 		// Create a send of the bootstrap method definer that, when actually
 		// sent, will produce a method that answers the special object.
-		final A_Phrase defineMethod = SendNodeDescriptor.from(
-			TupleDescriptor.emptyTuple(),
-			SpecialMethodAtom.METHOD_DEFINER.bundle,
-			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.tuple(
-					nameLiteral,
-					BlockNodeDescriptor.newBlockNode(
-						TupleDescriptor.emptyTuple(),
-						0,
-						TupleDescriptor.tuple(specialObjectLiteral),
-						specialObjectLiteral.expressionType(),
-						SetDescriptor.emptySet(),
-						0))),
+		final A_Phrase defineMethod = newSendNode(
+			emptyTuple(),
+			METHOD_DEFINER.bundle,
+			newListNode(
+				tuple(nameLiteral, newBlockNode(
+					emptyTuple(),
+					0,
+					tuple(specialObjectLiteral),
+					specialObjectLiteral.expressionType(),
+					emptySet(),
+					0))),
 			TOP.o());
 		// Create a send of the bootstrap macro definer that, when actually
 		// sent, will produce a method that literalizes the special object.
-		final A_Phrase getValue = SendNodeDescriptor.from(
-			TupleDescriptor.emptyTuple(),
+		final A_Phrase getValue = newSendNode(
+			emptyTuple(),
 			bundle,
-			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.emptyTuple()),
+			newListNode(emptyTuple()),
 			specialObjectLiteral.expressionType());
-		final A_Phrase createLiteralToken = SendNodeDescriptor.from(
-			TupleDescriptor.emptyTuple(),
-			SpecialMethodAtom.CREATE_LITERAL_TOKEN.bundle,
-			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.tuple(
-					getValue,
-					LiteralNodeDescriptor.syntheticFrom(
-						specialObjectLiteral.token().string()))),
-			LiteralTokenTypeDescriptor.literalTokenType(
-				specialObjectLiteral.expressionType()));
-		final A_Phrase createLiteralNode = SendNodeDescriptor.from(
-			TupleDescriptor.emptyTuple(),
-			SpecialMethodAtom.CREATE_LITERAL_PHRASE.bundle,
-			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.tuple(
-					createLiteralToken)),
-			LITERAL_NODE.create(
-				specialObjectLiteral.expressionType()));
-		final A_Phrase defineMacro = SendNodeDescriptor.from(
-			TupleDescriptor.emptyTuple(),
-			SpecialMethodAtom.MACRO_DEFINER.bundle,
-			ListNodeDescriptor.newExpressions(
-				TupleDescriptor.tuple(
+		final A_Phrase createLiteralToken = newSendNode(
+			emptyTuple(),
+			CREATE_LITERAL_TOKEN.bundle,
+			newListNode(
+				tuple(getValue, syntheticLiteralNodeFor(
+					specialObjectLiteral.token().string()))),
+			literalTokenType(specialObjectLiteral.expressionType()));
+		final A_Phrase createLiteralNode = newSendNode(
+			emptyTuple(),
+			CREATE_LITERAL_PHRASE.bundle,
+			newListNode(
+				tuple(createLiteralToken)),
+			LITERAL_NODE.create(specialObjectLiteral.expressionType()));
+		final A_Phrase defineMacro = newSendNode(
+			emptyTuple(),
+			MACRO_DEFINER.bundle,
+			newListNode(
+				tuple(
 					nameLiteral,
-					ListNodeDescriptor.empty(),
-					BlockNodeDescriptor.newBlockNode(
-						TupleDescriptor.emptyTuple(),
+					emptyListNode(),
+					newBlockNode(
+						emptyTuple(),
 						0,
-						TupleDescriptor.tuple(createLiteralNode),
+						tuple(createLiteralNode),
 						LITERAL_NODE.create(
 							specialObjectLiteral.expressionType()),
-						SetDescriptor.emptySet(),
+						emptySet(),
 						0))),
 			TOP.o());
 		return interpreter.primitiveSuccess(
-			SequenceNodeDescriptor.newStatements(
-				TupleDescriptor.tuple(
-					ExpressionAsStatementNodeDescriptor.fromExpression(
+			newSequence(
+				tuple(
+					newExpressionAsStatement(
 						defineMethod),
-					ExpressionAsStatementNodeDescriptor.fromExpression(
+					newExpressionAsStatement(
 						defineMacro))));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				LITERAL_NODE.create(
-					TupleTypeDescriptor.oneOrMoreOf(CHARACTER.o())),
-				LITERAL_NODE.create(ANY.o())),
-			SEQUENCE_NODE.mostGeneralType());
+		return functionType(tuple(
+			LITERAL_NODE.create(
+				oneOrMoreOf(CHARACTER.o())),
+			LITERAL_NODE.create(ANY.o())), SEQUENCE_NODE.mostGeneralType());
 	}
 }

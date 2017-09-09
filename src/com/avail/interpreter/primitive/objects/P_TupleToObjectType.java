@@ -32,11 +32,22 @@
 
 package com.avail.interpreter.primitive.objects;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.ObjectTypeDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Convert a {@linkplain TupleDescriptor tuple}
@@ -65,20 +76,19 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Tuple tuple = args.get(0);
-		return interpreter.primitiveSuccess(
-			ObjectTypeDescriptor.objectTypeFromTuple(tuple));
+		return interpreter.primitiveSuccess(objectTypeFromTuple(tuple));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.zeroOrMoreOf(
-					TupleTypeDescriptor.tupleTypeForTypes(
+		return functionType(
+			tuple(
+				zeroOrMoreOf(
+					tupleTypeForTypes(
 						ATOM.o(),
-						InstanceMetaDescriptor.anyMeta()))),
-			ObjectTypeDescriptor.meta());
+						anyMeta()))),
+			mostGeneralObjectMeta());
 	}
 
 	@Override
@@ -95,7 +105,7 @@ extends Primitive
 			return super.returnTypeGuaranteedByVM(argumentTypes);
 		}
 		final int tupleSize = tupleSizeLowerBound.extractInt();
-		A_Map fieldTypeMap = MapDescriptor.emptyMap();
+		A_Map fieldTypeMap = emptyMap();
 		for (int i = 1; i <= tupleSize; i++)
 		{
 			final A_Type pairType = tupleType.typeAtIndex(i);
@@ -119,11 +129,8 @@ extends Primitive
 			assert valueMeta.isInstanceMeta();
 			final A_Type valueType = valueMeta.instance();
 			fieldTypeMap = fieldTypeMap.mapAtPuttingCanDestroy(
-				keyValue,
-				valueType,
-				true);
+				keyValue, valueType, true);
 		}
-		return InstanceMetaDescriptor.instanceMetaOn(
-			ObjectTypeDescriptor.objectTypeFromMap(fieldTypeMap));
+		return instanceMeta(objectTypeFromMap(fieldTypeMap));
 	}
 }

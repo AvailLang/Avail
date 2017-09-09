@@ -32,17 +32,27 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ByteBufferTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ByteBufferTupleDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static java.lang.Math.min;
-import java.nio.ByteBuffer;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.Generator;
 import com.avail.utility.json.JSONWriter;
+
+import java.nio.ByteBuffer;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.ByteBufferTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ByteBufferTupleDescriptor.ObjectSlots
+	.BYTE_BUFFER;
+import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
+import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
+import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static java.lang.Math.min;
 
 /**
  * {@code ByteBufferTupleDescriptor} represents a tuple of integers that happen
@@ -117,30 +127,21 @@ extends NumericTupleDescriptor
 		final int intValue;
 		if (originalSize >= maximumCopySize
 			|| !newElement.isInt()
-			|| ((intValue = ((A_Number) newElement).extractInt()) & 255) != intValue)
+			|| ((intValue = ((A_Number) newElement).extractInt()) & ~255) != 0)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+			final A_Tuple singleton = tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		// Convert to a ByteTupleDescriptor.
 		final ByteBuffer buffer =
 			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
 		final int newSize = originalSize + 1;
-		return ByteTupleDescriptor.generateFrom(
+		return generateByteTupleFrom(
 			newSize,
-			new Generator<Short>()
-			{
-				private int index = 0;
-
-				@Override
-				public Short value ()
-				{
-					return index < newSize
-						? (short)(buffer.get(index++) & 255)
-						: (short)intValue;
-				}
-			});
+			index -> index < newSize
+				? (short)(buffer.get(index - 1) & 255)
+				: (short)intValue);
 	}
 
 	@Override @AvailMethod
@@ -161,7 +162,7 @@ extends NumericTupleDescriptor
 		int hash = 0;
 		for (int index = end - 1, first = start - 1; index >= first; index--)
 		{
-			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
+			final int itemHash = hashOfUnsignedByte(
 				(short) (buffer.get(index) & 0xFF)) ^ preToggle;
 			hash = (hash + itemHash) * multiplier;
 		}
@@ -298,7 +299,7 @@ extends NumericTupleDescriptor
 			}
 		}
 		final A_Type defaultTypeObject = aType.defaultType();
-		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(defaultTypeObject))
+		if (bytes().isSubtypeOf(defaultTypeObject))
 		{
 			return true;
 		}
@@ -318,7 +319,7 @@ extends NumericTupleDescriptor
 		// Answer the element at the given index in the tuple object.
 		final ByteBuffer buffer =
 			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
-		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
+		return (AvailObject) fromUnsignedByte(
 			(short) (buffer.get(index - 1) & 0xFF));
 	}
 
@@ -386,18 +387,8 @@ extends NumericTupleDescriptor
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
 		final ByteBuffer originalBuffer = object.byteBuffer();
-		final AvailObject result = ByteTupleDescriptor.generateFrom(
-			size,
-			new Generator<Short>()
-			{
-				private int index = size - 1;
-
-				@Override
-				public Short value ()
-				{
-					return (short)(originalBuffer.get(index--) & 255);
-				}
-			});
+		final AvailObject result = generateByteTupleFrom(
+			size,  i -> (short)(originalBuffer.get(i + size - 2) & 255));
 		result.hashOrZero(0);
 		return result;
 	}
@@ -466,10 +457,9 @@ extends NumericTupleDescriptor
 		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object, otherTuple, canDestroy);
+		return concatenateAtLeastOneTree(object, otherTuple, canDestroy);
 	}
 
 	@Override @AvailMethod
@@ -490,18 +480,8 @@ extends NumericTupleDescriptor
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
 			final ByteBuffer originalBuffer = object.byteBuffer();
-			final AvailObject result = ByteTupleDescriptor.generateFrom(
-				size,
-				new Generator<Short>()
-				{
-					private int index = start - 1;
-
-					@Override
-					public Short value ()
-					{
-						return (short)(originalBuffer.get(index++) & 255);
-					}
-				});
+			final AvailObject result = generateByteTupleFrom(
+				size, i -> (short)(originalBuffer.get(i + start - 2) & 255));
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();
@@ -534,7 +514,7 @@ extends NumericTupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		if (IntegerRangeTypeDescriptor.bytes().isSubtypeOf(type))
+		if (bytes().isSubtypeOf(type))
 		{
 			return true;
 		}
@@ -613,7 +593,7 @@ extends NumericTupleDescriptor
 		final ByteBuffer newBuffer = ByteBuffer.allocate(size);
 		object.transferIntoByteBuffer(1, size, newBuffer);
 		assert newBuffer.limit() == size;
-		final AvailObject result = forByteBuffer(newBuffer);
+		final AvailObject result = tupleForByteBuffer(newBuffer);
 		result.setSlot(HASH_OR_ZERO, object.hashOrZero());
 		return result;
 	}
@@ -625,10 +605,10 @@ extends NumericTupleDescriptor
 	 * @param buffer A byte buffer.
 	 * @return The requested {@linkplain ByteBufferTupleDescriptor tuple}.
 	 */
-	public static AvailObject forByteBuffer (final ByteBuffer buffer)
+	public static AvailObject tupleForByteBuffer (final ByteBuffer buffer)
 	{
 		assert buffer.position() == 0;
-		final AvailObject wrapped = RawPojoDescriptor.identityWrap(buffer);
+		final AvailObject wrapped = identityPojo(buffer);
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(HASH_OR_ZERO, 0);
 		newObject.setSlot(BYTE_BUFFER, wrapped);

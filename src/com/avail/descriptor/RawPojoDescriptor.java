@@ -236,7 +236,7 @@ extends Descriptor
 	 * {@linkplain Class class}.
 	 */
 	private static final AvailObject rawObjectClass =
-		equalityWrap(Object.class).makeShared();
+		equalityPojo(Object.class).makeShared();
 
 	/**
 	 * Answer a {@linkplain RawPojoDescriptor raw pojo} for {@link Object}'s
@@ -251,14 +251,14 @@ extends Descriptor
 
 	/** The {@code null} {@linkplain PojoDescriptor pojo}. */
 	private static final AvailObject rawNullObject =
-		identityWrap(null).makeShared();
+		identityPojo(null).makeShared();
 
 	/**
 	 * Answer the {@code null} {@linkplain RawPojoDescriptor pojo}.
 	 *
 	 * @return The {@code null} pojo.
 	 */
-	public static AvailObject rawNullObject ()
+	public static AvailObject rawNullPojo ()
 	{
 		return rawNullObject;
 	}
@@ -270,7 +270,7 @@ extends Descriptor
 	 * @param javaObject A Java Object, possibly {@code null}.
 	 * @return The new {@linkplain PojoDescriptor Avail pojo}.
 	 */
-	public static AvailObject identityWrap (final @Nullable Object javaObject)
+	public static AvailObject identityPojo (final @Nullable Object javaObject)
 	{
 		final RawPojoDescriptor descriptor = new RawPojoDescriptor(
 			Mutability.MUTABLE,
@@ -285,7 +285,7 @@ extends Descriptor
 	 * @param javaObject A Java Object, possibly {@code null}.
 	 * @return The new {@linkplain PojoDescriptor Avail pojo}.
 	 */
-	public static AvailObject equalityWrap (final Object javaObject)
+	public static AvailObject equalityPojo (final Object javaObject)
 	{
 		final EqualityRawPojoDescriptor descriptor =
 			new EqualityRawPojoDescriptor(

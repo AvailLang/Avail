@@ -31,14 +31,36 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.Private;
-import java.lang.reflect.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.RawPojoDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.MarshalingException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.PojoDescriptor.newPojo;
+import static com.avail.descriptor.PojoDescriptor.nullPojo;
+import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
+import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.Private;
 
 /**
  * <strong>Primitive:</strong> Given a {@linkplain RawPojoDescriptor raw
@@ -70,14 +92,13 @@ public final class P_InvokeStaticPojoMethod extends Primitive
 		final A_Tuple marshaledTypePojos = args.get(2);
 		final A_Type expectedType = args.get(3);
 		// Marshal the arguments and invoke the method.
-		final Method method = (Method) methodPojo.javaObject();
-		assert method != null;
+		final Method method = (Method) methodPojo.javaObjectNotNull();
 		final Object[] marshaledArgs = new Object[methodArgs.tupleSize()];
 		try
 		{
 			for (int i = 0; i < marshaledArgs.length; i++)
 			{
-				final Class<?> marshaledType = (Class<?>)
+				final @Nullable Class<?> marshaledType = (Class<?>)
 					marshaledTypePojos.tupleAt(i + 1).javaObject();
 				marshaledArgs[i] = methodArgs.tupleAt(
 					i + 1).marshalToJava(marshaledType);
@@ -86,9 +107,7 @@ public final class P_InvokeStaticPojoMethod extends Primitive
 		catch (final MarshalingException e)
 		{
 			return interpreter.primitiveFailure(
-				PojoDescriptor.newPojo(
-					RawPojoDescriptor.identityWrap(e),
-					PojoTypeDescriptor.pojoTypeForClass(e.getClass())));
+				newPojo(identityPojo(e), pojoTypeForClass(e.getClass())));
 		}
 		final Object result;
 		try
@@ -99,9 +118,8 @@ public final class P_InvokeStaticPojoMethod extends Primitive
 		{
 			final Throwable cause = e.getCause();
 			return interpreter.primitiveFailure(
-				PojoDescriptor.newPojo(
-					RawPojoDescriptor.identityWrap(cause),
-					PojoTypeDescriptor.pojoTypeForClass(cause.getClass())));
+				newPojo(
+					identityPojo(cause), pojoTypeForClass(cause.getClass())));
 		}
 		catch (final Throwable e)
 		{
@@ -111,30 +129,27 @@ public final class P_InvokeStaticPojoMethod extends Primitive
 		}
 		if (result == null)
 		{
-			return interpreter.primitiveSuccess(
-				PojoDescriptor.nullObject());
+			return interpreter.primitiveSuccess(nullPojo());
 		}
-		final AvailObject unmarshaled = PojoTypeDescriptor.unmarshal(
-			result, expectedType);
+		final AvailObject unmarshaled = unmarshal(result, expectedType);
 		return interpreter.primitiveSuccess(unmarshaled);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				RAW_POJO.o(),
-				TupleTypeDescriptor.mostGeneralTupleType(),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					RAW_POJO.o()),
-				InstanceMetaDescriptor.topMeta()),
+				mostGeneralTupleType(),
+				zeroOrMoreOf(RAW_POJO.o()),
+				topMeta()),
 			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return PojoTypeDescriptor.pojoTypeForClass(Throwable.class);
+		return pojoTypeForClass(Throwable.class);
 	}
 }

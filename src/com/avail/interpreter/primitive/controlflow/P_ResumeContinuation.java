@@ -32,12 +32,21 @@
 
 package com.avail.interpreter.primitive.controlflow;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 
 /**
  * <strong>Primitive:</strong> Resume the specified {@linkplain
@@ -76,9 +85,7 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ContinuationTypeDescriptor.mostGeneralContinuationType()),
-				BottomTypeDescriptor.bottom());
+		return functionType(tuple(
+			mostGeneralContinuationType()), bottom());
 	}
 }

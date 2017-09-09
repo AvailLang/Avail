@@ -40,6 +40,7 @@ import com.avail.utility.Generator;
 
 import javax.annotation.Nullable;
 
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 
@@ -120,8 +121,7 @@ extends PrimitiveThrownException
 	{
 		this.rejectionGenerator = () ->
 		{
-			final String string = format(rejectionPattern, rejectionArguments);
-			return StringDescriptor.stringFrom(string);
+			return stringFrom(format(rejectionPattern, rejectionArguments));
 		};
 		this.rejectionString = null;
 	}

@@ -32,13 +32,23 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SuperCastNodeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.SuperCastNodeDescriptor.newSuperCastNode;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * The {@code P_BootstrapSuperCastMacro} primitive is used to create a
@@ -83,8 +93,7 @@ public final class P_BootstrapSuperCastMacro extends Primitive
 				type,
 				expressionType);
 		}
-		final A_Phrase superCast =
-			SuperCastNodeDescriptor.create(expressionNode, type);
+		final A_Phrase superCast = newSuperCastNode(expressionNode, type);
 		superCast.makeImmutable();
 		return interpreter.primitiveSuccess(superCast);
 	}
@@ -92,10 +101,8 @@ public final class P_BootstrapSuperCastMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				EXPRESSION_NODE.create(ANY.o()),
-				LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta())),
-			SUPER_CAST_NODE.mostGeneralType());
+		return functionType(tuple(
+			EXPRESSION_NODE.create(ANY.o()),
+			LITERAL_NODE.create(anyMeta())), SUPER_CAST_NODE.mostGeneralType());
 	}
 }

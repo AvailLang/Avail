@@ -35,7 +35,6 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
 
@@ -49,6 +48,7 @@ import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
 import static com.avail.exceptions.AvailErrorCode
 	.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE;
 
@@ -185,7 +185,7 @@ extends Expression
 			// *do not* pass the choice number as an argument.  Therefore
 			// nothing new has been pushed for us to clean up at this point.
 			alternative.emitOn(
-				ListNodeTypeDescriptor.empty(),
+				emptyListNodeType(),
 				generator,
 				SHOULD_NOT_HAVE_ARGUMENTS);
 			generator.emit(

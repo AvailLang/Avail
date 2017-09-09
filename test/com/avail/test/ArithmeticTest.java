@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
+import static com.avail.descriptor.IntegerDescriptor.fromBigInteger;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -208,8 +209,7 @@ public final class ArithmeticTest
 		assertEquals(
 			bigIntHexString.toUpperCase(),
 			bigInt.toString(16).toUpperCase());
-		final A_BasicObject availInt =
-			IntegerDescriptor.fromBigInteger(bigInt);
+		final A_BasicObject availInt = fromBigInteger(bigInt);
 		assertEquals(
 			bigInt.toString().toUpperCase(),
 			availInt.toString().toUpperCase());
@@ -287,16 +287,14 @@ public final class ArithmeticTest
 		final BigInteger base,
 		final int leftShift)
 	{
-		final A_Number availInt = IntegerDescriptor.fromBigInteger(base);
+		final A_Number availInt = fromBigInteger(base);
 		final A_Number availShift = fromInt(leftShift);
 		final A_Number shiftedAvailInt = availInt.bitShift(availShift, true);
-		final A_Number availInt2 = IntegerDescriptor.fromBigInteger(base);
+		final A_Number availInt2 = fromBigInteger(base);
 		final A_Number shiftedAvailInt2 = availInt2.bitShift(availShift, false);
 		assertEquals(shiftedAvailInt, shiftedAvailInt2);
 		final BigInteger shiftedBigInt = base.shiftLeft(leftShift);
-		assertEquals(
-			IntegerDescriptor.fromBigInteger(shiftedBigInt),
-			shiftedAvailInt);
+		assertEquals(fromBigInteger(shiftedBigInt), shiftedAvailInt);
 	}
 
 	/**

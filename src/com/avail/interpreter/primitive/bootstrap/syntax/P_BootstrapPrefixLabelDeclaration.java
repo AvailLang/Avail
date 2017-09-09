@@ -32,16 +32,42 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.continuationTypeForFunctionType;
+import static com.avail.descriptor.DeclarationNodeDescriptor.newLabel;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LITERAL_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * The {@code P_BootstrapPrefixLabelDeclaration} primitive is used
@@ -73,7 +99,7 @@ extends Primitive
 //		final A_Phrase optionalPrimFailurePhrase = args.get(1);
 		final A_Phrase optionalLabelPhrase = args.get(2);
 
-		final AvailLoader loader = interpreter.fiber().availLoader();
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -109,8 +135,8 @@ extends Primitive
 			// If the label doesn't specify a return type, use bottom.  Because
 			// of continuation return type contravariance, this is the most
 			// general answer.
-			labelReturnTypePhrase = NilDescriptor.nil();
-			labelReturnType = BottomTypeDescriptor.bottom();
+			labelReturnTypePhrase = nil();
+			labelReturnType = bottom();
 		}
 
 		// Re-extract all the argument types so we can specify the exact type of
@@ -128,20 +154,19 @@ extends Primitive
 				assert argumentPair.expressionsSize() == 2;
 				final A_Phrase typePhrase = argumentPair.expressionAt(2);
 				assert typePhrase.isInstanceOfKind(
-					LITERAL_NODE.create(InstanceMetaDescriptor.anyMeta()));
+					LITERAL_NODE.create(anyMeta()));
 				final A_Type argType = typePhrase.token().literal();
 				assert argType.isType();
 				blockArgumentTypes.add(argType);
 			}
 		}
-		final A_Type functionType = FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tupleFromList(blockArgumentTypes), labelReturnType);
+		final A_Type functionType =
+			functionType(tupleFromList(blockArgumentTypes), labelReturnType);
 		final A_Type continuationType =
-			ContinuationTypeDescriptor.forFunctionType(functionType);
+			continuationTypeForFunctionType(functionType);
 		final A_Phrase labelDeclaration =
-			DeclarationNodeDescriptor.newLabel(
-				labelName, labelReturnTypePhrase, continuationType);
-		final A_Phrase conflictingDeclaration =
+			newLabel(labelName, labelReturnTypePhrase, continuationType);
+		final @Nullable A_Phrase conflictingDeclaration =
 			FiberDescriptor.addDeclaration(labelDeclaration);
 		if (conflictingDeclaration != null)
 		{
@@ -152,54 +177,52 @@ extends Primitive
 				conflictingDeclaration.declarationKind().nativeKindName(),
 				conflictingDeclaration.token().lineNumber());
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(tuple(
 				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+			LIST_NODE.create(
 					/* Optional arguments section. */
-					TupleTypeDescriptor.zeroOrOneOf(
+				zeroOrOneOf(
 						/* Arguments are present. */
-						TupleTypeDescriptor.oneOrMoreOf(
+					oneOrMoreOf(
 							/* An argument. */
-							TupleTypeDescriptor.tupleTypeForTypes(
+						tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o(),
+							TOKEN.o(),
 								/* Argument type. */
-								InstanceMetaDescriptor.anyMeta())))),
+							anyMeta())))),
 				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+			LIST_NODE.create(
 					/* Optional primitive declaration. */
-					TupleTypeDescriptor.zeroOrOneOf(
+				zeroOrOneOf(
 						/* Primitive declaration */
-						TupleTypeDescriptor.tupleTypeForTypes(
+					tupleTypeForTypes(
 							/* Primitive name. */
-							TOKEN.o(),
+						TOKEN.o(),
 							/* Optional failure variable declaration. */
-							TupleTypeDescriptor.zeroOrOneOf(
+						zeroOrOneOf(
 								/* Primitive failure variable parts. */
-								TupleTypeDescriptor.tupleTypeForTypes(
+							tupleTypeForTypes(
 									/* Primitive failure variable name token */
-									TOKEN.o(),
+								TOKEN.o(),
 									/* Primitive failure variable type */
-									InstanceMetaDescriptor.anyMeta()))))),
+								anyMeta()))))),
 				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+			LIST_NODE.create(
 					/* Optional label declaration. */
-					TupleTypeDescriptor.zeroOrOneOf(
+				zeroOrOneOf(
 						/* Label parts. */
-						TupleTypeDescriptor.tupleTypeForTypes(
+					tupleTypeForTypes(
 							/* Label name */
-							TOKEN.o(),
+						TOKEN.o(),
 							/* Optional label return type. */
-							TupleTypeDescriptor.zeroOrOneOf(
+						zeroOrOneOf(
 								/* Label return type. */
-								InstanceMetaDescriptor.topMeta()))))),
-			TOP.o());
+							topMeta()))))), TOP.o());
 	}
 }

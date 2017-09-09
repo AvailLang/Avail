@@ -36,6 +36,7 @@ import com.avail.descriptor.A_String;
 import com.avail.descriptor.StringDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
 import static com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR;
 
@@ -184,6 +185,6 @@ public enum ExpectedToken
 	{
 		this.tokenType = tokenType;
 		this.lexemeJavaString = lexemeJavaString;
-		this.lexeme = StringDescriptor.stringFrom(lexemeJavaString).makeShared();
+		this.lexeme = stringFrom(lexemeJavaString).makeShared();
 	}
 }

@@ -41,9 +41,17 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.Collection;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
 import static com.avail.descriptor.SetDescriptor.ObjectSlots.ROOT_BIN;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 
 /**
@@ -107,7 +115,7 @@ extends Descriptor
 		final A_Set set,
 		final A_BasicObject bin)
 	{
-		assert bin != NilDescriptor.nil();
+		assert !bin.equalsNil();
 		((AvailObject) set).setSlot(ROOT_BIN, bin);
 	}
 
@@ -282,23 +290,16 @@ extends Descriptor
 	@Override @AvailMethod
 	boolean o_IsSubsetOf (final AvailObject object, final A_Set another)
 	{
-		// Check if object is a subset of another.
-		if (object.setSize() > another.setSize())
-		{
-			return false;
-		}
-		return rootBin(object).isBinSubsetOf(another);
+		return object.setSize() <= another.setSize()
+			&& rootBin(object).isBinSubsetOf(another);
 	}
 
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{
 		final int size = object.setSize();
-		final AvailObject sizeRange = InstanceTypeDescriptor.instanceTypeOn(
-			IntegerDescriptor.fromInt(size));
-		return SetTypeDescriptor.setTypeForSizesContentType(
-			sizeRange,
-			AbstractEnumerationTypeDescriptor.enumerationWith(object));
+		final AvailObject sizeRange = instanceType(fromInt(size));
+		return setTypeForSizesContentType(sizeRange, enumerationWith(object));
 	}
 
 	/**
@@ -552,12 +553,11 @@ extends Descriptor
 		final int size = object.setSize();
 		if (size == 0)
 		{
-			return TupleDescriptor.emptyTuple();
+			return emptyTuple();
 		}
-		final Iterator<AvailObject> iterator = object.iterator();
-		return ObjectTupleDescriptor.generateFrom(
-			object.setSize(),
-			() -> iterator.next().makeImmutable());
+		final IteratorNotNull<AvailObject> iterator = object.iterator();
+		return generateObjectTupleFrom(
+			object.setSize(), index -> iterator.next().makeImmutable());
 	}
 
 	@Override @AvailMethod
@@ -710,7 +710,7 @@ extends Descriptor
 	static
 	{
 		final A_Set set = mutable.create();
-		setRootBin(set, LinearSetBinDescriptor.emptyBinForLevel((byte) 0));
+		setRootBin(set, emptyLinearSetBin((byte) 0));
 		set.hash();
 		emptySet = set.makeShared();
 	}

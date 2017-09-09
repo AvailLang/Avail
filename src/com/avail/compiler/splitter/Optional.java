@@ -37,7 +37,6 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
-import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.exceptions.SignatureException;
 import com.avail.utility.evaluation.Continuation0;
@@ -50,7 +49,9 @@ import java.util.List;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
+import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP;
 
 /**
  * An {@code Optional} is a {@link Sequence} wrapped in guillemets («»), and
@@ -151,16 +152,14 @@ extends Expression
 		 */
 		generator.flushDelayed();
 		final boolean needsProgressCheck =
-			sequence.mightBeEmpty(ListNodeTypeDescriptor.empty());
+			sequence.mightBeEmpty(emptyListNodeType());
 		final Label $absent = new Label();
 		final Label $after = new Label();
 		generator.emit(this, BRANCH, $absent);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
 		sequence.emitOn(
-			ListNodeTypeDescriptor.empty(),
-			generator,
-			SHOULD_NOT_HAVE_ARGUMENTS);
+			emptyListNodeType(), generator, SHOULD_NOT_HAVE_ARGUMENTS);
 		generator.flushDelayed();
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emitIf(
@@ -191,7 +190,7 @@ extends Expression
 		//  new boolean, which will need to be permuted into its correct place)
 		assert !hasSectionCheckpoints();
 		final boolean needsProgressCheck =
-			sequence.mightBeEmpty(ListNodeTypeDescriptor.empty());
+			sequence.mightBeEmpty(emptyListNodeType());
 		generator.flushDelayed();
 		final Label $absent = new Label();
 		final Label $merge = new Label();
@@ -199,9 +198,7 @@ extends Expression
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
 		sequence.emitOn(
-			ListNodeTypeDescriptor.empty(),
-			generator,
-			SHOULD_NOT_HAVE_ARGUMENTS);
+			emptyListNodeType(), generator, SHOULD_NOT_HAVE_ARGUMENTS);
 		generator.flushDelayed();
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emitIf(

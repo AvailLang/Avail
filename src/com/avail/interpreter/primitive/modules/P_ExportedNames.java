@@ -32,11 +32,17 @@
 
 package com.avail.interpreter.primitive.modules;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -50,7 +56,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain
  * A_Module#exportedNames() exported names} of the {@linkplain
- * ModuleDescriptor#current() current module}.
+ * ModuleDescriptor#currentModule() current module}.
  *
  * @author Todd Smith &lt;todd@availlang.org&gt;
  */
@@ -72,7 +78,7 @@ extends Primitive
 	{
 		assert args.size() == 0;
 		final A_Fiber fiber = interpreter.fiber();
-		final AvailLoader loader = fiber.availLoader();
+		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -85,9 +91,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(emptyTuple(),
-			setTypeForSizesContentType(
-				wholeNumbers(),
-				ATOM.o()));
+		return functionType(
+			emptyTuple(),
+			setTypeForSizesContentType(wholeNumbers(), ATOM.o()));
 	}
 }

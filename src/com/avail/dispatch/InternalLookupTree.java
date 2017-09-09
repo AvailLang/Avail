@@ -35,13 +35,13 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.TupleTypeDescriptor;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -301,9 +301,9 @@ public class InternalLookupTree<
 			newPositiveKnownTypes = new ArrayList<>(knownArgumentTypes);
 			newPositiveKnownTypes.set(
 				argumentPositionToTest - 1, replacementArgType);
-			criterionSignature = TupleTypeDescriptor.tupleTypeForTypes(
+			criterionSignature = tupleTypeForTypes(
 				newPositiveKnownTypes.toArray(new A_Type[numArgs]));
-			knownSignature = TupleTypeDescriptor.tupleTypeForTypes(
+			knownSignature = tupleTypeForTypes(
 				knownArgumentTypes.toArray(new A_Type[numArgs]));
 		}
 		else

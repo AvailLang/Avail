@@ -40,9 +40,21 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.SIZE;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor
+	.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor
+	.IntegerSlots.SIZE;
 import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor
+	.createSmallInterval;
+import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor
+	.isSmallIntervalCandidate;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 
 /**
  * {@code IntegerIntervalTupleDescriptor} represents an ordered tuple of
@@ -163,7 +175,7 @@ extends NumericTupleDescriptor
 			return result;
 		}
 		// Transition to a tree tuple.
-		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+		final A_Tuple singleton = tuple(newElement);
 		return object.concatenateWith(singleton, canDestroy);
 	}
 
@@ -259,14 +271,10 @@ extends NumericTupleDescriptor
 			final A_Number oldStartValue = object.slot(START);
 
 			final A_Number newStartValue = oldStartValue.plusCanDestroy(
-				delta.multiplyByIntegerCanDestroy(
-					IntegerDescriptor.fromInt(start - 1),
-					true),
+				delta.multiplyByIntegerCanDestroy(fromInt(start - 1), true),
 				canDestroy);
 			final A_Number newEndValue = newStartValue.plusCanDestroy(
-				delta.multiplyByIntegerCanDestroy(
-					IntegerDescriptor.fromInt(newSize - 1),
-					true),
+				delta.multiplyByIntegerCanDestroy(fromInt(newSize - 1), true),
 				false);
 
 			if (isMutable() && canDestroy)
@@ -346,12 +354,9 @@ extends NumericTupleDescriptor
 		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
-			otherTuple,
-			true);
+		return concatenateAtLeastOneTree(object, otherTuple, true);
 	}
 
 	@Override @AvailMethod
@@ -424,7 +429,7 @@ extends NumericTupleDescriptor
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) * DELTA
 		assert index >= 1 && index <= object.tupleSize();
-		A_Number temp = IntegerDescriptor.fromInt(index - 1);
+		A_Number temp = fromInt(index - 1);
 		temp = temp.timesCanDestroy(object.slot(DELTA), false);
 		temp = temp.plusCanDestroy(object.slot(START), false);
 		return (AvailObject) temp;
@@ -483,8 +488,7 @@ extends NumericTupleDescriptor
 			low = end;
 			high = start;
 		}
-		return type.isSupertypeOfIntegerRangeType(
-				IntegerRangeTypeDescriptor.inclusive(low, high))
+		return type.isSupertypeOfIntegerRangeType(inclusive(low, high))
 			|| super.o_TupleElementsInRangeAreInstancesOf(
 				object, startIndex, endIndex, type);
 	}
@@ -502,8 +506,8 @@ extends NumericTupleDescriptor
 		//If tuple is small enough or is immutable, create a new Interval
 		if (object.tupleSize() < maximumCopySize || !isMutable())
 		{
-			final A_Number newDelta = object.slot(DELTA)
-				.timesCanDestroy(IntegerDescriptor.fromInt(-1),true);
+			final A_Number newDelta =
+				object.slot(DELTA).timesCanDestroy(fromInt(-1), true);
 			return forceCreate (
 				object.slot(END),
 				object.slot(START),
@@ -515,8 +519,7 @@ extends NumericTupleDescriptor
 		final A_Number newStart = object.slot(END);
 		final A_Number newEnd = object.slot(START);
 		final A_Number newDelta =
-			object.slot(DELTA).timesCanDestroy(
-				IntegerDescriptor.fromInt(-1), true);
+			object.slot(DELTA).timesCanDestroy(fromInt(-1), true);
 
 		object.setSlot(START, newStart);
 		object.setSlot(END, newEnd);
@@ -547,20 +550,20 @@ extends NumericTupleDescriptor
 		assert !delta.equalsInt(0);
 
 		final A_Number difference = end.minusCanDestroy(start, false);
-		final A_Number zero = IntegerDescriptor.zero();
+		final A_Number zero = zero();
 
 		// If there is only one member in the range, return that integer in
 		// its own tuple.
 		if (difference.equalsInt(0))
 		{
-			return TupleDescriptor.tuple(start);
+			return tuple(start);
 		}
 
 		// If the progression is in a different direction than the delta, there
 		// are no members of this interval, so return the empty tuple.
 		if (difference.greaterThan(zero) != delta.greaterThan(zero))
 		{
-			return TupleDescriptor.emptyTuple();
+			return emptyTuple();
 		}
 
 		// If there are fewer than maximumCopySize members in this interval,
@@ -576,24 +579,20 @@ extends NumericTupleDescriptor
 				members.add(newMember);
 				newMember = newMember.addToIntegerCanDestroy(delta, false);
 			}
-			return TupleDescriptor.tupleFromList(members);
+			return tupleFromList(members);
 		}
 
 		// If the slot contents are small enough, create a
 		// SmallIntegerIntervalTuple.
-		if (SmallIntegerIntervalTupleDescriptor.isCandidate(
-			start, end, delta))
+		if (isSmallIntervalCandidate(start, end, delta))
 		{
-			return SmallIntegerIntervalTupleDescriptor.createInterval(
-				start.extractInt(),
-				end.extractInt(),
-				delta.extractInt());
+			return createSmallInterval(
+				start.extractInt(), end.extractInt(), delta.extractInt());
 		}
 
 		// No other efficiency shortcuts. Normalize end, and create a range.
 		final A_Number adjustedEnd = start.plusCanDestroy(
-			delta.timesCanDestroy(IntegerDescriptor.fromInt(size - 1), false),
-			false);
+			delta.timesCanDestroy(fromInt(size - 1), false), false);
 		return forceCreate(start, adjustedEnd, delta, size);
 	}
 

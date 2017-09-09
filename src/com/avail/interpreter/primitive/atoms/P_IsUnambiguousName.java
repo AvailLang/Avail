@@ -32,15 +32,29 @@
 
 package com.avail.interpreter.primitive.atoms;
 
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.exceptions.AmbiguousNameException;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.falseObject;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.AmbiguousNameException;
-import com.avail.interpreter.*;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Is the specified {@linkplain A_String name}
@@ -67,7 +81,7 @@ extends Primitive
 		assert args.size() == 1;
 		final A_String name = args.get(0);
 		final A_Fiber currentFiber = interpreter.fiber();
-		final AvailLoader loader = currentFiber.availLoader();
+		final @Nullable AvailLoader loader = currentFiber.availLoader();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -75,28 +89,25 @@ extends Primitive
 		try
 		{
 			loader.lookupName(name);
-			return interpreter.primitiveSuccess(AtomDescriptor.trueObject());
+			return interpreter.primitiveSuccess(trueObject());
 		}
 		catch (final AmbiguousNameException e)
 		{
-			return interpreter.primitiveSuccess(AtomDescriptor.falseObject());
+			return interpreter.primitiveSuccess(falseObject());
 		}
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				stringType()),
-			booleanType());
+		return
+			functionType(tuple(stringType()), booleanType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_LOADING_IS_OVER));
+		return
+			enumerationWith(set(E_LOADING_IS_OVER));
 	}
 }

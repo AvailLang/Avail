@@ -34,11 +34,17 @@ package com.avail.compiler.splitter;
 
 import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.InfinityDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.SignatureException;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -46,11 +52,19 @@ import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.WrapState.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.EXPRESSION_NODE;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.LIST_NODE;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COMPLEX_GROUP;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_GROUP;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.EXPRESSION_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.exceptions.AvailErrorCode.*;
 
 /**
  * A {@linkplain Group} is delimited by the {@linkplain
@@ -236,12 +250,12 @@ extends Expression
 			MessageSplitter.throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP);
 		}
 
-		final A_Type requiredRange = IntegerRangeTypeDescriptor.integerRangeType(
-			IntegerDescriptor.zero(),
+		final A_Type requiredRange = integerRangeType(
+			zero(),
 			true,
 			maximumCardinality == Integer.MAX_VALUE
-				? InfinityDescriptor.positiveInfinity()
-				: IntegerDescriptor.fromInt(maximumCardinality + 1),
+				? positiveInfinity()
+				: fromInt(maximumCardinality + 1),
 			false);
 
 		if (!argumentType.sizeRange().isSubtypeOf(requiredRange))
@@ -259,9 +273,8 @@ extends Expression
 			assert argumentType.isTupleType();
 			final int argsBeforeDagger = beforeDagger.arguments.size();
 			final int argsAfterDagger = afterDagger.arguments.size();
-			final A_Number expectedLower = IntegerDescriptor.fromInt(
-				argsBeforeDagger);
-			final A_Number expectedUpper = IntegerDescriptor.fromInt(
+			final A_Number expectedLower = fromInt(argsBeforeDagger);
+			final A_Number expectedUpper = fromInt(
 				argsBeforeDagger + argsAfterDagger);
 			final A_Tuple typeTuple = argumentType.typeTuple();
 			final int limit = typeTuple.tupleSize() + 1;
@@ -408,11 +421,11 @@ extends Expression
 				final A_Type innerPhraseType =
 					subexpressionsTupleType.typeAtIndex(index);
 				final A_Type singularListType =
-					ListNodeTypeDescriptor.createListNodeType(
+					createListNodeType(
 						LIST_NODE,
-						TupleTypeDescriptor.tupleTypeForTypes(
+						tupleTypeForTypes(
 							innerPhraseType.expressionType()),
-						TupleTypeDescriptor.tupleTypeForTypes(innerPhraseType));
+						tupleTypeForTypes(innerPhraseType));
 				beforeDagger.emitOn(
 					singularListType,
 					generator,
@@ -435,8 +448,7 @@ extends Expression
 					generator.emitWrapped(this, 1);
 					hasWrapped = true;
 				}
-				afterDagger.emitOn(
-					ListNodeTypeDescriptor.empty(), generator, PUSHED_LIST);
+				afterDagger.emitOn(emptyListNodeType(), generator, PUSHED_LIST);
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 			}
@@ -450,11 +462,10 @@ extends Expression
 			final A_Type innerPhraseType =
 				subexpressionsTupleType.defaultType();
 			final A_Type singularListType =
-				ListNodeTypeDescriptor.createListNodeType(
+				createListNodeType(
 					LIST_NODE,
-					TupleTypeDescriptor.tupleTypeForTypes(
-						innerPhraseType.expressionType()),
-					TupleTypeDescriptor.tupleTypeForTypes(innerPhraseType));
+					tupleTypeForTypes(innerPhraseType.expressionType()),
+					tupleTypeForTypes(innerPhraseType));
 			beforeDagger.emitOn(singularListType, generator, PUSHED_LIST);
 			if (endOfVariation < maxSize)
 			{
@@ -467,8 +478,7 @@ extends Expression
 				{
 					generator.emit(this, CHECK_AT_MOST, maxSize - 1);
 				}
-				afterDagger.emitOn(
-					ListNodeTypeDescriptor.empty(), generator, PUSHED_LIST);
+				afterDagger.emitOn(emptyListNodeType(), generator, PUSHED_LIST);
 				generator.flushDelayed();
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
@@ -691,7 +701,7 @@ extends Expression
 			else
 			{
 				expression.emitOn(
-					ListNodeTypeDescriptor.empty(),
+					emptyListNodeType(),
 					generator,
 					SHOULD_NOT_HAVE_ARGUMENTS);
 			}
@@ -703,8 +713,7 @@ extends Expression
 		{
 			// Permute the list on top of stack.
 			final A_Tuple permutationTuple =
-				TupleDescriptor.tupleFromIntegerList(
-					beforeDagger.permutedArguments);
+				tupleFromIntegerList(beforeDagger.permutedArguments);
 			final int permutationIndex =
 				LookupTree.indexForPermutation(permutationTuple);
 			generator.flushDelayed();
@@ -755,7 +764,7 @@ extends Expression
 			else
 			{
 				expression.emitOn(
-					ListNodeTypeDescriptor.empty(),
+					emptyListNodeType(),
 					generator,
 					SHOULD_NOT_HAVE_ARGUMENTS);
 			}
@@ -788,8 +797,7 @@ extends Expression
 						+ leftArgCount);
 			}
 			final A_Tuple permutationTuple =
-				TupleDescriptor.tupleFromIntegerList(
-					adjustedPermutationList);
+				tupleFromIntegerList(adjustedPermutationList);
 			final int permutationIndex =
 				LookupTree.indexForPermutation(permutationTuple);
 			generator.flushDelayed();

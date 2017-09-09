@@ -31,18 +31,34 @@
  */
 package com.avail.interpreter.primitive.files;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.nio.channels.AsynchronousFileChannel;
-import java.util.ArrayList;
-import java.util.List;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.BufferKey;
 import com.avail.AvailRuntime.FileHandle;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.nio.channels.AsynchronousFileChannel;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Force all system buffers associated with the
@@ -83,30 +99,24 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_READ);
 		}
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		for (final BufferKey key : new ArrayList<>(handle.bufferKeys.keySet()))
 		{
 			runtime.discardBuffer(key);
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ATOM.o()),
-			TOP.o());
+		return functionType(tuple(ATOM.o()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_INVALID_HANDLE,
-				E_SPECIAL_ATOM,
-				E_NOT_OPEN_FOR_READ));
+		return enumerationWith(
+			set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_NOT_OPEN_FOR_READ));
 	}
 }

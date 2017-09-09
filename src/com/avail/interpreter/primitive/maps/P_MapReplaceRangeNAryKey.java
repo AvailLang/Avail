@@ -32,15 +32,37 @@
 
 package com.avail.interpreter.primitive.maps;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.AvailException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Replace the range of values in a tuple inside
@@ -88,8 +110,9 @@ extends Primitive
 
 		try
 		{
-			return interpreter.primitiveSuccess(recursivelyUpdateMap(
-				targetMap, pathTuple, startInt, endInt, 1, newValues));
+			return interpreter.primitiveSuccess(
+				recursivelyUpdateMap(
+					targetMap, pathTuple, startInt, endInt, 1, newValues));
 		}
 		catch (final AvailException e)
 		{
@@ -102,65 +125,82 @@ extends Primitive
 	 * ultimately updating the value range at the final index of the pathIndex.
 	 *
 	 * @param targetTuple
-	 * 		the {@linkplain TupleDescriptor tuple} to traverse
+	 *        The {@linkplain TupleDescriptor tuple} to traverse.
 	 * @param pathTuple
-	 * 		{@linkplain TupleDescriptor tuple} containing the path of indices
-	 *        to traverse to
+	 *        The {@linkplain TupleDescriptor tuple} containing the path of
+	 *        indices to traverse.
 	 * @param headLastIndex
-	 * 		the last index in the head of the target tuple to be kept
+	 *        The last index in the head of the target tuple to be kept.
 	 * @param tailFirstIndex
-	 * 		the first index in the tail of the target tuple to be kept
+	 *        The first index in the tail of the target tuple to be kept.
 	 * @param pathIndex
-	 * 		the current position of the pathTuple being accessed
+	 *        The current position of the pathTuple being accessed.
 	 * @param newValues
-	 * 		the {@linkplain TupleDescriptor tuple} of values used to update
-	 * 		the given target range
-	 * @return
+	 *        The {@linkplain TupleDescriptor tuple} of values used to update
+	 *        the given target range.
+	 * @return The updated tuple.
 	 * @throws AvailException
+	 *         If the path cannot be used to correctly navigate the structure.
 	 */
 	private A_Tuple recursivelyUpdateTuple (
-			final A_Tuple targetTuple,
-			final A_Tuple pathTuple,
-			final int headLastIndex,
-			final int tailFirstIndex,
-			final int pathIndex,
-			final A_Tuple newValues)
-		throws AvailException
+		final A_Tuple targetTuple,
+		final A_Tuple pathTuple,
+		final int headLastIndex,
+		final int tailFirstIndex,
+		final int pathIndex,
+		final A_Tuple newValues)
+	throws AvailException
 	{
 		if (pathIndex == pathTuple.tupleSize() + 1)
 		{
-			if (targetTuple.tupleSize() < tailFirstIndex)
+			if (tailFirstIndex > targetTuple.tupleSize() + 1)
 			{
 				throw new AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS);
 			}
-
-			return ((targetTuple
-				.copyTupleFromToCanDestroy(1, headLastIndex, true))
-					.concatenateWith(newValues, true))
-				.concatenateWith(
-					targetTuple.copyTupleFromToCanDestroy(tailFirstIndex,
-						targetTuple.tupleSize(), true), true);
+			// Note: We can't destroy the targetTuple while extracting the
+			// leftPart, since we still need to extract the rightPart.
+			final A_Tuple leftPart =
+				targetTuple.copyTupleFromToCanDestroy(1, headLastIndex, false);
+			final A_Tuple rightPart = targetTuple.copyTupleFromToCanDestroy(
+				tailFirstIndex, targetTuple.tupleSize(), true);
+			return
+				leftPart
+					.concatenateWith(newValues, true)
+					.concatenateWith(rightPart, true);
 		}
 
-		final int targetIndex = pathTuple.tupleAt(pathIndex).extractInt();
-		if (targetIndex > targetTuple.tupleSize())
+		final A_Number targetIndexNumber = pathTuple.tupleAt(pathIndex);
+		if (!targetIndexNumber.isInt())
+		{
+			// Index is non-integral or bigger than an int.
+			throw new AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS);
+		}
+		final int targetIndex = targetIndexNumber.extractInt();
+		if (targetIndex < 1 || targetIndex > targetTuple.tupleSize())
 		{
 			throw new AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS);
 		}
-
 		final AvailObject subtuple = targetTuple.tupleAt(targetIndex);
 		if (subtuple.isTuple())
 		{
 			final A_BasicObject newTuple = recursivelyUpdateTuple(
-				subtuple, pathTuple, headLastIndex, tailFirstIndex,
-				pathIndex + 1, newValues);
+				subtuple,
+				pathTuple,
+				headLastIndex,
+				tailFirstIndex,
+				pathIndex + 1,
+				newValues);
 			return targetTuple.tupleAtPuttingCanDestroy(
 				targetIndex, newTuple, true);
 		}
 		else if (subtuple.isMap())
 		{
-			final A_BasicObject newMap = recursivelyUpdateMap(subtuple,
-				pathTuple, headLastIndex, tailFirstIndex, pathIndex + 1,
+			final A_BasicObject newMap = recursivelyUpdateMap(
+				subtuple,
+				pathTuple,
+				headLastIndex,
+				tailFirstIndex,
+				pathIndex + 1,
 				newValues);
 			return targetTuple.tupleAtPuttingCanDestroy(
 				targetIndex, newMap, true);
@@ -176,22 +216,24 @@ extends Primitive
 	 * ultimately to arrive at the {@linkplain TupleDescriptor tuple} that
 	 * contains the range to be replaced.
 	 *
+	 *
 	 * @param targetMap
-	 * 		the {@linkplain MapDescriptor map} to traverse
+	 *        The {@linkplain MapDescriptor map} to traverse.
 	 * @param pathTuple
-	 * 		{@linkplain TupleDescriptor tuple} containing the path of indices
-	 *        to traverse to
+	 *        The {@linkplain TupleDescriptor tuple} containing the path of
+	 *        indices to traverse.
 	 * @param headLastIndex
-	 * 		the last index in the head of the target tuple to be kept
+	 *        The last index in the head of the target tuple to be kept.
 	 * @param tailFirstIndex
-	 * 		the first index in the tail of the target tuple to be kept
+	 *        The first index in the tail of the target tuple to be kept.
 	 * @param pathIndex
-	 * 		the current position of the pathTuple being accessed
+	 *        The current position of the pathTuple being accessed.
 	 * @param newValues
-	 * 		the {@linkplain TupleDescriptor tuple} of values used to update
-	 * 		the given target range
-	 * @return
+	 *        The {@linkplain TupleDescriptor tuple} of values used to update
+	 *        the given target range.
+	 * @return The updated map.
 	 * @throws AvailException
+	 *         If the path cannot be used to correctly navigate the structure.
 	 */
 	private A_Map recursivelyUpdateMap (
 		final A_Map targetMap,
@@ -204,30 +246,37 @@ extends Primitive
 	{
 		if (pathIndex == pathTuple.tupleSize() + 1)
 		{
-			//The final index to be accessed MUST be a tuple, if this
-			//is the final location, then the pathTuple was wrong.
+			// The final index to be accessed MUST be a tuple.  If this is the
+			// final location, then the pathTuple was wrong.
 			throw new AvailException(E_INCORRECT_ARGUMENT_TYPE);
 		}
-		final A_BasicObject targetIndex = pathTuple.tupleAt(pathIndex);
+		final A_Number targetIndex = pathTuple.tupleAt(pathIndex);
 		if (!targetMap.hasKey(targetIndex))
 		{
 			throw new AvailException(E_KEY_NOT_FOUND);
 		}
-		final A_BasicObject targetElement = targetMap.mapAt(targetIndex);
-		if (targetElement.isInstanceOf(TupleTypeDescriptor.mostGeneralTupleType()))
+		final AvailObject targetElement = targetMap.mapAt(targetIndex);
+		if (targetElement.isTuple())
 		{
-			final A_BasicObject newTuple = recursivelyUpdateTuple(
-				(A_Tuple)targetElement, pathTuple, headLastIndex,
-				tailFirstIndex, pathIndex + 1, newValues);
+			final A_Tuple newTuple = recursivelyUpdateTuple(
+				targetElement,
+				pathTuple,
+				headLastIndex,
+				tailFirstIndex,
+				pathIndex + 1,
+				newValues);
 			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newTuple, true);
 		}
-		else if (targetElement.isInstanceOf(
-			MapTypeDescriptor.mostGeneralMapType()))
+		else if (targetElement.isMap())
 		{
-			final A_BasicObject newMap = recursivelyUpdateMap(
-				(A_Map)targetElement, pathTuple, headLastIndex, tailFirstIndex,
-				pathIndex + 1, newValues);
+			final A_Map newMap = recursivelyUpdateMap(
+				targetElement,
+				pathTuple,
+				headLastIndex,
+				tailFirstIndex,
+				pathIndex + 1,
+				newValues);
 			return targetMap.mapAtPuttingCanDestroy(targetIndex, newMap, true);
 		}
 		else
@@ -239,35 +288,25 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				MapTypeDescriptor.mostGeneralMapType(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.integerRangeType(
-						IntegerDescriptor.fromInt(1),
-						true,
-						InfinityDescriptor.positiveInfinity(),
-						false),
-					TupleDescriptor.emptyTuple(),
-					ANY.o()),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.integerRangeType(
-						IntegerDescriptor.fromInt(2),
-						true,
-						InfinityDescriptor.positiveInfinity(),
-						false),
-					TupleDescriptor.emptyTuple(),
+		return functionType(
+			tuple(
+				mostGeneralMapType(),
+				oneOrMoreOf(ANY.o()),
+				wholeNumbers(),
+				naturalNumbers(),
+				tupleTypeForSizesTypesDefaultType(
+					integerRangeType(
+						fromInt(2), true, positiveInfinity(), false),
+					emptyTuple(),
 					ANY.o())),
-			MapTypeDescriptor.mostGeneralMapType());
+			mostGeneralMapType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS,
 				E_INCORRECT_ARGUMENT_TYPE,
 				E_KEY_NOT_FOUND,

@@ -31,15 +31,24 @@
  */
 package com.avail.interpreter.primitive.modules;
 
-import com.avail.descriptor.*;
-import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.VariableSharedGlobalDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+
 import java.util.List;
 
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.createGlobal;
 import static com.avail.descriptor.VariableTypeDescriptor.variableMeta;
 import static com.avail.interpreter.Primitive.Flag.*;
 
@@ -70,7 +79,7 @@ public final class P_PrivateCreateModuleVariable extends Primitive
 
 		assert isConstant || !stablyComputed;
 
-		final A_Variable variable = VariableSharedGlobalDescriptor.createGlobal(
+		final A_Variable variable = createGlobal(
 			varType, module, name, isConstant);
 		if (stablyComputed)
 		{
@@ -91,13 +100,13 @@ public final class P_PrivateCreateModuleVariable extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				MODULE.o(),
 				stringType(),
 				variableMeta(),
 				booleanType(),
 				booleanType()),
-			Types.TOP.o());
+			TOP.o());
 	}
 }

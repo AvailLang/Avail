@@ -32,14 +32,36 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimerTask;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Schedule a new {@linkplain FiberDescriptor
@@ -98,7 +120,7 @@ extends Primitive
 			arg.makeShared();
 		}
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			function.kind().returnType(),
 			priority.extractInt(),
 			() ->
@@ -122,7 +144,7 @@ extends Primitive
 		if (sleepMillis.equalsInt(0))
 		{
 			Interpreter.runOutermostFunction(
-				AvailRuntime.current(),
+				currentRuntime(),
 				newFiber,
 				function,
 				callArgs);
@@ -131,8 +153,8 @@ extends Primitive
 		// to start later.
 		else if (sleepMillis.isLong())
 		{
-			final AvailRuntime runtime = AvailRuntime.current();
-			AvailRuntime.current().timer.schedule(
+			final AvailRuntime runtime = currentRuntime();
+			currentRuntime().timer.schedule(
 				new TimerTask()
 				{
 					@Override
@@ -153,23 +175,20 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.inclusive(
-					IntegerDescriptor.zero(),
-					InfinityDescriptor.positiveInfinity()),
-				FunctionTypeDescriptor.functionTypeReturning(TOP.o()),
-				TupleTypeDescriptor.mostGeneralTupleType(),
-				IntegerRangeTypeDescriptor.bytes()),
-			FiberTypeDescriptor.mostGeneralFiberType());
+		return functionType(tuple(
+			inclusive(
+				zero(),
+				positiveInfinity()),
+			functionTypeReturning(TOP.o()),
+			mostGeneralTupleType(),
+			bytes()), mostGeneralFiberType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS,
-				E_INCORRECT_ARGUMENT_TYPE));
+		return enumerationWith(set(
+			E_INCORRECT_NUMBER_OF_ARGUMENTS,
+			E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

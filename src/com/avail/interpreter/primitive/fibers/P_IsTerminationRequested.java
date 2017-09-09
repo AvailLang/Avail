@@ -78,8 +78,6 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			emptyTuple(),
-			booleanType());
+		return functionType(emptyTuple(), booleanType());
 	}
 }

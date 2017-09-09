@@ -31,14 +31,26 @@
  */
 package com.avail.interpreter.primitive.files;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
 import com.avail.AvailRuntime.FileHandle;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Determine the transfer alignment of the
@@ -73,22 +85,19 @@ extends Primitive
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
 		final FileHandle handle = (FileHandle) pojo.javaObjectNotNull();
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(handle.alignment));
+		return interpreter.primitiveSuccess(fromInt(handle.alignment));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ATOM.o()),
-			IntegerRangeTypeDescriptor.naturalNumbers());
+		return
+			functionType(tuple(ATOM.o()), naturalNumbers());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return InstanceTypeDescriptor.instanceTypeOn(E_INVALID_HANDLE.numericCode());
+		return instanceType(E_INVALID_HANDLE.numericCode());
 	}
 }

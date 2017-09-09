@@ -57,21 +57,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.avail.descriptor.ArrayPojoTypeDescriptor.arrayPojoType;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
+import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
+import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.FusedPojoTypeDescriptor.createFusedPojoType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.PojoDescriptor.newPojo;
+import static com.avail.descriptor.PojoDescriptor.nullPojo;
+import static com.avail.descriptor.RawPojoDescriptor.*;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.newSelfPojoType;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor
+	.createUnfusedPojoType;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Short.MAX_VALUE;
 
@@ -117,7 +128,7 @@ extends TypeDescriptor
 		public Canon ()
 		{
 			super(5);
-			put(Object.class, RawPojoDescriptor.rawObjectClass());
+			put(Object.class, rawObjectClass());
 		}
 
 		/**
@@ -135,7 +146,7 @@ extends TypeDescriptor
 			AvailObject rawPojo = get(javaClass);
 			if (rawPojo == null)
 			{
-				rawPojo = RawPojoDescriptor.equalityWrap(javaClass);
+				rawPojo = equalityPojo(javaClass);
 				put(javaClass, rawPojo);
 			}
 			return rawPojo;
@@ -265,7 +276,7 @@ extends TypeDescriptor
 	 * represents the self type of a {@linkplain Class Java class or interface}.
 	 */
 	private static final A_Type selfType =
-		instanceTypeOn(selfTypeAtom).makeShared();
+		instanceType(selfTypeAtom).makeShared();
 
 	/**
 	 * Answer a special {@linkplain InstanceTypeDescriptor instance type} that
@@ -388,8 +399,7 @@ extends TypeDescriptor
 			true);
 		computeAncestry(
 			key.javaClass, key.typeArgs, ancestors, canon);
-		return UnfusedPojoTypeDescriptor.create(
-			canon.get(key.javaClass), ancestors.value);
+		return createUnfusedPojoType(canon.get(key.javaClass), ancestors.value);
 	}
 
 	/**
@@ -645,9 +655,9 @@ extends TypeDescriptor
 				final A_Type x = params.tupleAt(i);
 				final A_Type y = otherParams.tupleAt(i);
 				final A_Type intersection = x.typeIntersection(y);
-				if (intersection.isSubtypeOf(BottomPojoTypeDescriptor.pojoBottom()))
+				if (intersection.isSubtypeOf(pojoBottom()))
 				{
-					return BottomPojoTypeDescriptor.pojoBottom();
+					return pojoBottom();
 				}
 				intersectionParams.add(intersection);
 			}
@@ -761,7 +771,7 @@ extends TypeDescriptor
 	protected static AvailObject mostSpecificOf (
 		final A_Set ancestry)
 	{
-		AvailObject answer = RawPojoDescriptor.rawObjectClass();
+		AvailObject answer = rawObjectClass();
 		Class<?> mostSpecific = Object.class;
 		for (final AvailObject rawType : ancestry)
 		{
@@ -863,7 +873,7 @@ extends TypeDescriptor
 	{
 		if (object == null)
 		{
-			return PojoDescriptor.nullObject();
+			return nullPojo();
 		}
 		final Class<?> javaClass = object.getClass();
 		final A_BasicObject availObject;
@@ -873,7 +883,7 @@ extends TypeDescriptor
 		}
 		else if (javaClass.equals(Boolean.class))
 		{
-			availObject = AtomDescriptor.objectFromBoolean((Boolean) object);
+			availObject = objectFromBoolean((Boolean) object);
 		}
 		else if (javaClass.equals(Byte.class))
 		{
@@ -901,22 +911,19 @@ extends TypeDescriptor
 		}
 		else if (javaClass.equals(Character.class))
 		{
-			availObject = CharacterDescriptor.fromCodePoint(
-				((Character) object).charValue());
+			availObject = fromCodePoint((Character) object);
 		}
 		else if (javaClass.equals(String.class))
 		{
-			availObject = StringDescriptor.stringFrom((String) object);
+			availObject = stringFrom((String) object);
 		}
 		else if (javaClass.equals(BigInteger.class))
 		{
-			availObject = IntegerDescriptor.fromBigInteger((BigInteger) object);
+			availObject = fromBigInteger((BigInteger) object);
 		}
 		else
 		{
-			availObject = PojoDescriptor.newPojo(
-				RawPojoDescriptor.identityWrap(object),
-				type);
+			availObject = newPojo(identityPojo(object), type);
 		}
 		if (!availObject.isInstanceOf(type))
 		{
@@ -937,7 +944,7 @@ extends TypeDescriptor
 	 *        their {@linkplain TypeDescriptor types}.
 	 * @return An Avail type.
 	 */
-	public static A_Type resolve (
+	public static A_Type resolvePojoType (
 		final Type type,
 		final A_Map typeVars)
 	{
@@ -1035,7 +1042,7 @@ extends TypeDescriptor
 					+ "type variable!";
 				throw new RuntimeException();
 			}
-			final A_String name = StringDescriptor.stringFrom(javaClass.getName()
+			final A_String name = stringFrom(javaClass.getName()
 				+ "."
 				+ var.getName());
 			return typeVars.mapAt(name);
@@ -1050,9 +1057,9 @@ extends TypeDescriptor
 				unresolved.length);
 			for (final Type anUnresolved : unresolved)
 			{
-				resolved.add(resolve(anUnresolved, typeVars));
+				resolved.add(resolvePojoType(anUnresolved, typeVars));
 			}
-			return forClassWithTypeArguments(
+			return pojoTypeForClassWithTypeArguments(
 				(Class<?>) parameterized.getRawType(),
 				tupleFromList(resolved));
 		}
@@ -1131,7 +1138,7 @@ extends TypeDescriptor
 					vars,
 					typeArgs,
 					canon);
-				propagation.add(forClassWithTypeArguments(
+				propagation.add(pojoTypeForClassWithTypeArguments(
 					(Class<?>) parameterized.getRawType(), localArgs));
 			}
 			// There are no other conditions, but in the unlikely event that
@@ -1273,7 +1280,7 @@ extends TypeDescriptor
 	 *        Avail types}, not just pojo types.
 	 * @return The requested pojo type.
 	 */
-	public static AvailObject forClassWithTypeArguments (
+	public static AvailObject pojoTypeForClassWithTypeArguments (
 		final Class<?> target,
 		final A_Tuple typeArgs)
 	{
@@ -1301,7 +1308,7 @@ extends TypeDescriptor
 		{
 			params = Collections.emptyList();
 		}
-		return forClassWithTypeArguments(
+		return pojoTypeForClassWithTypeArguments(
 			target, tupleFromList(params));
 	}
 
@@ -1320,12 +1327,12 @@ extends TypeDescriptor
 	 *        IntegerRangeTypeDescriptor#wholeNumbers() whole number}.
 	 * @return The requested pojo type.
 	 */
-	public static AvailObject forArrayTypeWithSizeRange (
+	public static AvailObject pojoArrayType (
 		final A_Type elementType,
 		final A_Type sizeRange)
 	{
 		assert sizeRange.isSubtypeOf(wholeNumbers());
-		return ArrayPojoTypeDescriptor.create(elementType, sizeRange);
+		return arrayPojoType(elementType, sizeRange);
 	}
 
 	/**
@@ -1335,7 +1342,7 @@ extends TypeDescriptor
 	 * value.
 	 *
 	 * @param ancestorMap
-	 *            A map from {@link RawPojoDescriptor#equalityWrap(Object)
+	 *            A map from {@link RawPojoDescriptor#equalityPojo(Object)
 	 *            equality-wrapped} {@link RawPojoDescriptor raw pojos} to their
 	 *            tuples of type parameters.
 	 * @return
@@ -1345,7 +1352,7 @@ extends TypeDescriptor
 		final A_Map ancestorMap)
 	{
 		assert ancestorMap.isMap();
-		return FusedPojoTypeDescriptor.create(ancestorMap);
+		return createFusedPojoType(ancestorMap);
 	}
 
 	/**
@@ -1395,7 +1402,6 @@ extends TypeDescriptor
 		final Set<AvailObject> ancestors = new HashSet<>(5);
 		ancestors.add(canon.get(Object.class));
 		computeUnparameterizedAncestry(target, ancestors, canon);
-		return SelfPojoTypeDescriptor.create(
-			canon.get(target), setFromCollection(ancestors));
+		return newSelfPojoType(canon.get(target), setFromCollection(ancestors));
 	}
 }

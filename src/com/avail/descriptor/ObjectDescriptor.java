@@ -51,10 +51,18 @@ import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.FIELD_VALUES_;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.KIND;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTypeDescriptor
+	.namesAndBaseTypesForObjectType;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 
 /**
@@ -245,7 +253,7 @@ extends Descriptor
 				? object
 				: newLike(variant.mutableObjectDescriptor, object, 0, 0);
 			result.setSlot(FIELD_VALUES_, slotIndex, value);
-			result.setSlot(KIND, NilDescriptor.nil());
+			result.setSlot(KIND, nil());
 			result.setSlot(HASH_OR_ZERO, 0);
 			return result;
 		}
@@ -271,7 +279,7 @@ extends Descriptor
 		{
 			result.setSlot(FIELD_VALUES_, newVariantSlotIndex, value);
 		}
-		result.setSlot(KIND, NilDescriptor.nil());
+		result.setSlot(KIND, nil());
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
@@ -280,7 +288,7 @@ extends Descriptor
 	A_Map o_FieldMap (final AvailObject object)
 	{
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
-		A_Map fieldMap = MapDescriptor.emptyMap();
+		A_Map fieldMap = emptyMap();
 		for (final Map.Entry<A_Atom, Integer> entry
 			: variant.fieldToSlotIndex.entrySet())
 		{
@@ -301,19 +309,16 @@ extends Descriptor
 	{
 		final Iterator<Map.Entry<A_Atom, Integer>> fieldIterator =
 			variant.fieldToSlotIndex.entrySet().iterator();
-		final A_Tuple resultTuple = ObjectTupleDescriptor.generateFrom(
+		final A_Tuple resultTuple = generateObjectTupleFrom(
 			variant.fieldToSlotIndex.size(),
-			() ->
+			index ->
 			{
-				final Map.Entry<A_Atom, Integer> entry =
-					fieldIterator.next();
+				final Map.Entry<A_Atom, Integer> entry = fieldIterator.next();
 				final A_Atom field = entry.getKey();
 				final int slotIndex = entry.getValue();
-				return TupleDescriptor.tuple(
-					field,
-					slotIndex == 0
-						? field
-						: object.slot(FIELD_VALUES_, slotIndex));
+				return tuple(field, slotIndex == 0
+					? field
+					: object.slot(FIELD_VALUES_, slotIndex));
 			});
 		assert !fieldIterator.hasNext();
 		return resultTuple;
@@ -449,8 +454,7 @@ extends Descriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		final A_Tuple pair =
-			ObjectTypeDescriptor.namesAndBaseTypesForType(object.kind());
+		final A_Tuple pair = namesAndBaseTypesForObjectType(object.kind());
 		final A_Set names = pair.tupleAt(1);
 		final A_Set baseTypes = pair.tupleAt(2);
 		builder.append("a/an ");
@@ -478,7 +482,7 @@ extends Descriptor
 			builder.append("object");
 		}
 		final A_Atom explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom;
-		A_Set ignoreKeys = SetDescriptor.emptySet();
+		A_Set ignoreKeys = emptySet();
 		for (final A_Type baseType : baseTypes)
 		{
 			final A_Map fieldTypes = baseType.fieldTypeMap();
@@ -540,7 +544,7 @@ extends Descriptor
 				result.setSlot(FIELD_VALUES_, slotIndex, entry.value());
 			}
 		}
-		result.setSlot(KIND, NilDescriptor.nil());
+		result.setSlot(KIND, nil());
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
@@ -557,7 +561,7 @@ extends Descriptor
 	 */
 	public static AvailObject objectFromTuple (final A_Tuple tuple)
 	{
-		A_Map map = MapDescriptor.emptyMap();
+		A_Map map = emptyMap();
 		for (final A_Tuple fieldAssignment : tuple)
 		{
 			final A_Atom fieldAtom = fieldAssignment.tupleAt(1);

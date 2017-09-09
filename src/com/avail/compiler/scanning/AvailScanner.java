@@ -32,16 +32,33 @@
 
 package com.avail.compiler.scanning;
 
-import static com.avail.compiler.scanning.AvailScanner.ScannerAction.*;
-import java.util.*;
-
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.ExpectedToken;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.CharacterDescriptor;
+import com.avail.descriptor.CommentTokenDescriptor;
+import com.avail.descriptor.LiteralTokenDescriptor;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.utility.LRUCache;
+
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.compiler.scanning.AvailScanner.ScannerAction.*;
+import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
+import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
+import static com.avail.descriptor.TokenDescriptor.newToken;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**
  * An {@code AvailScanner} converts a stream of characters into a {@link List}
@@ -101,7 +118,7 @@ public class AvailScanner
 	@InnerAccess boolean encounteredBodyToken;
 
 	/** The previously scanned whitespace. */
-	private A_String previousWhitespace = TupleDescriptor.emptyTuple();
+	private A_String previousWhitespace = emptyTuple();
 
 	/** The previously added {@linkplain A_Token token}. */
 	private @Nullable A_Token previousToken;
@@ -167,10 +184,10 @@ public class AvailScanner
 	@InnerAccess A_Token addCurrentToken (
 		final TokenType tokenType)
 	{
-		final A_Token token = TokenDescriptor.create(
-			StringDescriptor.stringFrom(currentTokenString()),
+		final A_Token token = newToken(
+			stringFrom(currentTokenString()),
 			previousWhitespace,
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			startOfToken + 1,
 			lineNumber,
 			tokenType);
@@ -192,13 +209,13 @@ public class AvailScanner
 	void addCurrentLiteralToken (
 		final A_BasicObject anAvailObject)
 	{
-		final A_Token token = LiteralTokenDescriptor.create(
-			StringDescriptor.stringFrom(currentTokenString()),
+		final A_Token token = literalToken(
+			stringFrom(currentTokenString()),
 			previousWhitespace,
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			startOfToken + 1,
 			lineNumber,
-			TokenType.LITERAL,
+			LITERAL,
 			anAvailObject);
 		token.makeShared();
 		outputTokens.add(token);
@@ -215,10 +232,10 @@ public class AvailScanner
 	@InnerAccess
 	void addCurrentCommentToken (final int startLine)
 	{
-		final A_Token token = CommentTokenDescriptor.create(
-			StringDescriptor.stringFrom(currentTokenString()),
+		final A_Token token = newCommentToken(
+			stringFrom(currentTokenString()),
 			previousWhitespace,
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			startOfToken + 1,
 			startLine);
 		token.makeShared();
@@ -391,7 +408,7 @@ public class AvailScanner
 			whitespace ->
 			{
 				assert whitespace != null;
-				return StringDescriptor.stringFrom(whitespace).makeShared();
+				return stringFrom(whitespace).makeShared();
 			});
 
 	/**
@@ -416,7 +433,7 @@ public class AvailScanner
 	 */
 	@InnerAccess void forgetWhitespace ()
 	{
-		previousWhitespace = TupleDescriptor.emptyTuple();
+		previousWhitespace = emptyTuple();
 	}
 
 	/**
@@ -444,14 +461,13 @@ public class AvailScanner
 
 				// Now convert the thing to numeric form.
 				scanner.position(scanner.startOfToken());
-				A_Number result = IntegerDescriptor.zero();
-				final A_Number ten = IntegerDescriptor.ten();
+				A_Number result = zero();
+				final A_Number ten = ten();
 				while (scanner.peekIsDigit())
 				{
 					result = result.noFailTimesCanDestroy(ten, true);
 					result = result.noFailPlusCanDestroy(
-						IntegerDescriptor.fromUnsignedByte(
-							scanner.nextDigitValue()),
+						fromUnsignedByte(scanner.nextDigitValue()),
 						true);
 				}
 				scanner.addCurrentLiteralToken(result);
@@ -621,7 +637,7 @@ public class AvailScanner
 					c = scanner.next();
 				}
 				final String string = stringBuilder.toString();
-				final A_String availValue = StringDescriptor.stringFrom(string);
+				final A_String availValue = stringFrom(string);
 				availValue.makeImmutable();
 				final int lineAfterToken = scanner.lineNumber;
 				scanner.lineNumber = literalStartingLine;

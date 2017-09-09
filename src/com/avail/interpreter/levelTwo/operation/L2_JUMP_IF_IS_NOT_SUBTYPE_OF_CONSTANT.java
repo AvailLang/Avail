@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.InstanceMetaDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -47,6 +46,7 @@ import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -185,8 +185,7 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 			final A_Type existingType = existingMeta.instance();
 			final A_Type intersectionType =
 				existingType.typeIntersection(constantType);
-			final A_Type intersectionMeta =
-				InstanceMetaDescriptor.instanceMetaOn(intersectionType);
+			final A_Type intersectionMeta = instanceMeta(intersectionType);
 			fallThroughSet.strengthenTestedTypeAtPut(typeReg, intersectionMeta);
 		}
 	}

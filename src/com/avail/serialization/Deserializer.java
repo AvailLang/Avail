@@ -34,10 +34,14 @@ package com.avail.serialization;
 
 import com.avail.AvailRuntime;
 import com.avail.descriptor.*;
-import javax.annotation.Nullable;
 
-import java.io.*;
-import java.util.*;
+import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.NilDescriptor.nil;
 
 /**
  * A {@link Deserializer} takes a stream of bytes and reconstructs objects that
@@ -68,7 +72,7 @@ public class Deserializer
 	/**
 	 * The current {@linkplain ModuleDescriptor module}.
 	 */
-	private A_Module currentModule = NilDescriptor.nil();
+	private A_Module currentModule = nil();
 
 	/**
 	 * Answer the deserializer's instance of {@link AvailRuntime} used for

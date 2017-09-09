@@ -39,7 +39,10 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.TupleDescriptor.toList;
 
 /**
  * The {@link ObjectLayoutVariant}s capture field layouts for objects and object
@@ -126,8 +129,7 @@ public final class ObjectLayoutVariant
 		final A_Atom explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom;
 		// Alphabetize the fields to make debugging nice.  Note that field names
 		// don't have to be lexicographically unique.
-		final List<A_Atom> sortedFields =
-			TupleDescriptor.toList(allFields.asTuple());
+		final List<A_Atom> sortedFields = toList(allFields.asTuple());
 		sortedFields.sort(
 			Comparator.comparing(atom -> atom.atomName().asNativeString()));
 		this.fieldToSlotIndex = new HashMap<>(sortedFields.size());
@@ -140,7 +142,7 @@ public final class ObjectLayoutVariant
 		}
 		this.realSlotCount = slotCount;
 		this.variantId = variantId;
-		thisPojo = RawPojoDescriptor.identityWrap(this);
+		thisPojo = identityPojo(this);
 		this.mutableObjectDescriptor =
 			new ObjectDescriptor(Mutability.MUTABLE, this);
 		this.immutableObjectDescriptor =

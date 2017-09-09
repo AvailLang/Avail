@@ -32,18 +32,21 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Store the {@linkplain AvailRuntime#implicitObserveFunction() implicit
@@ -84,11 +87,9 @@ extends L2Operation
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
 			destination,
-			FunctionTypeDescriptor.functionType(
-				TupleDescriptor.tuple(
-					FunctionTypeDescriptor.mostGeneralFunctionType(),
-					TupleTypeDescriptor.mostGeneralTupleType()),
-				BottomTypeDescriptor.bottom()),
+			functionType(tuple(
+				mostGeneralFunctionType(),
+				mostGeneralTupleType()), bottom()),
 			instruction);
 	}
 }

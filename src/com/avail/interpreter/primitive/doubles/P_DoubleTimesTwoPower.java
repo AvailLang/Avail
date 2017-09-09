@@ -31,14 +31,25 @@
  */
 package com.avail.interpreter.primitive.doubles;
 
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.DoubleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.DoubleDescriptor.fromDoubleRecycling;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerDescriptor.two;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.lang.Math.scalb;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import static java.lang.Math.*;
 
 /**
  * <strong>Primitive:</strong> Compute the {@linkplain DoubleDescriptor
@@ -67,20 +78,19 @@ public final class P_DoubleTimesTwoPower extends Primitive
 
 		final int scale = b.isInt()
 			? min(max(b.extractInt(), -10000), 10000)
-			: b.greaterOrEqual(IntegerDescriptor.zero()) ? 10000 : -10000;
+			: b.greaterOrEqual(zero()) ? 10000 : -10000;
 		final double d = scalb(a.extractDouble(), scale);
-		return interpreter.primitiveSuccess(
-			DoubleDescriptor.objectFromDoubleRecycling(d, a, true));
+		return interpreter.primitiveSuccess(fromDoubleRecycling(d, a, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				DOUBLE.o(),
-				InstanceTypeDescriptor.instanceTypeOn(IntegerDescriptor.two()),
-				IntegerRangeTypeDescriptor.integers()),
+				instanceType(two()),
+				integers()),
 			DOUBLE.o());
 	}
 }

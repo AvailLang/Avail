@@ -32,11 +32,11 @@
 package com.avail.compiler.splitter;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.LiteralTokenTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor.Types;
 
 import static com.avail.compiler.ParsingOperation.PARSE_ANY_RAW_TOKEN;
 import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 
 /**
  * A {@code RawTokenArgument} is an occurrence of {@linkplain
@@ -69,8 +69,7 @@ extends Argument
 	{
 		generator.flushDelayed();
 		generator.emit(this, PARSE_ANY_RAW_TOKEN);
-		if (!LiteralTokenTypeDescriptor.literalTokenType(Types.TOKEN.o()).isSubtypeOf(
-			phraseType))
+		if (!literalTokenType(TOKEN.o()).isSubtypeOf(phraseType))
 		{
 			generator.emitDelayed(
 				this,

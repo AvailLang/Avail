@@ -36,7 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
+import com.avail.utility.IndexedIntGenerator;
 
 import javax.annotation.Nullable;
 
@@ -45,7 +45,15 @@ import static com.avail.descriptor.AvailObject.newLike;
 import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots
 	.HASH_OR_ZERO;
 import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.RAW_LONGS_;
+import static com.avail.descriptor.CharacterDescriptor.fromByteCodePoint;
+import static com.avail.descriptor.CharacterDescriptor
+	.hashOfByteCharacterWithCodePoint;
 import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
+import static com.avail.descriptor.TwoByteStringDescriptor
+	.mutableTwoByteStringOfSize;
 
 /**
  * {@code ByteStringDescriptor} represents a string of Latin-1 characters.
@@ -53,7 +61,7 @@ import static com.avail.descriptor.Mutability.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-final class ByteStringDescriptor
+final public class ByteStringDescriptor
 extends StringDescriptor
 {
 	/**
@@ -119,7 +127,7 @@ extends StringDescriptor
 			|| ((intValue = ((A_Character)newElement).codePoint()) & ~255) != 0)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+			final A_Tuple singleton = tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int newSize = originalSize + 1;
@@ -276,7 +284,7 @@ extends StringDescriptor
 		// one-byte character.
 		assert index >= 1 && index <= object.tupleSize();
 		final short codePoint = object.byteSlot(RAW_LONGS_, index);
-		return (AvailObject)CharacterDescriptor.fromByteCodePoint(codePoint);
+		return (AvailObject) fromByteCodePoint(codePoint);
 	}
 
 	@Override @AvailMethod
@@ -338,17 +346,7 @@ extends StringDescriptor
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
 		return generateByteString(
-			size,
-			new Generator<Character>()
-			{
-				private int sourceIndex = size;
-
-				@Override
-				public Character value ()
-				{
-					return (char)object.byteSlot(RAW_LONGS_, sourceIndex--);
-				}
-			});
+			size, i -> (char)object.byteSlot(RAW_LONGS_, size + 1 - i));
 	}
 
 	@Override @AvailMethod
@@ -385,7 +383,7 @@ extends StringDescriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash =
-				CharacterDescriptor.hashOfByteCharacterWithCodePoint(
+				hashOfByteCharacterWithCodePoint(
 					object.byteSlot(RAW_LONGS_, index))
 				^ preToggle;
 			hash = (hash + itemHash) * multiplier;
@@ -400,7 +398,7 @@ extends StringDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -425,17 +423,7 @@ extends StringDescriptor
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
 			return generateByteString(
-				size,
-				new Generator<Character>()
-				{
-					private int sourceIndex = start;
-
-					@Override
-					public Character value ()
-					{
-						return (char)object.byteSlot(RAW_LONGS_, sourceIndex++);
-					}
-				});
+				size, i -> object.byteSlot(RAW_LONGS_, i + start - 1));
 		}
 		return super.o_CopyTupleFromToCanDestroy(
 			object, start, end, canDestroy);
@@ -502,29 +490,29 @@ extends StringDescriptor
 		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object, otherTuple, true);
+		return concatenateAtLeastOneTree(object, otherTuple, true);
 	}
 
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link ByteStringDescriptor}.  Note that it can only store Latin-1
+	 * of {@code ByteStringDescriptor}.  Note that it can only store Latin-1
 	 * characters (i.e., those having Unicode code points 0..255).  Run the
 	 * generator for each position in ascending order to produce the code
 	 * points with which to populate the string.
 	 *
 	 * @param size The size of byte string to create.
 	 * @param generator A generator to provide code points to store.
-	 * @return The new Avail {@linkplain ByteStringDescriptor string}.
+	 * @return The new Avail {@link A_String}.
 	 */
-	static AvailObject generateByteString(
+	public static AvailObject generateByteString(
 		final int size,
-		final Generator<Character> generator)
+		final IndexedIntGenerator generator)
 	{
 		final ByteStringDescriptor descriptor = descriptorFor(MUTABLE, size);
 		final AvailObject result = descriptor.mutableObjectOfSize(size);
+		int counter = 1;
 		// Aggregate eight writes at a time for the bulk of the string.
 		for (
 			int slotIndex = 1, limit = size >>> 3;
@@ -534,7 +522,7 @@ extends StringDescriptor
 			long combined = 0;
 			for (int shift = 0; shift < 64; shift += 8)
 			{
-				final long c = generator.value();
+				final long c = generator.value(counter++);
 				assert (c & 255) == c;
 				combined += c << shift;
 			}
@@ -543,7 +531,7 @@ extends StringDescriptor
 		// Do the last 0-7 writes the slow way.
 		for (int index = (size & ~7) + 1; index <= size; index++)
 		{
-			final long c = generator.value();
+			final long c = generator.value(counter++);
 			assert (c & 255) == c;
 			result.setByteSlot(RAW_LONGS_, index, (short)c);
 		}
@@ -560,24 +548,22 @@ extends StringDescriptor
 	private static A_String copyAsMutableTwoByteString (
 		final AvailObject object)
 	{
-		final A_String result =
-			TwoByteStringDescriptor.mutableObjectOfSize(object.tupleSize());
+		final A_String result = mutableTwoByteStringOfSize(object.tupleSize());
 		result.hashOrZero(object.hashOrZero());
 		for (int i = 1, end = object.tupleSize(); i <= end; i++)
 		{
 			result.rawShortForCharacterAtPut(
-				i,
-				object.byteSlot(RAW_LONGS_, i));
+				i, object.byteSlot(RAW_LONGS_, i));
 		}
 		return result;
 	}
 
 	/**
-	 * Answer a new {@linkplain ByteStringDescriptor object} capacious enough to
-	 * hold the specified number of elements.
+	 * Answer a new byte string capacious enough to hold the specified number of
+	 * elements.
 	 *
 	 * @param size The desired number of elements.
-	 * @return A new {@linkplain ByteStringDescriptor object}.
+	 * @return A new mutable byte string.
 	 */
 	private AvailObject mutableObjectOfSize (final int size)
 	{
@@ -588,38 +574,27 @@ extends StringDescriptor
 
 	/**
 	 * Convert the specified Java {@link String} of purely Latin-1 characters
-	 * into an Avail {@linkplain ByteStringDescriptor string}.
+	 * into an Avail {@link A_String}.
 	 *
 	 * @param aNativeByteString
-	 *            A Java {@link String} whose code points are all 0..255.
+	 *        A Java {@link String} whose code points are all 0..255.
 	 * @return
-	 *            A corresponding Avail {@linkplain ByteStringDescriptor
-	 *            string}.
+	 *        A corresponding Avail {@linkplain ByteStringDescriptor string}.
 	 */
 	static AvailObject mutableObjectFromNativeByteString(
 		final String aNativeByteString)
 	{
 		return generateByteString(
-			aNativeByteString.length(),
-			new Generator<Character>()
-			{
-				private int sourceIndex = 0;
-
-				@Override
-				public Character value ()
-				{
-					return aNativeByteString.charAt(sourceIndex++);
-				}
-			});
+			aNativeByteString.length(), i -> aNativeByteString.charAt(i - 1));
 	}
 
 	/**
-	 * Construct a new {@link ByteStringDescriptor}.
+	 * Construct a new {@code ByteStringDescriptor}.
 	 *
 	 * @param mutability
-	 *            The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param unusedBytes
-	 *            The number of unused bytes of the last long.
+	 *        The number of unused bytes of the last long.
 	 */
 	private ByteStringDescriptor (
 		final Mutability mutability,
@@ -666,15 +641,14 @@ extends StringDescriptor
 	}
 
 	/**
-	 * Answer the appropriate {@linkplain ByteStringDescriptor descriptor} to
-	 * represent an {@linkplain AvailObject object} of the specified mutability
-	 * and size.
+	 * Answer the appropriate {@code ByteStringDescriptor} to represent an
+	 * {@linkplain AvailObject object} of the specified mutability and size.
 	 *
 	 * @param flag
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
 	 * @param size
 	 *        The desired number of elements.
-	 * @return A {@link ByteStringDescriptor} suitable for representing a
+	 * @return A {@code ByteStringDescriptor} suitable for representing a
 	 *         byte string of the given mutability and {@linkplain
 	 *         AvailObject#tupleSize() size}.
 	 */

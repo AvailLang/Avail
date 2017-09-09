@@ -35,8 +35,6 @@ package com.avail.optimizer;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContinuationTypeDescriptor;
-import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -52,6 +50,10 @@ import java.util.Map.Entry;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.NULL;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;
 
@@ -298,9 +300,7 @@ public final class RegisterSet
 	public A_Type typeAt (
 		final L2Register register)
 	{
-		final A_Type type = stateForReading(register).type();
-		assert type != null;
-		return type;
+		return stripNull(stateForReading(register).type());
 	}
 
 	/**
@@ -316,7 +316,7 @@ public final class RegisterSet
 		final A_Type type)
 	{
 		assert !type.isBottom();
-		assert !type.equalsInstanceTypeFor(NilDescriptor.nil());
+		assert !type.equalsInstanceTypeFor(nil());
 		stateForModifying(register).type(type);
 	}
 
@@ -338,8 +338,7 @@ public final class RegisterSet
 		final L2Instruction instruction)
 	{
 		typeAtPut(register, type);
-		if (type.instanceCount().equalsInt(1)
-			&& !type.isInstanceMeta())
+		if (type.instanceCount().equalsInt(1) && !type.isInstanceMeta())
 		{
 			// There is only one value that it could be.
 			final AvailObject onlyPossibleValue = type.instance();
@@ -593,13 +592,10 @@ public final class RegisterSet
 		final L2Instruction instruction)
 	{
 		registerStates.clear();
-		constantAtPut(
-			fixed(FixedRegister.NULL),
-			NilDescriptor.nil(),
-			instruction);
+		constantAtPut(fixed(NULL), nil(), instruction);
 		typeAtPut(
 			fixed(FixedRegister.CALLER),
-			ContinuationTypeDescriptor.mostGeneralContinuationType(),
+			mostGeneralContinuationType(),
 			instruction);
 	}
 

@@ -34,8 +34,6 @@ package com.avail.interpreter.primitive.general;
 
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
@@ -81,6 +79,6 @@ extends Primitive
 	{
 		return functionType(
 			emptyTuple(),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+			wholeNumbers());
 	}
 }

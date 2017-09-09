@@ -31,11 +31,21 @@
  */
 package com.avail.interpreter.primitive.floats;
 
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FloatDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FloatDescriptor.fromFloat;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Given a 32-bit signed integer, treat the bit
@@ -63,16 +73,12 @@ public final class P_FloatFromIntBits extends Primitive
 		final A_Number intObject = args.get(0);
 		final int intValue = intObject.extractInt();
 		final float floatValue = Float.intBitsToFloat(intValue);
-		return interpreter.primitiveSuccess(
-			FloatDescriptor.fromFloat(floatValue));
+		return interpreter.primitiveSuccess(fromFloat(floatValue));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.int32()),
-			FLOAT.o());
+		return functionType(tuple(int32()), FLOAT.o());
 	}
 }

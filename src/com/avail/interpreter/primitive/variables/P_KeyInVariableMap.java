@@ -32,20 +32,29 @@
 
 package com.avail.interpreter.primitive.variables;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_READ_UNASSIGNED_VARIABLE;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -77,10 +86,9 @@ extends Primitive
 		try
 		{
 			return interpreter.primitiveSuccess(
-				AtomDescriptor.objectFromBoolean(var.variableMapHasKey(key)));
+				objectFromBoolean(var.variableMapHasKey(key)));
 		}
-		catch (
-			final VariableGetException e)
+		catch (final VariableGetException e)
 		{
 			return interpreter.primitiveFailure(e);
 		}
@@ -89,7 +97,7 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
+		return functionType(
 			tuple(
 				ANY.o(),
 				variableReadWriteType(
@@ -101,8 +109,6 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_CANNOT_READ_UNASSIGNED_VARIABLE));
+		return enumerationWith(set(E_CANNOT_READ_UNASSIGNED_VARIABLE));
 	}
 }

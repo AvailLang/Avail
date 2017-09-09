@@ -31,14 +31,26 @@
  */
 package com.avail.interpreter.primitive.atoms;
 
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Answer whether the second {@linkplain
@@ -68,24 +80,20 @@ public final class P_AtomHasProperty extends Primitive
 		}
 		final A_BasicObject propertyValue = atom.getAtomProperty(propertyKey);
 		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(!propertyValue.equalsNil()));
+			objectFromBoolean(!propertyValue.equalsNil()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				ATOM.o(),
-				ATOM.o()),
-			booleanType());
+		return
+			functionType(tuple(ATOM.o(), ATOM.o()), booleanType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_SPECIAL_ATOM));
+		return
+			enumerationWith(set(E_SPECIAL_ATOM));
 	}
 }

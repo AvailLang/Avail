@@ -32,14 +32,41 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.BlockNodeDescriptor.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BlockNodeDescriptor;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.BlockNodeDescriptor.newBlockNode;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.ParseNodeTypeDescriptor
+	.containsOnlyStatements;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.exceptions.AvailErrorCode
+	.E_BLOCK_CONTAINS_INVALID_STATEMENTS;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NUMBER;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain BlockNodeDescriptor
@@ -83,7 +110,7 @@ extends Primitive
 		final int primNumber;
 		if (primitiveName.tupleSize() > 0)
 		{
-			final Primitive primitive =
+			final @Nullable Primitive primitive =
 				Primitive.primitiveByName(primitiveName.asNativeString());
 			if (primitive == null)
 			{
@@ -95,7 +122,7 @@ extends Primitive
 		{
 			primNumber = 0;
 		}
-		if (!ParseNodeTypeDescriptor.containsOnlyStatements(flat, resultType))
+		if (!containsOnlyStatements(flat, resultType))
 		{
 			return interpreter.primitiveFailure(
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS);
@@ -108,25 +135,21 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.zeroOrMoreOf(
-					ARGUMENT_NODE.mostGeneralType()),
-				TupleTypeDescriptor.stringType(),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					PARSE_NODE.mostGeneralType()),
-				InstanceMetaDescriptor.topMeta(),
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.wholeNumbers(),
-					ObjectTypeDescriptor.exceptionType())),
+		return functionType(
+			tuple(
+				zeroOrMoreOf(ARGUMENT_NODE.mostGeneralType()),
+				stringType(),
+				zeroOrMoreOf(PARSE_NODE.mostGeneralType()),
+				topMeta(),
+				setTypeForSizesContentType(wholeNumbers(), exceptionType())),
 			BLOCK_NODE.mostGeneralType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS,
 				E_INVALID_PRIMITIVE_NUMBER));
 	}

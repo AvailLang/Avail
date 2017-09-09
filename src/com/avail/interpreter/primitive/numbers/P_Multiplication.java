@@ -31,15 +31,35 @@
  */
 package com.avail.interpreter.primitive.numbers;
 
-import static com.avail.descriptor.InfinityDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.interpreter.Primitive.Fallibility.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.ArithmeticException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AbstractNumberDescriptor
+	.binaryNumericOperationTypeBound;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Multiply two extended integers.
@@ -76,11 +96,8 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				NUMBER.o(),
-				NUMBER.o()),
-			NUMBER.o());
+		return
+			functionType(tuple(NUMBER.o(), NUMBER.o()), NUMBER.o());
 	}
 
 	@Override
@@ -98,7 +115,7 @@ extends Primitive
 			// be few enough entries.
 			if (aInstances.setSize() * (long)bInstances.setSize() < 100)
 			{
-				A_Set answers = SetDescriptor.emptySet();
+				A_Set answers = emptySet();
 				for (final A_Number aInstance : aInstances)
 				{
 					for (final A_Number bInstance : bInstances)
@@ -116,8 +133,8 @@ extends Primitive
 						}
 					}
 				}
-				return AbstractEnumerationTypeDescriptor.enumerationWith(
-					answers);
+				return
+					enumerationWith(answers);
 			}
 		}
 		if (aType.isIntegerRangeType() && bType.isIntegerRangeType())
@@ -127,7 +144,7 @@ extends Primitive
 			// better than this, and at some future time it may be
 			// profitable to compute an exact bound for this primitive for
 			// all extended integer multiplications.
-			final A_Number zero = IntegerDescriptor.zero();
+			final A_Number zero = zero();
 			if (aType.lowerBound().greaterOrEqual(zero)
 				&& bType.lowerBound().greaterOrEqual(zero))
 			{
@@ -142,26 +159,23 @@ extends Primitive
 					final boolean highInclusive =
 						aType.upperInclusive()
 							&& bType.upperInclusive();
-					return IntegerRangeTypeDescriptor.integerRangeType(
-						low, true, high, highInclusive);
+					return integerRangeType(low, true, high, highInclusive);
 				}
 				catch (final ArithmeticException e)
 				{
 					// Fall-through to general case.
 				}
 			}
-			if (aType.isSubtypeOf(IntegerRangeTypeDescriptor.integers())
-				&& bType.isSubtypeOf(IntegerRangeTypeDescriptor.integers()))
+			if (aType.isSubtypeOf(integers()) && bType.isSubtypeOf(integers()))
 			{
 				// integer × integer is always integer.
-				return IntegerRangeTypeDescriptor.integers();
+				return integers();
 			}
 			// Otherwise one multiplicand might be infinity, so to keep the
 			// logic simple just include both infinities.
-			return IntegerRangeTypeDescriptor.extendedIntegers();
+			return extendedIntegers();
 		}
-		return AbstractNumberDescriptor.binaryNumericOperationTypeBound(
-			aType, bType);
+		return binaryNumericOperationTypeBound(aType, bType);
 	}
 
 	@Override
@@ -172,17 +186,17 @@ extends Primitive
 		final A_Type bType = argumentTypes.get(1);
 
 		final boolean aTypeIncludesZero =
-			IntegerDescriptor.zero().isInstanceOf(aType);
+			zero().isInstanceOf(aType);
 		final boolean aTypeIncludesInfinity =
 			negativeInfinity().isInstanceOf(aType)
-			|| positiveInfinity().isInstanceOf(aType);
+				|| positiveInfinity().isInstanceOf(aType);
 		final boolean bTypeIncludesZero =
-			IntegerDescriptor.zero().isInstanceOf(bType);
+			zero().isInstanceOf(bType);
 		final boolean bTypeIncludesInfinity =
 			negativeInfinity().isInstanceOf(bType)
-			|| positiveInfinity().isInstanceOf(bType);
+				|| positiveInfinity().isInstanceOf(bType);
 		if ((aTypeIncludesZero && bTypeIncludesInfinity)
-			|| (aTypeIncludesInfinity && bTypeIncludesZero))
+				|| (aTypeIncludesInfinity && bTypeIncludesZero))
 		{
 			return CallSiteCanFail;
 		}
@@ -192,8 +206,6 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_CANNOT_MULTIPLY_ZERO_AND_INFINITY));
+		return enumerationWith(set(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY));
 	}
 }

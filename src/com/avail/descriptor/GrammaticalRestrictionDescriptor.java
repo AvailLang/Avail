@@ -32,11 +32,14 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor
+	.IntegerSlots.HASH;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor
+	.ObjectSlots.*;
 
 /**
  * A {@code GrammaticalRestrictionDescriptor grammatical restriction} serves to
@@ -176,7 +179,7 @@ extends Descriptor
 	 *            grammatical restriction was defined.
 	 * @return The new grammatical restriction.
 	 */
-	public static A_GrammaticalRestriction create (
+	public static A_GrammaticalRestriction newGrammaticalRestriction (
 		final A_Tuple argumentRestrictionSets,
 		final A_Bundle restrictedBundle,
 		final A_Module module)

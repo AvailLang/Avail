@@ -31,12 +31,25 @@
  */
 package com.avail.interpreter.primitive.rawfunctions;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the name of the primitive for this
@@ -64,11 +77,11 @@ public final class P_CompiledCodePrimitiveName extends Primitive
 		final A_String string;
 		if (prim == null)
 		{
-			string = TupleDescriptor.emptyTuple();
+			string = emptyTuple();
 		}
 		else
 		{
-			string = StringDescriptor.stringFrom(prim.name());
+			string = stringFrom(prim.name());
 		}
 		return interpreter.primitiveSuccess(string);
 	}
@@ -76,9 +89,8 @@ public final class P_CompiledCodePrimitiveName extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()),
-			TupleTypeDescriptor.stringType());
+		return functionType(
+			tuple(mostGeneralCompiledCodeType()),
+			stringType());
 	}
 }

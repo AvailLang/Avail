@@ -32,22 +32,22 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.utility.Nulls.stripNull;
@@ -81,8 +81,8 @@ extends Primitive
 		final Result suspended =
 			interpreter.primitiveSuspend(primitiveRawFunction);
 		interpreter.postExitContinuation(
-			() -> Interpreter.resumeFromSuccessfulPrimitive(
-				AvailRuntime.current(),
+			() -> resumeFromSuccessfulPrimitive(
+				currentRuntime(),
 				fiber,
 				nil(),
 				primitiveRawFunction,

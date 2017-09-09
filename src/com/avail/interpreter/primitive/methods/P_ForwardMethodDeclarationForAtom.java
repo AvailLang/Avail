@@ -31,16 +31,12 @@
  */
 package com.avail.interpreter.primitive.methods;
 
-import com.avail.AvailRuntime;
 import com.avail.AvailTask;
-import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_Atom;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.SetDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
@@ -52,16 +48,20 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Interpreter.resumeFromFailedPrimitive;
+import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
 import static com.avail.utility.Nulls.stripNull;
@@ -112,8 +112,8 @@ extends Primitive
 					try
 					{
 						loader.addForwardStub(atom, blockSignature);
-						Interpreter.resumeFromSuccessfulPrimitive(
-							AvailRuntime.current(),
+						resumeFromSuccessfulPrimitive(
+							currentRuntime(),
 							fiber,
 							nil(),
 							primitiveFunction.code(),
@@ -123,8 +123,8 @@ extends Primitive
 						final MalformedMessageException
 							| SignatureException e)
 					{
-						Interpreter.resumeFromFailedPrimitive(
-							AvailRuntime.current(),
+						resumeFromFailedPrimitive(
+							currentRuntime(),
 							fiber,
 							e.numericCode(),
 							primitiveFunction,
@@ -149,12 +149,10 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(
-					E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-					E_METHOD_IS_SEALED)
-				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
+				E_METHOD_IS_SEALED)
+				.setUnionCanDestroy(possibleErrors, true));
 	}
 }

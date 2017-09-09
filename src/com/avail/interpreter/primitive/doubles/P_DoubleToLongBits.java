@@ -31,11 +31,22 @@
  */
 package com.avail.interpreter.primitive.doubles;
 
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.DoubleDescriptor;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int64;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Given a {@linkplain DoubleDescriptor
@@ -64,16 +75,14 @@ public final class P_DoubleToLongBits extends Primitive
 		final A_Number doubleObject = args.get(0);
 		final double doubleValue = doubleObject.extractDouble();
 		final long doubleBits = Double.doubleToRawLongBits(doubleValue);
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromLong(doubleBits));
+		return interpreter.primitiveSuccess(fromLong(doubleBits));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				DOUBLE.o()),
-			IntegerRangeTypeDescriptor.int64());
+		return functionType(
+			tuple(DOUBLE.o()),
+			int64());
 	}
 }

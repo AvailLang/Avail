@@ -103,7 +103,6 @@ Uses
 		"_'s⁇parameters'type",
 		"_'s⁇permutation",
 		"_'s⁇primitive name",
-		"_'s⁇primitive number",
 		"_'s⁇priority",
 		"_'s⁇priority:=_",
 		"_'s⁇program counter",
@@ -1429,7 +1428,7 @@ Primitive "_=_" is
  * @method "_'s⁇hash"
  * @param "value" "any"
  *        An arbitrary value.
- * @returns "(-∞..∞)"
+ * @returns "[-2147483648..2147483647]"
  *    The hash value of the argument.
  */
 Primitive "_'s⁇hash" is
@@ -1437,7 +1436,7 @@ Primitive "_'s⁇hash" is
 	value : any
 |
 	Primitive Hash;
-] : integer;
+] : int32;
 
 /**
  * Does the argument denote a valid primitive?
@@ -2345,24 +2344,6 @@ Primitive "_'s⁇outer variables" is
 |
 	Primitive BlockNeededVariables;
 ] : declaration tuple;
-
-/**
- * Answer the primitive linkage number of the specified block.
- *
- * @category "Primitives" "Phrases" "Queries"
- * @method "_'s⁇primitive number"
- * @param "aBlock" "block phrase"
- *        A block.
- * @returns "[0..∞)"
- *    The block's primitive linkage number, or {@code "0"} if the block has
- *    no primitive linkage.
- */
-Primitive "_'s⁇primitive number" is
-[
-	aBlock : block phrase
-|
-	Primitive BlockPrimitiveNumber;
-] : whole number;
 
 /**
  * Answer the return type of the specified block.

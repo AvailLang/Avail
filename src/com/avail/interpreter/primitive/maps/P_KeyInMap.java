@@ -31,14 +31,23 @@
  */
 package com.avail.interpreter.primitive.maps;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Check if the key is present in the
@@ -62,14 +71,13 @@ public final class P_KeyInMap extends Primitive
 		assert args.size() == 2;
 		final A_BasicObject key = args.get(0);
 		final A_Map map = args.get(1);
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(map.hasKey(key)));
+		return interpreter.primitiveSuccess(objectFromBoolean(map.hasKey(key)));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
+		return functionType(
 			tuple(
 				ANY.o(),
 				mostGeneralMapType()),

@@ -85,6 +85,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TimerTask;
 
+import static com.avail.descriptor.LinearSetBinDescriptor
+	.createLinearSetBinPair;
+import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
 import static java.lang.String.format;
 
 /**
@@ -2622,8 +2625,7 @@ extends AbstractDescriptor
 			elementObject.makeImmutable();
 		}
 		// Create a linear bin with two slots.
-		return LinearSetBinDescriptor.createPair(
-			myLevel, object, elementObject);
+		return createLinearSetBinPair(myLevel, object, elementObject);
 	}
 
 	@Override
@@ -2661,7 +2663,7 @@ extends AbstractDescriptor
 
 		if (object.equals(elementObject))
 		{
-			return LinearSetBinDescriptor.emptyBinForLevel(myLevel);
+			return emptyLinearSetBin(myLevel);
 		}
 		if (!canDestroy)
 		{

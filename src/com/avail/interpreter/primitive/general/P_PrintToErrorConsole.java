@@ -143,15 +143,12 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			tuple(stringType()),
-			TOP.o());
+		return functionType(tuple(stringType()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return enumerationWith(
-			set(E_IO_ERROR));
+		return enumerationWith(set(E_IO_ERROR));
 	}
 }

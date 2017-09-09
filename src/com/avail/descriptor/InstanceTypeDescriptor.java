@@ -209,8 +209,8 @@ extends AbstractEnumerationTypeDescriptor
 			}
 			// Create a new enumeration containing all elements from both
 			// enumerations.
-			return enumerationWith(
-				another.instances().setWithElementCanDestroy(
+			return
+				enumerationWith(another.instances().setWithElementCanDestroy(
 					getInstance(object), false));
 		}
 		// Another is a kind.
@@ -714,7 +714,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param instance The object whose type to represent.
 	 * @return An {@link AvailObject} representing the type of the argument.
 	 */
-	public static AvailObject instanceTypeOn (final A_BasicObject instance)
+	public static AvailObject instanceType (final A_BasicObject instance)
 	{
 		assert !instance.isType();
 		final AvailObject result = mutable.create();

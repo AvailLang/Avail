@@ -75,6 +75,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
+import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor
+	.newParsingPlan;
+import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
+import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
+import static com.avail.descriptor.MethodDefinitionDescriptor
+	.newMethodDefinition;
 import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
 	.CREATE_MACRO;
 import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
@@ -82,6 +91,12 @@ import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.NUM_ARGS;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
 
@@ -251,7 +266,7 @@ extends Descriptor
 			final List<? extends A_Definition> elements,
 			final Void ignored)
 		{
-			return TupleDescriptor.tupleFromList(elements);
+			return tupleFromList(elements);
 		}
 
 		@Override
@@ -659,11 +674,10 @@ extends Descriptor
 				for (final A_Tuple seal : seals)
 				{
 					final A_Type sealType =
-						TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-							IntegerRangeTypeDescriptor.singleInt(
-								seal.tupleSize()),
+						tupleTypeForSizesTypesDefaultType(
+							singleInt(seal.tupleSize()),
 							seal,
-							BottomTypeDescriptor.bottom());
+							bottom());
 					if (paramTypes.isSubtypeOf(sealType))
 					{
 						throw new SignatureException(
@@ -677,8 +691,7 @@ extends Descriptor
 			for (final A_Bundle bundle : object.slot(OWNING_BUNDLES))
 			{
 				final A_DefinitionParsingPlan plan =
-					DefinitionParsingPlanDescriptor.createPlan(
-						bundle, definition);
+					newParsingPlan(bundle, definition);
 				bundle.addDefinitionParsingPlan(plan);
 			}
 			membershipChanged(object);
@@ -723,8 +736,7 @@ extends Descriptor
 					? DEFINITIONS_TUPLE
 					: MACRO_DEFINITIONS_TUPLE;
 			A_Tuple definitionsTuple = object.slot(slot);
-			definitionsTuple = TupleDescriptor.without(
-				definitionsTuple, definition);
+			definitionsTuple = tupleWithout(definitionsTuple, definition);
 			object.setSlot(
 				slot, definitionsTuple.traversed().makeShared());
 			for (final A_Bundle bundle : object.slot(OWNING_BUNDLES))
@@ -764,8 +776,7 @@ extends Descriptor
 		synchronized (object)
 		{
 			final A_Tuple oldTuple = object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-			final A_Tuple newTuple =
-				TupleDescriptor.without(oldTuple, typeTuple);
+			final A_Tuple newTuple = tupleWithout(oldTuple, typeTuple);
 			assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
 			object.setSlot(
 				SEALED_ARGUMENTS_TYPES_TUPLE,
@@ -870,30 +881,31 @@ extends Descriptor
 		final AvailObject result = mutable.create();
 		result.setSlot(HASH, AvailRuntime.nextHash());
 		result.setSlot(NUM_ARGS, numArgs);
-		result.setSlot(OWNING_BUNDLES, SetDescriptor.emptySet());
-		result.setSlot(DEFINITIONS_TUPLE, TupleDescriptor.emptyTuple());
-		result.setSlot(SEMANTIC_RESTRICTIONS_SET, SetDescriptor.emptySet());
-		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, TupleDescriptor.emptyTuple());
-		result.setSlot(MACRO_DEFINITIONS_TUPLE, TupleDescriptor.emptyTuple());
+		result.setSlot(OWNING_BUNDLES, emptySet());
+		result.setSlot(DEFINITIONS_TUPLE, emptyTuple());
+		result.setSlot(SEMANTIC_RESTRICTIONS_SET, emptySet());
+		result.setSlot(
+			SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple());
+		result.setSlot(MACRO_DEFINITIONS_TUPLE, emptyTuple());
 		final Set<L2Chunk> chunkSet = Collections.newSetFromMap(
 			new WeakHashMap<L2Chunk, Boolean>());
 		result.setSlot(
 			DEPENDENT_CHUNKS_WEAK_SET_POJO,
-			RawPojoDescriptor.identityWrap(chunkSet).makeShared());
+			identityPojo(chunkSet).makeShared());
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
 		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
 			runtimeDispatcher.createRoot(
 				Collections.emptyList(), initialTypes, null);
 		result.setSlot(
 			PRIVATE_TESTING_TREE,
-			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
+			identityPojo(definitionsTree).makeShared());
 		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
 			runtimeDispatcher.createRoot(
 				Collections.emptyList(), initialTypes, null);
 		result.setSlot(
 			MACRO_TESTING_TREE,
-			RawPojoDescriptor.identityWrap(macrosTree).makeShared());
-		result.setSlot(LEXER_OR_NIL, NilDescriptor.nil());
+			identityPojo(macrosTree).makeShared());
+		result.setSlot(LEXER_OR_NIL, nil());
 		result.makeShared();
 		return result;
 	}
@@ -958,22 +970,20 @@ extends Descriptor
 		final List<A_Type> initialTypes = nCopiesOfAny(numArgs);
 		final LookupTree<A_Definition, A_Tuple, Void> definitionsTree =
 			runtimeDispatcher.createRoot(
-				TupleDescriptor.toList(
-					object.slot(DEFINITIONS_TUPLE)),
+				toList(object.slot(DEFINITIONS_TUPLE)),
 				initialTypes,
 				null);
 		object.setSlot(
 			PRIVATE_TESTING_TREE,
-			RawPojoDescriptor.identityWrap(definitionsTree).makeShared());
+			identityPojo(definitionsTree).makeShared());
 		final LookupTree<A_Definition, A_Tuple, Void> macrosTree =
 			runtimeDispatcher.createRoot(
-				TupleDescriptor.toList(
-					object.slot(MACRO_DEFINITIONS_TUPLE)),
+				toList(object.slot(MACRO_DEFINITIONS_TUPLE)),
 				initialTypes,
 				null);
 		object.setSlot(
 			MACRO_TESTING_TREE,
-			RawPojoDescriptor.identityWrap(macrosTree).makeShared());
+			identityPojo(macrosTree).makeShared());
 	}
 
 	/**
@@ -1229,7 +1239,7 @@ extends Descriptor
 			final CreateMethodOrMacroEnum createMethodOrMacro,
 			final Primitive... primitives)
 		{
-			final A_Atom atom = AtomDescriptor.createSpecialAtom(name);
+			final A_Atom atom = createSpecialAtom(name);
 			final A_Bundle bundle;
 			try
 			{
@@ -1244,24 +1254,23 @@ extends Descriptor
 			final A_Method method = bundle.bundleMethod();
 			for (final Primitive primitive : primitives)
 			{
-				final A_Function function =
-					FunctionDescriptor.newPrimitiveFunction(
-						primitive, NilDescriptor.nil(), 0);
+				final A_Function function = newPrimitiveFunction(
+					primitive, nil(), 0);
 				final A_Definition definition;
 				if (createMethodOrMacro == CREATE_METHOD)
 				{
-					definition = MethodDefinitionDescriptor.create(
+					definition = newMethodDefinition(
 						method,
-						NilDescriptor.nil(),  // System defs have no module.
+						nil(),  // System defs have no module.
 						function);
 				}
 				else
 				{
-					definition = MacroDefinitionDescriptor.create(
+					definition = newMacroDefinition(
 						method,
-						NilDescriptor.nil(),  // System defs have no module.
+						nil(),  // System defs have no module.
 						function,
-						TupleDescriptor.emptyTuple());
+						emptyTuple());
 				}
 
 				try

@@ -31,10 +31,22 @@
  */
 package com.avail.interpreter.primitive.sets;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.SetTypeDescriptor.setMeta;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain SetTypeDescriptor
@@ -59,19 +71,16 @@ public final class P_CreateSetType extends Primitive
 		final AvailObject contentType = args.get(0);
 		final AvailObject sizeRange = args.get(1);
 		return interpreter.primitiveSuccess(
-			SetTypeDescriptor.setTypeForSizesContentType(
-				sizeRange,
-				contentType));
+			setTypeForSizesContentType(sizeRange, contentType));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.anyMeta(),
-				InstanceMetaDescriptor.instanceMetaOn(
-					IntegerRangeTypeDescriptor.wholeNumbers())),
-			SetTypeDescriptor.setMeta());
+		return functionType(
+			tuple(
+				anyMeta(),
+				instanceMeta(wholeNumbers())),
+			setMeta());
 	}
 }

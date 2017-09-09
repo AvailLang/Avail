@@ -31,10 +31,25 @@
  */
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleMeta;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain TypeDescriptor
@@ -62,8 +77,7 @@ public final class P_TupleTypeAt extends Primitive
 		final A_Number index = args.get(1);
 		if (!index.isInt())
 		{
-			return interpreter.primitiveSuccess(
-				BottomTypeDescriptor.bottom());
+			return interpreter.primitiveSuccess(bottom());
 		}
 		return interpreter.primitiveSuccess(
 			tupleType.typeAtIndex(index.extractInt()));
@@ -92,10 +106,10 @@ public final class P_TupleTypeAt extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.tupleMeta(),
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			InstanceMetaDescriptor.anyMeta());
+		return functionType(
+			tuple(
+				tupleMeta(),
+				naturalNumbers()),
+			anyMeta());
 	}
 }

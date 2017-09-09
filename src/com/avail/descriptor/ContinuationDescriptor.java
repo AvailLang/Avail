@@ -32,9 +32,6 @@
 
 package com.avail.descriptor;
 
-import java.util.*;
-import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldJustForPrinting;
@@ -42,12 +39,27 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.primitive.continuations.P_ContinuationStackData;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
+import com.avail.interpreter.primitive.controlflow
+	.P_RestartContinuationWithArguments;
 import com.avail.io.TextInterface;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation1NotNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.continuationTypeForFunctionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.VariableDescriptor
+	.newVariableWithContentType;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -269,8 +281,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{
-		return ContinuationTypeDescriptor.forFunctionType(
-			object.function().kind());
+		return continuationTypeForFunctionType(object.function().kind());
 	}
 
 	/**
@@ -431,7 +442,7 @@ extends Descriptor
 	 *        The {@link List} of arguments
 	 * @return The new continuation.
 	 */
-	public static A_Continuation createLabel (
+	public static A_Continuation createLabelContinuation (
 		final A_Function function,
 		final A_Continuation caller,
 		final boolean skipReturnCheck,
@@ -463,7 +474,7 @@ extends Descriptor
 		while (slotIndex <= frameSize)
 		{
 			// All the remaining slots.  DO NOT capture or build locals.
-			cont.argOrLocalOrStackAtPut(slotIndex, NilDescriptor.nil());
+			cont.argOrLocalOrStackAtPut(slotIndex, nil());
 			slotIndex++;
 		}
 		return cont;
@@ -490,7 +501,7 @@ extends Descriptor
 	 *            The level two chunk offset at which to resume.
 	 * @return A new mutable continuation.
 	 */
-	public static A_Continuation createExceptFrame (
+	public static A_Continuation createContinuationExceptFrame (
 		final A_Function function,
 		final A_Continuation caller,
 		final int pc,
@@ -562,8 +573,7 @@ extends Descriptor
 	 * {@link P_ContinuationStackData}.
 	 */
 	private static final AvailObject nilSubstitute =
-		VariableDescriptor.forContentType(
-			BottomTypeDescriptor.bottom()).makeShared();
+		newVariableWithContentType(bottom()).makeShared();
 
 	/**
 	 * Answer a substitute for {@linkplain AvailObject nil}. This is

@@ -31,11 +31,11 @@
  */
 package com.avail.interpreter.primitive.functions;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.interpreter.Primitive.Fallibility.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -43,8 +43,22 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Answer the type of the parameter at the
@@ -75,8 +89,7 @@ extends Primitive
 			// Note that it's already restricted statically to natural numbers.
 			if (parametersType.upperBound().lessThan(indexObject))
 			{
-				return interpreter.primitiveSuccess(
-					BottomTypeDescriptor.bottom());
+				return interpreter.primitiveSuccess(bottom());
 			}
 			return interpreter.primitiveSuccess(parametersType.defaultType());
 		}
@@ -126,8 +139,9 @@ extends Primitive
 				if (parameterIndexBoxed.isInstanceOf(argsSizeRange))
 				{
 					final L2ObjectRegister outputReg =
-						instruction.operation.primitiveResultRegister(
-							instruction);
+						stripNull(
+							instruction.operation.primitiveResultRegister(
+								instruction));
 					naiveTranslator.addInstruction(
 						L2_FUNCTION_PARAMETER_TYPE.instance,
 						new L2ReadPointerOperand(actualFunctionTypeReg),
@@ -143,20 +157,20 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FunctionTypeDescriptor.functionMeta(),
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			InstanceMetaDescriptor.anyMeta());
+		return functionType(
+			tuple(
+				functionMeta(),
+				naturalNumbers()),
+			anyMeta());
 	}
 
 	@Override
 	public Fallibility fallibilityForArgumentTypes (
 		final List<? extends A_Type> argumentTypes)
 	{
-//		final A_Type functionMeta = argumentTypes.get(0);
+//		final A_Type functionType = argumentTypes.get(0);
 		final A_Type indexType = argumentTypes.get(1);
-		return indexType.isSubtypeOf(IntegerRangeTypeDescriptor.int32())
+		return indexType.isSubtypeOf(int32())
 			? CallSiteCannotFail
 			: CallSiteCanFail;
 	}

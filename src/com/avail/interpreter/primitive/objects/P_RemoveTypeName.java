@@ -31,11 +31,24 @@
  */
 package com.avail.interpreter.primitive.objects;
 
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ObjectTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
+import static com.avail.descriptor.ObjectTypeDescriptor.removeNameFromType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Unbind a name from a {@linkplain
@@ -66,18 +79,17 @@ public final class P_RemoveTypeName extends Primitive
 
 		name.makeImmutable();
 		userType.makeImmutable();
-		ObjectTypeDescriptor.removeNameFromType(name, userType);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		removeNameFromType(name, userType);
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				InstanceMetaDescriptor.instanceMetaOn(
-					ObjectTypeDescriptor.mostGeneralObjectType())),
+		return functionType(
+			tuple(
+				stringType(),
+				instanceMeta(mostGeneralObjectType())),
 			TOP.o());
 	}
 }

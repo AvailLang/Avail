@@ -31,22 +31,32 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.*;
-import java.util.logging.Level;
-
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Type;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Look up the method to invoke. Use the provided vector of arguments to
@@ -147,14 +157,9 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		// If the lookup fails, then only the error code register changes.
 		registerSets.get(0).typeAtPut(
 			errorCodeReg,
-			AbstractEnumerationTypeDescriptor.enumerationWith(
-				TupleDescriptor.tuple(
-						E_NO_METHOD.numericCode(),
-						E_NO_METHOD_DEFINITION.numericCode(),
-						E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
-						E_FORWARD_METHOD_DEFINITION.numericCode(),
-						E_ABSTRACT_METHOD_DEFINITION.numericCode())
-					.asSet()),
+			enumerationWith(set(E_NO_METHOD, E_NO_METHOD_DEFINITION,
+					E_AMBIGUOUS_METHOD_DEFINITION, E_FORWARD_METHOD_DEFINITION,
+					E_ABSTRACT_METHOD_DEFINITION)),
 			instruction);
 		// If the lookup succeeds, then the situation is more complex.
 		final RegisterSet registerSet = registerSets.get(1);
@@ -193,8 +198,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		else
 		{
 			final A_Type enumType =
-				AbstractEnumerationTypeDescriptor.enumerationWith(
-					setFromCollection(possibleFunctions));
+				enumerationWith(setFromCollection(possibleFunctions));
 			registerSet.typeAtPut(functionReg, enumType, instruction);
 		}
 	}

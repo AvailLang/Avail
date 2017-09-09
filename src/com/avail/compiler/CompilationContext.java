@@ -71,9 +71,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.problems.ProblemType.EXECUTION;
 import static com.avail.compiler.problems.ProblemType.INTERNAL;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.StringDescriptor.formatString;
@@ -122,7 +126,8 @@ public class CompilationContext
 	 * migrate between two runtime environments, it is safe to cache it for
 	 * efficient access.
 	 */
-	@InnerAccess final AvailRuntime runtime = AvailRuntime.current();
+	@InnerAccess
+	final AvailRuntime runtime = currentRuntime();
 
 	/**
 	 * The header information for the current module being parsed.
@@ -597,7 +602,7 @@ public class CompilationContext
 	{
 		final A_RawFunction code = function.code();
 		assert code.numArgs() == args.size();
-		final A_Fiber fiber = FiberDescriptor.newLoaderFiber(
+		final A_Fiber fiber = newLoaderFiber(
 			function.kind().returnType(),
 			loader(),
 			() ->
@@ -740,9 +745,8 @@ public class CompilationContext
 					effect.writeEffectTo(writer);
 				}
 				final A_Function summaryFunction =
-					FunctionDescriptor.create(
-						writer.compiledCode(),
-						emptyTuple());
+					createFunction(
+						writer.compiledCode(), emptyTuple());
 				if (AvailLoader.debugUnsummarizedStatements)
 				{
 					System.out.println(

@@ -32,11 +32,23 @@
 
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.utility.MutableOrNull;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.utility.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Convert the specified {@linkplain
@@ -64,17 +76,16 @@ extends Primitive
 		assert args.size() == 1;
 		final AvailObject array = args.get(0);
 		final MutableOrNull<A_Tuple> tuple = new MutableOrNull<>();
-		array.lock(() -> tuple.value = TupleDescriptor.tuple(
-			(AvailObject[]) array.javaObject()));
+		array.lock(() -> tuple.value =
+			tuple((AvailObject[]) array.javaObject()));
 		return interpreter.primitiveSuccess(tuple.value());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				PojoTypeDescriptor.mostGeneralPojoArrayType()),
-			TupleTypeDescriptor.mostGeneralTupleType());
+		return
+			functionType(tuple(mostGeneralPojoArrayType()),
+				mostGeneralTupleType());
 	}
 }

@@ -32,10 +32,21 @@
 
 package com.avail.interpreter.primitive.integers;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Compute the bitwise AND of the {@linkplain
@@ -77,10 +88,10 @@ extends Primitive
 		// guarantee the bit-wise and can't be greater than or equal to the next
 		// higher power of two of that range's upper bound.
 		final long upper;
-		if (aRange.lowerBound().greaterOrEqual(IntegerDescriptor.zero())
+		if (aRange.lowerBound().greaterOrEqual(zero())
 			&& aRange.upperBound().isLong())
 		{
-			if (bRange.lowerBound().greaterOrEqual(IntegerDescriptor.zero())
+			if (bRange.lowerBound().greaterOrEqual(zero())
 				&& bRange.upperBound().isLong())
 			{
 				upper = Math.min(
@@ -92,7 +103,7 @@ extends Primitive
 				upper = aRange.upperBound().extractLong();
 			}
 		}
-		else if (bRange.lowerBound().greaterOrEqual(IntegerDescriptor.zero())
+		else if (bRange.lowerBound().greaterOrEqual(zero())
 			&& bRange.upperBound().isLong())
 		{
 			upper = bRange.upperBound().extractLong();
@@ -108,23 +119,19 @@ extends Primitive
 		if (highOneBit == 0)
 		{
 			// One of the ranges is constrained to be exactly zero.
-			return IntegerRangeTypeDescriptor.singleInt(0);
+			return singleInt(0);
 		}
 		final long maxValue = (highOneBit - 1) | highOneBit;
-		return IntegerRangeTypeDescriptor.integerRangeType(
-			IntegerDescriptor.zero(),
-			true,
-			IntegerDescriptor.fromLong(maxValue),
-			true);
+		return integerRangeType(zero(), true, fromLong(maxValue), true);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.integers(),
-				IntegerRangeTypeDescriptor.integers()),
-			IntegerRangeTypeDescriptor.integers());
+		return functionType(
+			tuple(
+				integers(),
+				integers()),
+			integers());
 	}
 }

@@ -32,12 +32,27 @@
 
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerIntervalTupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor
+	.createInterval;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Create an {@linkplain
@@ -70,28 +85,23 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
-		return interpreter.primitiveSuccess(
-			IntegerIntervalTupleDescriptor.createInterval(
-				start, end, delta));
+		return interpreter.primitiveSuccess(createInterval(start, end, delta));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.integers(),
-				IntegerRangeTypeDescriptor.integers(),
-				IntegerRangeTypeDescriptor.integers()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				IntegerRangeTypeDescriptor.integers()));
+		return functionType(
+			tuple(
+				integers(),
+				integers(),
+				integers()),
+			zeroOrMoreOf(integers()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_INCORRECT_ARGUMENT_TYPE));
+		return enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

@@ -32,13 +32,36 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SequenceNodeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.PARSE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.SEQUENCE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor
+	.containsOnlyStatements;
+import static com.avail.descriptor.SequenceNodeDescriptor.newSequence;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode
+	.E_SEQUENCE_CONTAINS_INVALID_STATEMENTS;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain SequenceNodeDescriptor
@@ -71,31 +94,27 @@ extends Primitive
 		{
 			statement.flattenStatementsInto(flat);
 		}
-		if (!ParseNodeTypeDescriptor.containsOnlyStatements(flat, TOP.o()))
+		if (!containsOnlyStatements(flat, TOP.o()))
 		{
 			return interpreter.primitiveFailure(
 				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS);
 		}
-		final A_Phrase sequence =
-			SequenceNodeDescriptor.newStatements(statements);
+		final A_Phrase sequence = newSequence(statements);
 		return interpreter.primitiveSuccess(sequence);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.zeroOrMoreOf(
-					PARSE_NODE.mostGeneralType())),
+		return functionType(
+			tuple(
+				zeroOrMoreOf(PARSE_NODE.mostGeneralType())),
 			SEQUENCE_NODE.mostGeneralType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS));
+		return enumerationWith(set(E_SEQUENCE_CONTAINS_INVALID_STATEMENTS));
 	}
 }

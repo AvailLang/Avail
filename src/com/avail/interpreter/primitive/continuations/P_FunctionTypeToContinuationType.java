@@ -31,10 +31,22 @@
  */
 package com.avail.interpreter.primitive.continuations;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ContinuationTypeDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.continuationTypeForFunctionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionMeta;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain
@@ -59,15 +71,14 @@ public final class P_FunctionTypeToContinuationType extends Primitive
 		assert args.size() == 1;
 		final A_Type functionType = args.get(0);
 		return interpreter.primitiveSuccess(
-			ContinuationTypeDescriptor.forFunctionType(functionType));
+			continuationTypeForFunctionType(functionType));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FunctionTypeDescriptor.functionMeta()),
-			ContinuationTypeDescriptor.continuationMeta());
+		return functionType(
+			tuple(functionMeta()),
+			continuationMeta());
 	}
 }

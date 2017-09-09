@@ -38,6 +38,11 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 
@@ -106,8 +111,7 @@ extends TypeDescriptor
 	{
 		if (object.slot(KEY_TYPE).equals(ANY.o())
 			&& object.slot(VALUE_TYPE).equals(ANY.o())
-			&& object.slot(SIZE_RANGE).equals(
-				IntegerRangeTypeDescriptor.wholeNumbers()))
+			&& object.slot(SIZE_RANGE).equals(wholeNumbers()))
 		{
 			aStream.append("map");
 			return;
@@ -120,7 +124,7 @@ extends TypeDescriptor
 			aStream, recursionMap, indent + 1);
 		aStream.append('|');
 		final A_Type sizeRange = object.slot(SIZE_RANGE);
-		if (sizeRange.equals(IntegerRangeTypeDescriptor.wholeNumbers()))
+		if (sizeRange.equals(wholeNumbers()))
 		{
 			aStream.append('}');
 			return;
@@ -161,11 +165,10 @@ extends TypeDescriptor
 	{
 		// Answer a 32-bit integer that is always the same for equal objects,
 		// but statistically different for different objects.
-		return MapTypeDescriptor
-			.computeHashForSizeRangeHashKeyTypeHashValueTypeHash(
-				object.slot(SIZE_RANGE).hash(),
-				object.slot(KEY_TYPE).hash(),
-				object.slot(VALUE_TYPE).hash());
+		return computeHashForSizeRangeHashKeyTypeHashValueTypeHash(
+			object.slot(SIZE_RANGE).hash(),
+			object.slot(KEY_TYPE).hash(),
+			object.slot(VALUE_TYPE).hash());
 	}
 
 	@Override @AvailMethod
@@ -223,7 +226,7 @@ extends TypeDescriptor
 		// Note that the subcomponents must be made immutable in case one of the
 		// input mapTypes is mutable (and may be destroyed *recursively* by
 		// post-primitive code).
-		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+		return mapTypeForSizesKeyTypeValueType(
 			object.slot(SIZE_RANGE).typeIntersection(
 				aMapType.sizeRange()).makeImmutable(),
 			object.slot(KEY_TYPE).typeIntersection(
@@ -265,7 +268,7 @@ extends TypeDescriptor
 		// Note that the subcomponents must be made immutable in case one of the
 		// input mapTypes is mutable (and may be destroyed *recursively* by
 		// post-primitive code).
-		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+		return mapTypeForSizesKeyTypeValueType(
 			object.slot(SIZE_RANGE).typeUnion(
 				aMapType.sizeRange()).makeImmutable(),
 			object.slot(KEY_TYPE).typeUnion(
@@ -379,11 +382,11 @@ extends TypeDescriptor
 	{
 		if (sizeRange.isBottom())
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 
 		assert sizeRange.lowerBound().isFinite();
-		assert IntegerDescriptor.zero().lessOrEqual(sizeRange.lowerBound());
+		assert zero().lessOrEqual(sizeRange.lowerBound());
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
 
 		final A_Type sizeRangeKind = sizeRange.isEnumeration()
@@ -396,15 +399,14 @@ extends TypeDescriptor
 		if (sizeRangeKind.upperBound().equalsInt(0))
 		{
 			newSizeRange = sizeRangeKind;
-			newKeyType = BottomTypeDescriptor.bottom();
-			newValueType = BottomTypeDescriptor.bottom();
+			newKeyType = bottom();
+			newValueType = bottom();
 		}
 		else if (keyType.isBottom() || valueType.isBottom())
 		{
-			newSizeRange = IntegerRangeTypeDescriptor.singleInteger(
-				IntegerDescriptor.zero());
-			newKeyType = BottomTypeDescriptor.bottom();
-			newValueType = BottomTypeDescriptor.bottom();
+			newSizeRange = singleInteger(zero());
+			newKeyType = bottom();
+			newValueType = bottom();
 		}
 		else
 		{
@@ -413,8 +415,8 @@ extends TypeDescriptor
 			{
 				// There can't ever be more entries in the map than there are
 				// distinct possible keys.
-				contentRestrictedSizes = IntegerRangeTypeDescriptor.inclusive(
-					IntegerDescriptor.zero(), keyType.instanceCount());
+				contentRestrictedSizes =
+					inclusive(zero(), keyType.instanceCount());
 			}
 			else if (keyType.isIntegerRangeType()
 				&& (keyType.lowerBound().isFinite()
@@ -425,17 +427,16 @@ extends TypeDescriptor
 				// We had already ruled out ⊥ for the keys (and also for the
 				// values), and the latest test rules out [-∞..∞], [-∞..∞),
 				// (-∞..∞], and (-∞..∞), allowing safe subtraction.
-				contentRestrictedSizes = IntegerRangeTypeDescriptor.inclusive(
-					IntegerDescriptor.zero(),
+				contentRestrictedSizes = inclusive(
+					zero(),
 					keyType.upperBound().minusCanDestroy(
 							keyType.lowerBound(), false)
-						.plusCanDestroy(IntegerDescriptor.one(), false));
+						.plusCanDestroy(one(), false));
 			}
 			else
 			{
 				// Otherwise don't narrow the size range.
-				contentRestrictedSizes =
-					IntegerRangeTypeDescriptor.wholeNumbers();
+				contentRestrictedSizes = wholeNumbers();
 			}
 			newSizeRange = sizeRangeKind.typeIntersection(
 				contentRestrictedSizes);
@@ -491,9 +492,8 @@ extends TypeDescriptor
 	/** The most general map type. */
 	private static final A_Type mostGeneralType =
 		mapTypeForSizesKeyTypeValueType(
-			IntegerRangeTypeDescriptor.wholeNumbers(),
-			ANY.o(),
-			ANY.o()).makeShared();
+			wholeNumbers(), ANY.o(), ANY.o()
+		).makeShared();
 
 	/**
 	 * Answer the most general {@linkplain MapTypeDescriptor map type}.
@@ -509,7 +509,7 @@ extends TypeDescriptor
 	 * The metatype for all map types.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
+		instanceMeta(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all map types.

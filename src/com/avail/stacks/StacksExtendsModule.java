@@ -66,16 +66,20 @@ public class StacksExtendsModule extends StacksImportModule
 	 * 		qualified module path it is originally named from.
 	 */
 	public StacksExtendsModule (final String moduleImportName,
-		final HashMap<A_String,ImplementationGroup> implementationGroups,
-		final HashMap<String,StacksExtendsModule> moduleNameToExtendsList,
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
+		final Map<A_String,ImplementationGroup> implementationGroups,
+		final Map<String,StacksExtendsModule> moduleNameToExtendsList,
+		final Map<A_String, Map<String, ImplementationGroup>>
 			methodLeafNameToModuleName,
-		final HashMap<String,StacksUsesModule> moduleNameToUsesList,
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
+		final Map<String,StacksUsesModule> moduleNameToUsesList,
+		final Map<A_String, Map<String, ImplementationGroup>>
 			usesMethodLeafNameToModuleName)
 	{
-		super(moduleImportName,implementationGroups,moduleNameToExtendsList,
-			methodLeafNameToModuleName, moduleNameToUsesList,
+		super(
+			moduleImportName,
+			implementationGroups,
+			moduleNameToExtendsList,
+			methodLeafNameToModuleName,
+			moduleNameToUsesList,
 			usesMethodLeafNameToModuleName);
 	}
 

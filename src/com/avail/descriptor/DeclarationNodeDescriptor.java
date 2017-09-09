@@ -51,6 +51,7 @@ import static com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
@@ -446,7 +447,7 @@ extends ParseNodeDescriptor
 			this.isVariable = isVariable;
 			this.isModuleScoped = isModuleScoped;
 			this.kindEnumeration = kindEnumeration;
-			this.kindName = StringDescriptor.stringFrom(nativeKindName).makeShared();
+			this.kindName = stringFrom(nativeKindName).makeShared();
 		}
 
 		/**

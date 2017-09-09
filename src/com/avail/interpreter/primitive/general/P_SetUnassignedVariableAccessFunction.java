@@ -32,12 +32,27 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Set the {@linkplain FunctionDescriptor
@@ -66,19 +81,19 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Function function = args.get(0);
 		function.code().setMethodName(
-			StringDescriptor.stringFrom("«cannot read unassigned variable»"));
-		AvailRuntime.current().setUnassignedVariableReadFunction(function);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+			stringFrom("«cannot read unassigned variable»"));
+		currentRuntime().setUnassignedVariableReadFunction(function);
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.emptyTuple(),
-					BottomTypeDescriptor.bottom())),
+		return functionType(
+			tuple(
+				functionType(
+					emptyTuple(),
+					bottom())),
 			TOP.o());
 	}
 }

@@ -31,10 +31,19 @@
  */
 package com.avail.interpreter.primitive.functions;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.*;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the most general function type with
@@ -58,18 +67,13 @@ public final class P_CreateGeneralFunctionType extends Primitive
 		assert args.size() == 1;
 		final AvailObject returnType = args.get(0);
 		return interpreter.primitiveSuccess(
-			FunctionTypeDescriptor.createWithArgumentTupleType(
-				BottomTypeDescriptor.bottom(),
-				returnType,
-				SetDescriptor.emptySet()));
+			functionTypeFromArgumentTupleType(
+				bottom(), returnType, emptySet()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.topMeta()),
-			FunctionTypeDescriptor.functionMeta());
+		return functionType(tuple(topMeta()), functionMeta());
 	}
 }

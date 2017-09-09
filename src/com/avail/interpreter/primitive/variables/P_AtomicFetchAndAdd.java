@@ -32,14 +32,29 @@
 
 package com.avail.interpreter.primitive.variables;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
+import com.avail.descriptor.VariableDescriptor;
+import com.avail.exceptions.ArithmeticException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.exceptions.*;
-import com.avail.exceptions.ArithmeticException;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Atomically read and update the specified
@@ -84,13 +99,11 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				VariableTypeDescriptor.variableReadWriteType(
-					IntegerRangeTypeDescriptor.extendedIntegers(),
-					BottomTypeDescriptor.bottom()),
-				IntegerRangeTypeDescriptor.extendedIntegers()),
-			IntegerRangeTypeDescriptor.extendedIntegers());
+		return functionType(tuple(
+			variableReadWriteType(
+				extendedIntegers(),
+				bottom()),
+			extendedIntegers()), extendedIntegers());
 	}
 
 	@Override
@@ -104,12 +117,10 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_CANNOT_READ_UNASSIGNED_VARIABLE,
+		return
+			enumerationWith(set(E_CANNOT_READ_UNASSIGNED_VARIABLE,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
-				E_JAVA_MARSHALING_FAILED,
+				E_CANNOT_MODIFY_FINAL_JAVA_FIELD, E_JAVA_MARSHALING_FAILED,
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_CANNOT_ADD_UNLIKE_INFINITIES,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));

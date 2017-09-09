@@ -32,12 +32,24 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.LiteralTokenDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
+import static com.avail.descriptor.LiteralTokenTypeDescriptor
+	.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.TokenDescriptor.TokenType.SYNTHETIC_LITERAL;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Create a synthetic {@linkplain
@@ -66,23 +78,23 @@ extends Primitive
 		final AvailObject value = args.get(0);
 		final AvailObject fakeText = args.get(1);
 		return interpreter.primitiveSuccess(
-			LiteralTokenDescriptor.create(
+			literalToken(
 				fakeText,
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
+				emptyTuple(),
+				emptyTuple(),
 				0,
 				0,
-				TokenType.SYNTHETIC_LITERAL,
+				SYNTHETIC_LITERAL,
 				value));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				ANY.o(),
-				TupleTypeDescriptor.stringType()),
-			LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType());
+				stringType()),
+			mostGeneralLiteralTokenType());
 	}
 }

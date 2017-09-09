@@ -32,10 +32,24 @@
 
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static java.lang.Integer.MAX_VALUE;
 
 /**
  * <strong>Primitive:</strong> Produce a {@linkplain A_Tuple#tupleReverse()
@@ -84,24 +98,23 @@ public final class P_ReverseTuple extends Primitive
 			// Variable number of <key,value> pairs.  In theory we could
 			// still strengthen it, but a homogenous tuple type of the same size
 			// should be sufficient.
-			return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			return tupleTypeForSizesTypesDefaultType(
 				tupleSizes,
-				TupleDescriptor.emptyTuple(),
-				tupleType.unionOfTypesAtThrough(1, Integer.MAX_VALUE));
+				emptyTuple(),
+				tupleType.unionOfTypesAtThrough(1, MAX_VALUE));
 		}
 		final int tupleSize = tupleSizeLowerBound.extractInt();
 		final A_Tuple elementTypes = tupleType.tupleOfTypesFromTo(1, tupleSize);
 		final A_Tuple reversedElementTypes = elementTypes.tupleReverse();
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			tupleSizes, reversedElementTypes, BottomTypeDescriptor.bottom());
+		return tupleTypeForSizesTypesDefaultType(
+			tupleSizes, reversedElementTypes, bottom());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.mostGeneralTupleType()),
-			TupleTypeDescriptor.mostGeneralTupleType());
+		return functionType(
+			tuple(mostGeneralTupleType()),
+			mostGeneralTupleType());
 	}
 }

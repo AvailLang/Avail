@@ -30,7 +30,6 @@
  */
 
 package com.avail.compiler;
-import com.avail.AvailRuntime;
 import com.avail.compiler.problems.CompilerDiagnostics;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.A_BasicObject;
@@ -52,6 +51,7 @@ import com.avail.utility.evaluation.Transformer1NotNull;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
@@ -246,7 +246,7 @@ public class ParserState
 		final Transformer1NotNull<List<String>, String> transformer)
 	{
 		expected(continuation -> Interpreter.stringifyThen(
-			AvailRuntime.current(),
+			currentRuntime(),
 			lexingState.compilationContext.getTextInterface(),
 			values,
 			list -> continuation.value(transformer.value(list))));

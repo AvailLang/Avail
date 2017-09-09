@@ -32,19 +32,34 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ArrayPojoTypeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ArrayPojoTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.io.Serializable;
+import java.lang.reflect.Array;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.ArrayPojoTypeDescriptor.IntegerSlots
+	.HASH_AND_MORE;
+import static com.avail.descriptor.ArrayPojoTypeDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ArrayPojoTypeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
+import static com.avail.descriptor.FusedPojoTypeDescriptor.createFusedPojoType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.RawPojoDescriptor.rawObjectClass;
+import static com.avail.descriptor.SelfPojoTypeDescriptor.newSelfPojoType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.UnfusedPojoTypeDescriptor
+	.createUnfusedPojoType;
 
 /**
  * {@code ArrayPojoTypeDescriptor} describes Java array types. A Java array
@@ -234,7 +249,7 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	AvailObject o_JavaClass (final AvailObject object)
 	{
-		return RawPojoDescriptor.equalityWrap(PojoArray.class);
+		return equalityPojo(PojoArray.class);
 	}
 
 	@Override
@@ -250,8 +265,8 @@ extends PojoTypeDescriptor
 	@Override @AvailMethod
 	A_Type o_PojoSelfType (final AvailObject object)
 	{
-		return SelfPojoTypeDescriptor.create(
-			RawPojoDescriptor.equalityWrap(PojoArray.class),
+		return newSelfPojoType(
+			equalityPojo(PojoArray.class),
 			object.slot(JAVA_ANCESTORS));
 	}
 
@@ -281,10 +296,10 @@ extends PojoTypeDescriptor
 		// of a pojo array type and a singleton pojo type is pojo bottom.
 		if (!aPojoType.isPojoArrayType())
 		{
-			return BottomPojoTypeDescriptor.pojoBottom();
+			return pojoBottom();
 		}
 		// Compute the type intersection of the two pojo array types.
-		return create(
+		return arrayPojoType(
 			object.slot(CONTENT_TYPE).typeIntersection(
 				aPojoType.traversed().slot(CONTENT_TYPE)),
 			object.slot(SIZE_RANGE).typeIntersection(
@@ -331,8 +346,8 @@ extends PojoTypeDescriptor
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
 		return !javaClass.equalsNil()
-			? UnfusedPojoTypeDescriptor.create(javaClass, intersectionAncestors)
-			: FusedPojoTypeDescriptor.create(intersectionAncestors);
+			? createUnfusedPojoType(javaClass, intersectionAncestors)
+			: createFusedPojoType(intersectionAncestors);
 	}
 
 	@Override @AvailMethod
@@ -352,14 +367,14 @@ extends PojoTypeDescriptor
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
 		return !javaClass.equalsNil()
-			? UnfusedPojoTypeDescriptor.create(javaClass, intersectionAncestors)
-			: FusedPojoTypeDescriptor.create(intersectionAncestors);
+			? createUnfusedPojoType(javaClass, intersectionAncestors)
+			: createFusedPojoType(intersectionAncestors);
 	}
 
 	@Override
 	A_Map o_TypeVariables (final AvailObject object)
 	{
-		return MapDescriptor.emptyMap();
+		return emptyMap();
 	}
 
 	@SuppressWarnings("StatementWithEmptyBody")
@@ -379,7 +394,7 @@ extends PojoTypeDescriptor
 			range.lowerBound().printOnAvoidingIndent(
 				builder, recursionMap, indent);
 		}
-		else if (IntegerRangeTypeDescriptor.wholeNumbers().isSubtypeOf(range))
+		else if (wholeNumbers().isSubtypeOf(range))
 		{
 			// This is the most common range, as it corresponds with all real
 			// Java array types.
@@ -459,25 +474,25 @@ extends PojoTypeDescriptor
 
 	static
 	{
-		A_Map javaAncestors = MapDescriptor.emptyMap();
+		A_Map javaAncestors = emptyMap();
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
-			RawPojoDescriptor.rawObjectClass(),
-			TupleDescriptor.emptyTuple(),
+			rawObjectClass(),
+			emptyTuple(),
 			true);
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
-			RawPojoDescriptor.equalityWrap(Cloneable.class),
-			TupleDescriptor.emptyTuple(),
+			equalityPojo(Cloneable.class),
+			emptyTuple(),
 			true);
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
-			RawPojoDescriptor.equalityWrap(Serializable.class),
-			TupleDescriptor.emptyTuple(),
+			equalityPojo(Serializable.class),
+			emptyTuple(),
 			true);
 		arrayBaseAncestorMap = javaAncestors.makeShared();
 	}
 
 	/** The most general {@linkplain PojoTypeDescriptor pojo array type}. */
-	static final A_Type mostGeneralType = forArrayTypeWithSizeRange(
-		ANY.o(), IntegerRangeTypeDescriptor.wholeNumbers()).makeShared();
+	static final A_Type mostGeneralType = pojoArrayType(
+		ANY.o(), wholeNumbers()).makeShared();
 
 	/**
 	 * Create a new {@link AvailObject} that represents a {@linkplain
@@ -495,14 +510,14 @@ extends PojoTypeDescriptor
 	 *        IntegerRangeTypeDescriptor#wholeNumbers() whole number}.
 	 * @return The requested pojo array type.
 	 */
-	static AvailObject create (
+	static AvailObject arrayPojoType (
 		final A_Type elementType,
 		final A_Type sizeRange)
 	{
 		A_Map javaAncestors = arrayBaseAncestorMap;
 		javaAncestors = javaAncestors.mapAtPuttingCanDestroy(
-			RawPojoDescriptor.equalityWrap(PojoArray.class),
-			TupleDescriptor.tuple(elementType),
+			equalityPojo(PojoArray.class),
+			tuple(elementType),
 			false);
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(JAVA_ANCESTORS, javaAncestors);

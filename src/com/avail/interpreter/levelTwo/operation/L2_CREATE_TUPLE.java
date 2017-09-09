@@ -31,11 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ObjectTupleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -44,14 +42,15 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.utility.Generator;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor
 	.tupleTypeForSizesTypesDefaultType;
@@ -84,18 +83,8 @@ public class L2_CREATE_TUPLE extends L2Operation
 			instruction.writeObjectRegisterAt(1);
 
 		final List<L2ObjectRegister> registers = elementsVector.registers();
-		final A_Tuple tuple = ObjectTupleDescriptor.generateFrom(
-			registers.size(),
-			new Generator<A_BasicObject>()
-			{
-				private int i = 0;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					return registers.get(i++).in(interpreter);
-				}
-			});
+		final A_Tuple tuple = generateObjectTupleFrom(
+			registers.size(), i -> registers.get(i - 1).in(interpreter));
 		destinationReg.set(tuple, interpreter);
 	}
 
@@ -146,7 +135,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 			assert tuple.isInstanceOf(tupleType);
 			registerSet.typeAtPut(
 				destinationReg,
-				instanceTypeOn(tuple),
+				instanceType(tuple),
 				instruction);
 			registerSet.constantAtPut(destinationReg, tuple, instruction);
 		}

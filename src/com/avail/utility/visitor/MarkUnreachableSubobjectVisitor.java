@@ -51,11 +51,11 @@ extends AvailSubobjectVisitor
 	private final A_BasicObject exclusion;
 
 	/**
-	 * Construct a new {@link MarkUnreachableSubobjectVisitor}.
+	 * Construct a new {@code MarkUnreachableSubobjectVisitor}.
 	 *
 	 * @param excludedObject
 	 *        The object within which to <em>avoid</em> marking subobjects as
-	 *        unreachable. Use NilDescriptor.nullObject() if no such object
+	 *        unreachable. Use NilDescriptor.nilObject() if no such object
 	 *        is necessary, as it's always already immutable.
 	 */
 	public MarkUnreachableSubobjectVisitor (

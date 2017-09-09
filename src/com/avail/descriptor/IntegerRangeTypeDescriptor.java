@@ -32,17 +32,27 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.descriptor.AvailObject.error;
-import java.math.BigInteger;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.math.BigInteger;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots
+	.LOWER_BOUND;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots
+	.UPPER_BOUND;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 
 /**
  * My instances represent the types of one or more extended integers. There are
@@ -218,19 +228,19 @@ extends TypeDescriptor
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
-		if (object.isSubtypeOf(PojoTypeDescriptor.byteRange()))
+		if (object.isSubtypeOf(byteRange()))
 		{
 			return Byte.TYPE;
 		}
-		if (object.isSubtypeOf(PojoTypeDescriptor.shortRange()))
+		if (object.isSubtypeOf(shortRange()))
 		{
 			return Short.TYPE;
 		}
-		if (object.isSubtypeOf(PojoTypeDescriptor.intRange()))
+		if (object.isSubtypeOf(intRange()))
 		{
 			return Integer.TYPE;
 		}
-		if (object.isSubtypeOf(PojoTypeDescriptor.longRange()))
+		if (object.isSubtypeOf(longRange()))
 		{
 			return Long.TYPE;
 		}
@@ -266,7 +276,7 @@ extends TypeDescriptor
 		}
 		else
 		{
-			asInteger = IntegerDescriptor.fromInt(anInt);
+			asInteger = fromInt(anInt);
 			if (asInteger.lessThan(lower))
 			{
 				return false;
@@ -292,7 +302,7 @@ extends TypeDescriptor
 		{
 			if (asInteger == null)
 			{
-				asInteger = IntegerDescriptor.fromInt(anInt);
+				asInteger = fromInt(anInt);
 			}
 			if (upper.lessThan(asInteger))
 			{
@@ -352,7 +362,7 @@ extends TypeDescriptor
 			isMaxInc = another.upperInclusive();
 		}
 		// At least two references now.
-		return IntegerRangeTypeDescriptor.integerRangeType(
+		return integerRangeType(
 			minObject.makeImmutable(),
 			isMinInc,
 			maxObject.makeImmutable(),
@@ -366,7 +376,7 @@ extends TypeDescriptor
 	{
 		return NUMBER.superTests[primitiveTypeEnum.ordinal()]
 			? object
-			: BottomTypeDescriptor.bottom();
+			: bottom();
 	}
 
 	@Override @AvailMethod
@@ -412,11 +422,7 @@ extends TypeDescriptor
 			maxObject = another.upperBound();
 			isMaxInc = another.upperInclusive();
 		}
-		return IntegerRangeTypeDescriptor.integerRangeType(
-			minObject,
-			isMinInc,
-			maxObject,
-			isMaxInc);
+		return integerRangeType(minObject, isMinInc, maxObject, isMaxInc);
 	}
 
 	@Override @AvailMethod
@@ -499,8 +505,7 @@ extends TypeDescriptor
 	 */
 	public static A_Type singleInt (final int anInt)
 	{
-		final A_Number integerObject = IntegerDescriptor.fromInt(anInt);
-		integerObject.makeImmutable();
+		final A_Number integerObject = fromInt(anInt).makeImmutable();
 		return integerRangeType(integerObject, true, integerObject, true);
 	}
 
@@ -542,7 +547,7 @@ extends TypeDescriptor
 			// Try to rewrite (if possible) as inclusive boundary.
 			if (low.isFinite())
 			{
-				low = low.noFailPlusCanDestroy(IntegerDescriptor.one(), false);
+				low = low.noFailPlusCanDestroy(one(), false);
 				lowInc = true;
 			}
 		}
@@ -553,20 +558,19 @@ extends TypeDescriptor
 			// Try to rewrite (if possible) as inclusive boundary.
 			if (high.isFinite())
 			{
-				high = high.noFailMinusCanDestroy(
-					IntegerDescriptor.one(), false);
+				high = high.noFailMinusCanDestroy(one(), false);
 				highInc = true;
 			}
 		}
 		if (high.lessThan(low))
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		if (high.equals(low) && (!highInc || !lowInc))
 		{
 			// Unusual cases such as [INF..INF) give preference to exclusion
 			// over inclusion.
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		if (low.isInt() && high.isInt())
 		{
@@ -613,10 +617,7 @@ extends TypeDescriptor
 		final long upperBound)
 	{
 		return integerRangeType(
-			IntegerDescriptor.fromLong(lowerBound),
-			true,
-			IntegerDescriptor.fromLong(upperBound),
-			true);
+			fromLong(lowerBound), true, fromLong(upperBound), true);
 	}
 
 	/**
@@ -754,8 +755,8 @@ extends TypeDescriptor
 				final IntegerRangeTypeDescriptor descriptor =
 					lookupDescriptor(true, true, true);
 				final AvailObject result = descriptor.create();
-				result.setSlot(LOWER_BOUND, IntegerDescriptor.fromInt(lower));
-				result.setSlot(UPPER_BOUND, IntegerDescriptor.fromInt(upper));
+				result.setSlot(LOWER_BOUND, fromInt(lower));
+				result.setSlot(UPPER_BOUND, fromInt(upper));
 				byLower[lower] = result.makeShared();
 			}
 			smallRanges[upper] = byLower;
@@ -803,9 +804,8 @@ extends TypeDescriptor
 	}
 
 	/** The range of integers including infinities, [-∞..∞]. */
-	private static final A_Type extendedIntegers = inclusive(
-		InfinityDescriptor.negativeInfinity(),
-		InfinityDescriptor.positiveInfinity()).makeShared();
+	private static final A_Type extendedIntegers =
+		inclusive(negativeInfinity(), positiveInfinity()).makeShared();
 
 	/**
 	 * Return the range of integers including infinities, [-∞..∞].
@@ -818,11 +818,10 @@ extends TypeDescriptor
 	}
 
 	/** The range of integers not including infinities, (∞..∞). */
-	private static final A_Type integers = integerRangeType(
-		InfinityDescriptor.negativeInfinity(),
-		false,
-		InfinityDescriptor.positiveInfinity(),
-		false).makeShared();
+	private static final A_Type integers =
+		integerRangeType(
+			negativeInfinity(), false, positiveInfinity(), false
+		).makeShared();
 
 	/**
 	 * Return the range of integers not including infinities, (∞..∞).
@@ -835,11 +834,8 @@ extends TypeDescriptor
 	}
 
 	/** The range of natural numbers, [1..∞). */
-	private static final A_Type naturalNumbers = integerRangeType(
-		IntegerDescriptor.one(),
-		true,
-		InfinityDescriptor.positiveInfinity(),
-		false).makeShared();
+	private static final A_Type naturalNumbers =
+		integerRangeType(one(), true, positiveInfinity(), false).makeShared();
 
 	/**
 	 * Return the range of natural numbers, [1..∞).
@@ -879,11 +875,8 @@ extends TypeDescriptor
 	}
 
 	/** The range of whole numbers, [0..∞). */
-	private static final A_Type wholeNumbers = integerRangeType(
-		IntegerDescriptor.zero(),
-		true,
-		InfinityDescriptor.positiveInfinity(),
-		false).makeShared();
+	private static final A_Type wholeNumbers =
+		integerRangeType(zero(), true, positiveInfinity(), false).makeShared();
 
 	/**
 	 * Return the range of whole numbers, [0..∞).
@@ -930,7 +923,7 @@ extends TypeDescriptor
 	 * instances.
 	 */
 	private static final A_Type extendedIntegersMeta =
-		InstanceMetaDescriptor.instanceMetaOn(extendedIntegers).makeShared();
+		instanceMeta(extendedIntegers).makeShared();
 
 	/**
 	 * Return the metatype for all integer range types.

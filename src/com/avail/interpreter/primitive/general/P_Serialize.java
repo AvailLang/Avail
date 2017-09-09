@@ -32,14 +32,27 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.serialization.Serializer;
+
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.serialization.Serializer;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.exceptions.AvailErrorCode.E_SERIALIZATION_FAILED;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Answer the serial representation of the
@@ -75,24 +88,20 @@ extends Primitive
 			return interpreter.primitiveFailure(E_SERIALIZATION_FAILED);
 		}
 		return interpreter.primitiveSuccess(
-			ByteArrayTupleDescriptor.forByteArray(out.toByteArray()));
+			tupleForByteArray(out.toByteArray()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ANY.o()),
-			TupleTypeDescriptor.oneOrMoreOf(
-				IntegerRangeTypeDescriptor.bytes()));
+		return functionType(
+			tuple(ANY.o()),
+			oneOrMoreOf(bytes()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_SERIALIZATION_FAILED));
+		return enumerationWith(set(E_SERIALIZATION_FAILED));
 	}
 }

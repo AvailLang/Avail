@@ -31,10 +31,23 @@
  */
 package com.avail.interpreter.primitive.rawfunctions;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the number of outer variables in
@@ -58,16 +71,14 @@ public final class P_CompiledCodeNumOuters extends Primitive
 	{
 		assert args.size() == 1;
 		final A_RawFunction code = args.get(0);
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(code.numOuters()));
+		return interpreter.primitiveSuccess(fromInt(code.numOuters()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+		return functionType(
+			tuple(mostGeneralCompiledCodeType()),
+			wholeNumbers());
 	}
 }

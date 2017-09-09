@@ -32,13 +32,16 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.A_Set;
-import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Create a set from the values in the specified vector of object registers.
@@ -65,7 +68,7 @@ public class L2_CREATE_SET extends L2Operation
 		final L2ObjectRegister destinationSetReg =
 			instruction.writeObjectRegisterAt(1);
 
-		A_Set set = SetDescriptor.emptySet();
+		A_Set set = emptySet();
 		for (final L2ObjectRegister reg : elementsVector.registers())
 		{
 			set = set.setWithElementCanDestroy(reg.in(interpreter), true);

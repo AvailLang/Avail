@@ -32,11 +32,30 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ListNodeDescriptor;
+import com.avail.descriptor.PermutedListNodeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.PERMUTED_LIST_NODE;
+import static com.avail.descriptor.PermutedListNodeDescriptor
+	.newPermutedListNode;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive</strong>: Create a {@linkplain PermutedListNodeDescriptor
@@ -64,18 +83,16 @@ extends Primitive
 		final A_Phrase list = args.get(0);
 		final A_Tuple permutation = args.get(1);
 		return interpreter.primitiveSuccess(
-			PermutedListNodeDescriptor.fromListAndPermutation(
-				list, permutation));
+			newPermutedListNode(list, permutation));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				LIST_NODE.mostGeneralType(),
-				TupleTypeDescriptor.oneOrMoreOf(
-					IntegerRangeTypeDescriptor.naturalNumbers())),
+				oneOrMoreOf(naturalNumbers())),
 			PERMUTED_LIST_NODE.mostGeneralType());
 	}
 }

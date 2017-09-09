@@ -32,13 +32,27 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
-import com.avail.interpreter.*;
+import com.avail.descriptor.TokenDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.DeclarationNodeDescriptor
+	.newPrimitiveFailureVariable;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.PRIMITIVE_FAILURE_REASON_NODE;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain
@@ -68,17 +82,16 @@ extends Primitive
 		final A_Token token = args.get(0);
 		final A_Type type = args.get(1);
 		return interpreter.primitiveSuccess(
-			DeclarationNodeDescriptor.newPrimitiveFailureVariable(
-				token, NilDescriptor.nil(), type));
+			newPrimitiveFailureVariable(token, nil(), type));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				TOKEN.o(),
-				InstanceMetaDescriptor.anyMeta()),
+				anyMeta()),
 			PRIMITIVE_FAILURE_REASON_NODE.mostGeneralType());
 	}
 }

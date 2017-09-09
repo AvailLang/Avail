@@ -39,8 +39,12 @@ import com.avail.descriptor.MapDescriptor.MapIterable;
 
 import java.util.NoSuchElementException;
 
+import static com.avail.descriptor.AvailObject
+	.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.HashedMapBinDescriptor.checkHashedMapBin;
+import static com.avail.descriptor.HashedMapBinDescriptor.createLevelBitVector;
 import static com.avail.descriptor.LinearMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.LinearMapBinDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.Mutability.*;
@@ -314,8 +318,7 @@ extends MapBinDescriptor
 				bitPosition = bitShift(anotherKeyHash, -6 * myLevel) & 63;
 				bitVector |= 1L << bitPosition;
 			}
-			final AvailObject result =
-				HashedMapBinDescriptor.createLevelBitVector(myLevel, bitVector);
+			final AvailObject result = createLevelBitVector(myLevel, bitVector);
 			for (int i = 0; i <= oldSize; i++)
 			{
 				final A_BasicObject eachKey;
@@ -345,7 +348,7 @@ extends MapBinDescriptor
 					: "The element should have been added without copying";
 			}
 			assert result.binSize() == oldSize + 1;
-			HashedMapBinDescriptor.check(result);
+			checkHashedMapBin(result);
 			return result;
 		}
 		//  Make a slightly larger linear bin and populate it.
@@ -631,17 +634,14 @@ extends MapBinDescriptor
 	 * @param myLevel The level at which to label the bin.
 	 * @return The new bin with only (key,value) in it.
 	 */
-	static A_BasicObject createSingle (
+	static A_BasicObject createSingleLinearMapBin (
 		final A_BasicObject key,
 		final int keyHash,
 		final A_BasicObject value,
 		final byte myLevel)
 	{
-		final LinearMapBinDescriptor descriptor =
-			LinearMapBinDescriptor.descriptorFor(MUTABLE, myLevel);
-		final AvailObject bin =
-			AvailObject.newObjectIndexedIntegerIndexedDescriptor(
-				2, 1, descriptor);
+		final AvailObject bin = newObjectIndexedIntegerIndexedDescriptor(
+			2, 1, descriptorFor(MUTABLE, myLevel));
 		bin.setSlot(KEYS_HASH, keyHash);
 		bin.setSlot(VALUES_HASH_OR_ZERO, 0);
 		bin.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());

@@ -33,11 +33,28 @@
 package com.avail.compiler;
 
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.ListNodeDescriptor;
+import com.avail.descriptor.LiteralNodeDescriptor;
+import com.avail.descriptor.ParseNodeDescriptor;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.LiteralNodeDescriptor.literalNodeFromToken;
+import static com.avail.descriptor.LiteralNodeDescriptor
+	.syntheticLiteralNodeFor;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
+import static com.avail.descriptor.MacroSubstitutionNodeDescriptor
+	.newMacroSubstitution;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**
  * A {@code ParsingConversionRule} describes how to convert the argument at the
@@ -82,18 +99,17 @@ public enum ParsingConversionRule
 			final Continuation1NotNull<Throwable> onProblem)
 		{
 			final A_Tuple expressions = input.expressionsTuple();
-			final A_Number count = IntegerDescriptor.fromInt(
-				expressions.tupleSize());
-			final AvailObject token =
-				LiteralTokenDescriptor.create(
-					StringDescriptor.stringFrom(count.toString()),
-					TupleDescriptor.emptyTuple(),
-					TupleDescriptor.emptyTuple(),
+			final A_Number count = fromInt(expressions.tupleSize());
+			final A_Token token =
+				literalToken(
+					stringFrom(count.toString()),
+					emptyTuple(),
+					emptyTuple(),
 					lexingState.position,
 					lexingState.lineNumber,
 					LITERAL,
 					count);
-			continuation.value(LiteralNodeDescriptor.fromToken(token));
+			continuation.value(literalNodeFromToken(token));
 		}
 	},
 
@@ -117,10 +133,8 @@ public enum ParsingConversionRule
 				lexingState,
 				input,
 				value -> continuation.value(
-					MacroSubstitutionNodeDescriptor
-						.fromOriginalSendAndReplacement(
-							input,
-							LiteralNodeDescriptor.syntheticFrom(value))),
+					newMacroSubstitution(
+						input, syntheticLiteralNodeFor(value))),
 				onProblem);
 		}
 	};

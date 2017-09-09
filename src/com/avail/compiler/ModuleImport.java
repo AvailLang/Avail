@@ -36,6 +36,12 @@ import com.avail.builder.ModuleName;
 import com.avail.descriptor.*;
 import com.avail.serialization.MalformedSerialStreamException;
 
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+
 /**
  * Information that a {@link ModuleHeader} uses to keep track of a module
  * import, whether from an {@linkplain ExpectedToken#EXTENDS Extends} or a
@@ -163,12 +169,12 @@ public class ModuleImport
 			final ModuleName name =
 				new ModuleName(module.moduleName().asNativeString());
 			return new ModuleImport(
-				StringDescriptor.stringFrom(name.localName()),
+				stringFrom(name.localName()),
 				module.versions(),
 				true,
-				SetDescriptor.emptySet(),
-				MapDescriptor.emptyMap(),
-				SetDescriptor.emptySet(),
+				emptySet(),
+				emptyMap(),
+				emptySet(),
 				true);
 		}
 		catch (final ImportValidationException e)
@@ -266,14 +272,9 @@ public class ModuleImport
 	 */
 	A_Tuple tupleForSerialization ()
 	{
-		return TupleDescriptor.tuple(
-			moduleName,
-			acceptableVersions,
-			AtomDescriptor.objectFromBoolean(isExtension),
-			names,
-			renames,
-			excludes,
-			AtomDescriptor.objectFromBoolean(wildcard));
+		return tuple(moduleName, acceptableVersions,
+			objectFromBoolean(isExtension), names, renames,
+			excludes, objectFromBoolean(wildcard));
 	}
 
 	/**

@@ -31,7 +31,6 @@
 
 package com.avail.compiler.problems;
 
-import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
@@ -40,12 +39,7 @@ import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.StringDescriptor;
-import com.avail.descriptor.TokenDescriptor;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.Generator;
 import com.avail.utility.Mutable;
@@ -55,12 +49,19 @@ import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Describer;
 import com.avail.utility.evaluation.SimpleDescriber;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import java.util.*;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.problems.ProblemType.PARSE;
+import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
+import static com.avail.descriptor.TokenDescriptor.newToken;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 
 public class CompilerDiagnostics
 {
@@ -324,13 +325,13 @@ public class CompilerDiagnostics
 		if (candidates.isEmpty())
 		{
 			final LexingState state = startLexingStates.iterator().next();
-			final A_Token emptyToken = TokenDescriptor.create(
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
+			final A_Token emptyToken = newToken(
+				emptyTuple(),
+				emptyTuple(),
+				emptyTuple(),
 				state.position,
 				state.lineNumber,
-				TokenType.WHITESPACE);
+				WHITESPACE);
 			continuation.value(emptyToken.makeShared());
 			return;
 		}
@@ -601,7 +602,7 @@ public class CompilerDiagnostics
 			parts.add(
 				source.copyTupleFromToCanDestroy(
 					sourcePosition, newPosition - 1, false));
-			parts.add(StringDescriptor.stringFrom(eachProblem.indicator));
+			parts.add(stringFrom(eachProblem.indicator));
 			sourcePosition = newPosition;
 		}
 		parts.add(
@@ -609,12 +610,12 @@ public class CompilerDiagnostics
 				sourcePosition, startOfSecondNextLine - 1, false));
 		// Ensure the last character is a newline.
 		A_Tuple unnumbered =
-			TupleDescriptor.tupleFromList(parts).concatenateTuplesCanDestroy(true);
+			tupleFromList(parts).concatenateTuplesCanDestroy(true);
 		if (unnumbered.tupleSize() == 0
 			|| unnumbered.tupleCodePointAt(unnumbered.tupleSize()) != '\n')
 		{
 			unnumbered = unnumbered.appendCanDestroy(
-				CharacterDescriptor.fromCodePoint('\n'),
+				fromCodePoint('\n'),
 				true);
 		}
 
@@ -697,7 +698,7 @@ public class CompilerDiagnostics
 					}
 					// Avoid using direct recursion to keep the stack
 					// from getting too deep.
-					AvailRuntime.current().execute(new AvailTask(
+					currentRuntime().execute(new AvailTask(
 						FiberDescriptor.compilerPriority)
 					{
 						@Override

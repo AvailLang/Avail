@@ -31,11 +31,26 @@
  */
 package com.avail.interpreter.primitive.sets;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerDescriptor.two;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Answer a new {@linkplain SetDescriptor
@@ -68,12 +83,12 @@ public final class P_SetWith extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				SetTypeDescriptor.mostGeneralSetType(),
+		return functionType(
+			tuple(
+				mostGeneralSetType(),
 				ANY.o()),
-			SetTypeDescriptor.setTypeForSizesContentType(
-				IntegerRangeTypeDescriptor.naturalNumbers(),
+			setTypeForSizesContentType(
+				naturalNumbers(),
 				ANY.o()));
 	}
 
@@ -88,16 +103,14 @@ public final class P_SetWith extends Primitive
 		final boolean mightBePresent =
 			!setContentType.typeIntersection(newElementType).isBottom();
 		final A_Type sizes = setType.sizeRange();
-		final A_Type unionSize = IntegerRangeTypeDescriptor.integerRangeType(
+		final A_Type unionSize = integerRangeType(
 			mightBePresent
 				? sizes.lowerBound()
-				: sizes.lowerBound().plusCanDestroy(
-					IntegerDescriptor.one(), false),
+				: sizes.lowerBound().plusCanDestroy(one(), false),
 			true,
-			sizes.upperBound().plusCanDestroy(
-				IntegerDescriptor.two(), false),
+			sizes.upperBound().plusCanDestroy(two(), false),
 			false);
-		final A_Type unionType = SetTypeDescriptor.setTypeForSizesContentType(
+		final A_Type unionType = setTypeForSizesContentType(
 			unionSize,
 			setType.contentType().typeUnion(newElementType));
 		return unionType.makeImmutable();

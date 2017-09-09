@@ -32,17 +32,25 @@
 
 package com.avail.tools.bootstrap;
 
-import static com.avail.tools.bootstrap.Resources.*;
-import java.io.*;
-import java.util.*;
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.SetDescriptor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
+
+import java.io.PrintWriter;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
+import java.util.Set;
+
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.tools.bootstrap.Resources.*;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that
@@ -67,7 +75,7 @@ extends PropertiesFileGenerator
 		// This forces initialization of Avail.
 		//noinspection ResultOfMethodCallIgnored
 		AvailRuntime.specialObjects();
-		A_Set allErrorCodes = SetDescriptor.emptySet();
+		A_Set allErrorCodes = emptySet();
 		for (final AvailErrorCode code : AvailErrorCode.all())
 		{
 			if (!code.isCausedByInstructionFailure())
@@ -77,7 +85,7 @@ extends PropertiesFileGenerator
 					true);
 			}
 		}
-		A_Set reachableErrorCodes = SetDescriptor.emptySet();
+		A_Set reachableErrorCodes = emptySet();
 		for (
 			int primitiveNumber = 1;
 			primitiveNumber <= Primitive.maxPrimitiveNumber();

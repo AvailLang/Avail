@@ -31,11 +31,32 @@
  */
 package com.avail.interpreter.primitive.functions;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.exceptions.AvailErrorCode.E_WRONG_OUTERS;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain FunctionDescriptor
@@ -75,25 +96,22 @@ public final class P_CreateFunction extends Primitive
 			}
 		}
 		final A_Function function =
-			FunctionDescriptor.create(rawFunction, outers);
+			createFunction(rawFunction, outers);
 		return interpreter.primitiveSuccess(function);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType(),
-				TupleTypeDescriptor.mostGeneralTupleType()),
-			FunctionTypeDescriptor.mostGeneralFunctionType());
+		return functionType(tuple(
+			mostGeneralCompiledCodeType(),
+			mostGeneralTupleType()), mostGeneralFunctionType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_WRONG_OUTERS));
+		return
+			enumerationWith(set(E_WRONG_OUTERS));
 	}
 }

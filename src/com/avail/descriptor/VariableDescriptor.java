@@ -50,15 +50,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots
 	.HASH_AND_MORE;
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.*;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold
- * any object that agrees with my {@linkplain #forContentType(A_Type) inner type}.
+ * any object that agrees with my {@linkplain #newVariableWithContentType(A_Type) inner type}.
  * A variable may also hold no value at all.  Any attempt to read the
  * {@linkplain #o_GetValue(AvailObject) current value} of a variable that holds
  * no value will fail immediately.
@@ -76,7 +81,7 @@ extends Descriptor
 	{
 		/** The {@linkplain FunctionDescriptor reactor function}. */
 		private final AtomicReference<A_Function> function =
-			new AtomicReference<>(NilDescriptor.nil());
+			new AtomicReference<>(nil());
 
 		/**
 		 * Atomically get and clear {@linkplain FunctionDescriptor reactor
@@ -88,11 +93,11 @@ extends Descriptor
 		 */
 		public A_Function getAndClearFunction ()
 		{
-			return function.getAndSet(NilDescriptor.nil());
+			return function.getAndSet(nil());
 		}
 
 		/**
-		 * Is the {@linkplain VariableAccessReactor reactor} invalid?
+		 * Is the {@code VariableAccessReactor} invalid?
 		 *
 		 * @return {@code true} if the reactor is invalid, {@code false}
 		 *         otherwise.
@@ -103,7 +108,7 @@ extends Descriptor
 		}
 
 		/**
-		 * Construct a new {@link VariableAccessReactor}.
+		 * Construct a new {@code VariableAccessReactor}.
 		 *
 		 * @param function
 		 *        The reactor {@linkplain AvailObject function}.
@@ -414,8 +419,7 @@ extends Descriptor
 	{
 		handleVariableWriteTracing(object);
 		final A_Type outerKind = object.slot(KIND);
-		assert outerKind.readType().isSubtypeOf(
-			IntegerRangeTypeDescriptor.extendedIntegers());
+		assert outerKind.readType().isSubtypeOf(extendedIntegers());
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
@@ -505,7 +509,7 @@ extends Descriptor
 	void o_ClearValue (final AvailObject object)
 	{
 		handleVariableWriteTracing(object);
-		object.setSlot(VALUE, NilDescriptor.nil());
+		object.setSlot(VALUE, nil());
 	}
 
 	@Override @AvailMethod
@@ -540,7 +544,7 @@ extends Descriptor
 		AvailObject rawPojo = object.slot(WRITE_REACTORS);
 		if (rawPojo.equalsNil())
 		{
-			rawPojo = RawPojoDescriptor.identityWrap(
+			rawPojo = identityPojo(
 				new HashMap<A_Atom, VariableAccessReactor>());
 			object.setMutableSlot(WRITE_REACTORS, rawPojo);
 		}
@@ -581,7 +585,7 @@ extends Descriptor
 			final Map<A_Atom, VariableAccessReactor> writeReactors =
 				(Map<A_Atom, VariableAccessReactor>)
 					rawPojo.javaObjectNotNull();
-			A_Set set = SetDescriptor.emptySet();
+			A_Set set = emptySet();
 			for (final Entry<A_Atom, VariableAccessReactor> entry :
 				writeReactors.entrySet())
 			{
@@ -595,7 +599,7 @@ extends Descriptor
 			writeReactors.clear();
 			return set;
 		}
-		return SetDescriptor.emptySet();
+		return emptySet();
 	}
 
 	@Override @AvailMethod
@@ -690,7 +694,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a {@linkplain VariableDescriptor variable} which can only
+	 * Create a {@code VariableDescriptor variable} which can only
 	 * contain values of the specified type.  The new variable initially holds
 	 * no value.
 	 *
@@ -698,33 +702,34 @@ extends Descriptor
 	 *        The type of objects the new variable can contain.
 	 * @return A new variable able to hold the specified type of objects.
 	 */
-	public static AvailObject forContentType (final A_Type contentType)
+	public static AvailObject newVariableWithContentType (
+		final A_Type contentType)
 	{
-		return VariableDescriptor.forVariableType(
-			VariableTypeDescriptor.variableTypeFor(contentType));
+		return newVariableWithOuterType(variableTypeFor(contentType));
 	}
 
 	/**
-	 * Create a {@linkplain VariableDescriptor variable} of the specified
-	 * {@linkplain VariableTypeDescriptor variable type}.  The new variable
-	 * initially holds no value.
+	 * Create a {@code variable} of the specified {@linkplain
+	 * VariableTypeDescriptor variable type}.  The new variable initially holds
+	 * no value.
 	 *
 	 * @param variableType
 	 *        The {@linkplain VariableTypeDescriptor variable type}.
 	 * @return A new variable of the given type.
 	 */
-	public static AvailObject forVariableType (final A_Type variableType)
+	public static AvailObject newVariableWithOuterType (
+		final A_Type variableType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(KIND, variableType);
 		result.setSlot(HASH_OR_ZERO, 0);
-		result.setSlot(VALUE, NilDescriptor.nil());
-		result.setSlot(WRITE_REACTORS, NilDescriptor.nil());
+		result.setSlot(VALUE, nil());
+		result.setSlot(WRITE_REACTORS, nil());
 		return result;
 	}
 
 	/**
-	 * Construct a new {@link VariableDescriptor}.
+	 * Construct a new {@code VariableDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

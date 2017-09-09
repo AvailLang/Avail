@@ -35,13 +35,21 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
 import com.avail.utility.evaluation.Transformer1;
+import com.avail.utility.evaluation.Transformer1NotNull;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
@@ -107,8 +115,7 @@ extends TypeDescriptor
 	{
 		if (object.slot(TYPE_TUPLE).tupleSize() == 0)
 		{
-			if (object.sizeRange().equals(
-				IntegerRangeTypeDescriptor.wholeNumbers()))
+			if (object.sizeRange().equals(wholeNumbers()))
 			{
 				if (object.slot(DEFAULT_TYPE).equals(ANY.o()))
 				{
@@ -212,11 +219,10 @@ extends TypeDescriptor
 	int o_Hash (
 		final AvailObject object)
 	{
-		return TupleTypeDescriptor
-			.hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash(
-				object.slot(SIZE_RANGE).hash(),
-				object.slot(TYPE_TUPLE).hash(),
-				object.slot(DEFAULT_TYPE).hash());
+		return hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash(
+			object.slot(SIZE_RANGE).hash(),
+			object.slot(TYPE_TUPLE).hash(),
+			object.slot(DEFAULT_TYPE).hash());
 	}
 
 	/**
@@ -236,16 +242,16 @@ extends TypeDescriptor
 	{
 		if (startIndex > endIndex)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		if (startIndex == endIndex)
 		{
 			return object.typeAtIndex(startIndex);
 		}
 		final A_Number upper = object.sizeRange().upperBound();
-		if (IntegerDescriptor.fromInt(startIndex).greaterThan(upper))
+		if (fromInt(startIndex).greaterThan(upper))
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		final A_Tuple leading = object.typeTuple();
 		final int interestingLimit = leading.tupleSize() + 1;
@@ -367,20 +373,11 @@ extends TypeDescriptor
 		assert startIndex >= 1;
 		final int size = endIndex - startIndex + 1;
 		assert size >= 0;
-		return ObjectTupleDescriptor.generateFrom(
+		return generateObjectTupleFrom(
 			size,
-			new Generator<A_BasicObject>()
-			{
-				private int index = startIndex;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					return index <= endIndex
-						? object.typeAtIndex(index++).makeImmutable()
-						: BottomTypeDescriptor.bottom();
-				}
-			});
+			i -> i <= size
+				? object.typeAtIndex(i + startIndex - 1).makeImmutable()
+				: bottom());
 	}
 
 	@Override @AvailMethod
@@ -392,19 +389,19 @@ extends TypeDescriptor
 		// me.  Answer bottom if the index is out of bounds.
 		if (index <= 0)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		final A_Number upper = object.slot(SIZE_RANGE).upperBound();
 		if (upper.isInt())
 		{
 			if (upper.extractInt() < index)
 			{
-				return BottomTypeDescriptor.bottom();
+				return bottom();
 			}
 		}
-		else if (upper.lessThan(IntegerDescriptor.fromInt(index)))
+		else if (upper.lessThan(fromInt(index)))
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		final A_Tuple leading = object.slot(TYPE_TUPLE);
 		if (index <= leading.tupleSize())
@@ -458,7 +455,7 @@ extends TypeDescriptor
 					aTupleType.typeAtIndex(i));
 			if (intersectionObject.isBottom())
 			{
-				return BottomTypeDescriptor.bottom();
+				return bottom();
 			}
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
 				i,
@@ -473,15 +470,14 @@ extends TypeDescriptor
 				aTupleType.typeAtIndex(newLeadingSize + 1));
 		if (newDefault.isBottom())
 		{
-			final A_Number newLeadingSizeObject =
-				IntegerDescriptor.fromInt(newLeadingSize);
+			final A_Number newLeadingSizeObject = fromInt(newLeadingSize);
 			if (newLeadingSizeObject.lessThan(newSizesObject.lowerBound()))
 			{
-				return BottomTypeDescriptor.bottom();
+				return bottom();
 			}
 			if (newLeadingSizeObject.lessThan(newSizesObject.upperBound()))
 			{
-				newSizesObject = IntegerRangeTypeDescriptor.integerRangeType(
+				newSizesObject = integerRangeType(
 					newSizesObject.lowerBound(),
 					newSizesObject.lowerInclusive(),
 					newLeadingSizeObject,
@@ -489,10 +485,8 @@ extends TypeDescriptor
 			}
 		}
 		//  safety until all primitives are destructive
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			newSizesObject,
-			newLeading,
-			newDefault.makeImmutable());
+		return tupleTypeForSizesTypesDefaultType(
+			newSizesObject, newLeading, newDefault.makeImmutable());
 	}
 
 	@Override @AvailMethod
@@ -543,9 +537,7 @@ extends TypeDescriptor
 			final A_Type unionObject =
 				object.typeAtIndex(i).typeUnion(aTupleType.typeAtIndex(i));
 			newLeading = newLeading.tupleAtPuttingCanDestroy(
-				i,
-				unionObject,
-				true);
+				i, unionObject, true);
 		}
 		// Make sure entries in newLeading are immutable, as typeUnion(...) can
 		// answer one of its arguments.
@@ -555,10 +547,8 @@ extends TypeDescriptor
 				aTupleType.typeAtIndex(newLeadingSize + 1));
 		// Safety until all primitives are destructive
 		newDefault.makeImmutable();
-		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			newSizesObject,
-			newLeading,
-			newDefault);
+		return tupleTypeForSizesTypesDefaultType(
+			newSizesObject, newLeading, newDefault);
 	}
 
 	@Override
@@ -615,7 +605,7 @@ extends TypeDescriptor
 	{
 		if (sizeRange.isBottom())
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		assert sizeRange.lowerBound().isFinite();
 		assert sizeRange.upperBound().isFinite() || !sizeRange.upperInclusive();
@@ -624,12 +614,11 @@ extends TypeDescriptor
 		{
 			return privateTupleTypeForSizesTypesDefaultType(
 				sizeRange,
-				TupleDescriptor.emptyTuple(),
-				BottomTypeDescriptor.bottom());
+				emptyTuple(),
+				bottom());
 		}
 		final int typeTupleSize = typeTuple.tupleSize();
-		if (IntegerDescriptor.fromInt(typeTupleSize).greaterOrEqual(
-			sizeRange.upperBound()))
+		if (fromInt(typeTupleSize).greaterOrEqual(sizeRange.upperBound()))
 		{
 			// The (nonempty) tuple hits the end of the range – disregard the
 			// passed defaultType and use the final element of the tuple as the
@@ -673,8 +662,8 @@ extends TypeDescriptor
 	public static A_Type zeroOrOneOf (final A_Type aType)
 	{
 		return tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.zeroOrOne(),
-			TupleDescriptor.emptyTuple(),
+			zeroOrOne(),
+			emptyTuple(),
 			aType);
 	}
 
@@ -688,8 +677,8 @@ extends TypeDescriptor
 	public static A_Type zeroOrMoreOf (final A_Type aType)
 	{
 		return tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.wholeNumbers(),
-			TupleDescriptor.emptyTuple(),
+			wholeNumbers(),
+			emptyTuple(),
 			aType);
 	}
 
@@ -703,8 +692,8 @@ extends TypeDescriptor
 	public static A_Type oneOrMoreOf (final A_Type aType)
 	{
 		return tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.naturalNumbers(),
-			TupleDescriptor.emptyTuple(),
+			naturalNumbers(),
+			emptyTuple(),
 			aType);
 	}
 
@@ -720,9 +709,9 @@ extends TypeDescriptor
 	public static A_Type tupleTypeForTypes (final A_Type... types)
 	{
 		return tupleTypeForSizesTypesDefaultType(
-			IntegerRangeTypeDescriptor.singleInt(types.length),
-			TupleDescriptor.tuple(types),
-			BottomTypeDescriptor.bottom());
+			singleInt(types.length),
+			tuple(types),
+			bottom());
 	}
 
 	/**
@@ -740,27 +729,16 @@ extends TypeDescriptor
 	 * @return A tuple type resulting from applying the transformation to each
 	 *         element type of the supplied tuple type.
 	 */
-	public static A_Type mappingElementTypes (
+	public static A_Type tupleTypeFromTupleOfTypes (
 		final A_Type aTupleType,
-		final Transformer1<A_Type, A_Type> elementTransformer)
+		final Transformer1NotNull<A_Type, A_Type> elementTransformer)
 	{
 		final A_Type sizeRange = aTupleType.sizeRange();
 		final A_Tuple typeTuple = aTupleType.typeTuple();
 		final A_Type defaultType = aTupleType.defaultType();
 		final int limit = typeTuple.tupleSize();
-		final A_Tuple transformedTypeTuple = ObjectTupleDescriptor.generateFrom(
-			limit,
-			new Generator<A_Type>()
-			{
-				int index = 1;
-
-				@Override
-				public A_Type value ()
-				{
-					return elementTransformer.valueNotNull(
-						typeTuple.tupleAt(index++));
-				}
-			});
+		final A_Tuple transformedTypeTuple = generateObjectTupleFrom(
+			limit, index -> elementTransformer.value(typeTuple.tupleAt(index)));
 		final A_Type transformedDefaultType = elementTransformer.value(
 			defaultType);
 		return tupleTypeForSizesTypesDefaultType(
@@ -902,7 +880,7 @@ extends TypeDescriptor
 
 	/** The metatype for all tuple types. */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
+		instanceMeta(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all tuple types.

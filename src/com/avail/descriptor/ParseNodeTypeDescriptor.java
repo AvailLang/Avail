@@ -32,20 +32,37 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import java.util.IdentityHashMap;
-import java.util.List;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+import java.util.List;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.ListNodeTypeDescriptor
+	.createListNodeTypeNoCheck;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.IntegerSlots
+	.HASH_AND_MORE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ObjectSlots
+	.EXPRESSION_TYPE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
 
 /**
  * Define the structure and behavior of parse node types.  The parse node types
@@ -123,7 +140,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return FunctionTypeDescriptor.mostGeneralFunctionType();
+				return mostGeneralFunctionType();
 			}
 		},
 
@@ -151,7 +168,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return VariableTypeDescriptor.mostGeneralVariableType();
+				return mostGeneralVariableType();
 			}
 		},
 
@@ -185,7 +202,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return TupleTypeDescriptor.mostGeneralTupleType();
+				return mostGeneralTupleType();
 			}
 
 			@Override
@@ -194,14 +211,8 @@ extends TypeDescriptor
 			{
 				final ParseNodeKind listNodeKind = this;
 				final A_Type subexpressionsTupleType =
-					TupleTypeDescriptor.mappingElementTypes(
-						yieldType,
-						argYieldType ->
-						{
-							assert argYieldType != null;
-							return PARSE_NODE.create(argYieldType);
-						});
-				return ListNodeTypeDescriptor.createListNodeTypeNoCheck(
+					tupleTypeFromTupleOfTypes(yieldType, PARSE_NODE::create);
+				return createListNodeTypeNoCheck(
 					listNodeKind, yieldType, subexpressionsTupleType);
 			}
 		},
@@ -225,7 +236,7 @@ extends TypeDescriptor
 			@Override
 			public A_Type mostGeneralYieldType ()
 			{
-				return TupleTypeDescriptor.mostGeneralTupleType();
+				return mostGeneralTupleType();
 			}
 
 			@Override
@@ -234,14 +245,8 @@ extends TypeDescriptor
 			{
 				final ParseNodeKind listNodeKind = this;
 				final A_Type subexpressionsTupleType =
-					TupleTypeDescriptor.mappingElementTypes(
-						yieldType,
-						argYieldType ->
-						{
-							assert argYieldType != null;
-							return PARSE_NODE.create(argYieldType);
-						});
-				return ListNodeTypeDescriptor.createListNodeTypeNoCheck(
+					tupleTypeFromTupleOfTypes(yieldType, PARSE_NODE::create);
+				return createListNodeTypeNoCheck(
 					listNodeKind, yieldType, subexpressionsTupleType);
 			}
 		},
@@ -750,13 +755,8 @@ extends TypeDescriptor
 	A_Type o_SubexpressionsTupleType (final AvailObject object)
 	{
 		// Only applicable if the expression type is a tuple type.
-		return TupleTypeDescriptor.mappingElementTypes(
-			object.slot(EXPRESSION_TYPE),
-			arg ->
-			{
-				assert arg != null;
-				return PARSE_NODE.create(arg);
-			});
+		return tupleTypeFromTupleOfTypes(
+			object.slot(EXPRESSION_TYPE), PARSE_NODE::create);
 	}
 
 	@Override @AvailMethod
@@ -778,10 +778,10 @@ extends TypeDescriptor
 				aListNodeType.parseNodeKind());
 		if (intersectionKind == null)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		assert intersectionKind.isSubkindOf(LIST_NODE);
-		return ListNodeTypeDescriptor.createListNodeType(
+		return createListNodeType(
 			intersectionKind,
 			object.expressionType().typeIntersection(
 				aListNodeType.expressionType()),
@@ -797,7 +797,7 @@ extends TypeDescriptor
 			kind.commonDescendantWith(aParseNodeType.parseNodeKind());
 		if (intersectionKind == null)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		assert !intersectionKind.isSubkindOf(LIST_NODE);
 		// It should be safe to assume the mostGeneralType() of a subkind is

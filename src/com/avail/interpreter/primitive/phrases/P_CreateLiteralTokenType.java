@@ -42,7 +42,7 @@ import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMetaOn;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor
 	.mostGeneralLiteralTokenType;
@@ -82,7 +82,8 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(anyMeta()),
-			instanceMetaOn(mostGeneralLiteralTokenType()));
+			tuple(
+				anyMeta()),
+			instanceMeta(mostGeneralLiteralTokenType()));
 	}
 }

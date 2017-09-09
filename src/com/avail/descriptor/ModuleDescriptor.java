@@ -44,13 +44,25 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.json.JSONWriter;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Set;
 
+import static com.avail.descriptor.FiberDescriptor.currentFiber;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.newBundleTree;
 import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor
+	.newPlanInProgress;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_DEFINITION;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
 
 /**
  * A {@linkplain ModuleDescriptor module} is the mechanism by which Avail code
@@ -305,7 +317,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Set o_ExportedNames (final AvailObject object)
 	{
-		A_Set exportedNames = SetDescriptor.emptySet();
+		A_Set exportedNames = emptySet();
 		synchronized (object)
 		{
 			for (final Entry entry
@@ -360,7 +372,7 @@ extends Descriptor
 		synchronized (object)
 		{
 			assert constantBinding.kind().isSubtypeOf(
-				VariableTypeDescriptor.mostGeneralVariableType());
+				mostGeneralVariableType());
 			A_Map constantBindings = object.slot(CONSTANT_BINDINGS);
 			constantBindings = constantBindings.mapAtPuttingCanDestroy(
 				name,
@@ -399,7 +411,7 @@ extends Descriptor
 			}
 			else
 			{
-				tuple = TupleDescriptor.emptyTuple();
+				tuple = emptyTuple();
 			}
 			tuple = tuple.appendCanDestroy(argumentTypes, true);
 			seals = seals.mapAtPuttingCanDestroy(methodName, tuple, true);
@@ -432,7 +444,7 @@ extends Descriptor
 		synchronized (object)
 		{
 			assert variableBinding.kind().isSubtypeOf(
-				VariableTypeDescriptor.mostGeneralVariableType());
+				mostGeneralVariableType());
 			A_Map variableBindings = object.slot(VARIABLE_BINDINGS);
 			variableBindings = variableBindings.mapAtPuttingCanDestroy(
 				name,
@@ -459,7 +471,7 @@ extends Descriptor
 			}
 			else
 			{
-				set = SetDescriptor.emptySet();
+				set = emptySet();
 			}
 			set = set.setWithElementCanDestroy(trueName, false);
 			names = names.mapAtPuttingCanDestroy(string, set, true);
@@ -485,7 +497,7 @@ extends Descriptor
 				final A_String string = trueName.atomName();
 				final A_Set set = names.hasKey(string)
 					? names.mapAt(string)
-					: SetDescriptor.emptySet();
+					: emptySet();
 				names = names.mapAtPuttingCanDestroy(
 					string,
 					set.setWithElementCanDestroy(trueName, true),
@@ -536,7 +548,7 @@ extends Descriptor
 			}
 			else
 			{
-				set = SetDescriptor.emptySet();
+				set = emptySet();
 			}
 			set = set.setWithElementCanDestroy(trueName, false);
 			privateNames = privateNames.mapAtPuttingCanDestroy(
@@ -565,7 +577,7 @@ extends Descriptor
 				final A_String string = trueName.atomName();
 				A_Set set = privateNames.hasKey(string)
 					? privateNames.mapAt(string)
-					: SetDescriptor.emptySet();
+					: emptySet();
 				set = set.setWithElementCanDestroy(trueName, true);
 				privateNames = privateNames.mapAtPuttingCanDestroy(
 					string,
@@ -700,7 +712,7 @@ extends Descriptor
 			final AvailRuntime runtime = aLoader.runtime();
 			final A_Tuple unloadFunctions =
 				object.slot(UNLOAD_FUNCTIONS).tupleReverse();
-			object.setSlot(UNLOAD_FUNCTIONS, NilDescriptor.nil());
+			object.setSlot(UNLOAD_FUNCTIONS, nil());
 			// Run unload functions, asynchronously but serially, in reverse
 			// order.
 			aLoader.runUnloadFunctions(
@@ -755,7 +767,7 @@ extends Descriptor
 						for (final A_Lexer lexer : object.slot(LEXERS))
 						{
 							lexer.lexerMethod().setLexer(
-								NilDescriptor.nil());
+								nil());
 						}
 					}
 					afterRemoval.value();
@@ -818,7 +830,7 @@ extends Descriptor
 			assert stringName.isTuple();
 			if (object.slot(NEW_NAMES).hasKey(stringName))
 			{
-				return SetDescriptor.emptySet().setWithElementCanDestroy(
+				return emptySet().setWithElementCanDestroy(
 					object.slot(NEW_NAMES).mapAt(stringName),
 					false);
 			}
@@ -829,7 +841,7 @@ extends Descriptor
 			}
 			else
 			{
-				publics = SetDescriptor.emptySet();
+				publics = emptySet();
 			}
 			if (!object.slot(PRIVATE_NAMES).hasKey(stringName))
 			{
@@ -855,8 +867,7 @@ extends Descriptor
 	A_BundleTree o_BuildFilteredBundleTree (
 		final AvailObject object)
 	{
-		final A_BundleTree filteredBundleTree =
-			MessageBundleTreeDescriptor.createEmpty();
+		final A_BundleTree filteredBundleTree = newBundleTree();
 		synchronized (object)
 		{
 			final A_Set ancestors = object.slot(ALL_ANCESTORS);
@@ -874,8 +885,7 @@ extends Descriptor
 							final A_DefinitionParsingPlan plan =
 								definitionEntry.value();
 							final A_ParsingPlanInProgress planInProgress =
-								ParsingPlanInProgressDescriptor.create(
-									plan, 1);
+								newPlanInProgress(plan, 1);
 							filteredBundleTree.addPlanInProgress(
 								planInProgress);
 						}
@@ -968,21 +978,19 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new empty anonymous {@linkplain ModuleDescriptor module}.
-	 * Pre-add the module itself to its {@linkplain SetDescriptor set} of
-	 * ancestor modules.
+	 * Construct a new empty anonymous {@code module}.  Pre-add the module
+	 * itself to its {@linkplain SetDescriptor set} of ancestor modules.
 	 *
 	 * @return The new module.
 	 */
 	public static A_Module anonymousModule ()
 	{
-		return newModule(StringDescriptor.stringFrom("/«fake-root»/«anonymous»"));
+		return newModule(stringFrom("/«fake-root»/«anonymous»"));
 	}
 
 	/**
-	 * Construct a new empty {@linkplain ModuleDescriptor module}.  Pre-add
-	 * the module itself to its {@linkplain SetDescriptor set} of ancestor
-	 * modules.
+	 * Construct a new empty {@code module}.  Pre-add the module itself to its
+	 * {@linkplain SetDescriptor set} of ancestor modules.
 	 *
 	 * @param moduleName
 	 *        The fully qualified {@linkplain StringDescriptor name} of the
@@ -991,12 +999,12 @@ extends Descriptor
 	 */
 	public static A_Module newModule (final A_String moduleName)
 	{
-		final A_Map emptyMap = MapDescriptor.emptyMap();
-		final A_Set emptySet = SetDescriptor.emptySet();
-		final A_Tuple emptyTuple = TupleDescriptor.emptyTuple();
+		final A_Map emptyMap = emptyMap();
+		final A_Set emptySet = emptySet();
+		final A_Tuple emptyTuple = emptyTuple();
 		final AvailObject module = mutable.create();
 		module.setSlot(NAME, moduleName);
-		module.setSlot(ALL_ANCESTORS, NilDescriptor.nil());
+		module.setSlot(ALL_ANCESTORS, nil());
 		module.setSlot(VERSIONS, emptySet);
 		module.setSlot(NEW_NAMES, emptyMap);
 		module.setSlot(IMPORTED_NAMES, emptyMap);
@@ -1061,21 +1069,21 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer the {@linkplain ModuleDescriptor module} currently undergoing
+	 * Answer the {@code ModuleDescriptor module} currently undergoing
 	 * {@linkplain AvailLoader loading} on the {@linkplain
-	 * FiberDescriptor#currentFiber() current} {@linkplain FiberDescriptor fiber}.
+	 * FiberDescriptor#currentFiber() current fiber}.
 	 *
 	 * @return The module currently undergoing loading, or {@linkplain
 	 *         NilDescriptor#nil() nil} if the current fiber is not a loader
 	 *         fiber.
 	 */
-	public static A_Module current ()
+	public static A_Module currentModule ()
 	{
-		final A_Fiber fiber = FiberDescriptor.currentFiber();
-		final AvailLoader loader = fiber.availLoader();
+		final A_Fiber fiber = currentFiber();
+		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null)
 		{
-			return NilDescriptor.nil();
+			return nil();
 		}
 		return loader.module();
 	}

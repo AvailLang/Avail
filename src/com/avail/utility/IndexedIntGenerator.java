@@ -1,5 +1,5 @@
 /**
- * P_BlockPrimitiveNumber.java
+ * IndexedIntGenerator.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,51 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.phrases;
-
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+package com.avail.utility;
 
 /**
- * <strong>Primitive:</strong> Answer the primitive linkage number of the
- * specified {@linkplain BlockNodeDescriptor block}.
+ * I represent the ability to generate ints in the future, when my {@link
+ * #value(int)} operation is invoked.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class P_BlockPrimitiveNumber
-extends Primitive
+@FunctionalInterface
+public interface IndexedIntGenerator
 {
 	/**
-	 * The sole instance of this primitive class. Accessed through reflection.
+	 * Request that the value be produced.
+	 *
+	 * @param index An index, which may be used in calculating the value.
+	 * @return The generated value.
 	 */
-	public static final Primitive instance =
-		new P_BlockPrimitiveNumber().init(
-			1, CannotFail, CanFold, CanInline);
-
-	@Override
-	public Result attempt (
-		final List<AvailObject> args,
-		final Interpreter interpreter,
-		final boolean skipReturnCheck)
-	{
-		assert args.size() == 1;
-		final A_Phrase block = args.get(0);
-		final Primitive prim = block.primitive();
-		return interpreter.primitiveSuccess(
-			prim == null
-				? IntegerDescriptor.zero()
-				: IntegerDescriptor.fromInt(prim.primitiveNumber));
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				BLOCK_NODE.mostGeneralType()),
-			IntegerRangeTypeDescriptor.wholeNumbers());
-	}
+	int value (int index);
 }

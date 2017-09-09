@@ -33,7 +33,15 @@
 package com.avail.interpreter.primitive.controlflow;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ObjectTypeDescriptor;
 import com.avail.exceptions.MapException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -41,8 +49,12 @@ import com.avail.interpreter.Primitive;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.ContinuationDescriptor.dumpStackThen;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
+import static com.avail.descriptor.ObjectTypeDescriptor.stackDumpAtom;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -84,8 +96,7 @@ extends Primitive
 		final A_Continuation continuation;
 		try
 		{
-			continuation = exception.fieldMap().mapAt(
-				ObjectTypeDescriptor.stackDumpAtom());
+			continuation = exception.fieldMap().mapAt(stackDumpAtom());
 		}
 		catch (final MapException e)
 		{
@@ -95,7 +106,7 @@ extends Primitive
 		final A_RawFunction primitiveRawFunction =
 			stripNull(interpreter.function).code();
 		interpreter.primitiveSuspend(primitiveRawFunction);
-		ContinuationDescriptor.dumpStackThen(
+		dumpStackThen(
 			runtime,
 			fiber.textInterface(),
 			continuation,
@@ -120,14 +131,13 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(exceptionType()),
-			zeroOrMoreOf(stringType()));
+		return functionType(tuple(exceptionType()), zeroOrMoreOf(stringType()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			set(E_INCORRECT_ARGUMENT_TYPE));
+		return
+			enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

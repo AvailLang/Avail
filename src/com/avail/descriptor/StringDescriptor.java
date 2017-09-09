@@ -36,12 +36,18 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Generator;
+import com.avail.utility.IndexedGenerator;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 
+import static com.avail.descriptor.ByteStringDescriptor
+	.mutableObjectFromNativeByteString;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.TwoByteStringDescriptor
+	.mutableObjectFromNativeTwoByteString;
 
 /**
  * {@code StringDescriptor} has Avail strings as its instances. The actual
@@ -134,24 +140,22 @@ extends TupleDescriptor
 		}
 		if (maxCodePoint <= 255)
 		{
-			return ByteStringDescriptor.mutableObjectFromNativeByteString(
-				aNativeString);
+			return mutableObjectFromNativeByteString(aNativeString);
 		}
 		if (maxCodePoint <= 65535)
 		{
-			return TwoByteStringDescriptor.mutableObjectFromNativeTwoByteString(
-				aNativeString);
+			return mutableObjectFromNativeTwoByteString(aNativeString);
 		}
 		// Fall back to building a general object tuple containing Avail
 		// character objects.
-		return ObjectTupleDescriptor.generateFrom(
+		return generateObjectTupleFrom(
 			count,
-			new Generator<A_BasicObject>()
+			new IndexedGenerator<A_BasicObject>()
 			{
 				private int charIndex = 0;
 
 				@Override
-				public A_BasicObject value ()
+				public A_BasicObject value (final int ignored)
 				{
 					final int codePoint = aNativeString.codePointAt(charIndex);
 					charIndex += Character.charCount(codePoint);
@@ -178,43 +182,7 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link ByteStringDescriptor}.  Note that it can only store Latin-1
-	 * characters (i.e., those having Unicode code points 0..255).  Run the
-	 * descriptor for each position in ascending order to produce the code
-	 * points with which to populate the string.
-	 *
-	 * @param size The size of byte string to create.
-	 * @param generator A generator to provide code points to store.
-	 * @return The new Avail {@linkplain ByteStringDescriptor string}.
-	 */
-	public static A_String mutableByteStringFromGenerator(
-		final int size,
-		final Generator<Character> generator)
-	{
-		return ByteStringDescriptor.generateByteString(size, generator);
-	}
-
-	/**
-	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link TwoByteStringDescriptor}.  Note that it can only store Unicode
-	 * characters from the Basic Multilingual Plane (i.e., those having Unicode
-	 * code points 0..65535).  Run the generator for each position in ascending
-	 * order to produce the code points with which to populate the string.
-	 *
-	 * @param size The size of two-byte string to create.
-	 * @param generator A generator to provide code points to store.
-	 * @return The new Avail {@linkplain TwoByteStringDescriptor string}.
-	 */
-	public static A_String mutableTwoByteStringFromGenerator(
-		final int size,
-		final Generator<Character> generator)
-	{
-		return TwoByteStringDescriptor.generateTwoByteString(size, generator);
-	}
-
-	/**
-	 * Construct a new {@link StringDescriptor}.
+	 * Construct a new {@code StringDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

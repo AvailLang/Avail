@@ -38,8 +38,13 @@ import com.avail.serialization.SerializerOperation;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
+import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots
+	.DEFINITION_METHOD;
 import static com.avail.descriptor.DefinitionDescriptor.ObjectSlots.MODULE;
+import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeFromTupleOfTypes;
 
 /**
  * {@code DefinitionDescriptor} is an abstraction for things placed into a
@@ -89,7 +94,7 @@ extends Descriptor
 	}
 
 	static final A_String builtInNoModuleName =
-		StringDescriptor.stringFrom("(built-in)").makeShared();
+		stringFrom("(built-in)").makeShared();
 
 	@Override @AvailMethod
 	public A_String o_DefinitionModuleName (final AvailObject object)
@@ -153,12 +158,11 @@ extends Descriptor
 			== sizes.upperBound().extractInt();
 		assert sizes.lowerBound().extractInt()
 			== object.slot(DEFINITION_METHOD).numArgs();
-		return ListNodeTypeDescriptor.createListNodeType(
+		return createListNodeType(
 			ParseNodeKind.LIST_NODE,
 			argsTupleType,
-			TupleTypeDescriptor.mappingElementTypes(
-				argsTupleType,
-				ParseNodeKind.EXPRESSION_NODE::create));
+			tupleTypeFromTupleOfTypes(
+				argsTupleType, ParseNodeKind.EXPRESSION_NODE::create));
 	}
 
 	@Override @AvailMethod

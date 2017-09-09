@@ -32,14 +32,25 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import com.avail.descriptor.*;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
+import static com.avail.descriptor.TokenDescriptor.newToken;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -83,27 +94,25 @@ public final class P_BootstrapLexerWhitespaceBody extends Primitive
 			}
 			position++;
 		}
-		final A_Token token = TokenDescriptor.create(
-			(A_String)source.copyTupleFromToCanDestroy(
+		final A_Token token = newToken(
+			(A_String) source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
-			TupleDescriptor.emptyTuple(),
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
+			emptyTuple(),
 			startPosition,
 			lineNumberInteger.extractInt(),
-			TokenType.WHITESPACE);
+			WHITESPACE);
 		return interpreter.primitiveSuccess(
-			TupleDescriptor.tuple(token.makeShared()));
+			tuple(token.makeShared()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				Types.TOKEN.o()));
+		return functionType(tuple(
+			stringType(),
+			naturalNumbers(),
+			naturalNumbers()), zeroOrMoreOf(
+			TOKEN.o()));
 	}
 }

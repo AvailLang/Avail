@@ -51,6 +51,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.FiberDescriptor.currentFiber;
@@ -61,6 +63,7 @@ import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.LIST_NODE;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.SEND_NODE;
+import static com.avail.descriptor.SendNodeDescriptor.newSendNode;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.*;
@@ -72,6 +75,7 @@ import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.increaseIndentation;
 
 /**
  * <strong>Primitive CreateRestrictedSendExpression</strong>: Create a
@@ -137,11 +141,12 @@ extends Primitive
 		catch (final MalformedMessageException e)
 		{
 			return interpreter.primitiveFailure(
-				stringFrom("Malformed message name: "
-					+ messageName
-					+ "("
-					+ e.describeProblem()
-					+ ")"));
+				stringFrom(
+					"Malformed message name: "
+						+ messageName
+						+ "("
+						+ e.describeProblem()
+						+ ")"));
 		}
 		final A_Type argsTupleType = argsListNode.expressionType();
 		final A_Tuple argTypesTuple =
@@ -171,8 +176,7 @@ extends Primitive
 		}
 		if (!anyDefinitionsApplicable)
 		{
-			return interpreter.primitiveFailure(
-				E_NO_METHOD_DEFINITION);
+			return interpreter.primitiveFailure(E_NO_METHOD_DEFINITION);
 		}
 		final List<A_SemanticRestriction> applicableRestrictions =
 			new ArrayList<>();
@@ -194,15 +198,12 @@ extends Primitive
 		{
 			// No semantic restrictions.  Trivial success.
 			return interpreter.primitiveSuccess(
-				SendNodeDescriptor.from(
-					emptyTuple(),
-					bundle,
-					argsListNode,
-					intersection.value));
+				newSendNode(
+					emptyTuple(), bundle, argsListNode, intersection.value));
 		}
 
 		// Merge in the (non-empty list of) semantic restriction results.
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
 		interpreter.primitiveSuspend(primitiveFunction.code());
@@ -225,7 +226,7 @@ extends Primitive
 				resumeFromSuccessfulPrimitive(
 					runtime,
 					originalFiber,
-					SendNodeDescriptor.from(
+					newSendNode(
 						emptyTuple(),
 						bundle,
 						argsListNode,
@@ -247,17 +248,16 @@ extends Primitive
 				{
 					builder.append(
 						"send phrase creation primitive not to have "
-							+ "encountered multiple problems in "
-							+ "semantic restrictions:");
+							+ "encountered multiple problems in semantic "
+							+ "restrictions:");
 					for (final A_String problem : problems)
 					{
 						builder.append("\n\t");
 						builder.append(
-							problem.asNativeString().replace("\n", "\n\t"));
+							increaseIndentation(problem.asNativeString(), 1));
 					}
 				}
-				final A_String problemReport =
-					stringFrom(builder.toString());
+				final A_String problemReport = stringFrom(builder.toString());
 				resumeFromFailedPrimitive(
 					runtime,
 					originalFiber,
@@ -267,30 +267,29 @@ extends Primitive
 					skipReturnCheck);
 			}
 		};
-		final Continuation1NotNull<AvailObject> success =
-			resultType ->
+		final Continuation1NotNull<AvailObject> success = resultType ->
+		{
+			if (resultType.isType())
 			{
-				if (resultType.isType())
+				synchronized (intersection)
 				{
-					synchronized (intersection)
-					{
-						intersection.value =
-							intersection.value.typeIntersection(resultType);
-					}
+					intersection.value =
+						intersection.value.typeIntersection(resultType);
 				}
-				else
+			}
+			else
+			{
+				synchronized (problems)
 				{
-					synchronized (problems)
-					{
-						problems.add(
-							stringFrom(
-								"Semantic restriction failed to produce "
-									+ "a type, and instead produced: "
-									+ resultType));
-					}
+					problems.add(
+						stringFrom(
+							"Semantic restriction failed to produce "
+								+ "a type, and instead produced: "
+								+ resultType));
 				}
-				decrement.value();
-			};
+			}
+			decrement.value();
+		};
 		int fiberCount = 1;
 		for (final A_SemanticRestriction restriction : applicableRestrictions)
 		{
@@ -341,10 +340,7 @@ extends Primitive
 				// Now that we've fully dealt with it,
 			});
 			runOutermostFunction(
-				runtime,
-				forkedFiber,
-				restriction.function(),
-				argTypesList);
+				runtime, forkedFiber, restriction.function(), argTypesList);
 		}
 		return FIBER_SUSPENDED;
 	}
@@ -378,8 +374,8 @@ extends Primitive
 	{
 		return enumerationWith(
 			set(
-					E_INCORRECT_NUMBER_OF_ARGUMENTS,
-					E_NO_METHOD_DEFINITION)
-				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+				E_INCORRECT_NUMBER_OF_ARGUMENTS,
+				E_NO_METHOD_DEFINITION
+			).setUnionCanDestroy(possibleErrors, true));
 	}
 }

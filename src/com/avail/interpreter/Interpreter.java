@@ -37,7 +37,7 @@ import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
@@ -48,7 +48,6 @@ import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
-import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.Continuation0ThrowsReification;
@@ -73,6 +72,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
 	.REIFICATION_REQUESTED;
@@ -83,7 +83,7 @@ import static com.avail.descriptor.FiberDescriptor.TraceFlag
 	.TRACE_VARIABLE_READS_BEFORE_WRITES;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag
 	.TRACE_VARIABLE_WRITES;
-import static com.avail.descriptor.FiberDescriptor.stringificationPriority;
+import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.StringDescriptor.formatString;
@@ -91,10 +91,13 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.VariableDescriptor
+	.newVariableWithContentType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import static com.avail.interpreter.primitive.variables.P_SetValue.instance;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -275,8 +278,7 @@ public final class Interpreter
 	{
 		if (logger.isLoggable(level))
 		{
-			final @Nullable A_Fiber runningFiber =
-				FiberDescriptor.currentFiberOrNull();
+			final @Nullable A_Fiber runningFiber = currentFiberOrNull();
 			final StringBuilder builder = new StringBuilder();
 			builder.append(
 				runningFiber != null
@@ -986,7 +988,7 @@ public final class Interpreter
 						// Wake it up.
 						joiner.executionState(SUSPENDED);
 						Interpreter.resumeFromSuccessfulPrimitive(
-							AvailRuntime.current(),
+							currentRuntime(),
 							joiner,
 							nil(),
 							joiner.suspendingRawFunction(),
@@ -2066,7 +2068,7 @@ public final class Interpreter
 		assert aFiber.executionState() == INTERRUPTED;
 		assert !aFiber.continuation().equalsNil();
 		executeFiber(
-			AvailRuntime.current(),
+			currentRuntime(),
 			aFiber,
 			interpreter ->
 			{
@@ -2236,7 +2238,7 @@ public final class Interpreter
 		if (!checkOk)
 		{
 			final A_Variable reportedResult =
-				VariableDescriptor.forContentType(Types.ANY.o());
+				newVariableWithContentType(Types.ANY.o());
 			reportedResult.setValueNoCheck(result);
 			argsBuffer.clear();
 			argsBuffer.add((AvailObject) returner);
@@ -2290,7 +2292,7 @@ public final class Interpreter
 			return;
 		}
 		// Create the fiber that will execute the function.
-		final A_Fiber fiber = FiberDescriptor.newFiber(
+		final A_Fiber fiber = newFiber(
 			stringType(),
 			stringificationPriority,
 			() -> stringFrom("Stringification"));
@@ -2563,7 +2565,7 @@ public final class Interpreter
 	 * restart implicitly observed assignments.
 	 */
 	private static final A_Function assignmentFunction =
-		newPrimitiveFunction(P_SetValue.instance, nil(), 0);
+		newPrimitiveFunction(instance, nil(), 0);
 
 	/**
 	 * Answer the bootstrapped {@linkplain P_SetValue assignment function}

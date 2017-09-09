@@ -32,17 +32,33 @@
 
 package com.avail.test;
 
+import com.avail.AvailRuntime;
+import com.avail.compiler.scanning.AvailScanner;
+import com.avail.compiler.scanning.AvailScannerException;
+import com.avail.compiler.scanning.AvailScannerResult;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.LiteralTokenDescriptor;
+import com.avail.descriptor.TokenDescriptor;
+import com.avail.utility.Generator;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.FloatDescriptor.fromFloat;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType;
 import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TokenDescriptor.newToken;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.test.ScannerTest.Case.C;
-import java.util.*;
-import com.avail.AvailRuntime;
-import com.avail.compiler.scanning.*;
-import com.avail.descriptor.*;
-import com.avail.utility.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the {@link AvailScanner}.
@@ -159,10 +175,10 @@ public final class ScannerTest
 		final int start)
 	{
 		return () ->
-			TokenDescriptor.create(
-				StringDescriptor.stringFrom(string),
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
+			newToken(
+				stringFrom(string),
+				emptyTuple(),
+				emptyTuple(),
 				start,
 				1,
 				tokenType);
@@ -285,20 +301,20 @@ public final class ScannerTest
 			final A_BasicObject literal;
 			if (object instanceof Double)
 			{
-				literal = DoubleDescriptor.fromDouble((Double)object);
+				literal = fromDouble((Double)object);
 			}
 			else if (object instanceof Float)
 			{
-				literal = FloatDescriptor.fromFloat((Float)object);
+				literal = fromFloat((Float)object);
 			}
 			else if (object instanceof Number)
 			{
 				final long asLong = ((Number)object).longValue();
-				literal = IntegerDescriptor.fromLong(asLong);
+				literal = fromLong(asLong);
 			}
 			else if (object instanceof String)
 			{
-				literal = StringDescriptor.stringFrom((String)object);
+				literal = stringFrom((String)object);
 			}
 			else
 			{
@@ -308,10 +324,10 @@ public final class ScannerTest
 				literal = null;
 			}
 			assert literal != null;
-			return (A_Token) LiteralTokenDescriptor.create(
-				StringDescriptor.stringFrom(string),
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
+			return (A_Token) literalToken(
+				stringFrom(string),
+				emptyTuple(),
+				emptyTuple(),
 				start,
 				1,
 				LITERAL,
@@ -421,10 +437,10 @@ public final class ScannerTest
 				}
 				assertEquals(
 					scannedTokens.get(scannedTokens.size() - 1),
-					TokenDescriptor.create(
-						TupleDescriptor.emptyTuple(),
-						TupleDescriptor.emptyTuple(),
-						TupleDescriptor.emptyTuple(),
+					newToken(
+						emptyTuple(),
+						emptyTuple(),
+						emptyTuple(),
 						input.length() + 1,
 						1,
 						END_OF_FILE),
@@ -468,40 +484,40 @@ public final class ScannerTest
 	@Test
 	public void testLiteralComparison ()
 	{
-		final A_String string = StringDescriptor.stringFrom("xxx");
+		final A_String string = stringFrom("xxx");
 		final List<AvailObject> literals = new ArrayList<>(4);
-		literals.add(LiteralTokenDescriptor.create(
+		literals.add(literalToken(
 			string,
-			TupleDescriptor.emptyTuple(),
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
+			emptyTuple(),
 			0,
 			0,
 			LITERAL,
-			FloatDescriptor.fromFloat(1.5f)));
-		literals.add(LiteralTokenDescriptor.create(
+			fromFloat(1.5f)));
+		literals.add(literalToken(
 			string,
-			TupleDescriptor.emptyTuple(),
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
+			emptyTuple(),
 			0,
 			0,
 			LITERAL,
-			FloatDescriptor.fromFloat(1.5f)));
-		literals.add(LiteralTokenDescriptor.create(
+			fromFloat(1.5f)));
+		literals.add(literalToken(
 			string,
-			TupleDescriptor.emptyTuple(),
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
+			emptyTuple(),
 			0,
 			0,
 			LITERAL,
-			FloatDescriptor.fromFloat(2.5f)));
-		literals.add(LiteralTokenDescriptor.create(
+			fromFloat(2.5f)));
+		literals.add(literalToken(
 			string,
-			TupleDescriptor.emptyTuple(),
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
+			emptyTuple(),
 			0,
 			0,
 			LITERAL,
-			DoubleDescriptor.fromDouble(2.5)));
+			fromDouble(2.5)));
 		for (final A_Token lit_i : literals)
 		{
 			for (final A_Token lit_j : literals)

@@ -31,11 +31,27 @@
  */
 package com.avail.interpreter.primitive.maps;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Answer a new {@linkplain MapDescriptor
@@ -67,11 +83,11 @@ public final class P_MapWithoutKey extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				MapTypeDescriptor.mostGeneralMapType(),
+		return functionType(
+			tuple(
+				mostGeneralMapType(),
 				ANY.o()),
-			MapTypeDescriptor.mostGeneralMapType());
+			mostGeneralMapType());
 	}
 
 
@@ -91,14 +107,13 @@ public final class P_MapWithoutKey extends Primitive
 			return mapType;
 		}
 		// It's possible that the new map will be smaller by one.
-		if (minSize.greaterThan(IntegerDescriptor.zero()))
+		if (minSize.greaterThan(zero()))
 		{
-			minSize = minSize.minusCanDestroy(
-				IntegerDescriptor.one(), false);
+			minSize = minSize.minusCanDestroy(one(), false);
 		}
-		final A_Type newSizeRange = IntegerRangeTypeDescriptor.integerRangeType(
+		final A_Type newSizeRange = integerRangeType(
 			minSize, true, mapSizes.upperBound(), mapSizes.upperInclusive());
-		return MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
+		return mapTypeForSizesKeyTypeValueType(
 			newSizeRange, mapType.keyType(), mapType.valueType());
 	}
 }

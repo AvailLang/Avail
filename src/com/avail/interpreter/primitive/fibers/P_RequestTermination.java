@@ -31,13 +31,6 @@
  */
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.*;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.*;
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import java.util.*;
-import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
@@ -51,14 +44,18 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.TimerTask;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
+	.TERMINATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag
+	.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -107,8 +104,8 @@ extends Primitive
 						fiber.wakeupTask(null);
 					}
 					fiber.executionState(SUSPENDED);
-					Interpreter.resumeFromSuccessfulPrimitive(
-						AvailRuntime.current(),
+					resumeFromSuccessfulPrimitive(
+						currentRuntime(),
 						fiber,
 						nil(),
 						primitiveRawFunction,
@@ -119,8 +116,8 @@ extends Primitive
 					assert !hadPermit :
 						"Should not have been parked with a permit";
 					fiber.executionState(SUSPENDED);
-					Interpreter.resumeFromSuccessfulPrimitive(
-						AvailRuntime.current(),
+					resumeFromSuccessfulPrimitive(
+						currentRuntime(),
 						fiber,
 						nil(),
 						primitiveRawFunction,
@@ -142,8 +139,6 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			tuple(mostGeneralFiberType()),
-			TOP.o());
+		return functionType(tuple(mostGeneralFiberType()), TOP.o());
 	}
 }

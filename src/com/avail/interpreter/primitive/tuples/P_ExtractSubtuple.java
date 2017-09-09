@@ -31,12 +31,31 @@
  */
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static java.lang.Math.min;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static java.lang.Math.min;
 
 /**
  * <strong>Primitive:</strong> Extract a {@linkplain TupleDescriptor
@@ -75,10 +94,7 @@ public final class P_ExtractSubtuple extends Primitive
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 		}
 		return interpreter.primitiveSuccess(
-			tuple.copyTupleFromToCanDestroy(
-				startInt,
-				endInt,
-				true));
+			tuple.copyTupleFromToCanDestroy(startInt, endInt, true));
 	}
 
 	@Override
@@ -95,8 +111,8 @@ public final class P_ExtractSubtuple extends Primitive
 		if (startInteger.equals(startType.upperBound()) && startInteger.isInt())
 		{
 			final int startInt = startInteger.extractInt();
-			final A_Number adjustment = startInteger.minusCanDestroy(
-				IntegerDescriptor.one(), false).makeImmutable();
+			final A_Number adjustment =
+				startInteger.minusCanDestroy(one(), false).makeImmutable();
 			final A_Type oldSizes = tupleType.sizeRange();
 			final A_Number oldEnd1 = oldSizes.upperBound();
 			final A_Number oldEnd2 = endType.upperBound();
@@ -105,25 +121,18 @@ public final class P_ExtractSubtuple extends Primitive
 			final A_Number newLower =
 				endType.lowerBound().minusCanDestroy(adjustment, false);
 			final A_Number realLower =
-				newLower.lessThan(IntegerDescriptor.zero())
-				? IntegerDescriptor.zero()
-				: newLower;
+				newLower.lessThan(zero()) ? zero() : newLower;
 			final A_Number newEnd = oldEnd.minusCanDestroy(adjustment, false);
-			final A_Type newSizes = IntegerRangeTypeDescriptor.integerRangeType(
-				realLower,
-				true,
-				newEnd.plusCanDestroy(IntegerDescriptor.one(), true),
-				false);
+			final A_Type newSizes = integerRangeType(
+				realLower, true, newEnd.plusCanDestroy(one(), true), false);
 			final A_Tuple originalLeading = tupleType.typeTuple();
 			final A_Tuple newLeading =
 				originalLeading.copyTupleFromToCanDestroy(
 					min(startInt, originalLeading.tupleSize() + 1),
 					originalLeading.tupleSize(),
 					false);
-			return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				newSizes,
-				newLeading,
-				tupleType.defaultType());
+			return tupleTypeForSizesTypesDefaultType(
+				newSizes, newLeading, tupleType.defaultType());
 		}
 		return super.returnTypeGuaranteedByVM(argumentTypes);
 	}
@@ -131,19 +140,17 @@ public final class P_ExtractSubtuple extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.mostGeneralTupleType(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.wholeNumbers()),
-			TupleTypeDescriptor.mostGeneralTupleType());
+		return functionType(
+			tuple(
+				mostGeneralTupleType(),
+				naturalNumbers(),
+				wholeNumbers()),
+			mostGeneralTupleType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_SUBSCRIPT_OUT_OF_BOUNDS));
+		return enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS));
 	}
 }

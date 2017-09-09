@@ -31,12 +31,28 @@
  */
 package com.avail.interpreter.primitive.maps;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Look up the key in the {@linkplain
@@ -70,11 +86,8 @@ public final class P_MapAtKey extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				MapTypeDescriptor.mostGeneralMapType(),
-				ANY.o()),
-			ANY.o());
+		return
+			functionType(tuple(mostGeneralMapType(), ANY.o()), ANY.o());
 	}
 
 	@Override
@@ -85,7 +98,7 @@ public final class P_MapAtKey extends Primitive
 		final A_Type keyType = argumentTypes.get(1);
 		if (mapType.isEnumeration() && keyType.isEnumeration())
 		{
-			A_Set values = SetDescriptor.emptySet();
+			A_Set values = emptySet();
 			final A_Set keyTypeInstances = keyType.instances();
 			for (final A_Map mapInstance : mapType.instances())
 			{
@@ -99,7 +112,7 @@ public final class P_MapAtKey extends Primitive
 					}
 				}
 			}
-			return AbstractEnumerationTypeDescriptor.enumerationWith(values);
+			return enumerationWith(values);
 		}
 		// Fall back on the map type's value type.
 		return mapType.valueType();
@@ -108,8 +121,7 @@ public final class P_MapAtKey extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_KEY_NOT_FOUND));
+		return
+			enumerationWith(set(E_KEY_NOT_FOUND));
 	}
 }

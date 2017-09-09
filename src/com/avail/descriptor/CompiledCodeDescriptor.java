@@ -32,18 +32,6 @@
 
 package com.avail.descriptor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
-import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
@@ -52,13 +40,45 @@ import com.avail.annotations.InnerAccess;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.*;
+import com.avail.interpreter.levelOne.L1Disassembler;
+import com.avail.interpreter.levelOne.L1OperandType;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor
+	.createAtomWithProperties;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.compiledCodeTypeForFunctionType;
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
+import static java.lang.String.format;
 
 /**
  * A {@linkplain CompiledCodeDescriptor compiled code} object is created
@@ -325,7 +345,7 @@ extends Descriptor
 				object,
 				FakeSlots.ALL_LITERALS,
 				-1,
-				TupleDescriptor.tupleFromList(allLiterals)));
+				tupleFromList(allLiterals)));
 		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
@@ -362,9 +382,9 @@ extends Descriptor
 	 *        completion}.
 	 */
 	@AvailMethod
-	public static void ResetCodeCoverageDetailsThen (final Continuation0 resume)
+	public static void resetCodeCoverageDetailsThen (final Continuation0 resume)
 	{
-		AvailRuntime.current().whenLevelOneSafeDo(
+		currentRuntime().whenLevelOneSafeDo(
 			new AvailTask(FiberDescriptor.commandPriority)
 			{
 				@Override
@@ -384,7 +404,7 @@ extends Descriptor
 								object.startingChunk().invalidate();
 							}
 						}
-						AvailRuntime.current().whenLevelOneUnsafeDo(
+						currentRuntime().whenLevelOneUnsafeDo(
 							new AvailTask(FiberDescriptor.commandPriority)
 							{
 								@Override
@@ -484,7 +504,7 @@ extends Descriptor
 		@Override
 		public String toString ()
 		{
-			return String.format(
+			return format(
 				"%c %c  m: %s,  l: %d,  f: %s",
 				hasRun ? 'r' : ' ',
 				isTranslated ? 't' : ' ',
@@ -503,7 +523,7 @@ extends Descriptor
 	public static void codeCoverageReportsThen (
 		final Continuation1NotNull<List<CodeCoverageReport>> resume)
 	{
-		AvailRuntime.current().whenLevelOneSafeDo(
+		currentRuntime().whenLevelOneSafeDo(
 			new AvailTask(FiberDescriptor.commandPriority)
 			{
 				@Override
@@ -533,7 +553,7 @@ extends Descriptor
 							}
 						}
 					}
-					AvailRuntime.current().whenLevelOneUnsafeDo(
+					currentRuntime().whenLevelOneUnsafeDo(
 						new AvailTask(FiberDescriptor.commandPriority)
 						{
 							@Override
@@ -630,8 +650,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{
-		return CompiledCodeTypeDescriptor.forFunctionType(
-			object.functionType());
+		return compiledCodeTypeForFunctionType(object.functionType());
 	}
 
 	@Override @AvailMethod
@@ -814,8 +833,7 @@ extends Descriptor
 			{
 				subCode = literal.code();
 			}
-			else if (literal.isInstanceOf(
-				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()))
+			else if (literal.isInstanceOf(mostGeneralCompiledCodeType()))
 			{
 				subCode = literal;
 			}
@@ -825,11 +843,10 @@ extends Descriptor
 			}
 			if (subCode != null)
 			{
-				final String suffix = String.format("[%d]", counter);
+				final String suffix = format("[%d]", counter);
 				counter++;
 				final A_Tuple newName = methodName.concatenateWith(
-					StringDescriptor.stringFrom(suffix),
-					true);
+					stringFrom(suffix), true);
 				subCode.setMethodName((A_String)newName);
 			}
 		}
@@ -843,7 +860,7 @@ extends Descriptor
 			propertyAtom.getAtomProperty(methodNameKeyAtom());
 		if (methodName.equalsNil())
 		{
-			return StringDescriptor.stringFrom("Unknown function");
+			return stringFrom("Unknown function");
 		}
 		return methodName;
 	}
@@ -897,7 +914,7 @@ extends Descriptor
 			A_BasicObject literal = object.slot(LITERAL_AT_, i);
 			if (literal.equalsNil())
 			{
-				literal = IntegerDescriptor.zero();
+				literal = zero();
 			}
 			literal.writeSummaryTo(writer);
 		}
@@ -938,7 +955,7 @@ extends Descriptor
 			A_BasicObject literal = object.slot(LITERAL_AT_, i);
 			if (literal.equalsNil())
 			{
-				literal = IntegerDescriptor.zero();
+				literal = zero();
 			}
 			literal.writeSummaryTo(writer);
 		}
@@ -982,7 +999,7 @@ extends Descriptor
 	 * @param lineNumber The module line number on which this code starts.
 	 * @return The new compiled code object.
 	 */
-	public static AvailObject create (
+	public static AvailObject newCompiledCode (
 		final A_Tuple nybbles,
 		final int locals,
 		final int stack,
@@ -1031,8 +1048,7 @@ extends Descriptor
 
 		final InvocationStatistic statistic = new InvocationStatistic();
 		statistic.countdownToReoptimize.set(L2Chunk.countdownForNewCode());
-		final AvailObject statisticPojo =
-			RawPojoDescriptor.identityWrap(statistic);
+		final AvailObject statisticPojo = identityPojo(statistic);
 
 		code.setSlot(NUM_LOCALS, locals);
 		code.setSlot(NUM_ARGS, numArgs);
@@ -1042,7 +1058,7 @@ extends Descriptor
 			PRIMITIVE, primitive == null ? 0 : primitive.primitiveNumber);
 		code.setSlot(NYBBLES, nybbles.makeShared());
 		code.setSlot(FUNCTION_TYPE, functionType.makeShared());
-		code.setSlot(PROPERTY_ATOM, NilDescriptor.nil());
+		code.setSlot(PROPERTY_ATOM, nil());
 		code.setSlot(STARTING_CHUNK, L2Chunk.unoptimizedChunk().chunkPojo);
 		code.setSlot(INVOCATION_STATISTIC, statisticPojo);
 
@@ -1065,10 +1081,9 @@ extends Descriptor
 		}
 		assert dest == literalsSize + outersSize + locals + 1;
 
-		final A_Atom propertyAtom = AtomWithPropertiesDescriptor.create(
-			TupleDescriptor.emptyTuple(), module);
-		propertyAtom.setAtomProperty(
-			lineNumberKeyAtom(), IntegerDescriptor.fromInt(lineNumber));
+		final A_Atom propertyAtom = createAtomWithProperties(
+			emptyTuple(), module);
+		propertyAtom.setAtomProperty(lineNumberKeyAtom(), fromInt(lineNumber));
 		if (!originatingPhrase.equalsNil())
 		{
 			propertyAtom.setAtomProperty(
@@ -1136,7 +1151,7 @@ extends Descriptor
 	 * name is presented in stack traces.
 	 */
 	private static final A_Atom methodNameKeyAtom =
-		AtomDescriptor.createSpecialAtom("code method name key");
+		createSpecialAtom("code method name key");
 
 	/**
 	 * Answer the key used to track a method name associated with the code. This
@@ -1154,7 +1169,7 @@ extends Descriptor
 	 * this code occurs.
 	 */
 	private static final A_Atom lineNumberKeyAtom =
-		AtomDescriptor.createSpecialAtom("code line number key");
+		createSpecialAtom("code line number key");
 
 	/**
 	 * Answer the key used to track the first line number within the module on
@@ -1172,7 +1187,7 @@ extends Descriptor
 	 * function was created from.
 	 */
 	private static final A_Atom originatingPhraseKeyAtom =
-		AtomDescriptor.createSpecialAtom("originating phrase key");
+		createSpecialAtom("originating phrase key");
 
 	/**
 	 * Answer the key used to track the {@link ParseNodeDescriptor phrase} that

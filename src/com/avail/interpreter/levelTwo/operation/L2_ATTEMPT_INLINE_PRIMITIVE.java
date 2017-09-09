@@ -31,21 +31,23 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.List;
-
 import com.avail.AvailRuntime;
-import javax.annotation.Nullable;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Attempt to perform the specified primitive, using the provided arguments.
@@ -169,7 +171,7 @@ extends L2Operation
 		final Primitive primitive = instruction.primitiveAt(0);
 		final A_Type expectedType = instruction.constantAt(3);
 		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(4);
-		final L2ObjectRegister failureReg =
+		final L2ObjectRegister failureValueReg =
 			instruction.writeObjectRegisterAt(5);
 
 		final RegisterSet successRegisterSet = registerSets.get(1);
@@ -177,9 +179,9 @@ extends L2Operation
 
 		// Figure out what the primitive failure values are allowed to be.
 		final A_Type failureType = primitive.failureVariableType();
-		failRegisterSet.removeTypeAt(failureReg);
-		failRegisterSet.removeConstantAt(failureReg);
-		failRegisterSet.typeAtPut(failureReg, failureType, instruction);
+		failRegisterSet.removeTypeAt(failureValueReg);
+		failRegisterSet.removeConstantAt(failureValueReg);
+		failRegisterSet.typeAtPut(failureValueReg, failureType, instruction);
 
 		successRegisterSet.removeTypeAt(resultReg);
 		successRegisterSet.removeConstantAt(resultReg);
@@ -204,7 +206,7 @@ extends L2Operation
 	 *         give instruction.
 	 */
 	@Override
-	public final @Nullable L2ObjectRegister primitiveResultRegister (
+	public final L2ObjectRegister primitiveResultRegister (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == instance;

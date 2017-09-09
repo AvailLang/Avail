@@ -45,11 +45,16 @@ import java.nio.channels.CompletionHandler;
 import java.util.Collections;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -124,7 +129,7 @@ extends Primitive
 			buffer.flip();
 		}
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
 			() ->
@@ -142,7 +147,7 @@ extends Primitive
 		succeed.makeShared();
 		fail.makeShared();
 		// Now start the asynchronous write.
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		try
 		{
 			socket.write(
@@ -168,7 +173,7 @@ extends Primitive
 								runtime,
 								newFiber,
 								succeed,
-								Collections.<AvailObject>emptyList());
+								Collections.emptyList());
 						}
 					}
 
@@ -198,15 +203,13 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				zeroOrMoreOf(
-					bytes()),
+				zeroOrMoreOf(bytes()),
 				ATOM.o(),
 				functionType(
 					emptyTuple(),
 					TOP.o()),
 				functionType(
-					tuple(
-						instanceTypeOn(E_IO_ERROR.numericCode())),
+					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o()),
 				bytes()),
 			mostGeneralFiberType());
@@ -216,8 +219,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR));

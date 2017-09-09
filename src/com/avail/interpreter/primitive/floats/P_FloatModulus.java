@@ -31,12 +31,20 @@
  */
 package com.avail.interpreter.primitive.floats;
 
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FloatDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FloatDescriptor.objectFromFloatRecycling;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static java.lang.Math.floor;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Divide {@linkplain FloatDescriptor float}
@@ -65,14 +73,14 @@ public final class P_FloatModulus extends Primitive
 		final float div = fa / fb;
 		final float mod = fa - (float)floor(div) * fb;
 		return interpreter.primitiveSuccess(
-			FloatDescriptor.objectFromFloatRecycling(mod, a, b, true));
+			objectFromFloatRecycling(mod, a, b, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				FLOAT.o(),
 				FLOAT.o()),
 			FLOAT.o());

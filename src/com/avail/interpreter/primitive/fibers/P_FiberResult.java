@@ -32,14 +32,27 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.utility.MutableOrNull;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.utility.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.exceptions.AvailErrorCode
+	.E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT;
+import static com.avail.exceptions.AvailErrorCode.E_FIBER_RESULT_UNAVAILABLE;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Answer the result of the specified
@@ -95,18 +108,15 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FiberTypeDescriptor.mostGeneralFiberType()),
-			ANY.o());
+		return
+			functionType(tuple(mostGeneralFiberType()), ANY.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_FIBER_RESULT_UNAVAILABLE,
-				E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT));
+		return enumerationWith(set(
+			E_FIBER_RESULT_UNAVAILABLE,
+			E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT));
 	}
 }

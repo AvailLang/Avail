@@ -31,12 +31,28 @@
  */
 package com.avail.interpreter.primitive.rawfunctions;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.CompiledCodeTypeDescriptor
+	.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.utility.Generator;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain TupleDescriptor
@@ -61,20 +77,12 @@ public final class P_CompiledCodeLiterals extends Primitive
 		assert args.size() == 1;
 		final A_RawFunction code = args.get(0);
 
-		final A_Tuple tupleObject = ObjectTupleDescriptor.generateFrom(
+		final A_Tuple tupleObject = generateObjectTupleFrom(
 			code.numLiterals(),
-			new Generator<A_BasicObject>()
+			index ->
 			{
-				private int index = 1;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					final A_BasicObject literal = code.literalAt(index++);
-					return literal.equalsNil()
-						? IntegerDescriptor.zero()
-						: literal;
-				}
+				final A_BasicObject literal = code.literalAt(index);
+				return literal.equalsNil() ? zero() : literal;
 			});
 		return interpreter.primitiveSuccess(tupleObject);
 	}
@@ -82,10 +90,8 @@ public final class P_CompiledCodeLiterals extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				ANY.o()));
+		return functionType(
+			tuple(mostGeneralCompiledCodeType()),
+			zeroOrMoreOf(ANY.o()));
 	}
 }

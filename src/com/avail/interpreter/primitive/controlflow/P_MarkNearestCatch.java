@@ -32,12 +32,22 @@
 
 package com.avail.interpreter.primitive.controlflow;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
  * <strong>Primitive:</strong> Mark the nearest frame corresponding to an
@@ -70,21 +80,15 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				AbstractEnumerationTypeDescriptor.enumerationWith(
-					SetDescriptor.set(
-						E_HANDLER_SENTINEL,
-						E_UNWIND_SENTINEL))),
+		return functionType(tuple(
+			enumerationWith(set(E_HANDLER_SENTINEL, E_UNWIND_SENTINEL))),
 			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_CANNOT_MARK_HANDLER_FRAME,
-				E_NO_HANDLER_FRAME));
+		return enumerationWith(
+			set(E_CANNOT_MARK_HANDLER_FRAME, E_NO_HANDLER_FRAME));
 	}
 }

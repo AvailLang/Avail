@@ -34,7 +34,6 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ListNodeTypeDescriptor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
@@ -50,6 +49,7 @@ import java.util.Set;
 
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.WrapState.*;
+import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.exceptions.AvailErrorCode.*;
 
@@ -313,7 +313,7 @@ extends Expression
 				? permutedArguments.get(typeIndex - 1)
 				: typeIndex;
 		final A_Type subexpressionType = typeIndex == 0
-			? ListNodeTypeDescriptor.empty()
+			? emptyListNodeType()
 			: subexpressionsTupleType.typeAtIndex(realTypeIndex);
 		if (positionInRun == runSize - 1)
 		{
@@ -577,7 +577,7 @@ extends Expression
 			}
 			else
 			{
-				if (!expression.mightBeEmpty(ListNodeTypeDescriptor.empty()))
+				if (!expression.mightBeEmpty(emptyListNodeType()))
 				{
 					return false;
 				}

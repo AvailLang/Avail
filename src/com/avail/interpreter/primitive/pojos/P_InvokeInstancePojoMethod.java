@@ -31,14 +31,34 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.Private;
-import java.lang.reflect.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.PojoDescriptor;
+import com.avail.descriptor.RawPojoDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.MarshalingException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
+
+import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.PojoDescriptor.newPojo;
+import static com.avail.descriptor.PojoDescriptor.nullPojo;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.Private;
 
 /**
  * <strong>Primitive:</strong> Given a {@linkplain RawPojoDescriptor raw
@@ -71,16 +91,15 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 		final A_Tuple methodArgs = args.get(2);
 		final A_Tuple marshaledTypePojos = args.get(3);
 		// Marshal the arguments and invoke the method.
-		final Method method = (Method) methodPojo.javaObject();
-		assert method != null;
-		final Object receiver = receiverPojo.rawPojo().javaObject();
+		final Method method = (Method) methodPojo.javaObjectNotNull();
+		final Object receiver = receiverPojo.rawPojo().javaObjectNotNull();
 		final Object[] marshaledArgs = new Object[methodArgs.tupleSize()];
 		try
 		{
 			for (int i = 0; i < marshaledArgs.length; i++)
 			{
 				final Class<?> marshaledType = (Class<?>)
-					marshaledTypePojos.tupleAt(i + 1).javaObject();
+					marshaledTypePojos.tupleAt(i + 1).javaObjectNotNull();
 				marshaledArgs[i] = methodArgs.tupleAt(
 					i + 1).marshalToJava(marshaledType);
 			}
@@ -88,9 +107,7 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 		catch (final MarshalingException e)
 		{
 			return interpreter.primitiveFailure(
-				PojoDescriptor.newPojo(
-					RawPojoDescriptor.identityWrap(e),
-					PojoTypeDescriptor.pojoTypeForClass(e.getClass())));
+				newPojo(identityPojo(e), pojoTypeForClass(e.getClass())));
 		}
 		final Object result;
 		try
@@ -100,17 +117,14 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 		catch (final NullPointerException e)
 		{
 			return interpreter.primitiveFailure(
-				PojoDescriptor.newPojo(
-					RawPojoDescriptor.identityWrap(e),
-					PojoTypeDescriptor.pojoTypeForClass(e.getClass())));
+				newPojo(identityPojo(e), pojoTypeForClass(e.getClass())));
 		}
 		catch (final InvocationTargetException e)
 		{
 			final Throwable cause = e.getCause();
 			return interpreter.primitiveFailure(
-				PojoDescriptor.newPojo(
-					RawPojoDescriptor.identityWrap(cause),
-					PojoTypeDescriptor.pojoTypeForClass(cause.getClass())));
+				newPojo(
+					identityPojo(cause), pojoTypeForClass(cause.getClass())));
 		}
 		catch (final Throwable e)
 		{
@@ -120,33 +134,29 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 		}
 		if (result == null)
 		{
-			return interpreter.primitiveSuccess(
-				PojoDescriptor.nullObject());
+			return interpreter.primitiveSuccess(nullPojo());
 		}
-		final A_Type expectedType = PojoTypeDescriptor.resolve(
-			method.getGenericReturnType(),
-			receiverPojo.kind().typeVariables());
-		final AvailObject unmarshaled = PojoTypeDescriptor.unmarshal(
-			result, expectedType);
+		final A_Type expectedType = resolvePojoType(
+			method.getGenericReturnType(), receiverPojo.kind().typeVariables());
+		final AvailObject unmarshaled = unmarshal(result, expectedType);
 		return interpreter.primitiveSuccess(unmarshaled);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				RAW_POJO.o(),
-				PojoTypeDescriptor.mostGeneralPojoType(),
-				TupleTypeDescriptor.mostGeneralTupleType(),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					RAW_POJO.o())),
+				mostGeneralPojoType(),
+				mostGeneralTupleType(),
+				zeroOrMoreOf(RAW_POJO.o())),
 			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return PojoTypeDescriptor.pojoTypeForClass(Throwable.class);
+		return pojoTypeForClass(Throwable.class);
 	}
 }

@@ -31,11 +31,22 @@
  */
 package com.avail.interpreter.primitive.methods;
 
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain
@@ -66,10 +77,8 @@ public final class P_BundleMessageParts extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				MESSAGE_BUNDLE.o()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				TupleTypeDescriptor.stringType()));
+		return
+			functionType(tuple(MESSAGE_BUNDLE.o()), zeroOrMoreOf(
+				stringType()));
 	}
 }

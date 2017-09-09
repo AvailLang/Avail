@@ -33,9 +33,7 @@
 package com.avail.compiler.splitter;
 import com.avail.annotations.InnerAccess;
 import com.avail.compiler.ParsingOperation;
-
 import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.utility.Pair;
 
 import java.util.ArrayList;
@@ -44,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 
 /**
  * {@code InstructionGenerator} is used by {@code MessageSplitter} to accumulate
@@ -406,7 +405,7 @@ class InstructionGenerator
 			: "A placeholder instruction using a label was not resolved";
 		assert instructions.size() == expressionList.size();
 		assert delayedExpressionList.isEmpty();
-		return TupleDescriptor.tupleFromIntegerList(instructions).makeShared();
+		return tupleFromIntegerList(instructions).makeShared();
 	}
 
 	/**

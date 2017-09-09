@@ -32,15 +32,27 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * The {@code P_BootstrapPrefixStartOfBlock} primitive is triggered at the
@@ -83,21 +95,19 @@ extends Primitive
 		final A_Map bindings = clientData.mapAt(compilerScopeMapKey);
 		A_Tuple stack = clientData.hasKey(compilerScopeStackKey)
 			? clientData.mapAt(compilerScopeStackKey)
-			: TupleDescriptor.emptyTuple();
+			: emptyTuple();
 		stack = stack.appendCanDestroy(bindings, false);
 		clientData = clientData.mapAtPuttingCanDestroy(
 			compilerScopeStackKey, stack, true);
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataGlobalKey, clientData, true);
 		fiber.fiberGlobals(fiberGlobals.makeShared());
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(),
-			TOP.o());
+		return functionType(tuple(), TOP.o());
 	}
 }

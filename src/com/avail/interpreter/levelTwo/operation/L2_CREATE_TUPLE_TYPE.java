@@ -31,15 +31,24 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import java.util.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.*;
-import com.avail.interpreter.levelTwo.register.*;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Create a fixed sized {@link TupleTypeDescriptor tuple type} from the
@@ -72,7 +81,7 @@ public class L2_CREATE_TUPLE_TYPE extends L2Operation
 		{
 			types[i] = registers.get(i).in(interpreter);
 		}
-		final A_Type tupleType = TupleTypeDescriptor.tupleTypeForTypes(types);
+		final A_Type tupleType = tupleTypeForTypes(types);
 		destinationReg.set(tupleType, interpreter);
 	}
 
@@ -97,7 +106,7 @@ public class L2_CREATE_TUPLE_TYPE extends L2Operation
 			{
 				constants.add(registerSet.constantAt(register));
 			}
-			final A_Type tupleType = TupleTypeDescriptor.tupleTypeForTypes(
+			final A_Type tupleType = tupleTypeForTypes(
 				constants.toArray(new A_Type[size]));
 			tupleType.makeImmutable();
 			registerSet.constantAtPut(destinationReg, tupleType, instruction);
@@ -118,9 +127,9 @@ public class L2_CREATE_TUPLE_TYPE extends L2Operation
 					types.add(ANY.o());
 				}
 			}
-			final A_Type tupleType = TupleTypeDescriptor.tupleTypeForTypes(
+			final A_Type tupleType = tupleTypeForTypes(
 				types.toArray(new A_Type[size]));
-			final A_Type tupleMeta = InstanceMetaDescriptor.instanceMetaOn(tupleType);
+			final A_Type tupleMeta = instanceMeta(tupleType);
 			tupleMeta.makeImmutable();
 			registerSet.removeConstantAt(destinationReg);
 			registerSet.typeAtPut(destinationReg, tupleMeta, instruction);

@@ -32,14 +32,26 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import com.avail.descriptor.*;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
+import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
@@ -71,7 +83,7 @@ public final class P_BootstrapLexerWholeNumberBody extends Primitive
 		final int sourceSize = source.tupleSize();
 		final int startPosition = sourcePositionInteger.extractInt();
 		int position = startPosition;
-		A_Number value = IntegerDescriptor.zero();
+		A_Number value = zero();
 
 		while (position <= sourceSize)
 		{
@@ -80,35 +92,33 @@ public final class P_BootstrapLexerWholeNumberBody extends Primitive
 			{
 				break;
 			}
-			value = value.noFailTimesCanDestroy(IntegerDescriptor.ten(), true);
+			value = value.noFailTimesCanDestroy(ten(), true);
 			value = value.noFailPlusCanDestroy(
-				IntegerDescriptor.fromUnsignedByte(
-					(short) Character.digit(digitCodePoint, 10)),
+				fromUnsignedByte((short) Character.digit(digitCodePoint, 10)),
 				true);
 			position++;
 		}
-		final A_Token token = LiteralTokenDescriptor.create(
-			(A_String)source.copyTupleFromToCanDestroy(
+		final A_Token token = literalToken(
+			(A_String) source.copyTupleFromToCanDestroy(
 				startPosition, position - 1, false),
-			TupleDescriptor.emptyTuple(),
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
+			emptyTuple(),
 			startPosition,
 			lineNumberInteger.extractInt(),
-			TokenType.LITERAL,
+			LITERAL,
 			value);
 		token.makeShared();
-		return interpreter.primitiveSuccess(TupleDescriptor.tuple(token));
+		return interpreter.primitiveSuccess(tuple(token));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.naturalNumbers()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				Types.TOKEN.o()));
+		return functionType(
+			tuple(
+				stringType(),
+				naturalNumbers(),
+				naturalNumbers()),
+			zeroOrMoreOf(TOKEN.o()));
 	}
 }

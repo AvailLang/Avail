@@ -32,14 +32,33 @@
 
 package com.avail.interpreter.primitive.variables;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Disable {@linkplain
@@ -76,7 +95,7 @@ extends Primitive
 		}
 		interpreter.setTraceVariableWrites(false);
 		final A_Set written = fiber.variablesWritten();
-		A_Set functions = SetDescriptor.emptySet();
+		A_Set functions = emptySet();
 		for (final A_Variable var : written)
 		{
 			functions = functions.setUnionCanDestroy(
@@ -89,20 +108,19 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.emptyTuple(),
-			SetTypeDescriptor.setTypeForSizesContentType(
-				IntegerRangeTypeDescriptor.wholeNumbers(),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.emptyTuple(),
+		return functionType(
+			emptyTuple(),
+			setTypeForSizesContentType(
+				wholeNumbers(),
+				functionType(
+					emptyTuple(),
 					TOP.o())));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_ILLEGAL_TRACE_MODE));
+		return
+			enumerationWith(set(E_ILLEGAL_TRACE_MODE));
 	}
 }

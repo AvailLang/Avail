@@ -32,15 +32,31 @@
 
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.*;
+import com.avail.exceptions.MarshalingException;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import com.avail.descriptor.*;
-import com.avail.exceptions.MarshalingException;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.*;
+import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
+import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Given the specified {@linkplain
@@ -136,31 +152,27 @@ extends Primitive
 			method = methods.iterator().next();
 		}
 		assert method != null;
-		final A_Type returnType = PojoTypeDescriptor.resolve(
-			method.getGenericReturnType(),
-			pojoType.typeVariables());
+		final A_Type returnType = resolvePojoType(
+			method.getGenericReturnType(), pojoType.typeVariables());
 		return interpreter.primitiveSuccess(returnType);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.instanceMetaOn(
-					PojoTypeDescriptor.mostGeneralPojoType()),
-				TupleTypeDescriptor.stringType(),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					InstanceMetaDescriptor.anyMeta())),
-			InstanceMetaDescriptor.topMeta());
+		return functionType(
+			tuple(
+				instanceMeta(mostGeneralPojoType()),
+				stringType(),
+				zeroOrMoreOf(anyMeta())),
+			topMeta());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_JAVA_METHOD_NOT_AVAILABLE,
-				E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS));
+		return enumerationWith(set(
+			E_JAVA_METHOD_NOT_AVAILABLE,
+			E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS));
 	}
 }

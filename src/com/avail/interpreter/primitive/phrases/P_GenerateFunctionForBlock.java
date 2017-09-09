@@ -32,14 +32,34 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.BlockNodeDescriptor.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BlockNodeDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.BlockNodeDescriptor.recursivelyValidate;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.ModuleDescriptor.currentModule;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.BLOCK_NODE;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Compile the specified {@linkplain
@@ -87,15 +107,13 @@ extends Primitive
 		final A_RawFunction compiledCode;
 		try
 		{
-			compiledCode = block.generateInModule(ModuleDescriptor.current());
+			compiledCode = block.generateInModule(currentModule());
 		}
 		catch (final Exception e)
 		{
 			return interpreter.primitiveFailure(E_BLOCK_COMPILATION_FAILED);
 		}
-		final A_Function function = FunctionDescriptor.create(
-			compiledCode,
-			TupleDescriptor.emptyTuple());
+		final A_Function function = createFunction(compiledCode, emptyTuple());
 		function.makeImmutable();
 		return interpreter.primitiveSuccess(function);
 	}
@@ -103,19 +121,18 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				BLOCK_NODE.mostGeneralType()),
-			FunctionTypeDescriptor.mostGeneralFunctionType());
+			mostGeneralFunctionType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_BLOCK_IS_INVALID,
-				E_BLOCK_MUST_NOT_CONTAIN_OUTERS,
-				E_BLOCK_COMPILATION_FAILED));
+		return enumerationWith(set(
+			E_BLOCK_IS_INVALID,
+			E_BLOCK_MUST_NOT_CONTAIN_OUTERS,
+			E_BLOCK_COMPILATION_FAILED));
 	}
 }

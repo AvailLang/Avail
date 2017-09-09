@@ -31,14 +31,32 @@
  */
 package com.avail.interpreter.primitive.phrases;
 
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AssignmentNodeDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.SequenceNodeDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Transform a variable reference and an
@@ -79,22 +97,20 @@ public final class P_CreateAssignmentStatement extends Primitive
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT);
 		}
-		if (!expression.expressionType().isSubtypeOf(
-			variable.expressionType()))
+		if (!expression.expressionType().isSubtypeOf(variable.expressionType()))
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE);
 		}
-		final A_Phrase assignment = AssignmentNodeDescriptor.from(
-			variable, expression, false);
+		final A_Phrase assignment = newAssignment(variable, expression, false);
 		return interpreter.primitiveSuccess(assignment);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				VARIABLE_USE_NODE.mostGeneralType(),
 				EXPRESSION_NODE.create(ANY.o())),
 			ASSIGNMENT_NODE.mostGeneralType());
@@ -103,8 +119,8 @@ public final class P_CreateAssignmentStatement extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE));
 	}

@@ -392,9 +392,11 @@ public final class L2Translator
 
 	/**
 	 * All {@link A_ChunkDependable contingent values} for which changes should
-	 * cause the current {@linkplain L2Chunk level two chunk} to be invalidated.
+	 * cause the current {@linkplain L2Chunk level two chunk} to be
+	 * invalidated.
 	 */
-	@InnerAccess A_Set contingentValues = SetDescriptor.emptySet();
+	@InnerAccess
+	A_Set contingentValues = emptySet();
 
 	/**
 	 * The architectural registers, representing the fixed registers followed by

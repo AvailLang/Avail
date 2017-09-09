@@ -32,10 +32,17 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.ParseNodeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import com.avail.interpreter.AvailLoader;
@@ -47,10 +54,16 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.PARSE_NODE;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -182,7 +195,7 @@ extends Primitive
 							formatString("Macro body of %s",
 								atom.atomName()));
 						Interpreter.resumeFromSuccessfulPrimitive(
-							AvailRuntime.current(),
+							currentRuntime(),
 							fiber,
 							nil(),
 							primitiveFunction.code(),
@@ -193,7 +206,7 @@ extends Primitive
 							| SignatureException e)
 					{
 						Interpreter.resumeFromFailedPrimitive(
-							AvailRuntime.current(),
+							currentRuntime(),
 							fiber,
 							e.numericCode(),
 							primitiveFunction,
@@ -207,26 +220,23 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			ATOM.o(),
-			zeroOrMoreOf(mostGeneralFunctionType()),
-			functionTypeReturning(PARSE_NODE.mostGeneralType())), TOP.o());
+		return functionType(
+			tuple(ATOM.o(), zeroOrMoreOf(mostGeneralFunctionType()),
+				functionTypeReturning(PARSE_NODE.mostGeneralType())), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor
-				.set(E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_INCORRECT_NUMBER_OF_ARGUMENTS,
-					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
-					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
-					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
-					E_MACRO_MUST_RETURN_A_PARSE_NODE,
-					E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
-				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+		return enumerationWith(
+			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_INCORRECT_NUMBER_OF_ARGUMENTS,
+				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
+				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
+				E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
+				E_MACRO_MUST_RETURN_A_PARSE_NODE,
+				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
+				.setUnionCanDestroy(possibleErrors, true));
 	}
 }

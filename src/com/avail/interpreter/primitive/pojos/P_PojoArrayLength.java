@@ -31,11 +31,22 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.PojoDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.lang.reflect.Array;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the length of the specified
@@ -59,17 +70,16 @@ public final class P_PojoArrayLength extends Primitive
 		assert args.size() == 1;
 		final A_BasicObject pojo = args.get(0);
 		final A_BasicObject rawPojo = pojo.rawPojo();
-		final Object array = rawPojo.javaObject();
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(Array.getLength(array)));
+		final Object array = rawPojo.javaObjectNotNull();
+		return interpreter.primitiveSuccess(fromInt(Array.getLength(array)));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				PojoTypeDescriptor.mostGeneralPojoArrayType()),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+		return functionType(
+			tuple(
+				mostGeneralPojoArrayType()),
+			wholeNumbers());
 	}
 }

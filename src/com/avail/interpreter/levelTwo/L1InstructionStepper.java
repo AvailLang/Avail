@@ -43,7 +43,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
 import com.avail.optimizer.ReifyStackThrowable;
-import com.avail.utility.Generator;
+import com.avail.utility.IndexedGenerator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,13 +53,22 @@ import java.util.stream.Collectors;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.ContinuationDescriptor
+	.createContinuationExceptFrame;
+import static com.avail.descriptor.ContinuationDescriptor
+	.createLabelContinuation;
+import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateReversedFrom;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.assignmentFunction;
 import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.interpreter.levelOne.L1Operation.L1_doExtension;
+import static com.avail.interpreter.levelTwo.L2Chunk.*;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -340,8 +349,7 @@ public final class L1InstructionStepper
 					final AvailObject codeToClose =
 						code.literalAt(getInteger());
 					final A_Function newFunction =
-						FunctionDescriptor.createExceptOuters(
-							codeToClose, numCopiedVars);
+						createExceptOuters(codeToClose, numCopiedVars);
 					for (int i = numCopiedVars; i >= 1; i--)
 					{
 						// We don't assert assertObjectUnreachableIfMutable: on
@@ -419,9 +427,7 @@ public final class L1InstructionStepper
 				}
 				case L1_doMakeTuple:
 				{
-					push(
-						ObjectTupleDescriptor.generateReversedFrom(
-							getInteger(), this::pop));
+					push(generateReversedFrom(getInteger(), ignored -> pop()));
 					break;
 				}
 				case L1_doGetOuter:
@@ -478,7 +484,7 @@ public final class L1InstructionStepper
 							// created by offsetToRestartUnoptimizedChunk()
 							// when the continuation is restarted.
 							final A_Continuation newContinuation =
-								ContinuationDescriptor.createLabel(
+								createLabelContinuation(
 									savedFunction,
 									interpreter.reifiedContinuation,
 									savedSkip,
@@ -549,23 +555,20 @@ public final class L1InstructionStepper
 					}
 					interpreter.argsBuffer.clear();
 					final A_Tuple typesTuple =
-						ObjectTupleDescriptor.generateFrom(
+						generateObjectTupleFrom(
 							numArgs,
-							new Generator<A_BasicObject>()
+							new IndexedGenerator<A_BasicObject>()
 							{
 								int reversedStackp = stackp + numArgs;
 
-								int tupleIndex = 1;
-
 								@Override
-								public A_BasicObject value ()
+								public A_BasicObject value (final int index)
 								{
 									final AvailObject arg =
 										pointerAt(--reversedStackp);
 									interpreter.argsBuffer.add(arg);
 									return instanceTypeOrMetaOn(arg).typeUnion(
-										superUnionType.typeAtIndex(
-											tupleIndex++));
+										superUnionType.typeAtIndex(index));
 								}
 							});
 					stackp += numArgs;
@@ -652,6 +655,10 @@ public final class L1InstructionStepper
 		}
 		catch (final VariableGetException e)
 		{
+			//TODO MvG - Probably not right.  If the handler function is allowed
+			// to "return" a value in place of the variable read, the reified
+			// continuation should push the expected type before calling the
+			// handler.  We can probably avoid or postpone reification as well.
 			throw interpreter.reifyThenCall0(
 				interpreter.runtime().unassignedVariableReadFunction(),
 				true);
@@ -683,19 +690,19 @@ public final class L1InstructionStepper
 		{
 			assert e.numericCode().equals(
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
-			// Capture the state in a caller-less continuation.  We'll fill in
+			// Capture the state in a caller-less continuation.  We'll fix up
 			// the caller after reification, below.
 			final A_Function function = stripNull(interpreter.function);
 			final A_RawFunction code = function.code();
 			final A_Continuation continuation =
-				ContinuationDescriptor.createExceptFrame(
+				createContinuationExceptFrame(
 					function,
 					nil(),
 					pc,   // Right after the set-variable instruction.
 					stackp,
 					false,
-					L2Chunk.unoptimizedChunk(),
-					L2Chunk.offsetToResumeInterruptedUnoptimizedChunk());
+					unoptimizedChunk(),
+					offsetToResumeInterruptedUnoptimizedChunk());
 			for (
 				int i = code.numArgsAndLocalsAndStack();
 				i >= 1;
@@ -709,8 +716,7 @@ public final class L1InstructionStepper
 				interpreter.reifiedContinuation = continuation.replacingCaller(
 					interpreter.reifiedContinuation);
 				interpreter.argsBuffer.clear();
-				interpreter.argsBuffer.add(
-					(AvailObject) assignmentFunction());
+				interpreter.argsBuffer.add((AvailObject) assignmentFunction());
 				interpreter.argsBuffer.add(
 					(AvailObject) tuple(variable, value));
 				interpreter.skipReturnCheck = true;
@@ -763,14 +769,14 @@ public final class L1InstructionStepper
 				// requested.  Add this frame and rethrow.
 				interpreter.restorePointers(savedPointers);
 				final A_Continuation continuation =
-					ContinuationDescriptor.createExceptFrame(
+					createContinuationExceptFrame(
 						savedFunction,
 						nil(),
 						savedPc,
 						savedStackp,
 						false,
-						L2Chunk.unoptimizedChunk(),
-						L2Chunk.offsetToReturnIntoUnoptimizedChunk());
+						unoptimizedChunk(),
+						offsetToReturnIntoUnoptimizedChunk());
 				for (
 					int i = savedFunction.code().numArgsAndLocalsAndStack();
 					i >= 1;

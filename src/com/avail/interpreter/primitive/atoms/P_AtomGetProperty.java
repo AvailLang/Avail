@@ -31,12 +31,24 @@
  */
 package com.avail.interpreter.primitive.atoms;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> If the first {@linkplain AtomDescriptor
@@ -77,19 +89,15 @@ public final class P_AtomGetProperty extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ATOM.o(),
-				ATOM.o()),
-			ANY.o());
+		return functionType(tuple(
+			ATOM.o(),
+			ATOM.o()), ANY.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_NO_SUCH_FIELD,
-				E_KEY_NOT_FOUND));
+		return
+			enumerationWith(set(E_NO_SUCH_FIELD, E_KEY_NOT_FOUND));
 	}
 }

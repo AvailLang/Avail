@@ -31,10 +31,21 @@
  */
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the size of the {@linkplain
@@ -57,17 +68,15 @@ public final class P_TupleSize extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Tuple tuple = args.get(0);
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(tuple.tupleSize()));
+		return interpreter.primitiveSuccess(fromInt(tuple.tupleSize()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.mostGeneralTupleType()),
-			IntegerRangeTypeDescriptor.wholeNumbers());
+		return functionType(
+			tuple(mostGeneralTupleType()),
+			wholeNumbers());
 	}
 
 	@Override

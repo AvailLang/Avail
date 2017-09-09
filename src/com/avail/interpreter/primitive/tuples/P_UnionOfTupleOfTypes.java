@@ -31,10 +31,20 @@
  */
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Answer the union of the types in the given
@@ -57,7 +67,7 @@ public final class P_UnionOfTupleOfTypes extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Tuple tupleOfTypes = args.get(0);
-		A_Type unionObject = BottomTypeDescriptor.bottom();
+		A_Type unionObject = bottom();
 		for (final A_Type aType : tupleOfTypes)
 		{
 			unionObject = unionObject.typeUnion(aType);
@@ -68,10 +78,8 @@ public final class P_UnionOfTupleOfTypes extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.zeroOrMoreOf(
-					InstanceMetaDescriptor.topMeta())),
-			InstanceMetaDescriptor.topMeta());
+		return functionType(
+			tuple(zeroOrMoreOf(topMeta())),
+			topMeta());
 	}
 }

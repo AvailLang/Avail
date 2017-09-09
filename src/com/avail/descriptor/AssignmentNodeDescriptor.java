@@ -308,7 +308,7 @@ extends ParseNodeDescriptor
 	 *        otherwise.
 	 * @return The new assignment node.
 	 */
-	public static A_Phrase from (
+	public static A_Phrase newAssignment (
 		final A_Phrase variableUse,
 		final A_Phrase expression,
 		final boolean isInline)

@@ -32,18 +32,29 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.Mutability.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static java.lang.Math.*;
-import java.nio.ByteBuffer;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
-import com.avail.utility.Generator;
+import com.avail.utility.IndexedIntGenerator;
+
+import java.nio.ByteBuffer;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
+import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
+import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.nybbles;
+import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots
+	.RAW_LONG_AT_;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static java.lang.Math.min;
 
 /**
  * {@code NybbleTupleDescriptor} represents a tuple of integers that happen to
@@ -121,14 +132,14 @@ extends NumericTupleDescriptor
 		if (originalSize >= maximumCopySize || !newElement.isInt())
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+			final A_Tuple singleton = tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int intValue = ((A_Number) newElement).extractInt();
 		if ((intValue & ~15) != 0)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+			final A_Tuple singleton = tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int newSize = originalSize + 1;
@@ -217,9 +228,8 @@ extends NumericTupleDescriptor
 		int hash = 0;
 		for (int nybbleIndex = end; nybbleIndex >= start; nybbleIndex--)
 		{
-			final int itemHash = IntegerDescriptor.hashOfUnsignedByte(
-					getNybble(object, nybbleIndex))
-				^ preToggle;
+			final int itemHash =
+				hashOfUnsignedByte(getNybble(object, nybbleIndex)) ^ preToggle;
 			hash = (hash + itemHash) * multiplier;
 		}
 		return hash;
@@ -289,12 +299,9 @@ extends NumericTupleDescriptor
 		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
-			otherTuple,
-			true);
+		return concatenateAtLeastOneTree(object, otherTuple, true);
 	}
 
 	@Override
@@ -314,18 +321,8 @@ extends NumericTupleDescriptor
 			// Just copy the applicable nybbles out.  In theory we could use
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
-			final AvailObject result = generateFrom(
-				size,
-				new Generator<Byte>()
-				{
-					private int index = start;
-
-					@Override
-					public Byte value()
-					{
-						return getNybble(object, index++);
-					}
-				});
+			final AvailObject result = generateNybbleTupleFrom(
+				size, i -> getNybble(object, i + start - 1));
 			if (canDestroy)
 			{
 				object.assertObjectUnreachableIfMutable();
@@ -434,7 +431,7 @@ extends NumericTupleDescriptor
 			}
 		}
 		final A_Type defaultTypeObject = aType.defaultType();
-		if (IntegerRangeTypeDescriptor.nybbles().isSubtypeOf(defaultTypeObject))
+		if (nybbles().isSubtypeOf(defaultTypeObject))
 		{
 			return true;
 		}
@@ -485,8 +482,7 @@ extends NumericTupleDescriptor
 	AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the nybble tuple object.
-		return (AvailObject)IntegerDescriptor.fromUnsignedByte(
-			getNybble(object, index));
+		return (AvailObject) fromUnsignedByte(getNybble(object, index));
 	}
 
 	@Override @AvailMethod
@@ -540,7 +536,7 @@ extends NumericTupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		return IntegerRangeTypeDescriptor.nybbles().isSubtypeOf(type)
+		return nybbles().isSubtypeOf(type)
 			|| super.o_TupleElementsInRangeAreInstancesOf(
 				object, startIndex, endIndex, type);
 	}
@@ -566,18 +562,8 @@ extends NumericTupleDescriptor
 		// Just copy the applicable nybbles out.  In theory we could use
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
-		return generateFrom(
-			size,
-			new Generator<Byte>()
-			{
-				private int index = size;
-
-				@Override
-				public Byte value ()
-				{
-					return getNybble(object, index--);
-				}
-			});
+		return generateNybbleTupleFrom(
+			size, i -> getNybble(object, size + 1 - i));
 	}
 
 	@Override @AvailMethod
@@ -695,11 +681,12 @@ extends NumericTupleDescriptor
 	 * @param generator A generator to provide nybbles to store.
 	 * @return The new {@linkplain NybbleTupleDescriptor tuple}.
 	 */
-	public static AvailObject generateFrom(
+	public static AvailObject generateNybbleTupleFrom (
 		final int size,
-		final Generator<Byte> generator)
+		final IndexedIntGenerator generator)
 	{
 		final AvailObject result = mutableObjectOfSize(size);
+		int tupleIndex = 1;
 		// Aggregate sixteen writes at a time for the bulk of the tuple.
 		for (
 			int slotIndex = 1, limit = size >>> 4;
@@ -709,7 +696,7 @@ extends NumericTupleDescriptor
 			long combined = 0;
 			for (int shift = 0; shift < 64; shift += 4)
 			{
-				final byte nybble = generator.value();
+				final byte nybble = (byte) generator.value(tupleIndex++);
 				assert (nybble & 15) == nybble;
 				combined |= ((long)nybble) << shift;
 			}
@@ -718,10 +705,11 @@ extends NumericTupleDescriptor
 		// Do the last 0-15 writes the slow way.
 		for (int index = (size & ~15) + 1; index <= size; index++)
 		{
-			final byte nybble = generator.value();
+			final byte nybble = (byte) generator.value(tupleIndex++);
 			assert (nybble & 15) == nybble;
 			setNybble(result, index, nybble);
 		}
+		assert tupleIndex == size + 1;
 		return result;
 	}
 
@@ -738,18 +726,8 @@ extends NumericTupleDescriptor
 	 */
 	private static A_Tuple copyAsMutableByteTuple (final AvailObject object)
 	{
-		final AvailObject result = ByteTupleDescriptor.generateFrom(
-			object.tupleSize(),
-			new Generator<Short>()
-			{
-				private int index = 1;
-
-				@Override
-				public Short value ()
-				{
-					return (short)getNybble(object, index++);
-				}
-			});
+		final AvailObject result = generateByteTupleFrom(
+			object.tupleSize(), index -> (short)getNybble(object, index));
 		result.hashOrZero(object.hashOrZero());
 		return result;
 	}

@@ -53,8 +53,17 @@ import java.util.Set;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.MESSAGE_BUNDLE_KEY;
+import static com.avail.descriptor.AtomWithPropertiesDescriptor
+	.createAtomWithProperties;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
+import static com.avail.descriptor.MessageBundleDescriptor.newBundle;
+import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A module's header information.
@@ -146,7 +155,7 @@ public class ModuleHeader
 	public int startOfBodyLineNumber;
 
 	/**
-	 * Construct a new {@link ModuleHeader}.
+	 * Construct a new {@code ModuleHeader}.
 	 *
 	 * @param moduleName
 	 *        The {@link ResolvedModuleName resolved name} of the module.
@@ -164,15 +173,14 @@ public class ModuleHeader
 	 */
 	public void serializeHeaderOn (final Serializer serializer)
 	{
-		serializer.serialize(StringDescriptor.stringFrom(moduleName.qualifiedName()));
-		serializer.serialize(TupleDescriptor.tupleFromList(versions));
+		serializer.serialize(stringFrom(moduleName.qualifiedName()));
+		serializer.serialize(tupleFromList(versions));
 		serializer.serialize(tuplesForSerializingModuleImports());
-		serializer.serialize(
-			TupleDescriptor.tupleFromList(new ArrayList<>(exportedNames)));
-		serializer.serialize(TupleDescriptor.tupleFromList(entryPoints));
-		serializer.serialize(TupleDescriptor.tupleFromList(pragmas));
-		serializer.serialize(IntegerDescriptor.fromInt(startOfBodyPosition));
-		serializer.serialize(IntegerDescriptor.fromInt(startOfBodyLineNumber));
+		serializer.serialize(tupleFromList(new ArrayList<>(exportedNames)));
+		serializer.serialize(tupleFromList(entryPoints));
+		serializer.serialize(tupleFromList(pragmas));
+		serializer.serialize(fromInt(startOfBodyPosition));
+		serializer.serialize(fromInt(startOfBodyLineNumber));
 	}
 
 	/**
@@ -188,7 +196,7 @@ public class ModuleHeader
 		{
 			list.add(moduleImport.tupleForSerialization());
 		}
-		return TupleDescriptor.tupleFromList(list);
+		return tupleFromList(list);
 	}
 
 	/**
@@ -222,55 +230,48 @@ public class ModuleHeader
 	public void deserializeHeaderFrom (final Deserializer deserializer)
 		throws MalformedSerialStreamException
 	{
-		final A_String name = deserializer.deserialize();
-		assert name != null;
+		final A_String name = stripNull(deserializer.deserialize());
 		if (!name.asNativeString().equals(moduleName.qualifiedName()))
 		{
 			throw new RuntimeException("Incorrect module name");
 		}
-		final A_Tuple theVersions = deserializer.deserialize();
-		assert theVersions != null;
+		final A_Tuple theVersions = stripNull(deserializer.deserialize());
 		versions.clear();
-		versions.addAll(TupleDescriptor.toList(theVersions));
-		final A_Tuple theExtended = deserializer.deserialize();
-		assert theExtended != null;
+		versions.addAll(toList(theVersions));
+		final A_Tuple theExtended = stripNull(deserializer.deserialize());
 		importedModules.clear();
 		importedModules.addAll(moduleImportsFromTuple(theExtended));
-		final A_Tuple theExported = deserializer.deserialize();
-		assert theExported != null;
+		final A_Tuple theExported = stripNull(deserializer.deserialize());
 		exportedNames.clear();
-		exportedNames.addAll(TupleDescriptor.toList(theExported));
-		final A_Tuple theEntryPoints = deserializer.deserialize();
-		assert theEntryPoints != null;
+		exportedNames.addAll(toList(theExported));
+		final A_Tuple theEntryPoints = stripNull(deserializer.deserialize());
 		entryPoints.clear();
-		entryPoints.addAll(
-			TupleDescriptor.toList(theEntryPoints));
-		final A_Tuple thePragmas = deserializer.deserialize();
-		assert thePragmas != null;
+		entryPoints.addAll(toList(theEntryPoints));
+		final A_Tuple thePragmas = stripNull(deserializer.deserialize());
 		pragmas.clear();
 		// Synthesize fake tokens for the pragma strings.
 		for (final A_String pragmaString : thePragmas)
 		{
-			pragmas.add(LiteralTokenDescriptor.create(
-				pragmaString,
-				TupleDescriptor.emptyTuple(),
-				TupleDescriptor.emptyTuple(),
-				0,
-				0,
-				LITERAL,
-				pragmaString));
+			pragmas.add(
+				literalToken(
+					pragmaString,
+					emptyTuple(),
+					emptyTuple(),
+					0,
+					0,
+					LITERAL,
+					pragmaString));
 		}
-		final A_Number positionInteger = deserializer.deserialize();
-		assert positionInteger != null;
+		final A_Number positionInteger = stripNull(deserializer.deserialize());
 		startOfBodyPosition = positionInteger.extractInt();
-		final A_Number lineNumberInteger = deserializer.deserialize();
-		assert lineNumberInteger != null;
+		final A_Number lineNumberInteger =
+			stripNull(deserializer.deserialize());
 		startOfBodyLineNumber = lineNumberInteger.extractInt();
 	}
 
 	/**
 	 * Update the given module to correspond with information that has been
-	 * accumulated in this {@link ModuleHeader}.
+	 * accumulated in this {@code ModuleHeader}.
 	 *
 	 * @param module The module to update.
 	 * @param runtime The current {@link AvailRuntime}.
@@ -287,8 +288,7 @@ public class ModuleHeader
 		for (final A_String name : exportedNames)
 		{
 			assert name.isString();
-			final A_Atom trueName =
-				AtomWithPropertiesDescriptor.create(name, module);
+			final A_Atom trueName = createAtomWithProperties(name, module);
 			module.introduceNewName(trueName);
 			module.addImportedName(trueName);
 		}
@@ -308,8 +308,7 @@ public class ModuleHeader
 				assert false : "This never happens";
 				throw new RuntimeException(e);
 			}
-			final A_String availRef = StringDescriptor.stringFrom(
-				ref.qualifiedName());
+			final A_String availRef = stringFrom(ref.qualifiedName());
 			if (!runtime.includesModuleNamed(availRef))
 			{
 				return
@@ -354,7 +353,7 @@ public class ModuleHeader
 
 			// Look up the strings to get existing atoms.  Don't complain
 			// about ambiguity, just export all that match.
-			A_Set atomsToImport = SetDescriptor.emptySet();
+			A_Set atomsToImport = emptySet();
 			for (final A_String string : stringsToImport)
 			{
 				if (!importedNamesMultimap.hasKey(string))
@@ -403,8 +402,7 @@ public class ModuleHeader
 				else
 				{
 					// Create it.
-					newAtom = AtomWithPropertiesDescriptor.create(
-						newString, module);
+					newAtom = createAtomWithProperties(newString, module);
 					module.introduceNewName(newAtom);
 				}
 				// Now tie the bundles together.
@@ -414,7 +412,7 @@ public class ModuleHeader
 				{
 					final A_Bundle oldBundle = oldAtom.bundleOrCreate();
 					final A_Method method = oldBundle.bundleMethod();
-					newBundle = MessageBundleDescriptor.newBundle(
+					newBundle = newBundle(
 						newAtom, method, new MessageSplitter(newString));
 				}
 				catch (final MalformedMessageException e)
@@ -450,25 +448,23 @@ public class ModuleHeader
 				final A_Set trueNames = module.trueNamesForStringName(name);
 				final int size = trueNames.setSize();
 				final AvailObject trueName;
-				if (size == 0)
+				switch (size)
 				{
-					trueName = AtomWithPropertiesDescriptor.create(
-						name, module);
-					module.addPrivateName(trueName);
-				}
-				else if (size == 1)
-				{
-					// Just validate the name.
-					@SuppressWarnings("unused")
-					final MessageSplitter splitter =
-						new MessageSplitter(name);
-					trueName = trueNames.iterator().next();
-				}
-				else
-				{
-					return
-						"entry point \"" + name.asNativeString()
-						+ "\" to be unambiguous";
+					case 0:
+						trueName = createAtomWithProperties(name, module);
+						module.addPrivateName(trueName);
+						break;
+					case 1:
+						// Just validate the name.
+						@SuppressWarnings("unused") final MessageSplitter
+							splitter =
+							new MessageSplitter(name);
+						trueName = trueNames.iterator().next();
+						break;
+					default:
+						return
+							"entry point \"" + name.asNativeString()
+								+ "\" to be unambiguous";
 				}
 				module.addEntryPoint(name, trueName);
 			}

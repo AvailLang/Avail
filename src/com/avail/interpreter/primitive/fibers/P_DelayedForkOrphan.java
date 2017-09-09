@@ -32,14 +32,45 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TimerTask;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Schedule a new {@linkplain FiberDescriptor
@@ -92,10 +123,9 @@ extends Primitive
 		}
 		// If the sleep time is colossal, then the fiber would never actually
 		// start, so exit early.
-		if (sleepMillis.greaterThan(IntegerDescriptor.fromLong(
-			Long.MAX_VALUE)))
+		if (sleepMillis.greaterThan(fromLong(Long.MAX_VALUE)))
 		{
-			return interpreter.primitiveSuccess(NilDescriptor.nil());
+			return interpreter.primitiveSuccess(nil());
 		}
 		// Now that we know that the call will really happen, share the function
 		// and the arguments.
@@ -105,7 +135,7 @@ extends Primitive
 			arg.makeShared();
 		}
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber orphan = FiberDescriptor.newFiber(
+		final A_Fiber orphan = newFiber(
 			function.kind().returnType(),
 			priority.extractInt(),
 			() ->
@@ -125,7 +155,7 @@ extends Primitive
 		// Inherit the fiber's text interface.
 		orphan.textInterface(current.textInterface());
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		if (sleepMillis.equalsInt(0))
 		{
 			Interpreter.runOutermostFunction(
@@ -134,7 +164,7 @@ extends Primitive
 		// Otherwise, schedule the fiber to start later.
 		else
 		{
-			AvailRuntime.current().timer.schedule(
+			currentRuntime().timer.schedule(
 				new TimerTask()
 				{
 					@Override
@@ -148,29 +178,26 @@ extends Primitive
 				},
 				sleepMillis.extractLong());
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				IntegerRangeTypeDescriptor.inclusive(
-					IntegerDescriptor.zero(),
-					InfinityDescriptor.positiveInfinity()),
-				FunctionTypeDescriptor.functionTypeReturning(TOP.o()),
-				TupleTypeDescriptor.mostGeneralTupleType(),
-				IntegerRangeTypeDescriptor.bytes()),
-			TOP.o());
+		return functionType(tuple(
+			inclusive(
+				zero(),
+				positiveInfinity()),
+			functionTypeReturning(TOP.o()),
+			mostGeneralTupleType(),
+			bytes()), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS,
-				E_INCORRECT_ARGUMENT_TYPE));
+		return enumerationWith(set(
+			E_INCORRECT_NUMBER_OF_ARGUMENTS,
+			E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

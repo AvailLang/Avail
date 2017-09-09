@@ -41,6 +41,11 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.LESS;
 import static com.avail.descriptor.AbstractNumberDescriptor.Order.MORE;
+import static com.avail.descriptor.DoubleDescriptor.compareDoubles;
+import static com.avail.descriptor.DoubleDescriptor.fromDoubleRecycling;
+import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 
 /**
@@ -97,8 +102,7 @@ extends ExtendedIntegerDescriptor
 		final AvailObject object,
 		final Sign theSign)
 	{
-		return DoubleDescriptor.compareDoubles(
-			sign.limitDouble(), theSign.limitDouble());
+		return compareDoubles(sign.limitDouble(), theSign.limitDouble());
 	}
 
 	@Override @AvailMethod
@@ -136,7 +140,7 @@ extends ExtendedIntegerDescriptor
 	@Override @AvailMethod
 	A_Type o_Kind (final AvailObject object)
 	{
-		return IntegerRangeTypeDescriptor.singleInteger(object);
+		return singleInteger(object);
 	}
 
 	@Override @AvailMethod
@@ -227,7 +231,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return DoubleDescriptor.objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			doubleObject.extractDouble() + sign.limitDouble(),
 			doubleObject,
 			canDestroy);
@@ -239,7 +243,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return FloatDescriptor.objectFromFloatRecycling(
+		return fromFloatRecycling(
 			floatObject.extractFloat() + sign.limitFloat(),
 			floatObject,
 			canDestroy);
@@ -261,7 +265,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		return IntegerDescriptor.zero();
+		return zero();
 	}
 
 	@Override @AvailMethod
@@ -270,7 +274,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return DoubleDescriptor.objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			doubleObject.extractDouble() / sign.limitDouble(),
 			doubleObject,
 			canDestroy);
@@ -282,7 +286,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return FloatDescriptor.objectFromFloatRecycling(
+		return fromFloatRecycling(
 			floatObject.extractFloat() / sign.limitFloat(),
 			floatObject,
 			canDestroy);
@@ -295,8 +299,8 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return (theSign == Sign.POSITIVE) == object.isPositive()
-			? InfinityDescriptor.positiveInfinity()
-			: InfinityDescriptor.negativeInfinity();
+			? positiveInfinity()
+			: negativeInfinity();
 	}
 
 	@Override @AvailMethod
@@ -310,10 +314,9 @@ extends ExtendedIntegerDescriptor
 			throw new ArithmeticException(
 				AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY);
 		}
-		return anInteger.greaterThan(IntegerDescriptor.zero())
-				^ object.isPositive()
-			? InfinityDescriptor.negativeInfinity()
-			: InfinityDescriptor.positiveInfinity();
+		return anInteger.greaterThan(zero()) ^ object.isPositive()
+			? negativeInfinity()
+			: positiveInfinity();
 	}
 
 	@Override @AvailMethod
@@ -322,7 +325,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return DoubleDescriptor.objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			doubleObject.extractDouble() * sign.limitDouble(),
 			doubleObject,
 			canDestroy);
@@ -334,7 +337,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return FloatDescriptor.objectFromFloatRecycling(
+		return fromFloatRecycling(
 			floatObject.extractFloat() * sign.limitFloat(),
 			floatObject,
 			canDestroy);
@@ -363,8 +366,8 @@ extends ExtendedIntegerDescriptor
 		final boolean canDestroy)
 	{
 		return object.isPositive()
-			? InfinityDescriptor.negativeInfinity()
-			: InfinityDescriptor.positiveInfinity();
+			? negativeInfinity()
+			: positiveInfinity();
 	}
 
 	@Override @AvailMethod
@@ -373,7 +376,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return DoubleDescriptor.objectFromDoubleRecycling(
+		return fromDoubleRecycling(
 			doubleObject.extractDouble() - sign.limitDouble(),
 			doubleObject,
 			canDestroy);
@@ -385,7 +388,7 @@ extends ExtendedIntegerDescriptor
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return FloatDescriptor.objectFromFloatRecycling(
+		return fromFloatRecycling(
 			floatObject.extractFloat() - sign.limitFloat(),
 			floatObject,
 			canDestroy);
@@ -402,9 +405,7 @@ extends ExtendedIntegerDescriptor
 		final AvailObject object,
 		final double double1)
 	{
-		return DoubleDescriptor.compareDoubles(
-			sign.limitDouble(),
-			double1);
+		return compareDoubles(sign.limitDouble(), double1);
 	}
 
 	@Override @AvailMethod

@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -40,6 +39,8 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 
 /**
@@ -76,8 +77,7 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 		// are probably not doing things right.
 		assert registerSet.hasTypeAt(variableReg);
 		final A_Type varType = registerSet.typeAt(variableReg);
-		assert varType.isSubtypeOf(
-			VariableTypeDescriptor.mostGeneralVariableType());
+		assert varType.isSubtypeOf(mostGeneralVariableType());
 	}
 
 	@Override

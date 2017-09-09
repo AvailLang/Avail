@@ -31,16 +31,26 @@
  */
 package com.avail.interpreter.primitive.controlflow;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+
 import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Run the zero-argument {@linkplain
@@ -103,12 +113,8 @@ public final class P_ShortCircuitHelper extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ANY.o(),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.emptyTuple(),
-					TOP.o())),
-			TOP.o());
+		return functionType(tuple(ANY.o(), functionType(
+			emptyTuple(),
+			TOP.o())), TOP.o());
 	}
 }

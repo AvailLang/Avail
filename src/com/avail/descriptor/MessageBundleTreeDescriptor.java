@@ -32,17 +32,11 @@
 
 package com.avail.descriptor;
 
-import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
-import java.util.*;
-
 import com.avail.AvailRuntime;
 import com.avail.AvailThread;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.compiler.*;
+import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
@@ -51,7 +45,36 @@ import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.dispatch.TypeComparison;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
-import com.avail.utility.*;
+import com.avail.utility.Mutable;
+import com.avail.utility.Pair;
+import com.avail.utility.Strings;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.avail.compiler.ParsingOperation.PARSE_PART;
+import static com.avail.compiler.ParsingOperation.decode;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots
+	.HASH_AND_MORE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor
+	.newPlanInProgress;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 
 /**
  * A {@linkplain MessageBundleTreeDescriptor message bundle tree} is used by the
@@ -298,8 +321,7 @@ extends Descriptor
 			final List<? extends A_Tuple> elements,
 			final Void ignored)
 		{
-			final A_BundleTree newBundleTree =
-				MessageBundleTreeDescriptor.createEmpty();
+			final A_BundleTree newBundleTree = newBundleTree();
 			for (final A_Tuple pair : elements)
 			{
 				final A_ParsingPlanInProgress planInProgress = pair.tupleAt(2);
@@ -448,10 +470,10 @@ extends Descriptor
 		final A_Definition definition = plan.definition();
 		A_Map submap = outerMap.hasKey(bundle)
 			? outerMap.mapAt(bundle)
-			: MapDescriptor.emptyMap();
+			: emptyMap();
 		A_Set inProgressSet = submap.hasKey(definition)
 			? submap.mapAt(definition)
-			: SetDescriptor.emptySet();
+			: emptySet();
 		inProgressSet = inProgressSet.setWithElementCanDestroy(
 			planInProgress, true);
 		submap = submap.mapAtPuttingCanDestroy(definition, inProgressSet, true);
@@ -553,7 +575,7 @@ extends Descriptor
 					}
 				}
 			}
-			object.setVolatileSlot(UNCLASSIFIED, MapDescriptor.emptyMap());
+			object.setVolatileSlot(UNCLASSIFIED, emptyMap());
 			object.setSlot(LAZY_COMPLETE, complete.value.makeShared());
 			object.setSlot(LAZY_INCOMPLETE, incomplete.value.makeShared());
 			object.setSlot(
@@ -569,11 +591,11 @@ extends Descriptor
 				// Rebuild the type-checking lookup tree.
 				final LookupTree<A_Tuple, A_BundleTree, Void> tree =
 					MessageBundleTreeDescriptor.parserTypeChecker.createRoot(
-						TupleDescriptor.toList(typeFilterPairs.value),
+						toList(typeFilterPairs.value),
 						Collections.singletonList(
 							ParseNodeKind.PARSE_NODE.mostGeneralType()),
 						null);
-				final A_BasicObject pojo = RawPojoDescriptor.identityWrap(tree);
+				final A_BasicObject pojo = identityPojo(tree);
 				object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, pojo.makeShared());
 			}
 		}
@@ -649,9 +671,7 @@ extends Descriptor
 							object.slot(LAZY_INCOMPLETE).mapAt(keyword);
 						treesToVisit.add(
 							new Pair<>(
-								successor,
-								ParsingPlanInProgressDescriptor.create(
-									plan, pc + 1)));
+								successor, newPlanInProgress(plan, pc + 1)));
 						break;
 					}
 					case PARSE_PART_CASE_INSENSITIVELY:
@@ -665,9 +685,7 @@ extends Descriptor
 								keyword);
 						treesToVisit.add(
 							new Pair<>(
-								successor,
-								ParsingPlanInProgressDescriptor.create(
-									plan, pc + 1)));
+								successor, newPlanInProgress(plan, pc + 1)));
 						break;
 					}
 					default:
@@ -682,8 +700,7 @@ extends Descriptor
 							treesToVisit.add(
 								new Pair<>(
 									successor,
-									ParsingPlanInProgressDescriptor.create(
-										plan, pc + 1)));
+									newPlanInProgress(plan, pc + 1)));
 						}
 					}
 				}
@@ -702,15 +719,15 @@ extends Descriptor
 		final long timeBefore = AvailRuntime.captureNanos();
 		synchronized (object)
 		{
-			final A_Map emptyMap = MapDescriptor.emptyMap();
-			object.setSlot(LAZY_COMPLETE, SetDescriptor.emptySet());
+			final A_Map emptyMap = emptyMap();
+			object.setSlot(LAZY_COMPLETE, emptySet());
 			object.setSlot(LAZY_INCOMPLETE, emptyMap);
 			object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
 			object.setSlot(LAZY_ACTIONS, emptyMap);
 			object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
 			object.setSlot(
-				LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.emptyTuple());
-			object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
+				LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple());
+			object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil());
 			object.setSlot(UNCLASSIFIED, object.slot(ALL_PLANS_IN_PROGRESS));
 		}
 		final long timeAfter = AvailRuntime.captureNanos();
@@ -1005,26 +1022,23 @@ extends Descriptor
 				}
 				else
 				{
-					subtree = createEmpty();
+					subtree = newBundleTree();
 					map.value = map.value.mapAtPuttingCanDestroy(
 						part, subtree, true);
 				}
-				subtree.addPlanInProgress(
-					ParsingPlanInProgressDescriptor.create(plan, pc + 1));
+				subtree.addPlanInProgress(newPlanInProgress(plan, pc + 1));
 				return;
 			}
 			case PREPARE_TO_RUN_PREFIX_FUNCTION:
 			{
 				// Each macro definition has its own prefix functions, so for
 				// each plan create a separate successor message bundle tree.
-				final A_BundleTree newTarget = createEmpty();
-				newTarget.addPlanInProgress(
-					ParsingPlanInProgressDescriptor.create(plan, pc + 1));
-				final A_Number instructionObject =
-					IntegerDescriptor.fromInt(instruction);
+				final A_BundleTree newTarget = newBundleTree();
+				newTarget.addPlanInProgress(newPlanInProgress(plan, pc + 1));
+				final A_Number instructionObject = fromInt(instruction);
 				A_Tuple successors = actionMap.value.hasKey(instructionObject)
 					? actionMap.value.mapAt(instructionObject)
-					: TupleDescriptor.emptyTuple();
+					: emptyTuple();
 				successors = successors.appendCanDestroy(newTarget, true);
 				actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 					instructionObject, successors, true);
@@ -1040,9 +1054,8 @@ extends Descriptor
 				final A_Type phraseType =
 					MessageSplitter.constantForIndex(typeIndex);
 				final A_ParsingPlanInProgress planInProgress =
-					ParsingPlanInProgressDescriptor.create(plan, pc + 1);
-				final A_Tuple pair = TupleDescriptor.tuple(
-					phraseType, planInProgress);
+					newPlanInProgress(plan, pc + 1);
+				final A_Tuple pair = tuple(phraseType, planInProgress);
 				typeFilterTuples.value =
 					typeFilterTuples.value.appendCanDestroy(pair, true);
 				return;
@@ -1054,8 +1067,7 @@ extends Descriptor
 					op.checkArgumentIndex(instruction);
 				// Add it to the action map.
 				final A_BundleTree successor;
-				final A_Number instructionObject =
-					IntegerDescriptor.fromInt(instruction);
+				final A_Number instructionObject = fromInt(instruction);
 				if (actionMap.value.hasKey(instructionObject))
 				{
 					final A_Tuple successors =
@@ -1065,13 +1077,13 @@ extends Descriptor
 				}
 				else
 				{
-					successor = createEmpty();
+					successor = newBundleTree();
 					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 						instructionObject,
-						TupleDescriptor.tuple(successor),
+						tuple(successor),
 						true);
 				}
-				A_Set forbiddenBundles = SetDescriptor.emptySet();
+				A_Set forbiddenBundles = emptySet();
 				for (final A_GrammaticalRestriction restriction
 					: plan.bundle().grammaticalRestrictions())
 				{
@@ -1090,7 +1102,7 @@ extends Descriptor
 					}
 				}
 				final A_ParsingPlanInProgress planInProgress =
-					ParsingPlanInProgressDescriptor.create(plan, pc + 1);
+					newPlanInProgress(plan, pc + 1);
 				// Add it to every existing branch where it's permitted.
 				for (final Entry prefilterEntry
 					: prefilterMap.value.mapIterable())
@@ -1108,7 +1120,7 @@ extends Descriptor
 				{
 					if (!prefilterMap.value.hasKey(restrictedBundle))
 					{
-						final AvailObject newTarget = createEmpty();
+						final AvailObject newTarget = newBundleTree();
 						// Be careful.  We can't add ALL_BUNDLES, since
 						// it may contain some bundles that are still
 						// UNCLASSIFIED.  Instead, use ALL_BUNDLES of
@@ -1157,8 +1169,7 @@ extends Descriptor
 				final List<Integer> nextPcs = op.successorPcs(instruction, pc);
 				assert nextPcs.size() == 1 && nextPcs.get(0) == pc + 1;
 				final A_BundleTree successor;
-				final A_Number instructionObject =
-					IntegerDescriptor.fromInt(instruction);
+				final A_Number instructionObject = fromInt(instruction);
 				if (actionMap.value.hasKey(instructionObject))
 				{
 					final A_Tuple successors =
@@ -1168,13 +1179,13 @@ extends Descriptor
 				}
 				else
 				{
-					successor = createEmpty();
-					final A_Tuple successors = TupleDescriptor.tuple(successor);
+					successor = newBundleTree();
+					final A_Tuple successors = tuple
+						(successor);
 					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 						instructionObject, successors, true);
 				}
-				successor.addPlanInProgress(
-					ParsingPlanInProgressDescriptor.create(plan, pc + 1));
+				successor.addPlanInProgress(newPlanInProgress(plan, pc + 1));
 			}
 		}
 	}
@@ -1184,11 +1195,11 @@ extends Descriptor
 	 *
 	 * @return The new empty message bundle tree.
 	 */
-	public static AvailObject createEmpty ()
+	public static AvailObject newBundleTree ()
 	{
 		final AvailObject result = mutable.create();
-		final A_Map emptyMap = MapDescriptor.emptyMap();
-		final A_Set emptySet = SetDescriptor.emptySet();
+		final A_Map emptyMap = emptyMap();
+		final A_Set emptySet = emptySet();
 		result.setSlot(HASH_OR_ZERO, 0);
 		result.setSlot(ALL_PLANS_IN_PROGRESS, emptyMap);
 		result.setSlot(UNCLASSIFIED, emptyMap);
@@ -1197,8 +1208,9 @@ extends Descriptor
 		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
 		result.setSlot(LAZY_ACTIONS, emptyMap);
 		result.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-		result.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.emptyTuple());
-		result.setSlot(LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil());
+		result.setSlot(
+			LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple());
+		result.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil());
 		return result.makeShared();
 	}
 

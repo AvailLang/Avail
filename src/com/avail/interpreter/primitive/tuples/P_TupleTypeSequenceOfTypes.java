@@ -31,13 +31,35 @@
  */
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
-import com.avail.utility.Generator;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleMeta;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE;
+import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Answer a {@linkplain TupleDescriptor
@@ -76,39 +98,26 @@ public final class P_TupleTypeSequenceOfTypes extends Primitive
 		{
 			return interpreter.primitiveFailure(E_NEGATIVE_SIZE);
 		}
-		final A_Tuple tupleObject = ObjectTupleDescriptor.generateFrom(
+		final A_Tuple tupleObject = generateObjectTupleFrom(
 			tupleSize,
-			new Generator<A_BasicObject>()
-			{
-				private int index = startInt;
-
-				@Override
-				public A_BasicObject value ()
-				{
-					return tupleType.typeAtIndex(index++).makeImmutable();
-				}
-			});
+			i -> tupleType.typeAtIndex(i + startInt - 1).makeImmutable());
 		return interpreter.primitiveSuccess(tupleObject);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.tupleMeta(),
-				IntegerRangeTypeDescriptor.naturalNumbers(),
-				IntegerRangeTypeDescriptor.wholeNumbers()),
-			TupleTypeDescriptor.zeroOrMoreOf(
-				InstanceMetaDescriptor.anyMeta()));
+		return functionType(tuple(
+			tupleMeta(),
+			naturalNumbers(),
+			wholeNumbers()), zeroOrMoreOf(
+			anyMeta()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_SUBSCRIPT_OUT_OF_BOUNDS,
-				E_NEGATIVE_SIZE));
+		return
+			enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS, E_NEGATIVE_SIZE));
 	}
 }

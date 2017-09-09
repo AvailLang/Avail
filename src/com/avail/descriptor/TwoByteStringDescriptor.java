@@ -32,14 +32,25 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.Mutability.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.*;
+import com.avail.utility.IndexedIntGenerator;
+
 import javax.annotation.Nullable;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObject.newLike;
+import static com.avail.descriptor.CharacterDescriptor
+	.computeHashOfCharacterWithCodePoint;
+import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
+import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.TwoByteStringDescriptor.IntegerSlots
+	.RAW_LONGS_;
 
 /**
  * A {@linkplain TupleDescriptor tuple} implementation that consists entirely of
@@ -47,7 +58,7 @@ import javax.annotation.Nullable;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class TwoByteStringDescriptor
+public final class TwoByteStringDescriptor
 extends StringDescriptor
 {
 	/**
@@ -118,7 +129,7 @@ extends StringDescriptor
 				!= 0)
 		{
 			// Transition to a tree tuple.
-			final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+			final A_Tuple singleton = tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int newSize = originalSize + 1;
@@ -282,8 +293,7 @@ extends StringDescriptor
 		// Answer the element at the given index in the tuple object. It's a
 		// two-byte character.
 		assert index >= 1 && index <= object.tupleSize();
-		return (AvailObject)CharacterDescriptor.fromCodePoint(
-			object.shortSlot(RAW_LONGS_, index));
+		return (AvailObject) fromCodePoint(object.shortSlot(RAW_LONGS_, index));
 	}
 
 	@Override @AvailMethod
@@ -340,17 +350,7 @@ extends StringDescriptor
 		// It's reasonably small, so just copy the characters.
 		// Just copy the applicable two-byte characters in reverse.
 		return generateTwoByteString(
-			size,
-			new Generator<Character>()
-			{
-				private int sourceIndex = size;
-
-				@Override
-				public Character value ()
-				{
-					return (char)object.shortSlot(RAW_LONGS_, sourceIndex--);
-				}
-			});
+			size, i -> object.shortSlot(RAW_LONGS_, size + 1 - i));
 	}
 
 	@Override @AvailMethod
@@ -379,7 +379,7 @@ extends StringDescriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash =
-				CharacterDescriptor.computeHashOfCharacterWithCodePoint(
+				computeHashOfCharacterWithCodePoint(
 					object.shortSlot(RAW_LONGS_, index))
 				^ preToggle;
 			hash = (hash + itemHash) * multiplier;
@@ -456,10 +456,9 @@ extends StringDescriptor
 		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object, otherTuple, true);
+		return concatenateAtLeastOneTree(object, otherTuple, true);
 	}
 
 	@Override
@@ -480,18 +479,7 @@ extends StringDescriptor
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
 			return generateTwoByteString(
-				size,
-				new Generator<Character>()
-				{
-					private int sourceIndex = start;
-
-					@Override
-					public Character value ()
-					{
-						return (char)object.shortSlot(
-							RAW_LONGS_, sourceIndex++);
-					}
-				});
+				size, i -> object.shortSlot(RAW_LONGS_, i + start - 1));
 		}
 		return super.o_CopyTupleFromToCanDestroy(
 			object, start, end, canDestroy);
@@ -560,7 +548,7 @@ extends StringDescriptor
 	 * @param size The number of elements in the new tuple.
 	 * @return The new tuple, initialized to null characters (code point 0).
 	 */
-	static AvailObject mutableObjectOfSize (final int size)
+	static AvailObject mutableTwoByteStringOfSize (final int size)
 	{
 		return descriptorFor(MUTABLE, size).create(size + 3 >> 2);
 	}
@@ -602,8 +590,8 @@ extends StringDescriptor
 	}
 
 	/**
-	 * Create a mutable {@linkplain TwoByteStringDescriptor two-byte string}
-	 * with the specified Java {@linkplain String}'s characters.
+	 * Create a mutable instance of {@code TwoByteStringDescriptor} with the
+	 * specified Java {@linkplain String}'s characters.
 	 *
 	 * @param aNativeTwoByteString
 	 *        A Java String that may contain characters outside the Latin-1
@@ -615,35 +603,26 @@ extends StringDescriptor
 	{
 		return generateTwoByteString(
 			aNativeTwoByteString.length(),
-			new Generator<Character>()
-			{
-				private int sourceIndex = 0;
-
-				@Override
-				public Character value ()
-				{
-					return (char)aNativeTwoByteString.codePointAt(
-						sourceIndex++);
-				}
-			});
+			i -> aNativeTwoByteString.codePointAt(i - 1));
 	}
 
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link TwoByteStringDescriptor}. Note that it can only store Unicode
+	 * of {@code TwoByteStringDescriptor}. Note that it can only store Unicode
 	 * characters from the Basic Multilingual Plane (i.e., those having Unicode
 	 * code points 0..65535). Run the generator for each position in ascending
 	 * order to produce the code points with which to populate the string.
 	 *
 	 * @param size The size of two-byte string to create.
 	 * @param generator A generator to provide code points to store.
-	 * @return The new Avail {@linkplain TwoByteStringDescriptor string}.
+	 * @return The new Avail string.
 	 */
-	static AvailObject generateTwoByteString(
+	public static AvailObject generateTwoByteString (
 		final int size,
-		final Generator<Character> generator)
+		final IndexedIntGenerator generator)
 	{
-		final AvailObject result = mutableObjectOfSize(size);
+		final AvailObject result = mutableTwoByteStringOfSize(size);
+		int counter = 1;
 		// Aggregate four writes at a time for the bulk of the string.
 		for (
 			int slotIndex = 1, limit = size >>> 2;
@@ -653,7 +632,7 @@ extends StringDescriptor
 			long combined = 0;
 			for (int shift = 0; shift < 64; shift += 16)
 			{
-				final long c = generator.value();
+				final long c = generator.value(counter++);
 				assert (c & 0xFFFF) == c;
 				combined += c << shift;
 			}
@@ -662,7 +641,7 @@ extends StringDescriptor
 		// Do the last 0-3 writes the slow way.
 		for (int index = (size & ~3) + 1; index <= size; index++)
 		{
-			final long c = generator.value();
+			final long c = generator.value(counter++);
 			assert (c & 0xFFFF) == c;
 			result.setShortSlot(RAW_LONGS_, index, (int)c);
 		}

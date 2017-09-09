@@ -51,10 +51,12 @@ import java.util.List;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY;
+import static com.avail.descriptor.ByteBufferTupleDescriptor.tupleForByteBuffer;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -301,9 +303,7 @@ extends Primitive
 					else
 					{
 						assert buffer.remaining() == bytesRead;
-						bytesTuple = ByteBufferTupleDescriptor.forByteBuffer(
-								buffer)
-							.makeShared();
+						bytesTuple = tupleForByteBuffer(buffer).makeShared();
 						assert bytesTuple.tupleSize() == bytesRead;
 						// Seed the file cache, except for the final partial
 						// buffer.
@@ -371,15 +371,13 @@ extends Primitive
 				inclusive(one(), positiveInfinity()),
 				ATOM.o(),
 				functionType(
-					tuple(
-						zeroOrMoreOf(bytes())),
+					tuple(zeroOrMoreOf(bytes())),
 					TOP.o()),
 				functionType(
-					tuple(
-						instanceTypeOn(E_IO_ERROR.numericCode())),
+					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o()),
 				bytes()),
-			FiberTypeDescriptor.forResultType(TOP.o()));
+			fiberType(TOP.o()));
 	}
 
 	@Override

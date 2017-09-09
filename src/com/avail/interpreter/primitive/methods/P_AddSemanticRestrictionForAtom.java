@@ -32,18 +32,38 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-
-import java.util.List;
-import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_SemanticRestriction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.Phase;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SemanticRestrictionDescriptor
+	.newSemanticRestriction;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 
 /**
  * <strong>Primitive:</strong> Add a type restriction function.
@@ -71,7 +91,7 @@ extends Primitive
 		final A_Function function = args.get(1);
 		final A_Type functionType = function.kind();
 		final A_Type tupleType = functionType.argsTupleType();
-		final AvailLoader loader = interpreter.fiber().availLoader();
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -83,8 +103,7 @@ extends Primitive
 		}
 		for (int i = function.code().numArgs(); i >= 1; i--)
 		{
-			if (!tupleType.typeAtIndex(i).isInstanceOf(
-				InstanceMetaDescriptor.instanceMetaOn(InstanceMetaDescriptor.topMeta())))
+			if (!tupleType.typeAtIndex(i).isInstanceMeta())
 			{
 				return interpreter.primitiveFailure(
 					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES);
@@ -94,10 +113,7 @@ extends Primitive
 		{
 			final A_Method method = atom.bundleOrCreate().bundleMethod();
 			final A_SemanticRestriction restriction =
-				SemanticRestrictionDescriptor.create(
-					function,
-					method,
-					interpreter.module());
+				newSemanticRestriction(function, method, interpreter.module());
 			loader.addSemanticRestriction(restriction);
 		}
 		catch (final MalformedMessageException | SignatureException e)
@@ -106,29 +122,28 @@ extends Primitive
 		}
 		function.code().setMethodName(
 			formatString("Semantic restriction of %s", atom.atomName()));
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				ATOM.o(),
-				FunctionTypeDescriptor.functionTypeReturning(
-					InstanceMetaDescriptor.topMeta())),
+				functionTypeReturning(topMeta())),
 			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-					E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES,
-					E_INCORRECT_NUMBER_OF_ARGUMENTS)
-				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+		return enumerationWith(
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES,
+				E_INCORRECT_NUMBER_OF_ARGUMENTS
+			).setUnionCanDestroy(possibleErrors, true));
 	}
 }

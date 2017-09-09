@@ -37,7 +37,6 @@ import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContinuationTypeDescriptor;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -50,6 +49,8 @@ import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -139,7 +140,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		// into registers.
 		registerSet.typeAtPut(
 			targetCallerReg,
-			ContinuationTypeDescriptor.mostGeneralContinuationType(),
+			mostGeneralContinuationType(),
 			instruction);
 		registerSet.typeAtPut(targetFunctionReg, functionType, instruction);
 		final List<L2ObjectRegister> slotRegs = explodedSlotsVector.registers();

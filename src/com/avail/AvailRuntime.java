@@ -84,8 +84,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.MESSAGE_BUNDLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
@@ -105,23 +105,29 @@ import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.InstanceMetaDescriptor.*;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor
 	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.MapTypeDescriptor.*;
-import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTypeDescriptor.*;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.PojoDescriptor.nullPojo;
 import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.*;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.VariableTypeDescriptor.*;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.min;
 import static java.nio.file.attribute.PosixFilePermission.*;
@@ -192,12 +198,11 @@ public final class AvailRuntime
 	 */
 	public static A_Set activeVersions ()
 	{
-		A_Set versions = SetDescriptor.emptySet();
+		A_Set versions = emptySet();
 		for (final String version : activeVersions)
 		{
 			versions = versions.setWithElementCanDestroy(
-				StringDescriptor.stringFrom(version),
-				true);
+				stringFrom(version), true);
 		}
 		return versions;
 	}
@@ -208,7 +213,7 @@ public final class AvailRuntime
 	 *
 	 * @return The Avail runtime of the current thread.
 	 */
-	public static AvailRuntime current ()
+	public static AvailRuntime currentRuntime ()
 	{
 		return ((AvailThread) Thread.currentThread()).runtime;
 	}
@@ -716,9 +721,7 @@ public final class AvailRuntime
 	 */
 	public MutableOrNull<A_Tuple> getBuffer (final BufferKey key)
 	{
-		final MutableOrNull<A_Tuple> buffer = cachedBuffers.get(key);
-		assert buffer != null;
-		return buffer;
+		return stripNull(cachedBuffers.get(key));
 	}
 
 	/**
@@ -859,10 +862,10 @@ public final class AvailRuntime
 			{
 				final A_Module module = moduleEntry.value();
 				atoms.addAll(
-					TupleDescriptor.toList(
+					toList(
 						module.newNames().valuesAsTuple()));
 				atoms.addAll(
-					TupleDescriptor.toList(
+					toList(
 						module.visibleNames().asTuple()));
 				A_Tuple atomSets = module.importedNames().valuesAsTuple();
 				atomSets = atomSets.concatenateWith(
@@ -870,7 +873,7 @@ public final class AvailRuntime
 				for (final A_Set atomSet : atomSets)
 				{
 					atoms.addAll(
-						TupleDescriptor.toList(atomSet.asTuple()));
+						toList(atomSet.asTuple()));
 				}
 				for (final A_Definition definition : module.methodDefinitions())
 				{
@@ -897,7 +900,7 @@ public final class AvailRuntime
 					TupleDescriptor.<A_Definition>toList(
 						method.definitionsTuple()));
 				bundleDefinitions.addAll(
-					TupleDescriptor.toList(
+					toList(
 						method.macroDefinitionsTuple()));
 				for (final A_Bundle bundle : method.bundles())
 				{
@@ -981,8 +984,7 @@ public final class AvailRuntime
 	 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the {@linkplain
 	 * #textInterface default} {@linkplain TextInterface text interface}.
 	 */
-	private AvailObject textInterfacePojo =
-		RawPojoDescriptor.identityWrap(textInterface);
+	private AvailObject textInterfacePojo = identityPojo(textInterface);
 
 	/**
 	 * Answer the {@linkplain AvailRuntime runtime}'s default {@linkplain
@@ -1039,8 +1041,7 @@ public final class AvailRuntime
 		try
 		{
 			this.textInterface = textInterface;
-			this.textInterfacePojo =
-				RawPojoDescriptor.identityWrap(textInterface);
+			this.textInterfacePojo = identityPojo(textInterface);
 		}
 		finally
 		{
@@ -1121,9 +1122,7 @@ public final class AvailRuntime
 	private volatile A_Function resultDisagreedWithExpectedTypeFunction =
 		newCrashFunction(
 			"return result disagreed with expected type",
-			tuple(
-				mostGeneralFunctionType(),
-				topMeta(),
+			tuple(mostGeneralFunctionType(), topMeta(),
 				variableTypeFor(ANY.o())));
 
 	/**
@@ -1164,9 +1163,7 @@ public final class AvailRuntime
 	private volatile A_Function implicitObserveFunction =
 		newCrashFunction(
 			"variable with a write reactor was written with write-tracing off",
-			tuple(
-				mostGeneralFunctionType(),
-				mostGeneralTupleType()));
+			tuple(mostGeneralFunctionType(), mostGeneralTupleType()));
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
@@ -1206,14 +1203,9 @@ public final class AvailRuntime
 		newCrashFunction(
 			"failed method lookup",
 			tuple(
-				enumerationWith(
-					set(
-						E_NO_METHOD,
-						E_NO_METHOD_DEFINITION,
-						E_AMBIGUOUS_METHOD_DEFINITION,
-						E_FORWARD_METHOD_DEFINITION,
-						E_ABSTRACT_METHOD_DEFINITION)),
-				METHOD.o(),
+				enumerationWith(set(E_NO_METHOD, E_NO_METHOD_DEFINITION,
+					E_AMBIGUOUS_METHOD_DEFINITION, E_FORWARD_METHOD_DEFINITION,
+					E_ABSTRACT_METHOD_DEFINITION)), METHOD.o(),
 				mostGeneralTupleType()));
 
 	/**
@@ -1471,7 +1463,7 @@ public final class AvailRuntime
 		specials[11] = ATOM.o();
 		specials[12] = DOUBLE.o();
 		specials[13] = extendedIntegers();
-		specials[14] = instanceMetaOn(zeroOrMoreOf(anyMeta()));
+		specials[14] = instanceMeta(zeroOrMoreOf(anyMeta()));
 		specials[15] = FLOAT.o();
 		specials[16] = NUMBER.o();
 		specials[17] = integers();
@@ -1479,15 +1471,15 @@ public final class AvailRuntime
 		specials[19] = mapMeta();
 		specials[20] = MODULE.o();
 		specials[21] = tupleFromIntegerList(allNumericCodes());
-		specials[22] = ObjectTypeDescriptor.mostGeneralObjectType();
-		specials[23] = ObjectTypeDescriptor.meta();
+		specials[22] = mostGeneralObjectType();
+		specials[23] = mostGeneralObjectMeta();
 		specials[24] = exceptionType();
 		specials[25] = mostGeneralFiberType();
 		specials[26] = mostGeneralSetType();
 		specials[27] = setMeta();
 		specials[28] = stringType();
 		specials[29] = bottom();
-		specials[30] = instanceMetaOn(bottom());
+		specials[30] = instanceMeta(bottom());
 		specials[31] = NONTYPE.o();
 		specials[32] = mostGeneralTupleType();
 		specials[33] = tupleMeta();
@@ -1514,7 +1506,7 @@ public final class AvailRuntime
 		specials[55] = LITERAL_NODE.mostGeneralType();
 		specials[56] = REFERENCE_NODE.mostGeneralType();
 		specials[57] = SEND_NODE.mostGeneralType();
-		specials[58] = instanceMetaOn(mostGeneralLiteralTokenType());
+		specials[58] = instanceMeta(mostGeneralLiteralTokenType());
 		specials[59] = LIST_NODE.mostGeneralType();
 		specials[60] = VARIABLE_USE_NODE.mostGeneralType();
 		specials[61] = DECLARATION_NODE.mostGeneralType();
@@ -1533,22 +1525,25 @@ public final class AvailRuntime
 		specials[74] = zeroOrMoreOf(
 			setTypeForSizesContentType(wholeNumbers(), stringType()));
 		specials[75] = setTypeForSizesContentType(wholeNumbers(), stringType());
-		specials[76] = functionType(tuple(naturalNumbers()), bottom());
-		specials[77] = SetDescriptor.emptySet();
+		specials[76] =
+			functionType(tuple(naturalNumbers()), bottom());
+		specials[77] = emptySet();
 		specials[78] = negativeInfinity();
 		specials[79] = positiveInfinity();
 		specials[80] = mostGeneralPojoType();
 		specials[81] = pojoBottom();
-		specials[82] = PojoDescriptor.nullObject();
+		specials[82] = nullPojo();
 		specials[83] = pojoSelfType();
-		specials[84] = instanceMetaOn(mostGeneralPojoType());
-		specials[85] = instanceMetaOn(mostGeneralPojoArrayType());
+		specials[84] = instanceMeta(mostGeneralPojoType());
+		specials[85] = instanceMeta(mostGeneralPojoArrayType());
 		specials[86] = functionTypeReturning(mostGeneralPojoType());
 		specials[87] = mostGeneralPojoArrayType();
 		specials[88] = pojoSelfTypeAtom();
 		specials[89] = pojoTypeForClass(Throwable.class);
-		specials[90] = functionType(emptyTuple(), TOP.o());
-		specials[91] = functionType(emptyTuple(), booleanType());
+		specials[90] =
+			functionType(emptyTuple(), TOP.o());
+		specials[91] =
+			functionType(emptyTuple(), booleanType());
 		specials[92] = variableTypeFor(mostGeneralContinuationType());
 		specials[93] = mapTypeForSizesKeyTypeValueType(
 			wholeNumbers(), ATOM.o(), ANY.o());
@@ -1562,24 +1557,27 @@ public final class AvailRuntime
 		specials[96] = emptyMap();
 		specials[97] = mapTypeForSizesKeyTypeValueType(
 			naturalNumbers(), ANY.o(), ANY.o());
-		specials[98] = instanceMetaOn(wholeNumbers());
+		specials[98] = instanceMeta(wholeNumbers());
 		specials[99] = setTypeForSizesContentType(naturalNumbers(), ANY.o());
 		specials[100] = tupleTypeForSizesTypesDefaultType(
-			wholeNumbers(), emptyTuple(), mostGeneralTupleType());
+			wholeNumbers(), emptyTuple(),
+			mostGeneralTupleType());
 		specials[101] = nybbles();
 		specials[102] = zeroOrMoreOf(nybbles());
 		specials[103] = unsignedShorts();
 		specials[104] = emptyTuple();
-		specials[105] = functionType(tuple(bottom()), TOP.o());
-		specials[106] = instanceTypeOn(zero());
+		specials[105] =
+			functionType(tuple(bottom()), TOP.o());
+		specials[106] = instanceType(zero());
 		specials[107] = functionTypeReturning(topMeta());
 		specials[108] = tupleTypeForSizesTypesDefaultType(
-			wholeNumbers(), emptyTuple(), functionTypeReturning(topMeta()));
+			wholeNumbers(), emptyTuple(),
+			functionTypeReturning(topMeta()));
 		specials[109] = functionTypeReturning(PARSE_NODE.mostGeneralType());
-		specials[110] = instanceTypeOn(two());
+		specials[110] = instanceType(two());
 		specials[111] = fromDouble(Math.E);
-		specials[112] = instanceTypeOn(fromDouble(Math.E));
-		specials[113] = instanceMetaOn(PARSE_NODE.mostGeneralType());
+		specials[112] = instanceType(fromDouble(Math.E));
+		specials[113] = instanceMeta(PARSE_NODE.mostGeneralType());
 		specials[114] = setTypeForSizesContentType(wholeNumbers(), ATOM.o());
 		specials[115] = TOKEN.o();
 		specials[116] = mostGeneralLiteralTokenType();
@@ -1597,8 +1595,8 @@ public final class AvailRuntime
 		specials[124] = variableReadWriteType(TOP.o(), bottom());
 		specials[125] = zeroOrMoreOf(EXPRESSION_NODE.create(ANY.o()));
 		specials[126] = EXPRESSION_NODE.create(ANY.o());
-		specials[127] = functionType(
-			tuple(pojoTypeForClass(Throwable.class)), bottom());
+		specials[127] =
+			functionType(tuple(pojoTypeForClass(Throwable.class)), bottom());
 		specials[128] = zeroOrMoreOf(
 			setTypeForSizesContentType(wholeNumbers(), ATOM.o()));
 		specials[129] = bytes();
@@ -1614,7 +1612,7 @@ public final class AvailRuntime
 		specials[137] = oneOrMoreOf(ANY.o());
 		specials[138] = zeroOrMoreOf(integers());
 		specials[139] = tupleTypeForSizesTypesDefaultType(
-			integerRangeType(fromInt(2), true, positiveInfinity(),false),
+			integerRangeType(fromInt(2), true, positiveInfinity(), false),
 			emptyTuple(),
 			ANY.o());
 		// Some of these entries may need to be shuffled into earlier slots to
@@ -1852,8 +1850,8 @@ public final class AvailRuntime
 					// Remove the desiccated message bundle from its atom.
 					final A_Atom atom = bundle.message();
 					atom.setAtomProperty(
-						SpecialAtom.MESSAGE_BUNDLE_KEY.atom,
-						NilDescriptor.nil());
+						MESSAGE_BUNDLE_KEY.atom,
+						nil());
 				}
 			}
 		}
@@ -2248,7 +2246,7 @@ public final class AvailRuntime
 		{
 			// Ignore.
 		}
-		modules = NilDescriptor.nil();
+		modules = nil();
 	}
 
 	/**

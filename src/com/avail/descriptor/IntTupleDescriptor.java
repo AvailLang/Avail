@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.Generator;
+import com.avail.utility.IndexedIntGenerator;
 import com.avail.utility.json.JSONWriter;
 
 import java.nio.ByteBuffer;
@@ -42,7 +42,13 @@ import java.nio.ByteBuffer;
 import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.IntTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
+import static com.avail.descriptor.IntegerDescriptor.computeHashOfInt;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static java.lang.Math.min;
 
@@ -116,16 +122,15 @@ extends NumericTupleDescriptor
 		if (!newElement.isInt())
 		{
 			// Transition to a tree tuple because it's not an int.
-			final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+			final A_Tuple singleton = tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int intValue = ((AvailObject)newElement).extractInt();
 		if (originalSize >= maximumCopySize)
 		{
 			// Transition to a tree tuple because it's too big.
-			final A_Tuple singleton = IntTupleDescriptor.generateFrom(
-				1,
-				() -> intValue);
+			final A_Tuple singleton =
+				generateIntTupleFrom(1, ignored -> intValue);
 			return object.concatenateWith(singleton, canDestroy);
 		}
 		final int newSize = originalSize + 1;
@@ -231,8 +236,7 @@ extends NumericTupleDescriptor
 		for (int index = end; index >= start; index--)
 		{
 			final int itemHash =
-				IntegerDescriptor.computeHashOfInt(object.tupleIntAt(index))
-					^ preToggle;
+				computeHashOfInt(object.tupleIntAt(index)) ^ preToggle;
 			hash = (hash + itemHash) * multiplier;
 		}
 		return hash;
@@ -297,10 +301,9 @@ extends NumericTupleDescriptor
 		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object, otherTuple, true);
+		return concatenateAtLeastOneTree(object, otherTuple, true);
 	}
 
 	@Override
@@ -483,7 +486,7 @@ extends NumericTupleDescriptor
 			}
 		}
 		final A_Type defaultTypeObject = aType.defaultType();
-		if (IntegerRangeTypeDescriptor.int32().isSubtypeOf(defaultTypeObject))
+		if (int32().isSubtypeOf(defaultTypeObject))
 		{
 			return true;
 		}
@@ -540,8 +543,7 @@ extends NumericTupleDescriptor
 	{
 		// Answer the element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
-		return (AvailObject)IntegerDescriptor.fromInt(
-			object.intSlot(RAW_LONG_AT_, index));
+		return (AvailObject) fromInt(object.intSlot(RAW_LONG_AT_, index));
 	}
 
 	@Override @AvailMethod
@@ -578,7 +580,7 @@ extends NumericTupleDescriptor
 		final int endIndex,
 		final A_Type type)
 	{
-		if (IntegerRangeTypeDescriptor.int32().isSubtypeOf(type))
+		if (int32().isSubtypeOf(type))
 		{
 			return true;
 		}
@@ -706,8 +708,7 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * Build a mutable {@linkplain IntTupleDescriptor int tuple} with room for
-	 * the specified number of elements.
+	 * Build a mutable int tuple with room for the specified number of elements.
 	 *
 	 * @param size The number of ints in the resulting tuple.
 	 * @return An int tuple with the specified number of ints (initially zero).
@@ -730,7 +731,7 @@ extends NumericTupleDescriptor
 
 	/**
 	 * Create an object of the appropriate size, whose descriptor is an instance
-	 * of {@link IntTupleDescriptor}.  Run the generator for each position in
+	 * of {@code IntTupleDescriptor}.  Run the generator for each position in
 	 * ascending order to produce the {@code int}s with which to populate the
 	 * tuple.
 	 *
@@ -738,29 +739,32 @@ extends NumericTupleDescriptor
 	 * @param generator A generator to provide ints to store.
 	 * @return The new tuple.
 	 */
-	public static AvailObject generateFrom (
+	public static AvailObject generateIntTupleFrom (
 		final int size,
-		final Generator<Integer> generator)
+		final IndexedIntGenerator generator)
 	{
 		final IntTupleDescriptor descriptor = descriptorFor(MUTABLE, size);
 		final AvailObject result =
 			newIndexedDescriptor((size + 1) >>> 1, descriptor);
+		int tupleIndex = 1;
 		// Aggregate two writes at a time for the bulk of the tuple.
 		for (
 			int slotIndex = 1, limit = size >>> 1;
 			slotIndex <= limit;
 			slotIndex++)
 		{
-			long combined = generator.value() & 0xFFFF_FFFFL;
-			combined += ((long)generator.value()) << 32L;
+			long combined = generator.value(tupleIndex++) & 0xFFFF_FFFFL;
+			combined += ((long)generator.value(tupleIndex++)) << 32L;
 			result.setSlot(RAW_LONG_AT_, slotIndex, combined);
 		}
 		if ((size & 1) == 1)
 		{
 			// Do the last (odd) write the slow way.  Assume the upper int was
 			// zeroed.
-			result.setIntSlot(RAW_LONG_AT_, size, generator.value());
+			result.setIntSlot(
+				RAW_LONG_AT_, size, generator.value(tupleIndex++));
 		}
+		assert tupleIndex == size + 1;
 		return result;
 	}
 }

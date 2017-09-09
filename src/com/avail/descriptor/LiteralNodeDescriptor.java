@@ -48,9 +48,11 @@ import java.util.IdentityHashMap;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.LiteralNodeDescriptor.ObjectSlots.TOKEN;
+import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor
 	.mostGeneralLiteralTokenType;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TokenDescriptor.TokenType.SYNTHETIC_LITERAL;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 
 /**
@@ -217,7 +219,7 @@ extends ParseNodeDescriptor
 	 * @param token The token that describes the literal.
 	 * @return The new literal node.
 	 */
-	public static AvailObject fromToken (final A_Token token)
+	public static AvailObject literalNodeFromToken (final A_Token token)
 	{
 		assert token.isInstanceOfKind(mostGeneralLiteralTokenType());
 		final AvailObject node = mutable.create();
@@ -233,19 +235,19 @@ extends ParseNodeDescriptor
 	 * @param literalValue The value that this literal node should produce.
 	 * @return The new literal node.
 	 */
-	public static AvailObject syntheticFrom (final A_BasicObject literalValue)
+	public static AvailObject syntheticLiteralNodeFor (final A_BasicObject literalValue)
 	{
-		final AvailObject token = LiteralTokenDescriptor.create(
+		final AvailObject token = literalToken(
 			literalValue.isString()
-				? (A_String)literalValue
+				? (A_String) literalValue
 				: stringFrom(literalValue.toString()),
 			emptyTuple(),
 			emptyTuple(),
 			0,
 			-1,
-			TokenType.SYNTHETIC_LITERAL,
+			SYNTHETIC_LITERAL,
 			literalValue);
-		return fromToken(token);
+		return literalNodeFromToken(token);
 	}
 
 	/**

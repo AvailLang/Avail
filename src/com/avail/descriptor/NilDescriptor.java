@@ -42,6 +42,8 @@ import java.util.IdentityHashMap;
 import java.util.NoSuchElementException;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.LinearMapBinDescriptor
+	.createSingleLinearMapBin;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
@@ -101,11 +103,7 @@ extends Descriptor
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		return LinearMapBinDescriptor.createSingle(
-			key,
-			keyHash,
-			value,
-			myLevel);
+		return createSingleLinearMapBin(key, keyHash, value, myLevel);
 	}
 
 	@Override

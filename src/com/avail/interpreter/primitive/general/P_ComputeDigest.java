@@ -32,13 +32,29 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static java.util.Arrays.asList;
 
 /**
  * <strong>Primitive:</strong> Use a strong cryptographic message digest
@@ -83,25 +99,18 @@ extends Primitive
 		buffer.flip();
 		digest.update(buffer);
 		final byte[] digestBytes = digest.digest();
-		final A_Tuple digestTuple =
-			ByteArrayTupleDescriptor.forByteArray(digestBytes);
+		final A_Tuple digestTuple = tupleForByteArray(digestBytes);
 		return interpreter.primitiveSuccess(digestTuple);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				AbstractEnumerationTypeDescriptor.enumerationWith(
-					SetDescriptor.set(
-						IntegerDescriptor.fromInt(1),
-						IntegerDescriptor.fromInt(256),
-						IntegerDescriptor.fromInt(384),
-						IntegerDescriptor.fromInt(512))),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					IntegerRangeTypeDescriptor.bytes())),
-			TupleTypeDescriptor.oneOrMoreOf(
-				IntegerRangeTypeDescriptor.bytes()));
+		return functionType(
+			tuple(
+				enumerationWith(
+					tupleFromIntegerList(asList(1, 256, 384, 512)).asSet()),
+				zeroOrMoreOf(bytes())),
+			oneOrMoreOf(bytes()));
 	}
 }

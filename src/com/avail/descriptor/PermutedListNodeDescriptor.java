@@ -48,6 +48,7 @@ import java.util.IdentityHashMap;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PERMUTED_LIST_NODE;
 import static com.avail.descriptor.PermutedListNodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 
 /**
  * My instances represent {@linkplain ParseNodeDescriptor parse nodes} which
@@ -117,7 +118,7 @@ extends ParseNodeDescriptor
 				adjustedTypes[permutation.tupleIntAt(i) - 1] =
 					originalTupleType.typeAtIndex(i);
 			}
-			expressionType = TupleTypeDescriptor.tupleTypeForTypes(adjustedTypes);
+			expressionType = tupleTypeForTypes(adjustedTypes);
 			object.setMutableSlot(EXPRESSION_TYPE, expressionType.makeShared());
 		}
 		return expressionType;
@@ -275,7 +276,7 @@ extends ParseNodeDescriptor
 			// Nothing changed, so return the original permuted list.
 			return object;
 		}
-		return fromListAndPermutation(strippedList, object.slot(PERMUTATION));
+		return newPermutedListNode(strippedList, object.slot(PERMUTATION));
 	}
 
 	@Override @AvailMethod
@@ -297,7 +298,7 @@ extends ParseNodeDescriptor
 			final int index = permutation.tupleIntAt(i);
 			types[index - 1] = t;
 		}
-		return TupleTypeDescriptor.tupleTypeForTypes(types);
+		return tupleTypeForTypes(types);
 	}
 
 	@Override @AvailMethod
@@ -345,7 +346,7 @@ extends ParseNodeDescriptor
 	 *        The permutation to perform on the list node's elements.
 	 * @return The resulting permuted list node.
 	 */
-	public static AvailObject fromListAndPermutation (
+	public static AvailObject newPermutedListNode (
 		final A_Phrase list,
 		final A_Tuple permutation)
 	{

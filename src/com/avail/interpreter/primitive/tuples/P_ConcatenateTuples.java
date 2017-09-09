@@ -31,10 +31,27 @@
  */
 package com.avail.interpreter.primitive.tuples;
 
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
+	.concatenatingAnd;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
  * <strong>Primitive:</strong> Concatenate a {@linkplain TupleDescriptor
@@ -64,11 +81,9 @@ public final class P_ConcatenateTuples extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.zeroOrMoreOf(
-					TupleTypeDescriptor.mostGeneralTupleType())),
-			TupleTypeDescriptor.mostGeneralTupleType());
+		return functionType(
+			tuple(zeroOrMoreOf(mostGeneralTupleType())),
+			mostGeneralTupleType());
 	}
 
 	@Override
@@ -83,27 +98,23 @@ public final class P_ConcatenateTuples extends Primitive
 		if (lowerBound.equals(upperBound))
 		{
 			// A fixed number of subtuples.  Must be finite, of course.
-			if (lowerBound.greaterThan(
-				IntegerDescriptor.fromUnsignedByte((short)100)))
+			if (lowerBound.greaterThan(fromUnsignedByte((short)100)))
 			{
 				// Too expensive to compute here.
-				return super.returnTypeGuaranteedByVM(
-					argumentTypes);
+				return super.returnTypeGuaranteedByVM(argumentTypes);
 			}
 			// A (reasonably small) collection of tuple types.
 			assert lowerBound.isInt();
 			final int bound = lowerBound.extractInt();
 			if (bound == 0)
 			{
-				return InstanceTypeDescriptor.instanceTypeOn(TupleDescriptor.emptyTuple());
+				return instanceType(emptyTuple());
 			}
 			A_Type concatenatedType = tuplesType.typeAtIndex(1);
 			for (int i = 2; i <= bound; i++)
 			{
-				concatenatedType =
-					ConcatenatedTupleTypeDescriptor.concatenatingAnd(
-						concatenatedType,
-						tuplesType.typeAtIndex(i));
+				concatenatedType = concatenatingAnd(
+					concatenatedType, tuplesType.typeAtIndex(i));
 			}
 			return concatenatedType;
 		}
@@ -118,20 +129,18 @@ public final class P_ConcatenateTuples extends Primitive
 				final A_Type innerSizes = innerTupleType.sizeRange();
 				final A_Number minSize =
 					tuplesSizes.lowerBound().timesCanDestroy(
-						innerSizes.lowerBound(),
-						false);
+						innerSizes.lowerBound(), false);
 				final A_Number maxSize =
 					tuplesSizes.upperBound().timesCanDestroy(
-						innerSizes.upperBound(),
-						false);
-				final A_Type newSizeRange = IntegerRangeTypeDescriptor.integerRangeType(
+						innerSizes.upperBound(), false);
+				final A_Type newSizeRange = integerRangeType(
 					minSize,
 					true,
-					maxSize.plusCanDestroy(IntegerDescriptor.one(), true),
+					maxSize.plusCanDestroy(one(), true),
 					false);
-				return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				return tupleTypeForSizesTypesDefaultType(
 					newSizeRange,
-					TupleDescriptor.emptyTuple(),
+					emptyTuple(),
 					innerTupleType.defaultType());
 			}
 		}

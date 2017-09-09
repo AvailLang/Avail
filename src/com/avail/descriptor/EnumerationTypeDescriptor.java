@@ -46,10 +46,16 @@ import java.util.Set;
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots
 	.CACHED_SUPERKIND;
 import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots
 	.INSTANCES;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 
@@ -140,7 +146,7 @@ extends AbstractEnumerationTypeDescriptor
 		A_Type cached = object.slot(CACHED_SUPERKIND);
 		if (cached.equalsNil())
 		{
-			cached = BottomTypeDescriptor.bottom();
+			cached = bottom();
 			for (final A_BasicObject instance : getInstances(object))
 			{
 				cached = cached.typeUnion(instance.kind());
@@ -189,7 +195,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	A_Number o_InstanceCount (final AvailObject object)
 	{
-		return IntegerDescriptor.fromInt(getInstances(object).setSize());
+		return fromInt(getInstances(object).setSize());
 	}
 
 	@Override @AvailMethod
@@ -326,7 +332,7 @@ extends AbstractEnumerationTypeDescriptor
 		final A_Type another)
 	{
 		assert another.isType();
-		A_Set set = SetDescriptor.emptySet();
+		A_Set set = emptySet();
 		final A_Set elements = getInstances(object);
 		if (another.isEnumeration())
 		{
@@ -335,7 +341,7 @@ extends AbstractEnumerationTypeDescriptor
 			// intersections of all pairs of types in the product of the sets.
 			// This should even correctly deal with bottom as an element.
 			final A_Set otherElements = another.instances();
-			A_Set myTypes = SetDescriptor.emptySet();
+			A_Set myTypes = emptySet();
 			for (final AvailObject element : elements)
 			{
 				if (element.isType())
@@ -385,14 +391,14 @@ extends AbstractEnumerationTypeDescriptor
 			// One more thing:  The special case of another being bottom should
 			// not be treated as being a meta for our purposes, even though
 			// bottom technically is a meta.
-			if (object.isSubtypeOf(InstanceMetaDescriptor.topMeta())
-				&& another.isSubtypeOf(InstanceMetaDescriptor.topMeta())
+			if (object.isSubtypeOf(topMeta())
+				&& another.isSubtypeOf(topMeta())
 				&& !another.isBottom())
 			{
-				return InstanceMetaDescriptor.instanceMetaOn(BottomTypeDescriptor.bottom());
+				return instanceMeta(bottom());
 			}
 		}
-		return AbstractEnumerationTypeDescriptor.enumerationWith(set);
+		return enumerationWith(set);
 	}
 
 	/**
@@ -417,8 +423,8 @@ extends AbstractEnumerationTypeDescriptor
 		{
 			// Create a new enumeration containing all elements from both
 			// enumerations.
-			return AbstractEnumerationTypeDescriptor.enumerationWith(
-				getInstances(object).setUnionCanDestroy(
+			return
+				enumerationWith(getInstances(object).setUnionCanDestroy(
 					another.instances(),
 					false));
 		}
@@ -733,7 +739,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override
 	A_Type o_ExpressionType (final AvailObject object)
 	{
-		A_Type unionType = BottomTypeDescriptor.bottom();
+		A_Type unionType = bottom();
 		for (final A_Phrase instance : getInstances(object))
 		{
 			unionType = unionType.typeUnion(instance.expressionType());
@@ -744,8 +750,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override
 	boolean o_RangeIncludesInt (final AvailObject object, final int anInt)
 	{
-		return getInstances(object).hasElement(
-			IntegerDescriptor.fromInt(anInt));
+		return getInstances(object).hasElement(fromInt(anInt));
 	}
 
 	@Override
@@ -811,7 +816,7 @@ extends AbstractEnumerationTypeDescriptor
 		assert normalizedSet.setSize() > 1;
 		final AvailObject result = mutable.create();
 		result.setSlot(INSTANCES, normalizedSet.makeImmutable());
-		result.setSlot(CACHED_SUPERKIND, NilDescriptor.nil());
+		result.setSlot(CACHED_SUPERKIND, nil());
 		return result;
 	}
 
@@ -877,7 +882,8 @@ extends AbstractEnumerationTypeDescriptor
 	static
 	{
 		final A_Set set = set(trueObject(), falseObject());
-		booleanObject = enumerationWith(set).makeShared();
+		booleanObject =
+			enumerationWith(set).makeShared();
 		trueType = instanceTypeOrMetaOn(trueObject()).makeShared();
 		falseType = instanceTypeOrMetaOn(falseObject()).makeShared();
 	}

@@ -38,6 +38,7 @@ import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.StringDescriptor;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A grouping of all implementationGroups originating from the names section of
@@ -82,19 +83,22 @@ public class StacksUsesModule extends StacksImportModule
 	 * 		qualified module path it is originally named from.
 	 */
 	public StacksUsesModule (final String moduleImportName,
-		final HashMap<A_String,ImplementationGroup> implementationGroups,
-		final HashMap<String, StacksExtendsModule> moduleNameToExtendsList,
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
+		final Map<A_String,ImplementationGroup> implementationGroups,
+		final Map<String, StacksExtendsModule> moduleNameToExtendsList,
+		final Map<A_String, Map<String, ImplementationGroup>>
 			methodLeafNameToModuleName,
-		final HashMap<String,StacksUsesModule> moduleNameToUsesList,
-		final HashMap<A_String, HashMap<String, ImplementationGroup>>
+		final Map<String,StacksUsesModule> moduleNameToUsesList,
+		final Map<A_String, Map<String, ImplementationGroup>>
 			usesMethodLeafNameToModuleName,
 		final A_Map renames)
 	{
-		super(moduleImportName,implementationGroups,moduleNameToExtendsList,
-			methodLeafNameToModuleName, moduleNameToUsesList,
+		super(
+			moduleImportName,
+			implementationGroups,
+			moduleNameToExtendsList,
+			methodLeafNameToModuleName,
+			moduleNameToUsesList,
 			usesMethodLeafNameToModuleName);
-
 		this.renames = renames;
 	}
 
@@ -203,9 +207,11 @@ public class StacksUsesModule extends StacksImportModule
 		for (final ImplementationGroup aGroup :
 			extendsMethodLeafNameToModuleName().get(key).values())
 		{
-			group =
-				new ImplementationGroup(aGroup,newFileName,
-					newlyDefinedModule.moduleName(), newName);
+			group = new ImplementationGroup(
+				aGroup,
+				newFileName,
+				newlyDefinedModule.moduleName(),
+				newName);
 		}
 		if (newlyDefinedModule.usesMethodLeafNameToModuleName()
 			.containsKey(newName))
@@ -215,13 +221,12 @@ public class StacksUsesModule extends StacksImportModule
 		}
 		else
 		{
-			final HashMap<String, ImplementationGroup> newMap =
-				new HashMap<>();
+			final Map<String, ImplementationGroup> newMap = new HashMap<>();
 
 			newMap.put(newlyDefinedModule.moduleName(), group);
 
-			newlyDefinedModule.usesMethodLeafNameToModuleName().put(newName,
-				newMap);
+			newlyDefinedModule.usesMethodLeafNameToModuleName().put(
+				newName, newMap);
 		}
 		if (deleteOriginal)
 		{
@@ -231,7 +236,7 @@ public class StacksUsesModule extends StacksImportModule
 	}
 
 	/**
-	 * Construct a new {@link StacksUsesModule} from a
+	 * Construct a new {@code StacksUsesModule} from a
 	 * {@linkplain StacksCommentsModule}
 	 * @param module
 	 * 		The {@linkplain StacksCommentsModule} to be transformed

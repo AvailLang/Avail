@@ -31,14 +31,34 @@
  */
 package com.avail.interpreter.primitive.controlflow;
 
-import static com.avail.exceptions.AvailErrorCode.*;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
 import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
-
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Restart the given {@linkplain
@@ -110,19 +130,16 @@ public final class P_RestartContinuationWithArguments extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ContinuationTypeDescriptor.mostGeneralContinuationType(),
-				TupleTypeDescriptor.mostGeneralTupleType()),
-			BottomTypeDescriptor.bottom());
+		return functionType(tuple(
+			mostGeneralContinuationType(),
+			mostGeneralTupleType()), bottom());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS,
-				E_INCORRECT_ARGUMENT_TYPE));
+		return enumerationWith(set(
+			E_INCORRECT_NUMBER_OF_ARGUMENTS,
+			E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

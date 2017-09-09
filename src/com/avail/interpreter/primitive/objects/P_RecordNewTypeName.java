@@ -31,13 +31,28 @@
  */
 package com.avail.interpreter.primitive.objects;
 
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.ObjectTypeDescriptor;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
+import static com.avail.descriptor.ObjectTypeDescriptor.setNameForType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.interpreter.*;
-import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
 
 /**
  * <strong>Primitive:</strong> Assign a name to a {@linkplain
@@ -65,25 +80,24 @@ public final class P_RecordNewTypeName extends Primitive
 
 		userType.makeImmutable();
 		name.makeImmutable();
-		ObjectTypeDescriptor.setNameForType(userType, name, false);
-		final AvailLoader loader = interpreter.fiber().availLoader();
+		setNameForType(userType, name, false);
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
 		{
 			loader.recordEffect(
 				new LoadingEffectToRunPrimitive(
 					SpecialMethodAtom.RECORD_TYPE_NAME.bundle, userType, name));
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				InstanceMetaDescriptor.instanceMetaOn(
-					ObjectTypeDescriptor.mostGeneralObjectType()),
-				TupleTypeDescriptor.stringType()),
+		return functionType(
+			tuple(
+				instanceMeta(mostGeneralObjectType()),
+				stringType()),
 			TOP.o());
 	}
 }

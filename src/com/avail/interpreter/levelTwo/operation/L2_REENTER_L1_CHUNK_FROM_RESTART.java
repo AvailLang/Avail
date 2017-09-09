@@ -37,14 +37,15 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.DeclarationNodeDescriptor;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+import com.avail.interpreter.primitive.controlflow
+	.P_RestartContinuationWithArguments;
 
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.Interpreter.debugL1;
 
 /**
@@ -107,13 +108,12 @@ public class L2_REENTER_L1_CHUNK_FROM_RESTART extends L2Operation
 		for (int i = 1; i <= numLocals; i++)
 		{
 			interpreter.pointerAtPut(
-				slotIndex++,
-				VariableDescriptor.forVariableType(code.localTypeAt(i)));
+				slotIndex++, newVariableWithOuterType(code.localTypeAt(i)));
 		}
 		// Fill the rest with nils.
 		while (slotIndex <= numSlots)
 		{
-			interpreter.pointerAtPut(slotIndex++, NilDescriptor.nil());
+			interpreter.pointerAtPut(slotIndex++, nil());
 		}
 		interpreter.levelOneStepper.pc = 1;
 		interpreter.levelOneStepper.stackp = numSlots + 1;

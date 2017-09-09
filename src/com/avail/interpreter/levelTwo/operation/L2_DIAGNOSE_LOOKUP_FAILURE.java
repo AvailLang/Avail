@@ -31,17 +31,21 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Set;
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
-import com.avail.descriptor.TupleDescriptor;
-import com.avail.interpreter.*;
-import com.avail.interpreter.levelTwo.*;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * A method lookup failed. Write the appropriate error code into the supplied
@@ -103,14 +107,13 @@ extends L2Operation
 			instruction.writeObjectRegisterAt(1);
 		registerSet.typeAtPut(
 			errorCodeReg,
-			AbstractEnumerationTypeDescriptor.enumerationWith(
-				TupleDescriptor.tuple(
-						E_NO_METHOD.numericCode(),
-						E_NO_METHOD_DEFINITION.numericCode(),
-						E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
-						E_FORWARD_METHOD_DEFINITION.numericCode(),
-						E_ABSTRACT_METHOD_DEFINITION.numericCode())
-					.asSet()),
+			enumerationWith(
+				set(
+					E_NO_METHOD,
+					E_NO_METHOD_DEFINITION,
+					E_AMBIGUOUS_METHOD_DEFINITION,
+					E_FORWARD_METHOD_DEFINITION,
+					E_ABSTRACT_METHOD_DEFINITION)),
 			instruction);
 	}
 }

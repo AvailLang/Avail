@@ -204,7 +204,7 @@ extends TokenDescriptor
 	 *        The line number on which the token occurred.
 	 * @return The new comment token.
 	 */
-	public static A_Token create (
+	public static A_Token newCommentToken (
 		final A_String string,
 		final A_String leadingWhitespace,
 		final A_String trailingWhitespace,

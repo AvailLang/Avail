@@ -46,13 +46,20 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
+import static com.avail.descriptor.ByteBufferTupleDescriptor.tupleForByteBuffer;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceTypeOn;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
@@ -61,6 +68,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static java.lang.Integer.MAX_VALUE;
 
 /**
  * <strong>Primitive:</strong> Initiate an asynchronous read from the
@@ -112,7 +120,7 @@ extends Primitive
 			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
 		final ByteBuffer buffer = ByteBuffer.allocateDirect(size.extractInt());
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
 			() ->
@@ -130,7 +138,7 @@ extends Primitive
 		succeed.makeShared();
 		fail.makeShared();
 		// Now start the asynchronous read.
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		try
 		{
 			socket.read(
@@ -150,10 +158,8 @@ extends Primitive
 							newFiber,
 							succeed,
 							Arrays.asList(
-								ByteBufferTupleDescriptor.forByteBuffer(
-									buffer),
-								AtomDescriptor.objectFromBoolean(
-									bytesRead == -1)));
+								tupleForByteBuffer(buffer),
+								objectFromBoolean(bytesRead == -1)));
 					}
 
 					@Override
@@ -190,7 +196,7 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				inclusive(0, Integer.MAX_VALUE),
+				inclusive(0, MAX_VALUE),
 				ATOM.o(),
 				functionType(
 					tuple(
@@ -198,8 +204,7 @@ extends Primitive
 						booleanType()),
 					TOP.o()),
 				functionType(
-					tuple(
-						instanceTypeOn(E_IO_ERROR.numericCode())),
+					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o()),
 				bytes()),
 			mostGeneralFiberType());
@@ -208,8 +213,8 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR));

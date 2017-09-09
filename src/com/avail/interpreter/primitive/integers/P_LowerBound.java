@@ -75,8 +75,7 @@ public final class P_LowerBound extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
-			tuple(
-				extendedIntegersMeta()),
+			tuple(extendedIntegersMeta()),
 			extendedIntegers());
 	}
 }

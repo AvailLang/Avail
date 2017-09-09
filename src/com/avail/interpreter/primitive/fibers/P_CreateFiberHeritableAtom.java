@@ -32,18 +32,37 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME;
-import static com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AtomDescriptor.SpecialAtom;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.utility.MutableOrNull;
 
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.descriptor.AtomDescriptor.SpecialAtom;
-import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.*;
-import com.avail.utility.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
+import static com.avail.descriptor.AtomDescriptor.createAtom;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.ModuleDescriptor.currentModule;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME;
+import static com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Create a new {@linkplain AtomDescriptor atom}
@@ -71,7 +90,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_String name = args.get(0);
-		final A_Module module = ModuleDescriptor.current();
+		final A_Module module = currentModule();
 		final MutableOrNull<A_Atom> trueName =
 			new MutableOrNull<>();
 		final MutableOrNull<AvailErrorCode> errorCode =
@@ -85,11 +104,9 @@ extends Primitive
 						module.trueNamesForStringName(name);
 					if (trueNames.setSize() == 0)
 					{
-						final A_Atom newName = AtomDescriptor.create(
-							name, module);
+						final A_Atom newName = createAtom(name, module);
 						newName.setAtomProperty(
-							HERITABLE_KEY.atom,
-							AtomDescriptor.trueObject());
+							HERITABLE_KEY.atom, trueObject());
 						module.addPrivateName(newName);
 						trueName.value = newName;
 					}
@@ -105,16 +122,13 @@ extends Primitive
 		}
 		else
 		{
-			final A_Atom newName =
-				AtomDescriptor.create(name, NilDescriptor.nil());
-			newName.setAtomProperty(
-				HERITABLE_KEY.atom,
-				AtomDescriptor.trueObject());
+			final A_Atom newName = createAtom(name, nil());
+			newName.setAtomProperty(HERITABLE_KEY.atom, trueObject());
 			trueName.value = newName;
 		}
 		if (errorCode.value != null)
 		{
-			return interpreter.primitiveFailure(errorCode.value());
+			return interpreter.primitiveFailure(errorCode.value);
 		}
 		return interpreter.primitiveSuccess(trueName.value().makeShared());
 	}
@@ -122,18 +136,14 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType()),
+		return functionType(
+			tuple(stringType()),
 			ATOM.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_ATOM_ALREADY_EXISTS,
-				E_AMBIGUOUS_NAME));
+		return enumerationWith(set(E_ATOM_ALREADY_EXISTS, E_AMBIGUOUS_NAME));
 	}
 }

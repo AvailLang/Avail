@@ -32,14 +32,28 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.RepeatedElementTupleDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.RepeatedElementTupleDescriptor.ObjectSlots.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.HideFieldInDebugger;
+
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.annotations.HideFieldInDebugger;
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.ByteStringDescriptor.generateByteString;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.RepeatedElementTupleDescriptor
+	.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.RepeatedElementTupleDescriptor
+	.IntegerSlots.SIZE;
+import static com.avail.descriptor.RepeatedElementTupleDescriptor.ObjectSlots
+	.ELEMENT;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
+import static com.avail.descriptor.TwoByteStringDescriptor
+	.generateTwoByteString;
 
 /**
  * {@code RepeatedElementTupleDescriptor} represents a tuple with a single
@@ -287,12 +301,9 @@ extends TupleDescriptor
 				// Trees aren't allowed to have empty subtuples.
 				return object;
 			}
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
-			otherTuple,
-			true);
+		return concatenateAtLeastOneTree(object, otherTuple, true);
 	}
 
 	@Override @AvailMethod
@@ -391,11 +402,11 @@ extends TupleDescriptor
 		{
 			// The result will be reasonably small, so make it flat.
 			element.makeImmutable();
-			A_Tuple result = null;
+			@Nullable A_Tuple result = null;
 			if (element.isInt())
 			{
 				// Make it a numeric tuple.
-				result = TupleDescriptor.tupleFromIntegerList(
+				result = tupleFromIntegerList(
 					Collections.nCopies(size, element.extractInt()));
 			}
 			else if (element.isCharacter())
@@ -404,22 +415,16 @@ extends TupleDescriptor
 				final int codePoint = element.codePoint();
 				if (codePoint <= 255)
 				{
-					result = StringDescriptor.mutableByteStringFromGenerator(
-						size,
-						() -> (char)codePoint);
+					result = generateByteString(size, ignored -> codePoint);
 				}
 				else if (codePoint <= 65535)
 				{
-					result = StringDescriptor.mutableTwoByteStringFromGenerator(
-						size,
-						() -> (char)codePoint);
+					result = generateTwoByteString(size, ignored -> codePoint);
 				}
 			}
 			if (result == null)
 			{
-				result = ObjectTupleDescriptor.generateFrom(
-					size,
-					() -> element);
+				result = generateObjectTupleFrom(size, i -> element);
 			}
 			// Replace the element, which might need to switch representation in
 			// some cases which we assume are infrequent.
@@ -451,7 +456,7 @@ extends TupleDescriptor
 			return result;
 		}
 		// Transition to a tree tuple.
-		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+		final A_Tuple singleton = tuple(newElement);
 		return object.concatenateWith(singleton, canDestroy);
 	}
 
@@ -516,9 +521,9 @@ extends TupleDescriptor
 	}
 
 	/**
-	 * Construct a new {@link RepeatedElementTupleDescriptor}.
+	 * Construct a new {@code RepeatedElementTupleDescriptor}.
 	 *
-	 * @param mutability
+	 * @param mutability How its instances can be shared or modified.
 	 */
 	private RepeatedElementTupleDescriptor (final Mutability mutability)
 	{
@@ -539,14 +544,14 @@ extends TupleDescriptor
 		// If there are no members in the range, return the empty tuple.
 		if (size == 0)
 		{
-			return TupleDescriptor.emptyTuple();
+			return emptyTuple();
 		}
 
 		// If there are fewer than minimumRepeatSize members in this tuple,
 		// create a normal tuple with them in it instead.
 		if (size < minimumRepeatSize)
 		{
-			return TupleDescriptor.tupleFromList(Collections.nCopies(size, element));
+			return tupleFromList(Collections.nCopies(size, element));
 		}
 
 		// No other efficiency shortcuts. Create a repeated element tuple.

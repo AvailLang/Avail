@@ -39,6 +39,13 @@ import com.avail.utility.json.JSONWriter;
 import java.util.IdentityHashMap;
 import java.util.List;
 
+import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
@@ -154,7 +161,7 @@ extends AbstractEnumerationTypeDescriptor
 		// function type. In particular, if ⊥ is viewed as a function type, it
 		// can take any number of arguments of any type (since there are no
 		// complying function instances).
-		return TupleTypeDescriptor.mostGeneralTupleType();
+		return mostGeneralTupleType();
 	}
 
 	/**
@@ -191,7 +198,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	A_Set o_DeclaredExceptions (final AvailObject object)
 	{
-		return SetDescriptor.emptySet();
+		return emptySet();
 	}
 
 	@Override @AvailMethod
@@ -289,14 +296,14 @@ extends AbstractEnumerationTypeDescriptor
 	A_Number o_InstanceCount (final AvailObject object)
 	{
 		// ⊥ is the empty enumeration.
-		return IntegerDescriptor.zero();
+		return zero();
 	}
 
 	@Override @AvailMethod
 	A_Set o_Instances (final AvailObject object)
 	{
 		// ⊥ is the empty enumeration.
-		return SetDescriptor.emptySet();
+		return emptySet();
 	}
 
 	@Override
@@ -328,7 +335,7 @@ extends AbstractEnumerationTypeDescriptor
 		}
 		// Bottom is an instance of every meta (everything that inherits
 		// from TYPE).
-		return aType.isSubtypeOf(InstanceMetaDescriptor.topMeta());
+		return aType.isSubtypeOf(topMeta());
 	}
 
 	@Override @AvailMethod
@@ -338,7 +345,7 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		assert !aType.equals(bottom());
 		return aType.isSupertypeOfPrimitiveTypeEnum(ANY)
-			|| aType.isSubtypeOf(InstanceMetaDescriptor.topMeta());
+			|| aType.isSubtypeOf(topMeta());
 	}
 
 	@Override @AvailMethod
@@ -424,7 +431,7 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 		// range.
-		return InfinityDescriptor.positiveInfinity();
+		return positiveInfinity();
 	}
 
 	@Override @AvailMethod
@@ -490,7 +497,7 @@ extends AbstractEnumerationTypeDescriptor
 	A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		// Since I'm a degenerate tuple type, I have no leading types.
-		return TupleDescriptor.emptyTuple();
+		return emptyTuple();
 	}
 
 	@Override @AvailMethod
@@ -510,7 +517,7 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 		// range.
-		return InfinityDescriptor.negativeInfinity();
+		return negativeInfinity();
 	}
 
 	@Override @AvailMethod

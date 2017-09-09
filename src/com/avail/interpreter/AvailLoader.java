@@ -71,18 +71,41 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractDefinitionDescriptor
+	.newAbstractDefinition;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AtomDescriptor.createAtom;
+import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
+import static com.avail.descriptor.ForwardDefinitionDescriptor
+	.newForwardDefinition;
+import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor
+	.newGrammaticalRestriction;
+import static com.avail.descriptor.LexerDescriptor.newLexer;
+import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.newBundleTree;
+import static com.avail.descriptor.MethodDefinitionDescriptor
+	.newMethodDefinition;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParsingPlanInProgressDescriptor
+	.newPlanInProgress;
+import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.AvailLoader.Phase.INITIALIZING;
 import static com.avail.interpreter.AvailLoader.Phase.UNLOADING;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
+import static java.util.Collections.emptyMap;
 
 /**
  * An {@code AvailLoader} is responsible for orchestrating module-level
@@ -386,8 +409,8 @@ public final class AvailLoader
 			if (countdown.value == 0)
 			{
 				continuation.value(
-					SetDescriptor.emptySet(),
-					Collections.emptyMap());
+					emptySet(),
+					emptyMap());
 				return;
 			}
 			// Initially use the immutable emptyMap for the failureMap, but
@@ -395,7 +418,7 @@ public final class AvailLoader
 			final Mutable<Map<A_Lexer, Throwable>> failureMap =
 				new Mutable<>(Collections.<A_Lexer, Throwable>emptyMap());
 			final List<A_Character> argsList = Collections.singletonList(
-				CharacterDescriptor.fromCodePoint(codePoint));
+				fromCodePoint(codePoint));
 			final Object joinLock = new Object();
 			final List<A_Lexer> applicableLexers = new ArrayList<>();
 			final CompilationContext compilationContext =
@@ -546,10 +569,11 @@ public final class AvailLoader
 
 	/**
 	 * The {@link AvailRuntime} for the loader. Since a {@linkplain AvailLoader
-	 * loader} cannot migrate between two {@linkplain AvailRuntime runtimes}, it
+	 * loader} cannot migrate between two
+	 * {@linkplain AvailRuntime runtimes}, it
 	 * is safe to cache it for efficient access.
 	 */
-	private final AvailRuntime runtime = AvailRuntime.current();
+	private final AvailRuntime runtime = currentRuntime();
 
 	/**
 	 * Answer the {@link AvailRuntime} for the loader.
@@ -793,7 +817,7 @@ public final class AvailLoader
 		final AvailLoader loader = new AvailLoader(module, textInterface);
 		// We had better not be removing forward declarations from an already
 		// fully-loaded module.
-		loader.pendingForwards = NilDescriptor.nil();
+		loader.pendingForwards = nil();
 		loader.phase = UNLOADING;
 		return loader;
 	}
@@ -817,7 +841,7 @@ public final class AvailLoader
 	}
 
 	/** The unresolved forward method declarations. */
-	public A_Set pendingForwards = SetDescriptor.emptySet();
+	public A_Set pendingForwards = emptySet();
 
 	/**
 	 * The given forward is in the process of being resolved. A real definition
@@ -899,7 +923,7 @@ public final class AvailLoader
 				}
 			}
 		}
-		final A_Definition newForward = ForwardDefinitionDescriptor.create(
+		final A_Definition newForward = newForwardDefinition(
 			method, module, bodySignature);
 		method.methodAddDefinition(newForward);
 		recordEffect(new LoadingEffectToAddDefinition(newForward));
@@ -913,7 +937,7 @@ public final class AvailLoader
 			final A_DefinitionParsingPlan plan =
 				bundle.definitionParsingPlans().mapAt(newForward);
 			final A_ParsingPlanInProgress planInProgress =
-				ParsingPlanInProgressDescriptor.create(plan, 1);
+				newPlanInProgress(plan, 1);
 			root.addPlanInProgress(planInProgress);
 		});
 	}
@@ -951,8 +975,7 @@ public final class AvailLoader
 		methodName.makeShared();
 		bodyBlock.makeShared();
 		addDefinition(
-			MethodDefinitionDescriptor.create(
-				bundle.bundleMethod(), module, bodyBlock));
+			newMethodDefinition(bundle.bundleMethod(), module, bodyBlock));
 	}
 
 	/**
@@ -989,7 +1012,7 @@ public final class AvailLoader
 		methodName.makeShared();
 		bodySignature.makeShared();
 		addDefinition(
-			AbstractDefinitionDescriptor.create(
+			newAbstractDefinition(
 				bundle.bundleMethod(), module, bodySignature));
 	}
 
@@ -1075,7 +1098,7 @@ public final class AvailLoader
 							bundle.definitionParsingPlans().mapAt(
 								finalForward);
 						final A_ParsingPlanInProgress planInProgress =
-							ParsingPlanInProgressDescriptor.create(plan, 1);
+							newPlanInProgress(plan, 1);
 						root.removePlanInProgress(planInProgress);
 					}
 				}
@@ -1101,7 +1124,7 @@ public final class AvailLoader
 						bundle.definitionParsingPlans().mapAt(
 							newDefinition);
 					final A_ParsingPlanInProgress planInProgress =
-						ParsingPlanInProgressDescriptor.create(plan, 1);
+						newPlanInProgress(plan, 1);
 					root.addPlanInProgress(planInProgress);
 				}
 			}
@@ -1153,7 +1176,7 @@ public final class AvailLoader
 		macroBody.makeShared();
 		// Add the macro definition.
 		final A_Method method = bundle.bundleMethod();
-		final AvailObject macroDefinition = MacroDefinitionDescriptor.create(
+		final AvailObject macroDefinition = newMacroDefinition(
 			method, module, macroBody, prefixFunctions);
 		module.moduleAddDefinition(macroDefinition);
 		final A_Type macroBodyType = macroBody.kind();
@@ -1179,7 +1202,7 @@ public final class AvailLoader
 			final A_DefinitionParsingPlan plan =
 				bundle.definitionParsingPlans().mapAt(macroDefinition);
 			final A_ParsingPlanInProgress planInProgress =
-				ParsingPlanInProgressDescriptor.create(plan, 1);
+				newPlanInProgress(plan, 1);
 			root.addPlanInProgress(planInProgress);
 		});
 	}
@@ -1284,7 +1307,7 @@ public final class AvailLoader
 			new ArrayList<>(illegalArgMsgs.tupleSize());
 		for (final A_Set atomsSet : illegalArgMsgs)
 		{
-			A_Set bundleSet = SetDescriptor.emptySet();
+			A_Set bundleSet = emptySet();
 			for (final A_Atom atom : atomsSet)
 			{
 				bundleSet = bundleSet.setWithElementCanDestroy(
@@ -1292,7 +1315,7 @@ public final class AvailLoader
 			}
 			bundleSetList.add(bundleSet.makeShared());
 		}
-		final A_Tuple bundleSetTuple = TupleDescriptor.tupleFromList(bundleSetList);
+		final A_Tuple bundleSetTuple = tupleFromList(bundleSetList);
 		for (final A_Atom parentAtom : parentAtoms)
 		{
 			final A_Bundle bundle = parentAtom.bundleOrCreate();
@@ -1303,8 +1326,7 @@ public final class AvailLoader
 				throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
 			final A_GrammaticalRestriction grammaticalRestriction =
-				GrammaticalRestrictionDescriptor.create(
-					bundleSetTuple, bundle, module);
+				newGrammaticalRestriction(bundleSetTuple, bundle, module);
 			final A_BundleTree root = rootBundleTree();
 			final A_Module theModule = module;
 			theModule.lock(() ->
@@ -1321,10 +1343,7 @@ public final class AvailLoader
 				{
 					final A_DefinitionParsingPlan plan = planEntry.value();
 					treesToVisit.addLast(
-						new Pair<>(
-							root,
-							ParsingPlanInProgressDescriptor.create(
-								plan, 1)));
+						new Pair<>(root, newPlanInProgress(plan, 1)));
 					while (!treesToVisit.isEmpty())
 					{
 						final Pair<A_BundleTree, A_ParsingPlanInProgress>
@@ -1389,12 +1408,13 @@ public final class AvailLoader
 				{
 					final A_Function unloadFunction =
 						unloadFunctions.tupleAt(index);
-					final A_Fiber fiber = FiberDescriptor.newFiber(
+					final A_Fiber fiber = newFiber(
 						Types.TOP.o(),
 						FiberDescriptor.loaderPriority,
-						() ->
-							formatString("Unload function #%d for module %s",
-								index, module().moduleName()));
+						() -> formatString(
+							"Unload function #%d for module %s",
+							index,
+							module().moduleName()));
 					fiber.textInterface(textInterface);
 					fiber.resultContinuation(
 						unused ->
@@ -1473,8 +1493,7 @@ public final class AvailLoader
 				final A_Set who = module.trueNamesForStringName(stringName);
 				if (who.setSize() == 0)
 				{
-					final A_Atom trueName = AtomDescriptor.create(
-						stringName, module);
+					final A_Atom trueName = createAtom(stringName, module);
 					if (isExplicitSubclassAtom)
 					{
 						trueName.setAtomProperty(
@@ -1517,17 +1536,17 @@ public final class AvailLoader
 			{
 				final A_Set newNames =
 					module.newNames().hasKey(stringName)
-						? SetDescriptor.emptySet().setWithElementCanDestroy(
-							module.newNames().mapAt(stringName), true)
-						: SetDescriptor.emptySet();
+						? emptySet().setWithElementCanDestroy(
+						module.newNames().mapAt(stringName), true)
+						: emptySet();
 				final A_Set publics =
 					module.importedNames().hasKey(stringName)
 						? module.importedNames().mapAt(stringName)
-						: SetDescriptor.emptySet();
+						: emptySet();
 				final A_Set privates =
 					module.privateNames().hasKey(stringName)
 						? module.privateNames().mapAt(stringName)
-						: SetDescriptor.emptySet();
+						: emptySet();
 				who.value = newNames
 					.setUnionCanDestroy(publics, true)
 					.setUnionCanDestroy(privates, true);
@@ -1554,7 +1573,7 @@ public final class AvailLoader
 	{
 		// Define a special root bundle tree that's only capable of parsing
 		// method headers.
-		moduleHeaderBundleRoot = MessageBundleTreeDescriptor.createEmpty();
+		moduleHeaderBundleRoot = newBundleTree();
 
 		// Also define the LexicalScanner used for module headers.
 		moduleHeaderLexicalScanner = new LexicalScanner();
@@ -1608,7 +1627,7 @@ public final class AvailLoader
 			headerMethodBundle.definitionParsingPlans().mapIterable().next()
 				.value();
 		final A_ParsingPlanInProgress headerPlanInProgress =
-			ParsingPlanInProgressDescriptor.create(headerPlan, 1);
+			newPlanInProgress(headerPlan, 1);
 		moduleHeaderBundleRoot.addPlanInProgress(headerPlanInProgress);
 	}
 
@@ -1632,12 +1651,10 @@ public final class AvailLoader
 		final String atomName)
 	{
 		final A_Function stringLexerFilter =
-			FunctionDescriptor.newPrimitiveFunction(
-				filterPrimitive, NilDescriptor.nil(), 0);
+			newPrimitiveFunction(filterPrimitive, nil(), 0);
 		final A_Function stringLexerBody =
-			FunctionDescriptor.newPrimitiveFunction(
-				bodyPrimitive, NilDescriptor.nil(), 0);
-		final A_Atom atom = AtomDescriptor.createSpecialAtom(atomName);
+			newPrimitiveFunction(bodyPrimitive, nil(), 0);
+		final A_Atom atom = createSpecialAtom(atomName);
 		final A_Bundle bundle;
 		try
 		{
@@ -1649,11 +1666,8 @@ public final class AvailLoader
 			throw new RuntimeException(e);
 		}
 		final A_Method method = bundle.bundleMethod();
-		final A_Lexer lexer = LexerDescriptor.newLexer(
-			stringLexerFilter,
-			stringLexerBody,
-			method,
-			NilDescriptor.nil());
+		final A_Lexer lexer = newLexer(
+			stringLexerFilter, stringLexerBody, method, nil());
 		moduleHeaderLexicalScanner.addLexer(lexer);
 	}
 }

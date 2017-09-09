@@ -32,14 +32,23 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.ContinuationTypeDescriptor.ObjectSlots.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
+import com.avail.interpreter.primitive.controlflow
+	.P_RestartContinuationWithArguments;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ContinuationTypeDescriptor.ObjectSlots
+	.FUNCTION_TYPE;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.functionTypeFromArgumentTupleType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.SetDescriptor.emptySet;
 
 /**
  * Continuation types are the types of {@linkplain ContinuationDescriptor
@@ -201,12 +210,9 @@ extends TypeDescriptor
 				functionType2.argsTupleType());
 		final A_Type returnType = functionType1.returnType().typeIntersection(
 			functionType2.returnType());
-		final A_Type intersection =
-			FunctionTypeDescriptor.createWithArgumentTupleType(
-				argsTupleType,
-				returnType,
-				SetDescriptor.emptySet());
-		return forFunctionType(intersection);
+		final A_Type intersection = functionTypeFromArgumentTupleType(
+			argsTupleType, returnType, emptySet());
+		return continuationTypeForFunctionType(intersection);
 	}
 
 	@Override @AvailMethod
@@ -237,13 +243,13 @@ extends TypeDescriptor
 			// Optimization only
 			return object;
 		}
-		final A_Type union = FunctionTypeDescriptor.createWithArgumentTupleType(
+		final A_Type union = functionTypeFromArgumentTupleType(
 			functionType1.argsTupleType().typeIntersection(
 				functionType2.argsTupleType()),
 			functionType1.returnType().typeIntersection(
 				functionType2.returnType()),
-			SetDescriptor.emptySet());
-		return forFunctionType(union);
+			emptySet());
+		return continuationTypeForFunctionType(union);
 	}
 
 	@Override
@@ -274,7 +280,7 @@ extends TypeDescriptor
 	 *        type}.
 	 * @return A new {@linkplain ContinuationTypeDescriptor}.
 	 */
-	public static A_Type forFunctionType (final A_Type functionType)
+	public static A_Type continuationTypeForFunctionType (final A_Type functionType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(FUNCTION_TYPE, functionType.makeImmutable());
@@ -331,9 +337,9 @@ extends TypeDescriptor
 	 * (i.e., not specific enough to be able to call it), and having the return
 	 * type bottom.
 	 */
-	private static final A_Type mostGeneralType = forFunctionType(
-		FunctionTypeDescriptor.functionTypeReturning(
-			BottomTypeDescriptor.bottom())).makeShared();
+	private static final A_Type mostGeneralType =
+		continuationTypeForFunctionType(
+			functionTypeReturning(bottom())).makeShared();
 
 	/**
 	 * Answer the most general {@linkplain ContinuationTypeDescriptor
@@ -353,7 +359,7 @@ extends TypeDescriptor
 	 * #mostGeneralType most general continuation type}.
 	 */
 	private static final A_Type meta =
-		InstanceMetaDescriptor.instanceMetaOn(mostGeneralType).makeShared();
+		instanceMeta(mostGeneralType).makeShared();
 
 	/**
 	 * Answer the metatype for all continuation types.

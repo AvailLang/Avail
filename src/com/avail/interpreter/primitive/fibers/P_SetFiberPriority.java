@@ -31,11 +31,21 @@
  */
 package com.avail.interpreter.primitive.fibers;
 
-import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Set the priority of a fiber.
@@ -62,16 +72,14 @@ extends Primitive
 		final int priorityInt = priority.extractInt();
 		assert 0 <= priorityInt && priorityInt <= 255;
 		fiber.priority(priorityInt);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FiberTypeDescriptor.mostGeneralFiberType(),
-				IntegerRangeTypeDescriptor.bytes()),
-			TOP.o());
+		return functionType(tuple(
+			mostGeneralFiberType(),
+			bytes()), TOP.o());
 	}
 }

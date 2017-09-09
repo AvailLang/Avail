@@ -32,10 +32,20 @@
 
 package com.avail.interpreter.primitive.files;
 
-import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.AvailRuntime;
+import com.avail.AvailTask;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.FileAlreadyExistsException;
@@ -50,10 +60,24 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import com.avail.AvailRuntime;
-import com.avail.AvailTask;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
+import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Create a directory with the indicated name
@@ -123,11 +147,10 @@ extends Primitive
 
 		final int priorityInt = priority.extractInt();
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			() ->
-				formatString("Asynchronous create directory, %s", path));
+			() -> formatString("Asynchronous create directory, %s", path));
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
@@ -198,32 +221,24 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType(),
-				SetTypeDescriptor.setTypeForSizesContentType(
-					IntegerRangeTypeDescriptor.inclusive(0, 9),
-					IntegerRangeTypeDescriptor.inclusive(1, 9)),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.emptyTuple(),
-					TOP.o()),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
-						AbstractEnumerationTypeDescriptor.enumerationWith(
-							SetDescriptor.set(
-								E_FILE_EXISTS,
-								E_PERMISSION_DENIED,
-								E_IO_ERROR))),
-					TOP.o()),
-				IntegerRangeTypeDescriptor.bytes()),
-			FiberTypeDescriptor.forResultType(TOP.o()));
+		return functionType(tuple(stringType(),
+			setTypeForSizesContentType(
+				inclusive(0, 9),
+				inclusive(1, 9)),
+			functionType(
+				emptyTuple(),
+				TOP.o()), functionType(
+				tuple(
+					enumerationWith(
+						set(E_FILE_EXISTS, E_PERMISSION_DENIED,
+							E_IO_ERROR))),
+				TOP.o()), bytes()), fiberType(TOP.o()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_INVALID_PATH));
+		return
+			enumerationWith(set(E_INVALID_PATH));
 	}
 }

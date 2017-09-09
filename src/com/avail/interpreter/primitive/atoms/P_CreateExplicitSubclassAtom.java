@@ -31,19 +31,32 @@
  */
 package com.avail.interpreter.primitive.atoms;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
+import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.AmbiguousNameException;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom
+	.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.AtomDescriptor.createAtom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Create a new {@linkplain AtomDescriptor
@@ -71,11 +84,11 @@ public final class P_CreateExplicitSubclassAtom extends Primitive
 	{
 		assert args.size() == 1;
 		final AvailObject name = args.get(0);
-		final AvailLoader loader = interpreter.availLoaderOrNull();
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		final A_Atom atom;
 		if (loader == null)
 		{
-			atom = AtomDescriptor.create(name, NilDescriptor.nil());
+			atom = createAtom(name, nil());
 			atom.setAtomProperty(
 				EXPLICIT_SUBCLASSING_KEY.atom,
 				EXPLICIT_SUBCLASSING_KEY.atom);
@@ -89,7 +102,7 @@ public final class P_CreateExplicitSubclassAtom extends Primitive
 			catch (final AmbiguousNameException e)
 			{
 				return interpreter.primitiveFailure(
-					AvailErrorCode.E_AMBIGUOUS_NAME);
+					E_AMBIGUOUS_NAME);
 			}
 		}
 		return interpreter.primitiveSuccess(atom);
@@ -98,17 +111,14 @@ public final class P_CreateExplicitSubclassAtom extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.stringType()),
+		return functionType(
+			tuple(stringType()),
 			ATOM.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				AvailErrorCode.E_AMBIGUOUS_NAME));
+		return enumerationWith(set(E_AMBIGUOUS_NAME));
 	}
 }

@@ -32,17 +32,36 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BlockNodeDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode
+	.E_INCONSISTENT_PREFIX_FUNCTION;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * The {@code P_BootstrapPrefixEndOfBlockBody} primitive is used for
@@ -115,76 +134,72 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true);
 		fiber.fiberGlobals(fiberGlobals.makeShared());
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(tuple(
 				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+			LIST_NODE.create(
 					/* Optional arguments section. */
-					TupleTypeDescriptor.zeroOrOneOf(
+				zeroOrOneOf(
 						/* Arguments are present. */
-						TupleTypeDescriptor.oneOrMoreOf(
+					oneOrMoreOf(
 							/* An argument. */
-							TupleTypeDescriptor.tupleTypeForTypes(
+						tupleTypeForTypes(
 								/* Argument name, a token. */
-								TOKEN.o(),
+							TOKEN.o(),
 								/* Argument type. */
-								InstanceMetaDescriptor.anyMeta())))),
+							anyMeta())))),
 				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+			LIST_NODE.create(
 					/* Optional primitive declaration. */
-					TupleTypeDescriptor.zeroOrOneOf(
+				zeroOrOneOf(
 						/* Primitive declaration */
-						TupleTypeDescriptor.tupleTypeForTypes(
+					tupleTypeForTypes(
 							/* Primitive name. */
-							TOKEN.o(),
+						TOKEN.o(),
 							/* Optional failure variable declaration. */
-							TupleTypeDescriptor.zeroOrOneOf(
+						zeroOrOneOf(
 								/* Primitive failure variable parts. */
-								TupleTypeDescriptor.tupleTypeForTypes(
+							tupleTypeForTypes(
 									/* Primitive failure variable name token */
-									TOKEN.o(),
+								TOKEN.o(),
 									/* Primitive failure variable type */
-									InstanceMetaDescriptor.anyMeta()))))),
+								anyMeta()))))),
 				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+			LIST_NODE.create(
 					/* Optional label declaration. */
-					TupleTypeDescriptor.zeroOrOneOf(
+				zeroOrOneOf(
 						/* Label parts. */
-						TupleTypeDescriptor.tupleTypeForTypes(
+					tupleTypeForTypes(
 							/* Label name */
-							TOKEN.o(),
+						TOKEN.o(),
 							/* Optional label return type. */
-							TupleTypeDescriptor.zeroOrOneOf(
+						zeroOrOneOf(
 								/* Label return type. */
-								InstanceMetaDescriptor.topMeta())))),
+							topMeta())))),
 				/* Macro argument is a parse node. */
-				LIST_NODE.create(
+			LIST_NODE.create(
 					/* Statements and declarations so far. */
-					TupleTypeDescriptor.zeroOrMoreOf(
+				zeroOrMoreOf(
 						/* The "_!" mechanism wrapped each statement inside a
 						 * literal phrase, so expect a phrase here instead of
 						 * TOP.o().
 						 */
-						STATEMENT_NODE.mostGeneralType())),
+					STATEMENT_NODE.mostGeneralType())),
 				/* Optional return expression */
-				LIST_NODE.create(
-					TupleTypeDescriptor.zeroOrOneOf(
-						PARSE_NODE.create(ANY.o())))),
-			TOP.o());
+			LIST_NODE.create(
+				zeroOrOneOf(
+					PARSE_NODE.create(ANY.o())))), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_LOADING_IS_OVER,
-				E_INCONSISTENT_PREFIX_FUNCTION));
+		return enumerationWith(
+			set(E_LOADING_IS_OVER, E_INCONSISTENT_PREFIX_FUNCTION));
 	}
 }

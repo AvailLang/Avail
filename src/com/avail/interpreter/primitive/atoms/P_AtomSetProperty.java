@@ -31,14 +31,29 @@
  */
 package com.avail.interpreter.primitive.atoms;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.interpreter.*;
+import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive;
+
+import javax.annotation.Nullable;
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Within the first {@linkplain
@@ -64,13 +79,12 @@ public final class P_AtomSetProperty extends Primitive
 		final A_Atom atom = args.get(0);
 		final A_Atom propertyKey = args.get(1);
 		final AvailObject propertyValue = args.get(2);
-		if (atom.isAtomSpecial()
-			|| propertyKey.isAtomSpecial())
+		if (atom.isAtomSpecial() || propertyKey.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM);
 		}
 		atom.setAtomProperty(propertyKey, propertyValue);
-		final AvailLoader loader = interpreter.availLoaderOrNull();
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
 		{
 			loader.recordEffect(
@@ -80,14 +94,14 @@ public final class P_AtomSetProperty extends Primitive
 					propertyKey,
 					propertyValue));
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
+		return functionType(
+			tuple(
 				ATOM.o(),
 				ATOM.o(),
 				ANY.o()),
@@ -97,8 +111,6 @@ public final class P_AtomSetProperty extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_SPECIAL_ATOM));
+		return enumerationWith(set(E_SPECIAL_ATOM));
 	}
 }

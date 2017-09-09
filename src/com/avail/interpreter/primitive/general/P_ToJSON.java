@@ -32,12 +32,23 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Render the given {@linkplain AvailObject
@@ -65,16 +76,15 @@ extends Primitive
 		final A_BasicObject value = args.get(0);
 		final JSONWriter writer = new JSONWriter();
 		value.writeTo(writer);
-		final A_String json = StringDescriptor.stringFrom(writer.toString());
+		final A_String json = stringFrom(writer.toString());
 		return interpreter.primitiveSuccess(json);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ANY.o()),
-			TupleTypeDescriptor.stringType());
+		return functionType(
+			tuple(ANY.o()),
+			stringType());
 	}
 }

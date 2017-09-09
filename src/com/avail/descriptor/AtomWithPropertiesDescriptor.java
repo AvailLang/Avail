@@ -45,6 +45,7 @@ import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.HAS
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -230,7 +231,7 @@ extends AtomDescriptor
 	 *            The new atom, not equal to any object in use before this
 	 *            method was invoked.
 	 */
-	public static AvailObject create (
+	public static AvailObject createAtomWithProperties (
 		final A_String name,
 		final A_Module issuingModule)
 	{
@@ -239,11 +240,9 @@ extends AtomDescriptor
 		instance.setSlot(ISSUING_MODULE, issuingModule);
 		instance.setSlot(
 			PROPERTY_MAP_POJO,
-			RawPojoDescriptor.identityWrap(
-				new WeakHashMap<A_Atom, A_BasicObject>()));
+			identityPojo(new WeakHashMap<A_Atom, A_BasicObject>()));
 		instance.setSlot(HASH_OR_ZERO, 0);
-		instance.makeImmutable();
-		return instance;
+		return instance.makeShared();
 	}
 
 	/**
@@ -276,11 +275,9 @@ extends AtomDescriptor
 		instance.setSlot(ISSUING_MODULE, issuingModule);
 		instance.setSlot(
 			PROPERTY_MAP_POJO,
-			RawPojoDescriptor.identityWrap(
-				new WeakHashMap<A_Atom, A_BasicObject>()));
+			identityPojo(new WeakHashMap<A_Atom, A_BasicObject>()));
 		instance.setSlot(HASH_OR_ZERO, originalHash);
-		instance.makeImmutable();
-		return instance;
+		return instance.makeShared();
 	}
 
 	/**

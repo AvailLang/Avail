@@ -31,11 +31,23 @@
  */
 package com.avail.interpreter.primitive.characters;
 
+import com.avail.descriptor.A_Character;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CharacterDescriptor;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor
+	.characterCodePoints;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Extract the {@linkplain IntegerDescriptor
@@ -58,16 +70,13 @@ public final class P_CharacterCodePoint extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Character character = args.get(0);
-		return interpreter.primitiveSuccess(
-			IntegerDescriptor.fromInt(character.codePoint()));
+		return interpreter.primitiveSuccess(fromInt(character.codePoint()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				CHARACTER.o()),
-			IntegerRangeTypeDescriptor.characterCodePoints());
+		return
+			functionType(tuple(CHARACTER.o()), characterCodePoints());
 	}
 }

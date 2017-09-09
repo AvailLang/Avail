@@ -98,10 +98,18 @@ import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom
 	.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FiberDescriptor.*;
+import static com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase;
+import static com.avail.descriptor.MapDescriptor.emptyMap;
+import static com.avail.descriptor.ModuleDescriptor.newModule;
+import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.SEND_NODE;
 import static com.avail.descriptor.StringDescriptor.formatString;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.utility.StackPrinter.trace;
+import static java.lang.String.format;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
 
@@ -145,7 +153,7 @@ public final class AvailBuilder
 		{
 			if (logger.isLoggable(level))
 			{
-				logger.log(level, String.format(format, args));
+				logger.log(level, format(format, args));
 			}
 		}
 	}
@@ -174,7 +182,7 @@ public final class AvailBuilder
 		{
 			if (logger.isLoggable(level))
 			{
-				logger.log(level, String.format(format, args), exception);
+				logger.log(level, format(format, args), exception);
 			}
 		}
 	}
@@ -357,7 +365,7 @@ public final class AvailBuilder
 			new ArrayList<>(moduleGraph.vertices()))
 		{
 			final A_String qualifiedAvailName =
-				StringDescriptor.stringFrom(graphModuleName.qualifiedName());
+				stringFrom(graphModuleName.qualifiedName());
 			assert allLoadedModules.containsKey(graphModuleName);
 			assert loadedRuntimeModules.hasKey(qualifiedAvailName);
 			assert allLoadedModules.get(graphModuleName).module.equals(
@@ -1692,7 +1700,7 @@ public final class AvailBuilder
 				isLoaded = getLoadedModule(moduleName) != null;
 			}
 			assert isLoaded == runtime.includesModuleNamed(
-				StringDescriptor.stringFrom(moduleName.qualifiedName()));
+				stringFrom(moduleName.qualifiedName()));
 			if (isLoaded)
 			{
 				// The module is already loaded.
@@ -1731,7 +1739,7 @@ public final class AvailBuilder
 					catch (final UnresolvedDependencyException e)
 					{
 						stopBuildReason(
-							String.format(
+							format(
 								"A module predecessor was malformed or "
 									+ "absent: %s -> %s\n",
 								moduleName.qualifiedName(),
@@ -1810,8 +1818,8 @@ public final class AvailBuilder
 			final Continuation0 completionAction)
 		{
 			localTracker.value(moduleName, moduleName.moduleSize(), 0L);
-			final A_Module module = ModuleDescriptor.newModule(
-				StringDescriptor.stringFrom(moduleName.qualifiedName()));
+			final A_Module module = newModule(
+				stringFrom(moduleName.qualifiedName()));
 			final AvailLoader availLoader =
 				new AvailLoader(module, textInterface);
 			availLoader.createFilteredBundleTree();
@@ -1935,7 +1943,7 @@ public final class AvailBuilder
 								+ ":" + function.code().startingLineNumber()
 								+ " Running precompiled -- " + function);
 					}
-					Interpreter.runOutermostFunction(
+					runOutermostFunction(
 						runtime,
 						fiber,
 						function,
@@ -2028,9 +2036,9 @@ public final class AvailBuilder
 							new ByteArrayOutputStream(5000);
 						final Serializer serializer = new Serializer(out);
 						// TODO MvG - Capture "/**" comments for Stacks.
-//						final A_Tuple comments = TupleDescriptor.fromList(
-//							module.commentTokens());
-						final A_Tuple comments = TupleDescriptor.emptyTuple();
+//						final A_Tuple comments = fromList(
+//                          module.commentTokens());
+						final A_Tuple comments = emptyTuple();
 						serializer.serialize(comments);
 						final ModuleVersion version =
 							archive.getVersion(versionKey);
@@ -2595,7 +2603,7 @@ public final class AvailBuilder
 					}
 					else
 					{
-						output.append(String.format("_%x_", c));
+						output.append(format("_%x_", c));
 					}
 				}
 				final String outputString = output.toString();
@@ -3175,8 +3183,8 @@ public final class AvailBuilder
 
 		for (final LoadedModule loadedModule : modulesWithEntryPoints)
 		{
-			final A_Module module = ModuleDescriptor.newModule(
-				StringDescriptor.stringFrom(
+			final A_Module module = newModule(
+				stringFrom(
 					loadedModule.module.moduleName().asNativeString()
 						+ " (command)"));
 			final ModuleImport moduleImport =
@@ -3189,7 +3197,7 @@ public final class AvailBuilder
 			final AvailCompiler compiler = new AvailCompiler(
 				header,
 				module,
-				StringDescriptor.stringFrom(command),
+				stringFrom(command),
 				textInterface,
 				pollForAbort,
 				(moduleName, moduleSize, position) ->
@@ -3462,8 +3470,7 @@ public final class AvailBuilder
 			{
 				final A_Phrase phrase = command.phrase;
 				final A_Function function =
-					FunctionDescriptor.createFunctionForPhrase(
-						phrase, NilDescriptor.nil(), 1);
+					createFunctionForPhrase(phrase, nil(), 1);
 				final A_Fiber fiber = newFiber(
 					function.kind().returnType(),
 					commandPriority,
@@ -3471,9 +3478,7 @@ public final class AvailBuilder
 						formatString("Running command: %s", phrase));
 				A_Map fiberGlobals = fiber.fiberGlobals();
 				fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-					CLIENT_DATA_GLOBAL_KEY.atom,
-					MapDescriptor.emptyMap(),
-					true);
+					CLIENT_DATA_GLOBAL_KEY.atom, emptyMap(), true);
 				fiber.fiberGlobals(fiberGlobals);
 				fiber.textInterface(textInterface);
 				fiber.resultContinuation(
@@ -3506,11 +3511,11 @@ public final class AvailBuilder
 						onFailure.value();
 					}
 				});
-				Interpreter.runOutermostFunction(
+				runOutermostFunction(
 					runtime,
 					fiber,
 					function,
-					Collections.<AvailObject>emptyList());
+					Collections.emptyList());
 			};
 
 		// If the command was unambiguous, then go ahead and run it.

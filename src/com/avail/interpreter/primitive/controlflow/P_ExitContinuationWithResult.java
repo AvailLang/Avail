@@ -31,14 +31,30 @@
  */
 package com.avail.interpreter.primitive.controlflow;
 
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode
+	.E_CONTINUATION_EXPECTED_STRONGER_TYPE;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.SwitchesContinuation;
-import static com.avail.interpreter.Primitive.Result.*;
-import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 
 /**
  * <strong>Primitive:</strong> Exit the given {@linkplain
@@ -84,18 +100,15 @@ public final class P_ExitContinuationWithResult extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				ContinuationTypeDescriptor.mostGeneralContinuationType(),
-				ANY.o()),
-			BottomTypeDescriptor.bottom());
+		return functionType(tuple(
+			mostGeneralContinuationType(),
+			ANY.o()), bottom());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_CONTINUATION_EXPECTED_STRONGER_TYPE));
+		return
+			enumerationWith(set(E_CONTINUATION_EXPECTED_STRONGER_TYPE));
 	}
 }

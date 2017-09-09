@@ -31,14 +31,22 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
 import java.util.List;
 
+import static com.avail.descriptor.ContinuationDescriptor.dumpStackThen;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -80,7 +88,7 @@ public final class P_Assert extends Primitive
 			final A_Continuation continuation = interpreter.reifiedContinuation;
 			interpreter.primitiveSuspend(
 				stripNull(interpreter.function).code());
-			ContinuationDescriptor.dumpStackThen(
+			dumpStackThen(
 				interpreter.runtime(),
 				fiber.textInterface(),
 				continuation,

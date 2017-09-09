@@ -32,13 +32,24 @@
 
 package com.avail.interpreter.primitive.methods;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Does a {@linkplain MethodDescriptor method}
@@ -65,16 +76,15 @@ extends Primitive
 		assert args.size() == 1;
 		final A_Atom trueName = args.get(0);
 		final A_Bundle bundle = trueName.bundleOrNil();
-		return interpreter.primitiveSuccess(AtomDescriptor.objectFromBoolean(
-			!bundle.equalsNil()));
+		return interpreter.primitiveSuccess(
+			objectFromBoolean(!bundle.equalsNil()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				ATOM.o()),
+		return functionType(
+			tuple(ATOM.o()),
 			booleanType());
 	}
 }

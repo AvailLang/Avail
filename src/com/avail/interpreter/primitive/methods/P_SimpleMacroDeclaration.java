@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.methods;
 
-import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
@@ -47,10 +46,16 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
+import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.PARSE_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.PARSE_NODE;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
@@ -179,7 +184,7 @@ extends Primitive
 						function.code().setMethodName(
 							formatString("Macro body of %s", string));
 						Interpreter.resumeFromSuccessfulPrimitive(
-							AvailRuntime.current(),
+							currentRuntime(),
 							fiber,
 							nil(),
 							primitiveFunction.code(),
@@ -191,7 +196,7 @@ extends Primitive
 							| AmbiguousNameException e)
 					{
 						Interpreter.resumeFromFailedPrimitive(
-							AvailRuntime.current(),
+							currentRuntime(),
 							fiber,
 							e.numericCode(),
 							primitiveFunction,
@@ -205,27 +210,23 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			stringType(),
-			zeroOrMoreOf(mostGeneralFunctionType()),
-			functionTypeReturning(PARSE_NODE.mostGeneralType())), TOP.o());
+		return functionType(
+			tuple(stringType(), zeroOrMoreOf(mostGeneralFunctionType()),
+				functionTypeReturning(PARSE_NODE.mostGeneralType())), TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor
-				.set(E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_AMBIGUOUS_NAME,
-					E_INCORRECT_NUMBER_OF_ARGUMENTS,
-					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-					E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
-					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
-					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
-					E_MACRO_MUST_RETURN_A_PARSE_NODE,
-					E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
-				.setUnionCanDestroy(MessageSplitter.possibleErrors, true));
+		return enumerationWith(
+			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_AMBIGUOUS_NAME, E_INCORRECT_NUMBER_OF_ARGUMENTS,
+				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
+				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
+				E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
+				E_MACRO_MUST_RETURN_A_PARSE_NODE,
+				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
+				.setUnionCanDestroy(possibleErrors, true));
 	}
 }

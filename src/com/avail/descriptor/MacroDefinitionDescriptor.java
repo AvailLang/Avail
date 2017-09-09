@@ -32,14 +32,17 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
-import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
+import static com.avail.descriptor.ListNodeTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
 
 /**
  * Macros are extremely hygienic in Avail.  They are defined almost exactly like
@@ -165,11 +168,9 @@ extends DefinitionDescriptor
 		assert sizes.lowerBound().extractInt()
 			== object.slot(DEFINITION_METHOD).numArgs();
 		// TODO MvG - 2016-08-21 deal with permutation of main list.
-		return ListNodeTypeDescriptor.createListNodeType(
+		return createListNodeType(
 			ParseNodeKind.LIST_NODE,
-			TupleTypeDescriptor.mappingElementTypes(
-				argsTupleType,
-				A_Type::expressionType),
+			tupleTypeFromTupleOfTypes(argsTupleType, A_Type::expressionType),
 			argsTupleType);
 	}
 
@@ -237,7 +238,7 @@ extends DefinitionDescriptor
 	 * @return
 	 *            A macro signature.
 	 */
-	public static AvailObject create (
+	public static AvailObject newMacroDefinition (
 		final A_Method method,
 		final A_Module definitionModule,
 		final A_Function bodyBlock,

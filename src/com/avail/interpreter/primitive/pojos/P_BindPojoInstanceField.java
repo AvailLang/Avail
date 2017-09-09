@@ -31,12 +31,36 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
-import java.lang.reflect.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.PojoDescriptor;
+import com.avail.descriptor.PojoFieldDescriptor;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.PojoFieldDescriptor
+	.pojoFieldVariableForInnerType;
+import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;
+import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
+import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
  * <strong>Primitive:</strong> Bind the instance {@linkplain Field Java
@@ -83,31 +107,26 @@ public final class P_BindPojoInstanceField extends Primitive
 			return interpreter.primitiveFailure(
 				E_JAVA_FIELD_NOT_AVAILABLE);
 		}
-		final A_Type fieldType = PojoTypeDescriptor.resolve(
-			field.getGenericType(),
-			pojo.kind().typeVariables());
-		final AvailObject var = PojoFieldDescriptor.forInnerType(
-			RawPojoDescriptor.equalityWrap(field),
-			pojo.rawPojo(),
-			fieldType);
+		final A_Type fieldType = resolvePojoType(
+			field.getGenericType(), pojo.kind().typeVariables());
+		final AvailObject var = pojoFieldVariableForInnerType(
+			equalityPojo(field), pojo.rawPojo(), fieldType);
 		return interpreter.primitiveSuccess(var);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				PojoTypeDescriptor.mostGeneralPojoType(),
-				TupleTypeDescriptor.stringType()),
-			VariableTypeDescriptor.mostGeneralVariableType());
+		return functionType(
+			tuple(
+				mostGeneralPojoType(),
+				stringType()),
+			mostGeneralVariableType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_JAVA_FIELD_NOT_AVAILABLE));
+		return enumerationWith(set(E_JAVA_FIELD_NOT_AVAILABLE));
 	}
 }

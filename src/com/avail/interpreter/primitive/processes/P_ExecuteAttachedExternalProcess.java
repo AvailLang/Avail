@@ -32,9 +32,22 @@
 
 package com.avail.interpreter.primitive.processes;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.AvailRuntime;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.exceptions.AvailErrorCode;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.io.ProcessInputChannel;
+import com.avail.io.ProcessOutputChannel;
+import com.avail.io.TextInterface;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -44,14 +57,28 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.exceptions.AvailErrorCode;
-import com.avail.interpreter.*;
-import com.avail.io.ProcessInputChannel;
-import com.avail.io.ProcessOutputChannel;
-import com.avail.io.TextInterface;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.FiberDescriptor.newFiber;
+import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.MapTypeDescriptor
+	.mapTypeForSizesKeyTypeValueType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS;
+import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
+import static com.avail.interpreter.Interpreter.runOutermostFunction;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive</strong>: Execute an attached external {@linkplain Process
@@ -116,10 +143,10 @@ extends Primitive
 		}
 		// Create the new fiber that will be connected to the external process.
 		final A_Fiber current = interpreter.fiber();
-		final A_Fiber newFiber = FiberDescriptor.newFiber(
+		final A_Fiber newFiber = newFiber(
 			TOP.o(),
 			priority.extractInt(),
-			() -> StringDescriptor.stringFrom("External process execution"));
+			() -> stringFrom("External process execution"));
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
@@ -127,23 +154,21 @@ extends Primitive
 		succeed.makeShared();
 		fail.makeShared();
 		final AvailErrorCode error;
-		final AvailRuntime runtime = AvailRuntime.current();
+		final AvailRuntime runtime = currentRuntime();
 		// Start the process, running the success function on the new fiber if
 		// the process launches successfully.
 		try
 		{
 			final Process process = builder.start();
-			newFiber.textInterface(new TextInterface(
-				new ProcessInputChannel(process.getInputStream()),
-				new ProcessOutputChannel(new PrintStream(
-					process.getOutputStream())),
-				new ProcessOutputChannel(new PrintStream(
-					process.getOutputStream()))));
-			Interpreter.runOutermostFunction(
-				runtime,
-				newFiber,
-				succeed,
-				Collections.<AvailObject>emptyList());
+			newFiber.textInterface(
+				new TextInterface(
+					new ProcessInputChannel(process.getInputStream()),
+					new ProcessOutputChannel(
+						new PrintStream(process.getOutputStream())),
+					new ProcessOutputChannel(
+						new PrintStream(process.getOutputStream()))));
+			runOutermostFunction(
+				runtime, newFiber, succeed, Collections.emptyList());
 			return interpreter.primitiveSuccess(newFiber);
 		}
 		catch (final SecurityException e)
@@ -156,7 +181,7 @@ extends Primitive
 		}
 		// Run the failure function on the new fiber.
 		newFiber.textInterface(current.textInterface());
-		Interpreter.runOutermostFunction(
+		runOutermostFunction(
 			runtime,
 			newFiber,
 			fail,
@@ -167,37 +192,32 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				TupleTypeDescriptor.oneOrMoreOf(
-					TupleTypeDescriptor.stringType()),
-				TupleTypeDescriptor.zeroOrOneOf(
-					TupleTypeDescriptor.stringType()),
-				TupleTypeDescriptor.zeroOrOneOf(
-					MapTypeDescriptor.mapTypeForSizesKeyTypeValueType(
-						IntegerRangeTypeDescriptor.wholeNumbers(),
-						TupleTypeDescriptor.stringType(),
-						TupleTypeDescriptor.stringType())),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.emptyTuple(),
+		return functionType(
+			tuple(
+				oneOrMoreOf(stringType()),
+				zeroOrOneOf(stringType()),
+				zeroOrOneOf(
+					mapTypeForSizesKeyTypeValueType(
+						wholeNumbers(), stringType(), stringType())),
+				functionType(
+					emptyTuple(),
 					TOP.o()),
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
-						AbstractEnumerationTypeDescriptor.enumerationWith(
-							SetDescriptor.set(
+				functionType(
+					tuple(
+						enumerationWith(
+							set(
 								E_PERMISSION_DENIED,
 								E_NO_EXTERNAL_PROCESS))),
 					TOP.o()),
-				IntegerRangeTypeDescriptor.bytes()),
-			FiberTypeDescriptor.forResultType(TOP.o()));
+				bytes()),
+			fiberType(TOP.o()));
 	}
-
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		return enumerationWith(
+			set(
 				E_PERMISSION_DENIED,
 				E_NO_EXTERNAL_PROCESS));
 	}

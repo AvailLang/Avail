@@ -33,7 +33,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -41,7 +40,6 @@ import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.ReifyStackThrowable;
@@ -251,24 +249,8 @@ extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-		final Primitive primitive = instruction.primitiveAt(0);
-		final A_Type expectedType = instruction.constantAt(3);
-		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(4);
-		final L2ObjectRegister failureReg =
-			instruction.writeObjectRegisterAt(5);
-
-		final RegisterSet successRegisterSet = registerSets.get(1);
-		final RegisterSet failRegisterSet = registerSets.get(2);
-
-		// Figure out what the primitive failure values are allowed to be.
-		final A_Type failureType = primitive.failureVariableType();
-		failRegisterSet.removeTypeAt(failureReg);
-		failRegisterSet.removeConstantAt(failureReg);
-		failRegisterSet.typeAtPut(failureReg, failureType, instruction);
-
-		successRegisterSet.removeTypeAt(resultReg);
-		successRegisterSet.removeConstantAt(resultReg);
-		successRegisterSet.typeAtPut(resultReg, expectedType, instruction);
+		// This instruction should only be used in the L1 interpreter loop.
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -276,23 +258,5 @@ extends L2Operation
 	{
 		// It could fail and jump.
 		return true;
-	}
-
-	/**
-	 * Answer the register that will hold the top-of-stack register of the given
-	 * continuation creation
-	 * instruction's stack pointer.
-	 *
-	 * @param instruction
-	 *        The continuation creation instruction.
-	 * @return The stack pointer of the continuation to be created by the
-	 *         give instruction.
-	 */
-	@Override
-	public final @Nullable L2ObjectRegister primitiveResultRegister (
-		final L2Instruction instruction)
-	{
-		assert instruction.operation == instance;
-		return instruction.writeObjectRegisterAt(4);
 	}
 }

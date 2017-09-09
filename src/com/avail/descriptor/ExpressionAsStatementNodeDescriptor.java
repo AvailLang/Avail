@@ -206,7 +206,7 @@ extends ParseNodeDescriptor
 	 * @return The new expression-as-statement phrase (see {@link
 	 *         ParseNodeKind#EXPRESSION_AS_STATEMENT_NODE}).
 	 */
-	public static A_Phrase fromExpression (final A_Phrase expression)
+	public static A_Phrase newExpressionAsStatement (final A_Phrase expression)
 	{
 		final AvailObject newExpressionAsStatement = mutable.create();
 		newExpressionAsStatement.setSlot(EXPRESSION, expression);

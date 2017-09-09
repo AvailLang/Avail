@@ -32,13 +32,31 @@
 
 package com.avail.interpreter.primitive.general;
 
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
+import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Set the {@linkplain FunctionDescriptor
@@ -65,29 +83,28 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Function function = args.get(0);
-		function.code().setMethodName(
-			StringDescriptor.stringFrom("«invalid message send»"));
-		AvailRuntime.current().setInvalidMessageSendFunction(function);
-		return interpreter.primitiveSuccess(NilDescriptor.nil());
+		function.code().setMethodName(stringFrom("«invalid message send»"));
+		currentRuntime().setInvalidMessageSendFunction(function);
+		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.tuple(
-						AbstractEnumerationTypeDescriptor.enumerationWith(
-							SetDescriptor.set(
+		return functionType(
+			tuple(
+				functionType(
+					tuple(
+						enumerationWith(
+							set(
 								E_NO_METHOD,
 								E_NO_METHOD_DEFINITION,
 								E_AMBIGUOUS_METHOD_DEFINITION,
 								E_FORWARD_METHOD_DEFINITION,
 								E_ABSTRACT_METHOD_DEFINITION)),
 						METHOD.o(),
-						TupleTypeDescriptor.mostGeneralTupleType()),
-					BottomTypeDescriptor.bottom())),
+						mostGeneralTupleType()),
+					bottom())),
 			TOP.o());
 	}
 }

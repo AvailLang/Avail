@@ -31,13 +31,24 @@
  */
 package com.avail.interpreter.primitive.variables;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.VariableDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
 import java.util.List;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
+
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.VariableTypeDescriptor
+	.mostGeneralVariableType;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Answer {@linkplain
@@ -62,16 +73,14 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Variable var = args.get(0);
-		return interpreter.primitiveSuccess(
-			AtomDescriptor.objectFromBoolean(!var.hasValue()));
+		return interpreter.primitiveSuccess(objectFromBoolean(!var.hasValue()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			tuple(
-				mostGeneralVariableType()),
+		return functionType(
+			tuple(mostGeneralVariableType()),
 			booleanType());
 	}
 }

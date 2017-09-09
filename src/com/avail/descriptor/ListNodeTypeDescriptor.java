@@ -32,18 +32,32 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.ListNodeTypeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ListNodeTypeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind.*;
-import java.util.IdentityHashMap;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.InnerAccess;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
+
 import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.ListNodeTypeDescriptor.IntegerSlots
+	.HASH_AND_MORE;
+import static com.avail.descriptor.ListNodeTypeDescriptor.IntegerSlots
+	.HASH_OR_ZERO;
+import static com.avail.descriptor.ListNodeTypeDescriptor.ObjectSlots
+	.EXPRESSION_TYPE;
+import static com.avail.descriptor.ListNodeTypeDescriptor.ObjectSlots
+	.SUBEXPRESSIONS_TUPLE_TYPE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.LIST_NODE;
+import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
+	.PARSE_NODE;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeFromTupleOfTypes;
 
 /**
  * Define the structure and behavior of {@link ParseNodeKind#LIST_NODE list
@@ -252,7 +266,7 @@ extends ParseNodeTypeDescriptor
 				aListNodeType.parseNodeKind());
 		if (intersectionKind == null)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		assert intersectionKind.isSubkindOf(LIST_NODE);
 		return createListNodeType(
@@ -274,7 +288,7 @@ extends ParseNodeTypeDescriptor
 			otherKind.commonDescendantWith(object.parseNodeKind());
 		if (intersectionKind == null)
 		{
-			return BottomTypeDescriptor.bottom();
+			return bottom();
 		}
 		assert intersectionKind.isSubkindOf(LIST_NODE);
 		return createListNodeType(
@@ -377,7 +391,7 @@ extends ParseNodeTypeDescriptor
 		assert yieldType.isTupleType();
 		assert subexpressionsTupleType.isTupleType();
 		final A_Type yieldTypesAsPhrases =
-			TupleTypeDescriptor.mappingElementTypes(
+			tupleTypeFromTupleOfTypes(
 				yieldType,
 				elementType ->
 				{
@@ -385,7 +399,7 @@ extends ParseNodeTypeDescriptor
 					return PARSE_NODE.create(elementType);
 				});
 		final A_Type phraseTypesAsYields =
-			TupleTypeDescriptor.mappingElementTypes(
+			tupleTypeFromTupleOfTypes(
 				subexpressionsTupleType,
 				subexpressionType ->
 				{
@@ -422,7 +436,7 @@ extends ParseNodeTypeDescriptor
 		assert kind.isSubkindOf(LIST_NODE);
 		assert subexpressionsTupleType.isTupleType();
 		final A_Type phraseTypesAsYields =
-			TupleTypeDescriptor.mappingElementTypes(
+			tupleTypeFromTupleOfTypes(
 				subexpressionsTupleType,
 				subexpressionType ->
 				{
@@ -476,10 +490,9 @@ extends ParseNodeTypeDescriptor
 	private static final class Empty
 	{
 		/** The empty list phrase's type. */
-		@InnerAccess static final A_Type empty = createListNodeTypeNoCheck(
-				LIST_NODE,
-				TupleTypeDescriptor.tupleTypeForTypes(),
-				TupleTypeDescriptor.tupleTypeForTypes()
+		@InnerAccess static final A_Type empty =
+			createListNodeTypeNoCheck(
+				LIST_NODE, tupleTypeForTypes(), tupleTypeForTypes()
 			).makeShared();
 
 		private Empty ()
@@ -489,7 +502,7 @@ extends ParseNodeTypeDescriptor
 	}
 
 	/** Answer the empty list phrase's type. */
-	public static A_Type empty()
+	public static A_Type emptyListNodeType ()
 	{
 		return Empty.empty;
 	}

@@ -39,8 +39,10 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.PojoDescriptor.ObjectSlots.KIND;
 import static com.avail.descriptor.PojoDescriptor.ObjectSlots.RAW_POJO;
+import static com.avail.descriptor.RawPojoDescriptor.rawNullPojo;
 
 /**
  * A {@code PojoDescriptor} describes a plain-old Java object (pojo) that is
@@ -247,9 +249,8 @@ extends Descriptor
 	}
 
 	/** The {@linkplain PojoDescriptor pojo} that wraps Java's {@code null}. */
-	private static final AvailObject nullObject = newPojo(
-		RawPojoDescriptor.rawNullObject(),
-		BottomPojoTypeDescriptor.pojoBottom()).makeShared();
+	private static final AvailObject nullObject =
+		newPojo(rawNullPojo(), pojoBottom()).makeShared();
 
 	/**
 	 * Answer the {@linkplain PojoDescriptor pojo} that wraps Java's
@@ -257,7 +258,7 @@ extends Descriptor
 	 *
 	 * @return The {@code null} pojo.
 	 */
-	public static AvailObject nullObject ()
+	public static AvailObject nullPojo ()
 	{
 		return nullObject;
 	}

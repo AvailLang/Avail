@@ -32,12 +32,24 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.IntegerSlots.*;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.utility.Generator;
+import com.avail.utility.IndexedGenerator;
+import com.avail.utility.IndexedIntGenerator;
 
 import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
+import static com.avail.descriptor.IntTupleDescriptor.generateIntTupleFrom;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
+import static com.avail.descriptor.ObjectTupleDescriptor
+	.generateObjectTupleFrom;
+import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor
+	.IntegerSlots.*;
+import static com.avail.descriptor.TreeTupleDescriptor
+	.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
 
 /**
  * {@code SmallIntegerIntervalTupleDescriptor} represents an {@linkplain
@@ -151,27 +163,25 @@ extends NumericTupleDescriptor
 					return object;
 				}
 				// Create another small integer interval.
-				return createInterval(
+				return createSmallInterval(
 					object.slot(START), newElementValue, deltaValue);
 			}
 			// The new value isn't consecutive, but it's still an int.
 			if (originalSize < maximumCopySize)
 			{
-				return IntTupleDescriptor.generateFrom(
+				return generateIntTupleFrom(
 					originalSize + 1,
-					new Generator<Integer>()
+					new IndexedIntGenerator()
 					{
-						int counter = 1;
 						int value = object.slot(START);
 
 						@Override
-						public Integer value ()
+						public int value (final int counter)
 						{
 							if (counter == originalSize)
 							{
 								return newElementValue;
 							}
-							counter++;
 							final int oldValue = value;
 							value += (int) deltaValue;
 							return oldValue;
@@ -181,7 +191,7 @@ extends NumericTupleDescriptor
 			// Too big; fall through and make a tree-tuple.
 		}
 		// Fall back to concatenating a singleton.
-		final A_Tuple singleton = TupleDescriptor.tuple(newElement);
+		final A_Tuple singleton = tuple(newElement);
 		return object.concatenateWith(singleton, canDestroy);
 	}
 
@@ -307,7 +317,7 @@ extends NumericTupleDescriptor
 					}
 
 					// Otherwise, create a new interval.
-					return createInterval(
+					return createSmallInterval(
 						object.slot(START),
 						otherDirect.slot(END),
 						delta);
@@ -316,12 +326,9 @@ extends NumericTupleDescriptor
 		}
 		if (otherTuple.treeTupleLevel() == 0)
 		{
-			return TreeTupleDescriptor.createPair(object, otherTuple, 1, 0);
+			return createTwoPartTreeTuple(object, otherTuple, 1, 0);
 		}
-		return TreeTupleDescriptor.concatenateAtLeastOneTree(
-			object,
-			otherTuple,
-			true);
+		return concatenateAtLeastOneTree(object, otherTuple, true);
 	}
 
 	@Override @AvailMethod
@@ -363,7 +370,7 @@ extends NumericTupleDescriptor
 			object.setSlot(SIZE, newSize);
 			return object;
 		}
-		return createInterval((int)newStartValue, (int)newEndValue, delta);
+		return createSmallInterval((int)newStartValue, (int)newEndValue, delta);
 
 	}
 
@@ -439,7 +446,7 @@ extends NumericTupleDescriptor
 		assert index >= 1 && index <= object.tupleSize();
 		final long temp = object.slot(START) + (index - 1) * object.slot(DELTA);
 		assert temp == (int)temp;
-		return (AvailObject) IntegerDescriptor.fromInt((int)temp);
+		return (AvailObject) fromInt((int)temp);
 	}
 
 	@Override @AvailMethod
@@ -473,42 +480,38 @@ extends NumericTupleDescriptor
 			&& newValueObject.isUnsignedByte())
 		{
 			// Everything will be bytes.  Synthesize a byte tuple.
-			result = ByteTupleDescriptor.generateFrom(
+			result = generateByteTupleFrom(
 				object.slot(SIZE),
-				new Generator<Short>()
+				new IndexedIntGenerator()
 				{
-					private int counter = 1;
-					private long currentValue = start;
+					private int currentValue = start;
 
 					@Override
-					public Short value ()
+					public int value (final int counter)
 					{
-						final long element = counter == index
+						final int element = counter == index
 							? ((A_Number)newValueObject).extractUnsignedByte()
 							: currentValue;
-						counter++;
-						currentValue += delta;
-						return (short)element;
+						currentValue += (int) delta;
+						return element;
 					}
 				});
 		}
 		else
 		{
 			// Synthesize a general object tuple instead.
-			result = ObjectTupleDescriptor.generateFrom(
+			result = generateObjectTupleFrom(
 				object.slot(SIZE),
-				new Generator<A_BasicObject>()
+				new IndexedGenerator<A_BasicObject>()
 				{
-					private int counter = 1;
 					private long currentValue = start;
 
 					@Override
-					public A_BasicObject value ()
+					public A_BasicObject value (final int counter)
 					{
 						final A_BasicObject element = counter == index
 							? newValueObject
-							: IntegerDescriptor.fromInt((int)currentValue);
-						counter++;
+							: fromInt((int) currentValue);
 						currentValue += delta;
 						return element;
 					}
@@ -542,8 +545,7 @@ extends NumericTupleDescriptor
 			low = end;
 			high = start;
 		}
-		if (type.isSupertypeOfIntegerRangeType(
-			IntegerRangeTypeDescriptor.inclusive(low, high)))
+		if (type.isSupertypeOfIntegerRangeType(inclusive(low, high)))
 		{
 			return true;
 		}
@@ -574,7 +576,7 @@ extends NumericTupleDescriptor
 		// If tuple is small enough or is immutable, create a new interval.
 		if (object.tupleSize() < maximumCopySize || !isMutable())
 		{
-			return createInterval (
+			return createSmallInterval(
 				object.slot(END),
 				object.slot(START),
 				newDelta);
@@ -646,7 +648,7 @@ extends NumericTupleDescriptor
 	 * @return True if all values would fit in the small representation, false
 	 *         otherwise.
 	 */
-	static boolean isCandidate (
+	static boolean isSmallIntervalCandidate (
 		final A_Number newStart,
 		final A_Number newEnd,
 		final A_Number delta)
@@ -675,7 +677,7 @@ extends NumericTupleDescriptor
 	 *              neighbor in the interval. Delta is nonzero.
 	 * @return The new interval.
 	 */
-	public static A_Tuple createInterval (
+	public static A_Tuple createSmallInterval (
 		final int newStart,
 		final int newEnd,
 		final long delta)

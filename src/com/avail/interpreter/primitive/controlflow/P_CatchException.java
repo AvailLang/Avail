@@ -31,12 +31,31 @@
  */
 package com.avail.interpreter.primitive.controlflow;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+
+import java.util.List;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.zeroOrOne;
+import static com.avail.descriptor.ObjectTypeDescriptor.exceptionType;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TupleTypeDescriptor
+	.tupleTypeForSizesTypesDefaultType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.*;
-import java.util.*;
-import com.avail.descriptor.*;
-import com.avail.interpreter.*;
 
 /**
  * <strong>Primitive:</strong> Always fail. The Avail failure code
@@ -65,7 +84,7 @@ public final class P_CatchException extends Primitive
 		for (final A_BasicObject block : handlerBlocks)
 		{
 			if (!block.kind().argsTupleType().typeAtIndex(1).isSubtypeOf(
-				ObjectTypeDescriptor.exceptionType()))
+				exceptionType()))
 			{
 				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 			}
@@ -76,21 +95,20 @@ public final class P_CatchException extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return FunctionTypeDescriptor.functionType(
-			TupleDescriptor.tuple(
-				FunctionTypeDescriptor.functionType(
-					TupleDescriptor.emptyTuple(),
+		return functionType(
+			tuple(
+				functionType(
+					emptyTuple(),
 					TOP.o()),
-				TupleTypeDescriptor.zeroOrMoreOf(
-					FunctionTypeDescriptor.functionType(
-						TupleDescriptor.tuple(
-							BottomTypeDescriptor.bottom()),
+				zeroOrMoreOf(
+					functionType(
+						tuple(bottom()),
 						TOP.o())),
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor.zeroOrOne(),
-					TupleDescriptor.emptyTuple(),
-					FunctionTypeDescriptor.functionType(
-						TupleDescriptor.emptyTuple(),
+				tupleTypeForSizesTypesDefaultType(
+					zeroOrOne(),
+					emptyTuple(),
+					functionType(
+						emptyTuple(),
 						TOP.o()))),
 			TOP.o());
 	}
@@ -98,11 +116,12 @@ public final class P_CatchException extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_REQUIRED_FAILURE,
-				E_INCORRECT_ARGUMENT_TYPE,
-				E_HANDLER_SENTINEL,
-				E_UNWIND_SENTINEL));
+		return
+			enumerationWith(
+				set(
+					E_REQUIRED_FAILURE,
+					E_INCORRECT_ARGUMENT_TYPE,
+					E_HANDLER_SENTINEL,
+					E_UNWIND_SENTINEL));
 	}
 }
