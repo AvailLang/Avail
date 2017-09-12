@@ -24,6 +24,6 @@
       </library>
     </orderEntry>
     <orderEntry type="library" exported="" scope="PROVIDED" name="annotations" level="project" />
-    <orderEntry type="library" exported="" scope="PROVIDED" name="junit" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="junit" level="project" />
   </component>
 </module>
