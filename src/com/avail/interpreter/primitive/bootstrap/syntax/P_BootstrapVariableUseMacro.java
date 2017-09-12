@@ -184,9 +184,10 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
+		return functionType(
+			tuple(
 				/* Variable name */
-			LITERAL_NODE.create(TOKEN.o())),
+				LITERAL_NODE.create(TOKEN.o())),
 			VARIABLE_USE_NODE.mostGeneralType());
 	}
 }

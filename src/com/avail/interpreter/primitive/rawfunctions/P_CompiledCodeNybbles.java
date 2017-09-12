@@ -76,8 +76,9 @@ public final class P_CompiledCodeNybbles extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralCompiledCodeType()), zeroOrMoreOf(
-			nybbles()));
+		return functionType(
+			tuple(
+				mostGeneralCompiledCodeType()),
+			zeroOrMoreOf(nybbles()));
 	}
 }

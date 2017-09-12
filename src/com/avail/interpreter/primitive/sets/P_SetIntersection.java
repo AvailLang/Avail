@@ -75,8 +75,10 @@ public final class P_SetIntersection extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralSetType(),
-			mostGeneralSetType()), mostGeneralSetType());
+		return functionType(
+			tuple(
+				mostGeneralSetType(),
+				mostGeneralSetType()),
+			mostGeneralSetType());
 	}
 }

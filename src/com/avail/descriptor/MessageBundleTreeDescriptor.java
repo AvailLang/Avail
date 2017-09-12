@@ -63,10 +63,7 @@ import static com.avail.compiler.ParsingOperation.PARSE_PART;
 import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots
-	.HASH_AND_MORE;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots
-	.HASH_OR_ZERO;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor
@@ -117,13 +114,30 @@ extends Descriptor
 		/**
 		 * {@link BitField}s for the hash and the parsing pc.  See below.
 		 */
-		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
 		 */
+		@HideFieldInDebugger
 		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
+
+		/**
+		 * This flag is set when this bundle tree contains at least one
+		 * parsing-plan-in-progress at a {@link ParsingOperation#JUMP_BACKWARD}
+		 * instruction.
+		 */
+		static final BitField HAS_BACKWARD_JUMP_INSTRUCTION =
+			bitField(HASH_AND_MORE, 32, 1);
+
+		/**
+		 * This flag is set when a bundle tree is redirected to an equivalent
+		 * ancestor bundle tree.  The current bundle tree's {#link
+		 * #LATEST_BACKWARD_JUMP} is set directly to the target of the cycle
+		 * when this flag is set.
+		 */
+		static final BitField IS_SOURCE_OF_CYCLE =
+			bitField(HASH_AND_MORE, 33, 1);
 	}
 
 	/**
@@ -293,7 +307,31 @@ extends Descriptor
 		 * This allows relatively efficient elimination of inappropriately typed
 		 * arguments.
 		 */
-		LAZY_TYPE_FILTER_TREE_POJO
+		LAZY_TYPE_FILTER_TREE_POJO,
+
+		/**
+		 * This is the most recently encountered backward jump in the ancestry
+		 * of this bundle tree, or nil if none were encountered in the ancestry.
+		 * There could be multiple competing parsing plans in that target bundle
+		 * tree, some of which had a backward jump and some of which didn't, but
+		 * we only require that at least one had a backward jump.
+		 *
+		 * <p>Since every loop has a backward jump, and since the target has a
+		 * pointer to its own preceding backward jump, we can trace this back
+		 * through every backward jump in the ancestry (some of which will
+		 * contain the same parsing-plans-in-progress).  When we expand a node
+		 * that's a backward jump, we chase these pointers to determine if
+		 * there's an equivalent node in the ancestry – one with the same set of
+		 * parsing-plans-in-progress.  If so, we use its expansion rather than
+		 * creating yet another duplicate copy.  This saves space and time in
+		 * the case that there are repeated arguments to a method, and at least
+		 * one encountered invocation of that method has a large number of
+		 * repetitions.  An example is the literal set notation "{«_‡,»}", which
+		 * can be used to specify a set with thousands of elements.  Without
+		 * this optimization, that would be tens of thousands of additional
+		 * bundle trees to maintain.</p>
+		 */
+		LATEST_BACKWARD_JUMP;
 	}
 
 	/**
@@ -304,9 +342,9 @@ extends Descriptor
 	 * perform type filtering after parsing each leaf argument, and the phrase
 	 * type is the expected type of that latest argument.
 	 */
-	public static final LookupTreeAdaptor<A_Tuple, A_BundleTree, Void>
+	public static final LookupTreeAdaptor<A_Tuple, A_BundleTree, A_BundleTree>
 		parserTypeChecker =
-			new LookupTreeAdaptor<A_Tuple, A_BundleTree, Void>()
+			new LookupTreeAdaptor<A_Tuple, A_BundleTree, A_BundleTree>()
 	{
 		@Override
 		public A_Type extractSignature (final A_Tuple pair)
@@ -319,9 +357,10 @@ extends Descriptor
 		@Override
 		public A_BundleTree constructResult (
 			final List<? extends A_Tuple> elements,
-			final Void ignored)
+			final A_BundleTree latestBackwardJump)
 		{
-			final A_BundleTree newBundleTree = newBundleTree();
+			final A_BundleTree newBundleTree =
+				newBundleTree(latestBackwardJump);
 			for (final A_Tuple pair : elements)
 			{
 				final A_ParsingPlanInProgress planInProgress = pair.tupleAt(2);
@@ -363,7 +402,8 @@ extends Descriptor
 			|| e == LAZY_ACTIONS
 			|| e == LAZY_PREFILTER_MAP
 			|| e == LAZY_TYPE_FILTER_PAIRS_TUPLE
-			|| e == LAZY_TYPE_FILTER_TREE_POJO;
+			|| e == LAZY_TYPE_FILTER_TREE_POJO
+			|| e == LATEST_BACKWARD_JUMP;
 	}
 
 	@Override
@@ -449,6 +489,10 @@ extends Descriptor
 			object.setSlot(
 				UNCLASSIFIED,
 				layeredMapWithPlan(object.slot(UNCLASSIFIED), planInProgress));
+			if (planInProgress.isBackwardJump())
+			{
+				object.setSlot(HAS_BACKWARD_JUMP_INSTRUCTION, 1);
+			}
 		}
 	}
 
@@ -512,8 +556,8 @@ extends Descriptor
 			unclassified = object.volatileSlot(UNCLASSIFIED);
 			if (unclassified.mapSize() == 0)
 			{
-				// Someone else expanded it since we checked above, outside the
-				// monitor.
+				// Someone else expanded it since we checked outside the
+				// monitor, above.
 				return;
 			}
 			final Mutable<A_Set> complete = new Mutable<>(
@@ -530,6 +574,55 @@ extends Descriptor
 				object.slot(LAZY_TYPE_FILTER_PAIRS_TUPLE));
 			final int oldTypeFilterSize = typeFilterPairs.value.tupleSize();
 			final A_Set allAncestorModules = module.allAncestors();
+			final A_Map allPlansInProgress = object.slot(ALL_PLANS_IN_PROGRESS);
+
+			// Figure out what the latestBackwardJump will be for any successor
+			// bundle trees that need to be created.
+			A_BundleTree latestBackwardJump;
+			if (object.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0)
+			{
+				// New descendants will point to me as a potential target.
+				latestBackwardJump = object;
+				if (object.slot(IS_SOURCE_OF_CYCLE) == 0)
+				{
+					// It's not already the source of a cycle.  See if we can
+					// find an equivalent ancestor to cycle back to.
+					A_BundleTree ancestor = object.slot(LATEST_BACKWARD_JUMP);
+					while (!ancestor.equalsNil())
+					{
+						if (ancestor.allParsingPlansInProgress().equals(
+							allPlansInProgress))
+						{
+							// This ancestor is equivalent to me, so mark me as
+							// a backward cyclic link and plug that exact
+							// ancestor into the LATEST_BACKWARD_JUMP slot.
+							object.setSlot(IS_SOURCE_OF_CYCLE, 1);
+							object.setSlot(LATEST_BACKWARD_JUMP, ancestor);
+							// The caller will deal with fully expanding the
+							// ancestor.
+							return;
+						}
+						ancestor = ancestor.latestBackwardJump();
+					}
+					// We didn't find a usable ancestor to cycle back to.
+					// New successors should link back to me.
+					latestBackwardJump = object;
+				}
+				else
+				{
+					// It was already the source of a backward link.  We don't
+					// need to create any more descendants here.
+					return;
+				}
+			}
+			else
+			{
+				// This bundle tree doesn't have a backward jump, so any new
+				// descendants should use the same LATEST_BACKWARD_JUMP as me.
+				latestBackwardJump = object.slot(LATEST_BACKWARD_JUMP);
+			}
+
+			// Update my components.
 			for (final Entry entry : unclassified.mapIterable())
 			{
 				for (final Entry entry2 : entry.value().mapIterable())
@@ -556,6 +649,7 @@ extends Descriptor
 							final int instruction = instructions.tupleIntAt(pc);
 							final ParsingOperation op = decode(instruction);
 							updateForPlan(
+								object,
 								plan,
 								pc,
 								allAncestorModules,
@@ -575,7 +669,7 @@ extends Descriptor
 					}
 				}
 			}
-			object.setVolatileSlot(UNCLASSIFIED, emptyMap());
+			// Write back the updates.
 			object.setSlot(LAZY_COMPLETE, complete.value.makeShared());
 			object.setSlot(LAZY_INCOMPLETE, incomplete.value.makeShared());
 			object.setSlot(
@@ -589,15 +683,18 @@ extends Descriptor
 			if (typeFilterPairs.value.tupleSize() != oldTypeFilterSize)
 			{
 				// Rebuild the type-checking lookup tree.
-				final LookupTree<A_Tuple, A_BundleTree, Void> tree =
+				final LookupTree<A_Tuple, A_BundleTree, A_BundleTree> tree =
 					MessageBundleTreeDescriptor.parserTypeChecker.createRoot(
 						toList(typeFilterPairs.value),
 						Collections.singletonList(
 							ParseNodeKind.PARSE_NODE.mostGeneralType()),
-						null);
+						latestBackwardJump);
 				final A_BasicObject pojo = identityPojo(tree);
 				object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, pojo.makeShared());
 			}
+			// Do this volatile write last, to minimize false double-checking in
+			// other threads that are also trying to expand this node.
+			object.setVolatileSlot(UNCLASSIFIED, emptyMap());
 		}
 	}
 
@@ -638,8 +735,9 @@ extends Descriptor
 				final ParsingOperation op = decode(instruction);
 				switch (op)
 				{
-					case JUMP:
-					case BRANCH:
+					case JUMP_BACKWARD:
+					case JUMP_FORWARD:
+					case BRANCH_FORWARD:
 					{
 						// These should have bubbled out of the bundle tree.
 						// Loop to get to the affected successor trees.
@@ -712,23 +810,26 @@ extends Descriptor
 		"(invalidations)", StatisticReport.EXPANDING_PARSING_INSTRUCTIONS);
 
 	/**
-	 * Invalidate the internal expansion of the given bundle tree.
+	 * Invalidate the internal expansion of the given bundle tree.  Note that
+	 * this should only happen when we're changing the grammar in some way,
+	 * which happens mutually exclusive of parsing, so we don't really need to
+	 * use a lock.
 	 */
 	private static void invalidate (final AvailObject object)
 	{
 		final long timeBefore = AvailRuntime.captureNanos();
 		synchronized (object)
 		{
-			final A_Map emptyMap = emptyMap();
 			object.setSlot(LAZY_COMPLETE, emptySet());
-			object.setSlot(LAZY_INCOMPLETE, emptyMap);
-			object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
-			object.setSlot(LAZY_ACTIONS, emptyMap);
-			object.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-			object.setSlot(
-				LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple());
+			object.setSlot(LAZY_INCOMPLETE, emptyMap());
+			object.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap());
+			object.setSlot(LAZY_ACTIONS, emptyMap());
+			object.setSlot(LAZY_PREFILTER_MAP, emptyMap());
+			object.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple());
 			object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil());
 			object.setSlot(UNCLASSIFIED, object.slot(ALL_PLANS_IN_PROGRESS));
+			// Note:  It can't be the target of a cycle any more, since there
+			// are no longer *any* successors.
 		}
 		final long timeAfter = AvailRuntime.captureNanos();
 		final AvailThread thread = (AvailThread) Thread.currentThread();
@@ -847,8 +948,10 @@ extends Descriptor
 	}
 
 	/**
-	 * Remove the plan from this bundle tree.  Also remove the bundle if this
-	 * was the last plan.
+	 * Remove the plan from this bundle tree.  We don't need to remove the
+	 * bundle itself if this is the last plan for that bundle, since this can
+	 * only be called when satisfying a forward declaration – by adding another
+	 * definition.
 	 */
 	@Override
 	void o_RemovePlanInProgress (
@@ -866,6 +969,39 @@ extends Descriptor
 				layeredMapWithoutPlan(
 					object.slot(UNCLASSIFIED), planInProgress));
 		}
+	}
+
+	/**
+	 * Answer the nearest ancestor that was known at some time to have a
+	 * backward jump in at least one of its parsing-plans-in-progress.
+	 *
+	 * @param object The bundle tree.
+	 * @return A predecessor bundle tree or nil.
+	 */
+	@Override
+	A_BundleTree o_LatestBackwardJump (final AvailObject object)
+	{
+		return object.slot(LATEST_BACKWARD_JUMP);
+	}
+
+	@Override
+	boolean o_HasBackwardJump (final AvailObject object)
+	{
+		return object.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0;
+	}
+
+	@Override
+	boolean o_IsSourceOfCycle (final AvailObject object)
+	{
+		return object.slot(IS_SOURCE_OF_CYCLE) != 0;
+	}
+
+	@Override
+	void o_IsSourceOfCycle (
+		final AvailObject object,
+		final boolean isSourceOfCycle)
+	{
+		object.setSlot(IS_SOURCE_OF_CYCLE, isSourceOfCycle ? 1 : 0);
 	}
 
 	/**
@@ -912,6 +1048,10 @@ extends Descriptor
 	/**
 	 * Categorize a single message/bundle pair.
 	 *
+	 * @param bundleTree
+	 *        The {@link A_BundleTree} that we're updating.  The state is passed
+	 *        separately in arguments, to be written back after all the mutable
+	 *        arguments have been updated for all parsing-plans-in-progress.
 	 * @param plan
 	 *        The {@link A_DefinitionParsingPlan} to categorize.
 	 * @param pc
@@ -956,7 +1096,8 @@ extends Descriptor
 	 *        A_Phrase phrase} {@link A_Type type} to {@link
 	 *        A_DefinitionParsingPlan}.
 	 */
-	private static void updateForPlan (
+	private void updateForPlan (
+		final AvailObject bundleTree,
 		final A_DefinitionParsingPlan plan,
 		final int pc,
 		final A_Set allAncestorModules,
@@ -967,6 +1108,12 @@ extends Descriptor
 		final Mutable<A_Map> prefilterMap,
 		final Mutable<A_Tuple> typeFilterTuples)
 	{
+		final boolean hasBackwardJump =
+			bundleTree.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0;
+		final A_BundleTree latestBackwardJump =
+			hasBackwardJump
+				? bundleTree
+				: bundleTree.slot(LATEST_BACKWARD_JUMP);
 		final A_Tuple instructions = plan.parsingInstructions();
 		if (pc == instructions.tupleSize() + 1)
 		{
@@ -978,8 +1125,18 @@ extends Descriptor
 		final ParsingOperation op = decode(instruction);
 		switch (op)
 		{
-			case JUMP:
-			case BRANCH:
+			case JUMP_BACKWARD:
+			{
+				if (!hasBackwardJump)
+				{
+					// We just discovered the first backward jump in any
+					// parsing-plan-in-progress at this node.
+					bundleTree.setSlot(HAS_BACKWARD_JUMP_INSTRUCTION, 1);
+				}
+			}
+			// Falls through.
+			case JUMP_FORWARD:
+			case BRANCH_FORWARD:
 			{
 				// Bubble control flow right out of the bundle trees.  There
 				// should never be a JUMP or BRANCH in an actionMap.  Rather,
@@ -994,6 +1151,7 @@ extends Descriptor
 				for (final int nextPc : op.successorPcs(instruction, pc))
 				{
 					updateForPlan(
+						bundleTree,
 						plan,
 						nextPc,
 						allAncestorModules,
@@ -1022,7 +1180,7 @@ extends Descriptor
 				}
 				else
 				{
-					subtree = newBundleTree();
+					subtree = newBundleTree(latestBackwardJump);
 					map.value = map.value.mapAtPuttingCanDestroy(
 						part, subtree, true);
 				}
@@ -1033,7 +1191,8 @@ extends Descriptor
 			{
 				// Each macro definition has its own prefix functions, so for
 				// each plan create a separate successor message bundle tree.
-				final A_BundleTree newTarget = newBundleTree();
+				final A_BundleTree newTarget =
+					newBundleTree(latestBackwardJump);
 				newTarget.addPlanInProgress(newPlanInProgress(plan, pc + 1));
 				final A_Number instructionObject = fromInt(instruction);
 				A_Tuple successors = actionMap.value.hasKey(instructionObject)
@@ -1077,11 +1236,9 @@ extends Descriptor
 				}
 				else
 				{
-					successor = newBundleTree();
+					successor = newBundleTree(latestBackwardJump);
 					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-						instructionObject,
-						tuple(successor),
-						true);
+						instructionObject, tuple(successor), true);
 				}
 				A_Set forbiddenBundles = emptySet();
 				for (final A_GrammaticalRestriction restriction
@@ -1120,16 +1277,16 @@ extends Descriptor
 				{
 					if (!prefilterMap.value.hasKey(restrictedBundle))
 					{
-						final AvailObject newTarget = newBundleTree();
+						final AvailObject newTarget =
+							newBundleTree(latestBackwardJump);
 						// Be careful.  We can't add ALL_BUNDLES, since
 						// it may contain some bundles that are still
 						// UNCLASSIFIED.  Instead, use ALL_BUNDLES of
 						// the successor found under this instruction,
 						// since it *has* been kept up to date as the
 						// bundles have gotten classified.
-						for (final Entry existingEntry
-							: successor.allParsingPlansInProgress()
-								.mapIterable())
+						for (final Entry existingEntry :
+							successor.allParsingPlansInProgress().mapIterable())
 						{
 							for (final Entry planEntry
 								: existingEntry.value().mapIterable())
@@ -1179,9 +1336,8 @@ extends Descriptor
 				}
 				else
 				{
-					successor = newBundleTree();
-					final A_Tuple successors = tuple
-						(successor);
+					successor = newBundleTree(latestBackwardJump);
+					final A_Tuple successors = tuple(successor);
 					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 						instructionObject, successors, true);
 				}
@@ -1191,31 +1347,34 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a new empty message bundle tree.
+	 * Create a new empty {@link A_BundleTree}.
 	 *
-	 * @return The new empty message bundle tree.
+	 * @param latestBackwardJump
+	 *        The nearest ancestor bundle tree that was known at some point to
+	 *        contain a backward jump instruction, or nil if there were no such
+	 *        ancestors.
+	 * @return A new empty message bundle tree.
 	 */
-	public static AvailObject newBundleTree ()
+	public static AvailObject newBundleTree (
+		final A_BundleTree latestBackwardJump)
 	{
 		final AvailObject result = mutable.create();
-		final A_Map emptyMap = emptyMap();
-		final A_Set emptySet = emptySet();
 		result.setSlot(HASH_OR_ZERO, 0);
-		result.setSlot(ALL_PLANS_IN_PROGRESS, emptyMap);
-		result.setSlot(UNCLASSIFIED, emptyMap);
-		result.setSlot(LAZY_COMPLETE, emptySet);
-		result.setSlot(LAZY_INCOMPLETE, emptyMap);
-		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap);
-		result.setSlot(LAZY_ACTIONS, emptyMap);
-		result.setSlot(LAZY_PREFILTER_MAP, emptyMap);
-		result.setSlot(
-			LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple());
+		result.setSlot(ALL_PLANS_IN_PROGRESS, emptyMap());
+		result.setSlot(UNCLASSIFIED, emptyMap());
+		result.setSlot(LAZY_COMPLETE, emptySet());
+		result.setSlot(LAZY_INCOMPLETE, emptyMap());
+		result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap());
+		result.setSlot(LAZY_ACTIONS, emptyMap());
+		result.setSlot(LAZY_PREFILTER_MAP, emptyMap());
+		result.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple());
 		result.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil());
+		result.setSlot(LATEST_BACKWARD_JUMP, latestBackwardJump);
 		return result.makeShared();
 	}
 
 	/**
-	 * Construct a new {@link MessageBundleTreeDescriptor}.
+	 * Construct a new {@code MessageBundleTreeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

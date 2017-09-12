@@ -375,9 +375,8 @@ extends MapBinDescriptor
 				{
 					object.makeSubobjectsImmutable();
 				}
-				objectToModify = newLike(descriptorFor(
-					MUTABLE,
-					level), object, 0, 0);
+				objectToModify = newLike(
+					descriptorFor(MUTABLE, level), object, 0, 0);
 			}
 			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSubBin);
 		}
@@ -392,8 +391,7 @@ extends MapBinDescriptor
 			}
 			objectToModify = descriptorFor(MUTABLE, level).create(
 				objectEntryCount + 1);
-			objectToModify.setSlot(
-				BIT_VECTOR, vector | (1L << logicalIndex));
+			objectToModify.setSlot(BIT_VECTOR, vector | (1L << logicalIndex));
 			for (int i = 1, end = physicalIndex - 1; i <= end; i++)
 			{
 				objectToModify.setSlot(SUB_BINS_, i, object.slot(SUB_BINS_,i));
@@ -413,8 +411,7 @@ extends MapBinDescriptor
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
 		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
 		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
-		objectToModify.setSlot(
-			BIN_VALUE_UNION_KIND_OR_NULL, nil());
+		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil());
 		checkHashedMapBin(objectToModify);
 		return objectToModify;
 	}
@@ -519,9 +516,8 @@ extends MapBinDescriptor
 			}
 			else
 			{
-				objectToModify = newLike(descriptorFor(
-					MUTABLE,
-					level), object, 0, 0);
+				objectToModify = newLike(
+					descriptorFor(MUTABLE,level), object, 0, 0);
 			}
 			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSubBin);
 		}
@@ -530,8 +526,7 @@ extends MapBinDescriptor
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + deltaHash);
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
 		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
-		objectToModify.setSlot(
-			BIN_VALUE_UNION_KIND_OR_NULL, nil());
+		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil());
 		checkHashedMapBin(objectToModify);
 		return objectToModify;
 	}

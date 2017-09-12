@@ -104,7 +104,8 @@ extends Primitive
 		final A_Number priority = args.get(3);
 		// Ensure that the function is callable with the specified arguments.
 		final int numArgs = argTuple.tupleSize();
-		if (function.code().numArgs() != numArgs)
+		final A_RawFunction code = function.code();
+		if (code.numArgs() != numArgs)
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -116,8 +117,7 @@ extends Primitive
 			final AvailObject anArg = argTuple.tupleAt(i);
 			if (!anArg.isInstanceOf(tupleType.typeAtIndex(i)))
 			{
-				return interpreter.primitiveFailure(
-					E_INCORRECT_ARGUMENT_TYPE);
+				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 			}
 			callArgs.add(anArg);
 		}
@@ -138,14 +138,11 @@ extends Primitive
 		final A_Fiber orphan = newFiber(
 			function.kind().returnType(),
 			priority.extractInt(),
-			() ->
-			{
-				final A_RawFunction code = function.code();
-				return
-					formatString("Delayed fork orphan, %s, %s:%d",
-						code.methodName(), code.module().moduleName(),
-						code.startingLineNumber());
-			});
+			() -> formatString(
+				"Delayed fork orphan, %s, %s:%d",
+				code.methodName(),
+				code.module().moduleName(),
+				code.startingLineNumber()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		orphan.availLoader(current.availLoader());
@@ -164,7 +161,7 @@ extends Primitive
 		// Otherwise, schedule the fiber to start later.
 		else
 		{
-			currentRuntime().timer.schedule(
+			runtime.timer.schedule(
 				new TimerTask()
 				{
 					@Override
@@ -184,20 +181,21 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			inclusive(
-				zero(),
-				positiveInfinity()),
-			functionTypeReturning(TOP.o()),
-			mostGeneralTupleType(),
-			bytes()), TOP.o());
+		return functionType(
+			tuple(
+				inclusive(zero(), positiveInfinity()),
+				functionTypeReturning(TOP.o()),
+				mostGeneralTupleType(),
+				bytes()),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return enumerationWith(set(
-			E_INCORRECT_NUMBER_OF_ARGUMENTS,
-			E_INCORRECT_ARGUMENT_TYPE));
+		return enumerationWith(
+			set(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS,
+				E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

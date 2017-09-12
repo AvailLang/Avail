@@ -103,15 +103,16 @@ public final class P_CreateFunction extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralCompiledCodeType(),
-			mostGeneralTupleType()), mostGeneralFunctionType());
+		return functionType(
+			tuple(
+				mostGeneralCompiledCodeType(),
+				mostGeneralTupleType()),
+			mostGeneralFunctionType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_WRONG_OUTERS));
+		return enumerationWith(set(E_WRONG_OUTERS));
 	}
 }

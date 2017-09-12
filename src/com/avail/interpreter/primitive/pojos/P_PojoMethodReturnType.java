@@ -42,8 +42,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.*;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType;

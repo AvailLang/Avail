@@ -85,15 +85,16 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			integers(),
-			integers()), integers());
+		return functionType(
+			tuple(
+				integers(),
+				integers()),
+			integers());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_TOO_LARGE_TO_REPRESENT));
+		return enumerationWith(set(E_TOO_LARGE_TO_REPRESENT));
 	}
 }

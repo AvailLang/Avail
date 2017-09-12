@@ -28,6 +28,7 @@
       <w>lexed</w>
       <w>lexing</w>
       <w>lexings</w>
+      <w>looper</w>
       <w>metacharacter</w>
       <w>metatype</w>
       <w>multimethod</w>
@@ -60,6 +61,7 @@
       <w>shareds</w>
       <w>stringified</w>
       <w>stringifier</w>
+      <w>stringifiers</w>
       <w>subclassing</w>
       <w>subcomponents</w>
       <w>subentry</w>
@@ -77,6 +79,7 @@
       <w>summarizability</w>
       <w>summarizable</w>
       <w>summarization</w>
+      <w>supercall</w>
       <w>supercast</w>
       <w>supercasts</w>
       <w>superexpressions</w>

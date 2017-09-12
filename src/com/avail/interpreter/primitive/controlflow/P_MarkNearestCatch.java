@@ -80,8 +80,12 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			enumerationWith(set(E_HANDLER_SENTINEL, E_UNWIND_SENTINEL))),
+		return functionType(
+			tuple(
+				enumerationWith(
+					set(
+						E_HANDLER_SENTINEL,
+						E_UNWIND_SENTINEL))),
 			TOP.o());
 	}
 
@@ -89,6 +93,8 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(E_CANNOT_MARK_HANDLER_FRAME, E_NO_HANDLER_FRAME));
+			set(
+				E_CANNOT_MARK_HANDLER_FRAME,
+				E_NO_HANDLER_FRAME));
 	}
 }

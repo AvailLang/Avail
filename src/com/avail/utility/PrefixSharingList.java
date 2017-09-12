@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * This is an implementation of an immutable {@link List} for which {@link
  * #append(List, Object)}, the non-destructive append operation, takes constant
@@ -168,9 +170,10 @@ public final class PrefixSharingList<E>
 	 */
 	private List<E> cacheFlatListOrMore ()
 	{
-		if (cachedFlatListOrMore != null)
+		final @Nullable List<E> temp = cachedFlatListOrMore;
+		if (temp != null)
 		{
-			return cachedFlatListOrMore;
+			return temp;
 		}
 		final ArrayList<E> flatList = new ArrayList<>(size);
 		PrefixSharingList<E> pointer = this;
@@ -327,13 +330,12 @@ public final class PrefixSharingList<E>
 		{
 			final PrefixSharingList<E2>strongOriginal =
 				(PrefixSharingList<E2>)originalList;
-			final List<E2> butLast = strongOriginal.allButLast;
+			final @Nullable List<E2> butLast = strongOriginal.allButLast;
 			if (butLast != null)
 			{
 				return butLast;
 			}
-			final List<E2> flat = strongOriginal.cachedFlatListOrMore;
-			assert flat != null;
+			final List<E2> flat = stripNull(strongOriginal.cachedFlatListOrMore);
 			return new PrefixSharingList<>(flat, originalList.size() - 1);
 		}
 		return new PrefixSharingList<>(originalList, originalList.size() - 1);

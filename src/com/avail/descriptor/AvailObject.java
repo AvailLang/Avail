@@ -7376,4 +7376,35 @@ implements
 	{
 		return descriptor.o_SuspendingRawFunction(this);
 	}
+
+	@Override
+	public boolean isBackwardJump ()
+	{
+		return descriptor.o_IsBackwardJump(this);
+	}
+
+	@Override
+	public A_BundleTree latestBackwardJump ()
+	{
+		return descriptor.o_LatestBackwardJump(this);
+	}
+
+	@Override
+	public boolean hasBackwardJump ()
+	{
+		return descriptor.o_HasBackwardJump(this);
+	}
+
+	@Override
+	public boolean isSourceOfCycle ()
+	{
+		return descriptor.o_IsSourceOfCycle(this);
+	}
+
+	@Override
+	public void isSourceOfCycle (
+		final boolean isSourceOfCycle)
+	{
+		descriptor.o_IsSourceOfCycle(this, isSourceOfCycle);
+	}
 }

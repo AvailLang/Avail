@@ -200,34 +200,36 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
+		return functionType(
+			tuple(
 				/* Macro argument is a parse node. */
-			LIST_NODE.create(
+				LIST_NODE.create(
 					/* Optional arguments section. */
-				zeroOrOneOf(
+					zeroOrOneOf(
 						/* Arguments are present. */
-					oneOrMoreOf(
+						oneOrMoreOf(
 							/* An argument. */
-						tupleTypeForTypes(
-								/* Argument name, a token. */
-							TOKEN.o(),
-								/* Argument type. */
-							anyMeta())))),
-				/* Macro argument is a parse node. */
-			LIST_NODE.create(
-					/* Optional primitive declaration. */
-				zeroOrOneOf(
-						/* Primitive declaration */
-					tupleTypeForTypes(
-							/* Primitive number. */
-						TOKEN.o(),
-							/* Optional failure variable declaration. */
-						zeroOrOneOf(
-								/* Primitive failure variable parts. */
 							tupleTypeForTypes(
-									/* Primitive failure variable name token */
+								/* Argument name, a token. */
 								TOKEN.o(),
+								/* Argument type. */
+								anyMeta())))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional primitive declaration. */
+					zeroOrOneOf(
+						/* Primitive declaration */
+						tupleTypeForTypes(
+							/* Primitive number. */
+							TOKEN.o(),
+							/* Optional failure variable declaration. */
+							zeroOrOneOf(
+								/* Primitive failure variable parts. */
+								tupleTypeForTypes(
+									/* Primitive failure variable name token */
+									TOKEN.o(),
 									/* Primitive failure variable type */
-								anyMeta())))))), TOP.o());
+									anyMeta())))))),
+			TOP.o());
 	}
 }

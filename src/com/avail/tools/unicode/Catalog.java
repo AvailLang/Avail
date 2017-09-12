@@ -71,6 +71,8 @@ import com.avail.utility.json.JSONArray;
 import com.avail.utility.json.JSONData;
 import com.avail.utility.json.JSONFriendly;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * A {@code Catalog} represents the complete catalog of Unicode characters used
  * by the Avail project.
@@ -181,8 +183,7 @@ public class Catalog
 	 */
 	private void computeAllCodePointsIn (final Path path) throws IOException
 	{
-		final Set<CharacterInfo> codePoints = allCodePoints;
-		assert codePoints != null;
+		final Set<CharacterInfo> codePoints = stripNull(allCodePoints);
 		final EnumSet<StandardOpenOption> options = EnumSet.of(
 			StandardOpenOption.READ);
 		final FileChannel in = FileChannel.open(path, options);
@@ -391,8 +392,7 @@ public class Catalog
 	 */
 	private void populateAllCharacterInfo () throws IOException
 	{
-		final Set<CharacterInfo> codePoints = allCodePoints;
-		assert codePoints != null;
+		final Set<CharacterInfo> codePoints = stripNull(allCodePoints);
 		for (final CharacterInfo info : codePoints)
 		{
 			if (!info.previouslyFetched())

@@ -65,4 +65,11 @@ extends A_BasicObject
 	 *         specified parsing instruction.
 	 */
 	String nameHighlightingPc ();
+
+	/**
+	 * Answer whether this plan-in-progress is at a backward jump instruction.
+	 *
+	 * @return Whether it jumps backward from here.
+	 */
+	boolean isBackwardJump ();
 }

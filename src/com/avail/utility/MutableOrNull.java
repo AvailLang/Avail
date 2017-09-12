@@ -84,7 +84,7 @@ public class MutableOrNull<T>
 	@Override
 	public String toString ()
 	{
-		final T v = value;
+		final @Nullable T v = value;
 		return v == null ? "null" : v.toString();
 	}
 }

@@ -34,10 +34,12 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.FiberDescriptor.ObjectSlots;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
+import sun.misc.Unsafe;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
 import static com.avail.descriptor.NilDescriptor.nil;
 
@@ -710,6 +712,13 @@ implements A_BasicObject
 		return objectSlots[field.ordinal()];
 	}
 
+	private static final
+			AtomicReferenceFieldUpdater<AbstractAvailObject, AbstractDescriptor>
+		descriptorFieldUpdater = AtomicReferenceFieldUpdater.newUpdater(
+			AbstractAvailObject.class,
+			AbstractDescriptor.class,
+			"descriptor");
+
 	/**
 	 * Extract the {@linkplain AvailObject object} at the specified slot of the
 	 * receiver.  Use volatile semantics for the read.
@@ -720,8 +729,42 @@ implements A_BasicObject
 	public final AvailObject volatileSlot (final ObjectSlotsEnum field)
 	{
 		checkSlot(field);
-		final int ignored = dummyVolatile;
+		// First, read from the volatile descriptor field.  This acts as a read
+		// fence for other accesses to this object.
+		descriptorFieldUpdater.get(this);
 		return objectSlots[field.ordinal()];
+	}
+
+	/**
+	 * Store the {@linkplain AvailObject object} in the specified slot of the
+	 * receiver.  Use volatile write semantics.
+	 *
+	 * @param field An enumeration value that defines the field ordering.
+	 * @param anAvailObject The object to store at the specified slot.
+	 */
+	final void setVolatileSlot (
+		final ObjectSlotsEnum field,
+		final A_BasicObject anAvailObject)
+	{
+		checkSlot(field);
+		checkWriteForField(field);
+		final AvailObject valueToWrite;
+		if (descriptor.isShared())
+		{
+			// If the receiver is shared, then the new value must become shared
+			// before it can be stored.
+			// Note: Don't acquire the object's monitor for this, since we want
+			// weaker memory semantics.
+			valueToWrite = anAvailObject.traversed().makeShared();
+		}
+		else
+		{
+			valueToWrite = (AvailObject)anAvailObject;
+		}
+		setSlot(field, valueToWrite);
+		// Force volatile semantics by performing a compare-and-set on the
+		// descriptor field (leaving it safely unmodified).
+		descriptorFieldUpdater.compareAndSet(this, descriptor, descriptor);
 	}
 
 	/**
@@ -743,6 +786,7 @@ implements A_BasicObject
 			// If the receiver is shared, then the new value must become shared
 			// before it can be stored.
 			final AvailObject shared = anAvailObject.traversed().makeShared();
+			//noinspection SynchronizeOnThis
 			synchronized (this)
 			{
 				objectSlots[field.ordinal()] = shared;
@@ -752,36 +796,6 @@ implements A_BasicObject
 		{
 			objectSlots[field.ordinal()] = (AvailObject)anAvailObject;
 		}
-	}
-
-	/**
-	 * Store the {@linkplain AvailObject object} in the specified slot of the
-	 * receiver.  Use volatile write semantics.
-	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param anAvailObject The object to store at the specified slot.
-	 */
-	final void setVolatileSlot (
-		final ObjectSlotsEnum field,
-		final A_BasicObject anAvailObject)
-	{
-		checkSlot(field);
-		checkWriteForField(field);
-		if (descriptor.isShared())
-		{
-			// If the receiver is shared, then the new value must become shared
-			// before it can be stored.
-			final AvailObject shared = anAvailObject.traversed().makeShared();
-			// Note: Don't acquire the object's monitor for this, since we want
-			// weaker memory semantics.
-			objectSlots[field.ordinal()] = shared;
-		}
-		else
-		{
-			objectSlots[field.ordinal()] = (AvailObject)anAvailObject;
-		}
-		//noinspection AssignmentToStaticFieldFromInstanceMethod
-		dummyVolatile = 0;
 	}
 
 	/**
@@ -1050,11 +1064,6 @@ implements A_BasicObject
 	 * slots.
 	 */
 	private static final long[] emptyIntegerSlots = new long[0];
-
-	/**
-	 * A dummy field used for producing volatile read/write semantics.
-	 */
-	private static volatile int dummyVolatile = 0;
 
 	/**
 	 * {@inheritDoc}

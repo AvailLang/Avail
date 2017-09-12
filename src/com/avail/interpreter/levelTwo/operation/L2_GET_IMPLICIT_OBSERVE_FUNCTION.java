@@ -87,9 +87,11 @@ extends L2Operation
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
 			destination,
-			functionType(tuple(
-				mostGeneralFunctionType(),
-				mostGeneralTupleType()), bottom()),
+			functionType(
+				tuple(
+					mostGeneralFunctionType(),
+					mostGeneralTupleType()),
+				bottom()),
 			instruction);
 	}
 }

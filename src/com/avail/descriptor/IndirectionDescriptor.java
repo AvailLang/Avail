@@ -5082,4 +5082,37 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).suspendingRawFunction();
 	}
+
+	@Override
+	boolean o_IsBackwardJump (final AvailObject object)
+	{
+		return o_Traversed(object).isBackwardJump();
+	}
+
+	@Override
+	A_BundleTree o_LatestBackwardJump (
+		final AvailObject object)
+	{
+		return o_Traversed(object).latestBackwardJump();
+	}
+
+	@Override
+	boolean o_HasBackwardJump (final AvailObject object)
+	{
+		return o_Traversed(object).hasBackwardJump();
+	}
+
+	@Override
+	boolean o_IsSourceOfCycle (final AvailObject object)
+	{
+		return o_Traversed(object).isSourceOfCycle();
+	}
+
+	@Override
+	void o_IsSourceOfCycle (
+		final AvailObject object,
+		final boolean isSourceOfCycle)
+	{
+		o_Traversed(object).isSourceOfCycle(isSourceOfCycle);
+	}
 }

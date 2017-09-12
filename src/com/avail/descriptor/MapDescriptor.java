@@ -57,6 +57,7 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An Avail {@linkplain MapDescriptor map} refers to the root of a Bagwell
@@ -115,9 +116,9 @@ extends Descriptor
 	}
 
 	/**
-	 * Replace the {@linkplain MapDescriptor map}'s root {@linkplain
-	 * MapBinDescriptor bin}. The replacement may be {@link
-	 * NilDescriptor#nil() nil} to indicate an empty map.
+	 * Replace the {@link A_Map map}'s root {@linkplain MapBinDescriptor bin}.
+	 * The replacement may be {@link NilDescriptor#nil() nil} to indicate an
+	 * empty map.
 	 *
 	 * @param map The map (must not be an indirection).
 	 * @param bin The root bin for the map, or nil.
@@ -218,13 +219,13 @@ extends Descriptor
 		final AvailObject object)
 	{
 		final AvailObjectFieldHelper[] fields =
-			new AvailObjectFieldHelper[object.mapSize() * 2];
+			new AvailObjectFieldHelper[(object.mapSize() << 1)];
 		int counter = 0;
 		for (final Entry entry : object.mapIterable())
 		{
-			fields[counter * 2] = new AvailObjectFieldHelper(
+			fields[(counter << 1)] = new AvailObjectFieldHelper(
 				object, FakeMapSlots.KEY, counter + 1, entry.key());
-			fields[counter * 2 + 1] = new AvailObjectFieldHelper(
+			fields[(counter << 1) + 1] = new AvailObjectFieldHelper(
 				object, FakeMapSlots.VALUE, counter + 1, entry.value());
 			counter++;
 		}
@@ -262,9 +263,8 @@ extends Descriptor
 		final A_BasicObject aMapRootBin = rootBin(aMap);
 		for (final Entry entry : object.mapIterable())
 		{
-			final A_Map actualValue = aMapRootBin.mapBinAtHash(
-				entry.key(),
-				entry.keyHash());
+			final A_Map actualValue =
+				aMapRootBin.mapBinAtHash(entry.key(), entry.keyHash());
 			if (!entry.value().equals(actualValue))
 			{
 				return false;
@@ -310,12 +310,12 @@ extends Descriptor
 		final boolean keyTypeIsEnumeration = keyType.isEnumeration();
 		final boolean valueTypeIsEnumeration = valueType.isEnumeration();
 		@Nullable A_Type keyUnionKind = null;
-		@Nullable A_Type valueUnionKind = null;
 		final boolean keysMatch =
 			keyType.equals(ANY.o())
 			|| (!keyTypeIsEnumeration
 				&& (keyUnionKind = rootBin.mapBinKeyUnionKind())
 					.isSubtypeOf(keyType));
+		@Nullable A_Type valueUnionKind = null;
 		final boolean valuesMatch =
 			valueType.equals(ANY.o())
 			|| (!valueTypeIsEnumeration
@@ -332,13 +332,10 @@ extends Descriptor
 			// If the valueUnionKind and the expected valueType don't intersect
 			// then the actual map can't comply.  The empty map was already
 			// special-cased.
-			if (!valueTypeIsEnumeration)
+			if (!valueTypeIsEnumeration
+				&& valueUnionKind.typeIntersection(valueType).isBottom())
 			{
-				// assert valueUnionKind != null;
-				if (valueUnionKind.typeIntersection(valueType).isBottom())
-				{
-					return false;
-				}
+				return false;
 			}
 			for (final Entry entry : object.mapIterable())
 			{
@@ -378,13 +375,10 @@ extends Descriptor
 				// If the valueUnionKind and the expected valueType don't
 				// intersect then the actual map can't comply.  The empty map
 				// was already special-cased.
-				if (!valueTypeIsEnumeration)
+				if (!valueTypeIsEnumeration
+					&& valueUnionKind.typeIntersection(valueType).isBottom())
 				{
-					// assert valueUnionKind != null;
-					if (valueUnionKind.typeIntersection(valueType).isBottom())
-					{
-						return false;
-					}
+					return false;
 				}
 				for (final Entry entry : object.mapIterable())
 				{
@@ -688,9 +682,7 @@ extends Descriptor
 		 */
 		public AvailObject key ()
 		{
-			final AvailObject k = key;
-			assert k != null;
-			return k;
+			return stripNull(key);
 		}
 
 		/**
@@ -706,9 +698,8 @@ extends Descriptor
 		 */
 		public AvailObject value ()
 		{
-			final AvailObject v = value;
-			assert v != null;
-			return v;
+
+			return stripNull(value);
 		}
 	}
 
@@ -729,7 +720,7 @@ extends Descriptor
 		protected final Entry entry = new Entry();
 
 		/**
-		 * Construct a new {@link MapIterable}.
+		 * Construct a new {@code MapIterable}.
 		 */
 		protected MapIterable ()
 		{
@@ -754,7 +745,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link MapDescriptor}.
+	 * Construct a new {@code MapDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -795,8 +786,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a new {@linkplain MapDescriptor map} whose contents correspond to
-	 * the specified {@linkplain TupleDescriptor tuple} of key-value bindings.
+	 * Create a new {@link A_Map map} whose contents correspond to the specified
+	 * {@link A_Tuple tuple} of key-value bindings.
 	 *
 	 * @param tupleOfBindings
 	 *        A tuple of key-value bindings, i.e. 2-element tuples.
@@ -820,8 +811,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a new {@linkplain MapDescriptor map} whose contents correspond to
-	 * the specified {@linkplain TupleDescriptor tuple} of key-value bindings.
+	 * Create a new {@link A_Map map} whose contents correspond to the specified
+	 * {@link A_Tuple tuple} of key-value bindings.
 	 *
 	 * @param keysAndValues
 	 *        A tuple of key-value bindings, i.e. 2-element tuples.
@@ -842,8 +833,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a new {@linkplain MapDescriptor map} based on the given
-	 * {@linkplain MapBinDescriptor root bin}.
+	 * Create a new {@link A_Map map} based on the given {@linkplain
+	 * MapBinDescriptor root bin}.
 	 *
 	 * @param rootBin The rootBin to use in the new map.
 	 * @return A new mutable map.
@@ -856,8 +847,8 @@ extends Descriptor
 	}
 
 	/**
-	 * Combine the two {@linkplain MapDescriptor maps} into a single map,
-	 * destroying the destination if possible and appropriate.
+	 * Combine the two {@link A_Map maps} into a single map, destroying the
+	 * destination if possible and appropriate.
 	 *
 	 * @param destination
 	 *        The destination map.
@@ -893,9 +884,7 @@ extends Descriptor
 		for (final Entry entry : source.mapIterable())
 		{
 			target = target.mapAtPuttingCanDestroy(
-				entry.key(),
-				entry.value(),
-				true);
+				entry.key(), entry.value(), true);
 		}
 		return target;
 	}

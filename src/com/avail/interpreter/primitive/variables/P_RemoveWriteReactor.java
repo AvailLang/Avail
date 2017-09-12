@@ -102,15 +102,19 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralVariableType(),
-			ATOM.o()), TOP.o());
+		return functionType(
+			tuple(
+				mostGeneralVariableType(),
+				ATOM.o()),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_SPECIAL_ATOM, E_KEY_NOT_FOUND));
+		return enumerationWith(
+			set(
+				E_SPECIAL_ATOM,
+				E_KEY_NOT_FOUND));
 	}
 }

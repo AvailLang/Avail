@@ -102,9 +102,11 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralVariableType(),
-			ANY.o()), TOP.o());
+		return functionType(
+			tuple(
+				mostGeneralVariableType(),
+				ANY.o()),
+			TOP.o());
 	}
 
 	/**
@@ -168,9 +170,11 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD, E_JAVA_MARSHALING_FAILED,
+		return enumerationWith(
+			set(
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
+				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
+				E_JAVA_MARSHALING_FAILED,
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
 	}

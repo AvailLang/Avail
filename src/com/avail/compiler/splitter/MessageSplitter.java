@@ -140,7 +140,21 @@ public final class MessageSplitter
 		circledNumbersString.codePointCount(0, circledNumbersString.length());
 
 	/** An array of the circled number code points. */
-	static final int [] circledNumberCodePoints = new int[circledNumbersCount];
+	private static final int [] circledNumberCodePoints =
+		new int[circledNumbersCount];
+
+	/**
+	 * Answer the Unicode codepoint for a circled number with the given numeric
+	 * value.  The values for which values are available in Unicode are 0..50.
+	 *
+	 * @param number The number.
+	 * @return The codepoint which depicts that number inside a circle.
+	 */
+	static int circledNumberCodePoint (final int number)
+	{
+		assert number >= 0 && number < circledNumbersCount;
+		return circledNumberCodePoints[number];
+	}
 
 	/**
 	 * A map from the Unicode code points for the circled number characters
@@ -153,15 +167,15 @@ public final class MessageSplitter
 	/* Initialize circledNumbersMap and circledNumberCodePoints */
 	static
 	{
-		assert circledNumbersCount == 51;
-		int pointer = 0;
-		int arrayPointer = 0;
-		while (pointer < circledNumbersString.length())
+		int positionInString = 0;
+		int number = 0;
+		while (positionInString < circledNumbersString.length())
 		{
-			final int codePoint = circledNumbersString.codePointAt(pointer);
-			circledNumbersMap.put(codePoint, pointer);
-			circledNumberCodePoints[arrayPointer++] = codePoint;
-			pointer += Character.charCount(codePoint);
+			final int codePoint =
+				circledNumbersString.codePointAt(positionInString);
+			circledNumbersMap.put(codePoint, number);
+			circledNumberCodePoints[number++] = codePoint;
+			positionInString += Character.charCount(codePoint);
 		}
 	}
 

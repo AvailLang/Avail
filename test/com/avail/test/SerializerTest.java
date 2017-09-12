@@ -60,10 +60,8 @@ import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -80,11 +78,13 @@ import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
+import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Integer.MIN_VALUE;
 import static java.lang.Math.min;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for object serialization.
@@ -97,24 +97,19 @@ public final class SerializerTest
 	 * The {@link AvailRuntime} for use by the {@link #serializer} or the
 	 * {@link #deserializer}.
 	 */
-	static @Nullable AvailRuntime runtime;
+	static @Nullable AvailRuntime runtime = null;
 
 	/**
 	 * @return The {@link AvailRuntime} used by the serializer and deserializer.
 	 */
 	static AvailRuntime runtime ()
 	{
-		final AvailRuntime theRuntime = runtime;
-		assert theRuntime != null;
-		return theRuntime;
+		return stripNull(runtime);
 	}
 
 	/**
 	 * Test fixture: clear and then create all special objects well-known to the
 	 * Avail runtime.
-	 *
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	@BeforeAll
 	public static void initializeAllWellKnownObjects ()
@@ -148,7 +143,7 @@ public final class SerializerTest
 	@AfterAll
 	public static void clearAllWellKnownObjects ()
 	{
-		final AvailRuntime theRuntime = runtime;
+		final @Nullable AvailRuntime theRuntime = runtime;
 		if (theRuntime != null)
 		{
 			theRuntime.destroy();
@@ -171,9 +166,7 @@ public final class SerializerTest
 	 */
 	public Serializer serializer ()
 	{
-		final Serializer theSerializer = serializer;
-		assert theSerializer != null;
-		return theSerializer;
+		return stripNull(serializer);
 	}
 
 	/**
@@ -186,9 +179,7 @@ public final class SerializerTest
 	 */
 	public ByteArrayInputStream in ()
 	{
-		final ByteArrayInputStream theInput = in;
-		assert theInput != null;
-		return theInput;
+		return stripNull(in);
 	}
 
 	/**
@@ -201,9 +192,7 @@ public final class SerializerTest
 	 */
 	public Deserializer deserializer ()
 	{
-		final Deserializer theDeserializer = deserializer;
-		assert theDeserializer != null;
-		return theDeserializer;
+		return stripNull(deserializer);
 	}
 
 	/**
@@ -211,8 +200,8 @@ public final class SerializerTest
 	 */
 	private void prepareToWrite ()
 	{
-		serializer = new Serializer(
-			out = new ByteArrayOutputStream(1000));
+		out = new ByteArrayOutputStream(1000);
+		serializer = new Serializer(out);
 		deserializer = null;
 	}
 
@@ -222,12 +211,10 @@ public final class SerializerTest
 	 */
 	private void prepareToReadBack ()
 	{
-		final ByteArrayOutputStream theByteStream = out;
-		assert theByteStream != null;
+		final ByteArrayOutputStream theByteStream = stripNull(out);
 		final byte[] bytes = theByteStream.toByteArray();
-		deserializer = new Deserializer(
-			in = new ByteArrayInputStream(bytes),
-			runtime());
+		in = new ByteArrayInputStream(bytes);
+		deserializer = new Deserializer(in, runtime());
 		serializer = null;
 	}
 
@@ -238,18 +225,18 @@ public final class SerializerTest
 	 * @return The result of serializing and deserializing the argument.
 	 * @throws MalformedSerialStreamException If the stream is malformed.
 	 */
-	private @Nullable AvailObject roundTrip (final A_BasicObject object)
+	private AvailObject roundTrip (final A_BasicObject object)
 	throws MalformedSerialStreamException
 	{
 		prepareToWrite();
 		serializer().serialize(object);
 		prepareToReadBack();
-		final A_BasicObject newObject = deserializer().deserialize();
+		final A_BasicObject newObject = stripNull(deserializer().deserialize());
 		assertEquals(
 			0,
 			in().available(),
 			"Serialization stream was not fully emptied");
-		final AvailObject objectAfter = deserializer().deserialize();
+		final @Nullable AvailObject objectAfter = deserializer().deserialize();
 		assert objectAfter == null;
 		return (AvailObject)newObject;
 	}
@@ -270,7 +257,6 @@ public final class SerializerTest
 	throws MalformedSerialStreamException
 	{
 		final A_BasicObject newObject = roundTrip(object);
-		assertNotNull(newObject);
 		assertEquals(object, newObject);
 	}
 
@@ -348,18 +334,18 @@ public final class SerializerTest
 	public void testNumericTuples ()
 	throws MalformedSerialStreamException
 	{
-		checkObject(tupleFromIntegerList(Arrays.asList(0)));
-		checkObject(tupleFromIntegerList(Arrays.asList(1)));
-		checkObject(tupleFromIntegerList(Arrays.asList(2)));
-		checkObject(tupleFromIntegerList(Arrays.asList(3)));
-		checkObject(tupleFromIntegerList(Arrays.asList(10, 20)));
-		checkObject(tupleFromIntegerList(Arrays.asList(10, 20, 10)));
-		checkObject(tupleFromIntegerList(Arrays.asList(100, 200)));
-		checkObject(tupleFromIntegerList(Arrays.asList(100, 2000)));
-		checkObject(tupleFromIntegerList(Arrays.asList(999999999)));
+		checkObject(tupleFromIntegerList(singletonList(0)));
+		checkObject(tupleFromIntegerList(singletonList(1)));
+		checkObject(tupleFromIntegerList(singletonList(2)));
+		checkObject(tupleFromIntegerList(singletonList(3)));
+		checkObject(tupleFromIntegerList(asList(10, 20)));
+		checkObject(tupleFromIntegerList(asList(10, 20, 10)));
+		checkObject(tupleFromIntegerList(asList(100, 200)));
+		checkObject(tupleFromIntegerList(asList(100, 2000)));
+		checkObject(tupleFromIntegerList(singletonList(999999999)));
 		for (int i = -500; i < 500; i++)
 		{
-			checkObject(tupleFromIntegerList(Arrays.asList(i)));
+			checkObject(tupleFromIntegerList(singletonList(i)));
 		}
 		checkObject(
 			tuple(
@@ -388,7 +374,7 @@ public final class SerializerTest
 				new ArrayList<>(partsCount);
 			for (int partIndex = 0; partIndex < partsCount; partIndex++)
 			{
-				A_BasicObject newObject = null;
+				final A_BasicObject newObject;
 				final int choice = (partIndex == partsCount - 1)
 					? random.nextInt(3) + 2
 					: random.nextInt(5);
@@ -422,7 +408,7 @@ public final class SerializerTest
 					{
 						newObject = setFromCollection(members);
 					}
-					else if (choice == 4)
+					else //if (choice == 4)
 					{
 						A_Map map = emptyMap();
 						for (int i = 0; i < size; i+=2)
@@ -435,7 +421,6 @@ public final class SerializerTest
 						newObject = map;
 					}
 				}
-				assert newObject != null;
 				newObject.makeImmutable();
 				parts.add(newObject);
 			}
@@ -472,11 +457,14 @@ public final class SerializerTest
 		prepareToReadBack();
 		runtime().addModule(inputModule);
 		deserializer().currentModule(currentModule);
-		final A_BasicObject newObject = deserializer().deserialize();
+		final @Nullable A_BasicObject newObject = deserializer().deserialize();
+		assertNotNull(newObject);
 		assertEquals(
 			0,
 			in().available(),
 			"Serialization stream was not fully emptied");
+		final @Nullable A_BasicObject nullObject = deserializer().deserialize();
+		assertNull(nullObject);
 		assertEquals(tuple, newObject);
 	}
 
@@ -497,8 +485,7 @@ public final class SerializerTest
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function function =
 			createFunction(code, emptyTuple());
-		final @Nullable A_Function newFunction = roundTrip(function);
-		assert newFunction != null;
+		final A_Function newFunction = roundTrip(function);
 		final A_RawFunction code2 = newFunction.code();
 		assertEquals(code.numOuters(), code2.numOuters());
 		assertEquals(

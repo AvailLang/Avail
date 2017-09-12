@@ -101,8 +101,10 @@ public final class P_BootstrapSuperCastMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			EXPRESSION_NODE.create(ANY.o()),
-			LITERAL_NODE.create(anyMeta())), SUPER_CAST_NODE.mostGeneralType());
+		return functionType(
+			tuple(
+				EXPRESSION_NODE.create(ANY.o()),
+				LITERAL_NODE.create(anyMeta())),
+			SUPER_CAST_NODE.mostGeneralType());
 	}
 }

@@ -31,7 +31,14 @@
  */
 package com.avail.persistence;
 
-import static com.avail.persistence.IndexedRepositoryManager.log;
+import com.avail.annotations.InnerAccess;
+import com.avail.utility.LRUCache;
+import com.avail.utility.Pair;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Transformer1;
+import com.avail.utility.evaluation.Transformer2;
+
+import javax.annotation.Nullable;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -51,10 +58,8 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.Inflater;
 
-import com.avail.annotations.InnerAccess;
-import com.avail.utility.*;
-import com.avail.utility.evaluation.*;
-import javax.annotation.Nullable;
+import static com.avail.persistence.IndexedRepositoryManager.log;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * {@code IndexedFile}s are record journals. Records may be {@linkplain
@@ -97,9 +102,7 @@ extends AbstractList<byte[]>
 	 */
 	private RandomAccessFile file ()
 	{
-		final RandomAccessFile f = file;
-		assert f != null;
-		return f;
+		return stripNull(file);
 	}
 
 	/**
@@ -114,9 +117,7 @@ extends AbstractList<byte[]>
 	 */
 	private FileChannel channel ()
 	{
-		final FileChannel ch = channel;
-		assert ch != null;
-		return ch;
+		return stripNull(channel);
 	}
 
 	/**
@@ -134,9 +135,7 @@ extends AbstractList<byte[]>
 	 */
 	private FileLock longTermLock ()
 	{
-		final FileLock theLock = longTermLock;
-		assert theLock != null;
-		return theLock;
+		return stripNull(longTermLock);
 	}
 
 	/** The preferred page size of a {@linkplain IndexedFile indexed file}. */
@@ -334,9 +333,7 @@ extends AbstractList<byte[]>
 	 */
 	private MasterNode master ()
 	{
-		final MasterNode m = master;
-		assert m != null;
-		return m;
+		return stripNull(master);
 	}
 
 	/**
@@ -405,8 +402,7 @@ extends AbstractList<byte[]>
 		 */
 		long filePosition ()
 		{
-			final Long position = first();
-			assert position != null;
+			final Long position = stripNull(first());
 			return position;
 		}
 
@@ -418,8 +414,7 @@ extends AbstractList<byte[]>
 		 */
 		int blockPosition ()
 		{
-			final Integer position = second();
-			assert position != null;
+			final Integer position = stripNull(second());
 			return position;
 		}
 
@@ -771,8 +766,7 @@ extends AbstractList<byte[]>
 
 		// Write the master blocks.
 		MasterNode m = new MasterNode(1, fileLimit);
-		final ByteBuffer b = masterNodeBuffer;
-		assert b != null;
+		final ByteBuffer b = stripNull(masterNodeBuffer);
 		m.writeTo(b);
 		buffer.put(b);
 		assert buffer.position() == masterPosition;
@@ -806,8 +800,7 @@ extends AbstractList<byte[]>
 
 			// Rename the temporary file to the canonical target name. Reopen
 			// the file and reacquire the write lock.
-			final File fileRef = fileReference;
-			assert fileRef != null;
+			final File fileRef = stripNull(fileReference);
 			@SuppressWarnings("unused")
 			final boolean ignored = tempFilename.renameTo(fileRef);
 			file = new RandomAccessFile(fileReference, "rw");
@@ -856,8 +849,7 @@ extends AbstractList<byte[]>
 	{
 		// Verify the CRC32.
 		channel().position(nodePosition);
-		final ByteBuffer b = masterNodeBuffer;
-		assert b != null;
+		final ByteBuffer b = stripNull(masterNodeBuffer);
 		b.rewind();
 		channel().read(b);
 		final CRC32 encoder = new CRC32();
@@ -1024,8 +1016,7 @@ extends AbstractList<byte[]>
 			}
 			version = buffer.getInt();
 			final Boolean okVersion =
-				versionCheck.value(version, currentVersion());
-			assert okVersion != null;
+				stripNull(versionCheck.value(version, currentVersion()));
 			if (!okVersion)
 			{
 				throw new IndexedFileException(
@@ -1296,8 +1287,7 @@ extends AbstractList<byte[]>
 		lock.writeLock().lock();
 		try
 		{
-			final ByteBuffer b = masterNodeBuffer;
-			assert b != null;
+			final ByteBuffer b = stripNull(masterNodeBuffer);
 			channel().force(true);
 			final long exchange = masterPosition;
 			masterPosition = previousMasterPosition;
@@ -1363,9 +1353,7 @@ extends AbstractList<byte[]>
 	 */
 	public File fileReference ()
 	{
-		final File ref = fileReference;
-		assert ref != null;
-		return ref;
+		return stripNull(fileReference);
 	}
 
 	/**

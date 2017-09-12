@@ -42,7 +42,6 @@ import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.descriptor.AtomDescriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
@@ -143,11 +142,13 @@ import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 import static com.avail.interpreter.AvailLoader.Phase.COMPILING;
 import static com.avail.interpreter.AvailLoader.Phase.EXECUTING;
 import static com.avail.interpreter.Interpreter.runOutermostFunction;
+import static com.avail.interpreter.Interpreter.stringifyThen;
 import static com.avail.interpreter.Primitive.primitiveByName;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;
 import static com.avail.utility.PrefixSharingList.last;
 import static com.avail.utility.StackPrinter.trace;
+import static com.avail.utility.Strings.increaseIndentation;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
@@ -200,9 +201,7 @@ public final class AvailCompiler
 	 */
 	@InnerAccess ModuleHeader moduleHeader ()
 	{
-		final ModuleHeader header = compilationContext.getModuleHeader();
-		assert header != null;
-		return header;
+		return stripNull(compilationContext.getModuleHeader());
 	}
 
 	/**
@@ -222,8 +221,8 @@ public final class AvailCompiler
 		new AvailCompilerFragmentCache();
 
 	/**
-	 * Asynchronously construct a suitable {@linkplain AvailCompiler
-	 * compiler} to parse the specified {@linkplain ModuleName module name}.
+	 * Asynchronously construct a suitable {@code AvailCompiler} to parse the
+	 * specified {@linkplain ModuleName module name}.
 	 *
 	 * @param resolvedName
 	 *        The {@linkplain ResolvedModuleName resolved name} of the
@@ -267,7 +266,7 @@ public final class AvailCompiler
 	}
 
 	/**
-	 * Construct a new {@link AvailCompiler}.
+	 * Construct a new {@code AvailCompiler}.
 	 *
 	 * @param moduleHeader
 	 *        The {@link ModuleHeader module header} of the module to compile.
@@ -335,7 +334,7 @@ public final class AvailCompiler
 		 * @param newBundleTree
 		 *        The new {@link A_BundleTree} to replace the one in the
 		 *        receiver within the copy.
-		 * @return A {@link PartialSubexpressionList} like the receiver, but
+		 * @return A {@code PartialSubexpressionList} like the receiver, but
 		 *         with a different message bundle tree.
 		 */
 		@InnerAccess PartialSubexpressionList advancedTo (
@@ -345,7 +344,7 @@ public final class AvailCompiler
 		}
 
 		/**
-		 * Construct a new {@link PartialSubexpressionList}.
+		 * Construct a new {@code PartialSubexpressionList}.
 		 *
 		 * @param bundleTree
 		 *        The current {@link A_BundleTree} being parsed.
@@ -461,9 +460,7 @@ public final class AvailCompiler
 		@InnerAccess
 		PartialSubexpressionList superexpressions ()
 		{
-			final PartialSubexpressionList parent = superexpressions;
-			assert parent != null;
-			return parent;
+			return stripNull(superexpressions);
 		}
 
 		/**
@@ -472,7 +469,7 @@ public final class AvailCompiler
 		private final Continuation1NotNull<CompilerSolution> innerContinuation;
 
 		/**
-		 * Construct a new {@link Con}.
+		 * Construct a new {@code Con}.
 		 *
 		 * @param superexpressions
 		 *        The enclosing partially-parsed expressions.
@@ -490,7 +487,6 @@ public final class AvailCompiler
 		@Override
 		public void value (final CompilerSolution solution)
 		{
-			assert solution != null;
 			innerContinuation.value(solution);
 		}
 	}
@@ -569,7 +565,8 @@ public final class AvailCompiler
 			{
 				assert solution.value != null;
 				supplyAnswer.value(
-					new CompilerSolution(afterStatement.value, solution.value));
+					new CompilerSolution(
+						stripNull(afterStatement.value), solution.value));
 			}
 			// Otherwise an ambiguity was already reported when the second
 			// solution arrived (and subsequent solutions may have arrived
@@ -876,19 +873,17 @@ public final class AvailCompiler
 			{
 				final List<A_Phrase> nodes = asList(
 					node1.value, node2.value);
-				Interpreter.stringifyThen(
+				stringifyThen(
 					runtime,
 					compilationContext.getTextInterface(),
 					nodes,
 					nodeStrings ->
-					{
 						continuation.value(
 							"unambiguous interpretation.  "
 								+ "Here are two possible parsings...\n\t"
 								+ nodeStrings.get(0)
 								+ "\n\t"
-								+ nodeStrings.get(1));
-					});
+								+ nodeStrings.get(1)));
 				});
 		compilationContext.diagnostics.reportError(afterFail);
 	}
@@ -1594,13 +1589,13 @@ public final class AvailCompiler
 	 * Parse a send node whose leading argument has already been parsed.
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param leadingArgument
-	 *            The argument that was already parsed.
+	 *        The argument that was already parsed.
 	 * @param initialTokenPosition
-	 *            Where the leading argument started.
+	 *        Where the leading argument started.
 	 * @param continuation
-	 *            What to do after parsing a send node.
+	 *        What to do after parsing a send node.
 	 */
 	@InnerAccess void parseLeadingArgumentSendAfterThen (
 		final ParserState start,
@@ -1609,7 +1604,6 @@ public final class AvailCompiler
 		final Con continuation)
 	{
 		assert start.lexingState != initialTokenPosition.lexingState;
-		assert leadingArgument != null;
 		A_Map clientMap = start.clientDataMap;
 		// Start accumulating tokens related to this leading-argument message
 		// send after the leading argument.
@@ -1636,15 +1630,15 @@ public final class AvailCompiler
 	 * it. Backtracking will find all valid interpretations.
 	 *
 	 * @param startOfLeadingArgument
-	 *            Where the leading argument started.
+	 *        Where the leading argument started.
 	 * @param afterLeadingArgument
-	 *            Just after the leading argument.
+	 *        Just after the leading argument.
 	 * @param node
-	 *            An expression that acts as the first argument for a potential
-	 *            leading-argument message send, or possibly a chain of them.
+	 *        An expression that acts as the first argument for a potential
+	 *        leading-argument message send, or possibly a chain of them.
 	 * @param continuation
-	 *            What to do with either the passed node, or the node wrapped in
-	 *            suitable leading-argument message sends.
+	 *        What to do with either the passed node, or the node wrapped in
+	 *        suitable leading-argument message sends.
 	 */
 	@InnerAccess void parseOptionalLeadingArgumentSendAfterThen (
 		final ParserState startOfLeadingArgument,
@@ -1695,34 +1689,36 @@ public final class AvailCompiler
 	 * We've parsed part of a send. Try to finish the job.
 	 *
 	 * @param start
-	 *            Where to start parsing.
-	 * @param bundleTree
-	 *            The bundle tree used to parse at this position.
+	 *        Where to start parsing.
+	 * @param bundleTreeArg
+	 *        The bundle tree used to parse at this position.
 	 * @param firstArgOrNull
-	 *            Either null or an argument that must be consumed before any
-	 *            keywords (or completion of a send).
-	 * @param consumedAnything
-	 *            Whether any actual tokens have been consumed so far for this
-	 *            send node.  That includes any leading argument.
+	 *        Either null or an argument that must be consumed before any
+	 *        keywords (or completion of a send).
 	 * @param initialTokenPosition
-	 *            The parse position where the send node started to be
-	 *            processed. Does not count the position of the first argument
-	 *            if there are no leading keywords.
+	 *        The parse position where the send node started to be processed.
+	 *        Does not count the position of the first argument if there are no
+	 *        leading keywords.
+	 * @param consumedAnything
+	 *        Whether any actual tokens have been consumed so far for this send
+	 *        node.  That includes any leading argument.
+	 * @param consumedTokens
+	 *        The immutable {@link List} of {@link A_Token}s that have been
+	 *        consumed so far in this potential method/macro send.
 	 * @param argsSoFar
-	 *            The list of arguments parsed so far. I do not modify it. This
-	 *            is a stack of expressions that the parsing instructions will
-	 *            assemble into a list that correlates with the top-level
-	 *            non-backquoted underscores and guillemet groups in the message
-	 *            name.
+	 *        The list of arguments parsed so far. I do not modify it. This is a
+	 *        stack of expressions that the parsing instructions will assemble
+	 *        into a list that correlates with the top-level non-backquoted
+	 *        underscores and guillemet groups in the message name.
 	 * @param marksSoFar
-	 *            The stack of mark positions used to test if parsing certain
-	 *            subexpressions makes progress.
+	 *        The stack of mark positions used to test if parsing certain
+	 *        subexpressions makes progress.
 	 * @param continuation
-	 *            What to do with a fully parsed send node.
+	 *        What to do with a fully parsed send node.
 	 */
 	@InnerAccess void parseRestOfSendNode (
 		final ParserState start,
-		final A_BundleTree bundleTree,
+		final A_BundleTree bundleTreeArg,
 		final @Nullable A_Phrase firstArgOrNull,
 		final ParserState initialTokenPosition,
 		final boolean consumedAnything,
@@ -1731,167 +1727,194 @@ public final class AvailCompiler
 		final List<Integer> marksSoFar,
 		final Con continuation)
 	{
+		A_BundleTree bundleTree = bundleTreeArg;
+		// If a bundle tree is marked as a source of a cycle, its latest
+		// backward jump field is always the target.  Just continue processing
+		// there and it'll never have to expand the current node.  However, it's
+		// the expand() that might set up the cycle in the first place...
 		bundleTree.expand(compilationContext.module());
-		final A_Set complete = bundleTree.lazyComplete();
-		final A_Map incomplete = bundleTree.lazyIncomplete();
-		final A_Map caseInsensitive =
-			bundleTree.lazyIncompleteCaseInsensitive();
-		final A_Map actions = bundleTree.lazyActions();
-		final A_Map prefilter = bundleTree.lazyPrefilterMap();
-		final A_BasicObject typeFilterTreePojo =
-			bundleTree.lazyTypeFilterTreePojo();
-
-		if (complete.setSize() > 0
-			&& consumedAnything
-			&& firstArgOrNull == null)
+		while (bundleTree.isSourceOfCycle())
 		{
-			// There are complete messages, we didn't leave a leading argument
-			// stranded, and we made progress in the file (i.e., the message
-			// send does not consist of exactly zero tokens).
-			assert marksSoFar.isEmpty();
-			assert argsSoFar.size() == 1;
-			final A_Phrase args = argsSoFar.get(0);
-			for (final A_Bundle bundle : complete)
+			// Jump to its (once-)equivalent ancestor.
+			bundleTree = bundleTree.latestBackwardJump();
+			// Give it a chance to find an equivalent ancestor of its own.
+			bundleTree.expand(compilationContext.module());
+			// Abort if the bundle trees have diverged.
+			if (!bundleTree.allParsingPlansInProgress().equals(
+				bundleTreeArg.allParsingPlansInProgress()))
 			{
+				// They've diverged.  Disconnect the backward link.
+				bundleTreeArg.isSourceOfCycle(false);
+				bundleTree = bundleTreeArg;
+				break;
+			}
+		}
+
+		boolean skipCheckArgumentAction = false;
+		if (firstArgOrNull == null)
+		{
+			// A call site is only valid if at least one token has been parsed.
+			if (consumedAnything)
+			{
+				final A_Set complete = bundleTree.lazyComplete();
+				if (complete.setSize() > 0)
+				{
+					// There are complete messages, we didn't leave a leading
+					// argument stranded, and we made progress in the file
+					// (i.e., the message contains at least one token).
+					assert marksSoFar.isEmpty();
+					assert argsSoFar.size() == 1;
+					final A_Phrase args = argsSoFar.get(0);
+					for (final A_Bundle bundle : complete)
+					{
+						if (AvailRuntime.debugCompilerSteps)
+						{
+							System.out.println(
+								"Completed send/macro: "
+								+ bundle.message() + " " + args);
+						}
+						completedSendNode(
+							initialTokenPosition,
+							start,
+							args,
+							bundle,
+							consumedTokens,
+							continuation);
+					}
+				}
+			}
+			final A_Map incomplete = bundleTree.lazyIncomplete();
+			if (incomplete.mapSize() > 0)
+			{
+				attemptToConsumeToken(
+					start,
+					initialTokenPosition,
+					consumedAnything,
+					consumedTokens,
+					argsSoFar,
+					marksSoFar,
+					continuation,
+					incomplete,
+					false);
+			}
+			final A_Map caseInsensitive =
+				bundleTree.lazyIncompleteCaseInsensitive();
+			if (caseInsensitive.mapSize() > 0)
+			{
+				attemptToConsumeToken(
+					start,
+					initialTokenPosition,
+					consumedAnything,
+					consumedTokens,
+					argsSoFar,
+					marksSoFar,
+					continuation,
+					caseInsensitive,
+					true);
+			}
+			final A_Map prefilter = bundleTree.lazyPrefilterMap();
+			if (prefilter.mapSize() > 0)
+			{
+				final A_Phrase latestArgument = last(argsSoFar);
+				if (latestArgument.isMacroSubstitutionNode()
+					|| latestArgument
+					.isInstanceOfKind(SEND_NODE.mostGeneralType()))
+				{
+					final A_Bundle argumentBundle =
+						latestArgument.apparentSendName().bundleOrNil();
+					assert !argumentBundle.equalsNil();
+					if (prefilter.hasKey(argumentBundle))
+					{
+						final A_BundleTree successor =
+							prefilter.mapAt(argumentBundle);
+						if (AvailRuntime.debugCompilerSteps)
+						{
+							System.out.println(
+								"Grammatical prefilter: " + argumentBundle
+									+ " to " + successor);
+						}
+						eventuallyParseRestOfSendNode(
+							start,
+							successor,
+							null,
+							initialTokenPosition,
+							consumedAnything,
+							consumedTokens,
+							argsSoFar,
+							marksSoFar,
+							continuation);
+						// Don't allow any check-argument actions to be
+						// processed normally, as it would ignore the
+						// restriction which we'vembeen so careful to prefilter.
+						skipCheckArgumentAction = true;
+					}
+					// The argument name was not in the prefilter map, so fall
+					// through to allow normal action processing, including the
+					// default check-argument action if it's present.
+				}
+			}
+			final A_BasicObject typeFilterTreePojo =
+				bundleTree.lazyTypeFilterTreePojo();
+			if (!typeFilterTreePojo.equalsNil())
+			{
+				// Use the most recently pushed phrase's type to look up the
+				// successor bundle tree.  This implements aggregated argument
+				// type filtering.
+				final A_Phrase latestPhrase = last(argsSoFar);
+				@SuppressWarnings("unchecked")
+				final LookupTree<A_Tuple, A_BundleTree, A_BundleTree>
+					typeFilterTree =
+					(LookupTree<A_Tuple, A_BundleTree, A_BundleTree>)
+						typeFilterTreePojo.javaObjectNotNull();
+				final A_BundleTree successor =
+					MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(
+						typeFilterTree,
+						latestPhrase,
+						bundleTree.latestBackwardJump());
 				if (AvailRuntime.debugCompilerSteps)
 				{
 					System.out.println(
-						"Completed send/macro: "
-						+ bundle.message() + " " + args);
+						"Type filter: " + latestPhrase
+							+ " -> " + successor);
 				}
-				completedSendNode(
-					initialTokenPosition,
-					start,
-					args,
-					bundle,
-					consumedTokens,
-					continuation);
-			}
-		}
-		if (incomplete.mapSize() > 0 && firstArgOrNull == null)
-		{
-			attemptToConsumeToken(
-				start,
-				initialTokenPosition,
-				consumedAnything,
-				consumedTokens,
-				argsSoFar,
-				marksSoFar,
-				continuation,
-				incomplete,
-				false);
-		}
-		if (caseInsensitive.mapSize() > 0 && firstArgOrNull == null)
-		{
-			attemptToConsumeToken(
-				start,
-				initialTokenPosition,
-				consumedAnything,
-				consumedTokens,
-				argsSoFar,
-				marksSoFar,
-				continuation,
-				caseInsensitive,
-				true);
-		}
-		boolean skipCheckArgumentAction = false;
-		if (prefilter.mapSize() > 0)
-		{
-			assert firstArgOrNull == null;
-			final A_Phrase latestArgument = last(argsSoFar);
-			if (latestArgument.isMacroSubstitutionNode()
-				|| latestArgument.isInstanceOfKind(SEND_NODE.mostGeneralType()))
-			{
-				final A_Bundle argumentBundle =
-					latestArgument.apparentSendName().bundleOrNil();
-				assert !argumentBundle.equalsNil();
-				if (prefilter.hasKey(argumentBundle))
+				// Don't complain if at least one plan was happy with the type
+				// of the argument.  Otherwise list all argument type/plan
+				// expectations as neatly as possible.
+				if (successor.allParsingPlansInProgress().mapSize() == 0)
 				{
-					final A_BundleTree successor =
-						prefilter.mapAt(argumentBundle);
-					if (AvailRuntime.debugCompilerSteps)
-					{
-						System.out.println(
-							"Grammatical prefilter: " + argumentBundle
-							+ " to " + successor);
-					}
-					eventuallyParseRestOfSendNode(
-						start,
-						successor,
-						null,
-						initialTokenPosition,
-						consumedAnything,
-						consumedTokens,
-						argsSoFar,
-						marksSoFar,
-						continuation);
-					// Don't allow any check-argument actions to be processed
-					// normally, as it would ignore the restriction which we've
-					// been so careful to prefilter.
-					skipCheckArgumentAction = true;
+					final A_BundleTree finalBundleTree = bundleTree;
+					start.expected(
+						continueWithDescription -> stringifyThen(
+							runtime,
+							compilationContext.getTextInterface(),
+							latestPhrase.expressionType(),
+							actualTypeString -> describeFailedTypeTestThen(
+								actualTypeString,
+								finalBundleTree,
+								continueWithDescription)));
 				}
-				// The argument name was not in the prefilter map, so fall
-				// through to allow normal action processing, including the
-				// default check-argument action if it's present.
+				eventuallyParseRestOfSendNode(
+					start,
+					successor,
+					null,
+					initialTokenPosition,
+					consumedAnything,
+					consumedTokens,
+					argsSoFar,
+					marksSoFar,
+					continuation);
+				// Parse instruction optimization allows there to be some plans
+				// that do a type filter here, but some that are able to
+				// postpone it.  Therefore, also allow general actions to be
+				// collected here by falling through.
 			}
 		}
-		if (!typeFilterTreePojo.equalsNil())
-		{
-			// Use the most recently pushed phrase's type to look up the
-			// successor bundle tree.  This implements parallel argument type
-			// filtering.
-			assert firstArgOrNull == null;
-			final A_Phrase latestPhrase = last(argsSoFar);
-			@SuppressWarnings("unchecked")
-			final LookupTree<A_Tuple, A_BundleTree, Void>
-				typeFilterTree =
-					(LookupTree<A_Tuple, A_BundleTree, Void>)
-						typeFilterTreePojo.javaObjectNotNull();
-			final A_BundleTree successor =
-				MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(
-					typeFilterTree, latestPhrase, null);
-			if (AvailRuntime.debugCompilerSteps)
-			{
-				System.out.println(
-					"Type filter: " + latestPhrase
-					+ " -> " + successor);
-			}
-			// Don't complain if at least one plan was happy with the type of
-			// the argument.  Otherwise list all argument type/plan expectations
-			// as neatly as possible.
-			if (successor.allParsingPlansInProgress().mapSize() == 0)
-			{
-				start.expected(
-					continueWithDescription -> Interpreter.stringifyThen(
-						runtime,
-						compilationContext.getTextInterface(),
-						latestPhrase.expressionType(),
-						actualTypeString -> describeFailedTypeTestThen(
-							actualTypeString,
-							bundleTree,
-							continueWithDescription)));
-			}
-			eventuallyParseRestOfSendNode(
-				start,
-				successor,
-				null,
-				initialTokenPosition,
-				consumedAnything,
-				consumedTokens,
-				argsSoFar,
-				marksSoFar,
-				continuation);
-			// Parse instruction optimization allows there to be some plans that
-			// do a type filter here, but some that are able to postpone it.
-			// Therefore, also allow general actions to be collected here by
-			// falling through.
-		}
+		final A_Map actions = bundleTree.lazyActions();
 		if (actions.mapSize() > 0)
 		{
 			for (final Entry entry : actions.mapIterable())
 			{
-				final A_Number key = entry.key();
-				final int keyInt = key.extractInt();
+				final int keyInt = entry.key().extractInt();
 				final ParsingOperation op = decode(keyInt);
 				if (skipCheckArgumentAction && op == CHECK_ARGUMENT)
 				{
@@ -1968,7 +1991,6 @@ public final class AvailCompiler
 					{
 						// At least one of them must be a non-whitespace, but we
 						// can completely ignore the whitespaces(/comments).
-						assert tokens != null;
 						boolean foundOne = false;
 						boolean recognized = false;
 						for (final A_Token token : tokens)
@@ -1996,14 +2018,12 @@ public final class AvailCompiler
 							if (AvailRuntime.debugCompilerSteps)
 							{
 								System.out.println(
-									"Matched"
-										+ (caseInsensitive
-											   ? " insensitive "
-											   : "")
-										+ "token: "
-										+ string
-										+ "@" + token.lineNumber()
-										+ " for " + successor);
+									format(
+										"Matched %s token: %s @%d for %s",
+										caseInsensitive ? "insensitive " : "",
+										string,
+										token.lineNumber(),
+										successor));
 							}
 							recognized = true;
 							// Record this token for the call site.
@@ -2267,7 +2287,7 @@ public final class AvailCompiler
 		}
 		final List<A_Type> types = new ArrayList<>(definitionsByType.keySet());
 		// Generate the type names in parallel.
-		Interpreter.stringifyThen(
+		stringifyThen(
 			runtime,
 			compilationContext.getTextInterface(),
 			types,
@@ -2275,7 +2295,6 @@ public final class AvailCompiler
 			{
 				// Stitch the type names back onto the plan
 				// strings, prior to sorting by type name.
-				assert typeNames != null;
 				assert typeNames.size() == types.size();
 				final List<Pair<String, List<String>>> pairs =
 					new ArrayList<>();
@@ -2298,7 +2317,7 @@ public final class AvailCompiler
 				for (final Pair<String, List<String>> pair : pairs)
 				{
 					builder.append("\n\t");
-					builder.append(pair.first().replace("\n", "\n\t\t"));
+					builder.append(increaseIndentation(pair.first(), 2));
 					for (final String planString : pair.second())
 					{
 						builder.append("\n\t\t");
@@ -2314,34 +2333,34 @@ public final class AvailCompiler
 	 * Execute one non-keyword-parsing instruction, then run the continuation.
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param instruction
-	 *            An int encoding the {@linkplain ParsingOperation
-	 *            parsing instruction} to execute.
+	 *        An int encoding the {@linkplain ParsingOperation parsing
+	 *        instruction} to execute.
 	 * @param firstArgOrNull
-	 *            Either the already-parsed first argument or null. If we're
-	 *            looking for leading-argument message sends to wrap an
-	 *            expression then this is not-null before the first argument
-	 *            position is encountered, otherwise it's null and we should
-	 *            reject attempts to start with an argument (before a keyword).
+	 *        Either the already-parsed first argument or null. If we're looking
+	 *        for leading-argument message sends to wrap an expression then this
+	 *        is not-null before the first argument position is encountered,
+	 *        otherwise it's null and we should reject attempts to start with an
+	 *        argument (before a keyword).
 	 * @param argsSoFar
-	 *            The message arguments that have been parsed so far.
+	 *        The message arguments that have been parsed so far.
 	 * @param marksSoFar
-	 *            The parsing markers that have been recorded so far.
+	 *        The parsing markers that have been recorded so far.
 	 * @param initialTokenPosition
-	 *            The position at which parsing of this message started. If it
-	 *            was parsed as a leading argument send (i.e., firstArgOrNull
-	 *            started out non-null) then the position is of the token
-	 *            following the first argument.
+	 *        The position at which parsing of this message started. If it was
+	 *        parsed as a leading argument send (i.e., firstArgOrNull started
+	 *        out non-null) then the position is of the token following the
+	 *        first argument.
 	 * @param consumedAnything
-	 *            Whether any tokens or arguments have been consumed yet.
+	 *        Whether any tokens or arguments have been consumed yet.
 	 * @param successorTrees
-	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
-	 *            MessageBundleTreeDescriptor bundle trees} at which to continue
-	 *            parsing.
+	 *        The {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *        MessageBundleTreeDescriptor bundle trees} at which to continue
+	 *        parsing.
 	 * @param continuation
-	 *            What to do with a complete {@linkplain SendNodeDescriptor
-	 *            message send}.
+	 *        What to do with a complete {@linkplain SendNodeDescriptor message
+	 *        send}.
 	 */
 	@InnerAccess void runParsingInstructionThen (
 		final ParserState start,
@@ -2587,7 +2606,7 @@ public final class AvailCompiler
 				final A_Type finalType = argTypes.get(finalIndex - 1);
 				if (finalType.isBottom() || finalType.isTop())
 				{
-					onFailure.value(c -> Interpreter.stringifyThen(
+					onFailure.value(c -> stringifyThen(
 						runtime,
 						compilationContext.getTextInterface(),
 						argTypes.get(finalIndex - 1),
@@ -2697,9 +2716,9 @@ public final class AvailCompiler
 					assert !failureMessages.isEmpty();
 					final StringBuilder builder = new StringBuilder();
 					final MutableOrNull<Continuation0> looper =
-						new MutableOrNull<>(null);
-					looper.value =
-						() -> failureMessages.get(index).describeThen(
+						new MutableOrNull<>();
+					looper.value = () ->
+						failureMessages.get(index).describeThen(
 							string ->
 							{
 								if (index > 0)
@@ -2903,13 +2922,16 @@ public final class AvailCompiler
 					}
 				}
 			}
-			Interpreter.stringifyThen(
+			stringifyThen(
 				runtime,
 				compilationContext.getTextInterface(),
 				uniqueValues,
 				strings ->
 				{
-					@SuppressWarnings("resource")
+					@SuppressWarnings({
+						"resource",
+						"IOResourceOpenedButNotSafelyClosed"
+					})
 					final Formatter builder = new Formatter();
 					builder.format(
 						"arguments at indices %s of message %s to "
@@ -3026,7 +3048,7 @@ public final class AvailCompiler
 					visibleDefinitions.add(definition);
 				}
 			}
-			AvailErrorCode errorCode = null;
+			@Nullable AvailErrorCode errorCode = null;
 			if (visibleDefinitions.size() == macroDefinitionsTuple.tupleSize())
 			{
 				// All macro definitions are visible.  Use the lookup tree.
@@ -3121,8 +3143,7 @@ public final class AvailCompiler
 				// Failed lookup.
 				if (errorCode != E_NO_METHOD_DEFINITION)
 				{
-					final AvailErrorCode finalErrorCode = errorCode;
-					assert finalErrorCode != null;
+					final AvailErrorCode finalErrorCode = stripNull(errorCode);
 					stateAfterCall.expected(
 						withString -> withString.value(
 							finalErrorCode == E_AMBIGUOUS_METHOD_DEFINITION
@@ -3228,22 +3249,22 @@ public final class AvailCompiler
 	 * interpretations.
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param kindOfArgument
-	 *            A {@link String}, in the form of a noun phrase, saying the
-	 *            kind of argument that is expected.
+	 *        A {@link String}, in the form of a noun phrase, saying the kind of
+	 *        argument that is expected.
 	 * @param firstArgOrNull
-	 *            Either a parse node to use as the argument, or null if we
-	 *            should parse one now.
+	 *        Either a parse node to use as the argument, or null if we should
+	 *        parse one now.
 	 * @param canReallyParse
-	 *            Whether any tokens may be consumed.  This should be false
-	 *            specifically when the leftmost argument of a leading-argument
-	 *            message is being parsed.
+	 *        Whether any tokens may be consumed.  This should be false
+	 *        specifically when the leftmost argument of a leading-argument
+	 *        message is being parsed.
 	 * @param wrapInLiteral
-	 *            Whether the argument should be wrapped inside a literal node.
-	 *            This allows statements to be more easily processed by macros.
+	 *        Whether the argument should be wrapped inside a literal node.
+	 *        This allows statements to be more easily processed by macros.
 	 * @param continuation
-	 *            What to do with the argument.
+	 *        What to do with the argument.
 	 */
 	void parseSendArgumentWithExplanationThen (
 		final ParserState start,
@@ -3376,32 +3397,31 @@ public final class AvailCompiler
 	 * of it for other purposes.
 	 *
 	 * @param start
-	 *            The position at which parsing should occur.
+	 *        The position at which parsing should occur.
 	 * @param firstArgOrNull
-	 *            An optional already parsed expression which, if present, must
-	 *            be used as a leading argument.  If it's {@code null} then no
-	 *            leading argument has been parsed, and a request to parse a
-	 *            leading argument should simply produce no local solution.
+	 *        An optional already parsed expression which, if present, must be
+	 *        used as a leading argument.  If it's {@code null} then no leading
+	 *        argument has been parsed, and a request to parse a leading
+	 *        argument should simply produce no local solution.
 	 * @param initialTokenPosition
-	 *            The parse position where the send node started to be
-	 *            processed. Does not count the position of the first argument
-	 *            if there are no leading keywords.
+	 *        The parse position where the send node started to be processed.
+	 *        Does not count the position of the first argument if there are no
+	 *        leading keywords.
 	 * @param argsSoFar
-	 *            The list of arguments parsed so far. I do not modify it. This
-	 *            is a stack of expressions that the parsing instructions will
-	 *            assemble into a list that correlates with the top-level
-	 *            non-backquoted underscores and guillemet groups in the message
-	 *            name.
+	 *        The list of arguments parsed so far. I do not modify it. This is a
+	 *        stack of expressions that the parsing instructions will assemble
+	 *        into a list that correlates with the top-level non-backquoted
+	 *        underscores and guillemet groups in the message name.
 	 * @param marksSoFar
-	 *            The stack of mark positions used to test if parsing certain
-	 *            subexpressions makes progress.
+	 *        The stack of mark positions used to test if parsing certain
+	 *        subexpressions makes progress.
 	 * @param successorTrees
-	 *            A {@linkplain TupleDescriptor tuple} of {@linkplain
-	 *            MessageBundleTreeDescriptor message bundle trees} along which
-	 *            to continue parsing if a local solution is found.
+	 *        A {@linkplain TupleDescriptor tuple} of {@linkplain
+	 *        MessageBundleTreeDescriptor message bundle trees} along which to
+	 *        continue parsing if a local solution is found.
 	 * @param continuation
-	 *            What to do once we have a fully parsed send node (of which we
-	 *            are currently parsing an argument).
+	 *        What to do once we have a fully parsed send node (of which we are
+	 *        currently parsing an argument).
 	 */
 	void parseArgumentInModuleScopeThen (
 		final ParserState start,
@@ -3439,6 +3459,7 @@ public final class AvailCompiler
 							"global-scoped argument, not supercast");
 						return;
 					}
+					//noinspection VariableNotUsedInsideIf
 					if (firstArgOrNull != null)
 					{
 						// A leading argument was already supplied.  We
@@ -3545,13 +3566,11 @@ public final class AvailCompiler
 		}
 		// Capture all of the tokens that comprised the entire macro send.
 		final A_Tuple constituentTokens = tupleFromList(consumedTokens);
-		final A_Map withTokensAndBundle =
-			stateAfterCall.clientDataMap
-				.mapAtPuttingCanDestroy(
-					ALL_TOKENS_KEY.atom, constituentTokens, false)
-				.mapAtPuttingCanDestroy(
-					MACRO_BUNDLE_KEY.atom, bundle, true)
-				.makeShared();
+		final A_Map withTokensAndBundle = stateAfterCall.clientDataMap
+			.mapAtPuttingCanDestroy(
+				ALL_TOKENS_KEY.atom, constituentTokens, false)
+			.mapAtPuttingCanDestroy(MACRO_BUNDLE_KEY.atom, bundle, true)
+			.makeShared();
 		compilationContext.startWorkUnit();
 		final MutableOrNull<A_Map> clientDataAfterRunning =
 			new MutableOrNull<>();
@@ -4461,7 +4480,7 @@ public final class AvailCompiler
 					(long) afterHeader.position());
 				// Run any side-effects implied by this module header against
 				// the module.
-				final String errorString =
+				final @Nullable String errorString =
 					moduleHeader().applyToModule(
 						compilationContext.module(), runtime);
 				if (errorString != null)
@@ -4644,8 +4663,10 @@ public final class AvailCompiler
 	/**
 	 * We just reached the end of the module.
 	 *
-	 * @param afterModule The position at the end of the module.
-	 * @param afterFail What to do if there's a failure.
+	 * @param afterModule
+	 *        The position at the end of the module.
+	 * @param afterFail
+	 *        What to do if there's a failure.
 	 */
 	@InnerAccess void reachedEndOfModule (
 		final ParserState afterModule,
@@ -4654,7 +4675,10 @@ public final class AvailCompiler
 		final AvailLoader theLoader = compilationContext.loader();
 		if (theLoader.pendingForwards.setSize() != 0)
 		{
-			@SuppressWarnings("resource")
+			@SuppressWarnings({
+				"resource",
+				"IOResourceOpenedButNotSafelyClosed"
+			})
 			final Formatter formatter = new Formatter();
 			formatter.format("the following forwards to be resolved:");
 			for (final A_BasicObject forward : theLoader.pendingForwards)
@@ -4838,10 +4862,10 @@ public final class AvailCompiler
 									else if (finalStates.size() > 1)
 									{
 										final ParserState earliest =
-											finalStates.stream()
-												.min(Comparator.comparing(
-													ParserState::position))
-												.get();
+											Collections.min(
+												finalStates,
+												Comparator.comparing(
+													ParserState::position));
 										earliest.expected(
 											"an unambiguous way to lexically "
 												+ "scan whitespace after the "
@@ -4887,6 +4911,7 @@ public final class AvailCompiler
 			}
 			case MACRO_SUBSTITUTION:
 			{
+				//noinspection TailRecursion
 				return convertHeaderPhraseToValue(phrase.stripMacro());
 			}
 			default:
@@ -4932,7 +4957,7 @@ public final class AvailCompiler
 
 		assert headerPhrase.parseNodeKindIsUnder(SEND_NODE);
 		assert headerPhrase.apparentSendName().equals(
-			SpecialMethodAtom.MODULE_HEADER_METHOD.atom);
+			MODULE_HEADER_METHOD.atom);
 		final A_Tuple args =
 			convertHeaderPhraseToValue(headerPhrase.argumentsListNode());
 		assert args.tupleSize() == 6;
@@ -5222,7 +5247,7 @@ public final class AvailCompiler
 					assert headerPhrase.parseNodeKindIsUnder(
 						EXPRESSION_AS_STATEMENT_NODE);
 					assert headerPhrase.apparentSendName().equals(
-						SpecialMethodAtom.MODULE_HEADER_METHOD.atom);
+						MODULE_HEADER_METHOD.atom);
 					processHeaderMacro(
 						headerPhrase.expression(),
 						solution.endState(),
@@ -5300,11 +5325,11 @@ public final class AvailCompiler
 	 * interpretation.
 	 *
 	 * @param start
-	 *            Where to start parsing a top-level statement.
+	 *        Where to start parsing a top-level statement.
 	 * @param continuation
-	 *            What to do with the (unambiguous) top-level statement.
+	 *        What to do with the (unambiguous) top-level statement.
 	 * @param afterFail
-	 *            What to run after a failure has been reported.
+	 *        What to run after a failure has been reported.
 	 */
 	@InnerAccess void parseOutermostStatement (
 		final ParserState start,
@@ -5346,9 +5371,9 @@ public final class AvailCompiler
 	 * {@linkplain #fragmentCache}.
 	 *
 	 * @param start
-	 *            Where to start parsing.
+	 *        Where to start parsing.
 	 * @param continuation
-	 *            What to do with the expression.
+	 *        What to do with the expression.
 	 */
 	@InnerAccess void parseExpressionUncachedThen (
 		final ParserState start,
@@ -5371,13 +5396,24 @@ public final class AvailCompiler
 	 * {@linkplain SendNodeDescriptor send phrase}.
 	 *
 	 * @param start
+	 *        The current {@link ParserState}.
 	 * @param bundleTree
+	 *        The current {@link A_BundleTree} being applied.
 	 * @param firstArgOrNull
+	 *        Either null or a pre-parsed first argument phrase.
 	 * @param initialTokenPosition
+	 *        The position at which parsing of this message started. If it was
+	 *        parsed as a leading argument send (i.e., firstArgOrNull started
+	 *        out non-null) then the position is of the token following the
+	 *        first argument.
 	 * @param consumedAnything
+	 *        Whether any tokens have been consumed yet.
 	 * @param argsSoFar
+	 *        The arguments stack.
 	 * @param marksSoFar
+	 *        The marks stack.
 	 * @param continuation
+	 *        What to do with a completed phrase.
 	 */
 	@InnerAccess void eventuallyParseRestOfSendNode (
 		final ParserState start,
@@ -5408,10 +5444,9 @@ public final class AvailCompiler
 	 * parse tree but are locally declared (i.e., not at global module scope).
 	 *
 	 * @param parseTree
-	 *            The parse tree to examine.
-	 * @return
-	 *            The set of the local declarations that were used in the parse
-	 *            tree.
+	 *        The parse tree to examine.
+	 * @return The set of the local declarations that were used in the parse
+	 *         tree.
 	 */
 	@InnerAccess
 	static A_Set usesWhichLocalVariables (

@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * This is an implementation of a directed multigraph.  A graph consists of a
  * collection of vertices connected by (directed) edges.  A vertex v1 may be
@@ -268,8 +270,7 @@ public class Multigraph<V, E extends Edge<V>>
 	public void removeVertex (final V vertex)
 	{
 		assert containsVertex(vertex) : "The vertex to remove was not present";
-		final VertexInGraph privateVertex = vertices.get(vertex);
-		assert privateVertex != null;
+		final VertexInGraph privateVertex = stripNull(vertices.get(vertex));
 		privateVertex.removeEdges();
 		vertices.remove(vertex);
 	}

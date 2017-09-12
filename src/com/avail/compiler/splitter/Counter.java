@@ -164,7 +164,7 @@ extends Expression
 		final Label $loopSkip = new Label();
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		generator.emit(this, EMPTY_LIST);
-		generator.emit(this, BRANCH, $loopSkip);
+		generator.emitBranchForward(this, $loopSkip);
 		generator.emit($loopStart);
 		// Note that even though the Counter cannot contain anything that
 		// would push data, the Counter region must not contain a section
@@ -183,7 +183,7 @@ extends Expression
 		}
 		generator.emit(this, EMPTY_LIST);
 		generator.emit(this, APPEND_ARGUMENT);
-		generator.emit(this, BRANCH, $loopExit);
+		generator.emitBranchForward(this, $loopExit);
 		for (final Expression expression : group.afterDagger.expressions)
 		{
 			assert !expression.isArgumentOrGroup();
@@ -194,7 +194,7 @@ extends Expression
 		}
 		generator.partialListsCount = oldPartialListsCount;
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
-		generator.emit(this, JUMP, $loopStart);
+		generator.emitJumpBackward(this, $loopStart);
 		generator.emit($loopExit);
 		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
 		generator.emit($loopSkip);

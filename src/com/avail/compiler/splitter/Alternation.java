@@ -151,7 +151,7 @@ extends Expression
 			final Label $nextAlternative = new Label();
 			if (i < alternatives.size() - 1)
 			{
-				generator.emit(this, BRANCH, $nextAlternative);
+				generator.emitBranchForward(this, $nextAlternative);
 			}
 			// The partialListsCount stays the same, in case there's a
 			// section checkpoint marker in one of the alternatives.  That's
@@ -166,7 +166,7 @@ extends Expression
 			// alternative.
 			if (i < alternatives.size() - 1)
 			{
-				generator.emit(this, JUMP, $after);
+				generator.emitJumpForward(this, $after);
 			}
 			generator.emit($nextAlternative);
 		}

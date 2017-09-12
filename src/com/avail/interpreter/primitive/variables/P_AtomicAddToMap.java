@@ -117,17 +117,22 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			variableReadWriteType(mostGeneralMapType(), bottom()),
-			ANY.o(),
-			ANY.o()), TOP.o());
+		return functionType(
+			tuple(
+				variableReadWriteType(
+					mostGeneralMapType(),
+					bottom()),
+				ANY.o(),
+				ANY.o()),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return enumerationWith(set(
-			E_CANNOT_READ_UNASSIGNED_VARIABLE,
-			E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE));
+		return enumerationWith(
+			set(
+				E_CANNOT_READ_UNASSIGNED_VARIABLE,
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE));
 	}
 }

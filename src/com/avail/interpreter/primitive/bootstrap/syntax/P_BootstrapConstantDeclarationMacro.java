@@ -120,11 +120,12 @@ public final class P_BootstrapConstantDeclarationMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
+		return functionType(
+			tuple(
 				/* Constant name token as a literal node */
-			LITERAL_NODE.create(TOKEN.o()),
+				LITERAL_NODE.create(TOKEN.o()),
 				/* Initialization expression */
-			EXPRESSION_NODE.create(ANY.o())),
+				EXPRESSION_NODE.create(ANY.o())),
 			LOCAL_CONSTANT_NODE.mostGeneralType());
 	}
 }

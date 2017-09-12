@@ -116,7 +116,7 @@ extends Descriptor
 	final byte level;
 
 	/**
-	 * Construct a new {@link MapBinDescriptor}.
+	 * Construct a new {@code MapBinDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

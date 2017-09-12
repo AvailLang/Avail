@@ -151,28 +151,27 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			oneOrMoreOf(
-				stringType()),
-			zeroOrOneOf(
-				stringType()),
-			zeroOrOneOf(
-				stringType()),
-			zeroOrOneOf(
-				stringType()),
-			zeroOrOneOf(
-				stringType()),
-			zeroOrOneOf(
-				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers(),
-					stringType(),
-					stringType()))), TOP.o());
+		return functionType(
+			tuple(
+				oneOrMoreOf(stringType()),
+				zeroOrOneOf(stringType()),
+				zeroOrOneOf(stringType()),
+				zeroOrOneOf(stringType()),
+				zeroOrOneOf(stringType()),
+				zeroOrOneOf(
+					mapTypeForSizesKeyTypeValueType(
+						wholeNumbers(),
+						stringType(),
+						stringType()))),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_PERMISSION_DENIED, E_NO_EXTERNAL_PROCESS));
+		return enumerationWith(
+			set(
+				E_PERMISSION_DENIED,
+				E_NO_EXTERNAL_PROCESS));
 	}
 }

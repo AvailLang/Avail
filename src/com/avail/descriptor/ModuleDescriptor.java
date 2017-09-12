@@ -57,6 +57,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor
 	.newPlanInProgress;
 import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_DEFINITION;
@@ -867,7 +868,7 @@ extends Descriptor
 	A_BundleTree o_BuildFilteredBundleTree (
 		final AvailObject object)
 	{
-		final A_BundleTree filteredBundleTree = newBundleTree();
+		final A_BundleTree filteredBundleTree = newBundleTree(nil());
 		synchronized (object)
 		{
 			final A_Set ancestors = object.slot(ALL_ANCESTORS);
@@ -999,34 +1000,29 @@ extends Descriptor
 	 */
 	public static A_Module newModule (final A_String moduleName)
 	{
-		final A_Map emptyMap = emptyMap();
-		final A_Set emptySet = emptySet();
-		final A_Tuple emptyTuple = emptyTuple();
 		final AvailObject module = mutable.create();
 		module.setSlot(NAME, moduleName);
 		module.setSlot(ALL_ANCESTORS, nil());
-		module.setSlot(VERSIONS, emptySet);
-		module.setSlot(NEW_NAMES, emptyMap);
-		module.setSlot(IMPORTED_NAMES, emptyMap);
-		module.setSlot(PRIVATE_NAMES, emptyMap);
-		module.setSlot(VISIBLE_NAMES, emptySet);
-		module.setSlot(METHOD_DEFINITIONS_SET, emptySet);
-		module.setSlot(GRAMMATICAL_RESTRICTIONS, emptySet);
-		module.setSlot(VARIABLE_BINDINGS, emptyMap);
-		module.setSlot(CONSTANT_BINDINGS, emptyMap);
-		module.setSlot(VARIABLE_BINDINGS, emptyMap);
-		module.setSlot(SEMANTIC_RESTRICTIONS, emptySet);
-		module.setSlot(SEALS, emptyMap);
-		module.setSlot(ENTRY_POINTS, emptyMap);
-		module.setSlot(UNLOAD_FUNCTIONS, emptyTuple);
-		module.setSlot(LEXERS, emptySet);
+		module.setSlot(VERSIONS, emptySet());
+		module.setSlot(NEW_NAMES, emptyMap());
+		module.setSlot(IMPORTED_NAMES, emptyMap());
+		module.setSlot(PRIVATE_NAMES, emptyMap());
+		module.setSlot(VISIBLE_NAMES, emptySet());
+		module.setSlot(METHOD_DEFINITIONS_SET, emptySet());
+		module.setSlot(GRAMMATICAL_RESTRICTIONS, emptySet());
+		module.setSlot(VARIABLE_BINDINGS, emptyMap());
+		module.setSlot(CONSTANT_BINDINGS, emptyMap());
+		module.setSlot(VARIABLE_BINDINGS, emptyMap());
+		module.setSlot(SEMANTIC_RESTRICTIONS, emptySet());
+		module.setSlot(SEALS, emptyMap());
+		module.setSlot(ENTRY_POINTS, emptyMap());
+		module.setSlot(UNLOAD_FUNCTIONS, emptyTuple());
+		module.setSlot(LEXERS, emptySet());
 		// Adding the module to its ancestors set will cause recursive scanning
 		// to mark everything as shared, so it's essential that all fields have
 		// been initialized to *something* by now.
 		module.makeShared();
-		module.setSlot(
-			ALL_ANCESTORS,
-			emptySet.setWithElementCanDestroy(module, true).makeShared());
+		module.setSlot(ALL_ANCESTORS, set(module).makeShared());
 		return module;
 	}
 

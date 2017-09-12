@@ -107,17 +107,20 @@ public final class P_TupleTypeSequenceOfTypes extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			tupleMeta(),
-			naturalNumbers(),
-			wholeNumbers()), zeroOrMoreOf(
-			anyMeta()));
+		return functionType(
+			tuple(
+				tupleMeta(),
+				naturalNumbers(),
+				wholeNumbers()),
+			zeroOrMoreOf(anyMeta()));
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS, E_NEGATIVE_SIZE));
+		return enumerationWith(
+			set(
+				E_SUBSCRIPT_OUT_OF_BOUNDS,
+				E_NEGATIVE_SIZE));
 	}
 }

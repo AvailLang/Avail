@@ -108,6 +108,7 @@ import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.interpreter.Interpreter.runOutermostFunction;
+import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.String.format;
 import static java.nio.file.FileVisitResult.CONTINUE;
@@ -716,8 +717,7 @@ public final class AvailBuilder
 			final ModuleRoots moduleRoots = runtime.moduleRoots();
 			for (final ModuleRoot moduleRoot : moduleRoots)
 			{
-				final File rootDirectory = moduleRoot.sourceDirectory();
-				assert rootDirectory != null;
+				final File rootDirectory = stripNull(moduleRoot.sourceDirectory());
 				final Path rootPath = rootDirectory.toPath();
 				final FileVisitor<Path> visitor = new FileVisitor<Path>()
 				{
@@ -901,8 +901,7 @@ public final class AvailBuilder
 					afterHeader ->
 					{
 						final ModuleHeader header =
-							compiler.compilationContext.getModuleHeader();
-						assert header != null;
+							stripNull(compiler.compilationContext.getModuleHeader());
 						final List<String> importNames =
 							header.importedModuleNames();
 						final List<String> entryPoints =
@@ -992,9 +991,8 @@ public final class AvailBuilder
 					for (final ResolvedModuleName predecessor :
 						moduleGraph.predecessorsOf(moduleName))
 					{
-						final LoadedModule loadedModule = getLoadedModule(
-							predecessor);
-						assert loadedModule != null;
+						final LoadedModule loadedModule = stripNull(getLoadedModule(
+							predecessor));
 						if (loadedModule.deletionRequest)
 						{
 							dirty = true;
@@ -1004,9 +1002,8 @@ public final class AvailBuilder
 					if (!dirty)
 					{
 						// Look at the file to determine if it's changed.
-						final LoadedModule loadedModule = getLoadedModule(
-							moduleName);
-						assert loadedModule != null;
+						final LoadedModule loadedModule = stripNull(getLoadedModule(
+							moduleName));
 						final IndexedRepositoryManager repository =
 							moduleName.repository();
 						final ModuleArchive archive = repository.getArchive(
@@ -1024,9 +1021,8 @@ public final class AvailBuilder
 								latestDigest, loadedModule.sourceDigest);
 						}
 					}
-					final LoadedModule loadedModule = getLoadedModule(
-						moduleName);
-					assert loadedModule != null;
+					final LoadedModule loadedModule = stripNull(getLoadedModule(
+						moduleName));
 					loadedModule.deletionRequest = dirty;
 					log(Level.FINEST, "(Module %s is dirty)", moduleName);
 					completionAction.value();
@@ -1054,8 +1050,7 @@ public final class AvailBuilder
 				public void value()
 				{
 					final LoadedModule loadedModule =
-						getLoadedModule(moduleName);
-					assert loadedModule != null;
+						stripNull(getLoadedModule(moduleName));
 					if (!loadedModule.deletionRequest)
 					{
 						completionAction.value();
@@ -1133,13 +1128,11 @@ public final class AvailBuilder
 								: moduleGraph.predecessorsOf(moduleName))
 							{
 								final LoadedModule predecessorLoadedModule =
-									getLoadedModule(predecessor);
-								assert predecessorLoadedModule != null;
+									stripNull(getLoadedModule(predecessor));
 								if (predecessorLoadedModule.deletionRequest)
 								{
 									final LoadedModule loadedModule =
-										getLoadedModule(moduleName);
-									assert loadedModule != null;
+										stripNull(getLoadedModule(moduleName));
 									loadedModule.deletionRequest = true;
 									break;
 								}
@@ -1396,8 +1389,7 @@ public final class AvailBuilder
 					afterHeader ->
 					{
 						final ModuleHeader header =
-							compiler.compilationContext.getModuleHeader();
-						assert header != null;
+							stripNull(compiler.compilationContext.getModuleHeader());
 						assert afterHeader != null;
 						final List<String> importNames =
 							header. importedModuleNames();
@@ -1748,8 +1740,7 @@ public final class AvailBuilder
 						return;
 					}
 					final LoadedModule loadedPredecessor =
-						getLoadedModule(resolvedName);
-					assert loadedPredecessor != null;
+						stripNull(getLoadedModule(resolvedName));
 					loadedModulesByName.put(localName, loadedPredecessor);
 				}
 				final long [] predecessorCompilationTimes =
@@ -1757,8 +1748,7 @@ public final class AvailBuilder
 				for (int i = 0; i < predecessorCompilationTimes.length; i++)
 				{
 					final LoadedModule loadedPredecessor =
-						loadedModulesByName.get(imports.get(i));
-					assert loadedPredecessor != null;
+						stripNull(loadedModulesByName.get(imports.get(i)));
 					predecessorCompilationTimes[i] =
 						loadedPredecessor.compilation.compilationTime;
 				}
@@ -2041,8 +2031,7 @@ public final class AvailBuilder
 						final A_Tuple comments = emptyTuple();
 						serializer.serialize(comments);
 						final ModuleVersion version =
-							archive.getVersion(versionKey);
-						assert version != null;
+							stripNull(archive.getVersion(versionKey));
 						version.putComments(appendCRC(out.toByteArray()));
 
 						repository.commitIfStaleChanges(
@@ -2769,8 +2758,7 @@ public final class AvailBuilder
 								if (fromPackage)
 								{
 									final ModuleTree parent =
-										fromNode.parent();
-									assert parent != null;
+										stripNull(fromNode.parent());
 									final String parentName =
 										"cluster_" + parent.node;
 									out.append("[ltail=");

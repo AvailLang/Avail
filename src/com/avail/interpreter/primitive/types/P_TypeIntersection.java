@@ -73,9 +73,11 @@ public final class P_TypeIntersection extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			topMeta(),
-			topMeta()), topMeta());
+		return functionType(
+			tuple(
+				topMeta(),
+				topMeta()),
+			topMeta());
 	}
 
 	@Override

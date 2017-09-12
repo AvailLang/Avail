@@ -147,22 +147,25 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			ATOM.o(),
-			mapTypeForSizesKeyTypeValueType(
-				inclusive(
-					0, socketOptions.length - 1),
-				inclusive(
-					1, socketOptions.length - 1),
-				ANY.o())), TOP.o());
+		return functionType(
+			tuple(
+				ATOM.o(),
+				mapTypeForSizesKeyTypeValueType(
+					inclusive(0, socketOptions.length - 1),
+					inclusive(1, socketOptions.length - 1),
+					ANY.o())),
+			TOP.o());
 	}
 
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_INVALID_HANDLE, E_SPECIAL_ATOM,
-				E_INCORRECT_ARGUMENT_TYPE, E_IO_ERROR));
+		return enumerationWith(
+			set(
+				E_INVALID_HANDLE,
+				E_SPECIAL_ATOM,
+				E_INCORRECT_ARGUMENT_TYPE,
+				E_IO_ERROR));
 	}
 }

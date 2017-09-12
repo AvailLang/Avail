@@ -130,16 +130,19 @@ public final class P_RestartContinuationWithArguments extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralContinuationType(),
-			mostGeneralTupleType()), bottom());
+		return functionType(
+			tuple(
+				mostGeneralContinuationType(),
+				mostGeneralTupleType()),
+			bottom());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return enumerationWith(set(
-			E_INCORRECT_NUMBER_OF_ARGUMENTS,
-			E_INCORRECT_ARGUMENT_TYPE));
+		return enumerationWith(
+			set(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS,
+				E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

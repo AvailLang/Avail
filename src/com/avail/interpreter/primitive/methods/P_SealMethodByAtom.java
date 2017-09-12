@@ -45,6 +45,7 @@ import com.avail.interpreter.AvailLoader.Phase;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
@@ -91,7 +92,7 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Atom methodName = args.get(0);
 		final A_Tuple sealSignature = args.get(1);
-		final AvailLoader loader = interpreter.fiber().availLoader();
+		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader == null)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
@@ -117,20 +118,24 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			ATOM.o(),
-			tupleTypeForSizesTypesDefaultType(
-				wholeNumbers(),
-				emptyTuple(),
-				anyMeta())), TOP.o());
+		return functionType(
+			tuple(
+				ATOM.o(),
+				tupleTypeForSizesTypesDefaultType(
+					wholeNumbers(),
+					emptyTuple(),
+					anyMeta())),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
-				.setUnionCanDestroy(possibleErrors, true));
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_INCORRECT_NUMBER_OF_ARGUMENTS
+			).setUnionCanDestroy(possibleErrors, true));
 	}
 }

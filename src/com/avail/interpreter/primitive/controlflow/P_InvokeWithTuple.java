@@ -216,9 +216,11 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralFunctionType(),
-			mostGeneralTupleType()), TOP.o());
+		return functionType(
+			tuple(
+				mostGeneralFunctionType(),
+				mostGeneralTupleType()),
+			TOP.o());
 	}
 
 	@Override

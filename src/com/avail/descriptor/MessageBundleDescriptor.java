@@ -227,8 +227,7 @@ extends Descriptor
 	{
 		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
 		final MessageSplitter messageSplitter =
-			(MessageSplitter) splitterPojo.javaObject();
-		assert messageSplitter != null;
+			(MessageSplitter) splitterPojo.javaObjectNotNull();
 		return messageSplitter.messageParts();
 	}
 
@@ -236,7 +235,7 @@ extends Descriptor
 	MessageSplitter o_MessageSplitter(final AvailObject object)
 	{
 		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
-		return (MessageSplitter)splitterPojo.javaObject();
+		return (MessageSplitter)splitterPojo.javaObjectNotNull();
 	}
 
 	@Override @AvailMethod
@@ -388,14 +387,14 @@ extends Descriptor
 		new HashMap<>();
 
 	/**
-	 * Create a new {@linkplain MessageBundleDescriptor message bundle} for the
-	 * given message.  Add the bundle to the method's collection of {@linkplain
+	 * Create a new {@link A_Bundle message bundle} for the given message.  Add
+	 * the bundle to the method's collection of {@linkplain
 	 * MethodDescriptor.ObjectSlots#OWNING_BUNDLES owning bundles}.
 	 *
 	 * @param methodName The message name, an {@linkplain AtomDescriptor atom}.
 	 * @param method The method that this bundle represents.
 	 * @param splitter A MessageSplitter for this message name.
-	 * @return A new {@linkplain MessageBundleDescriptor message bundle}.
+	 * @return A new {@link A_Bundle message bundle}.
 	 */
 	public static A_Bundle newBundle (
 		final A_Atom methodName,
@@ -449,7 +448,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link MessageBundleDescriptor}.
+	 * Construct a new {@code MessageBundleDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

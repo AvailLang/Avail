@@ -32,7 +32,18 @@
 
 package com.avail.tools.compiler.configuration;
 
-import static com.avail.tools.compiler.configuration.VerbosityLevel.*;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ModuleRoots;
+import com.avail.builder.RenamesFileParser;
+import com.avail.builder.RenamesFileParserException;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.performance.StatisticReport;
+import com.avail.stacks.StacksGenerator;
+import com.avail.tools.compiler.Compiler;
+import com.avail.utility.configuration.Configuration;
+
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,17 +55,9 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.EnumSet;
-import javax.annotation.Nullable;
-import com.avail.builder.ModuleName;
-import com.avail.builder.ModuleNameResolver;
-import com.avail.builder.ModuleRoots;
-import com.avail.builder.RenamesFileParser;
-import com.avail.builder.RenamesFileParserException;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.performance.StatisticReport;
-import com.avail.stacks.StacksGenerator;
-import com.avail.tools.compiler.Compiler;
-import com.avail.utility.configuration.Configuration;
+
+import static com.avail.tools.compiler.configuration.VerbosityLevel.ERROR_ONLY;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code CompilerConfiguration} instructs a {@linkplain Compiler compiler} on
@@ -103,7 +106,7 @@ implements Configuration
 	 */
 	public ModuleRoots availRoots ()
 	{
-		ModuleRoots roots = availRoots;
+		@Nullable ModuleRoots roots = availRoots;
 		if (roots == null)
 		{
 			roots = new ModuleRoots(availRootsPath);
@@ -125,9 +128,7 @@ implements Configuration
 	 */
 	public String renamesFilePath ()
 	{
-		final String path = renamesFilePath;
-		assert path != null;
-		return path;
+		return stripNull(renamesFilePath);
 	}
 
 	/**
@@ -197,9 +198,7 @@ implements Configuration
 	 */
 	public ModuleName targetModuleName ()
 	{
-		final ModuleName name = targetModuleName;
-		assert name != null;
-		return name;
+		return stripNull(targetModuleName);
 	}
 
 	/**

@@ -126,8 +126,7 @@ extends Primitive
 		{
 			labelReturnTypePhrase =
 				optionalLabelReturnTypePhrase.expressionAt(1);
-			assert labelReturnTypePhrase.parseNodeKindIsUnder(
-				LITERAL_NODE);
+			assert labelReturnTypePhrase.parseNodeKindIsUnder(LITERAL_NODE);
 			labelReturnType = labelReturnTypePhrase.token().literal();
 		}
 		else
@@ -172,7 +171,7 @@ extends Primitive
 		{
 			throw new AvailRejectedParseException(
 				"label declaration %s to have a name that doesn't "
-				+ "shadow an existing %s (from line %d)",
+					+ "shadow an existing %s (from line %d)",
 				labelName.string(),
 				conflictingDeclaration.declarationKind().nativeKindName(),
 				conflictingDeclaration.token().lineNumber());
@@ -183,46 +182,48 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
+		return functionType(
+			tuple(
 				/* Macro argument is a parse node. */
-			LIST_NODE.create(
+				LIST_NODE.create(
 					/* Optional arguments section. */
-				zeroOrOneOf(
+					zeroOrOneOf(
 						/* Arguments are present. */
-					oneOrMoreOf(
+						oneOrMoreOf(
 							/* An argument. */
-						tupleTypeForTypes(
-								/* Argument name, a token. */
-							TOKEN.o(),
-								/* Argument type. */
-							anyMeta())))),
-				/* Macro argument is a parse node. */
-			LIST_NODE.create(
-					/* Optional primitive declaration. */
-				zeroOrOneOf(
-						/* Primitive declaration */
-					tupleTypeForTypes(
-							/* Primitive name. */
-						TOKEN.o(),
-							/* Optional failure variable declaration. */
-						zeroOrOneOf(
-								/* Primitive failure variable parts. */
 							tupleTypeForTypes(
-									/* Primitive failure variable name token */
+								/* Argument name, a token. */
 								TOKEN.o(),
-									/* Primitive failure variable type */
-								anyMeta()))))),
+								/* Argument type. */
+								anyMeta())))),
 				/* Macro argument is a parse node. */
-			LIST_NODE.create(
+				LIST_NODE.create(
+					/* Optional primitive declaration. */
+					zeroOrOneOf(
+						/* Primitive declaration */
+						tupleTypeForTypes(
+							/* Primitive name. */
+							TOKEN.o(),
+							/* Optional failure variable declaration. */
+							zeroOrOneOf(
+								/* Primitive failure variable parts. */
+								tupleTypeForTypes(
+									/* Primitive failure variable name token */
+									TOKEN.o(),
+									/* Primitive failure variable type */
+									anyMeta()))))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
 					/* Optional label declaration. */
-				zeroOrOneOf(
+					zeroOrOneOf(
 						/* Label parts. */
-					tupleTypeForTypes(
+						tupleTypeForTypes(
 							/* Label name */
-						TOKEN.o(),
+							TOKEN.o(),
 							/* Optional label return type. */
-						zeroOrOneOf(
+							zeroOrOneOf(
 								/* Label return type. */
-							topMeta()))))), TOP.o());
+								topMeta()))))),
+			TOP.o());
 	}
 }

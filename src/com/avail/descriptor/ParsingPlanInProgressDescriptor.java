@@ -35,9 +35,11 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.AvailCompilerFragmentCache;
+import com.avail.compiler.ParsingOperation;
 
 import java.util.IdentityHashMap;
 
+import static com.avail.compiler.ParsingOperation.JUMP_BACKWARD;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.IntegerSlots.PARSING_PC;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.ObjectSlots.PARSING_PLAN;
@@ -129,14 +131,27 @@ extends Descriptor
 		return PARSING_PLAN_IN_PROGRESS.o();
 	}
 
+	@Override
+	boolean o_IsBackwardJump (final AvailObject object)
+	{
+		final A_DefinitionParsingPlan plan = object.slot(PARSING_PLAN);
+		final A_Tuple instructions = plan.parsingInstructions();
+		final int pc = object.slot(PARSING_PC);
+		if (pc > instructions.tupleSize())
+		{
+			return false;
+		}
+		final int instruction = instructions.tupleIntAt(pc);
+		return ParsingOperation.decode(instruction) == JUMP_BACKWARD;
+	}
+
 	/**
 	 * Answer a String consisting of the name of the message with a visual
 	 * indication inserted at the keyword or argument position related to the
 	 * given program counter.
 	 *
 	 * @param object
-	 *        The {@link ParsingPlanInProgressDescriptor
-	 *        parsing-plan-in-progress} to describe.
+	 *        The {@link A_ParsingPlanInProgress} to describe.
 	 * @return The annotated method name, a Java {@code String}.
 	 */
 	@Override @AvailMethod
@@ -166,12 +181,11 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a new {@linkplain ParsingPlanInProgressDescriptor
-	 * parsing-plan-in-progress} for the given parameters.
+	 * Create a new {@link A_ParsingPlanInProgress} for the given parameters.
 	 *
 	 * @param plan The bundle for this plan.
 	 * @param pc The definition for this plan.
-	 * @return A new {@linkplain ParsingPlanInProgressDescriptor plan}.
+	 * @return A new parsing-plan-in-progress.
 	 */
 	public static A_ParsingPlanInProgress newPlanInProgress (
 		final A_DefinitionParsingPlan plan,
@@ -184,7 +198,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link ParsingPlanInProgressDescriptor}.
+	 * Construct a new {@code ParsingPlanInProgressDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

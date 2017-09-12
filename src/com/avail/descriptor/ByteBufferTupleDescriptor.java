@@ -388,7 +388,7 @@ extends NumericTupleDescriptor
 		// case.
 		final ByteBuffer originalBuffer = object.byteBuffer();
 		final AvailObject result = generateByteTupleFrom(
-			size,  i -> (short)(originalBuffer.get(i + size - 2) & 255));
+			size,  i -> (short)(originalBuffer.get(size - i) & 255));
 		result.hashOrZero(0);
 		return result;
 	}
@@ -529,8 +529,7 @@ extends NumericTupleDescriptor
 	void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		final ByteBuffer buffer =
-			(ByteBuffer) object.slot(BYTE_BUFFER).javaObject();
-		assert buffer != null;
+			(ByteBuffer) object.slot(BYTE_BUFFER).javaObjectNotNull();
 		writer.startArray();
 		for (int i = 0; i < buffer.limit(); i++)
 		{

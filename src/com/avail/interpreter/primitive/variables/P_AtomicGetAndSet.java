@@ -81,8 +81,7 @@ extends Primitive
 		final AvailObject newValue = args.get(1);
 		try
 		{
-			return interpreter.primitiveSuccess(
-				var.getAndSetValue(newValue));
+			return interpreter.primitiveSuccess(var.getAndSetValue(newValue));
 		}
 		catch (final VariableGetException|VariableSetException e)
 		{
@@ -93,9 +92,11 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralVariableType(),
-			ANY.o()), ANY.o());
+		return functionType(
+			tuple(
+				mostGeneralVariableType(),
+				ANY.o()),
+			ANY.o());
 	}
 
 	@Override
@@ -110,10 +111,12 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_CANNOT_READ_UNASSIGNED_VARIABLE,
+		return enumerationWith(
+			set(
+				E_CANNOT_READ_UNASSIGNED_VARIABLE,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD, E_JAVA_MARSHALING_FAILED,
+				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
+				E_JAVA_MARSHALING_FAILED,
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
 	}

@@ -147,25 +147,26 @@ public final class P_BootstrapPrefixBlockArgument extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
+		return functionType(
+			tuple(
 				/* Macro argument is a parse node. */
-			LIST_NODE.create(
+				LIST_NODE.create(
 					/* Optional arguments section. */
-				zeroOrOneOf(
+					zeroOrOneOf(
 						/* Arguments are present. */
-					oneOrMoreOf(
+						oneOrMoreOf(
 							/* An argument. */
-						tupleTypeForTypes(
+							tupleTypeForTypes(
 								/* Argument name, a token. */
-							TOKEN.o(),
+								TOKEN.o(),
 								/* Argument type. */
-							anyMeta()))))), TOP.o());
+								anyMeta()))))),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_LOADING_IS_OVER));
+		return enumerationWith(set(E_LOADING_IS_OVER));
 	}
 }

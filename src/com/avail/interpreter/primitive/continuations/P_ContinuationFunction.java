@@ -76,7 +76,9 @@ public final class P_ContinuationFunction extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralContinuationType()), mostGeneralFunctionType());
+		return functionType(
+			tuple(
+				mostGeneralContinuationType()),
+			mostGeneralFunctionType());
 	}
 }

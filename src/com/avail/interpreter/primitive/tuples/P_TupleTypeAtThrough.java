@@ -78,13 +78,9 @@ public final class P_TupleTypeAtThrough extends Primitive
 		final A_Number startIndex = args.get(1);
 		final A_Number endIndex = args.get(2);
 		final int startInt =
-			startIndex.isInt()
-			? startIndex.extractInt()
-			: Integer.MAX_VALUE;
+			startIndex.isInt() ? startIndex.extractInt() : Integer.MAX_VALUE;
 		final int endInt =
-			endIndex.isInt()
-			? endIndex.extractInt()
-			: Integer.MAX_VALUE;
+			endIndex.isInt() ? endIndex.extractInt() : Integer.MAX_VALUE;
 		return interpreter.primitiveSuccess(
 			tupleType.unionOfTypesAtThrough(startInt, endInt));
 	}
@@ -92,11 +88,13 @@ public final class P_TupleTypeAtThrough extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			tupleMeta(),
-			naturalNumbers(),
-			inclusive(
-				zero(),
-				positiveInfinity())), anyMeta());
+		return functionType(
+			tuple(
+				tupleMeta(),
+				naturalNumbers(),
+				inclusive(
+					zero(),
+					positiveInfinity())),
+			anyMeta());
 	}
 }

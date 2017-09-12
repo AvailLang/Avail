@@ -127,19 +127,13 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 			final A_BasicObject variableObject =
 				module.variableBindings().mapAt(variableNameString);
 			declaration = newModuleVariable(
-				actualToken,
-				variableObject,
-				nil(),
-				nil());
+				actualToken, variableObject, nil(), nil());
 		}
 		else if (module.constantBindings().hasKey(variableNameString))
 		{
 			final A_BasicObject variableObject =
 				module.constantBindings().mapAt(variableNameString);
-			declaration = newModuleConstant(
-				actualToken,
-				variableObject,
-				nil());
+			declaration = newModuleConstant(actualToken, variableObject, nil());
 		}
 
 		if (declaration == null)
@@ -167,22 +161,22 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 						declarationFinal.declaredType()));
 		}
 		final A_Phrase assignment = newAssignment(
-			newUse(actualToken, declaration),
-			valueExpression,
-			false);
+			newUse(actualToken, declaration), valueExpression, false);
 		assignment.makeImmutable();
-		final A_Phrase assignmentAsStatement = newExpressionAsStatement(assignment);
+		final A_Phrase assignmentAsStatement =
+			newExpressionAsStatement(assignment);
 		return interpreter.primitiveSuccess(assignmentAsStatement);
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
+		return functionType(
+			tuple(
 				/* Variable name for assignment */
-			LITERAL_NODE.create(TOKEN.o()),
+				LITERAL_NODE.create(TOKEN.o()),
 				/* Assignment value */
-			EXPRESSION_NODE.create(ANY.o())),
+				EXPRESSION_NODE.create(ANY.o())),
 			EXPRESSION_AS_STATEMENT_NODE.mostGeneralType());
 	}
 }

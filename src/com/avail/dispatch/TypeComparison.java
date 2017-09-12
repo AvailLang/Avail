@@ -49,53 +49,53 @@ public enum TypeComparison
 	 * The definition's signature equals the criterion.
 	 */
 	SAME_TYPE
+	{
+		@Override
+		public <Element extends A_BasicObject> void applyEffect (
+			final Element undecidedDefinition,
+			final List<? super Element> ifTruePositiveDefinitions,
+			final List<? super Element> ifTrueUndecidedDefinitions,
+			final List<? super Element> ifFalseUndecidedDefinitions,
+			final boolean subtypesHideSupertypes)
 		{
-			@Override
-			public <Element extends A_BasicObject> void applyEffect (
-				final Element undecidedDefinition,
-				final List<? super Element> ifTruePositiveDefinitions,
-				final List<? super Element> ifTrueUndecidedDefinitions,
-				final List<? super Element> ifFalseUndecidedDefinitions,
-				final boolean subtypesHideSupertypes)
-			{
-				ifTruePositiveDefinitions.add(undecidedDefinition);
-			}
-		},
+			ifTruePositiveDefinitions.add(undecidedDefinition);
+		}
+	},
 
 	/**
 	 * The definition is a proper ancestor of the criterion.
 	 */
 	PROPER_ANCESTOR_TYPE
+	{
+		@Override
+		public <Element extends A_BasicObject> void applyEffect (
+			final Element undecidedDefinition,
+			final List<? super Element> ifTruePositiveDefinitions,
+			final List<? super Element> ifTrueUndecidedDefinitions,
+			final List<? super Element> ifFalseUndecidedDefinitions,
+			final boolean subtypesHideSupertypes)
 		{
-			@Override
-			public <Element extends A_BasicObject> void applyEffect (
-				final Element undecidedDefinition,
-				final List<? super Element> ifTruePositiveDefinitions,
-				final List<? super Element> ifTrueUndecidedDefinitions,
-				final List<? super Element> ifFalseUndecidedDefinitions,
-				final boolean subtypesHideSupertypes)
-			{
-				ifTruePositiveDefinitions.add(undecidedDefinition);
-				ifFalseUndecidedDefinitions.add(undecidedDefinition);
-			}
-		},
+			ifTruePositiveDefinitions.add(undecidedDefinition);
+			ifFalseUndecidedDefinitions.add(undecidedDefinition);
+		}
+	},
 
 	/**
 	 * The definition is a proper descendant of the criterion.
 	 */
 	PROPER_DESCENDANT_TYPE
+	{
+		@Override
+		public <Element extends A_BasicObject> void applyEffect (
+			final Element undecidedDefinition,
+			final List<? super Element> ifTruePositiveDefinitions,
+			final List<? super Element> ifTrueUndecidedDefinitions,
+			final List<? super Element> ifFalseUndecidedDefinitions,
+			final boolean subtypesHideSupertypes)
 		{
-			@Override
-			public <Element extends A_BasicObject> void applyEffect (
-				final Element undecidedDefinition,
-				final List<? super Element> ifTruePositiveDefinitions,
-				final List<? super Element> ifTrueUndecidedDefinitions,
-				final List<? super Element> ifFalseUndecidedDefinitions,
-				final boolean subtypesHideSupertypes)
-			{
-				ifTrueUndecidedDefinitions.add(undecidedDefinition);
-			}
-		},
+			ifTrueUndecidedDefinitions.add(undecidedDefinition);
+		}
+	},
 
 
 	/**
@@ -104,19 +104,19 @@ public enum TypeComparison
 	 * BottomTypeDescriptor bottom} (⊥).
 	 */
 	UNRELATED_TYPE
+	{
+		@Override
+		public <Element extends A_BasicObject> void applyEffect (
+			final Element undecidedDefinition,
+			final List<? super Element> ifTruePositiveDefinitions,
+			final List<? super Element> ifTrueUndecidedDefinitions,
+			final List<? super Element> ifFalseUndecidedDefinitions,
+			final boolean subtypesHideSupertypes)
 		{
-			@Override
-			public <Element extends A_BasicObject> void applyEffect (
-				final Element undecidedDefinition,
-				final List<? super Element> ifTruePositiveDefinitions,
-				final List<? super Element> ifTrueUndecidedDefinitions,
-				final List<? super Element> ifFalseUndecidedDefinitions,
-				final boolean subtypesHideSupertypes)
-			{
-				ifTrueUndecidedDefinitions.add(undecidedDefinition);
-				ifFalseUndecidedDefinitions.add(undecidedDefinition);
-			}
-		},
+			ifTrueUndecidedDefinitions.add(undecidedDefinition);
+			ifFalseUndecidedDefinitions.add(undecidedDefinition);
+		}
+	},
 
 
 	/**
@@ -128,35 +128,35 @@ public enum TypeComparison
 	 * other definition from being considered possible.
 	 */
 	DISJOINT_TYPE
+	{
+		@Override
+		public <Element extends A_BasicObject> void applyEffect (
+			final Element undecidedDefinition,
+			final List<? super Element> ifTruePositiveDefinitions,
+			final List<? super Element> ifTrueUndecidedDefinitions,
+			final List<? super Element> ifFalseUndecidedDefinitions,
+			final boolean subtypesHideSupertypes)
 		{
-			@Override
-			public <Element extends A_BasicObject> void applyEffect (
-				final Element undecidedDefinition,
-				final List<? super Element> ifTruePositiveDefinitions,
-				final List<? super Element> ifTrueUndecidedDefinitions,
-				final List<? super Element> ifFalseUndecidedDefinitions,
-				final boolean subtypesHideSupertypes)
-			{
-				ifFalseUndecidedDefinitions.add(undecidedDefinition);
-			}
-		};
+			ifFalseUndecidedDefinitions.add(undecidedDefinition);
+		}
+	};
 
 	/**
 	 * Conditionally augment the supplied lists with the provided undecided
 	 * {@link Element}.  The decision of which lists to augment depends on this
 	 * instance, which is the result of a previous comparison between the two
 	 * signatures.
-	 *  @param undecidedDefinition
-	 *            An {link Entry} whose applicability has not yet been decided.
+	 * @param undecidedDefinition
+	 *        An {link Entry} whose applicability has not yet been decided.
 	 * @param ifTruePositiveDefinitions
-	 *            A list of definitions that will be applicable to some
-	 *            arguments if the arguments meet the current criterion.
+	 *        A list of definitions that will be applicable to some arguments if
+	 *        the arguments meet the current criterion.
 	 * @param ifTrueUndecidedDefinitions
-	 *            A list of definitions that will be undecided for some
-	 *            arguments if the arguments meet the current criterion.
+	 *        A list of definitions that will be undecided for some arguments if
+	 *        the arguments meet the current criterion.
 	 * @param ifFalseUndecidedDefinitions
-	 *            A list of definitions that will be undecided for some
-	 *            arguments if the aguments do not meet the current criterion.
+	 *        A list of definitions that will be undecided for some arguments if
+	 *        the aguments do not meet the current criterion.
 	 * @param subtypesHideSupertypes
 	 *        Whether an entry should makes another entry with a strictly weaker
 	 *        type ineligible.
@@ -175,9 +175,9 @@ public enum TypeComparison
 	 * one being compared by specificity with the criterion.
 	 *
 	 * @param criterionType
-	 *            The criterion signature to test against.
+	 *        The criterion signature to test against.
 	 * @param someType
-	 *            A signature to test against the criterion signature.
+	 *        A signature to test against the criterion signature.
 	 * @return A TypeComparison representing the relationship between
 	 *         the criterion and the other signature.
 	 */
@@ -185,8 +185,7 @@ public enum TypeComparison
 		final A_Type criterionType,
 		final A_Type someType)
 	{
-		final A_Type intersection =
-			criterionType.typeIntersection(someType);
+		final A_Type intersection = criterionType.typeIntersection(someType);
 		if (intersection.isBottom())
 		{
 			return DISJOINT_TYPE;
@@ -206,9 +205,9 @@ public enum TypeComparison
 	 * one being compared by specificity with the criterion.
 	 *
 	 * @param criterionType
-	 *            The criterion signature to test against.
+	 *        The criterion signature to test against.
 	 * @param someType
-	 *            A signature to test against the criterion signature.
+	 *        A signature to test against the criterion signature.
 	 * @return A TypeComparison representing the relationship between
 	 *         the criterion and the other signature.
 	 */
@@ -216,8 +215,7 @@ public enum TypeComparison
 		final A_Type criterionType,
 		final A_Type someType)
 	{
-		final A_Type intersection =
-			criterionType.typeIntersection(someType);
+		final A_Type intersection = criterionType.typeIntersection(someType);
 		if (intersection.expressionType().isBottom())
 		{
 			// For the purpose of parsing, if the intersection of these phrase

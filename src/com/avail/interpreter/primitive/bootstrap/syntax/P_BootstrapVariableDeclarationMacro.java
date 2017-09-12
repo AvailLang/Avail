@@ -108,7 +108,7 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 		{
 			throw new AvailRejectedParseException(
 				"local variable %s to have a name that doesn't shadow an "
-				+ "existing %s (from line %d)",
+					+ "existing %s (from line %d)",
 				nameString,
 				conflictingDeclaration.declarationKind().nativeKindName(),
 				conflictingDeclaration.token().lineNumber());
@@ -119,11 +119,12 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
+		return functionType(
+			tuple(
 				/* Variable name phrase. */
-			LITERAL_NODE.create(TOKEN.o()),
+				LITERAL_NODE.create(TOKEN.o()),
 				/* Variable type's literal phrase. */
-			LITERAL_NODE.create(anyMeta())),
+				LITERAL_NODE.create(anyMeta())),
 			DECLARATION_NODE.mostGeneralType());
 	}
 }

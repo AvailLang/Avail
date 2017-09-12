@@ -43,8 +43,11 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
 import static com.avail.descriptor.ContinuationDescriptor
 	.createContinuationExceptFrame;
 import static com.avail.descriptor.ContinuationTypeDescriptor
@@ -52,9 +55,9 @@ import static com.avail.descriptor.ContinuationTypeDescriptor
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor
 	.mostGeneralFunctionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
@@ -90,7 +93,7 @@ public final class P_CreateContinuation extends Primitive
 		final A_Number stackp = args.get(3);
 		final A_Variable callerHolder = args.get(4);
 
-		final Primitive primitive = function.code().primitive();
+		final @Nullable Primitive primitive = function.code().primitive();
 		if (primitive != null && primitive.hasFlag(CannotFail))
 		{
 			return interpreter.primitiveFailure(
@@ -114,20 +117,21 @@ public final class P_CreateContinuation extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralFunctionType(),
-			wholeNumbers(),
-			mostGeneralTupleType(),
-			naturalNumbers(),
-			variableTypeFor(
-				mostGeneralContinuationType())), mostGeneralContinuationType());
+		return functionType(
+			tuple(
+				mostGeneralFunctionType(),
+				wholeNumbers(),
+				mostGeneralTupleType(),
+				naturalNumbers(),
+				variableTypeFor(
+					mostGeneralContinuationType())),
+			mostGeneralContinuationType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return instanceType(
-			E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
-				.numericCode());
+		return enumerationWith(set(
+			E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION));
 	}
 }

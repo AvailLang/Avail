@@ -396,75 +396,80 @@ public final class P_BootstrapBlockMacro extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
+		return functionType(
+			tuple(
 				/* Macro argument is a parse node. */
-			LIST_NODE.create(
+				LIST_NODE.create(
 					/* Optional arguments section. */
-				zeroOrOneOf(
+					zeroOrOneOf(
 						/* Arguments are present. */
-					oneOrMoreOf(
+						oneOrMoreOf(
 							/* An argument. */
-						tupleTypeForTypes(
-								/* Argument name, a token. */
-							TOKEN.o(),
-								/* Argument type. */
-							anyMeta())))),
-				/* Macro argument is a parse node. */
-			LIST_NODE.create(
-					/* Optional primitive declaration. */
-				zeroOrOneOf(
-						/* Primitive declaration */
-					tupleTypeForTypes(
-							/* Primitive name. */
-						TOKEN.o(),
-							/* Optional failure variable declaration. */
-						zeroOrOneOf(
-								/* Primitive failure variable parts. */
 							tupleTypeForTypes(
-									/* Primitive failure variable name token */
+								/* Argument name, a token. */
 								TOKEN.o(),
+								/* Argument type. */
+								anyMeta())))),
+				/* Macro argument is a parse node. */
+				LIST_NODE.create(
+					/* Optional primitive declaration. */
+					zeroOrOneOf(
+						/* Primitive declaration */
+						tupleTypeForTypes(
+							/* Primitive name. */
+							TOKEN.o(),
+							/* Optional failure variable declaration. */
+							zeroOrOneOf(
+								/* Primitive failure variable parts. */
+								tupleTypeForTypes(
+									/* Primitive failure variable name token */
+									TOKEN.o(),
 									/* Primitive failure variable type */
-								anyMeta()))))),
+									anyMeta()))))),
 				/* Macro argument is a parse node. */
-			LIST_NODE.create(
+				LIST_NODE.create(
 					/* Optional label declaration. */
-				zeroOrOneOf(
+					zeroOrOneOf(
 						/* Label parts. */
-					tupleTypeForTypes(
+						tupleTypeForTypes(
 							/* Label name */
-						TOKEN.o(),
+							TOKEN.o(),
 							/* Optional label return type. */
-						zeroOrOneOf(
+							zeroOrOneOf(
 								/* Label return type. */
-							topMeta())))),
+								topMeta())))),
 				/* Macro argument is a parse node. */
-			LIST_NODE.create(
+				LIST_NODE.create(
 					/* Statements and declarations so far. */
-				zeroOrMoreOf(
+					zeroOrMoreOf(
 						/* The "_!" mechanism wrapped each statement inside a
 						 * literal phrase, so expect a phrase here instead of
 						 * TOP.o().
 						 */
-					STATEMENT_NODE.mostGeneralType())),
+						STATEMENT_NODE.mostGeneralType())),
 				/* Optional return expression */
-			LIST_NODE.create(
-				zeroOrOneOf(
-					PARSE_NODE.create(ANY.o()))),
+				LIST_NODE.create(
+					zeroOrOneOf(
+						PARSE_NODE.create(ANY.o()))),
 				/* Optional return type */
-			LIST_NODE.create(
-				zeroOrOneOf(
-					topMeta())),
+				LIST_NODE.create(
+					zeroOrOneOf(
+						topMeta())),
 				/* Optional tuple of exception types */
-			LIST_NODE.create(
-				zeroOrOneOf(
-					oneOrMoreOf(
-						exceptionType())))), BLOCK_NODE.mostGeneralType());
+				LIST_NODE.create(
+					zeroOrOneOf(
+						oneOrMoreOf(
+							exceptionType())))),
+			/* ...and produce a block node. */
+			BLOCK_NODE.mostGeneralType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(E_LOADING_IS_OVER, E_INCONSISTENT_PREFIX_FUNCTION));
+			set(
+				E_LOADING_IS_OVER,
+				E_INCONSISTENT_PREFIX_FUNCTION));
 	}
 }

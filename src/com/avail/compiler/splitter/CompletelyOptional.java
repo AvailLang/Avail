@@ -138,7 +138,7 @@ extends Expression
 		final boolean needsProgressCheck =
 			sequence.mightBeEmpty(emptyListNodeType());
 		final Label $expressionSkip = new Label();
-		generator.emit(this, BRANCH, $expressionSkip);
+		generator.emitBranchForward(this, $expressionSkip);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert !sequence.isArgumentOrGroup();
 		// The partialListsCount stays the same, in case there's a

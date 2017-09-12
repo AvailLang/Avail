@@ -34,7 +34,14 @@ package com.avail.environment;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.builder.*;
+import com.avail.builder.AvailBuilder;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ModuleRoot;
+import com.avail.builder.ModuleRoots;
+import com.avail.builder.RenamesFileParser;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.UnresolvedDependencyException;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.actions.*;
@@ -53,11 +60,18 @@ import com.avail.stacks.StacksGenerator;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 import com.sun.javafx.application.PlatformImpl;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.TabSet;
+import javax.swing.text.TabStop;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -74,7 +88,13 @@ import java.awt.event.WindowEvent;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
-import java.nio.file.*;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -87,6 +107,7 @@ import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import static com.avail.environment.AvailWorkbench.StreamStyle.*;
+import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.System.arraycopy;
@@ -206,9 +227,7 @@ extends JFrame
 		 */
 		protected final ResolvedModuleName targetModuleName ()
 		{
-			final ResolvedModuleName name = targetModuleName;
-			assert name != null;
-			return name;
+			return stripNull(targetModuleName);
 		}
 
 		/**
@@ -774,9 +793,7 @@ extends JFrame
 	 */
 	public BuildInputStream inputStream ()
 	{
-		final BuildInputStream stream = inputStream;
-		assert stream != null;
-		return stream;
+		return stripNull(inputStream);
 	}
 
 	/** The {@linkplain PrintStream standard error stream}. */
@@ -789,9 +806,7 @@ extends JFrame
 	 */
 	public PrintStream errorStream ()
 	{
-		final PrintStream stream = errorStream;
-		assert stream != null;
-		return stream;
+		return stripNull(errorStream);
 	}
 
 	/** The {@linkplain PrintStream standard output stream}. */
@@ -804,9 +819,7 @@ extends JFrame
 	 */
 	public PrintStream outputStream ()
 	{
-		final PrintStream stream = outputStream;
-		assert stream != null;
-		return stream;
+		return stripNull(outputStream);
 	}
 
 	/* UI components. */
@@ -1348,8 +1361,7 @@ extends JFrame
 			// Obtain the path associated with the module root.
 			assert root != null;
 			root.repository().reopenIfNecessary();
-			final File rootDirectory = root.sourceDirectory();
-			assert rootDirectory != null;
+			final File rootDirectory = stripNull(root.sourceDirectory());
 			try
 			{
 				Files.walkFileTree(

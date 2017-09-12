@@ -32,25 +32,41 @@
 
 package com.avail.persistence;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.bind.DatatypeConverter;
 import com.avail.annotations.InnerAccess;
-import javax.annotation.Nullable;
-import com.avail.builder.*;
+import com.avail.builder.ModuleRoot;
+import com.avail.builder.ResolvedModuleName;
 import com.avail.compiler.ModuleHeader;
 import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.serialization.Serializer;
 import com.avail.utility.evaluation.Transformer2;
+
+import javax.annotation.Nullable;
+import javax.xml.bind.DatatypeConverter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An {@code IndexedRepositoryManager} manages a persistent {@linkplain
@@ -190,9 +206,7 @@ public class IndexedRepositoryManager
 	 */
 	@InnerAccess IndexedRepository repository ()
 	{
-		final IndexedRepository repo = repository;
-		assert repo != null;
-		return repo;
+		return stripNull(repository);
 	}
 
 	/**
@@ -512,8 +526,7 @@ public class IndexedRepositoryManager
 			lock.lock();
 			try
 			{
-				final ModuleVersion version = versions.get(versionKey);
-				assert version != null;
+				final ModuleVersion version = stripNull(versions.get(versionKey));
 				assert version.getCompilation(compilationKey) == null;
 				version.compilations.put(compilationKey, compilation);
 				markDirty();

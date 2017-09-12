@@ -211,6 +211,10 @@ class InstructionGenerator
 		final ParsingOperation operation,
 		final Label label)
 	{
+		assert operation != BRANCH_FORWARD
+			&& operation != JUMP_FORWARD
+			&& operation != JUMP_BACKWARD
+			: "Use emitJumpForward() etc. to emit jumps and branches";
 		expressionList.add(expression);
 		if (label.position == -1)
 		{
@@ -248,6 +252,58 @@ class InstructionGenerator
 				pair.first() - 1, pair.second().encoding(label.position));
 		}
 		label.operationsToFix.clear();
+	}
+
+	/**
+	 * Emit a {@link ParsingOperation#JUMP_FORWARD jump-forward instruction}.
+	 * The target label must not have been emitted yet.
+	 *
+	 * @param label The label to jump forward to.
+	 */
+	final void emitJumpForward (
+		final Expression expression,
+		final Label label)
+	{
+		assert label.position == -1 : "Forward jumps must actually be forward";
+		expressionList.add(expression);
+		// Promise to resolve this when the label is emitted.
+		label.operationsToFix.add(
+			new Pair<>(instructions.size() + 1, JUMP_FORWARD));
+		instructions.add(placeholderInstruction);
+	}
+
+	/**
+	 * Emit a {@link ParsingOperation#JUMP_BACKWARD jump-backward instruction}.
+	 * The target label must have been emitted already.
+	 *
+	 * @param label The label to jump backward to.
+	 */
+	final void emitJumpBackward (
+		final Expression expression,
+		final Label label)
+	{
+		assert label.position != -1
+			: "Backward jumps must actually be backward";
+		expressionList.add(expression);
+		instructions.add(JUMP_BACKWARD.encoding(label.position));
+	}
+
+	/**
+	 * Emit a {@link ParsingOperation#BRANCH_FORWARD branch-forward
+	 * instruction}.  The target label must not have been emitted yet.
+	 *
+	 * @param label The label to branch forward to.
+	 */
+	final void emitBranchForward (
+		final Expression expression,
+		final Label label)
+	{
+		assert label.position == -1 : "Branches must be forward";
+		expressionList.add(expression);
+		// Promise to resolve this when the label is emitted.
+		label.operationsToFix.add(
+			new Pair<>(instructions.size() + 1, BRANCH_FORWARD));
+		instructions.add(placeholderInstruction);
 	}
 
 	/**
@@ -350,7 +406,9 @@ class InstructionGenerator
 		for (final int instruction : instructions)
 		{
 			final ParsingOperation operation = decode(instruction);
-			if (operation == JUMP || operation == BRANCH)
+			if (operation == JUMP_FORWARD
+				|| operation == JUMP_BACKWARD
+				|| operation == BRANCH_FORWARD)
 			{
 				// Adjust to zero-based.
 				final int target = operand(instruction) - 1;

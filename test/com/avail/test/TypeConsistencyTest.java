@@ -58,7 +58,6 @@ import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
 import static com.avail.descriptor.FiberTypeDescriptor.*;
-import static com.avail.descriptor.FunctionTypeDescriptor.Types;
 import static com.avail.descriptor.FunctionTypeDescriptor.*;
 import static com.avail.descriptor.InstanceMetaDescriptor.*;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
@@ -1009,8 +1008,7 @@ public class TypeConsistencyTest
 			}
 			for (final Node parentInnerNode : parentInnerNodes)
 			{
-				final Node outer = submap.get(parentInnerNode);
-				assert outer != null;
+				final Node outer = stripNull(submap.get(parentInnerNode));
 				parents.add(outer);
 			}
 			final Node newNode = new Node(

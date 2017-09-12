@@ -44,6 +44,7 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
@@ -89,15 +90,18 @@ extends L2Operation
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
 			destination,
-			functionType(tuple(
-				enumerationWith(tuple(
-					E_NO_METHOD.numericCode(),
-					E_NO_METHOD_DEFINITION.numericCode(),
-					E_AMBIGUOUS_METHOD_DEFINITION.numericCode(),
-					E_FORWARD_METHOD_DEFINITION.numericCode(),
-					E_ABSTRACT_METHOD_DEFINITION.numericCode())
-					.asSet()), METHOD.o(),
-				mostGeneralTupleType()), bottom()),
+			functionType(
+				tuple(
+					enumerationWith(
+						set(
+							E_NO_METHOD,
+							E_NO_METHOD_DEFINITION,
+							E_AMBIGUOUS_METHOD_DEFINITION,
+							E_FORWARD_METHOD_DEFINITION,
+							E_ABSTRACT_METHOD_DEFINITION)),
+					METHOD.o(),
+					mostGeneralTupleType()),
+				bottom()),
 			instruction);
 	}
 }

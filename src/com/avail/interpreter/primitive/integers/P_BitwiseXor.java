@@ -77,8 +77,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			integers(),
-			integers()), integers());
+		return functionType(
+			tuple(
+				integers(),
+				integers()),
+			integers());
 	}
 }

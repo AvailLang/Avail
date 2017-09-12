@@ -120,7 +120,9 @@ extends Primitive
 			emptyTuple(),
 			METHOD_DEFINER.bundle,
 			newListNode(
-				tuple(nameLiteral, newBlockNode(
+				tuple(
+					nameLiteral,
+					newBlockNode(
 					emptyTuple(),
 					0,
 					tuple(specialObjectLiteral),
@@ -139,14 +141,15 @@ extends Primitive
 			emptyTuple(),
 			CREATE_LITERAL_TOKEN.bundle,
 			newListNode(
-				tuple(getValue, syntheticLiteralNodeFor(
-					specialObjectLiteral.token().string()))),
+				tuple(
+					getValue,
+					syntheticLiteralNodeFor(
+						specialObjectLiteral.token().string()))),
 			literalTokenType(specialObjectLiteral.expressionType()));
 		final A_Phrase createLiteralNode = newSendNode(
 			emptyTuple(),
 			CREATE_LITERAL_PHRASE.bundle,
-			newListNode(
-				tuple(createLiteralToken)),
+			newListNode(tuple(createLiteralToken)),
 			LITERAL_NODE.create(specialObjectLiteral.expressionType()));
 		final A_Phrase defineMacro = newSendNode(
 			emptyTuple(),
@@ -167,18 +170,17 @@ extends Primitive
 		return interpreter.primitiveSuccess(
 			newSequence(
 				tuple(
-					newExpressionAsStatement(
-						defineMethod),
-					newExpressionAsStatement(
-						defineMacro))));
+					newExpressionAsStatement(defineMethod),
+					newExpressionAsStatement(defineMacro))));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			LITERAL_NODE.create(
-				oneOrMoreOf(CHARACTER.o())),
-			LITERAL_NODE.create(ANY.o())), SEQUENCE_NODE.mostGeneralType());
+		return functionType(
+			tuple(
+				LITERAL_NODE.create(oneOrMoreOf(CHARACTER.o())),
+				LITERAL_NODE.create(ANY.o())),
+			SEQUENCE_NODE.mostGeneralType());
 	}
 }

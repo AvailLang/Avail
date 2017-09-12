@@ -68,16 +68,16 @@ public final class P_CreateFunctionType extends Primitive
 		assert args.size() == 2;
 		final AvailObject argTypes = args.get(0);
 		final AvailObject returnType = args.get(1);
-		return interpreter.primitiveSuccess(
-			functionType(argTypes, returnType));
+		return interpreter.primitiveSuccess(functionType(argTypes, returnType));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			zeroOrMoreOf(
-				anyMeta()),
-			topMeta()), functionMeta());
+		return functionType(
+			tuple(
+				zeroOrMoreOf(anyMeta()),
+				topMeta()),
+			functionMeta());
 	}
 }

@@ -74,7 +74,9 @@ public final class P_LiteralTokenValue extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralLiteralTokenType()), ANY.o());
+		return functionType(
+			tuple(
+				mostGeneralLiteralTokenType()),
+			ANY.o());
 	}
 }

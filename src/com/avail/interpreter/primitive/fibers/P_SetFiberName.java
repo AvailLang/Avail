@@ -75,16 +75,17 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Fiber fiber = args.get(0);
 		final A_String name = args.get(1);
-		fiber.fiberNameGenerator(
-			() -> name);
+		fiber.fiberNameGenerator(() -> name);
 		return interpreter.primitiveSuccess(nil());
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralFiberType(),
-			stringType()), TOP.o());
+		return functionType(
+			tuple(
+				mostGeneralFiberType(),
+				stringType()),
+			TOP.o());
 	}
 }

@@ -37,9 +37,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 
-import static com.avail.interpreter.Interpreter.argumentOrLocalRegister;
 import static com.avail.interpreter.Interpreter.debugL1;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.fixedRegisterCount;
+
 /**
  * This is the first instruction of the L1 interpreter's on-ramp for resuming
  * after an interrupt.  The reified {@link A_Continuation} that was captured

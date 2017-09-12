@@ -43,6 +43,7 @@ import com.avail.descriptor.FiberDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.DeclarationNodeDescriptor.newVariable;
@@ -118,7 +119,7 @@ extends Primitive
 		final A_Phrase variableDeclaration =
 			newVariable(
 				nameToken, type, typeLiteral, initializationExpression);
-		final A_Phrase conflictingDeclaration =
+		final @Nullable A_Phrase conflictingDeclaration =
 			FiberDescriptor.addDeclaration(variableDeclaration);
 		if (conflictingDeclaration != null)
 		{
@@ -135,13 +136,14 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
+		return functionType(
+			tuple(
 				/* Variable name token */
-			LITERAL_NODE.create(TOKEN.o()),
+				LITERAL_NODE.create(TOKEN.o()),
 				/* Variable type */
-			LITERAL_NODE.create(anyMeta()),
+				LITERAL_NODE.create(anyMeta()),
 				/* Initialization expression */
-			EXPRESSION_NODE.create(ANY.o())),
+				EXPRESSION_NODE.create(ANY.o())),
 			LOCAL_VARIABLE_NODE.mostGeneralType());
 	}
 }

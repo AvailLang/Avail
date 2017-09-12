@@ -622,9 +622,7 @@ public final class AvailLoader
 	 */
 	public CompilationContext compilationContext ()
 	{
-		final CompilationContext context = compilationContext;
-		assert context != null;
-		return context;
+		return stripNull(compilationContext);
 	}
 
 	/** Used for extracting tokens from the source text. */
@@ -1095,8 +1093,7 @@ public final class AvailLoader
 						// Remove the appropriate forwarder plan from the
 						// bundle tree.
 						final A_DefinitionParsingPlan plan =
-							bundle.definitionParsingPlans().mapAt(
-								finalForward);
+							bundle.definitionParsingPlans().mapAt(finalForward);
 						final A_ParsingPlanInProgress planInProgress =
 							newPlanInProgress(plan, 1);
 						root.removePlanInProgress(planInProgress);
@@ -1113,16 +1110,14 @@ public final class AvailLoader
 				assert false : "Signature was already vetted";
 				return;
 			}
-			recordEffect(
-				new LoadingEffectToAddDefinition(newDefinition));
+			recordEffect(new LoadingEffectToAddDefinition(newDefinition));
 			for (final A_Bundle bundle : method.bundles())
 			{
 				if (ancestorModules.hasElement(
 					bundle.message().issuingModule()))
 				{
 					final A_DefinitionParsingPlan plan =
-						bundle.definitionParsingPlans().mapAt(
-							newDefinition);
+						bundle.definitionParsingPlans().mapAt(newDefinition);
 					final A_ParsingPlanInProgress planInProgress =
 						newPlanInProgress(plan, 1);
 					root.addPlanInProgress(planInProgress);
@@ -1573,7 +1568,7 @@ public final class AvailLoader
 	{
 		// Define a special root bundle tree that's only capable of parsing
 		// method headers.
-		moduleHeaderBundleRoot = newBundleTree();
+		moduleHeaderBundleRoot = newBundleTree(nil());
 
 		// Also define the LexicalScanner used for module headers.
 		moduleHeaderLexicalScanner = new LexicalScanner();

@@ -84,16 +84,17 @@ public final class P_TupleAt extends Primitive
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS);
 		}
-		return interpreter.primitiveSuccess(
-			tuple.tupleAt(index));
+		return interpreter.primitiveSuccess(tuple.tupleAt(index));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralTupleType(),
-			naturalNumbers()), ANY.o());
+		return functionType(
+			tuple(
+				mostGeneralTupleType(),
+				naturalNumbers()),
+			ANY.o());
 	}
 
 	@Override
@@ -118,7 +119,6 @@ public final class P_TupleAt extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS));
+		return enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS));
 	}
 }

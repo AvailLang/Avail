@@ -95,14 +95,11 @@ extends Primitive
 		final AvailObject addressTuple = args.get(1);
 		final AvailObject port = args.get(2);
 		final AvailObject backlog = args.get(3);
-		final AvailObject pojo =
-			handle.getAtomProperty(SERVER_SOCKET_KEY.atom);
+		final AvailObject pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom);
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				handle.isAtomSpecial()
-				? E_SPECIAL_ATOM
-				: E_INVALID_HANDLE);
+				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
 		final AsynchronousServerSocketChannel socket =
 			(AsynchronousServerSocketChannel) pojo.javaObjectNotNull();
@@ -147,21 +144,26 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			ATOM.o(),
-			tupleTypeForSizesTypesDefaultType(
-				singleInt(16),
-				emptyTuple(),
-				bytes()),
-			unsignedShorts(),
-			intRange()), TOP.o());
+		return functionType(
+			tuple(
+				ATOM.o(),
+				tupleTypeForSizesTypesDefaultType(
+					singleInt(16),
+					emptyTuple(),
+					bytes()),
+				unsignedShorts(),
+				intRange()),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_IO_ERROR,
+		return enumerationWith(
+			set(
+				E_INVALID_HANDLE,
+				E_SPECIAL_ATOM,
+				E_IO_ERROR,
 				E_PERMISSION_DENIED));
 	}
 }

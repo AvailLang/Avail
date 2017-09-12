@@ -47,6 +47,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * A {@code ModuleNameResolver} resolves fully-qualified references to Avail
  * {@linkplain ModuleDescriptor modules} to {@linkplain File#isAbsolute()
@@ -419,9 +421,7 @@ public final class ModuleNameResolver
 		 */
 		public ResolvedModuleName resolvedModule ()
 		{
-			final ResolvedModuleName resolved = resolvedModule;
-			assert resolved != null;
-			return resolved;
+			return stripNull(resolvedModule);
 		}
 
 		/**
@@ -431,9 +431,7 @@ public final class ModuleNameResolver
 		 */
 		public UnresolvedDependencyException exception ()
 		{
-			final UnresolvedDependencyException e = exception;
-			assert e != null;
-			return e;
+			return stripNull(exception);
 		}
 
 		/**
@@ -487,8 +485,7 @@ public final class ModuleNameResolver
 		throws UnresolvedDependencyException
 	{
 		final ModuleNameResolutionResult result =
-			resolutionCache.get(qualifiedName);
-		assert result != null;
+			stripNull(resolutionCache.get(qualifiedName));
 		if (!result.isResolved())
 		{
 			// The resolution failed.

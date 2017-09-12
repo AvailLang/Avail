@@ -76,7 +76,9 @@ public final class P_CompiledCodeFunctionType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralCompiledCodeType()), functionMeta());
+		return functionType(
+			tuple(
+				mostGeneralCompiledCodeType()),
+			functionMeta());
 	}
 }

@@ -83,25 +83,26 @@ extends Primitive
 		final A_Number truncationBits = args.get(2);
 		return interpreter.primitiveSuccess(
 			baseInteger.bitShiftLeftTruncatingToBits(
-				shiftFactor,
-				truncationBits,
-				true));
+				shiftFactor, truncationBits, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			wholeNumbers(),
-			integers(),
-			wholeNumbers()), wholeNumbers());
+		return functionType(
+			tuple(
+				wholeNumbers(),
+				integers(),
+				wholeNumbers()),
+			wholeNumbers());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return enumerationWith(set(
-			E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE,
-			E_TOO_LARGE_TO_REPRESENT));
+		return enumerationWith(
+			set(
+				E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE,
+				E_TOO_LARGE_TO_REPRESENT));
 	}
 }

@@ -34,7 +34,6 @@ package com.avail.interpreter.levelOne;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
-import com.avail.descriptor.DeclarationNodeDescriptor.*;
 import com.avail.utility.evaluation.Transformer1;
 
 import javax.annotation.Nullable;

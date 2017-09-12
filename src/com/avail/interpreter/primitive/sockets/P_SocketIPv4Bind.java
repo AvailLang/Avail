@@ -98,9 +98,7 @@ extends Primitive
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				handle.isAtomSpecial()
-				? E_SPECIAL_ATOM
-				: E_INVALID_HANDLE);
+				handle.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
 		final AsynchronousSocketChannel socket =
 			(AsynchronousSocketChannel) pojo.javaObjectNotNull();
@@ -144,20 +142,25 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			ATOM.o(),
-			tupleTypeForSizesTypesDefaultType(
-				singleInt(4),
-				emptyTuple(),
-				bytes()),
-			unsignedShorts()), TOP.o());
+		return functionType(
+			tuple(
+				ATOM.o(),
+				tupleTypeForSizesTypesDefaultType(
+					singleInt(4),
+					emptyTuple(),
+					bytes()),
+				unsignedShorts()),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_IO_ERROR,
+		return enumerationWith(
+			set(
+				E_INVALID_HANDLE,
+				E_SPECIAL_ATOM,
+				E_IO_ERROR,
 				E_PERMISSION_DENIED));
 	}
 }

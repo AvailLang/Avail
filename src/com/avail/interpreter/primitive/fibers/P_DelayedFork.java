@@ -60,6 +60,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 import static com.avail.exceptions.AvailErrorCode
 	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -95,7 +96,8 @@ extends Primitive
 
 		// Ensure that the function is callable with the specified arguments.
 		final int numArgs = argTuple.tupleSize();
-		if (function.code().numArgs() != numArgs)
+		final A_RawFunction code = function.code();
+		if (code.numArgs() != numArgs)
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -107,8 +109,7 @@ extends Primitive
 			final AvailObject anArg = argTuple.tupleAt(i);
 			if (!anArg.isInstanceOf(tupleType.typeAtIndex(i)))
 			{
-				return interpreter.primitiveFailure(
-					E_INCORRECT_ARGUMENT_TYPE);
+				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 			}
 			callArgs.add(anArg);
 		}
@@ -123,13 +124,11 @@ extends Primitive
 		final A_Fiber newFiber = newFiber(
 			function.kind().returnType(),
 			priority.extractInt(),
-			() ->
-			{
-				final A_RawFunction code = function.code();
-				return
-					formatString("Delayed fork, %s, %s:%d", code.methodName(),
-						code.module().moduleName(), code.startingLineNumber());
-			});
+			() -> formatString(
+				"Delayed fork, %s, %s:%d",
+				code.methodName(),
+				code.module().moduleName(),
+				code.startingLineNumber()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -143,28 +142,22 @@ extends Primitive
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
 		if (sleepMillis.equalsInt(0))
 		{
-			Interpreter.runOutermostFunction(
-				currentRuntime(),
-				newFiber,
-				function,
-				callArgs);
+			runOutermostFunction(
+				currentRuntime(), newFiber, function, callArgs);
 		}
 		// Otherwise, if the delay time isn't colossal, then schedule the fiber
 		// to start later.
 		else if (sleepMillis.isLong())
 		{
-			final AvailRuntime runtime = currentRuntime();
-			currentRuntime().timer.schedule(
+			final AvailRuntime runtime = interpreter.runtime();
+			runtime.timer.schedule(
 				new TimerTask()
 				{
 					@Override
 					public void run ()
 					{
-						Interpreter.runOutermostFunction(
-							runtime,
-							newFiber,
-							function,
-							callArgs);
+						runOutermostFunction(
+							runtime, newFiber, function, callArgs);
 					}
 				},
 				sleepMillis.extractLong());
@@ -175,20 +168,21 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			inclusive(
-				zero(),
-				positiveInfinity()),
-			functionTypeReturning(TOP.o()),
-			mostGeneralTupleType(),
-			bytes()), mostGeneralFiberType());
+		return functionType(
+			tuple(
+				inclusive(zero(), positiveInfinity()),
+				functionTypeReturning(TOP.o()),
+				mostGeneralTupleType(),
+				bytes()),
+			mostGeneralFiberType());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return enumerationWith(set(
-			E_INCORRECT_NUMBER_OF_ARGUMENTS,
-			E_INCORRECT_ARGUMENT_TYPE));
+		return enumerationWith(
+			set(
+				E_INCORRECT_NUMBER_OF_ARGUMENTS,
+				E_INCORRECT_ARGUMENT_TYPE));
 	}
 }

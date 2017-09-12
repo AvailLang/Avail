@@ -51,6 +51,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * {@code LRUCache} implements a memory-sensitive least-recently-used cache.
  * All public operations support concurrent access. It avoids redundant
@@ -852,10 +854,7 @@ public class LRUCache<K, V>
 	 */
 	public V getNotNull (final K key) throws RuntimeException
 	{
-		assert key != null;
-		final V value = get(key);
-		assert value != null;
-		return value;
+		return(stripNull(get(stripNull(key))));
 	}
 
 	/**
@@ -869,7 +868,7 @@ public class LRUCache<K, V>
 	 * @return The value associated with the key, or {@code null} if the key is
 	 *         not present or if the value has already been reclaimed.
 	 */
-	public V remove (final K key)
+	public @Nullable V remove (final K key)
 	{
 		lock();
 		try

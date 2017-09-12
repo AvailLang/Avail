@@ -32,12 +32,16 @@
 
 package com.avail.utility.fsm;
 
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Transformer1;
+
+import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
-import javax.annotation.Nullable;
-import com.avail.utility.evaluation.*;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code StateMachineFactory} enables a client to dynamically specify and
@@ -544,8 +548,7 @@ public final class StateMachineFactory<
 				guardMap,
 				actionMap);
 		}
-		final StateType startState = initialState;
-		assert startState != null;
+		final StateType startState = stripNull(initialState);
 		return new StateMachine<>(
 			startState,
 			actionKeyType,

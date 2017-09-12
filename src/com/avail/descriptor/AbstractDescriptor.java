@@ -93,6 +93,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.descriptor.Mutability.MUTABLE;
 import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 
 /**
@@ -700,8 +701,7 @@ public abstract class AbstractDescriptor
 					== null)
 			{
 				Strings.newlineTab(builder, indent);
-				final String slotName = slot.name();
-				assert slotName != null;
+				final String slotName = stripNull(slot.name());
 				final long value;
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
@@ -747,8 +747,7 @@ public abstract class AbstractDescriptor
 					== null)
 			{
 				Strings.newlineTab(builder, indent);
-				final String slotName = slot.name();
-				assert slotName != null;
+				final String slotName = stripNull(slot.name());
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
 					final int subscript = i - objectSlots.length + 1;
@@ -6661,4 +6660,37 @@ public abstract class AbstractDescriptor
 	 */
 	abstract A_RawFunction o_SuspendingRawFunction (
 		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsBackwardJump (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract A_BundleTree o_LatestBackwardJump (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_HasBackwardJump (final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract boolean o_IsSourceOfCycle (final AvailObject object);
+
+
+	/**
+	 * @param object
+	 * @param isSourceOfCycle
+	 */
+	abstract void o_IsSourceOfCycle (
+		final AvailObject object,
+		final boolean isSourceOfCycle);
 }

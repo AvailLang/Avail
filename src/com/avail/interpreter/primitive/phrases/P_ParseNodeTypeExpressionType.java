@@ -75,7 +75,9 @@ public final class P_ParseNodeTypeExpressionType extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			instanceMeta(PARSE_NODE.mostGeneralType())), topMeta());
+		return functionType(
+			tuple(
+				instanceMeta(PARSE_NODE.mostGeneralType())),
+			topMeta());
 	}
 }

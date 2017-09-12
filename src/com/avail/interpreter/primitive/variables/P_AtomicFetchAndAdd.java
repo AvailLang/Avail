@@ -99,11 +99,13 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			variableReadWriteType(
-				extendedIntegers(),
-				bottom()),
-			extendedIntegers()), extendedIntegers());
+		return functionType(
+			tuple(
+				variableReadWriteType(
+					extendedIntegers(),
+					bottom()),
+				extendedIntegers()),
+			extendedIntegers());
 	}
 
 	@Override
@@ -117,10 +119,12 @@ extends Primitive
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_CANNOT_READ_UNASSIGNED_VARIABLE,
+		return enumerationWith(
+			set(
+				E_CANNOT_READ_UNASSIGNED_VARIABLE,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD, E_JAVA_MARSHALING_FAILED,
+				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
+				E_JAVA_MARSHALING_FAILED,
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_CANNOT_ADD_UNLIKE_INFINITIES,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));

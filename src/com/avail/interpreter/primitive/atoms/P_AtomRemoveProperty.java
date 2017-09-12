@@ -106,15 +106,19 @@ public final class P_AtomRemoveProperty extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			ATOM.o(),
-			ATOM.o()), TOP.o());
+		return functionType(
+			tuple(
+				ATOM.o(),
+				ATOM.o()),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_NO_SUCH_FIELD, E_KEY_NOT_FOUND));
+		return enumerationWith(
+			set(
+				E_NO_SUCH_FIELD,
+				E_KEY_NOT_FOUND));
 	}
 }

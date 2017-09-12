@@ -184,9 +184,8 @@ extends A_BasicObject
 	 * <p>The type filter tree is used to quickly eliminate potential bundle
 	 * invocations based on the type of an argument that has just been parsed.
 	 * The argument's expression type is looked up in the tree, and the result
-	 * is which {@link A_BundleTree bundle tree} should be visited, having
-	 * eliminated all parsing possibilities where the argument was of an
-	 * unacceptable type.</p>
+	 * is which bundle tree should be visited, having eliminated all parsing
+	 * possibilities where the argument was of an unacceptable type.</p>
 	 *
 	 * <p>This is only authoritative if an {@link #expand(A_Module)} has been
 	 * invoked since the last modification via methods like {@link
@@ -213,4 +212,43 @@ extends A_BasicObject
 	 *        The parsing plan to exclude.
 	 */
 	void removePlanInProgress (A_ParsingPlanInProgress planInProgress);
+
+	/**
+	 * Answer the nearest ancestor bundle tree that contained a {@link
+	 * ParsingOperation#JUMP_BACKWARD}.  There may be closer ancestor bundle
+	 * trees with a backward jump, but that jump wasn't present in the bundle
+	 * tree yet.
+	 *
+	 * @return The nearest ancestor backward-jump-containing bundle tree.
+	 */
+	A_BundleTree latestBackwardJump ();
+
+	/**
+	 * Answer whether there are any parsing-plans-in-progress which are at a
+	 * backward jump.
+	 *
+	 * @return Whether there are any backward jumps.
+	 */
+	boolean hasBackwardJump ();
+
+	/**
+	 * Answer whether this bundle tree has been marked as the source of a cycle.
+	 * If so, the {@link #latestBackwardJump()} is the bundle tree at which to
+	 * continue processing.
+	 *
+	 * @return Whether the bundle tree is the source of a linkage to an
+	 * equivalent ancestor bundle tree.
+	 */
+	boolean isSourceOfCycle ();
+
+	/**
+	 * Set whether this bundle tree is the source of a cycle.  If so, the {@link
+	 * #latestBackwardJump()} must be the bundle tree at which to continue
+	 * processing.
+	 *
+	 * @param isSourceOfCycle
+	 *        Whether the bundle tree is the source of a linkage to an
+	 *        equivalent ancestor bundle tree.
+	 */
+	void isSourceOfCycle (boolean isSourceOfCycle);
 }

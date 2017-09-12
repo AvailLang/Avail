@@ -44,6 +44,8 @@ import java.io.Reader;
 import java.nio.charset.MalformedInputException;
 import java.util.Map;
 
+import static com.avail.utility.Nulls.stripNull;
+
 /**
  * A {@code RenamesFileParser} parses a {@linkplain File file} of Avail
  * {@linkplain ModuleDescriptor module} renaming rules and answers a
@@ -602,8 +604,7 @@ public final class RenamesFileParser
 				+ "file path");
 		}
 
-		final ModuleNameResolver theResolver = resolver;
-		assert theResolver != null;
+		final ModuleNameResolver theResolver = stripNull(resolver);
 		if (theResolver.hasRenameRuleFor(modulePath))
 		{
 			throw new RenamesFileParserException(

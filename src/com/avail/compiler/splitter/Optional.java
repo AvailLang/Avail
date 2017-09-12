@@ -155,7 +155,7 @@ extends Expression
 			sequence.mightBeEmpty(emptyListNodeType());
 		final Label $absent = new Label();
 		final Label $after = new Label();
-		generator.emit(this, BRANCH, $absent);
+		generator.emitBranchForward(this, $absent);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
 		sequence.emitOn(
@@ -165,7 +165,7 @@ extends Expression
 		generator.emitIf(
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION);
 		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForTrue());
-		generator.emit(this, JUMP, $after);
+		generator.emitJumpForward(this, $after);
 		generator.emit($absent);
 		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForFalse());
 		generator.emit($after);
@@ -194,7 +194,7 @@ extends Expression
 		generator.flushDelayed();
 		final Label $absent = new Label();
 		final Label $merge = new Label();
-		generator.emit(this, BRANCH, $absent);
+		generator.emitBranchForward(this, $absent);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		assert sequence.argumentsAreReordered != Boolean.TRUE;
 		sequence.emitOn(
@@ -206,7 +206,7 @@ extends Expression
 		continuation.value();
 		generator.flushDelayed();
 		generator.emit(this, PUSH_LITERAL, MessageSplitter.indexForTrue());
-		generator.emit(this, JUMP, $merge);
+		generator.emitJumpForward(this, $merge);
 		generator.emit($absent);
 		continuation.value();
 		generator.flushDelayed();

@@ -941,9 +941,7 @@ public final class AvailRuntime
 	 */
 	public ModuleNameResolver moduleNameResolver ()
 	{
-		final ModuleNameResolver resolver = moduleNameResolver;
-		assert resolver != null;
-		return resolver;
+		return stripNull(moduleNameResolver);
 	}
 
 	/**

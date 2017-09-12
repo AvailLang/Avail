@@ -123,7 +123,9 @@ public final class P_RestartContinuation extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralContinuationType()), bottom());
+		return functionType(
+			tuple(
+				mostGeneralContinuationType()),
+			bottom());
 	}
 }

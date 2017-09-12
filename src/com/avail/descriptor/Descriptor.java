@@ -4922,4 +4922,36 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	boolean o_IsBackwardJump (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	A_BundleTree o_LatestBackwardJump (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_HasBackwardJump (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	boolean o_IsSourceOfCycle (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	void o_IsSourceOfCycle (
+		final AvailObject object,
+		final boolean isSourceOfCycle)
+	{
+		throw unsupportedOperationException();
+	}
 }

@@ -51,6 +51,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.MessageSplitter
+	.circledNumberCodePoint;
 import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -408,7 +410,7 @@ extends Expression
 				assert maxSize > 0;
 				generator.emit(this, EMPTY_LIST);
 				hasWrapped = true;
-				generator.emit(this, BRANCH, $skip);
+				generator.emitBranchForward(this, $skip);
 			}
 			if (!hasWrapped && beforeDagger.hasSectionCheckpoints())
 			{
@@ -438,7 +440,7 @@ extends Expression
 						generator.emitWrapped(this, index);
 						hasWrapped = true;
 					}
-					generator.emit(this, BRANCH, $exit);
+					generator.emitBranchForward(this, $exit);
 				}
 				if (!hasWrapped
 					&& index == 1
@@ -470,10 +472,8 @@ extends Expression
 			if (endOfVariation < maxSize)
 			{
 				generator.flushDelayed();
-				generator.emit(
-					this,
-					BRANCH,
-					endOfVariation >= minSize ? $exit : $exitCheckMin);
+				generator.emitBranchForward(
+					this, endOfVariation >= minSize ? $exit : $exitCheckMin);
 				if (maxInteger.isFinite())
 				{
 					generator.emit(this, CHECK_AT_MOST, maxSize - 1);
@@ -482,7 +482,7 @@ extends Expression
 				generator.flushDelayed();
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
-				generator.emit(this, JUMP, $loopStart);
+				generator.emitJumpBackward(this, $loopStart);
 				if ($exitCheckMin.isUsed())
 				{
 					generator.emit($exitCheckMin);
@@ -566,7 +566,7 @@ extends Expression
 				assert maxSize > 0;
 				generator.emit(this, EMPTY_LIST);
 				hasWrapped = true;
-				generator.emit(this, BRANCH, $skip);
+				generator.emitBranchForward(this, $skip);
 			}
 			if (!hasWrapped
 				&& (beforeDagger.hasSectionCheckpoints()
@@ -593,7 +593,7 @@ extends Expression
 				if (index >= minSize)
 				{
 					generator.flushDelayed();
-					generator.emit(this, BRANCH, $exit);
+					generator.emitBranchForward(this, $exit);
 				}
 				emitDoubleWrappedAfterDaggerOn(generator, sublistPhraseType);
 				generator.flushDelayed();
@@ -617,10 +617,8 @@ extends Expression
 			generator.flushDelayed();
 			if (endOfVariation < maxSize)
 			{
-				generator.emit(
-					this,
-					BRANCH,
-					endOfVariation >= minSize ? $exit : $exitCheckMin);
+				generator.emitBranchForward(
+					this, endOfVariation >= minSize ? $exit : $exitCheckMin);
 				if (maxInteger.isFinite())
 				{
 					generator.emit(this, CHECK_AT_MOST, maxSize - 1);
@@ -630,13 +628,13 @@ extends Expression
 				generator.emit(this, APPEND_ARGUMENT);
 				generator.emitIf(
 					needsProgressCheck, this, ENSURE_PARSE_PROGRESS);
-				generator.emit(this, JUMP, $loopStart);
+				generator.emitJumpBackward(this, $loopStart);
 				if ($exitCheckMin.isUsed())
 				{
 					generator.emit($exitCheckMin);
 					generator.emit(this, APPEND_ARGUMENT);
 					generator.emit(this, CHECK_AT_LEAST, minSize);
-					generator.emit(this, JUMP, $mergedExit);
+					generator.emitJumpForward(this, $mergedExit);
 				}
 			}
 			generator.emit($exit);
@@ -853,7 +851,7 @@ extends Expression
 			if (e.canBeReordered() && e.explicitOrdinal() != -1)
 			{
 				builder.appendCodePoint(
-					MessageSplitter.circledNumberCodePoints[e.explicitOrdinal()]);
+					circledNumberCodePoint(e.explicitOrdinal()));
 			}
 			strings.add(builder.toString());
 		}

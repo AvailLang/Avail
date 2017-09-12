@@ -48,6 +48,8 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.splitter.MessageSplitter
+	.circledNumberCodePoint;
 import static com.avail.compiler.splitter.WrapState.*;
 import static com.avail.descriptor.ListNodeTypeDescriptor.emptyListNodeType;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
@@ -456,7 +458,7 @@ extends Expression
 			if (e.canBeReordered() && e.explicitOrdinal() != -1)
 			{
 				builder.appendCodePoint(
-					MessageSplitter.circledNumberCodePoints[e.explicitOrdinal()]);
+					circledNumberCodePoint(e.explicitOrdinal()));
 			}
 			first = false;
 		}

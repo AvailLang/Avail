@@ -78,8 +78,10 @@ extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralFiberType(),
-			bytes()), TOP.o());
+		return functionType(
+			tuple(
+				mostGeneralFiberType(),
+				bytes()),
+			TOP.o());
 	}
 }

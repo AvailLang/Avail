@@ -100,15 +100,17 @@ public final class P_ExitContinuationWithResult extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			mostGeneralContinuationType(),
-			ANY.o()), bottom());
+		return functionType(
+			tuple(
+				mostGeneralContinuationType(),
+				ANY.o()),
+			bottom());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_CONTINUATION_EXPECTED_STRONGER_TYPE));
+		return enumerationWith(
+			set(E_CONTINUATION_EXPECTED_STRONGER_TYPE));
 	}
 }

@@ -109,10 +109,11 @@ public final class P_BootstrapLexerWhitespaceBody extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(
-			stringType(),
-			naturalNumbers(),
-			naturalNumbers()), zeroOrMoreOf(
-			TOKEN.o()));
+		return functionType(
+			tuple(
+				stringType(),
+				naturalNumbers(),
+				naturalNumbers()),
+			zeroOrMoreOf(TOKEN.o()));
 	}
 }

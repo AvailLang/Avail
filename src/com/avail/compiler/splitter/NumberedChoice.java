@@ -177,7 +177,7 @@ extends Expression
 			final boolean last = index == numAlternatives;
 			if (!last)
 			{
-				generator.emit(this, BRANCH, $next);
+				generator.emitBranchForward(this, $next);
 			}
 			final Expression alternative =
 				alternation.alternatives().get(index);
@@ -193,7 +193,7 @@ extends Expression
 					fromInt(index + 1)));
 			if (!last)
 			{
-				generator.emit(this, JUMP, $exit);
+				generator.emitJumpForward(this, $exit);
 				generator.emit($next);
 			}
 		}

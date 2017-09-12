@@ -32,7 +32,16 @@
 
 package com.avail.server.io;
 
-import static com.avail.server.AvailServer.logger;
+import com.avail.annotations.InnerAccess;
+import com.avail.server.AvailServer;
+import com.avail.server.messages.Message;
+import com.avail.utility.IO;
+import com.avail.utility.MutableOrNull;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+
+import javax.annotation.Nullable;
+import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -44,17 +53,16 @@ import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
-import javax.xml.bind.DatatypeConverter;
-import com.avail.annotations.InnerAccess;
-import javax.annotation.Nullable;
-import com.avail.server.AvailServer;
-import com.avail.server.messages.Message;
-import com.avail.utility.IO;
-import com.avail.utility.MutableOrNull;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
+
+import static com.avail.server.AvailServer.logger;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * A {@code WebSocketAdapter} provides a WebSocket interface to an {@linkplain
@@ -1268,9 +1276,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 */
 		Opcode opcode ()
 		{
-			final Opcode op = opcode;
-			assert op != null;
-			return op;
+			return stripNull(opcode);
 		}
 
 		/** The length of the payload. */
@@ -1289,9 +1295,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 */
 		ByteBuffer maskingKey ()
 		{
-			final ByteBuffer buffer = maskingKey;
-			assert buffer != null;
-			return buffer;
+			return stripNull(maskingKey);
 		}
 
 		/**
@@ -1308,9 +1312,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		 */
 		ByteBuffer payloadData ()
 		{
-			final ByteBuffer buffer = payloadData;
-			assert buffer != null;
-			return buffer;
+			return stripNull(payloadData);
 		}
 
 		/**
@@ -1997,8 +1999,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						buffer.flip();
 						if (frame.isMasked)
 						{
-							final ByteBuffer mask = frame.maskingKey;
-							assert mask != null;
+							final ByteBuffer mask = stripNull(frame.maskingKey);
 							for (int i = 0; i < frame.payloadLength; i++)
 							{
 								final int j = i & 3;
