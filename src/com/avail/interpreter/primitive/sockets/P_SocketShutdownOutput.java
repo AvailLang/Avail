@@ -94,7 +94,7 @@ extends Primitive
 		try
 		{
 			socket.shutdownOutput();
-			return interpreter.primitiveSuccess(nil());
+			return interpreter.primitiveSuccess(nil);
 		}
 		catch (final IllegalStateException e)
 		{

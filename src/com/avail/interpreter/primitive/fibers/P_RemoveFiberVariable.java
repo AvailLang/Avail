@@ -110,7 +110,7 @@ extends Primitive
 			fiber.fiberGlobals(
 				globals.mapWithoutKeyCanDestroy(key, true));
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

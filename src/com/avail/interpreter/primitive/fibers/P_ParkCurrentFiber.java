@@ -96,7 +96,7 @@ extends Primitive
 			}
 			else
 			{
-				result.value = interpreter.primitiveSuccess(nil());
+				result.value = interpreter.primitiveSuccess(nil);
 			}
 		});
 		return result.value();

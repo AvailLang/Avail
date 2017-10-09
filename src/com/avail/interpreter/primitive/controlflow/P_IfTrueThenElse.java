@@ -38,8 +38,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.optimizer.L1NaiveTranslator;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -97,15 +97,16 @@ public final class P_IfTrueThenElse extends Primitive
 	 * the trueBlock), then answer the register holding the trueBlock.
 	 */
 	@Override
-	public @Nullable L2ObjectRegister foldOutInvoker (
-		final List<L2ObjectRegister> args,
+	public @Nullable
+	L2ReadPointerOperand foldOutInvoker (
+		final List<L2ReadPointerOperand> args,
 		final L1NaiveTranslator naiveTranslator)
 	{
 		assert hasFlag(Invokes);
 		assert !hasFlag(CanInline);
 		assert !hasFlag(CanFold);
 
-		final L2ObjectRegister functionReg = args.get(1);
+		final L2ReadPointerOperand functionReg = args.get(1);
 		args.clear();
 		return functionReg;
 	}

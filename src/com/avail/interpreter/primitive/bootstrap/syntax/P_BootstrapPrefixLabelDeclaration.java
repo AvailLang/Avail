@@ -134,7 +134,7 @@ extends Primitive
 			// If the label doesn't specify a return type, use bottom.  Because
 			// of continuation return type contravariance, this is the most
 			// general answer.
-			labelReturnTypePhrase = nil();
+			labelReturnTypePhrase = nil;
 			labelReturnType = bottom();
 		}
 
@@ -176,7 +176,7 @@ extends Primitive
 				conflictingDeclaration.declarationKind().nativeKindName(),
 				conflictingDeclaration.token().lineNumber());
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

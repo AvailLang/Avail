@@ -96,8 +96,8 @@ extends Primitive
 			// we've already forgotten about the handle. There's no reason
 			// to fail the primitive.
 		}
-		atom.setAtomProperty(FILE_KEY.atom, nil());
-		return interpreter.primitiveSuccess(nil());
+		atom.setAtomProperty(FILE_KEY.atom, nil);
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

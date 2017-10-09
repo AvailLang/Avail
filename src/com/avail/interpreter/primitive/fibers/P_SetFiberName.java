@@ -76,7 +76,7 @@ extends Primitive
 		final A_Fiber fiber = args.get(0);
 		final A_String name = args.get(1);
 		fiber.fiberNameGenerator(() -> name);
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

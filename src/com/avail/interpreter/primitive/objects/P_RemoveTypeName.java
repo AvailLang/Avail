@@ -80,7 +80,7 @@ public final class P_RemoveTypeName extends Primitive
 		name.makeImmutable();
 		userType.makeImmutable();
 		removeNameFromType(name, userType);
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

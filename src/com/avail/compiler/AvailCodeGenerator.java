@@ -225,7 +225,7 @@ public final class AvailCodeGenerator
 		if (statementsCount == 0
 			&& (primitive == null || primitive.canHaveNybblecodes()))
 		{
-			generator.emitPushLiteral(nil());
+			generator.emitPushLiteral(nil);
 		}
 		else
 		{
@@ -246,7 +246,7 @@ public final class AvailCodeGenerator
 					// 2) is top-valued and ends with an assignment. Push the
 					// nil object as the return value.
 					lastStatement.emitEffectOn(generator);
-					generator.emitPushLiteral(nil());
+					generator.emitPushLiteral(nil);
 				}
 				else
 				{

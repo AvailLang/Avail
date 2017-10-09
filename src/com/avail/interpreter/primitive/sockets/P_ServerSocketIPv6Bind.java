@@ -118,7 +118,7 @@ extends Primitive
 			final SocketAddress address =
 				new InetSocketAddress(inetAddress, port.extractUnsignedShort());
 			socket.bind(address, backlogInt);
-			return interpreter.primitiveSuccess(nil());
+			return interpreter.primitiveSuccess(nil);
 		}
 		catch (final IllegalStateException e)
 		{

@@ -47,9 +47,8 @@ import static com.avail.descriptor.LinearMapBinDescriptor
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
- * {@code NilDescriptor} implements the Avail {@linkplain #nil() null
- * object}, the sole instance of the invisible and uninstantiable root type, ⊤
- * (pronounced top).
+ * {@code NilDescriptor} implements the Avail {@linkplain #nil} value, the sole
+ * instance of the invisible and uninstantiable root type, ⊤ (pronounced top).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -124,7 +123,7 @@ extends Descriptor
 		final A_BasicObject key,
 		final int keyHash)
 	{
-		return nil();
+		return nil;
 	}
 
 	@Override
@@ -170,7 +169,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link NilDescriptor}.
+	 * Construct a new {@code NilDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -210,16 +209,6 @@ extends Descriptor
 		return shared;
 	}
 
-	/** The sole instance of {@linkplain #nil() nil}. */
-	private static final AvailObject soleInstance = shared.create();
-
-	/**
-	 * Answer the sole instance of nil.
-	 *
-	 * @return The sole instance of the nil.
-	 */
-	public static AvailObject nil ()
-	{
-		return soleInstance;
-	}
+	/** The sole instance of {@code NilDescriptor}, called "nil". */
+	public static final AvailObject nil = shared.create();
 }

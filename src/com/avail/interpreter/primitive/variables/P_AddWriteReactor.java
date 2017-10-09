@@ -97,7 +97,7 @@ extends Primitive
 		final VariableAccessReactor writeReactor =
 			new VariableAccessReactor(sharedFunction);
 		var.addWriteReactor(key, writeReactor);
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

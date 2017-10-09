@@ -175,7 +175,7 @@ extends Descriptor
 		 * A {@linkplain RawPojoDescriptor raw pojo} holding a {@link
 		 * LookupTree} used to determine the most specific method definition
 		 * that satisfies the supplied argument types.  A {@linkplain
-		 * NilDescriptor#nil() nil} indicates the tree has not yet been
+		 * NilDescriptor#nil nil} indicates the tree has not yet been
 		 * constructed.
 		 */
 		PRIVATE_TESTING_TREE,
@@ -210,7 +210,7 @@ extends Descriptor
 		 * (implemented as the {@linkplain Map#keySet() key set} of a {@link
 		 * WeakHashMap}) of {@link L2Chunk}s that depend on the membership of
 		 * this method.  A change to the membership will invalidate all such
-		 * chunks.  This field holds the {@linkplain NilDescriptor#nil() nil}
+		 * chunks.  This field holds the {@linkplain NilDescriptor#nil nil}
 		 * object initially.
 		 */
 		DEPENDENT_CHUNKS_WEAK_SET_POJO,
@@ -226,13 +226,13 @@ extends Descriptor
 		 * A {@linkplain RawPojoDescriptor raw pojo} holding a {@link
 		 * LookupTree} used to determine the most specific {@linkplain
 		 * MacroDefinitionDescriptor macro definition} that satisfies the
-		 * supplied argument types.  A {@linkplain NilDescriptor#nil() nil}
+		 * supplied argument types.  A {@linkplain NilDescriptor#nil nil}
 		 * indicates the tree has not yet been constructed.
 		 */
 		MACRO_TESTING_TREE,
 
 		/**
-		 * The method's {@linkplain A_Lexer lexer} or {@link NilDescriptor#nil()
+		 * The method's {@linkplain A_Lexer lexer} or {@link NilDescriptor#nil
 		 * nil}.
 		 */
 		LEXER_OR_NIL;
@@ -555,7 +555,8 @@ extends Descriptor
 		final A_Tuple argumentTypeTuple)
 	throws MethodDefinitionException
 	{
-		@SuppressWarnings("unchecked") final LookupTree<A_Definition, A_Tuple, Void> tree =
+		@SuppressWarnings("unchecked")
+		final LookupTree<A_Definition, A_Tuple, Void> tree =
 			(LookupTree<A_Definition, A_Tuple, Void>)
 				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple resultTuple = runtimeDispatcher.lookupByTypes(
@@ -574,7 +575,8 @@ extends Descriptor
 		final List<? extends A_BasicObject> argumentList)
 	throws MethodDefinitionException
 	{
-		@SuppressWarnings("unchecked") final LookupTree<A_Definition, A_Tuple, Void> tree =
+		@SuppressWarnings("unchecked")
+		final LookupTree<A_Definition, A_Tuple, Void> tree =
 			(LookupTree<A_Definition, A_Tuple, Void>)
 				object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple results = runtimeDispatcher.lookupByValues(
@@ -600,7 +602,8 @@ extends Descriptor
 		final A_Tuple argumentPhraseTuple)
 	throws MethodDefinitionException
 	{
-		@SuppressWarnings("unchecked") final LookupTree<A_Definition, A_Tuple, Void> tree =
+		@SuppressWarnings("unchecked")
+		final LookupTree<A_Definition, A_Tuple, Void> tree =
 			(LookupTree<A_Definition, A_Tuple, Void>)
 				object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple results =
@@ -905,7 +908,7 @@ extends Descriptor
 		result.setSlot(
 			MACRO_TESTING_TREE,
 			identityPojo(macrosTree).makeShared());
-		result.setSlot(LEXER_OR_NIL, nil());
+		result.setSlot(LEXER_OR_NIL, nil);
 		result.makeShared();
 		return result;
 	}
@@ -1255,20 +1258,20 @@ extends Descriptor
 			for (final Primitive primitive : primitives)
 			{
 				final A_Function function = newPrimitiveFunction(
-					primitive, nil(), 0);
+					primitive, nil, 0);
 				final A_Definition definition;
 				if (createMethodOrMacro == CREATE_METHOD)
 				{
 					definition = newMethodDefinition(
 						method,
-						nil(),  // System defs have no module.
+						nil,  // System defs have no module.
 						function);
 				}
 				else
 				{
 					definition = newMacroDefinition(
 						method,
-						nil(),  // System defs have no module.
+						nil,  // System defs have no module.
 						function,
 						emptyTuple());
 				}

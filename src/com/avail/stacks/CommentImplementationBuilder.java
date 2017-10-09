@@ -1141,7 +1141,9 @@ public final class CommentImplementationBuilder
 						categories, aliases, parameters, returns.get(0), raises,
 						!stickies.isEmpty());
 				}
-			} else {
+			}
+			else
+			{
 				if (macros.size() > 1)
 				{
 					final String errorMessage = String.format("\n<li><strong>%s"

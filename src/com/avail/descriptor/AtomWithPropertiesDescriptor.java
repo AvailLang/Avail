@@ -200,7 +200,7 @@ extends AtomDescriptor
 	 *
 	 * <p>
 	 * Extract the property value of this atom at the specified key.  Return
-	 * {@linkplain NilDescriptor#nil() nil} if no such property exists.
+	 * {@linkplain NilDescriptor#nil nil} if no such property exists.
 	 * </p>
 	 */
 	@Override @AvailMethod
@@ -214,7 +214,7 @@ extends AtomDescriptor
 		final Map<A_Atom, AvailObject> propertyMap =
 			(Map<A_Atom, AvailObject>) propertyMapPojo.javaObjectNotNull();
 		final A_BasicObject value = propertyMap.get(key);
-		return value == null ? nil() : (AvailObject) value;
+		return value == null ? nil : (AvailObject) value;
 	}
 
 	/**

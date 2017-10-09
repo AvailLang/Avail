@@ -212,7 +212,7 @@ extends Descriptor
 	{
 		if (isMutable())
 		{
-			object.setSlot(OUTER_VAR_AT_, index, nil());
+			object.setSlot(OUTER_VAR_AT_, index, nil);
 			return true;
 		}
 		return false;
@@ -315,9 +315,9 @@ extends Descriptor
 		}
 		final A_Type returnType = functionType.returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			nil(),
+			nil,
 			0,
-			nil());
+			nil);
 		writer.argumentTypes(argTypesArray);
 		writer.returnType(returnType);
 		writer.write(
@@ -362,9 +362,9 @@ extends Descriptor
 		final A_Type tupleType = tupleTypeForTypes(argTypesArray);
 		final A_Type returnType = function.kind().returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			nil(),
+			nil,
 			0,
-			nil());
+			nil);
 		writer.argumentTypes(tupleType);
 		writer.returnType(returnType);
 		writer.write(
@@ -430,7 +430,7 @@ extends Descriptor
 	 *        The phrase to compile to a function.
 	 * @param module
 	 *        The {@linkplain ModuleDescriptor module} that is the context for
-	 *        the phrase and function, or {@linkplain NilDescriptor#nil() nil}
+	 *        the phrase and function, or {@linkplain NilDescriptor#nil nil}
 	 *        if there is no context.
 	 * @param lineNumber
 	 *        The line number to attach to the new function, or {@code 0} if no
@@ -481,7 +481,7 @@ extends Descriptor
 		final int lineNumber)
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			module, lineNumber, nil());
+			module, lineNumber, nil);
 		writer.primitive(primitive);
 		final A_Type functionType = primitive.blockTypeRestriction();
 		final A_Type argsTupleType = functionType.argsTupleType();
@@ -536,7 +536,7 @@ extends Descriptor
 		final A_Tuple paramTypes)
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			nil(), 0, nil());
+			nil, 0, nil);
 		writer.argumentTypesTuple(paramTypes);
 		writer.returnType(bottom());
 		writer.write(

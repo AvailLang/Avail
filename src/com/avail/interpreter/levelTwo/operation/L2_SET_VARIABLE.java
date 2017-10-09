@@ -40,8 +40,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
@@ -64,7 +64,8 @@ extends L2Operation
 		new L2_SET_VARIABLE().init(
 			READ_POINTER.is("variable"),
 			READ_POINTER.is("value to write"),
-			PC.is("without reactors"));
+			PC.is("write succeeded"),
+			PC.is("write failed"));
 
 	@Override
 	public void step (
@@ -74,18 +75,21 @@ extends L2Operation
 		final L2ObjectRegister variableReg =
 			instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
-		final int withoutReactors = instruction.pcAt(2);
+		final int succeeded = instruction.pcOffsetAt(2);
+		final int failed = instruction.pcOffsetAt(3);
 
 		final AvailObject value = valueReg.in(interpreter);
 		final A_Variable variable = variableReg.in(interpreter);
 		try
 		{
 			variable.setValue(value);
-			interpreter.offset(withoutReactors);
+			// Jump to the success offset.
+			interpreter.offset(succeeded);
 		}
 		catch (final VariableSetException e)
 		{
-			// Fall through to the next instruction.
+			// Jump to the failure offset.
+			interpreter.offset(failed);
 		}
 	}
 
@@ -131,7 +135,8 @@ extends L2Operation
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				instruction.operands[0],
 				instruction.operands[1],
-				instruction.operands[2]);
+				instruction.operands[2],
+				instruction.operands[3]);
 			return true;
 		}
 		return super.regenerate(instruction, registerSet, naiveTranslator);

@@ -33,7 +33,11 @@
 package com.avail.interpreter.primitive.fibers;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -43,7 +47,8 @@ import java.util.TimerTask;
 
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.ASLEEP;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED;
-import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED;
+import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
+	.TERMINATION_REQUESTED;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.zero;
@@ -88,7 +93,7 @@ extends Primitive
 		// make sleep and yield behave differently.
 		if (sleepMillis.equalsInt(0))
 		{
-			return interpreter.primitiveSuccess(nil());
+			return interpreter.primitiveSuccess(nil);
 		}
 		final A_Fiber fiber = interpreter.fiber();
 		// If the requested sleep time isn't colossally big, then arrange for
@@ -118,7 +123,7 @@ extends Primitive
 							Interpreter.resumeFromSuccessfulPrimitive(
 								runtime,
 								fiber,
-								nil(),
+								nil,
 								primitiveRawFunction,
 								true);
 						}
@@ -138,7 +143,7 @@ extends Primitive
 					Interpreter.resumeFromSuccessfulPrimitive(
 						runtime,
 						fiber,
-						nil(),
+						nil,
 						primitiveRawFunction,
 						true);
 					return;
@@ -165,7 +170,7 @@ extends Primitive
 					Interpreter.resumeFromSuccessfulPrimitive(
 						runtime,
 						fiber,
-						nil(),
+						nil,
 						primitiveRawFunction,
 						true);
 					return;

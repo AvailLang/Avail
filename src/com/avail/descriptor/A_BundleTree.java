@@ -179,7 +179,7 @@ extends A_BasicObject
 
 	/**
 	 * If this message bundle tree has a type filter tree, return the raw pojo
-	 * holding it, otherwise {@link NilDescriptor#nil()}.
+	 * holding it, otherwise {@link NilDescriptor#nil}.
 	 *
 	 * <p>The type filter tree is used to quickly eliminate potential bundle
 	 * invocations based on the type of an argument that has just been parsed.

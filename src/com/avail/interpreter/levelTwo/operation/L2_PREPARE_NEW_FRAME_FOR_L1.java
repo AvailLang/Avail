@@ -55,6 +55,7 @@ import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.levelTwo.L2Chunk
 	.offsetToResumeInterruptedUnoptimizedChunk;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * This operation is only used when entering a function that uses the
@@ -85,8 +86,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 		final Interpreter interpreter)
 	throws ReifyStackThrowable
 	{
-		final A_Function function = interpreter.function;
-		assert function != null;
+		final A_Function function = stripNull(interpreter.function);
 		final A_RawFunction code = function.code();
 		final int numArgs = code.numArgs();
 		final int numLocals = code.numLocals();
@@ -114,7 +114,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 		// use Java nulls here.
 		while (dest <= numSlots)
 		{
-			interpreter.pointerAtPut(dest++, nil());
+			interpreter.pointerAtPut(dest++, nil);
 		}
 		interpreter.levelOneStepper.pc = 1;
 		interpreter.levelOneStepper.stackp = numSlots + 1;
@@ -139,7 +139,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 			final A_Continuation continuation =
 				createContinuationExceptFrame(
 					function,
-					nil(),
+					nil,
 					1,  // start of function
 					numSlots + 1,   // empty stack
 					interpreter.skipReturnCheck,

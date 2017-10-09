@@ -69,7 +69,7 @@ import static com.avail.interpreter.Primitive.Flag.CanInline;
  * assignments used as subexpressions), we actually produce a {@linkplain
  * SequenceNodeDescriptor sequence node} here, consisting of the assignment
  * node proper (whose output is effectively discarded) and a literal
- * {@linkplain NilDescriptor#nil() null value}.</p>
+ * {@linkplain NilDescriptor#nil null value}.</p>
  */
 public final class P_CreateAssignmentStatement extends Primitive
 {

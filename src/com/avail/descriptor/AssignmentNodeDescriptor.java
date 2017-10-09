@@ -198,7 +198,7 @@ extends ParseNodeDescriptor
 			// the assigned value, since it's *not* an inlined assignment.
 			declarationKind.emitVariableAssignmentForOn(
 				declaration, codeGenerator);
-			codeGenerator.emitPushLiteral(nil());
+			codeGenerator.emitPushLiteral(nil);
 		}
 	}
 

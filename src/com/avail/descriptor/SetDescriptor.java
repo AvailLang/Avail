@@ -104,7 +104,7 @@ extends Descriptor
 	/**
 	 * Replace the {@code SetDescriptor set}'s root {@linkplain
 	 * SetBinDescriptor bin}. The replacement may be the {@link
-	 * NilDescriptor#nil() nil} to indicate an empty map.
+	 * NilDescriptor#nil nil} to indicate an empty map.
 	 *
 	 * @param set
 	 *        The set (must not be an indirection).

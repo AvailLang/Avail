@@ -50,8 +50,7 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation
 	.L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 import javax.annotation.Nullable;
@@ -65,6 +64,7 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.optimizer.L2Translator.newLabel;
 
 /**
  * <strong>Primitive:</strong> If the second argument, a {@linkplain A_Function
@@ -114,8 +114,9 @@ public final class P_CastIntoElse extends Primitive
 	}
 
 	@Override
-	public @Nullable L2ObjectRegister foldOutInvoker (
-		final List<L2ObjectRegister> args,
+	public @Nullable
+	L2ReadPointerOperand foldOutInvoker (
+		final List<L2ReadPointerOperand> args,
 		final L1NaiveTranslator naiveTranslator)
 	{
 		// Don't fold out the invoker here.  Generate the ordinary call, but
@@ -140,7 +141,7 @@ public final class P_CastIntoElse extends Primitive
 			instruction.readObjectRegisterAt(0);
 //		final L2ObjectRegister invokerFunctionReg =
 //			instruction.readObjectRegisterAt(1);
-		final L2RegisterVector invokerArgumentsVector =
+		final List<L2ReadPointerOperand> invokerArgumentsVector =
 			instruction.readVectorRegisterAt(2);
 //		final int skipCheck = instruction.immediateAt(3);
 
@@ -172,13 +173,12 @@ public final class P_CastIntoElse extends Primitive
 			// creation instruction itself.  Give up.
 			return false;
 		}
-		final L2Instruction elseLabel = naiveTranslator.newLabel("cast failed");
+		final L2Instruction elseLabel = newLabel("cast failed");
 		final L2Instruction afterIntoCallLabel =
-			naiveTranslator.newLabel("after into call of cast");
+			newLabel("after into call of cast");
 		final L2Instruction afterElseCallLabel =
-			naiveTranslator.newLabel("after else call of cast");
-		final L2Instruction afterAllLabel =
-			naiveTranslator.newLabel("after entire cast");
+			newLabel("after else call of cast");
+		final L2Instruction afterAllLabel = newLabel("after entire cast");
 
 		// Inline a type-test and branch...
 		final L2ObjectRegister typeReg = naiveTranslator.newObjectRegister();
@@ -219,8 +219,8 @@ public final class P_CastIntoElse extends Primitive
 				naiveTranslator.createVector(
 					Collections.singletonList(valueReg))),
 			new L2ImmediateOperand(0));
-		naiveTranslator.unreachableCode(
-			naiveTranslator.newLabel("unreachable after into call of cast"));
+		naiveTranslator.addUnreachableCode(
+			newLabel("unreachable after into call of cast"));
 		naiveTranslator.addLabel(afterIntoCallLabel);
 		naiveTranslator.addInstruction(
 			L2_JUMP.instance,
@@ -254,8 +254,8 @@ public final class P_CastIntoElse extends Primitive
 				naiveTranslator.createVector(
 					Collections.emptyList())),
 			new L2ImmediateOperand(0));
-		naiveTranslator.unreachableCode(
-			naiveTranslator.newLabel("unreachable after else call of cast"));
+		naiveTranslator.addUnreachableCode(
+			newLabel("unreachable after else call of cast"));
 		naiveTranslator.addLabel(afterElseCallLabel);
 		naiveTranslator.addLabel(afterAllLabel);
 		return true;

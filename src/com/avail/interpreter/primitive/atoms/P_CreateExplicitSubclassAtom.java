@@ -88,7 +88,7 @@ public final class P_CreateExplicitSubclassAtom extends Primitive
 		final A_Atom atom;
 		if (loader == null)
 		{
-			atom = createAtom(name, nil());
+			atom = createAtom(name, nil);
 			atom.setAtomProperty(
 				EXPLICIT_SUBCLASSING_KEY.atom,
 				EXPLICIT_SUBCLASSING_KEY.atom);

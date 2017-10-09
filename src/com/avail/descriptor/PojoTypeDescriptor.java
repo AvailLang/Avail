@@ -793,7 +793,7 @@ extends TypeDescriptor
 					(Class<?>) rawType.javaObjectNotNull();
 				if (!javaClass.isAssignableFrom(mostSpecific))
 				{
-					return nil();
+					return nil;
 				}
 			}
 		}

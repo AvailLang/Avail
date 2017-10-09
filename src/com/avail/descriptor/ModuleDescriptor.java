@@ -167,7 +167,7 @@ extends Descriptor
 		 * {@linkplain DeclarationKind#MODULE_VARIABLE
 		 * module variables} are never accessible outside the module in which
 		 * they are defined, this slot is overwritten with {@linkplain
-		 * NilDescriptor#nil() nil} when module compilation is complete.
+		 * NilDescriptor#nil nil} when module compilation is complete.
 		 */
 		VARIABLE_BINDINGS,
 
@@ -177,7 +177,7 @@ extends Descriptor
 		 * DeclarationKind#MODULE_CONSTANT module
 		 * constants} are never accessible outside the module in which they are
 		 * defined, this slot is overwritten with {@linkplain
-		 * NilDescriptor#nil() nil} when module compilation is complete.
+		 * NilDescriptor#nil nil} when module compilation is complete.
 		 */
 		CONSTANT_BINDINGS,
 
@@ -713,7 +713,7 @@ extends Descriptor
 			final AvailRuntime runtime = aLoader.runtime();
 			final A_Tuple unloadFunctions =
 				object.slot(UNLOAD_FUNCTIONS).tupleReverse();
-			object.setSlot(UNLOAD_FUNCTIONS, nil());
+			object.setSlot(UNLOAD_FUNCTIONS, nil);
 			// Run unload functions, asynchronously but serially, in reverse
 			// order.
 			aLoader.runUnloadFunctions(
@@ -768,7 +768,7 @@ extends Descriptor
 						for (final A_Lexer lexer : object.slot(LEXERS))
 						{
 							lexer.lexerMethod().setLexer(
-								nil());
+								nil);
 						}
 					}
 					afterRemoval.value();
@@ -868,7 +868,7 @@ extends Descriptor
 	A_BundleTree o_BuildFilteredBundleTree (
 		final AvailObject object)
 	{
-		final A_BundleTree filteredBundleTree = newBundleTree(nil());
+		final A_BundleTree filteredBundleTree = newBundleTree(nil);
 		synchronized (object)
 		{
 			final A_Set ancestors = object.slot(ALL_ANCESTORS);
@@ -1002,7 +1002,7 @@ extends Descriptor
 	{
 		final AvailObject module = mutable.create();
 		module.setSlot(NAME, moduleName);
-		module.setSlot(ALL_ANCESTORS, nil());
+		module.setSlot(ALL_ANCESTORS, nil);
 		module.setSlot(VERSIONS, emptySet());
 		module.setSlot(NEW_NAMES, emptyMap());
 		module.setSlot(IMPORTED_NAMES, emptyMap());
@@ -1070,7 +1070,7 @@ extends Descriptor
 	 * FiberDescriptor#currentFiber() current fiber}.
 	 *
 	 * @return The module currently undergoing loading, or {@linkplain
-	 *         NilDescriptor#nil() nil} if the current fiber is not a loader
+	 *         NilDescriptor#nil nil} if the current fiber is not a loader
 	 *         fiber.
 	 */
 	public static A_Module currentModule ()
@@ -1079,7 +1079,7 @@ extends Descriptor
 		final @Nullable AvailLoader loader = fiber.availLoader();
 		if (loader == null)
 		{
-			return nil();
+			return nil;
 		}
 		return loader.module();
 	}

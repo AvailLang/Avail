@@ -139,7 +139,7 @@ extends Primitive
 				}
 			}
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

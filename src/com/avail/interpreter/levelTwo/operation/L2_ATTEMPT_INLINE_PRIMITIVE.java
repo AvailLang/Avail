@@ -40,14 +40,16 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Attempt to perform the specified primitive, using the provided arguments.
@@ -88,7 +90,7 @@ extends L2Operation
 			CONSTANT.is("expected type"),
 			WRITE_POINTER.is("primitive result"),
 			WRITE_POINTER.is("primitive failure value"),
-			READWRITE_VECTOR.is("preserved fields"),
+			READ_POINTER.is("preserved fields"),
 			PC.is("if primitive succeeds"),
 			PC.is("if primitive fails"));
 
@@ -99,22 +101,23 @@ extends L2Operation
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
 		final A_Function function = instruction.constantAt(1);
-		final L2RegisterVector argumentsVector =
+		final List<L2ReadPointerOperand> argumentsVector =
 			instruction.readVectorRegisterAt(2);
 		final A_Type expectedType = instruction.constantAt(3);
-		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(4);
-		final L2ObjectRegister failureReg =
+		final L2WritePointerOperand resultReg =
+			instruction.writeObjectRegisterAt(4);
+		final L2WritePointerOperand failureReg =
 			instruction.writeObjectRegisterAt(5);
-		final int successOffset = instruction.pcAt(7);
-		final int failureOffset = instruction.pcAt(8);
+		final int successOffset = instruction.pcOffsetAt(7);
+		final int failureOffset = instruction.pcOffsetAt(8);
 
 		interpreter.argsBuffer.clear();
-		for (final L2ObjectRegister register : argumentsVector)
+		for (final L2ReadPointerOperand register : argumentsVector)
 		{
 			interpreter.argsBuffer.add(register.in(interpreter));
 		}
 		assert function.code().primitive() == primitive;
-		final A_Function savedFunction = interpreter.function;
+		final A_Function savedFunction = stripNull(interpreter.function);
 		interpreter.function = function;
 		// We'll check the return type on success, below.
 		final Result res = interpreter.attemptPrimitive(
@@ -170,8 +173,9 @@ extends L2Operation
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
 		final A_Type expectedType = instruction.constantAt(3);
-		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(4);
-		final L2ObjectRegister failureValueReg =
+		final L2WritePointerOperand resultReg =
+			instruction.writeObjectRegisterAt(4);
+		final L2WritePointerOperand failureValueReg =
 			instruction.writeObjectRegisterAt(5);
 
 		final RegisterSet successRegisterSet = registerSets.get(1);
@@ -197,13 +201,12 @@ extends L2Operation
 
 	/**
 	 * Answer the register that will hold the top-of-stack register of the given
-	 * continuation creation
-	 * instruction's stack pointer.
+	 * continuation creation instruction's stack pointer.
 	 *
 	 * @param instruction
 	 *        The continuation creation instruction.
 	 * @return The stack pointer of the continuation to be created by the
-	 *         give instruction.
+	 *         given instruction.
 	 */
 	@Override
 	public final L2ObjectRegister primitiveResultRegister (

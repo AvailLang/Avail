@@ -113,7 +113,7 @@ extends Exception
 	 *
 	 * @param alreadyReifiedContinuation
 	 *            The previously reified continuation just beyond the current
-	 *            layers being reified.  Can be {@linkplain NilDescriptor#nil()}
+	 *            layers being reified.  Can be {@linkplain NilDescriptor#nil}
 	 *            to indicate the outermost execution frame.
 	 * @return The fully assembled reified continuation.
 	 */
@@ -140,7 +140,7 @@ extends Exception
 	 * as this continuation's caller after calling {@link
 	 * #assembleContinuation(A_Continuation)}.  The passed continuation must not
 	 * only be mutable, but must have a {@linkplain A_Continuation#caller()
-	 * caller} of {@linkplain NilDescriptor#nil() nil}.
+	 * caller} of {@linkplain NilDescriptor#nil nil}.
 	 *
 	 * @param mutableContinuation The mutable continuation to push.
 	 */

@@ -127,13 +127,13 @@ public final class P_BootstrapAssignmentStatementMacro extends Primitive
 			final A_BasicObject variableObject =
 				module.variableBindings().mapAt(variableNameString);
 			declaration = newModuleVariable(
-				actualToken, variableObject, nil(), nil());
+				actualToken, variableObject, nil, nil);
 		}
 		else if (module.constantBindings().hasKey(variableNameString))
 		{
 			final A_BasicObject variableObject =
 				module.constantBindings().mapAt(variableNameString);
-			declaration = newModuleConstant(actualToken, variableObject, nil());
+			declaration = newModuleConstant(actualToken, variableObject, nil);
 		}
 
 		if (declaration == null)

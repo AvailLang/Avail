@@ -144,7 +144,7 @@ extends Descriptor
 	{
 		/**
 		 * The continuation that invoked this one, or {@linkplain
-		 * NilDescriptor#nil() nil} for the outermost continuation. When a
+		 * NilDescriptor#nil nil} for the outermost continuation. When a
 		 * continuation is not directly created by a {@linkplain
 		 * L1Operation#L1Ext_doPushLabel push-label instruction}, it will have a
 		 * type pushed on it. This type is checked against any value that the
@@ -474,7 +474,7 @@ extends Descriptor
 		while (slotIndex <= frameSize)
 		{
 			// All the remaining slots.  DO NOT capture or build locals.
-			cont.argOrLocalOrStackAtPut(slotIndex, nil());
+			cont.argOrLocalOrStackAtPut(slotIndex, nil);
 			slotIndex++;
 		}
 		return cont;

@@ -128,7 +128,7 @@ extends Descriptor
 		 * A {@link RawPojoDescriptor raw pojo} holding the {@link LexingState}
 		 * after this token.
 		 *
-		 * <p>The field is typically {@link NilDescriptor#nil() nil}, to
+		 * <p>The field is typically {@link NilDescriptor#nil nil}, to
 		 * indicate the {@link LexingState} should be looked up by position (and
 		 * line number) via {@link CompilationContext#lexingStateAt(int, int)}.
 		 * </p>
@@ -335,7 +335,7 @@ extends Descriptor
 		final @Nullable LexingState lexingState)
 	{
 		final AvailObject pojo = lexingState == null
-			? nil()
+			? nil
 			: identityPojo(lexingState).makeShared();
 		object.setSlot(NEXT_LEXING_STATE_POJO, pojo);
 	}
@@ -401,7 +401,7 @@ extends Descriptor
 	/**
 	 * Create and initialize a new {@linkplain TokenDescriptor token}.  The
 	 * {@link ObjectSlots#NEXT_LEXING_STATE_POJO} is initially set to {@link
-	 * NilDescriptor#nil()}.  This indicates that the next lexing state can be
+	 * NilDescriptor#nil}.  This indicates that the next lexing state can be
 	 * found by examining the {@link CompilationContext#lexingStateAt(int,
 	 * int)}, adding the length of the string to {@link IntegerSlots#START} for
 	 * the next lexing position, and adding the number of line feeds ({@code
@@ -434,11 +434,11 @@ extends Descriptor
 		instance.setSlot(STRING, string);
 		instance.setSlot(LEADING_WHITESPACE, leadingWhitespace);
 		instance.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
-		instance.setSlot(LOWER_CASE_STRING, nil());
+		instance.setSlot(LOWER_CASE_STRING, nil);
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, tokenType.ordinal());
-		instance.setSlot(NEXT_LEXING_STATE_POJO, nil());
+		instance.setSlot(NEXT_LEXING_STATE_POJO, nil);
 		return instance;
 	}
 

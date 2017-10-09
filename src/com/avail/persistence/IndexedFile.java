@@ -47,7 +47,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -65,13 +64,11 @@ import static com.avail.utility.Nulls.stripNull;
  * {@code IndexedFile}s are record journals. Records may be {@linkplain
  * #add(byte[]) appended}, explicitly {@linkplain #commit() committed}, and
  * {@linkplain #get(long) looked up by record number}. A single arbitrary
- * {@linkplain #metaData()} metadatum can be {@linkplain #metaData(byte[])
- * attached} to a indexed file (and will be replaced by subsequent attachments).
- * Concurrent read access is supported for multiple {@linkplain Thread threads},
- * drivers, and {@linkplain Process OS processes}. Only one writer is permitted.
- *
- * <p>{@code IndexedFile} conforms to {@link AbstractList}, but does not support
- * replacement of elements.</p>
+ * {@linkplain #metaData()} metadata section can be {@linkplain
+ * #metaData(byte[]) attached} to an indexed file (and will be replaced by
+ * subsequent attachments). Concurrent read access is supported for multiple
+ * {@linkplain Thread threads}, drivers, and {@linkplain Process OS processes}.
+ * Only one writer is permitted.
  *
  * <p>Only subclasses of {@code IndexedFile} are intended for direct use. A
  * subclass must implement {@link #headerBytes() headerBytes}.</p>
@@ -81,7 +78,6 @@ import static com.avail.utility.Nulls.stripNull;
  * @author Skatje Myers &lt;skatje.myers@gmail.com&gt;
  */
 public abstract class IndexedFile
-extends AbstractList<byte[]>
 {
 	/**
 	 * The {@linkplain ReentrantReadWriteLock lock} that guards against unsafe
@@ -191,12 +187,12 @@ extends AbstractList<byte[]>
 		}
 
 		/**
-		 * Construct a new {@link ByteArrayOutputStream}.
+		 * Construct a new {@code ByteArrayOutputStream}.
 		 *
 		 * @param size
 		 *        The initial size of the backing byte array.
 		 */
-		public ByteArrayOutputStream (final int size)
+		ByteArrayOutputStream (final int size)
 		{
 			super(size);
 		}
@@ -242,7 +238,7 @@ extends AbstractList<byte[]>
 		byte[] lastPartialBuffer;
 
 		/**
-		 * Construct a new {@link MasterNode}.
+		 * Construct a new master node.
 		 *
 		 * @param serialNumber
 		 *        The serial number.
@@ -254,7 +250,7 @@ extends AbstractList<byte[]>
 			this.serialNumber = serialNumber;
 			this.fileLimit = fileLimit;
 			this.rawBytes = new ByteArrayOutputStream(
-				compressionBlockSize * 3 / 2);
+				compressionBlockSize * 3 >> 1);
 			this.uncompressedData = new DataOutputStream(rawBytes);
 			this.lastPartialBuffer = new byte[pageSize];
 			this.orphansByLevel = new ArrayList<>();
@@ -262,10 +258,9 @@ extends AbstractList<byte[]>
 		}
 
 		/**
-		 * Serialize the {@linkplain MasterNode master node} into the specified
-		 * {@linkplain ByteBuffer buffer}. The {@linkplain ByteBuffer#position()
-		 * position} of the {@linkplain #masterNodeBuffer master node buffer}
-		 * will be {@code 0} after the call returns.
+		 * Serialize the master node into the specified {@link ByteBuffer}. The
+		 * {@link ByteBuffer#position()} of the {@link #masterNodeBuffer} will
+		 * be {@code 0} after the call returns.
 		 *
 		 * @param buffer
 		 *        The output buffer into which the master node should be
@@ -309,7 +304,7 @@ extends AbstractList<byte[]>
 			buffer.put(new byte[pageSize - buffer.position()]);
 			assert buffer.position() == pageSize;
 			buffer.put(lastPartialBuffer);
-			assert buffer.position() == pageSize * 2;
+			assert buffer.position() == pageSize << 1;
 			buffer.put(rawBytes.unsafeBytes(), 0, rawBytes.size());
 			buffer.put(new byte[compressionBlockSize - rawBytes.size()]);
 			assert buffer.position() == buffer.capacity();
@@ -343,7 +338,7 @@ extends AbstractList<byte[]>
 	 */
 	@InnerAccess int masterNodeSize ()
 	{
-		return pageSize * 2 + compressionBlockSize;
+		return (pageSize << 1) + compressionBlockSize;
 	}
 
 	/**
@@ -402,8 +397,7 @@ extends AbstractList<byte[]>
 		 */
 		long filePosition ()
 		{
-			final Long position = stripNull(first());
-			return position;
+			return first();
 		}
 
 		/**
@@ -414,8 +408,7 @@ extends AbstractList<byte[]>
 		 */
 		int blockPosition ()
 		{
-			final Integer position = stripNull(second());
-			return position;
+			return second();
 		}
 
 		@Override
@@ -439,7 +432,7 @@ extends AbstractList<byte[]>
 		}
 
 		/**
-		 * Construct a new {@link RecordCoordinates}.
+		 * Construct a new {@code RecordCoordinates}.
 		 *
 		 * @param filePosition
 		 *        The absolute position within the {@linkplain IndexedFile
@@ -509,8 +502,9 @@ extends AbstractList<byte[]>
 						while (!inflater.needsInput())
 						{
 							final byte[] buffer =
-								new byte[compressionBlockSize * 3 / 2];
-							size += (bufferPos = inflater.inflate(buffer));
+								new byte[(compressionBlockSize * 3 >> 1)];
+							bufferPos = inflater.inflate(buffer);
+							size += bufferPos;
 							buffers.add(buffer);
 						}
 						final ByteBuffer inflated = ByteBuffer.wrap(
@@ -536,7 +530,7 @@ extends AbstractList<byte[]>
 
 	/**
 	 * Answer the NUL-terminated header bytes that uniquely identify a
-	 * particular usage of the core {@linkplain IndexedFile indexed file}
+	 * particular usage of the core {@code IndexedFile indexed file}
 	 * technology.
 	 *
 	 * @return An array of bytes that uniquely identifies the purpose of the
@@ -546,7 +540,7 @@ extends AbstractList<byte[]>
 
 	/**
 	 * Acquire an exclusive {@linkplain FileLock file lock} on the last byte of
-	 * a logical 64-bit file range. This prevents other conformant {@linkplain
+	 * a logical 64-bit file range. This prevents other conforming {@linkplain
 	 * IndexedFile indexed file} drivers (operating in other OS processes) from
 	 * deciding that they can also write to the file.
 	 *
@@ -607,8 +601,7 @@ extends AbstractList<byte[]>
 	}
 
 	/**
-	 * Appends the given bytes to the virtual end of the {@linkplain IndexedFile
-	 * indexed file}.
+	 * Appends the given bytes to the virtual end of the {@code IndexedFile}.
 	 *
 	 * @param bytes
 	 *        The byte array to be appended.
@@ -649,7 +642,7 @@ extends AbstractList<byte[]>
 
 	/**
 	 * Append the 32-bit size and the contents of the specified byte array to
-	 * the virtual end of the [{@linkplain IndexedFile indexed file}.
+	 * the virtual end of the indexed file.
 	 *
 	 * @param compressedBytes A compressed byte array.
 	 * @throws IOException
@@ -686,7 +679,7 @@ extends AbstractList<byte[]>
 	/**
 	 * If the {@linkplain MasterNode#uncompressedData compression buffer} has
 	 * filled up, then actually compress its contents and append them to the
-	 * virtual end of the {@linkplain IndexedFile indexed file}.
+	 * virtual end of the indexed file.
 	 *
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
@@ -697,21 +690,14 @@ extends AbstractList<byte[]>
 		{
 			final ByteArrayOutputStream compressedStream =
 				new ByteArrayOutputStream(compressionBlockSize);
-			DeflaterOutputStream stream = null;
-			try
+			final Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION);
+			try (final DeflaterOutputStream stream =
+				     new DeflaterOutputStream(compressedStream, deflater))
 			{
-				final Deflater deflater =
-					new Deflater(Deflater.BEST_COMPRESSION);
-				stream = new DeflaterOutputStream(compressedStream, deflater);
 				stream.write(
 					master().rawBytes.unsafeBytes(),
 					0,
 					master().rawBytes.size());
-			}
-			finally
-			{
-				assert stream != null;
-				stream.close();
 			}
 			while (master().fileLimit + 4 + compressedStream.size()
 				>= file().length())
@@ -729,13 +715,12 @@ extends AbstractList<byte[]>
 	}
 
 	/**
-	 * Create the physical {@linkplain IndexedFile indexed file}. The initial
-	 * contents are created in memory and then written to a temporary file. Once
-	 * the header and master blocks have been written, the argument {@linkplain
-	 * Continuation0 action} is performed. Finally the temporary file is renamed
-	 * to the canonical filename. When the call returns, {@link #file} and
-	 * {@link #channel} are live and a write lock is held on the physical
-	 * indexed file.
+	 * Create the physical indexed file. The initial contents are created in
+	 * memory and then written to a temporary file. Once the header and master
+	 * blocks have been written, the argument {@linkplain Continuation0 action}
+	 * is performed. Finally the temporary file is renamed to the canonical
+	 * filename. When the call returns, {@link #file} and {@link #channel} are
+	 * live and a write lock is held on the physical indexed file.
 	 *
 	 * @param action
 	 *        An action to perform after the header and master blocks have been
@@ -815,9 +800,9 @@ extends AbstractList<byte[]>
 	}
 
 	/**
-	 * Answer the current version of the {@linkplain IndexedFile indexed file}
-	 * technology used by the class. This is the version that will be used for
-	 * new persistent indexed files.
+	 * Answer the current version of the indexed file technology used by the
+	 * class. This is the version that will be used for new persistent indexed
+	 * files.
 	 *
 	 * @return The current version.
 	 */
@@ -889,7 +874,7 @@ extends AbstractList<byte[]>
 		b.position(pageSize);
 		final byte[] lastPageContents = new byte[pageSize];
 		b.get(lastPageContents);
-		assert b.position() == pageSize * 2;
+		assert b.position() == pageSize << 1;
 		node.lastPartialBuffer = lastPageContents;
 		final byte[] uncompressed = new byte[compressionBlockSize];
 		b.get(uncompressed);
@@ -1050,8 +1035,6 @@ extends AbstractList<byte[]>
 	 * @param startingLevel
 	 *        The height of the search tree (0 for leaves).
 	 * @return A record.
-	 * @throws IOException
-	 *         If an {@linkplain IOException I/O exception} occurs.
 	 */
 	private byte[] recordAtZeroBasedIndex (
 		final long startingIndex,
@@ -1088,12 +1071,9 @@ extends AbstractList<byte[]>
 	}
 
 	/**
-	 * Add a portion of the given record to the {@linkplain IndexedFile indexed
-	 * file}. <em>Do not {@linkplain #commit() commit} the data.</em>
+	 * Add a portion of the given record to the indexed file. <em>Do not
+	 * {@linkplain #commit() commit} the data.</em>
 	 *
-	 * @param index
-	 *        The index at which to add the specified record. Must be equal to
-	 *        the {@linkplain #longSize() size} of the indexed file.
 	 * @param record
 	 *        The record which contains data that should be added to the indexed
 	 *        file.
@@ -1108,26 +1088,20 @@ extends AbstractList<byte[]>
 	 *         If something else goes wrong.
 	 */
 	public void add (
-			final long index,
-			final byte[] record,
-			final int start,
-			final int length)
-		throws IndexOutOfBoundsException, IndexedFileException
+		final byte[] record,
+		final int start,
+		final int length)
+	throws IndexOutOfBoundsException, IndexedFileException
 	{
 		lock.writeLock().lock();
 		try
 		{
-			if (index != longSize())
-			{
-				throw new IndexOutOfBoundsException(
-					"indexed files may only append records.");
-			}
-			final RecordCoordinates coords = new RecordCoordinates(
+			final RecordCoordinates coordinates = new RecordCoordinates(
 				master().fileLimit, master().rawBytes.size());
 			master().uncompressedData.writeInt(length);
 			master().uncompressedData.write(record, start, length);
 			compressAndFlushIfFull();
-			addOrphan(coords, 0);
+			addOrphan(coordinates, 0);
 		}
 		catch (final IOException e)
 		{
@@ -1140,70 +1114,23 @@ extends AbstractList<byte[]>
 	}
 
 	/**
-	 * Add the given record to the {@linkplain IndexedFile indexed file}.
-	 * <em>Do not {@linkplain #commit() commit} the data.</em>
-	 *
-	 * @param index
-	 *        The index at which to add the specified record. Must be equal to
-	 *        the {@linkplain #longSize() size} of the indexed file.
-	 * @param record
-	 *        The record which should be added to the indexed file.
-	 * @throws IndexOutOfBoundsException
-	 *         If the specified index is not equal to the size of the indexed
-	 *         file.
-	 * @throws IndexedFileException
-	 *         If something else goes wrong.
-	 */
-	public void add (final long index, final byte[] record)
-		throws IndexOutOfBoundsException, IndexedFileException
-	{
-		add(index, record, 0, record.length);
-	}
-
-	/**
-	 * Add the given record to the {@linkplain IndexedFile indexed file}.
-	 * <em>Do not {@linkplain #commit() commit} the data.</em>
-	 *
-	 * @param index
-	 *        The index at which to add the specified record. Must be equal to
-	 *        the {@linkplain #longSize() size} of the indexed file.
-	 * @param record
-	 *        The record which should be added to the indexed file.
-	 * @throws IndexOutOfBoundsException
-	 *         If the specified index is not equal to the size of the indexed
-	 *         file.
-	 * @throws IndexedFileException
-	 *         If something else goes wrong.
-	 */
-	@Override
-	public void add (final int index, final @Nullable byte[] record)
-		throws IndexOutOfBoundsException, IndexedFileException
-	{
-		assert record != null;
-		add((long) index, record);
-	}
-
-	/**
-	 * Add the given record to the end of the {@linkplain IndexedFile indexed
-	 * file}. <em>Do not {@linkplain #commit() commit} the data.</em>
+	 * Add the given record to the end of the indexed file. <em>Do not
+	 * {@linkplain #commit() commit} the data.</em>
 	 *
 	 * @param record
 	 *        The record which should be added to the indexed file.
 	 * @throws IndexedFileException
 	 *         If something else goes wrong.
 	 */
-	@Override
-	public boolean add (final @Nullable byte[] record)
+	public boolean add (final byte[] record)
 		throws IndexedFileException
 	{
-		assert record != null;
-		add(longSize(), record);
+		add(record, 0, record.length);
 		return true;
 	}
 
 	/**
-	 * Close the {@linkplain IndexedFile indexed file}. No further API calls are
-	 * permitted.
+	 * Close the indexed file. No further API calls are permitted.
 	 */
 	public void close ()
 	{
@@ -1275,9 +1202,9 @@ extends AbstractList<byte[]>
 	}
 
 	/**
-	 * Commit the {@linkplain IndexedFile indexed file}. In particular, write
-	 * out the current master node to the underlying {@linkplain File file} and
-	 * force a synchronization of the file's data and metadata buffers to disk.
+	 * Commit the indexed file. In particular, write out the current master node
+	 * to the underlying {@linkplain File file} and force a synchronization of
+	 * the file's data and metadata buffers to disk.
 	 *
 	 * @throws IOException
 	 *         If an {@linkplain IOException I/O exception} occurs.
@@ -1315,15 +1242,14 @@ extends AbstractList<byte[]>
 
 	/**
 	 * Answer the minimum number of uncompressed bytes at the virtualized end of
-	 * a {@linkplain IndexedFile indexed file}. Once this many uncompressed
-	 * bytes have accumulated, then they will be compressed. Since uncompressed
-	 * data must be written to a master node during a commit, this value should
-	 * not be too large; but since compression efficiency improves as block size
-	 * increases, this value should not be too small. A small multiple of the
-	 * {@linkplain #pageSize page size} is optimal.
+	 * an indexed file. Once this many uncompressed bytes have accumulated, then
+	 * they will be compressed. Since uncompressed data must be written to a
+	 * master node during a commit, this value should not be too large; but
+	 * since compression efficiency improves as block size increases, this value
+	 * should not be too small. A small multiple of the {@linkplain #pageSize
+	 * page size} is optimal.
 	 *
-	 * @return The compression threshold of the {@linkplain IndexedFile indexed
-	 *         file}.
+	 * @return The compression threshold of the indexed file.
 	 */
 	public int compressionBlockSize ()
 	{
@@ -1331,14 +1257,13 @@ extends AbstractList<byte[]>
 	}
 
 	/**
-	 * Answer the index node arity of the {@linkplain IndexedFile indexed file}.
-	 * The index node arity is the maximum number of children that an index node
-	 * may possess. Higher arity reduces the depth of an index tree but
-	 * increases the linear extent of a master node, i.e. it will require more
-	 * space dedicated to tracking orphans at various levels of the index tree.
+	 * Answer the index node arity of the indexed file. The index node arity is
+	 * the maximum number of children that an index node may possess. Higher
+	 * arity reduces the depth of an index tree but increases the linear extent
+	 * of a master node, i.e. it will require more space dedicated to tracking
+	 * orphans at various levels of the index tree.
 	 *
-	 * @return The index node arity of the {@linkplain IndexedFile indexed
-	 *         file}.
+	 * @return The index node arity of the indexed file.
 	 */
 	public int fanout ()
 	{
@@ -1406,18 +1331,12 @@ extends AbstractList<byte[]>
 		}
 	}
 
-	@Override
-	public byte[] get (final int index)
-	{
-		return get((long) index);
-	}
-
 	/**
-	 * Answer the size of the {@linkplain IndexedFile indexed file}, in records.
+	 * Answer the size of the indexed file, in records.
 	 *
 	 * @return The number of records contained in the indexed file.
 	 */
-	public long longSize ()
+	public long size ()
 	{
 		lock.readLock().lock();
 		try
@@ -1597,24 +1516,12 @@ extends AbstractList<byte[]>
 	}
 
 	@Override
-	public int size ()
-	{
-		final long size = longSize();
-		if (size != (int) size)
-		{
-			throw new IndexedFileException(
-				"indexed file contains more than 2^31-1 records.");
-		}
-		return (int) size;
-	}
-
-	@Override
 	public String toString ()
 	{
 		return String.format(
 			"%s[%d] (for %s)",
 			getClass().getSimpleName(),
-			longSize(),
+			size(),
 			fileReference);
 	}
 

@@ -63,7 +63,7 @@ public class L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int target = instruction.pcAt(0);
+		final int target = instruction.pcOffsetAt(0);
 		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
 		final A_Number constant = instruction.constantAt(2);
 

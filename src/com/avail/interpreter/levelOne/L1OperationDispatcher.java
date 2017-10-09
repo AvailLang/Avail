@@ -54,7 +54,7 @@ public interface L1OperationDispatcher
 	 * knows how many to expect). The first argument was pushed first, and
 	 * is the deepest on the stack. Use these arguments to look up the
 	 * method dynamically. Before invoking the method, push {@linkplain
-	 * NilDescriptor#nil() nil} onto the stack. Its presence will help
+	 * NilDescriptor#nil nil} onto the stack. Its presence will help
 	 * distinguish continuations produced by the pushLabel instruction from
 	 * their senders. When the call completes (if ever) by using an implicit
 	 * return instruction, it will replace this nil with the result of the call.

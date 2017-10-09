@@ -122,7 +122,7 @@ extends Primitive
 		}
 		function.code().setMethodName(
 			formatString("Semantic restriction of %s", atom.atomName()));
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /**
- * Transformer0.java
+ * L2_GET_CURRENT_FUNCTION.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -30,38 +30,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.evaluation;
+package com.avail.interpreter.levelTwo.operation;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
- * Implementors of {@code Transformer0} provide a single arbitrary operation
- * that accepts zero arguments and produces a result.
+ * Ask the {@link Interpreter} for the current function, writing it into the
+ * provided register.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @param <X> The type of value produced by the operation.
  */
-public interface Transformer0 <X>
+public class L2_GET_CURRENT_FUNCTION extends L2Operation
 {
 	/**
-	 * Perform the operation.
-	 *
-	 * @return The result of performing the operation.
+	 * Initialize the sole instance.
 	 */
-	@Nullable X value ();
+	public static final L2Operation instance =
+		new L2_GET_CURRENT_FUNCTION().init(
+			WRITE_POINTER.is("current function"));
 
-	/**
-	 * Perform the operation, then assert a {@link Nonnull} condition for the
-	 * result as a convenience.
-	 *
-	 * @return The non-null transformed value.
-	 */
-	default X valueNotNull ()
+	@Override
+	public void step (
+		final L2Instruction instruction,
+		final Interpreter interpreter)
 	{
-		return stripNull(value());
+		final L2ObjectRegister targetReg = instruction.writeObjectRegisterAt(0);
+		targetReg.set(stripNull(interpreter.function), interpreter);
+	}
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		// Technically it doesn't have a side-effect, but this flag keeps the
+		// instruction from being re-ordered to a place where the function is no
+		// longer the current one.
+		return true;
 	}
 }

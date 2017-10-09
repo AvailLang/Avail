@@ -94,7 +94,7 @@ public final class P_AtomSetProperty extends Primitive
 					propertyKey,
 					propertyValue));
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

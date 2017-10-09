@@ -338,7 +338,7 @@ extends Descriptor
 
 		/**
 		 * The {@link A_RawFunction} that suspended this fiber, or {@link
-		 * NilDescriptor#nil()} if it's not suspended.
+		 * NilDescriptor#nil} if it's not suspended.
 		 */
 		SUSPENDING_RAW_FUNCTION,
 
@@ -901,7 +901,7 @@ extends Descriptor
 			NAME_GENERATOR,
 			identityPojo(generator));
 		// And clear the cached name.
-		object.setMutableSlot(NAME_OR_NIL, nil());
+		object.setMutableSlot(NAME_OR_NIL, nil);
 	}
 
 	@Override @AvailMethod
@@ -973,13 +973,13 @@ extends Descriptor
 		object.setMutableSlot(
 			LOADER,
 			loader == null
-				? nil()
+				? nil
 				: identityPojo(loader));
 	}
 
 	/**
 	 * The default result continuation, answered when a {@link A_Fiber fiber}'s
-	 * result continuation is {@link NilDescriptor#nil()}  nil}.
+	 * result continuation is {@link NilDescriptor#nil}  nil}.
 	 */
 	private static final A_BasicObject defaultResultContinuation =
 		identityPojo(
@@ -999,8 +999,8 @@ extends Descriptor
 		{
 			pojo = object.slot(RESULT_CONTINUATION);
 			assert !pojo.equalsNil() : "Fiber attempting to succeed twice!";
-			object.setSlot(RESULT_CONTINUATION, nil());
-			object.setSlot(FAILURE_CONTINUATION, nil());
+			object.setSlot(RESULT_CONTINUATION, nil);
+			object.setSlot(FAILURE_CONTINUATION, nil);
 		}
 		return (Continuation1NotNull<AvailObject>) pojo.javaObjectNotNull();
 	}
@@ -1042,8 +1042,8 @@ extends Descriptor
 		{
 			pojo = object.slot(FAILURE_CONTINUATION);
 			assert !pojo.equalsNil();
-			object.setSlot(FAILURE_CONTINUATION, nil());
-			object.setSlot(RESULT_CONTINUATION, nil());
+			object.setSlot(FAILURE_CONTINUATION, nil);
+			object.setSlot(RESULT_CONTINUATION, nil);
 		}
 		return (Continuation1NotNull<Throwable>) pojo.javaObjectNotNull();
 	}
@@ -1092,7 +1092,7 @@ extends Descriptor
 		object.setMutableSlot(
 			WAKEUP_TASK,
 			task == null
-				? nil()
+				? nil
 				: identityPojo(task));
 	}
 
@@ -1498,20 +1498,20 @@ extends Descriptor
 		final AvailObject fiber = FiberDescriptor.mutable.create();
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(NAME_GENERATOR, identityPojo(nameGenerator));
-		fiber.setSlot(NAME_OR_NIL, nil());
+		fiber.setSlot(NAME_OR_NIL, nil);
 		fiber.setSlot(PRIORITY, priority);
-		fiber.setSlot(CONTINUATION, nil());
-		fiber.setSlot(SUSPENDING_RAW_FUNCTION, nil());
+		fiber.setSlot(CONTINUATION, nil);
+		fiber.setSlot(SUSPENDING_RAW_FUNCTION, nil);
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
-		fiber.setSlot(BREAKPOINT_BLOCK, nil());
+		fiber.setSlot(BREAKPOINT_BLOCK, nil);
 		fiber.setSlot(FIBER_GLOBALS, emptyMap());
 		fiber.setSlot(HERITABLE_FIBER_GLOBALS, emptyMap());
-		fiber.setSlot(RESULT, nil());
-		fiber.setSlot(LOADER, nil());
+		fiber.setSlot(RESULT, nil);
+		fiber.setSlot(LOADER, nil);
 		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
 		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
 		fiber.setSlot(JOINING_FIBERS, emptySet());
-		fiber.setSlot(WAKEUP_TASK, nil());
+		fiber.setSlot(WAKEUP_TASK, nil);
 		fiber.setSlot(
 			TRACED_VARIABLES,
 			identityPojo(new WeakHashMap<A_Variable, Boolean>()));
@@ -1550,18 +1550,18 @@ extends Descriptor
 		fiber.setSlot(RESULT_TYPE, resultType.makeImmutable());
 		fiber.setSlot(NAME_GENERATOR, identityPojo(nameGenerator));
 		fiber.setSlot(PRIORITY, loaderPriority);
-		fiber.setSlot(CONTINUATION, nil());
-		fiber.setSlot(SUSPENDING_RAW_FUNCTION, nil());
+		fiber.setSlot(CONTINUATION, nil);
+		fiber.setSlot(SUSPENDING_RAW_FUNCTION, nil);
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
-		fiber.setSlot(BREAKPOINT_BLOCK, nil());
+		fiber.setSlot(BREAKPOINT_BLOCK, nil);
 		fiber.setSlot(FIBER_GLOBALS, emptyMap());
 		fiber.setSlot(HERITABLE_FIBER_GLOBALS, emptyMap());
-		fiber.setSlot(RESULT, nil());
+		fiber.setSlot(RESULT, nil);
 		fiber.setSlot(LOADER, identityPojo(loader));
 		fiber.setSlot(RESULT_CONTINUATION, defaultResultContinuation);
 		fiber.setSlot(FAILURE_CONTINUATION, defaultFailureContinuation);
 		fiber.setSlot(JOINING_FIBERS, emptySet());
-		fiber.setSlot(WAKEUP_TASK, nil());
+		fiber.setSlot(WAKEUP_TASK, nil);
 		fiber.setSlot(
 			TRACED_VARIABLES,
 			identityPojo(new WeakHashMap<A_Variable, Boolean>()));

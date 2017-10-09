@@ -32,11 +32,14 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.utility.evaluation.Transformer2;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import static java.lang.String.format;
 
@@ -52,10 +55,22 @@ public class L2WriteIntOperand extends L2Operand
 	/**
 	 * The actual {@link L2IntegerRegister}.
 	 */
-	public final L2IntegerRegister register;
+	private final L2IntegerRegister register;
 
 	/**
-	 * Construct a new {@link L2WriteIntOperand} with the specified {@link
+	 * Answer the {@link L2IntegerRegister}'s {@link
+	 * L2IntegerRegister#finalIndex finalIndex}.
+	 *
+	 * @return The index of the integer register, computed during register
+	 *         coloring.
+	 */
+	public final int finalIndex ()
+	{
+		return register.finalIndex();
+	}
+
+	/**
+	 * Construct a new {@code L2WriteIntOperand} with the specified {@link
 	 * L2IntegerRegister}.
 	 *
 	 * @param register The integer register.
@@ -80,15 +95,35 @@ public class L2WriteIntOperand extends L2Operand
 
 	@Override
 	public L2WriteIntOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
+		final RegisterTransformer<L2OperandType> transformer)
 	{
 		return new L2WriteIntOperand(
-			(L2IntegerRegister)transformer.value(register, operandType()));
+			transformer.value(register, operandType()));
+	}
+
+	@Override
+	public void instructionWasAdded (final L2Instruction instruction)
+	{
+		register.setDefinition(instruction);
 	}
 
 	@Override
 	public String toString ()
 	{
 		return format("WriteInt(%s)", register);
+	}
+
+	/**
+	 * Replace the value of this integer register within the provided {@link
+	 * Interpreter}.
+	 *
+	 * @param newValue The int to write to the {@link L2IntegerRegister}.
+	 * @param interpreter The interpreter.
+	 */
+	public final void set (
+		final int newValue,
+		final Interpreter interpreter)
+	{
+		interpreter.integerAtPut(finalIndex(), newValue);
 	}
 }

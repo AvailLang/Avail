@@ -33,20 +33,20 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Jump to the target if the object equals the constant.
@@ -60,23 +60,26 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_JUMP_IF_EQUALS_CONSTANT().init(
-			PC.is("target"),
 			READ_POINTER.is("value"),
-			CONSTANT.is("constant"));
+			CONSTANT.is("constant"),
+			PC.is("if equal"),
+			PC.is("if unequal"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
-		final int target = instruction.pcAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final A_BasicObject constant = instruction.constantAt(2);
+		final int objectRegisterIndex =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final A_BasicObject constant = instruction.constantAt(1);
+		final int ifEqual = instruction.pcOffsetAt(2);
+		final int ifUnequal = instruction.pcOffsetAt(3);
 
-		if (objectReg.in(interpreter).equals(constant))
-		{
-			interpreter.offset(target);
-		}
+		return interpreter ->
+			interpreter.offset(
+				interpreter.pointerAt(objectRegisterIndex).equals(constant)
+					? ifEqual
+					: ifUnequal);
 	}
 
 	@Override
@@ -86,40 +89,27 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		final L1NaiveTranslator naiveTranslator)
 	{
 		// Eliminate tests due to type propagation.
-//		final int target = instruction.pcAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final A_Type value = instruction.constantAt(2);
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(0);
+		final A_BasicObject constant = instruction.constantAt(1);
+		final L2PcOperand ifEqual = instruction.pcAt(2);
+		final L2PcOperand ifUnequal = instruction.pcAt(3);
 
-		final boolean canJump;
-		final boolean mustJump;
-		if (registerSet.hasConstantAt(objectReg))
+		final @Nullable A_BasicObject valueOrNull = objectReg.constantOrNull;
+		if (valueOrNull != null)
 		{
-			final AvailObject constant = registerSet.constantAt(objectReg);
-			mustJump = constant.equals(value);
-			canJump = mustJump;
-		}
-		else
-		{
-			assert registerSet.hasTypeAt(objectReg);
-			final A_Type knownType = stripNull(registerSet.typeAt(objectReg));
-			canJump = value.isInstanceOf(knownType);
-			mustJump = false;
-		}
-		if (mustJump)
-		{
-			// It must be that value.  Always jump.  The instructions that
-			// follow the jump will die and be eliminated next pass.
+			// Compare them right now.
 			naiveTranslator.addInstruction(
 				L2_JUMP.instance,
-				instruction.operands[0]);
+				valueOrNull.equals(constant) ? ifEqual : ifUnequal);
 			return true;
 		}
-		if (!canJump)
+		if (!constant.isInstanceOf(objectReg.type))
 		{
-			// It is never the specified value, so never jump.
+			// They can't be equal.
+			naiveTranslator.addInstruction(L2_JUMP.instance, ifUnequal);
 			return true;
 		}
-		// The test could not be eliminated or improved.
+		// Otherwise it's still contingent.
 		return super.regenerate(instruction, registerSet, naiveTranslator);
 	}
 
@@ -129,15 +119,18 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-//		final int target = instruction.pcAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final A_BasicObject value = instruction.constantAt(2);
+//		final int ifEqual = instruction.pcAt(0);
+//		final int ifUnequal = instruction.pcAt(1);
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(2);
+		final A_BasicObject value = instruction.constantAt(3);
 
 		assert registerSets.size() == 2;
-//		final RegisterSet fallThroughSet = registerSets.get(0);
-		final RegisterSet postJumpSet = registerSets.get(1);
-
-		postJumpSet.strengthenTestedValueAtPut(objectReg, value);
+		final RegisterSet ifEqualSet = registerSets.get(0);
+		final RegisterSet ifUnequalSet = registerSets.get(1);
+//TODO MvG - We need to be able to strengthen the variable by introducing a new
+// version somehow.  Likewise, we can capture an is-not-a set of types along the
+// other path.
+//		postJumpSet.strengthenTestedValueAtPut(objectReg, value);
 	}
 
 	@Override

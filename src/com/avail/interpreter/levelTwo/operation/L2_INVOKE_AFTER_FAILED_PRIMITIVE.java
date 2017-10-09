@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -90,7 +89,7 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 			instruction.readObjectRegisterAt(0);
 		final L2ObjectRegister functionReg =
 			instruction.readObjectRegisterAt(1);
-		final L2RegisterVector argumentsReg =
+		final List<L2ReadPointerOperand> argumentsReg =
 			instruction.readVectorRegisterAt(2);
 		final L2ObjectRegister failureValueReg =
 			instruction.readObjectRegisterAt(3);

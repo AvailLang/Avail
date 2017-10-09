@@ -1,5 +1,5 @@
 /**
- * L2ReadWriteIntOperand.java
+ * PhiRestriction.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived set this software
+ *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -31,64 +31,51 @@
  */
 
 package com.avail.interpreter.levelTwo.operand;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.utility.evaluation.Transformer2;
-
-import static java.lang.String.format;
+import javax.annotation.Nullable;
 
 /**
- * An {@code L2ReadWriteIntOperand} is an operand of type {@link
- * L2OperandType#READWRITE_INT}.  It holds the actual {@link L2IntegerRegister}
- * that is to be accessed.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * This mechanism allows type information for an {@link L2ObjectRegister} to
+ * be restricted along a branch.  A good example is a type-testing
+ * instruction, which narrows the type along the "pass" branch, but not
+ * along the "fail" branch.  Eventually we may capture negative type
+ * information as well (e.g., "x isn't an integer or tuple here"), in which
+ * case we would separately narrow the types for both branches.
  */
-public class L2ReadWriteIntOperand extends L2Operand
+public final class PhiRestriction
 {
 	/**
-	 * The actual {@link L2IntegerRegister}.
+	 * The {@link L2ObjectRegister} which is to be restricted along this
+	 * control flow branch.
 	 */
-	public final L2IntegerRegister register;
+	final L2ObjectRegister register;
 
 	/**
-	 * Construct a new {@link L2ReadWriteIntOperand} with the specified {@link
-	 * L2IntegerRegister}.
-	 *
-	 * @param register The integer register.
+	 * The {@link TypeRestriction} being placed on the register.
 	 */
-	public L2ReadWriteIntOperand (
-		final L2IntegerRegister register)
+	final TypeRestriction typeRestriction;
+
+	/**
+	 * Create a {@code PhiRestriction}, which narrows a register's type
+	 * information along a control flow branch.
+	 *
+	 * @param register
+	 *        The register to restrict along this branch.
+	 * @param type
+	 *        The type that the register will hold along this branch.
+	 * @param constantOrNull
+	 *        Either {@code null} or the exact value that the register will hold
+	 *        along this branch.
+	 */
+	public PhiRestriction (
+		final L2ObjectRegister register,
+		final A_Type type,
+		final @Nullable A_BasicObject constantOrNull)
 	{
 		this.register = register;
-	}
-
-	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.READWRITE_INT;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public L2WriteIntOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
-	{
-		return new L2WriteIntOperand(
-			(L2IntegerRegister)transformer.value(register, operandType()));
-	}
-
-	@Override
-	public String toString ()
-	{
-		return format("WriteInt(%s)", register);
+		this.typeRestriction = new TypeRestriction(type, constantOrNull);
 	}
 }

@@ -37,11 +37,10 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
@@ -63,23 +62,25 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT().init(
-			PC.is("target"),
 			READ_POINTER.is("value"),
-			READ_POINTER.is("type"));
+			READ_POINTER.is("type"),
+			PC.is("is not kind"),
+			PC.is("is kind"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int target = instruction.pcAt(0);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(2);
+		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(1);
+		final int ifIsNotKind = instruction.pcOffsetAt(2);
+		final int ifIsKind = instruction.pcOffsetAt(3);
 
-		if (!valueReg.in(interpreter).isInstanceOf(typeReg.in(interpreter)))
-		{
-			interpreter.offset(target);
-		}
+		interpreter.offset(
+			!valueReg.in(interpreter).isInstanceOf(typeReg.in(interpreter))
+				? ifIsNotKind
+				: ifIsKind);
 	}
 
 	@Override
@@ -88,9 +89,10 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT extends L2Operation
 		final RegisterSet registerSet,
 		final L1NaiveTranslator naiveTranslator)
 	{
-		final L2PcOperand target = (L2PcOperand)(instruction.operands[0]);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(2);
+		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(0);
+		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(1);
+		final int ifIsNotKind = instruction.pcOffsetAt(2);
+		final int ifIsKind = instruction.pcOffsetAt(3);
 
 		if (registerSet.hasConstantAt(typeReg))
 		{
@@ -100,9 +102,10 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_OBJECT extends L2Operation
 			final A_Type constantType = registerSet.constantAt(typeReg);
 			naiveTranslator.addInstruction(
 				L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
-				target,
 				new L2ReadPointerOperand(valueReg),
-				new L2ConstantOperand(constantType));
+				new L2ConstantOperand(constantType),
+				instruction.operands[2],
+				instruction.operands[3]);
 			return true;
 		}
 		return super.regenerate(instruction, registerSet, naiveTranslator);

@@ -38,8 +38,8 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -86,10 +86,9 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2RegisterVector writeVector =
+		final List<L2WritePointerOperand> regs =
 			instruction.writeVectorRegisterAt(0);
 
-		final List<L2ObjectRegister> regs = writeVector.registers();
 		final A_RawFunction code = translator.codeOrFail();
 		assert regs.size() == fixedRegisterCount() + code.numArgs();
 		assert regs.get(NULL.ordinal())
@@ -107,7 +106,7 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 		}
 		registerSet.constantAtPut(
 			translator.fixed(NULL),
-			nil(),
+			nil,
 			instruction);
 		registerSet.typeAtPut(
 			translator.fixed(CALLER),

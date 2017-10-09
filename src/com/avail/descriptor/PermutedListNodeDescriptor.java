@@ -353,7 +353,7 @@ extends ParseNodeDescriptor
 		final AvailObject instance = mutable.create();
 		instance.setSlot(LIST, list);
 		instance.setSlot(PERMUTATION, permutation);
-		instance.setSlot(EXPRESSION_TYPE, nil());
+		instance.setSlot(EXPRESSION_TYPE, nil);
 		instance.makeShared();
 		return instance;
 	}

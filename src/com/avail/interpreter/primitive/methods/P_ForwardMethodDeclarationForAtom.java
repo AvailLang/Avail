@@ -115,7 +115,7 @@ extends Primitive
 						resumeFromSuccessfulPrimitive(
 							currentRuntime(),
 							fiber,
-							nil(),
+							nil,
 							primitiveFunction.code(),
 							skipReturnCheck);
 					}

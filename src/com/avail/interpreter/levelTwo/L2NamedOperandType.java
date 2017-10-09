@@ -55,7 +55,6 @@ public class L2NamedOperandType
 	 */
 	private final String name;
 
-
 	/**
 	 * Answer the {@link L2OperandType} that this decorates.
 	 *

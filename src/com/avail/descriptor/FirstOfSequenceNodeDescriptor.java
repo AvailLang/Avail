@@ -77,7 +77,7 @@ extends ParseNodeDescriptor
 		 * be at least one expression.  All expressions but the first must be
 		 * typed as ⊤.  The first one is also allowed to be typed as ⊤, but even
 		 * if so, if the actual value produced is more specific (i.e., not
-		 * {@linkplain NilDescriptor#nil() nil}, then that is what the
+		 * {@linkplain NilDescriptor#nil nil}, then that is what the
 		 * {@linkplain FirstOfSequenceNodeDescriptor first-of-sequence} node's
 		 * effective value will be.
 		 */

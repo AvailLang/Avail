@@ -117,7 +117,7 @@ extends Descriptor
 
 	/**
 	 * Replace the {@link A_Map map}'s root {@linkplain MapBinDescriptor bin}.
-	 * The replacement may be {@link NilDescriptor#nil() nil} to indicate an
+	 * The replacement may be {@link NilDescriptor#nil nil} to indicate an
 	 * empty map.
 	 *
 	 * @param map The map (must not be an indirection).
@@ -894,7 +894,7 @@ extends Descriptor
 
 	static
 	{
-		final A_Map map = createFromBin(nil());
+		final A_Map map = createFromBin(nil);
 		map.hash();
 		emptyMap = map.makeShared();
 	}

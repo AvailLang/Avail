@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.variables;
 
 import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
@@ -57,7 +58,6 @@ import static com.avail.descriptor.FunctionTypeDescriptor
 	.mostGeneralFunctionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
@@ -96,11 +96,33 @@ extends Primitive
 		// Produce a wrapper that will invoke the supplied function, and then
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			nil(), 0, nil());
+		final A_Function wrapper = createFunction(rawFunction, tuple(function));
+		// Now set the wrapper as the implicit observe function.
+		currentRuntime().setImplicitObserveFunction(wrapper);
+		return interpreter.primitiveSuccess(nil);
+	}
+
+	private static final A_RawFunction rawFunction = createRawFunction();
+
+	/**
+	 * Create an {@link A_RawFunction} which has an outer that'll be supplied
+	 * during function closure.  The outer is a user-supplied function which
+	 * is itself given a function and a tuple of arguments to apply, after which
+	 * this generated function will resume the continuation that was interrupted
+	 * to invoke this primitive.
+	 *
+	 * @return The one-outer, two-argument raw function.
+	 */
+	private static A_RawFunction createRawFunction ()
+	{
+		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
+		final int outerIndex = writer.createOuter(
+			functionType(
+				tuple(mostGeneralFunctionType(), mostGeneralTupleType()),
+				TOP.o()));
 		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType());
 		writer.returnType(bottom());
-		writer.write(L1Operation.L1_doPushLiteral, writer.addLiteral(function));
+		writer.write(L1Operation.L1_doPushOuter, outerIndex);
 		writer.write(L1Operation.L1_doPushLocal, 1);
 		writer.write(L1Operation.L1_doPushLocal, 2);
 		writer.write(L1Operation.L1_doMakeTuple, 2);
@@ -122,15 +144,9 @@ extends Primitive
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.RESUME_CONTINUATION.bundle),
 			writer.addLiteral(bottom()));
-		final A_Function wrapper =
-			createFunction(
-				writer.compiledCode(),
-				emptyTuple());
-		wrapper.code().setMethodName(
-			stringFrom("«implicit observe function wrapper»"));
-		// Now set the wrapper as the implicit observe function.
-		currentRuntime().setImplicitObserveFunction(wrapper);
-		return interpreter.primitiveSuccess(nil());
+		final A_RawFunction code = writer.compiledCode();
+		code.setMethodName(stringFrom("«implicit observe function wrapper»"));
+		return code;
 	}
 
 	@Override

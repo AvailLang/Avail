@@ -37,7 +37,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 
 /**
  * Add the value in one int register to another int register, jumping to the
@@ -64,7 +65,7 @@ public class L2_ADD_INT_TO_INT extends L2Operation
 		final L2IntegerRegister addendReg = instruction.readIntRegisterAt(0);
 		final L2IntegerRegister augendReg =
 			instruction.readWriteIntRegisterAt(1);
-		final int outOfRangeOffset = instruction.pcAt(2);
+		final int outOfRangeOffset = instruction.pcOffsetAt(2);
 
 		final int addend = addendReg.in(interpreter);
 		final int augend = augendReg.in(interpreter);

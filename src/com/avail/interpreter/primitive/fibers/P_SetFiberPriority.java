@@ -72,7 +72,7 @@ extends Primitive
 		final int priorityInt = priority.extractInt();
 		assert 0 <= priorityInt && priorityInt <= 255;
 		fiber.priority(priorityInt);
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

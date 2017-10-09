@@ -38,8 +38,9 @@ import com.avail.descriptor.ObjectDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 
 import java.util.List;
 
@@ -72,22 +73,21 @@ public class L2_CREATE_OBJECT extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2RegisterVector keysVector = instruction.readVectorRegisterAt(0);
-		final L2RegisterVector valuesVector =
+		final List<L2ReadPointerOperand> keysVector =
+			instruction.readVectorRegisterAt(0);
+		final List<L2ReadPointerOperand> valuesVector =
 			instruction.readVectorRegisterAt(1);
-		final L2ObjectRegister destinationObjectReg =
+		final L2WritePointerOperand destinationObjectReg =
 			instruction.writeObjectRegisterAt(2);
 
-		final List<L2ObjectRegister> keyRegs = keysVector.registers();
-		final List<L2ObjectRegister> valueRegs = valuesVector.registers();
-		final int size = keyRegs.size();
-		assert size == valueRegs.size();
+		final int size = keysVector.size();
+		assert size == valuesVector.size();
 		A_Map map = emptyMap();
 		for (int i = 0; i < size; i++)
 		{
 			map = map.mapAtPuttingCanDestroy(
-				keyRegs.get(i).in(interpreter),
-				valueRegs.get(i).in(interpreter),
+				keysVector.get(i).in(interpreter),
+				valuesVector.get(i).in(interpreter),
 				true);
 		}
 		final AvailObject object = objectFromMap(map);

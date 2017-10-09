@@ -72,7 +72,7 @@ public class Deserializer
 	/**
 	 * The current {@linkplain ModuleDescriptor module}.
 	 */
-	private A_Module currentModule = nil();
+	private A_Module currentModule = nil;
 
 	/**
 	 * Answer the deserializer's instance of {@link AvailRuntime} used for
@@ -169,7 +169,7 @@ public class Deserializer
 
 	/**
 	 * Return the {@link ModuleDescriptor module} currently being defined, or
-	 * {@link NilDescriptor#nil()} if there isn't one.
+	 * {@link NilDescriptor#nil} if there isn't one.
 	 *
 	 * @return The current module or {@code nil}.
 	 */

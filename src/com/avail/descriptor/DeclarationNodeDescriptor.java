@@ -85,14 +85,14 @@ extends ParseNodeDescriptor
 
 		/**
 		 * The {@link ParseNodeDescriptor expression} that produced the type for
-		 * the entity being declared, or {@link NilDescriptor#nil() nil} if
+		 * the entity being declared, or {@link NilDescriptor#nil nil} if
 		 * there was no such expression.
 		 */
 		TYPE_EXPRESSION,
 
 		/**
 		 * The optional {@linkplain ParseNodeDescriptor initialization
-		 * expression}, or {@link NilDescriptor#nil() nil} otherwise. Not
+		 * expression}, or {@link NilDescriptor#nil nil} otherwise. Not
 		 * applicable to all kinds of declarations.
 		 */
 		INITIALIZATION_EXPRESSION,
@@ -713,7 +713,7 @@ extends ParseNodeDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		object.emitEffectOn(codeGenerator);
-		codeGenerator.emitPushLiteral(nil());
+		codeGenerator.emitPushLiteral(nil);
 	}
 
 	@Override @AvailMethod
@@ -854,15 +854,15 @@ extends ParseNodeDescriptor
 	 *        The {@linkplain TypeDescriptor type} of the entity being declared.
 	 * @param typeExpression
 	 *        The {@link ParseNodeDescriptor expression} that produced the type
-	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.
 	 * @param initializationExpression
 	 *        An {@linkplain ParseNodeDescriptor expression} used for
 	 *        initializing the entity being declared, or {@linkplain
-	 *        NilDescriptor#nil() nil} if none.
+	 *        NilDescriptor#nil nil} if none.
 	 * @param literalObject
 	 *        An {@link AvailObject} that is the actual variable or constant
-	 *        being defined, or {@linkplain NilDescriptor#nil() nil} if none.
+	 *        being defined, or {@linkplain NilDescriptor#nil nil} if none.
 	 * @return The new {@linkplain DeclarationNodeDescriptor declaration}.
 	 */
 	public static A_Phrase newDeclaration (
@@ -905,7 +905,7 @@ extends ParseNodeDescriptor
 	 *        The {@linkplain TypeDescriptor type} of the entity being declared.
 	 * @param typeExpression
 	 *        The {@link ParseNodeDescriptor expression} that produced the type
-	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.
 	 * @return The argument declaration.
 	 */
@@ -919,8 +919,8 @@ extends ParseNodeDescriptor
 			token,
 			declaredType,
 			typeExpression,
-			nil(),
-			nil());
+			nil,
+			nil);
 	}
 
 	/**
@@ -935,12 +935,12 @@ extends ParseNodeDescriptor
 	 *        declared.
 	 * @param typeExpression
 	 *        The {@link ParseNodeDescriptor expression} that produced the type
-	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.
 	 * @param initializationExpression
 	 *        An {@linkplain ParseNodeDescriptor expression} used for
 	 *        initializing the local variable, or {@linkplain
-	 *        NilDescriptor#nil() nil} if none.
+	 *        NilDescriptor#nil nil} if none.
 	 * @return The new local variable declaration.
 	 */
 	public static A_Phrase newVariable (
@@ -955,7 +955,7 @@ extends ParseNodeDescriptor
 			declaredType,
 			typeExpression,
 			initializationExpression,
-			nil());
+			nil);
 	}
 
 	/**
@@ -978,9 +978,9 @@ extends ParseNodeDescriptor
 			LOCAL_CONSTANT,
 			token,
 			initializationExpression.expressionType(),
-			nil(),
+			nil,
 			initializationExpression,
-			nil());
+			nil);
 	}
 
 	/**
@@ -994,7 +994,7 @@ extends ParseNodeDescriptor
 	 *        occurrence of the name of the local constant being declared.
 	 * @param typeExpression
 	 *        The {@link ParseNodeDescriptor expression} that produced the type
-	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.
 	 * @param type
 	 *        The {@linkplain TypeDescriptor type} of the primitive failure
@@ -1011,8 +1011,8 @@ extends ParseNodeDescriptor
 			token,
 			type,
 			typeExpression,
-			nil(),
-			nil());
+			nil,
+			nil);
 	}
 
 	/**
@@ -1024,7 +1024,7 @@ extends ParseNodeDescriptor
 	 *        occurrence of the name of the label being declared.
 	 * @param returnTypeExpression
 	 *        The {@link ParseNodeDescriptor expression} that produced the type
-	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.  Note that this expression
 	 *        produced the return type of the continuation type, not the
 	 *        continuation type itself.
@@ -1046,8 +1046,8 @@ extends ParseNodeDescriptor
 			token,
 			declaredType,
 			returnTypeExpression,
-			nil(),
-			nil());
+			nil,
+			nil);
 	}
 
 	/**
@@ -1063,10 +1063,10 @@ extends ParseNodeDescriptor
 	 *        as a module variable.
 	 * @param typeExpression
 	 *        The {@link ParseNodeDescriptor expression} that produced the type
-	 *        for the entity being declared, or {@link NilDescriptor#nil() nil}
+	 *        for the entity being declared, or {@link NilDescriptor#nil nil}
 	 *        if there was no such expression.
 	 * @param initializationExpression
-	 *        The expression (or {@linkplain NilDescriptor#nil() nil}) used to
+	 *        The expression (or {@linkplain NilDescriptor#nil nil}) used to
 	 *        initialize this module variable.
 	 * @return The new module variable declaration.
 	 */
@@ -1108,7 +1108,7 @@ extends ParseNodeDescriptor
 			MODULE_CONSTANT,
 			token,
 			literalVariable.kind().readType(),
-			nil(),
+			nil,
 			initializationExpression,
 			literalVariable);
 	}

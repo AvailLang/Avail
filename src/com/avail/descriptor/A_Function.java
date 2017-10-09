@@ -66,7 +66,7 @@ extends A_BasicObject
 
 	/**
 	 * An outer variable or constant of this function has been used for the last
-	 * time.  Replace it with {@linkplain NilDescriptor#nil() nil} if the
+	 * time.  Replace it with {@linkplain NilDescriptor#nil nil} if the
 	 * function is mutable, and answer true.  If the function is immutable then
 	 * something besides the {@link Interpreter} or a fiber's chain of
 	 * {@linkplain ContinuationDescriptor continuations} might be referring to

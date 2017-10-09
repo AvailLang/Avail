@@ -39,12 +39,13 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L2BasicBlock;
 
 import java.util.List;
 
@@ -99,25 +100,25 @@ public final class P_RestartContinuation extends Primitive
 
 	@Override
 	public void generateL2UnfoldableInlinePrimitive (
-		final L1NaiveTranslator levelOneNaiveTranslator,
+		final L1NaiveTranslator translator,
 		final A_Function primitiveFunction,
-		final L2RegisterVector args,
-		final L2ObjectRegister resultRegister,
-		final L2RegisterVector preserved,
+		final L2ReadVectorOperand args,
+		final L2WritePointerOperand resultWrite,
+		final L2ReadVectorOperand preserved,
 		final A_Type expectedType,
-		final L2ObjectRegister failureValueRegister,
-		final L2Instruction successLabel,
+		final L2WritePointerOperand failureValueWrite,
+		final L2BasicBlock successBlock,
 		final boolean canFailPrimitive,
 		final boolean skipReturnCheck)
 	{
-		final L2ObjectRegister continuationReg = args.registers().get(0);
+		final L2ReadPointerOperand continuationReg = args.elements().get(0);
 
 		// A restart works with every continuation that is created by a label.
 		// TODO [MvG] - eventually we should check that the given continuation
-		// has that form (pc=1, stack empty).
-		levelOneNaiveTranslator.addInstruction(
+		// has that form (pc=0, stack empty).
+		translator.addInstruction(
 			L2_RESTART_CONTINUATION.instance,
-			new L2ReadPointerOperand(continuationReg));
+			continuationReg);
 	}
 
 	@Override

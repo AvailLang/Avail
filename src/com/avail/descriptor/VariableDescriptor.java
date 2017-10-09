@@ -81,19 +81,19 @@ extends Descriptor
 	{
 		/** The {@linkplain FunctionDescriptor reactor function}. */
 		private final AtomicReference<A_Function> function =
-			new AtomicReference<>(nil());
+			new AtomicReference<>(nil);
 
 		/**
 		 * Atomically get and clear {@linkplain FunctionDescriptor reactor
 		 * function}.
 		 *
-		 * @return The reactor function, or {@linkplain NilDescriptor#nil() nil}
+		 * @return The reactor function, or {@linkplain NilDescriptor#nil nil}
 		 *         if the reactor function has already been requested (and the
 		 *         reactor is therefore invalid).
 		 */
 		public A_Function getAndClearFunction ()
 		{
-			return function.getAndSet(nil());
+			return function.getAndSet(nil);
 		}
 
 		/**
@@ -266,9 +266,7 @@ extends Descriptor
 	public static void discardInvalidWriteReactors (
 		final Map<A_Atom, VariableAccessReactor> writeReactors)
 	{
-		writeReactors
-			.entrySet()
-			.removeIf(entry -> entry.getValue().isInvalid());
+		writeReactors.values().removeIf(VariableAccessReactor::isInvalid);
 	}
 
 	/**
@@ -509,7 +507,7 @@ extends Descriptor
 	void o_ClearValue (final AvailObject object)
 	{
 		handleVariableWriteTracing(object);
-		object.setSlot(VALUE, nil());
+		object.setSlot(VALUE, nil);
 	}
 
 	@Override @AvailMethod
@@ -723,8 +721,8 @@ extends Descriptor
 		final AvailObject result = mutable.create();
 		result.setSlot(KIND, variableType);
 		result.setSlot(HASH_OR_ZERO, 0);
-		result.setSlot(VALUE, nil());
-		result.setSlot(WRITE_REACTORS, nil());
+		result.setSlot(VALUE, nil);
+		result.setSlot(WRITE_REACTORS, nil);
 		return result;
 	}
 

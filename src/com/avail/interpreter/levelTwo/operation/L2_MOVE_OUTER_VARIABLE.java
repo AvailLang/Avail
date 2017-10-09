@@ -38,10 +38,12 @@ import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.RegisterState;
 
@@ -63,8 +65,7 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 		new L2_MOVE_OUTER_VARIABLE().init(
 			IMMEDIATE.is("outer index"),
 			READ_POINTER.is("function"),
-			WRITE_POINTER.is("destination"),
-			CONSTANT.is("outer type"));
+			WRITE_POINTER.is("destination"));
 
 	@Override
 	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
@@ -75,7 +76,6 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 			instruction.readObjectRegisterAt(1).finalIndex();
 		final int destinationRegNumber =
 			instruction.writeObjectRegisterAt(2).finalIndex();
-		// final A_Type outerType = instruction.constantAt(3);
 
 		return interpreter ->
 		{
@@ -94,24 +94,19 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 		final L2Translator translator)
 	{
 		final int outerIndex = instruction.immediateAt(0);
-		final L2ObjectRegister functionReg =
+		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister destinationReg =
+		final L2WritePointerOperand destinationReg =
 			instruction.writeObjectRegisterAt(2);
-		final A_Type outerType = instruction.constantAt(3);
 
-		if (registerSet.hasConstantAt(functionReg))
+		if (registerSet.hasConstantAt(functionReg.register()))
 		{
 			// The exact function is known.
-			final A_Function function = registerSet.constantAt(functionReg);
+			final A_Function function =
+				registerSet.constantAt(functionReg.register());
 			final AvailObject value = function.outerVarAt(outerIndex);
-			registerSet.constantAtPut(destinationReg, value, instruction);
-		}
-		else
-		{
-			registerSet.removeTypeAt(destinationReg);
-			registerSet.removeConstantAt(destinationReg);
-			registerSet.typeAtPut(destinationReg, outerType, instruction);
+			registerSet.constantAtPut(
+				destinationReg.register(), value, instruction);
 		}
 	}
 
@@ -126,29 +121,24 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 		final L1NaiveTranslator naiveTranslator)
 	{
 		assert instruction.operation == this;
-		final L2ObjectRegister functionRegister =
+		final int outerIndex = instruction.immediateAt(0);
+		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(1);
-		final RegisterState state =
-			registerSet.stateForReading(functionRegister);
-		final List<L2Instruction> functionCreationInstructions =
-			state.sourceInstructions();
-		if (functionCreationInstructions.size() == 1)
+		final L2WritePointerOperand destinationReg =
+			instruction.writeObjectRegisterAt(2);
+
+		final L2Instruction functionCreationInstruction =
+			functionReg.register().definition();
+		if (!(functionCreationInstruction.operation
+			instanceof L2_PHI_PSEUDO_OPERATION))
 		{
 			// Exactly one instruction produced the function.
-			final L2Instruction functionCreationInstruction =
-				functionCreationInstructions.get(0);
-			final int outerIndex = instruction.immediateAt(0);
-			final L2ObjectRegister destinationRegister =
-				instruction.writeObjectRegisterAt(2);
-			final A_Type outerType = instruction.constantAt(3);
 			return functionCreationInstruction.operation
 				.extractFunctionOuterRegister(
 					functionCreationInstruction,
-					functionRegister,
+					functionReg,
 					outerIndex,
-					outerType,
-					registerSet,
-					destinationRegister,
+					destinationReg,
 					naiveTranslator);
 		}
 		return super.regenerate(instruction, registerSet, naiveTranslator);

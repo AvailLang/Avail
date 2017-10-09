@@ -94,7 +94,7 @@ extends Primitive
 		try
 		{
 			socket.close();
-			return interpreter.primitiveSuccess(nil());
+			return interpreter.primitiveSuccess(nil);
 		}
 		catch (final IOException e)
 		{

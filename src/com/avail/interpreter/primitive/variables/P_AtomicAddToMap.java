@@ -111,7 +111,7 @@ extends Primitive
 					key,
 					value));
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

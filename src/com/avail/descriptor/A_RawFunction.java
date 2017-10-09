@@ -126,7 +126,7 @@ extends A_BasicObject
 	 * BlockNodeDescriptor block} that defines this {@linkplain A_RawFunction
 	 * function implementation}.
 	 *
-	 * @return The module, or {@linkplain NilDescriptor#nil() nil} for synthetic
+	 * @return The module, or {@linkplain NilDescriptor#nil nil} for synthetic
 	 *         function implementations.
 	 */
 	A_Module module ();
@@ -184,7 +184,7 @@ extends A_BasicObject
 
 	/**
 	 * Answer the block {@link A_Phrase phrase} from which this raw function was
-	 * constructed.  Answer {@link NilDescriptor#nil() nil} if this information
+	 * constructed.  Answer {@link NilDescriptor#nil nil} if this information
 	 * is not available.
 	 *
 	 * @return The phrase or nil from which this raw function was created.

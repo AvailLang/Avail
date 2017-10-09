@@ -39,7 +39,7 @@ import com.avail.utility.json.JSONWriter;
 
 /**
  * {@code TopTypeDescriptor} implements the type of {@linkplain
- * NilDescriptor#nil() nil}.
+ * NilDescriptor#nil nil}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

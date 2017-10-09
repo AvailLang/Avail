@@ -1201,10 +1201,32 @@ public final class AvailRuntime
 		newCrashFunction(
 			"failed method lookup",
 			tuple(
-				enumerationWith(set(E_NO_METHOD, E_NO_METHOD_DEFINITION,
-					E_AMBIGUOUS_METHOD_DEFINITION, E_FORWARD_METHOD_DEFINITION,
-					E_ABSTRACT_METHOD_DEFINITION)), METHOD.o(),
+				enumerationWith(
+					set(
+						E_NO_METHOD,
+						E_NO_METHOD_DEFINITION,
+						E_AMBIGUOUS_METHOD_DEFINITION,
+						E_FORWARD_METHOD_DEFINITION,
+						E_ABSTRACT_METHOD_DEFINITION)),
+				METHOD.o(),
 				mostGeneralTupleType()));
+
+	/**
+	 * The required type of the invalid message send function.
+	 */
+	public static final A_Type invalidMessageSendFunctionType =
+		functionType(
+			tuple(
+				enumerationWith(
+					set(
+						E_NO_METHOD,
+						E_NO_METHOD_DEFINITION,
+						E_AMBIGUOUS_METHOD_DEFINITION,
+						E_FORWARD_METHOD_DEFINITION,
+						E_ABSTRACT_METHOD_DEFINITION)),
+				METHOD.o(),
+				mostGeneralTupleType()),
+			bottom());
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever a
@@ -1250,7 +1272,7 @@ public final class AvailRuntime
 		final long id;
 
 		/**
-		 * Construct a new {@link FiberReference}.
+		 * Construct a new {@code FiberReference}.
 		 *
 		 * @param fiber
 		 *        A {@linkplain A_Fiber fiber}.
@@ -1849,7 +1871,7 @@ public final class AvailRuntime
 					final A_Atom atom = bundle.message();
 					atom.setAtomProperty(
 						MESSAGE_BUNDLE_KEY.atom,
-						nil());
+						nil);
 				}
 			}
 		}
@@ -2244,7 +2266,7 @@ public final class AvailRuntime
 		{
 			// Ignore.
 		}
-		modules = nil();
+		modules = nil;
 	}
 
 	/**

@@ -44,7 +44,7 @@ public final class SimpleDescriber implements Describer
 	final String string;
 
 	/**
-	 * Construct a new {@link SimpleDescriber} with an already-computed String.
+	 * Construct a new {@code SimpleDescriber} with an already-computed String.
 	 *
 	 * @param string The String that this describer describes itself as.
 	 */

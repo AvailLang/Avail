@@ -96,7 +96,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(e.numericCode());
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

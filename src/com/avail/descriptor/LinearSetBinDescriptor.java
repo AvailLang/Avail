@@ -180,7 +180,7 @@ extends SetBinDescriptor
 			}
 			final int newLocalSize = bitCount(bitVector);
 			result = createInitializedBin(
-				myLevel, newLocalSize, 0, 0, bitVector, nil());
+				myLevel, newLocalSize, 0, 0, bitVector, nil);
 			for (int i = 0; i <= oldSize; i++)
 			{
 				final A_BasicObject eachElement;

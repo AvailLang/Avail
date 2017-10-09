@@ -6,6 +6,7 @@
       <w>backquote</w>
       <w>backquoted</w>
       <w>callees</w>
+      <w>callerless</w>
       <w>choosable</w>
       <w>codepoints</w>
       <w>contravariance</w>
@@ -15,13 +16,17 @@
       <w>disassembly</w>
       <w>endian</w>
       <w>endianness</w>
+      <w>fanout</w>
       <w>fixup</w>
       <w>guillemet</w>
       <w>guillemets</w>
       <w>gulik</w>
       <w>homogenous</w>
       <w>idempotently</w>
+      <w>indexable</w>
+      <w>inlineable</w>
       <w>inlined</w>
+      <w>inlining</w>
       <w>invalidations</w>
       <w>iterable</w>
       <w>leapt</w>
@@ -31,6 +36,7 @@
       <w>looper</w>
       <w>metacharacter</w>
       <w>metatype</w>
+      <w>monomorphic</w>
       <w>multimethod</w>
       <w>multimethods</w>
       <w>mutables</w>
@@ -39,6 +45,7 @@
       <w>nullary</w>
       <w>nybblecode</w>
       <w>nybblecodes</w>
+      <w>offramp</w>
       <w>opcode</w>
       <w>parameterizations</w>
       <w>parameterize</w>
@@ -52,6 +59,7 @@
       <w>reconstructor</w>
       <w>reconstructors</w>
       <w>recursing</w>
+      <w>reifier</w>
       <w>reimplement</w>
       <w>reoptimization</w>
       <w>reoptimize</w>
@@ -86,9 +94,11 @@
       <w>tbody</w>
       <w>tokenization</w>
       <w>tokenized</w>
+      <w>transactionally</w>
       <w>tuples</w>
       <w>unbackquoted</w>
       <w>uncached</w>
+      <w>uninstantiable</w>
       <w>unparseable</w>
       <w>unpopped</w>
       <w>unregister</w>

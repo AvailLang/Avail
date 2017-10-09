@@ -38,7 +38,10 @@ import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -47,11 +50,10 @@ import java.util.List;
 
 import static com.avail.descriptor.ContinuationDescriptor
 	.createContinuationExceptFrame;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.continuationTypeForFunctionType;
 import static com.avail.descriptor.FunctionTypeDescriptor
 	.mostGeneralFunctionType;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
@@ -59,7 +61,6 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * slot values, and level two program counter.  Write the new continuation
  * into the specified register.
  */
-@Deprecated
 public class L2_CREATE_CONTINUATION extends L2Operation
 {
 	/**
@@ -73,55 +74,59 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 			IMMEDIATE.is("stack pointer"),
 			READ_INT.is("skip return check"),
 			READ_VECTOR.is("slot values"),
-			PC.is("level two pc"),
-			WRITE_POINTER.is("destination"));
+			WRITE_POINTER.is("destination"),
+			PC.is("on-ramp"),
+			PC.is("fall through after creation"));
 
 	@Override
 	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
 		final L2Instruction instruction)
 	{
-		final int callerRegNumber =
+		final int callerRegIndex =
 			instruction.readObjectRegisterAt(0).finalIndex();
-		final int functionRegNumber =
+		final int functionRegIndex =
 			instruction.readObjectRegisterAt(1).finalIndex();
 		final int levelOnePC = instruction.immediateAt(2);
 		final int levelOneStackp = instruction.immediateAt(3);
-		final int skipReturnRegNumber =
+		final int skipReturnRegIndex =
 			instruction.readIntRegisterAt(4).finalIndex();
-		final List<L2ObjectRegister> slots =
-			instruction.readVectorRegisterAt(5).registers();
-		final int[] slotRegNumbers = new int[slots.size()];
-		for (int i = 0; i < slotRegNumbers.length; i++)
+		final List<L2ReadPointerOperand> slots =
+			instruction.readVectorRegisterAt(5);
+		final int destRegIndex =
+			instruction.writeObjectRegisterAt(6).finalIndex();
+		final int onRampOffset = instruction.pcOffsetAt(7);
+		final int fallThroughOffset = instruction.pcOffsetAt(8);
+
+		final int[] slotRegIndices = new int[slots.size()];
+		for (int i = 0; i < slotRegIndices.length; i++)
 		{
-			slotRegNumbers[i] = slots.get(i).finalIndex();
+			slotRegIndices[i] = slots.get(i).finalIndex();
 		}
-		final int levelTwoOffset = instruction.pcAt(6);
-		final int destRegNumber =
-			instruction.writeObjectRegisterAt(7).finalIndex();
 
 		return interpreter ->
 		{
 			final A_Function function =
-				interpreter.pointerAt(functionRegNumber);
+				interpreter.pointerAt(functionRegIndex);
 			final A_RawFunction code = function.code();
 			final int frameSize = code.numArgsAndLocalsAndStack();
 			final boolean skipReturnCheck =
-				interpreter.integerAt(skipReturnRegNumber) != 0;
+				interpreter.integerAt(skipReturnRegIndex) != 0;
 			final A_Continuation continuation =
 				createContinuationExceptFrame(
 					function,
-					interpreter.pointerAt(callerRegNumber),
+					interpreter.pointerAt(callerRegIndex),
 					levelOnePC,
 					frameSize - code.maxStackDepth() + levelOneStackp,
 					skipReturnCheck,
-					interpreter.chunk,
-					levelTwoOffset);
-			for (int i = 0; i < slotRegNumbers.length; i++)
+					stripNull(interpreter.chunk),
+					onRampOffset);
+			for (int i = 0; i < slotRegIndices.length; i++)
 			{
 				continuation.argOrLocalOrStackAtPut(
-					i + 1, interpreter.pointerAt(slotRegNumbers[i]));
+					i + 1, interpreter.pointerAt(slotRegIndices[i]));
 			}
-			interpreter.pointerAtPut(destRegNumber, continuation);
+			interpreter.pointerAtPut(destRegIndex, continuation);
+			interpreter.offset(fallThroughOffset);
 		};
 	}
 
@@ -131,21 +136,32 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister functionReg =
+		final L2ReadPointerOperand callerReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(7);
+		final int levelOnePC = instruction.immediateAt(2);
+		final int levelOneStackp = instruction.immediateAt(3);
+		final L2ReadIntOperand skipReturnReg =
+			instruction.readIntRegisterAt(4);
+		final List<L2ReadPointerOperand> slots =
+			instruction.readVectorRegisterAt(5);
+		final L2WritePointerOperand destReg =
+			instruction.writeObjectRegisterAt(6);
+		final L2PcOperand onRampOffset = instruction.pcAt(7);
+		final L2PcOperand fallThroughOffset = instruction.pcAt(8);
 
 		// Propagate information differently to the code just after creating the
 		// continuation and the code after the continuation resumes.
-		final RegisterSet afterCreation = registerSets.get(0);
-		final RegisterSet afterResumption = registerSets.get(1);
-		final A_Type functionType = afterCreation.typeAt(functionReg);
+		final RegisterSet forOnRamp = registerSets.get(0);
+		final RegisterSet afterCreation = registerSets.get(1);
+		final A_Type functionType = functionReg.type();
 		assert functionType.isSubtypeOf(mostGeneralFunctionType());
-		afterCreation.removeConstantAt(destReg);
-		afterCreation.typeAtPut(
-			destReg,
-			continuationTypeForFunctionType(functionType),
-			instruction);
-		afterResumption.clearEverythingFor(instruction);
+//		afterCreation.removeConstantAt(destReg);
+//		afterCreation.typeAtPut(
+//			destReg,
+//			continuationTypeForFunctionType(functionType),
+//			instruction);
+		forOnRamp.clearEverythingFor(instruction);
 	}
 }

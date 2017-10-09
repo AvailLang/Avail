@@ -99,7 +99,7 @@ implements A_BasicObject
 			// Java-specific mechanism for now.  Requires more complex solution
 			// when Avail starts using raw memory again.
 			objectSlots = new AvailObject[1];
-			objectSlots[0] = nil();
+			objectSlots[0] = nil;
 		}
 		if (descriptor.isMutable())
 		{

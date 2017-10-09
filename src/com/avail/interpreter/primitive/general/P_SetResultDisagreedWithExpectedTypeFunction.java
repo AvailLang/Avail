@@ -86,7 +86,7 @@ extends Primitive
 			stringFrom("«result disagreed with expected type»"));
 		interpreter.runtime().setResultDisagreedWithExpectedTypeFunction(
 			function);
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

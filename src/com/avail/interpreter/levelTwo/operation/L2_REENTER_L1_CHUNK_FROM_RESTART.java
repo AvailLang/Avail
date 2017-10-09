@@ -47,6 +47,7 @@ import com.avail.interpreter.primitive.controlflow
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.Interpreter.debugL1;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * This is the first instruction of the L1 interpreter's on-ramp for restarting
@@ -84,7 +85,7 @@ public class L2_REENTER_L1_CHUNK_FROM_RESTART extends L2Operation
 		}
 
 		// This should create the same layout as L2_PREPARE_NEW_FRAME_FOR_L1.
-		final A_Function function = interpreter.function;
+		final A_Function function = stripNull(interpreter.function);
 		assert function == continuation.function();
 		final A_RawFunction code = function.code();
 		final int numArgs = code.numArgs();
@@ -113,7 +114,7 @@ public class L2_REENTER_L1_CHUNK_FROM_RESTART extends L2Operation
 		// Fill the rest with nils.
 		while (slotIndex <= numSlots)
 		{
-			interpreter.pointerAtPut(slotIndex++, nil());
+			interpreter.pointerAtPut(slotIndex++, nil);
 		}
 		interpreter.levelOneStepper.pc = 1;
 		interpreter.levelOneStepper.stackp = numSlots + 1;

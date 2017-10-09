@@ -104,7 +104,7 @@ extends Primitive
 		{
 			runtime.discardBuffer(key);
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

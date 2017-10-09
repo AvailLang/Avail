@@ -86,7 +86,7 @@ extends Primitive
 		final A_Type type = args.get(1);
 		final A_Phrase initializer = args.get(2);
 		return interpreter.primitiveSuccess(
-			newVariable(token, type, nil(), initializer));
+			newVariable(token, type, nil, initializer));
 	}
 
 	@Override

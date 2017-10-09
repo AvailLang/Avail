@@ -42,8 +42,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
@@ -112,7 +111,7 @@ extends Primitive
 //			instruction.readObjectRegisterAt(0);
 //		final L2ObjectRegister invokerFunctionReg =
 //			instruction.readObjectRegisterAt(1);
-		final L2RegisterVector invokerArgumentsVector =
+		final List<L2ReadPointerOperand> invokerArgumentsVector =
 			instruction.readVectorRegisterAt(2);
 //		final int skipCheck = instruction.immediateAt(3);
 

@@ -146,7 +146,7 @@ extends A_ChunkDependable
 	 * A_Method method} that should be invoked for the given values. Use the
 	 * testing tree to select a definition. If lookup fails, then write an
 	 * appropriate {@linkplain AvailErrorCode error code} into {@code errorCode}
-	 * and answer {@linkplain NilDescriptor#nil() nil}.
+	 * and answer {@linkplain NilDescriptor#nil nil}.
 	 *
 	 * @param argumentList
 	 *        The {@linkplain List} of arguments, ordered by position.
@@ -289,12 +289,12 @@ extends A_ChunkDependable
 	 *
 	 * @param lexer
 	 *        Either a {@linkplain LexerDescriptor lexer} or {@link
-	 *        NilDescriptor#nil() nil}.
+	 *        NilDescriptor#nil nil}.
 	 */
 	void setLexer (final A_Lexer lexer);
 
 	/**
-	 * Answer this method's lexer, or {@link NilDescriptor#nil()}.
+	 * Answer this method's lexer, or {@link NilDescriptor#nil}.
 	 *
 	 * @return The {@link A_Lexer} or {@code nil}.
 	 */

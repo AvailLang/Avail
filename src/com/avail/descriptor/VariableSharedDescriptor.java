@@ -128,7 +128,7 @@ extends VariableDescriptor
 		 * (implemented as the {@linkplain Map#keySet() key set} of a {@link
 		 * WeakHashMap}) of {@link L2Chunk}s that depend on the membership of
 		 * this method.  A change to the membership will invalidate all such
-		 * chunks.  This field holds the {@linkplain NilDescriptor#nil() nil}
+		 * chunks.  This field holds the {@linkplain NilDescriptor#nil nil}
 		 * object initially.
 		 */
 		@HideFieldInDebugger
@@ -547,9 +547,9 @@ extends VariableDescriptor
 		newVariable.setSlot(KIND, kind);
 		newVariable.setSlot(HASH_ALWAYS_SET, hash);
 		newVariable.setSlot(VALUE, value);
-		newVariable.setSlot(WRITE_REACTORS, nil());
+		newVariable.setSlot(WRITE_REACTORS, nil);
 		newVariable.setSlot(
-			DEPENDENT_CHUNKS_WEAK_SET_POJO, nil());
+			DEPENDENT_CHUNKS_WEAK_SET_POJO, nil);
 
 		// Redirect the old to the new to allow cyclic structures.
 		assert !oldVariable.descriptor.isShared();

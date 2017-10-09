@@ -237,7 +237,7 @@ public class L1InstructionWriter
 
 	/**
 	 * The phrase that should be captured for this raw function.  {@link
-	 * NilDescriptor#nil() nil} is also valid.
+	 * NilDescriptor#nil nil} is also valid.
 	 */
 	final A_Phrase phrase;
 
@@ -250,7 +250,7 @@ public class L1InstructionWriter
 	 *        Where this code starts in the module.
 	 * @param phrase
 	 *        The phrase that should be captured for this raw function.  {@link
-	 *        NilDescriptor#nil() nil} is also valid, but less informative.
+	 *        NilDescriptor#nil nil} is also valid, but less informative.
 	 */
 	public L1InstructionWriter (
 		final A_Module module,

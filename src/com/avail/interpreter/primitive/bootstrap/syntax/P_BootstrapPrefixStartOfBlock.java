@@ -102,7 +102,7 @@ extends Primitive
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataGlobalKey, clientData, true);
 		fiber.fiberGlobals(fiberGlobals.makeShared());
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

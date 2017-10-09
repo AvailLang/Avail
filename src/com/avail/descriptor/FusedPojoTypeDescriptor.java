@@ -245,7 +245,7 @@ extends PojoTypeDescriptor
 	@Override
 	AvailObject o_JavaClass (final AvailObject object)
 	{
-		return nil();
+		return nil;
 	}
 
 	@Override
@@ -270,7 +270,7 @@ extends PojoTypeDescriptor
 		if (selfType.equalsNil())
 		{
 			selfType = newSelfPojoType(
-				nil(), object.slot(JAVA_ANCESTORS).keysAsSet());
+				nil, object.slot(JAVA_ANCESTORS).keysAsSet());
 			if (isShared())
 			{
 				selfType = selfType.traversed().makeShared();
@@ -594,8 +594,8 @@ extends PojoTypeDescriptor
 		final AvailObject newObject = mutable.create();
 		newObject.setSlot(HASH_OR_ZERO, 0);
 		newObject.setSlot(JAVA_ANCESTORS, javaAncestors);
-		newObject.setSlot(TYPE_VARIABLES, nil());
-		newObject.setSlot(SELF_TYPE, nil());
+		newObject.setSlot(TYPE_VARIABLES, nil);
+		newObject.setSlot(SELF_TYPE, nil);
 		return newObject.makeImmutable();
 	}
 }

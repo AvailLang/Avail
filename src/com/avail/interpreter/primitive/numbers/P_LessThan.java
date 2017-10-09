@@ -39,11 +39,12 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
-import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L2BasicBlock;
 
 import java.util.List;
 import java.util.Set;
@@ -112,23 +113,21 @@ public final class P_LessThan extends Primitive
 
 	@Override
 	public void generateL2UnfoldableInlinePrimitive (
-		final L1NaiveTranslator levelOneNaiveTranslator,
+		final L1NaiveTranslator translator,
 		final A_Function primitiveFunction,
-		final L2RegisterVector args,
-		final L2ObjectRegister resultRegister,
-		final L2RegisterVector preserved,
+		final L2ReadVectorOperand args,
+		final L2WritePointerOperand resultWrite,
+		final L2ReadVectorOperand preserved,
 		final A_Type expectedType,
-		final L2ObjectRegister failureValueRegister,
-		final L2Instruction successLabel,
+		final L2WritePointerOperand failureValueWrite,
+		final L2BasicBlock successBlock,
 		final boolean canFailPrimitive,
 		final boolean skipReturnCheck)
 	{
-		final L2ObjectRegister firstReg = args.registers().get(0);
-		final L2ObjectRegister secondReg = args.registers().get(1);
-		final RegisterSet registerSet =
-			levelOneNaiveTranslator.naiveRegisters();
-		final A_Type firstType = registerSet.typeAt(firstReg);
-		final A_Type secondType = registerSet.typeAt(secondReg);
+		final L2ReadPointerOperand firstReg = args.elements().get(0);
+		final L2ReadPointerOperand secondReg = args.elements().get(1);
+		final A_Type firstType = firstReg.type();
+		final A_Type secondType = secondReg.type();
 		final Set<Order> possible = possibleOrdersWhenComparingInstancesOf(
 			firstType, secondType);
 		final boolean canBeTrue = possible.contains(LESS);
@@ -139,19 +138,18 @@ public final class P_LessThan extends Primitive
 		assert canBeTrue || canBeFalse;
 		if (!canBeTrue || !canBeFalse)
 		{
-			levelOneNaiveTranslator.moveConstant(
-				objectFromBoolean(canBeTrue), resultRegister);
+			translator.moveConstant(objectFromBoolean(canBeTrue), resultWrite);
 			return;
 		}
 		super.generateL2UnfoldableInlinePrimitive(
-			levelOneNaiveTranslator,
+			translator,
 			primitiveFunction,
 			args,
-			resultRegister,
+			resultWrite,
 			preserved,
 			expectedType,
-			failureValueRegister,
-			successLabel,
+			failureValueWrite,
+			successBlock,
 			canFailPrimitive,
 			skipReturnCheck);
 	}

@@ -253,7 +253,7 @@ extends Descriptor
 				? object
 				: newLike(variant.mutableObjectDescriptor, object, 0, 0);
 			result.setSlot(FIELD_VALUES_, slotIndex, value);
-			result.setSlot(KIND, nil());
+			result.setSlot(KIND, nil);
 			result.setSlot(HASH_OR_ZERO, 0);
 			return result;
 		}
@@ -279,7 +279,7 @@ extends Descriptor
 		{
 			result.setSlot(FIELD_VALUES_, newVariantSlotIndex, value);
 		}
-		result.setSlot(KIND, nil());
+		result.setSlot(KIND, nil);
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
@@ -544,7 +544,7 @@ extends Descriptor
 				result.setSlot(FIELD_VALUES_, slotIndex, entry.value());
 			}
 		}
-		result.setSlot(KIND, nil());
+		result.setSlot(KIND, nil);
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}

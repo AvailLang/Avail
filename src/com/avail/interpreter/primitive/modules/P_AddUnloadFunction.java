@@ -100,7 +100,7 @@ extends Primitive
 		loader.recordEffect(
 			new LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ADD_UNLOADER.bundle, unloadFunction));
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

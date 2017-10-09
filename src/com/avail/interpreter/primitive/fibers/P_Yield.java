@@ -84,7 +84,7 @@ extends Primitive
 			() -> resumeFromSuccessfulPrimitive(
 				currentRuntime(),
 				fiber,
-				nil(),
+				nil,
 				primitiveRawFunction,
 				true));
 		return suspended;

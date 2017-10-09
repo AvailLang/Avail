@@ -31,22 +31,14 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
 
-import java.util.List;
-
-import static com.avail.descriptor.VariableTypeDescriptor
-	.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
@@ -62,59 +54,34 @@ public class L2_GET_VARIABLE extends L2Operation
 		new L2_GET_VARIABLE().init(
 			READ_POINTER.is("variable"),
 			WRITE_POINTER.is("extracted value"),
-			PC.is("if assigned"));
+			PC.is("read succeeded"),
+			PC.is("read failed"));
 
 	@Override
 	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
 		final L2Instruction instruction)
 	{
-		final int variableRegNumber =
+		final int variableRegIndex =
 			instruction.readObjectRegisterAt(0).finalIndex();
-		final int destRegNumber =
+		final int destRegIndex =
 			instruction.writeObjectRegisterAt(1).finalIndex();
-		final int ifAssigned = instruction.pcAt(2);
+		final int successIndex = instruction.pcOffsetAt(2);
+		final int failureIndex = instruction.pcOffsetAt(3);
+
 		return interpreter ->
 		{
-			final A_Variable variable =
-				interpreter.pointerAt(variableRegNumber);
+			final A_Variable variable = interpreter.pointerAt(variableRegIndex);
 			try
 			{
 				final AvailObject value = variable.getValue();
-				interpreter.pointerAtPut(destRegNumber, value.makeImmutable());
-				interpreter.offset(ifAssigned);
+				interpreter.pointerAtPut(destRegIndex, value.makeImmutable());
+				interpreter.offset(successIndex);
 			}
 			catch (final VariableGetException e)
 			{
-				// Fall through to the next instruction.
+				interpreter.offset(failureIndex);
 			}
 		};
-	}
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Translator translator)
-	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1);
-		// Only update the *branching* register set; if control reaches the
-		// next instruction, then no registers have changed.
-		final RegisterSet registerSet = registerSets.get(1);
-		registerSet.removeConstantAt(destReg);
-		if (registerSet.hasTypeAt(variableReg))
-		{
-			final A_Type oldType = registerSet.typeAt(variableReg);
-			final A_Type varType = oldType.typeIntersection(
-				mostGeneralVariableType());
-			registerSet.typeAtPut(destReg, varType.readType(), instruction);
-		}
-		else
-		{
-			registerSet.removeTypeAt(destReg);
-		}
 	}
 
 	@Override

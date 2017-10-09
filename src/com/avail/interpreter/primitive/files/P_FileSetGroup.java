@@ -135,7 +135,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED);
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

@@ -59,7 +59,7 @@ public class L2_JUMP_IF_INTERRUPT extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int offsetIfInterrupt = instruction.pcAt(0);
+		final int offsetIfInterrupt = instruction.pcOffsetAt(0);
 		if (interpreter.isInterruptRequested())
 		{
 			interpreter.offset(offsetIfInterrupt);

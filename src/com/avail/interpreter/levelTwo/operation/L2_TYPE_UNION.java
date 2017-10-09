@@ -36,6 +36,8 @@ import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -65,11 +67,11 @@ public class L2_TYPE_UNION extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister firstInputTypeReg =
+		final L2ReadPointerOperand firstInputTypeReg =
 			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister secondInputTypeReg =
+		final L2ReadPointerOperand secondInputTypeReg =
 			instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister outputTypeReg =
+		final L2WritePointerOperand outputTypeReg =
 			instruction.writeObjectRegisterAt(2);
 
 		final A_Type firstInputType = firstInputTypeReg.in(interpreter);
@@ -84,16 +86,19 @@ public class L2_TYPE_UNION extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister firstInputTypeReg =
+		final L2ReadPointerOperand firstInputTypeReg =
 			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister secondInputTypeReg =
+		final L2ReadPointerOperand secondInputTypeReg =
 			instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister outputTypeReg =
+		final L2WritePointerOperand outputTypeReg =
 			instruction.writeObjectRegisterAt(2);
 
-		final A_Type firstMeta = registerSet.typeAt(firstInputTypeReg);
-		final A_Type secondMeta = registerSet.typeAt(secondInputTypeReg);
+		final A_Type firstMeta =
+			registerSet.typeAt(firstInputTypeReg.register());
+		final A_Type secondMeta =
+			registerSet.typeAt(secondInputTypeReg.register());
 		final A_Type unionMeta = firstMeta.typeUnion(secondMeta);
-		registerSet.typeAtPut(outputTypeReg, unionMeta, instruction);
+		registerSet.typeAtPut(
+			outputTypeReg.register(), unionMeta, instruction);
 	}
 }

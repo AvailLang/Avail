@@ -1055,7 +1055,7 @@ public final class AvailCompiler
 				formatString("Semantic restriction %s, in %s:%d",
 					restriction.definitionMethod().bundles()
 						.iterator().next().message(),
-					mod.equals(nil())
+					mod.equals(nil)
 						? "no module"
 						: mod.moduleName(), code.startingLineNumber()));
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
@@ -1106,7 +1106,7 @@ public final class AvailCompiler
 			() -> formatString("Macro evaluation %s, in %s:%d",
 				macro.definitionMethod().bundles()
 					.iterator().next().message(),
-				mod.equals(nil())
+				mod.equals(nil)
 					? "no module"
 					: mod.moduleName(), code.startingLineNumber()));
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
@@ -1146,7 +1146,7 @@ public final class AvailCompiler
 	 *        transformed from local-scoped to module-scoped.
 	 * @param onSuccess
 	 *        What to do after success. Note that the result of executing the
-	 *        statement must be {@linkplain NilDescriptor#nil() nil}, so there
+	 *        statement must be {@linkplain NilDescriptor#nil nil}, so there
 	 *        is no point in having the continuation accept this value, hence
 	 *        the {@linkplain Continuation0 nullary continuation}.
 	 * @param afterFail
@@ -1165,7 +1165,7 @@ public final class AvailCompiler
 		final A_Phrase replacement = treeMapWithParent(
 			expression,
 			(phrase, parent, outerBlocks) -> phrase,
-			nil(),
+			nil,
 			new ArrayList<>(),
 			declarationRemap);
 
@@ -1291,7 +1291,7 @@ public final class AvailCompiler
 							newModuleVariable(
 								replacement.token(),
 								var,
-								nil(),
+								nil,
 								replacement.initializationExpression());
 						final A_Phrase assign =
 							newAssignment(
@@ -3029,7 +3029,7 @@ public final class AvailCompiler
 
 		// An applicable macro definition (even if ambiguous) prevents this site
 		// from being a method invocation.
-		A_Definition macro = nil();
+		A_Definition macro = nil;
 		if (macroDefinitionsTuple.tupleSize() > 0)
 		{
 			// Find all macro definitions that could match the argument phrases.

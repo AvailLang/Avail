@@ -110,7 +110,7 @@ extends AbstractEnumerationTypeDescriptor
 		INSTANCES,
 
 		/**
-		 * Either {@linkplain NilDescriptor#nil() nil} or
+		 * Either {@linkplain NilDescriptor#nil nil} or
 		 * this enumeration's nearest superkind (i.e., the nearest type that
 		 * isn't a union}.
 		 */
@@ -816,7 +816,7 @@ extends AbstractEnumerationTypeDescriptor
 		assert normalizedSet.setSize() > 1;
 		final AvailObject result = mutable.create();
 		result.setSlot(INSTANCES, normalizedSet.makeImmutable());
-		result.setSlot(CACHED_SUPERKIND, nil());
+		result.setSlot(CACHED_SUPERKIND, nil);
 		return result;
 	}
 

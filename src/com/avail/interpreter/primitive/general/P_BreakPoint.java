@@ -74,7 +74,7 @@ public final class P_BreakPoint extends Primitive
 		}
 		catch (final AvailBreakpointException e)
 		{
-			return interpreter.primitiveSuccess(nil());
+			return interpreter.primitiveSuccess(nil);
 		}
 	}
 

@@ -134,8 +134,8 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 				newModuleVariable(
 					actualToken,
 					variableObject,
-					nil(),
-					nil());
+					nil,
+					nil);
 			final A_Phrase variableUse = newUse(actualToken, moduleVarDecl);
 			variableUse.makeImmutable();
 			return interpreter.primitiveSuccess(variableUse);
@@ -176,7 +176,7 @@ public final class P_BootstrapVariableUseMacro extends Primitive
 		final A_BasicObject variableObject =
 			module.constantBindings().mapAt(variableNameString);
 		final A_Phrase moduleConstDecl =
-			newModuleConstant(actualToken, variableObject, nil());
+			newModuleConstant(actualToken, variableObject, nil);
 		final A_Phrase variableUse = newUse(actualToken, moduleConstDecl);
 		return interpreter.primitiveSuccess(variableUse);
 	}

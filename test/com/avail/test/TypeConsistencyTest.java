@@ -414,7 +414,7 @@ public class TypeConsistencyTest
 				return instanceType(
 					createAtom(
 						stringFrom("something"),
-						nil()));
+						nil));
 			}
 		};
 
@@ -431,7 +431,7 @@ public class TypeConsistencyTest
 				return instanceType(
 					createAtom(
 						stringFrom("another"),
-						nil()));
+						nil));
 			}
 		};
 

@@ -143,7 +143,7 @@ extends Primitive
 		orphan.textInterface(current.textInterface());
 		// Schedule the fiber to run the specified function.
 		runOutermostFunction(currentRuntime(), orphan, function, callArgs);
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

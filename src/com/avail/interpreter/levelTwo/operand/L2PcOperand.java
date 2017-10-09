@@ -32,19 +32,17 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operation.L2_LABEL;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.utility.evaluation.Transformer2;
+import com.avail.interpreter.levelTwo.register.RegisterTransformer;
+import com.avail.optimizer.L2BasicBlock;
 
 import static java.lang.String.format;
 
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link L2OperandType#PC}.
- * It also holds the {@link L2_LABEL} that is the target instruction to which
- * this operand refers.
+ * It refers to the target {@link L2BasicBlock}, and may contain {@link
+ * PhiRestriction}s that narrow register type information along this branch.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -53,19 +51,39 @@ public class L2PcOperand extends L2Operand
 	/**
 	 * The label instruction that this operand refers to.
 	 */
-	private final L2Instruction label;
+	private final L2BasicBlock targetBlock;
 
 	/**
-	 * Construct a new {@link L2PcOperand} with the specified {@link
-	 * L2Instruction}, which should be a {@link L2_LABEL label}.
+	 * The collection of {@link PhiRestriction}s along this particular control
+	 * flow transition.  An instruction that has multiple control flow
+	 * transitions from it may produce different type restrictions along each
+	 * branch, e.g., type narrowing from a type-testing branch.
+	 */
+	private final PhiRestriction[] phiRestrictions;
+
+	/**
+	 * Answer the array of {@link PhiRestriction}s along this branch.
 	 *
-	 * @param label The target label.
+	 * @return The array of {@link PhiRestriction}s.
+	 */
+	public PhiRestriction[] getPhiRestrictions ()
+	{
+		return phiRestrictions;
+	}
+
+	/**
+	 * Construct a new {@code L2PcOperand} with the specified {@link
+	 * L2BasicBlock}.
+	 *
+	 * @param targetBlock
+	 *        The {@link L2BasicBlock} The target basic block.
 	 */
 	public L2PcOperand (
-		final L2Instruction label)
+		final L2BasicBlock targetBlock,
+		final PhiRestriction... phiRestrictions)
 	{
-		assert label.operation == L2_LABEL.instance;
-		this.label = label;
+		this.targetBlock = targetBlock;
+		this.phiRestrictions = phiRestrictions;
 	}
 
 	@Override
@@ -82,30 +100,26 @@ public class L2PcOperand extends L2Operand
 
 	@Override
 	public L2PcOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
+		final RegisterTransformer<L2OperandType> transformer)
 	{
 		return this;
 	}
 
 	/**
-	 * Answer the target label that this operand refers to.  It must be an
-	 * {@link L2Instruction} whose operation is {@link L2_LABEL}.
+	 * Answer the target {@link L2BasicBlock} that this operand refers to.
 	 *
-	 * @return The target label instruction.
+	 * @return The target basic block.
 	 */
-	public L2Instruction targetLabel ()
+	public L2BasicBlock targetBlock ()
 	{
-		return label;
+		return targetBlock;
 	}
 
 	@Override
 	public String toString ()
 	{
-		// Extract the comment from the target label.
-		final L2CommentOperand commentOperand =
-			(L2CommentOperand)label.operands[0];
-		return format("Pc(%s=%d)",
-			commentOperand.comment,
-			label.offset());
+		// Show the basic block's name.
+		return format("Pc(%s)",
+			targetBlock.name());
 	}
 }

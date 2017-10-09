@@ -382,7 +382,7 @@ implements
 	 */
 	void assertObjectUnreachableIfMutable ()
 	{
-		assertObjectUnreachableIfMutableExcept(nil());
+		assertObjectUnreachableIfMutableExcept(nil);
 	}
 
 	/**
@@ -1485,7 +1485,7 @@ implements
 			// intention of this method.
 			assert false;
 			error("noFailDivideCanDestroy failed!");
-			return nil();
+			return nil;
 		}
 	}
 
@@ -2051,7 +2051,7 @@ implements
 	{
 		// Was a dispatch that took indirections into account, but even when we
 		// rebuild the memory substrate we can keep nil from moving around.
-		return this == nil();
+		return this == nil;
 	}
 
 	/**
@@ -3207,7 +3207,7 @@ implements
 			// intention of this method.
 			assert false;
 			error("noFailMinusCanDestroy failed!");
-			return nil();
+			return nil;
 		}
 	}
 
@@ -3491,7 +3491,7 @@ implements
 			// intention of this method.
 			assert false;
 			error("noFailPlusCanDestroy failed!");
-			return nil();
+			return nil;
 		}
 	}
 
@@ -4019,7 +4019,7 @@ implements
 			// intention of this method.
 			assert false;
 			error("noFailTimesCanDestroy failed!");
-			return nil();
+			return nil;
 		}
 	}
 
@@ -5593,7 +5593,7 @@ implements
 
 	/**
 	 * Look up the key in this {@linkplain MapBinDescriptor map bin}.  If not
-	 * found, answer the {@linkplain NilDescriptor#nil()}.  Use the
+	 * found, answer the {@linkplain NilDescriptor#nil}.  Use the
 	 * provided hash of the key.
 	 *
 	 * @param key The key to look up in this map.

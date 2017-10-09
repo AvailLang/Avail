@@ -107,29 +107,6 @@ public interface L2OperandDispatcher
 	void doOperand (L2ReadVectorOperand operand);
 
 	/**
-	 * Process an operand which is a read and write of an {@code int} register.
-	 *
-	 * @param operand an {@link L2ReadWriteIntOperand}.
-	 */
-	void doOperand (L2ReadWriteIntOperand operand);
-
-	/**
-	 * Process an operand which is a read and write of an {@link AvailObject}
-	 * register.
-	 *
-	 * @param operand an {@link L2ReadWritePointerOperand}.
-	 */
-	void doOperand (L2ReadWritePointerOperand operand);
-
-	/**
-	 * Process an operand which is a read and write of a vector of {@link
-	 * AvailObject} registers.
-	 *
-	 * @param operand an {@link L2ReadWriteVectorOperand}.
-	 */
-	void doOperand (L2ReadWriteVectorOperand operand);
-
-	/**
 	 * Process an operand which is a literal {@linkplain MethodDescriptor
 	 * method}.
 	 *

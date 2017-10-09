@@ -111,15 +111,15 @@ extends MapBinDescriptor
 	{
 		/**
 		 * The union of the types of all keys recursively within this bin.
-		 * If this is {@linkplain NilDescriptor#nil() top}, then it can
-		 * be recomputed when needed and cached.
+		 * If this is {@linkplain NilDescriptor#nil nil}, then it can be
+		 * recomputed when needed and cached.
 		 */
 		BIN_KEY_UNION_KIND_OR_NULL,
 
 		/**
 		 * The union of the types of all keys recursively within this bin.
-		 * If this is {@linkplain NilDescriptor#nil() top}, then it can
-		 * be recomputed when needed and cached.
+		 * If this is {@link NilDescriptor#nil nil}, then it can be recomputed
+		 * when needed and cached.
 		 */
 		BIN_VALUE_UNION_KIND_OR_NULL,
 
@@ -141,7 +141,7 @@ extends MapBinDescriptor
 	/**
 	 * Debugging flag to force deep, expensive consistency checks.
 	 */
-	private static final boolean shouldCheckConsistency = false; //XXX
+	private static final boolean shouldCheckConsistency = false;
 
 	/**
 	 * When a {@linkplain LinearMapBinDescriptor linear bin} reaches this many
@@ -151,8 +151,7 @@ extends MapBinDescriptor
 	private static final int thresholdToHash = 50;
 
 	/**
-	 * Check this {@linkplain LinearMapBinDescriptor linear map bin} for
-	 * internal consistency.
+	 * Check this linear map bin for internal consistency.
 	 *
 	 * @param object A linear map bin.
 	 */
@@ -181,10 +180,8 @@ extends MapBinDescriptor
 			}
 			assert object.slot(KEYS_HASH) == computedKeyHashSum;
 			final int storedValueHashSum = object.slot(VALUES_HASH_OR_ZERO);
-			if (storedValueHashSum != 0)
-			{
-				assert storedValueHashSum == computedValueHashSum;
-			}
+			assert storedValueHashSum == 0
+				|| storedValueHashSum == computedValueHashSum;
 		}
 	}
 
@@ -225,13 +222,13 @@ extends MapBinDescriptor
 		for (int i = 1; i <= limit; i++)
 		{
 			if (object.intSlot(KEY_HASHES_AREA_, i) == keyHash
-				&& object.slot(BIN_SLOT_AT_, i * 2 - 1).equals(key))
+				&& object.slot(BIN_SLOT_AT_, (i << 1) - 1).equals(key))
 			{
-				return object.slot(BIN_SLOT_AT_, i * 2);
+				return object.slot(BIN_SLOT_AT_, i << 1);
 			}
 		}
 		// Not found. Answer nil.
-		return nil();
+		return nil;
 	}
 
 	@Override @AvailMethod
@@ -252,9 +249,9 @@ extends MapBinDescriptor
 		for (int i = 1; i <= oldSize; i++)
 		{
 			if (object.intSlot(KEY_HASHES_AREA_, i) == keyHash
-				&& object.slot(BIN_SLOT_AT_, i * 2 - 1).equals(key))
+				&& object.slot(BIN_SLOT_AT_, (i << 1) - 1).equals(key))
 			{
-				final A_BasicObject oldValue = object.slot(BIN_SLOT_AT_, i * 2);
+				final A_BasicObject oldValue = object.slot(BIN_SLOT_AT_, i << 1);
 				if (oldValue.equals(value))
 				{
 					// The (key,value) pair is present.
@@ -268,7 +265,7 @@ extends MapBinDescriptor
 						// wrong after this compound operation.
 						object.setSlot(VALUES_HASH_OR_ZERO, 0);
 						object.setSlot(
-							BIN_VALUE_UNION_KIND_OR_NULL, nil());
+							BIN_VALUE_UNION_KIND_OR_NULL, nil);
 						// No need to clear the key union kind, since the keys
 						// didn't change.
 						if (!canDestroy)
@@ -295,11 +292,11 @@ extends MapBinDescriptor
 						MUTABLE,
 						level), object, 0, 0);
 				}
-				newBin.setSlot(BIN_SLOT_AT_, i * 2, value);
+				newBin.setSlot(BIN_SLOT_AT_, i << 1, value);
 				newBin.setSlot(VALUES_HASH_OR_ZERO, 0);
-				newBin.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
+				newBin.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
 				newBin.setSlot(
-					BIN_VALUE_UNION_KIND_OR_NULL, nil());
+					BIN_VALUE_UNION_KIND_OR_NULL, nil);
 				check(newBin);
 				return newBin;
 			}
@@ -332,9 +329,9 @@ extends MapBinDescriptor
 				}
 				else
 				{
-					eachKey = object.slot(BIN_SLOT_AT_, i * 2 - 1);
+					eachKey = object.slot(BIN_SLOT_AT_, (i << 1) - 1);
 					eachHash = object.intSlot(KEY_HASHES_AREA_, i);
-					eachValue = object.slot(BIN_SLOT_AT_, i * 2);
+					eachValue = object.slot(BIN_SLOT_AT_, i << 1);
 				}
 				assert result.descriptor().isMutable();
 				final A_BasicObject localAddResult =
@@ -360,8 +357,8 @@ extends MapBinDescriptor
 		result.setSlot(KEYS_HASH, object.mapBinKeysHash() + keyHash);
 		result.setSlot(VALUES_HASH_OR_ZERO, 0);
 		result.setIntSlot(KEY_HASHES_AREA_, oldSize + 1, keyHash);
-		result.setSlot(BIN_SLOT_AT_, oldSize * 2 + 1, key);
-		result.setSlot(BIN_SLOT_AT_, oldSize * 2 + 2, value);
+		result.setSlot(BIN_SLOT_AT_, (oldSize << 1) + 1, key);
+		result.setSlot(BIN_SLOT_AT_, (oldSize << 1) + 2, value);
 		final A_Type oldKeyKind = object.slot(BIN_KEY_UNION_KIND_OR_NULL);
 		if (!oldKeyKind.equalsNil())
 		{
@@ -407,11 +404,12 @@ extends MapBinDescriptor
 		for (int searchIndex = 1; searchIndex <= oldSize; searchIndex++)
 		{
 			if (object.intSlot(KEY_HASHES_AREA_, searchIndex) == keyHash
-				&& object.slot(BIN_SLOT_AT_, searchIndex * 2 - 1).equals(key))
+				&& object.slot(BIN_SLOT_AT_, (searchIndex << 1) - 1)
+					.equals(key))
 			{
 				if (oldSize == 1)
 				{
-					return nil();
+					return nil;
 				}
 				final AvailObject result = newLike(
 					descriptorFor(MUTABLE, level),
@@ -426,19 +424,19 @@ extends MapBinDescriptor
 						object.intSlot(KEY_HASHES_AREA_, oldSize));
 					result.setSlot(
 						BIN_SLOT_AT_,
-						searchIndex * 2 - 1,
-						object.slot(BIN_SLOT_AT_, oldSize * 2 - 1));
+						(searchIndex << 1) - 1,
+						object.slot(BIN_SLOT_AT_, (oldSize << 1) - 1));
 					result.setSlot(
 						BIN_SLOT_AT_,
-						searchIndex * 2,
-						object.slot(BIN_SLOT_AT_, oldSize * 2));
+						searchIndex << 1,
+						object.slot(BIN_SLOT_AT_, oldSize << 1));
 				}
 				// Adjust keys hash by the removed key.
 				result.setSlot(KEYS_HASH, object.slot(KEYS_HASH) - keyHash);
 				result.setSlot(VALUES_HASH_OR_ZERO, 0);
-				result.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
+				result.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
 				result.setSlot(
-					BIN_VALUE_UNION_KIND_OR_NULL, nil());
+					BIN_VALUE_UNION_KIND_OR_NULL, nil);
 				if (!canDestroy)
 				{
 					result.makeSubobjectsImmutable();
@@ -458,13 +456,13 @@ extends MapBinDescriptor
 	/**
 	 * Compute this bin's key type, hoisted up to the nearest kind.
 	 *
-	 * @param object The {@link LinearMapBinDescriptor bin} to scan.
+	 * @param object The linear map bin to scan.
 	 * @return The union of the kinds of this bin's keys.
 	 */
 	private A_Type computeKeyKind (final AvailObject object)
 	{
 		A_Type keyType = bottom();
-		for (int i = entryCount(object) * 2 - 1; i >= 1; i -= 2)
+		for (int i = (entryCount(object) << 1) - 1; i >= 1; i -= 2)
 		{
 			final AvailObject entry = object.slot(BIN_SLOT_AT_, i);
 			keyType = keyType.typeUnion(entry.kind());
@@ -477,8 +475,8 @@ extends MapBinDescriptor
 	}
 
 	/**
-	 * Compute and install the bin key union kind for the specified
-	 * {@linkplain LinearMapBinDescriptor object}.
+	 * Compute and install the bin key union kind for the specified linear map
+	 * bin.
 	 *
 	 * @param object A linear map bin.
 	 * @return The union of the key types as a kind.
@@ -510,13 +508,13 @@ extends MapBinDescriptor
 	/**
 	 * Compute this bin's value type, hoisted up to the nearest kind.
 	 *
-	 * @param object The {@link LinearMapBinDescriptor bin} to scan.
+	 * @param object The linear map bin to scan.
 	 * @return The union of the kinds of this bin's values.
 	 */
 	private A_Type computeValueKind (final AvailObject object)
 	{
 		A_Type valueType = bottom();
-		for (int i = entryCount(object) * 2; i >= 1; i -= 2)
+		for (int i = entryCount(object) << 1; i >= 1; i -= 2)
 		{
 			final AvailObject entry = object.slot(BIN_SLOT_AT_, i);
 			valueType = valueType.typeUnion(entry.kind());
@@ -530,10 +528,10 @@ extends MapBinDescriptor
 
 	/**
 	 * Compute and install the bin value union kind for the specified
-	 * {@linkplain LinearMapBinDescriptor object}.
+	 * linear map bin.
 	 *
-	 * @param object An object.
-	 * @return A key type.
+	 * @param object The linear map bin.
+	 * @return The union of the kinds of this bin's values.
 	 */
 	private A_Type mapBinValueUnionKind (final AvailObject object)
 	{
@@ -561,10 +559,10 @@ extends MapBinDescriptor
 
 	/**
 	 * Lazily compute and install the hash of the values within the specified
-	 * {@link LinearMapBinDescriptor}.
+	 * linear map bin.
 	 *
-	 * @param object An object.
-	 * @return A hash.
+	 * @param object The linear map bin.
+	 * @return The bin's hash.
 	 */
 	private static int mapBinValuesHash (final AvailObject object)
 	{
@@ -574,7 +572,7 @@ extends MapBinDescriptor
 			final int size = entryCount(object);
 			for (int i = 1; i <= size; i++)
 			{
-				valuesHash += object.slot(BIN_SLOT_AT_, i * 2).hash();
+				valuesHash += object.slot(BIN_SLOT_AT_, i << 1).hash();
 			}
 			object.setSlot(VALUES_HASH_OR_ZERO, valuesHash);
 		}
@@ -610,9 +608,9 @@ extends MapBinDescriptor
 					throw new NoSuchElementException();
 				}
 				entry.setKeyAndHashAndValue(
-					object.slot(BIN_SLOT_AT_, nextIndex * 2 - 1),
+					object.slot(BIN_SLOT_AT_, (nextIndex << 1) - 1),
 					object.intSlot(KEY_HASHES_AREA_, nextIndex),
-					object.slot(BIN_SLOT_AT_, nextIndex * 2));
+					object.slot(BIN_SLOT_AT_, nextIndex << 1));
 				nextIndex++;
 				return entry;
 			}
@@ -644,8 +642,8 @@ extends MapBinDescriptor
 			2, 1, descriptorFor(MUTABLE, myLevel));
 		bin.setSlot(KEYS_HASH, keyHash);
 		bin.setSlot(VALUES_HASH_OR_ZERO, 0);
-		bin.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
-		bin.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil());
+		bin.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
+		bin.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil);
 		bin.setIntSlot(KEY_HASHES_AREA_, 1, keyHash);
 		bin.setSlot(BIN_SLOT_AT_, 1, key);
 		bin.setSlot(BIN_SLOT_AT_, 2, value);
@@ -676,7 +674,7 @@ extends MapBinDescriptor
 	}
 
 	/**
-	 * Construct a new {@link LinearMapBinDescriptor}.
+	 * Construct a new {@code LinearMapBinDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

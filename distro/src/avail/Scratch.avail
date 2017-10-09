@@ -38,7 +38,19 @@ Names
 "Base64 encoder",
 "“_”(Base64)"
 Body
-Breakpoint;
+
+Method "Cheese_" is
+[
+	x : string
+|
+	Print: "Hello, " ++ x;
+];
+
+[
+	Breakpoint;
+	Cheese "suckah";
+]();
+
 /**
  * foo
  * @module

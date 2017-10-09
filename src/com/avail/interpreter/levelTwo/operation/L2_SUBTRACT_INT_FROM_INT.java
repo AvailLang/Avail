@@ -37,7 +37,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 
 
 /**
@@ -66,7 +67,7 @@ public class L2_SUBTRACT_INT_FROM_INT extends L2Operation
 			instruction.readIntRegisterAt(0);
 		final L2IntegerRegister minuendReg =
 			instruction.readWriteIntRegisterAt(1);
-		final int outOfRangeOffset = instruction.pcAt(2);
+		final int outOfRangeOffset = instruction.pcOffsetAt(2);
 
 		final int subtrahend = subtrahendReg.in(interpreter);
 		final int minuend = minuendReg.in(interpreter);

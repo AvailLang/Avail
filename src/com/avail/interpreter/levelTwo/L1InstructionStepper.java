@@ -86,7 +86,7 @@ public final class L1InstructionStepper
 	final Interpreter interpreter;
 
 	/** The nybblecodes tuple of the current function. */
-	private A_Tuple nybbles = nil();
+	private A_Tuple nybbles = nil;
 
 	/** The current one-based index into the nybblecodes. */
 	public int pc;
@@ -104,25 +104,6 @@ public final class L1InstructionStepper
 	public L1InstructionStepper (final Interpreter interpreter)
 	{
 		this.interpreter = interpreter;
-	}
-
-	/**
-	 * Answer the subscript of the integer register reserved for holding the
-	 * flag (0=false, 1=true) indicating whether the current virtualized
-	 * continuation (that lives only in the registers) needs to check its return
-	 * result's type.  If this continuation becomes reified, this flag will be
-	 * placed in the {@link
-	 * ContinuationDescriptor#o_SkipReturnFlag(AvailObject)}, and extracted into
-	 * this register again when resuming the continuation.  Any continuation
-	 * constructed artificially will have this flag clear for safety.
-	 *
-	 * @return The subscript to use with {@link Interpreter#integerAt(int)}.
-	 */
-	@Deprecated
-	public static int skipReturnCheckRegister ()
-	{
-		// Reserved.
-		return 3;
 	}
 
 	/**
@@ -190,7 +171,7 @@ public final class L1InstructionStepper
 	private AvailObject pop ()
 	{
 		final AvailObject popped = pointerAt(stackp);
-		interpreter.pointerAtPut(stackp++, nil());
+		interpreter.pointerAtPut(stackp++, nil);
 		return popped;
 	}
 
@@ -261,7 +242,7 @@ public final class L1InstructionStepper
 					for (int i = stackp + numArgs - 1; i >= stackp; i--)
 					{
 						interpreter.argsBuffer.add(interpreter.pointerAt(i));
-						interpreter.pointerAtPut(i, nil());
+						interpreter.pointerAtPut(i, nil);
 					}
 					stackp += numArgs;
 					// Push the expected type, which should be replaced on the
@@ -317,7 +298,7 @@ public final class L1InstructionStepper
 					final int localIndex = getInteger();
 					final AvailObject local = pointerAt(localIndex);
 					assert !local.equalsNil();
-					pointerAtPut(localIndex, nil());
+					pointerAtPut(localIndex, nil);
 					push(local);
 					break;
 				}
@@ -453,7 +434,7 @@ public final class L1InstructionStepper
 						assert !arg.equalsNil();
 						args.add(arg);
 					}
-					assert interpreter.chunk == L2Chunk.unoptimizedChunk();
+					assert interpreter.chunk == unoptimizedChunk();
 
 					final A_Function savedFunction =
 						stripNull(interpreter.function);
@@ -470,9 +451,9 @@ public final class L1InstructionStepper
 							// continuations.  Run this before continuing the L2
 							// interpreter.
 							interpreter.function = savedFunction;
-							interpreter.chunk = L2Chunk.unoptimizedChunk();
+							interpreter.chunk = unoptimizedChunk();
 							interpreter.offset =
-								L2Chunk.offsetToReenterAfterReification();
+								offsetToReenterAfterReification();
 							interpreter.pointers = savedPointers;
 							interpreter.integers = savedInts;
 							interpreter.skipReturnCheck = savedSkip;
@@ -488,8 +469,8 @@ public final class L1InstructionStepper
 									savedFunction,
 									interpreter.reifiedContinuation,
 									savedSkip,
-									L2Chunk.unoptimizedChunk(),
-									L2Chunk.offsetToRestartUnoptimizedChunk(),
+									unoptimizedChunk(),
+									offsetToRestartUnoptimizedChunk(),
 									args);
 
 							// Freeze all fields of the new object, including
@@ -697,7 +678,7 @@ public final class L1InstructionStepper
 			final A_Continuation continuation =
 				createContinuationExceptFrame(
 					function,
-					nil(),
+					nil,
 					pc,   // Right after the set-variable instruction.
 					stackp,
 					false,
@@ -748,7 +729,7 @@ public final class L1InstructionStepper
 		interpreter.skipReturnCheck = false;
 
 		final A_Function savedFunction = stripNull(interpreter.function);
-		assert interpreter.chunk == L2Chunk.unoptimizedChunk();
+		assert interpreter.chunk == unoptimizedChunk();
 		final int savedOffset = interpreter.offset;
 		final AvailObject[] savedPointers = interpreter.pointers;
 		final int[] savedInts = interpreter.integers;
@@ -771,7 +752,7 @@ public final class L1InstructionStepper
 				final A_Continuation continuation =
 					createContinuationExceptFrame(
 						savedFunction,
-						nil(),
+						nil,
 						savedPc,
 						savedStackp,
 						false,

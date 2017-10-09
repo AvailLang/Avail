@@ -1058,7 +1058,7 @@ extends Descriptor
 			PRIMITIVE, primitive == null ? 0 : primitive.primitiveNumber);
 		code.setSlot(NYBBLES, nybbles.makeShared());
 		code.setSlot(FUNCTION_TYPE, functionType.makeShared());
-		code.setSlot(PROPERTY_ATOM, nil());
+		code.setSlot(PROPERTY_ATOM, nil);
 		code.setSlot(STARTING_CHUNK, L2Chunk.unoptimizedChunk().chunkPojo);
 		code.setSlot(INVOCATION_STATISTIC, statisticPojo);
 

@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -133,7 +132,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK extends L2Operation
 		final L2Translator translator)
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
-		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
+		final List<L2ReadPointerOperand> argsVector = instruction.readVectorRegisterAt(1);
 		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(2);
 
 		final List<A_Type> argTypes =

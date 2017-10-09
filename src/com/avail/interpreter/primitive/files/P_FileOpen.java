@@ -201,7 +201,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final A_Atom atom = createAtom(filename, nil());
+		final A_Atom atom = createAtom(filename, nil);
 		final AsynchronousFileChannel channel;
 		try
 		{

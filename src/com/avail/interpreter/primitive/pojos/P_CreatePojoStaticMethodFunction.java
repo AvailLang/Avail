@@ -175,7 +175,7 @@ extends Primitive
 		// primitive. This function will be embedded as a literal into
 		// an outer function that holds the (unexposed) method pojo.
 		L1InstructionWriter writer = new L1InstructionWriter(
-			nil(), 0, nil());
+			nil, 0, nil);
 		writer.primitive(P_InvokeStaticPojoMethod.instance);
 		writer.argumentTypes(
 			RAW_POJO.o(),
@@ -202,7 +202,7 @@ extends Primitive
 		// not want to expose to the Avail program are embedded in this
 		// function as literals.
 		writer = new L1InstructionWriter(
-			nil(), 0, nil());
+			nil, 0, nil);
 		writer.argumentTypesTuple(paramTypes);
 		final A_Type returnType = resolvePojoType(
 			method.getGenericReturnType(), pojoType.typeVariables());

@@ -125,7 +125,7 @@ extends Primitive
 		// start, so exit early.
 		if (sleepMillis.greaterThan(fromLong(Long.MAX_VALUE)))
 		{
-			return interpreter.primitiveSuccess(nil());
+			return interpreter.primitiveSuccess(nil);
 		}
 		// Now that we know that the call will really happen, share the function
 		// and the arguments.
@@ -175,7 +175,7 @@ extends Primitive
 				},
 				sleepMillis.extractLong());
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

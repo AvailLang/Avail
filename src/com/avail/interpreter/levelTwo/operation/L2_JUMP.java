@@ -59,7 +59,7 @@ public class L2_JUMP extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int offset = instruction.pcAt(0);
+		final int offset = instruction.pcOffsetAt(0);
 		interpreter.offset(offset);
 	}
 

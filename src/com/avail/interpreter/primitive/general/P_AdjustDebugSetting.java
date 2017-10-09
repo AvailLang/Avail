@@ -74,7 +74,7 @@ public final class P_AdjustDebugSetting extends Primitive
 		Interpreter.debugPrimitives = (level & 4) != 0;
 		Interpreter.debugCustom = (level & 128) != 0;
 		Interpreter.setLoggerLevel(level != 0 ? Level.ALL : Level.OFF);
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

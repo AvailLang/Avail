@@ -34,8 +34,8 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
@@ -45,6 +45,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
  * emitted in the instruction stream, but it acts as a place holder during
  * code generation and optimization.
  */
+@Deprecated
 public class L2_LABEL extends L2Operation
 {
 	/**

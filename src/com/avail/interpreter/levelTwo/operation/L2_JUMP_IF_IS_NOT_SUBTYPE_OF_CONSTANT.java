@@ -38,10 +38,11 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
@@ -63,23 +64,25 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT().init(
-			PC.is("target"),
 			READ_POINTER.is("type to check"),
-			CONSTANT.is("constant type"));
+			CONSTANT.is("constant type"),
+			PC.is("not subtype"),
+			PC.is("is subtype"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int target = instruction.pcAt(0);
-		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(1);
-		final A_Type constantType = instruction.constantAt(2);
+		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(0);
+		final A_Type constantType = instruction.constantAt(1);
+		final int notSubtype = instruction.pcOffsetAt(2);
+		final int isSubtype = instruction.pcOffsetAt(3);
 
-		if (!typeReg.in(interpreter).isSubtypeOf(constantType))
-		{
-			interpreter.offset(target);
-		}
+		interpreter.offset(
+			!typeReg.in(interpreter).isSubtypeOf(constantType)
+				? notSubtype
+				: isSubtype);
 	}
 
 	@Override
@@ -89,9 +92,10 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 		final L1NaiveTranslator naiveTranslator)
 	{
 		// Eliminate tests due to type propagation.
-//		final int target = instruction.pcAt(0);
-		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(1);
-		final A_Type constantType = instruction.constantAt(2);
+		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(0);
+		final A_Type constantType = instruction.constantAt(1);
+		final L2PcOperand notSubtype = instruction.pcAt(2);
+		final L2PcOperand isSubtype = instruction.pcAt(3);
 
 		final boolean canJump;
 		final boolean mustJump;
@@ -130,14 +134,13 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 			// It can never be a subtype of the constantType.  Always jump.  The
 			// instructions that follow the jump will become dead code and
 			// be eliminated next pass.
-			naiveTranslator.addInstruction(
-				L2_JUMP.instance,
-				instruction.operands[0]);
+			naiveTranslator.addInstruction(L2_JUMP.instance, notSubtype);
 			return true;
 		}
 		if (!canJump)
 		{
 			// It is always a subtype of the constantType, so never jump.
+			naiveTranslator.addInstruction(L2_JUMP.instance, isSubtype);
 			return true;
 		}
 		// Since it's already an X and we're testing for Y, we might be
@@ -149,9 +152,10 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 		{
 			naiveTranslator.addInstruction(
 				L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT.instance,
-				instruction.operands[0],
 				new L2ReadPointerOperand(typeReg),
-				new L2ConstantOperand(intersection));
+				new L2ConstantOperand(intersection),
+				notSubtype,
+				isSubtype);
 			return true;
 		}
 		// The test could not be eliminated or improved.

@@ -88,7 +88,7 @@ public final class P_RecordNewTypeName extends Primitive
 				new LoadingEffectToRunPrimitive(
 					SpecialMethodAtom.RECORD_TYPE_NAME.bundle, userType, name));
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

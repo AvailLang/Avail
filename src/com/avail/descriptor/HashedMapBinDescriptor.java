@@ -80,10 +80,10 @@ extends MapBinDescriptor
 	/**
 	 * A static switch for enabling slow, detailed correctness checks.
 	 */
-	private static final boolean shouldCheck = false; //XXX
+	private static final boolean shouldCheck = false;
 
 	/**
-	 * Make sure the {@link HashedMapBinDescriptor hashed map bin} is
+	 * Make sure the {@code HashedMapBinDescriptor hashed map bin} is
 	 * well-formed at this moment.
 	 *
 	 * @param object A hashed bin used by maps.
@@ -167,14 +167,14 @@ extends MapBinDescriptor
 	{
 		/**
 		 * The union of the types of all keys recursively within this bin.
-		 * If this is {@linkplain NilDescriptor#nil() top}, then it can
+		 * If this is {@linkplain NilDescriptor#nil top}, then it can
 		 * be recomputed when needed and cached.
 		 */
 		BIN_KEY_UNION_KIND_OR_NULL,
 
 		/**
 		 * The union of the types of all keys recursively within this bin.
-		 * If this is {@linkplain NilDescriptor#nil() top}, then it can
+		 * If this is {@linkplain NilDescriptor#nil top}, then it can
 		 * be recomputed when needed and cached.
 		 */
 		BIN_VALUE_UNION_KIND_OR_NULL,
@@ -236,8 +236,8 @@ extends MapBinDescriptor
 	 * Compute this bin's key type and value type.
 	 *
 	 * @param object
-	 *        The {@link HashedMapBinDescriptor bin} to populate with key
-	 *        and value type information.
+	 *        The hashed map bin to populate with key and value type
+	 *        information.
 	 */
 	private void computeKeyAndValueKinds (final AvailObject object)
 	{
@@ -261,11 +261,11 @@ extends MapBinDescriptor
 	}
 
 	/**
-	 * Compute and install the bin key union kind for the specified
-	 * {@linkplain HashedMapBinDescriptor object}.
+	 * Compute and install the bin key union kind for the specified hashed map
+	 * bin.
 	 *
-	 * @param object An object.
-	 * @return A key type.
+	 * @param object The hashed map bin.
+	 * @return The union kind of the bin's key types.
 	 */
 	private AvailObject mapBinKeyUnionKind (final AvailObject object)
 	{
@@ -292,11 +292,11 @@ extends MapBinDescriptor
 	}
 
 	/**
-	 * Compute and install the bin value union kind for the specified
-	 * {@linkplain HashedMapBinDescriptor object}.
+	 * Compute and install the bin value union kind for the specified hashed map
+	 * bin.
 	 *
-	 * @param object An object.
-	 * @return A key type.
+	 * @param object The hashed map bin.
+	 * @return The union kind of the bin's value types.
 	 */
 	private AvailObject mapBinValueUnionKind (final AvailObject object)
 	{
@@ -410,8 +410,8 @@ extends MapBinDescriptor
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + hashDelta);
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
 		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
-		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
-		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil());
+		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
+		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil);
 		checkHashedMapBin(objectToModify);
 		return objectToModify;
 	}
@@ -428,7 +428,7 @@ extends MapBinDescriptor
 		if ((vector & (1L << logicalIndex)) == 0)
 		{
 			// Not found.  Answer nil.
-			return nil();
+			return nil;
 		}
 		// There's an entry.  Count the 1-bits below it to compute its
 		// zero-relative physicalIndex.
@@ -483,7 +483,7 @@ extends MapBinDescriptor
 			if (oldSlotCount == 1)
 			{
 				// ...and so must this one.
-				return nil();
+				return nil;
 			}
 			objectToModify = AvailObject.newIndexedDescriptor(
 				bitCount(vector) - 1,
@@ -525,8 +525,8 @@ extends MapBinDescriptor
 		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + deltaHash);
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
-		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
-		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil());
+		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
+		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil);
 		checkHashedMapBin(objectToModify);
 		return objectToModify;
 	}
@@ -598,7 +598,7 @@ extends MapBinDescriptor
 		}
 
 		/**
-		 * Visit this bin or {@link NilDescriptor#nil() nil}. In particular,
+		 * Visit this bin or {@link NilDescriptor#nil nil}. In particular,
 		 * travel down its left spine so that it's positioned at the leftmost
 		 * descendant.
 		 *
@@ -697,7 +697,7 @@ extends MapBinDescriptor
 	/**
 	 * Create a hashed map bin at the given level and with the given bit vector.
 	 * The number of 1 bits in the bit vector determine how many sub-bins to
-	 * allocate.  Start each sub-bin as {@link NilDescriptor#nil() nil}, with
+	 * allocate.  Start each sub-bin as {@link NilDescriptor#nil nil}, with
 	 * the expectation that it will be populated during subsequent
 	 * initialization of this bin.
 	 *
@@ -707,7 +707,7 @@ extends MapBinDescriptor
 	 *        The {@code long} containing a 1 bit for each sub-bin slot.
 	 * @return
 	 *        A hash map bin suitable for adding entries to.  The bin is
-	 *        denormalized, with all sub-bins set to {@link NilDescriptor#nil()
+	 *        denormalized, with all sub-bins set to {@link NilDescriptor#nil
 	 *        nil}.
 	 */
 	static AvailObject createLevelBitVector (
@@ -721,11 +721,11 @@ extends MapBinDescriptor
 		result.setSlot(VALUES_HASH_OR_ZERO, 0);
 		result.setSlot(BIN_SIZE, 0);
 		result.setSlot(BIT_VECTOR, bitVector);
-		result.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil());
-		result.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil());
+		result.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
+		result.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil);
 		for (int i = 1; i <= newSize; i++)
 		{
-			result.setSlot(SUB_BINS_, i, nil());
+			result.setSlot(SUB_BINS_, i, nil);
 		}
 		checkHashedMapBin(result);
 		return result;
@@ -738,7 +738,7 @@ extends MapBinDescriptor
 	private static final byte numberOfLevels = 6;
 
 	/**
-	 * Answer the appropriate {@link HashedMapBinDescriptor} to use for the
+	 * Answer the appropriate {@code HashedMapBinDescriptor} to use for the
 	 * given mutability and level.
 	 *
 	 * @param flag The mutability of the object.
@@ -761,7 +761,7 @@ extends MapBinDescriptor
 	private final byte shift;
 
 	/**
-	 * Construct a new {@link HashedMapBinDescriptor}.
+	 * Construct a new {@code HashedMapBinDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

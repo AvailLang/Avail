@@ -149,7 +149,7 @@ extends Primitive
 					Interpreter.resumeFromSuccessfulPrimitive(
 						currentRuntime(),
 						fiber,
-						nil(),
+						nil,
 						primitiveRawFunction,
 						skipReturnCheck);
 				}));

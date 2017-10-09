@@ -125,7 +125,7 @@ extends Primitive
 		}
 		function.code().setMethodName(
 			formatString("Semantic restriction of %s", string));
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

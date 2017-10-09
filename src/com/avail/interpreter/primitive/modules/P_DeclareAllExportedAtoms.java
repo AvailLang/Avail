@@ -98,7 +98,7 @@ extends Primitive
 		{
 			module.addPrivateNames(names);
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

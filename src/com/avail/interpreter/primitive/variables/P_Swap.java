@@ -100,7 +100,7 @@ public final class P_Swap extends Primitive
 		{
 			var1.setValue(value2);
 			var2.setValue(value1);
-			return interpreter.primitiveSuccess(nil());
+			return interpreter.primitiveSuccess(nil);
 		}
 		catch (final VariableSetException e)
 		{

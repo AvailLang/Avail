@@ -41,9 +41,11 @@ import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -71,11 +73,7 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			WRITE_VECTOR.is("exploded continuation slots"),
 			WRITE_POINTER.is("exploded caller"),
 			WRITE_POINTER.is("exploded function"),
-			WRITE_INT.is("skip return check"),
-			CONSTANT.is("slot types map"),
-			CONSTANT.is("slot constants map"),
-			CONSTANT.is("null slots set"),
-			CONSTANT.is("function type"));
+			WRITE_INT.is("skip return check"));
 
 	@Override
 	public void step (
@@ -86,29 +84,28 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		// of destination registers.  Also explode the current function and the
 		// caller.  Ignore the level one program counter and stack pointer since
 		// they're implicit in level two code.
-		final L2ObjectRegister continuationToExplodeReg =
+		final L2ReadPointerOperand continuationToExplodeReg =
 			instruction.readObjectRegisterAt(0);
-		final L2RegisterVector explodedSlotsVector =
+		final List<L2WritePointerOperand> explodedSlots =
 			instruction.writeVectorRegisterAt(1);
-		final L2ObjectRegister targetCallerReg =
+		final L2WritePointerOperand explodedCallerReg =
 			instruction.writeObjectRegisterAt(2);
-		final L2ObjectRegister targetFunctionReg =
+		final L2WritePointerOperand explodedFunctionReg =
 			instruction.writeObjectRegisterAt(3);
-		final L2IntegerRegister skipReturnCheckReg =
+		final L2WriteIntOperand skipReturnCheckReg =
 			instruction.writeIntRegisterAt(4);
 
-		final List<L2ObjectRegister> slotRegs = explodedSlotsVector.registers();
-		final int slotsCount = slotRegs.size();
+		final int slotsCount = explodedSlots.size();
 		final A_Continuation continuation =
 			continuationToExplodeReg.in(interpreter);
 		assert continuation.numArgsAndLocalsAndStack() == slotsCount;
 		for (int i = 1; i <= slotsCount; i++)
 		{
 			final AvailObject slotValue = continuation.argOrLocalOrStackAt(i);
-			slotRegs.get(i - 1).set(slotValue, interpreter);
+			explodedSlots.get(i - 1).set(slotValue, interpreter);
 		}
-		targetCallerReg.set(continuation.caller(), interpreter);
-		targetFunctionReg.set(continuation.function(), interpreter);
+		explodedCallerReg.set(continuation.caller(), interpreter);
+		explodedFunctionReg.set(continuation.function(), interpreter);
 		skipReturnCheckReg.set(
 			continuation.skipReturnFlag() ? 1 : 0,
 			interpreter);
@@ -120,16 +117,17 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-//		final L2ObjectRegister continuationToExplodeReg =
-//			instruction.readObjectRegisterAt(0);
-		final L2RegisterVector explodedSlotsVector =
+		final L2ReadPointerOperand continuationToExplodeReg =
+			instruction.readObjectRegisterAt(0);
+		final List<L2WritePointerOperand> explodedSlots =
 			instruction.writeVectorRegisterAt(1);
-		final L2ObjectRegister targetCallerReg =
+		final L2WritePointerOperand explodedCallerReg =
 			instruction.writeObjectRegisterAt(2);
-		final L2ObjectRegister targetFunctionReg =
+		final L2WritePointerOperand explodedFunctionReg =
 			instruction.writeObjectRegisterAt(3);
-//		final L2IntegerRegister skipReturnCheckReg =
-//			instruction.writeIntRegisterAt(4);
+		final L2WriteIntOperand skipReturnCheckReg =
+			instruction.writeIntRegisterAt(4);
+
 		final A_Map slotTypes = instruction.constantAt(5);
 		final A_Map slotConstants = instruction.constantAt(6);
 		final A_Set nullSlots = instruction.constantAt(7);
@@ -139,17 +137,17 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 		// values known to be in the slots of the continuation being exploded
 		// into registers.
 		registerSet.typeAtPut(
-			targetCallerReg,
+			explodedCallerReg.register,
 			mostGeneralContinuationType(),
 			instruction);
-		registerSet.typeAtPut(targetFunctionReg, functionType, instruction);
-		final List<L2ObjectRegister> slotRegs = explodedSlotsVector.registers();
+		registerSet.typeAtPut(
+			explodedFunctionReg.register, functionType, instruction);
 		for (final Entry entry : slotTypes.mapIterable())
 		{
 			final int slotIndex = entry.key().extractInt();
 			final A_Type slotType = entry.value();
 			registerSet.typeAtPut(
-				slotRegs.get(slotIndex - 1),
+				explodedSlots.get(slotIndex - 1).register,
 				slotType,
 				instruction);
 		}
@@ -158,15 +156,15 @@ public class L2_EXPLODE_CONTINUATION extends L2Operation
 			final int slotIndex = entry.key().extractInt();
 			final AvailObject slotValue = entry.value();
 			registerSet.constantAtPut(
-				slotRegs.get(slotIndex - 1),
+				explodedSlots.get(slotIndex - 1).register,
 				slotValue,
 				instruction);
 		}
 		for (final A_Number indexObject : nullSlots)
 		{
 			registerSet.constantAtPut(
-				slotRegs.get(indexObject.extractInt() - 1),
-				nil(),
+				explodedSlots.get(indexObject.extractInt() - 1).register,
+				nil,
 				instruction);
 		}
 	}

@@ -134,7 +134,7 @@ public final class P_BootstrapPrefixEndOfBlockBody extends Primitive
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true);
 		fiber.fiberGlobals(fiberGlobals.makeShared());
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

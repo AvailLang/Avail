@@ -490,7 +490,7 @@ public enum SerializerOperation
 
 
 	/**
-	 * Produce the Avail {@linkplain NilDescriptor#nil() nil} during
+	 * Produce the Avail {@linkplain NilDescriptor#nil nil} during
 	 * deserialization.
 	 */
 	NIL (15)
@@ -508,7 +508,7 @@ public enum SerializerOperation
 			final AvailObject[] subobjects,
 			final Deserializer deserializer)
 		{
-			return nil();
+			return nil;
 		}
 	},
 
@@ -1125,7 +1125,7 @@ public enum SerializerOperation
 			final int numLocals = localTypes.tupleSize();
 
 			final A_Module module = moduleName.tupleSize() == 0
-				? nil()
+				? nil
 				: deserializer.moduleNamed(moduleName);
 			return newCompiledCode(
 				nybbles,
@@ -1492,7 +1492,7 @@ public enum SerializerOperation
 			final A_Variable variable = subobjects[0];
 			final AvailObject value = subobjects[1];
 			variable.setValue(value);
-			return nil();
+			return nil;
 		}
 	},
 
@@ -1585,7 +1585,7 @@ public enum SerializerOperation
 				}
 				else
 				{
-					pairs.add(tuple(nil(), atom.atomName()));
+					pairs.add(tuple(nil, atom.atomName()));
 				}
 			}
 			return array(tupleFromList(pairs));

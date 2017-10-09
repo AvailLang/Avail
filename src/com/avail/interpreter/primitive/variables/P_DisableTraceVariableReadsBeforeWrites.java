@@ -95,7 +95,7 @@ extends Primitive
 		{
 			var.addWriteReactor(key, reactor);
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

@@ -701,7 +701,7 @@ extends ParseNodeDescriptor
 			STATEMENTS_TUPLE,
 			tupleFromList(flattenedStatements));
 		block.setSlot(RESULT_TYPE, resultType);
-		block.setSlot(NEEDED_VARIABLES, nil());
+		block.setSlot(NEEDED_VARIABLES, nil);
 		block.setSlot(DECLARED_EXCEPTIONS, declaredExceptions);
 		block.setSlot(STARTING_LINE_NUMBER, lineNumber);
 		block.makeShared();

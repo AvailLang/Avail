@@ -52,7 +52,7 @@ import static com.avail.interpreter.Primitive.Flag.*;
  * tuple} containing the {@linkplain ContinuationDescriptor continuation}'s
  * stack data. Substitute an unassigned {@linkplain BottomTypeDescriptor
  * bottom}-typed {@linkplain VariableDescriptor variable} (unconstructible
- * from Avail) for any {@linkplain NilDescriptor#nil() null} values.
+ * from Avail) for any {@linkplain NilDescriptor#nil null} values.
  */
 public final class P_ContinuationStackData extends Primitive
 {

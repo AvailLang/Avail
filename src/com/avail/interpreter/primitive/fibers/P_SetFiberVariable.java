@@ -91,7 +91,7 @@ extends Primitive
 					value.makeImmutable(),
 					true));
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

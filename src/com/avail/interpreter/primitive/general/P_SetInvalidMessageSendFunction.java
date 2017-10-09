@@ -43,6 +43,7 @@ import com.avail.interpreter.Primitive;
 import java.util.List;
 
 import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.AvailRuntime.invalidMessageSendFunctionType;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -85,7 +86,7 @@ extends Primitive
 		final A_Function function = args.get(0);
 		function.code().setMethodName(stringFrom("«invalid message send»"));
 		currentRuntime().setInvalidMessageSendFunction(function);
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override
@@ -93,18 +94,7 @@ extends Primitive
 	{
 		return functionType(
 			tuple(
-				functionType(
-					tuple(
-						enumerationWith(
-							set(
-								E_NO_METHOD,
-								E_NO_METHOD_DEFINITION,
-								E_AMBIGUOUS_METHOD_DEFINITION,
-								E_FORWARD_METHOD_DEFINITION,
-								E_ABSTRACT_METHOD_DEFINITION)),
-						METHOD.o(),
-						mostGeneralTupleType()),
-					bottom())),
+				invalidMessageSendFunctionType),
 			TOP.o());
 	}
 }

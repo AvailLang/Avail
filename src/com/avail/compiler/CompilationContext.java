@@ -437,9 +437,8 @@ public class CompilationContext
 				{
 					try
 					{
-						final Continuation0 noMore = noMoreWorkUnits;
+						final Continuation0 noMore = stripNull(noMoreWorkUnits);
 						noMoreWorkUnits = null;
-						assert noMore != null;
 						noMore.value();
 					}
 					catch (final Exception e)

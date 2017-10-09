@@ -118,7 +118,7 @@ extends Primitive
 						Interpreter.resumeFromSuccessfulPrimitive(
 							runtime,
 							fiber,
-							nil(),
+							nil,
 							primitiveFunction.code(),
 							skipReturnCheck);
 					}

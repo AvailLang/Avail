@@ -42,6 +42,7 @@ import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -56,23 +57,26 @@ public class L2_RETURN extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_RETURN().init(
-			READ_POINTER.is("return value"));
+			READ_POINTER.is("return value"),
+			READ_INT.is("skip return check"));
 
 	@Override
 	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
 		final L2Instruction instruction)
 	{
 		// Return to the calling continuation with the given value.
-		final int valueRegNumber =
+		final int valueRegIndex =
 			instruction.readObjectRegisterAt(0).finalIndex();
+		final int skipCheckIndex =
+			instruction.readIntRegisterAt(1).finalIndex();
 
 		return interpreter ->
 		{
-			final AvailObject value = interpreter.pointerAt(valueRegNumber);
+			final AvailObject value = interpreter.pointerAt(valueRegIndex);
 			interpreter.latestResult(value);
+			interpreter.skipReturnCheck =
+				interpreter.integerAt(skipCheckIndex) != 0;
 			interpreter.returnNow = true;
-			//TODO MvG - Something like this, if we even keep this instruction
-			//around in the semistackless regime.
 			final A_Function function = stripNull(interpreter.function);
 			interpreter.returningRawFunction = function.code();
 		};

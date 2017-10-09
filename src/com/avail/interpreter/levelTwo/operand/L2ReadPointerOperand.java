@@ -32,12 +32,24 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.utility.evaluation.Transformer2;
+import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
+import javax.annotation.Nullable;
+
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.SetDescriptor.emptySet;
 import static java.lang.String.format;
 
 /**
@@ -52,18 +64,86 @@ public class L2ReadPointerOperand extends L2Operand
 	/**
 	 * The actual {@link L2ObjectRegister}.
 	 */
-	public final L2ObjectRegister register;
+	private final L2ObjectRegister register;
 
 	/**
-	 * Construct a new {@link L2ReadPointerOperand} with the specified {@link
-	 * L2ObjectRegister}.
+	 * A type restriction, certified by the VM, that this particular read of
+	 * this register is guaranteed to satisfy.  This supplements the more basic
+	 * type restriction already present in the {@link L2ObjectRegister} itself.
+	 */
+	private final TypeRestriction restriction;
+
+	/**
+	 * Construct a new {@code L2ReadPointerOperand} for the specified {@link
+	 * L2ObjectRegister} and optional restriction.
 	 *
-	 * @param register The object register.
+	 * @param register
+	 *        The object register.
+	 * @param restriction
+	 *        The further {@link TypeRestriction} to apply to this particular
+	 *        read.
 	 */
 	public L2ReadPointerOperand (
-		final L2ObjectRegister register)
+		final L2ObjectRegister register,
+		final @Nullable TypeRestriction restriction)
 	{
 		this.register = register;
+		this.restriction =
+			restriction == null ? register.restriction : restriction;
+	}
+
+	/**
+	 * Answer the register that is to be read.
+	 *
+	 * @return An {@link L2ObjectRegister}.
+	 */
+	public final L2ObjectRegister register ()
+	{
+		return register;
+	}
+
+	/**
+	 * Answer the {@link L2ObjectRegister}'s {@link L2ObjectRegister#finalIndex
+	 * finalIndex}.
+	 *
+	 * @return The index of the register, computed during register coloring.
+	 */
+	public final int finalIndex ()
+	{
+		return register.finalIndex();
+	}
+
+	/**
+	 * Answer the type restriction for this register read.
+	 *
+	 * @return A {@link TypeRestriction}.
+	 */
+	public final TypeRestriction restriction ()
+	{
+		return restriction;
+	}
+
+	/**
+	 * Answer this read's type restriction's basic type.
+	 *
+	 * @return An {@link A_Type}.
+	 */
+	public final A_Type type ()
+	{
+		return restriction.type;
+	}
+
+	/**
+	 * Answer this read's type restriction's constant value (i.e., the exact
+	 * value that this read is guaranteed to produce), or {@code null} if such
+	 * a constraint is not available.
+	 *
+	 * @return The exact {@link A_BasicObject} that's known to be in this
+	 *         register, or else {@code null}.
+	 */
+	public final @Nullable A_BasicObject constantOrNull ()
+	{
+		return restriction.constantOrNull;
 	}
 
 	@Override
@@ -80,15 +160,155 @@ public class L2ReadPointerOperand extends L2Operand
 
 	@Override
 	public L2ReadPointerOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
+		final RegisterTransformer<L2OperandType> transformer)
 	{
 		return new L2ReadPointerOperand(
-			(L2ObjectRegister)transformer.value(register, operandType()));
+			transformer.value(register, operandType()),
+			restriction());
+	}
+
+	@Override
+	public void instructionWasAdded (final L2Instruction instruction)
+	{
+		register.addUse(instruction);
 	}
 
 	@Override
 	public String toString ()
 	{
 		return format("ReadObject(%s)", register);
+	}
+
+	/**
+	 * Create a {@code PhiRestriction}, which narrows a register's type
+	 * information along a control flow branch.  The type and optional constant
+	 * value are supplied.
+	 *
+	 * @param restrictedType
+	 *        The type that the register will hold along this branch.
+	 * @param restrictedConstantOrNull
+	 *        Either {@code null} or the exact value that the register will hold
+	 *        along this branch.
+	 */
+	public PhiRestriction restrictedTo (
+		final A_Type restrictedType,
+		final @Nullable A_BasicObject restrictedConstantOrNull)
+	{
+		return new PhiRestriction(
+			register, restrictedType, restrictedConstantOrNull);
+	}
+
+	/**
+	 * Create a {@code PhiRestriction}, which narrows a register's type
+	 * information along a control flow branch.  The exact value is supplied.
+	 *
+	 * @param restrictedConstant
+	 *        The exact value that the register will hold along this branch.
+	 */
+	public PhiRestriction restrictedToValue (
+		final A_BasicObject restrictedConstant)
+	{
+		final @Nullable A_Type type = type();
+		assert restrictedConstant.isInstanceOf(type)
+			: "This register has no possible values.";
+		return new PhiRestriction(
+			register,
+			instanceTypeOrMetaOn(restrictedConstant).typeIntersection(type),
+			restrictedConstant);
+	}
+
+	/**
+	 * Create a {@code PhiRestriction}, which narrows a register's type
+	 * information along a control flow branch.  A value to exclude from the
+	 * existing type is provided.
+	 *
+	 * @param excludedConstant
+	 *        The value that the register <em>cannot</em> hold along this
+	 *        branch.
+	 */
+	public PhiRestriction restrictedWithoutValue (
+		final A_BasicObject excludedConstant)
+	{
+		final @Nullable A_Type type = type();
+		final @Nullable A_BasicObject constantOrNull = constantOrNull();
+		if (constantOrNull != null)
+		{
+			// It's unclear if this is necessarily a problem, or if it's
+			// actually reasonable for code that will soon be marked dead.
+			assert !excludedConstant.equals(constantOrNull)
+				: "This register has no possible values.";
+			// The excluded value is irrelevant.
+			return new PhiRestriction(register, type, constantOrNull);
+		}
+		final A_Type restrictedType;
+		if (type.instanceCount().isFinite() && !type.isInstanceMeta())
+		{
+			restrictedType = enumerationWith(
+				type.instances().setWithoutElementCanDestroy(
+					excludedConstant, false));
+		}
+		else
+		{
+			restrictedType = type;
+		}
+		return new PhiRestriction(
+			register,
+			restrictedType,
+			restrictedType.instanceCount().equalsInt(1)
+				&& !restrictedType.isInstanceMeta()
+				? restrictedType.instance()
+				: null);
+	}
+
+	/**
+	 * Create a {@code PhiRestriction}, which narrows a register's type
+	 * information along a control flow branch.  A type is provided to exclude,
+	 * although we don't yet maintain precise negative type information.
+	 *
+	 * @param excludedType
+	 *        The value that the register <em>cannot</em> hold along this
+	 *        branch.
+	 */
+	public PhiRestriction restrictedWithoutType (
+		final A_Type excludedType)
+	{
+		final @Nullable A_Type type = type();
+		final @Nullable A_BasicObject constantOrNull = constantOrNull();
+		if (constantOrNull != null)
+		{
+			// It's unclear if this is necessarily a problem, or if it's
+			// actually reasonable for code that will soon be marked dead.
+			assert !constantOrNull.isInstanceOf(excludedType)
+				: "This register has no possible values.";
+			// The excluded type is irrelevant.
+			return new PhiRestriction(register, type, constantOrNull);
+		}
+		if (type.instanceCount().isFinite() && !type.isInstanceMeta())
+		{
+			A_Set elements = emptySet();
+			for (final A_BasicObject element : type.instances())
+			{
+				if (!element.isInstanceOf(excludedType))
+				{
+					elements = elements.setWithElementCanDestroy(element, true);
+				}
+			}
+			elements = elements.makeImmutable();
+			return new PhiRestriction(register, enumerationWith(elements), null);
+		}
+		// Be conservative and ignore the type subtraction.  We could eventually
+		// record this information.
+		return new PhiRestriction(register, type, null);
+	}
+
+	/**
+	 * Read the value of this register from the provided {@link Interpreter}.
+	 *
+	 * @param interpreter An Interpreter.
+	 * @return An {@code AvailObject}, the value of this register.
+	 */
+	public final AvailObject in (final Interpreter interpreter)
+	{
+		return interpreter.pointerAt(finalIndex());
 	}
 }

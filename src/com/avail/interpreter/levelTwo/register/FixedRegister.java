@@ -42,7 +42,7 @@ public enum FixedRegister
 {
 	/**
 	 * The enumeration value representing the fixed register reserved for
-	 * holding Avail's {@link NilDescriptor#nil() nil value}. Read only.
+	 * holding Avail's {@link NilDescriptor#nil nil value}. Read only.
 	 */
 	NULL,
 

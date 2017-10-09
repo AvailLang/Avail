@@ -37,7 +37,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
@@ -63,7 +62,7 @@ public class L2_CREATE_SET extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2RegisterVector elementsVector =
+		final List<L2ReadPointerOperand> elementsVector =
 			instruction.readVectorRegisterAt(0);
 		final L2ObjectRegister destinationSetReg =
 			instruction.writeObjectRegisterAt(1);

@@ -79,7 +79,7 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Token token = args.get(0);
 		final A_Type type = args.get(1);
-		return interpreter.primitiveSuccess(newArgument(token, type, nil()));
+		return interpreter.primitiveSuccess(newArgument(token, type, nil));
 	}
 
 	@Override

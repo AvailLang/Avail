@@ -50,8 +50,17 @@ public interface A_Variable
 extends A_ChunkDependable
 {
 	/**
+	 * Extract the variable's kind.  This is always a {@link
+	 * VariableTypeDescriptor variable type}.
+	 *
+	 * @return The variable's kind.
+	 */
+	@Override
+	A_Type kind ();
+
+	/**
 	 * Extract the current value of the {@linkplain VariableDescriptor
-	 * variable}.  Answer {@linkplain NilDescriptor#nil() nil} if the variable
+	 * variable}.  Answer {@linkplain NilDescriptor#nil nil} if the variable
 	 * has no value.
 	 *
 	 * @return The variable's value or nil.
@@ -72,7 +81,7 @@ extends A_ChunkDependable
 	/**
 	 * Answer {@code true} if the variable currently has a value, otherwise
 	 * answer {@code false}.  No value is typically represented by the
-	 * variable's value slot containing {@link NilDescriptor#nil()}.
+	 * variable's value slot containing {@link NilDescriptor#nil}.
 	 *
 	 * @return Whether the variable has a value.
 	 */

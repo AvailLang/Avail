@@ -32,9 +32,11 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 import com.avail.utility.evaluation.Transformer2;
 
 /**
@@ -64,7 +66,7 @@ public abstract class L2Operand
 	/**
 	 * Invoke the {@link Transformer2 transformer} with each {@link L2Register}
 	 * contained within me (also passing this L2Operand), producing an
-	 * alternative {@link L2Operand}.  If no transformations were necessary, the
+	 * alternative {@code L2Operand}.  If no transformations were necessary, the
 	 * receiver may be returned.
 	 *
 	 * @param transformer
@@ -73,7 +75,20 @@ public abstract class L2Operand
 	 *            The transformed version of the receiver.
 	 */
 	public abstract L2Operand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register> transformer);
+		final RegisterTransformer<L2OperandType> transformer);
+
+	/**
+	 * This is an operand of the given instruction, which was just added to the
+	 * given basic block.
+	 *  @param instruction
+	 *        The {@link L2Instruction} that was just added.
+	 *
+	 */
+	public void instructionWasAdded (
+		final L2Instruction instruction)
+	{
+		// Do nothing by default.
+	}
 
 	@Override
 	public abstract String toString ();

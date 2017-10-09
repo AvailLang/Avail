@@ -33,8 +33,12 @@
 package com.avail.interpreter.levelTwo.register;
 
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+
+import javax.annotation.Nullable;
 
 /**
  * {@code L2ObjectRegister} models the conceptual usage of a register that can
@@ -47,17 +51,65 @@ public class L2ObjectRegister
 extends L2Register
 {
 	/**
-	 * Construct a new {@link L2ObjectRegister}.
-	 *
-	 * @param debugValue A value used to distinguish the new instance visually.
+	 * The {@link TypeRestriction} that constrains this register's content.
 	 */
-	public L2ObjectRegister (final long debugValue)
+	public final TypeRestriction restriction;
+
+	/**
+	 * Construct a new {@code L2ObjectRegister}.
+	 *
+	 * @param debugValue
+	 *        A value used to distinguish the new instance visually during
+	 *        debugging of L2 translations.
+	 * @param type
+	 *        The type of value that is to be written to this register.
+	 * @param constantOrNull
+	 *        The exact value that is to be written to this register if known,
+	 *        otherwise {@code null}.
+	 */
+	public L2ObjectRegister (
+		final long debugValue,
+		final A_Type type,
+		final @Nullable A_BasicObject constantOrNull)
 	{
 		super(debugValue);
+		this.restriction = new TypeRestriction(type, constantOrNull);
 	}
 
 	/**
-	 * Construct a new {@link L2ObjectRegister}, pre-colored to a particular
+	 * Answer this register's basic {@link TypeRestriction}.
+	 *
+	 * @return A {@link TypeRestriction}.
+	 */
+	final TypeRestriction restriction ()
+	{
+		return restriction;
+	}
+
+	/**
+	 * Answer the {@link A_Type} that constrains values that might be in this
+	 * register.
+	 *
+	 * @return An {@link A_Type}.
+	 */
+	final A_Type type ()
+	{
+		return restriction.type;
+	}
+
+	/**
+	 * Answer the exact value that must be in the register, if any, otherwise
+	 * {@code null}.
+	 *
+	 * @return Either {@code null} or the exact value in this register.
+	 */
+	final @Nullable A_BasicObject constantOrNull ()
+	{
+		return restriction.constantOrNull;
+	}
+
+	/**
+	 * Construct a new {@code L2ObjectRegister}, pre-colored to a particular
 	 * register number.
 	 *
 	 * @param debugValue A value used to distinguish the new instance visually.
@@ -66,35 +118,13 @@ extends L2Register
 	 */
 	public static L2ObjectRegister precolored (
 		final long debugValue,
-		final int index)
+		final int index,
+		final A_Type type,
+		final A_BasicObject constantOrNull)
 	{
-		final L2ObjectRegister register = new L2ObjectRegister(debugValue);
+		final L2ObjectRegister register =
+			new L2ObjectRegister(debugValue, type, constantOrNull);
 		register.setFinalIndex(index);
 		return register;
-	}
-
-	/**
-	 * Read the value of this register from the provided {@link Interpreter}.
-	 *
-	 * @param interpreter An Interpreter.
-	 * @return An {@code AvailObject}, the value of this register.
-	 */
-	public final AvailObject in (final Interpreter interpreter)
-	{
-		return interpreter.pointerAt(finalIndex());
-	}
-
-	/**
-	 * Replace the value of this register within the provided {@link
-	 * Interpreter}.
-	 *
-	 * @param newValue The AvailObject to write to the register.
-	 * @param interpreter The Interpreter.
-	 */
-	public final void set (
-		final A_BasicObject newValue,
-		final Interpreter interpreter)
-	{
-		interpreter.pointerAtPut(finalIndex(), newValue);
 	}
 }

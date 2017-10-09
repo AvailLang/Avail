@@ -72,6 +72,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.avail.AvailRuntime.currentRuntime;
+import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag
 	.REIFICATION_REQUESTED;
@@ -82,7 +83,6 @@ import static com.avail.descriptor.FiberDescriptor.TraceFlag
 	.TRACE_VARIABLE_READS_BEFORE_WRITES;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag
 	.TRACE_VARIABLE_WRITES;
-import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.StringDescriptor.formatString;
@@ -436,7 +436,7 @@ public final class Interpreter
 		for (final FakeStackTraceSlots field : FakeStackTraceSlots.values())
 		{
 			helpers[field.ordinal()] = new AvailObjectFieldHelper(
-				nil(),
+				nil,
 				field,
 				-1,
 				outerArray[field.ordinal()]);
@@ -680,7 +680,7 @@ public final class Interpreter
 		final @Nullable AvailLoader loader = fiber().availLoader();
 		if (loader == null)
 		{
-			return nil();
+			return nil;
 		}
 		return loader.module();
 	}
@@ -937,7 +937,7 @@ public final class Interpreter
 	 * result.
 	 *
 	 * @param finalObject
-	 *        The fiber's result, or {@linkplain NilDescriptor#nil() nil} if
+	 *        The fiber's result, or {@linkplain NilDescriptor#nil nil} if
 	 *        none.
 	 * @param state
 	 *        An {@linkplain ExecutionState execution state} that {@linkplain
@@ -954,7 +954,7 @@ public final class Interpreter
 		{
 			assert aFiber.executionState() == RUNNING;
 			aFiber.executionState(state);
-			aFiber.continuation(nil());
+			aFiber.continuation(nil);
 			aFiber.fiberResult(finalObject);
 			final boolean bound = aFiber.getAndSetSynchronizationFlag(
 				BOUND, false);
@@ -972,7 +972,7 @@ public final class Interpreter
 		postExitContinuation(() ->
 		{
 			final A_Set joining = aFiber.joiningFibers().makeShared();
-			aFiber.joiningFibers(nil());
+			aFiber.joiningFibers(nil);
 			// Wake up all fibers trying to join this one.
 			for (final A_Fiber joiner : joining)
 			{
@@ -989,7 +989,7 @@ public final class Interpreter
 						Interpreter.resumeFromSuccessfulPrimitive(
 							currentRuntime(),
 							joiner,
-							nil(),
+							nil,
 							joiner.suspendingRawFunction(),
 							true);
 					}
@@ -1017,7 +1017,7 @@ public final class Interpreter
 	 */
 	public void abortFiber ()
 	{
-		exitFiber(nil(), ABORTED);
+		exitFiber(nil, ABORTED);
 	}
 
 	/**
@@ -1104,7 +1104,7 @@ public final class Interpreter
 	}
 
 	/** The (bottom) portion of the call stack that has been reified. */
-	public A_Continuation reifiedContinuation = nil();
+	public A_Continuation reifiedContinuation = nil;
 
 	/** The {@link A_Function} being executed. */
 	public @Nullable A_Function function;
@@ -1140,7 +1140,7 @@ public final class Interpreter
 
 	/**
 	 * Read from an object register. Register zero is reserved for read-only
-	 * use, and always contains the {@linkplain NilDescriptor#nil() null
+	 * use, and always contains the {@linkplain NilDescriptor#nil null
 	 * object}.
 	 *
 	 * @param index
@@ -1156,7 +1156,7 @@ public final class Interpreter
 
 	/**
 	 * Write to an object register. Register zero is reserved for read-only use,
-	 * and always contains the {@linkplain NilDescriptor#nil() null
+	 * and always contains the {@linkplain NilDescriptor#nil null
 	 * object}.
 	 *
 	 * @param index
@@ -1174,7 +1174,7 @@ public final class Interpreter
 	/**
 	 * Read from a {@linkplain FixedRegister fixed object register}. Register
 	 * zero is reserved for read-only use, and always contains
-	 * {@linkplain NilDescriptor#nil() nil}.
+	 * {@linkplain NilDescriptor#nil nil}.
 	 *
 	 * @param fixedObjectRegister
 	 *        The fixed object register.
@@ -1187,7 +1187,7 @@ public final class Interpreter
 
 	/**
 	 * Write to a fixed object register. Register zero is reserved for read-only
-	 * use, and always contains the {@linkplain NilDescriptor#nil() null
+	 * use, and always contains the {@linkplain NilDescriptor#nil null
 	 * object}.
 	 *
 	 * @param fixedObjectRegister
@@ -1205,7 +1205,7 @@ public final class Interpreter
 	/**
 	 * Write a Java null to an object register. Register zero is reserved for
 	 * read-only use, and always contains the Avail
-	 * {@linkplain NilDescriptor#nil() nil}.
+	 * {@linkplain NilDescriptor#nil nil}.
 	 *
 	 * @param index
 	 *        The object register index to overwrite.
@@ -1592,7 +1592,7 @@ public final class Interpreter
 				// Mark this frame: we don't want it to handle exceptions
 				// anymore.
 				failureVariable.setValueNoCheck(marker);
-				return primitiveSuccess(nil());
+				return primitiveSuccess(nil);
 			}
 			continuation = continuation.caller();
 		}
@@ -1722,7 +1722,7 @@ public final class Interpreter
 				reifiedContinuation =
 					reifier.actuallyReify()
 						? reifier.assembleContinuation(reifiedContinuation)
-						: nil();
+						: nil;
 				chunk = null; // The postReificationAction should set this up.
 				reifier.postReificationAction().value();
 				if (exitNow)
@@ -2033,7 +2033,7 @@ public final class Interpreter
 				// result continuation with the primitive's result.
 				interpreter.exitNow = false;
 				interpreter.returnNow = false;
-				interpreter.reifiedContinuation = nil();
+				interpreter.reifiedContinuation = nil;
 				interpreter.function = function;
 				interpreter.argsBuffer.clear();
 				for (final A_BasicObject arg : arguments)
@@ -2083,7 +2083,7 @@ public final class Interpreter
 				interpreter.chunk = con.levelTwoChunk();
 				interpreter.offset = con.levelTwoOffset();
 				interpreter.pointers = null;
-				aFiber.continuation(nil());
+				aFiber.continuation(nil);
 			});
 	}
 
@@ -2144,7 +2144,7 @@ public final class Interpreter
 					interpreter.offset = continuation.levelTwoOffset();
 					interpreter.skipReturnCheck = skipReturnCheck;
 					// Clear the fiber's continuation slot while it's active.
-					aFiber.continuation(nil());
+					aFiber.continuation(nil);
 				}
 			});
 	}
@@ -2194,7 +2194,7 @@ public final class Interpreter
 					args,
 					aFiber.continuation(),
 					skipReturnCheck);
-				aFiber.continuation(nil());
+				aFiber.continuation(nil);
 				interpreter.exitNow = false;
 			});
 	}
@@ -2564,7 +2564,7 @@ public final class Interpreter
 	 * restart implicitly observed assignments.
 	 */
 	private static final A_Function assignmentFunction =
-		newPrimitiveFunction(instance, nil(), 0);
+		newPrimitiveFunction(instance, nil, 0);
 
 	/**
 	 * Answer the bootstrapped {@linkplain P_SetValue assignment function}

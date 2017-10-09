@@ -40,7 +40,6 @@ import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -48,6 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Attempt to perform the specified primitive, using the provided arguments.
@@ -96,12 +96,12 @@ extends L2Operation
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
 		final A_Function function = instruction.constantAt(1);
-		final L2RegisterVector argumentsVector =
+		final List<L2ReadPointerOperand> argumentsVector =
 			instruction.readVectorRegisterAt(2);
 		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
 		final L2ObjectRegister failureReg =
 			instruction.writeObjectRegisterAt(4);
-		final int successOffset = instruction.pcAt(6);
+		final int successOffset = instruction.pcOffsetAt(6);
 
 		interpreter.argsBuffer.clear();
 		for (final L2ObjectRegister register : argumentsVector)
@@ -109,7 +109,7 @@ extends L2Operation
 			interpreter.argsBuffer.add(register.in(interpreter));
 		}
 		assert function.code().primitive() == primitive;
-		final A_Function savedFunction = interpreter.function;
+		final A_Function savedFunction = stripNull(interpreter.function);
 		interpreter.function = function;
 		final Result res = interpreter.attemptPrimitive(
 			primitive,
@@ -151,7 +151,7 @@ extends L2Operation
 		final L2Translator translator)
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
-		final L2RegisterVector argumentsVector =
+		final List<L2ReadPointerOperand> argumentsVector =
 			instruction.readVectorRegisterAt(2);
 		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
 		final L2ObjectRegister failureReg =

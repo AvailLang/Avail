@@ -46,6 +46,7 @@ import static com.avail.utility.Nulls.stripNull;
  * @param <X> The type of the sole argument to the operation.
  * @param <Y> The type of value produced by the operation.
  */
+@FunctionalInterface
 public interface Transformer1 <X,Y>
 {
 	/**

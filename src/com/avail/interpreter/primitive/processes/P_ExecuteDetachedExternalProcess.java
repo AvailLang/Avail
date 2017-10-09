@@ -145,7 +145,7 @@ extends Primitive
 		{
 			return interpreter.primitiveFailure(E_NO_EXTERNAL_PROCESS);
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

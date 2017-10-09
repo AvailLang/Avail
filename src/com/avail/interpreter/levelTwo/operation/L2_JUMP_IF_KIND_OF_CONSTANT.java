@@ -32,22 +32,22 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.instanceTypeOrMetaOn;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -63,23 +63,26 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_JUMP_IF_KIND_OF_CONSTANT().init(
-			PC.is("target"),
 			READ_POINTER.is("object"),
-			CONSTANT.is("constant type"));
+			CONSTANT.is("constant type"),
+			PC.is("is kind"),
+			PC.is("is not kind"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int target = instruction.pcAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final A_Type type = instruction.constantAt(2);
+		final L2ReadPointerOperand objectReg =
+			instruction.readObjectRegisterAt(0);
+		final A_Type type = instruction.constantAt(1);
+		final int isKindIndex = instruction.pcOffsetAt(2);
+		final int notKindIndex = instruction.pcOffsetAt(3);
 
-		if (objectReg.in(interpreter).isInstanceOf(type))
-		{
-			interpreter.offset(target);
-		}
+		interpreter.offset(
+			objectReg.in(interpreter).isInstanceOf(type)
+				? isKindIndex
+				: notKindIndex);
 	}
 
 	@Override
@@ -89,53 +92,54 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 		final L1NaiveTranslator naiveTranslator)
 	{
 		// Eliminate tests due to type propagation.
-//		final int target = instruction.pcAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final A_Type type = instruction.constantAt(2);
+		final L2ReadPointerOperand objectReg =
+			instruction.readObjectRegisterAt(0);
+		final A_Type type = instruction.constantAt(1);
+		final L2PcOperand isKind = instruction.pcAt(2);
+		final L2PcOperand notKind = instruction.pcAt(3);
 
-		final boolean canJump;
-		final boolean mustJump;
+		final boolean canPass;
+		final boolean cantFail;
 		final A_Type intersection;
-		if (registerSet.hasConstantAt(objectReg))
+		final @Nullable A_BasicObject constant = objectReg.constantOrNull();
+		if (constant != null)
 		{
-			final AvailObject constant = registerSet.constantAt(objectReg);
-			mustJump = constant.isInstanceOf(type);
-			canJump = mustJump;
-			final A_Type knownType = instanceTypeOrMetaOn(constant);
-			intersection = type.typeIntersection(knownType);
+			naiveTranslator.addInstruction(
+				L2_JUMP.instance,
+				constant.isInstanceOf(type) ? isKind : notKind);
+			return true;
 		}
 		else
 		{
-			assert registerSet.hasTypeAt(objectReg);
-			final A_Type knownType = stripNull(registerSet.typeAt(objectReg));
+			final A_Type knownType = objectReg.type();
 			intersection = type.typeIntersection(knownType);
 			if (intersection.isBottom())
 			{
-				mustJump = false;
-				canJump = false;
+				cantFail = false;
+				canPass = false;
 			}
 			else if (knownType.isSubtypeOf(type))
 			{
-				mustJump = true;
-				canJump = true;
+				cantFail = true;
+				canPass = true;
 			}
 			else
 			{
-				mustJump = false;
-				canJump = true;
+				cantFail = false;
+				canPass = true;
 			}
 		}
-		if (mustJump)
+		if (cantFail)
 		{
 			// It can never be that kind of object.  Always jump.  The
-			// instructions that follow the jump will become dead code and
+			// instructions that follow the jump will become dead code and will
 			// be eliminated next pass.
 			naiveTranslator.addInstruction(
 				L2_JUMP.instance,
 				instruction.operands[0]);
 			return true;
 		}
-		if (!canJump)
+		if (!canPass)
 		{
 			// It is always of the specified type, so never jump.
 			return true;
@@ -150,7 +154,7 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 			naiveTranslator.addInstruction(
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
 				instruction.operands[0],
-				new L2ReadPointerOperand(objectReg),
+				objectReg,
 				new L2ConstantOperand(intersection));
 			return true;
 		}
@@ -165,14 +169,14 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 		final L2Translator translator)
 	{
 //		final int target = instruction.pcAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
+		final L2ReadPointerOperand objectReg =
+			instruction.readObjectRegisterAt(1);
 		final A_Type type = instruction.constantAt(2);
 
 		assert registerSets.size() == 2;
 //		final RegisterSet fallThroughSet = registerSets.get(0);
 		final RegisterSet postJumpSet = registerSets.get(1);
 
-		assert postJumpSet.hasTypeAt(objectReg);
 		final A_Type existingType = postJumpSet.typeAt(objectReg);
 		final A_Type intersection = existingType.typeIntersection(type);
 		postJumpSet.strengthenTestedTypeAtPut(objectReg, intersection);

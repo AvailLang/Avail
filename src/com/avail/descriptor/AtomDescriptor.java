@@ -319,7 +319,7 @@ extends Descriptor
 	 *
 	 * <p>
 	 * This atom has no properties, so always answer {@linkplain
-	 * NilDescriptor#nil() nil}.
+	 * NilDescriptor#nil nil}.
 	 * </p>
 	 */
 	@Override @AvailMethod
@@ -327,7 +327,7 @@ extends Descriptor
 		final AvailObject object,
 		final A_Atom key)
 	{
-		return nil();
+		return nil;
 	}
 
 	@Override
@@ -514,7 +514,7 @@ extends Descriptor
 		AvailObject atom = mutable.create();
 		atom.setSlot(NAME, stringFrom(name).makeShared());
 		atom.setSlot(HASH_OR_ZERO, 0);
-		atom.setSlot(ISSUING_MODULE, nil());
+		atom.setSlot(ISSUING_MODULE, nil);
 		atom = atom.makeShared();
 		atom.descriptor = AtomWithPropertiesSharedDescriptor.sharedAndSpecial;
 		return atom;
@@ -540,7 +540,7 @@ extends Descriptor
 		AvailObject atom = mutable.create();
 		atom.setSlot(NAME, stringFrom(name).makeShared());
 		atom.setSlot(HASH_OR_ZERO, 0);
-		atom.setSlot(ISSUING_MODULE, nil());
+		atom.setSlot(ISSUING_MODULE, nil);
 		atom = atom.makeShared();
 		atom.descriptor = booleanValue
 			? AtomWithPropertiesSharedDescriptor.sharedAndSpecialForTrue

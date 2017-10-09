@@ -33,12 +33,20 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.descriptor.A_Bundle;
-import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.operation.L2_LABEL;
+import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
+import com.avail.optimizer.L2BasicBlock;
 
 import javax.annotation.Nullable;
+
+import java.util.List;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
@@ -82,14 +90,15 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	 * Describe the current operand, which must be some vector of object
 	 * registers.
 	 *
-	 * @param vector The {@link L2RegisterVector} inside the operand.
+	 * @param vector The {@link List} of {@link L2Operand}s inside the operand.
 	 */
-	private void printVector (final L2RegisterVector vector)
+	private <SpecificOperand extends L2Operand> void printVector (
+		final List<SpecificOperand> vector)
 	{
 		final StringBuilder builder = stripNull(_description);
 		print("Vec=(");
 		boolean first = true;
-		for (final L2ObjectRegister reg : vector.registers())
+		for (final SpecificOperand reg : vector)
 		{
 			if (!first)
 			{
@@ -144,23 +153,12 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doPC()
 	{
-		final L2Instruction targetLabel =
-			((L2PcOperand)stripNull(_operand)).targetLabel();
-		if (targetLabel.operation instanceof L2_LABEL)
-		{
-			// Print as a symbolic label.
-			print(
-				"PC(%s at #%d)",
-				targetLabel.commentAt(0),
-				targetLabel.offset());
-		}
-		else
-		{
-			// Print the instruction's operation and offset.
-			print("PC(%s at #%d)",
-				targetLabel.operation.name(),
-				targetLabel.offset());
-		}
+		final L2BasicBlock targetBlock =
+			((L2PcOperand)stripNull(_operand)).targetBlock();
+		print(
+			"PC(%s at #%d)",
+			targetBlock.name(),
+			targetBlock.offset());
 	}
 
 	@Override
@@ -168,13 +166,6 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	{
 		print("Prim(%s)",
 			((L2PrimitiveOperand)stripNull(_operand)).primitive.name());
-	}
-
-	@Override
-	public void doSelector()
-	{
-		final A_Bundle bundle = ((L2SelectorOperand)stripNull(_operand)).bundle;
-		print("Message(%s)", bundle.message().atomName().asNativeString());
 	}
 
 	@Override
@@ -190,12 +181,6 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	}
 
 	@Override
-	public void doReadWritePointer()
-	{
-		print("Obj(%s)[r/w]", _operand);
-	}
-
-	@Override
 	public void doReadInt()
 	{
 		print("Int(%s)[r]", _operand);
@@ -208,30 +193,17 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	}
 
 	@Override
-	public void doReadWriteInt()
-	{
-		print("Int(%s)[r/w]", _operand);
-	}
-
-	@Override
 	public void doReadVector()
 	{
-		printVector(((L2ReadVectorOperand)stripNull(_operand)).vector);
+		printVector(((L2ReadVectorOperand) _operand).elements);
 		print("[r]");
 	}
 
 	@Override
 	public void doWriteVector()
 	{
-		printVector(((L2WriteVectorOperand)stripNull(_operand)).vector);
+		printVector(((L2WriteVectorOperand)stripNull(_operand)).elements);
 		print("[w]");
-	}
-
-	@Override
-	public void doReadWriteVector()
-	{
-		printVector(((L2ReadWriteVectorOperand)stripNull(_operand)).vector);
-		print("[r/w]");
 	}
 
 	@Override

@@ -127,7 +127,7 @@ extends SetBinDescriptor
 	{
 		/**
 		 * The union of the types of all elements recursively within this bin.
-		 * If this is {@linkplain NilDescriptor#nil() nil}, then it can
+		 * If this is {@linkplain NilDescriptor#nil nil}, then it can
 		 * be recomputed when needed and cached.
 		 */
 		BIN_UNION_TYPE_OR_NULL,
@@ -412,7 +412,7 @@ extends SetBinDescriptor
 				oldTotalSize + deltaSize,
 				oldTotalHash + deltaHash,
 				vector ^ logicalBitValue,
-				nil());
+				nil);
 			int writeIndex = 1;
 			for (int readIndex = 1; readIndex <= objectEntryCount; readIndex++)
 			{
@@ -451,7 +451,7 @@ extends SetBinDescriptor
 			result.setSlot(BIN_ELEMENT_AT_, physicalIndex, replacementEntry);
 			result.setSlot(BIN_HASH, oldTotalHash + deltaHash);
 			result.setSlot(BIN_SIZE, oldTotalSize + deltaSize);
-			result.setSlot(BIN_UNION_TYPE_OR_NULL, nil());
+			result.setSlot(BIN_UNION_TYPE_OR_NULL, nil);
 		}
 		return result;
 	}

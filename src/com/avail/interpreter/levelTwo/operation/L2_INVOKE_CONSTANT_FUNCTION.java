@@ -31,21 +31,17 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.ReifyStackThrowable;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -69,26 +65,24 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 			CONSTANT.is("constant function"),
 			READ_VECTOR.is("arguments"),
 			IMMEDIATE.is("skip return check"),
-			/* Only used for reification. */
-			PC.is("reification clause"));
+			PC.is("on return"),
+			PC.is("on reification"));
 
 	@Override
 	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
 		final L2Instruction instruction)
 	{
 		final AvailObject constantFunction = instruction.constantAt(0);
-		final List<L2ObjectRegister> argumentRegs =
-			instruction.readVectorRegisterAt(1).registers();
+		final List<L2ReadPointerOperand> argumentRegs =
+			instruction.readVectorRegisterAt(1);
 		final boolean skipReturnCheck = instruction.immediateAt(2) != 0;
-		final int reificationOffset = instruction.pcAt(3);
+		final int onNormalReturn = instruction.pcOffsetAt(3);
+		final int onReification = instruction.pcOffsetAt(4);
 
 		// Pre-decode the argument registers as much as possible.
-		final int[] argumentRegNumbers = new int[argumentRegs.size()];
-		for (int i = 0; i < argumentRegNumbers.length; i++)
-		{
-			argumentRegNumbers[i] = argumentRegs.get(i).finalIndex();
-		}
-
+		final int[] argumentRegNumbers = argumentRegs.stream()
+			.mapToInt(L2ReadPointerOperand::finalIndex)
+			.toArray();
 		final A_RawFunction code = constantFunction.code();
 
 		return interpreter ->
@@ -105,8 +99,7 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 			final int offset = interpreter.offset;
 			final AvailObject[] savedPointers = interpreter.pointers;
 			final int[] savedInts = interpreter.integers;
-
-			assert chunk.executableInstructions[offset] == instruction;
+			assert chunk.executableInstructions[offset - 1] == instruction;
 
 			interpreter.chunk = code.startingChunk();
 			interpreter.offset = 0;
@@ -127,7 +120,7 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 					// instruction.  That continuation should know how to be
 					// reentered when the callee returns.
 					interpreter.chunk = chunk;
-					interpreter.offset = reificationOffset;
+					interpreter.offset = onReification;
 					interpreter.pointers = savedPointers;
 					interpreter.integers = savedInts;
 					try
@@ -144,6 +137,8 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 				}
 				throw reifier;
 			}
+			// We just returned normally.
+			interpreter.offset = onNormalReturn;
 		};
 	}
 
@@ -153,7 +148,7 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-		// Fall-through for a return, or run the specified offramp.
+		// Successful return or a reification off-ramp.
 		assert registerSets.size() == 2;
 	}
 
@@ -162,58 +157,5 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 	{
 		// Never remove invocations -- but inlining might make them go away.
 		return true;
-	}
-
-	@Override
-	public boolean regenerate (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L1NaiveTranslator naiveTranslator)
-	{
-		//TODO MvG - Rewrite to agree with operands.
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0);
-		final A_Function function =
-			instruction.constantAt(1);
-//		final L2RegisterVector argumentsReg =
-//			instruction.readVectorRegisterAt(2);
-//		final boolean skipReturnCheck = instruction.immediateAt(3) != 0;
-
-		// Extract information about the continuation's construction.  Hopefully
-		// we'll switch to SSA form before implementing code movement, so assume
-		// the registers populating the continuation are still live after the
-		// type test and branch, whether taken or not.
-		final List<L2Instruction> continuationCreationInstructions =
-			registerSet.stateForReading(continuationReg).sourceInstructions();
-		if (continuationCreationInstructions.size() != 1)
-		{
-			// We can't figure out where the continuation got built.  Give up.
-			return false;
-		}
-		final L2Instruction continuationCreationInstruction =
-			continuationCreationInstructions.get(0);
-		if (!(continuationCreationInstruction.operation
-			instanceof L2_CREATE_CONTINUATION))
-		{
-			// We found the origin of the continuation register, but not the
-			// creation instruction itself.  Give up.
-			return false;
-		}
-
-		final A_RawFunction code = function.code();
-		final @Nullable Primitive primitive = code.primitive();
-		if (primitive != null)
-		{
-			// It's a primitive, so maybe it can inline or fold or
-			// invoke-reduce itself better than it already has, or even
-			// rewrite itself as alternative L2Instructions.
-			final boolean transformed = primitive.regenerate(
-				instruction, naiveTranslator, registerSet);
-			if (transformed)
-			{
-				return true;
-			}
-		}
-		return super.regenerate(instruction, registerSet, naiveTranslator);
 	}
 }

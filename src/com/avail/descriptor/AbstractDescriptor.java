@@ -256,7 +256,7 @@ public abstract class AbstractDescriptor
 	 * quickly determine the basic type of any value having that descriptor.
 	 * This is purely an optimization for fast type checking and dispatching.
 	 */
-	final TypeTag typeTag;
+	public final TypeTag typeTag;
 
 	/**
 	 * Whether an {@linkplain AvailObject object} using this {@linkplain

@@ -349,7 +349,7 @@ extends A_BasicObject
 
 	/**
 	 * Answer the {@linkplain A_Phrase phrase} that produced the type of the
-	 * declaration.  Answer {@link NilDescriptor#nil() nil} if there was no such
+	 * declaration.  Answer {@link NilDescriptor#nil nil} if there was no such
 	 * phrase.
 	 *
 	 * @return The requested {@linkplain A_Phrase phrase} or nil.

@@ -32,39 +32,48 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.utility.evaluation.Transformer2;
+import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * An {@code L2WriteVectorOperand} is an operand of type {@link
- * L2OperandType#WRITE_VECTOR}.  It holds an {@link L2RegisterVector}.
+ * L2OperandType#WRITE_VECTOR}.  It holds a {@link List} of {@link
+ * L2WritePointerOperand}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2WriteVectorOperand extends L2Operand
 {
 	/**
-	 * The actual {@link L2RegisterVector}.
+	 * The {@link List} of {@link L2WritePointerOperand}s.
 	 */
-	public final L2RegisterVector vector;
+	private final List<L2WritePointerOperand> elements;
 
 	/**
-	 * Construct a new {@link L2WriteVectorOperand} with the specified
-	 * {@link L2RegisterVector}.
+	 * Answer my {@link List} of {@link L2WritePointerOperand}s.
+	 */
+	public List<L2WritePointerOperand> elements ()
+	{
+		return elements;
+	}
+
+	/**
+	 * Construct a new {@code L2WriteVectorOperand} with the specified
+	 * {@link List} of {@link L2WritePointerOperand}s.
 	 *
-	 * @param vector The register vector.
+	 * @param elements The list of {@link L2WritePointerOperand}s.
 	 */
 	public L2WriteVectorOperand (
-		final L2RegisterVector vector)
+		final List<L2WritePointerOperand> elements)
 	{
-		this.vector = vector;
+		this.elements = Collections.unmodifiableList(elements);
 	}
 
 	@Override
@@ -81,18 +90,21 @@ public class L2WriteVectorOperand extends L2Operand
 
 	@Override
 	public L2WriteVectorOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
+		final RegisterTransformer<L2OperandType> transformer)
 	{
-		final List<L2ObjectRegister> newRegisters =
-			new ArrayList<>(vector.registers().size());
-		for (final L2ObjectRegister register : vector.registers())
+		return new L2WriteVectorOperand(
+			elements.stream()
+				.map(element -> element.transformRegisters(transformer))
+				.collect(toList()));
+	}
+
+	@Override
+	public void instructionWasAdded (final L2Instruction instruction)
+	{
+		for (L2WritePointerOperand element : elements)
 		{
-			final L2ObjectRegister newRegister =
-				(L2ObjectRegister)transformer.value(register, operandType());
-			newRegisters.add(newRegister);
+			element.register().setDefinition(instruction);
 		}
-		final L2RegisterVector newVector = new L2RegisterVector(newRegisters);
-		return new L2WriteVectorOperand(newVector);
 	}
 
 	@Override
@@ -101,7 +113,7 @@ public class L2WriteVectorOperand extends L2Operand
 		final StringBuilder builder = new StringBuilder();
 		builder.append("WriteVector(");
 		boolean first = true;
-		for (final L2Register register : vector.registers())
+		for (final L2WritePointerOperand register : elements)
 		{
 			if (!first)
 			{

@@ -39,6 +39,7 @@ import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -64,28 +65,32 @@ extends L2Operation
 		new L2_SET_VARIABLE_NO_CHECK().init(
 			READ_POINTER.is("variable"),
 			READ_POINTER.is("value to write"),
-			PC.is("without reactors"));
+			PC.is("write succeeded"),
+			PC.is("write failed"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister variableReg =
+		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
-		final int withoutReactors = instruction.pcAt(2);
+		final L2ReadPointerOperand valueReg = instruction.readObjectRegisterAt(1);
+		final int succeeded = instruction.pcOffsetAt(2);
+		final int failed = instruction.pcOffsetAt(3);
 
 		final AvailObject value = valueReg.in(interpreter);
 		final A_Variable variable = variableReg.in(interpreter);
 		try
 		{
 			variable.setValueNoCheck(value);
-			interpreter.offset(withoutReactors);
+			// Jump to the success offset.
+			interpreter.offset(succeeded);
 		}
 		catch (final VariableSetException e)
 		{
-			// Fall through to the next instruction.
+			// Jump to the failure offset.
+			interpreter.offset(failed);
 		}
 	}
 
@@ -95,9 +100,12 @@ extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister variableReg =
+		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
+		final L2ReadPointerOperand valueReg =
+			instruction.readObjectRegisterAt(1);
+//		final int succeeded = instruction.pcAt(2);
+//		final int failed = instruction.pcAt(3);
 
 		// The two register sets are clones, so only cross-check one of them.
 		final RegisterSet registerSet = registerSets.get(0);

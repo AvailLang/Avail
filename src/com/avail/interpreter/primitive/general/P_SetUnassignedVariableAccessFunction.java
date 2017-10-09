@@ -83,7 +83,7 @@ extends Primitive
 		function.code().setMethodName(
 			stringFrom("«cannot read unassigned variable»"));
 		currentRuntime().setUnassignedVariableReadFunction(function);
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

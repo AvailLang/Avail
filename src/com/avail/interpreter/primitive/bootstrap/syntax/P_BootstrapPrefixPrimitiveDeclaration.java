@@ -186,7 +186,7 @@ extends Primitive
 					conflictingDeclaration.declarationKind().nativeKindName(),
 					conflictingDeclaration.token().lineNumber());
 			}
-			return interpreter.primitiveSuccess(nil());
+			return interpreter.primitiveSuccess(nil);
 		}
 		if (!prim.hasFlag(CannotFail))
 		{
@@ -194,7 +194,7 @@ extends Primitive
 				"a primitive failure variable declaration for this "
 				+ "fallible primitive");
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

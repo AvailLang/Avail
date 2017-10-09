@@ -70,8 +70,8 @@ public class L2_DIVIDE_INT_BY_INT extends L2Operation
 		final L2IntegerRegister divisorReg = instruction.readIntRegisterAt(1);
 		final L2IntegerRegister quotientReg = instruction.writeIntRegisterAt(2);
 		final L2IntegerRegister remainderReg = instruction.writeIntRegisterAt(3);
-		final int outOfRangeIndex = instruction.pcAt(4);
-		final int zeroDivisorIndex = instruction.pcAt(5);
+		final int outOfRangeIndex = instruction.pcOffsetAt(4);
+		final int zeroDivisorIndex = instruction.pcOffsetAt(5);
 
 		final long dividend = dividendReg.in(interpreter);
 		final long divisor = divisorReg.in(interpreter);

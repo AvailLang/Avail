@@ -39,6 +39,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -62,38 +63,35 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 		new L2_GET_VARIABLE_CLEARING().init(
 			READ_POINTER.is("variable"),
 			WRITE_POINTER.is("extracted value"),
-			PC.is("if assigned"));
+			PC.is("read succeeded"),
+			PC.is("read failed"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
-		final L2ObjectRegister variableReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1);
-		final int ifAssigned = instruction.pcAt(2);
+		final int variableRegIndex =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final int destRegIndex =
+			instruction.writeObjectRegisterAt(1).finalIndex();
+		final int successIndex = instruction.pcOffsetAt(2);
+		final int failureIndex = instruction.pcOffsetAt(3);
 
-		final A_Variable var = variableReg.in(interpreter);
-		try
+		return interpreter ->
 		{
-			final AvailObject value = var.getValue();
-			if (var.traversed().descriptor().isMutable())
+			final A_Variable variable = interpreter.pointerAt(variableRegIndex);
+			try
 			{
-				var.clearValue();
+				final AvailObject value = variable.getValue();
+				variable.clearValue();
+				interpreter.pointerAtPut(destRegIndex, value);
+				interpreter.offset(successIndex);
 			}
-			else
+			catch (final VariableGetException e)
 			{
-				value.makeImmutable();
+				interpreter.offset(failureIndex);
 			}
-			destReg.set(value, interpreter);
-			interpreter.offset(ifAssigned);
-		}
-		catch (final VariableGetException e)
-		{
-			// Fall through to the next instruction.
-		}
+		};
 	}
 
 	@Override
@@ -104,10 +102,12 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 	{
 		final L2ObjectRegister variableReg =
 			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister destReg =
-			instruction.writeObjectRegisterAt(1);
-		// Only update the *branching* register set; if control reaches the
-		// next instruction, then no registers have changed.
+		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(1);
+		final int successIndex = instruction.pcOffsetAt(2);
+		final int failureIndex = instruction.pcOffsetAt(3);
+		//TODO MvG - Rework everything related to type propagation.
+		// Only update the success register set; no registers are affected if
+		// the failure branch is taken.
 		final RegisterSet registerSet = registerSets.get(1);
 		// If we haven't already guaranteed that this is a variable then we
 		// are probably not doing things right.

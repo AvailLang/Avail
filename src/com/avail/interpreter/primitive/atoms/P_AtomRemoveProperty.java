@@ -90,7 +90,7 @@ public final class P_AtomRemoveProperty extends Primitive
 		{
 			return interpreter.primitiveFailure(E_KEY_NOT_FOUND);
 		}
-		atom.setAtomProperty(propertyKey, nil());
+		atom.setAtomProperty(propertyKey, nil);
 		final @Nullable AvailLoader loader = interpreter.availLoaderOrNull();
 		if (loader != null)
 		{
@@ -100,7 +100,7 @@ public final class P_AtomRemoveProperty extends Primitive
 					atom,
 					propertyKey));
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

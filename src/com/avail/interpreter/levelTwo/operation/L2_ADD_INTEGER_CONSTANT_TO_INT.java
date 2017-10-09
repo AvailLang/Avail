@@ -37,7 +37,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 
 /**
  * Extract an int from the specified constant, and add it to an int register,
@@ -64,7 +65,7 @@ public class L2_ADD_INTEGER_CONSTANT_TO_INT extends L2Operation
 		final int addend = instruction.immediateAt(0);
 		final L2IntegerRegister augendReg =
 			instruction.readWriteIntRegisterAt(1);
-		final int outOfRangeOffset = instruction.pcAt(2);
+		final int outOfRangeOffset = instruction.pcOffsetAt(2);
 
 		final int augend = augendReg.in(interpreter);
 		final long longResult = (long)addend + (long)augend;

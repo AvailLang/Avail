@@ -72,7 +72,7 @@ public class ModuleImport
 	 * The {@linkplain SetDescriptor set} of names ({@linkplain
 	 * StringDescriptor strings}) explicitly imported through this import
 	 * declaration.  If no names or renames were specified, then this is
-	 * {@linkplain NilDescriptor#nil() nil} instead.
+	 * {@linkplain NilDescriptor#nil nil} instead.
 	 */
 	public final A_Set names;
 
@@ -82,7 +82,7 @@ public class ModuleImport
 	 * import declaration.  The keys are the newly introduced names and the
 	 * values are the names provided by the predecessor module.  If no names
 	 * or renames were specified, then this is {@linkplain
-	 * NilDescriptor#nil() nil} instead.
+	 * NilDescriptor#nil nil} instead.
 	 */
 	public final A_Map renames;
 

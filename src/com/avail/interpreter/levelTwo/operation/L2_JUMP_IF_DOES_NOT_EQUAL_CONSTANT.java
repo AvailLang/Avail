@@ -39,8 +39,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
@@ -69,7 +69,7 @@ public class L2_JUMP_IF_DOES_NOT_EQUAL_CONSTANT extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int target = instruction.pcAt(0);
+		final int target = instruction.pcOffsetAt(0);
 		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
 		final A_BasicObject constant = instruction.constantAt(2);
 

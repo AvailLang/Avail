@@ -148,7 +148,7 @@ public class IndexedRepositoryManager
 	/**
 	 * The size in bytes of the digest of a source file.
 	 */
-	private static final int DIGEST_SIZE = 256 / 8;
+	private static final int DIGEST_SIZE = 256 >> 3;
 
 	/**
 	 * The {@linkplain ReentrantLock lock} responsible for guarding against
@@ -199,8 +199,7 @@ public class IndexedRepositoryManager
 
 	/**
 	 * Answer the {@linkplain IndexedRepository repository} that stores this
-	 * {@linkplain IndexedRepositoryManager manager}'s compiled {@linkplain
-	 * ModuleDescriptor modules}.
+	 * manager's compiled {@linkplain ModuleDescriptor modules}.
 	 *
 	 * @return The repository.
 	 */
@@ -266,8 +265,7 @@ public class IndexedRepositoryManager
 		final int maximumSize;
 
 		/**
-		 * Construct a new {@link LimitedCache} with
-		 * the given maximum size.
+		 * Construct a new {@code LimitedCache} with * the given maximum size.
 		 *
 		 * @param maximumSize The maximum cache size.
 		 */
@@ -330,6 +328,7 @@ public class IndexedRepositoryManager
 		public byte [] digestForFile (
 			final ResolvedModuleName resolvedModuleName)
 		{
+			//noinspection AssertWithSideEffects
 			assert resolvedModuleName.rootRelativeName().equals(
 				rootRelativeName);
 			final File sourceFile = resolvedModuleName.sourceReference();
@@ -348,9 +347,13 @@ public class IndexedRepositoryManager
 				{
 					hasher = MessageDigest.getInstance(DIGEST_ALGORITHM);
 					final byte[] buffer = new byte[4096];
-					int bufferSize;
-					while ((bufferSize = reader.read(buffer)) != -1)
+					while (true)
 					{
+						final int bufferSize = reader.read(buffer);
+						if (bufferSize == -1)
+						{
+							break;
+						}
 						hasher.update(buffer, 0, bufferSize);
 					}
 				}
@@ -375,7 +378,7 @@ public class IndexedRepositoryManager
 		}
 
 		/**
-		 * Output this {@link ModuleArchive} to the provided {@link
+		 * Output this {@code ModuleArchive} to the provided {@link
 		 * DataOutputStream}.  It can later be reconstituted via the constructor
 		 * taking a {@link DataInputStream}.
 		 *
@@ -404,7 +407,7 @@ public class IndexedRepositoryManager
 		}
 
 		/**
-		 * Reconstruct a {@link ModuleArchive}, having previously been
+		 * Reconstruct a {@code ModuleArchive}, having previously been
 		 * written via {@link #write(DataOutputStream)}.
 		 *
 		 * @param binaryStream Where to read the module archive from.
@@ -434,7 +437,7 @@ public class IndexedRepositoryManager
 
 
 		/**
-		 * Construct a new {@link ModuleArchive}.
+		 * Construct a new {@code ModuleArchive}.
 		 *
 		 * @param rootRelativeName
 		 *        The name of the module, relative to the root of this
@@ -636,7 +639,7 @@ public class IndexedRepositoryManager
 		}
 
 		/**
-		 * Reconstruct a {@link ModuleVersionKey}, having previously been
+		 * Reconstruct a {@code ModuleVersionKey}, having previously been
 		 * written via {@link #write(DataOutputStream)}.
 		 *
 		 * @param binaryStream Where to read the version key from.
@@ -652,7 +655,7 @@ public class IndexedRepositoryManager
 		}
 
 		/**
-		 * Construct a new {@link ModuleVersionKey}.
+		 * Construct a new {@code ModuleVersionKey}.
 		 *
 		 * @param moduleName
 		 *        The {@linkplain ResolvedModuleName resolved name} of the
@@ -751,7 +754,7 @@ public class IndexedRepositoryManager
 		}
 
 		/**
-		 * Reconstruct a {@link ModuleCompilationKey}, having previously been
+		 * Reconstruct a {@code ModuleCompilationKey}, having previously been
 		 * written via {@link #write(DataOutputStream)}.
 		 *
 		 * @param binaryStream Where to read the compilation key from.
@@ -770,7 +773,7 @@ public class IndexedRepositoryManager
 		}
 
 		/**
-		 * Construct a new {@link ModuleCompilationKey}.
+		 * Construct a new {@code ModuleCompilationKey}.
 		 *
 		 * @param predecessorCompilationTimes
 		 *        The compilation times of this module's predecessors, in
@@ -890,8 +893,8 @@ public class IndexedRepositoryManager
 			lock.lock();
 			try
 			{
-				moduleHeaderRecordNumber = repo.longSize();
-				repo.add(moduleHeaderRecordNumber, bytes);
+				moduleHeaderRecordNumber = repo.size();
+				repo.add(bytes);
 				markDirty();
 			}
 			finally
@@ -944,8 +947,8 @@ public class IndexedRepositoryManager
 			lock.lock();
 			try
 			{
-				stacksRecordNumber = repo.longSize();
-				repo.add(stacksRecordNumber, bytes);
+				stacksRecordNumber = repo.size();
+				repo.add(bytes);
 				markDirty();
 			}
 			finally
@@ -957,7 +960,7 @@ public class IndexedRepositoryManager
 		/**
 		 * Answer the {@linkplain Serializer serialized} {@linkplain
 		 * TupleDescriptor tuple} of {@linkplain CommentTokenDescriptor comment
-		 * tokens} associated with this {@linkplain ModuleVersion version}.
+		 * tokens} associated with this {@code ModuleVersion version}.
 		 *
 		 * @return A serialized tuple of comment tokens, or {@code null} if the
 		 *         {@linkplain ModuleDescriptor module} has not been compiled
@@ -1033,7 +1036,7 @@ public class IndexedRepositoryManager
 		}
 
 		/**
-		 * Reconstruct a {@link ModuleVersion}, having previously been
+		 * Reconstruct a {@code ModuleVersion}, having previously been
 		 * written via {@link #write(DataOutputStream)}.
 		 *
 		 * @param binaryStream Where to read the key from.
@@ -1067,7 +1070,7 @@ public class IndexedRepositoryManager
 		}
 
 		/**
-		 * Construct a new {@link ModuleVersion}.
+		 * Construct a new {@code ModuleVersion}.
 		 *
 		 * @param moduleSize
 		 *        The size of the compiled module, in bytes.
@@ -1147,7 +1150,7 @@ public class IndexedRepositoryManager
 		}
 
 		/**
-		 * Reconstruct a {@link ModuleCompilation}, having previously been
+		 * Reconstruct a {@code ModuleCompilation}, having previously been
 		 * written via {@link #write(DataOutputStream)}.
 		 *
 		 * @param binaryStream Where to read the key from.
@@ -1161,7 +1164,7 @@ public class IndexedRepositoryManager
 		}
 
 		/**
-		 * Construct a new {@link ModuleCompilation}, adding the serialized
+		 * Construct a new {@code ModuleCompilation}, adding the serialized
 		 * compiled module bytes to the repository without committing.
 		 *
 		 * @param compilationTime
@@ -1178,8 +1181,8 @@ public class IndexedRepositoryManager
 			lock.lock();
 			try
 			{
-				this.recordNumber = repo.longSize();
-				repo.add(recordNumber, bytes);
+				this.recordNumber = repo.size();
+				repo.add(bytes);
 			}
 			finally
 			{
@@ -1380,7 +1383,7 @@ public class IndexedRepositoryManager
 		{
 			log(Level.FINE, "Close: %s%n", rootName);
 			isOpen = false;
-			final IndexedRepository repo = repository;
+			final @Nullable IndexedRepository repo = repository;
 			if (repo != null)
 			{
 				repo.close();
@@ -1395,7 +1398,7 @@ public class IndexedRepositoryManager
 
 	/**
 	 * Open the {@linkplain IndexedRepository repository} and initialize the
-	 * {@linkplain IndexedRepositoryManager manager}'s internal data structures.
+	 * {@code IndexedRepositoryManager manager}'s internal data structures.
 	 *
 	 * @throws IndexedFileException
 	 *         If anything goes wrong.
@@ -1406,7 +1409,7 @@ public class IndexedRepositoryManager
 		assert !isOpen;
 		try
 		{
-			IndexedRepository repo;
+			@Nullable IndexedRepository repo;
 			try
 			{
 				repo = IndexedFile.openFile(
@@ -1426,7 +1429,7 @@ public class IndexedRepositoryManager
 				repo =  IndexedFile.newFile(
 					IndexedRepository.class, fileName, null);
 			}
-			final byte [] metadata = repo.metaData();
+			final @Nullable byte [] metadata = repo.metaData();
 			if (metadata != null)
 			{
 				final ByteArrayInputStream byteStream =
@@ -1458,7 +1461,7 @@ public class IndexedRepositoryManager
 
 	/**
 	 * Reopen the {@linkplain IndexedRepository repository file} and
-	 * reinitialize the {@linkplain IndexedRepositoryManager manager}.
+	 * reinitialize the {@code IndexedRepositoryManager manager}.
 	 */
 	public void reopenIfNecessary ()
 	{
@@ -1482,7 +1485,7 @@ public class IndexedRepositoryManager
 	}
 
 	/**
-	 * Construct a new {@link IndexedRepositoryManager}.
+	 * Construct a new {@code IndexedRepositoryManager}.
 	 *
 	 * @param rootName
 	 *        The name of the Avail root represented by the {@linkplain
@@ -1502,7 +1505,7 @@ public class IndexedRepositoryManager
 	}
 
 	/**
-	 * Create a {@linkplain IndexedRepositoryManager repository manager} for
+	 * Create a {@code IndexedRepositoryManager repository manager} for
 	 * a temporary {@linkplain IndexedFile indexed file}. The indexed file will
 	 * be deleted on exit.
 	 *
@@ -1526,7 +1529,7 @@ public class IndexedRepositoryManager
 		{
 			final File file = File.createTempFile(prefix, suffix);
 			file.deleteOnExit();
-			IndexedRepository indexedFile = null;
+			@Nullable IndexedRepository indexedFile = null;
 			try
 			{
 				indexedFile = IndexedFile.newFile(
@@ -1572,7 +1575,12 @@ public class IndexedRepositoryManager
 				{
 					final int bytesRead =
 						file.read(buffer, pos, buffer.length - pos);
-					if (bytesRead == -1 || (pos += bytesRead) == buffer.length)
+					if (bytesRead == -1)
+					{
+						break;
+					}
+					pos += bytesRead;
+					if (pos == buffer.length)
 					{
 						break;
 					}
@@ -1589,7 +1597,7 @@ public class IndexedRepositoryManager
 	@Override
 	public String toString ()
 	{
-		@SuppressWarnings("resource")
+		@SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
 		final Formatter out = new Formatter();
 		out.format("Repository \"%s\" with modules:", rootName);
 		for (final Entry<String, ModuleArchive> entry

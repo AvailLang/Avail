@@ -159,7 +159,8 @@ public class MacroCommentImplementation extends AbstractCommentImplementation
 		{
 			categories.get(0).toJSON(linkingFileMap,
 				hashID, errorLog, 1, jsonWriter);
-		} else
+		}
+		else
 		{
 			jsonWriter.write("categories");
 			jsonWriter.startArray();
@@ -170,7 +171,8 @@ public class MacroCommentImplementation extends AbstractCommentImplementation
 		{
 			aliases.get(0).toJSON(linkingFileMap,
 				hashID, errorLog, 1, jsonWriter);
-		} else
+		}
+		else
 		{
 			jsonWriter.write("aliases");
 			jsonWriter.startArray();

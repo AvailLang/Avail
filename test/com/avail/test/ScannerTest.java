@@ -45,6 +45,7 @@ import com.avail.descriptor.TokenDescriptor;
 import com.avail.utility.Generator;
 import org.junit.jupiter.api.Test;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -190,8 +191,8 @@ public final class ScannerTest
 	 * specified string.
 	 *
 	 * @param string
-	 *            The characters from which the token will ostensibly have been
-	 *            constructed.
+	 *        The characters from which the token will ostensibly have been
+	 *        constructed.
 	 * @return The new keyword token.
 	 */
 	static Generator<A_Token> K (final String string)
@@ -298,7 +299,7 @@ public final class ScannerTest
 	{
 		return () ->
 		{
-			final A_BasicObject literal;
+			final @Nullable A_BasicObject literal;
 			if (object instanceof Double)
 			{
 				literal = fromDouble((Double)object);
@@ -321,9 +322,11 @@ public final class ScannerTest
 				fail(
 					"Unexpected literal type: "
 					+ object.getClass().getCanonicalName());
-				literal = null;
+				// The null propagation and definite-assignment flow analyzers
+				// have a blind spot if we don't do this, even if we assign a
+				// null explicitly.  A throw solves it.
+				throw new RuntimeException("Should not get here");
 			}
-			assert literal != null;
 			return (A_Token) literalToken(
 				stringFrom(string),
 				emptyTuple(),

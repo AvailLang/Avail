@@ -41,7 +41,7 @@ import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Transformer2;
+import com.avail.utility.evaluation.Transformer2NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -198,7 +198,7 @@ public abstract class LookupTree<
 	public final <M> void traverseEntireTree (
 		final LookupTreeAdaptor<Element, Result, Memento> adaptor,
 		final Memento adaptorMemento,
-		final Transformer2<Integer, A_Type, M> preInternalNode,
+		final Transformer2NotNull<Integer, A_Type, M> preInternalNode,
 		final Continuation1NotNull<M> intraInternalNode,
 		final Continuation1NotNull<M> postInternalNode,
 		final Continuation1NotNull<Result> forEachLeafNode)

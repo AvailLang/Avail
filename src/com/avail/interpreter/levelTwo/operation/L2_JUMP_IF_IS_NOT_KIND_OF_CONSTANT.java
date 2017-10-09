@@ -40,8 +40,8 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
@@ -63,24 +63,25 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT().init(
-			PC.is("target"),
 			READ_POINTER.is("object"),
-			CONSTANT.is("constant type"));
+			CONSTANT.is("constant type"),
+			PC.is("is not kind"),
+			PC.is("is kind"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-//		final int target = instruction.pcAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final A_Type type = instruction.constantAt(2);
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(0);
+		final A_Type type = instruction.constantAt(1);
+		final int notKindIndex = instruction.pcOffsetAt(2);
+		final int isKindIndex = instruction.pcOffsetAt(3);
 
-		if (!objectReg.in(interpreter).isInstanceOf(type))
-		{
-			final int target = instruction.pcAt(0);
-			interpreter.offset(target);
-		}
+		interpreter.offset(
+			objectReg.in(interpreter).isInstanceOf(type)
+				? isKindIndex
+				: notKindIndex);
 	}
 
 	@Override
@@ -89,10 +90,14 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		final RegisterSet registerSet,
 		final L1NaiveTranslator naiveTranslator)
 	{
+		// TODO Rewrite this type-narrowing code.
+		if (true) { throw new UnsupportedOperationException(); }
+
 		// Eliminate tests due to type propagation.
-//		final int target = instruction.pcAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final A_Type type = instruction.constantAt(2);
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(0);
+		final A_Type type = instruction.constantAt(1);
+//		final int notEqualIndex = instruction.pcAt(2);
+//		final int equalIndex = instruction.pcAt(3);
 
 		final boolean canJump;
 		final boolean mustJump;
@@ -152,9 +157,10 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		{
 			naiveTranslator.addInstruction(
 				L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT.instance,
-				instruction.operands[0],
 				new L2ReadPointerOperand(objectReg),
-				new L2ConstantOperand(intersection));
+				new L2ConstantOperand(intersection),
+				instruction.operands[2],
+				instruction.operands[3]);
 			return true;
 		}
 		// The test could not be eliminated or improved.
@@ -167,9 +173,10 @@ public class L2_JUMP_IF_IS_NOT_KIND_OF_CONSTANT extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-//		final int target = instruction.pcAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final A_Type type = instruction.constantAt(2);
+		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(0);
+		final A_Type type = instruction.constantAt(1);
+//		final int notEqualIndex = instruction.pcAt(2);
+//		final int equalIndex = instruction.pcAt(3);
 
 		assert registerSets.size() == 2;
 		final RegisterSet fallThroughSet = registerSets.get(0);

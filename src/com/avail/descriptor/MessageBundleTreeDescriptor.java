@@ -826,7 +826,7 @@ extends Descriptor
 			object.setSlot(LAZY_ACTIONS, emptyMap());
 			object.setSlot(LAZY_PREFILTER_MAP, emptyMap());
 			object.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple());
-			object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil());
+			object.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil);
 			object.setSlot(UNCLASSIFIED, object.slot(ALL_PLANS_IN_PROGRESS));
 			// Note:  It can't be the target of a cycle any more, since there
 			// are no longer *any* successors.
@@ -1368,7 +1368,7 @@ extends Descriptor
 		result.setSlot(LAZY_ACTIONS, emptyMap());
 		result.setSlot(LAZY_PREFILTER_MAP, emptyMap());
 		result.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple());
-		result.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil());
+		result.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil);
 		result.setSlot(LATEST_BACKWARD_JUMP, latestBackwardJump);
 		return result.makeShared();
 	}

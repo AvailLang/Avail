@@ -36,8 +36,7 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.utility.evaluation.Transformer2;
+import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import static java.lang.String.format;
 
@@ -81,7 +80,7 @@ public class L2ConstantOperand extends L2Operand
 
 	@Override
 	public L2ConstantOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
+		final RegisterTransformer<L2OperandType> transformer)
 	{
 		return this;
 	}

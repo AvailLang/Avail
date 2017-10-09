@@ -164,7 +164,8 @@ public class SemanticRestrictionCommentImplementation extends
 		{
 			returnsContent.get(0)
 				.toJSON(linkingFileMap, hashID, errorLog, 1, jsonWriter);
-		} else
+		}
+		else
 		{
 			jsonWriter.write("returns");
 			jsonWriter.startArray();

@@ -102,7 +102,7 @@ extends Primitive
 				resumeFromSuccessfulPrimitive(
 					currentRuntime(),
 					fiber,
-					nil(),
+					nil,
 					primitiveRawFunction,
 					skipReturnCheck);
 			}
@@ -113,7 +113,7 @@ extends Primitive
 					PERMIT_UNAVAILABLE, false);
 			}
 		});
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

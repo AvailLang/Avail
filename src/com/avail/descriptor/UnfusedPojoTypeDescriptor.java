@@ -602,8 +602,8 @@ extends PojoTypeDescriptor
 		newObject.setSlot(HASH_OR_ZERO, 0);
 		newObject.setSlot(JAVA_CLASS, javaClass);
 		newObject.setSlot(JAVA_ANCESTORS, javaAncestors);
-		newObject.setSlot(TYPE_VARIABLES, nil());
-		newObject.setSlot(SELF_TYPE, nil());
+		newObject.setSlot(TYPE_VARIABLES, nil);
+		newObject.setSlot(SELF_TYPE, nil);
 		return newObject.makeImmutable();
 	}
 }

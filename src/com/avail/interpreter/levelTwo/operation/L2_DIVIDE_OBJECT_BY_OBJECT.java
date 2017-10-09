@@ -73,7 +73,7 @@ public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
 			instruction.writeObjectRegisterAt(2);
 		final L2ObjectRegister remainderReg =
 			instruction.writeObjectRegisterAt(3);
-		final int outOfRangeIndex = instruction.pcAt(4);
+		final int outOfRangeIndex = instruction.pcOffsetAt(4);
 
 		final A_Number dividend = dividendReg.in(interpreter);
 		final A_Number divisor = divisorReg.in(interpreter);

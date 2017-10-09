@@ -110,7 +110,7 @@ public final class P_Assert extends Primitive
 				});
 			return Result.FIBER_SUSPENDED;
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

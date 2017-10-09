@@ -36,6 +36,7 @@ import com.avail.descriptor.A_Set;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -71,7 +72,7 @@ extends L2Operation
 		final Interpreter interpreter)
 	{
 		final A_Set definitions = instruction.constantAt(0);
-		final L2ObjectRegister errorCodeReg =
+		final L2WritePointerOperand errorCodeReg =
 			instruction.writeObjectRegisterAt(1);
 		if (definitions.setSize() == 0)
 		{
@@ -103,10 +104,11 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister errorCodeReg =
+//		final A_Set definitions = instruction.constantAt(0);
+		final L2WritePointerOperand errorCodeReg =
 			instruction.writeObjectRegisterAt(1);
 		registerSet.typeAtPut(
-			errorCodeReg,
+			errorCodeReg.register(),
 			enumerationWith(
 				set(
 					E_NO_METHOD,

@@ -33,13 +33,22 @@
 package com.avail.interpreter.levelTwo.register;
 
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
+import com.avail.utility.Nulls;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * {@code L2Register} models the conceptual use of a register by a {@linkplain
- * L2Operation level two Avail operation} in the {@linkplain L2Translator
- * translator}.
+ * L2Operation level two Avail operation} in the {@link L2Translator}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -58,7 +67,7 @@ public class L2Register
 	 * interpreter} at runtime to identify the storage location of a {@linkplain
 	 * L2Register register}.
 	 *
-	 * @return A {@linkplain L2Register register} coloring number.
+	 * @return An {@code L2Register} coloring number.
 	 */
 	public int finalIndex ()
 	{
@@ -67,11 +76,11 @@ public class L2Register
 
 	/**
 	 * Set the coloring number to be used by the {@linkplain Interpreter
-	 * interpreter} at runtime to identify the storage location of a {@linkplain
-	 * L2Register register}.
+	 * interpreter} at runtime to identify the storage location of an {@code
+	 * L2Register}.
 	 *
 	 * @param theFinalIndex
-	 *        A {@linkplain L2Register register} coloring number.
+	 *        An {@code L2Register} coloring number.
 	 */
 	public void setFinalIndex (final int theFinalIndex)
 	{
@@ -86,13 +95,68 @@ public class L2Register
 	public final long uniqueValue;
 
 	/**
-	 * Construct a new {@link L2Register}.
+	 * Construct a new {@code L2Register}.
 	 *
 	 * @param debugValue A {@code long} used to identify this register visually.
 	 */
 	L2Register (final long debugValue)
 	{
 		this.uniqueValue = debugValue;
+	}
+
+	/** The instruction that assigns to this register. */
+	private @Nullable L2Instruction definition;
+
+	/**
+	 * Capture the instruction that writes to this register.  This must only be
+	 * set once.
+	 *
+	 * @param instruction
+	 *        The instruction that writes to this register in the SSA control
+	 *        flow graph of basic blocks.
+	 */
+	public void setDefinition (final L2Instruction instruction)
+	{
+		assert definition == null
+			: "Register's defining instruction must only be set once";
+		definition = instruction;
+	}
+
+	/**
+	 * Answer the {@link L2Instruction} which assigns this register in the SSA
+	 * control flow graph.  It must have been assigned already.
+	 */
+	public L2Instruction definition ()
+	{
+		return stripNull(definition);
+	}
+
+	/**
+	 * The instructions that read from this register.  This is a {@link Set}, so
+	 * that an instruction that uses the same register twice only counts once.
+	 */
+	private final Set<L2Instruction> uses = new HashSet<>();
+
+	/**
+	 * Capture another instruction that uses this register.
+	 *
+	 * @param instruction
+	 *        An instruction that reads from this register.
+	 */
+	public void addUse (final L2Instruction instruction)
+	{
+		uses.add(instruction);
+	}
+
+	/**
+	 * Answer the set of instructions that read from this register.  Do not
+	 * modify the returned collection.
+	 *
+	 * @return A {@link Set} of {@link L2Instruction}s.
+	 */
+	public Set<L2Instruction> uses ()
+	{
+		return uses;
 	}
 
 	@Override

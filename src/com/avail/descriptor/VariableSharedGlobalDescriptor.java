@@ -136,7 +136,7 @@ extends VariableSharedDescriptor
 		 * (implemented as the {@linkplain Map#keySet() key set} of a {@link
 		 * WeakHashMap}) of {@link L2Chunk}s that depend on the membership of
 		 * this method.  A change to the membership will invalidate all such
-		 * chunks.  This field holds the {@linkplain NilDescriptor#nil() nil}
+		 * chunks.  This field holds the {@linkplain NilDescriptor#nil nil}
 		 * object initially.
 		 */
 		@HideFieldInDebugger
@@ -349,9 +349,9 @@ extends VariableSharedDescriptor
 		final AvailObject result = mutableInitial.create();
 		result.setSlot(KIND, variableType);
 		result.setSlot(HASH_ALWAYS_SET, AvailRuntime.nextHash());
-		result.setSlot(VALUE, nil());
-		result.setSlot(WRITE_REACTORS, nil());
-		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil());
+		result.setSlot(VALUE, nil);
+		result.setSlot(WRITE_REACTORS, nil);
+		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil);
 		result.setSlot(MODULE, module.makeShared());
 		result.setSlot(GLOBAL_NAME, name.makeShared());
 		result.descriptor = writeOnce ? sharedWriteOnce : shared;

@@ -503,7 +503,7 @@ extends TupleDescriptor
 			result = newLike(mutable, object, 0, 0);
 			if (isMutable())
 			{
-				result.setSlot(TUPLE_AT_, index, nil());
+				result.setSlot(TUPLE_AT_, index, nil);
 				result.makeSubobjectsImmutable();
 			}
 		}
@@ -562,7 +562,7 @@ extends TupleDescriptor
 		{
 			// Initialize it for safe GC within the loop below.  Might be
 			// unnecessary if the substrate already initialized it safely.
-			result.setSlot(TUPLE_AT_, i, nil());
+			result.setSlot(TUPLE_AT_, i, nil);
 		}
 		for (int i = 1; i <= size; i++)
 		{
@@ -590,7 +590,7 @@ extends TupleDescriptor
 		{
 			// Initialize it for safe GC within the loop below.  Might be
 			// unnecessary if the substrate already initialized it safely.
-			result.setSlot(TUPLE_AT_, i, nil());
+			result.setSlot(TUPLE_AT_, i, nil);
 		}
 		for (int i = size; i >= 1; i--)
 		{

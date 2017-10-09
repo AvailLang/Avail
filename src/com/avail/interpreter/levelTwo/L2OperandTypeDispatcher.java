@@ -73,12 +73,6 @@ interface L2OperandTypeDispatcher
 	void doPrimitive();
 
 	/**
-	 * An index into the {@link L2Chunk level two chunk}'s literals, specifying
-	 * a {@link MethodDescriptor method} that can be invoked polymorphically.
-	 */
-	void doSelector();
-
-	/**
 	 * An {@linkplain L2ObjectRegister} to be read.
 	 */
 	void doReadPointer();
@@ -87,11 +81,6 @@ interface L2OperandTypeDispatcher
 	 * An {@linkplain L2ObjectRegister} to be written.
 	 */
 	void doWritePointer();
-
-	/**
-	 * An {@linkplain L2ObjectRegister} to be both read and written.
-	 */
-	void doReadWritePointer();
 
 	/**
 	 * An {@linkplain L2IntegerRegister} to be read.
@@ -104,11 +93,6 @@ interface L2OperandTypeDispatcher
 	void doWriteInt();
 
 	/**
-	 * An {@linkplain L2IntegerRegister} to be both read and written.
-	 */
-	void doReadWriteInt();
-
-	/**
 	 * A vector of {@linkplain L2ObjectRegister object registers} to be read.
 	 */
 	void doReadVector();
@@ -117,12 +101,6 @@ interface L2OperandTypeDispatcher
 	 * A vector of {@linkplain L2ObjectRegister object registers} to be written.
 	 */
 	void doWriteVector();
-
-	/**
-	 * A vector of {@linkplain L2ObjectRegister object registers} to be both
-	 * read and written.
-	 */
-	void doReadWriteVector();
 
 	/**
 	 * A vector of {@linkplain L2ObjectRegister object registers} to be set up

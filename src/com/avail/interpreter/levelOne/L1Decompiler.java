@@ -192,7 +192,7 @@ public class L1Decompiler
 			final A_Phrase decl = newArgument(
 				token,
 				tupleType.typeAtIndex(i),
-				nil());
+				nil);
 			args.add(decl);
 		}
 		for (int i = 1, end = code.numLocals(); i <= end; i++)
@@ -208,8 +208,8 @@ public class L1Decompiler
 			final A_Phrase decl = newVariable(
 				token,
 				code.localTypeAt(i).writeType(),
-				nil(),
-				nil());
+				nil,
+				nil);
 			locals.add(decl);
 		}
 		statements.addAll(locals);
@@ -617,7 +617,7 @@ public class L1Decompiler
 				assert variableObject.isInstanceOfKind(
 					mostGeneralVariableType());
 				outerDecl = newModuleVariable(
-					token, variableObject, nil(), nil());
+					token, variableObject, nil, nil);
 			}
 			else
 			{
@@ -723,7 +723,7 @@ public class L1Decompiler
 					KEYWORD);
 				label = newLabel(
 					labelToken,
-					nil(),
+					nil,
 					continuationTypeForFunctionType(code.functionType()));
 				statements.add(0, label);
 			}
@@ -744,7 +744,7 @@ public class L1Decompiler
 			final A_BasicObject globalVar = code.literalAt(getInteger());
 
 			final A_Phrase decl =
-				newModuleVariable(globalToken, globalVar, nil(), nil());
+				newModuleVariable(globalToken, globalVar, nil, nil);
 			pushExpression(newUse(globalToken, decl));
 		}
 
@@ -760,7 +760,7 @@ public class L1Decompiler
 				KEYWORD);
 			final AvailObject globalVar = code.literalAt(getInteger());
 			final A_Phrase declaration =
-				newModuleVariable(globalToken, globalVar, nil(), nil());
+				newModuleVariable(globalToken, globalVar, nil, nil);
 			final A_Phrase varUse = newUse(
 				globalToken, declaration);
 			final A_Phrase assignmentNode =

@@ -130,7 +130,7 @@ extends Primitive
 						E_INCORRECT_ARGUMENT_TYPE);
 				}
 			}
-			return interpreter.primitiveSuccess(nil());
+			return interpreter.primitiveSuccess(nil);
 		}
 		catch (final IllegalArgumentException e)
 		{

@@ -106,7 +106,7 @@ public final class P_BootstrapPrefixPostStatement extends Primitive
 			throw new AvailRejectedParseException(
 				"statement to have type ⊤");
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

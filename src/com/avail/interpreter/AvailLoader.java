@@ -127,7 +127,7 @@ public final class AvailLoader
 
 		boolean frozen = false;
 
-		public void freezeFromChanges()
+		public synchronized void freezeFromChanges()
 		{
 			assert !frozen;
 			frozen = true;
@@ -815,7 +815,7 @@ public final class AvailLoader
 		final AvailLoader loader = new AvailLoader(module, textInterface);
 		// We had better not be removing forward declarations from an already
 		// fully-loaded module.
-		loader.pendingForwards = nil();
+		loader.pendingForwards = nil;
 		loader.phase = UNLOADING;
 		return loader;
 	}
@@ -1568,7 +1568,7 @@ public final class AvailLoader
 	{
 		// Define a special root bundle tree that's only capable of parsing
 		// method headers.
-		moduleHeaderBundleRoot = newBundleTree(nil());
+		moduleHeaderBundleRoot = newBundleTree(nil);
 
 		// Also define the LexicalScanner used for module headers.
 		moduleHeaderLexicalScanner = new LexicalScanner();
@@ -1646,9 +1646,9 @@ public final class AvailLoader
 		final String atomName)
 	{
 		final A_Function stringLexerFilter =
-			newPrimitiveFunction(filterPrimitive, nil(), 0);
+			newPrimitiveFunction(filterPrimitive, nil, 0);
 		final A_Function stringLexerBody =
-			newPrimitiveFunction(bodyPrimitive, nil(), 0);
+			newPrimitiveFunction(bodyPrimitive, nil, 0);
 		final A_Atom atom = createSpecialAtom(atomName);
 		final A_Bundle bundle;
 		try
@@ -1662,7 +1662,7 @@ public final class AvailLoader
 		}
 		final A_Method method = bundle.bundleMethod();
 		final A_Lexer lexer = newLexer(
-			stringLexerFilter, stringLexerBody, method, nil());
+			stringLexerFilter, stringLexerBody, method, nil);
 		moduleHeaderLexicalScanner.addLexer(lexer);
 	}
 }

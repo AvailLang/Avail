@@ -434,7 +434,7 @@ extends AbstractEnumerationTypeDescriptor
 			return singleInt(getInstance(object).mapSize());
 		}
 		assert false : "Unexpected instance for sizeRange";
-		return nil();
+		return nil;
 	}
 
 	@Override @AvailMethod

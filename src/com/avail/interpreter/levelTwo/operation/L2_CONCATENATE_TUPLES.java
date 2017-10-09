@@ -37,8 +37,9 @@ import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -71,12 +72,12 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2RegisterVector vector = instruction.readVectorRegisterAt(0);
-		final L2ObjectRegister targetTupleReg =
-			instruction.readObjectRegisterAt(1);
+		final List<L2ReadPointerOperand> vector =
+			instruction.readVectorRegisterAt(0);
+		final L2WritePointerOperand targetTupleReg =
+			instruction.writeObjectRegisterAt(1);
 
-		final List<L2ObjectRegister> registers = vector.registers();
-		final int tupleCount = registers.size();
+		final int tupleCount = vector.size();
 		A_Tuple accumulator;
 		if (tupleCount == 0)
 		{
@@ -84,11 +85,11 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 		}
 		else
 		{
-			accumulator = registers.get(0).in(interpreter);
+			accumulator = vector.get(0).in(interpreter);
 			for (int i = 1; i < tupleCount; i++)
 			{
 				accumulator = accumulator.concatenateWith(
-					registers.get(i).in(interpreter), true);
+					vector.get(i).in(interpreter), true);
 			}
 		}
 		targetTupleReg.set(accumulator, interpreter);
@@ -102,27 +103,26 @@ public class L2_CONCATENATE_TUPLES extends L2Operation
 	{
 		// Approximate it for now.  If testing the return type dynamically
 		// becomes a bottleneck, we can improve this bound.
-		final L2RegisterVector vector = instruction.readVectorRegisterAt(0);
-		final L2ObjectRegister targetTupleReg =
-			instruction.readObjectRegisterAt(1);
+		final List<L2ReadPointerOperand> vector =
+			instruction.readVectorRegisterAt(0);
+		final L2WritePointerOperand targetTupleReg =
+			instruction.writeObjectRegisterAt(1);
 
-		final List<L2ObjectRegister> registers = vector.registers();
-		if (registers.isEmpty())
+		if (vector.isEmpty())
 		{
 			registerSet.constantAtPut(
-				targetTupleReg,
+				targetTupleReg.register(),
 				emptyTuple(),
 				instruction);
 			return;
 		}
-		int index = registers.size() - 1;
-		A_Type resultType = registerSet.typeAt(registers.get(index));
+		int index = vector.size() - 1;
+		A_Type resultType = vector.get(index).type();
 		while (--index >= 0)
 		{
-			resultType = concatenatingAnd(
-				registerSet.typeAt(registers.get(index)),
-				resultType);
+			resultType = concatenatingAnd(vector.get(index).type(), resultType);
 		}
-		registerSet.constantAtPut(targetTupleReg, resultType, instruction);
+		registerSet.constantAtPut(
+			targetTupleReg.register(), resultType, instruction);
 	}
 }

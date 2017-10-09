@@ -832,7 +832,7 @@ extends TypeDescriptor
 
 	/**
 	 * Answer a new function type that doesn't specify how many arguments its
-	 * conformant functions have.  This is a useful kind of function type for
+	 * conforming functions have.  This is a useful kind of function type for
 	 * discussing things like a general function invocation operation.
 	 *
 	 * @param returnType

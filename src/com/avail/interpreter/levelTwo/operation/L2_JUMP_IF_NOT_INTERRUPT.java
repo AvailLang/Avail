@@ -60,7 +60,7 @@ public class L2_JUMP_IF_NOT_INTERRUPT extends L2Operation
 	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
 		final L2Instruction instruction)
 	{
-		final int offsetIfNotInterrupt = instruction.pcAt(0);
+		final int offsetIfNotInterrupt = instruction.pcOffsetAt(0);
 		return interpreter ->
 		{
 			if (!interpreter.isInterruptRequested())

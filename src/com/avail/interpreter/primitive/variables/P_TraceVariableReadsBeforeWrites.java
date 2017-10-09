@@ -81,7 +81,7 @@ extends Primitive
 			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE);
 		}
 		interpreter.setTraceVariableReadsBeforeWrites(true);
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

@@ -86,7 +86,7 @@ extends Primitive
 		// Generate a function that will invoke the stringifier method for
 		// the specified value.
 		final L1InstructionWriter writer = new L1InstructionWriter(
-			nil(), 0, nil());
+			nil, 0, nil);
 		writer.argumentTypes(ANY.o());
 		writer.returnType(stringType());
 		writer.write(L1Operation.L1_doPushLocal, 1);
@@ -112,7 +112,7 @@ extends Primitive
 		{
 			loader.statementCanBeSummarized(false);
 		}
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

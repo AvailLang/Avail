@@ -149,7 +149,7 @@ extends Primitive
 				root.addPlanInProgress(newPlanInProgress(entry.value(), 1));
 			}
 		});
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

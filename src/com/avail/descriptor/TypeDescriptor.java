@@ -97,7 +97,7 @@ extends AbstractTypeDescriptor
 		 * the only direct descendant of {@linkplain #TOP top (⊤)}, and all
 		 * types except ⊤ are subtypes of it.  Like ⊤, all Avail objects are
 		 * instances of {@code ANY}. Technically there is also a {@linkplain
-		 * NilDescriptor#nil() nil}, but that is only used internally by the
+		 * NilDescriptor#nil nil}, but that is only used internally by the
 		 * Avail machinery (e.g., the value of an unassigned {@linkplain
 		 * VariableDescriptor variable}) and can never be manipulated by an
 		 * Avail program.
@@ -271,7 +271,7 @@ extends AbstractTypeDescriptor
 		final TypeTag typeTag;
 
 		/**
-		 * Answer the parent {@link Types} object.  Fail if this is the top
+		 * Answer the parent {@code Types} object.  Fail if this is the top
 		 * type.
 		 *
 		 * @return The parent of this Types object.
@@ -355,10 +355,10 @@ extends AbstractTypeDescriptor
 		private static final Types[] all = values();
 
 		/**
-		 * Answer the previously stashed copy of the array of all {@link Types}
+		 * Answer the previously stashed copy of the array of all {@code Types}
 		 * enum values.
 		 *
-		 * @return The array of {@link Types} values.  Do not modify the array.
+		 * @return The array of {@code Types} values.  Do not modify the array.
 		 */
 		public static Types[] all ()
 		{
@@ -380,7 +380,7 @@ extends AbstractTypeDescriptor
 				descriptor.finishInitializingPrimitiveTypeWithParent(
 					(AvailObject) o,
 					spec.parent == null
-						? nil()
+						? nil
 						: spec.parent.o());
 				@Nullable Types pointer = spec;
 				while (pointer != null)
@@ -1128,7 +1128,7 @@ extends AbstractTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link TypeDescriptor}.
+	 * Construct a new {@code TypeDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

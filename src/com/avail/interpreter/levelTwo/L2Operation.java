@@ -38,13 +38,15 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.ReifyStackThrowable;
 import com.avail.performance.Statistic;
@@ -52,6 +54,8 @@ import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -74,6 +78,18 @@ public abstract class L2Operation
 	 * {@linkplain L2Operation operation} expects.
 	 */
 	protected @Nullable L2NamedOperandType[] namedOperandTypes;
+
+	/**
+	 * The array of operand indices which have type {@link L2PcOperand}.
+	 */
+	private int[] labelOperandIndices = {};
+
+	/**
+	 * Whether this operation can do something other than fall through to the
+	 * next instruction of its {@link L2BasicBlock}.  This includes branching or
+	 * returning.
+	 */
+	boolean altersControlFlow;
 
 	/**
 	 * Answer the {@linkplain L2NamedOperandType named operand types} that this
@@ -104,7 +120,7 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * The ordinal of this {@link L2Operation}, made available via the {@link
+	 * The ordinal of this {@code L2Operation}, made available via the {@link
 	 * #ordinal()} message.  The assignment of ordinals to operations depends on
 	 * the order in which the operations are first encontered in the code
 	 * generator (or elsewhere), so don't rely on specific numeric values.
@@ -112,7 +128,7 @@ public abstract class L2Operation
 	private final int ordinal;
 
 	/**
-	 * The ordinal of this {@link L2Operation}.  Note that the assignment of
+	 * The ordinal of this {@code L2Operation}.  Note that the assignment of
 	 * ordinals to operations depends on the order in which the operations are
 	 * first encountered in the code generator, so don't rely on numeric values.
 	 *
@@ -159,7 +175,7 @@ public abstract class L2Operation
 	static final ReentrantLock valuesLock = new ReentrantLock();
 
 	/**
-	 * Answer an array of {@linkplain L2Operation operations} which have been
+	 * Answer an array of {@code L2Operation operations} which have been
 	 * encountered thus far, indexed by {@link #ordinal}.  It may be padded with
 	 * nulls.
 	 *
@@ -211,10 +227,10 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * Initialize a fresh {@link L2Operation}.
+	 * Initialize a fresh {@code L2Operation}.
 	 *
 	 * @param theNamedOperandTypes
-	 *            The named operand types that this operation expects.
+	 *        The named operand types that this operation expects.
 	 * @return The receiver.
 	 */
 	public L2Operation init (final L2NamedOperandType... theNamedOperandTypes)
@@ -227,6 +243,22 @@ public abstract class L2Operation
 		{
 			assert namedOperandTypes == null;
 			namedOperandTypes = theNamedOperandTypes;
+
+			// The number of targets won't be large, so don't worry about the
+			// quadratic cost.  An N-way dispatch would be a different story.
+			int[] indices = {};
+			for (int index = 0; index < namedOperandTypes.length; index++)
+			{
+				final L2NamedOperandType namedOperandType =
+					namedOperandTypes[index];
+				if (namedOperandType.operandType() == L2OperandType.PC)
+				{
+					indices = Arrays.copyOf(indices, indices.length + 1);
+					indices[indices.length - 1] = index;
+				}
+			}
+			labelOperandIndices = indices;
+			altersControlFlow = indices.length > 0 || !reachesNextInstruction();
 		}
 		finally
 		{
@@ -236,7 +268,7 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * Execute this {@link L2Operation} within an {@link Interpreter}.  The
+	 * Execute this {@code L2Operation} within an {@link Interpreter}.  The
 	 * {@linkplain L2Operand operands} are provided in the {@link L2Instruction}
 	 * that is also passed.
 	 *
@@ -266,7 +298,7 @@ public abstract class L2Operation
 	 * L2Operation#reachesNextInstruction()}), and represents the state in the
 	 * case that the instruction runs normally and advances to the next one
 	 * sequentially.  The remainder correspond to the {@link
-	 * L2Instruction#targetLabels()}.
+	 * L2Instruction#targetBlocks()}.
 	 *
 	 * @param instruction
 	 *            The L2Instruction containing this L2Operation.
@@ -321,7 +353,7 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * Answer whether this {@link L2Operation} changes the state of the
+	 * Answer whether this {@code L2Operation} changes the state of the
 	 * interpreter in any way other than by writing to its destination
 	 * registers. Most operations are computational and don't have side effects.
 	 *
@@ -428,43 +460,33 @@ public abstract class L2Operation
 	 * to the provided target register.
 	 *
 	 * @param instruction
-	 *            The instruction that produced the function.  Its {@linkplain
-	 *            L2Instruction#operation operation} is the receiver.
+	 *        The instruction that produced the function.  Its {@linkplain
+	 *        L2Instruction#operation operation} is the receiver.
 	 * @param functionRegister
-	 *            The register holding the function after this instruction runs.
+	 *        The register holding the function after this instruction runs.
 	 * @param outerIndex
-	 *            The one-based outer index to extract from the function.
-	 * @param outerType
-	 *            The static type of the outer variable.
-	 * @param registerSet
-	 *            The {@link RegisterSet} at the current code generation point.
-	 * @param targetRegister
-	 *            The {@link L2ObjectRegister} into which the new code should
-	 *            cause the outer to be written.
+	 *        The one-based outer index to extract from the function.
+	 * @param targetRegisterWrite
+	 *        The {@link L2WritePointerOperand} into which the new code should
+	 *        cause the captured outer variable or value to be written.
 	 * @param naiveTranslator
-	 *            The {@link L1NaiveTranslator} into which to write the new
-	 *            code.
+	 *        The {@link L1NaiveTranslator} into which to write the new code.
 	 * @return A boolean indicating whether an instruction substitution took
 	 *         place which may warrant another pass of optimization.
 	 */
 	public boolean extractFunctionOuterRegister (
 		final L2Instruction instruction,
-		final L2ObjectRegister functionRegister,
+		final L2ReadPointerOperand functionRegister,
 		final int outerIndex,
-		final A_Type outerType,
-		final RegisterSet registerSet,
-		final L2ObjectRegister targetRegister,
+		final L2WritePointerOperand targetRegisterWrite,
 		final L1NaiveTranslator naiveTranslator)
 	{
 		assert instruction.operation == this;
-		// By default we simply extract the outer from the function.  Since this
-		// instruction is supposed to have placed the function into
 		naiveTranslator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2ImmediateOperand(outerIndex),
-			new L2ReadPointerOperand(functionRegister),
-			new L2WritePointerOperand(targetRegister),
-			new L2ConstantOperand(outerType));
+			functionRegister,
+			targetRegisterWrite);
 		return false;
 	}
 
@@ -505,5 +527,29 @@ public abstract class L2Operation
 		// from each instruction instead, getting rid of both step() and
 		// actionFor().
 		return interpreter -> step(instruction, interpreter);
+	}
+
+	/**
+	 * Extract the target {@link L2BasicBlock}s from an instruction that uses
+	 * this operation.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} to examine.
+	 * @return The {@link List} of target {@link L2BasicBlock}s that are
+	 *         reachable from the given instruction.  These may be reachable
+	 *         directly via a control flow change, or reachable only from some
+	 *         other mechanism like continuation reification or later resumption
+	 *         of a continuation.
+	 */
+	public List<L2BasicBlock> targetBlocks (final L2Instruction instruction)
+	{
+		final List<L2BasicBlock> labels =
+			new ArrayList<>(labelOperandIndices.length);
+		for (final int index : labelOperandIndices)
+		{
+			final L2PcOperand operand = instruction.pcAt(index);
+			labels.add(operand.targetBlock());
+		}
+		return labels;
 	}
 }

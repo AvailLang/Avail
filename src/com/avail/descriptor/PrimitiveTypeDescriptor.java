@@ -490,7 +490,7 @@ extends TypeDescriptor
 		final A_String name = stringFrom(typeNameString);
 		final AvailObject object = transientMutable.create();
 		object.setSlot(NAME, name.makeShared());
-		object.setSlot(PARENT, nil());
+		object.setSlot(PARENT, nil);
 		object.setSlot(HASH, typeNameString.hashCode() * multiplier);
 		return object;
 	}

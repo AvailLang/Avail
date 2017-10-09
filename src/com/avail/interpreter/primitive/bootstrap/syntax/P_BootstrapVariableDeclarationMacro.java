@@ -101,7 +101,7 @@ public final class P_BootstrapVariableDeclarationMacro extends Primitive
 				type);
 		}
 		final A_Phrase variableDeclaration =
-			newVariable(nameToken, type, typeLiteral, nil());
+			newVariable(nameToken, type, typeLiteral, nil);
 		final @Nullable A_Phrase conflictingDeclaration =
 			FiberDescriptor.addDeclaration(variableDeclaration);
 		if (conflictingDeclaration != null)

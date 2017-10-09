@@ -83,7 +83,7 @@ public final class P_CreateAtom extends Primitive
 		final A_Atom atom;
 		if (loader == null)
 		{
-			atom = createAtom(name, nil());
+			atom = createAtom(name, nil);
 		}
 		else
 		{

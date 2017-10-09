@@ -37,16 +37,15 @@ import com.avail.descriptor.A_Definition;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Method;
 import com.avail.descriptor.A_Type;
-import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.utility.MutableOrNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +53,6 @@ import java.util.logging.Level;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
-import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
@@ -74,12 +72,13 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_LOOKUP_BY_TYPES().init(
-			SELECTOR.is("message bundle"),
+		new L2_LOOKUP_BY_VALUES().init(
+			CONSTANT.is("message bundle"),
 			READ_VECTOR.is("argument types"),
 			WRITE_POINTER.is("looked up function"),
+			WRITE_POINTER.is("error code"),
 			PC.is("lookup succeeded"),
-			WRITE_POINTER.is("error code"));
+			PC.is("lookup failed"));
 
 	@Override
 	public void step (
@@ -87,30 +86,30 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		final Interpreter interpreter)
 	{
 		final A_Bundle bundle = instruction.bundleAt(0);
-		final L2RegisterVector argTypesVector =
+		final List<L2ReadPointerOperand> argTypeRegs =
 			instruction.readVectorRegisterAt(1);
-		final L2ObjectRegister functionReg =
+		final L2WritePointerOperand functionReg =
 			instruction.writeObjectRegisterAt(2);
-		final int lookedSucceeded = instruction.pcAt(3);
-		final L2ObjectRegister errorCodeReg =
-			instruction.writeObjectRegisterAt(4);
+		final L2WritePointerOperand errorCodeReg =
+			instruction.writeObjectRegisterAt(3);
+		final int lookupSucceeded = instruction.pcOffsetAt(4);
+		final int lookupFailed = instruction.pcOffsetAt(5);
 
 		if (Interpreter.debugL2)
 		{
 			Interpreter.log(
 				Level.FINER,
-				"Lookup {0}",
+				"Lookup-by-types {0}",
 				bundle.message().atomName());
 		}
 		interpreter.argsBuffer.clear();
-		for (final L2ObjectRegister argumentReg : argTypesVector.registers())
+		for (final L2ReadPointerOperand argTypeReg : argTypeRegs)
 		{
-			interpreter.argsBuffer.add(argumentReg.in(interpreter));
+			interpreter.argsBuffer.add(argTypeReg.in(interpreter));
 		}
 		final A_Method method = bundle.bundleMethod();
-		final MutableOrNull<AvailErrorCode> errorCode = new MutableOrNull<>();
 		final long before = AvailRuntime.captureNanos();
-		A_Definition definitionToCall = nil();
+		final A_Definition definitionToCall;
 		try
 		{
 			definitionToCall = method.lookupByTypesFromTuple(
@@ -118,21 +117,22 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		}
 		catch (final MethodDefinitionException e)
 		{
-			errorCode.value = e.errorCode();
-		}
-		final long after = AvailRuntime.captureNanos();
-		interpreter.recordDynamicLookup(bundle, after - before);
-		if (definitionToCall.equalsNil())
-		{
-			errorCodeReg.set(errorCode.value().numericCode(), interpreter);
+			errorCodeReg.set(e.numericCode(), interpreter);
 			// Fall through to the next instruction.
+			interpreter.offset(lookupFailed);
 			return;
+		}
+		finally
+		{
+			final long after = AvailRuntime.captureNanos();
+			interpreter.recordDynamicLookup(bundle, after - before);
 		}
 		if (definitionToCall.isAbstractDefinition())
 		{
 			errorCodeReg.set(
 				E_ABSTRACT_METHOD_DEFINITION.numericCode(), interpreter);
 			// Fall through to the next instruction.
+			interpreter.offset(lookupFailed);
 			return;
 		}
 		if (definitionToCall.isForwardDefinition())
@@ -140,17 +140,21 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 			errorCodeReg.set(
 				E_FORWARD_METHOD_DEFINITION.numericCode(), interpreter);
 			// Fall through to the next instruction.
+			interpreter.offset(lookupFailed);
 			return;
 		}
 		functionReg.set(definitionToCall.bodyBlock(), interpreter);
-		interpreter.offset(lookedSucceeded);
+		interpreter.offset(lookupSucceeded);
 	}
 
 	/** The type of failure codes that a failed lookup can produce. */
-	private final A_Type failureCodesType =
-		enumerationWith(set(E_NO_METHOD, E_NO_METHOD_DEFINITION,
-				E_AMBIGUOUS_METHOD_DEFINITION, E_FORWARD_METHOD_DEFINITION,
-				E_ABSTRACT_METHOD_DEFINITION));
+	private final A_Type failureCodesType = enumerationWith(
+		set(
+			E_NO_METHOD,
+			E_NO_METHOD_DEFINITION,
+			E_AMBIGUOUS_METHOD_DEFINITION,
+			E_FORWARD_METHOD_DEFINITION,
+			E_ABSTRACT_METHOD_DEFINITION));
 
 	@Override
 	protected void propagateTypes (
@@ -162,23 +166,26 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		// of the argument registers).  Then build an enumeration type over
 		// those functions.
 		final A_Bundle bundle = instruction.bundleAt(0);
-		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
-		final L2ObjectRegister functionReg =
+		final List<L2ReadPointerOperand> argTypeRegs =
+			instruction.readVectorRegisterAt(1);
+		final L2WritePointerOperand functionReg =
 			instruction.writeObjectRegisterAt(2);
-		final L2ObjectRegister errorCodeReg =
-			instruction.writeObjectRegisterAt(4);
+		final L2WritePointerOperand errorCodeReg =
+			instruction.writeObjectRegisterAt(3);
+		final int lookupSucceeded = instruction.pcOffsetAt(4);
+		final int lookupFailed = instruction.pcOffsetAt(5);
+
 		// If the lookup fails, then only the error code register changes.
 		registerSets.get(0).typeAtPut(
-			errorCodeReg, failureCodesType, instruction);
+			errorCodeReg.register(), failureCodesType, instruction);
 		// If the lookup succeeds, then the situation is more complex.
 		final RegisterSet registerSet = registerSets.get(1);
-		final List<L2ObjectRegister> argRegisters = argsVector.registers();
-		final int numArgs = argRegisters.size();
+		final int numArgs = argTypeRegs.size();
 		final List<A_Type> argTypeBounds = new ArrayList<>(numArgs);
-		for (final L2ObjectRegister argRegister : argRegisters)
+		for (final L2ReadPointerOperand argRegister : argTypeRegs)
 		{
-			final A_Type type = registerSet.hasTypeAt(argRegister)
-				? registerSet.typeAt(argRegister)
+			final A_Type type = registerSet.hasTypeAt(argRegister.register())
+				? registerSet.typeAt(argRegister.register())
 				: ANY.o();
 			argTypeBounds.add(type);
 		}
@@ -200,7 +207,7 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 			// this call site).  Therefore we know strongly what the
 			// function is.
 			registerSet.constantAtPut(
-				functionReg,
+				functionReg.register(),
 				possibleFunctions.get(0),
 				instruction);
 		}
@@ -208,7 +215,8 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		{
 			final A_Type enumType =
 				enumerationWith(setFromCollection(possibleFunctions));
-			registerSet.typeAtPut(functionReg, enumType, instruction);
+			registerSet.typeAtPut(
+				functionReg.register(), enumType, instruction);
 		}
 	}
 }

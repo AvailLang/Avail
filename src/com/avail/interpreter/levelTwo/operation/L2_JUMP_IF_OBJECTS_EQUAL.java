@@ -37,8 +37,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
@@ -67,7 +67,7 @@ public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int target = instruction.pcAt(0);
+		final int target = instruction.pcOffsetAt(0);
 		final L2ObjectRegister firstReg = instruction.readObjectRegisterAt(1);
 		final L2ObjectRegister secondReg = instruction.readObjectRegisterAt(2);
 
@@ -83,7 +83,7 @@ public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
 		final RegisterSet registerSet,
 		final L1NaiveTranslator naiveTranslator)
 	{
-//		final L2PcOperand target = (L2PcOperand)(instruction.operands[0]);
+//		final L2PcOperand target = instruction.pcAt(0);
 		final L2ObjectRegister firstReg = instruction.readObjectRegisterAt(1);
 		final L2ObjectRegister secondReg = instruction.readObjectRegisterAt(2);
 
@@ -148,7 +148,7 @@ public class L2_JUMP_IF_OBJECTS_EQUAL extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-		final int target = instruction.pcAt(0);
+		final int target = instruction.pcOffsetAt(0);
 		final L2ObjectRegister firstReg = instruction.readObjectRegisterAt(1);
 		final L2ObjectRegister secondReg = instruction.readObjectRegisterAt(2);
 

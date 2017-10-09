@@ -32,45 +32,74 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.A_Type;
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.utility.evaluation.Transformer2;
+import com.avail.interpreter.levelTwo.register.RegisterTransformer;
+import com.avail.optimizer.RegisterSet;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * An {@code L2ReadVectorOperand} is an operand of type {@link
- * L2OperandType#READ_VECTOR}.  It holds an {@link L2RegisterVector}.
+ * L2OperandType#READ_VECTOR}.  It holds a {@link List} of {@link
+ * L2ReadPointerOperand}s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class L2ReadVectorOperand extends L2Operand
 {
 	/**
-	 * The actual {@link L2RegisterVector}.
+	 * The {@link List} of {@link L2ReadPointerOperand}s.
 	 */
-	public final L2RegisterVector vector;
+	private final List<L2ReadPointerOperand> elements;
+
+	/** A lazily computed list of the type constraints of my elements. */
+	private final List<A_Type> types;
 
 	/**
-	 * Construct a new {@link L2ReadVectorOperand} with the specified {@link
-	 * L2RegisterVector}.
+	 * Construct a new {@code L2ReadVectorOperand} with the specified {@link
+	 * List} of {@link L2ReadPointerOperand}s.
 	 *
-	 * @param vector The register vector.
+	 * @param elements The list of {@link L2ReadPointerOperand}s.
 	 */
 	public L2ReadVectorOperand (
-		final L2RegisterVector vector)
+		final List<L2ReadPointerOperand> elements)
 	{
-		this.vector = vector;
+		this.elements = unmodifiableList(elements);
+		this.types = unmodifiableList(
+			elements.stream()
+				.map(L2ReadPointerOperand::type)
+				.collect(toList()));
 	}
 
 	@Override
 	public L2OperandType operandType ()
 	{
 		return L2OperandType.READ_VECTOR;
+	}
+
+	/**
+	 * Answer my {@link List} of {@link L2ReadPointerOperand}s.
+	 */
+	public List<L2ReadPointerOperand> elements ()
+	{
+		return elements;
+	}
+
+	/**
+	 * Answer a {@link List} of the {@link A_Type}s bounding each corresponding
+	 * element.
+	 *
+	 * @return The list of types.
+	 */
+	public List<A_Type> types ()
+	{
+		return types;
 	}
 
 	@Override
@@ -81,20 +110,21 @@ public class L2ReadVectorOperand extends L2Operand
 
 	@Override
 	public L2ReadVectorOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
+		final RegisterTransformer<L2OperandType> transformer)
 	{
-		final List<L2ObjectRegister> newRegisters =
-			new ArrayList<>(vector.registers().size());
-		for (final L2ObjectRegister register : vector.registers())
+		return new L2ReadVectorOperand(
+			elements.stream()
+				.map(element -> element.transformRegisters(transformer))
+				.collect(toList()));
+	}
+
+	@Override
+	public void instructionWasAdded (final L2Instruction instruction)
+	{
+		for (final L2ReadPointerOperand element : elements)
 		{
-			final L2ObjectRegister newRegister =
-				(L2ObjectRegister)transformer.value(
-					register,
-					operandType());
-			newRegisters.add(newRegister);
+			element.register().addUse(instruction);
 		}
-		final L2RegisterVector newVector = new L2RegisterVector(newRegisters);
-		return new L2ReadVectorOperand(newVector);
 	}
 
 	@Override
@@ -103,7 +133,7 @@ public class L2ReadVectorOperand extends L2Operand
 		final StringBuilder builder = new StringBuilder();
 		builder.append("ReadVector(");
 		boolean first = true;
-		for (final L2Register register : vector.registers())
+		for (final L2ReadPointerOperand register : elements)
 		{
 			if (!first)
 			{

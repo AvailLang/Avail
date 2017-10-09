@@ -36,10 +36,12 @@ import com.avail.AvailRuntime;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
+import static com.avail.AvailRuntime.invalidMessageSendFunctionType;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -73,7 +75,7 @@ extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister destination =
+		final L2WritePointerOperand destination =
 			instruction.writeObjectRegisterAt(0);
 		destination.set(
 			interpreter.runtime().invalidMessageSendFunction(),
@@ -86,22 +88,9 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister destination =
+		final L2WritePointerOperand destination =
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
-			destination,
-			functionType(
-				tuple(
-					enumerationWith(
-						set(
-							E_NO_METHOD,
-							E_NO_METHOD_DEFINITION,
-							E_AMBIGUOUS_METHOD_DEFINITION,
-							E_FORWARD_METHOD_DEFINITION,
-							E_ABSTRACT_METHOD_DEFINITION)),
-					METHOD.o(),
-					mostGeneralTupleType()),
-				bottom()),
-			instruction);
+			destination.register, invalidMessageSendFunctionType, instruction);
 	}
 }

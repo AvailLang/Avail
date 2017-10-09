@@ -68,12 +68,12 @@ extends Descriptor
 	 * The {@code apparentSendName} of something that isn't a {@linkplain
 	 * SendNodeDescriptor send node} or {@linkplain
 	 * MacroSubstitutionNodeDescriptor macro substitution node} is always {@link
-	 * NilDescriptor#nil() nil}.
+	 * NilDescriptor#nil nil}.
 	 */
 	@Override @AvailMethod
 	A_Atom o_ApparentSendName (final AvailObject object)
 	{
-		return nil();
+		return nil;
 	}
 
 	/**

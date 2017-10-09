@@ -232,7 +232,7 @@ extends PojoTypeDescriptor
 			}
 		}
 		return newSelfPojoType(
-			nil(),
+			nil,
 			ancestors.setUnionCanDestroy(otherAncestors, false));
 	}
 
@@ -410,7 +410,7 @@ extends PojoTypeDescriptor
 		final A_String mainClassName;
 		if (pojoClass.equalsNil())
 		{
-			mainClassName = nil();
+			mainClassName = nil;
 		}
 		else
 		{
@@ -448,7 +448,7 @@ extends PojoTypeDescriptor
 		final AvailObject mainRawType;
 		if (className.equalsNil())
 		{
-			mainRawType = nil();
+			mainRawType = nil;
 		}
 		else
 		{

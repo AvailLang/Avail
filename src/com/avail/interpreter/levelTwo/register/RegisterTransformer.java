@@ -1,5 +1,5 @@
 /**
- * L2ReadWritePointerOperand.java
+ * RegisterTransformer.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,67 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.operand;
+package com.avail.interpreter.levelTwo.register;
 
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.utility.evaluation.Transformer2;
-
-import static com.avail.utility.Nulls.stripNull;
-import static java.lang.String.format;
 
 /**
- * An {@code L2ReadWritePointerOperand} is an operand of type {@link
- * L2OperandType#READWRITE_POINTER}.  It holds the actual {@link
- * L2ObjectRegister} that is to be accessed.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * A {@code RegisterTransformer} maps registers to registers of the same type.
  */
-public class L2ReadWritePointerOperand extends L2Operand
+public interface RegisterTransformer<OperandType extends L2OperandType>
 {
-	/**
-	 * The actual {@link L2ObjectRegister}.
-	 */
-	public final L2ObjectRegister register;
-
-	/**
-	 * Construct a new {@link L2ReadWritePointerOperand} with the specified
-	 * {@link L2ObjectRegister}.
-	 *
-	 * @param register The object register.
-	 */
-	public L2ReadWritePointerOperand (
-		final L2ObjectRegister register)
-	{
-		this.register = register;
-	}
-
-	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.READWRITE_POINTER;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public L2ReadWritePointerOperand transformRegisters (
-		final Transformer2<L2Register, L2OperandType, L2Register> transformer)
-	{
-		return new L2ReadWritePointerOperand(
-			(L2ObjectRegister) stripNull(
-				transformer.value(register, operandType())));
-	}
-
-	@Override
-	public String toString ()
-	{
-		return format("ReadWriteObject(%s)", register);
-	}
+	<X extends L2Register> X value(
+		final X register,
+		final OperandType operandType);
 }

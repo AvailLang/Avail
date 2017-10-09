@@ -40,7 +40,6 @@ import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -83,10 +82,11 @@ extends L2Operation
 		final Interpreter interpreter)
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
-		final L2RegisterVector argsVector = instruction.readVectorRegisterAt(1);
+		final List<L2ReadPointerOperand> argsVector = instruction.readVectorRegisterAt(1);
 		final A_Type expectedType = instruction.constantAt(2);
 		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
-		final int goodResultOffset = instruction.pcAt(4);
+
+		final int goodResultOffset = instruction.pcOffsetAt(4);
 
 		interpreter.argsBuffer.clear();
 		for (final L2ObjectRegister argumentRegister : argsVector.registers())

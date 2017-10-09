@@ -83,7 +83,7 @@ extends Primitive
 		final A_Variable variable = args.get(0);
 		final A_Token token = args.get(1);
 		return interpreter.primitiveSuccess(
-			newModuleVariable(token, variable, nil(), nil()));
+			newModuleVariable(token, variable, nil, nil));
 	}
 
 	@Override

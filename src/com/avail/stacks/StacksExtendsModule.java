@@ -239,7 +239,8 @@ public class StacksExtendsModule extends StacksImportModule
 					.extendsMethodLeafNameToModuleName()
 					.get(newName)
 					.put(newlyDefinedModule.moduleName(), group);
-			} else
+			}
+			else
 			{
 				final HashMap<String, ImplementationGroup> newMap =
 					new HashMap<>();

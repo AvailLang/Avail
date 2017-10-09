@@ -107,7 +107,7 @@ extends Primitive
 					resumeFromSuccessfulPrimitive(
 						currentRuntime(),
 						fiber,
-						nil(),
+						nil,
 						primitiveRawFunction,
 						true);
 					break;
@@ -119,7 +119,7 @@ extends Primitive
 					resumeFromSuccessfulPrimitive(
 						currentRuntime(),
 						fiber,
-						nil(),
+						nil,
 						primitiveRawFunction,
 						true);
 					break;
@@ -133,7 +133,7 @@ extends Primitive
 					break;
 			}
 		});
-		return interpreter.primitiveSuccess(nil());
+		return interpreter.primitiveSuccess(nil);
 	}
 
 	@Override

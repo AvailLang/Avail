@@ -116,7 +116,7 @@ extends PojoTypeDescriptor
 	@Override
 	AvailObject o_JavaAncestors (final AvailObject object)
 	{
-		return nil();
+		return nil;
 	}
 
 	@Override @AvailMethod

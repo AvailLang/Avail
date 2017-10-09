@@ -39,12 +39,14 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.evaluation.Transformer2;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -201,6 +203,28 @@ public final class RegisterSet
 	}
 
 	/**
+	 * Answer whether all of the supplied registers are constant here.
+	 *
+	 * @param registerReads
+	 *        The {@link List} of {@link L2ReadPointerOperand}s to examine for
+	 *        being constant in this register set.
+	 * @return {@code true} if all of the registers are constants here,
+	 *         otherwise {@code false}.
+	 */
+	public boolean allRegistersAreConstant (
+		final List<L2ReadPointerOperand> registerReads)
+	{
+		for (final L2ReadPointerOperand element : registerReads)
+		{
+			if (!hasConstantAt(element.register()))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Associate this register with a constant at the current code generation
 	 * point.
 	 *
@@ -316,7 +340,7 @@ public final class RegisterSet
 		final A_Type type)
 	{
 		assert !type.isBottom();
-		assert !type.equalsInstanceTypeFor(nil());
+		assert !type.equalsInstanceTypeFor(nil);
 		stateForModifying(register).type(type);
 	}
 
@@ -532,58 +556,6 @@ public final class RegisterSet
 	}
 
 	/**
-	 * Answer a register which contains the same value as the givenRegister.
-	 * Use the register which has held this value for the longest time, as
-	 * this should eliminate the most redundant moves.
-	 *
-	 * @param givenRegister
-	 *            An L2Register to normalize.
-	 * @param givenOperandType
-	 *            The type of {@link L2Operand} in which this register occurs.
-	 * @return An {@code L2Register} to use instead of the givenRegister.
-	 */
-	public L2Register normalize (
-		final L2Register givenRegister,
-		final L2OperandType givenOperandType)
-	{
-		if (givenOperandType.isSource && !givenOperandType.isDestination)
-		{
-			final RegisterState givenState = stateForReading(givenRegister);
-			final List<L2Register> origins = givenState.origins();
-			final AvailObject value = givenState.constant();
-			if (value != null && value.equalsNil())
-			{
-				// Optimization -- always use the dedicated null register.
-				return fixed(FixedRegister.NULL);
-			}
-			if (origins.isEmpty())
-			{
-				// The origin of the register's value is indeterminate here.
-				return givenRegister;
-			}
-			// Use the register that has been holding this value the longest.
-			return origins.get(0);
-		}
-		return givenRegister;
-	}
-
-	/**
-	 * A {@linkplain Transformer2 transformer} which converts from a {@linkplain
-	 * L2Register register} to another (or the same) register.  At the point
-	 * when the transformation happens, a source register is replaced by the
-	 * earliest known register to contain the same value, thereby attempting to
-	 * eliminate newer registers introduced by moves and decomposable primitive
-	 * pairs (e.g., <a,b>[1]).
-	 */
-	final Transformer2<L2Register, L2OperandType, L2Register> normalizer =
-		(register, operandType) ->
-		{
-			assert register != null;
-			assert operandType != null;
-			return normalize(register, operandType);
-		};
-
-	/**
 	 * Clear all type/constant/origin information for all registers.
 	 *
 	 * @param instruction The instruction responsible for clearing this state.
@@ -592,7 +564,7 @@ public final class RegisterSet
 		final L2Instruction instruction)
 	{
 		registerStates.clear();
-		constantAtPut(fixed(NULL), nil(), instruction);
+		constantAtPut(fixed(NULL), nil, instruction);
 		typeAtPut(
 			fixed(FixedRegister.CALLER),
 			mostGeneralContinuationType(),

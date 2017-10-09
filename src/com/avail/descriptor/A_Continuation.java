@@ -73,7 +73,7 @@ extends A_BasicObject
 	/**
 	 * The {@linkplain ContinuationDescriptor continuation} to which control
 	 * will pass when this continuation returns.  May be {@link
-	 * NilDescriptor#nil() nil}, indicating this is the outermost stack frame of
+	 * NilDescriptor#nil nil}, indicating this is the outermost stack frame of
 	 * its fiber and will produce a value from the fiber itself.
 	 *
 	 * @return The calling continuation or nil.

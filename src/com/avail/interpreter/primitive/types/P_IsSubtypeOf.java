@@ -36,12 +36,14 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
-import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L2BasicBlock;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.AtomDescriptor.*;
@@ -94,43 +96,42 @@ public final class P_IsSubtypeOf extends Primitive
 	 */
 	@Override
 	public void generateL2UnfoldableInlinePrimitive (
-		final L1NaiveTranslator levelOneNaiveTranslator,
+		final L1NaiveTranslator translator,
 		final A_Function primitiveFunction,
-		final L2RegisterVector args,
-		final L2ObjectRegister resultRegister,
-		final L2RegisterVector preserved,
+		final L2ReadVectorOperand args,
+		final L2WritePointerOperand resultWrite,
+		final L2ReadVectorOperand preserved,
 		final A_Type expectedType,
-		final L2ObjectRegister failureValueRegister,
-		final L2Instruction successLabel,
+		final L2WritePointerOperand failureValueWrite,
+		final L2BasicBlock successBlock,
 		final boolean canFailPrimitive,
 		final boolean skipReturnCheck)
 	{
-		final L2ObjectRegister xTypeReg = args.registers().get(0);
-		final L2ObjectRegister yTypeReg = args.registers().get(1);
+		final L2ReadPointerOperand xTypeReg = args.elements().get(0);
+		final L2ReadPointerOperand yTypeReg = args.elements().get(1);
 
-		final RegisterSet registerSet =
-			levelOneNaiveTranslator.naiveRegisters();
-		final A_Type xMeta = registerSet.typeAt(xTypeReg);
-		final A_Type yMeta = registerSet.typeAt(yTypeReg);
+		final A_Type xMeta = xTypeReg.type();
+		final A_Type yMeta = yTypeReg.type();
 		final A_Type xType = xMeta.instance();
 		final A_Type yType = yMeta.instance();
-		if (registerSet.hasConstantAt(yTypeReg))
+		final @Nullable A_Type constantYType =
+			(A_Type) yTypeReg.constantOrNull();
+		if (constantYType != null)
 		{
-			final A_Type constantYType = registerSet.constantAt(yTypeReg);
 			assert constantYType.isType();
 			assert constantYType.isSubtypeOf(yType);
 			if (xType.isSubtypeOf(constantYType))
 			{
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
-				levelOneNaiveTranslator.moveConstant(
-					trueObject(), resultRegister);
+				translator.moveConstant(trueObject(), resultWrite);
 				return;
 			}
 		}
-		if (registerSet.hasConstantAt(xTypeReg))
+		final @Nullable A_Type constantXType =
+			(A_Type) xTypeReg.constantOrNull();
+		if (constantXType != null)
 		{
-			final A_Type constantXType = registerSet.constantAt(xTypeReg);
 			assert constantXType.isType();
 			assert constantXType.isSubtypeOf(xType);
 			if (!constantXType.isSubtypeOf(yType))
@@ -139,20 +140,19 @@ public final class P_IsSubtypeOf extends Primitive
 				// and it is not a subtype of y.  The actual y might be more
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
-				levelOneNaiveTranslator.moveConstant(
-					falseObject(), resultRegister);
+				translator.moveConstant(falseObject(), resultWrite);
 				return;
 			}
 		}
 		super.generateL2UnfoldableInlinePrimitive(
-			levelOneNaiveTranslator,
+			translator,
 			primitiveFunction,
 			args,
-			resultRegister,
+			resultWrite,
 			preserved,
 			expectedType,
-			failureValueRegister,
-			successLabel,
+			failureValueWrite,
+			successBlock,
 			canFailPrimitive,
 			skipReturnCheck);
 	}

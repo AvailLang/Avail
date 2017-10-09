@@ -3458,7 +3458,7 @@ public final class AvailBuilder
 			{
 				final A_Phrase phrase = command.phrase;
 				final A_Function function =
-					createFunctionForPhrase(phrase, nil(), 1);
+					createFunctionForPhrase(phrase, nil, 1);
 				final A_Fiber fiber = newFiber(
 					function.kind().returnType(),
 					commandPriority,

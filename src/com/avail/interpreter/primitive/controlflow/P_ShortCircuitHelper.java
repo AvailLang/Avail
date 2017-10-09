@@ -39,8 +39,9 @@ import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
+import com.avail.optimizer.L1NaiveTranslator;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -99,8 +100,9 @@ public final class P_ShortCircuitHelper extends Primitive
 	 * that function.
 	 */
 	@Override
-	public @Nullable L2ObjectRegister foldOutInvoker (
-		final List<L2ObjectRegister> args,
+	public @Nullable
+	L2ReadPointerOperand foldOutInvoker (
+		final List<L2ReadPointerOperand> args,
 		final L1NaiveTranslator naiveTranslator)
 	{
 		assert hasFlag(Invokes);

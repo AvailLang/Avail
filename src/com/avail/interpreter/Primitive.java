@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadWriteVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE;
 import com.avail.interpreter.levelTwo.operation
@@ -49,17 +48,18 @@ import com.avail.interpreter.levelTwo.operation
 import com.avail.interpreter.levelTwo.operation
 	.L2_GET_INVALID_MESSAGE_RESULT_FUNCTION;
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.interpreter.levelTwo.operation
 	.L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
 import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
+import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.L2Translator.L1NaiveTranslator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -72,7 +72,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -81,10 +80,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.ContinuationTypeDescriptor
+	.mostGeneralContinuationType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 
 
 /**
@@ -352,10 +358,8 @@ implements IntegerEnumSlotDescriptionEnum
 	 * return type.  That's equivalent to the condition that the actual block's
 	 * type is a subtype of this function type.
 	 *
-	 * <p>
-	 * Cache the value in this {@linkplain Primitive} so subsequent requests are
-	 * fast.
-	 * </p>
+	 * <p>Cache the value in this {@code Primitive} so subsequent requests are
+	 * fast.</p>
 	 *
 	 * @return
 	 *            A function type that restricts the type of a block that uses
@@ -363,7 +367,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 */
 	public final A_Type blockTypeRestriction ()
 	{
-		A_Type restriction = cachedBlockTypeRestriction;
+		@Nullable A_Type restriction = cachedBlockTypeRestriction;
 		if (cachedBlockTypeRestriction == null)
 		{
 			restriction = privateBlockTypeRestriction().makeShared();
@@ -455,7 +459,7 @@ implements IntegerEnumSlotDescriptionEnum
 		final List<? extends A_Type> argumentTypes)
 	{
 		return hasFlag(Flag.CannotFail)
-			? Fallibility.CallSiteCannotFail
+			? CallSiteCannotFail
 			: Fallibility.CallSiteCanFail;
 	}
 
@@ -529,49 +533,55 @@ implements IntegerEnumSlotDescriptionEnum
 
 		/**
 		 * Get the {@link Primitive} from this {@code PrimitiveHolder}.  Load
-		 * the appropriate class if necessary, which will install
+		 * the appropriate class if necessary.
 		 *
 		 * @return The singleton instance of the requested subclass of {@link
 		 *         Primitive}
 		 */
-		public @Nullable Primitive primitive ()
+		public Primitive primitive ()
 		{
-			@Nullable Primitive p = primitive;
+			final @Nullable Primitive p = primitive;
 			if (p != null)
 			{
 				return p;
 			}
-			synchronized (this)
+			return fetchPrimitive();
+		}
+
+		/**
+		 * While holding the monitor, double-check whether another thread has
+		 * loaded the primitive, loading it if not.
+		 *
+		 * @return The loaded primitive.
+		 */
+		private synchronized Primitive fetchPrimitive ()
+		{
+			// The double-check pattern.  Make sure there's a write barrier
+			// *before* and *after* writing the fully initialized primitive
+			// into its slot.
+			if (primitive == null)
 			{
-				// The double-check pattern.  Make sure there's a write barrier
-				// *before* and *after* writing the fully initialized primitive
-				// into its slot.
-				p = primitive;
-				if (p == null)
+				final ClassLoader loader = Primitive.class.getClassLoader();
+				try
 				{
-					final ClassLoader loader = Primitive.class.getClassLoader();
-					try
-					{
-						final Class<?> primClass = loader.loadClass(className);
-						// Trigger the linker.
+					final Class<?> primClass =
+						loader.loadClass(className);
+					// Trigger the linker.
+					final Object instance =
 						primClass.getField("instance").get(null);
-						p = primitive;
-						assert p != null
-							: "PrimitiveHolder.primitive field should have "
-								+ "been set during class loading";
-					}
-					catch (final ClassNotFoundException e)
-					{
-						// Ignore if no such primitive.
-					}
-					catch (final NoSuchFieldException
+					assert instance != null
+						: "PrimitiveHolder.primitive field should have "
+						+ "been set during class loading";
+				}
+				catch (
+					final ClassNotFoundException
+						| NoSuchFieldException
 						| IllegalAccessException e)
-					{
-						throw new RuntimeException(e);
-					}
+				{
+					throw new RuntimeException(e);
 				}
 			}
-			return p;
+			return stripNull(primitive);
 		}
 
 		/**
@@ -973,24 +983,24 @@ implements IntegerEnumSlotDescriptionEnum
 	 *        The {@link L1NaiveTranslator} in which to generate an inlined
 	 *        call to this primitive.
 	 * @param primitiveFunction
-	 *        The {@link Primitive} {@linkplain FunctionDescriptor function}
+	 *        The {@code Primitive} {@linkplain FunctionDescriptor function}
 	 *        being invoked.
 	 * @param args
-	 *        The {@link L2RegisterVector} holding the registers that will
+	 *        The {@link L2ReadVectorOperand} holding the registers that will
 	 *        provide arguments at invocation time.
-	 * @param resultRegister
-	 *        The {@link L2ObjectRegister} into which the result should be
+	 * @param resultWrite
+	 *        The {@link L2WritePointerOperand} into which the result should be
 	 *        placed at invocation time.
 	 * @param preserved
-	 *        The {@link L2RegisterVector} holding the registers whose values
+	 *        The {@link L2ReadVectorOperand} holding the registers whose values
 	 *        must be preserved whether the primitive succeeds or fails.
 	 * @param expectedType
 	 *        The type of value that this primitive invocation is expected to
 	 *        produce at this call site.
-	 * @param failureValueRegister
+	 * @param failureValueWrite
 	 *        Where to write the primitive failure value in the case that the
 	 *        primitive fails.
-	 * @param successLabel
+	 * @param successBlock
 	 *        Where to jump if the primitive is successful. If the primitive
 	 *        fails it simply falls through.
 	 * @param canFailPrimitive
@@ -1003,67 +1013,80 @@ implements IntegerEnumSlotDescriptionEnum
 	public void generateL2UnfoldableInlinePrimitive (
 		final L1NaiveTranslator translator,
 		final A_Function primitiveFunction,
-		final L2RegisterVector args,
-		final L2ObjectRegister resultRegister,
-		final L2RegisterVector preserved,
+		final L2ReadVectorOperand args,
+		final L2WritePointerOperand resultWrite,
+		final L2ReadVectorOperand preserved,
 		final A_Type expectedType,
-		final L2ObjectRegister failureValueRegister,
-		final L2Instruction successLabel,
+		final L2WritePointerOperand failureValueWrite,
+		final L2BasicBlock successBlock,
 		final boolean canFailPrimitive,
 		final boolean skipReturnCheck)
 	{
+		final List<A_Type> argumentTypes = args.types();
 		if (!canFailPrimitive)
 		{
 			// Note that a primitive cannot have return type of bottom
 			// unless it's non-inlineable (already excluded here).
 			assert !expectedType.isBottom();
+			final A_Type guaranteedType =
+				returnTypeGuaranteedByVM(argumentTypes);
 			if (skipReturnCheck)
 			{
 				translator.addInstruction(
 					L2_RUN_INFALLIBLE_PRIMITIVE_NO_CHECK.instance,
 					new L2PrimitiveOperand(this),
-					new L2ReadVectorOperand(args),
-					new L2WritePointerOperand(resultRegister));
+					args,
+					resultWrite);
+				translator.addInstruction(
+					L2_JUMP.instance,
+					new L2PcOperand(
+						successBlock,
+						resultWrite.read().restrictedTo(
+							guaranteedType, null)));
+				return;
 			}
 			else
 			{
 				translator.addInstruction(
 					L2_RUN_INFALLIBLE_PRIMITIVE.instance,
 					new L2PrimitiveOperand(this),
-					new L2ReadVectorOperand(args),
+					args,
 					new L2ConstantOperand(expectedType),
-					new L2WritePointerOperand(resultRegister),
-					new L2PcOperand(successLabel));
-				final L2Instruction unreachableLabel =
-					translator.newLabel("unreachable");
-				final L2ObjectRegister invalidResultFunction =
-					translator.newObjectRegister();
+					resultWrite,
+					new L2PcOperand(
+						successBlock,
+						resultWrite.register.restrictedTo(guaranteedType)));
+				final L2BasicBlock unreachableBlock =
+					new L2BasicBlock("unreachable");
+				final L2WritePointerOperand invalidResultFunction =
+					translator.newObjectRegisterWriter(
+						mostGeneralFunctionType(), null);
 				translator.addInstruction(
 					L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.instance,
-					new L2WritePointerOperand(invalidResultFunction));
-				final L2ObjectRegister reifiedRegister =
-					translator.newObjectRegister();
+					invalidResultFunction);
+				final L2WritePointerOperand reifiedRegister =
+					translator.newObjectRegisterWriter(
+						mostGeneralContinuationType(), null);
 				translator.reify(
 					translator.continuationSlotsList(translator.numSlots()),
 					reifiedRegister,
-					unreachableLabel);
-				final L2ObjectRegister expectedTypeRegister =
-					translator.newObjectRegister();
-				translator.moveConstant(expectedType, expectedTypeRegister);
+					unreachableBlock);
+				final L2ReadPointerOperand expectedTypeRegister =
+					translator.constantRegister(expectedType);
 				translator.addInstruction(
 					L2_INVOKE.instance,
-					new L2ReadPointerOperand(reifiedRegister),
-					new L2ReadPointerOperand(invalidResultFunction),
+					reifiedRegister.read(),
+					invalidResultFunction.read(),
 					new L2ReadVectorOperand(
-						translator.createVector(
-							Arrays.asList(
-								translator.fixed(FixedRegister.FUNCTION),
-								expectedTypeRegister,
-								resultRegister))),
+						asList(
+//							translator.fixed(FixedRegister.FUNCTION),
+							expectedTypeRegister,
+							resultWrite.read())),
 					new L2ImmediateOperand(1),
-					new L2PcOperand(unreachableLabel)); //TODO - Some other label!
-				translator.unreachableCode(unreachableLabel);
-				translator.addLabel(successLabel);
+					new L2PcOperand(unreachableBlock)); //TODO - Some other label!
+				unreachableBlock.addInstruction();
+				translator.addUnreachableCode();
+				translator.startBlock(successBlock);
 			}
 		}
 		else
@@ -1075,47 +1098,46 @@ implements IntegerEnumSlotDescriptionEnum
 					new L2PrimitiveOperand(this),
 					new L2ConstantOperand(primitiveFunction),
 					new L2ReadVectorOperand(args),
-					new L2WritePointerOperand(resultRegister),
-					new L2WritePointerOperand(failureValueRegister),
+					resultWrite,
+					failureValueWrite,
 					new L2ReadWriteVectorOperand(preserved),
 					new L2PcOperand(successLabel));
 			}
 			else
 			{
-				final L2Instruction failureLabel =
-					translator.newLabel("failure");
+				final L2Instruction failureLabel = newLabel("failure");
 				translator.addInstruction(
 					L2_ATTEMPT_INLINE_PRIMITIVE.instance,
 					new L2PrimitiveOperand(this),
 					new L2ConstantOperand(primitiveFunction),
 					new L2ReadVectorOperand(args),
 					new L2ConstantOperand(expectedType),
-					new L2WritePointerOperand(resultRegister),
-					new L2WritePointerOperand(failureValueRegister),
+					resultWrite,
+					failureValueWrite,
 					new L2ReadWriteVectorOperand(preserved),
 					new L2PcOperand(successLabel),
 					new L2PcOperand(failureLabel));
-				final L2Instruction unreachableLabel =
-					translator.newLabel("unreachable");
-				final L2ObjectRegister invalidResultFunction =
-					translator.newObjectRegister();
+				final L2Instruction unreachableLabel = newLabel("unreachable");
+				final L2WritePointerOperand invalidResultFunction =
+					translator.newObjectRegisterWriter(
+						mostGeneralFunctionType(), null);
 				translator.addInstruction(
 					L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.instance,
-					new L2WritePointerOperand(invalidResultFunction));
-				final L2ObjectRegister reifiedRegister =
-					translator.newObjectRegister();
+					invalidResultFunction);
+				final L2WritePointerOperand reifiedRegister =
+					translator.newObjectRegisterWriter(
+						mostGeneralContinuationType(), null);
 				translator.reify(
 					translator.continuationSlotsList(translator.numSlots()),
 					reifiedRegister,
 					unreachableLabel);
 				translator.addInstruction(
 					L2_INVOKE.instance,
-					new L2ReadPointerOperand(reifiedRegister),
-					new L2ReadPointerOperand(invalidResultFunction),
-					new L2ReadVectorOperand(translator.createVector(
-						Collections.emptyList())),
+					reifiedRegister.read(),
+					invalidResultFunction.read(),
+					new L2ReadVectorOperand(new L2RegisterVector(emptyList())),
 					new L2ImmediateOperand(1));
-				translator.unreachableCode(unreachableLabel);
+				translator.addUnreachableCode(unreachableLabel);
 				translator.addLabel(failureLabel);
 			}
 		}
@@ -1139,8 +1161,9 @@ implements IntegerEnumSlotDescriptionEnum
 	 *        The {@link L2ObjectRegister} holding the replacement function to
 	 *        invoke instead of this Invokes primitive.
 	 */
-	public @Nullable L2ObjectRegister foldOutInvoker (
-		final List<L2ObjectRegister> args,
+	public @Nullable
+	L2ReadPointerOperand foldOutInvoker (
+		final List<L2ReadPointerOperand> args,
 		final L1NaiveTranslator naiveTranslator)
 	{
 		assert hasFlag(Flag.Invokes);

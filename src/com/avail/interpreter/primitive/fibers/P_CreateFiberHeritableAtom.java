@@ -122,7 +122,7 @@ extends Primitive
 		}
 		else
 		{
-			final A_Atom newName = createAtom(name, nil());
+			final A_Atom newName = createAtom(name, nil);
 			newName.setAtomProperty(HERITABLE_KEY.atom, trueObject());
 			trueName.value = newName;
 		}

@@ -37,8 +37,9 @@ import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -66,21 +67,20 @@ public class L2_EXPLODE_TUPLE extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister tupleReg =
+		final L2ReadPointerOperand tupleReg =
 			instruction.readObjectRegisterAt(0);
-		final L2RegisterVector elementsVector =
+		final List<L2WritePointerOperand> elementsVector =
 			instruction.writeVectorRegisterAt(1);
 
-		final List<L2ObjectRegister> registers = elementsVector.registers();
 		final A_Tuple tuple = tupleReg.in(interpreter);
 		// Make it immutable, at least until we have a framework for tracking
 		// reference flow through registers and L2 operations more precisely.
 		tuple.makeImmutable();
 		final int tupleSize = tuple.tupleSize();
-		assert tupleSize == registers.size();
+		assert tupleSize == elementsVector.size();
 		for (int i = 1; i <= tupleSize; i++)
 		{
-			registers.get(i - 1).set(tuple.tupleAt(i), interpreter);
+			elementsVector.get(i - 1).set(tuple.tupleAt(i), interpreter);
 		}
 	}
 
@@ -90,21 +90,20 @@ public class L2_EXPLODE_TUPLE extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister tupleReg =
+		final L2ReadPointerOperand tupleReg =
 			instruction.readObjectRegisterAt(0);
-		final L2RegisterVector elementsVector =
+		final List<L2WritePointerOperand> elements =
 			instruction.writeVectorRegisterAt(1);
 
-		final A_Type tupleType = registerSet.typeAt(tupleReg);
+		final A_Type tupleType = tupleReg.type();
 		// Make all the contained types immutable.
 		tupleType.makeImmutable();
 		final int tupleSize = tupleType.sizeRange().lowerBound().extractInt();
-		final List<L2ObjectRegister> registers = elementsVector.registers();
-		assert tupleSize == registers.size();
+		assert tupleSize == elements.size();
 		for (int i = 1; i <= tupleSize; i++)
 		{
 			registerSet.typeAtPut(
-				registers.get(i - 1),
+				elements.get(i - 1).register,
 				tupleType.typeAtIndex(i),
 				instruction);
 		}

@@ -32,13 +32,10 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.MessageBundleDescriptor;
-import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.interpreter.levelTwo.register.L2RegisterVector;
 
 import java.util.List;
 
@@ -103,21 +100,6 @@ public enum L2OperandType
 	},
 
 	/**
-	 * Like a {@link #CONSTANT}, the {@link L2SelectorOperand} holds the actual
-	 * AvailObject, but it is known to be a {@linkplain MessageBundleDescriptor
-	 * message bundle} through which to eventually call the {@linkplain
-	 * MethodDescriptor}.
-	 */
-	SELECTOR(false, false)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doSelector();
-		}
-	},
-
-	/**
 	 * The {@link L2ReadPointerOperand} holds the {@link L2ObjectRegister} that
 	 * will be read.
 	 */
@@ -140,19 +122,6 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doWritePointer();
-		}
-	},
-
-	/**
-	 * The {@link L2ReadWritePointerOperand} holds the {@link L2ObjectRegister}
-	 * that will be read and then written.
-	 */
-	READWRITE_POINTER(true, true)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doReadWritePointer();
 		}
 	},
 
@@ -183,22 +152,8 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The {@link L2ReadWriteIntOperand} holds the {@link L2IntegerRegister}
-	 * that will be read and then written.
-	 */
-	READWRITE_INT(true, true)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doReadWriteInt();
-		}
-	},
-
-	/**
-	 * The {@link L2ReadVectorOperand} holds a {@link L2RegisterVector}, which
-	 * in turn holds a {@link List} of {@linkplain L2ObjectRegister}s that
-	 * will be read.
+	 * The {@link L2ReadVectorOperand} holds a {@link List} of {@link
+	 * L2ReadPointerOperand}s which will be read.
 	 */
 	READ_VECTOR(true, false)
 	{
@@ -210,9 +165,8 @@ public enum L2OperandType
 	},
 
 	/**
-	 * The {@link L2WriteVectorOperand} holds a {@link L2RegisterVector}, which
-	 * in turn holds a {@link List} of {@linkplain L2ObjectRegister}s that
-	 * will be written (but not read).
+	 * The {@link L2WriteVectorOperand} holds a {@link List} of {@link
+	 * L2WritePointerOperand}s which will be written (but not read).
 	 */
 	WRITE_VECTOR(false, true)
 	{
@@ -220,21 +174,6 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doWriteVector();
-		}
-	},
-
-	/**
-	 * The {@link L2ReadWriteVectorOperand} holds a {@link L2RegisterVector},
-	 * which in turn holds a {@link List} of {@linkplain L2ObjectRegister}s that
-	 * will be read and then written.
-	 *
-	 */
-	READWRITE_VECTOR(true, true)
-	{
-		@Override
-		void dispatch(final L2OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doReadWriteVector();
 		}
 	},
 
@@ -252,7 +191,6 @@ public enum L2OperandType
 		}
 	};
 
-
 	/**
 	 * Invoke an entry point of the passed {@linkplain L2OperandTypeDispatcher
 	 * operand type dispatcher} that's specific to which {@link L2OperandType}
@@ -262,7 +200,7 @@ public enum L2OperandType
 	 *            The {@link L2OperandTypeDispatcher} to visit with the
 	 *            receiver.
 	 */
-	abstract void dispatch(L2OperandTypeDispatcher dispatcher);
+	abstract void dispatch (L2OperandTypeDispatcher dispatcher);
 
 	/**
 	 * Whether the receiver is to be treated as a source of information.

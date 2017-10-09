@@ -137,7 +137,7 @@ extends TokenDescriptor
 		 * A {@link RawPojoDescriptor raw pojo} holding the {@link LexingState}
 		 * after this token.
 		 *
-		 * <p>The field is typically {@link NilDescriptor#nil() nil}, to
+		 * <p>The field is typically {@link NilDescriptor#nil nil}, to
 		 * indicate the {@link LexingState} should be looked up by position (and
 		 * line number) via {@link CompilationContext#lexingStateAt(int, int)}.
 		 * </p>
@@ -215,11 +215,11 @@ extends TokenDescriptor
 		instance.setSlot(STRING, string);
 		instance.setSlot(LEADING_WHITESPACE, leadingWhitespace);
 		instance.setSlot(TRAILING_WHITESPACE, trailingWhitespace);
-		instance.setSlot(LOWER_CASE_STRING, nil());
+		instance.setSlot(LOWER_CASE_STRING, nil);
 		instance.setSlot(START, start);
 		instance.setSlot(LINE_NUMBER, lineNumber);
 		instance.setSlot(TOKEN_TYPE_CODE, TokenType.COMMENT.ordinal());
-		instance.setSlot(NEXT_LEXING_STATE_POJO, nil());
+		instance.setSlot(NEXT_LEXING_STATE_POJO, nil);
 		return instance;
 	}
 
