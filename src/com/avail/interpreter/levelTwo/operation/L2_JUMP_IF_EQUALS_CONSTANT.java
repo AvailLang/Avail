@@ -37,7 +37,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
@@ -69,7 +69,7 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
 		final L2Instruction instruction)
 	{
-		final int objectRegisterIndex =
+		final int valueRegisterIndex =
 			instruction.readObjectRegisterAt(0).finalIndex();
 		final A_BasicObject constant = instruction.constantAt(1);
 		final int ifEqual = instruction.pcOffsetAt(2);
@@ -77,7 +77,7 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 
 		return interpreter ->
 			interpreter.offset(
-				interpreter.pointerAt(objectRegisterIndex).equals(constant)
+				interpreter.pointerAt(valueRegisterIndex).equals(constant)
 					? ifEqual
 					: ifUnequal);
 	}
@@ -89,12 +89,13 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		final L1NaiveTranslator naiveTranslator)
 	{
 		// Eliminate tests due to type propagation.
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(0);
+		final L2ReadPointerOperand valueReg =
+			instruction.readObjectRegisterAt(0);
 		final A_BasicObject constant = instruction.constantAt(1);
 		final L2PcOperand ifEqual = instruction.pcAt(2);
 		final L2PcOperand ifUnequal = instruction.pcAt(3);
 
-		final @Nullable A_BasicObject valueOrNull = objectReg.constantOrNull;
+		final @Nullable A_BasicObject valueOrNull = valueReg.constantOrNull();
 		if (valueOrNull != null)
 		{
 			// Compare them right now.
@@ -103,7 +104,7 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 				valueOrNull.equals(constant) ? ifEqual : ifUnequal);
 			return true;
 		}
-		if (!constant.isInstanceOf(objectReg.type))
+		if (!constant.isInstanceOf(valueReg.type()))
 		{
 			// They can't be equal.
 			naiveTranslator.addInstruction(L2_JUMP.instance, ifUnequal);
@@ -119,14 +120,16 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
+		throw new UnsupportedOperationException();
 //		final int ifEqual = instruction.pcAt(0);
 //		final int ifUnequal = instruction.pcAt(1);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(2);
-		final A_BasicObject value = instruction.constantAt(3);
+//		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(2);
+//		final A_BasicObject value = instruction.constantAt(3);
+//
+//		assert registerSets.size() == 2;
+//		final RegisterSet ifEqualSet = registerSets.get(0);
+//		final RegisterSet ifUnequalSet = registerSets.get(1);
 
-		assert registerSets.size() == 2;
-		final RegisterSet ifEqualSet = registerSets.get(0);
-		final RegisterSet ifUnequalSet = registerSets.get(1);
 //TODO MvG - We need to be able to strengthen the variable by introducing a new
 // version somehow.  Likewise, we can capture an is-not-a set of types along the
 // other path.

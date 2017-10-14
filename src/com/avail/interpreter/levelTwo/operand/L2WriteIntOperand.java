@@ -81,6 +81,16 @@ public class L2WriteIntOperand extends L2Operand
 		this.register = register;
 	}
 
+	/**
+	 * Answer the register that is to be written.
+	 *
+	 * @return An {@link L2IntegerRegister}.
+	 */
+	public final L2IntegerRegister register ()
+	{
+		return register;
+	}
+
 	@Override
 	public L2OperandType operandType ()
 	{
@@ -91,6 +101,17 @@ public class L2WriteIntOperand extends L2Operand
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
 		dispatcher.doOperand(this);
+	}
+
+	/**
+	 * Answer an {@link L2ReadIntOperand} on the same register as this {@code
+	 * L2WriteIntOperand}.
+	 *
+	 * @return The new {@link L2ReadIntOperand}.
+	 */
+	public final L2ReadIntOperand read ()
+	{
+		return new L2ReadIntOperand(register);
 	}
 
 	@Override

@@ -34,13 +34,19 @@ package com.avail.optimizer;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.stream.IntStream;
+
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * This is a traditional basic block, consisting of a sequence of {@link
@@ -58,17 +64,18 @@ public final class L2BasicBlock
 	private final List<L2Instruction> instructions = new ArrayList<>();
 
 	/**
-	 * The basic blocks that follow this one, in an order dependent on the last
-	 * instruction.  This is kept synchronized with the predecessor lists of the
-	 * successor blocks.
+	 * The {@link L2PcOperand}s that point to basic blocks that follow this one,
+	 * taken in order from the last instruction.  This is kept synchronized with
+	 * the predecessor lists of the successor blocks.
 	 */
-	private final List<L2BasicBlock> successors = new ArrayList<>();
+	private final List<L2PcOperand> successorEdges = new ArrayList<>(3);
 
 	/**
-	 * The basic blocks that precede this one.  This is kept synchronized with
-	 * the successor lists of the predecessor blocks.
+	 * The {@link L2PcOperand}s that point to this basic block.  They capture
+	 * their containing {@link L2Instruction}, which knows its own basic block,
+	 * so we can easily get to the originating basic block.
 	 */
-	private final List<L2BasicBlock> predecessors = new ArrayList<>();
+	private final List<L2PcOperand> predecessorEdges = new ArrayList<>();
 
 	/**
 	 * The L2 offset at which the block starts.  Only populated after code
@@ -85,23 +92,6 @@ public final class L2BasicBlock
 	 * block.
 	 */
 	private boolean hasControlFlowAtEnd = false;
-
-	/**
-	 * The arrays of virtual continuation slot registers.  The inner arrays are
-	 * indexed by slot index, and the outer array is indexed by relative
-	 * positions of {@link L2PcOperand} operands.
-	 *
-	 * <p>Prior to the final instruction being added to this basic block, the
-	 * outer array has a single element, the state of the registers after the
-	 * last added instruction.</p>
-	 */
-	@Nullable L2ObjectRegister[][] slotsByTarget;
-
-	/**
-	 * Keep a mapping of target registers with their sources.
-	 */
-	private Map<L2ObjectRegister, Map<L2BasicBlock, L2ObjectRegister>>
-		phiSources = new HashMap<>();
 
 	/**
 	 * Answer the descriptive name of this basic block.
@@ -123,19 +113,29 @@ public final class L2BasicBlock
 	}
 
 	/**
-	 * Add a predecessor, due to an earlier basic block adding an instruction
-	 * that refers to this basic block.
+	 * Answer this block's {@link List} of {@link L2Instruction}.  They consist
+	 * of a sequence of non-branching instructions, ending in an instruction
+	 * that branches to zero or more targets via its {@link L2PcOperand}s.
 	 *
-	 * @param predecessor The preceding block.
-	 * @param slotRegisters The virtual continuation slot registers
+	 * @return The block's {@link List} of {@link L2Instruction}s.
 	 */
-	private void addPredecessor (
-		final L2BasicBlock predecessor,
-		final L2ObjectRegister[] slotRegisters)
+	public List<L2Instruction> instructions ()
 	{
-		assert predecessor.hasStartedCodeGeneration;
+		return instructions;
+	}
+
+	/**
+	 * Add a predecessor, due to an earlier basic block adding an instruction
+	 * that reaches this basic block.
+	 *
+	 * @param predecessorEdge The {@link L2PcOperand} that leads here.
+	 */
+	private void addPredecessorEdge (
+		final L2PcOperand predecessorEdge)
+	{
+		assert predecessorEdge.sourceBlock().hasStartedCodeGeneration;
 		assert !hasStartedCodeGeneration;
-		predecessors.add(predecessor);
+		predecessorEdges.add(predecessorEdge);
 	}
 
 	/**
@@ -146,7 +146,92 @@ public final class L2BasicBlock
 	 */
 	public boolean hasPredecessors ()
 	{
-		return !predecessors.isEmpty();
+		return !predecessorEdges.isEmpty();
+	}
+
+	/**
+	 * Answer the {@link L2PcOperand}s taken in order from the last {@link
+	 * L2Instruction} of this basic block.  These operands lead to the successor
+	 * blocks of this one.
+	 *
+	 * @return a {@link List} of {@link L2PcOperand}s.
+	 */
+	public List<L2PcOperand> successorEdges ()
+	{
+		return successorEdges;
+	}
+
+	/**
+	 * Having completed code generation in each of its predecessors, prepare
+	 * this block for its own code generation.
+	 *
+	 * <p>Examine the {@link #predecessorEdges} to determine if phi operations
+	 * need to be created to merge differences in the slot-to-register arrays.
+	 * These will eventually turn into move instructions along the incoming
+	 * edges, which will usually end up with the same register color on both
+	 * ends of the move, allowing it to be eliminated.</p>
+	 *
+	 * <p>If phi operations are added, their target registers will be written to
+	 * the appropriate slotRegisters of the provided {@link L1NaiveTranslator}.
+	 * </p>
+	 *
+	 * @param naiveTranslator
+	 *        The {@link L1NaiveTranslator} that's generating instructions.
+	 */
+	public void startIn (final L1NaiveTranslator naiveTranslator)
+	{
+		final int numSlots = naiveTranslator.numSlots();
+		final List<List<L2ReadPointerOperand>> sourcesBySlot =
+			IntStream.range(0, numSlots)
+				.mapToObj(i -> new ArrayList<L2ReadPointerOperand>())
+				.collect(toList());
+		// Determine the sets of registers feeding each slot index.
+		for (final L2PcOperand edge : predecessorEdges)
+		{
+			final L2ReadPointerOperand[] edgeSlots = edge.slotRegisters();
+			assert edgeSlots.length == numSlots;
+			for (int i = 0; i < numSlots; i++)
+			{
+				sourcesBySlot.get(i).add(edgeSlots[i]);
+			}
+		}
+		// Create phi operations.
+		for (int slotIndex = 0; slotIndex < numSlots; slotIndex++)
+		{
+			final List<L2ReadPointerOperand> registerReads =
+				sourcesBySlot.get(slotIndex);
+			final Set<L2ObjectRegister> distinct = registerReads.stream()
+				.map(L2ReadPointerOperand::register)
+				.collect(toSet());
+			assert distinct.size() > 0;
+			if (distinct.size() > 1)
+			{
+				// Create a phi instruction to merge these sources together into
+				// a new register at that slot index.
+				@SuppressWarnings("ConstantConditions")
+				final TypeRestriction restriction = distinct.stream()
+					.map(L2ObjectRegister::restriction)
+					.reduce(TypeRestriction::union)
+					.get();
+				naiveTranslator.addInstruction(
+					L2_PHI_PSEUDO_OPERATION.instance,
+					naiveTranslator.readVector(registerReads),
+					naiveTranslator.writeSlot(
+						slotIndex,
+						restriction.type,
+						restriction.constantOrNull));
+			}
+			else
+			{
+				// Otherwise, assume the slot has been set up with a particular
+				// register – which might not be what the translator thinks is
+				// current, due to code generation along other paths since the
+				// predecessors were generated.  Bring the translator into
+				// agreement.
+				naiveTranslator.forceSlotRegister(
+					slotIndex, registerReads.get(0));
+			}
+		}
 	}
 
 	/**
@@ -165,44 +250,15 @@ public final class L2BasicBlock
 		assert !hasControlFlowAtEnd;
 		assert instruction.basicBlock == this;
 		instructions.add(instruction);
-		instruction.justAdded(this);
+		instruction.justAdded();
 		hasStartedCodeGeneration = true;
 		hasControlFlowAtEnd = instruction.altersControlFlow();
 		if (hasControlFlowAtEnd)
 		{
-			// Let the instruction/operation indicate which output registers are
-			// written along which outbound branch, since some operations have
-			// different output states depending on which branch is taken.
-			assert slotsByTarget.length == 1;
-			final L2ObjectRegister[] priorSlots = slotsByTarget[0];
-
-			final List<L2BasicBlock> targetBlocks = instruction.targetBlocks();
-			for (int i = 0; i < targetBlocks.size(); i++)
+			for (final L2PcOperand edge : instruction.targetEdges())
 			{
-				final L2BasicBlock successor = successors.get(i);
-				final L2ObjectRegister[] adjustedSlots =
-					instruction.operation.effectiveSlotsForBranch(
-						i, priorSlots, slotRegisters);
-				successors.add(successor);
-				successor.addPredecessor(this, adjustedSlots);
-
+				edge.targetBlock().addPredecessorEdge(edge);
 			}
-
-
-			// Let the instruction calculate the phi-function information.
-			// Connect the successor blocks now.
-			final List<L2ObjectRegister[]> slotLists = new ArrayList<>();
-			for (final L2BasicBlock successor : instruction.targetBlocks())
-			{
-				***
-			}
-		}
-		else
-		{
-			assert slotsByTarget == null
-				|| (slotsByTarget.length == 1
-				    && slotsByTarget[0].length == slotRegisters.length);
-			slotsByTarget = new L2ObjectRegister[][] { slotRegisters.clone() };
 		}
 	}
 

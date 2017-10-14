@@ -71,17 +71,17 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		final L2Instruction instruction)
 	{
 		final A_RawFunction code = instruction.constantAt(0);
-		final List<L2ReadPointerOperand> outersRegisters =
+		final List<L2ReadPointerOperand> outerRegs =
 			instruction.readVectorRegisterAt(1);
 		final int newFunctionRegIndex =
 			instruction.writeObjectRegisterAt(2).finalIndex();
 
-		final int numOuters = outersRegisters.size();
+		final int numOuters = outerRegs.size();
 		assert numOuters == code.numOuters();
 		final int[] outerRegNumbers = new int[numOuters];
 		for (int i = 0; i < numOuters; i++)
 		{
-			outerRegNumbers[i] = outersRegisters.get(i).finalIndex();
+			outerRegNumbers[i] = outerRegs.get(i).finalIndex();
 		}
 		return interpreter ->
 		{
@@ -102,26 +102,26 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		final L2Translator translator)
 	{
 		final A_RawFunction code = instruction.constantAt(0);
-		final List<L2ReadPointerOperand> outersVector =
+		final List<L2ReadPointerOperand> outerRegs =
 			instruction.readVectorRegisterAt(1);
 		final L2WritePointerOperand newFunctionReg =
 			instruction.writeObjectRegisterAt(2);
 
 		registerSet.typeAtPut(
 			newFunctionReg.register(), code.functionType(), instruction);
-		if (registerSet.allRegistersAreConstant(outersVector))
+		if (registerSet.allRegistersAreConstant(outerRegs))
 		{
 			// This can be replaced with a statically constructed function
 			// during regeneration, but for now capture the exact function that
 			// will be constructed.
-			final int numOuters = outersVector.size();
+			final int numOuters = outerRegs.size();
 			assert numOuters == code.numOuters();
 			final A_Function function = createExceptOuters(code, numOuters);
 			for (int i = 1; i <= numOuters; i++)
 			{
 				function.outerVarAtPut(
 					i,
-					registerSet.constantAt(outersVector.get(i - 1).register()));
+					registerSet.constantAt(outerRegs.get(i - 1).register()));
 			}
 			registerSet.constantAtPut(
 				newFunctionReg.register(), function, instruction);
@@ -140,20 +140,16 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		final L2WritePointerOperand targetRegisterWrite,
 		final L1NaiveTranslator naiveTranslator)
 	{
-//TODO[MvG] - Get back to this primitive cancellation stuff
-//		final L2RegisterVector outersVector =
-//			instruction.readVectorRegisterAt(1);
-//		final L2ObjectRegister outerRegister =
-//			outersVector.registers().get(outerIndex - 1);
-//
-//		*** don't we have to determine if the register supplied for this outer
-//		*** to the function creation operation still holds the same value?
-		return super.extractFunctionOuterRegister(
-			instruction,
-			functionRegister,
-			outerIndex,
-			targetRegisterWrite,
-			naiveTranslator);
+//		final A_RawFunction code = instruction.constantAt(0);
+		final List<L2ReadPointerOperand> outerRegs =
+			instruction.readVectorRegisterAt(1);
+//		final int newFunctionRegIndex =
+//			instruction.writeObjectRegisterAt(2).finalIndex();
+
+		final L2ReadPointerOperand outerRegister =
+			outerRegs.get(outerIndex - 1);
+		naiveTranslator.moveRegister(outerRegister, targetRegisterWrite);
+		return true;
 	}
 
 	/**

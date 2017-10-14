@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -88,6 +89,17 @@ public class L2ReadIntOperand extends L2Operand
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
 		dispatcher.doOperand(this);
+	}
+
+	/**
+	 * Read the value of this register from the provided {@link Interpreter}.
+	 *
+	 * @param interpreter An Interpreter.
+	 * @return The {@code int} value of this integer register.
+	 */
+	public int in (final Interpreter interpreter)
+	{
+		return interpreter.integerAt(finalIndex());
 	}
 
 	@Override

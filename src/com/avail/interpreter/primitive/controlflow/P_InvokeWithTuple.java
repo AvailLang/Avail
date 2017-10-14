@@ -50,6 +50,7 @@ import com.avail.optimizer.L1NaiveTranslator;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor
@@ -63,9 +64,11 @@ import static com.avail.exceptions.AvailErrorCode
 	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
 import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
+import static java.util.stream.Collectors.toList;
 
 /**
  * <strong>Primitive:</strong> {@linkplain FunctionDescriptor Function}
@@ -142,15 +145,15 @@ extends Primitive
 		final L1NaiveTranslator naiveTranslator)
 	{
 		assert hasFlag(Invokes);
-		assert !hasFlag(Flag.CanInline);
-		assert !hasFlag(Flag.CanFold);
+		assert !hasFlag(CanInline);
+		assert !hasFlag(CanFold);
 
 		final L2ReadPointerOperand functionReg = args.get(0);
 		final L2ReadPointerOperand argsRegister = args.get(1);
 
 		// First see if there's enough type information available about the
 		// tuple of arguments.
-		final A_Type argsTupleType = argsRegister.register.type;
+		final A_Type argsTupleType = argsRegister.restriction().type;
 		final A_Type argsTupleTypeSizes = argsTupleType.sizeRange();
 		if (!argsTupleTypeSizes.lowerBound().isInt()
 			|| !argsTupleTypeSizes.lowerBound().equals(
@@ -162,7 +165,7 @@ extends Primitive
 		final int argsSize = argsTupleTypeSizes.lowerBound().extractInt();
 
 		// Now examine the function type.
-		final A_Type functionType = functionReg.register.type;
+		final A_Type functionType = functionReg.restriction().type;
 		final A_Type functionArgsType = functionType.argsTupleType();
 		final A_Type functionTypeSizes = functionArgsType.sizeRange();
 
@@ -199,11 +202,14 @@ extends Primitive
 		naiveTranslator.addInstruction(
 			L2_EXPLODE_TUPLE.instance,
 			argsRegister,
-			new L2WriteVectorOperand(
-				naiveTranslator.createVector(argsTupleRegisterList)));
+			new L2WriteVectorOperand(argsTupleWriters));
 		// Replace the arguments with the newly allocated registers.
+		final List<L2ReadPointerOperand> argsTupleReaders =
+			argsTupleWriters.stream()
+				.map(L2WritePointerOperand::read)
+				.collect(toList());
 		args.clear();
-		args.addAll(argsTupleRegisterList);
+		args.addAll(argsTupleReaders);
 		return functionReg;
 	}
 

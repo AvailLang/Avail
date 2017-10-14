@@ -34,9 +34,10 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
@@ -53,58 +54,64 @@ interface L2OperandTypeDispatcher
 	 * An integer into the {@linkplain L2Chunk level two chunk}'s literals,
 	 * specifying any {@linkplain AvailObject}.
 	 */
-	void doConstant();
+	void doConstant ();
 
 	/**
 	 * An operand that encodes an unsigned 32-bit integer... as itself.
 	 */
-	void doImmediate();
+	void doImmediate ();
 
 	/**
 	 * An integer encoding a position in the current {@linkplain L2Chunk level
 	 * two chunk}'s instructions.
 	 */
-	void doPC();
+	void doPC ();
 
 	/**
 	 * The {@linkplain Primitive#primitiveNumber primitive number} of a {@link
 	 * Primitive} that can be invoked.
 	 */
-	void doPrimitive();
+	void doPrimitive ();
+
+	/**
+	 * An operand which is a literal {@link A_Bundle} which the resulting {@link
+	 * L2Chunk} should be dependent upon for invalidation.
+	 */
+	void doSelector ();
 
 	/**
 	 * An {@linkplain L2ObjectRegister} to be read.
 	 */
-	void doReadPointer();
+	void doReadPointer ();
 
 	/**
 	 * An {@linkplain L2ObjectRegister} to be written.
 	 */
-	void doWritePointer();
+	void doWritePointer ();
 
 	/**
 	 * An {@linkplain L2IntegerRegister} to be read.
 	 */
-	void doReadInt();
+	void doReadInt ();
 
 	/**
 	 * An {@linkplain L2IntegerRegister} to be written.
 	 */
-	void doWriteInt();
+	void doWriteInt ();
 
 	/**
 	 * A vector of {@linkplain L2ObjectRegister object registers} to be read.
 	 */
-	void doReadVector();
+	void doReadVector ();
 
 	/**
 	 * A vector of {@linkplain L2ObjectRegister object registers} to be written.
 	 */
-	void doWriteVector();
+	void doWriteVector ();
 
 	/**
-	 * A vector of {@linkplain L2ObjectRegister object registers} to be set up
-	 * automatically by the virtual machine.
+	 * An operand containing a constant {@link String} that's only used for
+	 * diagnostics and debugging.
 	 */
-	void doComment();
+	void doComment ();
 }

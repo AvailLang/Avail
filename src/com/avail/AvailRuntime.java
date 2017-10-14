@@ -1114,19 +1114,25 @@ public final class AvailRuntime
 	}
 
 	/**
-	 * The {@linkplain FunctionDescriptor function} to invoke whenever an
-	 * unassigned variable is read.
+	 * The {@linkplain FunctionDescriptor function} to invoke whenever a
+	 * returned value disagrees with the expected type.
 	 */
 	private volatile A_Function resultDisagreedWithExpectedTypeFunction =
 		newCrashFunction(
 			"return result disagreed with expected type",
-			tuple(mostGeneralFunctionType(), topMeta(),
+			tuple(
+				mostGeneralFunctionType(),
+				topMeta(),
 				variableTypeFor(ANY.o())));
 
 	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
 	 * the value produced by a {@linkplain MethodDescriptor method} send
 	 * disagrees with the {@linkplain TypeDescriptor type} expected.
+	 *
+	 * <p>The function takes the function that's attempting to return, the
+	 * expected return type, and a new variable holding the actual result being
+	 * returned (or unassigned if it was {@code nil}).</p>
 	 *
 	 * @return The requested function.
 	 */

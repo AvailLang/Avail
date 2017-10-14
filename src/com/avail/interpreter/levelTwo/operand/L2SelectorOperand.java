@@ -1,5 +1,5 @@
 /**
- * L2Operand.java
+ * L2SelectorOperand.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived set this software
+ *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -32,65 +32,66 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.MethodDefinitionDescriptor;
+import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
-import com.avail.utility.PublicCloneable;
-import com.avail.utility.evaluation.Transformer2;
 
 /**
- * An {@code L2Operand} knows its {@link L2OperandType} and any specific value
- * that needs to be captured for that type of operand.
+ * An {@code L2SelectorOperand} is an operand of type {@link
+ * L2OperandType#SELECTOR}.  It holds the {@linkplain MessageBundleDescriptor
+ * message bundle} that knows the {@linkplain MethodDescriptor method} to
+ * invoke.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class L2Operand extends PublicCloneable<L2Operand>
+public class L2SelectorOperand extends L2Operand
 {
 	/**
-	 * Answer this operand's {@link L2OperandType}.
-	 *
-	 * @return An {@code L2OperandType}.
+	 * The actual {@linkplain MethodDescriptor method}.
 	 */
-	public abstract L2OperandType operandType ();
+	public final A_Bundle bundle;
 
 	/**
-	 * Dispatch this {@code L2Operand} to the provided {@link
-	 * L2OperandDispatcher}.
+	 * Construct a new {@code L2SelectorOperand} with the specified {@linkplain
+	 * MessageBundleDescriptor message bundle}.
 	 *
-	 * @param dispatcher The {@code L2OperandDispatcher} visiting the receiver.
+	 * @param bundle The message bundle that holds the {@linkplain
+	 *               MethodDescriptor method} in which to look up the
+	 *               {@linkplain MethodDefinitionDescriptor method definition}
+	 *               to ultimately invoke.
 	 */
-	public abstract void dispatchOperand (
-		final L2OperandDispatcher dispatcher);
-
-	/**
-	 * Invoke the {@link Transformer2 transformer} with each {@link L2Register}
-	 * contained within me (also passing this L2Operand), producing an
-	 * alternative {@code L2Operand}.  If no transformations were necessary, the
-	 * receiver may be returned.
-	 *
-	 * @param transformer
-	 *            What to do with each register.
-	 * @return
-	 *            The transformed version of the receiver.
-	 */
-	public abstract L2Operand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer);
-
-	/**
-	 * This is an operand of the given instruction, which was just added to the
-	 * given basic block.
-	 *  @param instruction
-	 *        The {@link L2Instruction} that was just added.
-	 *
-	 */
-	public void instructionWasAdded (
-		final L2Instruction instruction)
+	public L2SelectorOperand (
+		final A_Bundle bundle)
 	{
-		// Do nothing by default.
+		this.bundle = bundle;
 	}
 
 	@Override
-	public abstract String toString ();
+	public L2OperandType operandType ()
+	{
+		return L2OperandType.SELECTOR;
+	}
+
+	@Override
+	public void dispatchOperand (final L2OperandDispatcher dispatcher)
+	{
+		dispatcher.doOperand(this);
+	}
+
+	@Override
+	public L2SelectorOperand transformRegisters (
+		final RegisterTransformer<L2OperandType> transformer)
+	{
+		return this;
+	}
+
+	@Override
+	public String toString ()
+	{
+		return String.format("Selector(%s)", bundle.message().atomName());
+	}
 }

@@ -39,7 +39,8 @@ import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -86,8 +87,8 @@ extends L2Operation
 			READ_VECTOR.is("arguments"),
 			WRITE_POINTER.is("primitive result"),
 			WRITE_POINTER.is("primitive failure value"),
-			READWRITE_VECTOR.is("preserved fields"),
-			PC.is("if primitive succeeds"));
+			PC.is("if primitive succeeds"),
+			PC.is("if primitive fails"));
 
 	@Override
 	public void step (
@@ -98,23 +99,23 @@ extends L2Operation
 		final A_Function function = instruction.constantAt(1);
 		final List<L2ReadPointerOperand> argumentsVector =
 			instruction.readVectorRegisterAt(2);
-		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
-		final L2ObjectRegister failureReg =
+		final L2WritePointerOperand resultReg =
+			instruction.writeObjectRegisterAt(3);
+		final L2WritePointerOperand failureReg =
 			instruction.writeObjectRegisterAt(4);
-		final int successOffset = instruction.pcOffsetAt(6);
+		final int successOffset = instruction.pcOffsetAt(5);
+		final int failureOffset = instruction.pcOffsetAt(6);
 
+		assert function.code().primitive() == primitive;
 		interpreter.argsBuffer.clear();
-		for (final L2ObjectRegister register : argumentsVector)
+		for (final L2ReadPointerOperand register : argumentsVector)
 		{
 			interpreter.argsBuffer.add(register.in(interpreter));
 		}
-		assert function.code().primitive() == primitive;
 		final A_Function savedFunction = stripNull(interpreter.function);
 		interpreter.function = function;
 		final Result res = interpreter.attemptPrimitive(
-			primitive,
-			interpreter.argsBuffer,
-			true);
+			primitive, interpreter.argsBuffer, true);
 
 		switch (res)
 		{
@@ -129,6 +130,7 @@ extends L2Operation
 			{
 				interpreter.function = savedFunction;
 				failureReg.set(interpreter.latestResult(), interpreter);
+				interpreter.offset(failureOffset);
 				break;
 			}
 			case READY_TO_INVOKE:
@@ -151,22 +153,25 @@ extends L2Operation
 		final L2Translator translator)
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
+//		final A_Function function = instruction.constantAt(1);
 		final List<L2ReadPointerOperand> argumentsVector =
 			instruction.readVectorRegisterAt(2);
-		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
-		final L2ObjectRegister failureReg =
+		final L2WritePointerOperand resultReg =
+			instruction.writeObjectRegisterAt(3);
+		final L2WritePointerOperand failureReg =
 			instruction.writeObjectRegisterAt(4);
+//		final int successOffset = instruction.pcOffsetAt(5);
+//		final int failureOffset = instruction.pcOffsetAt(6);
 
 		final RegisterSet failRegisterSet = registerSets.get(0);
 		final RegisterSet successRegisterSet = registerSets.get(1);
 
-		final List<A_Type> argTypes =
-			new ArrayList<>(argumentsVector.registers().size());
-		for (final L2ObjectRegister arg : argumentsVector.registers())
+		final List<A_Type> argTypes = new ArrayList<>(argumentsVector.size());
+		for (final L2ReadPointerOperand arg : argumentsVector)
 		{
 			// Use either register set -- they start the same.
-			assert failRegisterSet.hasTypeAt(arg);
-			argTypes.add(failRegisterSet.typeAt(arg));
+			assert failRegisterSet.hasTypeAt(arg.register());
+			argTypes.add(failRegisterSet.typeAt(arg.register()));
 		}
 		// We can at least believe what the primitive itself says it returns.
 		final A_Type guaranteedType =
@@ -174,22 +179,27 @@ extends L2Operation
 
 		// Figure out what the primitive failure values are allowed to be.
 		final A_Type failureType = primitive.failureVariableType();
-		failRegisterSet.removeTypeAt(failureReg);
-		failRegisterSet.removeConstantAt(failureReg);
-		failRegisterSet.typeAtPut(failureReg, failureType, instruction);
+		failRegisterSet.removeTypeAt(failureReg.register());
+		failRegisterSet.removeConstantAt(failureReg.register());
+		failRegisterSet.typeAtPut(
+			failureReg.register(), failureType, instruction);
 
-		successRegisterSet.removeTypeAt(resultReg);
-		successRegisterSet.removeConstantAt(resultReg);
-		successRegisterSet.typeAtPut(resultReg, guaranteedType, instruction);
+		successRegisterSet.removeTypeAt(resultReg.register());
+		successRegisterSet.removeConstantAt(resultReg.register());
+		successRegisterSet.typeAtPut(
+			resultReg.register(), guaranteedType, instruction);
 	}
 
 	@Override
 	public boolean hasSideEffect (final L2Instruction instruction)
 	{
-		// Since it can't fail, we should only have to keep the instruction
-		// around if its result is needed by a kept instruction (not dealt with
-		// here), or if the primitive has a side effect.
+		// It depends on the primitive.
+		assert instruction.operation == this;
 		final Primitive primitive = instruction.primitiveAt(0);
-		return primitive.hasFlag(Flag.HasSideEffect);
+		return primitive.hasFlag(Flag.HasSideEffect)
+			|| primitive.hasFlag(Flag.CatchException)
+			|| primitive.hasFlag(Flag.Invokes)
+			|| primitive.hasFlag(Flag.SwitchesContinuation)
+			|| primitive.hasFlag(Flag.Unknown);
 	}
 }

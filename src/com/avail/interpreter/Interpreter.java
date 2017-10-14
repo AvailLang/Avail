@@ -694,10 +694,11 @@ public final class Interpreter
 	private @Nullable AvailObject latestResult;
 
 	/**
-	 * A field that captures which {@link A_RawFunction} is returning.  This is
-	 * only used for statistics collection.
+	 * A field that captures which {@link A_Function} is returning.  This is
+	 * used for statistics collection and reporting errors when returning a
+	 * value that disagrees with semantic restrictions.
 	 */
-	public @Nullable A_RawFunction returningRawFunction;
+	public @Nullable A_Function returningFunction;
 
 	/**
 	 * Set the latest result due to a {@linkplain Result#SUCCESS successful}
@@ -908,13 +909,13 @@ public final class Interpreter
 	 * A_Continuation} will be available in {@link #reifiedContinuation}, and
 	 * will be installed into the current fiber.
 	 *
-	 * @param suspendingRawFunction
-	 *        The primitive {@link A_RawFunction} causing the fiber suspension.
+	 * @param suspendingFunction
+	 *        The primitive {@link A_Function} causing the fiber suspension.
 	 * @return {@link Result#FIBER_SUSPENDED}, for convenience.
 	 */
-	public Result primitiveSuspend (final A_RawFunction suspendingRawFunction)
+	public Result primitiveSuspend (final A_Function suspendingFunction)
 	{
-		fiber.suspendingRawFunction(suspendingRawFunction);
+		fiber().suspendingFunction(suspendingFunction);
 		return primitiveSuspend(SUSPENDED);
 	}
 
@@ -990,7 +991,7 @@ public final class Interpreter
 							currentRuntime(),
 							joiner,
 							nil,
-							joiner.suspendingRawFunction(),
+							joiner.suspendingFunction(),
 							true);
 					}
 				});
@@ -1629,75 +1630,6 @@ public final class Interpreter
 	}
 
 	/**
-	 * Prepare the interpreter to deal with executing the given function, using
-	 * the given arguments. <em>Do not</em> set up the new function's locals.
-	 * In the case of Level One code simulated in Level Two, a preamble level
-	 * two instruction will set them up. In the case of Level Two, the code to
-	 * initialize them is a sequence of variable creation instructions that can
-	 * be interleaved, hoisted or even elided, just like any other instructions.
-	 *
-	 * <p>Assume the current {@linkplain ContinuationDescriptor continuation}
-	 * has already been reified. If the function is a primitive, then it was
-	 * already attempted and must have failed, so the failure value must be in
-	 * {@link #latestResult}. Move it somewhere more appropriate for the
-	 * specialization of {@code Interpreter}, but not into the primitive
-	 * failure variable (since that local has not been created yet).</p>
-	 *
-	 * @param aFunction
-	 *            The function to invoke.
-	 * @param args
-	 *            The arguments to pass to the function.
-	 * @param caller
-	 *            The calling continuation.
-	 * @param skipReturnCheck
-	 *            Whether this invocation can skip checking its return result
-	 *            upon eventual completion.
-	 */
-	@Deprecated
-	public void invokeWithoutPrimitiveFunctionArguments (
-		final A_Function aFunction,
-		final List<? extends A_BasicObject> args,
-		final A_BasicObject caller,
-		final boolean skipReturnCheck)
-	{
-		//TODO MvG - Remove when not referenced.
-		throw new UnsupportedOperationException("Operation no longer makes sense");
-//		final A_RawFunction code = aFunction.code();
-//		assert code.primitiveNumber() == 0
-//			|| pointers[PRIMITIVE_FAILURE.ordinal()] != null;
-//		code.tallyInvocation();
-//		L2Chunk chunkToInvoke = code.startingChunk();
-//		if (!chunkToInvoke.isValid())
-//		{
-//			// The chunk is invalid, so use the default chunk and patch up
-//			// aFunction's code.
-//			chunkToInvoke = L2Chunk.unoptimizedChunk();
-//			code.setStartingChunkAndReoptimizationCountdown(
-//				chunkToInvoke,
-//				L2Chunk.countdownForInvalidatedCode());
-//		}
-//		wipeObjectRegisters();
-//		setChunk(chunkToInvoke, code, 0);
-//
-//		pointerAtPut(CALLER, caller);
-//		pointerAtPut(FUNCTION, aFunction);
-//		// Transfer arguments...
-//		final int numArgs = code.numArgs();
-//		int dest = argumentOrLocalRegister(1);
-//		for (int i = 1; i <= numArgs; i++)
-//		{
-//			pointerAtPut(dest, args.get(i - 1));
-//			dest++;
-//		}
-//		// Store skipReturnCheck into its *architectural* register.  It will be
-//		// retrieved from there by the L2 code, whether it's the default
-//		// unoptimized chunk or an optimized chunk.
-//		integerAtPut(
-//			L1InstructionStepper.skipReturnCheckRegister(),
-//			skipReturnCheck ? 1 : 0);
-	}
-
-	/**
 	 * Run the interpreter until it completes the fiber, is suspended, or is
 	 * interrupted, perhaps by exceeding its time-slice.
 	 */
@@ -1711,9 +1643,9 @@ public final class Interpreter
 				// Run the chunk to completion (dealing with reification).
 				// The chunk will do its own invalidation checks and off-ramp
 				// to L1 if needed.
-				final A_RawFunction calledCode = function.code();
+				final A_Function calledFunction = stripNull(function);
 				chunk.run(this);
-				returningRawFunction = calledCode;
+				returningFunction = calledFunction;
 			}
 			catch (final ReifyStackThrowable reifier)
 			{
@@ -2108,7 +2040,7 @@ public final class Interpreter
 		final AvailRuntime runtime,
 		final A_Fiber aFiber,
 		final A_BasicObject result,
-		final A_RawFunction returner,
+		final A_Function returner,
 		final boolean skipReturnCheck)
 	{
 		assert !aFiber.continuation().equalsNil();
@@ -2125,7 +2057,7 @@ public final class Interpreter
 				interpreter.reifiedContinuation = continuation;
 				interpreter.returnNow = false;
 				interpreter.latestResult(result);
-				interpreter.returningRawFunction = returner;
+				interpreter.returningFunction = returner;
 				if (continuation.equalsNil())
 				{
 					// Return from outer function, which was the (successful)
@@ -2186,16 +2118,21 @@ public final class Interpreter
 			aFiber,
 			interpreter ->
 			{
-				interpreter.pointerAtPut(
-					PRIMITIVE_FAILURE,
-					failureValue);
-				interpreter.invokeWithoutPrimitiveFunctionArguments(
-					failureFunction,
-					args,
-					aFiber.continuation(),
-					skipReturnCheck);
+				final A_RawFunction code = failureFunction.code();
+				final @Nullable Primitive prim = code.primitive();
+				assert prim != null && !prim.hasFlag(Flag.CannotFail);
+				assert args.size() == code.numArgs();
 				aFiber.continuation(nil);
+				interpreter.function = failureFunction;
+				interpreter.argsBuffer.clear();
+				interpreter.argsBuffer.addAll(args);
+				interpreter.latestResult(failureValue);
+				interpreter.skipReturnCheck = skipReturnCheck;
+				final L2Chunk chunk = code.startingChunk();
+				interpreter.chunk = chunk;
+				interpreter.offset = chunk.offsetAfterInitialTryPrimitive();
 				interpreter.exitNow = false;
+				interpreter.returnNow = false;
 			});
 	}
 
@@ -2203,7 +2140,7 @@ public final class Interpreter
 	 * Check that the result is an instance of the expected type.  If it is,
 	 * return.  If not, invoke the resultDisagreedWithExpectedTypeFunction.
 	 * Also accumulate statistics related to the return type check.  The {@link
-	 * Interpreter#returningRawFunction} must have been set by the client.
+	 * Interpreter#returningFunction} must have been set by the client.
 	 *
 	 * @param result
 	 *        The value that was just returned.
@@ -2222,8 +2159,8 @@ public final class Interpreter
 		final long before = AvailRuntime.captureNanos();
 		final boolean checkOk = result.isInstanceOf(expectedReturnType);
 		final long after = AvailRuntime.captureNanos();
-		final A_RawFunction returner = stripNull(returningRawFunction);
-		final @Nullable Primitive calledPrimitive = returner.primitive();
+		final A_Function returner = stripNull(returningFunction);
+		final @Nullable Primitive calledPrimitive = returner.code().primitive();
 		if (calledPrimitive != null)
 		{
 			calledPrimitive.addNanosecondsCheckingResultType(
@@ -2232,7 +2169,7 @@ public final class Interpreter
 		else
 		{
 			recordCheckedReturnFromTo(
-				returner, returnee.code(), after - before);
+				returner.code(), returnee.code(), after - before);
 		}
 		if (!checkOk)
 		{
@@ -2279,7 +2216,7 @@ public final class Interpreter
 		final A_BasicObject value,
 		final Continuation1NotNull<String> continuation)
 	{
-		final A_Function stringifierFunction =
+		final @Nullable A_Function stringifierFunction =
 			runtime.stringificationFunction();
 		// If the stringifier function is not defined, then use the basic
 		// mechanism for stringification.

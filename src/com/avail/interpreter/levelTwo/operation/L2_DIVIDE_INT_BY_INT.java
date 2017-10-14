@@ -35,7 +35,8 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -58,28 +59,31 @@ public class L2_DIVIDE_INT_BY_INT extends L2Operation
 			READ_INT.is("divisor"),
 			WRITE_INT.is("quotient"),
 			WRITE_INT.is("remainder"),
-			PC.is("if out of range"),
-			PC.is("if zero divisor"));
+			PC.is("out of range"),
+			PC.is("zero divisor"),
+			PC.is("success"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2IntegerRegister dividendReg = instruction.readIntRegisterAt(0);
-		final L2IntegerRegister divisorReg = instruction.readIntRegisterAt(1);
-		final L2IntegerRegister quotientReg = instruction.writeIntRegisterAt(2);
-		final L2IntegerRegister remainderReg = instruction.writeIntRegisterAt(3);
+		final L2ReadIntOperand dividendReg = instruction.readIntRegisterAt(0);
+		final L2ReadIntOperand divisorReg = instruction.readIntRegisterAt(1);
+		final L2WriteIntOperand quotientReg = instruction.writeIntRegisterAt(2);
+		final L2WriteIntOperand remainderReg =
+			instruction.writeIntRegisterAt(3);
 		final int outOfRangeIndex = instruction.pcOffsetAt(4);
 		final int zeroDivisorIndex = instruction.pcOffsetAt(5);
+		final int successIndex = instruction.pcOffsetAt(6);
 
-		final long dividend = dividendReg.in(interpreter);
 		final long divisor = divisorReg.in(interpreter);
 		if (divisor == 0)
 		{
 			interpreter.offset(zeroDivisorIndex);
 			return;
 		}
+		final long dividend = dividendReg.in(interpreter);
 		final long quotient;
 		if (divisor < 0)
 		{
@@ -101,6 +105,7 @@ public class L2_DIVIDE_INT_BY_INT extends L2Operation
 		{
 			quotientReg.set((int)quotient, interpreter);
 			remainderReg.set((int)remainder, interpreter);
+			interpreter.offset(successIndex);
 		}
 		else
 		{

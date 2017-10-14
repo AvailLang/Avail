@@ -35,10 +35,11 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READWRITE_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
 
 /**
@@ -53,25 +54,27 @@ public class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_MULTIPLY_INT_BY_INT_MOD_32_BITS().init(
+		new L2_MULTIPLY_INT_BY_INT().init(
 			READ_INT.is("multiplier"),
-			READWRITE_INT.is("multiplicand"));
+			READ_INT.is("multiplicand"),
+			WRITE_INT.is("product"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2IntegerRegister multiplierReg =
+		final L2ReadIntOperand multiplierReg =
 			instruction.readIntRegisterAt(0);
-		final L2IntegerRegister multiplicandReg =
-			instruction.readWriteIntRegisterAt(1);
+		final L2ReadIntOperand multiplicandReg =
+			instruction.readIntRegisterAt(1);
+		final L2WriteIntOperand productReg =
+			instruction.writeIntRegisterAt(2);
 
 		final int multiplier = multiplierReg.in(interpreter);
 		final int multiplicand = multiplicandReg.in(interpreter);
 		final long longResult = (long)multiplier * (long)multiplicand;
-		final int intResult = (int)longResult;
-		multiplicandReg.set(intResult, interpreter);
+		productReg.set((int)longResult, interpreter);
 	}
 
 	@Override

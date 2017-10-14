@@ -35,7 +35,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -83,31 +84,33 @@ public class L2_MOVE extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister sourceReg = instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister destinationReg =
+		final L2ReadPointerOperand sourceReg =
+			instruction.readObjectRegisterAt(0);
+		final L2WritePointerOperand destinationReg =
 			instruction.writeObjectRegisterAt(1);
 
-		assert sourceReg != destinationReg;
-		registerSet.removeConstantAt(destinationReg);
-		if (registerSet.hasTypeAt(sourceReg))
+		assert sourceReg.register() != destinationReg.register();
+		registerSet.removeConstantAt(destinationReg.register());
+		if (registerSet.hasTypeAt(sourceReg.register()))
 		{
 			registerSet.typeAtPut(
-				destinationReg,
-				registerSet.typeAt(sourceReg),
+				destinationReg.register(),
+				registerSet.typeAt(sourceReg.register()),
 				instruction);
 		}
 		else
 		{
-			registerSet.removeTypeAt(destinationReg);
+			registerSet.removeTypeAt(destinationReg.register());
 		}
 
-		if (registerSet.hasConstantAt(sourceReg))
+		if (registerSet.hasConstantAt(sourceReg.register()))
 		{
 			registerSet.constantAtPut(
-				destinationReg,
-				registerSet.constantAt(sourceReg),
+				destinationReg.register(),
+				registerSet.constantAt(sourceReg.register()),
 				instruction);
 		}
-		registerSet.propagateMove(sourceReg, destinationReg, instruction);
+		registerSet.propagateMove(
+			sourceReg.register(), destinationReg.register(), instruction);
 	}
 }

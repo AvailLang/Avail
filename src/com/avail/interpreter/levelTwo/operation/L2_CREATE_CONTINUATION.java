@@ -34,24 +34,17 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
 import static com.avail.descriptor.ContinuationDescriptor
 	.createContinuationExceptFrame;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -130,38 +123,20 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 		};
 	}
 
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Translator translator)
+	/**
+	 * Extract the {@link List} of slot registers ({@link
+	 * L2ReadPointerOperand}s) that fed the given {@link L2Instruction} whose
+	 * {@link L2Operation} is an {@code L2_CREATE_CONTINUATION}.
+	 *
+	 * @param instruction
+	 *        The create-continuation instruction.
+	 * @return The slots that were provided to the instruction for populating an
+	 *         {@link ContinuationDescriptor continuation}.
+	 */
+	public static List<L2ReadPointerOperand> slotRegistersFor (
+		final L2Instruction instruction)
 	{
-		final L2ReadPointerOperand callerReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ReadPointerOperand functionReg =
-			instruction.readObjectRegisterAt(1);
-		final int levelOnePC = instruction.immediateAt(2);
-		final int levelOneStackp = instruction.immediateAt(3);
-		final L2ReadIntOperand skipReturnReg =
-			instruction.readIntRegisterAt(4);
-		final List<L2ReadPointerOperand> slots =
-			instruction.readVectorRegisterAt(5);
-		final L2WritePointerOperand destReg =
-			instruction.writeObjectRegisterAt(6);
-		final L2PcOperand onRampOffset = instruction.pcAt(7);
-		final L2PcOperand fallThroughOffset = instruction.pcAt(8);
-
-		// Propagate information differently to the code just after creating the
-		// continuation and the code after the continuation resumes.
-		final RegisterSet forOnRamp = registerSets.get(0);
-		final RegisterSet afterCreation = registerSets.get(1);
-		final A_Type functionType = functionReg.type();
-		assert functionType.isSubtypeOf(mostGeneralFunctionType());
-//		afterCreation.removeConstantAt(destReg);
-//		afterCreation.typeAtPut(
-//			destReg,
-//			continuationTypeForFunctionType(functionType),
-//			instruction);
-		forOnRamp.clearEverythingFor(instruction);
+		assert instruction.operation instanceof L2_CREATE_CONTINUATION;
+		return instruction.readVectorRegisterAt(5);
 	}
 }

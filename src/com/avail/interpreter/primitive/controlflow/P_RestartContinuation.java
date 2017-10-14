@@ -43,7 +43,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2BasicBlock;
 
@@ -103,7 +102,7 @@ public final class P_RestartContinuation extends Primitive
 		final L1NaiveTranslator translator,
 		final A_Function primitiveFunction,
 		final L2ReadVectorOperand args,
-		final L2WritePointerOperand resultWrite,
+		final int resultSlotIndex,
 		final L2ReadVectorOperand preserved,
 		final A_Type expectedType,
 		final L2WritePointerOperand failureValueWrite,

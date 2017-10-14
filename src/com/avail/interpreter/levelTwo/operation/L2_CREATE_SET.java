@@ -36,7 +36,11 @@ import com.avail.descriptor.A_Set;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+
+import java.util.List;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
@@ -62,13 +66,13 @@ public class L2_CREATE_SET extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final List<L2ReadPointerOperand> elementsVector =
+		final List<L2ReadPointerOperand> registers =
 			instruction.readVectorRegisterAt(0);
-		final L2ObjectRegister destinationSetReg =
+		final L2WritePointerOperand destinationSetReg =
 			instruction.writeObjectRegisterAt(1);
 
 		A_Set set = emptySet();
-		for (final L2ObjectRegister reg : elementsVector.registers())
+		for (final L2ReadPointerOperand reg : registers)
 		{
 			set = set.setWithElementCanDestroy(reg.in(interpreter), true);
 		}

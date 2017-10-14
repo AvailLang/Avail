@@ -1,5 +1,5 @@
 /**
- * L2_JUMP_IF_OBJECTS_NOT_EQUAL.java
+ * PublicCloneable.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived set this software
+ *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -30,51 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+package com.avail.utility;
 
 /**
- * Jump to the target if the first value is not equal to the second value.
+ * Subclasses get a public {@link #clone()} method without a silly catch of an
+ * impossible exception.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_JUMP_IF_OBJECTS_NOT_EQUAL extends L2Operation
+public class PublicCloneable <X extends PublicCloneable<X>>
+	implements Cloneable
 {
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2Operation instance =
-		new L2_JUMP_IF_OBJECTS_NOT_EQUAL().init(
-			PC.is("target"),
-			READ_POINTER.is("first value"),
-			READ_POINTER.is("second value"));
-
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public X clone ()
 	{
-		final int target = instruction.pcOffsetAt(0);
-		final L2ObjectRegister firstReg = instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister secondReg = instruction.readObjectRegisterAt(2);
-
-		if (!firstReg.in(interpreter).equals(secondReg.in(interpreter)))
+		try
 		{
-			interpreter.offset(target);
+			@SuppressWarnings("unchecked")
+			final X cast = (X) super.clone();
+			return cast;
 		}
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It jumps, which counts as a side effect.
-		return true;
+		catch (final CloneNotSupportedException e)
+		{
+			throw new RuntimeException(
+				"Superclass should not throw this", e);
+		}
 	}
 }

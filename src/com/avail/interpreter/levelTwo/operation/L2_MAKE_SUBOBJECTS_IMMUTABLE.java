@@ -35,6 +35,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -61,7 +62,8 @@ public class L2_MAKE_SUBOBJECTS_IMMUTABLE extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(0);
+		final L2ReadPointerOperand objectReg =
+			instruction.readObjectRegisterAt(0);
 		objectReg.in(interpreter).makeSubobjectsImmutable();
 	}
 

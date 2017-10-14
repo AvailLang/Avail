@@ -32,17 +32,15 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2BasicBlock;
@@ -54,12 +52,12 @@ import com.avail.performance.StatisticReport;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.stream.Collectors.toList;
 
 /**
  * The instruction set for the {@linkplain Interpreter level two Avail
@@ -298,7 +296,7 @@ public abstract class L2Operation
 	 * L2Operation#reachesNextInstruction()}), and represents the state in the
 	 * case that the instruction runs normally and advances to the next one
 	 * sequentially.  The remainder correspond to the {@link
-	 * L2Instruction#targetBlocks()}.
+	 * L2Instruction#targetEdges()} ()}.
 	 *
 	 * @param instruction
 	 *            The L2Instruction containing this L2Operation.
@@ -502,7 +500,8 @@ public abstract class L2Operation
 	 *         instruction will write its result, or null if the instruction
 	 *         isn't an attempt to run a primitive.
 	 */
-	public @Nullable L2ObjectRegister primitiveResultRegister (
+	public @Nullable
+	L2WritePointerOperand primitiveResultRegister (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == this;
@@ -530,26 +529,22 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * Extract the target {@link L2BasicBlock}s from an instruction that uses
-	 * this operation.
+	 * Extract the operands which are {@link L2PcOperand}s.  These are what lead
+	 * to other {@link L2BasicBlock}s.  They also carry an edge-specific array
+	 * of slots, and edge-specific {@link TypeRestriction}s for registers.
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} to examine.
-	 * @return The {@link List} of target {@link L2BasicBlock}s that are
-	 *         reachable from the given instruction.  These may be reachable
-	 *         directly via a control flow change, or reachable only from some
-	 *         other mechanism like continuation reification or later resumption
-	 *         of a continuation.
+	 * @return The {@link List} of target {@link L2PcOperand}s that are operands
+	 *         of the given instruction.  These may be reachable directly via a
+	 *         control flow change, or reachable only from some other mechanism
+	 *         like continuation reification and later resumption of a
+	 *         continuation.
 	 */
-	public List<L2BasicBlock> targetBlocks (final L2Instruction instruction)
+	public List<L2PcOperand> targetEdges (final L2Instruction instruction)
 	{
-		final List<L2BasicBlock> labels =
-			new ArrayList<>(labelOperandIndices.length);
-		for (final int index : labelOperandIndices)
-		{
-			final L2PcOperand operand = instruction.pcAt(index);
-			labels.add(operand.targetBlock());
-		}
-		return labels;
+		return Arrays.stream(labelOperandIndices)
+			.mapToObj(instruction::pcAt)
+			.collect(toList());
 	}
 }

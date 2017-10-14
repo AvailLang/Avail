@@ -39,8 +39,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -74,11 +74,11 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister functionReg =
+		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(0);
 		final int paramIndex = instruction.immediateAt(1);
-		final L2ObjectRegister outputParamTypeReg =
-			instruction.readObjectRegisterAt(2);
+		final L2WritePointerOperand outputParamTypeReg =
+			instruction.writeObjectRegisterAt(2);
 
 		final A_Function function = functionReg.in(interpreter);
 		final A_Type paramType =
@@ -93,28 +93,28 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister functionReg =
+		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(0);
 		final int paramIndex = instruction.immediateAt(1);
-		final L2ObjectRegister outputParamTypeReg =
+		final L2WritePointerOperand outputParamTypeReg =
 			instruction.writeObjectRegisterAt(2);
 
 		// Function types are contravariant, so we may have to fall back on
 		// just saying the parameter type must be a type and can't be top –
 		// i.e., any's type.
-		if (registerSet.hasConstantAt(functionReg))
+		if (registerSet.hasConstantAt(functionReg.register()))
 		{
 			// Exact function is known.
-			final A_Function function = registerSet.constantAt(functionReg);
+			final A_Function function = registerSet.constantAt(functionReg.register());
 			final A_Type functionType = function.code().functionType();
 			registerSet.constantAtPut(
-				outputParamTypeReg,
+				outputParamTypeReg.register(),
 				functionType.argsTupleType().typeAtIndex(paramIndex),
 				instruction);
 			return;
 		}
 		final List<L2Instruction> sources =
-			registerSet.stateForReading(functionReg).sourceInstructions();
+			registerSet.stateForReading(functionReg.register()).sourceInstructions();
 		if (sources.size() == 1)
 		{
 			final L2Instruction source = sources.get(0);
@@ -123,7 +123,7 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 				final A_RawFunction code = sources.get(0).constantAt(0);
 				final A_Type functionType = code.functionType();
 				registerSet.constantAtPut(
-					outputParamTypeReg,
+					outputParamTypeReg.register(),
 					functionType.argsTupleType().typeAtIndex(paramIndex),
 					instruction);
 				return;
@@ -132,7 +132,7 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 		// We don't know the exact type of the block argument, so since it's
 		// contravariant we can only assume it's some non-top type.
 		registerSet.typeAtPut(
-			outputParamTypeReg, anyMeta(), instruction);
+			outputParamTypeReg.register(), anyMeta(), instruction);
 	}
 
 	@Override
@@ -141,23 +141,23 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 		final RegisterSet registerSet,
 		final L1NaiveTranslator naiveTranslator)
 	{
-		final L2ObjectRegister functionReg =
+		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(0);
 		final int paramIndex = instruction.immediateAt(1);
-		final L2ObjectRegister outputParamTypeReg =
+		final L2WritePointerOperand outputParamTypeReg =
 			instruction.writeObjectRegisterAt(2);
 
 		@Nullable A_Type functionType = null;
-		if (registerSet.hasConstantAt(functionReg))
+		if (registerSet.hasConstantAt(functionReg.register()))
 		{
 			final A_Function constantFunction =
-				registerSet.constantAt(functionReg);
+				registerSet.constantAt(functionReg.register());
 			functionType = constantFunction.code().functionType();
 		}
 		else
 		{
 			final RegisterState state =
-				registerSet.stateForReading(functionReg);
+				registerSet.stateForReading(functionReg.register());
 			final List<L2Instruction> sources = state.sourceInstructions();
 			if (sources.size() == 1)
 			{
@@ -182,7 +182,7 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 			naiveTranslator.addInstruction(
 				L2_MOVE_CONSTANT.instance,
 				new L2ConstantOperand(paramType),
-				new L2WritePointerOperand(outputParamTypeReg));
+				outputParamTypeReg);
 			return true;
 		}
 		return super.regenerate(instruction, registerSet, naiveTranslator);

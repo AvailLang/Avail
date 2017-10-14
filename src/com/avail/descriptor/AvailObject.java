@@ -7365,16 +7365,16 @@ implements
 	}
 
 	@Override
-	public void suspendingRawFunction (
-		final A_RawFunction suspendingRawFunction)
+	public void suspendingFunction (
+		final A_Function suspendingFunction)
 	{
-		descriptor.o_SuspendingRawFunction(this, suspendingRawFunction);
+		descriptor.o_SuspendingFunction(this, suspendingFunction);
 	}
 
 	@Override
-	public A_RawFunction suspendingRawFunction ()
+	public A_Function suspendingFunction ()
 	{
-		return descriptor.o_SuspendingRawFunction(this);
+		return descriptor.o_SuspendingFunction(this);
 	}
 
 	@Override

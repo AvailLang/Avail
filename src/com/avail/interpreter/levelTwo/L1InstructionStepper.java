@@ -609,7 +609,7 @@ public final class L1InstructionStepper
 		interpreter.latestResult(pop());
 		assert stackp == interpreter.pointers.length;
 		interpreter.returnNow = true;
-		interpreter.returningRawFunction = code;
+		interpreter.returningFunction = code;
 		if (debugL1)
 		{
 			System.out.println("L1 return");

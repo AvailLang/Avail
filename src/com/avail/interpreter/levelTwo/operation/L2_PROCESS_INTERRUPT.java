@@ -35,6 +35,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -44,7 +45,11 @@ import java.util.List;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 
 /**
- * Handle an interrupt that has been requested.
+ * Handle an interrupt that has been requested.  The reified continuation is
+ * provided as an operand.  The continuation should be in a state that's ready
+ * to continue executing after the interrupt (expecting this continuation to be
+ * the top reified frame, which will typically be exploded back into registers
+ * as a first step).
  */
 public class L2_PROCESS_INTERRUPT
 extends L2Operation
@@ -61,7 +66,7 @@ extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister continuationReg =
+		final L2ReadPointerOperand continuationReg =
 			instruction.readObjectRegisterAt(0);
 
 		final AvailObject continuation = continuationReg.in(interpreter);

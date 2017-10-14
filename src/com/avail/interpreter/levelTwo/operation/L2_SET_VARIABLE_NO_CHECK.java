@@ -40,7 +40,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -109,11 +108,11 @@ extends L2Operation
 
 		// The two register sets are clones, so only cross-check one of them.
 		final RegisterSet registerSet = registerSets.get(0);
-		assert registerSet.hasTypeAt(variableReg);
-		final A_Type varType = registerSet.typeAt(variableReg);
+		assert registerSet.hasTypeAt(variableReg.register());
+		final A_Type varType = registerSet.typeAt(variableReg.register());
 		assert varType.isSubtypeOf(mostGeneralVariableType());
-		assert registerSet.hasTypeAt(valueReg);
-		final A_Type valueType = registerSet.typeAt(valueReg);
+		assert registerSet.hasTypeAt(valueReg.register());
+		final A_Type valueType = registerSet.typeAt(valueReg.register());
 		assert valueType.isSubtypeOf(varType.writeType());
 	}
 

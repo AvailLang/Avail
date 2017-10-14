@@ -35,10 +35,11 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READWRITE_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
 /**
  * Subtract the subtrahend from the minuend, converting the result to a signed
@@ -52,23 +53,22 @@ public class L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_SUBTRACT_INT_FROM_INT_MOD_32_BITS().init(
+		new L2_ADD_INT_TO_INT_MOD_32_BITS().init(
 			READ_INT.is("subtrahend"),
-			READWRITE_INT.is("minuend"));
+			READ_INT.is("minuend"),
+			WRITE_INT.is("difference"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2IntegerRegister subtrahendReg =
-			instruction.readIntRegisterAt(0);
-		final L2IntegerRegister minuendReg =
-			instruction.readWriteIntRegisterAt(1);
+		final L2ReadIntOperand subtrahendReg = instruction.readIntRegisterAt(0);
+		final L2ReadIntOperand minuendReg = instruction.readIntRegisterAt(1);
+		final L2WriteIntOperand differenceReg = instruction.writeIntRegisterAt(2);
 
 		final int subtrahend = subtrahendReg.in(interpreter);
 		final int minuend = minuendReg.in(interpreter);
-		final int intResult = minuend - subtrahend;
-		minuendReg.set(intResult, interpreter);
+		differenceReg.set(subtrahend - minuend, interpreter);
 	}
 }

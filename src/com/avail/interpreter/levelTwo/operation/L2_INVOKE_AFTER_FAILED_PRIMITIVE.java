@@ -31,40 +31,33 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.FixedRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.ReifyStackThrowable;
 
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.CALLER;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.PRIMITIVE_FAILURE;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
- * Invoke the specified <em>primitive</em> function with the supplied
- * arguments, ignoring the primitive designation.  The calling continuation
- * is provided, which allows this operation to act more like a non-local
- * jump than a call.  The continuation has the arguments popped already,
- * with the expected return type pushed instead.
+ * Invoke the specified <em>primitive</em> function with the supplied arguments,
+ * ignoring the primitive designation.  The failure value is passed, along with
+ * the operands that {@link L2_INVOKE} requires.
  *
- * <p>
- * The function must be a primitive which has already failed at this point,
- * so set up the failure code of the function without trying the primitive.
- * The failure value from the failed primitive attempt is provided and will
- * be saved in the architectural {@link FixedRegister#PRIMITIVE_FAILURE}
- * register for use by subsequent L1 or L2 code.
- * </p>
+ * <p>A separate {@link L2Chunk} entry point, {@link
+ * L2Chunk#offsetAfterInitialTryPrimitive}, is provided for invoking failed
+ * primitives without re-attempting the primitive itself.  The {@link
+ * Interpreter#latestResult()} must be set up with the failure value before
+ * invoking this entry point.</p>
  */
 public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 {
@@ -73,48 +66,95 @@ public class L2_INVOKE_AFTER_FAILED_PRIMITIVE extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_INVOKE_AFTER_FAILED_PRIMITIVE().init(
-			READ_POINTER.is("continuation"),
-			READ_POINTER.is("function"),
+			READ_POINTER.is("called function"),
 			READ_VECTOR.is("arguments"),
+			IMMEDIATE.is("skip return check"),
 			READ_POINTER.is("primitive failure value"),
-			IMMEDIATE.is("skip return check"));
+			PC.is("on return"),
+			PC.is("on reification"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
-		// The continuation is required to have already been reified.
-		final L2ObjectRegister continuationReg =
-			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister functionReg =
-			instruction.readObjectRegisterAt(1);
-		final List<L2ReadPointerOperand> argumentsReg =
-			instruction.readVectorRegisterAt(2);
-		final L2ObjectRegister failureValueReg =
-			instruction.readObjectRegisterAt(3);
-		final boolean skipReturnCheck = instruction.immediateAt(4) != 0;
+		final int functionRegNumber =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final List<L2ReadPointerOperand> argumentRegs =
+			instruction.readVectorRegisterAt(1);
+		final boolean skipReturnCheck = instruction.immediateAt(2) != 0;
+		final int failureValueIndex =
+			instruction.readObjectRegisterAt(3).finalIndex();
+		final int onNormalReturn = instruction.pcOffsetAt(4);
+		final int onReification = instruction.pcOffsetAt(5);
 
-		final A_Continuation caller = continuationReg.in(interpreter);
-		final A_Function function = functionReg.in(interpreter);
-		final AvailObject failureValue = failureValueReg.in(interpreter);
-		interpreter.argsBuffer.clear();
-		for (final L2ObjectRegister argumentReg : argumentsReg.registers())
+		// Pre-decode the argument registers as much as possible.
+		final int[] argumentRegNumbers = argumentRegs.stream()
+			.mapToInt(L2ReadPointerOperand::finalIndex)
+			.toArray();
+
+		return interpreter ->
 		{
-			interpreter.argsBuffer.add(argumentReg.in(interpreter));
-		}
-		final A_RawFunction codeToCall = function.code();
-		final Primitive prim = codeToCall.primitive();
-		assert prim != null && !prim.hasFlag(Flag.CannotFail);
-		// Put the primitive failure value somewhere that both L1 and L2
-		// will find it.
-		interpreter.pointerAtPut(PRIMITIVE_FAILURE, failureValue);
-		interpreter.clearPointerAt(CALLER.ordinal());  // safety
-		interpreter.invokeWithoutPrimitiveFunctionArguments(
-			function,
-			interpreter.argsBuffer,
-			caller,
-			skipReturnCheck);
+			final A_Function function =
+				interpreter.pointerAt(functionRegNumber);
+			interpreter.argsBuffer.clear();
+			for (final int argumentRegNumber : argumentRegNumbers)
+			{
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(argumentRegNumber));
+			}
+			interpreter.skipReturnCheck = skipReturnCheck;
+
+			final L2Chunk chunk = stripNull(interpreter.chunk);
+			final int offset = interpreter.offset;
+			final AvailObject[] savedPointers = interpreter.pointers;
+			final int[] savedInts = interpreter.integers;
+			assert chunk.executableInstructions[offset - 1] == instruction;
+
+			// Stash the primitive failure value where L1 and L2 can both find
+			// it.
+			interpreter.latestResult(interpreter.pointerAt(failureValueIndex));
+			interpreter.chunk = function.code().startingChunk();
+			// Use this entry point to capture the failure value and skip the
+			// primitive.
+			interpreter.offset =
+				interpreter.chunk.offsetAfterInitialTryPrimitive();
+			try
+			{
+				interpreter.chunk.run(interpreter);
+			}
+			catch (final ReifyStackThrowable reifier)
+			{
+				if (reifier.actuallyReify())
+				{
+					// We were somewhere inside the callee and received a
+					// reification throwable.  Run the steps at the reification
+					// off-ramp to produce this continuation, ending at an
+					// L2_Return.  None of the intervening instructions may
+					// cause reification or Avail function invocation.  The
+					// resulting continuation is "returned" by the L2_Return
+					// instruction.  That continuation should know how to be
+					// reentered when the callee returns.
+					interpreter.chunk = chunk;
+					interpreter.offset = onReification;
+					interpreter.pointers = savedPointers;
+					interpreter.integers = savedInts;
+					try
+					{
+						chunk.run(interpreter);
+					}
+					catch (final ReifyStackThrowable innerReifier)
+					{
+						assert false : "Off-ramp must not cause reification!";
+					}
+					// The off-ramp "returned" the callerless continuation that
+					// captures this frame.
+					reifier.pushContinuation(interpreter.latestResult());
+				}
+				throw reifier;
+			}
+			// We just returned normally.
+			interpreter.offset = onNormalReturn;
+		};
 	}
 
 	@Override

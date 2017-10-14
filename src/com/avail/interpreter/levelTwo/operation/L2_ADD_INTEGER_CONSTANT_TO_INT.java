@@ -35,10 +35,11 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Extract an int from the specified constant, and add it to an int register,
@@ -53,26 +54,31 @@ public class L2_ADD_INTEGER_CONSTANT_TO_INT extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_ADD_INTEGER_CONSTANT_TO_INT().init(
-			IMMEDIATE.is("addend"),
-			READWRITE_INT.is("augend"),
-			PC.is("if out of range"));
+			READ_INT.is("addend"),
+			IMMEDIATE.is("augend"),
+			WRITE_INT.is("sum"),
+			PC.is("in range"),
+			PC.is("out of range"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int addend = instruction.immediateAt(0);
-		final L2IntegerRegister augendReg =
-			instruction.readWriteIntRegisterAt(1);
-		final int outOfRangeOffset = instruction.pcOffsetAt(2);
+		final L2ReadIntOperand addendReg =
+			instruction.readIntRegisterAt(1);
+		final int augend = instruction.immediateAt(0);
+		final L2WriteIntOperand sumReg = instruction.writeIntRegisterAt(2);
+		final int inRangeOffset = instruction.pcOffsetAt(3);
+		final int outOfRangeOffset = instruction.pcOffsetAt(4);
 
-		final int augend = augendReg.in(interpreter);
+		final int addend = addendReg.in(interpreter);
 		final long longResult = (long)addend + (long)augend;
 		final int intResult = (int)longResult;
 		if (longResult == intResult)
 		{
-			augendReg.set(intResult, interpreter);
+			sumReg.set(intResult, interpreter);
+			interpreter.offset(inRangeOffset);
 		}
 		else
 		{

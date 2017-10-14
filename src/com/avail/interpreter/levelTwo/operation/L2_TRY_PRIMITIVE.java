@@ -100,7 +100,7 @@ extends L2Operation
 				{
 					interpreter.function = function;
 					interpreter.returnNow = true;
-					interpreter.returningRawFunction = function.code();
+					interpreter.returningFunction = function.code();
 					return;
 				}
 				case FAILURE:
@@ -137,7 +137,7 @@ extends L2Operation
 						interpreter.integers = savedInts;
 					}
 					interpreter.returnNow = true;
-					interpreter.returningRawFunction = function.code();
+					interpreter.returningFunction = function.code();
 					return;
 				}
 				case CONTINUATION_CHANGED:
@@ -206,7 +206,7 @@ extends L2Operation
 				case SUCCESS:
 				{
 					interpreter.returnNow = true;
-					interpreter.returningRawFunction = function.code();
+					interpreter.returningFunction = function.code();
 					break;
 				}
 				case FAILURE:

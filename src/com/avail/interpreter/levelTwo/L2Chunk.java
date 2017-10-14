@@ -42,7 +42,6 @@ import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.MethodDescriptor;
 import com.avail.descriptor.PojoDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.operation.L2_LABEL;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;

@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
@@ -60,7 +61,8 @@ public class L2_GET_CURRENT_FUNCTION extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister targetReg = instruction.writeObjectRegisterAt(0);
+		final L2WritePointerOperand targetReg =
+			instruction.writeObjectRegisterAt(0);
 		targetReg.set(stripNull(interpreter.function), interpreter);
 	}
 

@@ -31,15 +31,15 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -72,13 +72,14 @@ extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister variableReg =
+		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
+		final L2ReadPointerOperand valueReg =
+			instruction.readObjectRegisterAt(1);
 		final int succeeded = instruction.pcOffsetAt(2);
 		final int failed = instruction.pcOffsetAt(3);
 
-		final AvailObject value = valueReg.in(interpreter);
+		final A_BasicObject value = valueReg.in(interpreter);
 		final A_Variable variable = variableReg.in(interpreter);
 		try
 		{
@@ -99,13 +100,17 @@ extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister variableReg =
+		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
+//		final L2ReadPointerOperand valueReg =
+//			instruction.readObjectRegisterAt(1);
+//		final int succeeded = instruction.pcOffsetAt(2);
+//		final int failed = instruction.pcOffsetAt(3);
 
 		// The two register sets are clones, so only cross-check one of them.
 		final RegisterSet registerSet = registerSets.get(0);
-		assert registerSet.hasTypeAt(variableReg);
-		final A_Type varType = registerSet.typeAt(variableReg);
+		assert registerSet.hasTypeAt(variableReg.register());
+		final A_Type varType = registerSet.typeAt(variableReg.register());
 		assert varType.isSubtypeOf(mostGeneralVariableType());
 	}
 
@@ -121,12 +126,15 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L1NaiveTranslator naiveTranslator)
 	{
-		final L2ObjectRegister variableReg =
+		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
+		final L2ReadPointerOperand valueReg =
+			instruction.readObjectRegisterAt(1);
+//		final int succeeded = instruction.pcOffsetAt(2);
+//		final int failed = instruction.pcOffsetAt(3);
 
-		final A_Type varType = registerSet.typeAt(variableReg);
-		final A_Type valueType = registerSet.typeAt(valueReg);
+		final A_Type varType = registerSet.typeAt(variableReg.register());
+		final A_Type valueType = registerSet.typeAt(valueReg.register());
 		if (valueType.isSubtypeOf(varType.writeType()))
 		{
 			// Type propagation has strengthened the value's type enough to

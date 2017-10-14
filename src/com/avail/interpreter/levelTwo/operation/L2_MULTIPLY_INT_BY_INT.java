@@ -35,10 +35,10 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Multiply the value in one int register by the value in another int register,
@@ -55,19 +55,24 @@ public class L2_MULTIPLY_INT_BY_INT extends L2Operation
 	public static final L2Operation instance =
 		new L2_MULTIPLY_INT_BY_INT().init(
 			READ_INT.is("multiplier"),
-			READWRITE_INT.is("multiplicand"),
-			PC.is("if out of range"));
+			READ_INT.is("multiplicand"),
+			WRITE_INT.is("product"),
+			PC.is("in range"),
+			PC.is("out of range"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2IntegerRegister multiplierReg =
+		final L2ReadIntOperand multiplierReg =
 			instruction.readIntRegisterAt(0);
-		final L2IntegerRegister multiplicandReg =
-			instruction.readWriteIntRegisterAt(1);
-		final int outOfRangeOffset = instruction.pcOffsetAt(2);
+		final L2ReadIntOperand multiplicandReg =
+			instruction.readIntRegisterAt(1);
+		final L2WriteIntOperand productReg =
+			instruction.writeIntRegisterAt(2);
+		final int inRangeOffset = instruction.pcOffsetAt(3);
+		final int outOfRangeOffset = instruction.pcOffsetAt(4);
 
 		final int multiplier = multiplierReg.in(interpreter);
 		final int multiplicand = multiplicandReg.in(interpreter);
@@ -75,7 +80,8 @@ public class L2_MULTIPLY_INT_BY_INT extends L2Operation
 		final int intResult = (int)longResult;
 		if (longResult == intResult)
 		{
-			multiplicandReg.set(intResult, interpreter);
+			productReg.set(intResult, interpreter);
+			interpreter.offset(inRangeOffset);
 		}
 		else
 		{

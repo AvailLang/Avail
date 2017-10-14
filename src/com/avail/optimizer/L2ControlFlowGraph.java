@@ -59,7 +59,7 @@ public final class L2ControlFlowGraph
 	 * @param blockName The descriptive name of the basic block.
 	 * @return The new basic block.
 	 */
-	L2BasicBlock addBasicBlock (final String blockName)
+	L2BasicBlock createBasicBlock (final String blockName)
 	{
 		final L2BasicBlock newBlock = new L2BasicBlock(blockName);
 		basicBlocks.add(newBlock);

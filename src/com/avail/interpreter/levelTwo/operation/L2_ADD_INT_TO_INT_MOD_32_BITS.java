@@ -35,10 +35,11 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READWRITE_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
 /**
  * Add the value in one int register to another int register, truncating the
@@ -54,19 +55,20 @@ public class L2_ADD_INT_TO_INT_MOD_32_BITS extends L2Operation
 	public static final L2Operation instance =
 		new L2_ADD_INT_TO_INT_MOD_32_BITS().init(
 			READ_INT.is("addend"),
-			READWRITE_INT.is("augend"));
+			READ_INT.is("augend"),
+			WRITE_INT.is("sum"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2IntegerRegister addendReg = instruction.readIntRegisterAt(0);
-		final L2IntegerRegister augendReg =
-			instruction.readWriteIntRegisterAt(1);
+		final L2ReadIntOperand addendReg = instruction.readIntRegisterAt(0);
+		final L2ReadIntOperand augendReg = instruction.readIntRegisterAt(1);
+		final L2WriteIntOperand sumReg = instruction.writeIntRegisterAt(2);
 
 		final int addend = addendReg.in(interpreter);
 		final int augend = augendReg.in(interpreter);
-		augendReg.set(augend + addend, interpreter);
+		sumReg.set(augend + addend, interpreter);
 	}
 }

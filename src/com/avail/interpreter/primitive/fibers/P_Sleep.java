@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.fibers;
 
 import com.avail.AvailRuntime;
 import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -100,8 +101,7 @@ extends Primitive
 		// the fiber to resume later. If the delay is too big, then the fiber
 		// will only awaken due to interruption.
 		final AvailRuntime runtime = interpreter.runtime();
-		final A_RawFunction primitiveRawFunction =
-			stripNull(interpreter.function).code();
+		final A_Function primitiveFunction = stripNull(interpreter.function);
 		if (sleepMillis.isLong())
 		{
 			// Otherwise, delay the resumption of this task.
@@ -124,7 +124,7 @@ extends Primitive
 								runtime,
 								fiber,
 								nil,
-								primitiveRawFunction,
+								primitiveFunction,
 								true);
 						}
 					});
@@ -144,7 +144,7 @@ extends Primitive
 						runtime,
 						fiber,
 						nil,
-						primitiveRawFunction,
+						primitiveFunction,
 						true);
 					return;
 				}
@@ -171,7 +171,7 @@ extends Primitive
 						runtime,
 						fiber,
 						nil,
-						primitiveRawFunction,
+						primitiveFunction,
 						true);
 					return;
 				}
@@ -181,7 +181,7 @@ extends Primitive
 		// Don't actually transition the fiber to the sleeping state, which
 		// can only occur at task-scheduling time. This happens after the
 		// fiber is unbound from the interpreter. Instead, suspend the fiber.
-		return interpreter.primitiveSuspend(primitiveRawFunction);
+		return interpreter.primitiveSuspend(primitiveFunction);
 	}
 
 	@Override

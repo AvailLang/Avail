@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -183,13 +182,15 @@ extends L2Operation
 
 		// Figure out what the primitive failure values are allowed to be.
 		final A_Type failureType = primitive.failureVariableType();
-		failRegisterSet.removeTypeAt(failureValueReg);
-		failRegisterSet.removeConstantAt(failureValueReg);
-		failRegisterSet.typeAtPut(failureValueReg, failureType, instruction);
+		failRegisterSet.removeTypeAt(failureValueReg.register());
+		failRegisterSet.removeConstantAt(failureValueReg.register());
+		failRegisterSet.typeAtPut(
+			failureValueReg.register(), failureType, instruction);
 
-		successRegisterSet.removeTypeAt(resultReg);
-		successRegisterSet.removeConstantAt(resultReg);
-		successRegisterSet.typeAtPut(resultReg, expectedType, instruction);
+		successRegisterSet.removeTypeAt(resultReg.register());
+		successRegisterSet.removeConstantAt(resultReg.register());
+		successRegisterSet.typeAtPut(
+			resultReg.register(), expectedType, instruction);
 	}
 
 	@Override
@@ -209,7 +210,7 @@ extends L2Operation
 	 *         given instruction.
 	 */
 	@Override
-	public final L2ObjectRegister primitiveResultRegister (
+	public final L2WritePointerOperand primitiveResultRegister (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == instance;

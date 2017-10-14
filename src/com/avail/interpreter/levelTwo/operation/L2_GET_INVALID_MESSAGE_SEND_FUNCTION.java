@@ -42,15 +42,6 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 import static com.avail.AvailRuntime.invalidMessageSendFunctionType;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
-	.enumerationWith;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
-import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
@@ -91,6 +82,8 @@ extends L2Operation
 		final L2WritePointerOperand destination =
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
-			destination.register, invalidMessageSendFunctionType, instruction);
+			destination.register(),
+			invalidMessageSendFunctionType,
+			instruction);
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * L2_LABEL.java
+ * L2_GET_RETURNING_FUNCTION.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -14,7 +14,7 @@
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
+ *   may be used to endorse or promote products derived set this software
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -29,71 +29,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.L1NaiveTranslator;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
- * A label can be the target of a branching instruction.  It is not actually
- * emitted in the instruction stream, but it acts as a place holder during
- * code generation and optimization.
+ * Ask the {@link Interpreter} for the current function, writing it into the
+ * provided register.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@Deprecated
-public class L2_LABEL extends L2Operation
+public class L2_GET_RETURNING_FUNCTION extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_LABEL().init(
-			COMMENT.is("Name of label"));
+		new L2_GET_RETURNING_FUNCTION().init(
+			WRITE_POINTER.is("returning function"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		// Do nothing.
-	}
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Translator translator)
-	{
-		// It's a label.  It doesn't affect registers itself.
+		final L2WritePointerOperand targetReg =
+			instruction.writeObjectRegisterAt(0);
+		targetReg.set(stripNull(interpreter.returningFunction), interpreter);
 	}
 
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// Never remove a reachable label.
+		// Technically it doesn't have a side-effect, but this flag keeps the
+		// instruction from being re-ordered to a place where the returning
+		// function is no longer the current one.
 		return true;
 	}
-
-	@Override
-	public boolean shouldEmit ()
-	{
-		return false;
-	}
-
-	@Override
-	public boolean regenerate (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L1NaiveTranslator naiveTranslator)
-	{
-		instruction.setOffset(-1);
-		naiveTranslator.addLabel(instruction);
-		return false;
-	}
-
 }

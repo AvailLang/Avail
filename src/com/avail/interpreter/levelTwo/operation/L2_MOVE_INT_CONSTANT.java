@@ -1,5 +1,5 @@
 /**
- * L2_UPDATE_CONTINUATION_PC_AND_STACKP.java
+ * L2_MOVE_INT_CONSTANT.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,46 +31,55 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
+import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.RegisterSet;
 
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.READWRITE_POINTER;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
 /**
- * Update an existing continuation's level one program counter and stack
- * pointer to the provided immediate integers.  If the continuation is
- * mutable then change it in place, otherwise use a mutable copy.  Write
- * the resulting continuation back to the register that provided the
- * original.
+ * Move a constant {@code int} into an integer register.
  */
-public class L2_UPDATE_CONTINUATION_PC_AND_STACKP extends L2Operation
+public class L2_MOVE_INT_CONSTANT extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_UPDATE_CONTINUATION_PC_AND_STACKP().init(
-			READWRITE_POINTER.is("continuation"),
-			IMMEDIATE.is("new pc"),
-			IMMEDIATE.is("new stack pointer"));
+		new L2_MOVE_INT_CONSTANT().init(
+			IMMEDIATE.is("value"),
+			WRITE_INT.is("destination"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
-		final L2ObjectRegister continuationReg =
-			instruction.readWriteObjectRegisterAt(0);
-		final int newPc = instruction.immediateAt(1);
-		final int newStackp = instruction.immediateAt(2);
+		final int constant = instruction.immediateAt(0);
+		final int destinationIntRegNumber =
+			instruction.writeIntRegisterAt(1).finalIndex();
+		return interpreter ->
+			interpreter.integerAtPut(destinationIntRegNumber, constant);
+	}
 
-		A_Continuation continuation = continuationReg.in(interpreter);
-		continuation = continuation.ensureMutable();
-		continuation.adjustPcAndStackp(newPc, newStackp);
-		continuationReg.set(continuation,interpreter);
+	@Override
+	protected void propagateTypes (
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
+		final L2Translator translator)
+	{
+		final int constant = instruction.immediateAt(0);
+		final L2WriteIntOperand destinationIntReg =
+			instruction.writeIntRegisterAt(1);
+
+		registerSet.constantAtPut(
+			destinationIntReg.register(),
+			fromInt(constant),
+			instruction);
 	}
 }

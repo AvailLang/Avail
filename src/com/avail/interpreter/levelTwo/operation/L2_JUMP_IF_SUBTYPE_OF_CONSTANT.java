@@ -1,5 +1,5 @@
 /**
- * L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT.java
+ * L2_JUMP_IF_SUBTYPE_OF_CONSTANT.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -45,44 +45,45 @@ import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
- * Jump to the target if the object (a type) is not a subtype of the constant
- * type.
+ * Conditionally jump, depending on whether the type to check is a subtype of
+ * the constant type.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
+public class L2_JUMP_IF_SUBTYPE_OF_CONSTANT extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT().init(
+		new L2_JUMP_IF_SUBTYPE_OF_CONSTANT().init(
 			READ_POINTER.is("type to check"),
 			CONSTANT.is("constant type"),
-			PC.is("not subtype"),
-			PC.is("is subtype"));
+			PC.is("is subtype"),
+			PC.is("not subtype"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(0);
+		final L2ReadPointerOperand typeReg =
+			instruction.readObjectRegisterAt(0);
 		final A_Type constantType = instruction.constantAt(1);
-		final int notSubtype = instruction.pcOffsetAt(2);
-		final int isSubtype = instruction.pcOffsetAt(3);
+		final int isSubtypeIndex = instruction.pcOffsetAt(2);
+		final int notSubtypeIndex = instruction.pcOffsetAt(3);
 
 		interpreter.offset(
-			!typeReg.in(interpreter).isSubtypeOf(constantType)
-				? notSubtype
-				: isSubtype);
+			typeReg.in(interpreter).isSubtypeOf(constantType)
+				? isSubtypeIndex
+				: notSubtypeIndex);
 	}
 
 	@Override
@@ -92,70 +93,48 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 		final L1NaiveTranslator naiveTranslator)
 	{
 		// Eliminate tests due to type propagation.
-		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(0);
+		final L2ReadPointerOperand typeReg =
+			instruction.readObjectRegisterAt(0);
 		final A_Type constantType = instruction.constantAt(1);
-		final L2PcOperand notSubtype = instruction.pcAt(2);
-		final L2PcOperand isSubtype = instruction.pcAt(3);
+		final L2PcOperand isSubtype = instruction.pcAt(2);
+		final L2PcOperand notSubtype = instruction.pcAt(3);
 
-		final boolean canJump;
-		final boolean mustJump;
-		final A_Type intersection;
-		if (registerSet.hasConstantAt(typeReg))
+		final @Nullable A_BasicObject typeToTest = typeReg.constantOrNull();
+		if (typeToTest != null)
 		{
-			final AvailObject type = registerSet.constantAt(typeReg);
-			mustJump = !type.isSubtypeOf(constantType);
-			canJump = mustJump;
-			intersection = constantType.typeIntersection(type);
-		}
-		else
-		{
-			assert registerSet.hasTypeAt(typeReg);
-			final A_Type knownMeta = stripNull(registerSet.typeAt(typeReg));
-			final A_Type knownType = knownMeta.instance();
-			intersection = constantType.typeIntersection(knownType);
-			if (intersection.isBottom())
-			{
-				mustJump = true;
-				canJump = true;
-			}
-			else if (knownType.isSubtypeOf(constantType))
-			{
-				mustJump = false;
-				canJump = false;
-			}
-			else
-			{
-				mustJump = false;
-				canJump = true;
-			}
-		}
-		if (mustJump)
-		{
-			// It can never be a subtype of the constantType.  Always jump.  The
-			// instructions that follow the jump will become dead code and
-			// be eliminated next pass.
-			naiveTranslator.addInstruction(L2_JUMP.instance, notSubtype);
+			naiveTranslator.addInstruction(
+				L2_JUMP.instance,
+				typeToTest.isInstanceOf(constantType) ? isSubtype : notSubtype);
 			return true;
 		}
-		if (!canJump)
+		final A_Type knownType = typeReg.type().instance();
+		if (knownType.isSubtypeOf(constantType))
 		{
-			// It is always a subtype of the constantType, so never jump.
+			// It's a subtype, so it must always pass the type test.
 			naiveTranslator.addInstruction(L2_JUMP.instance, isSubtype);
 			return true;
 		}
-		// Since it's already an X and we're testing for Y, we might be
-		// better off testing for an X∩Y instead.  Let's just assume it's
-		// quicker for now.  Eventually we can extend this idea to testing
-		// things other than types, such as if we know we have a tuple but we
-		// want to dispatch based on the tuple's size.
+		final A_Type intersection = constantType.typeIntersection(knownType);
+		if (intersection.isBottom())
+		{
+			// The types don't intersect, so it can't ever pass the type test.
+			naiveTranslator.addInstruction(L2_JUMP.instance, notSubtype);
+			return true;
+		}
+		// The branch direction isn't known statically.  However, since it's
+		// already known to be an X and we're testing for Y, we might be better
+		// off testing for an X∩Y instead.  Let's just assume it's quicker for
+		// now.  Eventually we can extend this idea to testing things other than
+		// types, such as if we know we have a tuple but we want to dispatch
+		// based on the tuple's size.
 		if (!intersection.equals(constantType))
 		{
 			naiveTranslator.addInstruction(
-				L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT.instance,
-				new L2ReadPointerOperand(typeReg),
+				L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
+				typeReg,
 				new L2ConstantOperand(intersection),
-				notSubtype,
-				isSubtype);
+				isSubtype,
+				notSubtype);
 			return true;
 		}
 		// The test could not be eliminated or improved.
@@ -168,29 +147,32 @@ public class L2_JUMP_IF_IS_NOT_SUBTYPE_OF_CONSTANT extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-//		final int target = instruction.pcAt(0);
-		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(1);
-		final A_Type constantType = instruction.constantAt(2);
+		final L2ReadPointerOperand typeReg =
+			instruction.readObjectRegisterAt(0);
+		final A_Type constantType = instruction.constantAt(1);
+		final L2PcOperand isSubtype = instruction.pcAt(2);
+		final L2PcOperand notSubtype = instruction.pcAt(3);
 
 		assert registerSets.size() == 2;
-		final RegisterSet fallThroughSet = registerSets.get(0);
-//		final RegisterSet postJumpSet = registerSets.get(1);
+		final RegisterSet isSubtypeSet = registerSets.get(0);
+		final RegisterSet notSubtypeSet = registerSets.get(1);
 
-		assert fallThroughSet.hasTypeAt(typeReg);
+		assert isSubtypeSet.hasTypeAt(typeReg.register());
 		//noinspection StatementWithEmptyBody
-		if (fallThroughSet.hasConstantAt(typeReg))
+		if (isSubtypeSet.hasConstantAt(typeReg.register()))
 		{
 			// The *exact* type is already known.  Don't weaken it by recording
 			// type information for it (a meta).
 		}
 		else
 		{
-			final A_Type existingMeta = fallThroughSet.typeAt(typeReg);
+			final A_Type existingMeta = isSubtypeSet.typeAt(typeReg.register());
 			final A_Type existingType = existingMeta.instance();
 			final A_Type intersectionType =
 				existingType.typeIntersection(constantType);
 			final A_Type intersectionMeta = instanceMeta(intersectionType);
-			fallThroughSet.strengthenTestedTypeAtPut(typeReg, intersectionMeta);
+			isSubtypeSet.strengthenTestedTypeAtPut(
+				typeReg.register(), intersectionMeta);
 		}
 	}
 

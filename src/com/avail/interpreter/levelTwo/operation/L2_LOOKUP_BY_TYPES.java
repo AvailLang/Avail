@@ -73,7 +73,7 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_LOOKUP_BY_VALUES().init(
-			CONSTANT.is("message bundle"),
+			SELECTOR.is("message bundle"),
 			READ_VECTOR.is("argument types"),
 			WRITE_POINTER.is("looked up function"),
 			WRITE_POINTER.is("error code"),
@@ -172,8 +172,8 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 			instruction.writeObjectRegisterAt(2);
 		final L2WritePointerOperand errorCodeReg =
 			instruction.writeObjectRegisterAt(3);
-		final int lookupSucceeded = instruction.pcOffsetAt(4);
-		final int lookupFailed = instruction.pcOffsetAt(5);
+//		final int lookupSucceeded = instruction.pcOffsetAt(4);
+//		final int lookupFailed = instruction.pcOffsetAt(5);
 
 		// If the lookup fails, then only the error code register changes.
 		registerSets.get(0).typeAtPut(

@@ -39,14 +39,12 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 
@@ -62,23 +60,27 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_JUMP_IF_KIND_OF_OBJECT().init(
-			PC.is("target"),
 			READ_POINTER.is("value"),
-			READ_POINTER.is("type"));
+			READ_POINTER.is("type"),
+			PC.is("is kind"),
+			PC.is("if not kind"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final int target = instruction.pcOffsetAt(0);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(2);
+		final L2ReadPointerOperand valueReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ReadPointerOperand typeReg =
+			instruction.readObjectRegisterAt(1);
+		final int isKindOffset = instruction.pcOffsetAt(2);
+		final int isNotKindOffset = instruction.pcOffsetAt(3);
 
-		if (valueReg.in(interpreter).isInstanceOf(typeReg.in(interpreter)))
-		{
-			interpreter.offset(target);
-		}
+		interpreter.offset(
+			valueReg.in(interpreter).isInstanceOf(typeReg.in(interpreter))
+				? isKindOffset
+				: isNotKindOffset);
 	}
 
 	@Override
@@ -87,21 +89,26 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 		final RegisterSet registerSet,
 		final L1NaiveTranslator naiveTranslator)
 	{
-		final L2PcOperand target = instruction.pcAt(0);
-		final L2ObjectRegister valueReg = instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(2);
+		final L2ReadPointerOperand valueReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ReadPointerOperand typeReg =
+			instruction.readObjectRegisterAt(1);
+		final L2PcOperand isKind = instruction.pcAt(2);
+		final L2PcOperand isNotKind = instruction.pcAt(3);
 
-		if (registerSet.hasConstantAt(typeReg))
+		if (registerSet.hasConstantAt(typeReg.register()))
 		{
 			// Replace this compare-and-branch with one that compares against
 			// a constant.  This further opens the possibility of eliminating
 			// one of the branches.
-			final A_Type constantType = registerSet.constantAt(typeReg);
+			final A_Type constantType =
+				registerSet.constantAt(typeReg.register());
 			naiveTranslator.addInstruction(
-				L2_JUMP_IF_KIND_OF_OBJECT.instance,
-				target,
-				new L2ReadPointerOperand(valueReg),
-				new L2ConstantOperand(constantType));
+				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+				valueReg,
+				new L2ConstantOperand(constantType),
+				isKind,
+				isNotKind);
 			return true;
 		}
 		return super.regenerate(instruction, registerSet, naiveTranslator);
@@ -113,35 +120,35 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-//		final int target = instruction.pcAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister typeReg = instruction.readObjectRegisterAt(2);
+		final L2ReadPointerOperand valueReg =
+			instruction.readObjectRegisterAt(0);
+		final L2ReadPointerOperand typeReg =
+			instruction.readObjectRegisterAt(1);
+//		final L2PcOperand isKind = instruction.pcAt(2);
+//		final L2PcOperand isNotKind = instruction.pcAt(3);
 
 		assert registerSets.size() == 2;
-//		final RegisterSet fallThroughSet = registerSets.get(0);
-		final RegisterSet postJumpSet = registerSets.get(1);
+		final RegisterSet isKindSet = registerSets.get(0);
+//		final RegisterSet isNotKindSet = registerSets.get(1);
 
 		final A_Type type;
-		if (postJumpSet.hasConstantAt(typeReg))
+		if (isKindSet.hasConstantAt(typeReg.register()))
 		{
 			// The type is statically known.
-			type = postJumpSet.constantAt(typeReg);
-		}
-		else if (postJumpSet.hasTypeAt(typeReg))
-		{
-			// The exact type being tested against isn't known, but the metatype
-			// is.
-			final A_Type meta = postJumpSet.typeAt(typeReg);
-			assert meta.isInstanceMeta();
-			type = meta.instance();
+			type = isKindSet.constantAt(typeReg.register());
 		}
 		else
 		{
-			type = ANY.o();
+			// The exact type being tested against isn't known, but the metatype
+			// is.
+			assert isKindSet.hasTypeAt(typeReg.register());
+			final A_Type meta = isKindSet.typeAt(typeReg.register());
+			assert meta.isInstanceMeta();
+			type = meta.instance();
 		}
-		postJumpSet.strengthenTestedTypeAtPut(
-			typeReg,
-			type.typeIntersection(postJumpSet.typeAt(objectReg)));
+		isKindSet.strengthenTestedTypeAtPut(
+			valueReg.register(),
+			type.typeIntersection(isKindSet.typeAt(valueReg.register())));
 	}
 
 	@Override

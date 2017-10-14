@@ -105,4 +105,27 @@ public final class TypeRestriction
 			this.constantOrNull.makeImmutable();
 		}
 	}
+
+	/**
+	 * Create the union of the receiver and the other TypeRestriction.  This is
+	 * the restriction that a register would have if it were assigned from one
+	 * of two sources, each having one of the restrictions.
+	 *
+	 * @param other
+	 *        The other {@code TypeRestriction} to combine with the receiver to
+	 *        produce the output restriction.
+	 * @return The new type restriction.
+	 */
+	public TypeRestriction union (final TypeRestriction other)
+	{
+		final @Nullable A_BasicObject newConstant =
+			(constantOrNull == null || other.constantOrNull == null)
+				? null
+				: constantOrNull.equals(other.constantOrNull)
+					? constantOrNull
+					: null;
+		return new TypeRestriction(
+			type.typeUnion(other.type),
+			newConstant);
+	}
 }

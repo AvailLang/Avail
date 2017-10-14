@@ -33,19 +33,10 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.descriptor.A_Bundle;
-import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.optimizer.L2BasicBlock;
 
 import javax.annotation.Nullable;
-
 import java.util.List;
 
 import static com.avail.utility.Nulls.stripNull;
@@ -57,7 +48,7 @@ import static java.lang.String.format;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2OperandDescriber implements L2OperandTypeDispatcher
+final class L2OperandDescriber implements L2OperandTypeDispatcher
 {
 	/**
 	 * The operand being described.
@@ -69,6 +60,16 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	 */
 	private @Nullable StringBuilder _description;
 
+	/**
+	 * Extract the current operand being described.
+	 *
+	 * @return The current {@link L2Operand}.
+	 */
+	private <T extends L2Operand> T operand (final Class<T> clazz)
+	{
+		//noinspection unchecked
+		return clazz.cast(stripNull(_operand));
+	}
 
 	/**
 	 * Print the format string, with the arguments plugged in.
@@ -141,20 +142,20 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doConstant()
 	{
-		print("Const(%s)", ((L2ConstantOperand)stripNull(_operand)).object);
+		print("Const(%s)", operand(L2ConstantOperand.class).object);
 	}
 
 	@Override
 	public void doImmediate()
 	{
-		print("Immediate(%d)", ((L2ImmediateOperand)stripNull(_operand)).value);
+		print("Immediate(%d)", operand(L2ImmediateOperand.class).value);
 	}
 
 	@Override
 	public void doPC()
 	{
 		final L2BasicBlock targetBlock =
-			((L2PcOperand)stripNull(_operand)).targetBlock();
+			operand(L2PcOperand.class).targetBlock();
 		print(
 			"PC(%s at #%d)",
 			targetBlock.name(),
@@ -164,45 +165,51 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	@Override
 	public void doPrimitive()
 	{
-		print("Prim(%s)",
-			((L2PrimitiveOperand)stripNull(_operand)).primitive.name());
+		print("Prim(%s)", operand(L2PrimitiveOperand.class).primitive.name());
+	}
+
+	@Override
+	public void doSelector()
+	{
+		final A_Bundle bundle = operand(L2SelectorOperand.class).bundle;
+		print("Message(%s)", bundle.message().atomName().asNativeString());
 	}
 
 	@Override
 	public void doReadPointer()
 	{
-		print("Obj(%s)[r]", _operand);
+		print("Obj(%s)[r]", operand(L2ReadPointerOperand.class));
 	}
 
 	@Override
 	public void doWritePointer()
 	{
-		print("Obj(%s)[w]", _operand);
+		print("Obj(%s)[w]", operand(L2WritePointerOperand.class));
 	}
 
 	@Override
 	public void doReadInt()
 	{
-		print("Int(%s)[r]", _operand);
+		print("Int(%s)[r]", operand(L2ReadIntOperand.class));
 	}
 
 	@Override
 	public void doWriteInt()
 	{
-		print("Int(%s)[w]", _operand);
+		print("Int(%s)[w]", operand(L2WriteIntOperand.class));
 	}
 
 	@Override
 	public void doReadVector()
 	{
-		printVector(((L2ReadVectorOperand) _operand).elements);
+		printVector(operand(L2ReadVectorOperand.class).elements());
 		print("[r]");
 	}
 
 	@Override
 	public void doWriteVector()
 	{
-		printVector(((L2WriteVectorOperand)stripNull(_operand)).elements);
+		printVector(operand(L2WriteVectorOperand.class).elements());
 		print("[w]");
 	}
 
@@ -210,6 +217,6 @@ class L2OperandDescriber implements L2OperandTypeDispatcher
 	public void doComment ()
 	{
 		print(format(
-			"[comment: %s]", ((L2CommentOperand)stripNull(_operand)).comment));
+			"[comment: %s]", operand(L2CommentOperand.class).comment));
 	}
 }

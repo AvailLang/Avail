@@ -5070,17 +5070,17 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	void o_SuspendingRawFunction (
+	void o_SuspendingFunction (
 		final AvailObject object,
-		final A_RawFunction suspendingRawFunction)
+		final A_Function suspendingFunction)
 	{
-		o_Traversed(object).suspendingRawFunction(suspendingRawFunction);
+		o_Traversed(object).suspendingFunction(suspendingFunction);
 	}
 
 	@Override
-	A_RawFunction o_SuspendingRawFunction (final AvailObject object)
+	A_Function o_SuspendingFunction (final AvailObject object)
 	{
-		return o_Traversed(object).suspendingRawFunction();
+		return o_Traversed(object).suspendingFunction();
 	}
 
 	@Override

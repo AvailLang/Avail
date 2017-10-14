@@ -61,7 +61,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
@@ -73,7 +72,6 @@ import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.lang.Math.max;
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 
 /**
  * The {@code L2Translator} converts a level one {@linkplain FunctionDescriptor
@@ -365,18 +363,6 @@ public final class L2Translator
 	}
 
 	/**
-	 * The current sequence of level two instructions.
-	 */
-	@InnerAccess final List<L2Instruction> instructions =
-		new ArrayList<>();
-
-	/**
-	 * A RegisterSet for each of my {@link #instructions}.
-	 */
-	@InnerAccess final List<RegisterSet> instructionRegisterSets =
-		new ArrayList<>();
-
-	/**
 	 * All {@link A_ChunkDependable contingent values} for which changes should
 	 * cause the current {@linkplain L2Chunk level two chunk} to be
 	 * invalidated.
@@ -416,7 +402,8 @@ public final class L2Translator
 	 * In either case, this label is where to continue in the new chunk right
 	 * after optimizing.
 	 */
-	final L2Instruction afterOptionalInitialPrimitiveLabel =
+	final L2BasicBlock afterOptionalInitialPrimitiveBlock =
+
 		newLabel("after initial primitive");
 
 	/**
@@ -649,8 +636,8 @@ public final class L2Translator
 				instruction);
 			final RegisterSet regs =
 				instructionRegisterSets.get(instructionIndex);
-			final List<L2Instruction> successors =
-				new ArrayList<>(instruction.targetBlocks());
+			final List<L2PcOperand> successors =
+				new ArrayList<>(instruction.targetEdges());
 			if (instruction.operation.reachesNextInstruction())
 			{
 				successors.add(0, instructions.get(instructionIndex + 1));
@@ -763,40 +750,46 @@ public final class L2Translator
 		DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
 			Level.FINEST,
 			"Begin removing dead instructions");
-		checkThatAllTargetLabelsExist();
 		computeDataFlow();
-		final Set<L2Instruction> reachableInstructions =
-			findReachableInstructions();
+		final Set<L2BasicBlock> reachableBlocks = findReachableBlocks();
 		final Set<L2Instruction> neededInstructions =
-			findInstructionsThatProduceNeededValues(reachableInstructions);
+			findInstructionsThatProduceNeededValues(reachableBlocks);
 
 		// We now have a complete list of which instructions should be kept.
 		DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
 			Level.FINEST,
 			log ->
 			{
-				@SuppressWarnings("resource")
+				@SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
 				final Formatter formatter = new Formatter();
 				formatter.format("Keep/drop instruction list:%n");
-				for (int i = 0, end = instructions.size(); i < end; i++)
+				for (final L2BasicBlock block : reachableBlocks)
 				{
-					final L2Instruction instruction = instructions.get(i);
-					formatter.format(
-						"\t%s #%d %s%n",
-						neededInstructions.contains(instruction)
-							? "+"
-							: "-",
-						i,
-						increaseIndentation(instruction.toString(), 2));
+					formatter.format("%n\t%s:", block.name());
+					for (final L2Instruction instruction : block.instructions())
+					{
+						formatter.format(
+							"\t%s: %s%n",
+							neededInstructions.contains(instruction)
+								? "+"
+								: "-",
+							increaseIndentation(instruction.toString(), 2));
+					}
+					log.value(formatter.toString(), null);
+					log.value("Propagation of needed instructions:", null);
 				}
 				log.value(formatter.toString(), null);
 			});
-		boolean anyChanges = instructions.retainAll(neededInstructions);
-		final List<L2Instruction> oldInstructions =
-			new ArrayList<>(instructions);
-		instructions.clear();
-		instructionRegisterSets.clear();
-		final L1NaiveTranslator newNaiveTranslator = new L1NaiveTranslator(this);
+		boolean anyChanges = false;
+		for (final L2BasicBlock block : reachableBlocks)
+		{
+			anyChanges |= block.instructions().retainAll(neededInstructions);
+		}
+
+		final L1NaiveTranslator newNaiveTranslator =
+			new L1NaiveTranslator(this);
+		//TODO MvG - Finish converting this to the new SSA representation, or
+		// maybe move it all to L1NaiveTranslator.
 		anyChanges |= regenerateInstructions(
 			oldInstructions, newNaiveTranslator);
 		for (int i = 0, end = instructions.size(); i < end; i++)
@@ -809,47 +802,29 @@ public final class L2Translator
 	}
 
 	/**
-	 * Perform a sanity check to be sure that all branch targets actually exist
-	 * in the instruction stream.
-	 */
-	private void checkThatAllTargetLabelsExist ()
-	{
-		for (final L2Instruction instruction : instructions)
-		{
-			for (final L2Instruction targetLabel : instruction.targetBlocks())
-			{
-				final int targetIndex = targetLabel.offset();
-				assert instructions.get(targetIndex) == targetLabel;
-			}
-		}
-	}
-
-	/**
 	 * Find the set of instructions that are actually reachable recursively from
 	 * the first instruction.
 	 *
 	 * @return The {@link Set} of reachable {@link L2Instruction}s.
 	 */
-	private Set<L2Instruction> findReachableInstructions ()
+	private Set<L2BasicBlock> findReachableBlocks ()
 	{
-		final Deque<L2Instruction> instructionsToVisit = new ArrayDeque<>();
-		instructionsToVisit.add(instructions.get(0));
-		final Set<L2Instruction> reachableInstructions = new HashSet<>();
-		while (!instructionsToVisit.isEmpty())
+		final Deque<L2BasicBlock> blocksToVisit = new ArrayDeque<>();
+		blocksToVisit.add(instructions.get(0).basicBlock);
+		final Set<L2BasicBlock> reachableBlocks = new HashSet<>();
+		while (!blocksToVisit.isEmpty())
 		{
-			final L2Instruction instruction = instructionsToVisit.removeFirst();
-			if (!reachableInstructions.contains(instruction))
+			final L2BasicBlock block = blocksToVisit.removeFirst();
+			if (!reachableBlocks.contains(block))
 			{
-				reachableInstructions.add(instruction);
-				instructionsToVisit.addAll(instruction.targetBlocks());
-				if (instruction.operation.reachesNextInstruction())
+				reachableBlocks.add(block);
+				for (L2PcOperand edge : block.successorEdges())
 				{
-					final int index = instruction.offset();
-					instructionsToVisit.add(instructions.get(index + 1));
+					blocksToVisit.add(edge.targetBlock());
 				}
 			}
 		}
-		return reachableInstructions;
+		return reachableBlocks;
 	}
 
 	/**
@@ -857,86 +832,73 @@ public final class L2Translator
 	 * which have side-effect or produce a value consumed by other reachable
 	 * instructions.
 	 *
-	 * @param reachableInstructions
-	 *        The instructions which are reachable from the first instruction.
+	 * @param reachableBlocks
+	 *        All {@link L2BasicBlock} which are reachable from the start.
 	 * @return The instructions that are essential and should be kept.
 	 */
 	private Set<L2Instruction> findInstructionsThatProduceNeededValues (
-		final Set<L2Instruction> reachableInstructions)
+		final Set<L2BasicBlock> reachableBlocks)
 	{
 		final Deque<L2Instruction> instructionsToVisit = new ArrayDeque<>();
-		final Set<L2Instruction> neededInstructions =
-			new HashSet<>(instructions.size());
-		for (final L2Instruction instruction : reachableInstructions)
+		for (final L2BasicBlock block : reachableBlocks)
 		{
-			if (instruction.hasSideEffect())
+			for (final L2Instruction instruction : block.instructions())
 			{
-				instructionsToVisit.add(instruction);
+				if (instruction.hasSideEffect())
+				{
+					instructionsToVisit.add(instruction);
+				}
 			}
 		}
 		DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
 			Level.FINEST,
 			log ->
 			{
-				@SuppressWarnings("resource")
+				@SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
 				final Formatter formatter = new Formatter();
 				formatter.format(
-					"Directly irremovable reachable instructions:");
-				for (int i = 0, end = instructions.size(); i < end; i++)
+					"Directly irremovable reachable instructions:%n");
+				for (final L2BasicBlock block : reachableBlocks)
 				{
-					final L2Instruction instruction = instructions.get(i);
-					formatter.format(
-						"\t%s: #%d %s%n",
-						(instructionsToVisit.contains(instruction)
-							 ? "Forced "
-							 : (reachableInstructions.contains(instruction)
-								    ? "Reach  "
-								    : "pending")),
-						i,
-						increaseIndentation(instruction.toString(), 2));
+					formatter.format("%n\t%s:", block.name());
+					for (final L2Instruction instruction
+						: block.instructions())
+					{
+						formatter.format(
+							"\t%s: %s%n",
+							instructionsToVisit.contains(instruction)
+								? "Forced "
+								: "Reach  ",
+							increaseIndentation(instruction.toString(), 2));
+					}
+					log.value(formatter.toString(), null);
+					log.value("Propagation of needed instructions:", null);
 				}
-				log.value(formatter.toString(), null);
-				log.value("Propagation of needed instructions:", null);
 			});
 		// Recursively mark as needed all instructions that produce values
 		// consumed by another needed instruction.
+		final Set<L2Instruction> neededInstructions = new HashSet<>();
 		while (!instructionsToVisit.isEmpty())
 		{
 			final L2Instruction instruction = instructionsToVisit.removeLast();
 			if (!neededInstructions.contains(instruction))
 			{
 				neededInstructions.add(instruction);
-				final RegisterSet registerSet =
-					instructionRegisterSets.get(instruction.offset());
 				for (final L2Register sourceRegister
 					: instruction.sourceRegisters())
 				{
-					final List<L2Instruction> providingInstructions =
-						registerSet.stateForReading(sourceRegister)
-							.sourceInstructions();
-					if (!providingInstructions.isEmpty())
-					{
-						DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
-							Level.FINEST,
-							log ->
-							{
-								final Set<Integer> providerIndices =
-									new TreeSet<>();
-								for (final L2Instruction need :
-									providingInstructions)
-								{
-									providerIndices.add(need.offset());
-								}
-								log.value(
-									format(
-										"\t\t#%d (%s) -> %s%n",
-										instruction.offset(),
-										sourceRegister,
-										providerIndices),
-									null);
-							});
-						instructionsToVisit.addAll(providingInstructions);
-					}
+					final L2Instruction definingInstruction =
+						sourceRegister.definition();
+					DebugFlag.DEAD_INSTRUCTION_REMOVAL.log(
+						Level.FINEST,
+						log -> log.value(
+							format(
+								"\t\t#%s (%s) -> %s%n",
+								instruction,
+								sourceRegister,
+								definingInstruction),
+							null));
+					instructionsToVisit.add(definingInstruction);
 				}
 			}
 		}
@@ -1234,16 +1196,19 @@ public final class L2Translator
 		fixedRegisterMap = new EnumMap<>(FixedRegister.class);
 		architecturalRegisters = new ArrayList<>(firstArgumentRegisterIndex);
 
-		final L2Instruction reenterFromCallLabel =
-			newLabel("reenter L1 from call");
-		final L2Instruction reenterFromInterruptLabel =
-			newLabel("reenter L1 from interrupt");
-		final L2Instruction reenterFromRestartLabel =
-			newLabel("reenter L1 from restart primitive");
+		L1NaiveTranslator naiveTranslator = new L1NaiveTranslator(this);
+		final L2BasicBlock reenterFromCallBlock =
+			naiveTranslator.createBasicBlock("reenter L1 from call");
+		final L2BasicBlock reenterFromInterruptBlock =
+			naiveTranslator.createBasicBlock("reenter L1 from interrupt");
+		final L2BasicBlock reenterFromRestartBlock =
+			naiveTranslator.createBasicBlock(
+				"reenter L1 from restart primitive");
 		// First we try to run it as a primitive.
 		justAddInstruction(L2_TRY_PRIMITIVE.instance);
-		// Only if the primitive fails should we consider optimizing the
+		// Only if the primitive fails should we even consider optimizing the
 		// fallback code.
+		naiveTranslator.startBlock(afterOptionalInitialPrimitiveBlock);
 		instructions.add(afterOptionalInitialPrimitiveLabel);
 		instructionRegisterSets.add(null);
 		justAddInstruction(
@@ -1257,20 +1222,20 @@ public final class L2Translator
 		instructionRegisterSets.add(null);
 		justAddInstruction(
 			L2_INTERPRET_LEVEL_ONE.instance,
-			new L2PcOperand(reenterFromCallLabel),
-			new L2PcOperand(reenterFromInterruptLabel));
+			new L2PcOperand(reenterFromCallLabel, slotRegisters()),
+			new L2PcOperand(reenterFromInterruptLabel, slotRegisters()));
 
 		// If reified, calls return here.
 		instructions.add(reenterFromCallLabel);
 		instructionRegisterSets.add(null);
 		justAddInstruction(L2_REENTER_L1_CHUNK_FROM_CALL.instance);
-		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
+		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart, slotRegisters()));
 
 		// If reified, interrupts return here.
 		instructions.add(reenterFromInterruptLabel);
 		instructionRegisterSets.add(null);
 		justAddInstruction(L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance);
-		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
+		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart, slotRegisters()));
 
 		// Labels create continuations that start here.  The continuations
 		// capture the arguments and nothing else from the original frame.
@@ -1280,7 +1245,7 @@ public final class L2Translator
 		instructions.add(reenterFromRestartLabel);
 		instructionRegisterSets.add(null);
 		justAddInstruction(L2_REENTER_L1_CHUNK_FROM_RESTART.instance);
-		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart));
+		justAddInstruction(L2_JUMP.instance, new L2PcOperand(loopStart, slotRegisters()));
 
 		createChunk();
 		assert loopStart.offset() ==

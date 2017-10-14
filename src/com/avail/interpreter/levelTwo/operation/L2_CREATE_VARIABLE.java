@@ -38,6 +38,7 @@ import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -66,7 +67,8 @@ public class L2_CREATE_VARIABLE extends L2Operation
 		final Interpreter interpreter)
 	{
 		final A_Type outerType = instruction.constantAt(0);
-		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(1);
+		final L2WritePointerOperand destReg =
+			instruction.writeObjectRegisterAt(1);
 
 		final A_Variable newVar = newVariableWithOuterType(outerType);
 		destReg.set(newVar, interpreter);
@@ -79,10 +81,12 @@ public class L2_CREATE_VARIABLE extends L2Operation
 		final L2Translator translator)
 	{
 		final A_Type outerType = instruction.constantAt(0);
-		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(1);
+		final L2WritePointerOperand destReg =
+			instruction.writeObjectRegisterAt(1);
 
 		// Not a constant, but we know the type...
-		registerSet.removeConstantAt(destReg);
-		registerSet.typeAtPut(destReg, outerType, instruction);
+		registerSet.removeConstantAt(destReg.register());
+		registerSet.typeAtPut(
+			destReg.register(), outerType, instruction);
 	}
 }

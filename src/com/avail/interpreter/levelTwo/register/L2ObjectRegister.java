@@ -53,7 +53,7 @@ extends L2Register
 	/**
 	 * The {@link TypeRestriction} that constrains this register's content.
 	 */
-	public final TypeRestriction restriction;
+	private final TypeRestriction restriction;
 
 	/**
 	 * Construct a new {@code L2ObjectRegister}.
@@ -81,7 +81,7 @@ extends L2Register
 	 *
 	 * @return A {@link TypeRestriction}.
 	 */
-	final TypeRestriction restriction ()
+	public final TypeRestriction restriction ()
 	{
 		return restriction;
 	}

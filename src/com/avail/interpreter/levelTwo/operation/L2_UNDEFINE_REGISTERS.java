@@ -1,5 +1,5 @@
 /**
- * L2_UPDATE_CONTINUATION_SLOT.java
+ * L2_UNDEFINE_REGISTERS.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,48 +31,62 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.optimizer.L2Translator;
+import com.avail.optimizer.RegisterSet;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
 
 /**
- * Update a slot of an existing continuation.  If the continuation is
- * mutable then change it in place, otherwise use a mutable copy.  Write
- * the resulting continuation back to the register that provided the
- * original.
+ * This instruction should be elided before final code generation.  It indicates
+ * that each of {@link L2WritePointerOperand} registers should be treated as
+ * having no value.  This is a consequence of SSA form, where each register
+ * requires a defining instruction.
  */
-public class L2_UPDATE_CONTINUATION_SLOT extends L2Operation
+public class L2_UNDEFINE_REGISTERS extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_UPDATE_CONTINUATION_SLOT().init(
-			READWRITE_POINTER.is("continuation"),
-			IMMEDIATE.is("slot index"),
-			READ_POINTER.is("replacement value"));
+		new L2_UNDEFINE_REGISTERS().init(
+			WRITE_VECTOR.is("registers to invalidate")
+		);
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister continuationReg =
-			instruction.readWriteObjectRegisterAt(0);
-		final int slotIndex = instruction.immediateAt(1);
-		final L2ObjectRegister replacementReg =
-			instruction.readObjectRegisterAt(2);
+		throw new RuntimeException(
+			"This L2 instruction should have been eliminated.");
+	}
 
-		A_Continuation continuation = continuationReg.in(interpreter);
-		continuation = continuation.ensureMutable();
-		continuation.argOrLocalOrStackAtPut(
-			slotIndex,
-			replacementReg.in(interpreter));
-		continuationReg.set(continuation, interpreter);
+	@Override
+	protected void propagateTypes (
+		final L2Instruction instruction,
+		final RegisterSet registerSet,
+		final L2Translator translator)
+	{
+		final List<L2WritePointerOperand> registers =
+			instruction.writeVectorRegisterAt(0);
+		for (final L2WritePointerOperand reg : registers)
+		{
+			registerSet.removeConstantAt(reg.register());
+			registerSet.removeTypeAt(reg.register());
+		}
+	}
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		// It gets removed as soon as we're sure nobody uses any of the
+		// registers that was made undefined.
+		return false;
 	}
 }

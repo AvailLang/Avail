@@ -45,7 +45,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2BasicBlock;
 
@@ -118,7 +117,7 @@ extends Primitive
 		final L1NaiveTranslator translator,
 		final A_Function primitiveFunction,
 		final L2ReadVectorOperand args,
-		final L2WritePointerOperand resultWrite,
+		final int resultSlotIndex,
 		final L2ReadVectorOperand preserved,
 		final A_Type expectedType,
 		final L2WritePointerOperand failureValueWrite,
@@ -132,31 +131,22 @@ extends Primitive
 		final A_Type varType = varReg.type();
 		final A_Type valueType = valueReg.type();
 		final A_Type varInnerType = varType.writeType();
-		if (valueType.isSubtypeOf(varInnerType))
-		{
-			// It's a statically type-safe assignment.
-			translator.addInstruction(
-				L2_SET_VARIABLE_NO_CHECK.instance,
-				varReg,
-				valueReg,
-				new L2PcOperand(successBlock));
-		}
-		else
-		{
-			// It's not statically type-safe.
-			translator.addInstruction(
-				L2_SET_VARIABLE.instance,
-				varReg,
-				valueReg,
-				new L2PcOperand(successBlock));
-		}
+		// These two operations have the same operand layouts.
+		translator.addInstruction(
+			valueType.isSubtypeOf(varInnerType)
+				? L2_SET_VARIABLE_NO_CHECK.instance
+				: L2_SET_VARIABLE.instance,
+			varReg,
+			valueReg,
+			new L2PcOperand(successBlock, translator.slotRegisters()),
+			translator.unreachablePcOperand());
 		// Either way, deal with a failed write by having the primitive inlined
 		// in the fail case.
 		super.generateL2UnfoldableInlinePrimitive(
 			translator,
 			primitiveFunction,
 			args,
-			resultWrite,
+			resultSlotIndex,
 			preserved,
 			expectedType,
 			failureValueWrite,

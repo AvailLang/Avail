@@ -36,7 +36,7 @@ import com.avail.AvailRuntime;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_String;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.A_Type;
@@ -103,9 +103,9 @@ extends Primitive
 			assert e.numericCode().extractInt() == E_KEY_NOT_FOUND.nativeCode();
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
-		final A_RawFunction primitiveRawFunction =
-			stripNull(interpreter.function).code();
-		interpreter.primitiveSuspend(primitiveRawFunction);
+		final A_Function primitiveFunction =
+			stripNull(interpreter.function);
+		interpreter.primitiveSuspend(primitiveFunction);
 		dumpStackThen(
 			runtime,
 			fiber.textInterface(),
@@ -122,7 +122,7 @@ extends Primitive
 					runtime,
 					fiber,
 					stackDump,
-					primitiveRawFunction,
+					primitiveFunction,
 					skipReturnCheck);
 			});
 		return Result.FIBER_SUSPENDED;

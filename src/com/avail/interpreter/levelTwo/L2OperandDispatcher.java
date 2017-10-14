@@ -34,6 +34,7 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.Primitive;
@@ -107,8 +108,8 @@ public interface L2OperandDispatcher
 	void doOperand (L2ReadVectorOperand operand);
 
 	/**
-	 * Process an operand which is a literal {@linkplain MethodDescriptor
-	 * method}.
+	 * Process an operand which is a literal {@link A_Bundle} which the
+	 * resulting {@link L2Chunk} should be dependent upon for invalidation.
 	 *
 	 * @param operand an {@link L2SelectorOperand}.
 	 */

@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
@@ -49,9 +50,18 @@ import static java.lang.String.format;
 public class L2PcOperand extends L2Operand
 {
 	/**
-	 * The label instruction that this operand refers to.
+	 * The {@link L2BasicBlock} that this operand refers to.
 	 */
 	private final L2BasicBlock targetBlock;
+
+	/** The instruction that this operand is part of. */
+	private L2Instruction instruction;
+
+	/**
+	 * An array of {@link L2ReadPointerOperand}s, representing the slots of the
+	 * virtual continuation when following this control flow edge.
+	 */
+	private final L2ReadPointerOperand[] slotRegisters;
 
 	/**
 	 * The collection of {@link PhiRestriction}s along this particular control
@@ -73,16 +83,25 @@ public class L2PcOperand extends L2Operand
 
 	/**
 	 * Construct a new {@code L2PcOperand} with the specified {@link
-	 * L2BasicBlock}.
+	 * L2BasicBlock}, array of naive slot registers, and additional phi
+	 * restrictions.  The array is copied before being captured.
 	 *
 	 * @param targetBlock
 	 *        The {@link L2BasicBlock} The target basic block.
+	 * @param slotRegisters
+	 *        The array of {@link L2ReadPointerOperand}s that hold the virtual
+	 *        continuation's state when following this control flow edge.
+	 * @param phiRestrictions
+	 *        Additional register type and value restrictions to apply along
+	 *        this control flow edge.
 	 */
 	public L2PcOperand (
 		final L2BasicBlock targetBlock,
+		final L2ReadPointerOperand[] slotRegisters,
 		final PhiRestriction... phiRestrictions)
 	{
 		this.targetBlock = targetBlock;
+		this.slotRegisters = slotRegisters.clone();
 		this.phiRestrictions = phiRestrictions;
 	}
 
@@ -90,6 +109,20 @@ public class L2PcOperand extends L2Operand
 	public L2OperandType operandType ()
 	{
 		return L2OperandType.PC;
+	}
+
+	/**
+	 * Answer the captured array of {@link L2ReadPointerOperand}s which
+	 * correspond to the virtual continuation's state when traversing this
+	 * control flow graph edge.
+	 *
+	 * <p>Do not modify this array.</p>
+	 *
+	 * @return An array of {@link L2ReadPointerOperand}s.
+	 */
+	public L2ReadPointerOperand[] slotRegisters ()
+	{
+		return slotRegisters;
 	}
 
 	@Override
@@ -106,6 +139,22 @@ public class L2PcOperand extends L2Operand
 	}
 
 	/**
+	 * This is an operand of the given instruction, which was just added to its
+	 * basic block.
+	 *
+	 * @param theInstruction
+	 *        The {@link L2Instruction} that was just added.
+	 */
+	@Override
+	public void instructionWasAdded (
+		final L2Instruction theInstruction)
+	{
+		// Capture the containing instruction.
+		this.instruction = theInstruction;
+		super.instructionWasAdded(theInstruction);
+	}
+
+	/**
 	 * Answer the target {@link L2BasicBlock} that this operand refers to.
 	 *
 	 * @return The target basic block.
@@ -113,6 +162,16 @@ public class L2PcOperand extends L2Operand
 	public L2BasicBlock targetBlock ()
 	{
 		return targetBlock;
+	}
+
+	/**
+	 * Answer the source {@link L2BasicBlock} that this operand is an edge from.
+	 *
+	 * @return The source basic block.
+	 */
+	public L2BasicBlock sourceBlock ()
+	{
+		return instruction.basicBlock;
 	}
 
 	@Override

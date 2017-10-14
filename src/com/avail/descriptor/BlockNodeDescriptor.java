@@ -166,7 +166,7 @@ extends ParseNodeDescriptor
 		{
 			explicitResultType = null;
 		}
-		A_Set declaredExceptions = object.declaredExceptions();
+		@Nullable A_Set declaredExceptions = object.declaredExceptions();
 		if (declaredExceptions.setSize() == 0)
 		{
 			declaredExceptions = null;
@@ -381,7 +381,7 @@ extends ParseNodeDescriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		final Primitive prim = object.primitive();
+		final @Nullable Primitive prim = object.primitive();
 		return
 			(((object.argumentsTuple().hash() * multiplier
 				+ object.statementsTuple().hash()) * multiplier
@@ -474,13 +474,12 @@ extends ParseNodeDescriptor
 	 * the given {@link AvailCodeGenerator}.
 	 *
 	 * @param object
-	 *            The {@linkplain BlockNodeDescriptor block node}.
+	 *        The block phrase.
 	 * @param module
-	 *            The {@linkplain ModuleDescriptor module} which is intended to
-	 *            hold the resulting code.
-	 * @return
-	 *            An {@link AvailObject} of type {@linkplain FunctionDescriptor
-	 *            function}.
+	 *        The {@linkplain ModuleDescriptor module} which is intended to hold
+	 *        the resulting code.
+	 * @return An {@link AvailObject} of type {@linkplain FunctionDescriptor
+	 *         function}.
 	 */
 	@Override @AvailMethod
 	A_RawFunction o_GenerateInModule (
@@ -607,7 +606,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a {@linkplain BlockNodeDescriptor block node}.
+	 * Construct a block phrase.
 	 *
 	 * @param argumentsList
 	 *            The {@linkplain List list} of {@linkplain
@@ -647,7 +646,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a {@linkplain BlockNodeDescriptor block node}.
+	 * Construct a block phrase.
 	 *
 	 * @param arguments
 	 *            The {@linkplain TupleDescriptor tuple} of {@linkplain
@@ -709,11 +708,11 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Ensure that the {@linkplain BlockNodeDescriptor block node} is valid.
-	 * Throw an appropriate exception if it is not.
+	 * Ensure that the block phrase is valid.  Throw an appropriate exception if
+	 * it is not.
 	 *
 	 * @param blockNode
-	 *        The {@linkplain BlockNodeDescriptor block phrase} to validate.
+	 *        The block phrase to validate.
 	 */
 	public static void recursivelyValidate (
 		final A_Phrase blockNode)
@@ -726,7 +725,7 @@ extends ParseNodeDescriptor
 	 * Figure out what outer variables will need to be captured when a function
 	 * for me is built.
 	 *
-	 * @param object The current {@linkplain BlockNodeDescriptor block node}.
+	 * @param object The block phrase to analyze.
 	 */
 	private void collectNeededVariablesOfOuterBlocks (final AvailObject object)
 	{
@@ -777,7 +776,7 @@ extends ParseNodeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link BlockNodeDescriptor}.
+	 * Construct a new {@code BlockNodeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

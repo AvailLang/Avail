@@ -31,9 +31,11 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
@@ -47,8 +49,9 @@ import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
- * Return into the provided continuation with the given return value.  The
- * continuation may be running as either level one or level two.
+ * Return from the current {@link L2Chunk} with the given return value.  The
+ * value to return will be stored in {@link Interpreter#latestResult(
+ * A_BasicObject)}, so the caller will need to look there.
  */
 public class L2_RETURN extends L2Operation
 {
@@ -78,7 +81,7 @@ public class L2_RETURN extends L2Operation
 				interpreter.integerAt(skipCheckIndex) != 0;
 			interpreter.returnNow = true;
 			final A_Function function = stripNull(interpreter.function);
-			interpreter.returningRawFunction = function.code();
+			interpreter.returningFunction = function.code();
 		};
 	}
 

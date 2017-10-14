@@ -38,7 +38,8 @@ import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -100,9 +101,10 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister variableReg =
+		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister destReg = instruction.writeObjectRegisterAt(1);
+		final L2WritePointerOperand destReg =
+			instruction.writeObjectRegisterAt(1);
 		final int successIndex = instruction.pcOffsetAt(2);
 		final int failureIndex = instruction.pcOffsetAt(3);
 		//TODO MvG - Rework everything related to type propagation.
@@ -111,11 +113,12 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 		final RegisterSet registerSet = registerSets.get(1);
 		// If we haven't already guaranteed that this is a variable then we
 		// are probably not doing things right.
-		assert registerSet.hasTypeAt(variableReg);
-		final A_Type varType = registerSet.typeAt(variableReg);
+		assert registerSet.hasTypeAt(variableReg.register());
+		final A_Type varType = registerSet.typeAt(variableReg.register());
 		assert varType.isSubtypeOf(mostGeneralVariableType());
-		registerSet.removeConstantAt(destReg);
-		registerSet.typeAtPut(destReg, varType.readType(), instruction);
+		registerSet.removeConstantAt(destReg.register());
+		registerSet.typeAtPut(
+			destReg.register(), varType.readType(), instruction);
 	}
 
 	@Override

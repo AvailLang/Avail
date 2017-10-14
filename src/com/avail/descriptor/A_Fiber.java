@@ -332,18 +332,18 @@ extends A_BasicObject
 	long uniqueId ();
 
 	/**
-	 * Set the {@link A_RawFunction} that's suspending the fiber.
+	 * Set the {@link A_Function} that's suspending the fiber.
 	 *
-	 * @param suspendingRawFunction
-	 *        The raw function that's suspending the fiber.
+	 * @param suspendingFunction
+	 *        The function that's suspending the fiber.
 	 */
-	void suspendingRawFunction (A_RawFunction suspendingRawFunction);
+	void suspendingFunction (A_Function suspendingFunction);
 
 	/**
-	 * Answer the {@link A_RawFunction} that was saved in the fiber when it was
+	 * Answer the {@link A_Function} that was saved in the fiber when it was
 	 * suspended.
 	 *
-	 * @return The raw function that suspended the fiber.
+	 * @return The function that suspended the fiber.
 	 */
-	A_RawFunction suspendingRawFunction ();
+	A_Function suspendingFunction ();
 }

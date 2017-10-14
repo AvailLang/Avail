@@ -37,6 +37,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -64,7 +65,8 @@ public class L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT extends L2Operation
 		final Interpreter interpreter)
 	{
 		final int target = instruction.pcOffsetAt(0);
-		final L2ObjectRegister objectReg = instruction.readObjectRegisterAt(1);
+		final L2ReadPointerOperand objectReg =
+			instruction.readObjectRegisterAt(1);
 		final A_Number constant = instruction.constantAt(2);
 
 		final Order comparison =

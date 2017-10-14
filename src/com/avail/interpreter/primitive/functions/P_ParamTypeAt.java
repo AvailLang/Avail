@@ -101,7 +101,7 @@ extends Primitive
 	@Override
 	public boolean regenerate (
 		final L2Instruction instruction,
-		final L1NaiveTranslator naiveTranslator,
+		final L1NaiveTranslator translator,
 		final RegisterSet registerSet)
 	{
 		// Inline the invocation of this P_ParamTypeAt primitive, specifically
@@ -111,46 +111,46 @@ extends Primitive
 //			instruction.readObjectRegisterAt(0);
 //		final L2ObjectRegister invokerFunctionReg =
 //			instruction.readObjectRegisterAt(1);
-		final List<L2ReadPointerOperand> invokerArgumentsVector =
+		final List<L2ReadPointerOperand> invokerArguments =
 			instruction.readVectorRegisterAt(2);
 //		final int skipCheck = instruction.immediateAt(3);
 
 		// Separate the arguments to the primitive: the function type and the
 		// (boxed) index.
-		final List<L2ObjectRegister> arguments =
-			invokerArgumentsVector.registers();
-		final L2ObjectRegister actualFunctionTypeReg = arguments.get(0);
-		final L2ObjectRegister parameterIndexReg = arguments.get(1);
+		final L2ReadPointerOperand functionTypeReg = invokerArguments.get(0);
+		final L2ReadPointerOperand parameterIndexReg = invokerArguments.get(1);
 
-		if (registerSet.hasConstantAt(parameterIndexReg))
+		if (registerSet.hasConstantAt(parameterIndexReg.register()))
 		{
 			final A_Number parameterIndexBoxed =
-				registerSet.constantAt(parameterIndexReg);
+				registerSet.constantAt(parameterIndexReg.register());
 			if (parameterIndexBoxed.isInt())
 			{
 				final int parameterIndex = parameterIndexBoxed.extractInt();
-				assert registerSet.hasTypeAt(actualFunctionTypeReg);
+				assert registerSet.hasTypeAt(functionTypeReg.register());
 				final A_Type functionMeta =
-					registerSet.typeAt(actualFunctionTypeReg);
+					registerSet.typeAt(functionTypeReg.register());
 				final A_Type functionType = functionMeta.instance();
 				final A_Type argsType = functionType.argsTupleType();
 				final A_Type argsSizeRange = argsType.sizeRange();
-				if (parameterIndexBoxed.isInstanceOf(argsSizeRange))
+				if (parameterIndex >= 1
+					&& parameterIndexBoxed.lessOrEqual(
+						argsSizeRange.upperBound()))
 				{
-					final L2ObjectRegister outputReg =
+					final L2WritePointerOperand outputReg =
 						stripNull(
 							instruction.operation.primitiveResultRegister(
 								instruction));
-					naiveTranslator.addInstruction(
+					translator.addInstruction(
 						L2_FUNCTION_PARAMETER_TYPE.instance,
-						new L2ReadPointerOperand(actualFunctionTypeReg),
+						functionTypeReg,
 						new L2ImmediateOperand(parameterIndex),
-						new L2WritePointerOperand(outputReg));
+						outputReg);
 					return true;
 				}
 			}
 		}
-		return super.regenerate(instruction, naiveTranslator, registerSet);
+		return super.regenerate(instruction, translator, registerSet);
 	}
 
 	@Override

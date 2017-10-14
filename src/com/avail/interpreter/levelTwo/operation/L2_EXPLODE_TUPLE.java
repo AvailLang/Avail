@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -103,7 +102,7 @@ public class L2_EXPLODE_TUPLE extends L2Operation
 		for (int i = 1; i <= tupleSize; i++)
 		{
 			registerSet.typeAtPut(
-				elements.get(i - 1).register,
+				elements.get(i - 1).register(),
 				tupleType.typeAtIndex(i),
 				instruction);
 		}

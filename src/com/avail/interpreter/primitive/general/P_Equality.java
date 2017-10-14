@@ -38,10 +38,12 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2BasicBlock;
 
@@ -114,7 +116,7 @@ public final class P_Equality extends Primitive
 		final L1NaiveTranslator translator,
 		final A_Function primitiveFunction,
 		final L2ReadVectorOperand args,
-		final L2WritePointerOperand resultWrite,
+		final int resultSlotIndex,
 		final L2ReadVectorOperand preserved,
 		final A_Type expectedType,
 		final L2WritePointerOperand failureValueWrite,
@@ -129,7 +131,10 @@ public final class P_Equality extends Primitive
 		if (type1.typeIntersection(type2).isBottom())
 		{
 			// The actual values cannot be equal at runtime.
-			translator.moveConstant(falseObject(), resultWrite);
+			translator.moveConstant(falseObject(), resultSlotIndex);
+			translator.addInstruction(
+				L2_MOVE.instance,
+				new L2PcOperand(successBlock, translator.slotRegisters()));
 			return;
 		}
 		// Because of metacovariance, a meta may actually have many instances.
@@ -140,14 +145,24 @@ public final class P_Equality extends Primitive
 			&& !type1.isInstanceMeta())
 		{
 			// The actual values must be equal at runtime.
-			translator.moveConstant(trueObject(), resultWrite);
+			translator.moveConstant(trueObject(), resultSlotIndex);
+			translator.addInstruction(
+				L2_JUMP.instance,
+				new L2PcOperand(successBlock, translator.slotRegisters()));
 			return;
 		}
+
+		// It's contingent.  Eventually we could turn this into an
+		// L2_JUMP_IF_OBJECTS_EQUAL, producing true on one path and false on the
+		// other, merging with a phi.  That would introduce an opportunity for
+		// code splitting back to here, if subsequent uses of the phi register
+		// noticed its origins and cared to do something substantially different
+		// in the true and false cases (say dispatching to an if/then/else).
 		super.generateL2UnfoldableInlinePrimitive(
 			translator,
 			primitiveFunction,
 			args,
-			resultWrite,
+			resultSlotIndex,
 			preserved,
 			expectedType,
 			failureValueWrite,

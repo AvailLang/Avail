@@ -34,6 +34,9 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
@@ -76,16 +79,36 @@ public class L2_PHI_PSEUDO_OPERATION extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		throw new UnsupportedOperationException();
+		throw new UnsupportedOperationException(
+			"This instruction should be factored out before execution");
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		// TODO MvG - Build this at some point when we have loops or inlining
-		// implemented.  Those features require a type strengthening pass.
+		final List<L2ReadPointerOperand> inputRegs =
+			instruction.readVectorRegisterAt(0);
+		final L2WritePointerOperand destinationReg =
+			instruction.writeObjectRegisterAt(1);
+
+		@SuppressWarnings("ConstantConditions")
+		final TypeRestriction restriction = inputRegs.stream()
+			.map(L2ReadPointerOperand::restriction)
+			.reduce(TypeRestriction::union)
+			.get();
+		registerSet.removeConstantAt(destinationReg.register());
+		registerSet.removeTypeAt(destinationReg.register());
+		registerSet.typeAtPut(
+			destinationReg.register(), restriction.type, instruction);
+		if (restriction.constantOrNull != null)
+		{
+			registerSet.constantAtPut(
+				destinationReg.register(),
+				restriction.constantOrNull,
+				instruction);
+		}
 	}
 }

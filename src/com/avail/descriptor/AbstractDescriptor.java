@@ -6648,17 +6648,17 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param suspendingRawFunction
+	 * @param suspendingFunction
 	 */
-	abstract void o_SuspendingRawFunction (
+	abstract void o_SuspendingFunction (
 		final AvailObject object,
-		final A_RawFunction suspendingRawFunction);
+		final A_Function suspendingFunction);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	abstract A_RawFunction o_SuspendingRawFunction (
+	abstract A_Function o_SuspendingFunction (
 		final AvailObject object);
 
 	/**

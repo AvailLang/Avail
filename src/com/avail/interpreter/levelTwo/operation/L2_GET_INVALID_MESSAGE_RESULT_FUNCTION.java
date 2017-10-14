@@ -36,19 +36,30 @@ import com.avail.AvailRuntime;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
  * Store the {@linkplain AvailRuntime#resultDisagreedWithExpectedTypeFunction()
  * invalid result function} into the supplied {@linkplain L2ObjectRegister
  * object register}.
+ *
+ * <p>The function is invoked by the VM whenever an attempt is made to return a
+ * value that doesn't satisfy the call site's expected return type.  The
+ * function is passed the returning function, the expected return type, and the
+ * actual value that it was attempting to return.</p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -67,7 +78,7 @@ extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister destination =
+		final L2WritePointerOperand destination =
 			instruction.writeObjectRegisterAt(0);
 		destination.set(
 			interpreter.runtime().resultDisagreedWithExpectedTypeFunction(),
@@ -80,11 +91,16 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister destination =
+		final L2WritePointerOperand destination =
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
-			destination,
-			functionType(emptyTuple(), bottom()),
+			destination.register(),
+			functionType(
+				tuple(
+					mostGeneralFunctionType(),
+					topMeta(),
+					variableTypeFor(ANY.o())),
+				bottom()),
 			instruction);
 	}
 }

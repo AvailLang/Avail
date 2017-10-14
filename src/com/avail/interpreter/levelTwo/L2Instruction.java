@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Method;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
@@ -148,10 +149,12 @@ public final class L2Instruction
 			assert operands[i].operandType() == operandTypes[i].operandType();
 		}
 		this.operation = operation;
-		this.operands = operands;
+		this.operands = new L2Operand[operands.length];
 		this.basicBlock = basicBlock;
-		for (final L2Operand operand : operands)
+		for (int i = 0; i < operands.length; i++)
 		{
+			final L2Operand operand = operands[i].clone();
+			this.operands[i] = operand;
 			if (operand.operandType().isSource)
 			{
 				operand.transformRegisters(
@@ -181,6 +184,7 @@ public final class L2Instruction
 					});
 			}
 		}
+		//noinspection ThisEscapedInObjectConstruction
 		action = operation.actionFor(this);
 	}
 
@@ -207,15 +211,20 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Answer the possible target {@link L2BasicBlock}s of this instruction.
-	 * This is empty for instructions that don't alter control flow and just
-	 * fall through to the next instruction of the same basic block.
+	 * Answer all possible {@link L2PcOperand}s of this instruction.  These
+	 * edges lead to other {@link L2BasicBlock}s, and carry both the basic slot
+	 * register information and additional {@link PhiRestriction}s for other
+	 * registers that are strengthened along that edge.
 	 *
-	 * @return A {@link List} of successor basic blocks.
+	 * <p>This is empty for instructions that don't alter control flow and just
+	 * fall through to the next instruction of the same basic block.</p>
+	 *
+	 * @return A {@link List} of {@link L2PcOperand}s leading to the successor
+	 *         {@link L2BasicBlock}s.
 	 */
-	public List<L2BasicBlock> targetBlocks ()
+	public List<L2PcOperand> targetEdges ()
 	{
-		return operation.targetBlocks(this);
+		return operation.targetEdges(this);
 	}
 
 	/**
@@ -250,7 +259,7 @@ public final class L2Instruction
 	 * from source {@link L2Register}s to destination registers within the
 	 * provided {@link RegisterSet}s.  There is one RegisterSet for each target
 	 * L2Instruction, including the instruction that follows this one.  They
-	 * occur in the same order as the {@link #targetBlocks()}, with the
+	 * occur in the same order as the {@link #targetEdges()}, with the
 	 * successor instruction's RegisterSet prepended if it {@link
 	 * L2Operation#reachesNextInstruction()}.
 	 *
@@ -264,7 +273,7 @@ public final class L2Instruction
 		final L2Translator translator)
 	{
 		final int count = (operation.reachesNextInstruction() ? 1 : 0)
-			+ targetBlocks().size();
+			+ targetEdges().size();
 		assert registerSets.size() == count;
 		if (count == 1)
 		{
@@ -332,18 +341,6 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Extract the {@link String} from the {@link L2CommentOperand} having the
-	 * specified position in my array of operands.
-	 *
-	 * @param operandIndex Which operand holds the comment.
-	 * @return The String from the comment.
-	 */
-	public String commentAt (final int operandIndex)
-	{
-		return ((L2CommentOperand)operands[operandIndex]).comment;
-	}
-
-	/**
 	 * Extract the constant {@link AvailObject} from the {@link
 	 * L2ConstantOperand} having the specified position in my array of operands.
 	 *
@@ -356,16 +353,18 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Extract an {@link A_Bundle} from the {@link L2ConstantOperand} having
+	 * Extract the {@link A_Bundle} from the {@link L2SelectorOperand} having
 	 * the specified position in my array of operands.  Should only be used if
-	 * it's known that the constant is in fact an {@link A_Bundle}.
+	 * it's known that the constant is in fact an {@link A_Bundle}, and the
+	 * resulting {@link L2Chunk} should be dependent upon changes to its {@link
+	 * A_Method}.
 	 *
-	 * @param operandIndex Which operand holds the constant message bundle.
+	 * @param operandIndex Which operand holds the message bundle.
 	 * @return The message bundle.
 	 */
 	public A_Bundle bundleAt (final int operandIndex)
 	{
-		return ((L2ConstantOperand)operands[operandIndex]).object;
+		return ((L2SelectorOperand)operands[operandIndex]).bundle;
 	}
 
 	/**
@@ -492,6 +491,6 @@ public final class L2Instruction
 	public List<L2WritePointerOperand> writeVectorRegisterAt (
 		final int operandIndex)
 	{
-		return ((L2WriteVectorOperand)operands[operandIndex]).elements;
+		return ((L2WriteVectorOperand)operands[operandIndex]).elements();
 	}
 }

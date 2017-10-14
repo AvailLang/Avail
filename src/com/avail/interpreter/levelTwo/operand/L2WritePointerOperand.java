@@ -135,7 +135,7 @@ public class L2WritePointerOperand extends L2Operand
 	 */
 	public final L2ReadPointerOperand read ()
 	{
-		return new L2ReadPointerOperand(register, register.restriction);
+		return new L2ReadPointerOperand(register, register.restriction());
 	}
 
 	@Override

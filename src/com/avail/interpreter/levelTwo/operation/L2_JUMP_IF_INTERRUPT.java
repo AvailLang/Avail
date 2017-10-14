@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -42,8 +43,9 @@ import java.util.List;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 
 /**
- * Jump to the specified level two program counter if an interrupt has been
- * requested but not yet serviced.  Otherwise do nothing.
+ * Jump to the specified level two program counter if no interrupt has been
+ * requested since last serviced.  Otherwise an interrupt has been requested
+ * and we should proceed to the next instruction.
  */
 public class L2_JUMP_IF_INTERRUPT extends L2Operation
 {
@@ -52,18 +54,21 @@ public class L2_JUMP_IF_INTERRUPT extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_JUMP_IF_INTERRUPT().init(
-			PC.is("target if interrupt"));
+			PC.is("if interrupt"),
+			PC.is("if not interrupt"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
 		final int offsetIfInterrupt = instruction.pcOffsetAt(0);
-		if (interpreter.isInterruptRequested())
+		final int offsetIfNotInterrupt = instruction.pcOffsetAt(1);
+		return interpreter ->
 		{
-			interpreter.offset(offsetIfInterrupt);
-		}
+			interpreter.offset(interpreter.isInterruptRequested()
+				? offsetIfInterrupt
+				: offsetIfNotInterrupt);
+		};
 	}
 
 	@Override
@@ -72,9 +77,9 @@ public class L2_JUMP_IF_INTERRUPT extends L2Operation
 		final List<RegisterSet> registerSets,
 		final L2Translator translator)
 	{
-		// If there's an interrupt then jump, otherwise fall through.  Neither
-		// transition directly affects registers, although the instruction
-		// sequence that deals with an interrupt may do plenty.
+		// If there's an interrupt then fall through, otherwise jump as
+		// indicated.  Neither transition directly affects registers, although
+		// the instruction sequence that deals with an interrupt may do plenty.
 		assert registerSets.size() == 2;
 	}
 

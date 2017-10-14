@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.DefinitionDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
@@ -96,6 +98,21 @@ public enum L2OperandType
 		void dispatch(final L2OperandTypeDispatcher dispatcher)
 		{
 			dispatcher.doPrimitive();
+		}
+	},
+
+	/**
+	 * Like a {@link #CONSTANT}, the {@link L2SelectorOperand} holds the actual
+	 * AvailObject, but it is known to be an {@link A_Bundle}.  The {@link
+	 * L2Chunk} depends on this bundle, invalidating itself if its {@link
+	 * DefinitionDescriptor definitions} change.
+	 */
+	SELECTOR(false, false)
+	{
+		@Override
+		void dispatch(final L2OperandTypeDispatcher dispatcher)
+		{
+			dispatcher.doSelector();
 		}
 	},
 
@@ -193,7 +210,7 @@ public enum L2OperandType
 
 	/**
 	 * Invoke an entry point of the passed {@linkplain L2OperandTypeDispatcher
-	 * operand type dispatcher} that's specific to which {@link L2OperandType}
+	 * operand type dispatcher} that's specific to which {@code L2OperandType}
 	 * the receiver is.
 	 *
 	 * @param dispatcher
@@ -213,7 +230,7 @@ public enum L2OperandType
 	public final boolean isDestination;
 
 	/**
-	 * Construct a new {@link L2OperandType}.  Remember, this is an enum, so
+	 * Construct a new {@code L2OperandType}.  Remember, this is an enum, so
 	 * the only constructor calls are in the enum member definitions.
 	 *
 	 * @param isSource
@@ -233,11 +250,11 @@ public enum L2OperandType
 	 * Create a {@link L2NamedOperandType} from the receiver and a {@link
 	 * String} naming its role within some {@link L2Operation}.
 	 *
-	 * @param name The name of this operand.
+	 * @param roleName The name of this operand.
 	 * @return A named operand type.
 	 */
-	public L2NamedOperandType is (final String name)
+	public L2NamedOperandType is (final String roleName)
 	{
-		return new L2NamedOperandType(this, name);
+		return new L2NamedOperandType(this, roleName);
 	}
 }

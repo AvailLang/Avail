@@ -36,6 +36,7 @@ import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
@@ -64,8 +65,10 @@ public class L2_JUMP_IF_LESS_THAN_OBJECT extends L2Operation
 		final Interpreter interpreter)
 	{
 		final int target = instruction.pcOffsetAt(0);
-		final L2ObjectRegister firstReg = instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister secondReg = instruction.readObjectRegisterAt(2);
+		final L2ReadPointerOperand firstReg =
+			instruction.readObjectRegisterAt(1);
+		final L2ReadPointerOperand secondReg =
+			instruction.readObjectRegisterAt(2);
 
 		final Order comparison =
 			firstReg.in(interpreter).numericCompare(secondReg.in(interpreter));

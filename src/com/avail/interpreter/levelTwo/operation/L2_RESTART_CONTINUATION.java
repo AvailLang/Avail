@@ -38,6 +38,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.optimizer.L2Translator;
@@ -70,7 +71,7 @@ public class L2_RESTART_CONTINUATION extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister continuationReg =
+		final L2ReadPointerOperand continuationReg =
 			instruction.readObjectRegisterAt(0);
 
 		final A_Continuation continuation = continuationReg.in(interpreter);

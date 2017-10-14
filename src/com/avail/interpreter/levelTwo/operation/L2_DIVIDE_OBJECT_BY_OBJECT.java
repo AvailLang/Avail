@@ -37,7 +37,8 @@ import com.avail.exceptions.ArithmeticException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -59,21 +60,24 @@ public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
 			READ_POINTER.is("divisor"),
 			WRITE_POINTER.is("quotient"),
 			WRITE_POINTER.is("remainder"),
-			PC.is("if out of range"));
+			PC.is("if undefined"),
+			PC.is("success"));
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister dividendReg =
+		final L2ReadPointerOperand dividendReg =
 			instruction.readObjectRegisterAt(0);
-		final L2ObjectRegister divisorReg = instruction.readObjectRegisterAt(1);
-		final L2ObjectRegister quotientReg =
+		final L2ReadPointerOperand divisorReg =
+			instruction.readObjectRegisterAt(1);
+		final L2WritePointerOperand quotientReg =
 			instruction.writeObjectRegisterAt(2);
-		final L2ObjectRegister remainderReg =
+		final L2WritePointerOperand remainderReg =
 			instruction.writeObjectRegisterAt(3);
-		final int outOfRangeIndex = instruction.pcOffsetAt(4);
+		final int undefinedIndex = instruction.pcOffsetAt(4);
+		final int successIndex = instruction.pcOffsetAt(5);
 
 		final A_Number dividend = dividendReg.in(interpreter);
 		final A_Number divisor = divisorReg.in(interpreter);
@@ -81,14 +85,14 @@ public class L2_DIVIDE_OBJECT_BY_OBJECT extends L2Operation
 		{
 			final A_Number quotient = dividend.divideCanDestroy(divisor, false);
 			final A_Number remainder = dividend.minusCanDestroy(
-				quotient.timesCanDestroy(divisor, false),
-				false);
+				quotient.timesCanDestroy(divisor, false), false);
 			quotientReg.set(quotient, interpreter);
 			remainderReg.set(remainder, interpreter);
+			interpreter.offset(successIndex);
 		}
 		catch (final ArithmeticException e)
 		{
-			interpreter.offset(outOfRangeIndex);
+			interpreter.offset(undefinedIndex);
 		}
 	}
 

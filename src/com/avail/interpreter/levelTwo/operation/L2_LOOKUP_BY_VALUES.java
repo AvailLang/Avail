@@ -71,7 +71,7 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 	 */
 	public static final L2Operation instance =
 		new L2_LOOKUP_BY_VALUES().init(
-			CONSTANT.is("message bundle"),
+			SELECTOR.is("message bundle"),
 			READ_VECTOR.is("arguments"),
 			WRITE_POINTER.is("looked up function"),
 			WRITE_POINTER.is("error code"),

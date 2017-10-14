@@ -42,7 +42,6 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2BasicBlock;
 
@@ -116,7 +115,7 @@ public final class P_LessOrEqual extends Primitive
 		final L1NaiveTranslator translator,
 		final A_Function primitiveFunction,
 		final L2ReadVectorOperand args,
-		final L2WritePointerOperand resultWrite,
+		final int resultSlotIndex,
 		final L2ReadVectorOperand preserved,
 		final A_Type expectedType,
 		final L2WritePointerOperand failureValueWrite,
@@ -137,14 +136,15 @@ public final class P_LessOrEqual extends Primitive
 		assert canBeTrue || canBeFalse;
 		if (!canBeTrue || !canBeFalse)
 		{
-			translator.moveConstant(objectFromBoolean(canBeTrue), resultWrite);
+			translator.moveConstant(objectFromBoolean(canBeTrue),
+				resultSlotIndex);
 			return;
 		}
 		super.generateL2UnfoldableInlinePrimitive(
 			translator,
 			primitiveFunction,
 			args,
-			resultWrite,
+			resultSlotIndex,
 			preserved,
 			expectedType,
 			failureValueWrite,

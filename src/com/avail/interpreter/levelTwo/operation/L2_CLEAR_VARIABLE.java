@@ -35,6 +35,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -60,7 +61,7 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister variableReg =
+		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
 		variableReg.in(interpreter).clearValue();
 	}
@@ -71,12 +72,12 @@ public class L2_CLEAR_VARIABLE extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister variableReg =
+		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
 		// If we haven't already guaranteed that this is a variable then we
 		// are probably not doing things right.
-		assert registerSet.hasTypeAt(variableReg);
-		final A_Type varType = registerSet.typeAt(variableReg);
+		assert registerSet.hasTypeAt(variableReg.register());
+		final A_Type varType = registerSet.typeAt(variableReg.register());
 		assert varType.isSubtypeOf(mostGeneralVariableType());
 	}
 

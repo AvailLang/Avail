@@ -36,6 +36,7 @@ import com.avail.AvailRuntime;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -67,7 +68,7 @@ extends L2Operation
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		final L2ObjectRegister destination =
+		final L2WritePointerOperand destination =
 			instruction.writeObjectRegisterAt(0);
 		destination.set(
 			interpreter.runtime().unassignedVariableReadFunction(),
@@ -80,10 +81,10 @@ extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final L2ObjectRegister destination =
+		final L2WritePointerOperand destination =
 			instruction.writeObjectRegisterAt(0);
 		registerSet.typeAtPut(
-			destination,
+			destination.register(),
 			functionType(emptyTuple(), bottom()),
 			instruction);
 	}

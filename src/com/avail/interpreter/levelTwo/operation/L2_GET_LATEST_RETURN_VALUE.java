@@ -1,5 +1,5 @@
 /**
- * L2_JUMP_IF_NOT_INTERRUPT.java
+ * L2_GET_LATEST_RETURN_VALUE.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,65 +29,47 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 
-import java.util.List;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
 /**
- * Jump to the specified level two program counter if no interrupt has been
- * requested since last serviced.  Otherwise an interrupt has been requested
- * and we should proceed to the next instruction.
+ * Ask the {@link Interpreter} for its {@link Interpreter#latestResult()}, which
+ * is how functions return values.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_JUMP_IF_NOT_INTERRUPT extends L2Operation
+public class L2_GET_LATEST_RETURN_VALUE extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_JUMP_IF_NOT_INTERRUPT().init(
-			PC.is("target if not interrupt"));
+		new L2_GET_LATEST_RETURN_VALUE().init(
+			WRITE_POINTER.is("latest result"));
 
 	@Override
-	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
-		final L2Instruction instruction)
-	{
-		final int offsetIfNotInterrupt = instruction.pcOffsetAt(0);
-		return interpreter ->
-		{
-			if (!interpreter.isInterruptRequested())
-			{
-				interpreter.offset(offsetIfNotInterrupt);
-			}
-		};
-	}
-
-	@Override
-	protected void propagateTypes (
+	public void step (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Translator translator)
+		final Interpreter interpreter)
 	{
-		// If there's an interrupt then fall through, otherwise jump as
-		// indicated.  Neither transition directly affects registers, although
-		// the instruction sequence that deals with an interrupt may do plenty.
-		assert registerSets.size() == 2;
+		final L2WritePointerOperand targetReg =
+			instruction.writeObjectRegisterAt(0);
+		targetReg.set(interpreter.latestResult(), interpreter);
 	}
 
 	@Override
 	public boolean hasSideEffect ()
 	{
-		// It jumps, which counts as a side effect.  It also dynamically tests
-		// for an interrupt request, which doesn't commute well with other
-		// instructions.
+		// Technically it doesn't have a side-effect, but this flag keeps the
+		// instruction from being re-ordered to a place where the return value
+		// is no longer available.
 		return true;
 	}
 }

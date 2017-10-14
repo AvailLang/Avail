@@ -91,42 +91,6 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 
 		final A_RawFunction code = translator.codeOrFail();
 		assert regs.size() == fixedRegisterCount() + code.numArgs();
-		assert regs.get(NULL.ordinal())
-			== translator.fixed(NULL);
-		assert regs.get(CALLER.ordinal())
-			== translator.fixed(CALLER);
-		assert regs.get(FUNCTION.ordinal())
-			== translator.fixed(FUNCTION);
-		assert regs.get(PRIMITIVE_FAILURE.ordinal())
-			== translator.fixed(PRIMITIVE_FAILURE);
-		for (int i = 1, end = code.numArgs(); i <= end; i++)
-		{
-			assert regs.get(fixedRegisterCount() + i - 1)
-				== translator.continuationSlot(i);
-		}
-		registerSet.constantAtPut(
-			translator.fixed(NULL),
-			nil,
-			instruction);
-		registerSet.typeAtPut(
-			translator.fixed(CALLER),
-			mostGeneralContinuationType(),
-			instruction);
-		registerSet.typeAtPut(
-			translator.fixed(FUNCTION),
-			code.functionType(),
-			instruction);
-		final @Nullable Primitive primitive = code.primitive();
-		if (primitive != null)
-		{
-			if (!primitive.hasFlag(Flag.CannotFail))
-			{
-				registerSet.typeAtPut(
-					translator.fixed(PRIMITIVE_FAILURE),
-					primitive.failureVariableType(),
-					instruction);
-			}
-		}
 		final A_Type argsType = code.functionType().argsTupleType();
 		for (int i = 1, end = code.numArgs(); i <= end; i++)
 		{

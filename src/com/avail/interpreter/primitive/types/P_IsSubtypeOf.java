@@ -39,7 +39,6 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2BasicBlock;
 
@@ -48,6 +47,8 @@ import java.util.List;
 
 import static com.avail.descriptor.AtomDescriptor.*;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.EnumerationTypeDescriptor.falseType;
+import static com.avail.descriptor.EnumerationTypeDescriptor.trueType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -99,7 +100,7 @@ public final class P_IsSubtypeOf extends Primitive
 		final L1NaiveTranslator translator,
 		final A_Function primitiveFunction,
 		final L2ReadVectorOperand args,
-		final L2WritePointerOperand resultWrite,
+		final int resultSlotIndex,
 		final L2ReadVectorOperand preserved,
 		final A_Type expectedType,
 		final L2WritePointerOperand failureValueWrite,
@@ -124,7 +125,10 @@ public final class P_IsSubtypeOf extends Primitive
 			{
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
-				translator.moveConstant(trueObject(), resultWrite);
+				translator.moveConstant(
+					trueObject(),
+					translator.writeSlot(
+						resultSlotIndex, trueType(), trueObject()));
 				return;
 			}
 		}
@@ -140,7 +144,10 @@ public final class P_IsSubtypeOf extends Primitive
 				// and it is not a subtype of y.  The actual y might be more
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
-				translator.moveConstant(falseObject(), resultWrite);
+				translator.moveConstant(
+					falseObject(),
+					translator.writeSlot(
+						resultSlotIndex, falseType(), falseObject()));
 				return;
 			}
 		}
@@ -148,7 +155,7 @@ public final class P_IsSubtypeOf extends Primitive
 			translator,
 			primitiveFunction,
 			args,
-			resultWrite,
+			resultSlotIndex,
 			preserved,
 			expectedType,
 			failureValueWrite,

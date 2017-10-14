@@ -31,39 +31,43 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.AvailRuntime;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Execute a primitive with the provided arguments, writing the result into
- * the specified register. The primitive must not fail. Check that the resulting
- * object's type agrees with the provided expected type, branching if it does,
- * otherwise falling through to failure reporting code.
+ * the specified register.  The primitive must not fail.  Don't check the result
+ * type, since the VM has already guaranteed it is correct.
  *
  * <p>
  * Unlike for {@link L2_INVOKE} and related operations, we do not provide
- * the calling continuation here. That's because by inlining the primitive
+ * the calling continuation here.  That's because by inlining the primitive
  * attempt we have avoided (or at worst postponed) construction of the
- * continuation that reifies the current function execution. This is a Good
+ * continuation that reifies the current function execution.  This is a Good
  * Thing, performance-wise.
  * </p>
  */
-public class L2_RUN_INFALLIBLE_PRIMITIVE
-extends L2Operation
+public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
@@ -72,86 +76,105 @@ extends L2Operation
 		new L2_RUN_INFALLIBLE_PRIMITIVE().init(
 			PRIMITIVE.is("primitive to run"),
 			READ_VECTOR.is("arguments"),
-			CONSTANT.is("expected type"),
-			WRITE_POINTER.is("primitive result"),
-			PC.is("if result agrees with expected type"));
+			WRITE_POINTER.is("primitive result"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
 		final Primitive primitive = instruction.primitiveAt(0);
-		final List<L2ReadPointerOperand> argsVector = instruction.readVectorRegisterAt(1);
-		final A_Type expectedType = instruction.constantAt(2);
-		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
+		final List<L2ReadPointerOperand> argumentRegs =
+			instruction.readVectorRegisterAt(1);
+		final int resultRegNumber =
+			instruction.writeObjectRegisterAt(2).finalIndex();
 
-		final int goodResultOffset = instruction.pcOffsetAt(4);
-
-		interpreter.argsBuffer.clear();
-		for (final L2ObjectRegister argumentRegister : argsVector.registers())
+		// Pre-decode the argument registers as much as possible.
+		final int[] argumentRegNumbers = new int[argumentRegs.size()];
+		for (int i = 0; i < argumentRegNumbers.length; i++)
 		{
-			interpreter.argsBuffer.add(argumentRegister.in(interpreter));
+			argumentRegNumbers[i] = argumentRegs.get(i).finalIndex();
 		}
-		// Only primitive 340 is infallible and yet needs the function,
-		// and it's always folded.  In the case that primitive 340 is known to
-		// produce the wrong type at some site (potentially dead code due to
-		// inlining of an unreachable branch), it is converted to an
-		// explicit failure instruction.  Thus we can pass null.
-		// Note also that primitives which have to suspend the fiber (to perform
-		// a level one unsafe operation and then switch back to level one safe
-		// mode) must *never* be inlined, otherwise they couldn't reach a safe
-		// inter-nybblecode position.
-		// Also, the skipReturnCheck flag doesn't come into play for infallible
-		// primitives, since we check it below instead.
-		final Result res = interpreter.attemptPrimitive(
-			primitive,
-			interpreter.argsBuffer,
-			false);
 
-		assert res == SUCCESS;
-
-		final AvailObject result = interpreter.latestResult();
-		final long before = AvailRuntime.captureNanos();
-		final boolean checkOk = result.isInstanceOf(expectedType);
-		final long after = AvailRuntime.captureNanos();
-		primitive.addNanosecondsCheckingResultType(
-			after - before,
-			interpreter.interpreterIndex);
-		if (checkOk)
+		return interpreter ->
 		{
-			resultReg.set(result, interpreter);
-			interpreter.offset(goodResultOffset);
-		}
+			interpreter.argsBuffer.clear();
+			Arrays.stream(argumentRegNumbers)
+				.mapToObj(interpreter::pointerAt)
+				.forEach(interpreter.argsBuffer::add);
+			// Only primitive 340 is infallible and yet needs the function, and
+			// it's always folded.  In the case that primitive 340 is known to
+			// produce the wrong type at some site (potentially dead code due to
+			// inlining of an unreachable branch), it is converted to an
+			// explicit failure instruction.  Thus we can pass null.  Note also
+			// that primitives which have to suspend the fiber (to perform a
+			// level one unsafe operation and then switch back to level one safe
+			// mode) must *never* be inlined, otherwise they couldn't reach a
+			// safe inter-nybblecode position.  Also, the skipReturnCheck flag
+			// doesn't come into play for infallible primitives, since we would
+			// check it after it runs -- but this is the no-check version
+			// anyhow, so we don't check it at all.
+			final A_Function savedFunction = stripNull(interpreter.function);
+			// Eligible primitives MUST NOT access this.
+			interpreter.function = null;
+			final Result res = interpreter.attemptPrimitive(
+				primitive, interpreter.argsBuffer, false);
+			assert res == SUCCESS;
+			interpreter.function = savedFunction;
+			interpreter.pointerAtPut(
+				resultRegNumber, interpreter.latestResult());
+		};
 	}
 
 	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
+		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		final A_Type expectedType = instruction.constantAt(2);
-		final L2ObjectRegister resultReg = instruction.writeObjectRegisterAt(3);
+		final Primitive primitive = instruction.primitiveAt(0);
+		final List<L2ReadPointerOperand> argsVector =
+			instruction.readVectorRegisterAt(1);
+		final L2WritePointerOperand resultReg =
+			instruction.writeObjectRegisterAt(2);
 
-		// This operation *checks* that the returned object is of the specified
-		// expectedType, so if the operation completes normally, the resultReg
-		// *will* have the expected type.
-		final RegisterSet successRegisterSet = registerSets.get(1);
-		successRegisterSet.removeTypeAt(resultReg);
-		successRegisterSet.removeConstantAt(resultReg);
-		successRegisterSet.typeAtPut(resultReg, expectedType, instruction);
+		final List<A_Type> argTypes = new ArrayList<>(argsVector.size());
+		for (final L2ReadPointerOperand arg : argsVector)
+		{
+			assert registerSet.hasTypeAt(arg.register());
+			argTypes.add(registerSet.typeAt(arg.register()));
+		}
+		// We can at least believe what the primitive itself says it returns.
+		final A_Type guaranteedType =
+			primitive.returnTypeGuaranteedByVM(argTypes);
+		registerSet.removeTypeAt(resultReg.register());
+		registerSet.removeConstantAt(resultReg.register());
+		if (!guaranteedType.isBottom())
+		{
+			registerSet.typeAtPut(
+				resultReg.register(), guaranteedType, instruction);
+		}
 	}
 
 	@Override
 	public boolean hasSideEffect (final L2Instruction instruction)
 	{
-		// One would think that an invocation of an infallible primitive whose
-		// result is not needed would not have a side-effect.  One would be
-		// wrong for this kind of instruction, however, since it is required to
-		// verify that the primitive result satisfies a strengthened return
-		// type (and report a problem if it doesn't).  That counts as a side
-		// effect, preventing this instruction from simply evaporating.
-		return true;
+		// It depends on the primitive.
+		assert instruction.operation == this;
+		final L2PrimitiveOperand primitiveOperand =
+			(L2PrimitiveOperand) instruction.operands[0];
+		final Primitive primitive = primitiveOperand.primitive;
+		return primitive.hasFlag(Flag.HasSideEffect)
+			|| primitive.hasFlag(Flag.CatchException)
+			|| primitive.hasFlag(Flag.Invokes)
+			|| primitive.hasFlag(Flag.SwitchesContinuation)
+			|| primitive.hasFlag(Flag.Unknown);
+	}
+
+	@Override
+	public L2WritePointerOperand primitiveResultRegister (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		return instruction.writeObjectRegisterAt(2);
 	}
 }

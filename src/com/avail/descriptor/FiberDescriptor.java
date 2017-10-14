@@ -337,10 +337,10 @@ extends Descriptor
 		CONTINUATION,
 
 		/**
-		 * The {@link A_RawFunction} that suspended this fiber, or {@link
+		 * The {@link A_Function} that suspended this fiber, or {@link
 		 * NilDescriptor#nil} if it's not suspended.
 		 */
-		SUSPENDING_RAW_FUNCTION,
+		SUSPENDING_FUNCTION,
 
 		/**
 		 * The result type of this {@linkplain FiberDescriptor fiber}'s
@@ -1304,17 +1304,17 @@ extends Descriptor
 	}
 
 	@Override
-	void o_SuspendingRawFunction (
+	void o_SuspendingFunction (
 		final AvailObject object,
-		final A_RawFunction suspendingRawFunction)
+		final A_Function suspendingFunction)
 	{
-		object.setSlot(SUSPENDING_RAW_FUNCTION, suspendingRawFunction);
+		object.setSlot(SUSPENDING_FUNCTION, suspendingFunction);
 	}
 
 	@Override
-	A_RawFunction o_SuspendingRawFunction (final AvailObject object)
+	A_Function o_SuspendingFunction (final AvailObject object)
 	{
-		return object.slot(SUSPENDING_RAW_FUNCTION);
+		return object.slot(SUSPENDING_FUNCTION);
 	}
 
 	/**
@@ -1501,7 +1501,7 @@ extends Descriptor
 		fiber.setSlot(NAME_OR_NIL, nil);
 		fiber.setSlot(PRIORITY, priority);
 		fiber.setSlot(CONTINUATION, nil);
-		fiber.setSlot(SUSPENDING_RAW_FUNCTION, nil);
+		fiber.setSlot(SUSPENDING_FUNCTION, nil);
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
 		fiber.setSlot(BREAKPOINT_BLOCK, nil);
 		fiber.setSlot(FIBER_GLOBALS, emptyMap());
@@ -1551,7 +1551,7 @@ extends Descriptor
 		fiber.setSlot(NAME_GENERATOR, identityPojo(nameGenerator));
 		fiber.setSlot(PRIORITY, loaderPriority);
 		fiber.setSlot(CONTINUATION, nil);
-		fiber.setSlot(SUSPENDING_RAW_FUNCTION, nil);
+		fiber.setSlot(SUSPENDING_FUNCTION, nil);
 		fiber.setSlot(EXECUTION_STATE, UNSTARTED.ordinal());
 		fiber.setSlot(BREAKPOINT_BLOCK, nil);
 		fiber.setSlot(FIBER_GLOBALS, emptyMap());

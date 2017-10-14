@@ -89,7 +89,7 @@ public class L2ReadPointerOperand extends L2Operand
 	{
 		this.register = register;
 		this.restriction =
-			restriction == null ? register.restriction : restriction;
+			restriction == null ? register.restriction() : restriction;
 	}
 
 	/**
