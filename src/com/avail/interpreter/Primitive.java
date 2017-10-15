@@ -33,35 +33,25 @@
 package com.avail.interpreter;
 
 import com.avail.annotations.InnerAccess;
-import com.avail.descriptor.*;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FunctionTypeDescriptor;
+import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE;
-import com.avail.interpreter.levelTwo.operation
-	.L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK;
-import com.avail.interpreter.levelTwo.operation
-	.L2_GET_INVALID_MESSAGE_RESULT_FUNCTION;
-import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
-import com.avail.interpreter.levelTwo.operation
-	.L2_INVOKE_AFTER_FAILED_PRIMITIVE;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
-import com.avail.interpreter.levelTwo.operation.L2_RETURN;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
 import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.optimizer.L1NaiveTranslator;
-import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.Serializer;
@@ -80,16 +70,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.avail.descriptor.AvailObject.error;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.optimizer.L1NaiveTranslator.readVector;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 
 
 /**
@@ -457,9 +445,9 @@ implements IntegerEnumSlotDescriptionEnum
 	public Fallibility fallibilityForArgumentTypes (
 		final List<? extends A_Type> argumentTypes)
 	{
-		return hasFlag(Flag.CannotFail)
+		return hasFlag(CannotFail)
 			? CallSiteCannotFail
-			: Fallibility.CallSiteCanFail;
+			: CallSiteCanFail;
 	}
 
 	/**
@@ -821,7 +809,7 @@ implements IntegerEnumSlotDescriptionEnum
 	public boolean canHaveNybblecodes ()
 	{
 		return
-			!hasFlag(Flag.CannotFail)
+			!hasFlag(CannotFail)
 				|| hasFlag(Flag.SpecialReturnConstant)
 				|| hasFlag(Flag.SpecialReturnSoleArgument)
 				|| hasFlag(Flag.SpecialReturnGlobalValue);
@@ -968,314 +956,51 @@ implements IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * This is an <em>inlineable</em> primitive, so it can only succeed with
-	 * some value or fail.  The value can't be an instance of bottom, so the
-	 * primitive's guaranteed return type can't be bottom.  If the primitive
-	 * fails, the backup code can produce bottom, but since this primitive
-	 * could have succeeded instead, the function itself must not be
-	 * naturally bottom typed.  If a semantic restriction has strengthened
-	 * the result type to bottom, only the backup code's return instruction
-	 * would be at risk, but invalidly returning some value from there would
-	 * have to check the value's type against the expected type -- and then
-	 * fail to return.
+	 * The primitive couldn't be folded out, so see if alternative instructions
+	 * can be generated for its invocation.  If so, answer the {@link
+	 * L2ReadPointerOperand} in which the result will be placed, otherwise
+	 * answer {@code null} to indicate a general invocation mechanism should be
+	 * used.
 	 *
+	 * @param functionToCallReg
+	 *        The {@link L2ReadPointerOperand} register that holds the function
+	 *        being invoked.  The function's primitive is known to be the
+	 *        receiver.
+	 * @param arguments
+	 *        The argument {@link L2ReadPointerOperand}s supplied to the
+	 *        function.
 	 * @param translator
-	 *        The {@link L1NaiveTranslator} in which to generate an inlined
-	 *        call to this primitive.
-	 * @param primitiveFunction
-	 *        The {@code Primitive} {@linkplain FunctionDescriptor function}
-	 *        being invoked.
-	 * @param args
-	 *        The {@link L2ReadVectorOperand} holding the registers that will
-	 *        provide arguments at invocation time.
-	 * @param resultSlotIndex
-	 *        The slot index into which the result should be written if the
-	 *        primitive's result agrees with the expectedType.
-	 * @param preserved
-	 *        The {@link L2ReadVectorOperand} holding the registers whose values
-	 *        must be preserved whether the primitive succeeds or fails.
-	 * @param expectedType
-	 *        The type of value that this primitive invocation is expected to
-	 *        produce at this call site.
-	 * @param failureValueWrite
-	 *        Where to write the primitive failure value in the case that the
-	 *        primitive fails.
-	 * @param successBlock
-	 *        Where to jump if the primitive is successful and produces a value
-	 *        with the expectedType.  A new register at resultSlotIndex must be
-	 *        written in this case.
-	 * @param canFailPrimitive
-	 *        Whether it's possible for the primitive to fail with the provided
-	 *        types of arguments.
-	 * @param skipReturnCheck
-	 *        Whether we can safely skip the check that the primitive's return
-	 *        value matches the type expected at this call site.
+	 *        The {@link L1NaiveTranslator} on which to emit code, if possible.
+	 * @return The {@link L2ReadPointerOperand} that will hold the result of the
+	 *         invocation-equivalent instructions that were output, or {@code
+	 *         null} if no such optimization was possible, implying a general
+	 *         invocation should be generated instead.
 	 */
-	public void generateL2UnfoldableInlinePrimitive (
-		final L1NaiveTranslator translator,
-		final A_Function primitiveFunction,
-		final L2ReadVectorOperand args,
-		final int resultSlotIndex,
-		final L2ReadVectorOperand preserved,
-		final A_Type expectedType,
-		final L2WritePointerOperand failureValueWrite,
-		final L2BasicBlock successBlock,
-		final boolean canFailPrimitive,
-		final boolean skipReturnCheck)
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1NaiveTranslator translator)
 	{
-		final List<A_Type> argumentTypes = args.types();
-		final A_Type guaranteedType = returnTypeGuaranteedByVM(argumentTypes);
-		final A_Type strongCheckedType =
-			guaranteedType.typeIntersection(expectedType);
-		final L2WritePointerOperand uncheckedResult =
-			translator.newObjectRegisterWriter(guaranteedType, null);
-		if (!canFailPrimitive)
+		// In the general case, avoid producing failure and reification code if
+		// the primitive is infallible.
+		if (hasFlag(CannotFail)
+			|| fallibilityForArgumentTypes(argumentTypes) == CallSiteCannotFail)
 		{
-			// Note that a primitive cannot have return type of bottom unless
-			// it's non-inlineable (already excluded here).
-			assert !expectedType.isBottom();
-			// Run the primitive.
+			// The primitive cannot fail at this site.  Output code to run the
+			// primitive as simply as possible, feeding a register with as
+			// strong a type as possible.
+			final L2WritePointerOperand writer =
+				translator.newObjectRegisterWriter(
+					returnTypeGuaranteedByVM(argumentTypes),
+					null);
 			translator.addInstruction(
 				L2_RUN_INFALLIBLE_PRIMITIVE.instance,
 				new L2PrimitiveOperand(this),
-				args,
-				uncheckedResult);
-			if (!skipReturnCheck)
-			{
-				// The primitive was infallible, but the result must be checked.
-				final L2BasicBlock typeSuccessBlock =
-					translator.createBasicBlock("passed type check");
-				final L2BasicBlock typeFailureBlock =
-					translator.createBasicBlock("failed type check");
-				final L2BasicBlock reificationDuringFailure =
-					translator.createBasicBlock("reification during failure");
-				translator.addInstruction(
-					L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-					uncheckedResult,
-					new L2ConstantOperand(expectedType),
-					new L2PcOperand(
-						typeSuccessBlock,
-						translator.slotRegisters(),
-						uncheckedResult.read().restrictedTo(
-							strongCheckedType, null)),
-					new L2PcOperand(
-						typeFailureBlock,
-						translator.slotRegisters(),
-						uncheckedResult.read().restrictedWithoutType(
-							expectedType)));
-
-				// The type test failed.
-				translator.startBlock(typeFailureBlock);
-//				final L2ReadPointerOperand invalidResultFunctionRegister =
-//					translator.getInvalidResultFunctionRegister();
-//				final L2ReadPointerOperand expectedTypeRegister =
-//					translator.constantRegister(expectedType);
-//				translator.addInstruction(
-//					L2_INVOKE.instance,
-//					invalidResultFunctionRegister,
-//					new L2ReadVectorOperand(
-//						asList(
-//							translator.constantRegister(primitiveFunction),
-//							expectedTypeRegister,
-//							uncheckedResult.read())),
-//					new L2ImmediateOperand(1),
-//					translator.unreachablePcOperand(),
-//					new L2PcOperand(
-//						reificationDuringFailure, translator.slotRegisters()));
-//
-//				// Reification is happening while running the function that's
-//				// invoked on a bad return type.  Maintain reflective accuracy.
-//				translator.startBlock(reificationDuringFailure);
-//				final L2ReadPointerOperand newContinuation = translator.reify(
-//					translator.continuationSlotsList(translator.numSlots()),
-//					translator.constantRegister(nil),
-//					translator.getCurrentFunction(),
-//					translator.unreachablePcOperand());
-//				translator.addInstruction(
-//					L2_RETURN.instance,
-//					newContinuation,
-//					translator.getSkipReturnCheck());
-
-				translator.startBlock(typeSuccessBlock);
-				// Fall through to generate the common code whether checked or
-				// unchecked.
-			}
-
-			// Either way, move from the uncheckedResult register into the
-			// appropriate slot, and jump to the successBlock.
-			translator.moveRegister(
-				uncheckedResult.read(),
-				translator.writeSlot(resultSlotIndex, strongCheckedType, null));
-			translator.addInstruction(
-				L2_JUMP.instance,
-				new L2PcOperand(successBlock, translator.slotRegisters()));
-			return;
+				readVector(arguments),
+				writer);
+			return writer.read();
 		}
-
-		// The primitive is fallible for these arguments.
-		final L2BasicBlock primSuccessBlock =
-			translator.createBasicBlock("passed primitive");
-		final L2BasicBlock primFailureBlock =
-			translator.createBasicBlock("failed primitive");
-		translator.addInstruction(
-			L2_ATTEMPT_INLINE_PRIMITIVE_NO_CHECK.instance,
-			new L2PrimitiveOperand(this),
-			new L2ConstantOperand(primitiveFunction),
-			args,
-			uncheckedResult,
-			failureValueWrite,
-			new L2PcOperand(primSuccessBlock, translator.slotRegisters()),
-			new L2PcOperand(primFailureBlock, translator.slotRegisters()));
-
-		// The primitive failed.
-		translator.startBlock(primFailureBlock);
-		final L2BasicBlock reificationDuringPrimFailure =
-			translator.createBasicBlock("reification in failure body");
-		translator.addInstruction(
-			L2_INVOKE_AFTER_FAILED_PRIMITIVE.instance,
-			new L2ConstantOperand(primitiveFunction),
-			args,
-			new L2ImmediateOperand(skipReturnCheck ? 1 : 0),
-			failureValueWrite.read(),
-			new L2PcOperand(
-				successBlock,
-				translator.slotRegisters()),
-			new L2PcOperand(
-				reificationDuringPrimFailure,
-				translator.slotRegisters()));
-
-		// Reification is happening while running the function's non-primitive
-		// body (the primitive failure code).
-		translator.startBlock(reificationDuringPrimFailure);
-		final L2BasicBlock returnedIntoReifiedFrame =
-			translator.createBasicBlock("return into reified frame");
-		final L2ReadPointerOperand newContinuation = translator.reify(
-			translator.continuationSlotsList(translator.numSlots()),
-			translator.constantRegister(nil),
-			translator.getCurrentFunction(),
-			new L2PcOperand(
-				returnedIntoReifiedFrame, translator.slotRegisters()));
-		translator.addInstruction(
-			L2_RETURN.instance,
-			newContinuation,
-			translator.getSkipReturnCheck());
-
-
-
-
-		if (!skipReturnCheck)
-		{
-			// The primitive is fallible *and* the result has to be checked.
-			final L2ReadPointerOperand invalidResultFunctionRegister =
-				translator.getInvalidResultFunctionRegister();
-			final L2ReadPointerOperand expectedTypeRegister =
-				translator.constantRegister(expectedType);
-			translator.addInstruction(
-				L2_INVOKE.instance,
-				invalidResultFunctionRegister,
-				translator.readVector(
-					asList(
-						translator.constantRegister(primitiveFunction),
-						expectedTypeRegister,
-						uncheckedResult.read())),
-				new L2ImmediateOperand(1),
-				translator.unreachablePcOperand(),
-				new L2PcOperand(
-					reificationDuringFailure, translator.slotRegisters()));
-
-
-
-			final L2WritePointerOperand invalidResultFunction =
-				translator
-					.newObjectRegisterWriter(mostGeneralFunctionType(), null);
-			translator.addInstruction(
-				L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.instance,
-				invalidResultFunction);
-//			final L2ReadPointerOperand reifiedRegister = translator.reify(
-//				translator.continuationSlotsList(translator.numSlots()),
-//				callerRegister,
-//				translator.constantRegister(primitiveFunction),
-//				unreachableLabel);
-			translator.addInstruction(
-				L2_INVOKE.instance,
-//				READ_POINTER.is("called function"),
-//				READ_VECTOR.is("arguments"),
-//				IMMEDIATE.is("skip return check"),
-//				PC.is("on return"),
-//				PC.is("on reification"));
-				invalidResultFunction,
-
-
-				reifiedRegister.read(),
-				invalidResultFunction.read(),
-				translator.readVector(emptyList()),
-				new L2ImmediateOperand(1));
-			translator.addUnreachableCode(unreachableLabel);
-			translator.addLabel(failureLabel);
-		}
-			// The primitive is fallible, but the result is guaranteed if the
-			// primitive actually succeeds.
-			*** generate primSuccessBlock to populate the stack slot.
-			return;
-		}
-	}
-
-	/**
-	 * This primitive is being invoked.  It must have the flag {@link
-	 * Flag#Invokes}, but must not contain {@link Flag#CanFold}.  The specific
-	 * primitive should examine the arguments to determine which object register
-	 * holds the function that is actually being invoked, then return that
-	 * register.  The arguments {@link List} should also be updated to
-	 * correspond with how the replacement function is to be invoked.
-	 *
-	 * @param args
-	 *        The argument registers for the primitive call doing the invoking.
-	 *        This list should be replaced with a suitable list of arguments for
-	 *        invoking the replacement function.
-	 * @param naiveTranslator
-	 *        The register set at the position of the call.
-	 * @return
-	 *        The {@link L2ObjectRegister} holding the replacement function to
-	 *        invoke instead of this Invokes primitive.
-	 */
-	public @Nullable L2ReadPointerOperand foldOutInvoker (
-		final List<L2ReadPointerOperand> args,
-		final L1NaiveTranslator naiveTranslator)
-	{
-		assert hasFlag(Flag.Invokes);
-		assert hasFlag(Flag.CanInline);
-		assert !hasFlag(Flag.CanFold);
-
-		assert false
-			: "Primitive subclass with Invokes flag should have "
-				+ "overridden foldOutInvoker()";
-		throw new RuntimeException("Unreachable");
-	}
-
-	/**
-	 * An {@link L2Instruction} whose operation is {@link L2_INVOKE} now has the
-	 * opportunity to replace itself with an alternate sequence of {@link
-	 * L2Instruction}s.  This is the {@code Primitive} of the raw function in
-	 * the function to be invoked.
-	 *
-	 * @param instruction
-	 *        The invocation instruction.
-	 * @param translator
-	 *        The {@link L1NaiveTranslator} into which to write the replacement
-	 *        instructions.
-	 * @param registerSet
-	 *        The {@link RegisterSet} visible after this instruction.
-	 * @return
-	 *        Whether a transformation took place.  If false, no new
-	 *        instructions were output, and the original instruction should be
-	 *        kept.
-	 */
-	public boolean regenerate (
-		final L2Instruction instruction,
-		final L1NaiveTranslator translator,
-		final RegisterSet registerSet)
-	{
-		// By default don't transform it into alternate code.
-		return false;
+		return null;
 	}
 }

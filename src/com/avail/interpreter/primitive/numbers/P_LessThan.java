@@ -45,6 +45,7 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2BasicBlock;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -111,20 +112,14 @@ public final class P_LessThan extends Primitive
 	}
 
 	@Override
-	public void generateL2UnfoldableInlinePrimitive (
-		final L1NaiveTranslator translator,
-		final A_Function primitiveFunction,
-		final L2ReadVectorOperand args,
-		final int resultSlotIndex,
-		final L2ReadVectorOperand preserved,
-		final A_Type expectedType,
-		final L2WritePointerOperand failureValueWrite,
-		final L2BasicBlock successBlock,
-		final boolean canFailPrimitive,
-		final boolean skipReturnCheck)
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1NaiveTranslator translator)
 	{
-		final L2ReadPointerOperand firstReg = args.elements().get(0);
-		final L2ReadPointerOperand secondReg = args.elements().get(1);
+		final L2ReadPointerOperand firstReg = arguments.get(0);
+		final L2ReadPointerOperand secondReg = arguments.get(1);
 		final A_Type firstType = firstReg.type();
 		final A_Type secondType = secondReg.type();
 		final Set<Order> possible = possibleOrdersWhenComparingInstancesOf(
@@ -137,20 +132,9 @@ public final class P_LessThan extends Primitive
 		assert canBeTrue || canBeFalse;
 		if (!canBeTrue || !canBeFalse)
 		{
-			translator.moveConstant(objectFromBoolean(canBeTrue),
-				resultSlotIndex);
-			return;
+			return translator.constantRegister(objectFromBoolean(canBeTrue));
 		}
-		super.generateL2UnfoldableInlinePrimitive(
-			translator,
-			primitiveFunction,
-			args,
-			resultSlotIndex,
-			preserved,
-			expectedType,
-			failureValueWrite,
-			successBlock,
-			canFailPrimitive,
-			skipReturnCheck);
+		return super.tryToGenerateSpecialInvocation(
+			functionToCallReg, arguments, argumentTypes, translator);
 	}
 }

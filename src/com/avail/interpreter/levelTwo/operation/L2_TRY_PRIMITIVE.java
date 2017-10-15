@@ -98,9 +98,9 @@ extends L2Operation
 			{
 				case SUCCESS:
 				{
-					interpreter.function = function;
+					interpreter.function = null;
 					interpreter.returnNow = true;
-					interpreter.returningFunction = function.code();
+					interpreter.returningFunction = function;
 					return;
 				}
 				case FAILURE:
@@ -137,7 +137,7 @@ extends L2Operation
 						interpreter.integers = savedInts;
 					}
 					interpreter.returnNow = true;
-					interpreter.returningFunction = function.code();
+					interpreter.returningFunction = function;
 					return;
 				}
 				case CONTINUATION_CHANGED:
@@ -206,7 +206,7 @@ extends L2Operation
 				case SUCCESS:
 				{
 					interpreter.returnNow = true;
-					interpreter.returningFunction = function.code();
+					interpreter.returningFunction = function;
 					break;
 				}
 				case FAILURE:

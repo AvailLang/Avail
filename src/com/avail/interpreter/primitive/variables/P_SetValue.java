@@ -48,10 +48,16 @@ import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2BasicBlock;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import static com.avail.descriptor.AbstractNumberDescriptor
+	.possibleOrdersWhenComparingInstancesOf;
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -108,51 +114,29 @@ extends Primitive
 			TOP.o());
 	}
 
-	/**
-	 * Use {@link L2_SET_VARIABLE_NO_CHECK} if possible, otherwise fall back on
-	 * {@link L2_SET_VARIABLE}.
-	 */
 	@Override
-	public void generateL2UnfoldableInlinePrimitive (
-		final L1NaiveTranslator translator,
-		final A_Function primitiveFunction,
-		final L2ReadVectorOperand args,
-		final int resultSlotIndex,
-		final L2ReadVectorOperand preserved,
-		final A_Type expectedType,
-		final L2WritePointerOperand failureValueWrite,
-		final L2BasicBlock successBlock,
-		final boolean canFailPrimitive,
-		final boolean skipReturnCheck)
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1NaiveTranslator translator)
 	{
-		final L2ReadPointerOperand varReg = args.elements().get(0);
-		final L2ReadPointerOperand valueReg = args.elements().get(1);
+		final L2ReadPointerOperand varReg = arguments.get(0);
+		final L2ReadPointerOperand valueReg = arguments.get(1);
 
 		final A_Type varType = varReg.type();
 		final A_Type valueType = valueReg.type();
 		final A_Type varInnerType = varType.writeType();
+
 		// These two operations have the same operand layouts.
-		translator.addInstruction(
+		translator.emitSetVariableOffRamp(
 			valueType.isSubtypeOf(varInnerType)
 				? L2_SET_VARIABLE_NO_CHECK.instance
 				: L2_SET_VARIABLE.instance,
 			varReg,
-			valueReg,
-			new L2PcOperand(successBlock, translator.slotRegisters()),
-			translator.unreachablePcOperand());
-		// Either way, deal with a failed write by having the primitive inlined
-		// in the fail case.
-		super.generateL2UnfoldableInlinePrimitive(
-			translator,
-			primitiveFunction,
-			args,
-			resultSlotIndex,
-			preserved,
-			expectedType,
-			failureValueWrite,
-			successBlock,
-			canFailPrimitive,
-			skipReturnCheck);
+			valueReg);
+		// We're now at the success position in the generated code.
+		return translator.constantRegister(nil);
 	}
 
 	@Override

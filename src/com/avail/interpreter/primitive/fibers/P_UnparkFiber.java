@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.fibers;
 
 import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
@@ -89,8 +90,7 @@ extends Primitive
 	{
 		assert args.size() == 1;
 		final A_Fiber fiber = args.get(0);
-		final A_RawFunction primitiveRawFunction =
-			stripNull(interpreter.function).code();
+		final A_Function primitiveFunction = stripNull(interpreter.function);
 		fiber.lock(() ->
 		{
 			// Restore the permit. If the fiber is parked, then unpark it.
@@ -103,7 +103,7 @@ extends Primitive
 					currentRuntime(),
 					fiber,
 					nil,
-					primitiveRawFunction,
+					primitiveFunction,
 					skipReturnCheck);
 			}
 			else

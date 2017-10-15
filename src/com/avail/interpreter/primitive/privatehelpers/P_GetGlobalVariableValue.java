@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.privatehelpers;
 
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
@@ -38,12 +39,20 @@ import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE;
+import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
+import com.avail.optimizer.L1NaiveTranslator;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> A global variable's value is being returned.
@@ -63,7 +72,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		final A_RawFunction code = interpreter.function.code();
+		final A_RawFunction code = stripNull(interpreter.function).code();
 		final A_Variable literalVariable = code.literalAt(1);
 		try
 		{
@@ -91,5 +100,37 @@ public final class P_GetGlobalVariableValue extends Primitive
 		// This primitive is suitable for any function with any as the return
 		// type.  We can't express that yet, so we allow any function.
 		return bottom();
+	}
+
+	@Override
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1NaiveTranslator translator)
+	{
+		final @Nullable A_Function function =
+			(A_Function) functionToCallReg.constantOrNull();
+		if (function == null)
+		{
+			// We have to know the specific function to know what variable to
+			// read from, since it's the first literal.
+			return null;
+		}
+		final A_Variable variable = function.code().literalAt(1);
+		if (variable.isInitializedWriteOnceVariable())
+		{
+			// The variable is permanently set to this value.
+			return translator.constantRegister(variable.getValue());
+		}
+		final L2WritePointerOperand valueRegisterWriter =
+			translator.newObjectRegisterWriter(
+				variable.kind().readType(),
+				null);
+		translator.emitGetVariableOffRamp(
+			L2_GET_VARIABLE.instance,
+			translator.constantRegister(variable),
+			valueRegisterWriter);
+		return valueRegisterWriter.read();
 	}
 }

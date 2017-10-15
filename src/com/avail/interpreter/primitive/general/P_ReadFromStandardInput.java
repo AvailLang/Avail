@@ -89,7 +89,7 @@ extends Primitive
 		assert primitiveFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		final CharBuffer buffer = CharBuffer.allocate(1);
-		interpreter.primitiveSuspend(primitiveFunction.code());
+		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.postExitContinuation(() ->
 			textInterface.inputChannel().read(
 				buffer,
@@ -105,7 +105,7 @@ extends Primitive
 							runtime,
 							fiber,
 							fromCodePoint(buffer.get(0)),
-							primitiveFunction.code(),
+							primitiveFunction,
 							skipReturnCheck);
 					}
 

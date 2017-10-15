@@ -54,7 +54,7 @@ public final class P_PushArgument extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_PushArgument().init(
-			1, SpecialReturnSoleArgument, CanInline, Private, CannotFail);
+			1, SpecialReturnSoleArgument, Private, CanFold, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -86,6 +86,9 @@ public final class P_PushArgument extends Primitive
 		// strengthening it by appending a return type declaration like ": map".
 		// However, the L2 translator will have to ignore the primitive block
 		// type restriction for this particular primitive.
-		return functionType(tuple(ANY.o()), bottom());
+		return functionType(
+			tuple(
+				ANY.o()),
+			bottom());
 	}
 }

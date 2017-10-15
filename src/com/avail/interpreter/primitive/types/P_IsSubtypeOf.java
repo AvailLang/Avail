@@ -47,8 +47,6 @@ import java.util.List;
 
 import static com.avail.descriptor.AtomDescriptor.*;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.EnumerationTypeDescriptor.falseType;
-import static com.avail.descriptor.EnumerationTypeDescriptor.trueType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.TupleDescriptor.tuple;
@@ -96,20 +94,14 @@ public final class P_IsSubtypeOf extends Primitive
 	 * x ⊆ y1'.
 	 */
 	@Override
-	public void generateL2UnfoldableInlinePrimitive (
-		final L1NaiveTranslator translator,
-		final A_Function primitiveFunction,
-		final L2ReadVectorOperand args,
-		final int resultSlotIndex,
-		final L2ReadVectorOperand preserved,
-		final A_Type expectedType,
-		final L2WritePointerOperand failureValueWrite,
-		final L2BasicBlock successBlock,
-		final boolean canFailPrimitive,
-		final boolean skipReturnCheck)
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1NaiveTranslator translator)
 	{
-		final L2ReadPointerOperand xTypeReg = args.elements().get(0);
-		final L2ReadPointerOperand yTypeReg = args.elements().get(1);
+		final L2ReadPointerOperand xTypeReg = arguments.get(0);
+		final L2ReadPointerOperand yTypeReg = arguments.get(1);
 
 		final A_Type xMeta = xTypeReg.type();
 		final A_Type yMeta = yTypeReg.type();
@@ -125,11 +117,7 @@ public final class P_IsSubtypeOf extends Primitive
 			{
 				// The y type is known precisely, and the x type is constrained
 				// to always be a subtype of it.
-				translator.moveConstant(
-					trueObject(),
-					translator.writeSlot(
-						resultSlotIndex, trueType(), trueObject()));
-				return;
+				return translator.constantRegister(trueObject());
 			}
 		}
 		final @Nullable A_Type constantXType =
@@ -144,23 +132,10 @@ public final class P_IsSubtypeOf extends Primitive
 				// and it is not a subtype of y.  The actual y might be more
 				// specific at runtime, but x still can't be a subtype of the
 				// stronger y.
-				translator.moveConstant(
-					falseObject(),
-					translator.writeSlot(
-						resultSlotIndex, falseType(), falseObject()));
-				return;
+				return translator.constantRegister(falseObject());
 			}
 		}
-		super.generateL2UnfoldableInlinePrimitive(
-			translator,
-			primitiveFunction,
-			args,
-			resultSlotIndex,
-			preserved,
-			expectedType,
-			failureValueWrite,
-			successBlock,
-			canFailPrimitive,
-			skipReturnCheck);
+		return super.tryToGenerateSpecialInvocation(
+			functionToCallReg, arguments, argumentTypes, translator);
 	}
 }

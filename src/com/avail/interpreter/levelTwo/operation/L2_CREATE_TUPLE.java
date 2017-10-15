@@ -140,4 +140,20 @@ public class L2_CREATE_TUPLE extends L2Operation
 				destinationReg.register(), tuple, instruction);
 		}
 	}
+
+	/**
+	 * Given an {@link L2Instruction} using this operation, extract the list of
+	 * registers that supply the elements of the tuple.
+	 *
+	 * @param instruction
+	 *        The tuple creation instruction to examine.
+	 * @return The instruction's {@link List} of {@link L2ReadPointerOperand}s
+	 *         that supply the tuple elements.
+	 */
+	public static List<L2ReadPointerOperand> tupleSourceRegistersOf (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation instanceof L2_CREATE_TUPLE;
+		return instruction.readVectorRegisterAt(0);
+	}
 }

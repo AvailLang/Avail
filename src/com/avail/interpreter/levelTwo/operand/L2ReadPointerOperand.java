@@ -195,7 +195,9 @@ public class L2ReadPointerOperand extends L2Operand
 		final @Nullable A_BasicObject restrictedConstantOrNull)
 	{
 		return new PhiRestriction(
-			register, restrictedType, restrictedConstantOrNull);
+			register,
+			restrictedType.typeIntersection(type()),
+			restrictedConstantOrNull);
 	}
 
 	/**
@@ -255,7 +257,7 @@ public class L2ReadPointerOperand extends L2Operand
 			register,
 			restrictedType,
 			restrictedType.instanceCount().equalsInt(1)
-				&& !restrictedType.isInstanceMeta()
+					&& !restrictedType.isInstanceMeta()
 				? restrictedType.instance()
 				: null);
 	}

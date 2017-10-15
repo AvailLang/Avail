@@ -37,7 +37,6 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
-import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 

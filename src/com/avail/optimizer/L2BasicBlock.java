@@ -35,7 +35,6 @@ package com.avail.optimizer;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -45,6 +44,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import static com.avail.optimizer.L1NaiveTranslator.readVector;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -215,7 +215,7 @@ public final class L2BasicBlock
 					.get();
 				naiveTranslator.addInstruction(
 					L2_PHI_PSEUDO_OPERATION.instance,
-					naiveTranslator.readVector(registerReads),
+					readVector(registerReads),
 					naiveTranslator.writeSlot(
 						slotIndex,
 						restriction.type,

@@ -44,16 +44,17 @@ import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION;
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE;
-import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
+import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2BasicBlock;
-import com.avail.optimizer.RegisterSet;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -66,7 +67,8 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.utility.Nulls.stripNull;
+import static com.avail.optimizer.L1NaiveTranslator.readVector;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
@@ -118,158 +120,6 @@ public final class P_CastIntoElse extends Primitive
 		final A_Type elseFunctionType = argumentTypes.get(2);
 		return castFunctionType.returnType().typeUnion(
 			elseFunctionType.returnType());
-	}
-
-	@Override
-	public @Nullable
-	L2ReadPointerOperand foldOutInvoker (
-		final List<L2ReadPointerOperand> args,
-		final L1NaiveTranslator naiveTranslator)
-	{
-		// Don't fold out the invoker here.  Generate the ordinary call, but
-		// allow the call to be regenerated as something more precise.
-		return null;
-	}
-
-	@Override
-	public boolean regenerate (
-		final L2Instruction instruction,
-		final L1NaiveTranslator translator,
-		final RegisterSet registerSet)
-	{
-		// Inline the invocation of this P_CastIntoElse primitive, such that it
-		// does a type test for the type being cast to, then either invokes the
-		// first block with the value being cast or the second block with no
-		// arguments.  Subsequent optimization passes may be able to eliminate
-		// the test.
-		assert instruction.operation == L2_INVOKE.instance;
-
-//		final L2ReadPointerOperand invokerFunctionReg =
-//			instruction.readObjectRegisterAt(0);
-		final List<L2ReadPointerOperand> arguments =
-			instruction.readVectorRegisterAt(1);
-		final int skipCheck = instruction.immediateAt(2);
-		final L2PcOperand onReturn = instruction.pcAt(3);
-		final L2PcOperand onReification = instruction.pcAt(4);
-
-		// Separate the three arguments to the cast: the value, the
-		// castFunction, and the elseFunction.
-		final L2ReadPointerOperand valueReg = arguments.get(0);
-		final L2ReadPointerOperand castFunctionReg = arguments.get(1);
-		final L2ReadPointerOperand elseFunctionReg = arguments.get(2);
-
-		final L2BasicBlock castBlock = translator.createBasicBlock(
-			"cast type matched");
-		final L2BasicBlock elseBlock = translator.createBasicBlock(
-			"cast type did not match");
-
-		final @Nullable A_Type typeTest = exactArgumentTypeFor(castFunctionReg);
-		if (typeTest != null)
-		{
-			// By tracing where the castBlock came from, we were able to
-			// determine the exact type to compare the value against.  This is
-			// the usual case for casts, typically where the castBlock phrase is
-			// simply a function closure.  First see if we can eliminate the
-			// runtime test entirely.
-			boolean bypassTesting = true;
-			final boolean passedTest;
-			if (valueReg.constantOrNull() != null)
-			{
-				// The exact value is known.
-				final A_BasicObject constant =
-					stripNull(valueReg.constantOrNull());
-				passedTest = constant.isInstanceOf(typeTest);
-			}
-			else if (valueReg.type().isSubtypeOf(typeTest))
-			{
-				passedTest = true;
-			}
-			else if (valueReg.type().typeIntersection(typeTest).isBottom())
-			{
-				passedTest = false;
-			}
-			else
-			{
-				bypassTesting = false;
-				passedTest = false;  // Keep compiler happy below.
-			}
-			if (bypassTesting)
-			{
-				// Run the castBlock or elseBlock without having to do the
-				// runtime type test (since we just did it).
-				translator.addInstruction(
-					L2_INVOKE.instance,
-					passedTest ? castFunctionReg : elseFunctionReg,
-					translator.readVector(
-						passedTest ? singletonList(valueReg) : emptyList()),
-					new L2ImmediateOperand(skipCheck),
-					onReturn,
-					onReification);
-				return true;
-			}
-
-			// We know the exact type to compare the value against, but we
-			// couldn't statically eliminate the type test.
-			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-				valueReg,
-				new L2ConstantOperand(typeTest),
-				new L2PcOperand(
-					castBlock,
-					onReification.slotRegisters(),
-					valueReg.restrictedTo(typeTest, null)),
-				new L2PcOperand(
-					elseBlock,
-					onReification.slotRegisters(),
-					valueReg.restrictedWithoutType(typeTest)));
-		}
-		else
-		{
-			// We don't statically know the type to compare the value against,
-			// but we can get it at runtime by extracting the actual
-			// castFunction's argument type.  Note that we can't phi-strengthen
-			// the valueReg along the branches, since we don't statically know
-			// the type that it was compared to.
-			final L2WritePointerOperand parameterTypeWrite =
-				translator.newObjectRegisterWriter(anyMeta(), null);
-			translator.addInstruction(
-				L2_FUNCTION_PARAMETER_TYPE.instance,
-				castFunctionReg,
-				new L2ImmediateOperand(1),
-				parameterTypeWrite);
-			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_OBJECT.instance,
-				valueReg,
-				parameterTypeWrite.read(),
-				new L2PcOperand(castBlock, onReification.slotRegisters()),
-				new L2PcOperand(elseBlock, onReification.slotRegisters()));
-		}
-
-		// We couldn't skip the runtime type check, which takes us to either
-		// castBlock or elseBlock, after which we merge the control flow back.
-		// Start by generating the invocation of castFunction.
-		translator.startBlock(castBlock);
-		translator.addInstruction(
-			L2_INVOKE.instance,
-			castFunctionReg,
-			translator.readVector(singletonList(valueReg)),
-			new L2ImmediateOperand(skipCheck),
-			onReturn,
-			onReification);
-
-		// Now generate the elseBlock, which is similar.
-		translator.startBlock(elseBlock);
-		translator.addInstruction(
-			L2_INVOKE.instance,
-			elseFunctionReg,
-			translator.readVector(emptyList()),
-			new L2ImmediateOperand(skipCheck),
-			onReturn,
-			onReification);
-
-		// Everything else stays the same, aside from the onReturn and
-		// onReification blocks each having more predecessor than before.
-		return true;
 	}
 
 	/**
@@ -338,5 +188,146 @@ public final class P_CastIntoElse extends Primitive
 					emptyTuple(),
 					TOP.o())),
 			TOP.o());
+	}
+
+	@Override
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1NaiveTranslator translator)
+	{
+		// Inline the invocation of this P_CastIntoElse primitive, such that it
+		// does a type test for the type being cast to, then either invokes the
+		// first block with the value being cast or the second block with no
+		// arguments.
+		final L2ReadPointerOperand valueReg = arguments.get(0);
+		final L2ReadPointerOperand castFunctionReg = arguments.get(1);
+		final L2ReadPointerOperand elseFunctionReg = arguments.get(2);
+
+		final L2BasicBlock castBlock = translator.createBasicBlock(
+			"cast type matched");
+		final L2BasicBlock elseBlock = translator.createBasicBlock(
+			"cast type did not match");
+		final L2BasicBlock mergeBlock = translator.createBasicBlock(
+			"merge after cast");
+
+		final @Nullable A_Type typeTest = exactArgumentTypeFor(castFunctionReg);
+		if (typeTest != null)
+		{
+			// By tracing where the castBlock came from, we were able to
+			// determine the exact type to compare the value against.  This is
+			// the usual case for casts, typically where the castBlock phrase is
+			// simply a function closure.  First see if we can eliminate the
+			// runtime test entirely.
+			boolean bypassTesting = true;
+			final boolean passedTest;
+			final @Nullable A_BasicObject constant = valueReg.constantOrNull();
+			if (constant != null)
+			{
+				passedTest = constant.isInstanceOf(typeTest);
+			}
+			else if (valueReg.type().isSubtypeOf(typeTest))
+			{
+				passedTest = true;
+			}
+			else if (valueReg.type().typeIntersection(typeTest).isBottom())
+			{
+				passedTest = false;
+			}
+			else
+			{
+				bypassTesting = false;
+				passedTest = false;  // Keep compiler happy below.
+			}
+			if (bypassTesting)
+			{
+				// Run the castBlock or elseBlock without having to do the
+				// runtime type test (since we just did it).  Don't do a type
+				// check on the result, because the client will deal with it.
+				return translator.generateGeneralFunctionInvocation(
+					passedTest ? castFunctionReg : elseFunctionReg,
+					passedTest ? singletonList(valueReg) : emptyList(),
+					TOP.o(),
+					true,
+					translator.slotRegisters());
+			}
+
+			// We know the exact type to compare the value against, but we
+			// couldn't statically eliminate the type test.  Emit a branch.
+			translator.addInstruction(
+				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+				valueReg,
+				new L2ConstantOperand(typeTest),
+				new L2PcOperand(
+					castBlock,
+					translator.slotRegisters(),
+					valueReg.restrictedTo(typeTest, null)),
+				new L2PcOperand(
+					elseBlock,
+					translator.slotRegisters(),
+					valueReg.restrictedWithoutType(typeTest)));
+		}
+		else
+		{
+			// We don't statically know the type to compare the value against,
+			// but we can get it at runtime by extracting the actual
+			// castFunction's argument type.  Note that we can't phi-strengthen
+			// the valueReg along the branches, since we don't statically know
+			// the type that it was compared to.
+			final L2WritePointerOperand parameterTypeWrite =
+				translator.newObjectRegisterWriter(anyMeta(), null);
+			translator.addInstruction(
+				L2_FUNCTION_PARAMETER_TYPE.instance,
+				castFunctionReg,
+				new L2ImmediateOperand(1),
+				parameterTypeWrite);
+			translator.addInstruction(
+				L2_JUMP_IF_KIND_OF_OBJECT.instance,
+				valueReg,
+				parameterTypeWrite.read(),
+				new L2PcOperand(castBlock, translator.slotRegisters()),
+				new L2PcOperand(elseBlock, translator.slotRegisters()));
+		}
+
+		// We couldn't skip the runtime type check, which takes us to either
+		// castBlock or elseBlock, after which we merge the control flow back.
+		// Start by generating the invocation of castFunction.
+		translator.startBlock(castBlock);
+		final L2ReadPointerOperand castResultReg =
+			translator.generateGeneralFunctionInvocation(
+				castFunctionReg,
+				singletonList(valueReg),
+				TOP.o(),
+				true,
+				translator.slotRegisters());
+		translator.addInstruction(
+			L2_JUMP.instance,
+			new L2PcOperand(mergeBlock, translator.slotRegisters()));
+
+		translator.startBlock(elseBlock);
+		final L2ReadPointerOperand elseResultReg =
+			translator.generateGeneralFunctionInvocation(
+				castFunctionReg,
+				singletonList(valueReg),
+				TOP.o(),
+				true,
+				translator.slotRegisters());
+		translator.addInstruction(
+			L2_JUMP.instance,
+			new L2PcOperand(mergeBlock, translator.slotRegisters()));
+
+		translator.startBlock(mergeBlock);
+		final TypeRestriction mergeRestriction =
+			castResultReg.restriction().union(elseResultReg.restriction());
+		final L2WritePointerOperand mergeReg =
+			translator.newObjectRegisterWriter(
+				mergeRestriction.type,
+				mergeRestriction.constantOrNull);
+		translator.addInstruction(
+			L2_PHI_PSEUDO_OPERATION.instance,
+			readVector(asList(castResultReg, elseResultReg)),
+			mergeReg);
+		return mergeReg.read();
 	}
 }

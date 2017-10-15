@@ -80,7 +80,7 @@ public final class P_EmergencyExit extends Primitive
 		final A_BasicObject errorMessageProducer = args.get(0);
 		final A_Fiber fiber = interpreter.fiber();
 		final A_Continuation continuation = interpreter.reifiedContinuation;
-		interpreter.primitiveSuspend(stripNull(interpreter.function).code());
+		interpreter.primitiveSuspend(stripNull(interpreter.function));
 		dumpStackThen(
 			interpreter.runtime(),
 			fiber.textInterface(),

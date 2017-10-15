@@ -39,7 +39,6 @@ import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Lexer;
 import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
@@ -126,9 +125,8 @@ extends Primitive
 		final A_Method method = bundle.bundleMethod();
 		final A_Lexer lexer = newLexer(
 			filterFunction, bodyFunction, method, loader.module());
-		final A_RawFunction primitiveRawFunction =
-			stripNull(interpreter.function).code();
-		interpreter.primitiveSuspend(primitiveRawFunction);
+		final A_Function primitiveFunction = stripNull(interpreter.function);
+		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.runtime().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
@@ -150,7 +148,7 @@ extends Primitive
 						currentRuntime(),
 						fiber,
 						nil,
-						primitiveRawFunction,
+						primitiveFunction,
 						skipReturnCheck);
 				}));
 		return FIBER_SUSPENDED;

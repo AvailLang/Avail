@@ -34,17 +34,16 @@ package com.avail.interpreter.primitive.functions;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1NaiveTranslator;
-import com.avail.optimizer.RegisterSet;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -53,7 +52,9 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.TupleDescriptor.tuple;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.*;
@@ -99,61 +100,6 @@ extends Primitive
 	}
 
 	@Override
-	public boolean regenerate (
-		final L2Instruction instruction,
-		final L1NaiveTranslator translator,
-		final RegisterSet registerSet)
-	{
-		// Inline the invocation of this P_ParamTypeAt primitive, specifically
-		// to use the L2_FUNCTION_PARAMETER_TYPE instruction if possible.
-
-//		final L2ObjectRegister functionTypeReg =
-//			instruction.readObjectRegisterAt(0);
-//		final L2ObjectRegister invokerFunctionReg =
-//			instruction.readObjectRegisterAt(1);
-		final List<L2ReadPointerOperand> invokerArguments =
-			instruction.readVectorRegisterAt(2);
-//		final int skipCheck = instruction.immediateAt(3);
-
-		// Separate the arguments to the primitive: the function type and the
-		// (boxed) index.
-		final L2ReadPointerOperand functionTypeReg = invokerArguments.get(0);
-		final L2ReadPointerOperand parameterIndexReg = invokerArguments.get(1);
-
-		if (registerSet.hasConstantAt(parameterIndexReg.register()))
-		{
-			final A_Number parameterIndexBoxed =
-				registerSet.constantAt(parameterIndexReg.register());
-			if (parameterIndexBoxed.isInt())
-			{
-				final int parameterIndex = parameterIndexBoxed.extractInt();
-				assert registerSet.hasTypeAt(functionTypeReg.register());
-				final A_Type functionMeta =
-					registerSet.typeAt(functionTypeReg.register());
-				final A_Type functionType = functionMeta.instance();
-				final A_Type argsType = functionType.argsTupleType();
-				final A_Type argsSizeRange = argsType.sizeRange();
-				if (parameterIndex >= 1
-					&& parameterIndexBoxed.lessOrEqual(
-						argsSizeRange.upperBound()))
-				{
-					final L2WritePointerOperand outputReg =
-						stripNull(
-							instruction.operation.primitiveResultRegister(
-								instruction));
-					translator.addInstruction(
-						L2_FUNCTION_PARAMETER_TYPE.instance,
-						functionTypeReg,
-						new L2ImmediateOperand(parameterIndex),
-						outputReg);
-					return true;
-				}
-			}
-		}
-		return super.regenerate(instruction, translator, registerSet);
-	}
-
-	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return functionType(
@@ -172,5 +118,53 @@ extends Primitive
 		return indexType.isSubtypeOf(int32())
 			? CallSiteCannotFail
 			: CallSiteCanFail;
+	}
+
+	@Override
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1NaiveTranslator translator)
+	{
+		// Transform the invocation of this P_ParamTypeAt primitive to use the
+		// L2_FUNCTION_PARAMETER_TYPE instruction if possible.
+		final L2ReadPointerOperand functionTypeReg = arguments.get(0);
+		final L2ReadPointerOperand parameterIndexReg = arguments.get(1);
+
+		final A_Type indexType = parameterIndexReg.type();
+		if (indexType.lowerBound().equals(indexType.upperBound())
+			&& indexType.lowerBound().isInt())
+		{
+			final int index = indexType.lowerBound().extractInt();
+			assert index >= 1;
+			final @Nullable A_Type functionType =
+				(A_Type) functionToCallReg.constantOrNull();
+			if (functionType != null)
+			{
+				// The exact function type is known (i.e., not just the function
+				// meta that bounds it).  Fold it, although this probably would
+				// already have been folded during initial code generation.
+				final A_Type argsTupleType = functionType.argsTupleType();
+				if (indexType.isSubtypeOf(argsTupleType.sizeRange()))
+				{
+					return translator.constantRegister(
+						argsTupleType.typeAtIndex(index));
+				}
+				return translator.constantRegister(bottom());
+			}
+			// Since the index is known, we can still emit an
+			// L2_FUNCTION_PARAMETER_TYPE.
+			final L2WritePointerOperand outputReg =
+				translator.newObjectRegisterWriter(ANY.o(), null);
+			translator.addInstruction(
+				L2_FUNCTION_PARAMETER_TYPE.instance,
+				functionTypeReg,
+				new L2ImmediateOperand(index),
+				outputReg);
+			return outputReg.read();
+		}
+		return super.tryToGenerateSpecialInvocation(
+			functionToCallReg, arguments, argumentTypes, translator);
 	}
 }

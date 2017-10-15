@@ -81,7 +81,7 @@ public class L2_RETURN extends L2Operation
 				interpreter.integerAt(skipCheckIndex) != 0;
 			interpreter.returnNow = true;
 			final A_Function function = stripNull(interpreter.function);
-			interpreter.returningFunction = function.code();
+			interpreter.returningFunction = function;
 		};
 	}
 

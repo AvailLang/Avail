@@ -37,11 +37,18 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
+import com.avail.optimizer.L1NaiveTranslator;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> The first literal is being returned.
@@ -55,7 +62,7 @@ public final class P_PushConstant extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_PushConstant().init(
-			-1, SpecialReturnConstant, Private, CanInline, CanFold, CannotFail);
+			-1, SpecialReturnConstant, Private, CanFold, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -63,7 +70,7 @@ public final class P_PushConstant extends Primitive
 		final Interpreter interpreter,
 		final boolean skipReturnCheck)
 	{
-		final A_RawFunction code = interpreter.function.code();
+		final A_RawFunction code = stripNull(interpreter.function).code();
 		assert code.primitive() == this;
 		return interpreter.primitiveSuccess(code.literalAt(1));
 	}

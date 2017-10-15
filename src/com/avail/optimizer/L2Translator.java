@@ -395,18 +395,6 @@ public final class L2Translator
 		fixedRegisterMap;
 
 	/**
-	 * Primitive {@link A_RawFunction}s will start with a {@link
-	 * L2_TRY_PRIMITIVE} instruction.  If we have just optimized such code, we
-	 * must have already tried and failed the primitive (because we try the
-	 * primitive prior to {@link L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO}).
-	 * In either case, this label is where to continue in the new chunk right
-	 * after optimizing.
-	 */
-	final L2BasicBlock afterOptionalInitialPrimitiveBlock =
-
-		newLabel("after initial primitive");
-
-	/**
 	 * Answer the specified fixed register.
 	 *
 	 * @param registerEnum

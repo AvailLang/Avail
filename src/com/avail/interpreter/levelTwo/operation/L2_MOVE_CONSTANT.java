@@ -35,9 +35,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -80,5 +78,21 @@ public class L2_MOVE_CONSTANT extends L2Operation
 			instruction.writeObjectRegisterAt(1);
 		registerSet.constantAtPut(
 			destinationReg.register(), constant, instruction);
+	}
+
+	/**
+	 * Given an {@link L2Instruction} using this operation, extract the constant
+	 * that is moved by the instruction.
+	 *
+	 * @param instruction
+	 *        The constant-moving instruction to examine.
+	 * @return The constant {@link AvailObject} that is moved by the
+	 *         instruction.
+	 */
+	public static AvailObject constantOf (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation instanceof L2_MOVE_CONSTANT;
+		return instruction.constantAt(0);
 	}
 }

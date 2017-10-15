@@ -206,7 +206,7 @@ extends Primitive
 		final AvailRuntime runtime = currentRuntime();
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
-		interpreter.primitiveSuspend(primitiveFunction.code());
+		interpreter.primitiveSuspend(primitiveFunction);
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
 		final AtomicInteger countdown = new AtomicInteger(restrictionsSize);
 		final List<A_String> problems = new ArrayList<>();
@@ -231,7 +231,7 @@ extends Primitive
 						bundle,
 						argsListNode,
 						intersection.value),
-					primitiveFunction.code(),
+					primitiveFunction,
 					skipReturnCheck);
 			}
 			else

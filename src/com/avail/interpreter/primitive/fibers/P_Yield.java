@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.fibers;
 
 import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
@@ -76,16 +76,15 @@ extends Primitive
 	{
 		assert args.size() == 0;
 		final A_Fiber fiber = interpreter.fiber();
-		final A_RawFunction primitiveRawFunction =
-			stripNull(interpreter.function).code();
+		final A_Function primitiveFunction = stripNull(interpreter.function);
 		final Result suspended =
-			interpreter.primitiveSuspend(primitiveRawFunction);
+			interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.postExitContinuation(
 			() -> resumeFromSuccessfulPrimitive(
 				currentRuntime(),
 				fiber,
 				nil,
-				primitiveRawFunction,
+				primitiveFunction,
 				true));
 		return suspended;
 	}

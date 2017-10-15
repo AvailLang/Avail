@@ -104,10 +104,14 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(mostGeneralVariableType(),
-				ATOM.o(), functionType(
-					emptyTuple(),
-					TOP.o())), TOP.o());
+			functionType(
+				tuple(
+					mostGeneralVariableType(),
+					ATOM.o(),
+					functionType(
+						emptyTuple(),
+						TOP.o())),
+				TOP.o());
 	}
 
 	@Override

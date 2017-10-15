@@ -39,13 +39,16 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
+import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2BasicBlock;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -98,26 +101,19 @@ public final class P_RestartContinuation extends Primitive
 	}
 
 	@Override
-	public void generateL2UnfoldableInlinePrimitive (
-		final L1NaiveTranslator translator,
-		final A_Function primitiveFunction,
-		final L2ReadVectorOperand args,
-		final int resultSlotIndex,
-		final L2ReadVectorOperand preserved,
-		final A_Type expectedType,
-		final L2WritePointerOperand failureValueWrite,
-		final L2BasicBlock successBlock,
-		final boolean canFailPrimitive,
-		final boolean skipReturnCheck)
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1NaiveTranslator translator)
 	{
-		final L2ReadPointerOperand continuationReg = args.elements().get(0);
-
 		// A restart works with every continuation that is created by a label.
-		// TODO [MvG] - eventually we should check that the given continuation
-		// has that form (pc=0, stack empty).
 		translator.addInstruction(
 			L2_RESTART_CONTINUATION.instance,
-			continuationReg);
+			arguments.get(0));
+		// Return a register to indicate code was generated, but nothing can
+		// actually read or write it.
+		return translator.newObjectRegisterWriter(bottom(), null).read();
 	}
 
 	@Override

@@ -161,7 +161,7 @@ extends Primitive
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		interpreter.primitiveSuspend(primitiveFunction.code());
+		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.runtime().whenLevelOneSafeDo(
 			AvailTask.forUnboundFiber(
 				fiber,
@@ -187,7 +187,7 @@ extends Primitive
 							currentRuntime(),
 							fiber,
 							nil,
-							primitiveFunction.code(),
+							primitiveFunction,
 							skipReturnCheck);
 					}
 					catch (

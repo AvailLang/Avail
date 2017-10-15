@@ -103,7 +103,7 @@ extends Primitive
 		final A_Function primitiveFunction = stripNull(interpreter.function);
 		assert primitiveFunction.code().primitive() == this;
 		final List<AvailObject> copiedArgs = new ArrayList<>(args);
-		interpreter.primitiveSuspend(primitiveFunction.code());
+		interpreter.primitiveSuspend(primitiveFunction);
 		interpreter.postExitContinuation(
 			() -> textInterface.errorChannel().write(
 				string.asNativeString(),
@@ -119,7 +119,7 @@ extends Primitive
 							runtime,
 							fiber,
 							nil,
-							primitiveFunction.code(),
+							primitiveFunction,
 							skipReturnCheck);
 					}
 

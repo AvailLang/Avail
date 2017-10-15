@@ -86,8 +86,7 @@ public final class P_Assert extends Primitive
 		{
 			final A_Fiber fiber = interpreter.fiber();
 			final A_Continuation continuation = interpreter.reifiedContinuation;
-			interpreter.primitiveSuspend(
-				stripNull(interpreter.function).code());
+			interpreter.primitiveSuspend(stripNull(interpreter.function));
 			dumpStackThen(
 				interpreter.runtime(),
 				fiber.textInterface(),

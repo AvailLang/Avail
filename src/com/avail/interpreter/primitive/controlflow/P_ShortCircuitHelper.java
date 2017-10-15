@@ -44,6 +44,7 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1NaiveTranslator;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -52,6 +53,7 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static java.util.Collections.emptyList;
 
 /**
  * <strong>Primitive:</strong> Run the zero-argument {@linkplain
@@ -94,29 +96,34 @@ public final class P_ShortCircuitHelper extends Primitive
 		return blockType.returnType();
 	}
 
-	/**
-	 * Clear the arguments list (to correspond with the arguments being sent to
-	 * the function in the second argument), then answer the register holding
-	 * that function.
-	 */
-	@Override
-	public @Nullable
-	L2ReadPointerOperand foldOutInvoker (
-		final List<L2ReadPointerOperand> args,
-		final L1NaiveTranslator naiveTranslator)
-	{
-		assert hasFlag(Invokes);
-
-		final L2ObjectRegister functionReg = args.get(1);
-		args.clear();
-		return functionReg;
-	}
-
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(ANY.o(), functionType(
-			emptyTuple(),
-			TOP.o())), TOP.o());
+		return functionType(
+			tuple(
+				ANY.o(),
+				functionType(
+					emptyTuple(),
+					TOP.o())),
+			TOP.o());
+	}
+
+	@Override
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1NaiveTranslator translator)
+	{
+		// Fold out the call of this primitive, replacing it with an invoke of
+		// the passed function in the 2nd (=args[1]) argument, instead.  The
+		// client will generate any needed type strengthening, so don't do it
+		// here.
+		return translator.generateGeneralFunctionInvocation(
+			arguments.get(1),  // the function in the 2nd (=args[1]) argument.
+			emptyList(),   // takes no arguments.
+			TOP.o(),
+			true,
+			translator.slotRegisters());
 	}
 }

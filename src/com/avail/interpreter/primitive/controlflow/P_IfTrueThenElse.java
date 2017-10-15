@@ -42,6 +42,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1NaiveTranslator;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -51,6 +52,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
+import static java.util.Collections.emptyList;
 
 /**
  * <strong>Primitive:</strong> Invoke the {@linkplain FunctionDescriptor
@@ -92,25 +94,6 @@ public final class P_IfTrueThenElse extends Primitive
 		return trueBlockType.returnType();
 	}
 
-	/**
-	 * Clear the arguments list (to correspond with the arguments being sent to
-	 * the trueBlock), then answer the register holding the trueBlock.
-	 */
-	@Override
-	public @Nullable
-	L2ReadPointerOperand foldOutInvoker (
-		final List<L2ReadPointerOperand> args,
-		final L1NaiveTranslator naiveTranslator)
-	{
-		assert hasFlag(Invokes);
-		assert !hasFlag(CanInline);
-		assert !hasFlag(CanFold);
-
-		final L2ReadPointerOperand functionReg = args.get(1);
-		args.clear();
-		return functionReg;
-	}
-
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
@@ -119,5 +102,23 @@ public final class P_IfTrueThenElse extends Primitive
 			TOP.o()), functionType(
 			emptyTuple(),
 			TOP.o())), TOP.o());
+	}
+
+	@Override
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1NaiveTranslator translator)
+	{
+		// Fold out the call of this primitive, replacing it with an invoke of
+		// the else function, instead.  The client will generate any needed
+		// type strengthening, so don't do it here.
+		return translator.generateGeneralFunctionInvocation(
+			arguments.get(1),  // 'then' function
+			emptyList(),   // takes no arguments.
+			TOP.o(),
+			true,
+			translator.slotRegisters());
 	}
 }
