@@ -32,13 +32,13 @@
 
 package com.avail.compiler.problems;
 
-import java.nio.charset.Charset;
-import java.text.MessageFormat;
-
-import com.avail.utility.evaluation.Continuation1NotNull;
-import javax.annotation.Nullable;
 import com.avail.builder.ModuleName;
 import com.avail.descriptor.CharacterDescriptor;
+import com.avail.utility.evaluation.Continuation1NotNull;
+
+import javax.annotation.Nullable;
+import java.nio.charset.Charset;
+import java.text.MessageFormat;
 
 /**
  * A {@code Problem} is produced when encountering an unexpected or less than

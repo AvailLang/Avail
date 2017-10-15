@@ -44,10 +44,6 @@ import com.avail.optimizer.RegisterSet;
 
 import java.util.List;
 
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
-import static com.avail.descriptor.FunctionTypeDescriptor
-	.mostGeneralFunctionType;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**

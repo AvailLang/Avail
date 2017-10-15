@@ -36,7 +36,6 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;
 

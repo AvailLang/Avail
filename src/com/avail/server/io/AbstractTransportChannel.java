@@ -32,13 +32,14 @@
 
 package com.avail.server.io;
 
-import java.util.Deque;
-import java.util.LinkedList;
 import com.avail.server.AvailServer;
 import com.avail.server.messages.Message;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
+
+import java.util.Deque;
+import java.util.LinkedList;
 
 /**
  * An {@code AbstractTransportChannel} represents an abstract connection between

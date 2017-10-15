@@ -32,8 +32,9 @@
 
 package com.avail.compiler.instruction;
 
-import java.io.ByteArrayOutputStream;
 import com.avail.interpreter.levelOne.L1Operation;
+
+import java.io.ByteArrayOutputStream;
 
 /**
  * Construct a tuple from some number of objects already pushed on the stack.

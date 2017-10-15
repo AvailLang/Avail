@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;

@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.numbers;
 
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
@@ -39,13 +38,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.optimizer.L1NaiveTranslator;
-import com.avail.optimizer.L2BasicBlock;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -59,9 +53,7 @@ import static com.avail.descriptor.EnumerationTypeDescriptor.*;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.optimizer.L1NaiveTranslator.readVector;
 
 /**
  * <strong>Primitive:</strong> Compare two extended integers and answer

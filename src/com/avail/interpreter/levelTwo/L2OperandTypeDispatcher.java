@@ -37,7 +37,6 @@ package com.avail.interpreter.levelTwo;
 import com.avail.descriptor.A_Bundle;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 

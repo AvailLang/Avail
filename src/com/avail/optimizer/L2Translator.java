@@ -47,7 +47,18 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.operation.*;
+import com.avail.interpreter.levelTwo.operation
+	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
+import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP;
+import com.avail.interpreter.levelTwo.operation.L2_PREPARE_NEW_FRAME_FOR_L1;
+import com.avail.interpreter.levelTwo.operation.L2_REENTER_L1_CHUNK_FROM_CALL;
+import com.avail.interpreter.levelTwo.operation
+	.L2_REENTER_L1_CHUNK_FROM_INTERRUPT;
+import com.avail.interpreter.levelTwo.operation
+	.L2_REENTER_L1_CHUNK_FROM_RESTART;
+import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
 import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -57,7 +68,15 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Deque;
+import java.util.EnumMap;
+import java.util.Formatter;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;

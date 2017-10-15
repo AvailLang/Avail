@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L1NaiveTranslator;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;

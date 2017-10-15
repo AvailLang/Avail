@@ -40,11 +40,9 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L1NaiveTranslator;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;

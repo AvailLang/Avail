@@ -36,7 +36,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 import static com.avail.utility.Nulls.stripNull;

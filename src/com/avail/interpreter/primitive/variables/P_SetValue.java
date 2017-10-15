@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.variables;
 
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AvailObject;
@@ -39,25 +38,16 @@ import com.avail.descriptor.VariableDescriptor;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
 import com.avail.optimizer.L1NaiveTranslator;
-import com.avail.optimizer.L2BasicBlock;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Set;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
-import static com.avail.descriptor.AbstractNumberDescriptor
-	.possibleOrdersWhenComparingInstancesOf;
-import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.set;

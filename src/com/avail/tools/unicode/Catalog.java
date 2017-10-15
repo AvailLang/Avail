@@ -32,6 +32,13 @@
 
 package com.avail.tools.unicode;
 
+import com.avail.annotations.InnerAccess;
+import com.avail.utility.IO;
+import com.avail.utility.json.JSONArray;
+import com.avail.utility.json.JSONData;
+import com.avail.utility.json.JSONFriendly;
+
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -64,12 +71,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import com.avail.annotations.InnerAccess;
-import javax.annotation.Nullable;
-import com.avail.utility.IO;
-import com.avail.utility.json.JSONArray;
-import com.avail.utility.json.JSONData;
-import com.avail.utility.json.JSONFriendly;
 
 import static com.avail.utility.Nulls.stripNull;
 

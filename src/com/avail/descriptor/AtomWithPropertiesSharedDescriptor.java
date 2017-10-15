@@ -32,12 +32,13 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AtomWithPropertiesSharedDescriptor.IntegerSlots.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.Serializer;
+
+import static com.avail.descriptor.AtomWithPropertiesSharedDescriptor
+	.IntegerSlots.HASH_OR_ZERO;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is

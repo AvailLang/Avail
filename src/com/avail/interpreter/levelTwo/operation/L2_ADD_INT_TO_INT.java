@@ -37,11 +37,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Add the value in one int register to another int register, jumping to the

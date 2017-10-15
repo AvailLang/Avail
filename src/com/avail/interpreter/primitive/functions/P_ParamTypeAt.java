@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.functions;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
@@ -52,13 +51,11 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Answer the type of the parameter at the

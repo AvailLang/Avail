@@ -39,11 +39,9 @@ import com.avail.descriptor.AvailObject;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE;
-import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.optimizer.L1NaiveTranslator;
 
 import javax.annotation.Nullable;

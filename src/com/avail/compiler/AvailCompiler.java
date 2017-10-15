@@ -98,8 +98,8 @@ import static com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.AssignmentNodeDescriptor.newAssignment;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.AtomDescriptor.*;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleConstant;
 import static com.avail.descriptor.DeclarationNodeDescriptor.newModuleVariable;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;

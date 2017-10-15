@@ -36,8 +36,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ParseNodeDescriptor;
 import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.exceptions.SignatureException;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

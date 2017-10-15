@@ -35,7 +35,6 @@ package com.avail.interpreter.levelTwo.register;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import javax.annotation.Nullable;

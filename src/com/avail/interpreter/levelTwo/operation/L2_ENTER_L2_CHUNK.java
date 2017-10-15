@@ -34,8 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
@@ -43,14 +41,11 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
-import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import static com.avail.interpreter.levelTwo.register.FixedRegister
+	.fixedRegisterCount;
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry,

@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.FiberDescriptor.ObjectSlots;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
-import sun.misc.Unsafe;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;

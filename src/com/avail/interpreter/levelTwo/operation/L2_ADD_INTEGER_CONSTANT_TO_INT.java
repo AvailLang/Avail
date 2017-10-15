@@ -37,7 +37,6 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 

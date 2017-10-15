@@ -37,7 +37,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_POINTER;

@@ -43,7 +43,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.avail.compiler.ParsingOperation.*;
+import static com.avail.compiler.ParsingOperation.PUSH_LITERAL;
+import static com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT;
 import static com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;

@@ -32,8 +32,13 @@
 
 package com.avail.annotations;
 
-import java.lang.annotation.*;
-import com.avail.descriptor.*;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.AvailObject;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * {@code AvailMethod} indicates that the annotated target is a method that

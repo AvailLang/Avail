@@ -33,8 +33,8 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 /**

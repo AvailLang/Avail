@@ -32,14 +32,14 @@
 
 package com.avail.tools.compiler;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintStream;
 import com.avail.AvailRuntime;
 import com.avail.annotations.InnerAccess;
-import com.avail.builder.*;
-import com.avail.compiler.AvailCompiler.*;
+import com.avail.builder.AvailBuilder;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ModuleRoot;
+import com.avail.builder.RenamesFileParserException;
+import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
@@ -50,9 +50,14 @@ import com.avail.tools.compiler.configuration.CommandLineConfigurator;
 import com.avail.tools.compiler.configuration.CompilerConfiguration;
 import com.avail.tools.compiler.configuration.EnvironmentConfigurator;
 import com.avail.tools.compiler.configuration.VerbosityLevel;
-import com.avail.utility.*;
+import com.avail.utility.NullOutputStream;
 import com.avail.utility.configuration.ConfigurationException;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation2;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintStream;
 
 /**
  * The Avail command-line compiler understands the following options:

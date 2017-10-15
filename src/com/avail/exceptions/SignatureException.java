@@ -32,7 +32,7 @@
 
 package com.avail.exceptions;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.DefinitionDescriptor;
 
 /**
  * A {@code SignatureException} is thrown when a {@linkplain

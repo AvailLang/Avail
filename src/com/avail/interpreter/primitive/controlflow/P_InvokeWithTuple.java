@@ -44,17 +44,14 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE;
 import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.optimizer.L1NaiveTranslator;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor
@@ -68,12 +65,10 @@ import static com.avail.exceptions.AvailErrorCode
 	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
 import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
 import static com.avail.optimizer.L1NaiveTranslator.writeVector;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 /**

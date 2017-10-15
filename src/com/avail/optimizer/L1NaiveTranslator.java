@@ -39,7 +39,6 @@ import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelOne.L1OperationDispatcher;
@@ -55,7 +54,6 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
 import com.avail.utility.Mutable;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -76,7 +74,9 @@ import static com.avail.descriptor.ContinuationTypeDescriptor
 import static com.avail.descriptor.ContinuationTypeDescriptor
 	.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
-import static com.avail.descriptor.FunctionTypeDescriptor.*;
+import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.FunctionTypeDescriptor
+	.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
@@ -87,21 +87,16 @@ import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromList;
+import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
-import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
+import static com.avail.interpreter.levelTwo.register.FixedRegister.CALLER;
 import static com.avail.optimizer.L2Translator.*;
-import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;

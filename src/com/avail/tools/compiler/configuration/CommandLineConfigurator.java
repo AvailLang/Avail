@@ -32,13 +32,6 @@
 
 package com.avail.tools.compiler.configuration;
 
-import static java.util.Arrays.asList;
-import static com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.*;
-import java.io.File;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.EnumSet;
 import com.avail.annotations.InnerAccess;
 import com.avail.builder.ModuleName;
 import com.avail.builder.ModuleRoots;
@@ -50,9 +43,19 @@ import com.avail.tools.options.GenericOption;
 import com.avail.tools.options.OptionProcessingException;
 import com.avail.tools.options.OptionProcessor;
 import com.avail.tools.options.OptionProcessorFactory;
-import com.avail.utility.*;
+import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
+
+import java.io.File;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.EnumSet;
+
+import static com.avail.tools.compiler.configuration.CommandLineConfigurator
+	.OptionKey.*;
+import static java.util.Arrays.asList;
 
 /**
  * Provides the configuration for the command-line compiler. Specifies the

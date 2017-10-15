@@ -31,9 +31,11 @@
  */
 package com.avail.utility.fsm;
 
-import java.util.Map;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Transformer1;
+
 import javax.annotation.Nullable;
-import com.avail.utility.evaluation.*;
+import java.util.Map;
 
 /**
  * A state transition, effectively the "compiled form" of a single state

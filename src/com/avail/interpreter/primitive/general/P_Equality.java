@@ -32,22 +32,13 @@
 package com.avail.interpreter.primitive.general;
 
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_JUMP;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE;
-import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.optimizer.L1NaiveTranslator;
-import com.avail.optimizer.L2BasicBlock;
 
 import javax.annotation.Nullable;
 import java.util.List;

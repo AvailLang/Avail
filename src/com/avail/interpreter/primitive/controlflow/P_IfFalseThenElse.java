@@ -38,14 +38,10 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.optimizer.L1NaiveTranslator;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -53,10 +49,8 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
-import static com.avail.optimizer.L1NaiveTranslator.readVector;
 import static java.util.Collections.emptyList;
 
 /**

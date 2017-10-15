@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.Interpreter;
@@ -40,14 +39,10 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L1NaiveTranslator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.RegisterState;
-
-import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 

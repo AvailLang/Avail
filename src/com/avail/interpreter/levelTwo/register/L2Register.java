@@ -36,12 +36,9 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Translator;
-import com.avail.utility.Nulls;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;

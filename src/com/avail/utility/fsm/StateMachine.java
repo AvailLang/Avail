@@ -32,9 +32,10 @@
 
 package com.avail.utility.fsm;
 
+import com.avail.utility.evaluation.Continuation1;
+
 import java.util.Collection;
 import java.util.EnumMap;
-import com.avail.utility.evaluation.*;
 
 /**
  * A finite state machine (<strong>FSM</strong>) comprises a finite set of

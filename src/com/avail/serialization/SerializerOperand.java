@@ -32,7 +32,8 @@
 
 package com.avail.serialization;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
 
 /**
  * A {@code SerializerOperand} is part of a {@link SerializerOperation}.  It
