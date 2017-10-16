@@ -22,6 +22,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="junit-jupiter-api-5.0.0" level="project" />
+    <orderEntry type="library" name="junit" level="project" />
   </component>
 </module>
