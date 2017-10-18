@@ -34,7 +34,9 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2Register;
@@ -43,10 +45,14 @@ import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import static java.util.stream.Collectors.toList;
 
 /**
  * The {@code L2_PHI_PSEUDO_OPERATION} occurs at the start of a {@link
@@ -110,5 +116,88 @@ public class L2_PHI_PSEUDO_OPERATION extends L2Operation
 				restriction.constantOrNull,
 				instruction);
 		}
+	}
+
+	@Override
+	public final boolean isPhi ()
+	{
+		return true;
+	}
+
+	/**
+	 * One of this phi function's predecessors has been removed because it's
+	 * dead code.  Clean up its vector of inputs by removing the specified
+	 * index.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} whose operation has this type.
+	 * @param inputIndex
+	 *        The index to remove.
+	 */
+	public static L2Instruction withoutIndex (
+		final L2Instruction instruction,
+		final int inputIndex)
+	{
+		assert instruction.operation == instance;
+		final List<L2ReadPointerOperand> oldSources =
+			instruction.readVectorRegisterAt(0);
+		final L2WritePointerOperand destinationReg =
+			instruction.writeObjectRegisterAt(1);
+
+		final List<L2ReadPointerOperand> newSources =
+			new ArrayList<>(oldSources);
+		newSources.remove(inputIndex);
+		final long distinctSourceRegisters =
+			newSources.stream()
+				.map(L2ReadPointerOperand::register)
+				.distinct()
+				.count();
+		if (distinctSourceRegisters == 1)
+		{
+			// Replace the phi function with a simple move.
+			return new L2Instruction(
+				instruction.basicBlock,
+				L2_MOVE.instance,
+				newSources.get(0),
+				destinationReg);
+		}
+		return new L2Instruction(
+			instruction.basicBlock,
+			L2_PHI_PSEUDO_OPERATION.instance,
+			new L2ReadVectorOperand(newSources),
+			destinationReg);
+	}
+
+	/**
+	 * Examine the instruction and answer the predecessor {@link L2BasicBlock}s
+	 * that reach this phi instruction and
+	 *
+	 * @param instruction
+	 *        The phi-instruction to examine.
+	 * @param usedRegister
+	 *        The {@link L2Register} whose use we're trying to trace back to its
+	 *        definition.
+	 * @return A {@link List} of predecessor blocks that supplied the
+	 *         usedRegister as an input to this phi operation.
+	 */
+	public static List<L2BasicBlock> predecessorBlocksForUseOf (
+		final L2Instruction instruction,
+		final L2Register usedRegister)
+	{
+		assert instruction.operation == instance;
+
+		final List<L2ReadPointerOperand> inputRegs =
+			instruction.readVectorRegisterAt(0);
+//		final L2WritePointerOperand destinationReg =
+//			instruction.writeObjectRegisterAt(1);
+
+		final List<L2PcOperand> predecessorEdges =
+			instruction.basicBlock.predecessorEdges();
+		final List<L2ReadPointerOperand> sources =
+			instruction.readVectorRegisterAt(0);
+		return IntStream.range(0, sources.size())
+			.filter(i -> sources.get(i).register() == usedRegister)
+			.mapToObj(i -> predecessorEdges.get(i).sourceBlock())
+			.collect(toList());
 	}
 }

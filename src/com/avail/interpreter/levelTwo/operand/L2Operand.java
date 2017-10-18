@@ -79,13 +79,26 @@ public abstract class L2Operand extends PublicCloneable<L2Operand>
 		final RegisterTransformer<L2OperandType> transformer);
 
 	/**
-	 * This is an operand of the given instruction, which was just added to the
-	 * given basic block.
-	 *  @param instruction
-	 *        The {@link L2Instruction} that was just added.
+	 * This is an operand of the given instruction, which was just added to its
+	 * basic block.
 	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} that was just added.
 	 */
 	public void instructionWasAdded (
+		final L2Instruction instruction)
+	{
+		// Do nothing by default.
+	}
+
+	/**
+	 * This is an operand of the given instruction, which was just removed from
+	 * its basic block.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} that was just added.
+	 */
+	public void instructionWasRemoved (
 		final L2Instruction instruction)
 	{
 		// Do nothing by default.

@@ -53,7 +53,7 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
 
 import javax.annotation.Nullable;
@@ -67,7 +67,7 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.optimizer.L1NaiveTranslator.readVector;
+import static com.avail.optimizer.L1Translator.readVector;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -191,11 +191,11 @@ public final class P_CastIntoElse extends Primitive
 	}
 
 	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+	public L2ReadPointerOperand tryToGenerateSpecialInvocation (
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1NaiveTranslator translator)
+		final L1Translator translator)
 	{
 		// Inline the invocation of this P_CastIntoElse primitive, such that it
 		// does a type test for the type being cast to, then either invokes the

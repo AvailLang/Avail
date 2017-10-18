@@ -41,7 +41,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.RegisterState;
@@ -139,7 +139,7 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1NaiveTranslator naiveTranslator)
+		final L1Translator translator)
 	{
 		final L2ReadPointerOperand functionReg =
 			instruction.readObjectRegisterAt(0);
@@ -179,12 +179,12 @@ public class L2_FUNCTION_PARAMETER_TYPE extends L2Operation
 			// Replace this instruction with a constant move.
 			final A_Type paramType =
 				functionType.argsTupleType().typeAtIndex(paramIndex);
-			naiveTranslator.addInstruction(
+			translator.addInstruction(
 				L2_MOVE_CONSTANT.instance,
 				new L2ConstantOperand(paramType),
 				outputParamTypeReg);
 			return true;
 		}
-		return super.regenerate(instruction, registerSet, naiveTranslator);
+		return super.regenerate(instruction, registerSet, translator);
 	}
 }

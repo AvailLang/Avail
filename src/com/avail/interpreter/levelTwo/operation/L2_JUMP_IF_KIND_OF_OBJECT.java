@@ -39,7 +39,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -87,7 +87,7 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1NaiveTranslator naiveTranslator)
+		final L1Translator translator)
 	{
 		final L2ReadPointerOperand valueReg =
 			instruction.readObjectRegisterAt(0);
@@ -103,7 +103,7 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 			// one of the branches.
 			final A_Type constantType =
 				registerSet.constantAt(typeReg.register());
-			naiveTranslator.addInstruction(
+			translator.addInstruction(
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
 				valueReg,
 				new L2ConstantOperand(constantType),
@@ -111,7 +111,7 @@ public class L2_JUMP_IF_KIND_OF_OBJECT extends L2Operation
 				isNotKind);
 			return true;
 		}
-		return super.regenerate(instruction, registerSet, naiveTranslator);
+		return super.regenerate(instruction, registerSet, translator);
 	}
 
 	@Override

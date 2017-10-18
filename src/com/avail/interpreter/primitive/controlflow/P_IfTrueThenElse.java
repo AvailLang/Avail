@@ -39,7 +39,7 @@ import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -96,11 +96,16 @@ public final class P_IfTrueThenElse extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(ANY.o(), functionType(
-			emptyTuple(),
-			TOP.o()), functionType(
-			emptyTuple(),
-			TOP.o())), TOP.o());
+		return functionType(
+			tuple(
+				ANY.o(),
+				functionType(
+					emptyTuple(),
+					TOP.o()),
+				functionType(
+					emptyTuple(),
+					TOP.o())),
+			TOP.o());
 	}
 
 	@Override
@@ -108,7 +113,7 @@ public final class P_IfTrueThenElse extends Primitive
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1NaiveTranslator translator)
+		final L1Translator translator)
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the else function, instead.  The client will generate any needed

@@ -39,7 +39,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -86,7 +86,7 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1NaiveTranslator naiveTranslator)
+		final L1Translator translator)
 	{
 		// Eliminate tests due to type propagation.
 		final L2ReadPointerOperand valueReg =
@@ -99,7 +99,7 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		if (valueOrNull != null)
 		{
 			// Compare them right now.
-			naiveTranslator.addInstruction(
+			translator.addInstruction(
 				L2_JUMP.instance,
 				valueOrNull.equals(constant) ? ifEqual : ifUnequal);
 			return true;
@@ -107,11 +107,11 @@ public class L2_JUMP_IF_EQUALS_CONSTANT extends L2Operation
 		if (!constant.isInstanceOf(valueReg.type()))
 		{
 			// They can't be equal.
-			naiveTranslator.addInstruction(L2_JUMP.instance, ifUnequal);
+			translator.addInstruction(L2_JUMP.instance, ifUnequal);
 			return true;
 		}
 		// Otherwise it's still contingent.
-		return super.regenerate(instruction, registerSet, naiveTranslator);
+		return super.regenerate(instruction, registerSet, translator);
 	}
 
 	@Override

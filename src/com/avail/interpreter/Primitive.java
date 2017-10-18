@@ -42,15 +42,15 @@ import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FunctionTypeDescriptor;
 import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
 import com.avail.descriptor.TypeDescriptor;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.operation.L2_ATTEMPT_INLINE_PRIMITIVE;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
 import com.avail.interpreter.primitive.privatehelpers.P_PushArgument;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -74,7 +74,7 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.optimizer.L1NaiveTranslator.readVector;
+import static com.avail.optimizer.L1Translator.readVector;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -155,16 +155,14 @@ implements IntegerEnumSlotDescriptionEnum
 		CanFold,
 
 		/**
-		 * The primitive can be safely inlined. In particular, it simply
-		 * computes a value or changes the state of something and does not
-		 * replace the current continuation in unusual ways. Thus, it is
-		 * suitable for directly embedding in {@linkplain Interpreter Level
-		 * Two} code by the {@linkplain L2Translator Level Two translator},
-		 * without the need to reify the current continuation.
-		 *
-		 * <p>The primitive may still fail at runtime, but that's dealt with by
-		 * a conditional branch in the {@link L2_ATTEMPT_INLINE_PRIMITIVE}
-		 * wordcode itself.</p>
+		 * The invocation of the primitive can be safely inlined. In particular,
+		 * it simply computes a value or changes the state of something and does
+		 * not replace the current continuation in unusual ways. Thus, something
+		 * more specific than a general invocation can be embedded in the
+		 * calling {@link L2Chunk}.  Since code for potential reification is
+		 * still needed in the failure case, this flag is less useful than it
+		 * used to be when a continuation had to be reified on <em>every</em>
+		 * non-primitive call.
 		 */
 		CanInline,
 
@@ -970,7 +968,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *        The argument {@link L2ReadPointerOperand}s supplied to the
 	 *        function.
 	 * @param translator
-	 *        The {@link L1NaiveTranslator} on which to emit code, if possible.
+	 *        The {@link L1Translator} on which to emit code, if possible.
 	 * @return The {@link L2ReadPointerOperand} that will hold the result of the
 	 *         invocation-equivalent instructions that were output, or {@code
 	 *         null} if no such optimization was possible, implying a general
@@ -980,7 +978,7 @@ implements IntegerEnumSlotDescriptionEnum
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1NaiveTranslator translator)
+		final L1Translator translator)
 	{
 		// In the general case, avoid producing failure and reification code if
 		// the primitive is infallible.

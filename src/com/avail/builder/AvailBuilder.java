@@ -717,7 +717,8 @@ public final class AvailBuilder
 			final ModuleRoots moduleRoots = runtime.moduleRoots();
 			for (final ModuleRoot moduleRoot : moduleRoots)
 			{
-				final File rootDirectory = stripNull(moduleRoot.sourceDirectory());
+				final File rootDirectory =
+					stripNull(moduleRoot.sourceDirectory());
 				final Path rootPath = rootDirectory.toPath();
 				final FileVisitor<Path> visitor = new FileVisitor<Path>()
 				{
@@ -900,8 +901,8 @@ public final class AvailBuilder
 				compiler -> compiler.parseModuleHeader(
 					afterHeader ->
 					{
-						final ModuleHeader header =
-							stripNull(compiler.compilationContext.getModuleHeader());
+						final ModuleHeader header = stripNull(
+							compiler.compilationContext.getModuleHeader());
 						final List<String> importNames =
 							header.importedModuleNames();
 						final List<String> entryPoints =
@@ -991,8 +992,8 @@ public final class AvailBuilder
 					for (final ResolvedModuleName predecessor :
 						moduleGraph.predecessorsOf(moduleName))
 					{
-						final LoadedModule loadedModule = stripNull(getLoadedModule(
-							predecessor));
+						final LoadedModule loadedModule =
+							stripNull(getLoadedModule(predecessor));
 						if (loadedModule.deletionRequest)
 						{
 							dirty = true;
@@ -1002,8 +1003,8 @@ public final class AvailBuilder
 					if (!dirty)
 					{
 						// Look at the file to determine if it's changed.
-						final LoadedModule loadedModule = stripNull(getLoadedModule(
-							moduleName));
+						final LoadedModule loadedModule =
+							stripNull(getLoadedModule(moduleName));
 						final IndexedRepositoryManager repository =
 							moduleName.repository();
 						final ModuleArchive archive = repository.getArchive(
@@ -1015,14 +1016,14 @@ public final class AvailBuilder
 						}
 						else
 						{
-							final byte [] latestDigest = archive.digestForFile(
-								moduleName);
+							final byte [] latestDigest =
+								archive.digestForFile(moduleName);
 							dirty = !Arrays.equals(
 								latestDigest, loadedModule.sourceDigest);
 						}
 					}
-					final LoadedModule loadedModule = stripNull(getLoadedModule(
-						moduleName));
+					final LoadedModule loadedModule =
+						stripNull(getLoadedModule(moduleName));
 					loadedModule.deletionRequest = dirty;
 					log(Level.FINEST, "(Module %s is dirty)", moduleName);
 					completionAction.value();
@@ -1366,7 +1367,8 @@ public final class AvailBuilder
 			final byte [] digest = archive.digestForFile(resolvedName);
 			final ModuleVersionKey versionKey =
 				new ModuleVersionKey(resolvedName, digest);
-			final ModuleVersion version = archive.getVersion(versionKey);
+			final @Nullable ModuleVersion version =
+				archive.getVersion(versionKey);
 			if (version != null)
 			{
 				// This version was already traced and recorded for a
@@ -1388,9 +1390,8 @@ public final class AvailBuilder
 				compiler -> compiler.parseModuleHeader(
 					afterHeader ->
 					{
-						final ModuleHeader header =
-							stripNull(compiler.compilationContext.getModuleHeader());
-						assert afterHeader != null;
+						final ModuleHeader header = stripNull(
+							compiler.compilationContext.getModuleHeader());
 						final List<String> importNames =
 							header. importedModuleNames();
 						final List<String> entryPoints =
@@ -1712,7 +1713,8 @@ public final class AvailBuilder
 				final byte [] digest = archive.digestForFile(moduleName);
 				final ModuleVersionKey versionKey =
 					new ModuleVersionKey(moduleName, digest);
-				final ModuleVersion version = archive.getVersion(versionKey);
+				final @Nullable ModuleVersion version =
+					archive.getVersion(versionKey);
 				assert version != null
 					: "Version should have been populated during tracing";
 				final List<String> imports = version.getImports();
@@ -1754,7 +1756,7 @@ public final class AvailBuilder
 				}
 				final ModuleCompilationKey compilationKey =
 					new ModuleCompilationKey(predecessorCompilationTimes);
-				final ModuleCompilation compilation =
+				final @Nullable ModuleCompilation compilation =
 					version.getCompilation(compilationKey);
 				if (compilation != null)
 				{
@@ -1840,16 +1842,15 @@ public final class AvailBuilder
 			// Read the module header from the repository.
 			try
 			{
-				final byte[] bytes = version.getModuleHeader();
-				assert bytes != null;
+				final byte[] bytes = stripNull(version.getModuleHeader());
 				final ByteArrayInputStream inputStream =
 					validatedBytesFrom(bytes);
 				final Deserializer deserializer =
 					new Deserializer(inputStream, runtime);
 				final ModuleHeader header = new ModuleHeader(moduleName);
 				header.deserializeHeaderFrom(deserializer);
-				final String errorString = header.applyToModule(
-					module, runtime);
+				final @Nullable String errorString =
+					header.applyToModule(module, runtime);
 				if (errorString != null)
 				{
 					throw new RuntimeException(errorString);
@@ -1864,8 +1865,7 @@ public final class AvailBuilder
 			try
 			{
 				// Read the module data from the repository.
-				final byte[] bytes = compilation.getBytes();
-				assert bytes != null;
+				final byte[] bytes = stripNull(compilation.getBytes());
 				final ByteArrayInputStream inputStream =
 					validatedBytesFrom(bytes);
 				deserializer = new Deserializer(inputStream, runtime);
@@ -1883,7 +1883,7 @@ public final class AvailBuilder
 			runNext.value = () ->
 			{
 				availLoader.setPhase(Phase.LOADING);
-				final A_Function function;
+				final @Nullable A_Function function;
 				try
 				{
 					function = shouldStopBuild()
@@ -2193,7 +2193,7 @@ public final class AvailBuilder
 			final ResolvedModuleName moduleName,
 			final Continuation0 completionAction)
 		{
-			final ModuleVersion version = getVersion(moduleName);
+			final @Nullable ModuleVersion version = getVersion(moduleName);
 			if (version == null || version.getComments() == null)
 			{
 				final Problem problem = new Problem(
@@ -2214,7 +2214,7 @@ public final class AvailBuilder
 				buildProblemHandler.handle(problem);
 				return;
 			}
-			final A_Tuple tuple;
+			final @Nullable A_Tuple tuple;
 			try
 			{
 				final byte[] bytes = version.getComments();
@@ -2224,7 +2224,8 @@ public final class AvailBuilder
 				tuple = deserializer.deserialize();
 				assert tuple != null;
 				assert tuple.isTuple();
-				final AvailObject residue = deserializer.deserialize();
+				final @Nullable AvailObject residue =
+					deserializer.deserialize();
 				assert residue == null;
 			}
 			catch (final MalformedSerialStreamException e)
@@ -2818,7 +2819,7 @@ public final class AvailBuilder
 	}
 
 	/**
-	 * Construct an {@link AvailBuilder} for the provided runtime.
+	 * Construct an {@code AvailBuilder} for the provided runtime.
 	 *
 	 * @param runtime
 	 *        The {@link AvailRuntime} in which to load modules and execute

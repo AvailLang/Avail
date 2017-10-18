@@ -50,7 +50,7 @@ public class L2CommentOperand extends L2Operand
 	public final String comment;
 
 	/**
-	 * Construct a new {@link L2CommentOperand} with the specified comment
+	 * Construct a new {@code L2CommentOperand} with the specified comment
 	 * {@link String}.
 	 *
 	 * @param comment The comment string.
@@ -83,10 +83,6 @@ public class L2CommentOperand extends L2Operand
 	@Override
 	public String toString ()
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("Comment(");
-		builder.append(comment);
-		builder.append(")");
-		return builder.toString();
+		return "Comment(" + comment + ")";
 	}
 }

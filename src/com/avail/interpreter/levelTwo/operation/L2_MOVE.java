@@ -113,4 +113,19 @@ public class L2_MOVE extends L2Operation
 		registerSet.propagateMove(
 			sourceReg.register(), destinationReg.register(), instruction);
 	}
+
+	/**
+	 * Given an {@link L2Instruction} using this operation, extract the source
+	 * {@link L2ReadPointerOperand} that is moved by the instruction.
+	 *
+	 * @param instruction
+	 *        The move instruction to examine.
+	 * @return The move's source {@link L2ReadPointerOperand}.
+	 */
+	public static L2ReadPointerOperand sourceOf (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		return instruction.readObjectRegisterAt(0);
+	}
 }

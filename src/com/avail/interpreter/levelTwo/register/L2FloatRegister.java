@@ -42,8 +42,14 @@ package com.avail.interpreter.levelTwo.register;
 public class L2FloatRegister
 extends L2Register
 {
+	@Override
+	public RegisterKind registerKind ()
+	{
+		return RegisterKind.FLOAT;
+	}
+
 	/**
-	 * Construct a new {@link L2FloatRegister}.
+	 * Construct a new {@code L2FloatRegister}.
 	 *
 	 * @param debugValue A value used to distinguish the new instance visually.
 	 */
@@ -55,6 +61,7 @@ extends L2Register
 	@Override
 	public String toString ()
 	{
+		//noinspection StringConcatenationMissingWhitespace
 		return "Float" + super.toString();
 	}
 }

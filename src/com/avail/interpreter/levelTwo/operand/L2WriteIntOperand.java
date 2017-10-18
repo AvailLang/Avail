@@ -127,6 +127,12 @@ public class L2WriteIntOperand extends L2Operand
 	}
 
 	@Override
+	public void instructionWasRemoved (final L2Instruction instruction)
+	{
+		register.clearDefinition();
+	}
+
+	@Override
 	public String toString ()
 	{
 		return format("WriteInt(%s)", register);

@@ -50,8 +50,22 @@ import static com.avail.utility.Nulls.stripNull;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2Register
+public abstract class L2Register
 {
+	public enum RegisterKind
+	{
+		FLOAT, INTEGER, OBJECT;
+	}
+
+	/**
+	 * Answer the kind of register this is.  Different register kinds are
+	 * allocated from different virtual banks, and do not interfere in terms of
+	 * register liveness computation.
+	 *
+	 * @return The {@link RegisterKind}.
+	 */
+	public abstract RegisterKind registerKind ();
+
 	/**
 	 * A coloring number to be used by the {@linkplain Interpreter
 	 * interpreter} at runtime to identify the storage location of a
@@ -119,6 +133,12 @@ public class L2Register
 		definition = instruction;
 	}
 
+	public void clearDefinition ()
+	{
+		assert definition != null;
+		definition = null;
+	}
+
 	/**
 	 * Answer the {@link L2Instruction} which assigns this register in the SSA
 	 * control flow graph.  It must have been assigned already.
@@ -146,6 +166,17 @@ public class L2Register
 	}
 
 	/**
+	 * Drop a use of this register by an instruction that is now dead.
+	 *
+	 * @param instruction
+	 *        An instruction that reads from this register.
+	 */
+	public void removeUse (final L2Instruction instruction)
+	{
+		uses.remove(instruction);
+	}
+
+	/**
 	 * Answer the set of instructions that read from this register.  Do not
 	 * modify the returned collection.
 	 *
@@ -154,21 +185,5 @@ public class L2Register
 	public Set<L2Instruction> uses ()
 	{
 		return uses;
-	}
-
-	@Override
-	public String toString ()
-	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("Reg");
-		if (finalIndex != -1)
-		{
-			builder.append("[");
-			builder.append(finalIndex);
-			builder.append("]");
-		}
-		builder.append("@");
-		builder.append(uniqueValue);
-		return builder.toString();
 	}
 }

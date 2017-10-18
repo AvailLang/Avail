@@ -42,6 +42,9 @@ import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.MethodDescriptor;
 import com.avail.descriptor.PojoDescriptor;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.operation
+	.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
+import com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
@@ -147,23 +150,14 @@ public final class L2Chunk
 	/**
 	 * The sequence of {@link L2Instruction}s that make up this L2Chunk.
 	 */
-	public L2Instruction[] instructions;
-
-	/**
-	 * The sequence of {@link L2Instruction}s that should be <em>executed</em>
-	 * for this L2Chunk.  Non-executable instructions like {@link L2_LABEL}s
-	 * have been stripped out.  The original instruction sequence is still
-	 * present in {@link #instructions}, which is suitable for inlining into
-	 * callers.
-	 */
-	public final L2Instruction[] executableInstructions;
+	public final L2Instruction[] instructions;
 
 	/**
 	 * Answer the Avail {@linkplain PojoDescriptor pojo} associated with this
 	 * L2Chunk.
 	 */
-	public final AvailObject chunkPojo =
-		identityPojo(this).makeShared();
+	@SuppressWarnings("ThisEscapedInObjectConstruction")
+	public final AvailObject chunkPojo = identityPojo(this).makeShared();
 
 	/**
 	 * Answer the number of floating point registers used by this chunk.
@@ -199,7 +193,7 @@ public final class L2Chunk
 	 * The offset at which to start running this chunk if the code's primitive
 	 * was already tried but failed.
 	 *
-	 * @return An index into the chunk's {@link #executableInstructions}.
+	 * @return An index into the chunk's {@link #instructions}.
 	 */
 	public int offsetAfterInitialTryPrimitive ()
 	{
@@ -254,7 +248,7 @@ public final class L2Chunk
 
 	/**
 	 * The level two wordcode offset to which to jump when continuing execution
-	 * of a non-reified {{@link #unoptimizedChunk()} unoptimized} frame after
+	 * of a non-reified {@link #unoptimizedChunk() unoptimized} frame after
 	 * reifying all of its callers.
 	 *
 	 * <p>It's hard-coded, but checked against the default chunk in {@link
@@ -300,8 +294,14 @@ public final class L2Chunk
 	/**
 	 * The level two wordcode offset to which to jump when restarting an
 	 * unoptimized {@link A_Continuation} via {@link P_RestartContinuation} or
-	 * {@link P_RestartContinuationWithArguments}.  The latter form will first
-	 * copy the continuation and replace the arguments.
+	 * {@link P_RestartContinuationWithArguments}.  We skip the {@link
+	 * L2_TRY_PRIMITIVE}, but still do the {@link
+	 * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO} so that looped functions
+	 * tend to get optimized.
+	 *
+	 * <p>Note that we could just as easily start at 0, the entry point for
+	 * <em>calling</em> an unoptimized function, but we can skip the primitive
+	 * safely because primitives and labels are mutually exclusive.</p>
 	 *
 	 * <p>It's hard-coded, but checked against the default chunk in {@link
 	 * L2Translator#L2Translator()} when that chunk is created.</p>
@@ -310,7 +310,7 @@ public final class L2Chunk
 	 */
 	public static int offsetToRestartUnoptimizedChunk ()
 	{
-		return 8;
+		return 1;
 	}
 
 	/**
@@ -381,14 +381,10 @@ public final class L2Chunk
 	 *        The number of {@linkplain L2FloatRegister floating point
 	 *        registers} that this chunk will require.
 	 * @param offsetAfterInitialTryPrimitive
-	 *        The offset into my {@link #executableInstructions} at which to
+	 *        The offset into my {@link #instructions} at which to
 	 *        begin if this chunk's code was primitive and that primitive has
 	 *        already been attempted and failed.
 	 * @param theInstructions
-	 *        A {@link List} of {@link L2Instruction}s that prescribe what to do
-	 *        in place of the level one nybblecodes.  These are not normally
-	 *        executed, but they're suitable for inlining.
-	 * @param executableInstructions
 	 *        A {@link List} of {@link L2Instruction}s that can be executed in
 	 *        place of the level one nybblecodes.
 	 * @param contingentValues
@@ -403,7 +399,6 @@ public final class L2Chunk
 		final int numFloats,
 		final int offsetAfterInitialTryPrimitive,
 		final List<L2Instruction> theInstructions,
-		final List<L2Instruction> executableInstructions,
 		final A_Set contingentValues)
 	{
 		final L2Chunk chunk = new L2Chunk(
@@ -412,7 +407,6 @@ public final class L2Chunk
 			numFloats,
 			offsetAfterInitialTryPrimitive,
 			theInstructions,
-			executableInstructions,
 			contingentValues);
 		if (code != null)
 		{
@@ -437,18 +431,11 @@ public final class L2Chunk
 	 * @param numFloats
 	 *        The number of float registers needed.
 	 * @param offsetAfterInitialTryPrimitive
-	 *        The offset into my {@link #executableInstructions} at which to
+	 *        The offset into my {@link #instructions} at which to
 	 *        begin if this chunk's code was primitive and that primitive has
 	 *        already been attempted and failed.
-	 * @param theInstructions
-	 *        The instructions that can be inlined into callers.  This may
-	 *        include non-executable instructions that assist with type
-	 *        propagation during inlining, but are omitted from the
-	 *        {@link #executableInstructions}.
-	 * @param executableInstructions
-	 *        The actual instructions to execute.  This excludes non-executable
-	 *        instructions that help with type propagation and things of that
-	 *        nature.
+	 * @param instructions
+	 *        The instructions to execute.
 	 * @param contingentValues
 	 *        The set of contingent {@link A_ChunkDependable}.
 	 */
@@ -457,8 +444,7 @@ public final class L2Chunk
 		final int numIntegers,
 		final int numFloats,
 		final int offsetAfterInitialTryPrimitive,
-		final List<L2Instruction> theInstructions,
-		final List<L2Instruction> executableInstructions,
+		final List<L2Instruction> instructions,
 		final A_Set contingentValues)
 	{
 		// A new chunk starts out valid.
@@ -467,10 +453,8 @@ public final class L2Chunk
 		this.numIntegers = numIntegers;
 		this.numDoubles = numFloats;
 		this.offsetAfterInitialTryPrimitive = offsetAfterInitialTryPrimitive;
-		this.instructions = theInstructions.toArray(
-			new L2Instruction[theInstructions.size()]);
-		this.executableInstructions = executableInstructions.toArray(
-			new L2Instruction[executableInstructions.size()]);
+		this.instructions = instructions.toArray(
+			new L2Instruction[instructions.size()]);
 		this.contingentValues = contingentValues;
 	}
 
@@ -548,9 +532,9 @@ public final class L2Chunk
 	{
 		while (!interpreter.returnNow)
 		{
-			assert interpreter.chunk == this;
+//			assert interpreter.chunk == this;
 			final L2Instruction instruction =
-				executableInstructions[interpreter.offset++];
+				instructions[interpreter.offset++];
 			if (Interpreter.debugL2)
 			{
 				System.out.println("L2 start: " + instruction.operation.name());
@@ -572,7 +556,6 @@ public final class L2Chunk
 					timeAfter - timeBefore,
 					interpreter.interpreterIndex);
 			}
-
 			if (Interpreter.debugL2)
 			{
 				System.out.println("L2 end: " + instruction.operation.name());

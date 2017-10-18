@@ -99,7 +99,7 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 			final int offset = interpreter.offset;
 			final AvailObject[] savedPointers = interpreter.pointers;
 			final int[] savedInts = interpreter.integers;
-			assert chunk.executableInstructions[offset - 1] == instruction;
+			assert chunk.instructions[offset - 1] == instruction;
 
 			interpreter.chunk = code.startingChunk();
 			interpreter.offset = 0;

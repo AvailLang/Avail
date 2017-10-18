@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -83,5 +84,19 @@ public class L2_JUMP extends L2Operation
 	public boolean reachesNextInstruction ()
 	{
 		return false;
+	}
+
+	/**
+	 * Extract the target of the give jump instruction.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} to examine.  Its {@link L2Operation}
+	 *        must be an {@code L2_Jump}.
+	 * @return The {@link L2PcOperand} to which the instruction jumps.
+	 */
+	public static L2PcOperand jumpTarget (final L2Instruction instruction)
+	{
+		assert instruction.operation == instance;
+		return instruction.pcAt(0);
 	}
 }

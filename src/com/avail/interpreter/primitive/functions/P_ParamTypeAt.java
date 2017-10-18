@@ -40,7 +40,7 @@ import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -122,7 +122,7 @@ extends Primitive
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1NaiveTranslator translator)
+		final L1Translator translator)
 	{
 		// Transform the invocation of this P_ParamTypeAt primitive to use the
 		// L2_FUNCTION_PARAMETER_TYPE instruction if possible.

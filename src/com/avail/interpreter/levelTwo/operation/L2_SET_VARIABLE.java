@@ -40,7 +40,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -124,7 +124,7 @@ extends L2Operation
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1NaiveTranslator naiveTranslator)
+		final L1Translator translator)
 	{
 		final L2ReadPointerOperand variableReg =
 			instruction.readObjectRegisterAt(0);
@@ -139,7 +139,7 @@ extends L2Operation
 		{
 			// Type propagation has strengthened the value's type enough to
 			// be able to avoid the check.
-			naiveTranslator.addInstruction(
+			translator.addInstruction(
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				instruction.operands[0],
 				instruction.operands[1],
@@ -147,7 +147,7 @@ extends L2Operation
 				instruction.operands[3]);
 			return true;
 		}
-		return super.regenerate(instruction, registerSet, naiveTranslator);
+		return super.regenerate(instruction, registerSet, translator);
 	}
 
 	@Override

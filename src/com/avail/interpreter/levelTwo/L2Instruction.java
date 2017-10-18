@@ -162,7 +162,8 @@ public final class L2Instruction
 					{
 						@Override
 						public <X extends L2Register> X value (
-							final X register, final L2OperandType operandType)
+							final X register,
+							final L2OperandType operandType)
 						{
 							sourceRegisters.add(register);
 							return register;
@@ -176,7 +177,8 @@ public final class L2Instruction
 					{
 						@Override
 						public <X extends L2Register> X value (
-							final X register, final L2OperandType operandType)
+							final X register,
+							final L2OperandType operandType)
 						{
 							destinationRegisters.add(register);
 							return register;
@@ -317,6 +319,17 @@ public final class L2Instruction
 		for (final L2Operand operand : operands)
 		{
 			operand.instructionWasAdded(this);
+		}
+	}
+
+	/**
+	 * This instruction was just removed from its {@link L2BasicBlock}.
+	 */
+	public void justRemoved ()
+	{
+		for (final L2Operand operand : operands)
+		{
+			operand.instructionWasRemoved(this);
 		}
 	}
 

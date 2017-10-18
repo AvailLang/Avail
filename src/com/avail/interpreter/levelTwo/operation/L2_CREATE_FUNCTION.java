@@ -40,7 +40,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -136,7 +136,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 		final L2ReadPointerOperand functionRegister,
 		final int outerIndex,
 		final L2WritePointerOperand targetRegisterWrite,
-		final L1NaiveTranslator naiveTranslator)
+		final L1Translator translator)
 	{
 //		final A_RawFunction code = instruction.constantAt(0);
 		final List<L2ReadPointerOperand> outerRegs =
@@ -146,7 +146,7 @@ public class L2_CREATE_FUNCTION extends L2Operation
 
 		final L2ReadPointerOperand outerRegister =
 			outerRegs.get(outerIndex - 1);
-		naiveTranslator.moveRegister(outerRegister, targetRegisterWrite);
+		translator.moveRegister(outerRegister, targetRegisterWrite);
 		return true;
 	}
 

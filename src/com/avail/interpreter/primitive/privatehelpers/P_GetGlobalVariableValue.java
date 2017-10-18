@@ -42,7 +42,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -105,7 +105,7 @@ public final class P_GetGlobalVariableValue extends Primitive
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1NaiveTranslator translator)
+		final L1Translator translator)
 	{
 		final @Nullable A_Function function =
 			(A_Function) functionToCallReg.constantOrNull();

@@ -174,6 +174,12 @@ public class L2ReadPointerOperand extends L2Operand
 	}
 
 	@Override
+	public void instructionWasRemoved (final L2Instruction instruction)
+	{
+		register.removeUse(instruction);
+	}
+
+	@Override
 	public String toString ()
 	{
 		return format("ReadObject(%s)", register);

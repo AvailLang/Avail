@@ -36,6 +36,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
 
@@ -62,6 +63,18 @@ public class L2_GET_LATEST_RETURN_VALUE extends L2Operation
 		final L2WritePointerOperand targetReg =
 			instruction.writeObjectRegisterAt(0);
 		targetReg.set(interpreter.latestResult(), interpreter);
+	}
+
+	@Override
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
+	{
+		final int targetRegIndex =
+			instruction.writeObjectRegisterAt(0).finalIndex();
+
+		return interpreter ->
+			interpreter.pointerAtPut(
+				targetRegIndex, interpreter.latestResult());
 	}
 
 	@Override

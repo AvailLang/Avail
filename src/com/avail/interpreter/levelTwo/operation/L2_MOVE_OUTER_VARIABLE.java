@@ -40,7 +40,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -113,7 +113,7 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1NaiveTranslator naiveTranslator)
+		final L1Translator translator)
 	{
 		assert instruction.operation == this;
 		final int outerIndex = instruction.immediateAt(0);
@@ -124,8 +124,7 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 
 		final L2Instruction functionCreationInstruction =
 			functionReg.register().definition();
-		if (!(functionCreationInstruction.operation
-			instanceof L2_PHI_PSEUDO_OPERATION))
+		if (!(functionCreationInstruction.operation.isPhi()))
 		{
 			// Exactly one instruction produced the function.
 			return functionCreationInstruction.operation
@@ -134,8 +133,8 @@ public class L2_MOVE_OUTER_VARIABLE extends L2Operation
 					functionReg,
 					outerIndex,
 					destinationReg,
-					naiveTranslator);
+					translator);
 		}
-		return super.regenerate(instruction, registerSet, naiveTranslator);
+		return super.regenerate(instruction, registerSet, translator);
 	}
 }

@@ -36,6 +36,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 
@@ -44,7 +45,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static com.avail.optimizer.L1NaiveTranslator.readVector;
+import static com.avail.optimizer.L1Translator.readVector;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -83,6 +84,12 @@ public final class L2BasicBlock
 	 */
 	private int offset = -1;
 
+	/**
+	 * Set for blocks that must not be removed.  These blocks may be referenced
+	 * for tracking entry points, and must exist through final code generation.
+	 */
+	private boolean isIrremovable = false;
+
 	/** Whether we've started adding instructions to this basic block. */
 	private boolean hasStartedCodeGeneration = false;
 
@@ -104,6 +111,23 @@ public final class L2BasicBlock
 	}
 
 	/**
+	 * Prevent this block from being removed, so that its position can be
+	 * identified in the final generated code.
+	 */
+	public void makeIrremovable ()
+	{
+		isIrremovable = true;
+	}
+
+	/**
+	 * Answer whether this block must be tracked until final code generation.
+	 * */
+	public boolean isIrremovable ()
+	{
+		return isIrremovable;
+	}
+
+	/**
 	 * Answer the L2 offset at which the block starts.  Only populated after
 	 * code generation has completed.
 	 */
@@ -122,6 +146,18 @@ public final class L2BasicBlock
 	public List<L2Instruction> instructions ()
 	{
 		return instructions;
+	}
+
+	/**
+	 * Answer this block's last {@link L2Instruction}.  This instruction must be
+	 * a branching instruction of some sort, having zero or more target edges,
+	 * but not falling through to the next instruction (which doesn't exist).
+	 *
+	 * @return The last {@link L2Instruction} of this block.
+	 */
+	public L2Instruction finalInstruction ()
+	{
+		return instructions.get(instructions.size() - 1);
 	}
 
 	/**
@@ -150,6 +186,15 @@ public final class L2BasicBlock
 	}
 
 	/**
+	 * Answer all {@link L2PcOperand}s that lead to this block.
+	 *
+	 * @return The {@link List} of {@link L2PcOperand}s leading here.
+	 */
+	public List<L2PcOperand> predecessorEdges ()
+	{
+		return predecessorEdges;
+	}
+	/**
 	 * Answer the {@link L2PcOperand}s taken in order from the last {@link
 	 * L2Instruction} of this basic block.  These operands lead to the successor
 	 * blocks of this one.
@@ -172,15 +217,15 @@ public final class L2BasicBlock
 	 * ends of the move, allowing it to be eliminated.</p>
 	 *
 	 * <p>If phi operations are added, their target registers will be written to
-	 * the appropriate slotRegisters of the provided {@link L1NaiveTranslator}.
+	 * the appropriate slotRegisters of the provided {@link L1Translator}.
 	 * </p>
 	 *
-	 * @param naiveTranslator
-	 *        The {@link L1NaiveTranslator} that's generating instructions.
+	 * @param translator
+	 *        The {@link L1Translator} that's generating instructions.
 	 */
-	public void startIn (final L1NaiveTranslator naiveTranslator)
+	public void startIn (final L1Translator translator)
 	{
-		final int numSlots = naiveTranslator.numSlots();
+		final int numSlots = translator.numSlots;
 		final List<List<L2ReadPointerOperand>> sourcesBySlot =
 			IntStream.range(0, numSlots)
 				.mapToObj(i -> new ArrayList<L2ReadPointerOperand>())
@@ -213,10 +258,10 @@ public final class L2BasicBlock
 					.map(L2ObjectRegister::restriction)
 					.reduce(TypeRestriction::union)
 					.get();
-				naiveTranslator.addInstruction(
+				translator.addInstruction(
 					L2_PHI_PSEUDO_OPERATION.instance,
 					readVector(registerReads),
-					naiveTranslator.writeSlot(
+					translator.writeSlot(
 						slotIndex,
 						restriction.type,
 						restriction.constantOrNull));
@@ -228,7 +273,7 @@ public final class L2BasicBlock
 				// current, due to code generation along other paths since the
 				// predecessors were generated.  Bring the translator into
 				// agreement.
-				naiveTranslator.forceSlotRegister(
+				translator.forceSlotRegister(
 					slotIndex, registerReads.get(0));
 			}
 		}
@@ -250,13 +295,14 @@ public final class L2BasicBlock
 		assert !hasControlFlowAtEnd;
 		assert instruction.basicBlock == this;
 		instructions.add(instruction);
-		instruction.justAdded();
 		hasStartedCodeGeneration = true;
 		hasControlFlowAtEnd = instruction.altersControlFlow();
+		instruction.justAdded();
 		if (hasControlFlowAtEnd)
 		{
 			for (final L2PcOperand edge : instruction.targetEdges())
 			{
+				successorEdges.add(edge);
 				edge.targetBlock().addPredecessorEdge(edge);
 			}
 		}
@@ -268,5 +314,51 @@ public final class L2BasicBlock
 	public L2BasicBlock (final String name)
 	{
 		this.name = name;
+	}
+
+	/**
+	 * Add this block's instructions to the given instruction list.  Also do
+	 * a special peephole optimization by removing any preceding {@link L2_JUMP}
+	 * if its target is this block.
+	 *
+	 * @param output
+	 *        The {@link List} of {@link L2Instruction}s in which to append this
+	 *        basic block's instructions.
+	 */
+	public void generateOn (final List<L2Instruction> output)
+	{
+		// If the preceding instruction was a jump to here, remove it.  In fact,
+		// a null-jump might be on the end of the list, hiding another jump
+		// just behind it that leads here, making that one also be a null-jump.
+		boolean changed;
+		do
+		{
+			changed = false;
+			if (!output.isEmpty())
+			{
+				final L2Instruction previousInstruction =
+					output.get(output.size() - 1);
+				if (previousInstruction.operation instanceof L2_JUMP)
+				{
+					if (L2_JUMP.jumpTarget(previousInstruction).targetBlock()
+						== this)
+					{
+						output.remove(output.size() - 1);
+						changed = true;
+					}
+				}
+			}
+		} while (changed);
+
+		int counter = output.size();
+		offset = counter;
+		for (final L2Instruction instruction : instructions)
+		{
+			if (instruction.operation.shouldEmit())
+			{
+				instruction.setOffset(counter++);
+				output.add(instruction);
+			}
+		}
 	}
 }

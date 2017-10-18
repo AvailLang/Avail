@@ -152,7 +152,7 @@ public class L2_CREATE_TUPLE extends L2Operation
 	public static List<L2ReadPointerOperand> tupleSourceRegistersOf (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation instanceof L2_CREATE_TUPLE;
+		assert instruction.operation == instance;
 		return instruction.readVectorRegisterAt(0);
 	}
 }

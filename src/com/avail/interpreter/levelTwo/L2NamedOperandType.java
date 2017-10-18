@@ -82,7 +82,7 @@ public class L2NamedOperandType
 	}
 
 	/**
-	 * Construct a new {@link L2NamedOperandType}.
+	 * Construct a new {@code L2NamedOperandType}.
 	 *
 	 * @param operandType The {@link L2OperandType} to wrap.
 	 * @param name The name of this operand.

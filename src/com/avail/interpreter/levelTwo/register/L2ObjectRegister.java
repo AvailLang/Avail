@@ -41,7 +41,7 @@ import javax.annotation.Nullable;
 
 /**
  * {@code L2ObjectRegister} models the conceptual usage of a register that can
- * store an {@linkplain AvailObject Avail object}.
+ * store an {@link AvailObject}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -49,6 +49,12 @@ import javax.annotation.Nullable;
 public class L2ObjectRegister
 extends L2Register
 {
+	@Override
+	public RegisterKind registerKind ()
+	{
+		return RegisterKind.OBJECT;
+	}
+
 	/**
 	 * The {@link TypeRestriction} that constrains this register's content.
 	 */
@@ -61,7 +67,7 @@ extends L2Register
 	 *        A value used to distinguish the new instance visually during
 	 *        debugging of L2 translations.
 	 * @param type
-	 *        The type of value that is to be written to this register.
+	 * 	      The type of value that is to be written to this register.
 	 * @param constantOrNull
 	 *        The exact value that is to be written to this register if known,
 	 *        otherwise {@code null}.
@@ -85,45 +91,19 @@ extends L2Register
 		return restriction;
 	}
 
-	/**
-	 * Answer the {@link A_Type} that constrains values that might be in this
-	 * register.
-	 *
-	 * @return An {@link A_Type}.
-	 */
-	final A_Type type ()
+	@Override
+	public String toString ()
 	{
-		return restriction.type;
-	}
-
-	/**
-	 * Answer the exact value that must be in the register, if any, otherwise
-	 * {@code null}.
-	 *
-	 * @return Either {@code null} or the exact value in this register.
-	 */
-	final @Nullable A_BasicObject constantOrNull ()
-	{
-		return restriction.constantOrNull;
-	}
-
-	/**
-	 * Construct a new {@code L2ObjectRegister}, pre-colored to a particular
-	 * register number.
-	 *
-	 * @param debugValue A value used to distinguish the new instance visually.
-	 * @param index The index to which to constrain the register.
-	 * @return The new register.
-	 */
-	public static L2ObjectRegister precolored (
-		final long debugValue,
-		final int index,
-		final A_Type type,
-		final A_BasicObject constantOrNull)
-	{
-		final L2ObjectRegister register =
-			new L2ObjectRegister(debugValue, type, constantOrNull);
-		register.setFinalIndex(index);
-		return register;
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Reg");
+		if (finalIndex() != -1)
+		{
+			builder.append("[");
+			builder.append(finalIndex());
+			builder.append("]");
+		}
+		builder.append("@");
+		builder.append(uniqueValue);
+		return builder.toString();
 	}
 }

@@ -40,7 +40,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
@@ -87,7 +87,7 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1NaiveTranslator naiveTranslator)
+		final L1Translator translator)
 	{
 		// Eliminate tests due to type propagation.
 		final L2ReadPointerOperand valueReg =
@@ -99,7 +99,7 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 		final @Nullable A_BasicObject constant = valueReg.constantOrNull();
 		if (constant != null)
 		{
-			naiveTranslator.addInstruction(
+			translator.addInstruction(
 				L2_JUMP.instance,
 				constant.isInstanceOf(type) ? isKind : notKind);
 			return true;
@@ -108,14 +108,14 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 		if (knownType.isSubtypeOf(type))
 		{
 			// It's a subtype, so it must always pass the type test.
-			naiveTranslator.addInstruction(L2_JUMP.instance, isKind);
+			translator.addInstruction(L2_JUMP.instance, isKind);
 			return true;
 		}
 		final A_Type intersection = type.typeIntersection(knownType);
 		if (intersection.isBottom())
 		{
 			// The types don't intersect, so it can't ever pass the type test.
-			naiveTranslator.addInstruction(L2_JUMP.instance, notKind);
+			translator.addInstruction(L2_JUMP.instance, notKind);
 			return true;
 		}
 		// The branch direction isn't known statically.  However, since it's
@@ -126,7 +126,7 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 		// based on the tuple's size.
 		if (!intersection.equals(type))
 		{
-			naiveTranslator.addInstruction(
+			translator.addInstruction(
 				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
 				valueReg,
 				new L2ConstantOperand(intersection),
@@ -135,7 +135,7 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 			return true;
 		}
 		// The test could not be eliminated or improved.
-		return super.regenerate(instruction, registerSet, naiveTranslator);
+		return super.regenerate(instruction, registerSet, translator);
 	}
 
 	@Override

@@ -153,6 +153,12 @@ public class L2WritePointerOperand extends L2Operand
 	}
 
 	@Override
+	public void instructionWasRemoved(final L2Instruction instruction)
+	{
+		register.clearDefinition();
+	}
+
+	@Override
 	public String toString ()
 	{
 		return format("WriteObject(%s)", register);

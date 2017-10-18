@@ -127,6 +127,15 @@ public class L2ReadVectorOperand extends L2Operand
 	}
 
 	@Override
+	public void instructionWasRemoved (final L2Instruction instruction)
+	{
+		for (final L2ReadPointerOperand element : elements)
+		{
+			element.register().removeUse(instruction);
+		}
+	}
+
+	@Override
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();

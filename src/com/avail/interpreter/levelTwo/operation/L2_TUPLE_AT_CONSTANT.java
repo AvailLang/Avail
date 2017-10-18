@@ -1,5 +1,5 @@
 /**
- * L2_REENTER_L2_CHUNK.java
+ * L2_TUPLE_AT_CONSTANT.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,45 +31,48 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+
 /**
- * This marks a re-entry point into optimized (level two) code.  At re-entry,
- * the interpreter's reified continuation has been set up, and it's expected
- * that the top continuation will be popped and exploded into registers as part
- * of this on-ramp.
+ * Extract an element at a fixed subscript from a {@link TupleDescriptor tuple}
+ * that is known to be long enough, writing the element into a register.
  */
-public class L2_REENTER_L2_CHUNK extends L2Operation
+public class L2_TUPLE_AT_CONSTANT extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_REENTER_L2_CHUNK().init();
+		new L2_TUPLE_AT_CONSTANT().init(
+			READ_POINTER.is("tuple"),
+			IMMEDIATE.is("immediate subscript"),
+			WRITE_POINTER.is("destination"));
 
 	@Override
-	public void step (
-		final L2Instruction instruction,
-		final Interpreter interpreter)
+	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
+		final L2Instruction instruction)
 	{
-		// Do nothing.
-	}
+		final int tupleRegIndex =
+			instruction.readObjectRegisterAt(0).finalIndex();
+		final int subscript = instruction.immediateAt(1);
+		final int destinationRegIndex =
+			instruction.writeObjectRegisterAt(2).finalIndex();
 
-	@Override
-	public boolean shouldEmit ()
-	{
-		return false;
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Don't eliminate, even though no wordcodes would be generated.
-		return true;
+		return interpreter ->
+			interpreter.pointerAtPut(
+				destinationRegIndex,
+				interpreter.pointerAt(tupleRegIndex).tupleAt(subscript));
 	}
 
 	@Override
@@ -78,6 +81,18 @@ public class L2_REENTER_L2_CHUNK extends L2Operation
 		final RegisterSet registerSet,
 		final L2Translator translator)
 	{
-		registerSet.clearEverythingFor(instruction);
+		final L2ReadPointerOperand tupleReg =
+			instruction.readObjectRegisterAt(0);
+		final int subscript = instruction.immediateAt(1);
+		final L2WritePointerOperand destinationReg =
+			instruction.writeObjectRegisterAt(2);
+
+		final A_Type tupleType = tupleReg.type();
+		final int minSize = tupleType.sizeRange().lowerBound().extractInt();
+		assert minSize >= subscript;
+		registerSet.typeAtPut(
+			destinationReg.register(),
+			tupleType.typeAtIndex(subscript),
+			instruction);
 	}
 }

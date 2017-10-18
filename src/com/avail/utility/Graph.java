@@ -51,6 +51,8 @@ import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static java.util.Collections.unmodifiableSet;
+
 /**
  * A {@code Graph} is an unordered collection of vertices, along with the
  * successor-predecessor relationships between them.  From the Graph's
@@ -68,7 +70,7 @@ import java.util.logging.Logger;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class Graph<Vertex>
+public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 {
 	/** The {@linkplain Logger logger}. */
 	@InnerAccess static final Logger logger = Logger.getLogger(
@@ -76,6 +78,26 @@ public class Graph<Vertex>
 
 	/** Whether to log visit information. */
 	private static final boolean debugGraph = false;
+
+	/** Construct a new graph with no vertices or edges. */
+	public Graph ()
+	{
+		outEdges = new HashMap<>();
+		inEdges = new HashMap<>();
+	}
+
+	/**
+	 * Construct a new graph with the same vertices and edges as the argument.
+	 *
+	 * @param graph The graph to copy.
+	 */
+	public Graph (final Graph<Vertex> graph)
+	{
+		outEdges = new HashMap<>();
+		inEdges = new HashMap<>();
+		graph.outEdges.forEach((k, v) -> outEdges.put(k, new HashSet<>(v)));
+		graph.inEdges.forEach((k, v) -> inEdges.put(k, new HashSet<>(v)));
+	}
 
 	/**
 	 * Log the specified message if {@linkplain #debugGraph debugging} is
@@ -142,7 +164,7 @@ public class Graph<Vertex>
 		private static final long serialVersionUID = -4084330590821139287L;
 
 		/**
-		 * Construct a new {@link GraphPreconditionFailure} with the given
+		 * Construct a new {@code GraphPreconditionFailure} with the given
 		 * message.
 		 *
 		 * @param message The message describing the specific problem.
@@ -182,7 +204,7 @@ public class Graph<Vertex>
 	 * is the reverse relationship.
 	 * </p>
 	 */
-	@InnerAccess final Map<Vertex, Set<Vertex>> outEdges = new HashMap<>();
+	@InnerAccess final Map<Vertex, Set<Vertex>> outEdges;
 
 	/**
 	 * A map from each vertex of the {@link Graph} to its set of predecessor
@@ -193,7 +215,7 @@ public class Graph<Vertex>
 	 * is the reverse relationship.
 	 * </p>
 	 */
-	@InnerAccess final Map<Vertex, Set<Vertex>> inEdges = new HashMap<>();
+	@InnerAccess final Map<Vertex, Set<Vertex>> inEdges;
 
 	/**
 	 * Remove all edges and vertices from the graph.
@@ -526,7 +548,7 @@ public class Graph<Vertex>
 	 */
 	public Set<Vertex> vertices ()
 	{
-		return Collections.unmodifiableSet(outEdges.keySet());
+		return unmodifiableSet(outEdges.keySet());
 	}
 
 	/**
@@ -550,7 +572,7 @@ public class Graph<Vertex>
 	public Set<Vertex> successorsOf (final Vertex vertex)
 	{
 		ensure(outEdges.containsKey(vertex), "source vertex is not in graph");
-		return Collections.unmodifiableSet(outEdges.get(vertex));
+		return unmodifiableSet(outEdges.get(vertex));
 	}
 
 	/**
@@ -564,7 +586,7 @@ public class Graph<Vertex>
 	public Set<Vertex> predecessorsOf (final Vertex vertex)
 	{
 		ensure(inEdges.containsKey(vertex), "target vertex is not in graph");
-		return Collections.unmodifiableSet(inEdges.get(vertex));
+		return unmodifiableSet(inEdges.get(vertex));
 	}
 
 	/**
@@ -634,7 +656,7 @@ public class Graph<Vertex>
 	}
 
 	/**
-	 * Create a copy of this {@link Graph} with the same vertices, but with
+	 * Create a copy of this {@code Graph} with the same vertices, but with
 	 * every edge having the reverse direction.
 	 *
 	 * @return The reverse of this graph.
@@ -642,16 +664,8 @@ public class Graph<Vertex>
 	public Graph<Vertex> reverse ()
 	{
 		final Graph<Vertex> result = new Graph<>();
-		for (final Entry<Vertex, Set<Vertex>> entry : outEdges.entrySet())
-		{
-			result.inEdges.put(
-				entry.getKey(), new HashSet<>(entry.getValue()));
-		}
-		for (final Entry<Vertex, Set<Vertex>> entry : inEdges.entrySet())
-		{
-			result.outEdges.put(
-				entry.getKey(), new HashSet<>(entry.getValue()));
-		}
+		outEdges.forEach((k, v) -> result.inEdges.put(k, new HashSet<>(v)));
+		inEdges.forEach((k, v) -> result.outEdges.put(k, new HashSet<>(v)));
 		return result;
 	}
 
@@ -739,7 +753,7 @@ public class Graph<Vertex>
 		@InnerAccess final Deque<Vertex> stack = new ArrayDeque<>();
 
 		/**
-		 * Construct a new {@link ParallelVisitor}.
+		 * Construct a new {@code ParallelVisitor}.
 		 *
 		 * @param visitAction What to perform for each vertex being visited.
 		 */
@@ -1021,5 +1035,11 @@ public class Graph<Vertex>
 			}
 		}
 		return result;
+	}
+
+	@Override
+	public Graph<Vertex> clone ()
+	{
+		return super.clone();
 	}
 }

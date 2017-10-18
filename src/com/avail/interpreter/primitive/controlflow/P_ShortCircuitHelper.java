@@ -40,7 +40,7 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -111,7 +111,7 @@ public final class P_ShortCircuitHelper extends Primitive
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1NaiveTranslator translator)
+		final L1Translator translator)
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the passed function in the 2nd (=args[1]) argument, instead.  The

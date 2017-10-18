@@ -136,7 +136,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 	public static List<L2ReadPointerOperand> slotRegistersFor (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation instanceof L2_CREATE_CONTINUATION;
+		assert instruction.operation == instance;
 		return instruction.readVectorRegisterAt(5);
 	}
 }

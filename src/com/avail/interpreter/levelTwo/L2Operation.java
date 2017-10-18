@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
@@ -422,6 +422,17 @@ public abstract class L2Operation
 	}
 
 	/**
+	 * Answer whether this operation is a phi-function.  This is a convenient
+	 * fiction that allows control flow to merge while in SSA form.
+	 *
+	 * @return {@code true} if this is a phi operation, {@code false} otherwise.
+	 */
+	public boolean isPhi ()
+	{
+		return false;
+	}
+
+	/**
 	 * Write an alternative to this instruction into the given {@link List} of
 	 * instructions.  The state at the start of this instruction has been
 	 * provided, but should not be modified.  Answer whether a semantic change
@@ -434,7 +445,7 @@ public abstract class L2Operation
 	 *        live registers upon arriving at this instruction.  This method
 	 *        should modify the registerSet in-place to indicate the effect on
 	 *        register types and values that this instruction will have.
-	 * @param naiveTranslator
+	 * @param translator
 	 *        The list of instructions to augment.
 	 * @return Whether the regenerated instructions are different enough to
 	 *         warrant another pass of flow analysis.
@@ -442,11 +453,11 @@ public abstract class L2Operation
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
-		final L1NaiveTranslator naiveTranslator)
+		final L1Translator translator)
 	{
 		// By default just produce the same instruction.
 		assert instruction.operation == this;
-		naiveTranslator.addInstruction(instruction);
+		translator.addInstruction(instruction);
 		return false;
 	}
 
@@ -467,8 +478,8 @@ public abstract class L2Operation
 	 * @param targetRegisterWrite
 	 *        The {@link L2WritePointerOperand} into which the new code should
 	 *        cause the captured outer variable or value to be written.
-	 * @param naiveTranslator
-	 *        The {@link L1NaiveTranslator} into which to write the new code.
+	 * @param translator
+	 *        The {@link L1Translator} into which to write the new code.
 	 * @return A boolean indicating whether an instruction substitution took
 	 *         place which may warrant another pass of optimization.
 	 */
@@ -477,10 +488,10 @@ public abstract class L2Operation
 		final L2ReadPointerOperand functionRegister,
 		final int outerIndex,
 		final L2WritePointerOperand targetRegisterWrite,
-		final L1NaiveTranslator naiveTranslator)
+		final L1Translator translator)
 	{
 		assert instruction.operation == this;
-		naiveTranslator.addInstruction(
+		translator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2ImmediateOperand(outerIndex),
 			functionRegister,
@@ -500,8 +511,7 @@ public abstract class L2Operation
 	 *         instruction will write its result, or null if the instruction
 	 *         isn't an attempt to run a primitive.
 	 */
-	public @Nullable
-	L2WritePointerOperand primitiveResultRegister (
+	public @Nullable L2WritePointerOperand primitiveResultRegister (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation == this;

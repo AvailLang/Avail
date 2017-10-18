@@ -1,5 +1,5 @@
 /**
- * L2_MOVE_CONSTANT.java
+ * L2_GET_ARGUMENTS.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,6 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.AvailObject;
@@ -37,62 +38,57 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_POINTER;
+import java.util.List;
+
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
 
 /**
- * Move a constant {@link AvailObject} into an object register.
+ * Ask the {@link Interpreter} for its {@link Interpreter#argsBuffer}, which
+ * is how functions are supplied their arguments.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2_MOVE_CONSTANT extends L2Operation
+public class L2_GET_ARGUMENTS extends L2Operation
 {
 	/**
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_MOVE_CONSTANT().init(
-			CONSTANT.is("constant"),
-			WRITE_POINTER.is("destination"));
+		new L2_GET_ARGUMENTS().init(
+			WRITE_VECTOR.is("arguments"));
 
 	@Override
 	public Continuation1NotNullThrowsReification<Interpreter> actionFor (
 		final L2Instruction instruction)
 	{
-		final AvailObject constant = instruction.constantAt(0);
-		final int destinationRegNumber =
-			instruction.writeObjectRegisterAt(1).finalIndex();
+		final List<L2WritePointerOperand> argumentRegs =
+			instruction.writeVectorRegisterAt(0);
+
+		// Pre-decode the argument registers as much as possible.
+		final int numArgs = argumentRegs.size();
+		final int[] argumentRegNumbers = argumentRegs.stream()
+			.mapToInt(L2WritePointerOperand::finalIndex)
+			.toArray();
+
 		return interpreter ->
-			interpreter.pointerAtPut(destinationRegNumber, constant);
+		{
+			final List<AvailObject> arguments = interpreter.argsBuffer;
+			assert arguments.size() == numArgs;
+			for (int i = 0; i < numArgs; i++)
+			{
+				interpreter.pointerAtPut(
+					argumentRegNumbers[i], arguments.get(i));
+			}
+		};
 	}
 
 	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Translator translator)
+	public boolean hasSideEffect ()
 	{
-		final AvailObject constant = instruction.constantAt(0);
-		final L2WritePointerOperand destinationReg =
-			instruction.writeObjectRegisterAt(1);
-		registerSet.constantAtPut(
-			destinationReg.register(), constant, instruction);
-	}
-
-	/**
-	 * Given an {@link L2Instruction} using this operation, extract the constant
-	 * that is moved by the instruction.
-	 *
-	 * @param instruction
-	 *        The constant-moving instruction to examine.
-	 * @return The constant {@link AvailObject} that is moved by the
-	 *         instruction.
-	 */
-	public static AvailObject constantOf (
-		final L2Instruction instruction)
-	{
-		assert instruction.operation == instance;
-		return instruction.constantAt(0);
+		// Technically it doesn't have a side-effect, but this flag keeps the
+		// instruction from being re-ordered to a place where the arguments are
+		// no longer available.
+		return true;
 	}
 }

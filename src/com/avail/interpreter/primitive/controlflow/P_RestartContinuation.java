@@ -40,9 +40,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -76,38 +75,34 @@ public final class P_RestartContinuation extends Primitive
 		final boolean skipReturnCheck)
 	{
 		assert args.size() == 1;
-		final A_Continuation con = args.get(0);
-		final A_RawFunction code = con.function().code();
-		assert con.stackp() == code.numArgsAndLocalsAndStack() + 1
-			: "Outer continuation should have been a label- rather than "
-				+ "call-continuation";
-		assert con.pc() == 0
-			: "Labels must only occur at the start of a block.  "
-				+ "Only restart that kind of continuation.";
+		final A_Continuation originalCon = args.get(0);
 
-		interpreter.reifiedContinuation = con;
-		interpreter.function = con.function();
-		interpreter.chunk = con.levelTwoChunk();
-		interpreter.offset = con.levelTwoOffset();
+		final A_RawFunction code = originalCon.function().code();
+		//TODO MvG - This should be a primitive failure.
+		assert originalCon.stackp() == code.numArgsAndLocalsAndStack() + 1
+			: "Continuation should have been a label- rather than "
+			+ "call-continuation";
+		assert originalCon.pc() == 0
+			: "Continuation should have been a label- rather than "
+			+ "call-continuation";
+
+		// Move the (original) arguments from the continuation into
+		// interpreter.argsBuffer.
+		final int numArgs = code.numArgs();
+		interpreter.argsBuffer.clear();
+		for (int i = 1; i <= numArgs; i++)
+		{
+			interpreter.argsBuffer.add(originalCon.argOrLocalOrStackAt(i));
+		}
+		// The restart entry point expects the interpreter's reifiedContinuation
+		// to be the label continuation's *caller*.
+		interpreter.reifiedContinuation = originalCon.caller();
+		interpreter.function = originalCon.function();
+		interpreter.chunk = originalCon.levelTwoChunk();
+		interpreter.offset = originalCon.levelTwoOffset();
 		interpreter.returnNow = false;
 		interpreter.latestResult(null);
 		return CONTINUATION_CHANGED;
-	}
-
-	@Override
-	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
-		final L2ReadPointerOperand functionToCallReg,
-		final List<L2ReadPointerOperand> arguments,
-		final List<A_Type> argumentTypes,
-		final L1NaiveTranslator translator)
-	{
-		// A restart works with every continuation that is created by a label.
-		translator.addInstruction(
-			L2_RESTART_CONTINUATION.instance,
-			arguments.get(0));
-		// Return a register to indicate code was generated, but nothing can
-		// actually read or write it.
-		return translator.newObjectRegisterWriter(bottom(), null).read();
 	}
 
 	@Override
@@ -117,5 +112,21 @@ public final class P_RestartContinuation extends Primitive
 			tuple(
 				mostGeneralContinuationType()),
 			bottom());
+	}
+
+	@Override
+	public L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1Translator translator)
+	{
+		// A restart works with every continuation that is created by a label.
+		translator.addInstruction(
+			L2_RESTART_CONTINUATION.instance,
+			arguments.get(0));
+		// Return a register to indicate code was generated, but nothing can
+		// actually read or write it.
+		return translator.newObjectRegisterWriter(bottom(), null).read();
 	}
 }

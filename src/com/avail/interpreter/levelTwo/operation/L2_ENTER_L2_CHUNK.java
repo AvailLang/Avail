@@ -31,26 +31,18 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
-import com.avail.optimizer.L2Translator;
-import com.avail.optimizer.RegisterSet;
 
-import java.util.List;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_VECTOR;
-import static com.avail.interpreter.levelTwo.register.FixedRegister
-	.fixedRegisterCount;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
- * This marks the entry point into optimized (level two) code.  At entry,
- * the arguments are expected to be in the specified architectural
- * registers.  This operation is a place-holder and is not actually emitted.
+ * This marks the entry point into optimized (level two) code.  At entry, the
+ * arguments are expected to be in the {@link Interpreter#argsBuffer}.  Set up
+ * fresh registers for this chunk, but do not write to them yet.
  */
 public class L2_ENTER_L2_CHUNK extends L2Operation
 {
@@ -58,44 +50,16 @@ public class L2_ENTER_L2_CHUNK extends L2Operation
 	 * Initialize the sole instance.
 	 */
 	public static final L2Operation instance =
-		new L2_ENTER_L2_CHUNK().init(
-			WRITE_VECTOR.is("fixed and arguments"));
+		new L2_ENTER_L2_CHUNK().init();
 
 	@Override
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
 	{
-		// Do nothing.
-	}
-
-	@Override
-	public boolean shouldEmit ()
-	{
-		return false;
-	}
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Translator translator)
-	{
-		final List<L2WritePointerOperand> regs =
-			instruction.writeVectorRegisterAt(0);
-
-		final A_RawFunction code = translator.codeOrFail();
-		assert regs.size() == fixedRegisterCount() + code.numArgs();
-		final A_Type argsType = code.functionType().argsTupleType();
-		for (int i = 1, end = code.numArgs(); i <= end; i++)
-		{
-			final L2ObjectRegister argRegister = translator.continuationSlot(i);
-			registerSet.propagateWriteTo(argRegister, instruction);
-			registerSet.typeAtPut(
-				argRegister,
-				argsType.typeAtIndex(i),
-				instruction);
-		}
+		final L2Chunk chunk = stripNull(interpreter.chunk);
+		interpreter.pointers = new AvailObject[chunk.numObjects()];
+		interpreter.integers = new int[chunk.numIntegers()];
 	}
 
 	@Override

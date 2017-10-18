@@ -68,7 +68,7 @@ public class L2ReadIntOperand extends L2Operand
 	}
 
 	/**
-	 * Construct a new {@link L2ReadIntOperand} with the specified {@link
+	 * Construct a new {@code L2ReadIntOperand} with the specified {@link
 	 * L2IntegerRegister}.
 	 *
 	 * @param register The integer register.
@@ -114,6 +114,12 @@ public class L2ReadIntOperand extends L2Operand
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
 		register.addUse(instruction);
+	}
+
+	@Override
+	public void instructionWasRemoved (final L2Instruction instruction)
+	{
+		register.removeUse(instruction);
 	}
 
 	@Override

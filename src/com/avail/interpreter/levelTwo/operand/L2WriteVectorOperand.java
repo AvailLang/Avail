@@ -101,9 +101,18 @@ public class L2WriteVectorOperand extends L2Operand
 	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
-		for (L2WritePointerOperand element : elements)
+		for (final L2WritePointerOperand element : elements)
 		{
 			element.register().setDefinition(instruction);
+		}
+	}
+
+	@Override
+	public void instructionWasRemoved(final L2Instruction instruction)
+	{
+		for (final L2WritePointerOperand element : elements)
+		{
+			element.register().clearDefinition();
 		}
 	}
 

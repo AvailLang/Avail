@@ -362,7 +362,7 @@ extends Descriptor
 		final AvailObject object)
 	{
 		final AvailObject pojo = object.slot(INVOCATION_STATISTIC);
-		return (InvocationStatistic) pojo.javaObject();
+		return (InvocationStatistic) pojo.javaObjectNotNull();
 	}
 
 	/** The set of all active {@link CompiledCodeDescriptor raw functions}. */
@@ -764,7 +764,7 @@ extends Descriptor
 	L2Chunk o_StartingChunk (final AvailObject object)
 	{
 		final AvailObject pojo = object.mutableSlot(STARTING_CHUNK);
-		return (L2Chunk)pojo.javaObject();
+		return (L2Chunk) pojo.javaObjectNotNull();
 	}
 
 	@Override @AvailMethod

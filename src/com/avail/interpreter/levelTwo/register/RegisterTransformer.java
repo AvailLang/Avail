@@ -32,14 +32,12 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.interpreter.levelTwo.L2OperandType;
-
 /**
  * A {@code RegisterTransformer} maps registers to registers of the same type.
  */
-public interface RegisterTransformer<OperandType extends L2OperandType>
+public interface RegisterTransformer<L2OperandType>
 {
 	<X extends L2Register> X value(
 		final X register,
-		final OperandType operandType);
+		final L2OperandType operandType);
 }

@@ -45,6 +45,7 @@ import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
 import com.avail.optimizer.ReifyStackThrowable;
 import com.avail.utility.IndexedGenerator;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -671,41 +672,60 @@ public final class L1InstructionStepper
 		{
 			assert e.numericCode().equals(
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
-			// Capture the state in a caller-less continuation.  We'll fix up
-			// the caller after reification, below.
-			final A_Function function = stripNull(interpreter.function);
-			final A_RawFunction code = function.code();
-			final A_Continuation continuation =
-				createContinuationExceptFrame(
-					function,
-					nil,
-					pc,   // Right after the set-variable instruction.
-					stackp,
-					false,
-					unoptimizedChunk(),
-					offsetToResumeInterruptedUnoptimizedChunk());
-			for (
-				int i = code.numArgsAndLocalsAndStack();
-				i >= 1;
-				i--)
+
+			final A_Function savedFunction = stripNull(interpreter.function);
+			final int[] savedInts = interpreter.integers;
+			final AvailObject[] savedPointers = interpreter.pointers;
+			final int savedOffset = interpreter.offset;
+			final int savedPc = pc;
+			final int savedStackp = stackp;
+			final A_Tuple savedNybbles = nybbles;
+
+			final A_Function implicitObserveFunction =
+				interpreter.runtime().implicitObserveFunction();
+			interpreter.argsBuffer.clear();
+			interpreter.argsBuffer.add((AvailObject) assignmentFunction());
+			interpreter.argsBuffer.add((AvailObject) tuple(variable, value));
+			interpreter.skipReturnCheck = true;
+			try
 			{
-				continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
+				interpreter.invokeFunction(implicitObserveFunction);
 			}
-			throw interpreter.reifyThen(() ->
+			catch (final ReifyStackThrowable reifier)
 			{
-				// Push the continuation from above onto the reified stack.
-				interpreter.reifiedContinuation = continuation.replacingCaller(
-					interpreter.reifiedContinuation);
-				interpreter.argsBuffer.clear();
-				interpreter.argsBuffer.add((AvailObject) assignmentFunction());
-				interpreter.argsBuffer.add(
-					(AvailObject) tuple(variable, value));
-				interpreter.skipReturnCheck = true;
-				interpreter.function =
-					interpreter.runtime().implicitObserveFunction();
-				interpreter.chunk = code.startingChunk();
-				interpreter.offset = 0;
-			});
+				if (reifier.actuallyReify())
+				{
+					final A_RawFunction code = savedFunction.code();
+					final A_Continuation continuation =
+						createContinuationExceptFrame(
+							savedFunction,
+							nil,
+							savedPc,   // Right after the set-variable.
+							savedStackp,
+							false,
+							unoptimizedChunk(),
+							offsetToReturnIntoUnoptimizedChunk());
+					for (
+						int i = 1, limit = code.numArgsAndLocalsAndStack();
+						i <= limit;
+						i++)
+					{
+						continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
+					}
+					reifier.pushContinuation(continuation);
+				}
+				throw reifier;
+			}
+			finally
+			{
+				interpreter.integers = savedInts;
+				interpreter.pointers = savedPointers;
+				interpreter.offset = savedOffset;
+				interpreter.function = savedFunction;
+				nybbles = savedNybbles;
+				pc = savedPc;
+				stackp = savedStackp;
+			}
 		}
 	}
 

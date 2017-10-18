@@ -35,9 +35,14 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph;
 
+import javax.annotation.Nullable;
+
+import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 
 /**
@@ -52,10 +57,10 @@ public class L2PcOperand extends L2Operand
 	/**
 	 * The {@link L2BasicBlock} that this operand refers to.
 	 */
-	private final L2BasicBlock targetBlock;
+	private L2BasicBlock targetBlock;
 
 	/** The instruction that this operand is part of. */
-	private L2Instruction instruction;
+	private @Nullable L2Instruction instruction;
 
 	/**
 	 * An array of {@link L2ReadPointerOperand}s, representing the slots of the
@@ -76,7 +81,7 @@ public class L2PcOperand extends L2Operand
 	 *
 	 * @return The array of {@link PhiRestriction}s.
 	 */
-	public PhiRestriction[] getPhiRestrictions ()
+	public PhiRestriction[] phiRestrictions ()
 	{
 		return phiRestrictions;
 	}
@@ -138,19 +143,24 @@ public class L2PcOperand extends L2Operand
 		return this;
 	}
 
-	/**
-	 * This is an operand of the given instruction, which was just added to its
-	 * basic block.
-	 *
-	 * @param theInstruction
-	 *        The {@link L2Instruction} that was just added.
-	 */
 	@Override
 	public void instructionWasAdded (
 		final L2Instruction theInstruction)
 	{
-		// Capture the containing instruction.
+		assert this.instruction == null;
 		this.instruction = theInstruction;
+		instruction.basicBlock.successorEdges().add(this);
+		targetBlock.predecessorEdges().add(this);
+		super.instructionWasAdded(theInstruction);
+	}
+
+	@Override
+	public void instructionWasRemoved (
+		final L2Instruction theInstruction)
+	{
+		stripNull(instruction).basicBlock.successorEdges().remove(this);
+		targetBlock.predecessorEdges().remove(this);
+		this.instruction = null;
 		super.instructionWasAdded(theInstruction);
 	}
 
@@ -171,7 +181,7 @@ public class L2PcOperand extends L2Operand
 	 */
 	public L2BasicBlock sourceBlock ()
 	{
-		return instruction.basicBlock;
+		return stripNull(instruction).basicBlock;
 	}
 
 	@Override
@@ -180,5 +190,61 @@ public class L2PcOperand extends L2Operand
 		// Show the basic block's name.
 		return format("Pc(%s)",
 			targetBlock.name());
+	}
+
+	/**
+	 * Create a new {@link L2BasicBlock} that will be the new target of this
+	 * edge, and write an {@link L2_JUMP} into the new block to jump to the
+	 * old target of this edge.  Be careful to maintain predecessor order at the
+	 * target block.
+	 *
+	 * @param controlFlowGraph
+	 *        The {@link L2ControlFlowGraph} being updated.
+	 */
+	public void splitEdgeWith (final L2ControlFlowGraph controlFlowGraph)
+	{
+		assert instruction != null;
+		final L2BasicBlock newBlock = controlFlowGraph.createBasicBlock(
+			"edge-split");
+		// Add a jump that loops to itself.  We'll update the jump's target and
+		// the original edge's target to make things right, while being careful
+		// not to disturb the predecessor order that's correlated with any phi
+		// functions.
+		newBlock.addInstruction(
+			new L2Instruction(
+				newBlock,
+				L2_JUMP.instance,
+				new L2PcOperand(
+					newBlock,
+					slotRegisters(),
+					phiRestrictions())));
+		// Copying happens when adding an instruction, but we're interested in
+		// the exact edge that was added.
+		final L2Instruction jump = newBlock.instructions().get(0);
+		final L2PcOperand newEdge = L2_JUMP.jumpTarget(jump);
+		// Adjust the newEdge's target.
+		newEdge.targetBlock = targetBlock;
+		// Replace the edge in the targetBlock's predecessors list.
+		final int index = targetBlock.predecessorEdges().indexOf(this);
+		targetBlock.predecessorEdges().set(index, newEdge);
+
+		// Now redirect the original edge.
+		targetBlock = newBlock;
+		newBlock.predecessorEdges().clear();
+		newBlock.predecessorEdges().add(this);
+	}
+
+	/**
+	 * In a non-SSA control flow graph that has had its phi functions removed
+	 * and converted to moves, switch the target of this edge.
+	 *
+	 * @param newTarget The new target {@link L2BasicBlock} of this edge.
+	 */
+	public void switchTargetBlockNonSSA (final L2BasicBlock newTarget)
+	{
+		final L2BasicBlock oldTarget = targetBlock;
+		targetBlock = newTarget;
+		oldTarget.predecessorEdges().remove(this);
+		newTarget.predecessorEdges().add(this);
 	}
 }

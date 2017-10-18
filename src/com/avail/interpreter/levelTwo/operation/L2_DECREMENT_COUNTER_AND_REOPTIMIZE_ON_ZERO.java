@@ -49,7 +49,9 @@ import static com.avail.utility.Nulls.stripNull;
 /**
  * Explicitly decrement the current compiled code's countdown via {@link
  * AvailObject#countdownToReoptimize(int)}.  If it reaches zero then
- * re-optimize the code.
+ * re-optimize the code and jump to its {@link
+ * L2Chunk#offsetAfterInitialTryPrimitive()}, which expects the arguments to
+ * still be set up in the {@link Interpreter}.
  */
 public class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 extends L2Operation
@@ -69,25 +71,19 @@ extends L2Operation
 		return interpreter ->
 		{
 			final A_Function function = stripNull(interpreter.function);
-			final A_RawFunction theCode = function.code();
-			final Mutable<Boolean> translated = new Mutable<>(false);
-			theCode.decrementCountdownToReoptimize(() ->
+			final A_RawFunction code = function.code();
+			code.decrementCountdownToReoptimize(() ->
 			{
-				theCode.countdownToReoptimize(
+				code.countdownToReoptimize(
 					L2Chunk.countdownForNewlyOptimizedCode());
 				L2Translator.translateToLevelTwo(
-					theCode,
+					code,
 					OptimizationLevel.all()[targetOptimizationLevel],
 					interpreter);
-				translated.value = true;
+				final L2Chunk chunk = stripNull(code.startingChunk());
+				interpreter.chunk = chunk;
+				interpreter.offset = chunk.offsetAfterInitialTryPrimitive();
 			});
-			// If translation actually happened, then run the function in L2.
-			if (translated.value)
-			{
-				interpreter.chunk = theCode.startingChunk();
-				interpreter.offset =
-					interpreter.chunk.offsetAfterInitialTryPrimitive();
-			}
 		};
 	}
 

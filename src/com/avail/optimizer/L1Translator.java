@@ -1,5 +1,5 @@
 /**
- * L1NaiveTranslator.java
+ * L1Translator.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -51,15 +51,15 @@ import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow
-	.P_RestartContinuationWithArguments;
 import com.avail.utility.Mutable;
+import com.avail.utility.evaluation.Continuation1;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntime.invalidMessageSendFunctionType;
@@ -79,13 +79,9 @@ import static com.avail.descriptor.FunctionTypeDescriptor
 	.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
-import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
@@ -95,20 +91,20 @@ import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.CALLER;
 import static com.avail.optimizer.L2Translator.*;
+import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 /**
- * The {@code L1NaiveTranslator} simply transliterates a sequence of
- * {@linkplain L1Operation level one instructions} into one or more simple
- * {@linkplain L2Instruction level two instructions}, under the assumption
- * that further optimization steps will be able to transform this code into
- * something much more efficient – without altering the level one semantics.
+ * The {@code L1Translator} transliterates a sequence of {@link L1Operation
+ * level one instructions} into one or more simple {@link L2Instruction level
+ * two instructions}, under the assumption that further optimization steps will
+ * be able to transform this code into something much more efficient – without
+ * altering the level one semantics.
  */
-public final class L1NaiveTranslator
+public final class L1Translator
 	implements L1OperationDispatcher
 {
 	/**
@@ -120,12 +116,19 @@ public final class L1NaiveTranslator
 	 * The {@linkplain CompiledCodeDescriptor raw function} to transliterate
 	 * into level two code.
 	 */
-	private final A_RawFunction code;
+	final A_RawFunction code;
 
 	/**
 	 * The nybblecodes being optimized.
 	 */
-	private final A_Tuple nybbles;
+	final A_Tuple nybbles;
+
+	/**
+	 * The number of slots in the virtualize continuation.  This includes the
+	 * arguments, the locals (including the optional primitive failure result),
+	 * and the stack slots.
+	 */
+	final int numSlots;
 
 	/**
 	 * The current level one nybblecode program counter during naive translation
@@ -140,12 +143,14 @@ public final class L1NaiveTranslator
 
 	private final @Nullable A_Function exactFunctionOrNull;
 
+	/** The control flow graph being generated. */
+	public final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
+
 	/**
 	 * The {@link L2BasicBlock} which is the entry point for a function that has
 	 * just been invoked.
 	 */
-	final L2BasicBlock initialBlock = new L2BasicBlock("start");
-
+	final L2BasicBlock initialBlock = createBasicBlock("START");
 
 	/**
 	 * Primitive {@link A_RawFunction}s will start with a {@link
@@ -159,18 +164,7 @@ public final class L1NaiveTranslator
 	 * a fallible primitive can safely attempt the primitive, then if it fails
 	 * invoke the fallback code safely.</p>
 	 */
-	@Nullable  L2BasicBlock afterOptionalInitialPrimitiveBlock = null;
-
-	/**
-	 * The {@link L2BasicBlock} which is the entry point with which {@link
-	 * P_RestartContinuation} and {@link P_RestartContinuationWithArguments} are
-	 * able to restart a continuation.  The continuation must have been created
-	 * with a {@link L1NaiveTranslator#L1Ext_doPushLabel()} instruction, which
-	 * corresponds to a label declaration at the start of a function.  This is
-	 * only created if at least one push-label instruction is actually
-	 * encountered.
-	 */
-	@Nullable L2BasicBlock restartLabelBlock = null;
+	public @Nullable L2BasicBlock afterOptionalInitialPrimitiveBlock = null;
 
 	/**
 	 * An {@link L2BasicBlock} that shouldn't actually be dynamically reachable.
@@ -196,10 +190,6 @@ public final class L1NaiveTranslator
 			unreachableBlock,
 			new L2ReadPointerOperand[0]);
 	}
-
-	/** The control flow graph being generated. */
-	public final L2ControlFlowGraph controlFlowGraph =
-		new L2ControlFlowGraph(initialBlock);
 
 	/** The {@link L2BasicBlock} that code is currently being generated into. */
 	L2BasicBlock currentBlock = initialBlock;
@@ -227,6 +217,14 @@ public final class L1NaiveTranslator
 	private final L2ReadPointerOperand[] slotRegisters;
 
 	/**
+	 * Keep track of all constant-valued registers that have been generated in
+	 * the current block, so that they can be reused as needed.  This is
+	 * especially handy for {@code nil}.
+	 */
+	final Map<A_BasicObject, L2ReadPointerOperand> constantsInCurrentBlock =
+		new HashMap<>();
+
+	/**
 	 * Answer a copy of the current array of registers that represent the
 	 * current state of the virtual continuation.
 	 *
@@ -243,16 +241,16 @@ public final class L1NaiveTranslator
 	 *        The {@link L2Translator} for which I'm producing an initial
 	 *        translation from L1.
 	 */
-	L1NaiveTranslator (final L2Translator translator)
+	L1Translator (final L2Translator translator)
 	{
 		this.translator = translator;
-		code = translator.codeOrFail();
-		nybbles = code.nybbles();
-		pc = 1;
-		stackp = code.maxStackDepth() + 1;
-		slotRegisters =
-			new L2ReadPointerOperand[code.numArgsAndLocalsAndStack()];
-		exactFunctionOrNull = computeExactFunctionOrNullForCode(code);
+		this.code = stripNull(translator.codeOrNull);
+		this.nybbles = code.nybbles();
+		this.numSlots = code.numArgsAndLocalsAndStack();
+		this.pc = 1;
+		this.stackp = numSlots + 1;
+		this.slotRegisters = new L2ReadPointerOperand[numSlots];
+		this.exactFunctionOrNull = computeExactFunctionOrNullForCode(code);
 	}
 
 	/**
@@ -268,12 +266,20 @@ public final class L1NaiveTranslator
 	public void startBlock (final L2BasicBlock block)
 	{
 		currentBlock = block;
+		constantsInCurrentBlock.clear();
 		block.startIn(this);
 	}
 
+	/**
+	 * Determine whether the current block is probably reachable.  If it has no
+	 * predecessors and is removable, it's unreachable, but otherwise we assume
+	 * it's reachable, at least until dead code elimination.
+	 *
+	 * @return Whether the current block is probably reachable.
+	 */
 	boolean currentlyReachable ()
 	{
-		return currentBlock == controlFlowGraph.initialBlock
+		return currentBlock.isIrremovable()
 			|| currentBlock.hasPredecessors();
 	}
 
@@ -526,36 +532,6 @@ public final class L1NaiveTranslator
 	}
 
 	/**
-	 * Answer the number of stack slots reserved for use by the code being
-	 * optimized.
-	 *
-	 * @return The number of stack slots.
-	 */
-	public int numSlots ()
-	{
-		return translator.numSlots;
-	}
-
-	/**
-	 * Answer a {@linkplain List list} of {@linkplain L2ObjectRegister
-	 * object registers} that correspond to the slots of the current
-	 * {@linkplain A_Continuation continuation}.
-	 *
-	 * @param nSlots
-	 *        The number of continuation slots.
-	 * @return A list of object registers.
-	 */
-	public List<L2ReadPointerOperand> continuationSlotsList (final int nSlots)
-	{
-		final List<L2ReadPointerOperand> slots = new ArrayList<>(nSlots);
-		for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
-		{
-			slots.add(readSlot(slotIndex));
-		}
-		return slots;
-	}
-
-	/**
 	 * Create and add an {@link L2Instruction} with the given {@link
 	 * L2Operation} and variable number of {@link L2Operand}s.
 	 *
@@ -584,25 +560,6 @@ public final class L1NaiveTranslator
 	}
 
 	/**
-	 * Generate instruction(s) to move the given {@link AvailObject} into
-	 * the specified {@link L2Register}.
-	 *
-	 * @param value
-	 *        The value to move.
-	 * @param destination
-	 *        Where to move it.
-	 */
-	public void moveConstant (
-		final A_BasicObject value,
-		final L2WritePointerOperand destination)
-	{
-		addInstruction(
-			L2_MOVE_CONSTANT.instance,
-			new L2ConstantOperand(value),
-			destination);
-	}
-
-	/**
 	 * Generate instruction(s) to move the given {@link AvailObject} into a
 	 * fresh writable slot {@link L2Register} with the given index.
 	 *
@@ -615,39 +572,26 @@ public final class L1NaiveTranslator
 		final A_BasicObject value,
 		final int slotIndex)
 	{
-		moveConstant(
-			value,
-			writeSlot(slotIndex, instanceTypeOrMetaOn(value), value));
-	}
-
-	/**
-	 * Generate instructions to move {@linkplain NilDescriptor#nil nil}
-	 * into each of the specified {@link L2ObjectRegister registers}.
-	 *
-	 * @param destinations
-	 *        Which registers to clear.
-	 */
-	public void moveNils (
-		final Collection<L2WritePointerOperand> destinations)
-	{
-		for (final L2WritePointerOperand destination : destinations)
-		{
-			addInstruction(
-				L2_MOVE_CONSTANT.instance,
-				new L2ConstantOperand(nil),
-				destination);
-		}
+		slotRegisters[slotIndex - 1] = constantRegister(value);
 	}
 
 	/**
 	 * Write a constant value into a new register.  Answer an {@link
-	 * L2ReadPointerOperand} for that register.
+	 * L2ReadPointerOperand} for that register.  If another register has already
+	 * been assigned the same value within the same {@link L2BasicBlock}, just
+	 * use that instead of emitting another constant-move.
 	 *
 	 * @param value The constant value to write to a register.
 	 * @return The {@link L2ReadPointerOperand} for the new register.
 	 */
 	public L2ReadPointerOperand constantRegister (final A_BasicObject value)
 	{
+		final @Nullable L2ReadPointerOperand existingConstant =
+			constantsInCurrentBlock.get(value);
+		if (existingConstant != null)
+		{
+			return existingConstant;
+		}
 		final A_Type type = value.equalsNil()
 			? TOP.o()
 			: instanceTypeOrMetaOn(value);
@@ -657,7 +601,9 @@ public final class L1NaiveTranslator
 			L2_MOVE_CONSTANT.instance,
 			new L2ConstantOperand(value),
 			registerWrite);
-		return registerWrite.read();
+		final L2ReadPointerOperand read = registerWrite.read();
+		constantsInCurrentBlock.put(value, read);
+		return read;
 	}
 
 	/**
@@ -694,23 +640,30 @@ public final class L1NaiveTranslator
 	}
 
 	/**
-	 * Generate code to reify a continuation in a fresh register, then {@link
-	 * L2_RETURN} it to the Java code that was requesting reification.
+	 * Generate code to reify a continuation in a fresh register, then use
+	 * that register in a supplied code-generating action.  Then generate code
+	 * to get into an equivalent state after resuming the reified continuation,
+	 * jumping to the given resumeBlock.  The code generator is left at an
+	 * unreachable position.
 	 *
 	 * <p>Use the passed registers to populate the continuation's current slots
 	 * and function, but use the state of this translator to determine the rest
 	 * of the continuation (e.g., pc, stackp).</p>
-	 *
-	 * <p>The new continuation's caller will be nil, which will be corrected
-	 * when the {@link ReifyStackThrowable} is rethrown all the way to {@link
-	 * Interpreter#run()}.</p>
 	 *
 	 * @param slots
 	 *        A {@linkplain List list} containing the {@linkplain
 	 *        L2ReadPointerOperand object registers} that correspond to the
 	 *        slots of the current continuation.
 	 * @param function
-	 *        The function that should be captured in the continuation.
+	 *        The register holding the function that should be captured in the
+	 *        continuation.
+	 * @param caller
+	 *        The register holding the caller that should be captured in the
+	 *        continuation.  This may safely be {@link NilDescriptor#nil}.
+	 * @param actionForContinuation
+	 *        What code generation action to perform when the continuation has
+	 *        been assembled.  The register holding the new continuation is
+	 *        passed to the action.
 	 * @param resumeBlock
 	 *        Where the continuation should resume executing when it's asked to
 	 *        continue.  Note that if the {@link L2Chunk} was invalidated before
@@ -719,6 +672,8 @@ public final class L1NaiveTranslator
 	public void reify (
 		final L2ReadPointerOperand[] slots,
 		final L2ReadPointerOperand function,
+		final L2ReadPointerOperand caller,
+		final Continuation1<L2ReadPointerOperand> actionForContinuation,
 		final L2BasicBlock resumeBlock)
 	{
 		final L2WritePointerOperand newContinuationRegister =
@@ -759,7 +714,7 @@ public final class L1NaiveTranslator
 			writeVector(undefinedWriters));
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
-			constantRegister(nil),
+			caller,
 			function,
 			new L2ImmediateOperand(pc),
 			new L2ImmediateOperand(stackp),
@@ -769,12 +724,9 @@ public final class L1NaiveTranslator
 			new L2PcOperand(onReturnIntoReified, undefinedSlots),
 			new L2PcOperand(afterCreation, slots));
 
-		// Right after creating the continuation.
 		startBlock(afterCreation);
-		addInstruction(
-			L2_RETURN.instance,
-			newContinuationRegister.read(),
-			constantIntRegister(1));
+		// Right after creating the continuation.
+		actionForContinuation.value(newContinuationRegister.read());
 
 		// It's returning into the reified continuation.
 		startBlock(onReturnIntoReified);
@@ -925,16 +877,14 @@ public final class L1NaiveTranslator
 			// below with a constant move of the expectedType.
 			if (i != nArgs - 1)
 			{
-				moveConstant(nil, writeSlot(stackp + i, TOP.o(), nil));
+				moveConstantToSlot(nil, stackp + i);
 			}
 		}
 		// Pop the arguments, but push a slot for the expectedType.
 		stackp += nArgs - 1;
 		// Write the expected type.  Note that even though it's a type, the
 		// exact value is known statically, not just its meta.
-		moveConstant(
-			expectedType,
-			writeSlot(stackp, instanceMeta(expectedType), expectedType));
+		moveConstantToSlot(expectedType, stackp);
 
 		// At this point we've captured and popped the argument registers,
 		// nilled their new SSA versions, and pushed the expectedType.  That's
@@ -1291,7 +1241,16 @@ public final class L1NaiveTranslator
 
 		// Reification has been requested while the call is in progress.
 		startBlock(onReification);
-		reify(slotsIfReified, getCurrentFunction(), onReturn);
+		reify(
+			slotsIfReified,
+			getCurrentFunction(),
+			constantRegister(nil),
+			newContinuationReg ->
+				addInstruction(
+					L2_RETURN.instance,
+					newContinuationReg,
+					constantIntRegister(1)),
+			onReturn);
 
 		// This is reached either after a normal return from the invoke or after
 		// reification, return into the reified continuation, and the subsequent
@@ -1645,8 +1604,6 @@ public final class L1NaiveTranslator
 			L2_CREATE_TUPLE.instance,
 			argsVector,
 			argumentsTupleWrite);
-		final L2BasicBlock onReification =
-			createBasicBlock("reification while reporting failed lookup");
 		// Ignore result of call, which cannot actually return.
 		generateGeneralFunctionInvocation(
 			invalidSendReg.read(),
@@ -1677,79 +1634,55 @@ public final class L1NaiveTranslator
 	}
 
 	/**
-	 * Emit an interrupt {@linkplain
-	 * L2_JUMP_IF_INTERRUPT check}-and-{@linkplain L2_PROCESS_INTERRUPT
-	 * process} off-ramp. May only be called when the architectural
-	 * registers reflect an inter-nybblecode state.
-	 *
-	 * @param registerSet
-	 *        The {@link RegisterSet} to use and update.
+	 * Emit code to check for an interrupt and service it if necessary,
+	 * including generation of the subsequently continued on-ramp.  The
+	 * generated code should only be reachable at positions that are effectively
+	 * between L1 nybblecodes, since during such an interrupt any {@link
+	 * L2Chunk}s can be invalidated.  Not *all* positions between nybblecodes
+	 * need to check for interrupts, but there shouldn't be an arbitrarily large
+	 * amount of time that passes between when an interrupt is indicated and
+	 * when it is serviced.
 	 */
-	@InnerAccess void emitInterruptOffRamp (
-		final RegisterSet registerSet)
+	private void emitInterruptOffRamp ()
 	{
 		final L2BasicBlock serviceInterrupt =
 			createBasicBlock("service interrupt");
-		final L2BasicBlock postInterrupt =
-			createBasicBlock("after interrupt");
 		final L2BasicBlock merge =
 			createBasicBlock("merge after possible interrupt");
-		final L2WritePointerOperand reifiedWriter = newObjectRegisterWriter(
-			mostGeneralContinuationType(), null);
+
 		addInstruction(
 			L2_JUMP_IF_INTERRUPT.instance,
 			new L2PcOperand(serviceInterrupt, slotRegisters()),
 			new L2PcOperand(merge, slotRegisters()));
-		final int nSlots = translator.numSlots;
-		final List<L2ReadPointerOperand> slots = continuationSlotsList(nSlots);
-		reify(slots, reifiedRegister, postInterruptLabel);
+
+		startBlock(serviceInterrupt);
+		// Service the interrupt:  Generate the reification instructions,
+		// ensuring that when returning into the resulting continuation, it will
+		// enter a block where the slot registers are the new ones we just
+		// created.  After creating the continuation, actually service the
+		// interrupt.
+
+		// Reify everybody else, starting at the caller.
 		addInstruction(
-			L2_PROCESS_INTERRUPT.instance,
-			new L2ReadPointerOperand(reifiedRegister));
-		addLabel(postInterruptLabel);
-		addInstruction(L2_REENTER_L2_CHUNK.instance);
-		A_Map typesMap = emptyMap();
-		A_Map constants = emptyMap();
-		A_Set nullSlots = emptySet();
-		for (int slotIndex = 1; slotIndex <= nSlots; slotIndex++)
-		{
-			final A_Type type = savedSlotTypes.get(slotIndex - 1);
-			if (type != null)
-			{
-				typesMap = typesMap.mapAtPuttingCanDestroy(
-					fromInt(slotIndex),
-					type,
-					true);
-			}
-			final @Nullable A_BasicObject constant =
-				savedSlotConstants.get(slotIndex - 1);
-			if (constant != null)
-			{
-				if (constant.equalsNil())
-				{
-					nullSlots = nullSlots.setWithElementCanDestroy(
-						fromInt(slotIndex),
-						true);
-				}
-				else
-				{
-					constants = constants.mapAtPuttingCanDestroy(
-						fromInt(slotIndex),
-						constant,
-						true);
-				}
-			}
-		}
-		addInstruction(
-			L2_EXPLODE_CONTINUATION.instance,
-			new L2ReadPointerOperand(fixed(CALLER)),
-			writeVector(slots),
-			new L2WriteIntOperand(skipReturnCheckRegister),
-			new L2ConstantOperand(typesMap),
-			new L2ConstantOperand(constants),
-			new L2ConstantOperand(nullSlots),
-			new L2ConstantOperand(code.functionType()));
-		addLabel(noInterruptLabel);
+			L2_REIFY_CALLERS.instance,
+			new L2ImmediateOperand(1));
+		// Extract that caller.
+		final L2ReadPointerOperand callerReg = getCurrentContinuation();
+
+		// When the lambda below runs, it's generating code at the point where
+		// continuationReg will have the new continuation.
+		reify(
+			slotRegisters(),
+			getCurrentFunction(),
+			callerReg,
+			continuationReg ->
+				addInstruction(
+					L2_PROCESS_INTERRUPT.instance,
+					continuationReg),
+			merge);
+
+		// And now... either we're back or we never left.
+		startBlock(merge);
 	}
 
 	/**
@@ -1890,22 +1823,35 @@ public final class L1NaiveTranslator
 	 * For each level one instruction, write a suitable transliteration into
 	 * level two instructions.
 	 */
-	void addNaiveInstructions ()
+	void translateL1Instructions ()
 	{
+		initialBlock.makeIrremovable();
 		startBlock(initialBlock);
 		final @Nullable Primitive primitive = code.primitive();
 		if (primitive != null)
 		{
+			// Try the primitive, automatically returning if successful.
 			addInstruction(L2_TRY_PRIMITIVE.instance);
 			if (primitive.hasFlag(CannotFail))
 			{
+				// Infallible primitives don't need any other L2 code.
 				return;
 			}
-			addInstruction(
-				L2_JUMP.instance,
-				new L2PcOperand(afterOptionalInitialPrimitiveBlock));
-			startBlock(afterOptionalInitialPrimitiveBlock);
 		}
+		// Fallible primitives and non-primitives need this additional entry
+		// point.
+		afterOptionalInitialPrimitiveBlock =
+			createBasicBlock("after optional primitive");
+		afterOptionalInitialPrimitiveBlock.makeIrremovable();
+		addInstruction(
+			L2_JUMP.instance,
+			new L2PcOperand(
+				afterOptionalInitialPrimitiveBlock, slotRegisters()));
+
+		startBlock(afterOptionalInitialPrimitiveBlock);
+		addInstruction(L2_ENTER_L2_CHUNK.instance);
+
+		// Do any reoptimization before capturing arguments.
 		if (translator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)
 		{
 			// Optimize it again if it's called frequently enough.
@@ -1915,21 +1861,28 @@ public final class L1NaiveTranslator
 				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
 				new L2ImmediateOperand(
 					OptimizationLevel.FIRST_TRANSLATION.ordinal()));
+			// If it was reoptimized, it would have jumped to the
+			// afterOptionalInitialPrimitiveBlock in the new chunk.
 		}
-		final List<L2WritePointerOperand> initialRegisters = new ArrayList<>();
-		final A_Type argsTupleType = code.functionType().argsTupleType();
+
+		// Capture the arguments.
 		final int numArgs = code.numArgs();
-		for (int i = 1; i <= numArgs; i++)
+		if (numArgs > 0)
 		{
-			final L2WritePointerOperand r =
-				writeSlot(i, argsTupleType.typeAtIndex(i), null);
-			r.register().setFinalIndex(i - 1);
-			initialRegisters.add(r);
+			final A_Type tupleType = code.functionType().argsTupleType();
+			final List<L2WritePointerOperand> argRegs =
+				IntStream.rangeClosed(1, numArgs)
+					.mapToObj(
+						i -> writeSlot(i, tupleType.typeAtIndex(i), null))
+					.collect(toList());
+			addInstruction(
+				L2_GET_ARGUMENTS.instance,
+				writeVector(argRegs));
 		}
-		addInstruction(
-			L2_ENTER_L2_CHUNK.instance,
-			writeVector(initialRegisters));
-		for (int local = 1; local <= translator.numLocals; local++)
+
+		// Create the locals.
+		final int numLocals = code.numLocals();
+		for (int local = 1; local <= numLocals; local++)
 		{
 			final A_Type localType = code.localTypeAt(local);
 			addInstruction(
@@ -1937,6 +1890,8 @@ public final class L1NaiveTranslator
 				new L2ConstantOperand(localType),
 				writeSlot(numArgs + local - 1, localType, null));
 		}
+
+		// Capture the primitive failure value in the first local if applicable.
 		if (primitive != null)
 		{
 			assert !primitive.hasFlag(CannotFail);
@@ -1946,25 +1901,20 @@ public final class L1NaiveTranslator
 			final L2BasicBlock success = createBasicBlock("success");
 			addInstruction(
 				L2_SET_VARIABLE_NO_CHECK.instance,
-				readSlot(translator.numArgs + 1),
-				getPrimitiveFailureValue(),
+				readSlot(numArgs + 1),
+				getLatestReturnValue(code.localTypeAt(1).writeType()),
 				new L2PcOperand(success, slotRegisters()),
 				unreachablePcOperand());
 			startBlock(success);
 		}
-		// Store nil into each of the stack slots.
-		for (
-			int stackSlot = 1, end = code.maxStackDepth();
-			stackSlot <= end;
-			stackSlot++)
-		{
-			nilSlot(stackSlot);
-		}
-		// Check for interrupts. If an interrupt is discovered, then reify
-		// and process the interrupt. When the chunk resumes, it will
-		// explode the continuation again.
-		final L2BasicBlock afterInterrupt =
-			createBasicBlock("after optional interrupt");
+
+		// Nil the rest of the stack slots.
+		IntStream.rangeClosed(numArgs + numLocals + 1, numSlots)
+			.forEach(this::nilSlot);
+
+		// Check for interrupts. If an interrupt is discovered, then reify and
+		// process the interrupt.  When the chunk resumes, it will explode the
+		// continuation again.
 		emitInterruptOffRamp();
 
 		// Transliterate each level one nybblecode into L2Instructions.
@@ -1977,47 +1927,80 @@ public final class L1NaiveTranslator
 		// Translate the implicit L1_doReturn instruction that terminates
 		// the instruction sequence.
 		L1Operation.L1Implied_Return.dispatch(this);
-		assert pc == nybbles.tupleSize() + 1;
 		assert stackp == Integer.MIN_VALUE;
+	}
 
-		// Write a coda if necessary to support push-label instructions
-		// and give the resulting continuations a chance to explode before
-		// restarting them.
-		if (restartLabelBlock != null)
-		{
-			startBlock(restartLabelBlock);
-			A_Map typesMap = emptyMap();
-			final List<L2ObjectRegister> slots = new ArrayList<>(
-				translator.numSlots);
-			final A_Type argsType = code.functionType().argsTupleType();
-			A_Set nullSlots = emptySet();
-			for (int i = 1; i <= translator.numSlots; i++)
-			{
-				slots.add(readSlot(i));
-				if (i <= translator.numArgs)
-				{
-					typesMap = typesMap.mapAtPuttingCanDestroy(
-						fromInt(i), argsType.typeAtIndex(i), true);
-				}
-				else
-				{
-					nullSlots = nullSlots.setWithElementCanDestroy(
-						fromInt(i), true);
-				}
-			}
-			addInstruction(
-				L2_EXPLODE_CONTINUATION.instance,
-				new L2ReadPointerOperand(fixed(CALLER)),
-				writeVector(slots),
-				new L2WriteIntOperand(skipReturnCheckRegister),
-				new L2ConstantOperand(typesMap.makeImmutable()),
-				new L2ConstantOperand(emptyMap()),
-				new L2ConstantOperand(nullSlots.makeImmutable()),
-				new L2ConstantOperand(code.functionType()));
-			addInstruction(
-				L2_JUMP.instance,
-				new L2PcOperand(startLabel, slotRegisters()));
-		}
+	/**
+	 * Generate the {@link L2ControlFlowGraph} of {@link L2Instruction}s for the
+	 * {@link L2Chunk#unoptimizedChunk()}.
+	 *
+	 * @param reenterFromRestartBlock
+	 *        The block to reenter to {@link P_RestartContinuation} an
+	 *        {@link A_Continuation}.
+	 * @param loopBlock
+	 *        The main loop of the interpreter.
+	 * @param reenterFromCallBlock
+	 *        The entry point for returning into a reified continuation.
+	 * @param reenterFromInterruptBlock
+	 *        The entry point for resuming from an interrupt.
+	 */
+	public void generateDefaultChunk (
+		final L2BasicBlock reenterFromRestartBlock,
+		final L2BasicBlock loopBlock,
+		final L2BasicBlock reenterFromCallBlock,
+		final L2BasicBlock reenterFromInterruptBlock)
+	{
+		initialBlock.makeIrremovable();
+		reenterFromRestartBlock.makeIrremovable();
+		reenterFromCallBlock.makeIrremovable();
+		reenterFromInterruptBlock.makeIrremovable();
+
+		// 0. First try to run it as a primitive.
+		startBlock(initialBlock);
+		addInstruction(
+			L2_TRY_PRIMITIVE.instance);
+		final L2ReadPointerOperand[] emptySlots = new L2ReadPointerOperand[0];
+		// This instruction gets stripped out.
+		addInstruction(
+			L2_JUMP.instance,
+			new L2PcOperand(reenterFromCallBlock, emptySlots));
+		// Only if the primitive fails should we even consider optimizing the
+		// fallback code.
+
+		// 1. Update counter and maybe optimize *before* extracting arguments.
+		startBlock(reenterFromRestartBlock);
+		addInstruction(
+			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
+			new L2ImmediateOperand(
+				OptimizationLevel.FIRST_TRANSLATION.ordinal()));
+
+		// 2. Build registers, get arguments, create locals, capture primitive
+		// failure value, if any.
+		addInstruction(
+			L2_PREPARE_NEW_FRAME_FOR_L1.instance);
+
+		// 3. The main L1 interpreter loop.
+		startBlock(loopBlock);
+		addInstruction(
+			L2_INTERPRET_LEVEL_ONE.instance,
+			new L2PcOperand(reenterFromCallBlock, emptySlots),
+			new L2PcOperand(reenterFromInterruptBlock, emptySlots));
+
+		// 4,5. If reified, calls return here.
+		startBlock(reenterFromCallBlock);
+		addInstruction(
+			L2_REENTER_L1_CHUNK_FROM_CALL.instance);
+		addInstruction(
+			L2_JUMP.instance,
+			new L2PcOperand(loopBlock, emptySlots));
+
+		// 6,7. If reified, interrupts return here.
+		startBlock(reenterFromInterruptBlock);
+		addInstruction(
+			L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance);
+		addInstruction(
+			L2_JUMP.instance,
+			new L2PcOperand(loopBlock, emptySlots));
 	}
 
 	@Override
@@ -2033,9 +2016,7 @@ public final class L1NaiveTranslator
 	{
 		final AvailObject constant = code.literalAt(getInteger());
 		stackp--;
-		moveConstant(
-			constant,
-			writeSlot(stackp, instanceTypeOrMetaOn(constant), constant));
+		moveConstantToSlot(constant, stackp);
 	}
 
 	@Override
@@ -2067,15 +2048,12 @@ public final class L1NaiveTranslator
 	{
 		final int outerIndex = getInteger();
 		stackp--;
-		final A_Type type = code.outerTypeAt(outerIndex);
-		if (type.instanceCount().equalsInt(1) && !type.isInstanceMeta())
+		final A_Type outerType = code.outerTypeAt(outerIndex);
+		if (outerType.instanceCount().equalsInt(1)
+			&& !outerType.isInstanceMeta())
 		{
 			// The exact outer is known statically.
-			final AvailObject outerValue = type.instance();
-			moveConstant(
-				outerValue,
-				writeSlot(
-					stackp, instanceTypeOrMetaOn(outerValue), outerValue));
+			moveConstantToSlot(outerType.instance(), stackp);
 		}
 		else
 		{
@@ -2086,7 +2064,7 @@ public final class L1NaiveTranslator
 				L2_MOVE_OUTER_VARIABLE.instance,
 				new L2ImmediateOperand(outerIndex),
 				functionTempRead,
-				writeSlot(stackp, type, null));
+				writeSlot(stackp, outerType, null));
 			// Simplify the logic related to L1's nilling of mutable outers upon
 			// their final use.
 			addInstruction(L2_MAKE_IMMUTABLE.instance, readSlot(stackp));
@@ -2245,8 +2223,7 @@ public final class L1NaiveTranslator
 		if (constants.size() == count)
 		{
 			// The tuple elements are all constants.  Fold it.
-			final A_Tuple tuple = tupleFromList(constants);
-			moveConstant(tuple, writeSlot(stackp, instanceType(tuple), tuple));
+			moveConstantToSlot(tupleFromList(constants), stackp);
 		}
 		else
 		{
@@ -2302,7 +2279,7 @@ public final class L1NaiveTranslator
 	public void L1Ext_doPushLabel ()
 	{
 		stackp--;
-		final int numSlots = code.numArgsAndLocalsAndStack();
+		assert code.primitive() == null;
 		final int numArgs = code.numArgs();
 		final List<L2ReadPointerOperand> vectorWithOnlyArgsPreserved =
 			new ArrayList<>(numSlots);
@@ -2319,10 +2296,6 @@ public final class L1NaiveTranslator
 			continuationTypeForFunctionType(code.functionType());
 		final L2WritePointerOperand destReg =
 			writeSlot(stackp, continuationType, null);
-		if (restartLabelBlock == null)
-		{
-			restartLabelBlock = createBasicBlock("restart on-ramp");
-		}
 		final L2ReadPointerOperand functionRead = getCurrentFunction();
 		final L2ReadIntOperand skipReturnCheckRead = getSkipReturnCheck();
 		addInstruction(
@@ -2331,6 +2304,13 @@ public final class L1NaiveTranslator
 		final L2ReadPointerOperand continuationRead = getCurrentContinuation();
 		final L2BasicBlock afterCreation =
 			createBasicBlock("after push label");
+		final L2ReadPointerOperand[] allUndefinedSlots =
+			new L2ReadPointerOperand[slotRegisters.length];
+		for (int i = 1; i < allUndefinedSlots.length; i++)
+		{
+			allUndefinedSlots[i] =
+				newObjectRegisterWriter(TOP.o(), null).read();
+		}
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			continuationRead,
@@ -2340,7 +2320,7 @@ public final class L1NaiveTranslator
 			skipReturnCheckRead,
 			readVector(vectorWithOnlyArgsPreserved),
 			destReg,
-			new L2PcOperand(restartLabelBlock, slotRegisters()),
+			new L2PcOperand(initialBlock, allUndefinedSlots),
 			new L2PcOperand(afterCreation, slotRegisters()));
 		startBlock(afterCreation);
 
@@ -2360,10 +2340,7 @@ public final class L1NaiveTranslator
 		{
 			// It's an initialized module constant, so it can never change.  Use
 			// the variable's eternal value.
-			final A_BasicObject value = literalVariable.value();
-			moveConstant(
-				value,
-				writeSlot(stackp, instanceTypeOrMetaOn(value), value));
+			moveConstantToSlot(literalVariable.value(), stackp);
 		}
 		else
 		{
@@ -2449,11 +2426,10 @@ public final class L1NaiveTranslator
 	@Override
 	public void L1Implied_doReturn ()
 	{
-		final L2ReadIntOperand skipReturnCheckRead = getSkipReturnCheck();
 		addInstruction(
 			L2_RETURN.instance,
 			readSlot(stackp),
-			skipReturnCheckRead);
+			getSkipReturnCheck());
 		assert stackp == code.maxStackDepth();
 		stackp = Integer.MIN_VALUE;
 	}

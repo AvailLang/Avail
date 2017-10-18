@@ -79,14 +79,6 @@ public final class P_ExitContinuationWithResult extends Primitive
 		final A_Continuation con = args.get(0);
 		final AvailObject result = args.get(1);
 
-		final A_Function function = con.function();
-		assert con.stackp() == function.code().numArgsAndLocalsAndStack() + 1
-			: "Outer continuation should have been a label- rather than "
-				+ "call- continuation";
-		assert con.pc() == 0
-			: "Labels must only occur at the start of a block.  "
-				+ "Only exit that kind of continuation.";
-
 		interpreter.reifiedContinuation = con.caller();
 		interpreter.function = null;
 		interpreter.chunk = null;

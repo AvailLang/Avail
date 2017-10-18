@@ -46,12 +46,15 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE;
 import com.avail.interpreter.levelTwo.operation.L2_EXPLODE_TUPLE;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor
@@ -68,7 +71,7 @@ import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
 import static com.avail.interpreter.Primitive.Result.READY_TO_INVOKE;
-import static com.avail.optimizer.L1NaiveTranslator.writeVector;
+import static com.avail.optimizer.L1Translator.writeVector;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -171,7 +174,7 @@ extends Primitive
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1NaiveTranslator translator)
+		final L1Translator translator)
 	{
 		final L2ReadPointerOperand functionReg = arguments.get(0);
 		final L2ReadPointerOperand tupleReg = arguments.get(1);
@@ -223,29 +226,30 @@ extends Primitive
 
 		// Emit code to get the tuple slots into separate registers for the
 		// invocation, *extracting* them from the tuple if necessary.
-		final L2Instruction tupleDefinitionInstruction =
+		L2Instruction tupleDefinitionInstruction =
 			tupleReg.register().definition();
+		while (tupleDefinitionInstruction.operation instanceof L2_MOVE)
+		{
+			final L2ReadPointerOperand sourceReg =
+				L2_MOVE.sourceOf(tupleDefinitionInstruction);
+			tupleDefinitionInstruction = sourceReg.register().definition();
+		}
+		final List<L2ReadPointerOperand> argsTupleReaders;
 		if (tupleDefinitionInstruction.operation instanceof L2_CREATE_TUPLE)
 		{
-			final List<L2ReadPointerOperand> tupleSourceRegisters =
-				L2_CREATE_TUPLE.tupleSourceRegistersOf(
-					tupleDefinitionInstruction);
-			for (int i = 0; i < argsSize; i++)
-			{
-				translator.moveRegister(
-					tupleSourceRegisters.get(i), argsTupleWriters.get(i));
-			}
+			argsTupleReaders = L2_CREATE_TUPLE.tupleSourceRegistersOf(
+				tupleDefinitionInstruction);
 		}
 		else if (tupleDefinitionInstruction.operation
 			instanceof L2_MOVE_CONSTANT)
 		{
 			final A_Tuple constantTuple =
 				L2_MOVE_CONSTANT.constantOf(tupleDefinitionInstruction);
-			for (int i = 0; i < argsSize; i++)
-			{
-				translator.moveConstant(
-					constantTuple.tupleAt(i + 1), argsTupleWriters.get(i));
-			}
+			argsTupleReaders =
+				IntStream.rangeClosed(1, argsSize)
+					.mapToObj(constantTuple::tupleAt)
+					.map(translator::constantRegister)
+					.collect(toList());
 		}
 		else
 		{
@@ -253,15 +257,15 @@ extends Primitive
 				L2_EXPLODE_TUPLE.instance,
 				tupleReg,
 				writeVector(argsTupleWriters));
+			argsTupleReaders =
+				argsTupleWriters.stream()
+					.map(L2WritePointerOperand::read)
+					.collect(toList());
 		}
 
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the supplied function, instead.  The client will generate any needed
 		// type strengthening, so don't do it here.
-		final List<L2ReadPointerOperand> argsTupleReaders =
-			argsTupleWriters.stream()
-				.map(L2WritePointerOperand::read)
-				.collect(toList());
 		return translator.generateGeneralFunctionInvocation(
 			functionReg,    // the function to directly invoke.
 			argsTupleReaders,   // the arguments, no longer in a tuple.

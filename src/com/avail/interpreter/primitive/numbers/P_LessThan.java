@@ -39,7 +39,7 @@ import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.optimizer.L1NaiveTranslator;
+import com.avail.optimizer.L1Translator;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -112,7 +112,7 @@ public final class P_LessThan extends Primitive
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
 		final List<A_Type> argumentTypes,
-		final L1NaiveTranslator translator)
+		final L1Translator translator)
 	{
 		final L2ReadPointerOperand firstReg = arguments.get(0);
 		final L2ReadPointerOperand secondReg = arguments.get(1);

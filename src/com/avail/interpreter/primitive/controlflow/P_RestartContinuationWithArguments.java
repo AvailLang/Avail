@@ -51,6 +51,7 @@ import static com.avail.descriptor.ContinuationTypeDescriptor
 	.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
@@ -93,11 +94,11 @@ public final class P_RestartContinuationWithArguments extends Primitive
 		final A_RawFunction code = originalCon.function().code();
 		//TODO MvG - This should be a primitive failure.
 		assert originalCon.stackp() == code.numArgsAndLocalsAndStack() + 1
-			: "Outer continuation should have been a label- rather than "
+			: "Continuation should have been a label- rather than "
 				+ "call-continuation";
 		assert originalCon.pc() == 0
-			: "Labels must only occur at the start of a block.  "
-				+ "Only restart that kind of continuation.";
+			: "Continuation should have been a label- rather than "
+				+ "call-continuation";
 
 		final int numArgs = code.numArgs();
 		if (numArgs != arguments.tupleSize())
@@ -105,23 +106,20 @@ public final class P_RestartContinuationWithArguments extends Primitive
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		// No need to make it immutable because current continuation's
-		// reference is lost by this.  We make a mutable copy if necessary, to
-		// allow the new arguments to be injected.
-		final A_Continuation conCopy = originalCon.ensureMutable();
+		// Check the argument types.
 		if (!code.functionType().acceptsTupleOfArguments(arguments))
 		{
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
-		for (int i = 1; i <= numArgs; i++)
-		{
-			conCopy.argOrLocalOrStackAtPut(i, arguments.tupleAt(i));
-		}
-
-		interpreter.reifiedContinuation = conCopy;
-		interpreter.function = conCopy.function();
-		interpreter.chunk = conCopy.levelTwoChunk();
-		interpreter.offset = conCopy.levelTwoOffset();
+		// Move the arguments into interpreter.argsBuffer.
+		interpreter.argsBuffer.clear();
+		interpreter.argsBuffer.addAll(toList(arguments));
+		// The restart entry point expects the interpreter's reifiedContinuation
+		// to be the label continuation's *caller*.
+		interpreter.reifiedContinuation = originalCon.caller();
+		interpreter.function = originalCon.function();
+		interpreter.chunk = originalCon.levelTwoChunk();
+		interpreter.offset = originalCon.levelTwoOffset();
 		interpreter.returnNow = false;
 		interpreter.latestResult(null);
 		return CONTINUATION_CHANGED;
