@@ -188,7 +188,8 @@ public class L2PcOperand extends L2Operand
 	public String toString ()
 	{
 		// Show the basic block's name.
-		return format("Pc(%s)",
+		return format("Pc(%d: %s)",
+			targetBlock.offset(),
 			targetBlock.name());
 	}
 

@@ -170,7 +170,15 @@ public final class L2BasicBlock
 		final L2PcOperand predecessorEdge)
 	{
 		assert predecessorEdge.sourceBlock().hasStartedCodeGeneration;
-		assert !hasStartedCodeGeneration;
+		if (hasStartedCodeGeneration)
+		{
+			assert predecessorEdge.slotRegisters().length == 0;
+			predecessorEdges.forEach(
+				e ->
+				{
+					assert e.slotRegisters().length == 0;
+				});
+		}
 		predecessorEdges.add(predecessorEdge);
 	}
 

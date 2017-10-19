@@ -553,6 +553,7 @@ public final class L2Translator
 	 */
 	private L2Translator ()
 	{
+		// Use a dummy raw function to keep it happy.
 		codeOrNull = null;
 		optimizationLevel = OptimizationLevel.UNOPTIMIZED;
 		interpreter = null;
@@ -576,6 +577,9 @@ public final class L2Translator
 			reenterFromInterruptBlock);
 
 //		translator.controlFlowGraph.optimize();
+		initialBlock = translator.initialBlock;
+		afterOptionalInitialPrimitiveBlock =
+			translator.afterOptionalInitialPrimitiveBlock;
 		createChunk(translator.controlFlowGraph);
 
 		final List<L2Instruction> instructions = new ArrayList<>();

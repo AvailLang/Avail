@@ -45,7 +45,6 @@ import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.interpreter.levelTwo.register.FixedRegister;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
@@ -95,7 +94,6 @@ import static com.avail.descriptor.VariableDescriptor
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
 import static com.avail.interpreter.Primitive.Result.*;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.*;
 import static com.avail.interpreter.primitive.variables.P_SetValue.instance;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
@@ -388,30 +386,24 @@ public final class Interpreter
 			new Object[FakeStackTraceSlots.values().length];
 
 		// Extract the current L2 offset...
-		outerArray[FakeStackTraceSlots.L2_OFFSET.ordinal()] =
-			new AvailIntegerValueHelper(offset);
+		outerArray[L2_OFFSET.ordinal()] = new AvailIntegerValueHelper(offset);
 
 		// Produce the current chunk's L2 instructions...
-		outerArray[FakeStackTraceSlots.L2_INSTRUCTIONS.ordinal()] =
-			chunk.instructions;
+		assert chunk != null : "Interpreter's chunk was null";
+		outerArray[L2_INSTRUCTIONS.ordinal()] = chunk.instructions;
 
 		// Produce the current function being executed...
-		outerArray[FakeStackTraceSlots.CURRENT_FUNCTION.ordinal()] =
-			pointers[FUNCTION.ordinal()];
+		outerArray[CURRENT_FUNCTION.ordinal()] = function;
 
 		// Build the stack frames...
 		final List<A_Continuation> frames = new ArrayList<>(50);
-		A_Continuation frame = pointers[CALLER.ordinal()];
-		if (frame != null)
+		A_Continuation frame = reifiedContinuation;
+		while (!frame.equalsNil())
 		{
-			while (!frame.equalsNil())
-			{
-				frames.add(frame);
-				frame = frame.caller();
-			}
+			frames.add(frame);
+			frame = frame.caller();
 		}
-		outerArray[FRAMES.ordinal()] =
-			tupleFromList(frames);
+		outerArray[FRAMES.ordinal()] = tupleFromList(frames);
 
 		// Now collect the pointer register values, wrapped in 1-tuples to
 		// suppress printing by the Eclipse debugger...
@@ -1120,21 +1112,6 @@ public final class Interpreter
 	public int offset;
 
 	/**
-	 * Answer the subscript of the register holding the argument or local with
-	 * the given index. The arguments come first, then the locals.
-	 *
-	 * @param argumentOrLocalNumber
-	 *        The one-based argument/local number.
-	 * @return The subscript to use with {@link Interpreter#pointerAt(int)}.
-	 */
-	public static int argumentOrLocalRegister (
-		final int argumentOrLocalNumber)
-	{
-		// Skip the fixed registers.
-		return fixedRegisterCount() + argumentOrLocalNumber - 1;
-	}
-
-	/**
 	 * The registers that hold {@linkplain AvailObject Avail objects}.
 	 */
 	public AvailObject[] pointers = new AvailObject[10];
@@ -1170,37 +1147,6 @@ public final class Interpreter
 		// assert index > 0;
 		// assert anAvailObject != null;
 		pointers[index] = (AvailObject)anAvailObject;
-	}
-
-	/**
-	 * Read from a {@linkplain FixedRegister fixed object register}. Register
-	 * zero is reserved for read-only use, and always contains
-	 * {@linkplain NilDescriptor#nil nil}.
-	 *
-	 * @param fixedObjectRegister
-	 *        The fixed object register.
-	 * @return The object in the specified register.
-	 */
-	public AvailObject pointerAt (final FixedRegister fixedObjectRegister)
-	{
-		return pointerAt(fixedObjectRegister.ordinal());
-	}
-
-	/**
-	 * Write to a fixed object register. Register zero is reserved for read-only
-	 * use, and always contains the {@linkplain NilDescriptor#nil null
-	 * object}.
-	 *
-	 * @param fixedObjectRegister
-	 *        The fixed object register.
-	 * @param anAvailObject
-	 *        The object to write to the specified register.
-	 */
-	public void pointerAtPut (
-		final FixedRegister fixedObjectRegister,
-		final A_BasicObject anAvailObject)
-	{
-		pointerAtPut(fixedObjectRegister.ordinal(), anAvailObject);
 	}
 
 	/**
@@ -2332,8 +2278,8 @@ public final class Interpreter
 		}
 		else
 		{
-			builder.append(formatString(" [%s]", fiber().fiberName()));
-			if (pointers[CALLER.ordinal()] == null)
+			builder.append(formatString(" [%s]", fiber.fiberName()));
+			if (reifiedContinuation.equalsNil())
 			{
 				builder.append(formatString("%n\t«no stack»"));
 			}

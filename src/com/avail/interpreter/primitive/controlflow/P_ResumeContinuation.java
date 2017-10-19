@@ -62,7 +62,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_ResumeContinuation().init(
-			1, Private, CannotFail, SwitchesContinuation);
+			1, Private, CannotFail, SwitchesContinuation, CanInline);
 
 	@Override
 	public Result attempt (

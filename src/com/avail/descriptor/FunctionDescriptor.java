@@ -53,7 +53,6 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
@@ -340,51 +339,6 @@ extends Descriptor
 	}
 
 	/**
-	 * Given a function f, create another function that takes a single argument,
-	 * a tuple, and invokes f with the elements of that tuple, returning the
-	 * result.  The new function's sole argument type should match the types
-	 * expected by f.
-	 *
-	 * @param function
-	 *        The function which the new function should invoke.
-	 * @return An appropriate function of one argument.
-	 */
-	public static A_Function createStubTakingTupleFrom (
-		final A_Function function)
-	{
-		final A_Type argTypes = function.kind().argsTupleType();
-		final int numArgs = argTypes.sizeRange().lowerBound().extractInt();
-		final A_Type[] argTypesArray = new AvailObject[numArgs];
-		for (int i = 1; i <= numArgs; i++)
-		{
-			argTypesArray[i - 1] = argTypes.typeAtIndex(i);
-		}
-		final A_Type tupleType = tupleTypeForTypes(argTypesArray);
-		final A_Type returnType = function.kind().returnType();
-		final L1InstructionWriter writer = new L1InstructionWriter(
-			nil,
-			0,
-			nil);
-		writer.argumentTypes(tupleType);
-		writer.returnType(returnType);
-		writer.write(
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(function));
-		writer.write(
-			L1Operation.L1_doPushLastLocal,
-			1);
-		writer.write(
-			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialMethodAtom.APPLY.bundle),
-			writer.addLiteral(returnType));
-		final A_RawFunction code = writer.compiledCode();
-		final A_Function newFunction =
-			createFunction(code, emptyTuple());
-		newFunction.makeImmutable();
-		return newFunction;
-	}
-
-	/**
 	 * Construct a function with the given code and tuple of copied variables.
 	 *
 	 * @param code The code with which to build the function.
@@ -424,7 +378,7 @@ extends Descriptor
 
 	/**
 	 * Convert a {@link ParseNodeDescriptor phrase} into a zero-argument
-	 * {@link FunctionDescriptor function}.
+	 * {@link A_Function}.
 	 *
 	 * @param phrase
 	 *        The phrase to compile to a function.
@@ -562,7 +516,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link FunctionDescriptor}.
+	 * Construct a new {@code FunctionDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

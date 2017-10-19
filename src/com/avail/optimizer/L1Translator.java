@@ -116,7 +116,7 @@ public final class L1Translator
 	 * The {@linkplain CompiledCodeDescriptor raw function} to transliterate
 	 * into level two code.
 	 */
-	final A_RawFunction code;
+	final @Nullable A_RawFunction code;
 
 	/**
 	 * The nybblecodes being optimized.
@@ -170,6 +170,14 @@ public final class L1Translator
 	 * An {@link L2BasicBlock} that shouldn't actually be dynamically reachable.
 	 */
 	private @Nullable L2BasicBlock unreachableBlock = null;
+
+	/**
+	 * Answer the current {@link A_RawFunction}, which must not be null here.
+	 */
+	private A_RawFunction code ()
+	{
+		return stripNull(code);
+	}
 
 	/**
 	 * Answer an L2PcOperand that targets an {@link L2BasicBlock} which should
@@ -244,13 +252,26 @@ public final class L1Translator
 	L1Translator (final L2Translator translator)
 	{
 		this.translator = translator;
-		this.code = stripNull(translator.codeOrNull);
-		this.nybbles = code.nybbles();
-		this.numSlots = code.numArgsAndLocalsAndStack();
-		this.pc = 1;
-		this.stackp = numSlots + 1;
-		this.slotRegisters = new L2ReadPointerOperand[numSlots];
-		this.exactFunctionOrNull = computeExactFunctionOrNullForCode(code);
+		if (translator.codeOrNull != null)
+		{
+			this.code = translator.codeOrNull;
+			this.nybbles = code.nybbles();
+			this.numSlots = code.numArgsAndLocalsAndStack();
+			this.pc = 1;
+			this.stackp = numSlots + 1;
+			this.slotRegisters = new L2ReadPointerOperand[numSlots];
+			this.exactFunctionOrNull = computeExactFunctionOrNullForCode(code);
+		}
+		else
+		{
+			this.code = null;
+			this.nybbles = emptyTuple();
+			this.numSlots = 0;
+			this.pc = -1;
+			this.stackp = -1;
+			this.slotRegisters = new L2ReadPointerOperand[0];
+			this.exactFunctionOrNull = null;
+		}
 	}
 
 	/**
@@ -414,7 +435,7 @@ public final class L1Translator
 		// The exact function isn't known, but we know the raw function, so
 		// we statically know the function type.
 		final L2WritePointerOperand functionWrite =
-			newObjectRegisterWriter(code.functionType(), null);
+			newObjectRegisterWriter(code().functionType(), null);
 		addInstruction(
 			L2_GET_CURRENT_FUNCTION.instance,
 			functionWrite);
@@ -1827,7 +1848,7 @@ public final class L1Translator
 	{
 		initialBlock.makeIrremovable();
 		startBlock(initialBlock);
-		final @Nullable Primitive primitive = code.primitive();
+		final @Nullable Primitive primitive = code().primitive();
 		if (primitive != null)
 		{
 			// Try the primitive, automatically returning if successful.
@@ -1855,7 +1876,7 @@ public final class L1Translator
 		if (translator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)
 		{
 			// Optimize it again if it's called frequently enough.
-			code.countdownToReoptimize(
+			code().countdownToReoptimize(
 				L2Chunk.countdownForNewlyOptimizedCode());
 			addInstruction(
 				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
@@ -1866,10 +1887,10 @@ public final class L1Translator
 		}
 
 		// Capture the arguments.
-		final int numArgs = code.numArgs();
+		final int numArgs = code().numArgs();
 		if (numArgs > 0)
 		{
-			final A_Type tupleType = code.functionType().argsTupleType();
+			final A_Type tupleType = code().functionType().argsTupleType();
 			final List<L2WritePointerOperand> argRegs =
 				IntStream.rangeClosed(1, numArgs)
 					.mapToObj(
@@ -1881,10 +1902,10 @@ public final class L1Translator
 		}
 
 		// Create the locals.
-		final int numLocals = code.numLocals();
+		final int numLocals = code().numLocals();
 		for (int local = 1; local <= numLocals; local++)
 		{
-			final A_Type localType = code.localTypeAt(local);
+			final A_Type localType = code().localTypeAt(local);
 			addInstruction(
 				L2_CREATE_VARIABLE.instance,
 				new L2ConstantOperand(localType),
@@ -1902,7 +1923,7 @@ public final class L1Translator
 			addInstruction(
 				L2_SET_VARIABLE_NO_CHECK.instance,
 				readSlot(numArgs + 1),
-				getLatestReturnValue(code.localTypeAt(1).writeType()),
+				getLatestReturnValue(code().localTypeAt(1).writeType()),
 				new L2PcOperand(success, slotRegisters()),
 				unreachablePcOperand());
 			startBlock(success);
@@ -1959,11 +1980,10 @@ public final class L1Translator
 		startBlock(initialBlock);
 		addInstruction(
 			L2_TRY_PRIMITIVE.instance);
-		final L2ReadPointerOperand[] emptySlots = new L2ReadPointerOperand[0];
 		// This instruction gets stripped out.
-		addInstruction(
-			L2_JUMP.instance,
-			new L2PcOperand(reenterFromCallBlock, emptySlots));
+//		addInstruction(
+//			L2_JUMP.instance,
+//			new L2PcOperand(reenterFromCallBlock, emptySlots));
 		// Only if the primitive fails should we even consider optimizing the
 		// fallback code.
 
@@ -1981,6 +2001,7 @@ public final class L1Translator
 
 		// 3. The main L1 interpreter loop.
 		startBlock(loopBlock);
+		final L2ReadPointerOperand[] emptySlots = new L2ReadPointerOperand[0];
 		addInstruction(
 			L2_INTERPRET_LEVEL_ONE.instance,
 			new L2PcOperand(reenterFromCallBlock, emptySlots),
@@ -2006,15 +2027,15 @@ public final class L1Translator
 	@Override
 	public void L1_doCall ()
 	{
-		final A_Bundle bundle = code.literalAt(getInteger());
-		final A_Type expectedType = code.literalAt(getInteger());
+		final A_Bundle bundle = code().literalAt(getInteger());
+		final A_Type expectedType = code().literalAt(getInteger());
 		generateCall(bundle, expectedType, bottom());
 	}
 
 	@Override
 	public void L1_doPushLiteral ()
 	{
-		final AvailObject constant = code.literalAt(getInteger());
+		final AvailObject constant = code().literalAt(getInteger());
 		stackp--;
 		moveConstantToSlot(constant, stackp);
 	}
@@ -2048,7 +2069,7 @@ public final class L1Translator
 	{
 		final int outerIndex = getInteger();
 		stackp--;
-		final A_Type outerType = code.outerTypeAt(outerIndex);
+		final A_Type outerType = code().outerTypeAt(outerIndex);
 		if (outerType.instanceCount().equalsInt(1)
 			&& !outerType.isInstanceMeta())
 		{
@@ -2075,7 +2096,7 @@ public final class L1Translator
 	public void L1_doClose ()
 	{
 		final int count = getInteger();
-		final A_RawFunction codeLiteral = code.literalAt(getInteger());
+		final A_RawFunction codeLiteral = code().literalAt(getInteger());
 		final List<L2ReadPointerOperand> outers = new ArrayList<>(count);
 		for (int i = count; i >= 1; i--)
 		{
@@ -2114,7 +2135,7 @@ public final class L1Translator
 	{
 		final int localIndex = getInteger();
 		stackp--;
-		final A_Type type = code.localTypeAt(localIndex);
+		final A_Type type = code().localTypeAt(localIndex);
 		emitGetVariableOffRamp(
 			L2_GET_VARIABLE_CLEARING.instance,
 			readSlot(localIndex),
@@ -2125,7 +2146,7 @@ public final class L1Translator
 	public void L1_doPushOuter ()
 	{
 		final int outerIndex = getInteger();
-		final A_Type outerType = code.outerTypeAt(outerIndex);
+		final A_Type outerType = code().outerTypeAt(outerIndex);
 		final L2ReadPointerOperand functionReg = getCurrentFunction();
 		stackp--;
 		addInstruction(
@@ -2148,7 +2169,7 @@ public final class L1Translator
 	public void L1_doGetOuterClearing ()
 	{
 		final int outerIndex = getInteger();
-		final A_Type outerType = code.outerTypeAt(outerIndex);
+		final A_Type outerType = code().outerTypeAt(outerIndex);
 		final A_Type innerType = outerType.readType();
 		final L2ReadPointerOperand functionReg = getCurrentFunction();
 		final L2WritePointerOperand tempVarReg =
@@ -2169,7 +2190,7 @@ public final class L1Translator
 	public void L1_doSetOuter ()
 	{
 		final int outerIndex = getInteger();
-		final A_Type outerType = code.outerTypeAt(outerIndex);
+		final A_Type outerType = code().outerTypeAt(outerIndex);
 		final L2ReadPointerOperand functionReg = getCurrentFunction();
 		final L2WritePointerOperand tempVarReg =
 			newObjectRegisterWriter(outerType, null);
@@ -2192,7 +2213,7 @@ public final class L1Translator
 	public void L1_doGetLocal ()
 	{
 		final int index = getInteger();
-		final A_Type innerType = code.localTypeAt(index).readType();
+		final A_Type innerType = code().localTypeAt(index).readType();
 		stackp--;
 		emitGetVariableOffRamp(
 			L2_GET_VARIABLE.instance,
@@ -2248,7 +2269,7 @@ public final class L1Translator
 	public void L1_doGetOuter ()
 	{
 		final int outerIndex = getInteger();
-		final A_Type outerType = code.outerTypeAt(outerIndex);
+		final A_Type outerType = code().outerTypeAt(outerIndex);
 		final A_Type innerType = outerType.readType();
 		final L2ReadPointerOperand functionReg = getCurrentFunction();
 		stackp--;
@@ -2279,8 +2300,8 @@ public final class L1Translator
 	public void L1Ext_doPushLabel ()
 	{
 		stackp--;
-		assert code.primitive() == null;
-		final int numArgs = code.numArgs();
+		assert code().primitive() == null;
+		final int numArgs = code().numArgs();
 		final List<L2ReadPointerOperand> vectorWithOnlyArgsPreserved =
 			new ArrayList<>(numSlots);
 		for (int i = 1; i <= numArgs; i++)
@@ -2293,7 +2314,7 @@ public final class L1Translator
 			vectorWithOnlyArgsPreserved.add(nilTemp);
 		}
 		final A_Type continuationType =
-			continuationTypeForFunctionType(code.functionType());
+			continuationTypeForFunctionType(code().functionType());
 		final L2WritePointerOperand destReg =
 			writeSlot(stackp, continuationType, null);
 		final L2ReadPointerOperand functionRead = getCurrentFunction();
@@ -2334,7 +2355,7 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doGetLiteral ()
 	{
-		final A_Variable literalVariable = code.literalAt(getInteger());
+		final A_Variable literalVariable = code().literalAt(getInteger());
 		stackp--;
 		if (literalVariable.isInitializedWriteOnceVariable())
 		{
@@ -2355,7 +2376,7 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doSetLiteral ()
 	{
-		final A_Variable literalVariable = code.literalAt(getInteger());
+		final A_Variable literalVariable = code().literalAt(getInteger());
 		emitSetVariableOffRamp(
 			L2_SET_VARIABLE_NO_CHECK.instance,
 			constantRegister(literalVariable),
@@ -2385,7 +2406,7 @@ public final class L1Translator
 		// Move into the permuted temps, then back to the stack.  This puts the
 		// responsibility for optimizing away extra moves (by coloring the
 		// registers) on the optimizer.
-		final A_Tuple permutation = code.literalAt(getInteger());
+		final A_Tuple permutation = code().literalAt(getInteger());
 		final int size = permutation.tupleSize();
 		final L2WritePointerOperand[] temps = new L2WritePointerOperand[size];
 		for (int i = size; i >= 1; i--)
@@ -2409,9 +2430,9 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doSuperCall ()
 	{
-		final AvailObject method = code.literalAt(getInteger());
-		final AvailObject expectedType = code.literalAt(getInteger());
-		final AvailObject superUnionType = code.literalAt(getInteger());
+		final AvailObject method = code().literalAt(getInteger());
+		final AvailObject expectedType = code().literalAt(getInteger());
+		final AvailObject superUnionType = code().literalAt(getInteger());
 		generateCall(method, expectedType, superUnionType);
 	}
 
@@ -2430,7 +2451,7 @@ public final class L1Translator
 			L2_RETURN.instance,
 			readSlot(stackp),
 			getSkipReturnCheck());
-		assert stackp == code.maxStackDepth();
+		assert stackp == code().maxStackDepth();
 		stackp = Integer.MIN_VALUE;
 	}
 }

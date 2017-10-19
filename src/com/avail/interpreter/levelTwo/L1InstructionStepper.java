@@ -704,7 +704,7 @@ public final class L1InstructionStepper
 							savedStackp,
 							false,
 							unoptimizedChunk(),
-							offsetToReturnIntoUnoptimizedChunk());
+							offsetToResumeInterruptedUnoptimizedChunk());
 					for (
 						int i = 1, limit = code.numArgsAndLocalsAndStack();
 						i <= limit;
@@ -720,6 +720,7 @@ public final class L1InstructionStepper
 			{
 				interpreter.integers = savedInts;
 				interpreter.pointers = savedPointers;
+				interpreter.chunk = unoptimizedChunk();
 				interpreter.offset = savedOffset;
 				interpreter.function = savedFunction;
 				nybbles = savedNybbles;
@@ -793,6 +794,7 @@ public final class L1InstructionStepper
 		{
 			interpreter.integers = savedInts;
 			interpreter.pointers = savedPointers;
+			interpreter.chunk = unoptimizedChunk();
 			interpreter.offset = savedOffset;
 			interpreter.function = savedFunction;
 			nybbles = savedNybbles;

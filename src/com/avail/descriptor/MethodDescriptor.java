@@ -862,7 +862,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Answer a new {@linkplain MethodDescriptor method}. It has no name yet,
+	 * Answer a new {@code MethodDescriptor method}. It has no name yet,
 	 * but will before it gets used in a send node.  It gets named by virtue of
 	 * it being referenced by one or more {@linkplain MessageBundleDescriptor
 	 * message bundle}s, each of which keeps track of how to parse it using that
@@ -944,7 +944,7 @@ extends Descriptor
 	}
 
 	/**
-	 * The membership of this {@linkplain MethodDescriptor method} has changed.
+	 * The membership of this {@code MethodDescriptor method} has changed.
 	 * Invalidate anything that depended on the previous membership, including
 	 * the {@linkplain ObjectSlots#PRIVATE_TESTING_TREE testing tree} and any
 	 * {@linkplain ObjectSlots#DEPENDENT_CHUNKS_WEAK_SET_POJO dependent}
@@ -990,7 +990,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link MethodDescriptor}.
+	 * Construct a new {@code MethodDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.

@@ -38,20 +38,23 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
-import com.avail.interpreter.levelTwo.register.FixedRegister;
-import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
-import static com.avail.descriptor.ContinuationTypeDescriptor
-	.mostGeneralContinuationType;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.interpreter.levelTwo.register.FixedRegister.NULL;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;
 
@@ -65,15 +68,9 @@ import static com.avail.utility.PrefixSharingList.append;
 public final class RegisterSet
 {
 	/**
-	 * The fixed architectural {@linkplain L2ObjectRegister registers}, keyed by
-	 * {@link FixedRegister}.
-	 */
-	final EnumMap<FixedRegister, L2ObjectRegister> fixedRegisters;
-
-	/**
 	 * The mapping from each register to its current state, if any.
 	 */
-	final Map<L2Register, RegisterState> registerStates;
+	final Map<L2Register, RegisterState> registerStates = new HashMap<>();
 
 	/**
 	 * Output debug information about this RegisterSet to the specified
@@ -124,19 +121,6 @@ public final class RegisterSet
 			}
 		}
 
-	}
-
-	/**
-	 * Lookup the {@link L2ObjectRegister} that represents the specified {@link
-	 * FixedRegister}.
-	 *
-	 * @param fixedRegister The FixedRegister to look up.
-	 * @return The corresponding L2ObjectRegister.
-	 */
-	public L2ObjectRegister fixed (
-		final FixedRegister fixedRegister)
-	{
-		return fixedRegisters.get(fixedRegister);
 	}
 
 	/**
@@ -464,18 +448,19 @@ public final class RegisterSet
 	 * Eventually primitive constructor/deconstructor pairs (e.g., tuple
 	 * creation and tuple subscripting) could be combined in a similar way to
 	 * perform a simple object escape analysis.  For example, consider this
-	 * sequence of level two instructions:
+	 * sequence of level two instructions:</p>
+	 *
 	 * <ul>
 	 * <li>r1 := ...</li>
 	 * <li>r2 := ...</li>
 	 * <li>r3 := makeTuple(r1, r2)</li>
 	 * <li>r4 := tupleAt(r3, 1)</li>
 	 * </ul>
-	 * It can be shown that r4 will always contain the value that was in r1.
+	 *
+	 * <p>It can be shown that r4 will always contain the value that was in r1.
 	 * In fact, if r3 is no longer needed then the tuple doesn't even have to be
 	 * constructed at all.  While this isn't expected to be useful by itself,
-	 * inlining is expected to reveal a great deal of such combinations.
-	 * </p>
+	 * inlining is expected to reveal a great deal of such combinations.</p>
 	 *
 	 * @param sourceRegister
 	 *            The {@link L2Register} which is the source of a move.
@@ -549,51 +534,6 @@ public final class RegisterSet
 		// destination.
 		destinationState.clearSources();
 		destinationState.addSource(instruction);
-	}
-
-	/**
-	 * Clear all type/constant/origin information for all registers.
-	 *
-	 * @param instruction The instruction responsible for clearing this state.
-	 */
-	public void clearEverythingFor (
-		final L2Instruction instruction)
-	{
-		registerStates.clear();
-		constantAtPut(fixed(NULL), nil, instruction);
-		typeAtPut(
-			fixed(FixedRegister.CALLER),
-			mostGeneralContinuationType(),
-			instruction);
-	}
-
-	/**
-	 * Construct a new {@link RegisterSet}.
-	 *
-	 * @param fixedRegisters
-	 *            The map from {@link FixedRegister}s to {@link
-	 *            L2ObjectRegister}s.
-	 */
-	RegisterSet (
-		final EnumMap<FixedRegister, L2ObjectRegister> fixedRegisters)
-	{
-		this.fixedRegisters = fixedRegisters;
-		this.registerStates = new HashMap<>(10);
-	}
-
-	/**
-	 * Copy a {@link RegisterSet}.
-	 *
-	 * @param original The original RegisterSet to copy.
-	 */
-	RegisterSet (final RegisterSet original)
-	{
-		this.fixedRegisters = original.fixedRegisters;
-		this.registerStates = new HashMap<>(original.registerStates);
-		for (final RegisterState state : registerStates.values())
-		{
-			state.share();
-		}
 	}
 
 	/**
