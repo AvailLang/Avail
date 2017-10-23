@@ -338,14 +338,14 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * Answer whether an instruction using this operation should be emitted. For
-	 * example, labels are place holders and produce no code.  By default an
-	 * instruction should be emitted, so non-emitting operations should override
-	 * to return false.
+	 * Answer whether an instruction using this operation should be emitted
+	 * during final code generation. For example, a move between registers with
+	 * the same finalIndex can be left out during code generation, although it
+	 * can't actually be removed before then.
 	 *
 	 * @return A {@code boolean} indicating if this operation should be emitted.
 	 */
-	public boolean shouldEmit ()
+	public boolean shouldEmit (final L2Instruction instruction)
 	{
 		return true;
 	}

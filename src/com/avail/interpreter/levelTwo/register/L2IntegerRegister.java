@@ -60,6 +60,16 @@ extends L2Register
 	@Override
 	public String toString ()
 	{
-		return "Int" + super.toString();
+		final StringBuilder builder = new StringBuilder();
+		builder.append("IntReg");
+		if (finalIndex() != -1)
+		{
+			builder.append("[");
+			builder.append(finalIndex());
+			builder.append("]");
+		}
+		builder.append("@");
+		builder.append(uniqueValue);
+		return builder.toString();
 	}
 }

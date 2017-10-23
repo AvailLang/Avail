@@ -45,6 +45,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 import com.avail.optimizer.Continuation1NotNullThrowsReification;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.utility.evaluation.Transformer2;
@@ -121,8 +122,12 @@ public final class L2Instruction
 	 * directly invoke to accomplish the effect of this instruction.  This
 	 * interim measure helps alleviate some of the runtime instruction decoding
 	 * cost, until we're able to generate JVM instructions directly.
+	 *
+	 * <p>Note that we have to wait until code generation of an {@link L2Chunk}
+	 * has completed before being able to set this action meaningfully, since
+	 * the point of it is to cache register numbering and target offsets.</p>
 	 */
-	public final Continuation1NotNullThrowsReification<Interpreter> action;
+	public Continuation1NotNullThrowsReification<Interpreter> action;
 
 	/**
 	 * Construct a new {@code L2Instruction}.
@@ -187,6 +192,21 @@ public final class L2Instruction
 			}
 		}
 		//noinspection ThisEscapedInObjectConstruction
+		action = uninitializedAction;
+	}
+
+	private static Continuation1NotNullThrowsReification<Interpreter>
+		uninitializedAction = interpreter ->
+		{
+			assert false : "Instruction has not had its action initialized yet";
+		};
+
+	/**
+	 * Now that this instruction has been generated in an {@link L2Chunk}, set
+	 * up its action.
+	 */
+	public void setAction ()
+	{
 		action = operation.actionFor(this);
 	}
 
@@ -331,6 +351,19 @@ public final class L2Instruction
 		{
 			operand.instructionWasRemoved(this);
 		}
+	}
+
+	/**
+	 * Answer whether this instruction should be emitted during final code
+	 * generation (from the non-SSA {@link L2ControlFlowGraph} into a flat
+	 * sequence of {@link L2Instruction}s.  Allow the operation to decide.
+	 *
+	 * @return Whether to preserve this instruction during final code
+	 *         generation.
+	 */
+	public boolean shouldEmit ()
+	{
+		return operation.shouldEmit(this);
 	}
 
 	@Override

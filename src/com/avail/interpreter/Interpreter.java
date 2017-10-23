@@ -60,6 +60,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -69,6 +70,8 @@ import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FiberDescriptor.*;
@@ -86,6 +89,7 @@ import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
@@ -98,6 +102,8 @@ import static com.avail.interpreter.primitive.variables.P_SetValue.instance;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a
@@ -405,20 +411,15 @@ public final class Interpreter
 		}
 		outerArray[FRAMES.ordinal()] = tupleFromList(frames);
 
-		// Now collect the pointer register values, wrapped in 1-tuples to
-		// suppress printing by the Eclipse debugger...
+		// Now collect the pointer register values.
 		outerArray[POINTERS.ordinal()] =
-			tupleFromList(asList(pointers).subList(0, chunk.numObjects()));
+			Arrays.copyOf(
+				pointers, Math.min(pointers.length, chunk.numObjects()));
 
 		// May as well show the integer registers too...
-		final int numInts = chunk.numIntegers();
-		final List<Integer> integersList = new ArrayList<>(numInts);
-		for (int i = 0; i < numInts; i++)
-		{
-			integersList.add(integers[i]);
-		}
 		outerArray[INTEGERS.ordinal()] =
-			tupleFromIntegerList(integersList);
+			Arrays.copyOf(
+				integers, Math.min(integers.length, chunk.numIntegers()));
 
 		outerArray[LOADER.ordinal()] = availLoaderOrNull();
 
@@ -730,6 +731,20 @@ public final class Interpreter
 	}
 
 	/**
+	 * Answer the latest result produced by a {@linkplain Result#SUCCESS
+	 * successful} {@linkplain Primitive primitive}, or the latest {@linkplain
+	 * AvailErrorCode error code} produced by a {@linkplain Result#FAILURE
+	 * failed} primitive.  Answer null if no such value is available.  This is
+	 * useful for saving/restoring without knowing whether the value is valid.
+	 *
+	 * @return The latest result (or primitive failure value) or {@code null}.
+	 */
+	public @Nullable AvailObject latestResultOrNull ()
+	{
+		return latestResult;
+	}
+
+	/**
 	 * Set the resulting value of a primitive invocation. Answer primitive
 	 * {@linkplain Result#SUCCESS success}.
 	 *
@@ -823,7 +838,7 @@ public final class Interpreter
 	 * #run() run loop}?  This can happen when the fiber has completed, failed,
 	 * or been suspended.
 	 */
-	private boolean exitNow = true;
+	public boolean exitNow = true;
 
 	/**
 	 * A {@linkplain Continuation0 continuation} to run after a {@linkplain
@@ -890,8 +905,7 @@ public final class Interpreter
 			System.out.println("Clear latestResult (primitiveSuspend)");
 		}
 		latestResult(null);
-		pointers = null;
-		integers = null;
+		wipeRegisters();
 		return FIBER_SUSPENDED;
 	}
 
@@ -961,7 +975,7 @@ public final class Interpreter
 			System.out.println("Clear latestResult (exitFiber)");
 		}
 		latestResult(null);
-		wipeObjectRegisters();
+		wipeRegisters();
 		postExitContinuation(() ->
 		{
 			final A_Set joining = aFiber.joiningFibers().makeShared();
@@ -1111,10 +1125,13 @@ public final class Interpreter
 	 */
 	public int offset;
 
+	/** An empty array used for clearing the pointers quickly. */
+	private static final AvailObject[] emptyPointersArray = new AvailObject[0];
+
 	/**
 	 * The registers that hold {@linkplain AvailObject Avail objects}.
 	 */
-	public AvailObject[] pointers = new AvailObject[10];
+	public AvailObject[] pointers = emptyPointersArray;
 
 	/**
 	 * Read from an object register. Register zero is reserved for read-only
@@ -1127,8 +1144,6 @@ public final class Interpreter
 	 */
 	public AvailObject pointerAt (final int index)
 	{
-		// assert index >= 0;
-		// assert pointers[index] != null;
 		return pointers[index];
 	}
 
@@ -1164,20 +1179,6 @@ public final class Interpreter
 	}
 
 	/**
-	 * Create a new array of pointer registers of the requested size, and answer
-	 * the previous array.
-	 *
-	 * @param newCount The number of pointer registers to create.
-	 * @return The previous array of pointer registers.
-	 */
-	public AvailObject[] savePointers (final int newCount)
-	{
-		final AvailObject[] result = pointers;
-		pointers = new AvailObject[newCount];
-		return result;
-	}
-
-	/**
 	 * Restore the array of pointer registers, discarding the current array.
 	 *
 	 * @param replacementPointers The pointer registers to restore.
@@ -1187,18 +1188,13 @@ public final class Interpreter
 		pointers = replacementPointers;
 	}
 
-	/**
-	 * Wipe out the existing register set for safety.
-	 */
-	public void wipeObjectRegisters ()
-	{
-		pointers = null;
-	}
+	/** An empty array used for clearing the integer squickly. */
+	private static final int[] emptyIntArray = new int[0];
 
 	/**
 	 * The 32-bit signed integer registers.
 	 */
-	public int[] integers = new int[0];
+	public int[] integers = emptyIntArray;
 
 	/**
 	 * Read from an integer register. The index is one-based. Entry [0] is
@@ -1230,33 +1226,13 @@ public final class Interpreter
 	}
 
 	/**
-	 * Create a new array of int registers of the requested size, and answer
-	 * the previous array.
-	 *
-	 * @param newCount The number of int registers to create.
-	 * @return The previous array of int registers.
+	 * Wipe out the existing register set for safety.
 	 */
-	public int[] saveInts (final int newCount)
+	public void wipeRegisters ()
 	{
-		final int[] result = integers;
-		integers = new int[newCount];
-		return result;
+		pointers = emptyPointersArray;
+		integers = emptyIntArray;
 	}
-
-	/**
-	 * Restore the array of int registers, discarding the current array.
-	 *
-	 * @param replacementInts The int registers to restore.
-	 */
-	public void restoreInts (final int[] replacementInts)
-	{
-		integers = replacementInts;
-	}
-
-	/**
-	 * The double-precision floating point registers.
-	 */
-	private double[] doubles = new double[10];
 
 	/**
 	 * Jump to a new position in the L2 wordcode stream.
@@ -1352,7 +1328,7 @@ public final class Interpreter
 		exitNow = true;
 		startTick = -1L;
 		latestResult(null);
-		wipeObjectRegisters();
+		wipeRegisters();
 		postExitContinuation(() ->
 		{
 			if (waiters.value != null)
@@ -1368,35 +1344,6 @@ public final class Interpreter
 			}
 			resumeFromInterrupt(aFiber);
 		});
-	}
-
-	/**
-	 * Prepare to resume execution of the passed {@linkplain
-	 * ContinuationDescriptor continuation}.
-	 *
-	 * @param updatedCaller The continuation to resume.
-	 */
-	@Deprecated
-	public void prepareToResumeContinuation (final A_Continuation updatedCaller)
-	{
-		//TODO MvG - Remove when not referenced.
-		throw new UnsupportedOperationException("Operation no longer makes sense");
-//		L2Chunk chunkToResume = updatedCaller.levelTwoChunk();
-//		if (!chunkToResume.isValid())
-//		{
-//			// The chunk has become invalid, so use the default chunk and tweak
-//			// the continuation's chunk information.
-//			chunkToResume = L2Chunk.unoptimizedChunk();
-//			updatedCaller.levelTwoChunkOffset(
-//				chunkToResume,
-//				L2Chunk.offsetToReturnIntoUnoptimizedChunk());
-//		}
-//		pointerAtPut(CALLER, updatedCaller);
-//		chunk = chunkToResume;
-//		setChunk(
-//			chunkToResume,
-//			updatedCaller.function().code(),
-//			updatedCaller.levelTwoOffset());
 	}
 
 	/**
@@ -1486,8 +1433,7 @@ public final class Interpreter
 							function = handler;
 							chunk = handler.code().startingChunk();
 							offset = 0;  // Invocation
-							pointers = null;
-							integers = null;
+							wipeRegisters();
 							returnNow = false;
 							latestResult(null);
 							return CONTINUATION_CHANGED;
@@ -1572,7 +1518,7 @@ public final class Interpreter
 		chunk = code.startingChunk();
 		offset = 0;
 		returnNow = false;
-		chunk.run(this);
+		L2Chunk.run(this , chunk);
 	}
 
 	/**
@@ -1590,7 +1536,7 @@ public final class Interpreter
 				// The chunk will do its own invalidation checks and off-ramp
 				// to L1 if needed.
 				final A_Function calledFunction = stripNull(function);
-				chunk.run(this);
+				L2Chunk.run(this, chunk);
 				returningFunction = calledFunction;
 			}
 			catch (final ReifyStackThrowable reifier)
@@ -1960,7 +1906,7 @@ public final class Interpreter
 				interpreter.latestResult(null);
 				interpreter.chunk = con.levelTwoChunk();
 				interpreter.offset = con.levelTwoOffset();
-				interpreter.pointers = null;
+				interpreter.wipeRegisters();
 				aFiber.continuation(nil);
 			});
 	}

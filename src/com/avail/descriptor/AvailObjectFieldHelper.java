@@ -32,8 +32,11 @@
 
 package com.avail.descriptor;
 
+import com.avail.utility.Nulls;
+
 import javax.annotation.Nullable;
 
+import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.String.format;
 
@@ -160,7 +163,7 @@ public class AvailObjectFieldHelper
 	 */
 	public String nameForDebugger ()
 	{
-		String string = name;
+		@Nullable String string = name;
 		if (string == null)
 		{
 			final StringBuilder builder = new StringBuilder();
@@ -171,7 +174,7 @@ public class AvailObjectFieldHelper
 				builder.append(subscript);
 				builder.append(']');
 			}
-			final Object val = value;
+			final @Nullable Object val = value;
 			if (val == null)
 			{
 				builder.append(" = Java null");
@@ -186,7 +189,7 @@ public class AvailObjectFieldHelper
 				try
 				{
 					AbstractDescriptor.describeIntegerSlot(
-						(AvailObject) parentObject,
+						(AvailObject) stripNull(parentObject),
 						((AvailIntegerValueHelper) val).longValue,
 						(IntegerSlotsEnum) slot,
 						builder);
@@ -209,9 +212,8 @@ public class AvailObjectFieldHelper
 			}
 			else
 			{
-				builder.append(format(
-					" *** UNKNOWN FIELD VALUE TYPE: %s ***",
-					val.getClass().getCanonicalName()));
+				builder.append(
+					" = " + val.getClass().getCanonicalName());
 			}
 			string = builder.toString();
 			name = string;

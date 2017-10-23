@@ -90,7 +90,7 @@ extends Descriptor
 	}
 
 	@Override
-	abstract AvailObject o_MapBinAtHash (
+	abstract @Nullable AvailObject o_MapBinAtHash (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash);

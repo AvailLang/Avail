@@ -38,11 +38,9 @@ import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
-import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.Mutable;
-import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import java.util.ArrayDeque;
@@ -57,7 +55,6 @@ import java.util.Set;
 
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * This is a control graph.  The vertices are {@link L2BasicBlock}s, which are
@@ -88,8 +85,7 @@ public final class L2ControlFlowGraph
 	 * Find the {@link L2BasicBlock} that are actually reachable recursively
 	 * from the blocks marked as {@link L2BasicBlock#isIrremovable()}.
 	 *
-	 * @return {@code true} if any blocks were remevoed, otherwise {@code
-	 *         false}.
+	 * @return {@code true} if any blocks were removed, otherwise {@code false}.
 	 */
 	private boolean removeUnreachableBlocks ()
 	{
@@ -100,7 +96,7 @@ public final class L2ControlFlowGraph
 		final Set<L2BasicBlock> reachableBlocks = new HashSet<>();
 		while (!blocksToVisit.isEmpty())
 		{
-			final L2BasicBlock block = blocksToVisit.removeFirst();
+			final L2BasicBlock block = blocksToVisit.removeLast();
 			if (!reachableBlocks.contains(block))
 			{
 				reachableBlocks.add(block);
@@ -119,51 +115,7 @@ public final class L2ControlFlowGraph
 			block.instructions().forEach(L2Instruction::justRemoved);
 			block.instructions().clear();
 		}
-		if (!basicBlockOrder.retainAll(reachableBlocks))
-		{
-			// No blocks were removed.
-			return false;
-		}
-
-		// Clean up predecessor linkages and phi functions.
-		for (final L2BasicBlock block : basicBlockOrder)
-		{
-			final List<L2PcOperand> predecessorEdges = block.predecessorEdges();
-			// Iterate in reverse order for safe removals.
-			for (
-				int edgeIndex = predecessorEdges.size() - 1;
-				edgeIndex >= 0;
-				edgeIndex--)
-			{
-				final L2PcOperand edge = predecessorEdges.get(edgeIndex);
-				if (reachableBlocks.contains(edge.sourceBlock()))
-				{
-					continue;
-				}
-				// Remove this edge from the block and its phi functions.
-				final List<L2Instruction> instructions = block.instructions();
-				for (
-					int instructionIndex = 0;
-					instructionIndex < instructions.size();
-					instructionIndex++)
-				{
-					final L2Instruction instruction =
-						instructions.get(instructionIndex);
-					if (instruction.operation
-						== L2_PHI_PSEUDO_OPERATION.instance)
-					{
-						final L2Instruction replacement =
-							L2_PHI_PSEUDO_OPERATION.withoutIndex(
-								instruction, edgeIndex);
-						instructions.set(instructionIndex, replacement);
-						instruction.justRemoved();
-						replacement.justAdded();
-					}
-				}
-				predecessorEdges.remove(edgeIndex);
-			}
-		}
-		return true;
+		return basicBlockOrder.retainAll(reachableBlocks);
 	}
 
 	/**
@@ -382,9 +334,13 @@ public final class L2ControlFlowGraph
 						changed = true;
 						inEdge.switchTargetBlockNonSSA(jumpTarget);
 					}
-					// Eliminate the block.
+					// Eliminate the block, unless it has to be there for
+					// external reasons (i.e., it's an L2 entry point).
 					assert block.predecessorEdges().isEmpty();
-					blockIterator.remove();
+					if (!block.isIrremovable())
+					{
+						blockIterator.remove();
+					}
 				}
 			}
 		}
@@ -497,6 +453,10 @@ public final class L2ControlFlowGraph
 		// jump).  We specifically do this after inserting phi moves to ensure
 		// we don't jump past irremovable phi moves.
 		adjustEdgesToJumps();
+
+		// Rewiring jumps through target jumps may have caused some code to be
+		// unreachable.
+		removeDeadCode();
 
 		// Choose an order for the blocks.  This isn't important while we're
 		// interpreting L2Chunks, but it will ultimately affect the quality of

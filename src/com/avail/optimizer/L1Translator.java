@@ -399,10 +399,7 @@ public final class L1Translator
 	 */
 	public void nilSlot (final int slotNumber)
 	{
-		addInstruction(
-			L2_MOVE_CONSTANT.instance,
-			new L2ConstantOperand(nil),
-			writeSlot(slotNumber, TOP.o(), nil));
+		slotRegisters[slotNumber - 1] = constantRegister(nil);
 	}
 
 	/**
@@ -631,7 +628,7 @@ public final class L1Translator
 	 * Write a constant value into a new int register.  Answer an {@link
 	 * L2ReadIntOperand} for that register.
 	 *
-	 * @param value The actual int to write to a new int register.
+	 * @param value The immediate int to write to a new int register.
 	 * @return The {@link L2ReadIntOperand} for the new register.
 	 */
 	public L2ReadIntOperand constantIntRegister (final int value)
@@ -639,7 +636,7 @@ public final class L1Translator
 		final L2WriteIntOperand registerWrite =
 			new L2WriteIntOperand(translator.newIntegerRegister());
 		addInstruction(
-			L2_MOVE_CONSTANT.instance,
+			L2_MOVE_INT_CONSTANT.instance,
 			new L2ImmediateOperand(value),
 			registerWrite);
 		return registerWrite.read();
@@ -751,6 +748,7 @@ public final class L1Translator
 
 		// It's returning into the reified continuation.
 		startBlock(onReturnIntoReified);
+		addInstruction(L2_ENTER_L2_CHUNK.instance);
 		addInstruction(
 			L2_EXPLODE_CONTINUATION.instance,
 			popCurrentContinuation(),
@@ -784,7 +782,7 @@ public final class L1Translator
 		final int slotIndex,
 		final L2ReadPointerOperand register)
 	{
-		slotRegisters[slotIndex] = register;
+		slotRegisters[slotIndex - 1] = register;
 	}
 
 	/**
@@ -881,11 +879,6 @@ public final class L1Translator
 		final A_Method method = bundle.bundleMethod();
 		translator.contingentValues =
 			translator.contingentValues.setWithElementCanDestroy(method, true);
-		final A_String bundleName = bundle.message().atomName();
-		final L2BasicBlock afterCall = createBasicBlock(
-			superUnionType.isBottom()
-				? "After call of " + bundleName
-				: "After super call of " + bundleName);
 		final int nArgs = method.numArgs();
 		final List<L2ReadPointerOperand> arguments = new ArrayList<>(nArgs);
 		final List<A_Type> argumentTypes = new ArrayList<>(nArgs);
@@ -911,6 +904,7 @@ public final class L1Translator
 		// nilled their new SSA versions, and pushed the expectedType.  That's
 		// the reifiable state of the continuation during the call.
 		final List<A_Definition> allPossible = new ArrayList<>();
+		final String quotedBundleName = bundle.message().atomName().toString();
 		for (final A_Definition definition : method.definitionsTuple())
 		{
 			final A_Type signature = definition.bodySignature();
@@ -923,7 +917,11 @@ public final class L1Translator
 					// It has too many applicable implementations to be worth
 					// inlining all of them.
 					generateSlowPolymorphicCall(
-						bundle, arguments, expectedType, superUnionType);
+						bundle,
+						arguments,
+						expectedType,
+						superUnionType,
+						quotedBundleName);
 					return;
 				}
 			}
@@ -932,6 +930,10 @@ public final class L1Translator
 		// about the known types of arguments that may be too weak for our
 		// purposes.  It's still correct, but it may produce extra tests that
 		// this site's argumentTypes would eliminate.
+		final L2BasicBlock afterCall = createBasicBlock(
+			superUnionType.isBottom()
+				? "After call of " + quotedBundleName
+				: "After super call of " + quotedBundleName);
 		final LookupTree<A_Definition, A_Tuple, Void> tree =
 			MethodDescriptor.runtimeDispatcher.createRoot(
 				allPossible, argumentTypes, null);
@@ -1141,13 +1143,28 @@ public final class L1Translator
 					final A_Definition solution = solutions.tupleAt(1);
 					if (solution.isInstanceOf(METHOD_DEFINITION.o()))
 					{
-						generateGeneralFunctionInvocation(
-							constantRegister(solution.bodyBlock()),
-							arguments,
-							expectedType,
-							solution.bodySignature().returnType().isSubtypeOf(
-								expectedType),
-							slotRegisters());
+						final L2ReadPointerOperand resultReg =
+							generateGeneralFunctionInvocation(
+								constantRegister(solution.bodyBlock()),
+								arguments,
+								expectedType,
+								solution.bodySignature().returnType()
+									.isSubtypeOf(expectedType),
+								slotRegisters(),
+								quotedBundleName);
+						// Propagate the type into the write slot, so that code
+						// downstream can determine if it's worth splitting the
+						// CFG to keep the stronger type in some of the
+						// branches.
+						moveRegister(
+							resultReg,
+							writeSlot(
+								stackp,
+								resultReg.type(),
+								resultReg.constantOrNull()));
+						addInstruction(
+							L2_JUMP.instance,
+							new L2PcOperand(afterCall, slotRegisters));
 						return;
 					}
 				}
@@ -1183,7 +1200,8 @@ public final class L1Translator
 						argumentsTupleWrite.read()),
 					bottom(),
 					true,
-					slotRegisters());
+					slotRegisters(),
+					"failed lookup of " + quotedBundleName);
 				addUnreachableCode();
 			});
 
@@ -1192,12 +1210,18 @@ public final class L1Translator
 		// may have differing requirements about whether they need their return
 		// values checked, and whether reification can even happen (e.g., for
 		// contextually infallible, inlineable primitives, it can't).
-		startBlock(afterCall);
+		if (afterCall.hasPredecessors())
+		{
+			startBlock(afterCall);
+		}
 	}
 
 	/**
 	 * Generate code to invoke a function in a register with arguments in
-	 * registers.  In the event of reification, capture the specified array
+	 * registers.  In the usual case that reification is avoided, the result of
+	 * the call will be
+	 *
+	 * In the event of reification, capture the specified array
 	 * of slot registers into a continuation.  On return into the reified
 	 * continuation, explode the slots into registers, then capture the returned
 	 * value in a new register answered by this method.  On normal return, just
@@ -1221,6 +1245,8 @@ public final class L1Translator
 	 * @param slotsIfReified
 	 *        An array of {@link L2ReadPointerOperand}s corresponding to the
 	 *        slots that would be populated during reification.
+	 * @param invocationName
+	 *        A {@link String} describing the purpose of this call.
 	 * @return The {@link L2ReadPointerOperand} holding the result of the call.
 	 */
 	public L2ReadPointerOperand generateGeneralFunctionInvocation (
@@ -1228,19 +1254,15 @@ public final class L1Translator
 		final List<L2ReadPointerOperand> arguments,
 		final A_Type expectedType,
 		final boolean skipReturnCheck,
-		final L2ReadPointerOperand[] slotsIfReified)
+		final L2ReadPointerOperand[] slotsIfReified,
+		final String invocationName)
 	{
-		final L2BasicBlock onReturn = createBasicBlock("returned from call");
-		final L2BasicBlock onReification =
-			createBasicBlock("reification during call");
 		final @Nullable L2ReadPointerOperand specialOutputReg =
 			tryToGenerateSpecialInvocation(functionToCallReg, arguments);
 		if (specialOutputReg != null)
 		{
 			// The call was to a specific primitive function that generated
 			// optimized code that left the primitive result in resultReg.
-			assert !onReturn.hasPredecessors();
-			assert !onReification.hasPredecessors();
 			if (skipReturnCheck
 				|| specialOutputReg.type().isSubtypeOf(expectedType))
 			{
@@ -1252,6 +1274,10 @@ public final class L1Translator
 		// The function isn't known to be a particular primitive function, or
 		// the primitive wasn't able to special code generation for it, so just
 		// invoke it like a non-primitive.
+		final L2BasicBlock onReturn =
+			createBasicBlock("returned from call of " + invocationName);
+		final L2BasicBlock onReification =
+			createBasicBlock("reification during call of " + invocationName);
 		addInstruction(
 			L2_INVOKE.instance,
 			functionToCallReg,
@@ -1357,7 +1383,8 @@ public final class L1Translator
 				variableToHoldValueWrite.read()),
 			bottom(),
 			true,
-			slotRegisters());
+			slotRegisters(),
+			"failed return check");
 		addUnreachableCode();
 
 		startBlock(passedCheck);
@@ -1469,19 +1496,22 @@ public final class L1Translator
 	 *        runtime is used for lookup.  The type ⊥ ({@link
 	 *        BottomTypeDescriptor#bottom() bottom}) is used to indicate this is
 	 *        not a super call.
+	 * @param invocationName
+	 *        A {@link String} describing the purpose of this call.
 	 */
 	private void generateSlowPolymorphicCall (
 		final A_Bundle bundle,
 		final List<L2ReadPointerOperand> arguments,
 		final A_Type expectedType,
-		final A_Type superUnionType)
+		final A_Type superUnionType,
+		final String invocationName)
 	{
 		final A_Method method = bundle.bundleMethod();
 		final int nArgs = method.numArgs();
 		final L2BasicBlock lookupSucceeded =
-			createBasicBlock("lookup succeeded");
+			createBasicBlock("lookup succeeded for " + invocationName);
 		final L2BasicBlock lookupFailed =
-			createBasicBlock("lookup failed");
+			createBasicBlock("lookup failed for " + invocationName);
 		final L2WritePointerOperand functionReg = newObjectRegisterWriter(
 			TOP.o(), null);
 		final L2WritePointerOperand errorCodeReg = newObjectRegisterWriter(
@@ -1634,7 +1664,8 @@ public final class L1Translator
 				argumentsTupleWrite.read()),
 			bottom(),
 			true,
-			slotRegisters());
+			slotRegisters(),
+			"report failed megamorphic lookup of " + invocationName);
 		addUnreachableCode();
 
 		startBlock(lookupSucceeded);
@@ -1647,7 +1678,8 @@ public final class L1Translator
 				arguments,
 				expectedType,
 				false,
-				slotRegisters());
+				slotRegisters(),
+				"invocation for megamorphic " + invocationName);
 		// Write the (already checked if necessary) result onto the stack.
 		moveRegister(
 			returnReg,
@@ -1750,7 +1782,8 @@ public final class L1Translator
 			emptyList(),
 			bottom(),
 			true,
-			slotRegisters());
+			slotRegisters(),
+			"invoke failed variable get handler");
 		addUnreachableCode();
 
 		// End with the success path.
@@ -1817,7 +1850,8 @@ public final class L1Translator
 				variableAndValueTupleReg.read()),
 			TOP.o(),
 			true,
-			slotRegisters());
+			slotRegisters(),
+			"set variable failure");
 		addInstruction(
 			L2_JUMP.instance,
 			new L2PcOperand(successBlock, slotRegisters()));
@@ -2229,6 +2263,11 @@ public final class L1Translator
 		for (int i = 1; i <= count; i++)
 		{
 			vector.add(readSlot(stackp + count - i));
+			// Clear all but the first pushed slot.
+			if (i != 1)
+			{
+				nilSlot(stackp + count - i);
+			}
 		}
 		stackp += count - 1;
 		// Fold into a constant tuple if possible
@@ -2256,12 +2295,6 @@ public final class L1Translator
 				L2_CREATE_TUPLE.instance,
 				readVector(vector),
 				writeSlot(stackp, tupleType, null));
-		}
-		// Clean up the stack slots.  That's all but the first slot,
-		// which was just replaced by the tuple.
-		for (int i = 2; i <= count; i++)
-		{
-			nilSlot(stackp + count - i);
 		}
 	}
 

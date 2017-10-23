@@ -114,6 +114,17 @@ public class L2_MOVE extends L2Operation
 			sourceReg.register(), destinationReg.register(), instruction);
 	}
 
+	@Override
+	public boolean shouldEmit (final L2Instruction instruction)
+	{
+		final L2ReadPointerOperand sourceReg =
+			instruction.readObjectRegisterAt(0);
+		final L2WritePointerOperand destinationReg =
+			instruction.writeObjectRegisterAt(1);
+
+		return sourceReg.finalIndex() != destinationReg.finalIndex();
+	}
+
 	/**
 	 * Given an {@link L2Instruction} using this operation, extract the source
 	 * {@link L2ReadPointerOperand} that is moved by the instruction.

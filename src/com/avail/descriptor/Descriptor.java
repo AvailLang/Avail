@@ -2675,8 +2675,6 @@ extends AbstractDescriptor
 	/**
 	 * Sets only use explicit bins for collisions, otherwise they store the
 	 * element itself. This works because a bin can't be an element of a set.
-	 * Likewise, nil can't be a member of a set and is treated like an empty
-	 * bin.
 	 *
 	 * @param object
 	 * @param potentialSuperset
@@ -3416,7 +3414,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_MapBinAtHash (
+	@Nullable AvailObject o_MapBinAtHash (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash)

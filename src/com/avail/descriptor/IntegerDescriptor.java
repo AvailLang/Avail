@@ -689,7 +689,7 @@ extends ExtendedIntegerDescriptor
 		// is to use 64-bit.
 		final int objectSize = intCount(object);
 		final int anIntegerSize = intCount(anInteger);
-		AvailObject output = canDestroy
+		@Nullable AvailObject output = canDestroy
 			? largerMutableOf(object, (AvailObject)anInteger)
 			: null;
 		if (objectSize == 1 && anIntegerSize == 1)

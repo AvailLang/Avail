@@ -116,7 +116,13 @@ public final class P_GetGlobalVariableValue extends Primitive
 			return null;
 		}
 		final A_Variable variable = function.code().literalAt(1);
-		if (variable.isInitializedWriteOnceVariable())
+		// Avoid generating a constant move if the value wasn't stably computed.
+		// While it would be the correct value, it wouldn't trigger the fast
+		// loader suppression necessary to indicate that an unstable global
+		// constant had been accessed, and a new global constant initialization
+		// running this L2Chunk wouldn't be flagged correctly as also unstable.
+		if (variable.isInitializedWriteOnceVariable()
+			&& variable.valueWasStablyComputed())
 		{
 			// The variable is permanently set to this value.
 			return translator.constantRegister(variable.getValue());

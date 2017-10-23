@@ -3500,7 +3500,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_MapBinAtHash (
+	@Nullable AvailObject o_MapBinAtHash (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash)

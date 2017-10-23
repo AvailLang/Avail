@@ -112,11 +112,10 @@ extends Descriptor
 	 *        The root bin for the set, or nil.
 	 */
 	private static void setRootBin (
-		final A_Set set,
+		final AvailObject set,
 		final A_BasicObject bin)
 	{
-		assert !bin.equalsNil();
-		((AvailObject) set).setSlot(ROOT_BIN, bin);
+		set.setSlot(ROOT_BIN, bin);
 	}
 
 	@Override
@@ -470,7 +469,7 @@ extends Descriptor
 			}
 			return object;
 		}
-		final A_Set result;
+		final AvailObject result;
 		if (canDestroy && isMutable())
 		{
 			result = object;
@@ -709,7 +708,7 @@ extends Descriptor
 
 	static
 	{
-		final A_Set set = mutable.create();
+		final AvailObject set = mutable.create();
 		setRootBin(set, emptyLinearSetBin((byte) 0));
 		set.hash();
 		emptySet = set.makeShared();

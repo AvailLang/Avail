@@ -107,7 +107,7 @@ public class L2_INVOKE extends L2Operation
 			interpreter.offset = 0;
 			try
 			{
-				interpreter.chunk.run(interpreter);
+				L2Chunk.run(interpreter, interpreter.chunk);
 			}
 			catch (final ReifyStackThrowable reifier)
 			{
@@ -127,7 +127,7 @@ public class L2_INVOKE extends L2Operation
 					interpreter.integers = savedInts;
 					try
 					{
-						chunk.run(interpreter);
+						L2Chunk.run(interpreter, interpreter.chunk);
 					}
 					catch (final ReifyStackThrowable innerReifier)
 					{
@@ -137,6 +137,10 @@ public class L2_INVOKE extends L2Operation
 					// captures this frame.
 					reifier.pushContinuation(interpreter.latestResult());
 				}
+				interpreter.chunk = chunk;
+				interpreter.offset = Integer.MAX_VALUE;
+				interpreter.pointers = savedPointers;
+				interpreter.integers = savedInts;
 				throw reifier;
 			}
 			// We just returned normally.

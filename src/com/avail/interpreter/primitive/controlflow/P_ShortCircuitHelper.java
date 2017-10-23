@@ -122,6 +122,7 @@ public final class P_ShortCircuitHelper extends Primitive
 			emptyList(),   // takes no arguments.
 			TOP.o(),
 			true,
-			translator.slotRegisters());
+			translator.slotRegisters(),
+			"short circuit");
 	}
 }

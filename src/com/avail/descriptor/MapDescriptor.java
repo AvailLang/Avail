@@ -47,10 +47,10 @@ import java.util.Iterator;
 
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.LinearMapBinDescriptor.emptyLinearMapBin;
 import static com.avail.descriptor.MapDescriptor.ObjectSlots.ROOT_BIN;
 import static com.avail.descriptor.MapTypeDescriptor
 	.mapTypeForSizesKeyTypeValueType;
-import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor
 	.generateObjectTupleFrom;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -117,16 +117,15 @@ extends Descriptor
 
 	/**
 	 * Replace the {@link A_Map map}'s root {@linkplain MapBinDescriptor bin}.
-	 * The replacement may be {@link NilDescriptor#nil nil} to indicate an
-	 * empty map.
 	 *
 	 * @param map The map (must not be an indirection).
-	 * @param bin The root bin for the map, or nil.
+	 * @param bin The root bin for the map.
 	 */
 	private static void setRootBin (
 		final A_Map map,
 		final A_BasicObject bin)
 	{
+		assert !bin.equalsNil();  // Obsolete representation
 		((AvailObject) map).setSlot(ROOT_BIN, bin);
 	}
 
@@ -263,9 +262,10 @@ extends Descriptor
 		final A_BasicObject aMapRootBin = rootBin(aMap);
 		for (final Entry entry : object.mapIterable())
 		{
-			final A_Map actualValue =
+			final @Nullable A_BasicObject actualValue =
 				aMapRootBin.mapBinAtHash(entry.key(), entry.keyHash());
-			if (!entry.value().equals(actualValue))
+			if (actualValue == null
+				|| !entry.value().equals(actualValue))
 			{
 				return false;
 			}
@@ -431,10 +431,9 @@ extends Descriptor
 	{
 		// Answer the value of the map at the specified key. Fail if the key is
 		// not present.
-		final AvailObject value = rootBin(object).mapBinAtHash(
-			keyObject,
-			keyObject.hash());
-		if (value.equalsNil())
+		final @Nullable AvailObject value = rootBin(object).mapBinAtHash(
+			keyObject, keyObject.hash());
+		if (value == null)
 		{
 			throw new MapException(AvailErrorCode.E_KEY_NOT_FOUND);
 		}
@@ -540,13 +539,13 @@ extends Descriptor
 	boolean o_HasKey (final AvailObject object, final A_BasicObject key)
 	{
 		// Answer whether the map has the given key.
-		return !rootBin(object).mapBinAtHash(key, key.hash()).equalsNil();
+		return rootBin(object).mapBinAtHash(key, key.hash()) != null;
 	}
 
 	@Override @AvailMethod
 	int o_MapSize (final AvailObject object)
 	{
-		// Answer how many elements are in the set. Delegate to the rootBin.
+		// Answer how many elements are in the map. Delegate to the rootBin.
 		return rootBin(object).binSize();
 	}
 
@@ -894,7 +893,7 @@ extends Descriptor
 
 	static
 	{
-		final A_Map map = createFromBin(nil);
+		final A_Map map = createFromBin(emptyLinearMapBin((byte) 0));
 		map.hash();
 		emptyMap = map.makeShared();
 	}

@@ -45,7 +45,6 @@ import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
 import com.avail.optimizer.ReifyStackThrowable;
 import com.avail.utility.IndexedGenerator;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -769,7 +768,8 @@ public final class L1InstructionStepper
 			{
 				// At some point during the call, reification was
 				// requested.  Add this frame and rethrow.
-				interpreter.restorePointers(savedPointers);
+				interpreter.pointers = savedPointers;
+				interpreter.integers = savedInts;
 				final A_Continuation continuation =
 					createContinuationExceptFrame(
 						savedFunction,
@@ -792,8 +792,8 @@ public final class L1InstructionStepper
 		}
 		finally
 		{
-			interpreter.integers = savedInts;
 			interpreter.pointers = savedPointers;
+			interpreter.integers = savedInts;
 			interpreter.chunk = unoptimizedChunk();
 			interpreter.offset = savedOffset;
 			interpreter.function = savedFunction;

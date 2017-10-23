@@ -5593,16 +5593,14 @@ implements
 
 	/**
 	 * Look up the key in this {@linkplain MapBinDescriptor map bin}.  If not
-	 * found, answer the {@linkplain NilDescriptor#nil}.  Use the
-	 * provided hash of the key.
+	 * found, answer {@code null}.  Use the provided hash of the key.
 	 *
 	 * @param key The key to look up in this map.
 	 * @param keyHash The conveniently already computed hash of the key.
-	 * @return The value under that key in the map, or nil if not
-	 *         found.
+	 * @return The value under that key in the map, or null if not found.
 	 */
 	@Override
-	public AvailObject mapBinAtHash (
+	public @Nullable AvailObject mapBinAtHash (
 		final A_BasicObject key,
 		final int keyHash)
 	{

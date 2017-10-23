@@ -53,6 +53,7 @@ import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.ReifyStackThrowable;
+import com.avail.utility.Nulls;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -61,6 +62,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.lang.String.format;
 
@@ -227,21 +229,24 @@ public final class L2Chunk
 			return "Default chunk";
 		}
 		builder.append(format(
-			"Chunk #%08x%n",
+			"Chunk #%08x",
 			System.identityHashCode(this)));
 		if (!isValid())
 		{
-			builder.append("\t(INVALID)\n");
+			builder.append(" (INVALID)");
 		}
-		final L2InstructionDescriber describer =
-			new L2InstructionDescriber();
-		for (final L2Instruction instruction : instructions)
+		if (false)
 		{
-			builder.append(format("\t#%-3d ", instruction.offset()));
-			final StringBuilder tempStream = new StringBuilder(100);
-			describer.describe(instruction, this, tempStream);
-			builder.append(increaseIndentation(tempStream.toString(), 2));
-			builder.append("\n");
+			final L2InstructionDescriber describer =
+				new L2InstructionDescriber();
+			for (final L2Instruction instruction : instructions)
+			{
+				builder.append(format("\t#%-3d ", instruction.offset()));
+				final StringBuilder tempStream = new StringBuilder(100);
+				describer.describe(instruction, this, tempStream);
+				builder.append(increaseIndentation(tempStream.toString(), 2));
+				builder.append("\n");
+			}
 		}
 		return builder.toString();
 	}
@@ -336,7 +341,8 @@ public final class L2Chunk
 	{
 		// TODO: [MvG] Set this back when we're ready to test Level Two
 		// optimization on the semi-stackless (reifiable) execution model.
-		return 1_000_000_000;
+		return 1;
+//		return 1_000_000_000;
 //		return 10;
 	}
 
@@ -524,17 +530,24 @@ public final class L2Chunk
 	 * checks on the chunk, allowing an orderly off-ramp into the {@link
 	 * #unoptimizedChunk()} (which simply interprets the L1 nybblecodes).
 	 *
-	 * @param interpreter The current {@link Interpreter}.
+	 * @param interpreter
+	 *        The current {@link Interpreter}.
+	 * @param chunk
+	 *        The chunk to start running.  Note that if the chunk undergoes
+	 *        optimization, it will switch to the new chunk and continue.
 	 * @throws ReifyStackThrowable If reification is requested.
 	 */
-	public void run (final Interpreter interpreter)
+	public static void run (
+		final Interpreter interpreter,
+		final L2Chunk chunk)
 	throws ReifyStackThrowable
 	{
+		// NOT necessarily true inside the loop.
+		assert interpreter.chunk == chunk;
 		while (!interpreter.returnNow)
 		{
-//			assert interpreter.chunk == this;
 			final L2Instruction instruction =
-				instructions[interpreter.offset++];
+				stripNull(interpreter.chunk).instructions[interpreter.offset++];
 			if (Interpreter.debugL2)
 			{
 				System.out.println("L2 start: " + instruction.operation.name());

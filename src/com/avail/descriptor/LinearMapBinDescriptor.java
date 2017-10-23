@@ -37,6 +37,7 @@ import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 
+import javax.annotation.Nullable;
 import java.util.NoSuchElementException;
 
 import static com.avail.descriptor.AvailObject
@@ -114,14 +115,14 @@ extends MapBinDescriptor
 		 * If this is {@linkplain NilDescriptor#nil nil}, then it can be
 		 * recomputed when needed and cached.
 		 */
-		BIN_KEY_UNION_KIND_OR_NULL,
+		BIN_KEY_UNION_KIND_OR_NIL,
 
 		/**
 		 * The union of the types of all keys recursively within this bin.
 		 * If this is {@link NilDescriptor#nil nil}, then it can be recomputed
 		 * when needed and cached.
 		 */
-		BIN_VALUE_UNION_KIND_OR_NULL,
+		BIN_VALUE_UNION_KIND_OR_NIL,
 
 		/**
 		 * The elements of this bin. The elements are never sub-bins, since
@@ -134,8 +135,8 @@ extends MapBinDescriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == COMBINED_HASHES
-			|| e == BIN_KEY_UNION_KIND_OR_NULL
-			|| e == BIN_VALUE_UNION_KIND_OR_NULL;
+			|| e == BIN_KEY_UNION_KIND_OR_NIL
+			|| e == BIN_VALUE_UNION_KIND_OR_NIL;
 	}
 
 	/**
@@ -213,7 +214,7 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	AvailObject o_MapBinAtHash (
+	@Nullable AvailObject o_MapBinAtHash (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash)
@@ -227,8 +228,8 @@ extends MapBinDescriptor
 				return object.slot(BIN_SLOT_AT_, i << 1);
 			}
 		}
-		// Not found. Answer nil.
-		return nil;
+		// Not found. Answer null.
+		return null;
 	}
 
 	@Override @AvailMethod
@@ -264,8 +265,7 @@ extends MapBinDescriptor
 						// didn't clear the values hash here, it would stay
 						// wrong after this compound operation.
 						object.setSlot(VALUES_HASH_OR_ZERO, 0);
-						object.setSlot(
-							BIN_VALUE_UNION_KIND_OR_NULL, nil);
+						object.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
 						// No need to clear the key union kind, since the keys
 						// didn't change.
 						if (!canDestroy)
@@ -288,15 +288,13 @@ extends MapBinDescriptor
 					{
 						object.makeSubobjectsImmutable();
 					}
-					newBin = newLike(descriptorFor(
-						MUTABLE,
-						level), object, 0, 0);
+					newBin = newLike(
+						descriptorFor(MUTABLE, level), object, 0, 0);
 				}
 				newBin.setSlot(BIN_SLOT_AT_, i << 1, value);
 				newBin.setSlot(VALUES_HASH_OR_ZERO, 0);
-				newBin.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
-				newBin.setSlot(
-					BIN_VALUE_UNION_KIND_OR_NULL, nil);
+				newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+				newBin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
 				check(newBin);
 				return newBin;
 			}
@@ -310,8 +308,7 @@ extends MapBinDescriptor
 			long bitVector = 1L << bitPosition;
 			for (int i = 1; i <= oldSize; i++)
 			{
-				final int anotherKeyHash =
-					object.intSlot(KEY_HASHES_AREA_, i);
+				final int anotherKeyHash = object.intSlot(KEY_HASHES_AREA_, i);
 				bitPosition = bitShift(anotherKeyHash, -6 * myLevel) & 63;
 				bitVector |= 1L << bitPosition;
 			}
@@ -336,11 +333,7 @@ extends MapBinDescriptor
 				assert result.descriptor().isMutable();
 				final A_BasicObject localAddResult =
 					result.mapBinAtHashPutLevelCanDestroy(
-						eachKey,
-						eachHash,
-						eachValue,
-						myLevel,
-						true);
+						eachKey, eachHash, eachValue, myLevel, true);
 				assert localAddResult.sameAddressAs(result)
 					: "The element should have been added without copying";
 			}
@@ -359,18 +352,18 @@ extends MapBinDescriptor
 		result.setIntSlot(KEY_HASHES_AREA_, oldSize + 1, keyHash);
 		result.setSlot(BIN_SLOT_AT_, (oldSize << 1) + 1, key);
 		result.setSlot(BIN_SLOT_AT_, (oldSize << 1) + 2, value);
-		final A_Type oldKeyKind = object.slot(BIN_KEY_UNION_KIND_OR_NULL);
+		final A_Type oldKeyKind = object.slot(BIN_KEY_UNION_KIND_OR_NIL);
 		if (!oldKeyKind.equalsNil())
 		{
 			result.setSlot(
-				BIN_KEY_UNION_KIND_OR_NULL,
+				BIN_KEY_UNION_KIND_OR_NIL,
 				oldKeyKind.typeUnion(key.kind()));
 		}
-		final A_Type oldValueKind = object.slot(BIN_VALUE_UNION_KIND_OR_NULL);
+		final A_Type oldValueKind = object.slot(BIN_VALUE_UNION_KIND_OR_NIL);
 		if (!oldValueKind.equalsNil())
 		{
 			result.setSlot(
-				BIN_VALUE_UNION_KIND_OR_NULL,
+				BIN_VALUE_UNION_KIND_OR_NIL,
 				oldValueKind.typeUnion(value.kind()));
 		}
 		if (canDestroy && isMutable())
@@ -409,7 +402,7 @@ extends MapBinDescriptor
 			{
 				if (oldSize == 1)
 				{
-					return nil;
+					return emptyLinearMapBin(level);
 				}
 				final AvailObject result = newLike(
 					descriptorFor(MUTABLE, level),
@@ -434,9 +427,8 @@ extends MapBinDescriptor
 				// Adjust keys hash by the removed key.
 				result.setSlot(KEYS_HASH, object.slot(KEYS_HASH) - keyHash);
 				result.setSlot(VALUES_HASH_OR_ZERO, 0);
-				result.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
-				result.setSlot(
-					BIN_VALUE_UNION_KIND_OR_NULL, nil);
+				result.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+				result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
 				if (!canDestroy)
 				{
 					result.makeSubobjectsImmutable();
@@ -483,11 +475,11 @@ extends MapBinDescriptor
 	 */
 	private A_Type mapBinKeyUnionKind (final AvailObject object)
 	{
-		A_Type keyType = object.slot(BIN_KEY_UNION_KIND_OR_NULL);
+		A_Type keyType = object.slot(BIN_KEY_UNION_KIND_OR_NIL);
 		if (keyType.equalsNil())
 		{
 			keyType = computeKeyKind(object);
-			object.setSlot(BIN_KEY_UNION_KIND_OR_NULL, keyType);
+			object.setSlot(BIN_KEY_UNION_KIND_OR_NIL, keyType);
 		}
 		return keyType;
 	}
@@ -535,11 +527,11 @@ extends MapBinDescriptor
 	 */
 	private A_Type mapBinValueUnionKind (final AvailObject object)
 	{
-		A_Type valueType = object.slot(BIN_VALUE_UNION_KIND_OR_NULL);
+		A_Type valueType = object.slot(BIN_VALUE_UNION_KIND_OR_NIL);
 		if (valueType.equalsNil())
 		{
 			valueType = computeValueKind(object);
-			object.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, valueType);
+			object.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, valueType);
 		}
 		return valueType;
 	}
@@ -624,6 +616,25 @@ extends MapBinDescriptor
 	}
 
 	/**
+	 * Create a map bin with nothing in it.
+	 *
+	 * @param myLevel The level at which to label the bin.
+	 * @return The new bin with only (key,value) in it.
+	 */
+	static AvailObject createEmptyLinearMapBin (
+		final byte myLevel)
+	{
+		final AvailObject bin = newObjectIndexedIntegerIndexedDescriptor(
+			0, 0, descriptorFor(MUTABLE, myLevel));
+		bin.setSlot(KEYS_HASH, 0);
+		bin.setSlot(VALUES_HASH_OR_ZERO, 0);
+		bin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, bottom());
+		bin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, bottom());
+		check(bin);
+		return bin;
+	}
+
+	/**
 	 * Create a bin with a single (key,value) pair in it.
 	 *
 	 * @param key The key to include in the bin.
@@ -632,7 +643,7 @@ extends MapBinDescriptor
 	 * @param myLevel The level at which to label the bin.
 	 * @return The new bin with only (key,value) in it.
 	 */
-	static A_BasicObject createSingleLinearMapBin (
+	static AvailObject createSingleLinearMapBin (
 		final A_BasicObject key,
 		final int keyHash,
 		final A_BasicObject value,
@@ -642,8 +653,8 @@ extends MapBinDescriptor
 			2, 1, descriptorFor(MUTABLE, myLevel));
 		bin.setSlot(KEYS_HASH, keyHash);
 		bin.setSlot(VALUES_HASH_OR_ZERO, 0);
-		bin.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
-		bin.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil);
+		bin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+		bin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
 		bin.setIntSlot(KEY_HASHES_AREA_, 1, keyHash);
 		bin.setSlot(BIN_SLOT_AT_, 1, key);
 		bin.setSlot(BIN_SLOT_AT_, 2, value);
@@ -727,5 +738,33 @@ extends MapBinDescriptor
 	LinearMapBinDescriptor shared ()
 	{
 		return descriptorFor(SHARED, level);
+	}
+
+
+	/**
+	 * The canonical array of empty map bins, one for each level.
+	 */
+	private static final AvailObject [] emptyBins =
+		new AvailObject [numberOfLevels];
+
+	static
+	{
+		for (int i = 0; i < numberOfLevels; i++)
+		{
+			final AvailObject bin = createEmptyLinearMapBin((byte) i);
+			bin.makeShared();
+			emptyBins[i] = bin;
+		}
+	}
+
+	/**
+	 * Answer an empty map bin for the specified level.
+	 *
+	 * @param level The level at which this map bin occurs.
+	 * @return An empty map bin.
+	 */
+	static AvailObject emptyLinearMapBin (final byte level)
+	{
+		return emptyBins[level];
 	}
 }

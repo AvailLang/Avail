@@ -497,13 +497,17 @@ public final class L2Translator
 
 		controlFlowGraph.generateOn(instructions);
 
-		instructions.forEach(
-			instruction -> Arrays.stream(instruction.operands).forEach(
-				operand -> operand.dispatchOperand(registerCounter)));
+		for (final L2Instruction instruction : instructions)
+		{
+			Arrays.stream(instruction.operands).forEach(
+				operand -> operand.dispatchOperand(registerCounter));
+			instruction.setAction();
+		}
 
-		int afterPrimitiveOffset = afterOptionalInitialPrimitiveBlock == null
-			? stripNull(initialBlock).offset()
-			: afterOptionalInitialPrimitiveBlock.offset();
+		final int afterPrimitiveOffset =
+			afterOptionalInitialPrimitiveBlock == null
+				? stripNull(initialBlock).offset()
+				: afterOptionalInitialPrimitiveBlock.offset();
 
 		chunk = L2Chunk.allocate(
 			codeOrNull,
@@ -654,7 +658,8 @@ public final class L2Translator
 		final List<AvailObject> savedArguments =
 			new ArrayList<>(interpreter.argsBuffer);
 		final boolean savedSkip = interpreter.skipReturnCheck;
-		final AvailObject savedFailureValue = interpreter.latestResult();
+		final @Nullable AvailObject savedFailureValue =
+			interpreter.latestResultOrNull();
 
 		final L2Translator translator = new L2Translator(
 			code, optimizationLevel, interpreter);

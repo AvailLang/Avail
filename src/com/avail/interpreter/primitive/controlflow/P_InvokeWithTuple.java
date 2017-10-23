@@ -271,6 +271,7 @@ extends Primitive
 			argsTupleReaders,   // the arguments, no longer in a tuple.
 			TOP.o(),
 			true,
-			translator.slotRegisters());
+			translator.slotRegisters(),
+			"general invocation");
 	}
 }

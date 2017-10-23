@@ -35,6 +35,7 @@ package com.avail.optimizer;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.Graph;
@@ -141,6 +142,8 @@ public final class L2RegisterColorer
 			final L2Instruction instruction = reg.definition();
 			if (instruction.operation instanceof L2_MOVE)
 			{
+				// The source and destination registers shouldn't be considered
+				// interfering if they'll hold the same value.
 				mergeCliques(reg, instruction.sourceRegisters().get(0));
 			}
 		}

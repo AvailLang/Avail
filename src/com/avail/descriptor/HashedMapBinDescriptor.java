@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.NoSuchElementException;
@@ -170,14 +171,14 @@ extends MapBinDescriptor
 		 * If this is {@linkplain NilDescriptor#nil top}, then it can
 		 * be recomputed when needed and cached.
 		 */
-		BIN_KEY_UNION_KIND_OR_NULL,
+		BIN_KEY_UNION_KIND_OR_NIL,
 
 		/**
 		 * The union of the types of all keys recursively within this bin.
 		 * If this is {@linkplain NilDescriptor#nil top}, then it can
 		 * be recomputed when needed and cached.
 		 */
-		BIN_VALUE_UNION_KIND_OR_NULL,
+		BIN_VALUE_UNION_KIND_OR_NIL,
 
 		/**
 		 * The actual bin elements or sub-bins.  Each slot corresponds to a 1
@@ -190,8 +191,8 @@ extends MapBinDescriptor
 		final AbstractSlotsEnum e)
 	{
 		return e == COMBINED_HASHES
-			|| e == BIN_KEY_UNION_KIND_OR_NULL
-			|| e == BIN_VALUE_UNION_KIND_OR_NULL;
+			|| e == BIN_KEY_UNION_KIND_OR_NIL
+			|| e == BIN_VALUE_UNION_KIND_OR_NIL;
 	}
 
 	@Override @AvailMethod
@@ -256,8 +257,8 @@ extends MapBinDescriptor
 			keyType = keyType.traversed().makeShared();
 			valueType = valueType.traversed().makeShared();
 		}
-		object.setSlot(BIN_KEY_UNION_KIND_OR_NULL, keyType);
-		object.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, valueType);
+		object.setSlot(BIN_KEY_UNION_KIND_OR_NIL, keyType);
+		object.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, valueType);
 	}
 
 	/**
@@ -269,11 +270,11 @@ extends MapBinDescriptor
 	 */
 	private AvailObject mapBinKeyUnionKind (final AvailObject object)
 	{
-		AvailObject keyType = object.slot(BIN_KEY_UNION_KIND_OR_NULL);
+		AvailObject keyType = object.slot(BIN_KEY_UNION_KIND_OR_NIL);
 		if (keyType.equalsNil())
 		{
 			computeKeyAndValueKinds(object);
-			keyType = object.slot(BIN_KEY_UNION_KIND_OR_NULL);
+			keyType = object.slot(BIN_KEY_UNION_KIND_OR_NIL);
 		}
 		return keyType;
 	}
@@ -300,11 +301,11 @@ extends MapBinDescriptor
 	 */
 	private AvailObject mapBinValueUnionKind (final AvailObject object)
 	{
-		AvailObject valueType = object.slot(BIN_VALUE_UNION_KIND_OR_NULL);
+		AvailObject valueType = object.slot(BIN_VALUE_UNION_KIND_OR_NIL);
 		if (valueType.equalsNil())
 		{
 			computeKeyAndValueKinds(object);
-			valueType = object.slot(BIN_VALUE_UNION_KIND_OR_NULL);
+			valueType = object.slot(BIN_VALUE_UNION_KIND_OR_NIL);
 		}
 		return valueType;
 	}
@@ -410,14 +411,14 @@ extends MapBinDescriptor
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + hashDelta);
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
 		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
-		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
-		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil);
+		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
 		checkHashedMapBin(objectToModify);
 		return objectToModify;
 	}
 
 	@Override
-	AvailObject o_MapBinAtHash (
+	@Nullable AvailObject o_MapBinAtHash (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash)
@@ -427,8 +428,8 @@ extends MapBinDescriptor
 		final long vector = object.slot(BIT_VECTOR);
 		if ((vector & (1L << logicalIndex)) == 0)
 		{
-			// Not found.  Answer nil.
-			return nil;
+			// Not found.  Answer null.
+			return null;
 		}
 		// There's an entry.  Count the 1-bits below it to compute its
 		// zero-relative physicalIndex.
@@ -476,14 +477,14 @@ extends MapBinDescriptor
 		final int delta;
 		final int deltaHash;
 		final AvailObject objectToModify;
-		if (newSubBin.equalsNil())
+		if (newSubBin.binSize() == 0)
 		{
 			// The entire subBin must be removed.
 			final int oldSlotCount = bitCount(vector);
 			if (oldSlotCount == 1)
 			{
 				// ...and so must this one.
-				return nil;
+				return LinearMapBinDescriptor.emptyLinearMapBin(level);
 			}
 			objectToModify = AvailObject.newIndexedDescriptor(
 				bitCount(vector) - 1,
@@ -525,8 +526,8 @@ extends MapBinDescriptor
 		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + deltaHash);
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
-		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
-		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil);
+		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
 		checkHashedMapBin(objectToModify);
 		return objectToModify;
 	}
@@ -594,21 +595,20 @@ extends MapBinDescriptor
 		 */
 		HashedMapBinIterable (final AvailObject root)
 		{
-			followLeftmost(root);
+			followRightmost(root);
 		}
 
 		/**
-		 * Visit this bin or {@link NilDescriptor#nil nil}. In particular,
-		 * travel down its left spine so that it's positioned at the leftmost
-		 * descendant.
+		 * Visit this bin. In particular, travel down its right spine so that
+		 * it's positioned at the rightmost descendant.
 		 *
-		 * @param bin The bin or nil at which to begin enumerating.
+		 * @param bin The bin at which to begin enumerating.
 		 */
-		private void followLeftmost (final AvailObject bin)
+		private void followRightmost (final AvailObject bin)
 		{
-			if (bin.equalsNil())
+			if (bin.binSize() == 0)
 			{
-				// Nil may only occur at the top of the bin tree.
+				// An empty bin may only occur at the top of the bin tree.
 				assert binStack.isEmpty();
 				assert subscriptStack.isEmpty();
 				entry.setKeyAndHashAndValue(null, 0, null);
@@ -619,7 +619,7 @@ extends MapBinDescriptor
 			{
 				binStack.addLast(currentBin);
 				final int count = currentBin.variableObjectSlotsCount();
-				// Move right to left for a simpler limit check.
+				// Move right-to-left for a simpler limit check.
 				subscriptStack.addLast(count);
 				currentBin = currentBin.binElementAt(count).traversed();
 			}
@@ -671,7 +671,7 @@ extends MapBinDescriptor
 					// Continue in current internal (hashed) bin.
 					subscriptStack.addLast(nextSubscript);
 					assert binStack.size() == subscriptStack.size();
-					followLeftmost(
+					followRightmost(
 						binStack.getLast().binElementAt(nextSubscript));
 					assert binStack.size() == subscriptStack.size();
 					return entry;
@@ -697,9 +697,9 @@ extends MapBinDescriptor
 	/**
 	 * Create a hashed map bin at the given level and with the given bit vector.
 	 * The number of 1 bits in the bit vector determine how many sub-bins to
-	 * allocate.  Start each sub-bin as {@link NilDescriptor#nil nil}, with
-	 * the expectation that it will be populated during subsequent
-	 * initialization of this bin.
+	 * allocate.  Start each sub-bin as an empty linear bin, with the
+	 * expectation that it will be populated during subsequent initialization of
+	 * this bin.
 	 *
 	 * @param myLevel
 	 *        The hash tree depth, which controls how much to shift hashes.
@@ -707,8 +707,7 @@ extends MapBinDescriptor
 	 *        The {@code long} containing a 1 bit for each sub-bin slot.
 	 * @return
 	 *        A hash map bin suitable for adding entries to.  The bin is
-	 *        denormalized, with all sub-bins set to {@link NilDescriptor#nil
-	 *        nil}.
+	 *        denormalized, with all sub-bins set to empty linear bins.
 	 */
 	static AvailObject createLevelBitVector (
 		final byte myLevel,
@@ -721,11 +720,13 @@ extends MapBinDescriptor
 		result.setSlot(VALUES_HASH_OR_ZERO, 0);
 		result.setSlot(BIN_SIZE, 0);
 		result.setSlot(BIT_VECTOR, bitVector);
-		result.setSlot(BIN_KEY_UNION_KIND_OR_NULL, nil);
-		result.setSlot(BIN_VALUE_UNION_KIND_OR_NULL, nil);
+		result.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+		result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
+		final AvailObject emptyLinearSubbin =
+			LinearMapBinDescriptor.emptyLinearMapBin((byte) (myLevel + 1));
 		for (int i = 1; i <= newSize; i++)
 		{
-			result.setSlot(SUB_BINS_, i, nil);
+			result.setSlot(SUB_BINS_, i, emptyLinearSubbin);
 		}
 		checkHashedMapBin(result);
 		return result;

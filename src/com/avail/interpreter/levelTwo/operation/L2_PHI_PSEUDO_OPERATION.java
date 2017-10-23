@@ -124,6 +124,14 @@ public class L2_PHI_PSEUDO_OPERATION extends L2Operation
 		return true;
 	}
 
+	@Override
+	public boolean shouldEmit (
+		final L2Instruction instruction)
+	{
+		// Phi instructions are converted to moves along predecessor edges.
+		return false;
+	}
+
 	/**
 	 * One of this phi function's predecessors has been removed because it's
 	 * dead code.  Clean up its vector of inputs by removing the specified

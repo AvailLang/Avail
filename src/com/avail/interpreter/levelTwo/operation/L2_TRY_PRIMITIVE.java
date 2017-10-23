@@ -235,7 +235,8 @@ extends L2Operation
 					// Set the exitNow flag to ensure the interpreter will wind
 					// down correctly.  It should be in a state where all frames
 					// have been reified, so returnNow would be unnecessary.
-					assert !interpreter.returnNow;
+					assert interpreter.exitNow;
+					interpreter.returnNow = false;
 					break;
 				}
 			}

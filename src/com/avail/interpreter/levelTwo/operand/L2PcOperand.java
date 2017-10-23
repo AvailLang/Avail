@@ -150,7 +150,7 @@ public class L2PcOperand extends L2Operand
 		assert this.instruction == null;
 		this.instruction = theInstruction;
 		instruction.basicBlock.successorEdges().add(this);
-		targetBlock.predecessorEdges().add(this);
+		targetBlock.addPredecessorEdge(this);
 		super.instructionWasAdded(theInstruction);
 	}
 
@@ -159,7 +159,7 @@ public class L2PcOperand extends L2Operand
 		final L2Instruction theInstruction)
 	{
 		stripNull(instruction).basicBlock.successorEdges().remove(this);
-		targetBlock.predecessorEdges().remove(this);
+		targetBlock.removePredecessorEdge(this);
 		this.instruction = null;
 		super.instructionWasAdded(theInstruction);
 	}

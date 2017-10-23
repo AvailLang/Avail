@@ -34,16 +34,10 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.serialization.SerializerOperation;
 
 import java.util.IdentityHashMap;
-import java.util.NoSuchElementException;
 
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.LinearMapBinDescriptor
-	.createSingleLinearMapBin;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
@@ -79,82 +73,10 @@ extends Descriptor
 		return TOP.o();
 	}
 
-	@Override
-	@AvailMethod @ThreadSafe
-	int o_BinSize (final AvailObject object)
-	{
-		// Nil acts as an empty bin.
-		return 0;
-	}
-
 	@Override @AvailMethod @ThreadSafe
 	SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.NIL;
-	}
-
-	@Override
-	A_BasicObject o_MapBinAtHashPutLevelCanDestroy (
-		final AvailObject object,
-		final A_BasicObject key,
-		final int keyHash,
-		final A_BasicObject value,
-		final byte myLevel,
-		final boolean canDestroy)
-	{
-		return createSingleLinearMapBin(key, keyHash, value, myLevel);
-	}
-
-	@Override
-	A_Type o_MapBinKeyUnionKind (final AvailObject object)
-	{
-		return bottom();
-	}
-
-	@Override
-	A_Type o_MapBinValueUnionKind (final AvailObject object)
-	{
-		return bottom();
-	}
-
-	@Override
-	AvailObject o_MapBinAtHash (
-		final AvailObject object,
-		final A_BasicObject key,
-		final int keyHash)
-	{
-		return nil;
-	}
-
-	@Override
-	int o_MapBinKeysHash (final AvailObject object)
-	{
-		return 0;
-	}
-
-	@Override
-	int o_MapBinValuesHash (final AvailObject object)
-	{
-		return 0;
-	}
-
-	@Override
-	MapIterable o_MapBinIterable (final AvailObject object)
-	{
-		return new MapIterable()
-		{
-			@Override
-			public Entry next ()
-			{
-				throw new NoSuchElementException();
-			}
-
-			@Override
-			public boolean hasNext ()
-			{
-				return false;
-			}
-		};
 	}
 
 	@Override

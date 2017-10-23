@@ -46,7 +46,7 @@ import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots
 	.BIN_ELEMENT_AT_;
 import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots
-	.BIN_UNION_TYPE_OR_NULL;
+	.BIN_UNION_TYPE_OR_NIL;
 import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -130,7 +130,7 @@ extends SetBinDescriptor
 		 * If this is {@linkplain NilDescriptor#nil nil}, then it can
 		 * be recomputed when needed and cached.
 		 */
-		BIN_UNION_TYPE_OR_NULL,
+		BIN_UNION_TYPE_OR_NIL,
 
 		/**
 		 * The actual bin elements or sub-bins.  Each slot corresponds to a 1
@@ -161,7 +161,7 @@ extends SetBinDescriptor
 	@Override boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == BIN_UNION_TYPE_OR_NULL;
+		return e == BIN_UNION_TYPE_OR_NIL;
 	}
 
 	@Override @AvailMethod
@@ -185,7 +185,7 @@ extends SetBinDescriptor
 	 */
 	private A_Type binUnionKind (final AvailObject object)
 	{
-		A_Type union = object.slot(BIN_UNION_TYPE_OR_NULL);
+		A_Type union = object.slot(BIN_UNION_TYPE_OR_NIL);
 		if (union.equalsNil())
 		{
 			union = object.slot(BIN_ELEMENT_AT_, 1).binUnionKind();
@@ -199,7 +199,7 @@ extends SetBinDescriptor
 			{
 				union = union.traversed().makeShared();
 			}
-			object.setSlot(BIN_UNION_TYPE_OR_NULL, union);
+			object.setSlot(BIN_UNION_TYPE_OR_NIL, union);
 		}
 		return union;
 	}
@@ -272,7 +272,7 @@ extends SetBinDescriptor
 			//  The element had to be added.
 			final int hashDelta = entry.binHash() - previousEntryHash;
 			final int newSize = object.slot(BIN_SIZE) + delta;
-			typeUnion = object.slot(BIN_UNION_TYPE_OR_NULL);
+			typeUnion = object.slot(BIN_UNION_TYPE_OR_NIL);
 			if (!typeUnion.equalsNil())
 			{
 				typeUnion = typeUnion.typeUnion(entry.binUnionKind());
@@ -294,7 +294,7 @@ extends SetBinDescriptor
 			}
 			objectToModify.setSlot(BIN_HASH, previousTotalHash + hashDelta);
 			objectToModify.setSlot(BIN_SIZE, newSize);
-			objectToModify.setSlot(BIN_UNION_TYPE_OR_NULL, typeUnion);
+			objectToModify.setSlot(BIN_UNION_TYPE_OR_NIL, typeUnion);
 			objectToModify.setSlot(BIN_ELEMENT_AT_, physicalIndex, entry);
 			return objectToModify;
 		}
@@ -303,7 +303,7 @@ extends SetBinDescriptor
 		{
 			object.makeSubobjectsImmutable();
 		}
-		typeUnion = object.mutableSlot(BIN_UNION_TYPE_OR_NULL);
+		typeUnion = object.mutableSlot(BIN_UNION_TYPE_OR_NIL);
 		if (!typeUnion.equalsNil())
 		{
 			typeUnion = typeUnion.typeUnion(elementObject.kind());
@@ -451,7 +451,7 @@ extends SetBinDescriptor
 			result.setSlot(BIN_ELEMENT_AT_, physicalIndex, replacementEntry);
 			result.setSlot(BIN_HASH, oldTotalHash + deltaHash);
 			result.setSlot(BIN_SIZE, oldTotalSize + deltaSize);
-			result.setSlot(BIN_UNION_TYPE_OR_NULL, nil);
+			result.setSlot(BIN_UNION_TYPE_OR_NIL, nil);
 		}
 		return result;
 	}
@@ -610,7 +610,7 @@ extends SetBinDescriptor
 		instance.setSlot(BIN_HASH, hash);
 		instance.setSlot(BIN_SIZE, totalSize);
 		instance.setSlot(BIT_VECTOR, bitVector);
-		instance.setSlot(BIN_UNION_TYPE_OR_NULL, unionKindOrNil);
+		instance.setSlot(BIN_UNION_TYPE_OR_NIL, unionKindOrNil);
 		return instance;
 	}
 

@@ -1060,7 +1060,7 @@ extends JSONFriendly
 	 * @param keyHash
 	 * @return
 	 */
-	AvailObject mapBinAtHash (A_BasicObject key, int keyHash);
+	@Nullable AvailObject mapBinAtHash (A_BasicObject key, int keyHash);
 
 	/**
 	 * @return

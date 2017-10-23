@@ -69,7 +69,7 @@ public final class L2BasicBlock
 	 * taken in order from the last instruction.  This is kept synchronized with
 	 * the predecessor lists of the successor blocks.
 	 */
-	private final List<L2PcOperand> successorEdges = new ArrayList<>(3);
+	private final List<L2PcOperand> successorEdges = new ArrayList<>(2);
 
 	/**
 	 * The {@link L2PcOperand}s that point to this basic block.  They capture
@@ -166,7 +166,7 @@ public final class L2BasicBlock
 	 *
 	 * @param predecessorEdge The {@link L2PcOperand} that leads here.
 	 */
-	private void addPredecessorEdge (
+	public void addPredecessorEdge (
 		final L2PcOperand predecessorEdge)
 	{
 		assert predecessorEdge.sourceBlock().hasStartedCodeGeneration;
@@ -180,6 +180,40 @@ public final class L2BasicBlock
 				});
 		}
 		predecessorEdges.add(predecessorEdge);
+	}
+
+	/**
+	 * Remove a predecessor, perhaps due to a branch to it becoming unreachable.
+	 *
+	 * @param predecessorEdge The {@link L2PcOperand} that no longer leads here.
+	 */
+	public void removePredecessorEdge (
+		final L2PcOperand predecessorEdge)
+	{
+		assert predecessorEdge.sourceBlock().hasStartedCodeGeneration;
+		// TODO MvG - We should probably rebuild the phis here.
+		if (hasStartedCodeGeneration)
+		{
+			final int index = predecessorEdges.indexOf(predecessorEdge);
+			predecessorEdges.remove(index);
+			for (int i = 0; i < instructions.size(); i++)
+			{
+				final L2Instruction instruction = instructions.get(i);
+				if (instruction.operation.isPhi())
+				{
+					final L2Instruction replacement =
+						L2_PHI_PSEUDO_OPERATION.withoutIndex(
+							instruction, index);
+					instructions.set(i, replacement);
+				}
+				else
+				{
+					// Phi functions are always at the start of a block.
+					break;
+				}
+			}
+		}
+		predecessorEdges.remove(predecessorEdge);
 	}
 
 	/**
@@ -248,16 +282,31 @@ public final class L2BasicBlock
 				sourcesBySlot.get(i).add(edgeSlots[i]);
 			}
 		}
+		if (isIrremovable())
+		{
+			// Irremovable blocks are entry points, and don't require any
+			// registers to be defined yet, so ignore any registers that appear
+			// to be defined (they're really not).
+			return;
+		}
 		// Create phi operations.
-		for (int slotIndex = 0; slotIndex < numSlots; slotIndex++)
+		for (int slotIndex = 1; slotIndex <= numSlots; slotIndex++)
 		{
 			final List<L2ReadPointerOperand> registerReads =
-				sourcesBySlot.get(slotIndex);
+				sourcesBySlot.get(slotIndex - 1);
 			final Set<L2ObjectRegister> distinct = registerReads.stream()
 				.map(L2ReadPointerOperand::register)
 				.collect(toSet());
-			assert distinct.size() > 0;
-			if (distinct.size() > 1)
+			assert !distinct.isEmpty();
+			if (distinct.size() == 1)
+			{
+				// All predecessors set up this register the same way, so this
+				// register doesn't need a phi function.  However, this might
+				// not be the *current* register, due to block creation order.
+				// Bring the translator into agreement.
+				translator.forceSlotRegister(slotIndex, registerReads.get(0));
+			}
+			else
 			{
 				// Create a phi instruction to merge these sources together into
 				// a new register at that slot index.
@@ -273,16 +322,6 @@ public final class L2BasicBlock
 						slotIndex,
 						restriction.type,
 						restriction.constantOrNull));
-			}
-			else
-			{
-				// Otherwise, assume the slot has been set up with a particular
-				// register – which might not be what the translator thinks is
-				// current, due to code generation along other paths since the
-				// predecessors were generated.  Bring the translator into
-				// agreement.
-				translator.forceSlotRegister(
-					slotIndex, registerReads.get(0));
 			}
 		}
 	}
@@ -306,14 +345,6 @@ public final class L2BasicBlock
 		hasStartedCodeGeneration = true;
 		hasControlFlowAtEnd = instruction.altersControlFlow();
 		instruction.justAdded();
-		if (hasControlFlowAtEnd)
-		{
-			for (final L2PcOperand edge : instruction.targetEdges())
-			{
-				successorEdges.add(edge);
-				edge.targetBlock().addPredecessorEdge(edge);
-			}
-		}
 	}
 
 	/**
@@ -362,11 +393,17 @@ public final class L2BasicBlock
 		offset = counter;
 		for (final L2Instruction instruction : instructions)
 		{
-			if (instruction.operation.shouldEmit())
+			if (instruction.shouldEmit())
 			{
 				instruction.setOffset(counter++);
 				output.add(instruction);
 			}
 		}
+	}
+
+	@Override
+	public String toString ()
+	{
+		return "BasicBlock(" + name + ")";
 	}
 }

@@ -105,7 +105,7 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 			interpreter.offset = 0;
 			try
 			{
-				interpreter.chunk.run(interpreter);
+				L2Chunk.run(interpreter, interpreter.chunk);
 			}
 			catch (final ReifyStackThrowable reifier)
 			{
@@ -125,7 +125,7 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 					interpreter.integers = savedInts;
 					try
 					{
-						chunk.run(interpreter);
+						L2Chunk.run(interpreter, chunk);
 					}
 					catch (final ReifyStackThrowable innerReifier)
 					{
