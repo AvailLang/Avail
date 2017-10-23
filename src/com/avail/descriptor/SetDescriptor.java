@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.maxPrintSize;
 import static com.avail.descriptor.SetDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
@@ -131,6 +132,11 @@ extends Descriptor
 				}
 				tuple.tupleAt(i).printOnAvoidingIndent(
 					aStream, recursionMap, indent + 1);
+				if (aStream.length() > maxPrintSize)
+				{
+					aStream.append("...}");
+					return;
+				}
 			}
 			aStream.append('}');
 		}

@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.maxPrintSize;
 import static com.avail.descriptor.MapDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import java.util.*;
@@ -148,6 +149,11 @@ extends Descriptor
 				multiline = true;
 				break;
 			}
+			if (builder.length() > maxPrintSize)
+			{
+				builder.append("...}");
+				return;
+			}
 			first = false;
 		}
 		if (multiline)
@@ -170,6 +176,11 @@ extends Descriptor
 				builder.append("→");
 				entry.value().printOnAvoidingIndent(
 					builder, recursionMap, indent + 1);
+				if (builder.length() > maxPrintSize)
+				{
+					builder.append("...}");
+					return;
+				}
 				first = false;
 			}
 			Strings.newlineTab(builder, indent);

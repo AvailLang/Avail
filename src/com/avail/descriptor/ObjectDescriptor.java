@@ -32,13 +32,6 @@
 
 package com.avail.descriptor;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.*;
-import java.util.*;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
@@ -46,6 +39,21 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Generator;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
+
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.FIELD_VALUES_;
+import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.KIND;
+import static com.avail.descriptor.TupleDescriptor.fromList;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 
 /**
  * Avail {@linkplain ObjectTypeDescriptor user-defined object types} are novel.
@@ -124,6 +132,69 @@ extends Descriptor
 		 * ObjectDescriptor#variant}.
 		 */
 		FIELD_VALUES_;
+	}
+
+	final class FakeObjectSlots implements ObjectSlotsEnum
+	{
+		public final String name;
+
+		FakeObjectSlots (final String name)
+		{
+			this.name = name;
+		}
+
+		public String name ()
+		{
+			return name;
+		}
+
+		public int ordinal ()
+		{
+			return -1;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the fields nicely.
+	 */
+	@Override
+	AvailObjectFieldHelper[] o_DescribeForDebugger (
+		final AvailObject object)
+	{
+		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
+		final List<A_Atom> otherAtoms = new ArrayList<>();
+		for (final Map.Entry<A_Atom, Integer> entry
+			: variant.fieldToSlotIndex.entrySet())
+		{
+			final A_Atom fieldKey = entry.getKey();
+			final int index = entry.getValue();
+			if (index == 0)
+			{
+				otherAtoms.add(fieldKey);
+			}
+			else
+			{
+				fields.add(
+					new AvailObjectFieldHelper(
+						object,
+						new FakeObjectSlots(
+							"FIELD " + fieldKey.atomName().toString()),
+						-1,
+						object.slot(FIELD_VALUES_, index)));
+			}
+		}
+		if (!otherAtoms.isEmpty())
+		{
+			fields.add(
+				new AvailObjectFieldHelper(
+					object,
+					new FakeObjectSlots("SUBCLASS_FIELDS"),
+					-1,
+					fromList(otherAtoms)));
+		}
+		return fields.toArray(new AvailObjectFieldHelper[fields.size()]);
 	}
 
 	@Override

@@ -2239,10 +2239,18 @@ public class L2Translator
 				// moveNils(args); // No need, since that slot holds the result.
 				final A_Variable variable =
 					primitiveFunction.code().literalAt(1);
-				if (variable.isInitializedWriteOnceVariable())
+				if (variable.isInitializedWriteOnceVariable()
+					&& variable.valueWasStablyComputed())
 				{
 					// It's an initialized module constant, so it can never
-					// change.  Use the variable's eternal value.
+					// change.  Use the variable's eternal value.  Note that we
+					// exclude unstably computed constants from this
+					// optimization, since running the chunk would fail to set
+					// the flag indicating that an unstable computation had
+					// taken place.  Running this chunk to compute a value to
+					// initialize another module constant could then mark that
+					// new constant as stable, even though it relied on this
+					// unstable value.  That would break the fast-loader.
 					final A_BasicObject value = variable.value();
 					if (value.isInstanceOf(expectedType))
 					{

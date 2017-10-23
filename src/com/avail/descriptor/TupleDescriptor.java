@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import static com.avail.descriptor.AvailObject.maxPrintSize;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
@@ -175,6 +176,11 @@ extends Descriptor
 				{
 					aStream.appendCodePoint(c);
 				}
+				if (aStream.length() > maxPrintSize)
+				{
+					aStream.append("...\"");
+					return;
+				}
 			}
 			aStream.appendCodePoint('"');
 			return;
@@ -182,8 +188,13 @@ extends Descriptor
 		final List<String> strings = new ArrayList<>(size);
 		int totalChars = 0;
 		boolean anyBreaks = false;
+		boolean elementsElided = false;
 		for (int i = 1; i <= size; i++)
 		{
+			if (aStream.length() + totalChars > maxPrintSize)
+			{
+				elementsElided = true;
+			}
 			final A_BasicObject element = object.tupleAt(i);
 			final StringBuilder localBuilder = new StringBuilder();
 			element.printOnAvoidingIndent(
@@ -219,6 +230,10 @@ extends Descriptor
 				}
 			}
 			aStream.append(strings.get(i));
+		}
+		if (elementsElided)
+		{
+			aStream.append("...");
 		}
 		aStream.append('>');
 	}

@@ -120,6 +120,12 @@ implements
 	public static final int multiplier = 1664525;
 
 	/**
+	 * Give up with an ellipsis when printing collections into a StringBuilder
+	 * containing more characters than this.
+	 */
+	public static final int maxPrintSize = 10000;
+
+	/**
 	 * Report a virtual machine problem.
 	 *
 	 * @param messagePattern A {@link String} describing the problem.
