@@ -64,13 +64,4 @@ public class L2_GET_CURRENT_FUNCTION extends L2Operation
 			instruction.writeObjectRegisterAt(0);
 		targetReg.set(stripNull(interpreter.function), interpreter);
 	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Technically it doesn't have a side-effect, but this flag keeps the
-		// instruction from being re-ordered to a place where the function is no
-		// longer the current one.
-		return true;
-	}
 }

@@ -147,12 +147,12 @@ extends SetBinDescriptor
 	static void checkHashedSetBin (final AvailObject object)
 	{
 		assert object.descriptor instanceof HashedSetBinDescriptor;
-		final int stored = object.binHash();
+		final int stored = object.setBinHash();
 		int calculated = 0;
 		for (int i = object.variableObjectSlotsCount(); i >= 1; i--)
 		{
 			final AvailObject subBin = object.slot(BIN_ELEMENT_AT_, i);
-			final int subBinHash = subBin.binHash();
+			final int subBinHash = subBin.setBinHash();
 			calculated += subBinHash;
 		}
 		assert calculated == stored : "Failed bin hash cross-check";
@@ -165,7 +165,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_BinSize (final AvailObject object)
+	int o_SetBinSize (final AvailObject object)
 	{
 		return object.slot(BIN_SIZE);
 	}
@@ -252,15 +252,15 @@ extends SetBinDescriptor
 		if ((vector & logicalBitValue) != 0)
 		{
 			A_BasicObject entry = object.slot(BIN_ELEMENT_AT_, physicalIndex);
-			final int previousBinSize = entry.binSize();
-			final int previousEntryHash = entry.binHash();
-			final int previousTotalHash = object.binHash();
+			final int previousBinSize = entry.setBinSize();
+			final int previousEntryHash = entry.setBinHash();
+			final int previousTotalHash = object.setBinHash();
 			entry = entry.setBinAddingElementHashLevelCanDestroy(
 				elementObject,
 				elementObjectHash,
 				(byte)(level + 1),
 				canDestroy);
-			final int delta = entry.binSize() - previousBinSize;
+			final int delta = entry.setBinSize() - previousBinSize;
 			if (delta == 0)
 			{
 				if (!canDestroy)
@@ -270,7 +270,7 @@ extends SetBinDescriptor
 				return object;
 			}
 			//  The element had to be added.
-			final int hashDelta = entry.binHash() - previousEntryHash;
+			final int hashDelta = entry.setBinHash() - previousEntryHash;
 			final int newSize = object.slot(BIN_SIZE) + delta;
 			typeUnion = object.slot(BIN_UNION_TYPE_OR_NIL);
 			if (!typeUnion.equalsNil())
@@ -311,8 +311,8 @@ extends SetBinDescriptor
 		objectToModify = createUninitializedBin(
 			level,
 			objectEntryCount + 1,
-			object.binSize() + 1,
-			object.binHash() + elementObjectHash,
+			object.setBinSize() + 1,
+			object.setBinHash() + elementObjectHash,
 			vector | logicalBitValue,
 			typeUnion);
 		for (int i = 1, end = physicalIndex - 1; i <= end; i++)
@@ -385,20 +385,20 @@ extends SetBinDescriptor
 		final int physicalIndex = bitCount(masked) + 1;
 		final A_BasicObject oldEntry =
 			object.slot(BIN_ELEMENT_AT_, physicalIndex);
-		final int oldEntryHash = oldEntry.binHash();
-		final int oldEntrySize = oldEntry.binSize();
-		final int oldTotalHash = object.binHash();
-		final int oldTotalSize = object.binSize();
+		final int oldEntryHash = oldEntry.setBinHash();
+		final int oldEntrySize = oldEntry.setBinSize();
+		final int oldTotalHash = object.setBinHash();
+		final int oldTotalSize = object.setBinSize();
 		final AvailObject replacementEntry =
 			oldEntry.binRemoveElementHashLevelCanDestroy(
 				elementObject,
 				elementObjectHash,
 				(byte) (level + 1),
 				canDestroy);
-		final int deltaHash = replacementEntry.binHash() - oldEntryHash;
-		final int deltaSize = replacementEntry.binSize() - oldEntrySize;
+		final int deltaHash = replacementEntry.setBinHash() - oldEntryHash;
+		final int deltaSize = replacementEntry.setBinSize() - oldEntrySize;
 		final AvailObject result;
-		if (replacementEntry.binSize() == 0)
+		if (replacementEntry.setBinSize() == 0)
 		{
 			// Exclude the entire hash entry.
 			if (objectEntryCount == 1)

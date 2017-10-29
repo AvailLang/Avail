@@ -4133,13 +4133,19 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_BinHash (AvailObject object);
+	abstract int o_SetBinHash (AvailObject object);
 
 	/**
 	 * @param object
 	 * @return
 	 */
-	abstract int o_BinSize (AvailObject object);
+	abstract int o_SetBinSize (AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract int o_MapBinSize (AvailObject object);
 
 	/**
 	 * Is the specified {@link AvailObject} an Avail tuple?
@@ -4982,7 +4988,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	abstract A_BasicObject o_MapBinAtHashPutLevelCanDestroy (
+	abstract A_MapBin o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -4997,7 +5003,7 @@ public abstract class AbstractDescriptor
 	 * @param canDestroy
 	 * @return
 	 */
-	abstract A_BasicObject o_MapBinRemoveKeyHashCanDestroy (
+	abstract A_MapBin o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,

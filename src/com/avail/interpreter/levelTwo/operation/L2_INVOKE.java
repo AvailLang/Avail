@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -43,6 +44,7 @@ import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.ReifyStackThrowable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -107,7 +109,7 @@ public class L2_INVOKE extends L2Operation
 			interpreter.offset = 0;
 			try
 			{
-				L2Chunk.run(interpreter, interpreter.chunk);
+				interpreter.runChunk();
 			}
 			catch (final ReifyStackThrowable reifier)
 			{
@@ -125,9 +127,11 @@ public class L2_INVOKE extends L2Operation
 					interpreter.offset = onReification;
 					interpreter.pointers = savedPointers;
 					interpreter.integers = savedInts;
+					final String oldModeString = interpreter.debugModeString;
+					interpreter.debugModeString += "reif L2 ";
 					try
 					{
-						L2Chunk.run(interpreter, interpreter.chunk);
+						interpreter.runChunk();
 					}
 					catch (final ReifyStackThrowable innerReifier)
 					{
@@ -136,14 +140,19 @@ public class L2_INVOKE extends L2Operation
 					// The off-ramp "returned" the callerless continuation that
 					// captures this frame.
 					reifier.pushContinuation(interpreter.latestResult());
+					interpreter.debugModeString = oldModeString;
 				}
+				throw reifier;
+			}
+			finally
+			{
 				interpreter.chunk = chunk;
 				interpreter.offset = Integer.MAX_VALUE;
 				interpreter.pointers = savedPointers;
 				interpreter.integers = savedInts;
-				throw reifier;
 			}
-			// We just returned normally.
+			// The invocation returned normally.
+			interpreter.returnNow = false;
 			interpreter.offset = onNormalReturn;
 		};
 	}
@@ -163,5 +172,20 @@ public class L2_INVOKE extends L2Operation
 	{
 		// Never remove invocations -- but inlining might make them go away.
 		return true;
+	}
+
+	@Override
+	public String debugNameIn (
+		final L2Instruction instruction)
+	{
+		final L2ReadPointerOperand functionReg =
+			instruction.readObjectRegisterAt(0);
+		final @Nullable A_BasicObject exactFunction =
+			functionReg.constantOrNull();
+		if (exactFunction == null)
+		{
+			return super.debugNameIn(instruction);
+		}
+		return name() + ": " + ((A_Function) exactFunction).code().methodName();
 	}
 }

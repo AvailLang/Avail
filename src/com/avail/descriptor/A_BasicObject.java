@@ -34,7 +34,6 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationNodeDescriptor.DeclarationKind;
-import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation0;
@@ -140,12 +139,15 @@ extends JSONFriendly
 	 * <p>This operation exists primarily to provide useful representations of
 	 * {@code AvailObject}s for Java-side debugging.</p>
 	 *
-	 * @param builder A {@link StringBuilder}.
-	 * @param recursionMap An {@link IdentityHashMap} whose keys are {@link
-	 *                     AvailObject}s already visited during the recursive
-	 *                     print.  The associated values are unused.
-	 * @param indent The indent level, in horizontal tabs, at which the {@link
-	 *               AvailObject} should be printed.
+	 * @param builder
+	 *        A {@link StringBuilder}.
+	 * @param recursionMap
+	 *        An {@link IdentityHashMap} whose keys are {@link AvailObject}s
+	 *        already visited during the recursive print.  The associated values
+	 *        are unused.
+	 * @param indent
+	 *        The indent level, in horizontal tabs, at which the {@link
+	 *        AvailObject} should be printed.
 	 */
 	void printOnAvoidingIndent (
 		StringBuilder builder,
@@ -218,7 +220,7 @@ extends JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int binHash ();
+	int setBinHash ();
 
 	/**
 	 * Dispatch to the descriptor.
@@ -232,7 +234,7 @@ extends JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	int binSize ();
+	int setBinSize ();
 
 	/**
 	 * {@inheritDoc}
@@ -270,6 +272,7 @@ extends JSONFriendly
 	 * @return {@code true} if the two objects are of equal value, {@code false}
 	 *         otherwise.
 	 */
+	@SuppressWarnings("OverloadedMethodsWithSameNumberOfParameters")
 	boolean equals (A_BasicObject another);
 
 	/**
@@ -890,21 +893,6 @@ extends JSONFriendly
 	SerializerOperation serializerOperation ();
 
 	/**
-	 * @param key
-	 * @param keyHash
-	 * @param value
-	 * @param myLevel
-	 * @param canDestroy
-	 * @return
-	 */
-	A_BasicObject mapBinAtHashPutLevelCanDestroy (
-		A_BasicObject key,
-		int keyHash,
-		A_BasicObject value,
-		byte myLevel,
-		boolean canDestroy);
-
-	/**
 	 * @return
 	 */
 	boolean isPojoFusedType ();
@@ -1001,11 +989,6 @@ extends JSONFriendly
 	/**
 	 * @return
 	 */
-	MapIterable mapBinIterable ();
-
-	/**
-	 * @return
-	 */
 	SetIterator setBinIterator ();
 
 	/**
@@ -1028,49 +1011,6 @@ extends JSONFriendly
 	 * @return
 	 */
 	boolean isSignedShort ();
-
-	/**
-	 * @param key
-	 * @param keyHash
-	 * @param canDestroy
-	 * @return
-	 */
-	A_BasicObject mapBinRemoveKeyHashCanDestroy (
-		A_BasicObject key,
-		int keyHash,
-		boolean canDestroy);
-
-	/**
-	 * @return
-	 */
-	A_Type mapBinKeyUnionKind ();
-
-	/**
-	 * @return
-	 */
-	A_Type mapBinValueUnionKind ();
-
-	/**
-	 * @return
-	 */
-	boolean isHashedMapBin ();
-
-	/**
-	 * @param key
-	 * @param keyHash
-	 * @return
-	 */
-	@Nullable AvailObject mapBinAtHash (A_BasicObject key, int keyHash);
-
-	/**
-	 * @return
-	 */
-	int mapBinKeysHash ();
-
-	/**
-	 * @return
-	 */
-	int mapBinValuesHash ();
 
 	/**
 	 * @param aByteArrayTuple

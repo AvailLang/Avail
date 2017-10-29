@@ -288,7 +288,11 @@ public final class L1Translator
 	{
 		currentBlock = block;
 		constantsInCurrentBlock.clear();
-		block.startIn(this);
+		if (block.isIrremovable() || block.hasPredecessors())
+		{
+			controlFlowGraph.startBlock(block);
+			block.startIn(this);
+		}
 	}
 
 	/**
@@ -414,7 +418,19 @@ public final class L1Translator
 		final @Nullable A_BasicObject constantOrNull)
 	{
 		return new L2WritePointerOperand(
-			translator.nextUnique(), type, constantOrNull);
+			controlFlowGraph.nextUnique(), type, constantOrNull);
+	}
+
+	/**
+	 * Allocate a fresh {@linkplain L2IntegerRegister integer register} that
+	 * nobody else has used yet.
+	 *
+	 * @return The new register.
+	 */
+	public L2IntegerRegister newIntegerRegister ()
+	{
+		return new L2IntegerRegister(
+			controlFlowGraph.nextUnique());
 	}
 
 	/**
@@ -477,7 +493,7 @@ public final class L1Translator
 	 */
 	public L2ReadIntOperand getSkipReturnCheck ()
 	{
-		final L2IntegerRegister tempIntReg = translator.newIntegerRegister();
+		final L2IntegerRegister tempIntReg = newIntegerRegister();
 		addInstruction(
 			L2_GET_SKIP_RETURN_CHECK.instance,
 			new L2WriteIntOperand(tempIntReg));
@@ -634,7 +650,7 @@ public final class L1Translator
 	public L2ReadIntOperand constantIntRegister (final int value)
 	{
 		final L2WriteIntOperand registerWrite =
-			new L2WriteIntOperand(translator.newIntegerRegister());
+			new L2WriteIntOperand(newIntegerRegister());
 		addInstruction(
 			L2_MOVE_INT_CONSTANT.instance,
 			new L2ImmediateOperand(value),
@@ -753,7 +769,7 @@ public final class L1Translator
 			L2_EXPLODE_CONTINUATION.instance,
 			popCurrentContinuation(),
 			writeVector(writeSlotsOnReturnIntoReified),
-			new L2WriteIntOperand(translator.newIntegerRegister())); //ignored
+			new L2WriteIntOperand(newIntegerRegister())); //ignored
 		addInstruction(
 			L2_JUMP.instance,
 			new L2PcOperand(resumeBlock, readSlotsOnReturnIntoReified));
@@ -876,6 +892,10 @@ public final class L1Translator
 		final A_Type expectedType,
 		final A_Type superUnionType)
 	{
+		if (translator.interpreter().fiber().uniqueId() == 6167)
+		{
+			System.out.println("GENERATING CALL in fiber 6167");
+		}
 		final A_Method method = bundle.bundleMethod();
 		translator.contingentValues =
 			translator.contingentValues.setWithElementCanDestroy(method, true);
@@ -941,6 +961,10 @@ public final class L1Translator
 		// If a reification exception happens while an L2_INVOKE is in progress,
 		// it will run the instructions at the off-ramp up to an L2_RETURN –
 		// which will return the reified (but callerless) continuation.
+		//TODO MvG - Take into account any arguments constrained to be constants
+		//even though they're types.  At the moment, some calls still have to
+		//check for ⊥'s type (not ⊥), just to report ambiguity, even though the
+		//argument's type restriction says it can't actually be ⊥'s type.
 		tree.traverseEntireTree(
 			MethodDescriptor.runtimeDispatcher,
 			null,
@@ -959,6 +983,7 @@ public final class L1Translator
 				// test in each callback.
 				if (!currentlyReachable())
 				{
+					startBlock(memento.passCheckBasicBlock);
 					return memento;
 				}
 				final L2ReadPointerOperand arg =
@@ -1108,6 +1133,7 @@ public final class L1Translator
 							memento.failCheckBasicBlock,
 							slotRegisters()));
 				}
+				startBlock(memento.passCheckBasicBlock);
 				return memento;
 			},
 			// intraInternalNode
@@ -1124,12 +1150,7 @@ public final class L1Translator
 			// postInternalNode
 			memento ->
 			{
-				if (currentlyReachable())
-				{
-					addInstruction(
-						L2_JUMP.instance,
-						new L2PcOperand(afterCall, slotRegisters()));
-				}
+				// The leaf already jumps to afterCall (or unreachableBlock).
 			},
 			// forEachLeafNode
 			solutions ->
@@ -1210,10 +1231,7 @@ public final class L1Translator
 		// may have differing requirements about whether they need their return
 		// values checked, and whether reification can even happen (e.g., for
 		// contextually infallible, inlineable primitives, it can't).
-		if (afterCall.hasPredecessors())
-		{
-			startBlock(afterCall);
-		}
+		startBlock(afterCall);
 	}
 
 	/**
@@ -1354,6 +1372,7 @@ public final class L1Translator
 				valueReg.restrictedTo(TOP.o(), null)));
 
 		// The type check failed, so report it.
+		startBlock(failedCheck);
 		final L2WritePointerOperand variableToHoldValueWrite =
 			newObjectRegisterWriter(variableTypeFor(ANY.o()), null);
 		addInstruction(
@@ -1869,9 +1888,10 @@ public final class L1Translator
 	 * @param name The descriptive name of the new basic block.
 	 * @return The new {@link L2BasicBlock}.
 	 */
+	@SuppressWarnings("MethodMayBeStatic")
 	public L2BasicBlock createBasicBlock (final String name)
 	{
-		return controlFlowGraph.createBasicBlock(name);
+		return new L2BasicBlock(name);
 	}
 
 	/**
@@ -1943,7 +1963,7 @@ public final class L1Translator
 			addInstruction(
 				L2_CREATE_VARIABLE.instance,
 				new L2ConstantOperand(localType),
-				writeSlot(numArgs + local - 1, localType, null));
+				writeSlot(numArgs + local, localType, null));
 		}
 
 		// Capture the primitive failure value in the first local if applicable.
@@ -1983,6 +2003,13 @@ public final class L1Translator
 		// the instruction sequence.
 		L1Operation.L1Implied_Return.dispatch(this);
 		assert stackp == Integer.MIN_VALUE;
+
+		if (unreachableBlock != null && unreachableBlock.hasPredecessors())
+		{
+			// Generate the unreachable block.
+			startBlock(unreachableBlock);
+			addInstruction(L2_UNREACHABLE_CODE.instance);
+		}
 	}
 
 	/**
@@ -2006,6 +2033,7 @@ public final class L1Translator
 		final L2BasicBlock reenterFromInterruptBlock)
 	{
 		initialBlock.makeIrremovable();
+		loopBlock.makeIrremovable();
 		reenterFromRestartBlock.makeIrremovable();
 		reenterFromCallBlock.makeIrremovable();
 		reenterFromInterruptBlock.makeIrremovable();
@@ -2169,11 +2197,13 @@ public final class L1Translator
 	{
 		final int localIndex = getInteger();
 		stackp--;
-		final A_Type type = code().localTypeAt(localIndex);
+		final A_Type outerType =
+			code().localTypeAt(localIndex - code().numArgs());
+		final A_Type innerType = outerType.readType();
 		emitGetVariableOffRamp(
 			L2_GET_VARIABLE_CLEARING.instance,
 			readSlot(localIndex),
-			writeSlot(stackp, type, null));
+			writeSlot(stackp, innerType, null));
 	}
 
 	@Override
@@ -2484,7 +2514,7 @@ public final class L1Translator
 			L2_RETURN.instance,
 			readSlot(stackp),
 			getSkipReturnCheck());
-		assert stackp == code().maxStackDepth();
+		assert stackp == code().numArgsAndLocalsAndStack();
 		stackp = Integer.MIN_VALUE;
 	}
 }

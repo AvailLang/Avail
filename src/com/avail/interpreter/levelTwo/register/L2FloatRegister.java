@@ -53,9 +53,17 @@ extends L2Register
 	 *
 	 * @param debugValue A value used to distinguish the new instance visually.
 	 */
-	public L2FloatRegister (final long debugValue)
+	public L2FloatRegister (final int debugValue)
 	{
 		super(debugValue);
+	}
+
+	@Override
+	public L2FloatRegister copyAfterColoring ()
+	{
+		final L2FloatRegister result = new L2FloatRegister(finalIndex());
+		result.setFinalIndex(finalIndex());
+		return result;
 	}
 
 	@Override

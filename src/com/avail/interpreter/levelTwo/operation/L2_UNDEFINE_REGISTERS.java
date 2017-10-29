@@ -81,12 +81,4 @@ public class L2_UNDEFINE_REGISTERS extends L2Operation
 			registerSet.removeTypeAt(reg.register());
 		}
 	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It gets removed as soon as we're sure nobody uses any of the
-		// registers that was made undefined.
-		return false;
-	}
 }

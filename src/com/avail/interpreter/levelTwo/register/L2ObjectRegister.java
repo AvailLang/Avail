@@ -39,6 +39,8 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import javax.annotation.Nullable;
 
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+
 /**
  * {@code L2ObjectRegister} models the conceptual usage of a register that can
  * store an {@link AvailObject}.
@@ -73,7 +75,7 @@ extends L2Register
 	 *        otherwise {@code null}.
 	 */
 	public L2ObjectRegister (
-		final long debugValue,
+		final int debugValue,
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
 	{
@@ -92,10 +94,19 @@ extends L2Register
 	}
 
 	@Override
+	public L2ObjectRegister copyAfterColoring ()
+	{
+		final L2ObjectRegister result = new L2ObjectRegister(
+			finalIndex(), TOP.o(), null);
+		result.setFinalIndex(finalIndex());
+		return result;
+	}
+
+	@Override
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append("Reg");
+		builder.append("R");
 		if (finalIndex() != -1)
 		{
 			builder.append("[");
@@ -104,6 +115,21 @@ extends L2Register
 		}
 		builder.append("@");
 		builder.append(uniqueValue);
+		if (restriction.constantOrNull != null)
+		{
+			builder.append("[CONST=");
+			String constString = restriction.constantOrNull.toString();
+			if (constString.length() > 50)
+			{
+				constString = constString.substring(0, 50) + "…";
+			}
+			//noinspection DynamicRegexReplaceableByCompiledPattern
+			constString = constString
+				.replace("\n", "\\n")
+				.replace("\t", "\\t");
+			builder.append(constString);
+			builder.append("]");
+		}
 		return builder.toString();
 	}
 }

@@ -48,12 +48,15 @@ import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Transformer2;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.increaseIndentation;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
@@ -195,7 +198,7 @@ public final class L2Instruction
 		action = uninitializedAction;
 	}
 
-	private static Continuation1NotNullThrowsReification<Interpreter>
+	private static final Continuation1NotNullThrowsReification<Interpreter>
 		uninitializedAction = interpreter ->
 		{
 			assert false : "Instruction has not had its action initialized yet";
@@ -310,26 +313,30 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Normalize the registers that this instruction reads from, to ensure that
-	 * redundant moves can be eliminated.  Answer an equivalent instruction,
-	 * possibly the receiver itself.
+	 * Replace all registers in this instruction using the registerRemap.  If a
+	 * register is not present as a key of that map, leave it alone.  Do not
+	 * assume SSA form.
 	 *
-	 * @param transformer
-	 *            The {@link Transformer2 transformer} which can normalize any
-	 *            register to its best available equivalent.
-	 * @return
-	 *            The resulting {@code L2Instruction}.
+	 * @param registerRemap
+	 *        A mapping from existing {@link L2Register}s to replacement {@link
+	 *        L2Register}s having the same {@link L2Register#registerKind()}.
 	 */
-	public L2Instruction transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
+	public void replaceRegisters (
+		final Map<L2Register, L2Register> registerRemap)
 	{
-		final L2Operand[] newOperands = new L2Operand[operands.length];
-		for (int i = 0; i < newOperands.length; i++)
+		final List<L2Register> sourcesBefore = new ArrayList<>(sourceRegisters);
+		final List<L2Register> destinationsBefore =
+			new ArrayList<>(destinationRegisters);
+		for (final L2Operand operand : operands)
 		{
-			newOperands[i] = operands[i].transformRegisters(transformer);
+			operand.replaceRegisters(registerRemap, this);
 		}
-		return new L2Instruction(basicBlock, operation, newOperands);
+		sourceRegisters.replaceAll(r -> registerRemap.getOrDefault(r, r));
+		destinationRegisters.replaceAll(r -> registerRemap.getOrDefault(r, r));
+		assert sourceRegisters.size() == sourcesBefore.size();
+		assert destinationRegisters.size() == destinationsBefore.size();
 	}
+
 
 	/**
 	 * This instruction was just added to its {@link L2BasicBlock}.
@@ -356,7 +363,7 @@ public final class L2Instruction
 	/**
 	 * Answer whether this instruction should be emitted during final code
 	 * generation (from the non-SSA {@link L2ControlFlowGraph} into a flat
-	 * sequence of {@link L2Instruction}s.  Allow the operation to decide.
+	 * sequence of {@code L2Instruction}s.  Allow the operation to decide.
 	 *
 	 * @return Whether to preserve this instruction during final code
 	 *         generation.
@@ -377,11 +384,11 @@ public final class L2Instruction
 		assert operands.length == types.length;
 		for (int i = 0; i < operands.length; i++)
 		{
-			builder.append(i == 0 ? ": " : ", ");
+			builder.append(i == 0 ? ":\n\t" : ",\n\t");
 			assert operands[i].operandType() == types[i].operandType();
 			builder.append(types[i].name());
-			builder.append("=");
-			builder.append(operands[i]);
+			builder.append(" = ");
+			builder.append(increaseIndentation(operands[i].toString(), 1));
 		}
 		return builder.toString();
 	}

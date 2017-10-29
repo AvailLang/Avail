@@ -35,13 +35,19 @@ package com.avail.optimizer;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.utility.Graph;
 
 import javax.annotation.Nullable;
 import java.util.*;
+
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Used to compute which registers can use the same storage due to not being
@@ -52,6 +58,46 @@ import java.util.*;
 public final class L2RegisterColorer
 {
 	/**
+	 * A collection of registers that should be colored the same.
+	 */
+	private static class RegisterGroup
+	{
+		Set<L2Register> registers = new HashSet<>();
+
+		int finalIndex = -1;
+
+		void setFinalIndex (final int newFinalIndex)
+		{
+			finalIndex = newFinalIndex;
+			registers.forEach(reg -> reg.setFinalIndex(newFinalIndex));
+		}
+
+		int finalIndex ()
+		{
+			return finalIndex;
+		}
+
+		@Override
+		public String toString ()
+		{
+			final StringBuilder builder = new StringBuilder();
+			builder.append("RegisterGroup: (");
+			boolean first = true;
+			for (final L2Register r : registers)
+			{
+				if (!first)
+				{
+					builder.append(", ");
+				}
+				builder.append(r.uniqueValue);
+				first = false;
+			}
+			builder.append(")");
+			return builder.toString();
+		}
+	}
+
+	/**
 	 * The {@link List} of all {@link L2Register}s that occur in the control
 	 * flow graph.
 	 */
@@ -59,19 +105,22 @@ public final class L2RegisterColorer
 
 	/**
 	 * The unique number of the register being traced from its uses back to its
-	 * definition.
+	 * definition(s).
 	 */
 	private @Nullable L2Register registerBeingTraced;
 
 	/**
-	 * A map from registers to sets of registers that are connected via edges
-	 * that occur as &#123;source, destination&#125; unordered pairs.  The sets
-	 * are mutable, and each member of such a set is a key in this map that
-	 * points to that set.  So encountering a "move d1 ← s1" ensures that the
-	 * map contains an entry for d1 and an entry for s1, and that each
-	 * associated value is the same set, containing at least s1 and d1.
+	 * A map from registers to sets of registers that can be colored the same
+	 * due to coalesced moves.  The sets are mutable, and each member of such a
+	 * set is a key in this map that points to that set.  Note that we can only
+	 * bring together register sets that have no interference edge between them.
+	 *
+	 * <p>Since interference edges prevent merging, we have to calculate the
+	 * interference graph first.  We populate the registerSets with singleton
+	 * sets before this.</p>
 	 */
-	private final Map<L2Register, Set<L2Register>> moveCliques = new HashMap<>();
+	private final Map<L2Register, RegisterGroup> registerGroups =
+		new HashMap<>();
 
 	/**
 	 * The set of blocks that so far have been reached, but not necessarily
@@ -88,7 +137,7 @@ public final class L2RegisterColorer
 	/**
 	 * The interference graph, as it's being built.
 	 */
-	private final Graph<L2Register> interferences;
+	private final Graph<RegisterGroup> interferences;
 
 	/**
 	 * Construct a new register colorer for the given control flow graph.
@@ -99,105 +148,30 @@ public final class L2RegisterColorer
 	{
 		this.allRegisters = controlFlowGraph.allRegisters();
 		this.interferences = new Graph<>();
-		allRegisters.forEach(reg -> {
-			moveCliques.put(reg, new HashSet<>(Collections.singleton(reg)));
-			interferences.addVertex(reg);
+		allRegisters.forEach(reg ->
+		{
+			final RegisterGroup singleton = new RegisterGroup();
+			singleton.registers.add(reg);
+			registerGroups.put(reg, singleton);
+			interferences.addVertex(singleton);
 		});
 	}
 
 	/**
-	 * Calculate colors for each register, and assign them.  By color, I mean
-	 * setting the {@link L2Register#finalIndex()} in such a way that multiple
-	 * registers with the same finalIndex aren't live simultaneously.
-	 */
-	public void colorRegisters ()
-	{
-		computeMoveCliques();
-		computeInterferenceGraph();
-		computeColors();
-	}
-
-	/**
-	 * Populate {@link #moveCliques} by visiting every move instruction, merging
-	 * the equivalence set for the source and the equivalence set for the
-	 * destination.
-	 *
-	 * <p>Note that this is <em>only</em> valid while the control flow graph is
-	 * in SSA form.  Consider the simple example:</p>
-	 *
-	 * <p>{@code [a ::= min(x,y); b ::= max(x,y); <a,b>]}</p>
-	 *
-	 * <p>The conditional moves of min and max would connect (a,x), (a,y),
-	 * (b,x), and (b,y).  All four would end up in the same clique, although
-	 * it's obvious that we can't actually color it that way.</p>
-	 *
-	 * <p>In SSA, those conditional moves would be isolated by a subsequent
-	 * phi-function, which would turn into a move only <em>after</em>
-	 * coloring.</p>
-	 */
-	private void computeMoveCliques ()
-	{
-		for (final L2Register reg : allRegisters)
-		{
-			final L2Instruction instruction = reg.definition();
-			if (instruction.operation instanceof L2_MOVE)
-			{
-				// The source and destination registers shouldn't be considered
-				// interfering if they'll hold the same value.
-				mergeCliques(reg, instruction.sourceRegisters().get(0));
-			}
-		}
-	}
-
-	/**
-	 * Merge together two sets of registers that must always contain the same
-	 * value as each other.
-	 *
-	 * @param reg1 A register from the first set to merge.
-	 * @param reg2 A register from the second set to merge.
-	 */
-	private void mergeCliques(final L2Register reg1, final L2Register reg2)
-	{
-		final Set<L2Register> set1 = moveCliques.get(reg1);
-		final Set<L2Register> set2 = moveCliques.get(reg2);
-		final Set<L2Register> smallSet;
-		final Set<L2Register> largeSet;
-		if (set1.size() < set2.size())
-		{
-			smallSet = set1;
-			largeSet = set2;
-		}
-		else
-		{
-			smallSet = set2;
-			largeSet = set1;
-		}
-		// Merge the smallSet into the largeSet.
-		for (final L2Register r : smallSet)
-		{
-			largeSet.add(r);
-			moveCliques.put(r, largeSet);
-		}
-	}
-
-	/**
-	 * Calculate the register interference graph.  Assume the move-cliques have
-	 * already been determined by {@link #computeMoveCliques()}
+	 * Calculate the register interference graph.
 	 */
 	private void computeInterferenceGraph ()
 	{
 		for (final L2Register reg : allRegisters)
 		{
 			// Trace the register from each of its uses along all paths back to
-			// its definition.  This is the lifetime of the register.  While
+			// its definition(s).  This is the lifetime of the register.  While
 			// tracing this, the register is considered to interfere with any
 			// encountered register use.  Deal with moves specially, avoiding
 			// the addition of an interference edge due to the move, but
 			// ensuring interference between a register and its move-buddy's
 			// interfering neighbors.
 			registerBeingTraced = reg;
-			reachedBlocks.clear();
-
 			for (final L2Instruction instruction : reg.uses())
 			{
 				if (instruction.operation.isPhi())
@@ -206,10 +180,9 @@ public final class L2RegisterColorer
 						L2_PHI_PSEUDO_OPERATION.predecessorBlocksForUseOf(
 							instruction, reg))
 					{
-						if (!reachedBlocks.contains(predBlock))
+						if (reachedBlocks.add(predBlock))
 						{
-							reachedBlocks.add(predBlock);
-							queueLiveOutBlock(predBlock);
+							blocksToTrace.add(predBlock);
 						}
 					}
 				}
@@ -232,22 +205,9 @@ public final class L2RegisterColorer
 						blockToTrace.instructions().size());
 				}
 			}
+			reachedBlocks.clear();
 		}
-	}
-
-	/**
-	 * Queue the given block to be traced for liveness of the current register.
-	 * If the block has ever been queued for this variable, do nothing.
-	 *
-	 * @param block
-	 *        The {@link L2BasicBlock} in which to trace variable liveness.
-	 */
-	private void queueLiveOutBlock (final L2BasicBlock block)
-	{
-		if (reachedBlocks.add(block))
-		{
-			blocksToTrace.add(block);
-		}
+		registerBeingTraced = null;
 	}
 
 	/**
@@ -283,8 +243,8 @@ public final class L2RegisterColorer
 				{
 					definesCurrentRegister = true;
 				}
-				else if (!moveCliques.get(registerBeingTraced).contains(
-					definition))
+				else if (!registerGroups.get(registerBeingTraced).registers
+					.contains(definition))
 				{
 					// Register banks are numbered independently, so the notion
 					// of interference between registers in different banks is
@@ -292,8 +252,12 @@ public final class L2RegisterColorer
 					if (registerBeingTraced.registerKind()
 						== definition.registerKind())
 					{
-						interferences.addEdge(registerBeingTraced, definition);
-						interferences.addEdge(definition, registerBeingTraced);
+						final RegisterGroup group1 =
+							registerGroups.get(registerBeingTraced);
+						final RegisterGroup group2 =
+							registerGroups.get(definition);
+						interferences.includeEdge(group1, group2);
+						interferences.includeEdge(group2, group1);
 					}
 				}
 			}
@@ -308,32 +272,94 @@ public final class L2RegisterColorer
 		// Continue tracing in each predecessor block.
 		for (final L2PcOperand predecessor : block.predecessorEdges())
 		{
-			queueLiveOutBlock(predecessor.sourceBlock());
+			final L2BasicBlock sourceBlock = predecessor.sourceBlock();
+			if (reachedBlocks.add(sourceBlock))
+			{
+				blocksToTrace.add(sourceBlock);
+			}
+		}
+	}
+
+	/**
+	 * Now that the interference graph has been constructed, merge together any
+	 * non-interfering nodes that are connected by a move.
+	 */
+	private void coalesceNoninterferingMoves ()
+	{
+		for (final L2Register reg : allRegisters)
+		{
+			for (final L2Instruction instruction : reg.definitions())
+			{
+				if (instruction.operation instanceof L2_MOVE)
+				{
+					// The source and destination registers shouldn't be
+					// considered interfering if they'll hold the same value.
+					final RegisterGroup group1 = registerGroups.get(reg);
+					final RegisterGroup group2 =
+						registerGroups
+							.get(instruction.sourceRegisters().get(0));
+					if (group1 != group2
+						&& !interferences.includesEdge(group1, group2))
+					{
+						// Merge the non-interfering move-related register sets.
+						final RegisterGroup smallSet;
+						final RegisterGroup largeSet;
+						if (group1.registers.size() < group2.registers.size())
+						{
+							smallSet = group1;
+							largeSet = group2;
+						}
+						else
+						{
+							smallSet = group2;
+							largeSet = group1;
+						}
+						interferences.successorsOf(smallSet).forEach(
+							neighborOfSmall ->
+							{
+								assert neighborOfSmall != largeSet;
+								interferences.includeEdge(
+									largeSet, neighborOfSmall);
+								interferences.includeEdge(
+									neighborOfSmall, largeSet);
+							});
+						interferences.exciseVertex(smallSet);
+						// Merge the smallSet elements into the largeSet.
+						for (final L2Register r : smallSet.registers)
+						{
+							registerGroups.put(r, largeSet);
+						}
+						largeSet.registers.addAll(smallSet.registers);
+					}
+				}
+			}
 		}
 	}
 
 	/**
 	 * Determine colors for all registers.  We use a trivial coloring algorithm
 	 * here, since both L2 and the JVM have an effectively unbounded number of
-	 * virtual registers, and we're merely interested in keeping the register
-	 * sets as reasonably close to minimal as we can.
+	 * virtual registers, and we're merely interested in keeping the color count
+	 * as reasonably close to minimal as we can.
 	 *
-	 * <p>The algorithm repeatedly chooses the registers having the least
+	 * <p>The algorithm repeatedly chooses the registerSets having the least
 	 * number of interfering edges, pushing them on a stack and removing the
-	 * vertex (register) and its edges.  We then repeatedly pop registers from
-	 * the stack, choosing the lowest available color (finalIndex) that doesn't
-	 * conflict with the coloring of a neighbor in the original graph.</p>
+	 * vertex (registerSet) and its edges.  We then repeatedly pop registers
+	 * from the stack, choosing the lowest available color (finalIndex) that
+	 * doesn't conflict with the coloring of a neighbor in the original graph.
+	 * </p>
 	 */
 	private void computeColors ()
 	{
-		final Deque<L2Register> stack = new ArrayDeque<>(allRegisters.size());
-		final Graph<L2Register> graphCopy = new Graph<>(interferences);
+		final Deque<RegisterGroup> stack =
+			new ArrayDeque<>(allRegisters.size());
+		final Graph<RegisterGroup> graphCopy = new Graph<>(interferences);
 		while (!graphCopy.isEmpty())
 		{
 			// Find the nodes having the fewest neighbors.
 			int fewestCount = Integer.MAX_VALUE;
-			final List<L2Register> withFewest = new ArrayList<>();
-			for (final L2Register reg : graphCopy.vertices())
+			final List<RegisterGroup> withFewest = new ArrayList<>();
+			for (final RegisterGroup reg : graphCopy.vertices())
 			{
 				final int neighborCount = graphCopy.successorsOf(reg).size();
 				if (neighborCount < fewestCount)
@@ -351,7 +377,7 @@ public final class L2RegisterColorer
 			// removing them from the graphCopy, along with their connected
 			// edges.  This reduces the cardinality of connected nodes.
 			stack.addAll(withFewest);
-			withFewest.forEach(graphCopy::removeVertex);
+			withFewest.forEach(graphCopy::exciseVertex);
 		}
 		// We've now stacked all nodes in a pretty good order for assigning
 		// colors as we pop them.  In particular, if during the pushing phase we
@@ -363,13 +389,117 @@ public final class L2RegisterColorer
 		final BitSet neighbors = new BitSet();
 		while (!stack.isEmpty())
 		{
-			final L2Register reg = stack.removeLast();
+			final RegisterGroup group = stack.removeLast();
 			neighbors.clear();
-			interferences.successorsOf(reg).stream()
-				.mapToInt(L2Register::finalIndex)
+			interferences.successorsOf(group).stream()
+				.mapToInt(RegisterGroup::finalIndex)
 				.filter(i -> i != -1)
 				.forEach(neighbors::set);
-			reg.setFinalIndex(neighbors.nextClearBit(0));
+			final int color = neighbors.nextClearBit(0);
+			group.setFinalIndex(color);
 		}
+		assert registerGroups.keySet().stream().allMatch(
+			r -> r.finalIndex() != -1);
+	}
+
+	/**
+	 * Calculate colors for each register, and assign them.  By color, I mean
+	 * setting the {@link L2Register#finalIndex()} in such a way that multiple
+	 * registers with the same finalIndex aren't live simultaneously.
+	 */
+	public void colorRegisters ()
+	{
+		computeInterferenceGraph();
+		coalesceNoninterferingMoves();
+		computeColors();
+	}
+
+	/**
+	 * In each instruction, replace the use of each register by its
+	 * representative from its {@link RegisterGroup}.
+	 */
+	public void replaceRegistersByColor ()
+	{
+		// Choose a representative for each register group.
+		final EnumMap<RegisterKind, Map<Integer, L2Register>> byKindAndIndex
+			= new EnumMap<>(RegisterKind.class);
+		final Map<L2Register, L2Register> remap = new HashMap<>();
+		registerGroups.values().stream().distinct().forEach(
+			group ->
+			{
+				final L2Register sample = group.registers.iterator().next();
+				final RegisterKind kind = sample.registerKind();
+				final Map<Integer, L2Register> byIndex =
+					byKindAndIndex.computeIfAbsent(kind, k -> new HashMap<>());
+				final int color = group.finalIndex;
+				@Nullable L2Register replacement = byIndex.get(color);
+				if (replacement == null)
+				{
+					// Create a brand new register with uniqueValue = color.
+					switch (sample.registerKind())
+					{
+						case OBJECT:
+						{
+							replacement =
+								new L2ObjectRegister(color, TOP.o(), null);
+							break;
+						}
+						case INTEGER:
+						{
+							replacement = new L2IntegerRegister(color);
+							break;
+						}
+						case FLOAT:
+						{
+							replacement = new L2FloatRegister(color);
+							break;
+						}
+					}
+					replacement.setFinalIndex(color);
+					System.out.println("Created " + replacement);
+					byIndex.put(color, replacement);
+				}
+				for (final L2Register reg : group.registers)
+				{
+					remap.put(reg, replacement);
+				}
+			});
+		// Find every interesting instruction to visit.
+		final Set<L2Instruction> instructionsToVisit = new HashSet<>();
+		remap.keySet().forEach(
+			reg ->
+			{
+				instructionsToVisit.addAll(reg.definitions());
+				instructionsToVisit.addAll(reg.uses());
+			});
+		instructionsToVisit.forEach(i -> i.replaceRegisters(remap));
+	}
+
+	@Override
+	public String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Colorer:\n\tGroups:");
+		final Collection<RegisterGroup> groups =
+			registerGroups.values().stream().distinct().collect(toList());
+		groups.forEach(g ->
+		{
+			builder.append("\n\t\t");
+			builder.append(g);
+		});
+		builder.append("\n\tInterferences:");
+		for (final RegisterGroup group : interferences.vertices())
+		{
+			final Set<RegisterGroup> neighbors =
+				interferences.successorsOf(group);
+			if (!neighbors.isEmpty())
+			{
+				builder.append("\n\t\t");
+				builder.append(group);
+				builder.append(" ≠ ");
+				builder.append(neighbors);
+			}
+		}
+		return builder.toString();
 	}
 }

@@ -39,11 +39,15 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.sun.org.apache.bcel.internal.generic.L2I;
 
 import javax.annotation.Nullable;
 
+import java.util.Arrays;
+
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
+import static java.util.Arrays.asList;
 
 /**
  * An {@code L2ConstantOperand} is an operand of type {@link L2OperandType#PC}.
@@ -161,7 +165,7 @@ public class L2PcOperand extends L2Operand
 		stripNull(instruction).basicBlock.successorEdges().remove(this);
 		targetBlock.removePredecessorEdge(this);
 		this.instruction = null;
-		super.instructionWasAdded(theInstruction);
+		super.instructionWasRemoved(theInstruction);
 	}
 
 	/**
@@ -201,38 +205,57 @@ public class L2PcOperand extends L2Operand
 	 *
 	 * @param controlFlowGraph
 	 *        The {@link L2ControlFlowGraph} being updated.
+	 * @return The new {@link L2BasicBlock} that splits the given edge.  This
+	 *         block has not yet been added to the controlFlowGraph, and the
+	 *         client should do this to keep the graph consistent.
 	 */
-	public void splitEdgeWith (final L2ControlFlowGraph controlFlowGraph)
+	public L2BasicBlock splitEdgeWith (
+		final L2ControlFlowGraph controlFlowGraph)
 	{
 		assert instruction != null;
-		final L2BasicBlock newBlock = controlFlowGraph.createBasicBlock(
-			"edge-split");
-		// Add a jump that loops to itself.  We'll update the jump's target and
-		// the original edge's target to make things right, while being careful
-		// not to disturb the predecessor order that's correlated with any phi
-		// functions.
-		newBlock.addInstruction(
-			new L2Instruction(
-				newBlock,
-				L2_JUMP.instance,
-				new L2PcOperand(
-					newBlock,
-					slotRegisters(),
-					phiRestrictions())));
-		// Copying happens when adding an instruction, but we're interested in
-		// the exact edge that was added.
-		final L2Instruction jump = newBlock.instructions().get(0);
-		final L2PcOperand newEdge = L2_JUMP.jumpTarget(jump);
-		// Adjust the newEdge's target.
-		newEdge.targetBlock = targetBlock;
-		// Replace the edge in the targetBlock's predecessors list.
-		final int index = targetBlock.predecessorEdges().indexOf(this);
-		targetBlock.predecessorEdges().set(index, newEdge);
 
-		// Now redirect the original edge.
-		targetBlock = newBlock;
-		newBlock.predecessorEdges().clear();
-		newBlock.predecessorEdges().add(this);
+		// Capture where this edge originated.
+		final L2Instruction originalSource = instruction;
+
+		// Create a new intermediary block.
+		final L2BasicBlock newBlock = new L2BasicBlock(
+			"edge-split ["
+				+ originalSource.basicBlock.name()
+				+ " / "
+				+ targetBlock.name()
+				+ "]");
+		controlFlowGraph.startBlock(newBlock);
+
+		// Create a jump instruction, reusing this edge.  That way we don't have
+		// to do anything to the target block where the phi stuff is.  Currently
+		// the L2Instruction constructor copies the operands for safety, and
+		// also establishes bi-directional links through L2PcOperands.  We
+		// bypass that after construction.
+		final L2BasicBlock garbageBlock = new L2BasicBlock("garbage block");
+		final L2Instruction jump = new L2Instruction(
+			newBlock,
+			L2_JUMP.instance,
+			new L2PcOperand(garbageBlock, slotRegisters, phiRestrictions));
+		final L2PcOperand garbageEdge = jump.pcAt(0);
+		jump.operands[0] = this;
+		instruction = jump;
+		newBlock.justAddInstruction(jump);
+		assert newBlock.successorEdges().isEmpty();
+		newBlock.successorEdges().add(this);
+
+		// Create a new edge from the original source to the new block.
+		final L2PcOperand newEdge = new L2PcOperand(
+			newBlock, slotRegisters.clone(), phiRestrictions.clone());
+		newEdge.instruction = originalSource;
+		newBlock.predecessorEdges().add(newEdge);
+
+		// Wire in the new edge.
+		asList(originalSource.operands).replaceAll(
+			x -> x == this ? newEdge : x);
+		originalSource.basicBlock.successorEdges().replaceAll(
+			x -> x == this ? newEdge : x);
+
+		return newBlock;
 	}
 
 	/**

@@ -38,6 +38,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.optimizer.L2Translator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.ReifyStackThrowable;
 
 import java.util.List;
 
@@ -64,12 +65,21 @@ extends L2Operation
 	public void step (
 		final L2Instruction instruction,
 		final Interpreter interpreter)
+	throws ReifyStackThrowable
 	{
 		final L2ReadPointerOperand continuationReg =
 			instruction.readObjectRegisterAt(0);
 
 		final AvailObject continuation = continuationReg.in(interpreter);
-		interpreter.processInterrupt(continuation);
+		interpreter.reifiedContinuation = continuation;
+		// This throw is just to get Interpreter#run() to notice exitNow, so we
+		// don't waste time polling for it in the happy case.  The continuation
+		// has already been reified as needed.
+		throw interpreter.abandonStackThen(() ->
+		{
+			interpreter.processInterrupt(continuation);
+		});
+
 	}
 
 	@Override

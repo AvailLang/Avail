@@ -36,9 +36,13 @@ import com.avail.descriptor.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
@@ -74,6 +78,16 @@ public class L2ReadVectorOperand extends L2Operand
 			elements.stream()
 				.map(L2ReadPointerOperand::type)
 				.collect(toList()));
+	}
+
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	@Override
+	public L2Operand clone ()
+	{
+		final List<L2ReadPointerOperand> clonedElements = elements.stream()
+			.map(r -> (L2ReadPointerOperand) r.clone())
+			.collect(toList());
+		return new L2ReadVectorOperand(clonedElements);
 	}
 
 	@Override
@@ -122,7 +136,7 @@ public class L2ReadVectorOperand extends L2Operand
 	{
 		for (final L2ReadPointerOperand element : elements)
 		{
-			element.register().addUse(instruction);
+			element.instructionWasAdded(instruction);
 		}
 	}
 
@@ -131,8 +145,17 @@ public class L2ReadVectorOperand extends L2Operand
 	{
 		for (final L2ReadPointerOperand element : elements)
 		{
-			element.register().removeUse(instruction);
+			element.instructionWasRemoved(instruction);
 		}
+	}
+
+	@Override
+	public void replaceRegisters (
+		final Map<L2Register, L2Register> registerRemap,
+		final L2Instruction instruction)
+	{
+		elements.forEach(
+			read -> read.replaceRegisters(registerRemap, instruction));
 	}
 
 	@Override

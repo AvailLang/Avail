@@ -80,7 +80,8 @@ extends L2Operation
 			// Not a primitive.  Exit quickly, having done nothing.
 			if (Interpreter.debugL2)
 			{
-				System.out.println("          (no prim)");
+				System.out.println(
+					interpreter.debugModeString + "          (no prim)");
 			}
 			return;
 		}
@@ -90,10 +91,12 @@ extends L2Operation
 			// It can succeed or fail, but it can't mess with the fiber's stack.
 			if (Interpreter.debugL2)
 			{
-				System.out.println("          inline = " + primitive.name());
+				System.out.println(
+					interpreter.debugModeString
+						+ "          inline = " + primitive.name());
 			}
 			final Result result = interpreter.attemptPrimitive(
-				primitive, interpreter.argsBuffer, interpreter.skipReturnCheck);
+				primitive, interpreter.skipReturnCheck);
 			switch (result)
 			{
 				case SUCCESS:
@@ -176,7 +179,9 @@ extends L2Operation
 		// primitive.
 		if (Interpreter.debugL2)
 		{
-			System.out.println("          reifying for " + primitive.name());
+			System.out.println(
+				interpreter.debugModeString
+					+ "          reifying for " + primitive.name());
 		}
 		interpreter.skipReturnCheck = false;
 		final L2Chunk savedChunk = stripNull(interpreter.chunk);
@@ -195,11 +200,11 @@ extends L2Operation
 			if (Interpreter.debugL2)
 			{
 				System.out.println(
-					"          reified, now starting " + primitive.name());
+					interpreter.debugModeString
+						+ "          reified, now starting " + primitive.name());
 			}
 			final Result result = interpreter.attemptPrimitive(
 				primitive,
-				interpreter.argsBuffer,
 				interpreter.skipReturnCheck);
 			switch (result)
 			{

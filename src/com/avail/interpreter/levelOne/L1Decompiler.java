@@ -35,6 +35,7 @@ package com.avail.interpreter.levelOne;
 import com.avail.annotations.InnerAccess;
 import com.avail.descriptor.*;
 import com.avail.utility.evaluation.Transformer1;
+import com.avail.utility.evaluation.Transformer1NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -128,7 +129,7 @@ public class L1Decompiler
 	 * Something to generate unique variable names from a prefix.
 	 */
 	@InnerAccess
-	final Transformer1<String, String> tempGenerator;
+	final Transformer1NotNull<String, String> tempGenerator;
 
 	/**
 	 * The stack of expressions roughly corresponding to the subexpressions that
@@ -164,13 +165,13 @@ public class L1Decompiler
 	 * @param outerVars
 	 *        The list of outer variable declarations and literal nodes.
 	 * @param tempBlock
-	 *        A {@linkplain Transformer1 transformer} that takes a prefix and
-	 *        generates a suitably unique temporary variable name.
+	 *        A {@linkplain Transformer1NotNull transformer} that takes a prefix
+	 *        and generates a suitably unique temporary variable name.
 	 */
 	public L1Decompiler (
 		final A_RawFunction aCodeObject,
 		final List<A_Phrase> outerVars,
-		final Transformer1<String, String> tempBlock)
+		final Transformer1NotNull<String, String> tempBlock)
 	{
 		code = aCodeObject;
 		nybbles = code.nybbles();
@@ -262,23 +263,17 @@ public class L1Decompiler
 	 */
 	@InnerAccess int getInteger ()
 	{
-		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
-		pc++;
+		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc++);
+		final int shift = firstNybble << 2;
+		int count = 0xF & (int) (0x8421_1100_0000_0000L >>> shift);
 		int value = 0;
-		final byte[] counts =
+		while (count-- > 0)
 		{
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
-		};
-		for (int count = counts[firstNybble]; count > 0; count--, pc++)
-		{
-			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
+			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc++);
 		}
-		final byte[] offsets =
-		{
-			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
-		};
-		value += offsets[firstNybble];
-		return value;
+		final int lowOff = 0xF & (int) (0x00AA_AA98_7654_3210L >>> shift);
+		final int highOff = 0xF & (int) (0x0032_1000_0000_0000L >>> shift);
+		return value + lowOff + (highOff << 4);
 	}
 
 	/**
@@ -715,7 +710,7 @@ public class L1Decompiler
 			else
 			{
 				final A_Token labelToken = newToken(
-					stringFrom(tempGenerator.valueNotNull("label")),
+					stringFrom(tempGenerator.value("label")),
 					emptyTuple(),
 					emptyTuple(),
 					0,
@@ -957,13 +952,13 @@ public class L1Decompiler
 	public static A_Phrase parse (final A_Function aFunction)
 	{
 		final Map<String, Integer> counts = new HashMap<>();
-		final Transformer1<String, String> generator =
+		final Transformer1NotNull<String, String> generator =
 			prefix ->
 			{
-				assert prefix != null;
 				Integer newCount = counts.get(prefix);
 				newCount = newCount == null ? 1 : newCount + 1;
 				counts.put(prefix, newCount);
+				//noinspection StringConcatenationMissingWhitespace
 				return prefix + newCount;
 			};
 		// Synthesize fake outers as literals to allow decompilation.

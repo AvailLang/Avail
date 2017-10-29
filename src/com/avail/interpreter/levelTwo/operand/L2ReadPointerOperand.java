@@ -40,10 +40,14 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import javax.annotation.Nullable;
+
+import java.util.Map;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.enumerationWith;
@@ -64,7 +68,7 @@ public class L2ReadPointerOperand extends L2Operand
 	/**
 	 * The actual {@link L2ObjectRegister}.
 	 */
-	private final L2ObjectRegister register;
+	private L2ObjectRegister register;
 
 	/**
 	 * A type restriction, certified by the VM, that this particular read of
@@ -180,9 +184,24 @@ public class L2ReadPointerOperand extends L2Operand
 	}
 
 	@Override
+	public void replaceRegisters (
+		final Map<L2Register, L2Register> registerRemap,
+		final L2Instruction instruction)
+	{
+		final @Nullable L2Register replacement = registerRemap.get(register);
+		if (replacement == null || replacement == register)
+		{
+			return;
+		}
+		register.removeUse(instruction);
+		replacement.addUse(instruction);
+		register = L2ObjectRegister.class.cast(replacement);
+	}
+
+	@Override
 	public String toString ()
 	{
-		return format("ReadObject(%s)", register);
+		return format("Read(%s)", register);
 	}
 
 	/**

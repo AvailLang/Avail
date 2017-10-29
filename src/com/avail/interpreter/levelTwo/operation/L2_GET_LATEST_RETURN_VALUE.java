@@ -76,13 +76,4 @@ public class L2_GET_LATEST_RETURN_VALUE extends L2Operation
 			interpreter.pointerAtPut(
 				targetRegIndex, interpreter.latestResult());
 	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Technically it doesn't have a side-effect, but this flag keeps the
-		// instruction from being re-ordered to a place where the return value
-		// is no longer available.
-		return true;
-	}
 }

@@ -45,6 +45,7 @@ import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
@@ -70,8 +71,6 @@ import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FiberDescriptor.*;
@@ -89,8 +88,6 @@ import static com.avail.descriptor.FunctionDescriptor.newPrimitiveFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.TupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.VariableDescriptor
@@ -102,8 +99,7 @@ import static com.avail.interpreter.primitive.variables.P_SetValue.instance;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
+import static java.util.Collections.emptyList;
 
 /**
  * This class is used to execute {@linkplain L2Chunk Level Two code}, which is a
@@ -214,10 +210,10 @@ public final class Interpreter
 	public static boolean debugL1 = false;
 
 	/** Whether to print detailed Level Two debug information. */
-	public static boolean debugL2 = false;
+	public static boolean debugL2 = true;
 
 	/** Whether to print detailed Primitive debug information. */
-	public static boolean debugPrimitives = false;
+	public static boolean debugPrimitives = true;
 
 	/**
 	 * Whether to print debug information related to a specific problem being
@@ -395,8 +391,9 @@ public final class Interpreter
 		outerArray[L2_OFFSET.ordinal()] = new AvailIntegerValueHelper(offset);
 
 		// Produce the current chunk's L2 instructions...
-		assert chunk != null : "Interpreter's chunk was null";
-		outerArray[L2_INSTRUCTIONS.ordinal()] = chunk.instructions;
+		outerArray[L2_INSTRUCTIONS.ordinal()] = chunk != null
+			? chunk.instructions
+			: emptyList();
 
 		// Produce the current function being executed...
 		outerArray[CURRENT_FUNCTION.ordinal()] = function;
@@ -414,12 +411,16 @@ public final class Interpreter
 		// Now collect the pointer register values.
 		outerArray[POINTERS.ordinal()] =
 			Arrays.copyOf(
-				pointers, Math.min(pointers.length, chunk.numObjects()));
+				pointers,
+				Math.min(
+					pointers.length, chunk != null ? chunk.numObjects() : 0));
 
 		// May as well show the integer registers too...
 		outerArray[INTEGERS.ordinal()] =
 			Arrays.copyOf(
-				integers, Math.min(integers.length, chunk.numIntegers()));
+				integers,
+				Math.min(
+					integers.length, chunk != null ? chunk.numIntegers() : 0));
 
 		outerArray[LOADER.ordinal()] = availLoaderOrNull();
 
@@ -458,6 +459,8 @@ public final class Interpreter
 	 * AvailRuntime#maxInterpreters}.
 	 */
 	public final int interpreterIndex;
+
+	public String debugModeString = "";
 
 	/**
 	 * Construct a new {@code Interpreter}.
@@ -710,7 +713,7 @@ public final class Interpreter
 		if (debugL2)
 		{
 			System.out.println(
-				"Set latestResult: " +
+				debugModeString + "Set latestResult: " +
 					(latestResult == null
 						 ? "null"
 						 : latestResult.typeTag().name()));
@@ -899,10 +902,14 @@ public final class Interpreter
 			fiber(null, "primitiveSuspend");
 		});
 		exitNow = true;
+		if (debugL2)
+		{
+			System.out.println(debugModeString + "Set exitNow (primitiveSuspend)");
+		}
 		startTick = -1L;
 		if (debugL2)
 		{
-			System.out.println("Clear latestResult (primitiveSuspend)");
+			System.out.println(debugModeString + "Clear latestResult (primitiveSuspend)");
 		}
 		latestResult(null);
 		wipeRegisters();
@@ -968,11 +975,12 @@ public final class Interpreter
 			assert bound;
 			fiber(null, "exitFiber");
 		});
-		exitNow = true;
 		startTick = -1L;
+		exitNow = true;
 		if (debugL2)
 		{
-			System.out.println("Clear latestResult (exitFiber)");
+			System.out.println(debugModeString + "Set exitNow (exitFiber)");
+			System.out.println(debugModeString + "Clear latestResult (exitFiber)");
 		}
 		latestResult(null);
 		wipeRegisters();
@@ -1028,8 +1036,8 @@ public final class Interpreter
 	}
 
 	/**
-	 * Invoke an Avail primitive.  The primitive and arguments are passed.  If
-	 * the primitive fails, use {@link
+	 * Invoke an Avail primitive.  The primitive is passed, and the arguments
+	 * are provided in {@link #argsBuffer}.  If the primitive fails, use {@link
 	 * Interpreter#primitiveFailure(A_BasicObject)} to set the primitiveResult
 	 * to some object indicating what the problem was, and return
 	 * primitiveFailed immediately.  If the primitive causes the continuation to
@@ -1041,8 +1049,6 @@ public final class Interpreter
 	 *
 	 * @param primitive
 	 *            The {@link Primitive} to invoke.
-	 * @param args
-	 *            The list of arguments to supply to the primitive.
 	 * @param skipReturnCheck
 	 *            Whether to skip checking the return result if the primitive
 	 *            attempt succeeds.  It should only skip the check if the VM
@@ -1056,25 +1062,26 @@ public final class Interpreter
 	 */
 	public Result attemptPrimitive (
 		final Primitive primitive,
-		final List<AvailObject> args,
 		final boolean skipReturnCheck)
 	{
 		if (debugPrimitives)
 		{
 			log(
 				Level.FINER,
-				"attempt {0}",
+				"{0}attempt {1}",
+				debugModeString,
 				primitive.name());
-			System.out.println("Trying prim: " + primitive.name());
+			System.out.println(debugModeString + "Trying prim: " + primitive.name());
 		}
 		if (debugL2)
 		{
-			System.out.println("Clear latestResult (attemptPrimitive)");
+			System.out.println(debugModeString + "Clear latestResult (attemptPrimitive)");
 		}
 		latestResult(null);
 		assert current() == this;
 		final long timeBefore = AvailRuntime.captureNanos();
-		final Result success = primitive.attempt(args, this, skipReturnCheck);
+		final Result success =
+			primitive.attempt(argsBuffer, this, skipReturnCheck);
 		final long timeAfter = AvailRuntime.captureNanos();
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex);
@@ -1097,7 +1104,8 @@ public final class Interpreter
 					: "";
 				log(
 					Level.FINER,
-					"... completed primitive {0} => {1}{2}",
+					"{0}... completed primitive {1} => {2}{3}",
+					debugModeString,
 					primitive.getClass().getSimpleName(),
 					success.name(),
 					failPart);
@@ -1326,6 +1334,11 @@ public final class Interpreter
 			}
 		});
 		exitNow = true;
+		offset = Integer.MAX_VALUE;
+		if (debugL2)
+		{
+			System.out.println(debugModeString + "Set exitNow (processInterrupt)");
+		}
 		startTick = -1L;
 		latestResult(null);
 		wipeRegisters();
@@ -1518,7 +1531,7 @@ public final class Interpreter
 		chunk = code.startingChunk();
 		offset = 0;
 		returnNow = false;
-		L2Chunk.run(this , chunk);
+		runChunk();
 	}
 
 	/**
@@ -1527,7 +1540,15 @@ public final class Interpreter
 	 */
 	@InnerAccess void run ()
 	{
+		assert fiber != null;
+		debugModeString = "Fib=" + fiber.uniqueId() + " ";
+		assert !exitNow;
 		startTick = runtime.clock.get();
+		if (debugL2)
+		{
+			System.out.println(
+				"\nRun: " + debugModeString + " (" + fiber.fiberName() + ")");
+		}
 		while (true)
 		{
 			try
@@ -1536,7 +1557,7 @@ public final class Interpreter
 				// The chunk will do its own invalidation checks and off-ramp
 				// to L1 if needed.
 				final A_Function calledFunction = stripNull(function);
-				L2Chunk.run(this, chunk);
+				runChunk();
 				returningFunction = calledFunction;
 			}
 			catch (final ReifyStackThrowable reifier)
@@ -1553,6 +1574,10 @@ public final class Interpreter
 				{
 					// The fiber has been dealt with. Exit the interpreter loop.
 					assert fiber == null;
+					if (debugL2)
+					{
+						System.out.println("Exit1 run: " + debugModeString + "\n");
+					}
 					return;
 				}
 				if (!returnNow)
@@ -1571,7 +1596,15 @@ public final class Interpreter
 				// The reified stack is empty, too.  We must have returned from
 				// the outermost frame.  The fiber runner will deal with it.
 				terminateFiber(latestResult());
+				if (debugL2)
+				{
+					System.out.println(debugModeString + "Set exitNow (fall off Interpreter.run)");
+				}
 				exitNow = true;
+				if (debugL2)
+				{
+					System.out.println("Exit2 run: " + debugModeString + "\n");
+				}
 				return;
 			}
 			// Resume the top reified frame.  It should be at an on-ramp that
@@ -1582,6 +1615,63 @@ public final class Interpreter
 			function = frame.function();
 			chunk = frame.levelTwoChunk();
 			offset = frame.levelTwoOffset();
+		}
+	}
+
+	/**
+	 * Run the current L2Chunk to completion.  Note that a reification throwable
+	 * may cut this short.  Also note that this interpreter indicates the offset
+	 * at which to start executing.  For an initial invocation, the argsBuffer
+	 * will have been set up for the call.  For a return into this continuation,
+	 * the offset will refer to code that will rebuild the register set from the
+	 * top reified continuation, using the {@link Interpreter#latestResult()}.
+	 * For resuming the continuation, the offset will point to code that also
+	 * rebuilds the register set from the top reified continuation, but it won't
+	 * expect a return value.  These re-entry points should perform validity
+	 * checks on the chunk, allowing an orderly off-ramp into the {@link
+	 * L2Chunk#unoptimizedChunk()} (which simply interprets the L1 nybblecodes).
+	 *
+	 * @throws ReifyStackThrowable If reification is requested.
+	 */
+	public void runChunk ()
+	throws ReifyStackThrowable
+	{
+		assert !exitNow;
+		while (!returnNow)
+		{
+			final L2Instruction instruction =
+				stripNull(chunk).instructions[offset++];
+			if (Interpreter.debugL2)
+			{
+				System.out.println(
+					debugModeString
+						+ "L2 start: "
+						+ instruction.operation.debugNameIn(instruction));
+			}
+
+			final long timeBefore = System.nanoTime();
+			try
+			{
+				instruction.action.value(this);
+			}
+			finally
+			{
+				// Even though some primitives may suspend the current fiber,
+				// the code still returns here after suspending.  Close enough.
+				// Also, this chunk may call other chunks (on the Java stack),
+				// so there will be multiple-counting of call instructions.
+				final long timeAfter = System.nanoTime();
+				instruction.operation.statisticInNanoseconds.record(
+					timeAfter - timeBefore,
+					interpreterIndex);
+			}
+			if (Interpreter.debugL2)
+			{
+				System.out.println(
+					debugModeString
+						+ "L2 end: "
+						+ instruction.operation.debugNameIn(instruction));
+			}
 		}
 	}
 
@@ -1947,14 +2037,14 @@ public final class Interpreter
 
 				final A_Continuation continuation = aFiber.continuation();
 				interpreter.reifiedContinuation = continuation;
-				interpreter.returnNow = false;
 				interpreter.latestResult(result);
 				interpreter.returningFunction = returner;
+				interpreter.exitNow = false;
 				if (continuation.equalsNil())
 				{
 					// Return from outer function, which was the (successful)
 					// suspendable primitive itself.
-					interpreter.exitNow = true;
+					interpreter.returnNow = true;
 					interpreter.function = null;
 					interpreter.chunk = null;
 					interpreter.offset = Integer.MAX_VALUE;
@@ -1962,7 +2052,7 @@ public final class Interpreter
 				}
 				else
 				{
-					interpreter.exitNow = false;
+					interpreter.returnNow = false;
 					interpreter.function = continuation.function();
 					interpreter.chunk = continuation.levelTwoChunk();
 					interpreter.offset = continuation.levelTwoOffset();
@@ -2172,7 +2262,7 @@ public final class Interpreter
 		final int valuesCount = values.size();
 		if (valuesCount == 0)
 		{
-			continuation.value(Collections.emptyList());
+			continuation.value(emptyList());
 			return;
 		}
 		// Deduplicate the list of values for performance…

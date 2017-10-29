@@ -67,13 +67,4 @@ public class L2_GET_CURRENT_CONTINUATION extends L2Operation
 			instruction.writeObjectRegisterAt(0);
 		targetReg.set(stripNull(interpreter.reifiedContinuation), interpreter);
 	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Technically it doesn't have a side-effect, but this flag keeps the
-		// instruction from being re-ordered to a place where the interpreter's
-		// top reified continuation is no longer the right one.
-		return true;
-	}
 }

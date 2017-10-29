@@ -65,15 +65,4 @@ public class L2_GET_SKIP_RETURN_CHECK extends L2Operation
 		skipReturnCheckReg.set(
 			interpreter.skipReturnCheck ? 1 : 0, interpreter);
 	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Technically it doesn't have a side-effect, but this flag keeps the
-		// instruction from being re-ordered to a place where the
-		// skip-return-check flag has been overwritten with
-		// sinterpreter's
-		// top reified continuation is no longer the right one.
-		return true;
-	}
 }

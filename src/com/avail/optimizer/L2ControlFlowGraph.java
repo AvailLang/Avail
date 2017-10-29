@@ -33,28 +33,33 @@
 package com.avail.optimizer;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
+import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.utility.Mutable;
-import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.Pair;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.utility.Strings.increaseIndentation;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 
 /**
  * This is a control graph.  The vertices are {@link L2BasicBlock}s, which are
@@ -68,17 +73,36 @@ public final class L2ControlFlowGraph
 	private final List<L2BasicBlock> basicBlockOrder = new ArrayList<>();
 
 	/**
-	 * Create a new {@link L2BasicBlock} in this control flow graph.  Don't
-	 * connect it to anything yet.
-	 *
-	 * @param blockName The descriptive name of the basic block.
-	 * @return The new basic block.
+	 * An {@link AtomicInteger} used to quickly generate unique integers which
+	 * serve to visually distinguish new registers.
 	 */
-	public L2BasicBlock createBasicBlock (final String blockName)
+	private int uniqueCounter = 0;
+
+	/**
+	 * Answer the next value from the unique counter.  This is only used to
+	 * distinguish registers for visual debugging.
+	 *
+	 * @return A int.
+	 */
+	int nextUnique ()
 	{
-		final L2BasicBlock newBlock = new L2BasicBlock(blockName);
-		basicBlockOrder.add(newBlock);
-		return newBlock;
+		return uniqueCounter++;
+	}
+
+	/**
+	 * Begin code generation in the given block.
+	 *
+	 * @param block
+	 *        The {@link L2BasicBlock} in which to start generating {@link
+	 *        L2Instruction}s.
+	 */
+	public void startBlock (final L2BasicBlock block)
+	{
+		assert block.instructions().isEmpty();
+		if (block.isIrremovable() || block.hasPredecessors())
+		{
+			basicBlockOrder.add(block);
+		}
 	}
 
 	/**
@@ -187,6 +211,17 @@ public final class L2ControlFlowGraph
 	}
 
 	/**
+	 * Remove all unreachable blocks and all instructions that don't either have
+	 * a side-effect or produce a value ultimately used by an instruction that
+	 * has a side-effect.
+	 */
+	private void removeDeadCode ()
+	{
+		//noinspection StatementWithEmptyBody
+		while (removeUnreachableBlocks() || removeDeadInstructions()) { }
+	}
+
+	/**
 	 * Collect the list of all {@link L2Register} assigned anywhere within this
 	 * control flow graph.
 	 *
@@ -204,8 +239,7 @@ public final class L2ControlFlowGraph
 		}
 		// This should only be used when the control flow graph is in SSA form,
 		// so there should be no duplicates.
-		assert allRegisters.stream().distinct().count() == allRegisters.size();
-		return new ArrayList<>(allRegisters);
+		return allRegisters.stream().distinct().collect(toList());
 	}
 
 	/**
@@ -219,7 +253,7 @@ public final class L2ControlFlowGraph
 	 */
 	private void transformToEdgeSplitSSA ()
 	{
-		// Copy the list of blocks to safely visit existing blocks while new
+		// Copy the list of blocks, to safely visit existing blocks while new
 		// ones are added inside the loop.
 		for (final L2BasicBlock sourceBlock : new ArrayList<>(basicBlockOrder))
 		{
@@ -234,7 +268,11 @@ public final class L2ControlFlowGraph
 						&& targetBlock.instructions().get(0).operation.isPhi();
 				if (hasPhis && targetBlock.predecessorEdges().size() > 1)
 				{
-					outEdge.splitEdgeWith(this);
+					final L2BasicBlock newBlock = outEdge.splitEdgeWith(this);
+					// Add it somewhere that looks sensible for debugging,
+					// although we'll order the blocks later.
+					basicBlockOrder.add(
+						basicBlockOrder.indexOf(targetBlock), newBlock);
 				}
 			}
 		}
@@ -243,7 +281,8 @@ public final class L2ControlFlowGraph
 	/**
 	 * For every phi operation, insert a move at the end of the block that leads
 	 * to it.  Because of our version of edge splitting, that block always
-	 * contains just a jump.
+	 * contains just a jump.  The CFG will no longer be in SSA form, because the
+	 * phi variables will have multiple defining instructions (the moves).
 	 *
 	 * <p>Also eliminate the phi functions.</p>
 	 */
@@ -262,9 +301,10 @@ public final class L2ControlFlowGraph
 					// them, if any.
 					break;
 				}
-				// Insert a non-SSA move in each previous block.
-				final int targetRegIndex =
-					instruction.destinationRegisters().get(0).finalIndex();
+				// Insert a non-SSA move in each predecessor block.
+				final L2WritePointerOperand targetWriter =
+					L2_PHI_PSEUDO_OPERATION.destinationRegisterWrite(
+						instruction);
 				final List<L2PcOperand> predecessors = block.predecessorEdges();
 				final List<L2Register> phiSources =
 					instruction.sourceRegisters();
@@ -280,28 +320,98 @@ public final class L2ControlFlowGraph
 						instanceof L2_JUMP;
 					final L2ObjectRegister sourceReg =
 						L2ObjectRegister.class.cast(phiSources.get(i));
-					// Skip the move if it's already in a register with the same
-					// finalIndex.  Otherwise assign it to a fake register with
-					// the same finalIndex as the target.
-					if (sourceReg.finalIndex() != targetRegIndex)
-					{
-						// TODO MvG - Eventually we'll need phis for int and
-						// float registers.  We'll move responsibility for
-						// constructing the move into the specific L2Operation
-						// subclasses.
-						final L2Instruction move =
-							new L2Instruction(
-								predecessor,
-								L2_MOVE.instance,
-								new L2ReadPointerOperand(sourceReg, null),
-								new L2WritePointerOperand(-999, TOP.o(), null));
-						instructions.add(instructions.size() - 2, move);
-						instruction.destinationRegisters().get(0).setFinalIndex(
-							targetRegIndex);
-					}
+
+					// TODO MvG - Eventually we'll need phis for int and float
+					// registers.  We'll move responsibility for constructing
+					// the move into the specific L2Operation subclasses.
+					final L2Instruction move =
+						new L2Instruction(
+							predecessor,
+							L2_MOVE.instance,
+							new L2ReadPointerOperand(sourceReg, null),
+							targetWriter);
+					instructions.add(instructions.size() - 1, move);
+					move.justAdded();
 				}
 				// Eliminate the phi function itself.
 				instructionIterator.remove();
+				instruction.justRemoved();
+			}
+		}
+	}
+
+	/**
+	 * Create a new register for every &lt;kind, finalIndex&gt; (i.e., color) of
+	 * an existing register, then transform every instruction of this control
+	 * flow graph to use the new registers.  The new registers have a
+	 * {@link L2Register#uniqueValue} that's the same as its {@link
+	 * L2Register#finalIndex}.
+	 */
+	public void replaceRegistersByColor ()
+	{
+		// Create new registers for each <kind, finalIndex> in the existing
+		// registers.
+		final EnumMap<RegisterKind, Map<Integer, L2Register>> byKindAndIndex
+			= new EnumMap<>(RegisterKind.class);
+		final Map<L2Register, L2Register> remap = new HashMap<>();
+		// Also collect all the old registers.
+		final HashSet<L2Register> oldRegisters = new HashSet<>();
+		basicBlockOrder.forEach(
+			block -> block.instructions().forEach(
+				instruction ->
+				{
+					final Consumer<L2Register> action = reg ->
+					{
+						remap.put(
+							reg,
+							byKindAndIndex
+								.computeIfAbsent(
+									reg.registerKind(),
+									k -> new HashMap<>())
+								.computeIfAbsent(
+									reg.finalIndex(),
+									i -> reg.copyAfterColoring()));
+						oldRegisters.add(reg);
+					};
+					instruction.sourceRegisters().forEach(action);
+					instruction.destinationRegisters().forEach(action);
+				}
+			));
+		// Actually remap every register.
+		basicBlockOrder.forEach(
+			block -> block.instructions().forEach(
+				instruction -> instruction.replaceRegisters(remap)));
+		// Check that the obsolete registers have no uses or definitions.
+		oldRegisters.forEach(
+			r ->
+			{
+				assert r.uses().isEmpty() && r.definitions().isEmpty()
+					: "OBSOLETE register still refers to instructions";
+			});
+	}
+
+	/**
+	 * Eliminate any {@link L2_MOVE}s between registers of the same color.  The
+	 * graph must have been colored already, and is not expected to be in SSA
+	 * form, and is certainly not after this, since removed moves are the SSA
+	 * definition points for their target registers.
+	 */
+	private void removeSameColorMoves ()
+	{
+		for (final L2BasicBlock block : basicBlockOrder)
+		{
+			final Iterator<L2Instruction> iterator =
+				block.instructions().iterator();
+			while (iterator.hasNext())
+			{
+				final L2Instruction instruction = iterator.next();
+				if (instruction.operation instanceof L2_MOVE
+					&& instruction.sourceRegisters().get(0).finalIndex()
+					== instruction.destinationRegisters().get(0).finalIndex())
+				{
+					iterator.remove();
+					instruction.justRemoved();
+				}
 			}
 		}
 	}
@@ -325,9 +435,9 @@ public final class L2ControlFlowGraph
 					&& block.finalInstruction().operation instanceof L2_JUMP)
 				{
 					// Redirect all predecessors through the jump.
-					final L2BasicBlock jumpTarget =
-						block.finalInstruction().targetEdges().get(0)
-							.targetBlock();
+					final L2PcOperand jumpEdge =
+						block.finalInstruction().targetEdges().get(0);
+					final L2BasicBlock jumpTarget = jumpEdge.targetBlock();
 					for (final L2PcOperand inEdge
 						: new ArrayList<>(block.predecessorEdges()))
 					{
@@ -339,6 +449,7 @@ public final class L2ControlFlowGraph
 					assert block.predecessorEdges().isEmpty();
 					if (!block.isIrremovable())
 					{
+						jumpTarget.predecessorEdges().remove(jumpEdge);
 						blockIterator.remove();
 					}
 				}
@@ -369,23 +480,8 @@ public final class L2ControlFlowGraph
 		}
 		final List<L2BasicBlock> order =
 			new ArrayList<>(basicBlockOrder.size());
-		final Deque<L2BasicBlock> zeroed = new ArrayDeque<>();
-		final Continuation1NotNull<L2BasicBlock> select = block ->
-		{
-			order.add(block);
-			block.successorEdges().forEach(
-				edge ->
-				{
-					final Mutable<Integer> countdown =
-						countdowns.get(edge.targetBlock());
-					if (--countdown.value == 0)
-					{
-						countdowns.remove(edge.targetBlock());
-						zeroed.add(edge.targetBlock());
-					}
-				});
-		};
 		assert basicBlockOrder.get(0).predecessorEdges().isEmpty();
+		final Deque<L2BasicBlock> zeroed = new ArrayDeque<>();
 		for (int i = basicBlockOrder.size() - 1; i >= 0; i--)
 		{
 			if (basicBlockOrder.get(i).predecessorEdges().isEmpty())
@@ -398,32 +494,370 @@ public final class L2ControlFlowGraph
 		{
 			if (!zeroed.isEmpty())
 			{
-				select.value(zeroed.removeLast());
+				final L2BasicBlock block = zeroed.removeLast();
+				order.add(block);
+				block.successorEdges().forEach(
+					edge ->
+					{
+						final @Nullable Mutable<Integer> countdown =
+							countdowns.get(edge.targetBlock());
+						// Note that the entry may have been removed to break a
+						// cycle.  See below.
+						if (countdown != null && --countdown.value == 0)
+						{
+							countdowns.remove(edge.targetBlock());
+							zeroed.add(edge.targetBlock());
+						}
+					});
 			}
 			else
 			{
-				// Should only happen when there are cycles.  Pick a node at
-				// random for now.
-				final L2BasicBlock victim =
-					countdowns.keySet().iterator().next();
+				// Only cycles and blocks reachable from cycles are left.  Pick
+				// a node at random, preferring one that has had at least one
+				// predecessor placed.
+				@Nullable L2BasicBlock victim = null;
+				for (final Entry<L2BasicBlock, Mutable<Integer>> entry
+					: countdowns.entrySet())
+				{
+					if (entry.getValue().value
+						< entry.getKey().predecessorEdges().size())
+					{
+						victim = entry.getKey();
+						break;
+					}
+				}
+				// No remaining block has had a predecessor placed.  Pick a
+				// block at random.
+				if (victim == null)
+				{
+					victim = countdowns.keySet().iterator().next();
+				}
 				countdowns.remove(victim);
 				zeroed.add(victim);
 			}
 		}
+
+		assert order.size() == basicBlockOrder.size();
 		assert order.get(0) == basicBlockOrder.get(0);
 		basicBlockOrder.clear();
 		basicBlockOrder.addAll(order);
 	}
 
-	/**
-	 * Remove all unreachable blocks and all instructions that don't either have
-	 * a side-effect or produce a value ultimately used by an instruction that
-	 * has a side-effect.
-	 */
-	private void removeDeadCode ()
+	private static class UsedRegisters
 	{
-		//noinspection StatementWithEmptyBody
-		while (removeUnreachableBlocks() || removeDeadInstructions()) { }
+		BitSet liveObjectRegisters;
+		BitSet liveIntRegisters;
+
+		boolean restrictTo (final UsedRegisters another)
+		{
+			final int objectCount = liveObjectRegisters.cardinality();
+			final int intCount = liveIntRegisters.cardinality();
+			liveObjectRegisters.and(another.liveObjectRegisters);
+			liveIntRegisters.and(another.liveIntRegisters);
+			return liveObjectRegisters.cardinality() != objectCount
+				|| liveIntRegisters.cardinality() != intCount;
+		}
+
+		void readRegister (
+			final L2Register register,
+			final Function<L2Register, Integer> registerIdFunction)
+		{
+			switch (register.registerKind())
+			{
+				case OBJECT:
+					assert liveObjectRegisters.get(
+						registerIdFunction.apply(register));
+					break;
+				case INTEGER:
+					assert liveIntRegisters.get(
+						registerIdFunction.apply(register));
+					break;
+				default:
+					assert false : "Unsupported register type";
+			}
+		}
+
+		void writeRegister (
+			final L2Register register,
+			final Function<L2Register, Integer> registerIdFunction)
+		{
+			switch (register.registerKind())
+			{
+				case OBJECT:
+					liveObjectRegisters.set(
+						registerIdFunction.apply(register));
+					break;
+				case INTEGER:
+					liveIntRegisters.set(
+						registerIdFunction.apply(register));
+					break;
+				default:
+					assert false : "Unsupported register type";
+			}
+		}
+
+		void clearAll ()
+		{
+			liveObjectRegisters.clear();
+			liveIntRegisters.clear();
+		}
+
+		UsedRegisters (
+			final BitSet liveObjectRegisters,
+			final BitSet liveIntRegisters)
+		{
+			this.liveObjectRegisters = (BitSet) liveObjectRegisters.clone();
+			this.liveIntRegisters = (BitSet) liveIntRegisters.clone();
+		}
+	}
+
+	@Override
+	public String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		for (final L2BasicBlock block : basicBlockOrder)
+		{
+			builder.append(block.name());
+			builder.append(":\n");
+			for (final L2Instruction instruction : block.instructions())
+			{
+				builder.append("\t");
+				builder.append(increaseIndentation(instruction.toString(), 1));
+				builder.append("\n");
+			}
+			builder.append("\n");
+		}
+		return builder.toString();
+	}
+
+	/**
+	 * Check that each instruction of each block has that block set for its
+	 * {@link L2Instruction#basicBlock} field.  Also check that every
+	 * instruction's applicable operands are listed as uses or definitions of
+	 * the register that they access, and that there are no other uses or
+	 * definitions.
+	 */
+	private void checkBlocksAndInstructions ()
+	{
+		final Map<L2Register, Set<L2Instruction>> uses = new HashMap<>();
+		final Map<L2Register, Set<L2Instruction>> definitions = new HashMap<>();
+		basicBlockOrder.forEach(
+			block -> block.instructions().forEach(
+				instruction ->
+				{
+					assert instruction.basicBlock == block;
+					instruction.sourceRegisters().forEach(
+						reg -> uses.computeIfAbsent(reg, r -> new HashSet<>())
+							.add(instruction));
+					instruction.destinationRegisters().forEach(
+						reg -> definitions.computeIfAbsent(
+								reg, r -> new HashSet<>())
+							.add(instruction));
+				}));
+		final Set<L2Register> mentionedRegs = new HashSet<>(uses.keySet());
+		mentionedRegs.addAll(definitions.keySet());
+		for (final L2Register reg : mentionedRegs)
+		{
+			assert uses.getOrDefault(reg, emptySet()).equals(reg.uses());
+			assert definitions.getOrDefault(reg, emptySet()).equals(
+				reg.definitions());
+		}
+	}
+
+	/**
+	 * Ensure all instructions' operands occur only once, including within
+	 * vector operands.
+	 */
+	private void checkUniqueOperands ()
+	{
+		final Set<L2Operand> allOperands = new HashSet<>();
+		basicBlockOrder.forEach(
+			block -> block.instructions().forEach(
+				instruction ->
+				{
+					for (final L2Operand operand : instruction.operands)
+					{
+						final boolean added = allOperands.add(operand);
+						assert added;
+						if (L2ReadVectorOperand.class.isInstance(operand))
+						{
+							final L2ReadVectorOperand vector =
+								L2ReadVectorOperand.class.cast(operand);
+							vector.elements().forEach(
+								read ->
+								{
+									final boolean ok = allOperands.add(read);
+									assert ok;
+								});
+						}
+						else if (L2WriteVectorOperand.class.isInstance(operand))
+						{
+							final L2WriteVectorOperand vector =
+								L2WriteVectorOperand.class.cast(operand);
+							vector.elements().forEach(
+								write ->
+								{
+									final boolean ok = allOperands.add(write);
+									assert ok;
+								});
+						}
+					}
+				}
+			));
+	}
+
+	/**
+	 * Check that all edges are correctly connected, and that phi functions have
+	 * the right number of inputs.
+	 */
+	private void checkEdgesAndPhis ()
+	{
+		for (final L2BasicBlock block : basicBlockOrder)
+		{
+			for (final L2Instruction instruction : block.instructions())
+			{
+				assert !instruction.operation.isPhi()
+					|| instruction.sourceRegisters().size()
+					== block.predecessorEdges().size();
+			}
+			// Check edges going forward.
+			final L2Instruction lastInstruction = block.finalInstruction();
+			assert lastInstruction.targetEdges().equals(block.successorEdges());
+			for (final L2PcOperand edge : block.successorEdges())
+			{
+				assert edge.sourceBlock() == block;
+				final L2BasicBlock targetBlock = edge.targetBlock();
+				assert basicBlockOrder.contains(targetBlock);
+				assert targetBlock.predecessorEdges().contains(edge);
+			}
+			// Also check edges going backward.
+			for (final L2PcOperand backEdge : block.predecessorEdges())
+			{
+				assert backEdge.targetBlock() == block;
+				final L2BasicBlock predecessorBlock = backEdge.sourceBlock();
+				assert basicBlockOrder.contains(predecessorBlock);
+				assert predecessorBlock.successorEdges().contains(backEdge);
+			}
+		}
+	}
+
+	/**
+	 * Perform a basic sanity check on the instruction graph, ensuring that each
+	 * use of a register is preceded in all histories by a write to it.  Use the
+	 * provided function to indicate what "the same" register means, so that
+	 * this can be used for uncolored SSA and colored non-SSA graphs.
+	 *
+	 * @param registerIdFunction
+	 *        A function that transforms a register into the index that should
+	 *        be used to identify it.  This allows pre-colored and post-colored
+	 *        register uses to be treated differently.
+	 */
+	private void checkRegistersAreInitialized (
+		final Function<L2Register, Integer> registerIdFunction)
+	{
+		final Deque<Pair<L2BasicBlock, UsedRegisters>> blocksToCheck =
+			new ArrayDeque<>();
+		blocksToCheck.add(
+			new Pair<>(
+				basicBlockOrder.get(0),
+				new UsedRegisters(new BitSet(), new BitSet())));
+		final Map<L2BasicBlock, UsedRegisters> inSets = new HashMap<>();
+		while (!blocksToCheck.isEmpty())
+		{
+			final Pair<L2BasicBlock, UsedRegisters> pair =
+				blocksToCheck.removeLast();
+			final L2BasicBlock block = pair.first();
+			final UsedRegisters newUsed = pair.second();
+			@Nullable UsedRegisters checked = inSets.get(block);
+			if (checked == null)
+			{
+				checked = new UsedRegisters(
+					newUsed.liveObjectRegisters, newUsed.liveIntRegisters);
+				inSets.put(block, checked);
+			}
+			else
+			{
+				if (!checked.restrictTo(newUsed))
+				{
+					// We've already checked this block with this restricted set
+					// of registers.  Ignore this path.
+					continue;
+				}
+			}
+			// Check the block (or check it again with fewer valid registers)
+			final UsedRegisters workingSet = new UsedRegisters(
+				checked.liveObjectRegisters, checked.liveIntRegisters);
+			for (final L2Instruction instruction : block.instructions())
+			{
+				if (instruction.operation instanceof L2_ENTER_L2_CHUNK)
+				{
+					// Wipe all registers.
+					workingSet.clearAll();
+				}
+				if (!instruction.operation.isPhi())
+				{
+					for (final L2Register register :
+						instruction.sourceRegisters())
+					{
+						workingSet.readRegister(register, registerIdFunction);
+					}
+					for (final L2Register register :
+						instruction.destinationRegisters())
+					{
+						workingSet.writeRegister(register, registerIdFunction);
+					}
+				}
+			}
+			for (final L2PcOperand edge : block.successorEdges())
+			{
+				// Handle the phi instructions of the target here.  Create a
+				// workingCopy for each edge.
+				final UsedRegisters workingCopy = new UsedRegisters(
+					workingSet.liveObjectRegisters,
+					workingSet.liveIntRegisters);
+				final L2BasicBlock targetBlock = edge.targetBlock();
+				final int predecessorIndex =
+					targetBlock.predecessorEdges().indexOf(edge);
+				if (predecessorIndex == -1)
+				{
+					System.out.println("Phi predecessor not found");
+					assert false : "Phi predecessor not found";
+				}
+				for (final L2Instruction phiInTarget
+					: targetBlock.instructions())
+				{
+					if (!phiInTarget.operation.isPhi())
+					{
+						// All the phis are at the start of the block.
+						break;
+					}
+					final L2Register phiSource =
+						phiInTarget.sourceRegisters().get(predecessorIndex);
+					workingCopy.readRegister(phiSource, registerIdFunction);
+					workingCopy.writeRegister(
+						phiInTarget.destinationRegisters().get(0),
+						registerIdFunction);
+				}
+				blocksToCheck.add(new Pair<>(edge.targetBlock(), workingCopy));
+			}
+		}
+	}
+
+	/**
+	 * Perform a basic sanity check on the instruction graph.
+	 *
+	 * @param registerIdFunction
+	 *        A function that transforms a register into the index that should
+	 *        be used to identify it.  This allows pre-colored and post-colored
+	 *        register uses to be treated differently.
+	 */
+	private void sanityCheck (
+		final Function<L2Register, Integer> registerIdFunction)
+	{
+		checkBlocksAndInstructions();
+		checkUniqueOperands();
+		checkEdgesAndPhis();
+		checkRegistersAreInitialized(registerIdFunction);
 	}
 
 	/**
@@ -431,38 +865,60 @@ public final class L2ControlFlowGraph
 	 */
 	public void optimize ()
 	{
+		sanityCheck(L2Register::uniqueValue);
+
+		// Remove all unreachable blocks, and any reachable instructions that
+		// neither have an effect nor produce a value that is transitively
+		// consumed by a later instruction that has an effect.
 		removeDeadCode();
+		sanityCheck(L2Register::uniqueValue);
+
+		// Transform into SSA edge-split form, to avoid inserting redundant
+		// phi-moves.
+		transformToEdgeSplitSSA();
+		sanityCheck(L2Register::uniqueValue);
+
+		// Insert phi moves, which makes it no longer in SSA form.
+		insertPhiMoves();
+		sanityCheck(L2Register::uniqueValue);
 
 		// Color all registers.  This creates a dense finalIndex numbering for
 		// the registers in such a way that no two registers that have to
 		// maintain distinct values at the same time will have the same number.
 		final L2RegisterColorer colorer = new L2RegisterColorer(this);
 		colorer.colorRegisters();
+		sanityCheck(L2Register::finalIndex);
 
-		// Transform into SSA edge-split form, to avoid inserting redundant
-		// phi-moves.
-		transformToEdgeSplitSSA();
+		// Create a replacement register for each used color (of each kind).
+		// Transform each reference to an old register into a reference to the
+		// replacement, updating structures as needed.
+		replaceRegistersByColor();
+		sanityCheck(L2Register::finalIndex);
+		sanityCheck(L2Register::uniqueValue);
 
-		// Insert phi moves, which makes it no longer in SSA form.  Note that we
-		// don't insert a phi move if the source and target registers have the
-		// same color (finalIndex).
-		insertPhiMoves();
+		// Remove moves between registers with the same color.  This may expose
+		// edges-to-jumps that would otherwise be concealed by useless moves.
+		removeSameColorMoves();
+		sanityCheck(L2Register::finalIndex);
 
 		// Every L2PcOperand that leads to an L2_JUMP should now be redirected
 		// to the target of the jump (transitively, if the jump leads to another
 		// jump).  We specifically do this after inserting phi moves to ensure
 		// we don't jump past irremovable phi moves.
 		adjustEdgesToJumps();
+		sanityCheck(L2Register::finalIndex);
 
-		// Rewiring jumps through target jumps may have caused some code to be
-		// unreachable.
-		removeDeadCode();
+		// Having adjusted edges to avoid landing on L2_JUMPs, some blocks may
+		// have become unreachable.
+		removeUnreachableBlocks();
+		sanityCheck(L2Register::finalIndex);
 
 		// Choose an order for the blocks.  This isn't important while we're
 		// interpreting L2Chunks, but it will ultimately affect the quality of
 		// JVM translation.  Prefer to have the target block of an unconditional
 		// jump to follow the jump, since final code generation elides the jump.
 		orderBlocks();
+		sanityCheck(L2Register::finalIndex);
 
 		// MvG TODO - Optimizations ideas:
 		//    -Strengthen the types of all registers and register uses.

@@ -38,10 +38,14 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import javax.annotation.Nullable;
+
+import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -57,7 +61,7 @@ public class L2WritePointerOperand extends L2Operand
 	/**
 	 * The actual {@link L2ObjectRegister}.
 	 */
-	private final L2ObjectRegister register;
+	private L2ObjectRegister register;
 
 	/**
 	 * Answer the {@link L2ObjectRegister}'s {@link L2ObjectRegister#finalIndex
@@ -86,17 +90,11 @@ public class L2WritePointerOperand extends L2Operand
 	 *        otherwise {@code null}.
 	 */
 	public L2WritePointerOperand (
-		final long debugValue,
+		final int debugValue,
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull)
 	{
-		final @Nullable A_BasicObject betterConstant =
-			constantOrNull == null
-					&& type.instanceCount().equalsInt(1)
-					&& !type.isInstanceMeta()
-				? type.instance()
-				: constantOrNull;
-		this.register = new L2ObjectRegister(debugValue, type, betterConstant);
+		this.register = new L2ObjectRegister(debugValue, type, constantOrNull);
 	}
 
 	/** Private constructor used only for register transformation. */
@@ -149,19 +147,34 @@ public class L2WritePointerOperand extends L2Operand
 	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
-		register.setDefinition(instruction);
+		register.addDefinition(instruction);
 	}
 
 	@Override
 	public void instructionWasRemoved(final L2Instruction instruction)
 	{
-		register.clearDefinition();
+		register.removeDefinition(instruction);
+	}
+
+	@Override
+	public void replaceRegisters (
+		final Map<L2Register, L2Register> registerRemap,
+		final L2Instruction instruction)
+	{
+		final @Nullable L2Register replacement = registerRemap.get(register);
+		if (replacement == null || replacement == register)
+		{
+			return;
+		}
+		register.removeDefinition(instruction);
+		replacement.addDefinition(instruction);
+		register = L2ObjectRegister.class.cast(replacement);
 	}
 
 	@Override
 	public String toString ()
 	{
-		return format("WriteObject(%s)", register);
+		return format("Write(%s)", register);
 	}
 
 	/**

@@ -106,6 +106,16 @@ public final class P_Equality extends Primitive
 	}
 
 	@Override
+	protected A_Type privateBlockTypeRestriction ()
+	{
+		return functionType(
+			tuple(
+				ANY.o(),
+				ANY.o()),
+			booleanType());
+	}
+
+	@Override
 	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
 		final L2ReadPointerOperand functionToCallReg,
 		final List<L2ReadPointerOperand> arguments,
@@ -146,15 +156,5 @@ public final class P_Equality extends Primitive
 		// in the true and false cases (say dispatching to an if/then/else).
 		return super.tryToGenerateSpecialInvocation(
 			functionToCallReg, arguments, argumentTypes, translator);
-	}
-
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return functionType(
-			tuple(
-				ANY.o(),
-				ANY.o()),
-			booleanType());
 	}
 }

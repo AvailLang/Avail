@@ -86,6 +86,7 @@ public class L2_PREPARE_NEW_FRAME_FOR_L1 extends L2Operation
 		final Interpreter interpreter)
 	throws ReifyStackThrowable
 	{
+		assert !interpreter.exitNow;
 		final A_Function function = stripNull(interpreter.function);
 		final A_RawFunction code = function.code();
 		final int numArgs = code.numArgs();

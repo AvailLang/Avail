@@ -273,54 +273,16 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 	}
 
 	/**
-	 * Add a collection of vertices to the graph.  If a vertex is already
-	 * present in the graph, then ignore it and continue.  The vertices
-	 * initially have no edges within this graph.
+	 * Remove a vertex from the graph, failing if it has any connected edges.
+	 * Fail if the vertex is not present in the graph.
 	 *
-	 * @param vertices The vertices to add to the graph.
-	 */
-	public void includeVertices (final Collection<Vertex> vertices)
-	{
-		for (final Vertex vertex : vertices)
-		{
-			if (!outEdges.containsKey(vertex))
-			{
-				outEdges.put(vertex, new HashSet<>());
-				inEdges.put(vertex, new HashSet<>());
-			}
-		}
-	}
-
-	/**
-	 * Remove a vertex from the graph, removing any connected edges.  Fail if
-	 * the vertex is not present in the graph.
-	 *
-	 * @param vertex The vertex to attempt to remove to the graph.
+	 * @param vertex The vertex to attempt to remove from the graph.
 	 */
 	public void removeVertex (final Vertex vertex)
 	{
-		final Set<Vertex> outVertices = outEdges.get(vertex);
-		ensure(outVertices != null, "source vertex is not present");
-		final Set<Vertex> inVertices = inEdges.get(vertex);
-		ensure(inVertices != null, "target vertex is not present");
-		for (final Vertex successor : outVertices)
-		{
-			if (!successor.equals(vertex))
-			{
-				inEdges.get(successor).remove(vertex);
-			}
-		}
-		for (final Vertex predecessor : inVertices)
-		{
-			if (!predecessor.equals(vertex))
-			{
-				outEdges.get(predecessor).remove(vertex);
-			}
-		}
-		outEdges.remove(vertex);
-		inEdges.remove(vertex);
+		ensure(outEdges.containsKey(vertex), "vertex is not present");
+		excludeVertex(vertex);
 	}
-
 
 	/**
 	 * Remove a vertex from the graph, removing any connected edges.  Do nothing
@@ -336,20 +298,8 @@ public class Graph<Vertex> extends PublicCloneable<Graph<Vertex>>
 			final Set<Vertex> inVertices = inEdges.get(vertex);
 			assert inVertices != null
 				: "Inconsistent edge information in graph";
-			for (final Vertex successor : outVertices)
-			{
-				if (!successor.equals(vertex))
-				{
-					inEdges.get(successor).remove(vertex);
-				}
-			}
-			for (final Vertex predecessor : inVertices)
-			{
-				if (!predecessor.equals(vertex))
-				{
-					outEdges.get(predecessor).remove(vertex);
-				}
-			}
+			ensure(outVertices.isEmpty(), "vertex has outbound edges");
+			ensure(inVertices.isEmpty(), "vertex has inbound edges");
 			outEdges.remove(vertex);
 			inEdges.remove(vertex);
 		}

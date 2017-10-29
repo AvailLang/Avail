@@ -220,8 +220,7 @@ public abstract class LookupTree<
 					internalNode =
 						(InternalLookupTree<Element, Result, Memento>) node;
 				internalNode.expandIfNecessary(adaptor, adaptorMemento);
-				final MutableOrNull<M> memento =
-					new MutableOrNull<>();
+				final MutableOrNull<M> memento = new MutableOrNull<>();
 				// Push some actions in *reverse* order of their
 				// execution.
 				actionStack.add(() -> postInternalNode.value(memento.value()));

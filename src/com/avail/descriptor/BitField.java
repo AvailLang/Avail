@@ -107,7 +107,7 @@ implements Comparable<BitField>
 	@Nullable EnumField enumField;
 
 	/**
-	 * Construct a new {@link BitField}.
+	 * Construct a new {@code BitField}.
 	 *
 	 * @param integerSlot
 	 *            The {@link IntegerSlotsEnum integer slot} in which this bit
@@ -149,10 +149,10 @@ implements Comparable<BitField>
 	}
 
 	/**
-	 * Answer whether the receiver and the passed {@link BitField} occupy the
+	 * Answer whether the receiver and the passed {@code BitField} occupy the
 	 * same span of bits at the same integer slot number.
 	 *
-	 * @param bitField The other {@link BitField}.
+	 * @param bitField The other {@code BitField}.
 	 * @return Whether the two BitFields have the same slot number, start bit,
 	 *         and end bit.
 	 */

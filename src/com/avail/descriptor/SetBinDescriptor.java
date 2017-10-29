@@ -71,7 +71,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_BinHash (final AvailObject object)
+	int o_SetBinHash (final AvailObject object)
 	{
 		return object.slot(BIN_HASH);
 	}

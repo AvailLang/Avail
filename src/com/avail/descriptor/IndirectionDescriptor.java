@@ -2034,18 +2034,6 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_BinHash (final AvailObject object)
-	{
-		return o_Traversed(object).binHash();
-	}
-
-	@Override
-	int o_BinSize (final AvailObject object)
-	{
-		return o_Traversed(object).binSize();
-	}
-
-	@Override
 	int o_BitsPerEntry (final AvailObject object)
 	{
 		return o_Traversed(object).bitsPerEntry();
@@ -2603,6 +2591,18 @@ extends AbstractDescriptor
 	A_Type o_ReturnType (final AvailObject object)
 	{
 		return o_Traversed(object).returnType();
+	}
+
+	@Override
+	int o_SetBinHash (final AvailObject object)
+	{
+		return o_Traversed(object).setBinHash();
+	}
+
+	@Override
+	int o_SetBinSize (final AvailObject object)
+	{
+		return o_Traversed(object).setBinSize();
 	}
 
 	@Override
@@ -3434,7 +3434,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	A_BasicObject o_MapBinAtHashPutLevelCanDestroy (
+	A_MapBin o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -3458,7 +3458,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	A_BasicObject o_MapBinRemoveKeyHashCanDestroy (
+	A_MapBin o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -3468,6 +3468,12 @@ extends AbstractDescriptor
 			key,
 			keyHash,
 			canDestroy);
+	}
+
+	@Override
+	int o_MapBinSize (final AvailObject object)
+	{
+		return o_Traversed(object).mapBinSize();
 	}
 
 	/**

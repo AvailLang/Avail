@@ -1,5 +1,5 @@
 /**
- * L2IntegerRegister.java
+ * A_MapBin.java
  * Copyright © 1993-2017, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,54 +30,57 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo.register;
+package com.avail.descriptor;
+
+import com.avail.descriptor.MapDescriptor.MapIterable;
+
+import javax.annotation.Nullable;
 
 /**
- * {@code L2IntegerRegister} models the conceptual usage of a register that can
- * store a machine integer.
+ * {@code A_MapBin} is a collection of keys and their associated values, which
+ * makes up some or part of a {@link A_Map map}.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * Bins below a particular scale ({@link
+ * LinearMapBinDescriptor#thresholdToHash}) are usually represented via {@link
+ * LinearMapBinDescriptor}, which is primarily an arbitrarily ordered
+ * alternating sequence of keys and their associated values.  The hashes of the
+ * keys are also stored for performance, among other things.
+ *
+ * <p>Above that threshold a {@link HashedMapBinDescriptor} is used, which
+ * organizes the key-value pairs into a tree based on their hash values.</p>
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class L2IntegerRegister
-extends L2Register
+public interface A_MapBin
+extends A_BasicObject
 {
-	@Override
-	public RegisterKind registerKind ()
-	{
-		return RegisterKind.INTEGER;
-	}
+	boolean isHashedMapBin ();
 
-	/**
-	 * Construct a new {@code L2IntegerRegister}.
-	 *
-	 * @param debugValue A value used to distinguish the new instance visually.
-	 */
-	public L2IntegerRegister (final int debugValue)
-	{
-		super(debugValue);
-	}
+	@Nullable AvailObject mapBinAtHash (
+		final A_BasicObject key,
+		final int keyHash);
 
-	@Override
-	public L2IntegerRegister copyAfterColoring ()
-	{
-		final L2IntegerRegister result = new L2IntegerRegister(finalIndex());
-		result.setFinalIndex(finalIndex());
-		return result;
-	}
+	A_MapBin mapBinAtHashPutLevelCanDestroy (
+		final A_BasicObject key,
+		final int keyHash,
+		final A_BasicObject value,
+		final byte myLevel,
+		final boolean canDestroy);
 
-	@Override
-	public String toString ()
-	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append("IntReg");
-		if (finalIndex() != -1)
-		{
-			builder.append("[");
-			builder.append(finalIndex());
-			builder.append("]");
-		}
-		builder.append("@");
-		builder.append(uniqueValue);
-		return builder.toString();
-	}
+	MapIterable mapBinIterable ();
+
+	int mapBinKeysHash ();
+
+	A_Type mapBinKeyUnionKind ();
+
+	A_MapBin mapBinRemoveKeyHashCanDestroy (
+		final A_BasicObject key,
+		final int keyHash,
+		final boolean canDestroy);
+
+	int mapBinSize ();
+
+	int mapBinValuesHash ();
+
+	A_Type mapBinValueUnionKind ();
 }

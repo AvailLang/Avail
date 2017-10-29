@@ -82,13 +82,4 @@ public class L2_GET_ARGUMENTS extends L2Operation
 			}
 		};
 	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Technically it doesn't have a side-effect, but this flag keeps the
-		// instruction from being re-ordered to a place where the arguments are
-		// no longer available.
-		return true;
-	}
 }

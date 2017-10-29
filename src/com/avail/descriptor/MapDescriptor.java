@@ -110,7 +110,7 @@ extends Descriptor
 	 * @param map The map from which to extract the root bin.
 	 * @return The map's bin.
 	 */
-	private static AvailObject rootBin (final A_Map map)
+	private static A_MapBin rootBin (final A_Map map)
 	{
 		return ((AvailObject) map).slot(ROOT_BIN);
 	}
@@ -259,7 +259,7 @@ extends Descriptor
 		{
 			return false;
 		}
-		final A_BasicObject aMapRootBin = rootBin(aMap);
+		final A_MapBin aMapRootBin = rootBin(aMap);
 		for (final Entry entry : object.mapIterable())
 		{
 			final @Nullable A_BasicObject actualValue =
@@ -306,7 +306,7 @@ extends Descriptor
 		}
 		final A_Type keyType = aTypeObject.keyType();
 		final A_Type valueType = aTypeObject.valueType();
-		final AvailObject rootBin = rootBin(object);
+		final A_MapBin rootBin = rootBin(object);
 		final boolean keyTypeIsEnumeration = keyType.isEnumeration();
 		final boolean valueTypeIsEnumeration = valueType.isEnumeration();
 		@Nullable A_Type keyUnionKind = null;
@@ -398,7 +398,7 @@ extends Descriptor
 	{
 		// A map's hash is a simple function of its rootBin's keysHash and
 		// valuesHash.
-		final A_Map root = rootBin(object);
+		final A_MapBin root = rootBin(object);
 		int h = root.mapBinKeysHash();
 		h ^= 0x45F78A7E;
 		h += root.mapBinValuesHash();
@@ -417,7 +417,7 @@ extends Descriptor
 	{
 		final int size = object.mapSize();
 		final A_Type sizeRange = instanceType(fromInt(size));
-		final A_Map root = rootBin(object);
+		final A_MapBin root = rootBin(object);
 		return mapTypeForSizesKeyTypeValueType(
 			sizeRange,
 			root.mapBinKeyUnionKind(),
@@ -458,9 +458,9 @@ extends Descriptor
 		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
-		final A_BasicObject oldRoot = rootBin(object);
+		final A_MapBin oldRoot = rootBin(object);
 		final A_BasicObject traversedKey = keyObject.traversed();
-		final A_BasicObject newRoot = oldRoot.mapBinAtHashPutLevelCanDestroy(
+		final A_MapBin newRoot = oldRoot.mapBinAtHashPutLevelCanDestroy(
 			traversedKey,
 			traversedKey.hash(),
 			newValueObject,
@@ -522,11 +522,8 @@ extends Descriptor
 			}
 			return object;
 		}
-		A_BasicObject root = rootBin(object);
-		root = root.mapBinRemoveKeyHashCanDestroy(
-			keyObject,
-			keyObject.hash(),
-			canDestroy);
+		final A_MapBin root = rootBin(object).mapBinRemoveKeyHashCanDestroy(
+			keyObject, keyObject.hash(), canDestroy);
 		if (canDestroy && isMutable())
 		{
 			setRootBin(object, root);
@@ -546,7 +543,7 @@ extends Descriptor
 	int o_MapSize (final AvailObject object)
 	{
 		// Answer how many elements are in the map. Delegate to the rootBin.
-		return rootBin(object).binSize();
+		return rootBin(object).mapBinSize();
 	}
 
 	@Override @AvailMethod

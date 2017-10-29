@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -98,9 +99,11 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 		return interpreter ->
 		{
 			interpreter.argsBuffer.clear();
-			Arrays.stream(argumentRegNumbers)
-				.mapToObj(interpreter::pointerAt)
-				.forEach(interpreter.argsBuffer::add);
+			for (final int argumentRegNumber : argumentRegNumbers)
+			{
+				interpreter.argsBuffer.add(
+					interpreter.pointerAt(argumentRegNumber));
+			}
 			// Only primitive 340 is infallible and yet needs the function, and
 			// it's always folded.  In the case that primitive 340 is known to
 			// produce the wrong type at some site (potentially dead code due to
@@ -117,7 +120,7 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			// Eligible primitives MUST NOT access this.
 			interpreter.function = null;
 			final Result res = interpreter.attemptPrimitive(
-				primitive, interpreter.argsBuffer, false);
+				primitive, false);
 			assert res == SUCCESS;
 			interpreter.function = savedFunction;
 			interpreter.pointerAtPut(

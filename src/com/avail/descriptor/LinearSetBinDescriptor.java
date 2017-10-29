@@ -109,14 +109,14 @@ extends SetBinDescriptor
 	private static final int thresholdToHash = 10;
 
 	/**
-	 * Check that this linear bin has a correct binHash.
+	 * Check that this linear bin has a correct setBinHash.
 	 *
 	 * @param object A linear set bin.
 	 */
 	private static void checkBinHash (final AvailObject object)
 	{
 		assert object.descriptor instanceof LinearSetBinDescriptor;
-		final int stored = object.binHash();
+		final int stored = object.setBinHash();
 		int calculated = 0;
 		for (int i = object.variableObjectSlotsCount(); i >= 1; i--)
 		{
@@ -164,7 +164,7 @@ extends SetBinDescriptor
 			// as a singleton set bin.
 			return elementObject;
 		}
-		final int oldHash = object.binHash();
+		final int oldHash = object.setBinHash();
 		final AvailObject result;
 		if (myLevel < numberOfLevels - 1 && oldSize >= thresholdToHash)
 		{
@@ -201,10 +201,10 @@ extends SetBinDescriptor
 				assert localAddResult.sameAddressAs(result)
 				: "The element should have been added without reallocation";
 			}
-			assert result.binSize() == oldSize + 1;
-			assert object.binHash() == oldHash;
+			assert result.setBinSize() == oldSize + 1;
+			assert object.setBinHash() == oldHash;
 			final int newHash = oldHash + elementObjectHash;
-			assert result.binHash() == newHash;
+			assert result.setBinHash() == newHash;
 			checkHashedSetBin(result);
 			return result;
 		}
@@ -322,7 +322,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_BinSize (final AvailObject object)
+	int o_SetBinSize (final AvailObject object)
 	{
 		// Answer how many elements this bin contains.
 		return object.variableObjectSlotsCount();

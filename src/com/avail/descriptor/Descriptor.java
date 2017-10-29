@@ -2689,20 +2689,19 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	int o_BinHash (final AvailObject object)
+	int o_SetBinHash (final AvailObject object)
 	{
-		// An object masquerading as a size one bin has a binHash which is the
-		// sum of the elements' hashes, which in this case is just the object's
-		// hash.
+		// An object masquerading as a size one bin has a setBinHash which is
+		// the sum of the elements' hashes, which in this case is just the
+		// object's hash.
 		return object.hash();
 	}
 
 	@Override
-	int o_BinSize (final AvailObject object)
+	int o_SetBinSize (final AvailObject object)
 	{
-		// Answer how many elements this bin contains. I act as a bin of size
-		// one.
-
+		// Answer how many elements this bin contains. By default, the object
+		// acts as a bin of size one.
 		return 1;
 	}
 
@@ -3359,7 +3358,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	A_BasicObject o_MapBinAtHashPutLevelCanDestroy (
+	A_MapBin o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -3378,7 +3377,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	A_BasicObject o_MapBinRemoveKeyHashCanDestroy (
+	A_MapBin o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -3424,6 +3423,12 @@ extends AbstractDescriptor
 
 	@Override
 	int o_MapBinKeysHash (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	int o_MapBinSize (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

@@ -35,13 +35,12 @@ package com.avail.interpreter.levelTwo.register;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Translator;
 
-import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * {@code L2Register} models the conceptual use of a register by a {@linkplain
@@ -54,7 +53,7 @@ public abstract class L2Register
 {
 	public enum RegisterKind
 	{
-		FLOAT, INTEGER, OBJECT;
+		OBJECT, INTEGER, FLOAT;
 	}
 
 	/**
@@ -103,49 +102,73 @@ public abstract class L2Register
 	/**
 	 * A value used to distinguish distinct registers.
 	 */
-	public final long uniqueValue;
+	public final int uniqueValue;
+
+	public int uniqueValue ()
+	{
+		return uniqueValue;
+	}
 
 	/**
 	 * Construct a new {@code L2Register}.
 	 *
 	 * @param debugValue A {@code long} used to identify this register visually.
 	 */
-	L2Register (final long debugValue)
+	L2Register (final int debugValue)
 	{
 		this.uniqueValue = debugValue;
 	}
 
-	/** The instruction that assigns to this register. */
-	private @Nullable L2Instruction definition;
+	/**
+	 * The instructions that assigns to this register.  While the {@link
+	 * L2ControlFlowGraph} is in SSA form, there should be exactly one.
+	 */
+	private final Set<L2Instruction> definitions = new HashSet<>();
 
 	/**
-	 * Capture the instruction that writes to this register.  This must only be
-	 * set once.
+	 * Record this {@link L2Instruction} in my set of defining instructions.
 	 *
 	 * @param instruction
-	 *        The instruction that writes to this register in the SSA control
-	 *        flow graph of basic blocks.
+	 *        An instruction that writes to this register in the control flow
+	 *        graph of basic blocks.
 	 */
-	public void setDefinition (final L2Instruction instruction)
+	public void addDefinition (final L2Instruction instruction)
 	{
-		assert definition == null
-			: "Register's defining instruction must only be set once";
-		definition = instruction;
+		definitions.add(instruction);
 	}
 
-	public void clearDefinition ()
+	/**
+	 * Remove the given {@link L2Instruction} as one of the writers to this
+	 * register.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} to remove from my set of defining
+	 *        instructions.
+	 */
+	public void removeDefinition (final L2Instruction instruction)
 	{
-		assert definition != null;
-		definition = null;
+		definitions.remove(instruction);
 	}
 
 	/**
 	 * Answer the {@link L2Instruction} which assigns this register in the SSA
-	 * control flow graph.  It must have been assigned already.
+	 * control flow graph.  It must have been assigned already, and there must
+	 * be exactly one (this is a property of SSA).
 	 */
 	public L2Instruction definition ()
 	{
-		return stripNull(definition);
+		assert definitions.size() == 1;
+		return definitions.iterator().next();
+	}
+
+	/**
+	 * Answer the {@link L2Instruction}s which assign this register in the
+	 * control flow graph, which is not necessarily in SSA form.  It must be
+	 * non-empty.
+	 */
+	public Collection<L2Instruction> definitions ()
+	{
+		return definitions;
 	}
 
 	/**
@@ -186,4 +209,12 @@ public abstract class L2Register
 	{
 		return uses;
 	}
+
+	/**
+	 * Answer a new register like this one, but where the uniqueValue has been
+	 * set to the finalIndex.
+	 *
+	 * @return The new {@link L2Register}.
+	 */
+	public abstract L2Register copyAfterColoring ();
 }

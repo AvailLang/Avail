@@ -94,7 +94,8 @@ public final class L1Disassembler
 	 * An {@link L1OperandTypeDispatcher} suitably specialized to decode and
 	 * print the instruction operands.
 	 */
-	final L1OperandTypeDispatcher operandTypePrinter = new L1OperandTypeDispatcher()
+	final L1OperandTypeDispatcher operandTypePrinter =
+		new L1OperandTypeDispatcher()
 	{
 
 		@Override
@@ -237,22 +238,16 @@ public final class L1Disassembler
 	 */
 	@InnerAccess int getInteger ()
 	{
-		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc);
-		pc++;
+		final byte firstNybble = nybbles.extractNybbleFromTupleAt(pc++);
+		final int shift = firstNybble << 2;
+		int count = 0xF & (int) (0x8421_1100_0000_0000L >>> shift);
 		int value = 0;
-		final byte[] counts =
+		while (count-- > 0)
 		{
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 4, 8
-		};
-		for (int count = counts[firstNybble]; count > 0; count--, pc++)
-		{
-			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc);
+			value = (value << 4) + nybbles.extractNybbleFromTupleAt(pc++);
 		}
-		final byte[] offsets =
-		{
-			0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 26, 42, 58, 0, 0
-		};
-		value += offsets[firstNybble];
-		return value;
+		final int lowOff = 0xF & (int) (0x00AA_AA98_7654_3210L >>> shift);
+		final int highOff = 0xF & (int) (0x0032_1000_0000_0000L >>> shift);
+		return value + lowOff + (highOff << 4);
 	}
 }

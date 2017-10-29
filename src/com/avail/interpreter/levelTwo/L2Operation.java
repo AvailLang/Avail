@@ -557,4 +557,16 @@ public abstract class L2Operation
 			.mapToObj(instruction::pcAt)
 			.collect(toList());
 	}
+
+	/**
+	 * Produce a suitable name to describe this instruction.
+	 *
+	 * @param instruction The instruction to name.
+	 * @return The name of the instruction, suitable for debugging.
+	 */
+	public String debugNameIn (final L2Instruction instruction)
+	{
+		assert instruction.operation == this;
+		return name();
+	}
 }

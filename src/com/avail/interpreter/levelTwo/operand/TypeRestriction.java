@@ -85,7 +85,7 @@ public final class TypeRestriction
 			this.type = instanceTypeOrMetaOn(constantOrNull);
 			this.constantOrNull = constantOrNull;
 		}
-		else if (type.instanceCount().equalsInt(1) && type.isInstanceMeta())
+		else if (type.instanceCount().equalsInt(1) && !type.isInstanceMeta())
 		{
 			// Extract the sole possible value.
 			this.type = type;

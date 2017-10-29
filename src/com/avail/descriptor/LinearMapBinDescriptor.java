@@ -149,7 +149,7 @@ extends MapBinDescriptor
 	 * entries and it's not already at the bottom allowable level ({@link
 	 * #numberOfLevels} - 1) of the hash tree, then convert it to a hashed bin.
 	 */
-	private static final int thresholdToHash = 50;
+	public static final int thresholdToHash = 50;
 
 	/**
 	 * Check this linear map bin for internal consistency.
@@ -207,7 +207,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_BinSize (final AvailObject object)
+	int o_MapBinSize (final AvailObject object)
 	{
 		// Answer how many (key,value) pairs this bin contains.
 		return entryCount(object);
@@ -233,7 +233,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	A_BasicObject o_MapBinAtHashPutLevelCanDestroy (
+	A_MapBin o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -331,13 +331,13 @@ extends MapBinDescriptor
 					eachValue = object.slot(BIN_SLOT_AT_, i << 1);
 				}
 				assert result.descriptor().isMutable();
-				final A_BasicObject localAddResult =
+				final A_MapBin localAddResult =
 					result.mapBinAtHashPutLevelCanDestroy(
 						eachKey, eachHash, eachValue, myLevel, true);
 				assert localAddResult.sameAddressAs(result)
 					: "The element should have been added without copying";
 			}
-			assert result.binSize() == oldSize + 1;
+			assert result.mapBinSize() == oldSize + 1;
 			checkHashedMapBin(result);
 			return result;
 		}
@@ -386,7 +386,7 @@ extends MapBinDescriptor
 	 * bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	A_BasicObject o_MapBinRemoveKeyHashCanDestroy (
+	A_MapBin o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,

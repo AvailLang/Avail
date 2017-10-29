@@ -191,7 +191,6 @@ public final class L2BasicBlock
 		final L2PcOperand predecessorEdge)
 	{
 		assert predecessorEdge.sourceBlock().hasStartedCodeGeneration;
-		// TODO MvG - We should probably rebuild the phis here.
 		if (hasStartedCodeGeneration)
 		{
 			final int index = predecessorEdges.indexOf(predecessorEdge);
@@ -236,6 +235,7 @@ public final class L2BasicBlock
 	{
 		return predecessorEdges;
 	}
+
 	/**
 	 * Answer the {@link L2PcOperand}s taken in order from the last {@link
 	 * L2Instruction} of this basic block.  These operands lead to the successor
@@ -263,11 +263,24 @@ public final class L2BasicBlock
 	 * </p>
 	 *
 	 * @param translator
-	 *        The {@link L1Translator} that's generating instructions.
+	 *        The {@link L1Translator} generating instructions.
 	 */
 	public void startIn (final L1Translator translator)
 	{
-		final int numSlots = translator.numSlots;
+		final int numSlots;
+		if (!predecessorEdges.isEmpty())
+		{
+			final List<Integer> slotSizes = predecessorEdges.stream()
+				.map(e -> e.slotRegisters().length)
+				.distinct().collect(toList());
+			assert slotSizes.size() == 1;
+			numSlots = slotSizes.get(0);
+			assert numSlots <= translator.numSlots;
+		}
+		else
+		{
+			numSlots = translator.numSlots;
+		}
 		final List<List<L2ReadPointerOperand>> sourcesBySlot =
 			IntStream.range(0, numSlots)
 				.mapToObj(i -> new ArrayList<L2ReadPointerOperand>())
@@ -315,36 +328,45 @@ public final class L2BasicBlock
 					.map(L2ObjectRegister::restriction)
 					.reduce(TypeRestriction::union)
 					.get();
-				translator.addInstruction(
-					L2_PHI_PSEUDO_OPERATION.instance,
-					readVector(registerReads),
-					translator.writeSlot(
-						slotIndex,
-						restriction.type,
-						restriction.constantOrNull));
+				addInstruction(
+					new L2Instruction(
+						translator.currentBlock,
+						L2_PHI_PSEUDO_OPERATION.instance,
+						readVector(registerReads),
+						translator.writeSlot(
+							slotIndex,
+							restriction.type,
+							restriction.constantOrNull)));
 			}
 		}
 	}
 
 	/**
-	 * Append an instruction to this basic block.  The array of {@link
-	 * L2ObjectRegister}s represents the state of the virtual continuation slot
-	 * registers after the instruction.
-	 *
-	 * <p>Technically, the array of registers doesn't have to be correlated to
-	 * the virtual continuation, so we could include temp registers that require
-	 * a phi mapping.</p>
+	 * Append an instruction to this basic block, notifying the operands that
+	 * the instruction was just added.
 	 *
 	 * @param instruction The {@link L2Instruction} to append.
 	 */
 	public void addInstruction (final L2Instruction instruction)
+	{
+		assert isIrremovable() || hasPredecessors();
+		justAddInstruction(instruction);
+		instruction.justAdded();
+	}
+
+	/**
+	 * Append an instruction to this basic block, without telling the operands
+	 * that the instruction was just added.
+	 *
+	 * @param instruction The {@link L2Instruction} to append.
+	 */
+	public void justAddInstruction (final L2Instruction instruction)
 	{
 		assert !hasControlFlowAtEnd;
 		assert instruction.basicBlock == this;
 		instructions.add(instruction);
 		hasStartedCodeGeneration = true;
 		hasControlFlowAtEnd = instruction.altersControlFlow();
-		instruction.justAdded();
 	}
 
 	/**

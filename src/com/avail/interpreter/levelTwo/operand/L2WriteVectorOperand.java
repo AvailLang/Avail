@@ -35,10 +35,12 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
@@ -76,6 +78,16 @@ public class L2WriteVectorOperand extends L2Operand
 		this.elements = Collections.unmodifiableList(elements);
 	}
 
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	@Override
+	public L2Operand clone ()
+	{
+		final List<L2WritePointerOperand> clonedElements = elements.stream()
+			.map(r -> (L2WritePointerOperand) r.clone())
+			.collect(toList());
+		return new L2WriteVectorOperand(clonedElements);
+	}
+
 	@Override
 	public L2OperandType operandType ()
 	{
@@ -103,7 +115,7 @@ public class L2WriteVectorOperand extends L2Operand
 	{
 		for (final L2WritePointerOperand element : elements)
 		{
-			element.register().setDefinition(instruction);
+			element.instructionWasAdded(instruction);
 		}
 	}
 
@@ -112,8 +124,17 @@ public class L2WriteVectorOperand extends L2Operand
 	{
 		for (final L2WritePointerOperand element : elements)
 		{
-			element.register().clearDefinition();
+			element.instructionWasRemoved(instruction);
 		}
+	}
+
+	@Override
+	public void replaceRegisters (
+		final Map<L2Register, L2Register> registerRemap,
+		final L2Instruction instruction)
+	{
+		elements.forEach(
+			write -> write.replaceRegisters(registerRemap, instruction));
 	}
 
 	@Override

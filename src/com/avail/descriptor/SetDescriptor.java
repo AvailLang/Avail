@@ -240,9 +240,9 @@ extends Descriptor
 	@Override @AvailMethod
 	int o_Hash (final AvailObject object)
 	{
-		// A set's hash is a simple function of its rootBin's binHash, which is
-		// always the sum of its elements' hashes.
-		return rootBin(object).binHash() ^ 0xCD9EFC6;
+		// A set's hash is a simple function of its rootBin's setBinHash, which
+		// is always the sum of its elements' hashes.
+		return rootBin(object).setBinHash() ^ 0xCD9EFC6;
 	}
 
 	@Override @AvailMethod
@@ -454,14 +454,14 @@ extends Descriptor
 		// destroy the set if it's mutable and canDestroy is true.
 		final int elementHash = newElementObject.hash();
 		final AvailObject root = rootBin(object);
-		final int oldSize = root.binSize();
+		final int oldSize = root.setBinSize();
 		final A_BasicObject newRootBin =
 			root.setBinAddingElementHashLevelCanDestroy(
 				newElementObject,
 				elementHash,
 				(byte)0,
 				canDestroy && isMutable());
-		if (newRootBin.binSize() == oldSize)
+		if (newRootBin.setBinSize() == oldSize)
 		{
 			if (!canDestroy)
 			{
@@ -492,13 +492,13 @@ extends Descriptor
 		// necessary. May destroy the set if it's mutable and canDestroy is
 		// true.
 		final AvailObject root = rootBin(object);
-		final int oldSize = root.binSize();
+		final int oldSize = root.setBinSize();
 		final AvailObject newRootBin = root.binRemoveElementHashLevelCanDestroy(
 			elementObjectToExclude,
 			elementObjectToExclude.hash(),
 			(byte) 0,
 			(canDestroy && isMutable()));
-		if (newRootBin.binSize() == oldSize)
+		if (newRootBin.setBinSize() == oldSize)
 		{
 			if (!canDestroy)
 			{
@@ -563,7 +563,7 @@ extends Descriptor
 	int o_SetSize (final AvailObject object)
 	{
 		// Answer how many elements are in the set. Delegate to the rootBin.
-		return rootBin(object).binSize();
+		return rootBin(object).setBinSize();
 	}
 
 	@Override @AvailMethod @ThreadSafe

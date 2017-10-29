@@ -103,12 +103,14 @@ public class L1InstructionWriter
 	private List<A_Type> argumentTypes = new ArrayList<>();
 
 	/**
+	 * Set the array of types of the arguments.
+	 *
 	 * @param argTypes
 	 */
 	public void argumentTypes (final A_Type... argTypes)
 	{
 		assert localTypes.size() == 0
-		: "Must declare argument types before allocating locals";
+			: "Must declare argument types before allocating locals";
 		Collections.addAll(argumentTypes, argTypes);
 	}
 
@@ -242,7 +244,7 @@ public class L1InstructionWriter
 	final A_Phrase phrase;
 
 	/**
-	 * Create a new {@link L1InstructionWriter Level One instruction writer}.
+	 * Create a new {@code L1InstructionWriter Level One instruction writer}.
 	 *
 	 * @param module
 	 *        The module containing this code.
@@ -387,19 +389,8 @@ public class L1InstructionWriter
 	public AvailObject compiledCode ()
 	{
 		final @Nullable Primitive p = primitive;
-		if (p != null)
-		{
-			if (!p.hasFlag(Flag.CannotFail))
-			{
-				// Make sure the first local is set up as a primitive failure
-				// variable.
-				assert localTypes.size() > 0
-				: "Fallible primitive needs a primitive failure variable";
-				// At some point we'll declare all failure codes that a
-				// primitive can produce, at which point we can strengthen this
-				// safety check.
-			}
-		}
+		assert p == null || p.hasFlag(Flag.CannotFail) || localTypes.size() > 0
+		: "Fallible primitive needs a primitive failure variable";
 		return newCompiledCode(
 			nybbles(),
 			localTypes.size(),

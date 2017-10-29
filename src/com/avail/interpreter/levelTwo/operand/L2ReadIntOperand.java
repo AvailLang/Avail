@@ -37,7 +37,12 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2IntegerRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
+import com.sun.org.apache.bcel.internal.generic.L2I;
+
+import javax.annotation.Nullable;
+import java.util.Map;
 
 import static java.lang.String.format;
 
@@ -53,7 +58,7 @@ public class L2ReadIntOperand extends L2Operand
 	/**
 	 * The actual {@link L2IntegerRegister}.
 	 */
-	private final L2IntegerRegister register;
+	private L2IntegerRegister register;
 
 	/**
 	 * Answer the {@link L2IntegerRegister}'s {@link
@@ -120,6 +125,21 @@ public class L2ReadIntOperand extends L2Operand
 	public void instructionWasRemoved (final L2Instruction instruction)
 	{
 		register.removeUse(instruction);
+	}
+
+	@Override
+	public void replaceRegisters (
+		final Map<L2Register, L2Register> registerRemap,
+		final L2Instruction instruction)
+	{
+		final @Nullable L2Register replacement = registerRemap.get(register);
+		if (replacement == null || replacement == register)
+		{
+			return;
+		}
+		register.removeUse(instruction);
+		replacement.addUse(instruction);
+		register = L2IntegerRegister.class.cast(replacement);
 	}
 
 	@Override

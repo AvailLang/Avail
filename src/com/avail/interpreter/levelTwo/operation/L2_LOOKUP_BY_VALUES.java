@@ -97,7 +97,8 @@ public class L2_LOOKUP_BY_VALUES extends L2Operation
 		{
 			Interpreter.log(
 				Level.FINER,
-				"Lookup {0}",
+				"{0}Lookup {1}",
+				interpreter.debugModeString,
 				bundle.message().atomName());
 		}
 		interpreter.argsBuffer.clear();

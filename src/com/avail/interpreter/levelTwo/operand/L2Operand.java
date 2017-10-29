@@ -40,6 +40,8 @@ import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 import com.avail.utility.PublicCloneable;
 import com.avail.utility.evaluation.Transformer2;
 
+import java.util.Map;
+
 /**
  * An {@code L2Operand} knows its {@link L2OperandType} and any specific value
  * that needs to be captured for that type of operand.
@@ -75,6 +77,7 @@ public abstract class L2Operand extends PublicCloneable<L2Operand>
 	 * @return
 	 *            The transformed version of the receiver.
 	 */
+	@Deprecated
 	public abstract L2Operand transformRegisters (
 		final RegisterTransformer<L2OperandType> transformer);
 
@@ -102,6 +105,24 @@ public abstract class L2Operand extends PublicCloneable<L2Operand>
 		final L2Instruction instruction)
 	{
 		// Do nothing by default.
+	}
+
+	/**
+	 * Replace occurrences in this operand of each register that is a key of
+	 * this map with the register that is the corresponding value.  Do nothing
+	 * to registers that are not keys of the map.  Update all secondary
+	 * structures, such as the instruction's source/destination collections.
+	 *
+	 * @param registerRemap
+	 *        A mapping to transform registers in-place.
+	 * @param instruction
+	 *        The instruction containing this operand.
+	 */
+	public void replaceRegisters (
+		final Map<L2Register, L2Register> registerRemap,
+		final L2Instruction instruction)
+	{
+		// By default do nothing.
 	}
 
 	@Override

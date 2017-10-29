@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
@@ -207,5 +208,21 @@ public class L2_PHI_PSEUDO_OPERATION extends L2Operation
 			.filter(i -> sources.get(i).register() == usedRegister)
 			.mapToObj(i -> predecessorEdges.get(i).sourceBlock())
 			.collect(toList());
+	}
+
+	/**
+	 * Answer the {@link L2WritePointerOperand} from this phi function.  This
+	 * should only be used when generating phi moves (which takes the {@link
+	 * L2ControlFlowGraph} out of Static Single Assignment form).
+	 *
+	 * @param instruction
+	 *        The instruction to examine.  It must be a phi operation.
+	 * @return The instruction's destination {@link L2WritePointerOperand}.
+	 */
+	public static L2WritePointerOperand destinationRegisterWrite (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation instanceof L2_PHI_PSEUDO_OPERATION;
+		return instruction.writeObjectRegisterAt(1);
 	}
 }

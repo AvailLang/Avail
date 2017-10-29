@@ -98,7 +98,8 @@ public class L2_LOOKUP_BY_TYPES extends L2Operation
 		{
 			Interpreter.log(
 				Level.FINER,
-				"Lookup-by-types {0}",
+				"{0}Lookup-by-types {1}",
+				interpreter.debugModeString,
 				bundle.message().atomName());
 		}
 		interpreter.argsBuffer.clear();

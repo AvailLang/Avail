@@ -764,6 +764,14 @@ public final class L1InstructionStepper
 		}
 		catch (final ReifyStackThrowable reifier)
 		{
+			if (Interpreter.debugL2)
+			{
+				System.out.println(
+					interpreter.debugModeString
+					+ "Reifying call from L1 ("
+					+ reifier.actuallyReify()
+					+ ")");
+			}
 			if (reifier.actuallyReify())
 			{
 				// At some point during the call, reification was

@@ -103,7 +103,7 @@ extends MapBinDescriptor
 				final AvailObject subBin = object.slot(SUB_BINS_, i);
 				keyHashSum += subBin.mapBinKeysHash();
 				valueHashSum += subBin.mapBinValuesHash();
-				totalCount += subBin.binSize();
+				totalCount += subBin.mapBinSize();
 			}
 			assert object.slot(KEYS_HASH) == keyHashSum;
 			final int storedValuesHash =
@@ -198,11 +198,11 @@ extends MapBinDescriptor
 	@Override @AvailMethod
 	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
-		return object.slot(SUB_BINS_, subscript);
+		return object.slot(SUB_BINS_, subscript);/**/
 	}
 
 	@Override @AvailMethod
-	int o_BinSize (final AvailObject object)
+	int o_MapBinSize (final AvailObject object)
 	{
 		return (int)object.slot(BIN_SIZE);
 	}
@@ -330,7 +330,7 @@ extends MapBinDescriptor
 	 * other references exists.
 	 */
 	@Override @AvailMethod
-	A_BasicObject o_MapBinAtHashPutLevelCanDestroy (
+	A_MapBin o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -342,7 +342,7 @@ extends MapBinDescriptor
 		checkHashedMapBin(object);
 		// First, grab the appropriate 6 bits from the hash.
 		final int oldKeysHash = object.mapBinKeysHash();
-		final int oldSize = object.binSize();
+		final int oldSize = object.mapBinSize();
 		final int objectEntryCount = object.variableObjectSlotsCount();
 		final int logicalIndex = (keyHash >>> shift) & 63;
 		final long vector = object.slot(BIT_VECTOR);
@@ -355,16 +355,16 @@ extends MapBinDescriptor
 		{
 			// Sub-bin already exists for those hash bits.  Update the sub-bin.
 			final AvailObject oldSubBin = object.slot(SUB_BINS_, physicalIndex);
-			final int oldSubBinSize = oldSubBin.binSize();
+			final int oldSubBinSize = oldSubBin.mapBinSize();
 			final int oldSubBinKeyHash = oldSubBin.mapBinKeysHash();
-			final A_BasicObject newSubBin =
+			final A_MapBin newSubBin =
 				oldSubBin.mapBinAtHashPutLevelCanDestroy(
 					key,
 					keyHash,
 					value,
 					(byte)(myLevel + 1),
 					canDestroy);
-			delta = newSubBin.binSize() - oldSubBinSize;
+			delta = newSubBin.mapBinSize() - oldSubBinSize;
 			hashDelta = newSubBin.mapBinKeysHash() - oldSubBinKeyHash;
 			if (canDestroy && isMutable())
 			{
@@ -444,7 +444,7 @@ extends MapBinDescriptor
 	 * bin.  The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	A_BasicObject o_MapBinRemoveKeyHashCanDestroy (
+	A_MapBin o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -471,13 +471,13 @@ extends MapBinDescriptor
 		final int physicalIndex = bitCount(masked) + 1;
 		final AvailObject oldSubBin = object.slot(SUB_BINS_, physicalIndex);
 		final int oldSubBinKeysHash = oldSubBin.mapBinKeysHash();
-		final int oldSubBinSize = oldSubBin.binSize();
-		final A_BasicObject newSubBin = oldSubBin.mapBinRemoveKeyHashCanDestroy(
+		final int oldSubBinSize = oldSubBin.mapBinSize();
+		final A_MapBin newSubBin = oldSubBin.mapBinRemoveKeyHashCanDestroy(
 			key, keyHash, canDestroy);
 		final int delta;
 		final int deltaHash;
 		final AvailObject objectToModify;
-		if (newSubBin.binSize() == 0)
+		if (newSubBin.mapBinSize() == 0)
 		{
 			// The entire subBin must be removed.
 			final int oldSlotCount = bitCount(vector);
@@ -508,7 +508,7 @@ extends MapBinDescriptor
 		else
 		{
 			// The subBin has to be replaced...
-			delta = newSubBin.binSize() - oldSubBinSize;
+			delta = newSubBin.mapBinSize() - oldSubBinSize;
 			deltaHash = newSubBin.mapBinKeysHash() - oldSubBinKeysHash;
 			assert canDestroy || !object.descriptor().isMutable();
 			if (object.descriptor().isMutable())
@@ -606,7 +606,7 @@ extends MapBinDescriptor
 		 */
 		private void followRightmost (final AvailObject bin)
 		{
-			if (bin.binSize() == 0)
+			if (bin.mapBinSize() == 0)
 			{
 				// An empty bin may only occur at the top of the bin tree.
 				assert binStack.isEmpty();
