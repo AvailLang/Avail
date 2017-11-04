@@ -43,7 +43,14 @@ import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operand.L2WritePointerOperand;
+import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
+import com.avail.optimizer.L1Translator;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -51,8 +58,7 @@ import static com.avail.descriptor.ContinuationDescriptor.dumpStackThen;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Unknown;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 
@@ -60,6 +66,9 @@ import static java.lang.String.format;
  * <strong>Primitive:</strong> Exit the current {@linkplain
  * FiberDescriptor fiber}. The specified argument will be converted
  * internally into a {@code string} and used to report an error message.
+ *
+ * <p>It's marked with {@link Flag#SwitchesContinuation} to force the stack to
+ * be reified, for debugging convenience.</p>
  */
 public final class P_EmergencyExit extends Primitive
 {
@@ -68,7 +77,7 @@ public final class P_EmergencyExit extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_EmergencyExit().init(
-			1, Unknown, CannotFail);
+			1, Unknown, SwitchesContinuation, CanSuspend, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -80,6 +89,7 @@ public final class P_EmergencyExit extends Primitive
 		final A_BasicObject errorMessageProducer = args.get(0);
 		final A_Fiber fiber = interpreter.fiber();
 		final A_Continuation continuation = interpreter.reifiedContinuation;
+
 		interpreter.primitiveSuspend(stripNull(interpreter.function));
 		dumpStackThen(
 			interpreter.runtime(),
@@ -125,4 +135,16 @@ public final class P_EmergencyExit extends Primitive
 			tuple(ANY.o()),
 			bottom());
 	}
+
+	@Override
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1Translator translator)
+	{
+		// Never inline.  Ensure the caller reifies the stack before calling it.
+		return null;
+	}
+
 }

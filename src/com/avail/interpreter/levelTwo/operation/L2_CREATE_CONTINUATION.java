@@ -109,7 +109,7 @@ public class L2_CREATE_CONTINUATION extends L2Operation
 					function,
 					interpreter.pointerAt(callerRegIndex),
 					levelOnePC,
-					frameSize - code.maxStackDepth() + levelOneStackp,
+					levelOneStackp,
 					skipReturnCheck,
 					stripNull(interpreter.chunk),
 					onRampOffset);

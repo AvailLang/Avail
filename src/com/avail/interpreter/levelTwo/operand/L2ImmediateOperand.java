@@ -77,13 +77,6 @@ public class L2ImmediateOperand extends L2Operand
 	}
 
 	@Override
-	public L2ImmediateOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return this;
-	}
-
-	@Override
 	public String toString ()
 	{
 		return format("Imm(%d)", value);

@@ -57,6 +57,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
 import static com.avail.interpreter.Interpreter.resumeFromFailedPrimitive;
 import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -73,7 +74,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_ReadFromStandardInput().init(
-			0, Unknown);
+			0, CanSuspend, Unknown);
 
 	@Override
 	public Result attempt (

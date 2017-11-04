@@ -149,6 +149,10 @@ extends Exception
 	{
 		assert mutableContinuation.descriptor().isMutable();
 		assert mutableContinuation.caller().equalsNil();
+		// TODO MvG - Remove check.
+		assert continuationsNewestFirst.isEmpty()
+			|| continuationsNewestFirst.get(continuationsNewestFirst.size() - 1)
+				!= mutableContinuation;
 		continuationsNewestFirst.add(mutableContinuation);
 	}
 

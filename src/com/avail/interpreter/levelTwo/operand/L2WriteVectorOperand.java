@@ -32,12 +32,16 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -101,16 +105,6 @@ public class L2WriteVectorOperand extends L2Operand
 	}
 
 	@Override
-	public L2WriteVectorOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return new L2WriteVectorOperand(
-			elements.stream()
-				.map(element -> element.transformRegisters(transformer))
-				.collect(toList()));
-	}
-
-	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
 		for (final L2WritePointerOperand element : elements)
@@ -138,18 +132,30 @@ public class L2WriteVectorOperand extends L2Operand
 	}
 
 	@Override
+	public void addDestinationRegistersTo (
+		final List<L2Register> destinationRegisters)
+	{
+		elements.forEach(
+			write -> write.addDestinationRegistersTo(destinationRegisters));
+	}
+
+	@Override
 	public String toString ()
 	{
+
+
 		final StringBuilder builder = new StringBuilder();
 		builder.append("WriteVector(");
 		boolean first = true;
-		for (final L2WritePointerOperand register : elements)
+		for (final L2WritePointerOperand write : elements)
 		{
 			if (!first)
 			{
-				builder.append(",");
+				builder.append(", ");
 			}
+			final L2ObjectRegister register = write.register();
 			builder.append(register);
+			builder.append(register.restriction().suffixString());
 			first = false;
 		}
 		builder.append(")");

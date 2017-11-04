@@ -84,7 +84,14 @@ public class L2_GET_VARIABLE_CLEARING extends L2Operation
 			try
 			{
 				final AvailObject value = variable.getValue();
-				variable.clearValue();
+				if (variable.traversed().descriptor().isMutable())
+				{
+					variable.clearValue();
+				}
+				else
+				{
+					value.makeImmutable();
+				}
 				interpreter.pointerAtPut(destRegIndex, value);
 				interpreter.offset(successIndex);
 			}

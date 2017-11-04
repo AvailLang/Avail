@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -95,11 +97,12 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 			}
 			interpreter.skipReturnCheck = skipReturnCheck;
 
-			final L2Chunk chunk = stripNull(interpreter.chunk);
-			final int offset = interpreter.offset;
+			final A_Function savedFunction = stripNull(interpreter.function);
+			final L2Chunk savedChunk = stripNull(interpreter.chunk);
+			final int savedOffset = interpreter.offset;
 			final AvailObject[] savedPointers = interpreter.pointers;
 			final int[] savedInts = interpreter.integers;
-			assert chunk.instructions[offset - 1] == instruction;
+			assert savedChunk.instructions[savedOffset - 1] == instruction;
 
 			interpreter.chunk = code.startingChunk();
 			interpreter.offset = 0;
@@ -119,10 +122,13 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 					// resulting continuation is "returned" by the L2_Return
 					// instruction.  That continuation should know how to be
 					// reentered when the callee returns.
-					interpreter.chunk = chunk;
+					interpreter.function = savedFunction;
+					interpreter.chunk = savedChunk;
 					interpreter.offset = onReification;
 					interpreter.pointers = savedPointers;
 					interpreter.integers = savedInts;
+					interpreter.returnNow = false;
+					assert !interpreter.exitNow;
 					try
 					{
 						interpreter.runChunk();
@@ -133,11 +139,31 @@ public class L2_INVOKE_CONSTANT_FUNCTION extends L2Operation
 					}
 					// The off-ramp "returned" the callerless continuation that
 					// captures this frame.
-					reifier.pushContinuation(interpreter.latestResult());
+					interpreter.returnNow = false;
+					final A_Continuation continuation =
+						interpreter.latestResult();
+					if (Interpreter.debugL2)
+					{
+						System.out.println(
+							interpreter.debugModeString
+								+ "Push reified continuation (for invoke-const-fn): "
+								+ continuation.function().code().methodName());
+					}
+					reifier.pushContinuation(continuation);
 				}
 				throw reifier;
 			}
-			// We just returned normally.
+			finally
+			{
+				interpreter.function = savedFunction;
+				interpreter.chunk = savedChunk;
+				interpreter.offset = Integer.MAX_VALUE;
+				interpreter.pointers = savedPointers;
+				interpreter.integers = savedInts;
+				interpreter.returnNow = false;
+				assert !interpreter.exitNow;
+			}
+			// The invocation returned normally.
 			interpreter.offset = onNormalReturn;
 		};
 	}

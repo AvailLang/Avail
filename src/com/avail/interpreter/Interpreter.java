@@ -210,10 +210,10 @@ public final class Interpreter
 	public static boolean debugL1 = false;
 
 	/** Whether to print detailed Level Two debug information. */
-	public static boolean debugL2 = true;
+	public static boolean debugL2 = false;
 
 	/** Whether to print detailed Primitive debug information. */
-	public static boolean debugPrimitives = true;
+	public static boolean debugPrimitives = false;
 
 	/**
 	 * Whether to print debug information related to a specific problem being
@@ -901,16 +901,13 @@ public final class Interpreter
 			assert bound;
 			fiber(null, "primitiveSuspend");
 		});
-		exitNow = true;
-		if (debugL2)
-		{
-			System.out.println(debugModeString + "Set exitNow (primitiveSuspend)");
-		}
 		startTick = -1L;
 		if (debugL2)
 		{
+			System.out.println(debugModeString + "Set exitNow (primitiveSuspend)");
 			System.out.println(debugModeString + "Clear latestResult (primitiveSuspend)");
 		}
+		exitNow = true;
 		latestResult(null);
 		wipeRegisters();
 		return FIBER_SUSPENDED;
@@ -928,6 +925,8 @@ public final class Interpreter
 	 */
 	public Result primitiveSuspend (final A_Function suspendingFunction)
 	{
+		final Primitive prim = stripNull(suspendingFunction.code().primitive());
+		assert prim.hasFlag(Flag.CanSuspend);
 		fiber().suspendingFunction(suspendingFunction);
 		return primitiveSuspend(SUSPENDED);
 	}
@@ -1134,7 +1133,7 @@ public final class Interpreter
 	public int offset;
 
 	/** An empty array used for clearing the pointers quickly. */
-	private static final AvailObject[] emptyPointersArray = new AvailObject[0];
+	public static final AvailObject[] emptyPointersArray = new AvailObject[0];
 
 	/**
 	 * The registers that hold {@linkplain AvailObject Avail objects}.
@@ -1197,7 +1196,7 @@ public final class Interpreter
 	}
 
 	/** An empty array used for clearing the integer squickly. */
-	private static final int[] emptyIntArray = new int[0];
+	public static final int[] emptyIntArray = new int[0];
 
 	/**
 	 * The 32-bit signed integer registers.
@@ -1357,41 +1356,6 @@ public final class Interpreter
 			}
 			resumeFromInterrupt(aFiber);
 		});
-	}
-
-	/**
-	 * Prepare to restart the given continuation. Its new arguments, if any,
-	 * have already been supplied, and all other data has been wiped. Do not
-	 * tally this as an invocation of the method.
-	 *
-	 * @param continuationToRestart The Avail continuation to restart.
-	 */
-	@Deprecated
-	public void prepareToRestartContinuation (
-		final A_Continuation continuationToRestart)
-	{
-		//TODO MvG - Remove when not referenced.
-		throw new UnsupportedOperationException("Operation no longer makes sense");
-//		L2Chunk chunkToRestart = continuationToRestart.levelTwoChunk();
-//		if (!chunkToRestart.isValid())
-//		{
-//			// The chunk has become invalid, so use the default chunk and tweak
-//			// the continuation's chunk information.
-//			chunkToRestart = L2Chunk.unoptimizedChunk();
-//			continuationToRestart.levelTwoChunkOffset(chunkToRestart, 0);
-//		}
-//		final int numArgs = continuationToRestart.function().code().numArgs();
-//		argsBuffer.clear();
-//		for (int i = 1; i <= numArgs; i++)
-//		{
-//			argsBuffer.add(continuationToRestart.argOrLocalOrStackAt(i));
-//		}
-//		wipeObjectRegisters();
-//		invokeWithoutPrimitiveFunctionArguments(
-//			continuationToRestart.function(),
-//			argsBuffer,
-//			continuationToRestart.caller(),
-//			continuationToRestart.skipReturnFlag());
 	}
 
 	/**
@@ -1645,7 +1609,9 @@ public final class Interpreter
 			{
 				System.out.println(
 					debugModeString
-						+ "L2 start: "
+						+ "L2 start[#"
+						+ (offset - 1)
+						+ "]: "
 						+ instruction.operation.debugNameIn(instruction));
 			}
 

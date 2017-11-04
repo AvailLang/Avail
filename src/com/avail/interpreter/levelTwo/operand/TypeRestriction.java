@@ -32,12 +32,23 @@
 
 package com.avail.interpreter.levelTwo.operand;
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Set;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.InstanceTypeDescriptor;
+import com.avail.descriptor.SetDescriptor;
 
 import javax.annotation.Nullable;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
+	.enumerationWith;
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
 /**
  * This mechanism describes a restriction of a type without saying what it's to
@@ -79,11 +90,16 @@ public final class TypeRestriction
 	{
 		if (constantOrNull != null)
 		{
-			// Narrow the type to be as strong as possible.
-			assert constantOrNull.isInstanceOf(type)
-				: "TypeRestriction is vacuous";
-			this.type = instanceTypeOrMetaOn(constantOrNull);
-			this.constantOrNull = constantOrNull;
+			if (!constantOrNull.isInstanceOf(type))
+			{
+				this.type = bottom();
+				this.constantOrNull = null;
+			}
+			else
+			{
+				this.type = instanceTypeOrMetaOn(constantOrNull);
+				this.constantOrNull = constantOrNull;
+			}
 		}
 		else if (type.instanceCount().equalsInt(1) && !type.isInstanceMeta())
 		{
@@ -118,14 +134,120 @@ public final class TypeRestriction
 	 */
 	public TypeRestriction union (final TypeRestriction other)
 	{
-		final @Nullable A_BasicObject newConstant =
-			(constantOrNull == null || other.constantOrNull == null)
-				? null
-				: constantOrNull.equals(other.constantOrNull)
-					? constantOrNull
-					: null;
+		if (constantOrNull != null
+			&& other.constantOrNull != null
+			&& constantOrNull.equals(other.constantOrNull))
+		{
+			// The two restrictions are for the same constant value.
+			return new TypeRestriction(
+				instanceTypeOrMetaOn(constantOrNull), constantOrNull);
+		}
+		else
+		{
+			return new TypeRestriction(type.typeUnion(other.type), null);
+		}
+	}
+
+	/**
+	 * Create the intersection of the receiver and the other TypeRestriction.
+	 * This is the restriction that a register would have if it were already
+	 * known to have the first type, and has been tested positively against the
+	 * second type.
+	 *
+	 * @param other
+	 *        The other {@code TypeRestriction} to combine with the receiver to
+	 *        produce the output restriction.
+	 * @return The new type restriction.
+	 */
+	public TypeRestriction intersection (final TypeRestriction other)
+	{
+		if (constantOrNull != null)
+		{
+			if (other.constantOrNull != null
+				&& !constantOrNull.equals(other.constantOrNull))
+			{
+				// The two constants conflict.  Code using this register should
+				// not be reachable, but allow it to be generated for now.
+				return new TypeRestriction(bottom(), null);
+			}
+			// Rely on normalization to reject the constant if the type
+			// intersection is vacuous (bottom).
+			return new TypeRestriction(
+				type.typeIntersection(other.type),
+				constantOrNull);
+		}
+		// The receiver wasn't a single constant.  Just do an intersection and
+		// let normalization deal with the special cases.
 		return new TypeRestriction(
-			type.typeUnion(other.type),
-			newConstant);
+			type.typeIntersection(other.type),
+			other.constantOrNull);
+	}
+
+	/**
+	 * Create the asymmetric difference of the receiver and the other
+	 * TypeRestriction.  This is the restriction that a register would have if
+	 * it held a value typed by the receiver, but failed a test against the
+	 * other type (and/or constant).
+	 *
+	 * @param other
+	 *        The other {@code TypeRestriction} to combine with the receiver to
+	 *        produce the output restriction.
+	 * @return The new type restriction.
+	 */
+	public TypeRestriction minus (final TypeRestriction other)
+	{
+		if (type.isSubtypeOf(other.type))
+		{
+			// Exclude everything.
+			return new TypeRestriction(bottom(), null);
+		}
+		if (constantOrNull != null)
+		{
+			// The constant was not excluded by the subtype test above.
+			return new TypeRestriction(type, constantOrNull);
+		}
+		if (type.isEnumeration() && !type.isInstanceMeta())
+		{
+			// Filter the enumeration set to exclude elements satisfying the
+			// other type.
+			A_Set filteredSet = emptySet();
+			for (final AvailObject instance : type.instances())
+			{
+				if (!instance.isInstanceOf(other.type))
+				{
+					// This instance isn't excluded by the other type.
+					filteredSet = filteredSet.setWithElementCanDestroy(
+						instance, true);
+				}
+			}
+			// If it reduced to one element, let normalization pull out the
+			// constant.  It's known here not to be a meta.
+			return new TypeRestriction(enumerationWith(filteredSet), null);
+		}
+		// Ignore the type subtraction, at least until we've implemented
+		// negative type restrictions.
+		return new TypeRestriction(type, null);
+	}
+
+	/**
+	 * Answer a {@link String}, possibly empty, suitable for displaying after
+	 * a register, after a read/write of a register, or after any other place
+	 * that this restriction might be applied.
+	 *
+	 * @return The {@link String} describing this restriction, if interesting.
+	 */
+	public String suffixString ()
+	{
+		final @Nullable AvailObject constant =
+			AvailObject.class.cast(constantOrNull);
+		if (constant != null)
+		{
+			return "=" + constant.typeTag();
+		}
+		if (!type.equals(TOP.o()))
+		{
+			return ":" + AvailObject.class.cast(type).typeTag();
+		}
+		return "";
 	}
 }

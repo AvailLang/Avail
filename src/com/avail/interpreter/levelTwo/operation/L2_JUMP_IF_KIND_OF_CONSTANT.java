@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -164,5 +165,13 @@ public class L2_JUMP_IF_KIND_OF_CONSTANT extends L2Operation
 	{
 		// It jumps, which counts as a side effect.
 		return true;
+	}
+
+	@Override
+	public String debugNameIn (
+		final L2Instruction instruction)
+	{
+		final AvailObject constant = instruction.constantAt(1);
+		return name() + "(const type=" + constant.typeTag() + ")";
 	}
 }

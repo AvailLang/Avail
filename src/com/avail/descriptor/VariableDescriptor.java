@@ -341,6 +341,7 @@ extends Descriptor
 			final A_BasicObject newValue)
 		throws VariableSetException
 	{
+		assert !newValue.equalsNil();
 		handleVariableWriteTracing(object);
 		object.setSlot(VALUE, newValue);
 	}

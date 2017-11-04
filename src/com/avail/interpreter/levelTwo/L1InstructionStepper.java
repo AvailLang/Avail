@@ -269,7 +269,7 @@ public final class L1InstructionStepper
 							interpreter.interpreterIndex);
 					}
 
-					callMethodAfterLookup(method, matching);
+					callMethodAfterLookup(matching);
 
 					// The call returned normally, without reifications, with
 					// the resulting value in the interpreter's latestResult().
@@ -492,8 +492,8 @@ public final class L1InstructionStepper
 				case L1Ext_doGetLiteral:
 				{
 					push(
-						getVariable(
-							code.literalAt(getInteger())).makeImmutable());
+						getVariable(code.literalAt(getInteger()))
+							.makeImmutable());
 					break;
 				}
 				case L1Ext_doSetLiteral:
@@ -576,7 +576,7 @@ public final class L1InstructionStepper
 							interpreter.interpreterIndex);
 					}
 
-					callMethodAfterLookup(method, matching);
+					callMethodAfterLookup(matching);
 
 					// The call returned normally, without reifications, with
 					// the resulting value in the interpreter's latestResult().
@@ -711,6 +711,13 @@ public final class L1InstructionStepper
 					{
 						continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
 					}
+					if (Interpreter.debugL2)
+					{
+						System.out.println(
+							interpreter.debugModeString
+								+ "Push reified continuation (for L1 setVar failure): "
+								+ continuation.function().code().methodName());
+					}
 					reifier.pushContinuation(continuation);
 				}
 				throw reifier;
@@ -729,20 +736,27 @@ public final class L1InstructionStepper
 		}
 	}
 
+	/**
+	 * Check that the matching definition is a method definition, then invoke
+	 * its body function.  If reification is requested, construct a suitable
+	 * continuation for the current frame on the way out.
+	 *
+	 * @param matching The {@link A_Definition} that was already looked up.
+	 * @throws ReifyStackThrowable
+	 */
 	private void callMethodAfterLookup (
-		final A_Method method,
 		final A_Definition matching)
 	throws ReifyStackThrowable
 	{
 		if (matching.isForwardDefinition())
 		{
 			throw reifyAndReportFailedLookup(
-				method, E_FORWARD_METHOD_DEFINITION);
+				matching.definitionMethod(), E_FORWARD_METHOD_DEFINITION);
 		}
 		if (matching.isAbstractDefinition())
 		{
 			throw reifyAndReportFailedLookup(
-				method, E_ABSTRACT_METHOD_DEFINITION);
+				matching.definitionMethod(), E_ABSTRACT_METHOD_DEFINITION);
 		}
 		// At this point, the frame information is still the same,
 		// but we've set up argsBuffer.
@@ -793,6 +807,13 @@ public final class L1InstructionStepper
 					i--)
 				{
 					continuation.argOrLocalOrStackAtPut(i, pointerAt(i));
+				}
+				if (Interpreter.debugL2)
+				{
+					System.out.println(
+						interpreter.debugModeString
+							+ "Push reified continuation (for L1): "
+							+ continuation.function().code().methodName());
 				}
 				reifier.pushContinuation(continuation);
 			}

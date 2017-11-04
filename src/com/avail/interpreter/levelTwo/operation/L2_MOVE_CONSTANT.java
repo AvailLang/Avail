@@ -95,4 +95,13 @@ public class L2_MOVE_CONSTANT extends L2Operation
 		assert instruction.operation == instance;
 		return instruction.constantAt(0);
 	}
+
+	@Override
+	public String debugNameIn (
+		final L2Instruction instruction)
+	{
+		final AvailObject constant = instruction.constantAt(0);
+		return super.debugNameIn(instruction)
+			+ "(const=" + constant.typeTag() + ")";
+	}
 }

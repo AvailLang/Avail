@@ -163,36 +163,8 @@ public final class L2Instruction
 		{
 			final L2Operand operand = operands[i].clone();
 			this.operands[i] = operand;
-			if (operand.operandType().isSource)
-			{
-				operand.transformRegisters(
-					new RegisterTransformer<L2OperandType>()
-					{
-						@Override
-						public <X extends L2Register> X value (
-							final X register,
-							final L2OperandType operandType)
-						{
-							sourceRegisters.add(register);
-							return register;
-						}
-					});
-			}
-			if (operand.operandType().isDestination)
-			{
-				operand.transformRegisters(
-					new RegisterTransformer<L2OperandType>()
-					{
-						@Override
-						public <X extends L2Register> X value (
-							final X register,
-							final L2OperandType operandType)
-						{
-							destinationRegisters.add(register);
-							return register;
-						}
-					});
-			}
+			operand.addSourceRegistersTo(sourceRegisters);
+			operand.addDestinationRegistersTo(destinationRegisters);
 		}
 		//noinspection ThisEscapedInObjectConstruction
 		action = uninitializedAction;

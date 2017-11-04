@@ -45,6 +45,7 @@ import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor
 	.concatenatingAnd;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
@@ -98,7 +99,7 @@ public final class P_ConcatenateTuples extends Primitive
 		if (lowerBound.equals(upperBound))
 		{
 			// A fixed number of subtuples.  Must be finite, of course.
-			if (lowerBound.greaterThan(fromUnsignedByte((short)100)))
+			if (lowerBound.greaterThan(fromInt(20)))
 			{
 				// Too expensive to compute here.
 				return super.returnTypeGuaranteedByVM(argumentTypes);

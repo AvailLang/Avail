@@ -89,15 +89,19 @@ public final class P_ClearValue extends Primitive
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return
-			functionType(tuple(mostGeneralVariableType()), TOP.o());
+		return functionType(
+			tuple(
+				mostGeneralVariableType()),
+			TOP.o());
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(E_CANNOT_MODIFY_FINAL_JAVA_FIELD, E_JAVA_MARSHALING_FAILED,
+			set(
+				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
+				E_JAVA_MARSHALING_FAILED,
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
 	}

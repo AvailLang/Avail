@@ -80,4 +80,12 @@ public final class P_ParseNodeTypeExpressionType extends Primitive
 				instanceMeta(PARSE_NODE.mostGeneralType())),
 			topMeta());
 	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type phraseMeta = argumentTypes.get(0);
+		return instanceMeta(phraseMeta.instance().expressionType());
+	}
 }

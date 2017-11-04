@@ -56,6 +56,7 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.utility.Nulls.stripNull;
@@ -78,7 +79,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_Sleep().init(
-			1, CannotFail, Unknown);
+			1, CannotFail, CanSuspend, Unknown);
 
 	@Override
 	public Result attempt (
@@ -131,51 +132,53 @@ extends Primitive
 			};
 			// Once the fiber has been unbound, transition it to sleeping and
 			// start the timer task.
-			interpreter.postExitContinuation(() -> fiber.lock(() ->
-			{
-				// If termination has been requested, then schedule
-				// the resumption of this fiber.
-				if (fiber.interruptRequestFlag(
-					TERMINATION_REQUESTED))
-				{
-					assert fiber.executionState() == SUSPENDED;
-					Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
-						nil,
-						primitiveFunction,
-						true);
-					return;
-				}
-				fiber.wakeupTask(task);
-				fiber.executionState(ASLEEP);
-				runtime.timer.schedule(
-					task,
-					sleepMillis.extractLong());
-			}));
+			interpreter.postExitContinuation(
+				() -> fiber.lock(
+					() ->
+					{
+						// If termination has been requested, then schedule
+						// the resumption of this fiber.
+						if (fiber.interruptRequestFlag(TERMINATION_REQUESTED))
+						{
+							assert fiber.executionState() == SUSPENDED;
+							Interpreter.resumeFromSuccessfulPrimitive(
+								runtime,
+								fiber,
+								nil,
+								primitiveFunction,
+								true);
+							return;
+						}
+						fiber.wakeupTask(task);
+						fiber.executionState(ASLEEP);
+						runtime.timer.schedule(
+							task,
+							sleepMillis.extractLong());
+					}));
 		}
 		// The delay was too big, so put the fiber to sleep forever.
 		else
 		{
 			// Once the fiber has been unbound, transition it to sleeping.
-			interpreter.postExitContinuation(() -> fiber.lock(() ->
-			{
-				// If termination has been requested, then schedule
-				// the resumption of this fiber.
-				if (fiber.interruptRequestFlag(
-					TERMINATION_REQUESTED))
-				{
-					assert fiber.executionState() == SUSPENDED;
-					Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
-						nil,
-						primitiveFunction,
-						true);
-					return;
-				}
-				fiber.executionState(ASLEEP);
-			}));
+			interpreter.postExitContinuation(
+				() -> fiber.lock(
+					() ->
+					{
+						// If termination has been requested, then schedule
+						// the resumption of this fiber.
+						if (fiber.interruptRequestFlag(TERMINATION_REQUESTED))
+						{
+							assert fiber.executionState() == SUSPENDED;
+							Interpreter.resumeFromSuccessfulPrimitive(
+								runtime,
+								fiber,
+								nil,
+								primitiveFunction,
+								true);
+							return;
+						}
+						fiber.executionState(ASLEEP);
+					}));
 		}
 		// Don't actually transition the fiber to the sleeping state, which
 		// can only occur at task-scheduling time. This happens after the

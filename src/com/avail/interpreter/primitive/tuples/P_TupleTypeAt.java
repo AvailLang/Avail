@@ -46,6 +46,7 @@ import java.util.List;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleMeta;
@@ -95,10 +96,12 @@ public final class P_TupleTypeAt extends Primitive
 		final A_Number maxIndex = indexType.upperBound();
 		if (minIndex.isInt())
 		{
-			return tupleType.unionOfTypesAtThrough(
-				minIndex.extractInt(), maxIndex.isInt()
+			final A_Type elementTypeBound = tupleType.unionOfTypesAtThrough(
+				minIndex.extractInt(),
+				maxIndex.isInt()
 					? maxIndex.extractInt()
 					: Integer.MAX_VALUE);
+			return instanceMeta(elementTypeBound);
 		}
 		return super.returnTypeGuaranteedByVM(argumentTypes);
 	}

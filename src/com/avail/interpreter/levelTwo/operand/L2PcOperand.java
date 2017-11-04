@@ -141,13 +141,6 @@ public class L2PcOperand extends L2Operand
 	}
 
 	@Override
-	public L2PcOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return this;
-	}
-
-	@Override
 	public void instructionWasAdded (
 		final L2Instruction theInstruction)
 	{

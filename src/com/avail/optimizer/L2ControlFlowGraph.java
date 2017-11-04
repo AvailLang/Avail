@@ -32,7 +32,9 @@
 
 package com.avail.optimizer;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -42,6 +44,7 @@ import com.avail.interpreter.levelTwo.operand.L2WriteVectorOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
@@ -99,6 +102,7 @@ public final class L2ControlFlowGraph
 	public void startBlock (final L2BasicBlock block)
 	{
 		assert block.instructions().isEmpty();
+		assert !basicBlockOrder.contains(block);
 		if (block.isIrremovable() || block.hasPredecessors())
 		{
 			basicBlockOrder.add(block);
@@ -145,7 +149,7 @@ public final class L2ControlFlowGraph
 	/**
 	 * Given the set of instructions which are reachable, compute the needed
 	 * subset, which consists of those which have side-effect or produce a value
-	 * consumed by other needed instructions.
+	 * consumed by other needed instructions.  Don't assume SSA.
 	 *
 	 * @return The instructions that are needed and should be kept.
 	 */
@@ -174,9 +178,9 @@ public final class L2ControlFlowGraph
 				for (final L2Register sourceRegister
 					: instruction.sourceRegisters())
 				{
-					final L2Instruction definingInstruction =
-						sourceRegister.definition();
-					instructionsToVisit.add(definingInstruction);
+					// Assume all definitions are needed, regardless of control
+					// flow.
+					instructionsToVisit.addAll(sourceRegister.definitions());
 				}
 			}
 		}
@@ -290,6 +294,7 @@ public final class L2ControlFlowGraph
 	{
 		for (final L2BasicBlock block : basicBlockOrder)
 		{
+			final List<L2Instruction> instructionsToPrepend = new ArrayList<>();
 			final Iterator<L2Instruction> instructionIterator =
 				block.instructions().iterator();
 			while (instructionIterator.hasNext())
@@ -301,7 +306,6 @@ public final class L2ControlFlowGraph
 					// them, if any.
 					break;
 				}
-				// Insert a non-SSA move in each predecessor block.
 				final L2WritePointerOperand targetWriter =
 					L2_PHI_PSEUDO_OPERATION.destinationRegisterWrite(
 						instruction);
@@ -310,33 +314,72 @@ public final class L2ControlFlowGraph
 					instruction.sourceRegisters();
 				final int fanIn = predecessors.size();
 				assert fanIn == phiSources.size();
+				@Nullable A_BasicObject constant = null;
+				final List<L2ReadPointerOperand> sourceReaders =
+					L2_PHI_PSEUDO_OPERATION.sourceRegisterReads(instruction);
+
+				// Check for the special case that all the phi sources supply
+				// the same constant value.
 				for (int i = 0; i < fanIn; i++)
 				{
-					final L2BasicBlock predecessor =
-						predecessors.get(i).sourceBlock();
-					final List<L2Instruction> instructions =
-						predecessor.instructions();
-					assert predecessor.finalInstruction().operation
-						instanceof L2_JUMP;
-					final L2ObjectRegister sourceReg =
-						L2ObjectRegister.class.cast(phiSources.get(i));
-
-					// TODO MvG - Eventually we'll need phis for int and float
-					// registers.  We'll move responsibility for constructing
-					// the move into the specific L2Operation subclasses.
-					final L2Instruction move =
+					final @Nullable A_BasicObject newConstant =
+						sourceReaders.get(i).constantOrNull();
+					if (newConstant == null
+						|| (constant != null && !newConstant.equals(constant)))
+					{
+						constant = null;
+						break;
+					}
+					constant = newConstant;
+				}
+				if (constant != null)
+				{
+					// All inputs provide the same constant value.  Convert the
+					// phi into a constant move, rather than introduce non-SSA
+					// moves for it in the predecessor blocks.  Note that this
+					// may cause the incoming registers to be dead.  Also note
+					// that the order of these constant moves doesn't matter.
+					instructionsToPrepend.add(
 						new L2Instruction(
-							predecessor,
-							L2_MOVE.instance,
-							new L2ReadPointerOperand(sourceReg, null),
-							targetWriter);
-					instructions.add(instructions.size() - 1, move);
-					move.justAdded();
+							block,
+							L2_MOVE_CONSTANT.instance,
+							new L2ConstantOperand(constant),
+							targetWriter));
+				}
+				else
+				{
+					// Insert a non-SSA move in each predecessor block.
+					for (int i = 0; i < fanIn; i++)
+					{
+						final L2BasicBlock predecessor =
+							predecessors.get(i).sourceBlock();
+						final List<L2Instruction> instructions =
+							predecessor.instructions();
+						assert predecessor.finalInstruction().operation
+							instanceof L2_JUMP;
+						final L2ObjectRegister sourceReg =
+							L2ObjectRegister.class.cast(phiSources.get(i));
+
+						// TODO MvG - Eventually we'll need phis for int and
+						// float registers.  We'll move responsibility for
+						// constructing the move into the specific L2Operation
+						// subclasses.
+						final L2Instruction move =
+							new L2Instruction(
+								predecessor,
+								L2_MOVE.instance,
+								new L2ReadPointerOperand(sourceReg, null),
+								targetWriter);
+						instructions.add(instructions.size() - 1, move);
+						move.justAdded();
+					}
 				}
 				// Eliminate the phi function itself.
 				instructionIterator.remove();
 				instruction.justRemoved();
 			}
+			block.instructions().addAll(0, instructionsToPrepend);
+			instructionsToPrepend.forEach(L2Instruction::justAdded);
 		}
 	}
 
@@ -880,6 +923,11 @@ public final class L2ControlFlowGraph
 
 		// Insert phi moves, which makes it no longer in SSA form.
 		insertPhiMoves();
+		sanityCheck(L2Register::uniqueValue);
+
+		// Remove constant moves made unnecessary by the introduction of new
+		// constant moves after phis (the ones that are constant-valued).
+		removeDeadCode();
 		sanityCheck(L2Register::uniqueValue);
 
 		// Color all registers.  This creates a dense finalIndex numbering for

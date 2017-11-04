@@ -63,6 +63,7 @@ import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 import static com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -81,7 +82,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_ExceptionStackDump().init(
-			1, Unknown);
+			1, CanSuspend, Unknown);
 
 	@Override
 	public Result attempt (

@@ -47,6 +47,7 @@ import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import javax.annotation.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
@@ -54,6 +55,7 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor
 	.instanceTypeOrMetaOn;
 import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static java.lang.String.format;
 
 /**
@@ -163,15 +165,6 @@ public class L2ReadPointerOperand extends L2Operand
 	}
 
 	@Override
-	public L2ReadPointerOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return new L2ReadPointerOperand(
-			transformer.value(register, operandType()),
-			restriction());
-	}
-
-	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
 		register.addUse(instruction);
@@ -199,9 +192,20 @@ public class L2ReadPointerOperand extends L2Operand
 	}
 
 	@Override
+	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
+	{
+		sourceRegisters.add(register);
+	}
+
+	@Override
 	public String toString ()
 	{
-		return format("Read(%s)", register);
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Read(");
+		builder.append(register);
+		builder.append(register.restriction().suffixString());
+		builder.append(")");
+		return builder.toString();
 	}
 
 	/**
@@ -321,7 +325,8 @@ public class L2ReadPointerOperand extends L2Operand
 				}
 			}
 			elements = elements.makeImmutable();
-			return new PhiRestriction(register, enumerationWith(elements), null);
+			return new PhiRestriction(
+				register, enumerationWith(elements), null);
 		}
 		// Be conservative and ignore the type subtraction.  We could eventually
 		// record this information.

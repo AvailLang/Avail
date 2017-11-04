@@ -72,6 +72,7 @@ import static com.avail.exceptions.AvailErrorCode
 	.E_INCORRECT_NUMBER_OF_ARGUMENTS;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 import static com.avail.interpreter.Interpreter.*;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
 import static com.avail.utility.Nulls.stripNull;
@@ -110,7 +111,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_CreateRestrictedSendExpression().init(
-			3, Unknown);
+			3, CanSuspend, Unknown);
 
 	@Override
 	public Result attempt (

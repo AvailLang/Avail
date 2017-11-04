@@ -76,141 +76,6 @@ import static java.lang.String.format;
 public final class L2Translator
 {
 	/**
-	 * {@code DebugFlag}s control which kinds of {@linkplain L2Translator
-	 * translation} events should be {@linkplain #logger logged}.
-	 */
-	@InnerAccess
-	enum DebugFlag
-	{
-		/** Code generation. */
-		GENERATION(false),
-
-		/** Code optimization. */
-		OPTIMIZATION(false),
-
-		/** Data flow analysis. */
-		DATA_FLOW(false),
-
-		/** Dead instruction removal. */
-		DEAD_INSTRUCTION_REMOVAL(false);
-
-		/** The {@linkplain Logger logger}. */
-		@InnerAccess
-		final Logger logger;
-
-		/**
-		 * Should translation events of this kind be logged?
-		 */
-		private boolean shouldLog;
-
-		/**
-		 * Should translation events of this kind be logged?
-		 *
-		 * @return {@code true} if translation events of this kind should be
-		 * logged, {@code false} otherwise.
-		 */
-		boolean shouldLog ()
-		{
-			return shouldLog;
-		}
-
-		/**
-		 * Indicate whether translation events of the kind represented by the
-		 * {@linkplain DebugFlag receiver} should be logged.
-		 *
-		 * @param flag
-		 *        {@code true} if these events should be logged, {@code false}
-		 *        otherwise.
-		 */
-		void shouldLog (final boolean flag)
-		{
-			shouldLog = flag;
-		}
-
-		/**
-		 * Log the specified message if debugging is enabled for translation
-		 * events of this kind.
-		 *
-		 * @param level
-		 *        The {@linkplain Level severity level}.
-		 * @param format
-		 *        The format string.
-		 * @param args
-		 *        The format arguments.
-		 */
-		void log (final Level level, final String format, final Object... args)
-		{
-			if (shouldLog && logger.isLoggable(level))
-			{
-				logger.log(level, format, args);
-			}
-		}
-
-		/**
-		 * Log the specified message if debugging is enabled for translation
-		 * events of this kind.
-		 *
-		 * @param level
-		 *        The {@linkplain Level severity level}.
-		 * @param exception
-		 *        The {@linkplain Throwable exception} that motivated this log
-		 *        entry.
-		 * @param format
-		 *        The format string.
-		 * @param args
-		 *        The format arguments.
-		 */
-		void log (
-			final Level level,
-			final Throwable exception,
-			final String format,
-			final Object... args)
-		{
-			if (shouldLog && logger.isLoggable(level))
-			{
-				logger.log(level, format(format, args), exception);
-			}
-		}
-
-		/**
-		 * Log the specified message if debugging is enabled for translation
-		 * events of this kind.
-		 *
-		 * @param level
-		 *        The {@linkplain Level severity level}.
-		 * @param continuation
-		 *        How to log the message. The argument is a {@link
-		 *        Continuation2} that accepts the log message and a causal
-		 *        {@linkplain Throwable exception} (or {@code null} if none).
-		 */
-		void log (
-			final Level level,
-			final Continuation1NotNull<Continuation2<String, Throwable>>
-				continuation)
-		{
-			if (shouldLog && logger.isLoggable(level))
-			{
-				continuation.value(
-					(message, exception) ->
-						logger.log(level, message, exception));
-			}
-		}
-
-		/**
-		 * Construct a new {@code DebugFlag}.
-		 *
-		 * @param shouldLog
-		 *        Should translation events of this kind be logged?
-		 */
-		DebugFlag (final boolean shouldLog)
-		{
-			this.logger = Logger.getLogger(
-				L2Translator.class.getName() + "." + name());
-			this.shouldLog = shouldLog;
-		}
-	}
-
-	/**
 	 * Don't inline dispatch logic if there are more than this many possible
 	 * implementations at a call site.
 	 */
@@ -359,6 +224,7 @@ public final class L2Translator
 	 * other registers that currently hold equivalent values, and the set of
 	 * instructions that may have directly produced the current register value.
 	 */
+	@Deprecated
 	private void computeDataFlow ()
 	{
 		//TODO MvG - Rework this as a code regeneration pass, where each
@@ -488,6 +354,7 @@ public final class L2Translator
 			registerCounter.floatMax + 1,
 			afterPrimitiveOffset,
 			instructions,
+			controlFlowGraph,
 			contingentValues);
 	}
 
@@ -597,10 +464,6 @@ public final class L2Translator
 		initialBlock = translator.initialBlock;
 		afterOptionalInitialPrimitiveBlock =
 			translator.afterOptionalInitialPrimitiveBlock;
-		if (theCode.numArgs() > 2)
-		{
-			System.out.println("More than two args.  Have a look.");
-		}
 		translator.controlFlowGraph.optimize();
 		createChunk(translator.controlFlowGraph);
 		assert theCode.startingChunk() == chunk;

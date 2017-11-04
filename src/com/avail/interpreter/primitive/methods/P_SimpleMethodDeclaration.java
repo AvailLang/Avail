@@ -68,6 +68,7 @@ import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
 import static com.avail.utility.Nulls.stripNull;
@@ -89,7 +90,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_SimpleMethodDeclaration().init(
-			2, Bootstrap, Unknown);
+			2, Bootstrap, CanSuspend, Unknown);
 
 	@Override
 	public Result attempt (
@@ -163,12 +164,14 @@ extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return enumerationWith(
-			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_AMBIGUOUS_NAME,
 				E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-				E_METHOD_IS_SEALED)
-				.setUnionCanDestroy(possibleErrors, true));
+				E_METHOD_IS_SEALED
+			).setUnionCanDestroy(possibleErrors, true));
 	}
 }

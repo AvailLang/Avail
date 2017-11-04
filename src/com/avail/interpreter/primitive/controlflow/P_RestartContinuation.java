@@ -38,7 +38,9 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2ImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.interpreter.levelTwo.operation.L2_REIFY_CALLERS;
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION;
 import com.avail.optimizer.L1Translator;
 
@@ -122,11 +124,22 @@ public final class P_RestartContinuation extends Primitive
 		final L1Translator translator)
 	{
 		// A restart works with every continuation that is created by a label.
+		// First, pop out of the Java stack frames back into the outer L2 run
+		// loop (which saves/restores the current frame and continues at the
+		// next L2 instruction).  The zero (0) immediate operand means discard
+		// frame information on the way out, rather than capturing it.
+		translator.addInstruction(
+			L2_REIFY_CALLERS.instance,
+			new L2ImmediateOperand(0));
 		translator.addInstruction(
 			L2_RESTART_CONTINUATION.instance,
 			arguments.get(0));
 		// Return a register to indicate code was generated, but nothing can
-		// actually read or write it.
+		// actually read or write it.  Also start a new block to ensure this
+		// generation position is recognized as unreachable.
+		translator.startBlock(
+			translator.createBasicBlock(
+				"unreachable after L2_RESTART_CONTINUATION"));
 		return translator.newObjectRegisterWriter(bottom(), null).read();
 	}
 }

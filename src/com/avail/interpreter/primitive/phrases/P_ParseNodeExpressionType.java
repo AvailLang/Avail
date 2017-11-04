@@ -42,6 +42,7 @@ import com.avail.interpreter.Primitive;
 import java.util.List;
 
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.ParseNodeTypeDescriptor.ParseNodeKind
 	.PARSE_NODE;
@@ -77,5 +78,13 @@ public final class P_ParseNodeExpressionType extends Primitive
 	{
 		return
 			functionType(tuple(PARSE_NODE.mostGeneralType()), topMeta());
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type phraseType = argumentTypes.get(0);
+		return instanceMeta(phraseType.expressionType());
 	}
 }

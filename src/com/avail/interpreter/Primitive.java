@@ -55,6 +55,7 @@ import com.avail.optimizer.L2Translator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.Serializer;
+import com.sun.org.apache.bcel.internal.classfile.Unknown;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
@@ -73,6 +74,7 @@ import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.optimizer.L1Translator.readVector;
 import static com.avail.utility.Nulls.stripNull;
@@ -165,6 +167,13 @@ implements IntegerEnumSlotDescriptionEnum
 		 * non-primitive call.
 		 */
 		CanInline,
+
+		/**
+		 * A primitive must have this flag if it might suspend the current
+		 * fiber.  The L2 invocation machinery ensures the Java stack has been
+		 * reified into a continuation chain <em>prior</em> to invoking the
+		 */
+		CanSuspend,
 
 		/**
 		 * The primitive has a side-effect, such as writing to a file, modifying
@@ -902,8 +911,8 @@ implements IntegerEnumSlotDescriptionEnum
 	@Override
 	public int ordinal ()
 	{
-		error("Primitive ordinal() should not be used.");
-		return 0;
+		throw new UnsupportedOperationException(
+			"Primitive ordinal() should not be used.");
 	}
 
 	/**
@@ -981,9 +990,11 @@ implements IntegerEnumSlotDescriptionEnum
 		final L1Translator translator)
 	{
 		// In the general case, avoid producing failure and reification code if
-		// the primitive is infallible.
-		if (hasFlag(CannotFail)
-			|| fallibilityForArgumentTypes(argumentTypes) == CallSiteCannotFail)
+		// the primitive is infallible.  However, if the primitive can suspend
+		// the fiber (which can happen even if it's infallible), be careful not
+		// to inline it.
+		if (!hasFlag(CanSuspend)
+			&& fallibilityForArgumentTypes(argumentTypes) == CallSiteCannotFail)
 		{
 			// The primitive cannot fail at this site.  Output code to run the
 			// primitive as simply as possible, feeding a register with as
@@ -999,6 +1010,9 @@ implements IntegerEnumSlotDescriptionEnum
 				writer);
 			return writer.read();
 		}
-		return null;
+		else
+		{
+			return null;
+		}
 	}
 }

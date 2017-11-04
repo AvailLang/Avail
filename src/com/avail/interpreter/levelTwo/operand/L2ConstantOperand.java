@@ -79,13 +79,6 @@ public class L2ConstantOperand extends L2Operand
 	}
 
 	@Override
-	public L2ConstantOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return this;
-	}
-
-	@Override
 	public String toString ()
 	{
 		return format("Const(%s)", object);

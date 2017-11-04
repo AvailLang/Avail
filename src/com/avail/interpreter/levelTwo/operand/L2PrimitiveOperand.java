@@ -77,13 +77,6 @@ public class L2PrimitiveOperand extends L2Operand
 	}
 
 	@Override
-	public L2PrimitiveOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return this;
-	}
-
-	@Override
 	public String toString ()
 	{
 		return format("Prim(%s)", primitive.getClass().getSimpleName());

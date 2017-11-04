@@ -52,6 +52,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.exceptions.AvailErrorCode.E_FIBER_IS_TERMINATED;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -69,7 +70,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_GetContinuationOfOtherFiber().init(
-			1, Unknown);
+			1, CanSuspend, Unknown);
 
 	@Override
 	public Result attempt (
@@ -124,7 +125,9 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(mostGeneralFiberType()),
+			functionType(
+				tuple(
+					mostGeneralFiberType()),
 				mostGeneralContinuationType());
 	}
 }

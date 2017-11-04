@@ -59,6 +59,7 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -77,7 +78,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_PrintToConsole().init(
-			1, Unknown);
+			1, CanSuspend, Unknown);
 
 	@Override
 	public Result attempt (

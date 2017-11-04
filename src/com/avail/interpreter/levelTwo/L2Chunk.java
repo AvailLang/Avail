@@ -50,6 +50,7 @@ import com.avail.interpreter.levelTwo.register.L2ObjectRegister;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow
 	.P_RestartContinuationWithArguments;
+import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Translator;
 
 import javax.annotation.Nullable;
@@ -95,6 +96,12 @@ import static java.lang.String.format;
  */
 public final class L2Chunk
 {
+	/**
+	 * The optimized, non-SSA {@link L2ControlFlowGraph} from which the chunk
+	 * was created.  Useful for debugging.
+	 */
+	final L2ControlFlowGraph controlFlowGraph;
+
 	/**
 	 * The number of {@linkplain L2ObjectRegister object registers} that
 	 * this chunk uses (including the fixed registers).  Having the number of
@@ -389,6 +396,10 @@ public final class L2Chunk
 	 * @param theInstructions
 	 *        A {@link List} of {@link L2Instruction}s that can be executed in
 	 *        place of the level one nybblecodes.
+	 * @param controlFlowGraph
+	 *        The optimized, non-SSA {@link L2ControlFlowGraph}.  Useful for
+	 *        debugging.  Eventually we'll want to capture a copy of the graph
+	 *        prior to conversion from SSA to support inlining.
 	 * @param contingentValues
 	 *        A {@link Set} of {@linkplain MethodDescriptor methods} on which
 	 *        the level two chunk depends.
@@ -401,6 +412,7 @@ public final class L2Chunk
 		final int numFloats,
 		final int offsetAfterInitialTryPrimitive,
 		final List<L2Instruction> theInstructions,
+		final L2ControlFlowGraph controlFlowGraph,
 		final A_Set contingentValues)
 	{
 		final L2Chunk chunk = new L2Chunk(
@@ -409,6 +421,7 @@ public final class L2Chunk
 			numFloats,
 			offsetAfterInitialTryPrimitive,
 			theInstructions,
+			controlFlowGraph,
 			contingentValues);
 		if (code != null)
 		{
@@ -438,6 +451,10 @@ public final class L2Chunk
 	 *        already been attempted and failed.
 	 * @param instructions
 	 *        The instructions to execute.
+	 * @param controlFlowGraph
+	 *        The optimized, non-SSA {@link L2ControlFlowGraph}.  Useful for
+	 *        debugging.  Eventually we'll want to capture a copy of the graph
+	 *        prior to conversion from SSA to support inlining.
 	 * @param contingentValues
 	 *        The set of contingent {@link A_ChunkDependable}.
 	 */
@@ -447,6 +464,7 @@ public final class L2Chunk
 		final int numFloats,
 		final int offsetAfterInitialTryPrimitive,
 		final List<L2Instruction> instructions,
+		final L2ControlFlowGraph controlFlowGraph,
 		final A_Set contingentValues)
 	{
 		// A new chunk starts out valid.
@@ -457,6 +475,7 @@ public final class L2Chunk
 		this.offsetAfterInitialTryPrimitive = offsetAfterInitialTryPrimitive;
 		this.instructions = instructions.toArray(
 			new L2Instruction[instructions.size()]);
+		this.controlFlowGraph = controlFlowGraph;
 		this.contingentValues = contingentValues;
 	}
 

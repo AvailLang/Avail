@@ -34,6 +34,8 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
@@ -45,8 +47,10 @@ import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import javax.annotation.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static java.lang.String.format;
 
 /**
@@ -137,14 +141,6 @@ public class L2WritePointerOperand extends L2Operand
 	}
 
 	@Override
-	public L2WritePointerOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return new L2WritePointerOperand(
-			transformer.value(register, operandType()));
-	}
-
-	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
 		register.addDefinition(instruction);
@@ -172,9 +168,21 @@ public class L2WritePointerOperand extends L2Operand
 	}
 
 	@Override
+	public void addDestinationRegistersTo (
+		final List<L2Register> destinationRegisters)
+	{
+		destinationRegisters.add(register);
+	}
+
+	@Override
 	public String toString ()
 	{
-		return format("Write(%s)", register);
+		final StringBuilder builder = new StringBuilder();
+		builder.append("Write(");
+		builder.append(register);
+		builder.append(register.restriction().suffixString());
+		builder.append(")");
+		return builder.toString();
 	}
 
 	/**

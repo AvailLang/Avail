@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Nulls.stripNull;
@@ -121,10 +122,16 @@ public class L2_RUN_INFALLIBLE_PRIMITIVE extends L2Operation
 			interpreter.function = null;
 			final Result res = interpreter.attemptPrimitive(
 				primitive, false);
-			assert res == SUCCESS;
-			interpreter.function = savedFunction;
-			interpreter.pointerAtPut(
-				resultRegNumber, interpreter.latestResult());
+			if (res == SUCCESS)
+			{
+				interpreter.function = savedFunction;
+				interpreter.pointerAtPut(
+					resultRegNumber, interpreter.latestResult());
+			}
+			else
+			{
+				assert res == CONTINUATION_CHANGED;
+			}
 		};
 	}
 

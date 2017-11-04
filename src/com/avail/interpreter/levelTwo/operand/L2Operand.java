@@ -40,6 +40,7 @@ import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 import com.avail.utility.PublicCloneable;
 import com.avail.utility.evaluation.Transformer2;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -65,21 +66,6 @@ public abstract class L2Operand extends PublicCloneable<L2Operand>
 	 */
 	public abstract void dispatchOperand (
 		final L2OperandDispatcher dispatcher);
-
-	/**
-	 * Invoke the {@link Transformer2 transformer} with each {@link L2Register}
-	 * contained within me (also passing this L2Operand), producing an
-	 * alternative {@code L2Operand}.  If no transformations were necessary, the
-	 * receiver may be returned.
-	 *
-	 * @param transformer
-	 *            What to do with each register.
-	 * @return
-	 *            The transformed version of the receiver.
-	 */
-	@Deprecated
-	public abstract L2Operand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer);
 
 	/**
 	 * This is an operand of the given instruction, which was just added to its
@@ -123,6 +109,27 @@ public abstract class L2Operand extends PublicCloneable<L2Operand>
 		final L2Instruction instruction)
 	{
 		// By default do nothing.
+	}
+
+	/**
+	 * Move any registers used as sources within me into the provided list.
+	 *
+	 * @param sourceRegisters The {@link List} to update.
+	 */
+	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
+	{
+		// Do nothing by default.
+	}
+
+	/**
+	 * Move any registers used as destinations within me into the provided list.
+	 *
+	 * @param destinationRegisters The {@link List} to update.
+	 */
+	public void addDestinationRegistersTo (
+		final List<L2Register> destinationRegisters)
+	{
+		// Do nothing by default.
 	}
 
 	@Override

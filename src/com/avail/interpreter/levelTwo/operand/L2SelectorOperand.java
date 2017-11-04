@@ -83,13 +83,6 @@ public class L2SelectorOperand extends L2Operand
 	}
 
 	@Override
-	public L2SelectorOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return this;
-	}
-
-	@Override
 	public String toString ()
 	{
 		return String.format("Selector(%s)", bundle.message().atomName());

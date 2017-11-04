@@ -31,11 +31,16 @@
  */
 package com.avail.interpreter.primitive.privatehelpers;
 
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
+import com.avail.optimizer.L1Translator;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -54,7 +59,7 @@ public final class P_PushArgument extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_PushArgument().init(
-			1, SpecialReturnSoleArgument, Private, CanFold, CanInline, CannotFail);
+			1, SpecialReturnSoleArgument, Private, CanInline, CannotFail);
 
 	@Override
 	public Result attempt (
@@ -90,5 +95,19 @@ public final class P_PushArgument extends Primitive
 			tuple(
 				ANY.o()),
 			bottom());
+	}
+
+
+	@Override
+	public @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
+		final L2ReadPointerOperand functionToCallReg,
+		final List<L2ReadPointerOperand> arguments,
+		final List<A_Type> argumentTypes,
+		final L1Translator translator)
+	{
+		// The value is available in this register.  Doesn't even need a move.
+		// The translator may still need to strengthen the value due to semantic
+		// restrictions.
+		return arguments.get(0);
 	}
 }

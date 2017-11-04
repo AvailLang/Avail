@@ -95,7 +95,10 @@ extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(mostGeneralVariableType()), ANY.o());
+			functionType(
+				tuple(
+					mostGeneralVariableType()),
+				ANY.o());
 	}
 
 	@Override

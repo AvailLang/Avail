@@ -75,13 +75,33 @@ public class L2_RESTART_CONTINUATION extends L2Operation
 
 		final A_Continuation continuation = continuationReg.in(interpreter);
 		final A_RawFunction code = continuation.function().code();
+		//TODO MvG - Continuations should have two statically distinguishable
+		// varieties.
 		assert continuation.stackp() == code.numArgsAndLocalsAndStack() + 1
 			: "Outer continuation should have been a label- rather than "
 				+ "call-continuation";
-		assert continuation.pc() == 1
+		//TODO MvG - Continuations should have two statically distinguishable
+		// varieties.
+		assert continuation.pc() == 0
 			: "Labels must only occur at the start of a block.  "
 				+ "Only restart that kind of continuation.";
-		interpreter.prepareToRestartContinuation(continuation);
+
+		// Move the (original) arguments from the continuation into
+		// interpreter.argsBuffer.
+		final int numArgs = code.numArgs();
+		interpreter.argsBuffer.clear();
+		for (int i = 1; i <= numArgs; i++)
+		{
+			interpreter.argsBuffer.add(continuation.argOrLocalOrStackAt(i));
+		}
+		// The restart entry point expects the interpreter's reifiedContinuation
+		// to be the label continuation's *caller*.
+		interpreter.reifiedContinuation = continuation.caller();
+		interpreter.function = continuation.function();
+		interpreter.chunk = continuation.levelTwoChunk();
+		interpreter.offset = continuation.levelTwoOffset();
+		interpreter.returnNow = false;
+		interpreter.latestResult(null);
 	}
 
 	@Override

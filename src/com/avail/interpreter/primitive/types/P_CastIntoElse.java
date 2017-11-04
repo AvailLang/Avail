@@ -308,12 +308,14 @@ public final class P_CastIntoElse extends Primitive
 		translator.addInstruction(
 			L2_JUMP.instance,
 			new L2PcOperand(mergeBlock, translator.slotRegisters()));
+		// Check if the jump above was actually reachable.
+		final boolean canReachMergeFromCastBody = mergeBlock.hasPredecessors();
 
 		translator.startBlock(elseBlock);
 		final L2ReadPointerOperand elseResultReg =
 			translator.generateGeneralFunctionInvocation(
-				castFunctionReg,
-				singletonList(valueReg),
+				elseFunctionReg,
+				emptyList(),
 				TOP.o(),
 				true,
 				translator.slotRegisters(),
@@ -329,10 +331,27 @@ public final class P_CastIntoElse extends Primitive
 			translator.newObjectRegisterWriter(
 				mergeRestriction.type,
 				mergeRestriction.constantOrNull);
-		translator.addInstruction(
-			L2_PHI_PSEUDO_OPERATION.instance,
-			readVector(asList(castResultReg, elseResultReg)),
-			mergeReg);
-		return mergeReg.read();
+		final int ingressCount = mergeBlock.predecessorEdges().size();
+		if (ingressCount == 2)
+		{
+			// Both the cast path and the else path reach here (i.e., neither
+			// path does something like unconditionally call a bottom-valued
+			// function).  Merge the results with a phi function.
+			translator.addInstruction(
+				L2_PHI_PSEUDO_OPERATION.instance,
+				readVector(asList(castResultReg, elseResultReg)),
+				mergeReg);
+			return mergeReg.read();
+		}
+		if (ingressCount == 1)
+		{
+			// No need for a phi function, or even a move.
+			return canReachMergeFromCastBody ? castResultReg : elseResultReg;
+		}
+		// Both branches were dead ends.  Answer a register that is never
+		// written, since we have to answer something.  If it gets used in
+		// subsequent code accidentally, it will be flagged as a read without a
+		// preceding write.
+		return translator.newObjectRegisterWriter(bottom(), null).read();
 	}
 }

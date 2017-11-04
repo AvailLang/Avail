@@ -100,7 +100,7 @@ extends Primitive
 		assert args.size() == 2;
 		final A_Function function = args.get(0);
 		final A_Tuple argTuple = args.get(1);
-		final A_Type blockType = function.kind();
+		final A_Type functionType = function.kind();
 
 		final int numArgs = argTuple.tupleSize();
 		final A_RawFunction code = function.code();
@@ -109,7 +109,7 @@ extends Primitive
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS);
 		}
-		final A_Type tupleType = blockType.argsTupleType();
+		final A_Type tupleType = functionType.argsTupleType();
 		for (int i = 1; i <= numArgs; i++)
 		{
 			final AvailObject arg = argTuple.tupleAt(i);
@@ -142,9 +142,9 @@ extends Primitive
 	public Fallibility fallibilityForArgumentTypes (
 		final List<? extends A_Type> argumentTypes)
 	{
-		final A_Type blockType = argumentTypes.get(0);
+		final A_Type functionType = argumentTypes.get(0);
 		final A_Type argTupleType = argumentTypes.get(1);
-		final A_Type paramsType = blockType.argsTupleType();
+		final A_Type paramsType = functionType.argsTupleType();
 		final boolean fixedSize = argTupleType.sizeRange().upperBound().equals(
 			argTupleType.sizeRange().lowerBound());
 		return (fixedSize
@@ -152,6 +152,52 @@ extends Primitive
 				&& argTupleType.isSubtypeOf(paramsType))
 			? CallSiteCannotFail
 			: CallSiteCanFail;
+	}
+
+	@Override
+	public A_Type returnTypeGuaranteedByVM (
+		final List<? extends A_Type> argumentTypes)
+	{
+		final A_Type functionType = argumentTypes.get(0);
+		final A_Type functionReturnType =
+			functionType.isSubtypeOf(mostGeneralFunctionType())
+				? functionType.returnType()
+				: TOP.o();
+		if (functionType.instanceCount().equalsInt(1)
+			&& !functionReturnType.isInstanceMeta())
+		{
+			final A_Function function = functionType.instance();
+			final A_RawFunction code = function.code();
+			final @Nullable Primitive primitive = code.primitive();
+			if (primitive != null)
+			{
+				// See if the primitive function would always succeed with the
+				// arguments that would be supplied to it.
+				final int primArgCount = primitive.argCount();
+				final A_Type primArgTupleType = argumentTypes.get(1);
+				final A_Type primArgTupleTypeSizes =
+					primArgTupleType.sizeRange();
+				if (primArgTupleTypeSizes.lowerBound().equalsInt(primArgCount)
+					&& primArgTupleTypeSizes.upperBound().equalsInt(
+						primArgCount))
+				{
+					final List<A_Type> argTypes =
+						IntStream.rangeClosed(1, primitive.argCount())
+							.mapToObj(primArgTupleType::typeAtIndex)
+							.collect(toList());
+					final Fallibility fallibility =
+						primitive.fallibilityForArgumentTypes(argTypes);
+					if (fallibility == CallSiteCannotFail)
+					{
+						// The invocation of this primitive will always succeed.
+						// Ask the primitive what type it guarantees to return.
+						return primitive.returnTypeGuaranteedByVM(argTypes);
+					}
+				}
+			}
+			return functionReturnType;
+		}
+		return super.returnTypeGuaranteedByVM(argumentTypes);
 	}
 
 	/**

@@ -32,7 +32,9 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -122,16 +124,6 @@ public class L2ReadVectorOperand extends L2Operand
 	}
 
 	@Override
-	public L2ReadVectorOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return new L2ReadVectorOperand(
-			elements.stream()
-				.map(element -> element.transformRegisters(transformer))
-				.collect(toList()));
-	}
-
-	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
 		for (final L2ReadPointerOperand element : elements)
@@ -159,18 +151,26 @@ public class L2ReadVectorOperand extends L2Operand
 	}
 
 	@Override
+	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
+	{
+		elements.forEach(
+			read -> read.addSourceRegistersTo(sourceRegisters));
+	}
+
+	@Override
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append("ReadVector(");
 		boolean first = true;
-		for (final L2ReadPointerOperand register : elements)
+		for (final L2ReadPointerOperand read : elements)
 		{
 			if (!first)
 			{
-				builder.append(",");
+				builder.append(", ");
 			}
-			builder.append(register);
+			builder.append(read.register());
+			builder.append(read.restriction().suffixString());
 			first = false;
 		}
 		builder.append(")");

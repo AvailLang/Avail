@@ -65,6 +65,7 @@ import static com.avail.descriptor.TupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
 import static com.avail.utility.Nulls.stripNull;
@@ -89,7 +90,7 @@ extends Primitive
 	 */
 	public static final Primitive instance =
 		new P_SimpleLexerDefinitionForAtom().init(
-			3, Unknown);
+			3, CanSuspend, Unknown);
 
 	@Override
 	public Result attempt (

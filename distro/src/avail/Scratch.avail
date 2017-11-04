@@ -17,7 +17,7 @@
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
@@ -30,13 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Scratch"
+Module "Scratch
 Versions
-	"1.0.0 DEV 2014-04-28"
-Uses "Avail"
+	"1.0.0 DEV 2014-04-28
+Uses "Avail
 Names
 "Base64 encoder",
-"“_”(Base64)"
+"“_”(Base64)
 Body
 
 Method "Cheese_" is
@@ -60,35 +60,36 @@ Method "Cheese_" is
   * A {@type "converter"} that translates a {@type "tuple"} of {@type "byte"}s
   * into a tuple of {@type "Base64 character"}s.
   *
-  * @type "Base64 encoder"
-  * @supertype "converter"
-  * @field "binary residue" "byte*"
+  * @type "Base64 encoder
+  * @supertype "converter
+  * @field "binary residue" "byte*
   *        Bytes that have not yet undergone conversion.
-  * @field "binary residue cleaner" "“_”(Base64)"
+  * @field "binary residue cleaner" "“_”(Base64)
   *        A cleaner
-  * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+  * @category "Data Abstractions" "Converters" "Codecs" "Base64
   */
 
   /**
    * Convert {@param "bytes"} to a Base64 {@type "string"}.
    *
-   * @method "“_”(Base64)"
-   * @param "bytes" "byte*"
-   * @returns "Base64 string"
-   * @category "Data Abstractions" "Converters" "Codecs" "Base64"
+   * @method "“_”(Base64)
+   * @param "bytes" "byte*
+   * @returns "Base64 string
+   * @category "Data Abstractions" "Converters" "Codecs" "Base64
    */
 
    /**
     * You know, some stuff!
-    * @category "Data Abstractions"
+    * @category "Data Abstractions
     */
 
     /**
      * Other stuff!
-	* @category "Converters"
+	* @category "Converters
 	*/
 
 	/**
 	* even more things!!!
-	* @category "Base64"
+	* @category "Base64
 	*/
+

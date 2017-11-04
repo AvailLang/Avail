@@ -225,4 +225,19 @@ public class L2_PHI_PSEUDO_OPERATION extends L2Operation
 		assert instruction.operation instanceof L2_PHI_PSEUDO_OPERATION;
 		return instruction.writeObjectRegisterAt(1);
 	}
+
+	/**
+	 * Answer the {@link List} of {@link L2ReadPointerOperand}s for this phi
+	 * function.  The order is correlated to the instruction's blocks
+	 * predecessorEdges.
+	 *
+	 * @param instruction
+	 *        The phi instruction.
+	 * @return The instruction's list of sources.
+	 */
+	public static List<L2ReadPointerOperand> sourceRegisterReads (
+		final L2Instruction instruction)
+	{
+		return instruction.readVectorRegisterAt(0);
+	}
 }

@@ -32,6 +32,7 @@
 
 package com.avail.optimizer;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadPointerOperand;
@@ -307,37 +308,58 @@ public final class L2BasicBlock
 		{
 			final List<L2ReadPointerOperand> registerReads =
 				sourcesBySlot.get(slotIndex - 1);
+			if (registerReads.contains(null))
+			{
+				// At least one of the inputs has no definition for that slot.
+				// Treat it as inaccessible here as well.
+				translator.forceSlotRegister(slotIndex, null);
+				continue;
+			}
+			final List<A_BasicObject> constants = registerReads.stream()
+				.map(L2ReadPointerOperand::constantOrNull)
+				.collect(toList());
+			if (!constants.contains(null)
+				&& constants.stream().distinct().count() == 1)
+			{
+				// All predecessors produce the same constant value for this
+				// phi.  Introduce another local constant instead of a phi
+				// move, under the assumption that the previous constant
+				// moves are likely to become dead code.
+				translator.moveConstantToSlot(constants.get(0), slotIndex);
+				continue;
+			}
+			@SuppressWarnings("ConstantConditions")
+			final TypeRestriction unionRestriction = registerReads.stream()
+				.map(L2ReadPointerOperand::restriction)
+				.reduce(TypeRestriction::union)
+				.get();
 			final Set<L2ObjectRegister> distinct = registerReads.stream()
 				.map(L2ReadPointerOperand::register)
 				.collect(toSet());
 			assert !distinct.isEmpty();
 			if (distinct.size() == 1)
 			{
-				// All predecessors set up this register the same way, so this
-				// register doesn't need a phi function.  However, this might
-				// not be the *current* register, due to block creation order.
-				// Bring the translator into agreement.
+				// All predecessors set up this register the same way, so
+				// this register doesn't need a phi function.  However, this
+				// might not be the *current* register, due to block
+				// creation order.  Bring the translator into agreement.
+				translator.forceSlotRegister(
+					slotIndex,
+					new L2ReadPointerOperand(
+						distinct.iterator().next(),
+						unionRestriction));
 				translator.forceSlotRegister(slotIndex, registerReads.get(0));
+				continue;
 			}
-			else
-			{
-				// Create a phi instruction to merge these sources together into
-				// a new register at that slot index.
-				@SuppressWarnings("ConstantConditions")
-				final TypeRestriction restriction = distinct.stream()
-					.map(L2ObjectRegister::restriction)
-					.reduce(TypeRestriction::union)
-					.get();
-				addInstruction(
-					new L2Instruction(
-						translator.currentBlock,
-						L2_PHI_PSEUDO_OPERATION.instance,
-						readVector(registerReads),
-						translator.writeSlot(
-							slotIndex,
-							restriction.type,
-							restriction.constantOrNull)));
-			}
+			// Create a phi instruction to merge these sources together
+			// into a new register at that slot index.
+			translator.addInstruction(
+				L2_PHI_PSEUDO_OPERATION.instance,
+				readVector(registerReads),
+				translator.writeSlot(
+					slotIndex,
+					unionRestriction.type,
+					unionRestriction.constantOrNull));
 		}
 	}
 
@@ -364,9 +386,33 @@ public final class L2BasicBlock
 	{
 		assert !hasControlFlowAtEnd;
 		assert instruction.basicBlock == this;
-		instructions.add(instruction);
+		if (instruction.operation.isPhi())
+		{
+			// For simplicity, phi functions are added to the *start* of the
+			// block.
+			instructions.add(0, instruction);
+		}
+		else
+		{
+			instructions.add(instruction);
+		}
 		hasStartedCodeGeneration = true;
 		hasControlFlowAtEnd = instruction.altersControlFlow();
+	}
+
+
+	/**
+	 * Determine whether code added after the last instruction of this block
+	 * would be reachable.  Take into account whether the block itself seems to
+	 * be reachable.
+	 *
+	 * @return Whether it would be possible to reach a new instruction added to
+	 *         this block.
+	 */
+	public boolean currentlyReachable ()
+	{
+		return (isIrremovable || !predecessorEdges.isEmpty())
+			&& !hasControlFlowAtEnd;
 	}
 
 	/**

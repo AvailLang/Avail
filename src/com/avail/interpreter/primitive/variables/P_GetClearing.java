@@ -94,7 +94,10 @@ public final class P_GetClearing extends Primitive
 	protected A_Type privateBlockTypeRestriction ()
 	{
 		return
-			functionType(tuple(mostGeneralVariableType()), ANY.o());
+			functionType(
+				tuple(
+					mostGeneralVariableType()),
+				ANY.o());
 	}
 
 	@Override
@@ -110,9 +113,12 @@ public final class P_GetClearing extends Primitive
 	protected A_Type privateFailureVariableType ()
 	{
 		return
-			enumerationWith(set(E_CANNOT_READ_UNASSIGNED_VARIABLE,
-				E_CANNOT_MODIFY_FINAL_JAVA_FIELD, E_JAVA_MARSHALING_FAILED,
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
-				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
+			enumerationWith(
+				set(
+					E_CANNOT_READ_UNASSIGNED_VARIABLE,
+					E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
+					E_JAVA_MARSHALING_FAILED,
+					E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
+					E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED));
 	}
 }

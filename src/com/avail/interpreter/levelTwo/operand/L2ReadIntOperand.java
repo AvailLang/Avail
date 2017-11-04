@@ -42,6 +42,7 @@ import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 import com.sun.org.apache.bcel.internal.generic.L2I;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -108,14 +109,6 @@ public class L2ReadIntOperand extends L2Operand
 	}
 
 	@Override
-	public L2ReadIntOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return new L2ReadIntOperand(
-			transformer.value(register, operandType()));
-	}
-
-	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
 		register.addUse(instruction);
@@ -140,6 +133,12 @@ public class L2ReadIntOperand extends L2Operand
 		register.removeUse(instruction);
 		replacement.addUse(instruction);
 		register = L2IntegerRegister.class.cast(replacement);
+	}
+
+	@Override
+	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
+	{
+		sourceRegisters.add(register);
 	}
 
 	@Override

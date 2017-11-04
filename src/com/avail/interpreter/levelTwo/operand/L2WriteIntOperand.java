@@ -43,6 +43,7 @@ import com.avail.interpreter.levelTwo.register.RegisterTransformer;
 
 import javax.annotation.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
@@ -119,14 +120,6 @@ public class L2WriteIntOperand extends L2Operand
 	}
 
 	@Override
-	public L2WriteIntOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return new L2WriteIntOperand(
-			transformer.value(register, operandType()));
-	}
-
-	@Override
 	public void instructionWasAdded (final L2Instruction instruction)
 	{
 		register.addDefinition(instruction);
@@ -151,6 +144,13 @@ public class L2WriteIntOperand extends L2Operand
 		register.removeDefinition(instruction);
 		replacement.addDefinition(instruction);
 		register = L2IntegerRegister.class.cast(replacement);
+	}
+
+	@Override
+	public void addDestinationRegistersTo (
+		final List<L2Register> destinationRegisters)
+	{
+		destinationRegisters.add(register);
 	}
 
 	@Override

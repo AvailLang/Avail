@@ -74,13 +74,6 @@ public class L2CommentOperand extends L2Operand
 	}
 
 	@Override
-	public L2CommentOperand transformRegisters (
-		final RegisterTransformer<L2OperandType> transformer)
-	{
-		return this;
-	}
-
-	@Override
 	public String toString ()
 	{
 		return "Comment(" + comment + ")";

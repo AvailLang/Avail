@@ -200,7 +200,7 @@ public final class L1Translator
 	}
 
 	/** The {@link L2BasicBlock} that code is currently being generated into. */
-	L2BasicBlock currentBlock = initialBlock;
+	@Nullable L2BasicBlock currentBlock = initialBlock;
 
 	/**
 	 * During naive L1 → L2 translation, the stack-oriented L1 nybblecodes are
@@ -286,12 +286,16 @@ public final class L1Translator
 	 */
 	public void startBlock (final L2BasicBlock block)
 	{
-		currentBlock = block;
 		constantsInCurrentBlock.clear();
 		if (block.isIrremovable() || block.hasPredecessors())
 		{
+			currentBlock = block;
 			controlFlowGraph.startBlock(block);
 			block.startIn(this);
+		}
+		else
+		{
+			currentBlock = null;
 		}
 	}
 
@@ -304,8 +308,7 @@ public final class L1Translator
 	 */
 	boolean currentlyReachable ()
 	{
-		return currentBlock.isIrremovable()
-			|| currentBlock.hasPredecessors();
+		return currentBlock != null && currentBlock.currentlyReachable();
 	}
 
 	/**
@@ -578,7 +581,11 @@ public final class L1Translator
 		final L2Operation operation,
 		final L2Operand... operands)
 	{
-		addInstruction(new L2Instruction(currentBlock, operation, operands));
+		if (currentBlock != null)
+		{
+			currentBlock.addInstruction(
+				new L2Instruction(currentBlock, operation, operands));
+		}
 	}
 
 	/**
@@ -590,7 +597,10 @@ public final class L1Translator
 	public void addInstruction (
 		final L2Instruction instruction)
 	{
-		currentBlock.addInstruction(instruction);
+		if (currentBlock != null)
+		{
+			currentBlock.addInstruction(instruction);
+		}
 	}
 
 	/**
@@ -723,10 +733,6 @@ public final class L1Translator
 			new ArrayList<>(slots.length);
 		final L2ReadPointerOperand[] readSlotsOnReturnIntoReified =
 			new L2ReadPointerOperand[slots.length];
-		final List<L2WritePointerOperand> undefinedWriters =
-			new ArrayList<>(slots.length);
-		final L2ReadPointerOperand[] undefinedSlots =
-			new L2ReadPointerOperand[slots.length];
 		for (int i = 0; i < slots.length; i++)
 		{
 			final TypeRestriction originalRestriction = slots[i].restriction();
@@ -734,18 +740,10 @@ public final class L1Translator
 				originalRestriction.type, originalRestriction.constantOrNull);
 			writeSlotsOnReturnIntoReified.add(slotWriter);
 			readSlotsOnReturnIntoReified[i] = slotWriter.read();
-
-			final L2WritePointerOperand undefinedWriter =
-				newObjectRegisterWriter(TOP.o(), null);
-			undefinedWriters.add(undefinedWriter);
-			undefinedSlots[i] = undefinedWriter.read();
 		}
 		// Now generate the reification instructions, ensuring that when
 		// returning into the resulting continuation it will enter a block where
 		// the slot registers are the new ones we just created.
-		addInstruction(
-			L2_UNDEFINE_REGISTERS.instance,
-			writeVector(undefinedWriters));
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			caller,
@@ -755,7 +753,7 @@ public final class L1Translator
 			getSkipReturnCheck(),
 			readVector(asList(slots)),
 			newContinuationRegister,
-			new L2PcOperand(onReturnIntoReified, undefinedSlots),
+			new L2PcOperand(onReturnIntoReified, readSlotsOnReturnIntoReified),
 			new L2PcOperand(afterCreation, slots));
 
 		startBlock(afterCreation);
@@ -769,7 +767,7 @@ public final class L1Translator
 			L2_EXPLODE_CONTINUATION.instance,
 			popCurrentContinuation(),
 			writeVector(writeSlotsOnReturnIntoReified),
-			new L2WriteIntOperand(newIntegerRegister())); //ignored
+			new L2WriteIntOperand(newIntegerRegister())); //TODO MvG - Fix this when we have int phis
 		addInstruction(
 			L2_JUMP.instance,
 			new L2PcOperand(resumeBlock, readSlotsOnReturnIntoReified));
@@ -781,6 +779,7 @@ public final class L1Translator
 	public void addUnreachableCode ()
 	{
 		addInstruction(L2_JUMP.instance, unreachablePcOperand());
+		startBlock(createBasicBlock("an unreachable block"));
 	}
 
 	/**
@@ -796,7 +795,7 @@ public final class L1Translator
 	 */
 	public void forceSlotRegister (
 		final int slotIndex,
-		final L2ReadPointerOperand register)
+		final @Nullable L2ReadPointerOperand register)
 	{
 		slotRegisters[slotIndex - 1] = register;
 	}
@@ -831,24 +830,39 @@ public final class L1Translator
 	 */
 	@InnerAccess class InternalNodeMemento
 	{
+		/** The one-based index of the argument being tested. */
+		final int argumentIndexToTest;
+
 		/**
 		 * Where to jump if the {@link InternalLookupTree}'s type test is true.
 		 */
 		final L2BasicBlock passCheckBasicBlock;
 
 		/**
+		 * The {@link A_Type} that should be subtracted from argument's possible
+		 * type along the path where the type test fails.
+		 */
+		final A_Type typeToTest;
+
+		/**
 		 * Where to jump if the {@link InternalLookupTree}'s type test is false.
 		 */
 		final L2BasicBlock failCheckBasicBlock;
+
+		final L2ReadPointerOperand argumentBeforeComparison;
 
 		/**
 		 * Construct a new memento.  Make the label something meaningful to
 		 * make it easier to decipher.
 		 *
 		 * @param argumentIndexToTest
-		 *        The subscript of the argument being tested.
+		 *        The one-based subscript of the argument being tested.
 		 * @param typeToTest
 		 *        The type to test the argument against.
+		 * @param argumentBeforeComparison
+		 *        The register holding the argument prior to the type test.
+		 *        The test produces new registers with narrowed types to hold
+		 *        the stronger-typed argument.
 		 * @param branchLabelCounter
 		 *        An int unique to this dispatch tree, monotonically
 		 *        allocated at each branch.
@@ -856,8 +870,12 @@ public final class L1Translator
 		@InnerAccess InternalNodeMemento (
 			final int argumentIndexToTest,
 			final A_Type typeToTest,
+			final L2ReadPointerOperand argumentBeforeComparison,
 			final int branchLabelCounter)
 		{
+			this.argumentIndexToTest = argumentIndexToTest;
+			this.typeToTest = typeToTest;
+			this.argumentBeforeComparison = argumentBeforeComparison;
 			final String shortTypeName =
 				branchLabelCounter
 					+ " (arg#"
@@ -892,10 +910,6 @@ public final class L1Translator
 		final A_Type expectedType,
 		final A_Type superUnionType)
 	{
-		if (translator.interpreter().fiber().uniqueId() == 6167)
-		{
-			System.out.println("GENERATING CALL in fiber 6167");
-		}
 		final A_Method method = bundle.bundleMethod();
 		translator.contingentValues =
 			translator.contingentValues.setWithElementCanDestroy(method, true);
@@ -946,6 +960,7 @@ public final class L1Translator
 				}
 			}
 		}
+
 		// NOTE: Don't use the method's testing tree.  It encodes information
 		// about the known types of arguments that may be too weak for our
 		// purposes.  It's still correct, but it may produce extra tests that
@@ -975,12 +990,13 @@ public final class L1Translator
 					new InternalNodeMemento(
 						argumentIndexToTest,
 						typeToTest,
+						arguments.get(argumentIndexToTest - 1),
 						branchLabelCounter.value++);
 				// If no paths lead here, don't generate code.  This can happen
 				// when we short-circuit type-tests into unconditional jumps,
 				// due to the complexity of super calls.  We short-circuit code
 				// generation within this entire subtree by performing the same
-				// test in each callback.
+				// check in each callback.
 				if (!currentlyReachable())
 				{
 					startBlock(memento.passCheckBasicBlock);
@@ -1007,45 +1023,35 @@ public final class L1Translator
 					superUnionElementType.isBottom();
 				final @Nullable A_BasicObject constantOrNull =
 					arg.constantOrNull();
-				if (constantOrNull != null)
+				if (constantOrNull != null && superUnionElementTypeIsBottom)
 				{
-					// The argument is a constant, so test it now.  Take into
-					// account any supercasts.
-					final A_Type unionType =
-						instanceTypeOrMetaOn(constantOrNull).typeUnion(
-							superUnionElementType);
+					// The argument is a constant, and it isn't being
+					// super-cast, so test it now.
 					// Unconditionally jump to either the true or the false
-					// path.
-					final boolean isSubtype =
-						unionType.isSubtypeOf(intersection);
+					// path.  Don't bother restricting the resulting argument
+					// type, since it's a known constant either way.
 					addInstruction(
 						L2_JUMP.instance,
-						isSubtype
-							? new L2PcOperand(
-								memento.passCheckBasicBlock,
-								slotRegisters(),
-								arg.restrictedTo(intersection, null))
-							: new L2PcOperand(
-								memento.failCheckBasicBlock,
-								slotRegisters(),
-								arg.restrictedWithoutType(intersection)));
+						new L2PcOperand(
+							(constantOrNull.isInstanceOf(intersection))
+								? memento.passCheckBasicBlock
+								: memento.failCheckBasicBlock,
+							slotRegisters()));
 				}
 				else if (existingType.isSubtypeOf(superUnionElementType))
 				{
 					// It's a pure supercast of this argument, not a mix of some
 					// parts being supercast and others not.  Do the test once,
-					// right now.
+					// right now, only looking at the super-union type.
 					final boolean passed =
 						superUnionElementType.isSubtypeOf(intersection);
 					addInstruction(
 						L2_JUMP.instance,
-						passed
-							? new L2PcOperand(
-								memento.passCheckBasicBlock,
-								slotRegisters())
-							: new L2PcOperand(
-								memento.failCheckBasicBlock,
-								slotRegisters()));
+						new L2PcOperand(
+							passed
+								? memento.passCheckBasicBlock
+								: memento.failCheckBasicBlock,
+							slotRegisters()));
 				}
 				else if (superUnionElementTypeIsBottom
 					&& intersection.isEnumeration()
@@ -1056,29 +1062,35 @@ public final class L1Translator
 					// It doesn't contain a supercast, and the type is a small
 					// non-meta enumeration.  Use equality checks rather than
 					// the more general type checks.
+					//
+					// TODO MvG - Eventually we can do this in such a way that a
+					// phi function gets built at the success point.  Later, if
+					// a user of the phi-merged argument indicates it would
+					// benefit from knowing statically which of the values it
+					// was, it can trigger code splitting.
 					final Iterator<AvailObject> iterator =
 						intersection.instances().iterator();
 					while (iterator.hasNext())
 					{
 						final A_BasicObject instance = iterator.next();
+						final boolean last = !iterator.hasNext();
 						final L2BasicBlock nextCheckOrFail =
-							iterator.hasNext()
-								? createBasicBlock(
-									"test next case of enumeration")
-								: memento.failCheckBasicBlock;
+							last
+								? memento.failCheckBasicBlock
+								: createBasicBlock(
+									"test next case of enumeration");
 						addInstruction(
 							L2_JUMP_IF_EQUALS_CONSTANT.instance,
 							arg,
 							new L2ConstantOperand(instance),
 							new L2PcOperand(
-								memento.passCheckBasicBlock,
-								slotRegisters(),
-								arg.restrictedToValue(instance)),
+								memento.passCheckBasicBlock, slotRegisters()),
 							new L2PcOperand(
-								nextCheckOrFail,
-								slotRegisters(),
-								arg.restrictedWithoutValue(instance)));
-						startBlock(nextCheckOrFail);
+								nextCheckOrFail, slotRegisters()));
+						if (!last)
+						{
+							startBlock(nextCheckOrFail);
+						}
 					}
 				}
 				else if (superUnionElementTypeIsBottom)
@@ -1090,11 +1102,9 @@ public final class L1Translator
 						arg,
 						new L2ConstantOperand(intersection),
 						new L2PcOperand(
-							memento.failCheckBasicBlock,
-							slotRegisters()),
+							memento.passCheckBasicBlock, slotRegisters()),
 						new L2PcOperand(
-							memento.passCheckBasicBlock,
-							slotRegisters()));
+							memento.failCheckBasicBlock, slotRegisters()));
 				}
 				else
 				{
@@ -1127,12 +1137,23 @@ public final class L1Translator
 						unionReg.read(),
 						new L2ConstantOperand(intersection),
 						new L2PcOperand(
-							memento.passCheckBasicBlock,
-							slotRegisters()),
+							memento.passCheckBasicBlock, slotRegisters()),
 						new L2PcOperand(
-							memento.failCheckBasicBlock,
-							slotRegisters()));
+							memento.failCheckBasicBlock, slotRegisters()));
 				}
+
+				// Prepare to generate the pass block.  In particular, replace
+				// the current argument with a pass-strengthened reader.  It'll
+				// be replaced with a fail-strengthened reader during the
+				// intraInternalNode, then replaced with whatever it was upon
+				// entry to this subtree during the postInternalNode.
+				final TypeRestriction tested =
+					new TypeRestriction(intersection, null);
+				final L2ReadPointerOperand passedTestArg =
+					new L2ReadPointerOperand(
+						arg.register(),
+						arg.restriction().intersection(tested));
+				arguments.set(argumentIndexToTest - 1, passedTestArg);
 				startBlock(memento.passCheckBasicBlock);
 				return memento;
 			},
@@ -1145,12 +1166,28 @@ public final class L1Translator
 						L2_JUMP.instance,
 						new L2PcOperand(afterCall, slotRegisters()));
 				}
+				final L2ReadPointerOperand argBeforeTest =
+					memento.argumentBeforeComparison;
+				final TypeRestriction tested =
+					new TypeRestriction(memento.typeToTest, null);
+				final TypeRestriction failed =
+					argBeforeTest.restriction().minus(tested);
+				final L2ReadPointerOperand argUponFailure =
+					new L2ReadPointerOperand(
+						memento.argumentBeforeComparison.register(),
+						failed);
+				arguments.set(memento.argumentIndexToTest - 1, argUponFailure);
 				startBlock(memento.failCheckBasicBlock);
 			},
 			// postInternalNode
 			memento ->
 			{
-				// The leaf already jumps to afterCall (or unreachableBlock).
+				// Restore the argument prior to encountering this internal
+				// node.
+				arguments.set(
+					memento.argumentIndexToTest - 1,
+					memento.argumentBeforeComparison);
+				// The leaves already jump to afterCall (or unreachableBlock).
 			},
 			// forEachLeafNode
 			solutions ->
@@ -1175,8 +1212,8 @@ public final class L1Translator
 								quotedBundleName);
 						// Propagate the type into the write slot, so that code
 						// downstream can determine if it's worth splitting the
-						// CFG to keep the stronger type in some of the
-						// branches.
+						// control flow graph to keep the stronger type in some
+						// of the branches.
 						moveRegister(
 							resultReg,
 							writeSlot(
@@ -1275,6 +1312,24 @@ public final class L1Translator
 		final L2ReadPointerOperand[] slotsIfReified,
 		final String invocationName)
 	{
+		if (functionToCallReg.type().isSubtypeOf(mostGeneralFunctionType()))
+		{
+			// Sanity check the number of arguments against the function.  The
+			// function type's acceptable arguments tuple type may be bottom,
+			// indicating the size is not known.  It may also be a singular
+			// integer range (e.g., [3..3]), indicating exactly how many
+			// arguments must be supplied.  If it's a variable size, then by
+			// the argument contravariance rules, it would require each (not
+			// just any) of those sizes on every call, which is a contradiction,
+			// although it's allowed as a denormalized uninstantiable type.  For
+			// now just treat a spread of sizes like bottom (i.e., the count is
+			// not known).
+			final A_Type sizeRange =
+				functionToCallReg.type().argsTupleType().sizeRange();
+			assert sizeRange.isBottom()
+				|| !sizeRange.lowerBound().equals(sizeRange.upperBound())
+				|| sizeRange.rangeIncludesInt(arguments.size());
+		}
 		final @Nullable L2ReadPointerOperand specialOutputReg =
 			tryToGenerateSpecialInvocation(functionToCallReg, arguments);
 		if (specialOutputReg != null)
@@ -1284,6 +1339,10 @@ public final class L1Translator
 			if (skipReturnCheck
 				|| specialOutputReg.type().isSubtypeOf(expectedType))
 			{
+				if (specialOutputReg.type().isBottom())
+				{
+					addUnreachableCode();
+				}
 				return specialOutputReg;
 			}
 			return generateReturnTypeCheck(specialOutputReg, expectedType);
@@ -1317,19 +1376,23 @@ public final class L1Translator
 					constantIntRegister(1)),
 			onReturn);
 
-		// This is reached either after a normal return from the invoke or after
-		// reification, return into the reified continuation, and the subsequent
-		// explode of the continuation into slot registers.
+		// This is reached either (1) after a normal return from the invoke, or
+		// (2) after reification, a return into the reified continuation, and
+		// the subsequent explosion of the continuation into slot registers.
 		startBlock(onReturn);
 		final A_Type functionType = functionToCallReg.type();
 		final A_Type functionReturnType =
-			functionType.isInstanceOf(mostGeneralFunctionType())
+			functionType.isSubtypeOf(mostGeneralFunctionType())
 				? functionType.returnType()
 				: TOP.o();
 		final L2ReadPointerOperand resultReg =
 			getLatestReturnValue(functionReturnType);
 		if (skipReturnCheck || resultReg.type().isSubtypeOf(expectedType))
 		{
+			if (resultReg.type().isBottom())
+			{
+				addUnreachableCode();
+			}
 			return resultReg;
 		}
 		return generateReturnTypeCheck(resultReg, expectedType);
@@ -1355,21 +1418,44 @@ public final class L1Translator
 		final L2ReadPointerOperand valueReg,
 		final A_Type expectedType)
 	{
+		if (valueReg.type().isBottom())
+		{
+			// Bottom has no instances, so we can't get here.  It would be wrong
+			// to do this based on the expectedTYpe being bottom, since that's
+			// only an erroneous semantic restriction, not a VM problem.
+			addUnreachableCode();
+			return valueReg;
+		}
+
 		// Check the return value against the expectedType.
-		final L2BasicBlock passedCheck = createBasicBlock("passed check");
-		final L2BasicBlock failedCheck = createBasicBlock("failed check");
-		addInstruction(
-			L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-			valueReg,
-			new L2ConstantOperand(expectedType),
-			new L2PcOperand(
-				passedCheck,
-				slotRegisters(),
-				valueReg.restrictedTo(expectedType, null)),
-			new L2PcOperand(
-				failedCheck,
-				slotRegisters(),
-				valueReg.restrictedTo(TOP.o(), null)));
+		final L2BasicBlock passedCheck =
+			createBasicBlock("passed return check");
+		final L2BasicBlock failedCheck =
+			createBasicBlock("failed return check");
+		if (valueReg.type().typeIntersection(expectedType).isBottom())
+		{
+			// It's impossible to return a valid value here, since the value's
+			// type bound and the expected type don't intersect.  Always invoke
+			// the bad type handler.
+			addInstruction(
+				L2_JUMP.instance,
+				new L2PcOperand(failedCheck, slotRegisters()));
+		}
+		else
+		{
+			addInstruction(
+				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+				valueReg,
+				new L2ConstantOperand(expectedType),
+				new L2PcOperand(
+					passedCheck,
+					slotRegisters(),
+					valueReg.restrictedTo(expectedType, null)),
+				new L2PcOperand(
+					failedCheck,
+					slotRegisters(),
+					valueReg.restrictedTo(TOP.o(), null)));
+		}
 
 		// The type check failed, so report it.
 		startBlock(failedCheck);
@@ -1406,13 +1492,19 @@ public final class L1Translator
 			"failed return check");
 		addUnreachableCode();
 
-		startBlock(passedCheck);
-		final L2WritePointerOperand strongerResultWrite =
-			newObjectRegisterWriter(
-				expectedType.typeIntersection(valueReg.type()),
-				null);
-		moveRegister(valueReg, strongerResultWrite);
-		return strongerResultWrite.read();
+		if (passedCheck.currentlyReachable())
+		{
+			startBlock(passedCheck);
+			final L2WritePointerOperand strongerResultWrite =
+				newObjectRegisterWriter(
+					expectedType.typeIntersection(valueReg.type()),
+					null);
+			moveRegister(valueReg, strongerResultWrite);
+			return strongerResultWrite.read();
+		}
+		// It's not reachable, but we still need to return a register.  Create
+		// one uninitialized and return it.
+		return newObjectRegisterWriter(bottom(), null).read();
 	}
 
 	/**
@@ -1431,6 +1523,7 @@ public final class L1Translator
 	 *        The register containing the function to invoke.
 	 * @param arguments
 	 *        The arguments to supply to the function.
+	 * @return The register that holds the result of the invocation.
 	 */
 	private @Nullable L2ReadPointerOperand tryToGenerateSpecialInvocation (
 		final L2ReadPointerOperand functionToCallReg,
@@ -1446,9 +1539,8 @@ public final class L1Translator
 			if (primitive != null)
 			{
 				// It's a primitive function.
-				final @Nullable Interpreter interpreter =
-					translator.interpreter;
-				if (primitive.hasFlag(CanFold) && interpreter != null)
+				final Interpreter interpreter = translator.interpreter();
+				if (primitive.hasFlag(CanFold))
 				{
 					// It can be folded, if supplied with constants.
 					final int count = arguments.size();
@@ -1471,9 +1563,22 @@ public final class L1Translator
 						final @Nullable A_Function savedFunction =
 							interpreter.function;
 						interpreter.function = functionIfKnown;
-						final Result success = primitive.attempt(
-							constants, interpreter, true);
-						interpreter.function = savedFunction;
+						final String savedDebugModeString =
+							interpreter.debugModeString;
+						interpreter.debugModeString +=
+							"FOLD " + primitive.getClass().getSimpleName() + ": ";
+						final Result success;
+						try
+						{
+							success = primitive.attempt(
+								constants, interpreter, true);
+						}
+						finally
+						{
+							interpreter.debugModeString = savedDebugModeString;
+							interpreter.function = savedFunction;
+						}
+
 						if (success == SUCCESS)
 						{
 							return constantRegister(
@@ -1703,6 +1808,67 @@ public final class L1Translator
 		moveRegister(
 			returnReg,
 			writeSlot(stackp, expectedType, null));
+	}
+
+	/**
+	 * Test the value in the indicated slot against the given type, then branch
+	 * to one of two target blocks.  The type of the slot in each of those
+	 * blocks should be statically strengthened by how the result of the test
+	 * led to that location.
+	 *
+	 * @param slotIndexOfValue
+	 *        The index of the slot to test.
+	 * @param constantType
+	 *        The constant {@link A_Type} to test against.
+	 * @param isKind
+	 *        Where to jump (with the slot restriction intersected with the
+	 *        constant type) if the test passes.
+	 * @param isNotKind
+	 *        Where to jump (with the slot restriction having the tested
+	 *        constant type subtracted from it) if the test fails.
+	 */
+	public void branchAgainstConstantType (
+		final int slotIndexOfValue,
+		final A_Type constantType,
+		final L2BasicBlock isKind,
+		final L2BasicBlock isNotKind)
+	{
+		final AvailObject strongConstantType = (AvailObject) constantType;
+		final L2BasicBlock isKindHop = createBasicBlock(
+			"Hop for is kind (" + strongConstantType.typeTag() + ")");
+		final L2BasicBlock isNotKindHop = createBasicBlock(
+			"Hop for is not kind (" + strongConstantType.typeTag() + ")");
+		final L2ReadPointerOperand originalSlot = readSlot(slotIndexOfValue);
+		addInstruction(
+			L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+			readSlot(slotIndexOfValue),
+			new L2ConstantOperand(constantType),
+			new L2PcOperand(isKindHop, slotRegisters),
+			new L2PcOperand(isNotKindHop, slotRegisters));
+
+		startBlock(isKindHop);
+		final TypeRestriction passedTestRestriction =
+			originalSlot.restriction().intersection(
+				new TypeRestriction(constantType, null));
+		final L2WritePointerOperand passedTestSlot = writeSlot(
+			slotIndexOfValue,
+			passedTestRestriction.type,
+			passedTestRestriction.constantOrNull);
+		addInstruction(L2_MOVE.instance, originalSlot, passedTestSlot);
+		addInstruction(
+			L2_JUMP.instance, new L2PcOperand(isKind, slotRegisters));
+
+		startBlock(isNotKindHop);
+		final TypeRestriction failedTestRestriction =
+			originalSlot.restriction().minus(
+				new TypeRestriction(constantType, null));
+		final L2WritePointerOperand failedTestSlot = writeSlot(
+			slotIndexOfValue,
+			failedTestRestriction.type,
+			failedTestRestriction.constantOrNull);
+		addInstruction(L2_MOVE.instance, originalSlot, failedTestSlot);
+		addInstruction(
+			L2_JUMP.instance, new L2PcOperand(isNotKind, slotRegisters));
 	}
 
 	/**
@@ -2050,6 +2216,7 @@ public final class L1Translator
 		// fallback code.
 
 		// 1. Update counter and maybe optimize *before* extracting arguments.
+		afterOptionalInitialPrimitiveBlock = reenterFromRestartBlock;
 		startBlock(reenterFromRestartBlock);
 		addInstruction(
 			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
@@ -2160,7 +2327,7 @@ public final class L1Translator
 		final int count = getInteger();
 		final A_RawFunction codeLiteral = code().literalAt(getInteger());
 		final List<L2ReadPointerOperand> outers = new ArrayList<>(count);
-		for (int i = count; i >= 1; i--)
+		for (int i = 1; i <= count; i++)
 		{
 			outers.add(readSlot(stackp + count - i));
 		}
@@ -2195,15 +2362,15 @@ public final class L1Translator
 	@Override
 	public void L1_doGetLocalClearing ()
 	{
-		final int localIndex = getInteger();
+		final int index = getInteger();
 		stackp--;
-		final A_Type outerType =
-			code().localTypeAt(localIndex - code().numArgs());
+		final A_Type outerType = code().localTypeAt(index - code().numArgs());
 		final A_Type innerType = outerType.readType();
 		emitGetVariableOffRamp(
 			L2_GET_VARIABLE_CLEARING.instance,
-			readSlot(localIndex),
+			readSlot(index),
 			writeSlot(stackp, innerType, null));
+
 	}
 
 	@Override
@@ -2258,9 +2425,9 @@ public final class L1Translator
 		final L2ReadPointerOperand functionReg = getCurrentFunction();
 		final L2WritePointerOperand tempVarReg =
 			newObjectRegisterWriter(outerType, null);
-		addInstruction(
-			L2_MAKE_IMMUTABLE.instance,
-			readSlot(stackp));
+//		addInstruction(
+//			L2_MAKE_IMMUTABLE.instance,
+//			readSlot(stackp));
 		addInstruction(
 			L2_MOVE_OUTER_VARIABLE.instance,
 			new L2ImmediateOperand(outerIndex),
@@ -2277,7 +2444,8 @@ public final class L1Translator
 	public void L1_doGetLocal ()
 	{
 		final int index = getInteger();
-		final A_Type innerType = code().localTypeAt(index).readType();
+		final A_Type outerType = code().localTypeAt(index - code().numArgs());
+		final A_Type innerType = outerType.readType();
 		stackp--;
 		emitGetVariableOffRamp(
 			L2_GET_VARIABLE.instance,
@@ -2404,7 +2572,7 @@ public final class L1Translator
 			skipReturnCheckRead,
 			readVector(vectorWithOnlyArgsPreserved),
 			destReg,
-			new L2PcOperand(initialBlock, allUndefinedSlots),
+			new L2PcOperand(initialBlock, new L2ReadPointerOperand[0]),
 			new L2PcOperand(afterCreation, slotRegisters()));
 		startBlock(afterCreation);
 
@@ -2420,10 +2588,17 @@ public final class L1Translator
 	{
 		final A_Variable literalVariable = code().literalAt(getInteger());
 		stackp--;
-		if (literalVariable.isInitializedWriteOnceVariable())
+		if (literalVariable.isInitializedWriteOnceVariable()
+			&& literalVariable.valueWasStablyComputed())
 		{
-			// It's an initialized module constant, so it can never change.  Use
-			// the variable's eternal value.
+			// It's an initialized module constant, so it can never change,
+			// *and* the value was computed only via stable steps from other
+			// stable values.  Use the variable's eternal value.  If we allowed
+			// an unstable constant value to avoid triggering a get, we wouldn't
+			// properly detect the access to an unstable value, so a new module
+			// constant might not notice that its value was actually computed
+			// from unstable values, and accidentally mark itself as stably
+			// computed.  That would break the fast-loader optimization.
 			moveConstantToSlot(literalVariable.value(), stackp);
 		}
 		else
@@ -2514,7 +2689,7 @@ public final class L1Translator
 			L2_RETURN.instance,
 			readSlot(stackp),
 			getSkipReturnCheck());
-		assert stackp == code().numArgsAndLocalsAndStack();
+		assert stackp == numSlots;
 		stackp = Integer.MIN_VALUE;
 	}
 }

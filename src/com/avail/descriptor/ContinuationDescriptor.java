@@ -415,6 +415,10 @@ extends Descriptor
 		final AvailObject object,
 		final A_Continuation newCaller)
 	{
+		//TODO MvG - Remove sanity check
+		assert object != newCaller;
+
+
 		final AvailObject mutableVersion = isMutable()
 			? object
 			: AvailObjectRepresentation.newLike(mutable, object, 0, 0);

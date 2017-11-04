@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
@@ -89,7 +90,14 @@ public class L2_INVOKE extends L2Operation
 
 		return interpreter ->
 		{
-			final A_Function function =
+			final A_Function savedFunction = stripNull(interpreter.function);
+			final L2Chunk savedChunk = stripNull(interpreter.chunk);
+			final int savedOffset = interpreter.offset;
+			final AvailObject[] savedPointers = interpreter.pointers;
+			final int[] savedInts = interpreter.integers;
+			assert savedChunk.instructions[savedOffset - 1] == instruction;
+
+			final A_Function calledFunction =
 				interpreter.pointerAt(functionRegNumber);
 			interpreter.argsBuffer.clear();
 			for (final int argumentRegNumber : argumentRegNumbers)
@@ -97,16 +105,14 @@ public class L2_INVOKE extends L2Operation
 				interpreter.argsBuffer.add(
 					interpreter.pointerAt(argumentRegNumber));
 			}
-			interpreter.skipReturnCheck = skipReturnCheck;
 
-			final L2Chunk chunk = stripNull(interpreter.chunk);
-			final int offset = interpreter.offset;
-			final AvailObject[] savedPointers = interpreter.pointers;
-			final int[] savedInts = interpreter.integers;
-			assert chunk.instructions[offset - 1] == instruction;
-
-			interpreter.chunk = function.code().startingChunk();
+			interpreter.function = calledFunction;
+			interpreter.chunk = calledFunction.code().startingChunk();
 			interpreter.offset = 0;
+			interpreter.skipReturnCheck = skipReturnCheck;
+			// Safety
+			interpreter.pointers = Interpreter.emptyPointersArray;
+			interpreter.integers = Interpreter.emptyIntArray;
 			try
 			{
 				interpreter.runChunk();
@@ -123,10 +129,13 @@ public class L2_INVOKE extends L2Operation
 					// resulting continuation is "returned" by the L2_Return
 					// instruction.  That continuation should know how to be
 					// reentered when the callee returns.
-					interpreter.chunk = chunk;
+					interpreter.function = savedFunction;
+					interpreter.chunk = savedChunk;
 					interpreter.offset = onReification;
 					interpreter.pointers = savedPointers;
 					interpreter.integers = savedInts;
+					interpreter.returnNow = false;
+					assert !interpreter.exitNow;
 					final String oldModeString = interpreter.debugModeString;
 					interpreter.debugModeString += "reif L2 ";
 					try
@@ -139,20 +148,31 @@ public class L2_INVOKE extends L2Operation
 					}
 					// The off-ramp "returned" the callerless continuation that
 					// captures this frame.
-					reifier.pushContinuation(interpreter.latestResult());
+					final A_Continuation continuation =
+						interpreter.latestResult();
+					if (Interpreter.debugL2)
+					{
+						System.out.println(
+							interpreter.debugModeString
+								+ "Push reified continuation (for L2_INVOKE): "
+								+ continuation.function().code().methodName());
+					}
+					reifier.pushContinuation(continuation);
 					interpreter.debugModeString = oldModeString;
 				}
 				throw reifier;
 			}
 			finally
 			{
-				interpreter.chunk = chunk;
+				interpreter.function = savedFunction;
+				interpreter.chunk = savedChunk;
 				interpreter.offset = Integer.MAX_VALUE;
 				interpreter.pointers = savedPointers;
 				interpreter.integers = savedInts;
+				interpreter.returnNow = false;
+				assert !interpreter.exitNow;
 			}
 			// The invocation returned normally.
-			interpreter.returnNow = false;
 			interpreter.offset = onNormalReturn;
 		};
 	}
@@ -184,8 +204,10 @@ public class L2_INVOKE extends L2Operation
 			functionReg.constantOrNull();
 		if (exactFunction == null)
 		{
-			return super.debugNameIn(instruction);
+			return name() + "(function unknown)";
 		}
-		return name() + ": " + ((A_Function) exactFunction).code().methodName();
+		return name()
+			+ ": "
+			+ ((A_Function) exactFunction).code().methodName().asNativeString();
 	}
 }
